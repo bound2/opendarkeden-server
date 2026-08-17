@@ -327,7 +327,9 @@ GC_PACKET_SRC := GCActiveGuildList.cpp \
 	GCWarList.cpp \
 	GCWarScheduleList.cpp \
 	GCWhisper.cpp \
-	GCWhisperFailed.cpp
+	GCWhisperFailed.cpp \
+	GCExchangeList.cpp \
+	GCExchangeBuy.cpp
 
 CG_PACKET_SRC :=  CGAbsorbSoul.cpp \
 	CGAcceptUnion.cpp \
@@ -475,7 +477,9 @@ CG_PACKET_SRC :=  CGAbsorbSoul.cpp \
 	CGVisible.cpp \
 	CGWhisper.cpp \
 	CGWithdrawPet.cpp \
-	CGWithdrawTax.cpp
+	CGWithdrawTax.cpp \
+	CGExchangeList.cpp \
+	CGExchangeBuy.cpp
 
 S_HANDLER_SRC := GSAddGuildHandler.cpp  GSAddGuildMemberHandler.cpp  GSExpelGuildMemberHandler.cpp  GSGuildMemberLogOnHandler.cpp  \
 	GSModifyGuildIntroHandler.cpp GSModifyGuildMemberHandler.cpp  GSQuitGuildHandler.cpp  GSRequestGuildInfoHandler.cpp \
@@ -518,7 +522,7 @@ CG_HANDLER_SRC :=  CGAbsorbSoulHandler.cpp            CGDenyUnionHandler.cpp    
 	CGConnectHandler.cpp               CGMakeItemHandler.cpp          CGRangerSayHandler.cpp               CGSelectQuestHandler.cpp             CGStoreOpenHandler.cpp         CGUsePowerPointHandler.cpp \
 	CGCrashReportHandler.cpp           CGMixItemHandler.cpp           CGReadyHandler.cpp                   CGSelectRankBonusHandler.cpp         CGStoreSignHandler.cpp         CGVerifyTimeHandler.cpp \
 	CGDeleteSMSAddressHandler.cpp      CGModifyGuildIntroHandler.cpp  CGRegistGuildHandler.cpp             CGSelectRegenZoneHandler.cpp         CGSubmitScoreHandler.cpp       CGVisibleHandler.cpp \
-	CGConnectSetKeyHandler.cpp
+	CGConnectSetKeyHandler.cpp CGExchangeListHandler.cpp CGExchangeBuyHandler.cpp
 
 GC_HANDLER_SRC := GCActiveGuildListHandler.cpp               GCChangeWeatherHandler.cpp            GCModifyGuildMemberInfoHandler.cpp   GCRemoveCorpseHeadHandler.cpp         GCSkillToTileOK2Handler.cpp \
 	GCAddBatHandler.cpp                        GCCreateItemHandler.cpp               GCModifyInformationHandler.cpp       GCRemoveEffectHandler.cpp             GCSkillToTileOK3Handler.cpp \
@@ -570,7 +574,8 @@ GC_HANDLER_SRC := GCActiveGuildListHandler.cpp               GCChangeWeatherHand
 	GCCannotUseHandler.cpp                     GCMakeItemOKHandler.cpp               GCReconnectHandler.cpp               GCSkillToSelfOK1Handler.cpp           GCWhisperHandler.cpp \
 	GCCastingSkillHandler.cpp                  GCMineExplosionOK1Handler.cpp         GCReconnectLoginHandler.cpp          GCSkillToSelfOK2Handler.cpp \
 	GCChangeDarkLightHandler.cpp               GCMineExplosionOK2Handler.cpp         GCRegenZoneStatusHandler.cpp         GCSkillToSelfOK3Handler.cpp \
-	GCChangeShapeHandler.cpp                   GCMiniGameScoresHandler.cpp           GCReloadOKHandler.cpp                GCSkillToTileOK1Handler.cpp	GCFriendChattingHandler.cpp
+	GCChangeShapeHandler.cpp                   GCMiniGameScoresHandler.cpp           GCReloadOKHandler.cpp                GCSkillToTileOK1Handler.cpp	GCFriendChattingHandler.cpp \
+	GCExchangeListHandler.cpp GCExchangeBuyHandler.cpp
 	# GCMonsterKillQuestStatusHandler.cpp
 
 GS_HANDLER_SRC := GSAddGuildHandler.cpp        GSExpelGuildMemberHandler.cpp  GSModifyGuildIntroHandler.cpp   GSQuitGuildHandler.cpp \

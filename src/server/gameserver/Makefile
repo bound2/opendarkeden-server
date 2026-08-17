@@ -94,6 +94,8 @@ EFFECT_OBJS = Effect.o EffectManager.o EffectSchedule.o EffectLoaderManager.o \
 	EffectRideMotorcycle.o EffectDonation200501.o SimpleTileEffect.o EffectDeleteTile.o
 	#EffectDropBloodBible.o
 
+EXCHANGE_OBJS = exchange/ExchangeService.o exchange/ExchangeDB.o
+
 GQUEST_OBJS = \
 	GQuestInfo.o GQuestManager.o GQuestElement.o GQuestStatus.o GQuestInventory.o \
 	GQuestLevelElement.o GQuestTimeElement.o GQuestGiveVampireExpElement.o GQuestBloodDrainElement.o GQuestSayNPCElement.o GQuestExecuteElement.o \
@@ -152,14 +154,13 @@ OBJS = main.o Zone.o Slayer.o Vampire.o Ousters.o OustersEXPInfo.o \
 	DynamicZoneAlterOfBlood.o DynamicZoneFactoryManager.o DynamicZoneSlayerMirrorOfAbyss.o \
 	DynamicZoneVampireMirrorOfAbyss.o DynamicZoneOustersMirrorOfAbyss.o \
 	NewYear2005ItemUtil.o \
-	$(MONSTER_OBJS) $(ITEM_OBJS) $(GUILD_OBJS) $(EFFECT_OBJS) $(EVENT_OBJS) $(COMBAT_OBJS) $(GQUEST_OBJS)
+	$(MONSTER_OBJS) $(ITEM_OBJS) $(GUILD_OBJS) $(EFFECT_OBJS) $(EVENT_OBJS) $(COMBAT_OBJS) $(GQUEST_OBJS) $(EXCHANGE_OBJS)
 
 SRCS = $(OBJS:.o=.cpp)
 
 DEPS = $(SRCS:%.cpp=$(DEPDIR)/%.d)
 
 TARGET = $(BINDIR)/gameserver
-
 
 #----------------------------------------------------------------------
 # actions
@@ -195,8 +196,17 @@ gameserver :
 $(TARGET) : $(OBJS) $(LIBDIR)/libGameServerDatabase.a $(LIBDIR)/libSkill.a $(LIBDIR)/libGameServerPackets.a $(LIBDIR)/libItems.a $(LIBDIR)/libQuest.a $(LIBDIR)/libMofus.a $(LIBDIR)/libServerCore.a $(LIBDIR)/libCore.a $(LIBDIR)/libSharedServerPackets.a $(LIBDIR)/libGameServerBilling.a $(LIBDIR)/libLuaScript.a $(LIBDIR)/libWar.a $(LIBDIR)/libCouple.a $(LIBDIR)/libMission.a $(LIBDIR)/libCTF.a $(LIBDIR)/libGameServerCBilling.a
 	$(CC) -o $@ $(OBJS) $(LIBS) $(SYSLIBS) -rdynamic
 
+#----------------------------------------------------------------------
+# Exchange System (subdirectory sources, no auto-dependency tracking)
+#----------------------------------------------------------------------
+exchange/ExchangeService.o : exchange/ExchangeService.cpp
+	$(CC) $(CCFLAGS) $(DEFS) $(INCLUDES) -o $@ $<
+
+exchange/ExchangeDB.o : exchange/ExchangeDB.cpp
+	$(CC) $(CCFLAGS) $(DEFS) $(INCLUDES) -o $@ $<
+
 clean :
-	rm -rf *.o
+	rm -rf *.o exchange/*.o
 	$(MAKE) -C mission clean
 	$(MAKE) -C couple clean
 	$(MAKE) -C war clean
@@ -209,7 +219,7 @@ clean :
 	$(MAKE) -C mofus clean
 
 cleanall :
-	rm -rf *.o $(TARGET)
+	rm -rf *.o exchange/*.o $(TARGET)
 	$(MAKE) -C mission cleanall
 	$(MAKE) -C couple cleanall
 	$(MAKE) -C war cleanall
