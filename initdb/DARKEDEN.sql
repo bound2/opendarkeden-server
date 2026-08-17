@@ -3571,7 +3571,7 @@ CREATE TABLE `GameServerInfo` (
 
 LOCK TABLES `GameServerInfo` WRITE;
 /*!40000 ALTER TABLE `GameServerInfo` DISABLE KEYS */;
-INSERT INTO `GameServerInfo` VALUES (1,'game1','127.0.0.1',9998,9997,1,0,0);
+INSERT INTO `GameServerInfo` VALUES (1,'game1','192.168.111.40',33064,9997,1,0,0);
 /*!40000 ALTER TABLE `GameServerInfo` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -11565,7 +11565,7 @@ CREATE TABLE `WorldDBInfo` (
 
 LOCK TABLES `WorldDBInfo` WRITE;
 /*!40000 ALTER TABLE `WorldDBInfo` DISABLE KEYS */;
-INSERT INTO `WorldDBInfo` VALUES (0,'odk-mysql','DARKEDEN','elcastle','elca110',3306),(1,'odk-mysql','DARKEDEN','elcastle','elca110',3306);
+INSERT INTO `WorldDBInfo` VALUES (0,'192.168.111.40','DARKEDEN','scott','tiger',33061),(1,'192.168.111.40','DARKEDEN','scott','tiger',33061);
 /*!40000 ALTER TABLE `WorldDBInfo` ENABLE KEYS */;
 UNLOCK TABLES;
 
