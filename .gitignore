@@ -1,6 +1,7 @@
 bin/*
 lib/*
 build/
+build-tests/
 *.o
 *.a
 .deps

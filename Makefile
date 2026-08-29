@@ -1,9 +1,16 @@
 # DarkEden Makefile
 
-.PHONY: all fmt fmt fmt-check fmt-check-all clean help debug
+.PHONY: all fmt fmt fmt-check fmt-check-all clean help debug test
 
 # Default target
 all: debug
+
+# Wire-contract test suite (docs/RESTRUCTURING.md Phase 1). Runs locally by
+# design — there is no CI tier for it yet (Phase 6).
+test:
+	cmake -B build -DCMAKE_BUILD_TYPE=Debug -DDARKEDEN_BUILD_TESTS=ON
+	cmake --build build --target wire_tests -j$(shell sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
+	cd build && ctest --output-on-failure
 
 release:
 	cmake -B build -DCMAKE_BUILD_TYPE=Release
@@ -71,6 +78,7 @@ help:
 	@echo "  all           - Build the project (default)"
 	@echo "  fmt           - Format all C++ code"
 	@echo "  fmt-check     - Check format for modified files only (fast)"
+	@echo "  test          - Build and run the wire-contract test suite"
 	@echo "  fmt-check-all - Check format for all files (slow)"
 	@echo "  clean         - Clean build artifacts"
 	@echo "  help          - Show this help message"

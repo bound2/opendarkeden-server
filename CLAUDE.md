@@ -40,6 +40,29 @@ The project uses clang-format with a `.clang-format` configuration file.
 - Format checking is enforced via GitHub Actions on PRs
 - Always run `make fmt` before committing changes
 
+### Tests
+
+```bash
+# Build and run the wire-contract test suite (local only — no CI tier yet)
+make test
+```
+
+- The suite (in `tests/`) pins the client/server wire contract: golden byte
+  fixtures and loopback round-trips for representative packets, a generated
+  wire-layout inventory (`tests/wire-layout.txt`) over every packet factory,
+  and the shrink-only ratchets from `docs/RESTRUCTURING.md`
+  (`tests/ratchet/ratchets.sh`).
+- A failing golden or inventory diff is a **protocol change**: the client
+  repo's hand-maintained packet copies must ship the identical change.
+  Re-record deliberately with `UPDATE_GOLDENS=1 ./build/tests/wire_tests`.
+- Ratchet numbers only go down. When one drops, tighten the baseline in
+  `tests/ratchet/ratchets.sh` AND `docs/RESTRUCTURING.md` in the same commit.
+- The `TestPackets` library compiles the whole packet set with NO server-type
+  macro — handlers must keep their server logic behind
+  `#ifdef __GAME_SERVER__` (etc.) so the wire layer stays buildable alone.
+- `docs/RESTRUCTURING.md` is the living restructuring plan; update task
+  `> **Status:**` lines in the same commit as the work.
+
 ## Project Architecture
 
 This is the **DarkEden** game server - an MMORPG server written in C++11.

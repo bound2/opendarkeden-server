@@ -143,8 +143,15 @@ endif()
 # ============================================================================
 # 子目录
 # ============================================================================
+option(DARKEDEN_BUILD_TESTS "Build the wire-contract test suite (tests/)" OFF)
+
 add_subdirectory(src/Core)
 add_subdirectory(src/server)
+
+if(DARKEDEN_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 # ============================================================================
 # 安装规则
