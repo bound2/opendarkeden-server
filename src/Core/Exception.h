@@ -103,6 +103,9 @@ private:
 //
 //--------------------------------------------------------------------------------
 
+// NOTE: no build type defines NDEBUG (see CMakeLists.txt). These macros are not
+// interchangeable with the real ones: 344 call sites use __END_CATCH_NO_RETHROW
+// to swallow exceptions, which the ((void)0) form lets escape instead.
 #if defined(NDEBUG)
 #define __BEGIN_TRY ((void)0);
 #define __END_CATCH ((void)0);

@@ -30,12 +30,10 @@ WORKDIR /home/darkeden/vs
 COPY CMakeLists.txt ./
 COPY src ./src
 
-# Debug by default, like `make` and the rest of the project: a Release build
-# defines NDEBUG, which turns Assert(expr) into ((void)0) - and ~165 call sites
-# rely on the side effect inside Assert(), e.g.
-#   Assert(pTree->GetAttribute("class", iClass));
-# so a Release gameserver dies while loading the quest XML files.
-ARG BUILD_TYPE=Debug
+# Release by default. Optimized builds no longer define NDEBUG (see
+# CMakeLists.txt), which is what used to strip the side effects out of the
+# project's Assert() and __END_CATCH_NO_RETHROW macros.
+ARG BUILD_TYPE=Release
 # Number of parallel compile jobs; defaults to all available cores.
 ARG BUILD_JOBS=
 

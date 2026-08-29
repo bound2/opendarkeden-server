@@ -48,11 +48,7 @@ cd docker
 docker compose up -d --build
 ```
 
-The image is built with `CMAKE_BUILD_TYPE=Debug`, the same default `make`
-uses. Do not switch it to `Release` unless you first fix the `Assert()` usage:
-`Release` defines `NDEBUG`, which expands `Assert(expr)` to `((void)0)`, and
-the code puts side effects inside it (`Assert(pTree->GetAttribute(...))`), so a
-Release gameserver aborts while loading the quest XML files.
+The image is built with `CMAKE_BUILD_TYPE=Release`. For a debug build:
 
 ```sh
 docker build -t darkeden:local --build-arg BUILD_TYPE=Debug .

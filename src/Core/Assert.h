@@ -30,7 +30,10 @@ void __assert__(const char* file, uint line, const char* func, const char* expr)
 void __protocol_assert__(const char* file, uint line, const char* func, const char* expr) noexcept(false);
 
 #if defined(NDEBUG)
-#define Assert(expr) ((void)0)
+// Still evaluate the expression: many call sites do real work inside Assert(),
+// e.g. Assert(pTree->GetAttribute("class", iClass)), and dropping it silently
+// breaks them. Only the diagnostic is disabled here.
+#define Assert(expr) ((void)(expr))
 #elif defined(__LINUX__) || defined(__APPLE__)
 #define Assert(expr) ((void)((expr) ? 0 : (__assert__(__FILE__, __LINE__, __PRETTY_FUNCTION__, #expr), 0)))
 #define ProtocolAssert(expr) \

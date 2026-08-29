@@ -31,9 +31,25 @@ set(WARNING_FLAGS
 )
 add_compile_options(${WARNING_FLAGS})
 
-# Debug 模式
+# Build type flags.
+#
+# NDEBUG is deliberately NOT defined in the optimized configurations. The code
+# base uses it for far more than assertions, and none of it is safe to drop:
+#
+#   * Assert(expr) expands to ((void)0) under NDEBUG, but ~165 call sites put
+#     the work inside it, e.g. Assert(pTree->GetAttribute("class", iClass)) in
+#     GQuestGiveItemElement.cpp - the attribute would never be read.
+#   * __BEGIN_TRY / __END_CATCH / __END_CATCH_NO_RETHROW (Exception.h) also
+#     collapse to ((void)0). 344 call sites use __END_CATCH_NO_RETHROW to
+#     swallow exceptions, mostly in client packet handlers, so under NDEBUG
+#     those exceptions would escape instead.
+#
+# Only the non-NDEBUG configuration has ever been exercised; keep it that way
+# and let the optimizer do the rest.
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")
 
 # ============================================================================
 # 查找依赖

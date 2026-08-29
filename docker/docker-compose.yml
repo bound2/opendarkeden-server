@@ -41,9 +41,8 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        # Debug matches `make`; a Release build defines NDEBUG, which strips the
-        # side effects out of the project's ~165 Assert(...) calls (see ../Dockerfile).
-        BUILD_TYPE: Debug
+        # Set to Debug for a development build.
+        BUILD_TYPE: Release
     image: darkeden:local
     container_name: odk-server
     depends_on:
