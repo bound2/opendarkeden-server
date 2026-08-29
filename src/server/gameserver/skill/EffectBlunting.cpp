@@ -114,8 +114,7 @@ string EffectBlunting::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectBlunting("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBlunting(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

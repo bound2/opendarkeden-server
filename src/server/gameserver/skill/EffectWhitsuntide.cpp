@@ -89,8 +89,7 @@ string EffectWhitsuntide::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectWhitsuntide("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectWhitsuntide(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

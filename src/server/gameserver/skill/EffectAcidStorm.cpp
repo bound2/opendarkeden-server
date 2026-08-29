@@ -221,8 +221,7 @@ string EffectAcidStorm::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectAcidStorm("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectAcidStorm(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

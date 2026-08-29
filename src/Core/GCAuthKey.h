@@ -17,8 +17,8 @@
 
 class GCAuthKey : public Packet {
 public:
-    GCAuthKey() {};
-    ~GCAuthKey() {};
+    GCAuthKey(){};
+    ~GCAuthKey(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

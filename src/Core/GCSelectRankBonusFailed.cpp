@@ -80,8 +80,7 @@ string GCSelectRankBonusFailed::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSelectRankBonusFailed("
-        << "RankBonusType:" << m_RankBonusType << ",Desc:" << (int)m_Desc << ")";
+    msg << "GCSelectRankBonusFailed(" << "RankBonusType:" << m_RankBonusType << ",Desc:" << (int)m_Desc << ")";
     return msg.toString();
 
     __END_CATCH

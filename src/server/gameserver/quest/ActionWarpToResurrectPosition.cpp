@@ -65,8 +65,7 @@ string ActionWarpToResurrectPosition::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionWarpToResurrectPosition("
-        << ")";
+    msg << "ActionWarpToResurrectPosition(" << ")";
 
     return msg.toString();
 

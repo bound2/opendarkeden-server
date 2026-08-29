@@ -46,8 +46,7 @@ string CGAddItemToCodeSheet::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGAddItemToCodeSheet("
-        << ",ObjectID:" << (int)m_ObjectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
+    msg << "CGAddItemToCodeSheet(" << ",ObjectID:" << (int)m_ObjectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
     return msg.toString();
 
     __END_CATCH

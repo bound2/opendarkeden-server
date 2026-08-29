@@ -90,9 +90,8 @@ string GCSkillToInventoryOK2::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSkillToInventoryOK2("
-        << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID << ",Duration:" << (int)m_Duration
-        << ")";
+    msg << "GCSkillToInventoryOK2(" << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID
+        << ",Duration:" << (int)m_Duration << ")";
     return msg.toString();
 
     __END_CATCH

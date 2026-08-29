@@ -19,8 +19,8 @@
 
 class CGMixItem : public Packet {
 public:
-    CGMixItem() {};
-    ~CGMixItem() {};
+    CGMixItem(){};
+    ~CGMixItem(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

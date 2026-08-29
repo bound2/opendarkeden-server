@@ -82,8 +82,8 @@ string CGUsePotionFromInventory::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGUsePotionFromInventory("
-        << "ObjectID : " << (int)m_ObjectID << ",InvenX: " << (int)m_InvenX << ",InvenY: " << (int)m_InvenY << ")";
+    msg << "CGUsePotionFromInventory(" << "ObjectID : " << (int)m_ObjectID << ",InvenX: " << (int)m_InvenX
+        << ",InvenY: " << (int)m_InvenY << ")";
     return msg.toString();
 
     __END_CATCH

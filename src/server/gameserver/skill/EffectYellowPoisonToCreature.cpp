@@ -158,8 +158,7 @@ void EffectYellowPoisonToCreature::create(const string& ownerID)
         Turn_t currentYearTime;
         getCurrentYearTime(currentYearTime);
 
-        sql << "INSERT INTO EffectYellowPoisonToCreature"
-            << "(OwnerID , YearTime, DayTime, Level, OldSight)"
+        sql << "INSERT INTO EffectYellowPoisonToCreature" << "(OwnerID , YearTime, DayTime, Level, OldSight)"
             << " VALUES('" << ownerID << "' , " << currentYearTime << "," << m_Deadline.tv_sec << "," << (int)m_Level
             << "," << (int)m_OldSight << ")";
 
@@ -216,9 +215,9 @@ void EffectYellowPoisonToCreature::save(const string& ownerID)
         Turn_t currentYearTime;
         getCurrentYearTime(currentYearTime);
 
-        sql << "UPDATE EffectYellowPoisonToCreature SET "
-            << "YearTime = " << currentYearTime << ", DayTime = " << m_Deadline.tv_sec << ", Level = " << (int)m_Level
-            << ", OldSight = " << (int)m_OldSight << " WHERE OwnerID = '" << ownerID << "'";
+        sql << "UPDATE EffectYellowPoisonToCreature SET " << "YearTime = " << currentYearTime
+            << ", DayTime = " << m_Deadline.tv_sec << ", Level = " << (int)m_Level << ", OldSight = " << (int)m_OldSight
+            << " WHERE OwnerID = '" << ownerID << "'";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -236,8 +235,7 @@ string EffectYellowPoisonToCreature::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectYellowPoisonToCreature("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectYellowPoisonToCreature(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 
@@ -265,8 +263,8 @@ void EffectYellowPoisonToCreatureLoader::load(Creature* pCreature)
 
         StringStream sql;
 
-        sql << "SELECT YearTime, DayTime, Level, OldSight FROM EffectYellowPoisonToCreature"
-            << " WHERE OwnerID = '" << pCreature->getName() << "'";
+        sql << "SELECT YearTime, DayTime, Level, OldSight FROM EffectYellowPoisonToCreature" << " WHERE OwnerID = '"
+            << pCreature->getName() << "'";
 
         Result* pResult = pStmt->executeQueryString(sql.toString());
 

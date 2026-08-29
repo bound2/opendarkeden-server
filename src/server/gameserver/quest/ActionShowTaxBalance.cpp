@@ -112,8 +112,7 @@ string ActionShowTaxBalance::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionShowTaxBalance("
-        << ")";
+    msg << "ActionShowTaxBalance(" << ")";
 
     return msg.toString();
 

@@ -200,8 +200,7 @@ string EffectRingOfFlare::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectRingOfFlare("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectRingOfFlare(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

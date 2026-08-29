@@ -38,8 +38,7 @@ string CGStoreOpen::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGStoreOpen("
-        << ")";
+    msg << "CGStoreOpen(" << ")";
     return msg.toString();
 
     __END_CATCH

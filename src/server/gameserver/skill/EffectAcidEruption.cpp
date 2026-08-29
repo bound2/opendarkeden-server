@@ -127,8 +127,7 @@ string EffectAcidEruption::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectAcidEruption("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectAcidEruption(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

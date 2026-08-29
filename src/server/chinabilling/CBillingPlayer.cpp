@@ -1049,8 +1049,8 @@ string CBillingPlayer::toString() const {
 
     StringStream msg;
 
-    msg << "CBillingPlayer("
-        << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost() << ",ID:" << m_ID << ")";
+    msg << "CBillingPlayer(" << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost()
+        << ",ID:" << m_ID << ")";
 
     return msg.toString();
 

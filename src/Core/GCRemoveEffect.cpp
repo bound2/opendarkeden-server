@@ -124,8 +124,7 @@ string GCRemoveEffect::toString() const {
 
     StringStream msg;
 
-    msg << "GCRemoveEffect("
-        << ",ListNum:" << (int)m_ListNum << ",ListSet(";
+    msg << "GCRemoveEffect(" << ",ListNum:" << (int)m_ListNum << ",ListSet(";
     for (list<EffectID_t>::const_iterator itr = m_EffectList.begin(); itr != m_EffectList.end(); itr++) {
         msg << (int)(*itr) << ",";
     }

@@ -158,8 +158,7 @@ string EffectShrineShield::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectShrineShield("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectShrineShield(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

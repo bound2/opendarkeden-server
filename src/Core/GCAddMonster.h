@@ -144,7 +144,7 @@ private:
     EffectInfo* m_pEffectInfo;   // effects info on monster
     HP_t m_CurrentHP;            // current hp
     HP_t m_MaxHP;                // max hp
-    BYTE m_FromFlag;             // ���κ����ΰ�? ������ ��쿡�� 0, ��Ż�� ������ ��쿡�� 1
+    BYTE m_FromFlag; // ���κ����ΰ�? ������ ��쿡�� 0, ��Ż�� ������ ��쿡�� 1
 };
 
 

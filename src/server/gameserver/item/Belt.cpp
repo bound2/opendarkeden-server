@@ -280,8 +280,7 @@ string Belt::toString() const
 {
     StringStream msg;
 
-    msg << "Belt("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
+    msg << "Belt(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
         << ",OptionType:" << getOptionTypeToString(getOptionTypeList()).c_str()
         << ",Durability:" << (int)getDurability() << ",EnchantLevel:" << (int)getEnchantLevel() << ")";
 
@@ -375,10 +374,9 @@ string BeltInfo::toString() const
 {
     StringStream msg;
 
-    msg << "BeltInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",Durability:" << m_Durability << ")";
+    msg << "BeltInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",Durability:" << m_Durability << ")";
 
     return msg.toString();
 }

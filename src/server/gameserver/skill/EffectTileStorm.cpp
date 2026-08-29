@@ -221,10 +221,9 @@ string EffectTileStorm::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectTileStorm("
-        << "ObjectID:" << (int)getObjectID() << ",Zone:" << (long)m_pZone << ",X:" << (int)m_X << ",Y:" << (int)m_Y
-        << ",Damage:" << (int)m_Damage << ",UserOBjectID:" << (int)m_UserObjectID << ",StormTime:" << (int)m_StormTime
-        << ",Tick:" << (int)m_Tick << ",SkillType:" << (int)m_SkillType << ")";
+    msg << "EffectTileStorm(" << "ObjectID:" << (int)getObjectID() << ",Zone:" << (long)m_pZone << ",X:" << (int)m_X
+        << ",Y:" << (int)m_Y << ",Damage:" << (int)m_Damage << ",UserOBjectID:" << (int)m_UserObjectID
+        << ",StormTime:" << (int)m_StormTime << ",Tick:" << (int)m_Tick << ",SkillType:" << (int)m_SkillType << ")";
 
     return msg.toString();
 

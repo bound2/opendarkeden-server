@@ -171,8 +171,7 @@ string EffectSharpHail::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectSharpHail("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectSharpHail(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

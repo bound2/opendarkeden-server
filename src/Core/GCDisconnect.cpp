@@ -81,8 +81,7 @@ string GCDisconnect::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCDisconnect("
-        << "Message:" << m_Message << ")";
+    msg << "GCDisconnect(" << "Message:" << m_Message << ")";
     return msg.toString();
 
     __END_CATCH

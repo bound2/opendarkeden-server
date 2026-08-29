@@ -90,8 +90,7 @@ string GCFriendChatting::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCFriendChatting("
-        << "Command:" << m_Command << ",PlayerName:" << m_PlayerName << ",Message:" << m_Message
+    msg << "GCFriendChatting(" << "Command:" << m_Command << ",PlayerName:" << m_PlayerName << ",Message:" << m_Message
         << ",m_IsBlack:" << m_IsBlack << ",m_IsOnLine:" << m_IsOnLine << ")";
     return msg.toString();
 

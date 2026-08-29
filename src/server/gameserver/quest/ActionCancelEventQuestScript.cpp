@@ -84,8 +84,7 @@ string ActionCancelEventQuestScript::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionCancelEventQuestScript("
-        << ")";
+    msg << "ActionCancelEventQuestScript(" << ")";
 
     return msg.toString();
 

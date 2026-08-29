@@ -72,9 +72,8 @@ void EventMorph::activate()
         // Resurrect가 되지 않으니 주의하길 바란다. 결국 GamePlayer 내부에서
         // 체크를 하기가 곤란하기 때문에 이 부분에서, 처리한다.
         StringStream msg;
-        msg << "EventMorph::activate() : GamePlayer의 상태가 GPS_NORMAL이 아닙니다."
-            << "PlayerID[" << m_pGamePlayer->getID() << "]"
-            << "CreatureName[" << pFromCreature->getName() << "]";
+        msg << "EventMorph::activate() : GamePlayer의 상태가 GPS_NORMAL이 아닙니다." << "PlayerID["
+            << m_pGamePlayer->getID() << "]" << "CreatureName[" << pFromCreature->getName() << "]";
 
         filelog("EventMorphError.log", "%s", msg.toString().c_str());
         return;
@@ -503,7 +502,6 @@ string EventMorph::toString() const
 
 {
     StringStream msg;
-    msg << "EventMorph("
-        << ")";
+    msg << "EventMorph(" << ")";
     return msg.toString();
 }

@@ -294,7 +294,7 @@ uint SocketInputStream::fill() {
     uint nFree;       // ������ �� ������ ũ��
 
     if (m_Head <= m_Tail) { // normal order
-                            // m_Head == m_Tail �� ���� ���۰� �� ���¸� ��Ÿ����.
+        // m_Head == m_Tail �� ���� ���۰� �� ���¸� ��Ÿ����.
 
         // �ϴ� ������ ������ �� �������� ä���.
         if (m_Head == 0) {
@@ -637,8 +637,7 @@ uint SocketInputStream::length() const {
 string SocketInputStream::toString() const {
     StringStream msg;
 
-    msg << "SocketInputStream("
-        << "BufferLen:" << m_BufferLen << ",Head:" << m_Head << ",Tail:" << m_Tail << ")";
+    msg << "SocketInputStream(" << "BufferLen:" << m_BufferLen << ",Head:" << m_Head << ",Tail:" << m_Tail << ")";
 
     return msg.toString();
 }

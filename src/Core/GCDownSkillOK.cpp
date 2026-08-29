@@ -78,8 +78,7 @@ string GCDownSkillOK::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCDownSkillOK("
-        << "SkillType:" << (int)m_SkillType << ")";
+    msg << "GCDownSkillOK(" << "SkillType:" << (int)m_SkillType << ")";
     return msg.toString();
 
     __END_CATCH

@@ -162,8 +162,7 @@ string Magazine::toString() const
 {
     StringStream msg;
 
-    msg << "Magazine("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "Magazine(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
 
     return msg.toString();
 }
@@ -219,10 +218,9 @@ string MagazineInfo::toString() const
 {
     StringStream msg;
 
-    msg << "MagazineInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",maxBullets:" << m_MaxBullets << ")";
+    msg << "MagazineInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",maxBullets:" << m_MaxBullets << ")";
 
     return msg.toString();
 }

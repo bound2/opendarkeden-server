@@ -120,9 +120,8 @@ string GGServerChat::toString() const
 {
     StringStream msg;
 
-    msg << "GGServerChat("
-        << ",Sender:" << m_Sender << ",Receiver:" << m_Receiver << ",Color:" << (int)m_Color << ",Message:" << m_Message
-        << ",Race:" << (int)m_Race << ")";
+    msg << "GGServerChat(" << ",Sender:" << m_Sender << ",Receiver:" << m_Receiver << ",Color:" << (int)m_Color
+        << ",Message:" << m_Message << ",Race:" << (int)m_Race << ")";
 
     return msg.toString();
 }

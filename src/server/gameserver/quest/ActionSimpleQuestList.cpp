@@ -82,8 +82,7 @@ string ActionSimpleQuestList::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionSimpleQuestList("
-        << ")";
+    msg << "ActionSimpleQuestList(" << ")";
 
     return msg.toString();
 

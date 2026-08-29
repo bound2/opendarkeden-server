@@ -155,8 +155,7 @@ string EffectIceHorizon::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectIceHorizon("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectIceHorizon(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

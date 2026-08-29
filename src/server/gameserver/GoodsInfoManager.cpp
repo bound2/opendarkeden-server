@@ -24,8 +24,7 @@ string GoodsInfo::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GoodsInfo ("
-        << "Type:" << (int)m_ItemType << ",Name:" << m_Name << ",ItemClass:" << (int)m_ItemClass
+    msg << "GoodsInfo (" << "Type:" << (int)m_ItemType << ",Name:" << m_Name << ",ItemClass:" << (int)m_ItemClass
         << ",ItemType:" << (int)m_ItemType << ",TimeLimit:" << (m_bTimeLimit ? "Y" : "N") << ",Hour:" << m_Hour << ")";
     return msg.toString();
 

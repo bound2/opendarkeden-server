@@ -62,8 +62,8 @@ string MonsterCounter::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "MonsterCounter("
-        << "SpriteType:" << m_SpriteType << "," << m_CurrentMonsters << "/" << m_MaxMonsters << ")";
+    msg << "MonsterCounter(" << "SpriteType:" << m_SpriteType << "," << m_CurrentMonsters << "/" << m_MaxMonsters
+        << ")";
     return msg.toString();
 
     __END_CATCH

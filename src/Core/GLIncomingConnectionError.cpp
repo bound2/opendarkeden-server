@@ -111,8 +111,7 @@ string GLIncomingConnectionError::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GLIncomingConnectionError("
-        << "Message:" << m_Message << "PlayerID:" << m_PlayerID << ")";
+    msg << "GLIncomingConnectionError(" << "Message:" << m_Message << "PlayerID:" << m_PlayerID << ")";
     return msg.toString();
 
     __END_CATCH

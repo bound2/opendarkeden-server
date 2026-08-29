@@ -115,8 +115,7 @@ string EffectDoom::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectDoom("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDoom(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

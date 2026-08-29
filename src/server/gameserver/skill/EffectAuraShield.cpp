@@ -98,8 +98,7 @@ string EffectAuraShield::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectAuraShield("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectAuraShield(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

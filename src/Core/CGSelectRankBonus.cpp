@@ -43,8 +43,7 @@ string CGSelectRankBonus::toString() const
 
     StringStream msg;
 
-    msg << "CGSelectRankBonus("
-        << "RankBonusType:" << (int)m_RankBonusType << ")";
+    msg << "CGSelectRankBonus(" << "RankBonusType:" << (int)m_RankBonusType << ")";
 
     return msg.toString();
 

@@ -63,8 +63,7 @@ string ConditionCanEnterGDRLair::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionCanEnterGDRLair("
-        << ")";
+    msg << "ConditionCanEnterGDRLair(" << ")";
     return msg.toString();
 
     __END_CATCH

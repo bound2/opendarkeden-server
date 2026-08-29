@@ -76,8 +76,7 @@ string GCShowMessageBox::toString() const
 
     StringStream msg;
 
-    msg << "GCShowMessageBox("
-        << "Message:" << m_Message << ")";
+    msg << "GCShowMessageBox(" << "Message:" << m_Message << ")";
 
     return msg.toString();
 

@@ -16,8 +16,8 @@
 
 class GCPartyLeave : public Packet {
 public:
-    GCPartyLeave() {};
-    ~GCPartyLeave() {};
+    GCPartyLeave(){};
+    ~GCPartyLeave(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

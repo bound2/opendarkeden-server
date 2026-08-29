@@ -14,8 +14,8 @@
 // 기부 종류
 ////////////////////////////////////////////////////////////////////////////////
 enum EventType {
-    EVENT_TYPE_200501_COMBACK_ITEM = 0,       // 돌아온 사용자 링 아이템 주기 이벤트
-    EVENT_TYPE_200501_COMBACK_PREMIUM_ITEM,   // 돌아온 사용자 결제 시 아이템 주기 이벤트
+    EVENT_TYPE_200501_COMBACK_ITEM = 0,     // 돌아온 사용자 링 아이템 주기 이벤트
+    EVENT_TYPE_200501_COMBACK_PREMIUM_ITEM, // 돌아온 사용자 결제 시 아이템 주기 이벤트
     EVENT_TYPE_200501_COMBACK_RECOMMEND_ITEM, // 돌아온 사용자 결제 시 추천 받은 자 아이템 주기 이벤트
 
     EVENT_TYPE_MAX
@@ -28,8 +28,8 @@ enum EventType {
 ////////////////////////////////////////////////////////////////////////////////
 class CGGetEventItem : public Packet {
 public:
-    CGGetEventItem() {};
-    ~CGGetEventItem() {};
+    CGGetEventItem(){};
+    ~CGGetEventItem(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

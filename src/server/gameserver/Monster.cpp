@@ -1443,8 +1443,7 @@ string Monster::toString() const
 
     __BEGIN_DEBUG
 
-    msg << "Monster("
-        << "ObjectID:" << (int)getObjectID() << ",MonsterType:" << (int)m_MonsterType
+    msg << "Monster(" << "ObjectID:" << (int)getObjectID() << ",MonsterType:" << (int)m_MonsterType
         << ",SpriteType:" << (int)getSpriteType() << ",Name:" << getName() << ",Level:" << (int)getLevel()
         << ",STR:" << (int)m_STR << ",DEX:" << (int)m_DEX << ",INT:" << (int)m_INT << ",HP:" << (int)m_HP[ATTR_CURRENT]
         << "/" << (int)m_HP[ATTR_MAX] << ",MainColor:" << (int)getMainColor() << ",SubColor:" << (int)getSubColor()
@@ -1454,8 +1453,7 @@ string Monster::toString() const
     for (list<ObjectID_t>::const_iterator itr = m_Enemies.begin(); itr != m_Enemies.end(); itr++)
         msg << (int)(*itr) << " ";
 
-    msg << ")"
-        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Sight :" << (int)m_Sight << ")";
+    msg << ")" << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Sight :" << (int)m_Sight << ")";
 
     __END_DEBUG
 

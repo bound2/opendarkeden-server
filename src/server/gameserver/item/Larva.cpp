@@ -180,8 +180,7 @@ string Larva::toString() const
 {
     StringStream msg;
 
-    msg << "Larva("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "Larva(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
 
     return msg.toString();
 }
@@ -376,9 +375,8 @@ string LarvaInfo::toString() const
 
 {
     StringStream msg;
-    msg << "LarvaInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "LarvaInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ",HPAmount:" << (int)m_HPAmount << ",MPAmount:" << (int)m_MPAmount
         << ")";
     return msg.toString();

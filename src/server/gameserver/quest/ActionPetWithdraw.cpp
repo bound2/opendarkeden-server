@@ -64,8 +64,7 @@ string ActionPetWithdraw::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionPetWithdraw("
-        << ")";
+    msg << "ActionPetWithdraw(" << ")";
 
     return msg.toString();
 

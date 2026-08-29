@@ -152,8 +152,7 @@ string EffectHellFire::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectHellFire("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHellFire(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

@@ -87,8 +87,7 @@ string EffectFuryOfGnomeMark::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectFuryOfGnomeMark("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectFuryOfGnomeMark(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

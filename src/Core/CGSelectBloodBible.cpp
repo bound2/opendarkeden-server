@@ -43,8 +43,7 @@ string CGSelectBloodBible::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSelectBloodBible("
-        << "BloodBibleID:" << m_BloodBibleID << ")";
+    msg << "CGSelectBloodBible(" << "BloodBibleID:" << m_BloodBibleID << ")";
     return msg.toString();
 
     __END_CATCH

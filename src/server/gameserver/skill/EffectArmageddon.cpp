@@ -145,8 +145,7 @@ string EffectArmageddon::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectArmageddon("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectArmageddon(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

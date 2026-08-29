@@ -150,8 +150,7 @@ string Water::toString() const
 
 {
     StringStream msg;
-    msg << "Water("
-        << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "Water(" << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ",Num:" << (int)m_Num << ")";
     return msg.toString();
 }
 
@@ -206,10 +205,9 @@ string WaterInfo::toString() const
 {
     StringStream msg;
 
-    msg << "WaterInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "WaterInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
 
     return msg.toString();
 }

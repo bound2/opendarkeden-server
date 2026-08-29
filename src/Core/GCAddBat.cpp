@@ -95,10 +95,9 @@ string GCAddBat::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddBat("
-        << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",ItemType:" << (int)m_ItemType << ",X:" << (int)m_X
-        << ",Y:" << (int)m_Y << ",Dir:" << (int)m_Dir << ",CurrentHP:" << (int)m_CurrentHP << ",MaxHP: " << (int)m_MaxHP
-        << ",GuildID: " << (int)m_GuildID << ",Color: " << (int)m_Color << ")";
+    msg << "GCAddBat(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",ItemType:" << (int)m_ItemType
+        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << (int)m_Dir << ",CurrentHP:" << (int)m_CurrentHP
+        << ",MaxHP: " << (int)m_MaxHP << ",GuildID: " << (int)m_GuildID << ",Color: " << (int)m_Color << ")";
     return msg.toString();
 
     __END_CATCH

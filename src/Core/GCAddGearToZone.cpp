@@ -72,8 +72,7 @@ string GCAddGearToZone::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddGearToZone("
-        << "SlotID:" << (int)m_SlotID << ")";
+    msg << "GCAddGearToZone(" << "SlotID:" << (int)m_SlotID << ")";
     return msg.toString();
 
     __END_CATCH

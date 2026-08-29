@@ -18,8 +18,8 @@
 
 class CGSMSAddressList : public Packet {
 public:
-    CGSMSAddressList() {};
-    virtual ~CGSMSAddressList() {};
+    CGSMSAddressList(){};
+    virtual ~CGSMSAddressList(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

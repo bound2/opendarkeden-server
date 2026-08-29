@@ -81,12 +81,11 @@ void OustersWristlet::create(const string& ownerID, Storage storage, StorageID_t
         string optionField;
         setOptionTypeToField(getOptionTypeList(), optionField);
 
-        sql << "INSERT INTO OustersWristletObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, Grade, ItemFlag)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << getItemType() << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", '" << optionField.c_str()
-            << "', " << getDurability() << ", " << getGrade() << ", " << (int)m_CreateType << ")";
+        sql << "INSERT INTO OustersWristletObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
+            << " X, Y, OptionType, Durability, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
+            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
+            << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", " << getGrade() << ", "
+            << (int)m_CreateType << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -176,8 +175,7 @@ string OustersWristlet::toString() const
 {
     StringStream msg;
 
-    msg << "OustersWristlet("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
+    msg << "OustersWristlet(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
         << ",OptionType:" << getOptionTypeToString(getOptionTypeList()).c_str()
         << ",Durability:" << (int)getDurability() << ",EnchantLevel:" << (int)getEnchantLevel() << ")";
 
@@ -298,12 +296,10 @@ string OustersWristletInfo::toString() const
 {
     StringStream msg;
 
-    msg << "OustersWristletInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",Durability:" << m_Durability << ",minDamage:" << m_MinDamage << ",maxDamage:" << m_MaxDamage
-        << ",ReqAbility:"
-        << ")";
+    msg << "OustersWristletInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",Durability:" << m_Durability << ",minDamage:" << m_MinDamage
+        << ",maxDamage:" << m_MaxDamage << ",ReqAbility:" << ")";
 
     return msg.toString();
 }

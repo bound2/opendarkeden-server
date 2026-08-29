@@ -56,7 +56,6 @@ string EventRefreshHolyLandPlayer::toString() const
 
 {
     StringStream msg;
-    msg << "EventRefreshHolyLandPlayer("
-        << ")";
+    msg << "EventRefreshHolyLandPlayer(" << ")";
     return msg.toString();
 }

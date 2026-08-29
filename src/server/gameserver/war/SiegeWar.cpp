@@ -466,10 +466,9 @@ string SiegeWar::toString() const
 
     StringStream msg;
 
-    msg << "SiegeWar("
-        << "WarID:" << (int)getWarID() << ",State:" << (int)getState() << ",CastleZoneID:" << (int)m_CastleZoneID
-        << ",WarType:" << getWarType2DBString() << ",ChallengerGuildID:" << (int)m_ChallangerGuildID[0]
-        << ",RegistrationFee:" << (int)m_RegistrationFee << ")";
+    msg << "SiegeWar(" << "WarID:" << (int)getWarID() << ",State:" << (int)getState()
+        << ",CastleZoneID:" << (int)m_CastleZoneID << ",WarType:" << getWarType2DBString()
+        << ",ChallengerGuildID:" << (int)m_ChallangerGuildID[0] << ",RegistrationFee:" << (int)m_RegistrationFee << ")";
 
     return msg.toString();
 

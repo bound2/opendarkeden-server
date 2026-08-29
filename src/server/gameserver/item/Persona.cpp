@@ -75,12 +75,11 @@ void Persona::create(const string& ownerID, Storage storage, StorageID_t storage
         string optionField;
         setOptionTypeToField(getOptionTypeList(), optionField);
 
-        sql << "INSERT INTO PersonaObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, Grade, ItemFlag)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << getItemType() << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", '" << optionField.c_str()
-            << "', " << getDurability() << ", " << getGrade() << ", " << (int)m_CreateType << ")";
+        sql << "INSERT INTO PersonaObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
+            << " X, Y, OptionType, Durability, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
+            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
+            << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", " << getGrade() << ", "
+            << (int)m_CreateType << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -151,8 +150,7 @@ string Persona::toString() const
 {
     StringStream msg;
 
-    msg << "Persona("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
+    msg << "Persona(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
         << ",OptionType:" << getOptionTypeToString(getOptionTypeList()).c_str()
         << ",Durability:" << (int)getDurability() << ",EnchantLevel:" << (int)getEnchantLevel() << ")";
 
@@ -167,10 +165,10 @@ string PersonaInfo::toString() const
 {
     StringStream msg;
 
-    msg << "PersonaInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",Durability:" << m_Durability << ",DefenseBonus:" << m_DefenseBonus << ")";
+    msg << "PersonaInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",Durability:" << m_Durability << ",DefenseBonus:" << m_DefenseBonus
+        << ")";
 
     return msg.toString();
 }

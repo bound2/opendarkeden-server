@@ -61,8 +61,7 @@ string CGModifyNickname::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGModifyNickname("
-        << ")";
+    msg << "CGModifyNickname(" << ")";
     return msg.toString();
 
     __END_CATCH

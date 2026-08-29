@@ -103,8 +103,7 @@ string EffectContinualBloodyWall::toString() const throw() {
     StringStream msg;
 
     if (m_pZone) {
-        msg << "EffectContinualBloodyWall("
-            << "ZoneID:" << (int)m_pZone->getZoneID();
+        msg << "EffectContinualBloodyWall(" << "ZoneID:" << (int)m_pZone->getZoneID();
     }
 
     msg << ",Delay:" << (int)m_Tick << ",Deadline:" << (int)m_Deadline.tv_sec << "." << (int)m_Deadline.tv_usec << ")";

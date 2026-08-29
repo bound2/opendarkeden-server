@@ -86,8 +86,7 @@ string EffectHowl::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHowl("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHowl(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

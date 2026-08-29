@@ -325,8 +325,7 @@ string ActionGiveCommonEventItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveCommonEventItem("
-        << "Type:" << m_Type << ")";
+    msg << "ActionGiveCommonEventItem(" << "Type:" << m_Type << ")";
     return msg.toString();
 
     __END_CATCH

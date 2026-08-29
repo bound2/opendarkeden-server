@@ -127,8 +127,7 @@ string GCMiniGameScores::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCMiniGameScores("
-        << ")";
+    msg << "GCMiniGameScores(" << ")";
     return msg.toString();
 
     __END_CATCH

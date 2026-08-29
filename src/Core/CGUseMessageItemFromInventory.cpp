@@ -73,9 +73,8 @@ string CGUseMessageItemFromInventory::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGUseMessageItemFromInventory("
-        << "ObjectID:" << (int)getObjectID() << ",InvenX:" << (int)getX() << ",InvenY:" << (int)getY()
-        << ",msg:" << m_Message.c_str() << ")";
+    msg << "CGUseMessageItemFromInventory(" << "ObjectID:" << (int)getObjectID() << ",InvenX:" << (int)getX()
+        << ",InvenY:" << (int)getY() << ",msg:" << m_Message.c_str() << ")";
     return msg.toString();
 
     __END_CATCH

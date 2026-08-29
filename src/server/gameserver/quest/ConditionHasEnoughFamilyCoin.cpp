@@ -46,8 +46,7 @@ string ConditionHasEnoughFamilyCoin::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionHasEnoughFamilyCoin("
-        << ")";
+    msg << "ConditionHasEnoughFamilyCoin(" << ")";
     return msg.toString();
 
     __END_CATCH

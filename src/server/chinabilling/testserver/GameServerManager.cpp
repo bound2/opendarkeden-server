@@ -620,13 +620,13 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) throw(OutOfBoundExcept
     __END_CATCH
 }
 
-void GameServerManager::heartbeat() throw (Error){__BEGIN_TRY
+void GameServerManager::heartbeat() throw(Error){__BEGIN_TRY
 
-                                                      __ENTER_CRITICAL_SECTION(m_Mutex)
+                                                     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-                                                          __LEAVE_CRITICAL_SECTION(m_Mutex)
+                                                         __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-                                                              __END_CATCH}
+                                                             __END_CATCH}
 
 // external variable definition
 GameServerManager* g_pGameServerManager = NULL;

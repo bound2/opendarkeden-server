@@ -152,12 +152,14 @@ void GCExchangeList::write(SocketOutputStream& oStream) const {
         // SellerAccount
         uint8_t len = (uint8_t)listing.sellerAccount.length();
         oStream.write(len);
-        if (len > 0) oStream.write(listing.sellerAccount.c_str(), len);
+        if (len > 0)
+            oStream.write(listing.sellerAccount.c_str(), len);
 
         // SellerPlayer
         len = (uint8_t)listing.sellerPlayer.length();
         oStream.write(len);
-        if (len > 0) oStream.write(listing.sellerPlayer.c_str(), len);
+        if (len > 0)
+            oStream.write(listing.sellerPlayer.c_str(), len);
 
         oStream.write(listing.sellerRace);
         oStream.write(listing.itemClass);
@@ -171,12 +173,14 @@ void GCExchangeList::write(SocketOutputStream& oStream) const {
         // BuyerAccount
         len = (uint8_t)listing.buyerAccount.length();
         oStream.write(len);
-        if (len > 0) oStream.write(listing.buyerAccount.c_str(), len);
+        if (len > 0)
+            oStream.write(listing.buyerAccount.c_str(), len);
 
         // BuyerPlayer
         len = (uint8_t)listing.buyerPlayer.length();
         oStream.write(len);
-        if (len > 0) oStream.write(listing.buyerPlayer.c_str(), len);
+        if (len > 0)
+            oStream.write(listing.buyerPlayer.c_str(), len);
 
         oStream.write(listing.taxRate);
         oStream.write(listing.taxAmount);
@@ -184,18 +188,21 @@ void GCExchangeList::write(SocketOutputStream& oStream) const {
         // Timestamp strings
         len = (uint8_t)listing.createdAt.length();
         oStream.write(len);
-        if (len > 0) oStream.write(listing.createdAt.c_str(), len);
+        if (len > 0)
+            oStream.write(listing.createdAt.c_str(), len);
 
         len = (uint8_t)listing.expireAt.length();
         oStream.write(len);
-        if (len > 0) oStream.write(listing.expireAt.c_str(), len);
+        if (len > 0)
+            oStream.write(listing.expireAt.c_str(), len);
 
         oStream.write(listing.version);
 
         // Snapshot fields
         len = (uint8_t)listing.itemName.length();
         oStream.write(len);
-        if (len > 0) oStream.write(listing.itemName.c_str(), len);
+        if (len > 0)
+            oStream.write(listing.itemName.c_str(), len);
 
         oStream.write(listing.enchantLevel);
         oStream.write(listing.grade);
@@ -259,12 +266,8 @@ PacketSize_t GCExchangeList::getPacketSize() const {
 
 string GCExchangeList::toString() const {
     StringStream msg;
-    msg << "GCExchangeList("
-        << "Page:" << m_Page
-        << ",PageSize:" << m_PageSize
-        << ",Total:" << m_Total
-        << ",Count:" << m_Listings.size()
-        << ")";
+    msg << "GCExchangeList(" << "Page:" << m_Page << ",PageSize:" << m_PageSize << ",Total:" << m_Total
+        << ",Count:" << m_Listings.size() << ")";
     return msg.toString();
 }
 

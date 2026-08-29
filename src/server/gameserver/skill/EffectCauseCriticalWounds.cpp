@@ -83,8 +83,7 @@ string EffectCauseCriticalWounds::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectCauseCriticalWounds("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectCauseCriticalWounds(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

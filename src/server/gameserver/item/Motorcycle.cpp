@@ -104,12 +104,10 @@ void Motorcycle::create(const string& ownerID, Storage storage, StorageID_t stor
         string optionField;
         setOptionTypeToField(m_OptionType, optionField);
 
-        sql << "INSERT INTO MotorcycleObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", '" << optionField.c_str()
-            << "', " << m_Durability << ")";
+        sql << "INSERT INTO MotorcycleObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
+            << " X, Y, OptionType, Durability)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType
+            << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y
+            << ", '" << optionField.c_str() << "', " << m_Durability << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -199,8 +197,7 @@ string Motorcycle::toString() const
 {
     StringStream msg;
 
-    msg << "Motorcycle("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType
+    msg << "Motorcycle(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType
         << ",OptionType:" << getOptionTypeToString(m_OptionType).c_str() << ",Durability:" << (int)m_Durability << ")";
 
     return msg.toString();
@@ -257,10 +254,9 @@ string MotorcycleInfo::toString() const
 {
     StringStream msg;
 
-    msg << "MotorcycleInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",Durability:" << m_Durability << ")";
+    msg << "MotorcycleInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",Durability:" << m_Durability << ")";
 
     return msg.toString();
 }
@@ -428,8 +424,7 @@ void MotorcycleLoader::load(Zone* pZone)
 
         StringStream sql;
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " Durability FROM MotorcycleObject"
+        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y," << " Durability FROM MotorcycleObject"
             << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
 
         Result* pResult = pStmt->executeQueryString(sql.toString());

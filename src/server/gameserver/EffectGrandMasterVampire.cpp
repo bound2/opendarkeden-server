@@ -121,8 +121,7 @@ string EffectGrandMasterVampire::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectGrandMasterVampire("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectGrandMasterVampire(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

@@ -107,8 +107,7 @@ void GLIncomingConnection::execute(Player* pPlayer) {
 string GLIncomingConnection::toString() const {
     StringStream msg;
 
-    msg << "GLIncomingConnection("
-        << "PlayerID:" << m_PlayerID << ",ClientIP:" << m_ClientIP << ")";
+    msg << "GLIncomingConnection(" << "PlayerID:" << m_PlayerID << ",ClientIP:" << m_ClientIP << ")";
 
     return msg.toString();
 }

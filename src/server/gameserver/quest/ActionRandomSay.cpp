@@ -77,8 +77,7 @@ string ActionRandomSay::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionRandomSay("
-        << ",ScriptID:" << (int)m_StartScriptID << "-" << (int)m_EndScriptID << ")";
+    msg << "ActionRandomSay(" << ",ScriptID:" << (int)m_StartScriptID << "-" << (int)m_EndScriptID << ")";
 
     return msg.toString();
     __END_CATCH

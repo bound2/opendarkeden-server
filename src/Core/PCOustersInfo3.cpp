@@ -140,9 +140,8 @@ void PCOustersInfo3::write(SocketOutputStream& oStream) const {
 //////////////////////////////////////////////////////////////////////////////
 string PCOustersInfo3::toString() const {
     StringStream msg;
-    msg << "PCOustersInfo3("
-        << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",X:" << (int)m_X << ",Y:" << (int)m_Y
-        << ",Dir:" << Dir2String[m_Dir] << ",Sex:" << Sex2String[m_Sex]
+    msg << "PCOustersInfo3(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",X:" << (int)m_X
+        << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir] << ",Sex:" << Sex2String[m_Sex]
         << ",CoatColor:" << (int)m_Colors[OUSTERS_COLOR_COAT] << ",HairColor:" << (int)m_Colors[OUSTERS_COLOR_HAIR]
         << ",ArmColor:" << (int)m_Colors[OUSTERS_COLOR_ARM] << ",BootsColor:" << (int)m_Colors[OUSTERS_COLOR_BOOTS]
         << ",CoatType:" << (int)m_CoatType << ",ArmType:" << (int)m_ArmType << ",SylphType:" << (int)m_SylphType

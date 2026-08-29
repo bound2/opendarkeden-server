@@ -103,8 +103,7 @@ string EffectMasterLairPass::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectMasterLairPass("
-        << "ObjectID:" << getObjectID() << ",ZoneID:" << m_ZoneID << ")";
+    msg << "EffectMasterLairPass(" << "ObjectID:" << getObjectID() << ",ZoneID:" << m_ZoneID << ")";
     return msg.toString();
 
     __END_CATCH

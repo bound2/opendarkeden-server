@@ -61,8 +61,7 @@ void EventGiftBox::create(const string& ownerID, Storage storage, StorageID_t st
 
     BEGIN_DB {
         StringStream sql;
-        sql << "INSERT INTO EventGiftBoxObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y)"
+        sql << "INSERT INTO EventGiftBoxObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y)"
             << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
             << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ")";
 
@@ -138,8 +137,7 @@ string EventGiftBox::toString() const
 
 {
     StringStream msg;
-    msg << "EventGiftBox("
-        << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ")";
+    msg << "EventGiftBox(" << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ")";
     return msg.toString();
 }
 
@@ -181,10 +179,9 @@ string EventGiftBoxInfo::toString() const
 
 {
     StringStream msg;
-    msg << "EventGiftBoxInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "EventGiftBoxInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
     return msg.toString();
 }
 

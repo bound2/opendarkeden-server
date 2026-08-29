@@ -166,8 +166,7 @@ string EffectEnergyDrop::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectEnergyDrop("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectEnergyDrop(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

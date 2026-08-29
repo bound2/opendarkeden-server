@@ -203,8 +203,7 @@ string EffectGreenStalker::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectGreenStalker("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectGreenStalker(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

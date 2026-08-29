@@ -34,8 +34,8 @@ string VampEXPInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "VampEXPInfo ("
-        << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp << " AccumExp : " << (int)m_AccumExp << ")";
+    msg << "VampEXPInfo (" << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp
+        << " AccumExp : " << (int)m_AccumExp << ")";
     return msg.toString();
 
     __END_CATCH

@@ -142,9 +142,8 @@ string EffectTransportItemToCorpse::toString() const
 {
     StringStream msg;
 
-    msg << "EffectTransportItemToCorpse("
-        << "ZoneID:" << (int)m_pZone->getZoneID() << "TargetZoneID:" << (int)m_pTargetZone->getZoneID()
-        << ",X:" << (int)getX() << ",Y:" << (int)getY();
+    msg << "EffectTransportItemToCorpse(" << "ZoneID:" << (int)m_pZone->getZoneID()
+        << "TargetZoneID:" << (int)m_pTargetZone->getZoneID() << ",X:" << (int)getX() << ",Y:" << (int)getY();
 
     if (m_pTarget)
         msg << ",Target:" << m_pTarget->toString();

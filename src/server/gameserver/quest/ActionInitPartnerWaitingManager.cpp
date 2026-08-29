@@ -61,8 +61,7 @@ string ActionInitPartnerWaitingManager::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionInitPartnerWaitingManager("
-        << ")";
+    msg << "ActionInitPartnerWaitingManager(" << ")";
 
     return msg.toString();
 

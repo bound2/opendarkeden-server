@@ -318,8 +318,8 @@ string EffectHPRecovery::toString() const
     StringStream msg;
 
     if (m_pZone != NULL) {
-        msg << "EffectHPRecovery("
-            << "ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX() << ",Y:" << (int)getY();
+        msg << "EffectHPRecovery(" << "ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX()
+            << ",Y:" << (int)getY();
     }
 
     if (m_pTarget != NULL) {

@@ -149,8 +149,7 @@ string ResurrectItem::toString() const
 {
     StringStream msg;
 
-    msg << "ResurrectItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "ResurrectItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
 
     return msg.toString();
 }
@@ -193,9 +192,8 @@ string ResurrectItemInfo::toString() const
 
 {
     StringStream msg;
-    msg << "ResurrectItemInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "ResurrectItemInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ")";
     return msg.toString();
 }

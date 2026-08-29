@@ -91,9 +91,8 @@ string GCShowGuildMemberInfo::toString() const
 
     StringStream msg;
 
-    msg << "GCShowGuildMemberInfo("
-        << "GuildID:" << m_GuildID << "Name:" << m_Name << "GuildMemberRank:" << (int)m_GuildMemberRank
-        << "GuildMemberIntro:" << m_GuildMemberIntro << ")";
+    msg << "GCShowGuildMemberInfo(" << "GuildID:" << m_GuildID << "Name:" << m_Name
+        << "GuildMemberRank:" << (int)m_GuildMemberRank << "GuildMemberIntro:" << m_GuildMemberIntro << ")";
 
     return msg.toString();
 

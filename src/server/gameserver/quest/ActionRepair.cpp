@@ -55,8 +55,7 @@ string ActionRepair::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionRepair("
-        << ")";
+    msg << "ActionRepair(" << ")";
     return msg.toString();
 
     __END_CATCH

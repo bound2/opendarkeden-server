@@ -18,8 +18,8 @@
 
 class CGStashDeposit : public Packet {
 public:
-    CGStashDeposit() {};
-    virtual ~CGStashDeposit() {};
+    CGStashDeposit(){};
+    virtual ~CGStashDeposit(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

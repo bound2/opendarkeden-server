@@ -99,9 +99,8 @@ string SGModifyGuildMemberOK::toString() const
 {
     StringStream msg;
 
-    msg << "SGModifyGuildMemberOK("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "GuildMemberRank:" << (int)m_GuildMemberRank
-        << "Sender:" << m_Sender << ")";
+    msg << "SGModifyGuildMemberOK(" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name
+        << "GuildMemberRank:" << (int)m_GuildMemberRank << "Sender:" << m_Sender << ")";
 
     return msg.toString();
 }

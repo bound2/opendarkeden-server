@@ -87,8 +87,7 @@ string GCSay::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSay("
-        << "ObjectID:" << m_ObjectID << ",Color:" << m_Color << ",Message:" << m_Message << ")";
+    msg << "GCSay(" << "ObjectID:" << m_ObjectID << ",Color:" << m_Color << ",Message:" << m_Message << ")";
     return msg.toString();
 
     __END_CATCH

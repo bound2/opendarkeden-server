@@ -41,8 +41,8 @@ enum {
 
 class GCTradePrepare : public Packet {
 public:
-    GCTradePrepare() {};
-    ~GCTradePrepare() {};
+    GCTradePrepare(){};
+    ~GCTradePrepare(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

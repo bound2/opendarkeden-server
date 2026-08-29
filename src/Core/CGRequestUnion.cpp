@@ -43,8 +43,7 @@ string CGRequestUnion::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGRequestUnion("
-        << "GuildID:" << m_GuildID << ")";
+    msg << "CGRequestUnion(" << "GuildID:" << m_GuildID << ")";
     return msg.toString();
 
     __END_CATCH

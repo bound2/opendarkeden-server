@@ -81,8 +81,7 @@ string GCGetDamage::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCGetDamage("
-        << "ObjectID:" << (int)m_ObjectID << ",Damage:" << (int)m_GetDamage << " )";
+    msg << "GCGetDamage(" << "ObjectID:" << (int)m_ObjectID << ",Damage:" << (int)m_GetDamage << " )";
     return msg.toString();
 
     __END_CATCH

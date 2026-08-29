@@ -61,9 +61,8 @@ string CGPartyPosition::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGPartyPosition("
-        << "ZoneID : " << m_ZoneID << "ZoneX :" << (int)m_X << "ZoneY :" << (int)m_Y << "MaxHP : " << m_MaxHP
-        << "HP : " << m_HP << ")";
+    msg << "CGPartyPosition(" << "ZoneID : " << m_ZoneID << "ZoneX :" << (int)m_X << "ZoneY :" << (int)m_Y
+        << "MaxHP : " << m_MaxHP << "HP : " << m_HP << ")";
     return msg.toString();
 
     __END_CATCH

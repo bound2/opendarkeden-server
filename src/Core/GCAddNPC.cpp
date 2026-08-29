@@ -109,8 +109,7 @@ string GCAddNPC::toString() const
 
     StringStream msg;
 
-    msg << "GCAddNPC("
-        << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",SpriteType:" << (int)m_SpriteType
+    msg << "GCAddNPC(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",SpriteType:" << (int)m_SpriteType
         << ",MainColor:" << (int)m_MainColor << ",SubColor:" << (int)m_SubColor << ",X:" << (int)m_X
         << ",Y:" << (int)m_Y << ",Dir: " << (int)m_Dir << ")";
 

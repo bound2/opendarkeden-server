@@ -125,8 +125,7 @@ string GCNPCAskDynamic::toString() const
     StringStream msg;
     int i = 0;
 
-    msg << "GCNPCAskDynamic("
-        << "ObjectID:" << m_ObjectID << ",ScriptID: " << m_ScriptID << ",Subject:" << m_Subject;
+    msg << "GCNPCAskDynamic(" << "ObjectID:" << m_ObjectID << ",ScriptID: " << m_ScriptID << ",Subject:" << m_Subject;
 
     list<string>::const_iterator itr = m_Contents.begin();
     for (; itr != m_Contents.end(); itr++) {

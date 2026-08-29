@@ -130,8 +130,7 @@ string ActionSelectQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionSelectQuest("
-        << ")";
+    msg << "ActionSelectQuest(" << ")";
 
     return msg.toString();
 

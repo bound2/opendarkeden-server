@@ -35,7 +35,7 @@ public:
         m_TreasureCount = 0;
     }
     GCAddVampireCorpse(const PCVampireInfo3& vampireInfo) : m_VampireInfo(vampireInfo) {}
-    ~GCAddVampireCorpse() {};
+    ~GCAddVampireCorpse(){};
 
 
 public:

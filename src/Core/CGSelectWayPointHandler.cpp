@@ -96,7 +96,7 @@ void CGSelectWayPointHandler::execute(CGSelectWayPoint* pPacket, Player* pPlayer
             if (!canEnterBeginnerZone(pCreature))
                 return;
 
-            // 초보존이 유료존일수도 있을라나...?
+                // 초보존이 유료존일수도 있을라나...?
 #if defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
             ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(pos.id);
 

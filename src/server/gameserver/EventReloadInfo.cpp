@@ -183,7 +183,6 @@ string EventReloadInfo::toString() const
 
 {
     StringStream msg;
-    msg << "EventReloadInfo("
-        << ")";
+    msg << "EventReloadInfo(" << ")";
     return msg.toString();
 }

@@ -77,8 +77,7 @@ string EffectGroundBless::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectGroundBless("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectGroundBless(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

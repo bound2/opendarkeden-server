@@ -354,11 +354,11 @@ string GCUpdateInfo::toString() const
 
     StringStream msg;
 
-    msg << "GCUpdateInfo("
-        << "PC:" << m_pPCInfo->toString() << "EffectInfo:" << m_pEffectInfo->toString() << ",ZoneID: " << m_ZoneID
-        << ",ZoneX: " << m_ZoneX << ",ZoneY: " << m_ZoneY << ",GameTime:" << m_GameTime.toString()
-        << ",Weather:" << Weather2String[m_Weather] << ",WeatherLevel:" << (int)m_WeatherLevel
-        << ",DarkLevel:" << (int)m_DarkLevel << ",LightLevel:" << (int)m_LightLevel;
+    msg << "GCUpdateInfo(" << "PC:" << m_pPCInfo->toString() << "EffectInfo:" << m_pEffectInfo->toString()
+        << ",ZoneID: " << m_ZoneID << ",ZoneX: " << m_ZoneX << ",ZoneY: " << m_ZoneY
+        << ",GameTime:" << m_GameTime.toString() << ",Weather:" << Weather2String[m_Weather]
+        << ",WeatherLevel:" << (int)m_WeatherLevel << ",DarkLevel:" << (int)m_DarkLevel
+        << ",LightLevel:" << (int)m_LightLevel;
 
     msg << ",nNPCs: " << (int)m_nNPCs;
     for (uint i = 0; i < m_nNPCs; i++)

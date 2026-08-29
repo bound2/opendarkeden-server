@@ -17,8 +17,8 @@
 
 class CGAddItemToItem : public Packet {
 public:
-    CGAddItemToItem() {};
-    ~CGAddItemToItem() {};
+    CGAddItemToItem(){};
+    ~CGAddItemToItem(){};
 
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;

@@ -23,8 +23,8 @@
 
 class GGServerChat : public DatagramPacket {
 public:
-    GGServerChat() {};
-    ~GGServerChat() {};
+    GGServerChat(){};
+    ~GGServerChat(){};
     // Datagram 객체에서부터 데이타를 읽어서 패킷을 초기화한다.
     void read(Datagram& iDatagram);
 

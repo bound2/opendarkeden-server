@@ -50,8 +50,7 @@ string CGThrowBomb::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGThrowBomb("
-        << "ZoneX:" << (int)m_ZoneX << ",ZoneY:" << (int)m_ZoneY << ",BombX:" << (int)m_BombX
+    msg << "CGThrowBomb(" << "ZoneX:" << (int)m_ZoneX << ",ZoneY:" << (int)m_ZoneY << ",BombX:" << (int)m_BombX
         << ",BombY:" << (int)m_BombY << ",AttackerSlayerFlag:" << (int)m_AttackSlayerFlag << ")";
     return msg.toString();
 

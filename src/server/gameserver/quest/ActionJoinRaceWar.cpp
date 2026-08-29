@@ -98,8 +98,7 @@ string ActionJoinRaceWar::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionJoinRaceWar("
-        << ")";
+    msg << "ActionJoinRaceWar(" << ")";
 
     return msg.toString();
 

@@ -99,9 +99,8 @@ string GCSkillToObjectOK2::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSkillToObjectOK2("
-        << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID << ",Duration:" << (int)m_Duration
-        << ",Grade:" << (int)m_Grade;
+    msg << "GCSkillToObjectOK2(" << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID
+        << ",Duration:" << (int)m_Duration << ",Grade:" << (int)m_Grade;
     msg << ModifyInfo::toString();
     msg << ")";
     return msg.toString();

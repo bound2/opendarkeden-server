@@ -75,8 +75,8 @@ string GCAddGearToInventory::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddGearToInventory("
-        << "SlotID:" << (int)m_SlotID << ",InvenX:" << (int)m_InvenX << ",InvenY:" << (int)m_InvenY << ")";
+    msg << "GCAddGearToInventory(" << "SlotID:" << (int)m_SlotID << ",InvenX:" << (int)m_InvenX
+        << ",InvenY:" << (int)m_InvenY << ")";
     return msg.toString();
 
     __END_CATCH

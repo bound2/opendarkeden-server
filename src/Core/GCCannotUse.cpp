@@ -62,8 +62,7 @@ string GCCannotUse::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCCannotUse("
-        << "ObjectId:" << (int)m_ObjectID << ")";
+    msg << "GCCannotUse(" << "ObjectId:" << (int)m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

@@ -52,9 +52,8 @@ void SubOustersSkillInfo::write(SocketOutputStream& oStream) const {
 string SubOustersSkillInfo::toString() const {
     StringStream msg;
 
-    msg << "SubOustersSkillInfo("
-        << ",SkillType:" << (int)m_SkillType << ",Interval:" << (int)m_Interval << ",CastingTime:" << (int)m_CastingTime
-        << ")";
+    msg << "SubOustersSkillInfo(" << ",SkillType:" << (int)m_SkillType << ",Interval:" << (int)m_Interval
+        << ",CastingTime:" << (int)m_CastingTime << ")";
 
     return msg.toString();
 }

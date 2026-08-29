@@ -84,13 +84,13 @@ void WarSystem::prepareRaceWar() throw(Error) {
 }
 
 
-void WarSystem::load() throw (Error){__BEGIN_TRY
+void WarSystem::load() throw(Error){__BEGIN_TRY
 
-                                         // load할거 없다.
+                                        // load할거 없다.
 
-                                         // 진행중인 전쟁을 load해야 한다.
+                                        // 진행중인 전쟁을 load해야 한다.
 
-                                         __END_CATCH}
+                                        __END_CATCH}
 
 VSDateTime WarSystem::getWarEndTime(WarType_t warType) const {
     int seconds = 0;

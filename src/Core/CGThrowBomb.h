@@ -18,8 +18,8 @@
 
 class CGThrowBomb : public Packet {
 public:
-    CGThrowBomb() {};
-    virtual ~CGThrowBomb() {};
+    CGThrowBomb(){};
+    virtual ~CGThrowBomb(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

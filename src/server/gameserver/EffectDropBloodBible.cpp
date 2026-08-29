@@ -56,8 +56,7 @@ string EffectDropBloodBible::toString() const {
 
     StringStream msg;
 
-    msg << "EffectDropBloodBible("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDropBloodBible(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

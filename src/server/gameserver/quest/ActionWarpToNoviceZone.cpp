@@ -151,10 +151,9 @@ string ActionWarpToNoviceZone::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionWarpToNoviceZone("
-        << "NoviceZoneID:" << (int)m_NoviceZoneID << ",NoviceX:" << (int)m_NoviceX << ",NoviceY:" << (int)m_NoviceY
-        << "BeginnerZoneID:" << (int)m_BeginnerZoneID << ",BeginnerX:" << (int)m_BeginnerX
-        << ",BeginnerY:" << (int)m_BeginnerY << ")";
+    msg << "ActionWarpToNoviceZone(" << "NoviceZoneID:" << (int)m_NoviceZoneID << ",NoviceX:" << (int)m_NoviceX
+        << ",NoviceY:" << (int)m_NoviceY << "BeginnerZoneID:" << (int)m_BeginnerZoneID
+        << ",BeginnerX:" << (int)m_BeginnerX << ",BeginnerY:" << (int)m_BeginnerY << ")";
     return msg.toString();
 
     __END_CATCH

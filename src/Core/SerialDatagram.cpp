@@ -278,7 +278,7 @@ void SerialDatagram::setAddress(SOCKADDR_IN* pSockAddr) {
 //////////////////////////////////////////////////////////////////////
 string SerialDatagram::toString() const {
     StringStream msg;
-    msg << "SerialDatagram("
-        << "Length:" << m_Length << ",InputOffset:" << m_InputOffset << ",OutputOffset:" << m_OutputOffset << ")";
+    msg << "SerialDatagram(" << "Length:" << m_Length << ",InputOffset:" << m_InputOffset
+        << ",OutputOffset:" << m_OutputOffset << ")";
     return msg.toString();
 }

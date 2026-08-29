@@ -45,8 +45,7 @@ public:
     string toString() const throw() {
         StringStream msg;
 
-        msg << "ZoneGroupInfo("
-            << "ZoneGroupID:" << m_ZoneGroupID << ",ServerID:" << m_ServerID << ")";
+        msg << "ZoneGroupInfo(" << "ZoneGroupID:" << m_ZoneGroupID << ",ServerID:" << m_ServerID << ")";
 
         return msg.toString();
     }

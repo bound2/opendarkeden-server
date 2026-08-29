@@ -285,8 +285,7 @@ string ActionGiveAccountEventItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveAccountEventItem("
-        << ")";
+    msg << "ActionGiveAccountEventItem(" << ")";
     return msg.toString();
 
     __END_CATCH

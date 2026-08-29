@@ -179,8 +179,7 @@ string EffectPoison::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectPoison("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectPoison(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

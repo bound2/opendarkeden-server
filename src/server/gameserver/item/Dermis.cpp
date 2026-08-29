@@ -72,12 +72,10 @@ void Dermis::create(const string& ownerID, Storage storage, StorageID_t storageI
         string optionField;
         setOptionTypeToField(getOptionTypeList(), optionField);
 
-        sql << "INSERT INTO DermisObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Grade, ItemFlag)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << getItemType() << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", '" << optionField.c_str()
-            << "', " << getGrade() << ", " << (int)m_CreateType << ")";
+        sql << "INSERT INTO DermisObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
+            << " X, Y, OptionType, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
+            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
+            << (int)y << ", '" << optionField.c_str() << "', " << getGrade() << ", " << (int)m_CreateType << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -147,8 +145,7 @@ string Dermis::toString() const
 {
     StringStream msg;
 
-    msg << "Dermis("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
+    msg << "Dermis(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
         << ",OptionType:" << getOptionTypeToString(getOptionTypeList()).c_str()
         << ",EnchantLevel:" << (int)getEnchantLevel() << ")";
 
@@ -164,10 +161,9 @@ string DermisInfo::toString() const
 {
     StringStream msg;
 
-    msg << "DermisInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",DefenseBonus:" << m_DefenseBonus << ")";
+    msg << "DermisInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",DefenseBonus:" << m_DefenseBonus << ")";
 
     return msg.toString();
 }

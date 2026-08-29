@@ -128,8 +128,7 @@ string PropertyBuffer::toString() const {
 
     StringStream msg;
 
-    msg << "PropertyBuffer("
-        << "Index:" << m_Index << ",Buffer:" << m_Buffer << ")";
+    msg << "PropertyBuffer(" << "Index:" << m_Index << ",Buffer:" << m_Buffer << ")";
 
     return msg.toString();
 

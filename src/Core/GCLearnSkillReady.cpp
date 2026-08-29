@@ -78,8 +78,7 @@ string GCLearnSkillReady::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCLearSkillReady("
-        << "SkillDomainType:" << (int)m_SkillDomainType << ")";
+    msg << "GCLearSkillReady(" << "SkillDomainType:" << (int)m_SkillDomainType << ")";
     return msg.toString();
 
     __END_CATCH

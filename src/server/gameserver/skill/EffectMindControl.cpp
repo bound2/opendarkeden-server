@@ -113,8 +113,8 @@ string EffectMindControl::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectMindControl("
-        << "ObjectID:" << getObjectID() << ",ToHit:" << m_ToHitBonus << ",Defense:" << m_DefenseBonus << ")";
+    msg << "EffectMindControl(" << "ObjectID:" << getObjectID() << ",ToHit:" << m_ToHitBonus
+        << ",Defense:" << m_DefenseBonus << ")";
 
     return msg.toString();
 

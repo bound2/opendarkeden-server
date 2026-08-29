@@ -213,8 +213,7 @@ string EffectAftermath::toString() const {
 
     StringStream msg;
 
-    msg << "EffectAftermath("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectAftermath(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

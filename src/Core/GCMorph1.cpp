@@ -138,8 +138,7 @@ string GCMorph1::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCMorph1("
-        << "PC:" << m_pPCInfo->toString() << ")";
+    msg << "GCMorph1(" << "PC:" << m_pPCInfo->toString() << ")";
     return msg.toString();
 
     __END_CATCH

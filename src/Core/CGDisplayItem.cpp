@@ -50,8 +50,7 @@ string CGDisplayItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGDisplayItem("
-        << ")";
+    msg << "CGDisplayItem(" << ")";
     return msg.toString();
 
     __END_CATCH

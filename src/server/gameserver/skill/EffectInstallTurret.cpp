@@ -102,8 +102,7 @@ string EffectInstallTurret::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectInstallTurret("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectInstallTurret(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

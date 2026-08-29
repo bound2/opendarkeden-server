@@ -44,7 +44,6 @@ string CLReconnectLogin::toString() const
 
 {
     StringStream msg;
-    msg << "CLReconnectLogin("
-        << "KEY:" << m_Key << "LoginMode:" << m_LoginMode << ")";
+    msg << "CLReconnectLogin(" << "KEY:" << m_Key << "LoginMode:" << m_LoginMode << ")";
     return msg.toString();
 }

@@ -56,8 +56,7 @@ string PartyInviteInfo::toString(void) const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "PartyInviteInfo("
-        << "Host:" << m_HostName << ",Guest:" << m_GuestName << ")";
+    msg << "PartyInviteInfo(" << "Host:" << m_HostName << ",Guest:" << m_GuestName << ")";
     return msg.toString();
 
     __END_CATCH
@@ -2033,8 +2032,7 @@ string Party::toString(void) const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "Party("
-        << "ID:" << m_ID << ",CClass:" << m_CreatureClass << ",Member(";
+    msg << "Party(" << "ID:" << m_ID << ",CClass:" << m_CreatureClass << ",Member(";
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 

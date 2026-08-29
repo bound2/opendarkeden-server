@@ -42,9 +42,7 @@ string CGGQuestCancel::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGGQuestCancel("
-        << "QuestID:" << (int)m_QuestID << ","
-        << ")";
+    msg << "CGGQuestCancel(" << "QuestID:" << (int)m_QuestID << "," << ")";
 
     return msg.toString();
 

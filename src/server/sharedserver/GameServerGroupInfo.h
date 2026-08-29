@@ -53,9 +53,8 @@ public:
     // get debug string
     string toString() const throw() {
         StringStream msg;
-        msg << "GameServerGroupInfo("
-            << "WorldID : " << (int)m_WorldID << "ServerGroupID: " << (int)m_GroupID << ",GroupName:" << m_GroupName
-            << ")";
+        msg << "GameServerGroupInfo(" << "WorldID : " << (int)m_WorldID << "ServerGroupID: " << (int)m_GroupID
+            << ",GroupName:" << m_GroupName << ")";
         return msg.toString();
     }
 

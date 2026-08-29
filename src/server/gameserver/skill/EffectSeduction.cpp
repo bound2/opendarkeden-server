@@ -114,8 +114,8 @@ string EffectSeduction::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectSeduction("
-        << "ObjectID:" << getObjectID() << ",ToHit:" << m_ToHitPenalty << ",Damage:" << m_DamagePenalty << ")";
+    msg << "EffectSeduction(" << "ObjectID:" << getObjectID() << ",ToHit:" << m_ToHitPenalty
+        << ",Damage:" << m_DamagePenalty << ")";
 
     return msg.toString();
 

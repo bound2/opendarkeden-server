@@ -38,8 +38,8 @@ string RankEXPInfo::toString() const
 
     StringStream msg;
 
-    msg << "RankEXPInfo ("
-        << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp << " AccumExp : " << (int)m_AccumExp << ")";
+    msg << "RankEXPInfo (" << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp
+        << " AccumExp : " << (int)m_AccumExp << ")";
 
     return msg.toString();
 

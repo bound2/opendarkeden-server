@@ -56,10 +56,9 @@ void SubSlayerSkillInfo::write(SocketOutputStream& oStream) const {
 string SubSlayerSkillInfo::toString() const {
     StringStream msg;
 
-    msg << "SubSlayerSkillInfo("
-        << ",SkillType:" << (int)m_SkillType << ",Exp:" << (int)m_Exp << ",ExpLevel:" << (int)m_ExpLevel
-        << ",Interval:" << (int)m_Interval << ",CastingTime:" << (int)m_CastingTime << ",Enable:" << (int)m_Enable
-        << ")";
+    msg << "SubSlayerSkillInfo(" << ",SkillType:" << (int)m_SkillType << ",Exp:" << (int)m_Exp
+        << ",ExpLevel:" << (int)m_ExpLevel << ",Interval:" << (int)m_Interval << ",CastingTime:" << (int)m_CastingTime
+        << ",Enable:" << (int)m_Enable << ")";
 
     return msg.toString();
 }

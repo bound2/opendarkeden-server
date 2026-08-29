@@ -178,8 +178,7 @@ string ActionGiveChildrenItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveChildrenItem("
-        << ")";
+    msg << "ActionGiveChildrenItem(" << ")";
     return msg.toString();
 
     __END_CATCH

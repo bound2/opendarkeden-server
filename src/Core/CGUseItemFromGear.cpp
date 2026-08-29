@@ -69,8 +69,7 @@ string CGUseItemFromGear::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGUseItemFromGear("
-        << "ObjectID:" << (int)m_ObjectID << "Part:" << (int)m_Part << ")";
+    msg << "CGUseItemFromGear(" << "ObjectID:" << (int)m_ObjectID << "Part:" << (int)m_Part << ")";
     return msg.toString();
 
     __END_CATCH

@@ -50,9 +50,8 @@ void SubVampireSkillInfo::write(SocketOutputStream& oStream) const {
 string SubVampireSkillInfo::toString() const {
     StringStream msg;
 
-    msg << "SubVampireSkillInfo("
-        << ",SkillType:" << (int)m_SkillType << ",Interval:" << (int)m_Interval << ",CastingTime:" << (int)m_CastingTime
-        << ")";
+    msg << "SubVampireSkillInfo(" << ",SkillType:" << (int)m_SkillType << ",Interval:" << (int)m_Interval
+        << ",CastingTime:" << (int)m_CastingTime << ")";
 
     return msg.toString();
 }

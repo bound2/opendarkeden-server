@@ -91,8 +91,7 @@ string GCSkillFailed2::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSkillFailed2("
-        << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID:" << (int)m_TargetObjectID
+    msg << "GCSkillFailed2(" << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID:" << (int)m_TargetObjectID
         << ",SkillType:" << (int)m_SkillType << ")";
     return msg.toString();
 

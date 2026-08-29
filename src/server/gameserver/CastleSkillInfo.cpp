@@ -22,8 +22,7 @@ string CastleSkillInfo::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CastleSkillInfo ("
-        << "SkillType:" << (int)m_SkillType << ",ZoneID:" << (int)m_ZoneID << ")";
+    msg << "CastleSkillInfo (" << "SkillType:" << (int)m_SkillType << ",ZoneID:" << (int)m_ZoneID << ")";
     return msg.toString();
 
     __END_CATCH

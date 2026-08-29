@@ -116,8 +116,7 @@ string SkillParentInfo::toString() const
 
     StringStream msg;
 
-    msg << "SkillParentInfo("
-        << "SkillType:" << (int)m_SkillType << ",Parents(";
+    msg << "SkillParentInfo(" << "SkillType:" << (int)m_SkillType << ",Parents(";
 
     for (list<SkillType_t>::const_iterator i = m_Parents.begin(); i != m_Parents.end(); i++) {
         msg << (int)(*i) << " ";

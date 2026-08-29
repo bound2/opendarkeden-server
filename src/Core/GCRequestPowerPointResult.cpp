@@ -89,8 +89,7 @@ string GCRequestPowerPointResult::toString() const
 
     StringStream msg;
 
-    msg << "GCRequestPowerPointResult("
-        << "ErrorCode:" << (int)m_ErrorCode << ",SumPowerPoint:" << m_SumPowerPoint
+    msg << "GCRequestPowerPointResult(" << "ErrorCode:" << (int)m_ErrorCode << ",SumPowerPoint:" << m_SumPowerPoint
         << ",RequestPowerPoint:" << m_RequestPowerPoint << ")";
 
     return msg.toString();

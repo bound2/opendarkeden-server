@@ -20,9 +20,9 @@
 // 하위 매니저 객체를 생성하는 곳이다.
 //
 //////////////////////////////////////////////////////////////////////
-HeartbeatManager::HeartbeatManager() throw (Error){__BEGIN_TRY
+HeartbeatManager::HeartbeatManager() throw(Error){__BEGIN_TRY
 
-                                                       __END_CATCH}
+                                                      __END_CATCH}
 
 
 //////////////////////////////////////////////////////////////////////

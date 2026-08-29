@@ -40,8 +40,7 @@ void LevelWarInfo::write(SocketOutputStream& oStream) const {
 string LevelWarInfo::toString() const {
     StringStream msg;
 
-    msg << "LevelWarInfo("
-        << "Level: " << m_Level << ",RemainTime:" << (int)m_RemainTime << ")";
+    msg << "LevelWarInfo(" << "Level: " << m_Level << ",RemainTime:" << (int)m_RemainTime << ")";
 
     return msg.toString();
 }

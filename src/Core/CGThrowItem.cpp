@@ -59,9 +59,8 @@ string CGThrowItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGThrowItem("
-        << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID:" << (int)m_TargetObjectID << ",InvenX" << (int)m_InvenX
-        << ",InvenY" << (int)m_InvenY << ")";
+    msg << "CGThrowItem(" << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID:" << (int)m_TargetObjectID << ",InvenX"
+        << (int)m_InvenX << ",InvenY" << (int)m_InvenY << ")";
     return msg.toString();
 
     __END_CATCH

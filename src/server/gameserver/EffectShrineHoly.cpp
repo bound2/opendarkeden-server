@@ -198,8 +198,7 @@ string EffectShrineHoly::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectShrineHoly("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectShrineHoly(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

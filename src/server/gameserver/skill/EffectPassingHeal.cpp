@@ -379,8 +379,7 @@ string EffectPassingHeal::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectPassingHeal("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectPassingHeal(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

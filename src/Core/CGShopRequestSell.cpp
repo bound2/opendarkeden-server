@@ -48,8 +48,7 @@ string CGShopRequestSell::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGShopRequestSell("
-        << "ObjectID : " << (int)m_ObjectID << ")";
+    msg << "CGShopRequestSell(" << "ObjectID : " << (int)m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

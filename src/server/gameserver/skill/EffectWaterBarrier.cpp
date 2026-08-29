@@ -75,8 +75,7 @@ string EffectWaterBarrier::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectWaterBarrier("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectWaterBarrier(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

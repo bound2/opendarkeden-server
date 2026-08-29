@@ -142,7 +142,6 @@ string EventShutdown::toString() const
 
 {
     StringStream msg;
-    msg << "EventShutdown("
-        << ")";
+    msg << "EventShutdown(" << ")";
     return msg.toString();
 }

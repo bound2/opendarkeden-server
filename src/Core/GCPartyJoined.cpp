@@ -174,15 +174,13 @@ string GCPartyJoined::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCPartyJoined("
-        << "MemberCount:" << (int)m_MemberCount << ",";
+    msg << "GCPartyJoined(" << "MemberCount:" << (int)m_MemberCount << ",";
 
     list<PARTY_MEMBER_INFO*>::const_iterator itr = m_MemberInfoList.begin();
     for (; itr != m_MemberInfoList.end(); itr++) {
         PARTY_MEMBER_INFO* pInfo = (*itr);
-        msg << "Element("
-            << "Name:" << pInfo->name << ",Sex:" << (int)pInfo->sex << ",HairStyle:" << (int)pInfo->hair_style
-            << ",IP:" << (int)pInfo->ip << "),";
+        msg << "Element(" << "Name:" << pInfo->name << ",Sex:" << (int)pInfo->sex
+            << ",HairStyle:" << (int)pInfo->hair_style << ",IP:" << (int)pInfo->ip << "),";
     }
 
     msg << ")";

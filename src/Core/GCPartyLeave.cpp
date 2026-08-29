@@ -64,8 +64,7 @@ string GCPartyLeave::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCPartyLeave("
-        << "Expeller:" << m_Expeller << "Expellee:" << m_Expellee << ")";
+    msg << "GCPartyLeave(" << "Expeller:" << m_Expeller << "Expellee:" << m_Expellee << ")";
     return msg.toString();
 
     __END_CATCH

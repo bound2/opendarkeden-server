@@ -16,8 +16,8 @@
 
 class CGSilverCoating : public Packet {
 public:
-    CGSilverCoating() {};
-    virtual ~CGSilverCoating() {};
+    CGSilverCoating(){};
+    virtual ~CGSilverCoating(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

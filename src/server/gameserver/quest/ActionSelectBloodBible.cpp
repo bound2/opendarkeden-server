@@ -72,8 +72,7 @@ string ActionSelectBloodBible::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionSelectBloodBible("
-        << ")";
+    msg << "ActionSelectBloodBible(" << ")";
 
     return msg.toString();
 

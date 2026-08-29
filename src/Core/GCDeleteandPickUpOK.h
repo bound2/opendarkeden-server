@@ -22,8 +22,8 @@
 
 class GCDeleteandPickUpOK : public Packet {
 public:
-    GCDeleteandPickUpOK() {};
-    ~GCDeleteandPickUpOK() {};
+    GCDeleteandPickUpOK(){};
+    ~GCDeleteandPickUpOK(){};
     // Initialize the packet by reading data from the input stream.
     void read(SocketInputStream& iStream);
 

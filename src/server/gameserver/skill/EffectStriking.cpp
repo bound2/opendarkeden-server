@@ -91,8 +91,7 @@ string EffectStriking::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectStriking("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectStriking(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

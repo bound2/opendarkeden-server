@@ -77,8 +77,7 @@ string GCAddNickname::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddNickname("
-        << ")";
+    msg << "GCAddNickname(" << ")";
     return msg.toString();
 
     __END_CATCH

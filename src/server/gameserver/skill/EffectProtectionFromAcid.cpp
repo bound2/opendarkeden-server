@@ -96,8 +96,7 @@ string EffectProtectionFromAcid::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectProtectionFromAcid("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectProtectionFromAcid(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

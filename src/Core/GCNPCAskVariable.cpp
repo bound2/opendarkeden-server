@@ -160,8 +160,7 @@ string GCNPCAskVariable::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCNPCAskVariable("
-        << "ObjectID:" << m_ObjectID << ",ScriptID: " << m_ScriptID << ",Parameters: (";
+    msg << "GCNPCAskVariable(" << "ObjectID:" << m_ObjectID << ",ScriptID: " << m_ScriptID << ",Parameters: (";
 
     HashMapScriptParameterConstItor itr = m_ScriptParameters.begin();
     for (; itr != m_ScriptParameters.end(); itr++) {

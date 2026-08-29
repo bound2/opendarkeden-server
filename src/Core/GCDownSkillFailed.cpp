@@ -80,9 +80,7 @@ string GCDownSkillFailed::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCDownSkillFailed("
-        << "SkillType:" << (int)m_SkillType << ","
-        << "Desc:" << (int)m_Desc << ")";
+    msg << "GCDownSkillFailed(" << "SkillType:" << (int)m_SkillType << "," << "Desc:" << (int)m_Desc << ")";
     return msg.toString();
 
     __END_CATCH

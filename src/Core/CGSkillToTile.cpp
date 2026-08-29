@@ -89,9 +89,8 @@ string CGSkillToTile::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSkillToTile("
-        << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID << ",X:" << (int)m_X
-        << ",Y: " << (int)m_Y << ")";
+    msg << "CGSkillToTile(" << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID
+        << ",X:" << (int)m_X << ",Y: " << (int)m_Y << ")";
     return msg.toString();
 
     __END_CATCH

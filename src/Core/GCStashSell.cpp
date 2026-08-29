@@ -68,8 +68,7 @@ string GCStashSell::toString() const
 
     StringStream msg;
 
-    msg << "GCStashSell("
-        << "Price:" << (int)m_Price << ")";
+    msg << "GCStashSell(" << "Price:" << (int)m_Price << ")";
 
     return msg.toString();
 

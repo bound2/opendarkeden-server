@@ -221,8 +221,7 @@ string AR::toString() const
 
 {
     StringStream msg;
-    msg << "AR("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
+    msg << "AR(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
         << ",OptionType:" << getOptionTypeToString(getOptionTypeList()).c_str()
         << ",Durability:" << (int)getDurability() << ",BulletCount:" << (int)getBulletCount()
         << ",Silver:" << (int)getSilver() << ",EnchantLevel:" << (int)getEnchantLevel() << ")";
@@ -347,8 +346,7 @@ string ARInfo::toString() const
 
 {
     StringStream msg;
-    msg << "ARInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
+    msg << "ARInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
         << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
         << ",Durability:" << m_Durability << ",minDamage:" << m_MinDamage << ",maxDamage:" << m_MaxDamage
         << ",ToHitBonus:" << m_ToHitBonus << ",Range:" << (int)m_Range << ")";

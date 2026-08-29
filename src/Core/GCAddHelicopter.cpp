@@ -45,8 +45,7 @@ string GCAddHelicopter::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddHelicopter("
-        << "ObjectID:" << (int)m_ObjectID << ",Code:" << (int)m_Code << ")";
+    msg << "GCAddHelicopter(" << "ObjectID:" << (int)m_ObjectID << ",Code:" << (int)m_Code << ")";
     return msg.toString();
 
     __END_CATCH

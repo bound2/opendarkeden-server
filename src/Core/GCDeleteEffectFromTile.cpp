@@ -91,9 +91,8 @@ string GCDeleteEffectFromTile::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCDeleteEffectFromTile("
-        << "ObjectID:" << (int)m_ObjectID << ",X,Y: " << (int)m_X << "," << (int)m_Y << ",EffectID:" << (int)m_EffectID
-        << ")";
+    msg << "GCDeleteEffectFromTile(" << "ObjectID:" << (int)m_ObjectID << ",X,Y: " << (int)m_X << "," << (int)m_Y
+        << ",EffectID:" << (int)m_EffectID << ")";
     return msg.toString();
 
     __END_CATCH

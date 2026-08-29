@@ -58,7 +58,6 @@ string GCRemoveCorpseHead::toString() const
 
 {
     StringStream msg;
-    msg << "GCRemoveCorpseHead("
-        << "ObjectID:" << m_ObjectID << ")";
+    msg << "GCRemoveCorpseHead(" << "ObjectID:" << m_ObjectID << ")";
     return msg.toString();
 }

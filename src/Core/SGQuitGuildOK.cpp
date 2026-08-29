@@ -75,8 +75,7 @@ void SGQuitGuildOK::execute(Player* pPlayer) {
 string SGQuitGuildOK::toString() const {
     StringStream msg;
 
-    msg << "SGQuitGuildOK("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << ")";
+    msg << "SGQuitGuildOK(" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << ")";
 
     return msg.toString();
 }

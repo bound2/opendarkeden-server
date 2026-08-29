@@ -40,8 +40,7 @@ string CGRequestRepair::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGRequestRepair("
-        << "ObjectID : " << (int)m_ObjectID << ")";
+    msg << "CGRequestRepair(" << "ObjectID : " << (int)m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

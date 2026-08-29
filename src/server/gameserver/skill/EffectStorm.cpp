@@ -223,8 +223,7 @@ string EffectStorm::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectStorm("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectStorm(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

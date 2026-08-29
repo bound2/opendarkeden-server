@@ -38,8 +38,7 @@ string CGSMSAddressList::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSMSAddressList("
-        << ")";
+    msg << "CGSMSAddressList(" << ")";
 
     return msg.toString();
 

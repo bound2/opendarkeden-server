@@ -184,8 +184,7 @@ string EffectDestinies::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectDestinies("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDestinies(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

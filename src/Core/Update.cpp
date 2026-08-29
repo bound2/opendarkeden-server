@@ -364,8 +364,7 @@ uint Update::getMaxSize() {
 string Update::toString() const {
     StringStream msg;
 
-    msg << "Update("
-        << "Version:" << m_Version << ",UpdateType:" << UPDATETYPE2String[m_UpdateType];
+    msg << "Update(" << "Version:" << m_Version << ",UpdateType:" << UPDATETYPE2String[m_UpdateType];
 
     for (uint i = 0; i < maxParams; i++) {
         if (m_Params[i] == "")

@@ -44,8 +44,7 @@ string CGSelectQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSelectQuest("
-        << "QuestID:" << m_QuestID << ")";
+    msg << "CGSelectQuest(" << "QuestID:" << m_QuestID << ")";
     return msg.toString();
 
     __END_CATCH

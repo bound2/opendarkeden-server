@@ -16,8 +16,8 @@
 
 class GCOtherModifyInfo : public ModifyInfo {
 public:
-    GCOtherModifyInfo() {};
-    ~GCOtherModifyInfo() {};
+    GCOtherModifyInfo(){};
+    ~GCOtherModifyInfo(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

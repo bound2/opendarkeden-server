@@ -97,8 +97,7 @@ void RCSay::execute(Player* pPlayer) throw(ProtocolException, Error) {
 string RCSay::toString() const throw() {
     StringStream msg;
 
-    msg << "RCSay("
-        << "Name:" << m_Name << "Message:" << m_Message << ")";
+    msg << "RCSay(" << "Name:" << m_Name << "Message:" << m_Message << ")";
 
     return msg.toString();
 }

@@ -437,8 +437,7 @@ string NPC::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "NPC("
-        << "ObjectID:" << (int)m_ObjectID << ",SpriteType:" << (int)m_SpriteType << ",Name:" << m_Name
+    msg << "NPC(" << "ObjectID:" << (int)m_ObjectID << ",SpriteType:" << (int)m_SpriteType << ",Name:" << m_Name
         << ",MainColor:" << (int)m_MainColor << ",SubColor:" << (int)m_SubColor << ",X:" << (int)m_X
         << ",Y:" << (int)m_Y << ",Sight:" << (int)m_Sight << m_TriggerManager.toString() << ")";
     return msg.toString();

@@ -132,8 +132,8 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
             SkillDomainType_t highest = pSlayer->getHighestSkillDomain();
 
             // 등록 가능 여부 체크
-            if ((pSlayer->getGold() >= REQUIRE_SLAYER_SUBMASTER_GOLD) &&                               // 등록비 5천만
-                (pSlayer->getFame() >= REQUIRE_SLAYER_SUBMASTER_FAME[highest]) &&                      // 명성치
+            if ((pSlayer->getGold() >= REQUIRE_SLAYER_SUBMASTER_GOLD) &&          // 등록비 5천만
+                (pSlayer->getFame() >= REQUIRE_SLAYER_SUBMASTER_FAME[highest]) && // 명성치
                 (pSlayer->getSkillDomainLevel(highest) >= REQUIRE_SLAYER_SUBMASTER_SKILL_DOMAIN_LEVEL) // 레벨 40 이상
             ) {
                 GSAddGuildMember gsAddGuildMember;

@@ -92,9 +92,8 @@ string GCShopSold::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCShopSold("
-        << "ObjectID:" << (int)m_ObjectID << ",ShopVersion: " << (int)m_Version << ",ShopRackType: " << (int)m_RackType
-        << ",ShopRackIndex: " << (int)m_RackIndex << ")";
+    msg << "GCShopSold(" << "ObjectID:" << (int)m_ObjectID << ",ShopVersion: " << (int)m_Version
+        << ",ShopRackType: " << (int)m_RackType << ",ShopRackIndex: " << (int)m_RackIndex << ")";
     return msg.toString();
 
     __END_CATCH

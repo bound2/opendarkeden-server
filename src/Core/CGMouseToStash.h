@@ -19,8 +19,8 @@
 
 class CGMouseToStash : public Packet {
 public:
-    CGMouseToStash() {};
-    ~CGMouseToStash() {};
+    CGMouseToStash(){};
+    ~CGMouseToStash(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

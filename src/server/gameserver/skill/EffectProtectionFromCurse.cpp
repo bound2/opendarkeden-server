@@ -96,8 +96,7 @@ string EffectProtectionFromCurse::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectProtectionFromCurse("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectProtectionFromCurse(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

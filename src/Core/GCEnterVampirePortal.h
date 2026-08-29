@@ -18,8 +18,8 @@
 
 class GCEnterVampirePortal : public Packet {
 public:
-    GCEnterVampirePortal() {};
-    ~GCEnterVampirePortal() {};
+    GCEnterVampirePortal(){};
+    ~GCEnterVampirePortal(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

@@ -141,8 +141,7 @@ string EffectGrayDarkness::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectGrayDarkness("
-        << "DayTime:" << m_Deadline.tv_sec << ")";
+    msg << "EffectGrayDarkness(" << "DayTime:" << m_Deadline.tv_sec << ")";
     return msg.toString();
 
     __END_CATCH

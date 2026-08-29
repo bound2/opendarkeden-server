@@ -112,8 +112,7 @@ string ActionWarpLevelWarZone::toString() const
 
     StringStream msg;
 
-    msg << "ActionWarpLevelWarZone("
-        << ")";
+    msg << "ActionWarpLevelWarZone(" << ")";
 
     return msg.toString();
 

@@ -89,8 +89,8 @@ string GCUsePowerPointResult::toString() const
 
     StringStream msg;
 
-    msg << "GCUsePowerPointResult("
-        << "ErrorCode:" << (int)m_ErrorCode << ",ItemCode:" << (int)m_ItemCode << ",PowerPoint:" << m_PowerPoint << ")";
+    msg << "GCUsePowerPointResult(" << "ErrorCode:" << (int)m_ErrorCode << ",ItemCode:" << (int)m_ItemCode
+        << ",PowerPoint:" << m_PowerPoint << ")";
 
     return msg.toString();
 

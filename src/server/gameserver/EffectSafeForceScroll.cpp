@@ -174,8 +174,7 @@ string EffectSafeForceScroll::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSafeForceScroll("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectSafeForceScroll(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

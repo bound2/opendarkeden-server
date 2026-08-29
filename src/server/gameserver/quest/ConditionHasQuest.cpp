@@ -73,8 +73,7 @@ string ConditionHasQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionHasQuest("
-        << "QuestID : " << m_QuestID << ")";
+    msg << "ConditionHasQuest(" << "QuestID : " << m_QuestID << ")";
     return msg.toString();
 
     __END_CATCH

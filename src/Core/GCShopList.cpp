@@ -201,8 +201,7 @@ string GCShopList::toString() const
 
     StringStream msg;
 
-    msg << "GCShopList(" << "ObjectID:" << (int)m_ObjectID << ","
-        << "ShopVersion:" << (int)m_Version << ","
+    msg << "GCShopList(" << "ObjectID:" << (int)m_ObjectID << "," << "ShopVersion:" << (int)m_Version << ","
         << "RackType:" << (int)m_RackType << ",";
 
     for (int i = 0; i < SHOP_RACK_INDEX_MAX; i++) {

@@ -76,8 +76,7 @@ string EffectRegenerate::toString() const {
 
     StringStream msg;
 
-    msg << "EffectRegenerate("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectRegenerate(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

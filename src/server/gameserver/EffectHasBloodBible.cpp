@@ -192,8 +192,7 @@ string EffectHasBloodBible::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHasBloodBible("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHasBloodBible(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

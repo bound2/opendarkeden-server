@@ -73,8 +73,8 @@ string CGUseItemFromInventory::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGUseItemFromInventory("
-        << "ObjectID:" << (int)m_ObjectID << ",InvenX:" << (int)m_InvenX << ",InvenY:" << (int)m_InvenY << ")";
+    msg << "CGUseItemFromInventory(" << "ObjectID:" << (int)m_ObjectID << ",InvenX:" << (int)m_InvenX
+        << ",InvenY:" << (int)m_InvenY << ")";
     return msg.toString();
 
     __END_CATCH

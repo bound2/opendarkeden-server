@@ -85,8 +85,8 @@ string GCAddEffect::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddEffect("
-        << "ObjectID:" << (int)m_ObjectID << ",EffectID:" << (int)m_EffectID << ",Duration:" << (int)m_Duration << ")";
+    msg << "GCAddEffect(" << "ObjectID:" << (int)m_ObjectID << ",EffectID:" << (int)m_EffectID
+        << ",Duration:" << (int)m_Duration << ")";
     return msg.toString();
 
     __END_CATCH

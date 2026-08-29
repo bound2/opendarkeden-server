@@ -288,8 +288,8 @@ string Player::toString() const {
 
     StringStream msg;
 
-    msg << "Player("
-        << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost() << ",ID:" << m_ID << ")";
+    msg << "Player(" << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost() << ",ID:" << m_ID
+        << ")";
 
     return msg.toString();
 

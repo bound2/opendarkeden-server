@@ -96,8 +96,7 @@ string EffectProtectionFromBlood::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectProtectionFromBlood("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectProtectionFromBlood(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

@@ -42,7 +42,6 @@ string CGRequestInfo::toString() const
 
 {
     StringStream msg;
-    msg << "CGRequestInfo("
-        << "Code : " << (int)m_Code << "Value : " << (int)m_Value << ")";
+    msg << "CGRequestInfo(" << "Code : " << (int)m_Code << "Value : " << (int)m_Value << ")";
     return msg.toString();
 }

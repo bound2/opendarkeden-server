@@ -71,8 +71,7 @@ void PKTPowerPoint::write(SocketOutputStream& oStream) {
 string PKTPowerPoint::toString() const {
     char str[64];
     StringStream msg;
-    msg << "PowerPoint("
-        << "MoDataCode:" << nMoGameCode;
+    msg << "PowerPoint(" << "MoDataCode:" << nMoGameCode;
     memcpy(str, sPhoneNo, 12);
     str[12] = '\0';
     msg << ",PhoneNo:" << str;

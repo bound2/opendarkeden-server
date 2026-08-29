@@ -89,9 +89,8 @@ string EffectDeleteTile::toString() const {
 
     StringStream msg;
 
-    msg << "EffectDeleteTile("
-        << "ObjectID:" << (int)getObjectID() << ",Zone:" << m_pZone->getZoneID() << ",X:" << (int)m_X
-        << ",Y:" << (int)m_Y << ")";
+    msg << "EffectDeleteTile(" << "ObjectID:" << (int)getObjectID() << ",Zone:" << m_pZone->getZoneID()
+        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
 
     return msg.toString();
 

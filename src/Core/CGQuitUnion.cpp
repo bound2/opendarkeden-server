@@ -43,8 +43,7 @@ string CGQuitUnion::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGQuitUnion("
-        << "GuildID:" << m_GuildID << "Method:" << m_Method << ")";
+    msg << "CGQuitUnion(" << "GuildID:" << m_GuildID << "Method:" << m_Method << ")";
     return msg.toString();
 
     __END_CATCH

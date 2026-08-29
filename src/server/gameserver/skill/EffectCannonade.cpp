@@ -170,9 +170,8 @@ string EffectCannonade::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectCannonade("
-        << "Zone:" << g_pZoneInfoManager->getZoneInfo(m_pZone->getZoneID())->getFullName() << ",X:" << (int)m_X
-        << ",Y:" << (int)m_Y << ",Damage:" << (int)m_Damage << ")";
+    msg << "EffectCannonade(" << "Zone:" << g_pZoneInfoManager->getZoneInfo(m_pZone->getZoneID())->getFullName()
+        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Damage:" << (int)m_Damage << ")";
     return msg.toString();
 
     __END_CATCH

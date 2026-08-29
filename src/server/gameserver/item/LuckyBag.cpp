@@ -147,8 +147,7 @@ string LuckyBag::toString() const
 {
     StringStream msg;
 
-    msg << "LuckyBag("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "LuckyBag(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
 
     return msg.toString();
 }
@@ -191,9 +190,9 @@ string LuckyBagInfo::toString() const
 
 {
     StringStream msg;
-    msg << "LuckyBagInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight << ")";
+    msg << "LuckyBagInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+        << ")";
     return msg.toString();
 }
 

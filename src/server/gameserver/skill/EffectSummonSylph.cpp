@@ -82,8 +82,7 @@ string EffectSummonSylph::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSummonSylph("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectSummonSylph(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

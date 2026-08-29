@@ -63,8 +63,7 @@ string ActionForceApartCouple::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionForceApartCouple("
-        << ")";
+    msg << "ActionForceApartCouple(" << ")";
 
     return msg.toString();
 

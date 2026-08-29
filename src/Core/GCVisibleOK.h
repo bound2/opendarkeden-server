@@ -25,7 +25,7 @@ class GCVisibleOK : public Packet {
 public:
     // constructor
     GCVisibleOK() {}
-    ~GCVisibleOK() {};
+    ~GCVisibleOK(){};
 
 
 public:

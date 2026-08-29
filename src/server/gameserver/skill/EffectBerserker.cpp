@@ -94,8 +94,7 @@ string EffectBerserker::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectBerserker("
-        << "DefensePenalty:" << m_DefensePenalty << ",ProtectionPenalty:" << m_ProtectionPenalty
+    msg << "EffectBerserker(" << "DefensePenalty:" << m_DefensePenalty << ",ProtectionPenalty:" << m_ProtectionPenalty
         << ",ToHitBonus:" << m_ToHitBonus << ",DamageBonus:" << m_DamageBonus << ")";
     return msg.toString();
 

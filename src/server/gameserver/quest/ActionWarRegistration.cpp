@@ -158,8 +158,7 @@ string ActionWarRegistration::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionWarRegistration("
-        << ",ZoneID:" << (int)m_ZoneID << ")";
+    msg << "ActionWarRegistration(" << ",ZoneID:" << (int)m_ZoneID << ")";
 
     return msg.toString();
 

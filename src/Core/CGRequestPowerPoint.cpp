@@ -72,8 +72,7 @@ string CGRequestPowerPoint::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGRequestPowerPoint("
-        << ",CellNum: " << m_CellNum << ")";
+    msg << "CGRequestPowerPoint(" << ",CellNum: " << m_CellNum << ")";
     return msg.toString();
 
     __END_CATCH

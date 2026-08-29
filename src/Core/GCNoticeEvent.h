@@ -95,10 +95,10 @@ enum {
 
     NOTICE_EVENT_RACE_WAR_STARTED_IN_OTHER_SERVER, // 첫번째 서버에서 종족전이 시작됐습니다.
 
-    NOTICE_EVENT_CANNOT_FIND_STORE,  // 해당 판매자를 찾을 수 없습니다.
-    NOTICE_EVENT_STORE_CLOSED,       // 상점이 이미 닫혔습니다.
-    NOTICE_EVENT_ITEM_NOT_FOUND,     // 해당 아이템이 이미 판매되었거나 판매자에 의해 철회되었습니다.
-                                     //	NOTICE_EVENT_NOT_ENOUGH_MONEY,				// 돈이 모자라서 못 사겠습니다.
+    NOTICE_EVENT_CANNOT_FIND_STORE, // 해당 판매자를 찾을 수 없습니다.
+    NOTICE_EVENT_STORE_CLOSED,      // 상점이 이미 닫혔습니다.
+    NOTICE_EVENT_ITEM_NOT_FOUND, // 해당 아이템이 이미 판매되었거나 판매자에 의해 철회되었습니다.
+                                 //	NOTICE_EVENT_NOT_ENOUGH_MONEY,				// 돈이 모자라서 못 사겠습니다.
     NOTICE_EVENT_TOO_MUCH_MONEY,     // 판매자가 너무 많은 돈을 가지고 있어서 살 수 없습니다.
     NOTICE_EVENT_NO_INVENTORY_SPACE, // 인벤토리에 빈 자리가 없습니다.
 

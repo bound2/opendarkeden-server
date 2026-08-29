@@ -76,8 +76,7 @@ string CGDropMoney::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGDropMoney("
-        << "Amount:" << (int)m_Amount << ")";
+    msg << "CGDropMoney(" << "Amount:" << (int)m_Amount << ")";
     return msg.toString();
 
     __END_CATCH

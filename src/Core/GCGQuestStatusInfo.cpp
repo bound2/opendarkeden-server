@@ -107,8 +107,7 @@ string GCGQuestStatusInfo::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCGQuestStatusInfo("
-        << ")";
+    msg << "GCGQuestStatusInfo(" << ")";
     return msg.toString();
 
     __END_CATCH

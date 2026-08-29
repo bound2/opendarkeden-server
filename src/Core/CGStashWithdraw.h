@@ -18,8 +18,8 @@
 
 class CGStashWithdraw : public Packet {
 public:
-    CGStashWithdraw() {};
-    virtual ~CGStashWithdraw() {};
+    CGStashWithdraw(){};
+    virtual ~CGStashWithdraw(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

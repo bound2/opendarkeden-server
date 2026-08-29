@@ -28,7 +28,7 @@ public:
     // constructor
     GCMove() {}
     GCMove(ObjectID_t objectID, Coord_t x, Coord_t y, Dir_t dir) : m_ObjectID(objectID), m_X(x), m_Y(y), m_Dir(dir) {}
-    ~GCMove() {};
+    ~GCMove(){};
 
 
 public:

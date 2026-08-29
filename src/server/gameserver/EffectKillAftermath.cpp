@@ -202,8 +202,7 @@ string EffectKillAftermath::toString() const {
 
     StringStream msg;
 
-    msg << "EffectKillAftermath("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectKillAftermath(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

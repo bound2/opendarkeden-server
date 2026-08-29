@@ -260,8 +260,7 @@ string EffectHarpoonBomb::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHarpoonBomb("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHarpoonBomb(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

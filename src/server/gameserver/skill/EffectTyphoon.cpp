@@ -88,8 +88,7 @@ string EffectTyphoon::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectTyphoon("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectTyphoon(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

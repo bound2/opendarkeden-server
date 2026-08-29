@@ -153,8 +153,7 @@ string SubInventory::toString() const
 {
     StringStream msg;
 
-    msg << "SubInventory("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
+    msg << "SubInventory(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
 
     return msg.toString();
 }
@@ -202,9 +201,8 @@ string SubInventoryInfo::toString() const
 
 {
     StringStream msg;
-    msg << "SubInventoryInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "SubInventoryInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ")";
     return msg.toString();
 }

@@ -18,8 +18,8 @@
 
 class CGSelectTileEffect : public Packet {
 public:
-    CGSelectTileEffect() {};
-    virtual ~CGSelectTileEffect() {};
+    CGSelectTileEffect(){};
+    virtual ~CGSelectTileEffect(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

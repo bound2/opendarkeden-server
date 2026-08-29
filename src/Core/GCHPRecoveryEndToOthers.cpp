@@ -85,8 +85,7 @@ string GCHPRecoveryEndToOthers::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCHPRecoveryEndToOthers("
-        << "ObjectID:" << m_ObjectID << ",CurrentHP:" << (int)m_CurrentHP << ")";
+    msg << "GCHPRecoveryEndToOthers(" << "ObjectID:" << m_ObjectID << ",CurrentHP:" << (int)m_CurrentHP << ")";
     return msg.toString();
 
     __END_CATCH

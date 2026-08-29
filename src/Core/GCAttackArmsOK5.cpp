@@ -112,8 +112,7 @@ string GCAttackArmsOK5::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAttackArmsOK5("
-        << "SkillType:" << (int)m_SkillType << "ObjectID:" << (int)m_ObjectID
+    msg << "GCAttackArmsOK5(" << "SkillType:" << (int)m_SkillType << "ObjectID:" << (int)m_ObjectID
         << ",TargetObjectID:" << (int)m_TargetObjectID << ",Success:" << (int)m_bSuccess << ")";
     return msg.toString();
 

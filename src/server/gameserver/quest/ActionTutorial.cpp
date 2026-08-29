@@ -72,8 +72,7 @@ string ActionTutorial::toString() const
 
     StringStream msg;
 
-    msg << "ActionTutorial("
-        << "Interface : " << m_Interface << ")";
+    msg << "ActionTutorial(" << "Interface : " << m_Interface << ")";
 
     return msg.toString();
 

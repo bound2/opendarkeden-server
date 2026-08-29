@@ -82,8 +82,7 @@ string CGSkillToSelf::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSkillToSelf("
-        << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID << ")";
+    msg << "CGSkillToSelf(" << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID << ")";
     return msg.toString();
 
     __END_CATCH

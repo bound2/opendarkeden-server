@@ -62,8 +62,7 @@ string CGSelectGuildMember::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSelectGuildMember("
-        << "GuildID:" << m_GuildID << ")";
+    msg << "CGSelectGuildMember(" << "GuildID:" << m_GuildID << ")";
     return msg.toString();
 
     __END_CATCH

@@ -27,7 +27,7 @@ public:
         m_TreasureCount = 0;
     }
     GCAddOustersCorpse(const PCOustersInfo3& oustersInfo) : m_OustersInfo(oustersInfo) {}
-    ~GCAddOustersCorpse() {};
+    ~GCAddOustersCorpse(){};
 
 
 public:

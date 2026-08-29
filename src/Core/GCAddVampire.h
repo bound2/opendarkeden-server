@@ -118,7 +118,7 @@ private:
     PetInfo* m_pPetInfo;           // 펫 정보
     NicknameInfo* m_pNicknameInfo; // 펫 정보
     StoreOutlook m_StoreOutlook;   // 개인상점 정보
-    BYTE m_FromFlag;               // 어디로부터인가? 정상일 경우에는 0, 포탈을 통했을 경우에는 1
+    BYTE m_FromFlag; // 어디로부터인가? 정상일 경우에는 0, 포탈을 통했을 경우에는 1
 };
 
 

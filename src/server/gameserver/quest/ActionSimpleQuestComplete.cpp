@@ -70,8 +70,7 @@ string ActionSimpleQuestComplete::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionSimpleQuestComplete("
-        << ",ScriptID:" << (int)m_ScriptID << ")";
+    msg << "ActionSimpleQuestComplete(" << ",ScriptID:" << (int)m_ScriptID << ")";
 
     return msg.toString();
 

@@ -75,8 +75,7 @@ string EffectGroundElemental::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectGroundElemental("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectGroundElemental(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

@@ -174,8 +174,7 @@ string ActionEnterGDRLair::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionEnterGDRLair("
-        << ")";
+    msg << "ActionEnterGDRLair(" << ")";
     return msg.toString();
 
     __END_CATCH

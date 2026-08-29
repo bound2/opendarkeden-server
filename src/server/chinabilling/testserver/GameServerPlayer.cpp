@@ -444,8 +444,8 @@ string GameServerPlayer::toString() const throw(Error) {
 
     StringStream msg;
 
-    msg << "GameServerPlayer("
-        << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost() << ",ID:" << m_ID << ")";
+    msg << "GameServerPlayer(" << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost()
+        << ",ID:" << m_ID << ")";
 
     return msg.toString();
 

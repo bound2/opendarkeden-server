@@ -96,10 +96,9 @@ string GCChangeShape::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCChangeShape("
-        << "ObjectID:" << (int)m_ObjectID << ",ItemClass:" << (int)m_ItemClass << ",ItemType:" << (int)m_ItemType
-        << ",OptionType:" << (int)m_OptionType << ",AttackSpeed :" << (int)m_AttackSpeed << ",Flag :" << (int)m_Flag
-        << ")";
+    msg << "GCChangeShape(" << "ObjectID:" << (int)m_ObjectID << ",ItemClass:" << (int)m_ItemClass
+        << ",ItemType:" << (int)m_ItemType << ",OptionType:" << (int)m_OptionType
+        << ",AttackSpeed :" << (int)m_AttackSpeed << ",Flag :" << (int)m_Flag << ")";
     return msg.toString();
 
     __END_CATCH

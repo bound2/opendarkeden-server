@@ -40,7 +40,6 @@ string CLAgreement::toString() const
 
 {
     StringStream msg;
-    msg << "CLAgreement("
-        << "Agree:" << (int)m_Agree << ")";
+    msg << "CLAgreement(" << "Agree:" << (int)m_Agree << ")";
     return msg.toString();
 }

@@ -181,8 +181,7 @@ string EffectFierceFlame::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectFierceFlame("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectFierceFlame(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

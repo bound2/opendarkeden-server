@@ -79,8 +79,7 @@ string ActionSwapAdvancementItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionSwapAdvancementItem("
-        << ")";
+    msg << "ActionSwapAdvancementItem(" << ")";
 
     return msg.toString();
 

@@ -21,7 +21,7 @@ protected:
     GlobalItemPosition(PositionType type) : m_ItemPosType(type) {}
 
 public:
-    virtual ~GlobalItemPosition() {};
+    virtual ~GlobalItemPosition(){};
 
 public:
     void setType(PositionType type) {

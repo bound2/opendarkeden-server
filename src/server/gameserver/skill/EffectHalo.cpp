@@ -144,8 +144,7 @@ string EffectHalo::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectHalo("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHalo(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

@@ -183,8 +183,7 @@ string EffectContinualGroundAttack::toString() const
     StringStream msg;
 
     if (m_pZone) {
-        msg << "EffectContinualGroundAttack("
-            << "ZoneID:" << (int)m_pZone->getZoneID();
+        msg << "EffectContinualGroundAttack(" << "ZoneID:" << (int)m_pZone->getZoneID();
     }
 
     msg << ",Delay:" << (int)m_Delay << ",Deadline:" << (int)m_Deadline.tv_sec << "." << (int)m_Deadline.tv_usec << ")";

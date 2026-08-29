@@ -46,8 +46,7 @@ string CGStoreSign::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGStoreSign("
-        << ")";
+    msg << "CGStoreSign(" << ")";
     return msg.toString();
 
     __END_CATCH

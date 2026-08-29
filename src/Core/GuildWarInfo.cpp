@@ -65,8 +65,7 @@ void GuildWarInfo::write(SocketOutputStream& oStream) const {
 string GuildWarInfo::toString() const {
     StringStream msg;
 
-    msg << "GuildWarInfo("
-        << "CastleID:" << (int)m_CastleID << ",AttackGuildName:" << m_AttackGuildName
+    msg << "GuildWarInfo(" << "CastleID:" << (int)m_CastleID << ",AttackGuildName:" << m_AttackGuildName
         << ",DefenseGuildName:" << m_DefenseGuildName << ",RemainTime:" << (int)m_RemainTime
         << ",Guilds:" << m_GuildIDs.toString() << ")";
 

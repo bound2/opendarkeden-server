@@ -18,8 +18,8 @@
 
 class CGTradeAddItem : public Packet {
 public:
-    CGTradeAddItem() {};
-    virtual ~CGTradeAddItem() {};
+    CGTradeAddItem(){};
+    virtual ~CGTradeAddItem(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

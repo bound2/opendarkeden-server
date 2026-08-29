@@ -14,9 +14,8 @@ string PKZoneInfo::toString()
 
     StringStream msg;
 
-    msg << "PKZoneInfo("
-        << "ZoneID: " << getZoneID() << ",isFree: " << ((isFree()) ? ("true") : ("false")) << ",Race: " << getRace()
-        << ",EnterPosition( " << getEnterX() << ", " << getEnterY() << ") "
+    msg << "PKZoneInfo(" << "ZoneID: " << getZoneID() << ",isFree: " << ((isFree()) ? ("true") : ("false"))
+        << ",Race: " << getRace() << ",EnterPosition( " << getEnterX() << ", " << getEnterY() << ") "
         << ",PCLimit: " << getPCLimit() << ")";
 
     return msg.toString();

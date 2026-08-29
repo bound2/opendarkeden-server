@@ -98,8 +98,7 @@ string EffectActivation::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectActivation("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectActivation(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

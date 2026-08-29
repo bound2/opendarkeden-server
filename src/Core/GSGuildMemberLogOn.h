@@ -26,8 +26,8 @@
 
 class GSGuildMemberLogOn : public Packet {
 public:
-    GSGuildMemberLogOn() {};
-    ~GSGuildMemberLogOn() {};
+    GSGuildMemberLogOn(){};
+    ~GSGuildMemberLogOn(){};
     // Initialize packet by reading data from the datagram stream.
     void read(SocketInputStream& iStream);
 

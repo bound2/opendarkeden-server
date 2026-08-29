@@ -98,8 +98,7 @@ string EffectDenialMagic::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectDenialMagic("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDenialMagic(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

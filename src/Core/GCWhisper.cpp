@@ -113,8 +113,8 @@ string GCWhisper::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCWhisper("
-        << "Name :" << m_Name << ",Color:" << m_Color << ",Message:" << m_Message << ",Race :" << (int)m_Race << ")";
+    msg << "GCWhisper(" << "Name :" << m_Name << ",Color:" << m_Color << ",Message:" << m_Message
+        << ",Race :" << (int)m_Race << ")";
     return msg.toString();
 
     __END_CATCH

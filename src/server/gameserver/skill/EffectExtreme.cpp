@@ -86,8 +86,7 @@ string EffectExtreme::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectExtreme("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectExtreme(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

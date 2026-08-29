@@ -41,8 +41,7 @@ string EffectSwordOfThor::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSwordOfThor("
-        << "Level:" << (int)m_Level << ")";
+    msg << "EffectSwordOfThor(" << "Level:" << (int)m_Level << ")";
     return msg.toString();
 
     __END_CATCH

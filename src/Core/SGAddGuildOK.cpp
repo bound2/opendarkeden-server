@@ -112,10 +112,10 @@ void SGAddGuildOK::execute(Player* pPlayer) {
 string SGAddGuildOK::toString() const {
     StringStream msg;
 
-    msg << "SGAddGuildOK("
-        << "GuildID:" << (int)m_GuildID << "GuildName:" << m_GuildName << "GuildRace:" << (int)m_GuildRace
-        << "GuildState:" << (int)m_GuildState << "GuildZoneID:" << (int)m_GuildZoneID << "GuildMaster:" << m_GuildMaster
-        << "GuildIntro:" << m_GuildIntro << ")";
+    msg << "SGAddGuildOK(" << "GuildID:" << (int)m_GuildID << "GuildName:" << m_GuildName
+        << "GuildRace:" << (int)m_GuildRace << "GuildState:" << (int)m_GuildState
+        << "GuildZoneID:" << (int)m_GuildZoneID << "GuildMaster:" << m_GuildMaster << "GuildIntro:" << m_GuildIntro
+        << ")";
 
     return msg.toString();
 }

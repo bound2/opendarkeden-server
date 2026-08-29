@@ -230,7 +230,7 @@ protected:
 
     bool m_bPremiumPlay;
     bool m_bPCRoomPlay; // PC 방 사용자인가?
-                        // PC 방 유저 제한에 상관없이 유료 적용 중인 PC 방에서 플레이하고 있는가?
+        // PC 방 유저 제한에 상관없이 유료 적용 중인 PC 방에서 플레이하고 있는가?
 
     bool m_bFamilyPayAvailable;              // 패밀리 요금제 사용자인가?
     FamilyPayPartyType m_FamilyPayPartyType; // 패밀리 요금제 파티 적용 타입

@@ -195,8 +195,7 @@ string ActionRegisterReinforce::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionRegisterReinforce("
-        << ",ZoneID:" << (int)m_ZoneID << ")";
+    msg << "ActionRegisterReinforce(" << ",ZoneID:" << (int)m_ZoneID << ")";
 
     return msg.toString();
 

@@ -54,8 +54,7 @@ string GCExecuteElement::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCExecuteElement("
-        << ")";
+    msg << "GCExecuteElement(" << ")";
     return msg.toString();
 
     __END_CATCH

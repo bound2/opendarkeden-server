@@ -92,8 +92,7 @@ string GCShopSellFail::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCShopSellFail("
-        << "ObjectID:" << m_ObjectID << ")";
+    msg << "GCShopSellFail(" << "ObjectID:" << m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

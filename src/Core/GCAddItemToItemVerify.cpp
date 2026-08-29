@@ -124,8 +124,7 @@ string GCAddItemToItemVerify::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddItemToItemVerify("
-        << "Code : " << (int)m_Code << "Parameter : " << (int)m_Parameter << ")";
+    msg << "GCAddItemToItemVerify(" << "Code : " << (int)m_Code << "Parameter : " << (int)m_Parameter << ")";
     return msg.toString();
 
     __END_CATCH

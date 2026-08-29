@@ -88,8 +88,7 @@ string ModifyInfo::toString() const {
 
     StringStream msg;
 
-    msg << "ModifyInfo["
-        << "ShortCount:" << (int)m_ShortCount << ",ShortListSet(";
+    msg << "ModifyInfo[" << "ShortCount:" << (int)m_ShortCount << ",ShortListSet(";
 
     list<SHORTDATA>::const_iterator short_itr = m_ShortList.begin();
     for (; short_itr != m_ShortList.end(); short_itr++) {

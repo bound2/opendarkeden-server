@@ -86,8 +86,7 @@ string EffectStoneSkin::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectStoneSkin("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectStoneSkin(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

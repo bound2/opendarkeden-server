@@ -42,9 +42,7 @@ string CGDownSkill::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGDownSkill("
-        << "SkillType:" << (int)m_SkillType << ","
-        << ")";
+    msg << "CGDownSkill(" << "SkillType:" << (int)m_SkillType << "," << ")";
 
     return msg.toString();
 

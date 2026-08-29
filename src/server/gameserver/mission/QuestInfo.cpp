@@ -30,8 +30,7 @@ QuestInfo::~QuestInfo() {}
 string QuestInfo::toString() const {
     StringStream msg;
 
-    msg << "QuestInfo("
-        << "QuestID : " << m_QuestID << " ,Race : " << ((m_Race == 0) ? "Slayer" : "Vampire")
+    msg << "QuestInfo(" << "QuestID : " << m_QuestID << " ,Race : " << ((m_Race == 0) ? "Slayer" : "Vampire")
         << " ,MinGrade : " << m_MinGrade << " ,MaxGrade : " << m_MaxGrade << " ,TimeLimit : " << m_TimeLimitSec
         << " ,RewardClass : " << m_RewardClass << " ,isEventQuest : " << ((m_bEventQuest) ? "yes" : "no")
         << " ,QuestLevel : " << m_QuestLevel << ")";

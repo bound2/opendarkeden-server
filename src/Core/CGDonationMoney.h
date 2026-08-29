@@ -28,8 +28,8 @@ enum DonationType {
 ////////////////////////////////////////////////////////////////////////////////
 class CGDonationMoney : public Packet {
 public:
-    CGDonationMoney() {};
-    virtual ~CGDonationMoney() {};
+    CGDonationMoney(){};
+    virtual ~CGDonationMoney(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

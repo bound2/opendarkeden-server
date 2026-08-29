@@ -51,8 +51,7 @@ string EffectSatelliteBombPoint::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSatelliteBombPoint("
-        << ")";
+    msg << "EffectSatelliteBombPoint(" << ")";
     return msg.toString();
 
     __END_CATCH

@@ -99,8 +99,7 @@ string EffectSnipingMode::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSnipingMode("
-        << "ObjectID:" << getObjectID() << "RevealRatio:" << m_RevealRatio << ")";
+    msg << "EffectSnipingMode(" << "ObjectID:" << getObjectID() << "RevealRatio:" << m_RevealRatio << ")";
     return msg.toString();
 
     __END_CATCH

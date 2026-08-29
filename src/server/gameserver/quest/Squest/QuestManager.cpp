@@ -9,9 +9,9 @@
 //--------------------------------------------------------------------------------
 // constructor / destructor
 //--------------------------------------------------------------------------------
-QuestManager::QuestManager() throw (Error){__BEGIN_TRY
+QuestManager::QuestManager() throw(Error){__BEGIN_TRY
 
-                                               __END_CATCH}
+                                              __END_CATCH}
 
 QuestManager::~QuestManager() throw(Error) {
     __BEGIN_TRY

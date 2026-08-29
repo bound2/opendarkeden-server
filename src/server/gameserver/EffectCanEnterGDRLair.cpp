@@ -161,8 +161,7 @@ string EffectCanEnterGDRLair::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectCanEnterGDRLair("
-        << ")";
+    msg << "EffectCanEnterGDRLair(" << ")";
     return msg.toString();
 
     __END_CATCH

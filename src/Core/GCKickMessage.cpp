@@ -68,8 +68,7 @@ string GCKickMessage::toString() const
 
     StringStream msg;
 
-    msg << "GCKickMessage("
-        << "Type:" << (int)m_Type << "Seconds:" << (int)m_Seconds << ")";
+    msg << "GCKickMessage(" << "Type:" << (int)m_Type << "Seconds:" << (int)m_Seconds << ")";
 
     return msg.toString();
 

@@ -44,8 +44,8 @@ string CGStashToMouse::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGMouseToStash("
-        << " ObjectID : " << (int)m_ObjectID << " Rack : " << (int)m_Rack << " Index : " << (int)m_Index << ")";
+    msg << "CGMouseToStash(" << " ObjectID : " << (int)m_ObjectID << " Rack : " << (int)m_Rack
+        << " Index : " << (int)m_Index << ")";
     return msg.toString();
 
     __END_CATCH

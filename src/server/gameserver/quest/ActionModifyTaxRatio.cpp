@@ -112,8 +112,7 @@ string ActionModifyTaxRatio::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionModifyTaxRatio("
-        << ")";
+    msg << "ActionModifyTaxRatio(" << ")";
 
     return msg.toString();
 

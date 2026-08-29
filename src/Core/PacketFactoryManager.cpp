@@ -433,10 +433,8 @@
 #include "CGExpelGuild.h"
 
 // Exchange System Packets
-#include "CGExchangeList.h"
 #include "CGExchangeBuy.h"
-#include "GCExchangeList.h"
-#include "GCExchangeBuy.h"
+#include "CGExchangeList.h"
 #include "CGFailQuest.h"
 #include "CGGQuestAccept.h"
 #include "CGGQuestCancel.h"
@@ -487,6 +485,8 @@
 #include "GCBloodBibleStatus.h"
 #include "GCDownSkillFailed.h"
 #include "GCDownSkillOK.h"
+#include "GCExchangeBuy.h"
+#include "GCExchangeList.h"
 #include "GCExecuteElement.h"
 #include "GCFlagWarStatus.h"
 #include "GCGQuestInventory.h"

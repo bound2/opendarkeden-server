@@ -75,8 +75,7 @@ string EffectIceOfSoulStone::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectIceOfSoulStone("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectIceOfSoulStone(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

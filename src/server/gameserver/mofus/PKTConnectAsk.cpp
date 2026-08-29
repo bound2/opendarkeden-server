@@ -44,8 +44,7 @@ void PKTConnectAsk::write(SocketOutputStream& oStream) {
 string PKTConnectAsk::toString() const {
     StringStream msg;
 
-    msg << "ConnectAsk("
-        << "OnGameCode:" << nOnGameCode << ")";
+    msg << "ConnectAsk(" << "OnGameCode:" << nOnGameCode << ")";
 
     return msg.toString();
 }

@@ -50,8 +50,8 @@ string GCNPCSay::toString() const
 
     StringStream msg;
 
-    msg << "GCNPCSay("
-        << "ObjectID:" << m_ObjectID << ",ScriptID:" << m_ScriptID << ",SubjectID:" << (int)m_SubjectID << ")";
+    msg << "GCNPCSay(" << "ObjectID:" << m_ObjectID << ",ScriptID:" << m_ScriptID << ",SubjectID:" << (int)m_SubjectID
+        << ")";
 
     return msg.toString();
 

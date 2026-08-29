@@ -36,8 +36,8 @@ enum {
 
 class GCTradeMoney : public Packet {
 public:
-    GCTradeMoney() {};
-    ~GCTradeMoney() {};
+    GCTradeMoney(){};
+    ~GCTradeMoney(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

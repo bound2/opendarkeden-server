@@ -110,8 +110,7 @@ string EffectIntimateGrail::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectIntimateGrail("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectIntimateGrail(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

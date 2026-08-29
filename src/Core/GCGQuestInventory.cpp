@@ -87,8 +87,7 @@ string GCGQuestInventory::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCGQuestInventory("
-        << ")";
+    msg << "GCGQuestInventory(" << ")";
     return msg.toString();
 
     __END_CATCH

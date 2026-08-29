@@ -168,9 +168,8 @@ string EffectTransportItem::toString() const
 {
     StringStream msg;
 
-    msg << "EffectTransportItem("
-        << "ZoneID:" << (int)m_pZone->getZoneID() << "TargetZoneID:" << (int)m_pTargetZone->getZoneID()
-        << ",X:" << (int)getX() << ",Y:" << (int)getY();
+    msg << "EffectTransportItem(" << "ZoneID:" << (int)m_pZone->getZoneID()
+        << "TargetZoneID:" << (int)m_pTargetZone->getZoneID() << ",X:" << (int)getX() << ",Y:" << (int)getY();
 
     if (m_pTarget)
         msg << ",Target:" << m_pTarget->toString();

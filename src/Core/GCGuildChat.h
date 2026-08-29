@@ -22,8 +22,8 @@
 
 class GCGuildChat : public Packet {
 public:
-    GCGuildChat() {};
-    ~GCGuildChat() {};
+    GCGuildChat(){};
+    ~GCGuildChat(){};
     // Initialize packet by reading data from the incoming stream.
     void read(SocketInputStream& iStream);
 

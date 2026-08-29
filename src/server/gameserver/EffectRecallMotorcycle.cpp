@@ -138,9 +138,8 @@ string EffectRecallMotorcycle::toString() const
 {
     StringStream msg;
 
-    msg << "EffectRecallMotorcycle("
-        << "ZoneID:" << (int)m_pZone->getZoneID() << "TargetZoneID:" << (int)m_pTargetZone->getZoneID()
-        << ",X:" << (int)getX() << ",Y:" << (int)getY();
+    msg << "EffectRecallMotorcycle(" << "ZoneID:" << (int)m_pZone->getZoneID()
+        << "TargetZoneID:" << (int)m_pTargetZone->getZoneID() << ",X:" << (int)getX() << ",Y:" << (int)getY();
 
     if (m_pTarget)
         msg << ",Target:" << m_pTarget->toString();

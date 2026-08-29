@@ -628,9 +628,7 @@ void Inventory::deleteItem(CoordInven_t X, CoordInven_t Y)
                     InventorySlot& slot = getInventorySlot(x, y);
 
                     // if (slot.getItem()==pItem)
-                    {
-                        slot.deleteItem();
-                    }
+                    { slot.deleteItem(); }
                     /*
                     // 다른 문제였다. - -;
                     // Restore에서 뱀파이어 아이템 양손 무기를 하나 체크를 안해서 그렇다.

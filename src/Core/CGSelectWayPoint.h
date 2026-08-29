@@ -19,8 +19,8 @@
 
 class CGSelectWayPoint : public Packet {
 public:
-    CGSelectWayPoint() {};
-    virtual ~CGSelectWayPoint() {};
+    CGSelectWayPoint(){};
+    virtual ~CGSelectWayPoint(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

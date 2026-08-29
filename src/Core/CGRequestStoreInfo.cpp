@@ -42,8 +42,7 @@ string CGRequestStoreInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGRequestStoreInfo("
-        << ")";
+    msg << "CGRequestStoreInfo(" << ")";
     return msg.toString();
 
     __END_CATCH

@@ -69,8 +69,7 @@ string ActionCallHelicopter::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionCallHelicopter("
-        << ")";
+    msg << "ActionCallHelicopter(" << ")";
     return msg.toString();
 
     __END_CATCH

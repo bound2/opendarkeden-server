@@ -37,7 +37,7 @@ public:
         m_ItemObjectID = 0;
         m_OpCode = SHOP_REQUEST_SELL_NORMAL;
     }
-    virtual ~CGShopRequestSell() {};
+    virtual ~CGShopRequestSell(){};
 
 
 public:

@@ -104,8 +104,7 @@ string EffectDragonEye::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectDragonEye("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDragonEye(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

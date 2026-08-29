@@ -67,9 +67,8 @@ string CGAbsorbSoul::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGAbsorbSoul("
-        << "ObjectID:" << (int)m_ObjectID << "InvenObjectID:" << (int)m_InvenObjectID << "InvenX :" << (int)m_InvenX
-        << "InvenY :" << (int)m_InvenY << ")";
+    msg << "CGAbsorbSoul(" << "ObjectID:" << (int)m_ObjectID << "InvenObjectID:" << (int)m_InvenObjectID
+        << "InvenX :" << (int)m_InvenX << "InvenY :" << (int)m_InvenY << ")";
     return msg.toString();
 
     __END_CATCH

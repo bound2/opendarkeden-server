@@ -99,8 +99,7 @@ string GCAddVampire::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddVampire("
-        << "VampireInfo:" << m_VampireInfo.toString() << ",EffectInfo:" << m_pEffectInfo->toString()
+    msg << "GCAddVampire(" << "VampireInfo:" << m_VampireInfo.toString() << ",EffectInfo:" << m_pEffectInfo->toString()
         << ",FromFlag:" << (int)m_FromFlag << ")";
     return msg.toString();
 

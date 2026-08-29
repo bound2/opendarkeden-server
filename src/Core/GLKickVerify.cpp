@@ -97,8 +97,7 @@ string GLKickVerify::toString() const
 {
     StringStream msg;
 
-    msg << "GLKickVerify("
-        << "bKicked:" << (int)m_bKicked << ",ID:" << (int)m_ID << ",Name:" << m_PCName << ")";
+    msg << "GLKickVerify(" << "bKicked:" << (int)m_bKicked << ",ID:" << (int)m_ID << ",Name:" << m_PCName << ")";
 
     return msg.toString();
 }

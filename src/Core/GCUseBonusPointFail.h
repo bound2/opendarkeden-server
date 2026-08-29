@@ -23,7 +23,7 @@ class GCUseBonusPointFail : public Packet {
 public:
     // constructor
     GCUseBonusPointFail() {}
-    ~GCUseBonusPointFail() {};
+    ~GCUseBonusPointFail(){};
 
 
 public:

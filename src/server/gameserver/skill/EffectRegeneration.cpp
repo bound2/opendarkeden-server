@@ -142,8 +142,7 @@ string EffectRegeneration::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectRegeneration("
-        << "Damage:" << (int)m_Damage << ")";
+    msg << "EffectRegeneration(" << "Damage:" << (int)m_Damage << ")";
     return msg.toString();
 
     __END_CATCH

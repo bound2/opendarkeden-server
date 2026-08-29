@@ -84,8 +84,7 @@ string ActionAskByQuestLevel::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionAskByQuestLevel("
-        << ")";
+    msg << "ActionAskByQuestLevel(" << ")";
 
     return msg.toString();
 

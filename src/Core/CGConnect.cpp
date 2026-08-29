@@ -77,7 +77,6 @@ string CGConnect::toString() const
 
 {
     StringStream msg;
-    msg << "CGConnect("
-        << "KEY:" << m_Key << ",PCType:" << PCType2String[m_PCType] << ",PCName:" << m_PCName << ")";
+    msg << "CGConnect(" << "KEY:" << m_Key << ",PCType:" << PCType2String[m_PCType] << ",PCName:" << m_PCName << ")";
     return msg.toString();
 }

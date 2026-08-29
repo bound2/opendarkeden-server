@@ -17,8 +17,8 @@
 
 class GCNPCSay : public Packet {
 public:
-    GCNPCSay() {};
-    ~GCNPCSay() {};
+    GCNPCSay(){};
+    ~GCNPCSay(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

@@ -449,10 +449,9 @@ string GuildWar::toString() const
 
     StringStream msg;
 
-    msg << "GuildWar("
-        << "WarID:" << (int)getWarID() << ",State:" << (int)getState() << ",CastleZoneID:" << (int)m_CastleZoneID
-        << ",WarType:" << getWarType2DBString() << ",ChallengerGuildID:" << (int)m_ChallangerGuildID
-        << ",RegistrationFee:" << (int)m_RegistrationFee << ")";
+    msg << "GuildWar(" << "WarID:" << (int)getWarID() << ",State:" << (int)getState()
+        << ",CastleZoneID:" << (int)m_CastleZoneID << ",WarType:" << getWarType2DBString()
+        << ",ChallengerGuildID:" << (int)m_ChallangerGuildID << ",RegistrationFee:" << (int)m_RegistrationFee << ")";
 
     return msg.toString();
 

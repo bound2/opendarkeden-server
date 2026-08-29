@@ -175,8 +175,8 @@ string SlayerPortalItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "SlayerPortalItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Charge:" << m_Charge << ")";
+    msg << "SlayerPortalItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Charge:" << m_Charge
+        << ")";
 
     return msg.toString();
 
@@ -254,10 +254,9 @@ string SlayerPortalItemInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "SlayerPortalItemInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",MaxCharge:" << m_MaxCharge
-        << ")";
+    msg << "SlayerPortalItemInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",MaxCharge:" << m_MaxCharge << ")";
     return msg.toString();
 
     __END_CATCH

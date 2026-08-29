@@ -87,10 +87,9 @@ string GCBloodBibleStatus::toString() const
 
     StringStream msg;
 
-    msg << "GCBloodBibleStatus("
-        << "ItemType=" << (int)m_ItemType << ",ZoneID=" << (int)m_ZoneID << ",Storage=" << (int)m_Storage
-        << ",OwnerName=" << m_OwnerName.c_str() << ",Race=" << (int)m_Race << ",ShrineRace=" << (int)m_ShrineRace
-        << ",X=" << (int)m_X << ",Y=" << (int)m_Y << ")";
+    msg << "GCBloodBibleStatus(" << "ItemType=" << (int)m_ItemType << ",ZoneID=" << (int)m_ZoneID
+        << ",Storage=" << (int)m_Storage << ",OwnerName=" << m_OwnerName.c_str() << ",Race=" << (int)m_Race
+        << ",ShrineRace=" << (int)m_ShrineRace << ",X=" << (int)m_X << ",Y=" << (int)m_Y << ")";
 
     return msg.toString();
 

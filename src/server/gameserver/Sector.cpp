@@ -111,8 +111,7 @@ string Sector::toString(void) const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "Sector("
-        << "Size:" << (int)m_Objects.size() << ",";
+    msg << "Sector(" << "Size:" << (int)m_Objects.size() << ",";
 
     unordered_map<ObjectID_t, Object*>::const_iterator itr = m_Objects.begin();
     for (; itr != m_Objects.end(); itr++) {

@@ -134,8 +134,7 @@ string ActionRewardEventQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionRewardEventQuest("
-        << ")";
+    msg << "ActionRewardEventQuest(" << ")";
 
     return msg.toString();
 

@@ -99,8 +99,7 @@ string EffectCrossCounter::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectCrossCounter("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectCrossCounter(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

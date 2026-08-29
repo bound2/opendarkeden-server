@@ -40,8 +40,7 @@ string CGNPCTalk::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGNPCTalk("
-        << "ObjectID : " << (int)m_ObjectID << ")";
+    msg << "CGNPCTalk(" << "ObjectID : " << (int)m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

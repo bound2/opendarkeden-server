@@ -274,7 +274,6 @@ void Resource::write(Socket* pSocket) const {
 //--------------------------------------------------------------------------------
 string Resource::toString() const {
     StringStream msg;
-    msg << "Resource("
-        << "Version:" << m_Version << ",Filename:" << m_Filename << ",FileSize:" << m_FileSize << ")";
+    msg << "Resource(" << "Version:" << m_Version << ",Filename:" << m_Filename << ",FileSize:" << m_FileSize << ")";
     return msg.toString();
 }

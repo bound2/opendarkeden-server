@@ -53,8 +53,7 @@ string CGCastingSkill::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGCastingSkill("
-        << "SkillType: " << (int)m_SkillType << ")";
+    msg << "CGCastingSkill(" << "SkillType: " << (int)m_SkillType << ")";
     return msg.toString();
 
     __END_CATCH

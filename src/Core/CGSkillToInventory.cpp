@@ -95,9 +95,9 @@ string CGSkillToInventory::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSkillToInventory("
-        << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y
-        << ",TargetX:" << (int)m_TargetX << ",TargetY:" << (int)m_TargetY << ")";
+    msg << "CGSkillToInventory(" << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID
+        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",TargetX:" << (int)m_TargetX << ",TargetY:" << (int)m_TargetY
+        << ")";
     return msg.toString();
 
     __END_CATCH

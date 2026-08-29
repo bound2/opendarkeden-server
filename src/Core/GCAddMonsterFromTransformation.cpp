@@ -114,11 +114,11 @@ string GCAddMonsterFromTransformation::toString() const
 
     StringStream msg;
 
-    msg << "GCAddMonsterFromTransformation("
-        << "ObjectID:" << (int)m_ObjectID << ",MonsterType:" << (int)m_MonsterType << ",MonsterName:" << m_MonsterName
-        << ",MainColor:" << (int)m_MainColor << ",SubColor:" << (int)m_SubColor << ",X:" << (int)m_X
-        << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir] << ",Effects:" << m_pEffectInfo->toString()
-        << ",CurrentHP:" << (int)m_CurrentHP << ",MaxHP:" << (int)m_MaxHP << ")";
+    msg << "GCAddMonsterFromTransformation(" << "ObjectID:" << (int)m_ObjectID << ",MonsterType:" << (int)m_MonsterType
+        << ",MonsterName:" << m_MonsterName << ",MainColor:" << (int)m_MainColor << ",SubColor:" << (int)m_SubColor
+        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir]
+        << ",Effects:" << m_pEffectInfo->toString() << ",CurrentHP:" << (int)m_CurrentHP << ",MaxHP:" << (int)m_MaxHP
+        << ")";
 
     return msg.toString();
 

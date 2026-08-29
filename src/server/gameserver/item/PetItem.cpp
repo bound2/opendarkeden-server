@@ -256,8 +256,7 @@ string PetItem::toString() const
 {
     StringStream msg;
 
-    msg << "PetItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType;
+    msg << "PetItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType;
 
     if (m_pPetInfo != NULL) {
         msg << ",PetType:" << (int)m_pPetInfo->getPetType() << ",PetLevel:" << (int)m_pPetInfo->getPetLevel()
@@ -312,9 +311,8 @@ string PetItemInfo::toString() const
 
 {
     StringStream msg;
-    msg << "PetItemInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "PetItemInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ")";
     return msg.toString();
 }

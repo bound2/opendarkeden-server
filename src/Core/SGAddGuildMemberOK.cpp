@@ -78,8 +78,8 @@ void SGAddGuildMemberOK::execute(Player* pPlayer) {
 string SGAddGuildMemberOK::toString() const {
     StringStream msg;
 
-    msg << "SGAddGuildMemberOK("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "GuildMemberRank:" << (int)m_GuildMemberRank << ")";
+    msg << "SGAddGuildMemberOK(" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name
+        << "GuildMemberRank:" << (int)m_GuildMemberRank << ")";
 
     return msg.toString();
 }

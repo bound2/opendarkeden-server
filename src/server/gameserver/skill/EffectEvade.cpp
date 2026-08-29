@@ -82,8 +82,7 @@ string EffectEvade::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectEvade("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectEvade(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

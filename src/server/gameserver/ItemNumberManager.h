@@ -61,9 +61,7 @@ public:
 public:
     void init();
     NUMBER_INFO* getItemNumber(Item::ItemClass Class, ItemType_t ItemType) const;
-    {
-        return m_ItemNumberInfos[Class][ItemType];
-    }
+    { return m_ItemNumberInfos[Class][ItemType]; }
 
     string toString() const;
 

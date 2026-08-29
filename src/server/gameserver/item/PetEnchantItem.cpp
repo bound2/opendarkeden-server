@@ -147,8 +147,8 @@ string PetEnchantItem::toString() const
 {
     StringStream msg;
 
-    msg << "PetEnchantItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "PetEnchantItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num
+        << ")";
 
     return msg.toString();
 }
@@ -191,9 +191,8 @@ string PetEnchantItemInfo::toString() const
 
 {
     StringStream msg;
-    msg << "PetEnchantItemInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "PetEnchantItemInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ")";
     return msg.toString();
 }

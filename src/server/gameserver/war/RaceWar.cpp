@@ -340,8 +340,7 @@ string RaceWar::toString() const
 
     StringStream msg;
 
-    msg << "RaceWar("
-        << "WarID:" << (int)getWarID() << ",State:" << (int)getState() << ")";
+    msg << "RaceWar(" << "WarID:" << (int)getWarID() << ",State:" << (int)getState() << ")";
 
     return msg.toString();
 

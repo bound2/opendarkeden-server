@@ -133,19 +133,12 @@ string GCShopBought::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCShopBought("
-        << "ObjectID:" << (int)m_ObjectID << ","
-        << "ShopVersion: " << (int)m_Version << ","
-        << "ShopRackType: " << (int)m_ShopType << ","
-        << "ShopRackIndex: " << (int)m_ShopIndex << ","
-        << "ItemObjectID: " << (int)m_ItemObjectID << ","
-        << "ItemClass: " << (int)m_ItemClass << ","
-        << "ITemType: " << (int)m_ItemType << ","
-        << "OptionTypeSize: " << (int)m_OptionType.size() << ","
-        << "Durability: " << (int)m_Durability << ","
-        << "Silver: " << (int)m_Silver << ","
-        << "Grade: " << (int)m_Grade << ","
-        << "EnchantLEvel: " << (int)m_EnchantLevel;
+    msg << "GCShopBought(" << "ObjectID:" << (int)m_ObjectID << "," << "ShopVersion: " << (int)m_Version << ","
+        << "ShopRackType: " << (int)m_ShopType << "," << "ShopRackIndex: " << (int)m_ShopIndex << ","
+        << "ItemObjectID: " << (int)m_ItemObjectID << "," << "ItemClass: " << (int)m_ItemClass << ","
+        << "ITemType: " << (int)m_ItemType << "," << "OptionTypeSize: " << (int)m_OptionType.size() << ","
+        << "Durability: " << (int)m_Durability << "," << "Silver: " << (int)m_Silver << "," << "Grade: " << (int)m_Grade
+        << "," << "EnchantLEvel: " << (int)m_EnchantLevel;
     msg << ")";
     return msg.toString();
 

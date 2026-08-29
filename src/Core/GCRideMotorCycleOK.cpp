@@ -85,8 +85,7 @@ string GCRideMotorCycleOK::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCRideMotorCycleOK("
-        << "ObjectID:" << (int)m_ObjectID << " )";
+    msg << "GCRideMotorCycleOK(" << "ObjectID:" << (int)m_ObjectID << " )";
     return msg.toString();
 
     __END_CATCH

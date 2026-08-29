@@ -23,7 +23,7 @@ class GCUnburrowFail : public Packet {
 public:
     // constructor
     GCUnburrowFail() {}
-    ~GCUnburrowFail() {};
+    ~GCUnburrowFail(){};
 
 
 public:

@@ -96,8 +96,7 @@ string EffectInfo::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectInfo( "
-        << ",ListNum: " << (int)m_ListNum << " ListSet(";
+    msg << "EffectInfo( " << ",ListNum: " << (int)m_ListNum << " ListSet(";
     for (list<WORD>::const_iterator itr = m_EList.begin(); itr != m_EList.end(); itr++) {
         msg << (int)(*itr) << ",";
     }

@@ -76,8 +76,7 @@ string EffectDetectMine::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectDetectMine("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDetectMine(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

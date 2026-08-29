@@ -88,8 +88,7 @@ string WorldInfo::toString() const {
 
     StringStream msg;
 
-    msg << "WorldInfo( "
-        << "ID : " << m_ID << "Name : " << m_Name << "Stat : " << m_Stat << ")";
+    msg << "WorldInfo( " << "ID : " << m_ID << "Name : " << m_Name << "Stat : " << m_Stat << ")";
 
     return msg.toString();
 

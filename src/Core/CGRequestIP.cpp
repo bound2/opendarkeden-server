@@ -64,8 +64,7 @@ string CGRequestIP::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGRequestIP("
-        << ",Name: " << m_Name << ")";
+    msg << "CGRequestIP(" << ",Name: " << m_Name << ")";
     return msg.toString();
 
     __END_CATCH

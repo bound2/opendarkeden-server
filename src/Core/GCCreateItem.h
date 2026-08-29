@@ -19,7 +19,7 @@
 class GCCreateItem : public Packet {
 public:
     GCCreateItem();
-    ~GCCreateItem() {};
+    ~GCCreateItem(){};
 
 public:
     void read(SocketInputStream& iStream);

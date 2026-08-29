@@ -55,8 +55,8 @@ string CGReloadFromInventory::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGReloadFromInventory("
-        << "ObjectID : " << (int)m_ObjectID << ",InvenX: " << (int)m_InvenX << ",InvenY: " << (int)m_InvenY << ")";
+    msg << "CGReloadFromInventory(" << "ObjectID : " << (int)m_ObjectID << ",InvenX: " << (int)m_InvenX
+        << ",InvenY: " << (int)m_InvenY << ")";
     return msg.toString();
 
     __END_CATCH

@@ -227,8 +227,7 @@ string EffectCureCriticalWounds::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectCureCriticalWounds("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectCureCriticalWounds(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

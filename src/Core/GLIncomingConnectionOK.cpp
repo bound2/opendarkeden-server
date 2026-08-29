@@ -102,8 +102,8 @@ string GLIncomingConnectionOK::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GLIncomingConnectionOK("
-        << "PlayerID:" << m_PlayerID << ",TCPPort:" << m_TCPPort << ",Key:" << m_Key << ")";
+    msg << "GLIncomingConnectionOK(" << "PlayerID:" << m_PlayerID << ",TCPPort:" << m_TCPPort << ",Key:" << m_Key
+        << ")";
     return msg.toString();
 
     __END_CATCH

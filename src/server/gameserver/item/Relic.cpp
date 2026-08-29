@@ -79,11 +79,10 @@ void Relic::create(const string& ownerID, Storage storage, StorageID_t storageID
 
         StringStream sql;
 
-        sql << "INSERT INTO RelicObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, Durability)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", " << m_Durability << ")";
+        sql << "INSERT INTO RelicObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
+            << " X, Y, Durability)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '"
+            << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", "
+            << m_Durability << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -170,8 +169,7 @@ string Relic::toString() const
 {
     StringStream msg;
 
-    msg << "Relic("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Durability:" << (int)m_Durability
+    msg << "Relic(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Durability:" << (int)m_Durability
         << ",EnchantLevel:" << (int)m_EnchantLevel << ")";
 
     return msg.toString();
@@ -251,10 +249,10 @@ string RelicInfo::toString() const
 {
     StringStream msg;
 
-    msg << "RelicInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",Durability:" << m_Durability << ",DefenseBonus:" << m_DefenseBonus << ")";
+    msg << "RelicInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",Durability:" << m_Durability << ",DefenseBonus:" << m_DefenseBonus
+        << ")";
 
     return msg.toString();
 }
@@ -497,8 +495,8 @@ void RelicLoader::load(Zone* pZone)
         StringStream sql;
 
         sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " Durability, EnchantLevel FROM RelicObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+            << " Durability, EnchantLevel FROM RelicObject" << " WHERE Storage = " << (int)STORAGE_ZONE
+            << " AND StorageID = " << pZone->getZoneID();
 
         Result* pResult = pStmt->executeQueryString(sql.toString());
 

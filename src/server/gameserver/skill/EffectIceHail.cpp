@@ -167,8 +167,7 @@ string EffectIceHail::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectIceHail("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectIceHail(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

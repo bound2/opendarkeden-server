@@ -57,9 +57,9 @@ string ShrineInfo::toString() const
 {
     StringStream msg;
 
-    msg << "ShrineInfo("
-        << "MonsterType:" << (int)m_MonsterType << ",ShrineType:" << (m_ShrineType == SHRINE_GUARD ? "GUARD" : "HOLY")
-        << ",ZoneID:" << (int)m_ZoneID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Name:" << m_Name << ")";
+    msg << "ShrineInfo(" << "MonsterType:" << (int)m_MonsterType
+        << ",ShrineType:" << (m_ShrineType == SHRINE_GUARD ? "GUARD" : "HOLY") << ",ZoneID:" << (int)m_ZoneID
+        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Name:" << m_Name << ")";
 
     return msg.toString();
 }
@@ -188,8 +188,7 @@ string ShrineSet::toString() const
 
     StringStream msg;
 
-    msg << "ShrineSet("
-        << "ShrineID:" << (int)m_ShrineID << "," << m_SlayerGuardShrine.toString() << ","
+    msg << "ShrineSet(" << "ShrineID:" << (int)m_ShrineID << "," << m_SlayerGuardShrine.toString() << ","
         << m_VampireGuardShrine.toString() << "," << m_OustersGuardShrine.toString() << "," << m_HolyShrine.toString()
         << ",ItemType:" << (int)m_ItemType << ")";
 
@@ -858,7 +857,7 @@ bool ShrineInfoManager::putBloodBible(PlayerCreature* pPC, Item* pItem, MonsterC
 
     // 알맞은 성단에 넣으면 주인이 바뀐 뒤 수호성단으로 돌아가고
     if (isMatchHolyShrine(pItem, pCorpse) // && g_pWarSystem->isModifyCastleOwner( castleZoneID, pPC ))
-                                          // 성의 종족과 넣는 사람의 종족이 같은 경우라면 GuardShrine에 넣어도 된다.
+        // 성의 종족과 넣는 사람의 종족이 같은 경우라면 GuardShrine에 넣어도 된다.
         || isDefenderOfGuardShrine(pPC, pCorpse) && isMatchGuardShrine(pItem, pCorpse, pPC)) {
         pShrineSet->setOwnerRace(pPC->getRace());
         //        g_pWarSystem->endWar(pPC, castleZoneID);
@@ -1213,8 +1212,7 @@ string ShrineInfoManager::toString() const
 
     StringStream msg;
 
-    msg << "ShrineInfoManager("
-        << "Size:" << size() << ",(\n";
+    msg << "ShrineInfoManager(" << "Size:" << size() << ",(\n";
 
     HashMapShrineSetConstItor itr = m_ShrineSets.begin();
 

@@ -107,8 +107,8 @@ string GCReconnectLogin::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCReconnectLogin("
-        << "LoginServerIP:" << m_LoginServerIP << ",LoginServerPort:" << m_LoginServerPort << ",KEY:" << m_Key << ")";
+    msg << "GCReconnectLogin(" << "LoginServerIP:" << m_LoginServerIP << ",LoginServerPort:" << m_LoginServerPort
+        << ",KEY:" << m_Key << ")";
     return msg.toString();
 
     __END_CATCH

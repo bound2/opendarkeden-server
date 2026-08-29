@@ -23,8 +23,8 @@
 
 class CGSelectNickname : public Packet {
 public:
-    CGSelectNickname() {};
-    virtual ~CGSelectNickname() {};
+    CGSelectNickname(){};
+    virtual ~CGSelectNickname(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

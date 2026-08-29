@@ -87,8 +87,7 @@ string CGDissectionCorpse::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGDissectionCorpse("
-        << "X:" << (int)m_X << ",Y:" << (int)m_Y << ",ObjectID:" << (int)m_ObjectID << ")";
+    msg << "CGDissectionCorpse(" << "X:" << (int)m_X << ",Y:" << (int)m_Y << ",ObjectID:" << (int)m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

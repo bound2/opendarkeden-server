@@ -607,9 +607,7 @@ void LoginPlayer::sendLGKickCharacter() {
         serverGroupID = i;
 
         try {
-            cout << "World=" << worldID << ", "
-                 << "Group=" << serverGroupID << ", "
-                 << "Server=" << serverID << endl;
+            cout << "World=" << worldID << ", " << "Group=" << serverGroupID << ", " << "Server=" << serverID << endl;
 
             GameServerInfo* pGameServerInfo =
                 g_pGameServerInfoManager->getGameServerInfo(serverID, serverGroupID, worldID);
@@ -743,8 +741,8 @@ string LoginPlayer::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "LoginPlayer("
-        << "ID:" << m_ID << ",SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost() << ")";
+    msg << "LoginPlayer(" << "ID:" << m_ID << ",SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost()
+        << ")";
     return msg.toString();
 
     __END_CATCH

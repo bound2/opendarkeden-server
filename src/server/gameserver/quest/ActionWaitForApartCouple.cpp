@@ -63,8 +63,7 @@ string ActionWaitForApartCouple::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionWaitForApartCouple("
-        << ")";
+    msg << "ActionWaitForApartCouple(" << ")";
 
     return msg.toString();
 

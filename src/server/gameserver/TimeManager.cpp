@@ -229,8 +229,8 @@ string TimeManager::toString() const
     __BEGIN_TRY
     StringStream msg;
 
-    msg << "TimeManager:("
-        << "BaseGameTime:" << ctime(&m_BaseGameTime) << "BaseRealTime:" << ctime(&m_BaseRealTime) << ")";
+    msg << "TimeManager:(" << "BaseGameTime:" << ctime(&m_BaseGameTime) << "BaseRealTime:" << ctime(&m_BaseRealTime)
+        << ")";
 
     return msg.toString();
     __END_CATCH

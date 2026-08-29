@@ -86,8 +86,7 @@ string ItemNameInfo::toString() const {
 
     StringStream msg;
 
-    msg << "ItemNameInfo( "
-        << "ObjectID : " << m_ObjectID << "Name : " << m_Name << ")";
+    msg << "ItemNameInfo( " << "ObjectID : " << m_ObjectID << "Name : " << m_Name << ")";
 
     return msg.toString();
 

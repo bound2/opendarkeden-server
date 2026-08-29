@@ -403,8 +403,7 @@ string Trigger::toString() const {
 
     StringStream msg;
 
-    msg << "Trigger("
-        << "TriggerType:" << TriggerType2String[m_TriggerType] << ",TriggerID:" << (int)m_TriggerID
+    msg << "Trigger(" << "TriggerType:" << TriggerType2String[m_TriggerType] << ",TriggerID:" << (int)m_TriggerID
         << ",QuestID:" << (int)m_QuestID << ",Comment:" << m_Comment;
 
 

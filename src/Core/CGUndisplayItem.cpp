@@ -48,8 +48,7 @@ string CGUndisplayItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGUndisplayItem("
-        << ")";
+    msg << "CGUndisplayItem(" << ")";
     return msg.toString();
 
     __END_CATCH

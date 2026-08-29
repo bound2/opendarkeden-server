@@ -62,8 +62,7 @@ string GCChangeDarkLight::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCChangeDarkLight("
-        << "DarkLevel:" << (int)m_DarkLevel << ",LightLevel:" << (int)m_LightLevel << ")";
+    msg << "GCChangeDarkLight(" << "DarkLevel:" << (int)m_DarkLevel << ",LightLevel:" << (int)m_LightLevel << ")";
     return msg.toString();
 
     __END_CATCH

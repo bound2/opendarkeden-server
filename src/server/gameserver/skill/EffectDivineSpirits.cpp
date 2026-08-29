@@ -82,8 +82,7 @@ string EffectDivineSpirits::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectDivineSpirits("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDivineSpirits(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

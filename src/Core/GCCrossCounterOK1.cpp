@@ -93,8 +93,8 @@ string GCCrossCounterOK1::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCCrossCounterOK1("
-        << "ObjectID:" << (int)m_ObjectID << ModifyInfo::toString() << "SkillType:" << (int)m_SkillType << ")";
+    msg << "GCCrossCounterOK1(" << "ObjectID:" << (int)m_ObjectID << ModifyInfo::toString()
+        << "SkillType:" << (int)m_SkillType << ")";
     return msg.toString();
 
     __END_CATCH

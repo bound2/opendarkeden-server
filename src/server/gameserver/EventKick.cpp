@@ -76,7 +76,6 @@ string EventKick::toString() const
 
 {
     StringStream msg;
-    msg << "EventKick("
-        << ")";
+    msg << "EventKick(" << ")";
     return msg.toString();
 }

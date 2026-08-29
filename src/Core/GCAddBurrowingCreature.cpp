@@ -76,8 +76,8 @@ string GCAddBurrowingCreature::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddBurrowingCreature("
-        << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
+    msg << "GCAddBurrowingCreature(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",X:" << (int)m_X
+        << ",Y:" << (int)m_Y << ")";
     return msg.toString();
 
     __END_CATCH

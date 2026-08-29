@@ -98,8 +98,7 @@ bool PacketIDSet::hasPacketID(PacketID_t packetID) const {
 string PacketIDSet::toString() const {
     StringStream msg;
 
-    msg << "PacketIDSet("
-        << "PlayerStatus:" << (int)m_PlayerStatus << "PacketID:";
+    msg << "PacketIDSet(" << "PlayerStatus:" << (int)m_PlayerStatus << "PacketID:";
 
     for (PACKET_ID_SET::const_iterator itr = m_PacketIDSet.begin(); itr != m_PacketIDSet.end(); itr++) {
         msg << (*itr) << " ";

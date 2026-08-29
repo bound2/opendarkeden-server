@@ -55,8 +55,8 @@ string NPCInfo::toString(void) const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "NPCInfo("
-        << "Name:" << m_Name << ",NPCID:" << (int)m_NPCID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
+    msg << "NPCInfo(" << "Name:" << m_Name << ",NPCID:" << (int)m_NPCID << ",X:" << (int)m_X << ",Y:" << (int)m_Y
+        << ")";
     return msg.toString();
 
     __END_CATCH

@@ -87,8 +87,7 @@ string GCSystemAvailabilities::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSystemAvailabilities("
-        << ")";
+    msg << "GCSystemAvailabilities(" << ")";
     return msg.toString();
 
     __END_CATCH

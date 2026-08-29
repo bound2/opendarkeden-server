@@ -117,8 +117,7 @@ string EffectExpansion::toString() const throw() {
     __BEGIN_TRY
     StringStream msg;
 
-    msg << "EffectExpansion("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectExpansion(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

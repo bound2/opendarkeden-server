@@ -644,8 +644,8 @@ string ActionAskVariable::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionAskVariable("
-        << ",ScriptID:" << (int)m_ScriptID << ",VariableBuffer:" << m_pVariableBuffer->toString() << ")";
+    msg << "ActionAskVariable(" << ",ScriptID:" << (int)m_ScriptID
+        << ",VariableBuffer:" << m_pVariableBuffer->toString() << ")";
 
     return msg.toString();
 

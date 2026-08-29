@@ -174,8 +174,7 @@ string EffectBehemothForceScroll::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectBehemothForceScroll("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBehemothForceScroll(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

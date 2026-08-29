@@ -253,8 +253,8 @@ string EffectShutDown::toString() const
     StringStream msg;
 
     if (m_pZone) {
-        msg << "EffectShutDown("
-            << "ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX() << ",Y:" << (int)getY();
+        msg << "EffectShutDown(" << "ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX()
+            << ",Y:" << (int)getY();
     }
 
     if (m_pTarget) {

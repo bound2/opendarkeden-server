@@ -229,8 +229,7 @@ void PCSlayerInfo2::write(SocketOutputStream& oStream) const {
 string PCSlayerInfo2::toString() const {
     StringStream msg;
 
-    msg << "PCSlayerInfo2("
-        << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",Sex:" << Sex2String[m_Sex]
+    msg << "PCSlayerInfo2(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",Sex:" << Sex2String[m_Sex]
         << ",HairStyle:" << HairStyle2String[m_HairStyle] << ",HairColor:" << (int)m_HairColor
         << ",SkinColor:" << (int)m_SkinColor << ",MasterEffectColor:" << (int)m_MasterEffectColor
         << ",Alignment:" << m_Alignment << ",Rank:" << (int)m_Rank << ",RankExp:" << (int)m_RankExp

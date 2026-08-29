@@ -191,8 +191,7 @@ string ActionClearRankBonus::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionClearRankBonus("
-        << ")";
+    msg << "ActionClearRankBonus(" << ")";
     return msg.toString();
 
     __END_CATCH

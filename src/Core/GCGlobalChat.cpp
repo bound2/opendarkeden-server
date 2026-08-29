@@ -89,8 +89,7 @@ string GCGlobalChat::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCGlobalChat("
-        << "Color:" << m_Color << ",Message:" << m_Message << ",Race:" << (int)m_Race << ")";
+    msg << "GCGlobalChat(" << "Color:" << m_Color << ",Message:" << m_Message << ",Race:" << (int)m_Race << ")";
     return msg.toString();
 
     __END_CATCH

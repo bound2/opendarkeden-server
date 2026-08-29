@@ -56,8 +56,7 @@ string GCAddressListVerify::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddressListVerify("
-        << "Code : " << (int)m_Code << "Parameter : " << (int)m_Parameter << ")";
+    msg << "GCAddressListVerify(" << "Code : " << (int)m_Code << "Parameter : " << (int)m_Parameter << ")";
     return msg.toString();
 
     __END_CATCH

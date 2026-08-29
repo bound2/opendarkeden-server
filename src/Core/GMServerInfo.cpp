@@ -96,8 +96,7 @@ string GMServerInfo::toString() const {
 
     StringStream msg;
 
-    msg << "[GMServerInfo]"
-        << "ZoneNum:" << (int)m_ZoneCount << ", ZoneUser(";
+    msg << "[GMServerInfo]" << "ZoneNum:" << (int)m_ZoneCount << ", ZoneUser(";
 
     int total = 0;
 

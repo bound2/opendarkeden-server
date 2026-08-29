@@ -24,7 +24,7 @@ public:
     GCRequestFailed() {
         m_Code = REQUEST_FAILED_NULL;
     }
-    ~GCRequestFailed() {};
+    ~GCRequestFailed(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

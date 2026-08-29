@@ -22,8 +22,8 @@
 
 class GCSearchMotorcycleFail : public Packet {
 public:
-    GCSearchMotorcycleFail() {};
-    ~GCSearchMotorcycleFail() {};
+    GCSearchMotorcycleFail(){};
+    ~GCSearchMotorcycleFail(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

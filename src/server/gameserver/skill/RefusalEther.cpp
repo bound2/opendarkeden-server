@@ -19,7 +19,7 @@
 #include "GCSkillToTileOK6.h"
 #include "RankBonus.h"
 
-RefusalEther::RefusalEther() throw() {};
+RefusalEther::RefusalEther() throw(){};
 
 //////////////////////////////////////////////////////////////////////////////
 // 뱀파이어 오브젝트 핸들러

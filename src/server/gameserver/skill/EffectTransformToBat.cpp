@@ -123,8 +123,7 @@ string EffectTransformToBat::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectTransformToBat("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectTransformToBat(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

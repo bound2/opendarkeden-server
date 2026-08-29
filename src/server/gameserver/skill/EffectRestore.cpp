@@ -107,9 +107,8 @@ void EffectRestore::create(const string& ownerID)
 
         getCurrentYearTime(currentYearTime);
 
-        sql << "INSERT INTO EffectRestore "
-            << "(OwnerID, YearTime, DayTime)"
-            << " VALUES('" << ownerID << "' , " << currentYearTime << " , " << m_Deadline.tv_sec << ")";
+        sql << "INSERT INTO EffectRestore " << "(OwnerID, YearTime, DayTime)" << " VALUES('" << ownerID << "' , "
+            << currentYearTime << " , " << m_Deadline.tv_sec << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -163,9 +162,8 @@ void EffectRestore::save(const string& ownerID)
 
         getCurrentYearTime(currentYearTime);
 
-        sql << "UPDATE EffectRestore SET "
-            << "YearTime = " << currentYearTime << ",DayTime = " << m_Deadline.tv_sec << " WHERE OwnerID = '" << ownerID
-            << "'";
+        sql << "UPDATE EffectRestore SET " << "YearTime = " << currentYearTime << ",DayTime = " << m_Deadline.tv_sec
+            << " WHERE OwnerID = '" << ownerID << "'";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -184,8 +182,7 @@ string EffectRestore::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectRestore("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectRestore(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 
@@ -207,8 +204,7 @@ void EffectRestoreLoader::load(Creature* pCreature)
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
         StringStream sql;
-        sql << "SELECT DayTime FROM EffectRestore"
-            << " WHERE OwnerID = '" << pCreature->getName() << "'";
+        sql << "SELECT DayTime FROM EffectRestore" << " WHERE OwnerID = '" << pCreature->getName() << "'";
 
         Result* pResult = pStmt->executeQueryString(sql.toString());
 

@@ -142,8 +142,7 @@ string EffectBlazeWalk::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectBlazeWalk("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBlazeWalk(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

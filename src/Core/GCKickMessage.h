@@ -35,7 +35,7 @@ enum KickMessageType {
 class GCKickMessage : public Packet {
 public:
     GCKickMessage() : m_Type(KICK_MESSAGE_PAY_TIMEOUT) {}
-    ~GCKickMessage() {};
+    ~GCKickMessage(){};
 
     // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
     void read(SocketInputStream& iStream);

@@ -60,8 +60,7 @@ string ActionTurnOffFlag::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionTurnOffFlag("
-        << "Index:" << m_Index << ")";
+    msg << "ActionTurnOffFlag(" << "Index:" << m_Index << ")";
     return msg.toString();
 
     __END_CATCH

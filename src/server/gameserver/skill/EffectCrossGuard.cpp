@@ -82,8 +82,7 @@ string EffectCrossGuard::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectCrossGuard("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectCrossGuard(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

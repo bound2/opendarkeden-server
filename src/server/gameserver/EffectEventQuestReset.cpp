@@ -114,8 +114,7 @@ string EffectEventQuestReset::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectEventQuestReset("
-        << ")";
+    msg << "EffectEventQuestReset(" << ")";
     return msg.toString();
 
     __END_CATCH

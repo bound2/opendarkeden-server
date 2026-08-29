@@ -53,14 +53,9 @@ string CGShopRequestBuy::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGShopRequestBuy("
-        << "ObjectID:" << (int)m_ObjectID << ","
-        << "RackType:" << (int)m_RackType << ","
-        << "RackIndex:" << (int)m_RackIndex << ","
-        << "NumberOfItems:" << (int)m_Num << ","
-        << "InvenX" << (int)m_X << ","
-        << "InvenY" << (int)m_Y << ","
-        << ")";
+    msg << "CGShopRequestBuy(" << "ObjectID:" << (int)m_ObjectID << "," << "RackType:" << (int)m_RackType << ","
+        << "RackIndex:" << (int)m_RackIndex << "," << "NumberOfItems:" << (int)m_Num << "," << "InvenX" << (int)m_X
+        << "," << "InvenY" << (int)m_Y << "," << ")";
     return msg.toString();
 
     __END_CATCH

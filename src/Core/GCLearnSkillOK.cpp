@@ -80,8 +80,7 @@ string GCLearnSkillOK::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCLearnSkillOK("
-        << "SkillType:" << (int)m_SkillType << ",DomainType:" << (int)m_DomainType << ")";
+    msg << "GCLearnSkillOK(" << "SkillType:" << (int)m_SkillType << ",DomainType:" << (int)m_DomainType << ")";
     return msg.toString();
 
     __END_CATCH

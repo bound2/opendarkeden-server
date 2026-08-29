@@ -39,8 +39,8 @@ string VolumeInfo::toString()
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "VolumeInfo("
-        << "TYPE:" << (int)m_VolumeType << "WIDTH:" << (int)m_VolumeWidth << "HEIGHT:" << (int)m_VolumeHeight << ")";
+    msg << "VolumeInfo(" << "TYPE:" << (int)m_VolumeType << "WIDTH:" << (int)m_VolumeWidth
+        << "HEIGHT:" << (int)m_VolumeHeight << ")";
     return msg.toString();
 
     __END_CATCH

@@ -65,8 +65,7 @@ void LearningItem::create(const string& ownerID, Storage storage, StorageID_t st
 
         StringStream sql;
 
-        sql << "INSERT INTO LearningItemObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y)"
+        sql << "INSERT INTO LearningItemObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y)"
             << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
             << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ")";
 
@@ -152,8 +151,7 @@ string LearningItem::toString() const
 {
     StringStream msg;
 
-    msg << "LearningItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
+    msg << "LearningItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
 
     return msg.toString();
 }
@@ -209,10 +207,9 @@ string LearningItemInfo::toString() const
 {
     StringStream msg;
 
-    msg << "LearningItemInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",SkillType:" << m_SkillType << ")";
+    msg << "LearningItemInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",SkillType:" << m_SkillType << ")";
 
     return msg.toString();
 }

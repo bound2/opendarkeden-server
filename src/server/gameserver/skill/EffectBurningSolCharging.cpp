@@ -119,8 +119,7 @@ string EffectBurningSolCharging::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectBurningSolCharging("
-        << "ObjectID:" << getObjectID() << ",Level:" << m_Level << ")";
+    msg << "EffectBurningSolCharging(" << "ObjectID:" << getObjectID() << ",Level:" << m_Level << ")";
     return msg.toString();
 
     __END_CATCH

@@ -243,8 +243,7 @@ string ActionRedistributeAttr::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionRedistributeAttr("
-        << ")";
+    msg << "ActionRedistributeAttr(" << ")";
     return msg.toString();
 
     __END_CATCH

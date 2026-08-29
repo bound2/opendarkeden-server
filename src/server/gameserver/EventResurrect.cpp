@@ -120,7 +120,6 @@ string EventResurrect::toString() const
 
 {
     StringStream msg;
-    msg << "EventResurrect("
-        << ")";
+    msg << "EventResurrect(" << ")";
     return msg.toString();
 }

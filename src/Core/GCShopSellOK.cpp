@@ -95,9 +95,8 @@ string GCShopSellOK::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCShopSellOK("
-        << "ObjectID:" << m_ObjectID << ",Version:" << (int)m_Version << ",ItemObejctID:" << m_ItemObjectID
-        << ",Price:" << m_Price << ")";
+    msg << "GCShopSellOK(" << "ObjectID:" << m_ObjectID << ",Version:" << (int)m_Version
+        << ",ItemObejctID:" << m_ItemObjectID << ",Price:" << m_Price << ")";
     return msg.toString();
 
     __END_CATCH

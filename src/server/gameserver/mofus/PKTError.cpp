@@ -45,8 +45,7 @@ void PKTError::write(SocketOutputStream& oStream) {
 // debug message
 string PKTError::toString() const {
     StringStream msg;
-    msg << "Result("
-        << "ErrorCode:" << nError << ")";
+    msg << "Result(" << "ErrorCode:" << nError << ")";
 
     return msg.toString();
 }

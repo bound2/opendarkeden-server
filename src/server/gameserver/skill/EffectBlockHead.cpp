@@ -75,8 +75,7 @@ string EffectBlockHead::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectBlockHead("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBlockHead(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

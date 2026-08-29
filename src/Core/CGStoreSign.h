@@ -23,8 +23,8 @@
 
 class CGStoreSign : public Packet {
 public:
-    CGStoreSign() {};
-    virtual ~CGStoreSign() {};
+    CGStoreSign(){};
+    virtual ~CGStoreSign(){};
     // Initialize packet by reading data from the incoming stream.
     void read(SocketInputStream& iStream);
 

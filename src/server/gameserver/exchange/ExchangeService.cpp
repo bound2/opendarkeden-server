@@ -5,16 +5,16 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "ExchangeService.h"
-#include "GCExchangeList.h"  // For ExchangeListing definition
-
-#include "Item.h"
-#include "ItemUtil.h"
-#include "PlayerCreature.h"
-#include "Inventory.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include "GCExchangeList.h" // For ExchangeListing definition
+#include "Inventory.h"
+#include "Item.h"
+#include "ItemUtil.h"
+#include "PlayerCreature.h"
 
 using namespace std;
 
@@ -22,96 +22,91 @@ using namespace std;
 // Static members
 //////////////////////////////////////////////////////////////////////////////
 
-uint8_t ExchangeService::m_TaxRate = 8;  // Default 8% tax
-int ExchangeService::m_ListingDurationDays = 3;  // Default 3 days
+uint8_t ExchangeService::m_TaxRate = 8;         // Default 8% tax
+int ExchangeService::m_ListingDurationDays = 3; // Default 3 days
 
 //////////////////////////////////////////////////////////////////////////////
 // Helper functions
 //////////////////////////////////////////////////////////////////////////////
 
 namespace {
-    string _getCurrentTime() {
-        time_t now = time(NULL);
-        struct tm* t = localtime(&now);
-        char buf[64];
-        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
-        return string(buf);
-    }
-
-    string _addHoursToNow(int hours) {
-        time_t now = time(NULL);
-        now += hours * 3600;
-        struct tm* t = localtime(&now);
-        char buf[64];
-        strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
-        return string(buf);
-    }
-
-    string _toInt64String(int64_t value) {
-        char buf[32];
-        snprintf(buf, sizeof(buf), "%lld", (long long)value);
-        return string(buf);
-    }
-
-    // Generate unique idempotency key
-    string _generateIdempotencyKey() {
-        static long counter = 0;
-        time_t now = time(NULL);
-        char buf[128];
-        snprintf(buf, sizeof(buf), "EX_%ld_%ld", (long)now, (long)counter++);
-        return string(buf);
-    }
-
-    int16_t _getServerID() {
-        // TODO: Get actual server ID from configuration
-        // For now, return a default value
-        return 1;
-    }
-
-    // Check if player has inventory space
-    bool _checkInventorySpace(PlayerCreature* pPlayer) {
-        if (!pPlayer) return false;
-
-        Inventory* pInv = pPlayer->getInventory();
-        if (!pInv) return false;
-
-        // Check if inventory has at least one empty slot
-        // This is a simplified check - should be more thorough
-        return pInv->getItemNum() < (pInv->getWidth() * pInv->getHeight());
-    }
+string _getCurrentTime() {
+    time_t now = time(NULL);
+    struct tm* t = localtime(&now);
+    char buf[64];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
+    return string(buf);
 }
+
+string _addHoursToNow(int hours) {
+    time_t now = time(NULL);
+    now += hours * 3600;
+    struct tm* t = localtime(&now);
+    char buf[64];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
+    return string(buf);
+}
+
+string _toInt64String(int64_t value) {
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%lld", (long long)value);
+    return string(buf);
+}
+
+// Generate unique idempotency key
+string _generateIdempotencyKey() {
+    static long counter = 0;
+    time_t now = time(NULL);
+    char buf[128];
+    snprintf(buf, sizeof(buf), "EX_%ld_%ld", (long)now, (long)counter++);
+    return string(buf);
+}
+
+int16_t _getServerID() {
+    // TODO: Get actual server ID from configuration
+    // For now, return a default value
+    return 1;
+}
+
+// Check if player has inventory space
+bool _checkInventorySpace(PlayerCreature* pPlayer) {
+    if (!pPlayer)
+        return false;
+
+    Inventory* pInv = pPlayer->getInventory();
+    if (!pInv)
+        return false;
+
+    // Check if inventory has at least one empty slot
+    // This is a simplified check - should be more thorough
+    return pInv->getItemNum() < (pInv->getWidth() * pInv->getHeight());
+}
+} // namespace
 
 //////////////////////////////////////////////////////////////////////////////
 // Browse operations
 //////////////////////////////////////////////////////////////////////////////
 
-vector<ExchangeListing> ExchangeService::getListings(
-    int16_t serverID,
-    int page,
-    int pageSize,
-    uint8_t itemClass,
-    uint16_t itemType,
-    int minPrice,
-    int maxPrice,
-    const string& sellerFilter
-) {
+vector<ExchangeListing> ExchangeService::getListings(int16_t serverID, int page, int pageSize, uint8_t itemClass,
+                                                     uint16_t itemType, int minPrice, int maxPrice,
+                                                     const string& sellerFilter) {
     // For now, use the basic DB function
     // In production, we'd want to add filtering at DB level for performance
-    vector<ExchangeListing> allListings = ExchangeDB::getListings(
-        serverID,
-        LISTING_STATUS_ACTIVE,
-        page,
-        pageSize
-    );
+    vector<ExchangeListing> allListings = ExchangeDB::getListings(serverID, LISTING_STATUS_ACTIVE, page, pageSize);
 
     // Apply additional filters (in-memory for now)
     vector<ExchangeListing> filtered;
     for (const auto& listing : allListings) {
-        if (itemClass != 0xFF && listing.itemClass != itemClass) continue;
-        if (itemType != 0xFFFF && listing.itemType != itemType) continue;
-        if (minPrice > 0 && listing.pricePoint < minPrice) continue;
-        if (maxPrice > 0 && listing.pricePoint > maxPrice) continue;
-        if (!sellerFilter.empty() && listing.sellerPlayer.find(sellerFilter) == string::npos) continue;
+        if (itemClass != 0xFF && listing.itemClass != itemClass)
+            continue;
+        if (itemType != 0xFFFF && listing.itemType != itemType)
+            continue;
+        if (minPrice > 0 && listing.pricePoint < minPrice)
+            continue;
+        if (maxPrice > 0 && listing.pricePoint > maxPrice)
+            continue;
+        if (!sellerFilter.empty() && listing.sellerPlayer.find(sellerFilter) == string::npos)
+            continue;
 
         filtered.push_back(listing);
     }
@@ -119,20 +114,12 @@ vector<ExchangeListing> ExchangeService::getListings(
     return filtered;
 }
 
-int ExchangeService::getListingsCount(
-    int16_t serverID,
-    uint8_t itemClass,
-    uint16_t itemType,
-    int minPrice,
-    int maxPrice,
-    const string& sellerFilter
-) {
+int ExchangeService::getListingsCount(int16_t serverID, uint8_t itemClass, uint16_t itemType, int minPrice,
+                                      int maxPrice, const string& sellerFilter) {
     // For accurate count, we need a DB query
     // For now, return a placeholder
-    vector<ExchangeListing> listings = getListings(
-        serverID, 1, 1000,  // Get max results
-        itemClass, itemType, minPrice, maxPrice, sellerFilter
-    );
+    vector<ExchangeListing> listings = getListings(serverID, 1, 1000, // Get max results
+                                                   itemClass, itemType, minPrice, maxPrice, sellerFilter);
     return listings.size();
 }
 
@@ -144,12 +131,8 @@ ExchangeListing* ExchangeService::getListing(int64_t listingID) {
 // Listing operations
 //////////////////////////////////////////////////////////////////////////////
 
-pair<bool, string> ExchangeService::createListing(
-    PlayerCreature* pSeller,
-    Item* pItem,
-    int pricePoint,
-    int durationHours
-) {
+pair<bool, string> ExchangeService::createListing(PlayerCreature* pSeller, Item* pItem, int pricePoint,
+                                                  int durationHours) {
     // Validate inputs
     if (!pSeller) {
         return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_NOT_FOUND));
@@ -162,9 +145,9 @@ pair<bool, string> ExchangeService::createListing(
     }
 
     // Get player info
-    string account = pSeller->getName();  // Using name as account identifier
+    string account = pSeller->getName(); // Using name as account identifier
     string playerName = pSeller->getName();
-    uint8_t race = 0;  // TODO: Get actual race from PlayerCreature
+    uint8_t race = 0; // TODO: Get actual race from PlayerCreature
 
     // Verify item ownership
     Inventory* pInv = pSeller->getInventory();
@@ -186,17 +169,17 @@ pair<bool, string> ExchangeService::createListing(
 
     // Create listing record
     ExchangeListing listing;
-    listing.listingID = 0;  // Will be set by DB auto-increment
+    listing.listingID = 0; // Will be set by DB auto-increment
     listing.serverID = _getServerID();
     listing.sellerAccount = account;
     listing.sellerPlayer = playerName;
     listing.sellerRace = race;
     listing.itemClass = pItem->getItemClass();
     listing.itemType = pItem->getItemType();
-    listing.itemID = 0;  // TODO: Get ItemID from Item
+    listing.itemID = 0; // TODO: Get ItemID from Item
     listing.objectID = pItem->getObjectID();
     listing.pricePoint = pricePoint;
-    listing.currency = 0;  // 0 = points
+    listing.currency = 0; // 0 = points
     listing.status = LISTING_STATUS_ACTIVE;
     listing.buyerAccount = "";
     listing.buyerPlayer = "";
@@ -229,10 +212,7 @@ pair<bool, string> ExchangeService::createListing(
     return make_pair(true, _toInt64String(listingID));
 }
 
-pair<bool, string> ExchangeService::cancelListing(
-    PlayerCreature* pSeller,
-    int64_t listingID
-) {
+pair<bool, string> ExchangeService::cancelListing(PlayerCreature* pSeller, int64_t listingID) {
     if (!pSeller) {
         return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_NOT_FOUND));
     }
@@ -265,10 +245,7 @@ pair<bool, string> ExchangeService::cancelListing(
     return make_pair(true, "");
 }
 
-vector<ExchangeListing> ExchangeService::getSellerListings(
-    const string& sellerAccount,
-    uint8_t status
-) {
+vector<ExchangeListing> ExchangeService::getSellerListings(const string& sellerAccount, uint8_t status) {
     return ExchangeDB::getSellerListings(sellerAccount, status);
 }
 
@@ -276,11 +253,8 @@ vector<ExchangeListing> ExchangeService::getSellerListings(
 // Buying operations
 //////////////////////////////////////////////////////////////////////////////
 
-pair<bool, string> ExchangeService::buyListing(
-    PlayerCreature* pBuyer,
-    int64_t listingID,
-    const string& idempotencyKey
-) {
+pair<bool, string> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t listingID,
+                                               const string& idempotencyKey) {
     if (!pBuyer) {
         return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_NOT_FOUND));
     }
@@ -339,30 +313,16 @@ pair<bool, string> ExchangeService::buyListing(
     try {
         // Deduct points from buyer
         int buyerBalanceAfter;
-        if (!ExchangeDB::adjustPoints(
-            buyerAccount,
-            -totalCost,
-            buyerBalanceAfter,
-            POINT_REASON_BUY,
-            listingID,
-            0,
-            autoKey + "_buy"
-        )) {
+        if (!ExchangeDB::adjustPoints(buyerAccount, -totalCost, buyerBalanceAfter, POINT_REASON_BUY, listingID, 0,
+                                      autoKey + "_buy")) {
             throw string("Failed to deduct buyer points");
         }
 
         // Add points to seller (after tax)
         int sellerIncome = price - tax;
         int sellerBalanceAfter;
-        if (!ExchangeDB::adjustPoints(
-            pListing->sellerAccount,
-            sellerIncome,
-            sellerBalanceAfter,
-            POINT_REASON_SALE,
-            listingID,
-            0,
-            autoKey + "_sale"
-        )) {
+        if (!ExchangeDB::adjustPoints(pListing->sellerAccount, sellerIncome, sellerBalanceAfter, POINT_REASON_SALE,
+                                      listingID, 0, autoKey + "_sale")) {
             throw string("Failed to add seller points");
         }
 
@@ -404,17 +364,11 @@ pair<bool, string> ExchangeService::buyListing(
     }
 }
 
-vector<ExchangeOrder> ExchangeService::getBuyerOrders(
-    const string& buyerPlayer,
-    uint8_t status
-) {
+vector<ExchangeOrder> ExchangeService::getBuyerOrders(const string& buyerPlayer, uint8_t status) {
     return ExchangeDB::getBuyerOrders(buyerPlayer, status);
 }
 
-vector<ExchangeOrder> ExchangeService::getSellerOrders(
-    const string& sellerPlayer,
-    uint8_t status
-) {
+vector<ExchangeOrder> ExchangeService::getSellerOrders(const string& sellerPlayer, uint8_t status) {
     return ExchangeDB::getSellerOrders(sellerPlayer, status);
 }
 
@@ -425,7 +379,8 @@ vector<ExchangeOrder> ExchangeService::getSellerOrders(
 vector<ExchangeClaim> ExchangeService::prepareClaimList(PlayerCreature* pPlayer) {
     vector<ExchangeClaim> claims;
 
-    if (!pPlayer) return claims;
+    if (!pPlayer)
+        return claims;
 
     string playerName = pPlayer->getName();
 
@@ -438,22 +393,20 @@ vector<ExchangeClaim> ExchangeService::prepareClaimList(PlayerCreature* pPlayer)
             claim.id = order.orderID;
             claim.itemName = pListing->itemName;
             claim.pricePoint = order.pricePoint;
-            claim.type = 0;  // Buyer claim
+            claim.type = 0; // Buyer claim
             claim.status = order.status;
             claims.push_back(claim);
         }
     }
 
     // Get seller's cancelled/expired listings (ready to return)
-    vector<ExchangeListing> cancelledListings = getSellerListings(
-        playerName, LISTING_STATUS_CANCELLED
-    );
+    vector<ExchangeListing> cancelledListings = getSellerListings(playerName, LISTING_STATUS_CANCELLED);
     for (const auto& listing : cancelledListings) {
         ExchangeClaim claim;
         claim.id = listing.listingID;
         claim.itemName = listing.itemName;
         claim.pricePoint = listing.pricePoint;
-        claim.type = 1;  // Seller claim
+        claim.type = 1; // Seller claim
         claim.status = listing.status;
         claims.push_back(claim);
     }
@@ -461,11 +414,7 @@ vector<ExchangeClaim> ExchangeService::prepareClaimList(PlayerCreature* pPlayer)
     return claims;
 }
 
-pair<bool, string> ExchangeService::claimItem(
-    PlayerCreature* pPlayer,
-    int64_t orderOrListingID,
-    bool isBuyerClaim
-) {
+pair<bool, string> ExchangeService::claimItem(PlayerCreature* pPlayer, int64_t orderOrListingID, bool isBuyerClaim) {
     if (!pPlayer) {
         return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_NOT_FOUND));
     }
@@ -524,8 +473,7 @@ pair<bool, string> ExchangeService::claimItem(
         }
 
         // Check status
-        if (pListing->status != LISTING_STATUS_CANCELLED &&
-            pListing->status != LISTING_STATUS_EXPIRED) {
+        if (pListing->status != LISTING_STATUS_CANCELLED && pListing->status != LISTING_STATUS_EXPIRED) {
             return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE));
         }
 
@@ -544,24 +492,11 @@ int ExchangeService::getPointBalance(const string& account) {
     return ExchangeDB::getPointBalance(account);
 }
 
-pair<bool, int> ExchangeService::adjustPoints(
-    const string& account,
-    int delta,
-    uint8_t reason,
-    int64_t refListingID,
-    int64_t refOrderID,
-    const string& idempotencyKey
-) {
+pair<bool, int> ExchangeService::adjustPoints(const string& account, int delta, uint8_t reason, int64_t refListingID,
+                                              int64_t refOrderID, const string& idempotencyKey) {
     int balanceAfter;
-    bool success = ExchangeDB::adjustPoints(
-        account,
-        delta,
-        balanceAfter,
-        reason,
-        refListingID,
-        refOrderID,
-        idempotencyKey
-    );
+    bool success =
+        ExchangeDB::adjustPoints(account, delta, balanceAfter, reason, refListingID, refOrderID, idempotencyKey);
 
     return make_pair(success, success ? balanceAfter : -1);
 }
@@ -577,14 +512,11 @@ void ExchangeService::scanExpiredListings() {
     // In production, use indexed query on ExpireAt column
     vector<ExchangeListing> expiredListings = ExchangeDB::getExpiredListings();
 
-    filelog("ExchangeService.log", "Scanning for expired listings, found %d expired",
-            expiredListings.size());
+    filelog("ExchangeService.log", "Scanning for expired listings, found %d expired", expiredListings.size());
 
     for (const auto& listing : expiredListings) {
-        filelog("ExchangeService.log",
-                "Expiring listing ID: %lld, Item: %s, Seller: %s",
-                listing.listingID, listing.itemName.c_str(),
-                listing.sellerPlayer.c_str());
+        filelog("ExchangeService.log", "Expiring listing ID: %lld, Item: %s, Seller: %s", listing.listingID,
+                listing.itemName.c_str(), listing.sellerPlayer.c_str());
 
         // Mark listing as expired
         // This will:
@@ -609,7 +541,8 @@ string ExchangeService::getCurrentTimestamp() {
 }
 
 bool ExchangeService::moveItemToExchangeStorage(PlayerCreature* pPlayer, Item* pItem) {
-    if (!pPlayer || !pItem) return false;
+    if (!pPlayer || !pItem)
+        return false;
 
     // Get the item's current storage location
     int storage, x, y;
@@ -632,16 +565,14 @@ bool ExchangeService::moveItemToExchangeStorage(PlayerCreature* pPlayer, Item* p
     return true;
 }
 
-bool ExchangeService::moveItemFromExchangeStorage(
-    PlayerCreature* pPlayer,
-    int64_t listingID,
-    Item* pItem
-) {
-    if (!pPlayer || !pItem) return false;
+bool ExchangeService::moveItemFromExchangeStorage(PlayerCreature* pPlayer, int64_t listingID, Item* pItem) {
+    if (!pPlayer || !pItem)
+        return false;
 
     // Add item to player's inventory
     Inventory* pInv = pPlayer->getInventory();
-    if (!pInv) return false;
+    if (!pInv)
+        return false;
 
     // Find empty slot
     // pItem->create(pPlayer->getName(), STORAGE_INVENTORY, ...);
@@ -650,23 +581,25 @@ bool ExchangeService::moveItemFromExchangeStorage(
 }
 
 void ExchangeService::createItemSnapshot(Item* pItem, ExchangeListing& listing) {
-    if (!pItem) return;
+    if (!pItem)
+        return;
 
     // Set basic item info
-    listing.itemName = pItem->toString();  // Or get name from item info
-    listing.enchantLevel = 0;  // TODO: Get from pItem
-    listing.grade = 0;  // TODO: Get from pItem
-    listing.durability = 0;  // TODO: Get from pItem
-    listing.silver = 0;  // TODO: Get from pItem
-    listing.stackCount = 1;  // TODO: Get from pItem
+    listing.itemName = pItem->toString(); // Or get name from item info
+    listing.enchantLevel = 0;             // TODO: Get from pItem
+    listing.grade = 0;                    // TODO: Get from pItem
+    listing.durability = 0;               // TODO: Get from pItem
+    listing.silver = 0;                   // TODO: Get from pItem
+    listing.stackCount = 1;               // TODO: Get from pItem
 
     // Get option info
     if (pItem->hasOptionType()) {
         const list<OptionType_t>& optionTypes = pItem->getOptionTypeList();
         int idx = 0;
         for (OptionType_t type : optionTypes) {
-            (void)type;  // Will be used when setting option fields
-            if (idx >= 3) break;
+            (void)type; // Will be used when setting option fields
+            if (idx >= 3)
+                break;
 
             // Set option type and value
             // listing.optionType1 = type;
@@ -692,57 +625,57 @@ string ExchangeService::formatError(ExchangeResult code, const string& detail) {
     string error;
 
     switch (code) {
-        case EXCHANGE_SUCCESS:
-            return "Success";
+    case EXCHANGE_SUCCESS:
+        return "Success";
 
-        case EXCHANGE_FAIL_ITEM_NOT_FOUND:
-            error = "Item not found";
-            break;
-        case EXCHANGE_FAIL_ITEM_OWNERSHIP:
-            error = "You don't own this item";
-            break;
-        case EXCHANGE_FAIL_ITEM_TRADEABLE:
-            error = "This item cannot be traded";
-            break;
-        case EXCHANGE_FAIL_INVALID_PRICE:
-            error = "Invalid price";
-            break;
-        case EXCHANGE_FAIL_INSUFFICIENT_POINTS:
-            error = "Insufficient point balance";
-            break;
-        case EXCHANGE_FAIL_LISTING_NOT_FOUND:
-            error = "Listing not found";
-            break;
-        case EXCHANGE_FAIL_LISTING_NOT_AVAILABLE:
-            error = "Listing is no longer available";
-            break;
-        case EXCHANGE_FAIL_INVENTORY_FULL:
-            error = "Inventory is full";
-            break;
-        case EXCHANGE_FAIL_STORAGE_FULL:
-            error = "Exchange storage is full";
-            break;
-        case EXCHANGE_FAIL_NOT_SELLER:
-            error = "You are not the seller of this item";
-            break;
-        case EXCHANGE_FAIL_NOT_BUYER:
-            error = "You are not the buyer of this item";
-            break;
-        case EXCHANGE_FAIL_ALREADY_CLAIMED:
-            error = "Item already claimed";
-            break;
-        case EXCHANGE_FAIL_DATABASE_ERROR:
-            error = "Database error";
-            break;
-        case EXCHANGE_FAIL_TRANSACTION_ERROR:
-            error = "Transaction error";
-            break;
-        case EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT:
-            error = "Duplicate transaction";
-            break;
-        default:
-            error = "Unknown error";
-            break;
+    case EXCHANGE_FAIL_ITEM_NOT_FOUND:
+        error = "Item not found";
+        break;
+    case EXCHANGE_FAIL_ITEM_OWNERSHIP:
+        error = "You don't own this item";
+        break;
+    case EXCHANGE_FAIL_ITEM_TRADEABLE:
+        error = "This item cannot be traded";
+        break;
+    case EXCHANGE_FAIL_INVALID_PRICE:
+        error = "Invalid price";
+        break;
+    case EXCHANGE_FAIL_INSUFFICIENT_POINTS:
+        error = "Insufficient point balance";
+        break;
+    case EXCHANGE_FAIL_LISTING_NOT_FOUND:
+        error = "Listing not found";
+        break;
+    case EXCHANGE_FAIL_LISTING_NOT_AVAILABLE:
+        error = "Listing is no longer available";
+        break;
+    case EXCHANGE_FAIL_INVENTORY_FULL:
+        error = "Inventory is full";
+        break;
+    case EXCHANGE_FAIL_STORAGE_FULL:
+        error = "Exchange storage is full";
+        break;
+    case EXCHANGE_FAIL_NOT_SELLER:
+        error = "You are not the seller of this item";
+        break;
+    case EXCHANGE_FAIL_NOT_BUYER:
+        error = "You are not the buyer of this item";
+        break;
+    case EXCHANGE_FAIL_ALREADY_CLAIMED:
+        error = "Item already claimed";
+        break;
+    case EXCHANGE_FAIL_DATABASE_ERROR:
+        error = "Database error";
+        break;
+    case EXCHANGE_FAIL_TRANSACTION_ERROR:
+        error = "Transaction error";
+        break;
+    case EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT:
+        error = "Duplicate transaction";
+        break;
+    default:
+        error = "Unknown error";
+        break;
     }
 
     if (!detail.empty()) {

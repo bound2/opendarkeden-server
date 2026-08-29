@@ -47,8 +47,7 @@ string CGBuyStoreItem::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGBuyStoreItem("
-        << ")";
+    msg << "CGBuyStoreItem(" << ")";
     return msg.toString();
 
     __END_CATCH

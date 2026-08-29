@@ -155,8 +155,7 @@ string GCShopListMysterious::toString() const
 
     StringStream msg;
 
-    msg << "GCShopListMysterious(" << "ObjectID:" << m_ObjectID << ","
-        << "ShopVersion:" << m_Version << ","
+    msg << "GCShopListMysterious(" << "ObjectID:" << m_ObjectID << "," << "ShopVersion:" << m_Version << ","
         << "RackType:" << m_RackType << ",";
 
     for (int i = 0; i < SHOP_RACK_INDEX_MAX; i++) {

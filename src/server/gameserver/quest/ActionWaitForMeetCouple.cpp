@@ -68,8 +68,7 @@ string ActionWaitForMeetCouple::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionWaitForMeetCouple("
-        << ")";
+    msg << "ActionWaitForMeetCouple(" << ")";
 
     return msg.toString();
 

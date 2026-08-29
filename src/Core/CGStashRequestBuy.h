@@ -20,8 +20,8 @@
 
 class CGStashRequestBuy : public Packet {
 public:
-    CGStashRequestBuy() {};
-    virtual ~CGStashRequestBuy() {};
+    CGStashRequestBuy(){};
+    virtual ~CGStashRequestBuy(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);
@@ -71,8 +71,8 @@ public:
 
 class CGStashRequestBuyHandler {
 public:
-    CGStashRequestBuyHandler() {};
-    virtual ~CGStashRequestBuyHandler() {};
+    CGStashRequestBuyHandler(){};
+    virtual ~CGStashRequestBuyHandler(){};
     static void execute(CGStashRequestBuy* pPacket, Player* player);
 };
 

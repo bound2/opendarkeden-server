@@ -19,8 +19,8 @@
 
 class GCTeachSkillInfo : public Packet {
 public:
-    GCTeachSkillInfo() {};
-    ~GCTeachSkillInfo() {};
+    GCTeachSkillInfo(){};
+    ~GCTeachSkillInfo(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

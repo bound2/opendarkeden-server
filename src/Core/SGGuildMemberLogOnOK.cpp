@@ -77,9 +77,8 @@ void SGGuildMemberLogOnOK::execute(Player* pPlayer) {
 string SGGuildMemberLogOnOK::toString() const {
     StringStream msg;
 
-    msg << "SGGuildMemberLogOnOK("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "LogOn:" << m_bLogOn << "ServerID:" << m_ServerID
-        << ")";
+    msg << "SGGuildMemberLogOnOK(" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "LogOn:" << m_bLogOn
+        << "ServerID:" << m_ServerID << ")";
 
     return msg.toString();
 }

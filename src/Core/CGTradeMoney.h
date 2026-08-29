@@ -30,8 +30,8 @@ enum {
 
 class CGTradeMoney : public Packet {
 public:
-    CGTradeMoney() {};
-    virtual ~CGTradeMoney() {};
+    CGTradeMoney(){};
+    virtual ~CGTradeMoney(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

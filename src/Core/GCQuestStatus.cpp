@@ -88,8 +88,7 @@ string GCQuestStatus::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCQuestStatus("
-        << "QuestID : " << (int)m_QuestID << " ,Current Num : " << (int)m_CurrentNum
+    msg << "GCQuestStatus(" << "QuestID : " << (int)m_QuestID << " ,Current Num : " << (int)m_CurrentNum
         << " ,Remaining Time : " << (int)m_Time << ")";
     return msg.toString();
 

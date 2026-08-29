@@ -100,8 +100,7 @@ string GCSelectQuestID::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSelectQuestID("
-        << "Parameters: (";
+    msg << "GCSelectQuestID(" << "Parameters: (";
 
     list<QuestID_t>::const_iterator itr = m_QuestIDList.begin();
     for (; itr != m_QuestIDList.end(); itr++) {

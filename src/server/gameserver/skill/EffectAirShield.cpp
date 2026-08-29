@@ -116,9 +116,8 @@ string EffectAirShield::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectAirShield("
-        << "ObjectID:" << getObjectID() << ",Level:" << m_Level << ",ClientEffectClass:" << (int)m_ClientEffectClass
-        << ",Damage:" << m_Damage << ")";
+    msg << "EffectAirShield(" << "ObjectID:" << getObjectID() << ",Level:" << m_Level
+        << ",ClientEffectClass:" << (int)m_ClientEffectClass << ",Damage:" << m_Damage << ")";
     return msg.toString();
 
     __END_CATCH

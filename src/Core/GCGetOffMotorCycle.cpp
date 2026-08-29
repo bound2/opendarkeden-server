@@ -85,8 +85,7 @@ string GCGetOffMotorCycle::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCGetOffMotorCycle("
-        << "ObjectID:" << (int)m_ObjectID << " )";
+    msg << "GCGetOffMotorCycle(" << "ObjectID:" << (int)m_ObjectID << " )";
     return msg.toString();
 
     __END_CATCH

@@ -1871,8 +1871,8 @@ void Vampire::saveExps(void) const
     // 세이브를 명시적으로 해주지 않으면 10 이하 올라간 부분은 날아가 버리게 된다.
     // 그러므로 여기서 세이브를 해 준다.
     StringStream sql;
-    sql << "UPDATE Vampire SET "
-        << "Alignment = " << m_Alignment << ",Fame = " << m_Fame << ",Exp = " << m_Exp << ",GoalExp = " << m_GoalExp;
+    sql << "UPDATE Vampire SET " << "Alignment = " << m_Alignment << ",Fame = " << m_Fame << ",Exp = " << m_Exp
+        << ",GoalExp = " << m_GoalExp;
 
     if (m_SilverDamage != 0) {
         sql << ",SilverDamage = " << m_SilverDamage;

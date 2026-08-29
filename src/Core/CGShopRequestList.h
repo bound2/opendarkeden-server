@@ -22,8 +22,8 @@
 
 class CGShopRequestList : public Packet {
 public:
-    CGShopRequestList() {};
-    virtual ~CGShopRequestList() {};
+    CGShopRequestList(){};
+    virtual ~CGShopRequestList(){};
     // Initialize from the incoming stream.
     void read(SocketInputStream& iStream);
 

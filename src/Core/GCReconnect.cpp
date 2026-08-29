@@ -109,8 +109,7 @@ string GCReconnect::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCReconnect("
-        << "Name:" << m_Name << ",ServerIP:" << m_ServerIP << ",KEY:" << m_Key << ")";
+    msg << "GCReconnect(" << "Name:" << m_Name << ",ServerIP:" << m_ServerIP << ",KEY:" << m_Key << ")";
     return msg.toString();
 
     __END_CATCH

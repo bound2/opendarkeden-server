@@ -111,7 +111,7 @@ string EffectPrecedence::toString() const
 
 {
     StringStream msg;
-    msg << "EffectPrecedence("
-        << "HostName:" << m_HostName << ",PartyID:" << m_HostPartyID << ",bItem:" << m_bItem << ")";
+    msg << "EffectPrecedence(" << "HostName:" << m_HostName << ",PartyID:" << m_HostPartyID << ",bItem:" << m_bItem
+        << ")";
     return msg.toString();
 }

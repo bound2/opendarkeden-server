@@ -66,8 +66,7 @@ string ConditionExistReinforce::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionExistReinforce("
-        << ")";
+    msg << "ConditionExistReinforce(" << ")";
     return msg.toString();
 
     __END_CATCH

@@ -285,8 +285,7 @@ string EffectHydroConvergence::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectHydroConvergence("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHydroConvergence(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

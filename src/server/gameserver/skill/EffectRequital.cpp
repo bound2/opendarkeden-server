@@ -74,8 +74,7 @@ string EffectRequital::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectRequital("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectRequital(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

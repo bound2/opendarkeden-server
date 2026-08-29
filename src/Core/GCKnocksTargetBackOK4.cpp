@@ -102,9 +102,8 @@ string GCKnocksTargetBackOK4::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCKnocksTargetBackOK4("
-        << "TargetObjectID:" << (int)m_TargetObjectID << "(Dir,X,Y): " << (int)m_dir << "," << (int)m_X << ","
-        << (int)m_Y << ")";
+    msg << "GCKnocksTargetBackOK4(" << "TargetObjectID:" << (int)m_TargetObjectID << "(Dir,X,Y): " << (int)m_dir << ","
+        << (int)m_X << "," << (int)m_Y << ")";
     return msg.toString();
 
     __END_CATCH

@@ -226,8 +226,7 @@ string EffectShadowOfStorm::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectShadowOfStorm("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectShadowOfStorm(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

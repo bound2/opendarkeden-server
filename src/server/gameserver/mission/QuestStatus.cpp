@@ -8,8 +8,8 @@ string QuestStatus::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "QuestStatus("
-        << "QuestID : " << (unsigned long)m_QuestID << "Deadline : " << m_Deadline.toString().c_str() << ")";
+    msg << "QuestStatus(" << "QuestID : " << (unsigned long)m_QuestID << "Deadline : " << m_Deadline.toString().c_str()
+        << ")";
 
     return msg.toString();
 

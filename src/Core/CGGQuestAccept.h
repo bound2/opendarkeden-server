@@ -18,8 +18,8 @@
 
 class CGGQuestAccept : public Packet {
 public:
-    CGGQuestAccept() {};
-    ~CGGQuestAccept() {};
+    CGGQuestAccept(){};
+    ~CGGQuestAccept(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

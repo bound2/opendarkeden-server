@@ -179,8 +179,7 @@ string EffectSummonWaterElemental::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSummonWaterElemental("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectSummonWaterElemental(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

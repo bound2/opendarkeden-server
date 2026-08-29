@@ -60,8 +60,7 @@ string GCNPCSayDynamic::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCNPCSayDynamic("
-        << "ObjectID:" << m_ObjectID << ",Message:" << m_Message << ")";
+    msg << "GCNPCSayDynamic(" << "ObjectID:" << m_ObjectID << ",Message:" << m_Message << ")";
     return msg.toString();
 
     __END_CATCH

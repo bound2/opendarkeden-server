@@ -82,8 +82,7 @@ string EffectTilePortal::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectTilePortal("
-        << "DayTime:" << m_Deadline.tv_sec << ")";
+    msg << "EffectTilePortal(" << "DayTime:" << m_Deadline.tv_sec << ")";
     return msg.toString();
 
     __END_CATCH

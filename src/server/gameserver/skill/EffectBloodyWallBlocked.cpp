@@ -236,8 +236,7 @@ string EffectBloodyWallBlocked::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectBloodyWallBlocked("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBloodyWallBlocked(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

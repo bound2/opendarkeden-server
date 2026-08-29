@@ -64,8 +64,8 @@ string CGModifyGuildMember::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGModifyGuildMember("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "GuildMemberRank:" << m_GuildMemberRank << ")";
+    msg << "CGModifyGuildMember(" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name
+        << "GuildMemberRank:" << m_GuildMemberRank << ")";
     return msg.toString();
 
     __END_CATCH

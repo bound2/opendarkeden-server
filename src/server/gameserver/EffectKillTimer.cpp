@@ -67,8 +67,7 @@ string EffectKillTimer::toString() const {
 
     StringStream msg;
 
-    msg << "EffectKillTimer("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectKillTimer(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

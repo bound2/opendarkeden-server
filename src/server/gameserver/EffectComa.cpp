@@ -158,8 +158,7 @@ string EffectComa::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectComa("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectComa(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

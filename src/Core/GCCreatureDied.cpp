@@ -62,8 +62,7 @@ string GCCreatureDied::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCCreatureDied("
-        << "ObjectID:" << m_ObjectID << ")";
+    msg << "GCCreatureDied(" << "ObjectID:" << m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

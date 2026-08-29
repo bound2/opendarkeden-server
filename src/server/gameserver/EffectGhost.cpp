@@ -98,8 +98,7 @@ string EffectGhost::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectGhost("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectGhost(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

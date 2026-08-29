@@ -48,8 +48,7 @@ string CGPartyLeave::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGPartyLeave("
-        << "TargetName:" << m_TargetName << ")";
+    msg << "CGPartyLeave(" << "TargetName:" << m_TargetName << ")";
     return msg.toString();
 
     __END_CATCH

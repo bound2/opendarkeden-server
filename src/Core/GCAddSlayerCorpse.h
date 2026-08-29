@@ -28,7 +28,7 @@ public:
         m_TreasureCount = 0;
     }
     GCAddSlayerCorpse(const PCSlayerInfo3& slayerInfo) : m_SlayerInfo(slayerInfo) {}
-    ~GCAddSlayerCorpse() {};
+    ~GCAddSlayerCorpse(){};
 
 
 public:

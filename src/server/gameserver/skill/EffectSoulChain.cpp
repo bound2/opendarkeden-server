@@ -160,8 +160,7 @@ string EffectSoulChain::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSoulChain("
-        << "ObjectID:" << getObjectID() << "TargetName:" << m_TargetName << ")";
+    msg << "EffectSoulChain(" << "ObjectID:" << getObjectID() << "TargetName:" << m_TargetName << ")";
     return msg.toString();
 
     __END_CATCH

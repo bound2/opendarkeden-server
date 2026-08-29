@@ -231,8 +231,7 @@ void PCSlayerInfo::write(SocketOutputStream& oStream) const {
 string PCSlayerInfo::toString() const {
     StringStream msg;
 
-    msg << "PCSlayerInfo("
-        << "NSize:" << m_Name.size() << ",Name:" << m_Name << ",Slot:" << Slot2String[m_Slot]
+    msg << "PCSlayerInfo(" << "NSize:" << m_Name.size() << ",Name:" << m_Name << ",Slot:" << Slot2String[m_Slot]
         << ",Alignment:" << m_Alignment << ",Rank:" << m_Rank << ",STR[BASIC]:" << (int)m_STR
         << ",DEX[BASIC]:" << (int)m_DEX << ",INT[BASIC]:" << (int)m_INT << ",HP:" << m_HP[ATTR_CURRENT] << "/"
         << m_HP[ATTR_MAX] << ",MP:" << m_MP[ATTR_CURRENT] << "/" << m_MP[ATTR_MAX] << ",Fame:" << m_Fame;

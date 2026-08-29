@@ -84,8 +84,7 @@ string EffectConcealment::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectConcealment("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectConcealment(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

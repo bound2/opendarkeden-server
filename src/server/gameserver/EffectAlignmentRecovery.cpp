@@ -351,8 +351,8 @@ string EffectAlignmentRecovery::toString() const
     StringStream msg;
 
     if (m_pZone) {
-        msg << "EffectAlignmentRecovery("
-            << "ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX() << ",Y:" << (int)getY();
+        msg << "EffectAlignmentRecovery(" << "ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX()
+            << ",Y:" << (int)getY();
     }
 
     if (m_pTarget) {

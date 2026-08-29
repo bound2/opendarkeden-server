@@ -104,8 +104,7 @@ string ActionTakeOutGoods::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionTakeOutGoods("
-        << ")";
+    msg << "ActionTakeOutGoods(" << ")";
 
     return msg.toString();
 

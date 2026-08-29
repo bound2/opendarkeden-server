@@ -42,8 +42,7 @@ string CGFailQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGFailQuest("
-        << ")";
+    msg << "CGFailQuest(" << ")";
     return msg.toString();
 
     __END_CATCH

@@ -160,8 +160,7 @@ string EffectPlasmaRocketLauncher::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectPlasmaRocketLauncher("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectPlasmaRocketLauncher(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

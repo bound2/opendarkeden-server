@@ -21,9 +21,8 @@ EventQuestLootingManager* g_pEventQuestLootingManager = NULL;
 
 string EventQuestLootingInfo::toString() const {
     StringStream msg;
-    msg << "EventQuestLootingInfo : "
-        << "QuestLevel : " << m_QuestLevel << " ,Type : " << (uint)m_Type << "\n\tZoneID : " << m_LootingZoneID
-        << " ,MonsterType : " << m_LootingMonsterType
+    msg << "EventQuestLootingInfo : " << "QuestLevel : " << m_QuestLevel << " ,Type : " << (uint)m_Type
+        << "\n\tZoneID : " << m_LootingZoneID << " ,MonsterType : " << m_LootingMonsterType
         << "\n\tItemClass : " << ItemClass2String[m_LootingItemClass].c_str()
         << " ,MinItemType : " << m_LootingItemTypeMin << " ,MaxItemType : " << m_LootingItemTypeMax
         << "\n\tRace : " << (uint)m_Race << " ,Min Grade : " << m_MinGrade << " ,Max Grade : " << m_MaxGrade;

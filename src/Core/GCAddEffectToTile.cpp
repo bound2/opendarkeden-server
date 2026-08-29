@@ -88,9 +88,8 @@ string GCAddEffectToTile::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddEffectToTile("
-        << ",ObjectID:" << (int)m_ObjectID << ",X,Y:" << (int)m_X << "," << (int)m_Y << ",EffectID:" << (int)m_EffectID
-        << ",Duration:" << (int)m_Duration << ")";
+    msg << "GCAddEffectToTile(" << ",ObjectID:" << (int)m_ObjectID << ",X,Y:" << (int)m_X << "," << (int)m_Y
+        << ",EffectID:" << (int)m_EffectID << ",Duration:" << (int)m_Duration << ")";
     return msg.toString();
 
     __END_CATCH

@@ -108,8 +108,7 @@ string GGGuildChat::toString() const
 {
     StringStream msg;
 
-    msg << "GGGuildChat("
-        << "GuildID:" << (int)m_GuildID << ",Sender:" << m_Sender << ",Color:" << (int)m_Color
+    msg << "GGGuildChat(" << "GuildID:" << (int)m_GuildID << ",Sender:" << m_Sender << ",Color:" << (int)m_Color
         << ",Message:" << m_Message << ")";
 
     return msg.toString();

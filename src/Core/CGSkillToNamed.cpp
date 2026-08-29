@@ -75,9 +75,8 @@ string CGSkillToNamed::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSkillToNamed("
-        << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID << ",TargetName:" << m_TargetName
-        << ")";
+    msg << "CGSkillToNamed(" << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID
+        << ",TargetName:" << m_TargetName << ")";
     return msg.toString();
 
     __END_CATCH

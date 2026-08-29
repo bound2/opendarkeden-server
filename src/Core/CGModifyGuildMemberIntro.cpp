@@ -63,8 +63,8 @@ string CGModifyGuildMemberIntro::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGModifyGuildMemberIntro("
-        << "GuildID:" << (int)m_GuildID << "GuildMemberIntro:" << m_GuildMemberIntro << ")";
+    msg << "CGModifyGuildMemberIntro(" << "GuildID:" << (int)m_GuildID << "GuildMemberIntro:" << m_GuildMemberIntro
+        << ")";
     return msg.toString();
 
     __END_CATCH

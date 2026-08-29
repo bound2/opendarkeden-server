@@ -42,8 +42,7 @@ string CGStashList::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGStashList("
-        << "ObjectID : " << m_ObjectID << ")";
+    msg << "CGStashList(" << "ObjectID : " << m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

@@ -74,12 +74,10 @@ void CoreZap::create(const string& ownerID, Storage storage, StorageID_t storage
         string optionField;
         setOptionTypeToField(getOptionTypeList(), optionField);
 
-        sql << "INSERT INTO CoreZapObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Grade, ItemFlag)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << getItemType() << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", '" << optionField.c_str()
-            << "', " << getGrade() << ", " << (int)m_CreateType << ")";
+        sql << "INSERT INTO CoreZapObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
+            << " X, Y, OptionType, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
+            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
+            << (int)y << ", '" << optionField.c_str() << "', " << getGrade() << ", " << (int)m_CreateType << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -167,8 +165,7 @@ string CoreZap::toString() const
 {
     StringStream msg;
 
-    msg << "CoreZap("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
+    msg << "CoreZap(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
         << ",OptionType:" << getOptionTypeToString(getOptionTypeList()).c_str() << ")";
 
     return msg.toString();
@@ -248,10 +245,9 @@ string CoreZapInfo::toString() const
 {
     StringStream msg;
 
-    msg << "CoreZapInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "CoreZapInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
 
     return msg.toString();
 }
@@ -496,8 +492,8 @@ void CoreZapLoader::load(Zone* pZone)
         StringStream sql;
 
         sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " OptionType, ItemFlag FROM CoreZapObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+            << " OptionType, ItemFlag FROM CoreZapObject" << " WHERE Storage = " << (int)STORAGE_ZONE
+            << " AND StorageID = " << pZone->getZoneID();
 
         Result* pResult = pStmt->executeQueryString(sql.toString());
 

@@ -88,12 +88,11 @@ string LevelWarZoneInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "LevelWarZoneInfo("
-        << "Grade : " << m_LevelWarGrade << ", ZoneID : " << m_ZoneID << ", SweeperTypeMin : " << m_SweeperTypeMin
-        << ", SweeperTypeMax : " << m_SweeperTypeMax << ", SlayerSumMin : " << m_SlayerSumMin
-        << ", SlayerSumMax : " << m_SlayerSumMax << ", VampireLevelMin : " << m_VampireLevelMin
-        << ", VampireLevelMax : " << m_VampireLevelMax << ", OustersLevelMin : " << m_OustersLevelMin
-        << ", OustersLevelMax : " << m_OustersLevelMax << ")";
+    msg << "LevelWarZoneInfo(" << "Grade : " << m_LevelWarGrade << ", ZoneID : " << m_ZoneID
+        << ", SweeperTypeMin : " << m_SweeperTypeMin << ", SweeperTypeMax : " << m_SweeperTypeMax
+        << ", SlayerSumMin : " << m_SlayerSumMin << ", SlayerSumMax : " << m_SlayerSumMax
+        << ", VampireLevelMin : " << m_VampireLevelMin << ", VampireLevelMax : " << m_VampireLevelMax
+        << ", OustersLevelMin : " << m_OustersLevelMin << ", OustersLevelMax : " << m_OustersLevelMax << ")";
 
     return msg.toString();
 

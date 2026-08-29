@@ -120,8 +120,7 @@ string GCGuildChat::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCGuildChat("
-        << "Sener :" << m_Sender << ",Color :" << m_Color << ",Message:" << m_Message << ")";
+    msg << "GCGuildChat(" << "Sener :" << m_Sender << ",Color :" << m_Color << ",Message:" << m_Message << ")";
     return msg.toString();
 
     __END_CATCH

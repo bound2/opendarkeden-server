@@ -197,8 +197,7 @@ string EffectReloadTimer::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectReloadTimer("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectReloadTimer(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

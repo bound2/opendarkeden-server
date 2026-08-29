@@ -92,8 +92,8 @@ string ActionSetPosition::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionSetPosition("
-        << "ZoneID:" << (int)m_ZoneID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir] << ")";
+    msg << "ActionSetPosition(" << "ZoneID:" << (int)m_ZoneID << ",X:" << (int)m_X << ",Y:" << (int)m_Y
+        << ",Dir:" << Dir2String[m_Dir] << ")";
     return msg.toString();
 
     __END_CATCH

@@ -16,28 +16,40 @@
 
 class CGExchangeBuy : public Packet {
 public:
-    CGExchangeBuy() : m_ListingID(0) {};
-    virtual ~CGExchangeBuy() {};
+    CGExchangeBuy() : m_ListingID(0){};
+    virtual ~CGExchangeBuy(){};
 
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);
 
     PacketSize_t getPacketSize() const;
-    PacketID_t getPacketID() const { return PACKET_CG_EXCHANGE_BUY; }
-    string getPacketName() const { return "CGExchangeBuy"; }
+    PacketID_t getPacketID() const {
+        return PACKET_CG_EXCHANGE_BUY;
+    }
+    string getPacketName() const {
+        return "CGExchangeBuy";
+    }
     string toString() const;
 
     // Getters/Setters
-    int64_t getListingID() const { return m_ListingID; }
-    void setListingID(int64_t id) { m_ListingID = id; }
+    int64_t getListingID() const {
+        return m_ListingID;
+    }
+    void setListingID(int64_t id) {
+        m_ListingID = id;
+    }
 
-    const string& getIdempotencyKey() const { return m_IdempotencyKey; }
-    void setIdempotencyKey(const string& key) { m_IdempotencyKey = key; }
+    const string& getIdempotencyKey() const {
+        return m_IdempotencyKey;
+    }
+    void setIdempotencyKey(const string& key) {
+        m_IdempotencyKey = key;
+    }
 
 private:
     int64_t m_ListingID;
-    string  m_IdempotencyKey;
+    string m_IdempotencyKey;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -46,12 +58,18 @@ private:
 
 class CGExchangeBuyFactory : public PacketFactory {
 public:
-    Packet* createPacket() { return new CGExchangeBuy(); }
-    string getPacketName() const { return "CGExchangeBuy"; }
-    PacketID_t getPacketID() const { return Packet::PACKET_CG_EXCHANGE_BUY; }
+    Packet* createPacket() {
+        return new CGExchangeBuy();
+    }
+    string getPacketName() const {
+        return "CGExchangeBuy";
+    }
+    PacketID_t getPacketID() const {
+        return Packet::PACKET_CG_EXCHANGE_BUY;
+    }
     PacketSize_t getPacketMaxSize() const {
         return sizeof(uint64_t) + // listingID
-               64;                 // idempotencyKey (max 64 chars)
+               64;                // idempotencyKey (max 64 chars)
     }
 };
 

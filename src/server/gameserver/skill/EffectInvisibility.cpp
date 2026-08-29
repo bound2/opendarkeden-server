@@ -134,8 +134,7 @@ string EffectInvisibility::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectInvisibility("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectInvisibility(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

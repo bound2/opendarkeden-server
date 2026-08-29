@@ -18,8 +18,8 @@
 
 class CGUseItemFromGQuestInventory : public Packet {
 public:
-    CGUseItemFromGQuestInventory() {};
-    virtual ~CGUseItemFromGQuestInventory() {};
+    CGUseItemFromGQuestInventory(){};
+    virtual ~CGUseItemFromGQuestInventory(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

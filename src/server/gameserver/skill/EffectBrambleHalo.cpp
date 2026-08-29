@@ -236,8 +236,7 @@ string EffectBrambleHalo::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectBrambleHalo("
-        << "Damage:" << (int)m_Damage << ", EffectClass:" << (int)m_EffectClass << ")";
+    msg << "EffectBrambleHalo(" << "Damage:" << (int)m_Damage << ", EffectClass:" << (int)m_EffectClass << ")";
     return msg.toString();
 
     __END_CATCH

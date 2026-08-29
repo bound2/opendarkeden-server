@@ -82,8 +82,7 @@ string EffectHandsOfFire::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHandsOfFire("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHandsOfFire(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

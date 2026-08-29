@@ -123,10 +123,10 @@ void PCItemInfo::write(SocketOutputStream& oStream) const {
 //////////////////////////////////////////////////////////////////////////////
 string PCItemInfo::toString() const {
     StringStream msg;
-    msg << "PCItemInfo("
-        << "ObjectID:" << (int)m_ObjectID << "ItemClass:" << (int)m_IClass << "ItemType:" << (int)m_ItemType
-        << "OptionTypeSize:" << (int)m_OptionType.size() << "Durability:" << (int)m_Durability
-        << "Silver:" << (int)m_Silver << "Grade:" << (int)m_Grade << "EnchantLevel:" << (int)m_EnchantLevel
-        << "ItemNum:" << (int)m_ItemNum << "MainColor:" << (int)m_MainColor << "ListNum:" << (int)m_ListNum << ")";
+    msg << "PCItemInfo(" << "ObjectID:" << (int)m_ObjectID << "ItemClass:" << (int)m_IClass
+        << "ItemType:" << (int)m_ItemType << "OptionTypeSize:" << (int)m_OptionType.size()
+        << "Durability:" << (int)m_Durability << "Silver:" << (int)m_Silver << "Grade:" << (int)m_Grade
+        << "EnchantLevel:" << (int)m_EnchantLevel << "ItemNum:" << (int)m_ItemNum << "MainColor:" << (int)m_MainColor
+        << "ListNum:" << (int)m_ListNum << ")";
     return msg.toString();
 }

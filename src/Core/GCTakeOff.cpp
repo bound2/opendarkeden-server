@@ -82,8 +82,7 @@ string GCTakeOff::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCTakeOff("
-        << "Part:" << (int)m_SlotID << " )";
+    msg << "GCTakeOff(" << "Part:" << (int)m_SlotID << " )";
     return msg.toString();
 
     __END_CATCH

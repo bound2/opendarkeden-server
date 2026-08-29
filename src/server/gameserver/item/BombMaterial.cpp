@@ -68,9 +68,9 @@ void BombMaterial::create(const string& ownerID, Storage storage, StorageID_t st
         StringStream sql;
 
         sql << "INSERT INTO BombMaterialObject "
-            << "(ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num)"
-            << " VALUES (" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << "," << (int)m_Num << ")";
+            << "(ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num)" << " VALUES (" << m_ItemID << ", "
+            << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', " << (int)storage << ", " << storageID
+            << ", " << (int)x << ", " << (int)y << "," << (int)m_Num << ")";
 
 
         pStmt->executeQueryString(sql.toString());
@@ -157,8 +157,7 @@ string BombMaterial::toString() const
 {
     StringStream msg;
 
-    msg << "BombMaterial("
-        << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "BombMaterial(" << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ",Num:" << (int)m_Num << ")";
 
     return msg.toString();
 }
@@ -214,10 +213,9 @@ string BombMaterialInfo::toString() const
 {
     StringStream msg;
 
-    msg << "BombMaterialInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "BombMaterialInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
 
     return msg.toString();
 }

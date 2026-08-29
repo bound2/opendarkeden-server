@@ -60,8 +60,7 @@ string ActionSystemMessage::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionSystemMessage("
-        << "Content:" << m_Content << ")";
+    msg << "ActionSystemMessage(" << "Content:" << m_Content << ")";
     return msg.toString();
 
     __END_CATCH

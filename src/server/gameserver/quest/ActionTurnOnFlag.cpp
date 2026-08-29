@@ -60,8 +60,7 @@ string ActionTurnOnFlag::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionTurnOnFlag("
-        << "Index:" << m_Index << ")";
+    msg << "ActionTurnOnFlag(" << "Index:" << m_Index << ")";
     return msg.toString();
 
     __END_CATCH

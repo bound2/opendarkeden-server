@@ -42,8 +42,7 @@ string CGSelectRegenZone::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSelectRegenZone("
-        << ")";
+    msg << "CGSelectRegenZone(" << ")";
     return msg.toString();
 
     __END_CATCH

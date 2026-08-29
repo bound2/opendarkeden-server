@@ -164,8 +164,7 @@ string EffectRelicPosition::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectRelicPosition("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectRelicPosition(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

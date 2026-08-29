@@ -76,11 +76,10 @@ void Sweeper::create(const string& ownerID, Storage storage, StorageID_t storage
 
         StringStream sql;
 
-        sql << "INSERT INTO SweeperObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, Durability)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", " << m_Durability << ")";
+        sql << "INSERT INTO SweeperObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
+            << " X, Y, Durability)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '"
+            << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", "
+            << m_Durability << ")";
 
         pStmt->executeQueryString(sql.toString());
         filelog("WarLog.txt", "%s", sql.toString().c_str());
@@ -171,8 +170,7 @@ string Sweeper::toString() const
 {
     StringStream msg;
 
-    msg << "Sweeper("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Durability:" << (int)m_Durability
+    msg << "Sweeper(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Durability:" << (int)m_Durability
         << ",EnchantLevel:" << (int)m_EnchantLevel << ")";
 
     return msg.toString();
@@ -252,10 +250,10 @@ string SweeperInfo::toString() const
 {
     StringStream msg;
 
-    msg << "SweeperInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",Durability:" << m_Durability << ",DefenseBonus:" << m_DefenseBonus << ")";
+    msg << "SweeperInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",Durability:" << m_Durability << ",DefenseBonus:" << m_DefenseBonus
+        << ")";
 
     return msg.toString();
 }
@@ -491,8 +489,8 @@ void SweeperLoader::load(Zone* pZone)
         StringStream sql;
 
         sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " Durability, EnchantLevel FROM SweeperObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+            << " Durability, EnchantLevel FROM SweeperObject" << " WHERE Storage = " << (int)STORAGE_ZONE
+            << " AND StorageID = " << pZone->getZoneID();
 
         Result* pResult = pStmt->executeQueryString(sql.toString());
 

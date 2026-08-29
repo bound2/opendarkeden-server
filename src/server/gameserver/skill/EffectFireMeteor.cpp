@@ -127,8 +127,7 @@ string EffectFireMeteor::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectFireMeteor("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectFireMeteor(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

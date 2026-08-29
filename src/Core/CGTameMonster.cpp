@@ -58,8 +58,7 @@ string CGTameMonster::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGTameMonster("
-        << "ObjectID :" << (int)m_ObjectID << ")";
+    msg << "CGTameMonster(" << "ObjectID :" << (int)m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

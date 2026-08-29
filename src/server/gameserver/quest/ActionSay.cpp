@@ -68,8 +68,7 @@ string ActionSay::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionSay("
-        << ",ScriptID:" << (int)m_ScriptID << ")";
+    msg << "ActionSay(" << ",ScriptID:" << (int)m_ScriptID << ")";
     return msg.toString();
 
     __END_CATCH

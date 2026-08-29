@@ -53,8 +53,7 @@ string CGUseBonusPoint::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGUseBonusPoint("
-        << "Which:" << (int)m_Which << ")";
+    msg << "CGUseBonusPoint(" << "Which:" << (int)m_Which << ")";
     return msg.toString();
 
     __END_CATCH

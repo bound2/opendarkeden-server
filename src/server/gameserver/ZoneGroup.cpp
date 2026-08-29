@@ -392,7 +392,6 @@ string ZoneGroup::toString() const
 
 {
     StringStream msg;
-    msg << "ZoneGroup("
-        << "ZoneGroupID:" << (int)m_ZoneGroupID << "GameTime:" << m_GameTime.toString() << ")";
+    msg << "ZoneGroup(" << "ZoneGroupID:" << (int)m_ZoneGroupID << "GameTime:" << m_GameTime.toString() << ")";
     return msg.toString();
 }

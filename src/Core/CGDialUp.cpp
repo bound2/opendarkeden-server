@@ -51,8 +51,7 @@ string CGDialUp::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGDialUp("
-        << "PhoneNumber: " << (int)m_PhoneNumber << ")";
+    msg << "CGDialUp(" << "PhoneNumber: " << (int)m_PhoneNumber << ")";
     return msg.toString();
 
     __END_CATCH

@@ -122,8 +122,7 @@ string EffectRelicTable::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectRelicTable("
-        << "SafeTime:" << m_SafeTime.tv_sec << ")";
+    msg << "EffectRelicTable(" << "SafeTime:" << m_SafeTime.tv_sec << ")";
     return msg.toString();
 
     __END_CATCH

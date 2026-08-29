@@ -166,9 +166,8 @@ string PrivatePortal::toString() const
 {
     StringStream msg;
 
-    msg << "NormalPortal("
-        << "Type:" << (int)m_PortalType << "ZoneID:" << (int)m_pTarget->getZoneID() << ",X:" << (int)m_pTarget->getX()
-        << ",Y:" << (int)m_pTarget->getY() << ")";
+    msg << "NormalPortal(" << "Type:" << (int)m_PortalType << "ZoneID:" << (int)m_pTarget->getZoneID()
+        << ",X:" << (int)m_pTarget->getX() << ",Y:" << (int)m_pTarget->getY() << ")";
 
     return msg.toString();
 }
@@ -224,9 +223,8 @@ string NormalPortal::toString() const
 {
     StringStream msg;
 
-    msg << "NormalPortal("
-        << "Type:" << (int)m_PortalType << "ZoneID:" << (int)m_pTarget->getZoneID() << ",X:" << (int)m_pTarget->getX()
-        << ",Y:" << (int)m_pTarget->getY() << ")";
+    msg << "NormalPortal(" << "Type:" << (int)m_PortalType << "ZoneID:" << (int)m_pTarget->getZoneID()
+        << ",X:" << (int)m_pTarget->getX() << ",Y:" << (int)m_pTarget->getY() << ")";
 
     return msg.toString();
 }
@@ -288,8 +286,8 @@ string GuildPortal::toString() const
 {
     StringStream msg;
 
-    msg << "GuildPortal("
-        << "Type:" << (int)m_PortalType << ",X:" << (int)m_pTarget->getX() << ",Y:" << (int)m_pTarget->getY() << ")";
+    msg << "GuildPortal(" << "Type:" << (int)m_PortalType << ",X:" << (int)m_pTarget->getX()
+        << ",Y:" << (int)m_pTarget->getY() << ")";
 
     return msg.toString();
 }
@@ -334,8 +332,7 @@ string MultiPortal::toString() const
 {
     StringStream msg;
 
-    msg << "MultiPortal("
-        << "Type:" << (int)m_PortalType;
+    msg << "MultiPortal(" << "Type:" << (int)m_PortalType;
     for (list<PortalTargetInfo*>::const_iterator itr = m_Targets.begin(); itr != m_Targets.end(); itr++) {
         msg << ",ZoneID:" << (int)(*itr)->getZoneID() << ",X:" << (int)(*itr)->getX() << ",Y:" << (int)(*itr)->getY();
     }

@@ -41,17 +41,17 @@ enum BillingPacketType {
 // BILLING_PACKET_LOGIN의 Result값
 ////////////////////////////////////////////////////////////////////////////////
 enum BillingResultLogin {
-    BILLING_RESULT_LOGIN_OK = 0,              // 인증 성공
-    BILLING_RESULT_LOGIN_DB_ERROR = 2,        // DB에 접근 불가
-    BILLING_RESULT_LOGIN_NETWORK_ERROR = 3,   // 네트워크 오류
-    BILLING_RESULT_LOGIN_NO_ACCOUNT = 10,     // 인증 정보 없음
-    BILLING_RESULT_LOGIN_NO_CASH = 11,        // 잔액 부족
-    BILLING_RESULT_LOGIN_NO_SESSION = 12,     // 세션 없음
-    BILLING_RESULT_LOGIN_BAD_PACKET = 20,     // 정의 되지않은 패킷
-    BILLING_RESULT_LOGIN_COM_ERROR = 25,      // COM Error
-    BILLING_RESULT_LOGIN_NO_RESPONSE = 26,    // 시간(30초)동안 응답없음
-    BILLING_RESULT_LOGIN_NO_MACHINE = 27,     // 해당 장비 접속 불가
-    BILLING_RESULT_LOGIN_BAD_GAME_NO = 30,    // 패킷의 게임 넘버와 빌링 서버에 등록된 게임번호가 다름
+    BILLING_RESULT_LOGIN_OK = 0,            // 인증 성공
+    BILLING_RESULT_LOGIN_DB_ERROR = 2,      // DB에 접근 불가
+    BILLING_RESULT_LOGIN_NETWORK_ERROR = 3, // 네트워크 오류
+    BILLING_RESULT_LOGIN_NO_ACCOUNT = 10,   // 인증 정보 없음
+    BILLING_RESULT_LOGIN_NO_CASH = 11,      // 잔액 부족
+    BILLING_RESULT_LOGIN_NO_SESSION = 12,   // 세션 없음
+    BILLING_RESULT_LOGIN_BAD_PACKET = 20,   // 정의 되지않은 패킷
+    BILLING_RESULT_LOGIN_COM_ERROR = 25,    // COM Error
+    BILLING_RESULT_LOGIN_NO_RESPONSE = 26,  // 시간(30초)동안 응답없음
+    BILLING_RESULT_LOGIN_NO_MACHINE = 27,   // 해당 장비 접속 불가
+    BILLING_RESULT_LOGIN_BAD_GAME_NO = 30, // 패킷의 게임 넘버와 빌링 서버에 등록된 게임번호가 다름
     BILLING_RESULT_LOGIN_ACCOUNT_ERROR = 31,  // 빌링 어카운트의 서비스 에러
                                               //	BILLING_RESULT_LOGIN_DUPLICATE		= 32,	// 동시접속 불가
     BILLING_RESULT_LOGIN_DENY = 33,           // 사용 불가(결제 정보는 있음)

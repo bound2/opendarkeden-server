@@ -171,8 +171,7 @@ string ItemRewardInfo::toString() const {
 
     StringStream msg;
 
-    msg << "ItemRewardInfo("
-        << "ItemClass : " << (int)m_IClass << ", ItemType : " << (int)m_IType
+    msg << "ItemRewardInfo(" << "ItemClass : " << (int)m_IClass << ", ItemType : " << (int)m_IType
         << ", ItemOption : " << getOptionTypeToString(m_OptionType).c_str() << ", TimeLimitSec : " << m_TimeLimit
         << ") : " << "\n"
         << RewardInfo::toString().c_str();

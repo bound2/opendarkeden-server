@@ -78,8 +78,7 @@ string GSQuitGuild::toString() const
 {
     StringStream msg;
 
-    msg << "GSQuitGuild ("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << " )";
+    msg << "GSQuitGuild (" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << " )";
 
     return msg.toString();
 }

@@ -60,8 +60,7 @@ string GCLightning::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCLightning("
-        << "Delay:" << (int)m_Delay << ")";
+    msg << "GCLightning(" << "Delay:" << (int)m_Delay << ")";
     return msg.toString();
 
     __END_CATCH

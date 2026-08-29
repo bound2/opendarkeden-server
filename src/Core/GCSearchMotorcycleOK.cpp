@@ -64,8 +64,8 @@ string GCSearchMotorcycleOK::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSearchMotorcycleOK("
-        << "ZoneID:" << (int)m_ZoneID << ",ZoneX:" << (int)m_ZoneX << ",ZoneY:" << (int)m_ZoneY << ")";
+    msg << "GCSearchMotorcycleOK(" << "ZoneID:" << (int)m_ZoneID << ",ZoneX:" << (int)m_ZoneX
+        << ",ZoneY:" << (int)m_ZoneY << ")";
     return msg.toString();
 
     __END_CATCH

@@ -23,7 +23,7 @@ class GCVisibleFail : public Packet {
 public:
     // constructor
     GCVisibleFail() {}
-    ~GCVisibleFail() {};
+    ~GCVisibleFail(){};
 
 
 public:

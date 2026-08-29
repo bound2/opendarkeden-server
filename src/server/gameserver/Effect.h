@@ -318,7 +318,7 @@ public:
         EFFECT_CLASS_TRANSPORT_ITEM_TO_CORPSE, // 192
         EFFECT_CLASS_ADD_ITEM_TO_CORPSE,       // 193
 
-        EFFECT_CLASS_WARP_BLOOD_BIBLE_FROM_ME,   // 194 ³»°¡ °¡Áö°íÀÖ´ø ÇÇÀÇ¼º¼­°¡ ¿öÇÁµÉ¶§ ¸Ó¸®¿¡ Âï¾îÁÖ´Â-_- ÀÌÆåÆ®
+        EFFECT_CLASS_WARP_BLOOD_BIBLE_FROM_ME, // 194 ³»°¡ °¡Áö°íÀÖ´ø ÇÇÀÇ¼º¼­°¡ ¿öÇÁµÉ¶§ ¸Ó¸®¿¡ Âï¾îÁÖ´Â-_- ÀÌÆåÆ®
         EFFECT_CLASS_WARP_BLOOD_BIBLE_FROM_TILE, // 195 ¶¥¿¡ ¶³¾îÁ®ÀÖ´ø ÇÇÀÇ¼º¼­°¡ ¿öÇÁµÉ¶§ ±× Å¸ÀÏ¿¡ Âï¾îÁÖ´Â ÀÌÆåÆ®
 
         EFFECT_CLASS_WARP_HOLY_LAND_VAMPIRE, // 196 ¹ìÆÄÀÌ¾î°¡ Æ÷Å»·Î ÀÌµ¿ÇÒ¶§
@@ -693,8 +693,8 @@ public:
         EFFECT_CLASS_HEAVEN_GROUND,                  // ·¨Ê¦ÌìÉñ½µÁÙ
         EFFECT_CLASS_DUMMY_DRAKE,                    // µÂÀ×¿Ë¿þÀÜ(Ä§Áé)
         EFFECT_CLASS_HYDRO_CONVERGENCE,              //  ¸´ºÏË®ÁÆ
-        EFFECT_CLASS_SUMMON_CLAY,                    //  Summon Clay  Õ³ÍÁÕÙ»½    (Ä§ÁéÐÂ¼¼ÄÜ ÍÁ·¨)
-        EFFECT_CLASS_HETER_CHAKRAM,                  //  Heter Chakram ÏÄ²¼Àû»ùÒò  (Ä§ÁéÐÂ¼¼ÄÜ  Õ½Ê¿)
+        EFFECT_CLASS_SUMMON_CLAY,   //  Summon Clay  Õ³ÍÁÕÙ»½    (Ä§ÁéÐÂ¼¼ÄÜ ÍÁ·¨)
+        EFFECT_CLASS_HETER_CHAKRAM, //  Heter Chakram ÏÄ²¼Àû»ùÒò  (Ä§ÁéÐÂ¼¼ÄÜ  Õ½Ê¿)
 
 
         // add by viva

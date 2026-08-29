@@ -102,10 +102,10 @@ void ZoneInfo::setZoneAccessMode(const string& zoneAccessMode) {
 
 string ZoneInfo::toString() const {
     StringStream msg;
-    msg << "ZoneInfo("
-        << "ZoneID:" << (int)m_ZoneID << ",ZoneGroupID:" << (int)m_ZoneGroupID << ",ZoneType:" << (int)m_ZoneType
-        << ",ZoneLevel:" << (int)m_ZoneLevel << ",ZoneAccessMode:" << (int)m_ZoneAccessMode << ",OwnerID:" << m_OwnerID
-        << ",PayPlayZone:" << (int)m_bPayPlay << ",PremiumZone:" << (int)m_bPremiumZone << ",PKZone:" << (int)m_bPKZone
+    msg << "ZoneInfo(" << "ZoneID:" << (int)m_ZoneID << ",ZoneGroupID:" << (int)m_ZoneGroupID
+        << ",ZoneType:" << (int)m_ZoneType << ",ZoneLevel:" << (int)m_ZoneLevel
+        << ",ZoneAccessMode:" << (int)m_ZoneAccessMode << ",OwnerID:" << m_OwnerID << ",PayPlayZone:" << (int)m_bPayPlay
+        << ",PremiumZone:" << (int)m_bPremiumZone << ",PKZone:" << (int)m_bPKZone
         << ",NoPortalZone:" << (int)m_bNoPortalZone << ",Castle:" << (int)m_bCastle << ",HolyLand:" << (int)m_bHolyLand
         << ",SMPFilename:" << m_SMPFilename << ",SSIFilename:" << m_SSIFilename << ",FullName:" << m_FullName
         << ",ShortName:" << m_ShortName << ")";

@@ -278,8 +278,7 @@ string EffectDecreaseHP::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectDecreaseHP("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDecreaseHP(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH
