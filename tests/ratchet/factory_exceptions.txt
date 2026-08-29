@@ -1,0 +1,18 @@
+# Factories that PacketFactoryManager::init() registers but that are
+# deliberately NOT in the wire-layout inventory, one per line, each with a
+# reason. tests/ratchet/ratchets.sh treats these as covered.
+#
+# CR*/RC* are the ranger/remote-admin packets (src/Core/Rpackets). They are
+# registered only inside init()'s __GAME_CLIENT__ branch, which no server
+# target compiles, so they never ride the server wire.
+CRConnectFactory
+CRDisconnectFactory
+CRRequestFactory
+CRWhisperFactory
+RCCharacterInfoFactory
+RCConnectVerifyFactory
+RCPositionInfoFactory
+RCRequestVerifyFactory
+RCRequestedFileFactory
+RCSayFactory
+RCStatusHPFactory

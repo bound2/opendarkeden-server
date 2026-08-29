@@ -5,6 +5,9 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGRequestGuildList.h"
+
+#ifdef __GAME_SERVER__
+#include "Assert1.h"
 #include "Creature.h"
 #include "GCActiveGuildList.h"
 #include "GCSystemMessage.h"
@@ -16,12 +19,8 @@
 #include "NPC.h"
 #include "Ousters.h"
 #include "Slayer.h"
-#include "Vampire.h"
-
-
-#ifdef __GAME_SERVER__
-#include "Assert1.h"
 #include "SystemAvailabilitiesManager.h"
+#include "Vampire.h"
 #endif // __GAME_SERVER__
 
 //////////////////////////////////////////////////////////////////////////////

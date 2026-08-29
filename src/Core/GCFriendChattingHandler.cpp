@@ -7,13 +7,18 @@
 //////////////////////////////////////////////////////////////////////
 
 // include files
-#include "DB.h"
 #include "GCFriendChatting.h"
+
+#ifdef __GAME_SERVER__
+#include "DB.h"
 #include "GamePlayer.h"
 #include "PCFinder.h"
+#endif
 
 void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer) {
     __BEGIN_TRY __BEGIN_DEBUG_EX
+
+#ifdef __GAME_SERVER__
         // cout<<"friend1"<<endl;
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
@@ -315,5 +320,8 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
     default:
         break;
     }
+
+#endif // __GAME_SERVER__
+
     __END_DEBUG_EX __END_CATCH
 }

@@ -665,6 +665,47 @@ target_include_directories(LoginServerPackets PRIVATE
 )
 
 # ============================================================================
+# TestPackets - the full packet set with NO server-type macro, for the
+# wire-contract tests (tests/). Handlers guard their server logic behind
+# #ifdef __GAME_SERVER__ etc., so compiling define-free leaves pure wire
+# code with no-op handlers.
+#
+# NOTE: this is NOT the client's configuration — the client compiles with
+# __GAME_CLIENT__=1, so `#ifndef __GAME_CLIENT__` blocks (GCShopList) resolve
+# the opposite way here. None of those touch read()/write(), so the goldens
+# do reflect what the deployed server emits; but a future
+# __GAME_CLIENT__-guarded change to a wire method would be invisible here.
+# ============================================================================
+if(DARKEDEN_BUILD_TESTS)
+    add_library(TestPackets STATIC EXCLUDE_FROM_ALL
+        ${GC_PACKET_SOURCES}
+        ${CG_PACKET_SOURCES}
+        ${CL_PACKET_SOURCES}
+        ${LC_PACKET_SOURCES}
+        ${GL_PACKET_SOURCES}
+        ${LG_PACKET_SOURCES}
+        ${GS_PACKET_SOURCES}
+        ${SG_PACKET_SOURCES}
+        ${GG_PACKET_SOURCES}
+        ${GM_PACKET_SOURCES}
+        ${PACKET_COMMON_SOURCES}
+    )
+    # The gameserver include dirs are needed because a handful of packet
+    # classes still reach into gameserver headers for constants (e.g.
+    # GCAttackArmsOK1 uses SKILL_ATTACK_ARMS from skill/Skill.h) — a Phase 2
+    # boundary violation to remove; no server-type macro is defined here.
+    target_include_directories(TestPackets PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/src/server
+        ${CMAKE_SOURCE_DIR}/src/server/database
+        ${CMAKE_SOURCE_DIR}/src/server/gameserver
+        ${CMAKE_SOURCE_DIR}/src/server/gameserver/item
+        ${CMAKE_SOURCE_DIR}/src/server/gameserver/skill
+        ${CMAKE_SOURCE_DIR}/src/server/gameserver/billing
+    )
+endif()
+
+# ============================================================================
 # SharedServerPackets 库 - 使用 __SHARED_SERVER__ 宏编译
 # ============================================================================
 add_library(SharedServerPackets STATIC

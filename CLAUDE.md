@@ -37,8 +37,45 @@ make fmt-check-all
 ```
 
 The project uses clang-format with a `.clang-format` configuration file.
-- Format checking is enforced via GitHub Actions on PRs
-- Always run `make fmt` before committing changes
+- Format checking is enforced via GitHub Actions on PRs, and it checks only
+  the files a PR **changed** (`git diff origin/master HEAD`), using whatever
+  clang-format `ubuntu-latest` installs (18.x as of 2026-08).
+- **Do not run bare `make fmt` before committing — the tree is not v18-clean.**
+  1,253 `src/` files were formatted with an older clang-format, so `make fmt`
+  reformats them all and buries your diff in unrelated churn. Format only what
+  you touched:
+  ```bash
+  git diff --name-only master HEAD | grep -E '\.(cpp|h|hpp)$' | xargs clang-format -i
+  ```
+- Touching a file that was never v18-formatted (the Exchange handlers were
+  merged unformatted) makes CI demand you reformat it. That is expected;
+  the reformat lands in your PR.
+- `make fmt` / `fmt-check-all` cover `src/` **and** `tests/`, matching what CI
+  checks.
+
+### Tests
+
+```bash
+# Build and run the wire-contract test suite (local only — no CI tier yet)
+make test
+```
+
+- The suite (in `tests/`) pins the client/server wire contract: golden byte
+  fixtures and loopback round-trips for representative packets, a generated
+  wire-layout inventory (`tests/wire-layout.txt`) over every packet factory,
+  and the shrink-only ratchets from `docs/RESTRUCTURING.md`
+  (`tests/ratchet/ratchets.sh`).
+- A failing golden or inventory diff is a **protocol change**: the client
+  repo's hand-maintained packet copies must ship the identical change.
+  Re-record deliberately with `UPDATE_GOLDENS=1 ./bin/wire_tests`.
+- Ratchet numbers only go down. When one drops, tighten the baseline in
+  `tests/ratchet/ratchets.sh` AND `docs/RESTRUCTURING.md` in the same commit.
+- The `TestPackets` library compiles the whole packet set with NO server-type
+  macro (note: not the client's config, which defines __GAME_CLIENT__=1) —
+  handlers must keep their server logic behind
+  `#ifdef __GAME_SERVER__` (etc.) so the wire layer stays buildable alone.
+- `docs/RESTRUCTURING.md` is the living restructuring plan; update task
+  `> **Status:**` lines in the same commit as the work.
 
 ## Project Architecture
 

@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "CGAddItemToCodeSheet.h"
+
+#ifdef __GAME_SERVER__
 #include "GCCannotUse.h"
 #include "GCUseOK.h"
 #include "GamePlayer.h"
@@ -21,6 +23,7 @@ uint getStoneNum(const vector<OptionType_t>& OptionType, CoordInven_t x, CoordIn
 void setStoneNum(vector<OptionType_t>& OptionType, CoordInven_t x, CoordInven_t y, uint Num);
 bool canPutStone(const vector<OptionType_t>& OptionType, CoordInven_t x, CoordInven_t y, uint StoneNum);
 bool isComplete(const vector<OptionType_t>& OptionType);
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -28,6 +31,8 @@ void CGAddItemToCodeSheetHandler::execute(CGAddItemToCodeSheet* pPacket, Player*
 
 {
     __BEGIN_TRY __BEGIN_DEBUG_EX
+
+#ifdef __GAME_SERVER__
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
@@ -93,8 +98,12 @@ void CGAddItemToCodeSheetHandler::execute(CGAddItemToCodeSheet* pPacket, Player*
 
     pPlayer->sendPacket(&okpkt);
 
+#endif // __GAME_SERVER__
+
     __END_DEBUG_EX __END_CATCH
 }
+
+#ifdef __GAME_SERVER__
 
 uint getStoneNum(const vector<OptionType_t>& OptionType, CoordInven_t x, CoordInven_t y) {
     uint SerialNum = y * 10 + x;
@@ -163,3 +172,5 @@ bool isComplete(const vector<OptionType_t>& OptionType) {
 
     return true;
 }
+
+#endif // __GAME_SERVER__
