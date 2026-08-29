@@ -5,6 +5,8 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGTypeStringList.h"
+
+#ifdef __GAME_SERVER__
 #include "FlagSet.h"
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
@@ -18,8 +20,6 @@
 #include "couple/CoupleManager.h"
 #include "couple/PartnerWaitingManager.h"
 #include "couple/WaitForApart.h"
-
-#ifdef __GAME_SERVER__
 #endif
 
 //////////////////////////////////////////////////////////////////////////////

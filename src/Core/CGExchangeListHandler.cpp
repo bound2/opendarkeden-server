@@ -10,13 +10,13 @@
 #ifdef __GAME_SERVER__
 #include "PlayerCreature.h"
 #include "GamePlayer.h"
-#endif
-
-// Forward declaration of exchange service
 #include "../server/gameserver/exchange/ExchangeService.h"
+#endif
 
 void CGExchangeListHandler::execute(CGExchangeList* pPacket, Player* pPlayer) {
     __BEGIN_TRY
+
+#ifdef __GAME_SERVER__
 
     // Validate player
     if (pPlayer == NULL) return;
@@ -46,6 +46,8 @@ void CGExchangeListHandler::execute(CGExchangeList* pPacket, Player* pPlayer) {
     gcPacket.setTotal(listings.size());
 
     pPlayer->sendPacket(&gcPacket);
+
+#endif // __GAME_SERVER__
 
     __END_CATCH
 }

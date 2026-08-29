@@ -6,8 +6,12 @@
 
 #include "GCStashList.h"
 
-#include "AR.h"
 #include "Assert1.h"
+
+// setStashItem() converts a live gameserver Item into wire fields; only the
+// game server compiles that path.
+#ifdef __GAME_SERVER__
+#include "AR.h"
 #include "Belt.h"
 #include "Inventory.h"
 #include "Item.h"
@@ -17,6 +21,7 @@
 #include "SG.h"
 #include "SMG.h"
 #include "SR.h"
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // constructor
@@ -309,6 +314,7 @@ STASHITEM GCStashList::getStashItem(BYTE rack, BYTE index) const
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
+#ifdef __GAME_SERVER__
 void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
 
 {
@@ -504,6 +510,7 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
 
     __END_CATCH
 }
+#endif // __GAME_SERVER__
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////

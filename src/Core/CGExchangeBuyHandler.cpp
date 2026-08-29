@@ -10,12 +10,13 @@
 #ifdef __GAME_SERVER__
 #include "PlayerCreature.h"
 #include "GamePlayer.h"
-#endif
-
 #include "../server/gameserver/exchange/ExchangeService.h"
+#endif
 
 void CGExchangeBuyHandler::execute(CGExchangeBuy* pPacket, Player* pPlayer) {
     __BEGIN_TRY
+
+#ifdef __GAME_SERVER__
 
     // Validate player
     if (pPlayer == NULL) return;
@@ -36,6 +37,8 @@ void CGExchangeBuyHandler::execute(CGExchangeBuy* pPacket, Player* pPlayer) {
     gcPacket.setMessage(result.second);
 
     pPlayer->sendPacket(&gcPacket);
+
+#endif // __GAME_SERVER__
 
     __END_CATCH
 }
