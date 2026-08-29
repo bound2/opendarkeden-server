@@ -5,14 +5,17 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y \
     gcc \
     build-essential \
+    cmake \
+    pkg-config \
     libxerces-c-dev \
     libmysqlclient-dev \
     liblua5.1-dev \
+    zlib1g-dev \
     xutils-dev \
     psmisc
-	
+
 RUN mkdir /home/darkeden
 RUN mkdir /home/darkeden/vs
 RUN mkdir /home/darkeden/vs/src
 
-WORKDIR /home/darkeden/vs/src
+WORKDIR /home/darkeden/vs

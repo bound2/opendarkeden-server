@@ -1,14 +1,84 @@
 # Install using Docker
 
-## Build the server binary files
+Everything below builds the server **from the sources in this repository** - no
+pre-built image is downloaded.
 
-First, build the docker image:
+## Quick start (docker compose)
+
+```sh
+cd docker
+docker compose up -d --build
+```
+
+That command:
+
+1. builds `../Dockerfile`, which compiles `loginserver`, `sharedserver` and
+   `gameserver` inside an Ubuntu 20.04 container and packages the binaries
+   together with `data/` and `docker/conf/`;
+2. starts MySQL 5.7 and imports `initdb/*.sql` on first run;
+3. applies `docker/initdb-docker.sql`, which points `DARKEDEN.WorldDBInfo` and
+   `DARKEDEN.GameServerInfo` at this stack (the dumps ship with the original
+   developers' LAN addresses);
+4. starts the three servers in order once the database is ready
+   (see `docker/start.sh`).
+
+Follow the logs:
+
+```sh
+docker compose logs -f odk-server
+```
+
+Stop everything (the database keeps its data in the `odk-mysql-data` volume):
+
+```sh
+docker compose down
+```
+
+Add `-v` to `docker compose down` to wipe the database as well.
+
+**NOTE:** the compose setup assumes server and client run on the same machine.
+To run the client on another machine, set the server IP in the
+`DARKEDEN.GameServerInfo` table (or in `docker/initdb-docker.sql` before the
+first start) and restart the server container.
+
+### Rebuild after changing the code
+
+```sh
+cd docker
+docker compose up -d --build
+```
+
+The image is built with `CMAKE_BUILD_TYPE=Debug`, the same default `make`
+uses. Do not switch it to `Release` unless you first fix the `Assert()` usage:
+`Release` defines `NDEBUG`, which expands `Assert(expr)` to `((void)0)`, and
+the code puts side effects inside it (`Assert(pTree->GetAttribute(...))`), so a
+Release gameserver aborts while loading the quest XML files.
+
+```sh
+docker build -t darkeden:local --build-arg BUILD_TYPE=Debug .
+```
+
+### Start the servers by hand
+
+Set `command: ["sleep","infinity"]` on the `odk-server` service, then:
+
+```sh
+docker exec -w /home/darkeden/vs/bin -it odk-server /bin/bash
+./start.sh
+```
+
+## Building the binaries into the working tree (development)
+
+Use `Dockerfile.dev` when you want the compiled binaries in your local `bin/`
+directory instead of inside an image.
+
+First, build the development image:
 
 ```bash
 docker build -t darkeden:dev . -f Dockerfile.dev
 ```
 
-Second, run the container
+Second, run the container with the repository mounted:
 
 ```bash
 docker run -v `pwd`:/home/darkeden/vs/ -it darkeden:dev /bin/bash
@@ -26,84 +96,21 @@ Third, build the darkeden server binary files
 make
 ```
 
-and you can add `-j 8` to the `make` command to accelerate the building process if you're using a 8-core machine.
+`make` produces a debug build; use `make release` for an optimized one. The
+build uses every core it can find, so no `-j` flag is needed.
 
-When the build process finish, exit docker, and loginserver/sharedserver/gameserver are generated in the bin/ directory.
+When the build process finishes, exit docker; loginserver/sharedserver/gameserver
+are in the `bin/` directory.
 
-## Run the binary (development mode)
-
-
-TODO
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## Standalone version
-
-**NOTE:** standalone version only support deploying server and client on the same machine.
-
-If you want to run server on one machine, and client on the other, you need to modify mysql `DARKEDEN.GameServerInfo` table and restart server.
-
-### Pack the binary/config/data files into docker image
-
-```sh
-docker build . -t darkeden:latest -f Dockerfile.pub
-```
-
-### Run using docker-compose
-
-
-```sh
-cd docker
-docker-compose up -d
-```
-
-Login to server container:
-
-```
-docker exec -w /home/darkeden/vs/bin -it docker_odk-server_1  /bin/bash
-```
-
-Run the server:
-
-```
-./start.sh
-```
-
-
-Stop all:
-
-```sh
-./stop.sh
-docker-compose down
-```
-
-
-
-
-
-
-
-
-
+To run those binaries with compose, uncomment the volume mounts in
+`docker/docker-compose.yml` and mount `../bin/` as well.
 
 ## Howto
 
 ### Login to the MySQL
 
 ```sh
-docker exec -it docker_odk-mysql_1 mysql -u elcastle -pelca110
+docker exec -it odk-mysql mysql -u elcastle -pelca110
 ```
 
 ```SQL
@@ -111,9 +118,11 @@ use DARKEDEN;
 update GameServerInfo set IP = '192.168.0.16';
 ```
 
-### Publish the docker image (memo for me)
+### Pack pre-built binaries into an image
+
+`Dockerfile.pub` packages an already-compiled `bin/` directory instead of
+compiling from source, which is useful when publishing a release image:
 
 ```sh
-docker tag c0bdad60a1a7(TAG) tiancaiamao/darkeden:latest
-docker push tiancaiamao/darkeden:latest
+docker build . -t darkeden:latest -f Dockerfile.pub
 ```

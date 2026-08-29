@@ -4,6 +4,7 @@
 Dockerfile text eol=lf
 Dockerfile.* text eol=lf
 docker-compose.yml text eol=lf
+.dockerignore text eol=lf
 
 # The server config parser treats a stray CR as a malformed line.
 *.conf text eol=lf

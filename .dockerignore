@@ -1,0 +1,27 @@
+# Keep the build context small - only CMakeLists.txt, src/, data/ and
+# docker/ are consumed by the Dockerfile.
+.git
+.github
+.claude
+.vscode
+.idea
+
+# Build output (the image builds its own)
+build/
+bin/
+lib/
+*.o
+*.a
+*.so
+
+# Not needed inside the image
+initdb/
+conf/
+Dockerfile.dev
+Dockerfile.pub
+*.md
+filelist.txt
+make_tree.bat
+분석관련/
+작업지시/
+기동오류/

@@ -1,35 +1,71 @@
-version: '3'
+# Builds the DarkEden servers from the sources in this repository and runs them
+# next to a MySQL 5.7 instance. Nothing is pulled from an image registry except
+# the MySQL and Ubuntu base images.
+#
+#   cd docker
+#   docker compose up -d --build
 
 services:
 
   odk-mysql:
     image: mysql/mysql-server:5.7
+    container_name: odk-mysql
     volumes:
-      - ../initdb:/docker-entrypoint-initdb.d/
+      # Mounted file-by-file: mounting the whole initdb/ directory and then a
+      # second file inside it makes docker create that file in the host repo.
+      - ../initdb/DARKEDEN.sql:/docker-entrypoint-initdb.d/1-DARKEDEN.sql:ro
+      - ../initdb/USERINFO.sql:/docker-entrypoint-initdb.d/2-USERINFO.sql:ro
+      - ../initdb/a-setup.sql:/docker-entrypoint-initdb.d/3-a-setup.sql:ro
+      # Runs last and points the server tables at this stack.
+      - ./initdb-docker.sql:/docker-entrypoint-initdb.d/4-docker-setup.sql:ro
+      - odk-mysql-data:/var/lib/mysql
     environment:
         MYSQL_ROOT_PASSWORD: 123456
     restart: on-failure
     command: mysqld --sql_mode="ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+    healthcheck:
+      # The entrypoint only listens on TCP once the initdb scripts are done,
+      # so this also tells us the DARKEDEN/USERINFO dumps have been imported.
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
     networks:
       - odk-network
 
   odk-server:
-    image: tiancaiamao/darkeden:latest
+    # Built from source via ../Dockerfile (the same toolchain the README
+    # describes, run inside docker) instead of pulling a pre-built image.
     build:
       context: ..
       dockerfile: Dockerfile
-    command: ["sleep","infinity"]
+      args:
+        # Debug matches `make`; a Release build defines NDEBUG, which strips the
+        # side effects out of the project's ~165 Assert(...) calls (see ../Dockerfile).
+        BUILD_TYPE: Debug
+    image: darkeden:local
+    container_name: odk-server
+    depends_on:
+      odk-mysql:
+        condition: service_healthy
     ports:
       - "9999:9999"
       - "9998:9998"
       - "9997:9997"
       - "9997:9997/udp"
+    # Start loginserver, sharedserver and gameserver in order. Override with
+    # `command: ["sleep","infinity"]` to start them by hand inside the container.
+    command: ["./start.sh"]
+    # Mount config/data from the working tree to change them without a rebuild:
     # volumes:
-    #   - ../bin/:/home/darkeden/vs/bin/
     #   - ./conf/:/home/darkeden/vs/conf/
     #   - ../data/:/home/darkeden/vs/data/
     networks:
       - odk-network
+
+volumes:
+  odk-mysql-data:
 
 networks:
   odk-network:
