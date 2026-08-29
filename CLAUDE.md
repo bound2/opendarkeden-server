@@ -54,11 +54,12 @@ make test
   (`tests/ratchet/ratchets.sh`).
 - A failing golden or inventory diff is a **protocol change**: the client
   repo's hand-maintained packet copies must ship the identical change.
-  Re-record deliberately with `UPDATE_GOLDENS=1 ./build/tests/wire_tests`.
+  Re-record deliberately with `UPDATE_GOLDENS=1 ./bin/wire_tests`.
 - Ratchet numbers only go down. When one drops, tighten the baseline in
   `tests/ratchet/ratchets.sh` AND `docs/RESTRUCTURING.md` in the same commit.
 - The `TestPackets` library compiles the whole packet set with NO server-type
-  macro — handlers must keep their server logic behind
+  macro (note: not the client's config, which defines __GAME_CLIENT__=1) —
+  handlers must keep their server logic behind
   `#ifdef __GAME_SERVER__` (etc.) so the wire layer stays buildable alone.
 - `docs/RESTRUCTURING.md` is the living restructuring plan; update task
   `> **Status:**` lines in the same commit as the work.

@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
+#include <unistd.h>
 
 #include "ServerSocket.h"
 #include "Socket.h"
@@ -29,6 +30,14 @@ std::vector<unsigned char> writeBody(const Packet& packet, uchar code) {
     return std::vector<unsigned char>(pBuffer, pBuffer + oStream.length());
 }
 
+std::vector<unsigned char> writeFramed(const Packet& packet, uchar code) {
+    SocketEncryptOutputStream oStream(NULL);
+    oStream.setEncryptCode(code);
+    oStream.writePacket(&packet);
+    const char* pBuffer = oStream.getBuffer();
+    return std::vector<unsigned char>(pBuffer, pBuffer + oStream.length());
+}
+
 std::string toHex(const std::vector<unsigned char>& bytes) {
     std::string hex;
     hex.reserve(bytes.size() * 2);
@@ -38,6 +47,15 @@ std::string toHex(const std::vector<unsigned char>& bytes) {
         hex.push_back(digits[bytes[i] & 0x0F]);
     }
     return hex;
+}
+
+// Re-recording must be asked for explicitly. Accepting any non-NULL value
+// would let UPDATE_GOLDENS=0 (the natural way to "turn it off") silently
+// rewrite every pin and return before asserting anything — a fully green
+// run that checked nothing.
+bool isRecording() {
+    const char* value = getenv("UPDATE_GOLDENS");
+    return value != NULL && std::string(value) == "1";
 }
 
 static std::string goldenPath(const std::string& name, uchar code) {
@@ -50,7 +68,7 @@ void expectGolden(const std::string& name, uchar code, const std::vector<unsigne
     const std::string path = goldenPath(name, code);
     const std::string actual = toHex(bytes);
 
-    if (getenv("UPDATE_GOLDENS") != NULL) {
+    if (isRecording()) {
         std::ofstream file(path.c_str(), std::ios::trunc);
         ASSERT_TRUE(file.good()) << "cannot write golden file " << path;
         file << actual << "\n";
@@ -91,6 +109,11 @@ Loopback::Loopback()
     if (m_pAcceptedSocket == NULL)
         throw std::runtime_error("Loopback: accept() returned NULL");
 
+    // Non-blocking so pump() can detect "the sender has no more bytes"
+    // (fill() -> recv_ex() returns 0 on EWOULDBLOCK) instead of parking in
+    // recv() forever when a packet writes fewer bytes than it claims.
+    m_pAcceptedSocket->setNonBlocking(true);
+
     m_pOut = new SocketEncryptOutputStream(m_pClientSocket);
     m_pIn = new SocketEncryptInputStream(m_pAcceptedSocket);
 }
@@ -128,8 +151,27 @@ void Loopback::setCodes(uchar code) {
 
 void Loopback::pump(uint nBytes) {
     m_pOut->flush();
-    while (m_pIn->length() < nBytes)
+    // An over-reporting getPacketSize() must fail loudly, not hang: that
+    // drift is a known defect mode here (SocketOutputStream logs it to
+    // packetsizeerror.txt). The socket is non-blocking, so a fill() that
+    // adds nothing means the sender is done; allow a bounded number of
+    // empty polls to absorb loopback delivery latency.
+    const int kMaxIdlePolls = 200; // ~1s total
+    int idlePolls = 0;
+    while (m_pIn->length() < nBytes) {
+        const uint before = m_pIn->length();
         m_pIn->fill();
+        if (m_pIn->length() == before) {
+            if (++idlePolls > kMaxIdlePolls) {
+                ADD_FAILURE() << "pump: stalled at " << m_pIn->length() << " of " << nBytes
+                              << " bytes — the packet wrote fewer bytes than getPacketSize() reports";
+                return;
+            }
+            usleep(5000);
+        } else {
+            idlePolls = 0;
+        }
+    }
 }
 
 void roundTrip(const Packet& src, Packet& dst, uchar code) {

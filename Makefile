@@ -13,11 +13,11 @@ test:
 	cd build && ctest --output-on-failure
 
 release:
-	cmake -B build -DCMAKE_BUILD_TYPE=Release
+	cmake -B build -DCMAKE_BUILD_TYPE=Release -DDARKEDEN_BUILD_TESTS=OFF
 	cmake --build build -j$(shell sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 
 debug:
-	cmake -B build -DCMAKE_BUILD_TYPE=Debug
+	cmake -B build -DCMAKE_BUILD_TYPE=Debug -DDARKEDEN_BUILD_TESTS=OFF
 	cmake --build build -j$(shell sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 
 

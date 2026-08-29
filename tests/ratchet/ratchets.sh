@@ -47,17 +47,23 @@ R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | wc -l)
 check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5984 "$R5"
 
 # --- Generated factory list is fresh ---------------------------------------
-tmp_backup=$(mktemp)
-cp tests/generated/AllPacketFactories.inc "$tmp_backup"
-if bash tests/tools/gen_factory_list.sh > /dev/null 2>&1 &&
-   diff -q "$tmp_backup" tests/generated/AllPacketFactories.inc > /dev/null; then
+# The generator only writes to $OUT, so point it at a scratch copy of the
+# tree's file rather than overwriting the tracked one: an interrupt (Ctrl-C,
+# ctest timeout) between generate and restore used to leave the committed
+# file replaced or truncated.
+INC=tests/generated/AllPacketFactories.inc
+scratch_dir=$(mktemp -d)
+trap 'rm -rf "$scratch_dir"' EXIT
+mkdir -p "$scratch_dir/tests/generated" "$scratch_dir/tests/tools" "$scratch_dir/src"
+cp -r src/Core "$scratch_dir/src/" 2>/dev/null
+cp tests/tools/gen_factory_list.sh "$scratch_dir/tests/tools/"
+if (cd "$scratch_dir" && bash tests/tools/gen_factory_list.sh > /dev/null 2>&1) &&
+   diff -q "$INC" "$scratch_dir/$INC" > /dev/null 2>&1; then
     echo "[OK]   AllPacketFactories.inc matches a fresh generation"
 else
     echo "[FAIL] AllPacketFactories.inc is stale — run tests/tools/gen_factory_list.sh and commit the result"
     fail=1
 fi
-cp "$tmp_backup" tests/generated/AllPacketFactories.inc
-rm -f "$tmp_backup"
 
 # --- Every server-side factory the manager registers is in the inventory ---
 # Client-only registrations (the __GAME_CLIENT__ branch of init()) are listed

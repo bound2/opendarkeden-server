@@ -101,10 +101,26 @@ before anything else moves. Everything later shelters under this pin.
   Must cover the `__USE_ENCRYPTER__` path for every `code % 3` shuffle branch
   of `SHUFFLE_STATEMENT_*` (`src/Core/EncryptUtility.h`) — the shuffle *is*
   part of the wire format.
-  > **Status:** in progress — harness + goldens (encrypt codes 0..3) and
-  > loopback round-trips landed for GCMoveOK, CGMove, CGSay, CGWhisper,
-  > plus frame-header and sequence tests; remaining GC/CG packet coverage
-  > outstanding.
+  > **Status:** in progress — harness + goldens and loopback round-trips
+  > landed for GCMoveOK, CGMove, CGSay, CGWhisper, plus a framed-bytes
+  > golden and header-width assertions; remaining GC/CG coverage
+  > outstanding. **Adversarial review (2026-08-29) named the specific
+  > gaps, in priority order:**
+  > 1. Only 2 of the 17 encrypter-using packets are pinned, and both use
+  >    `SHUFFLE_STATEMENT_3`. `_4` (case 3 = `D;A;C;B`) and `_5` (cases
+  >    3/4) are **non-rotations** — exactly what a hand-maintained client
+  >    copy gets wrong — and nothing pins them. `kEncryptCodes` stops at 3,
+  >    so `_5` case 4 is unreachable; extend it when adding a `_5` packet.
+  >    Unpinned: `CGSkillToSelf`, `CGUseItemFromGear`, `GCMoveError` (_2);
+  >    `CGAttack`, `CGDissectionCorpse`, `CGSkillToTile` (_4);
+  >    `CGAddZoneToInventory`, `CGSkillToInventory`, `GCAddItemToZone` (_5).
+  > 2. For the 459 unpinned packets, `getPacketMaxSize()` is invariant
+  >    under field reordering and same-width type changes — e.g. swapping
+  >    the two shuffle arguments in both `GCMoveError::read`/`write` passes
+  >    the whole suite while transposing X/Y on every odd encrypt code.
+  > 3. Test values in the pinned packets are all < 128, so a signedness
+  >    flip on `Coord_t`/`Dir_t` yields byte-identical goldens. Prefer
+  >    values ≥ 128 and distinct per field when adding packets.
   - Owner: the golden files — any layout change is a byte-diff in the commit.
   - Note: packets whose `read`/`write` depend on game-state globals need those
     globals stubbed; list any such packet here as found (they are also the
@@ -149,6 +165,49 @@ before anything else moves. Everything later shelters under this pin.
 **Phase exit criteria:** `make test` green locally; golden fixtures for at
 least all GC/CG packets; inventory committed in both repos with zero
 unexplained layout diffs (or every diff triaged and logged here).
+
+### Defects found by adversarial review of this phase (2026-08-29)
+
+Two independent reviewers attacked the suite's own claims. Fixed in the
+same branch; recorded here because each is a trap worth not re-entering:
+
+- **CRLF made the whole suite fail on any fresh checkout.** `core.autocrlf`
+  is `true` on the dev machine and `.gitattributes` covered only `*.sh` /
+  `Dockerfile*` / `*.conf`. A clone produced `0b1603\r\n` goldens, and the
+  tests run in a Linux container where `ifstream` does no translation — all
+  16 goldens, the inventory and the ratchet freshness check would fail,
+  reported as "protocol-breaking change". Fixed with `eol=lf` on
+  `tests/golden/*.hex`, `tests/wire-layout.txt`, `tests/generated/*.inc`,
+  `tests/ratchet/*.txt`. **Any new committed test-data type needs the same
+  treatment.**
+- **The frame header had no byte pin.** `writeBody()` calls `packet.write()`,
+  never `writePacket()`, so widening `PacketID_t`/`PacketSize_t`/
+  `SequenceSize_t` left every golden and the inventory unchanged while
+  desynchronising all 463 packets at byte one — the header tests read back
+  through the same typedefs and agreed with themselves. Fixed with a framed
+  golden plus explicit width assertions.
+- **`UPDATE_GOLDENS` accepted any value**, so `UPDATE_GOLDENS=0` silently
+  re-recorded every pin and asserted nothing. Now requires exactly `1`.
+- **8 of 16 goldens were identical duplicates**: CGSay/CGWhisper never
+  reference the encrypter, so their four per-code files advertised coverage
+  that did not exist. Reduced to one each, with a test that fails if either
+  packet ever starts encrypting.
+- **`pump()` could hang forever** on an over-reporting `getPacketSize()`
+  (a known drift mode — `SocketOutputStream` logs it to
+  `packetsizeerror.txt`). The accepted socket is now non-blocking with a
+  bounded idle-poll budget, and `wire_tests` has a ctest `TIMEOUT`.
+- **`make test` poisoned the production build cache.** `DARKEDEN_BUILD_TESTS`
+  is a cached BOOL and `make debug`/`release` reused the same `build/` dir
+  without resetting it, so a later production build pulled in googletest and
+  the 948-file `TestPackets`. Fixed with explicit `=OFF` in those recipes
+  plus `EXCLUDE_FROM_ALL` on both test targets.
+- **`ratchets.sh` overwrote a tracked file with no trap** — an interrupt
+  between generate and restore left `AllPacketFactories.inc` clobbered. It
+  now generates into a scratch tree.
+- Docs corrected: the re-record command pointed at `./build/tests/wire_tests`
+  (binaries land in `bin/`), and "the same shape the client builds" was
+  wrong — the client compiles with `__GAME_CLIENT__=1`, so `#ifndef
+  __GAME_CLIENT__` blocks resolve the opposite way in `TestPackets`.
 
 ---
 

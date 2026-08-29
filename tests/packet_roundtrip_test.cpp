@@ -12,9 +12,22 @@
 //               to be silenced.
 //
 //               Encrypt codes 0..3 cover both branches of the packet
-//               read/write pattern: 0 takes the plain branch, 1..3 take
-//               the __USE_ENCRYPTER__ branch through all three
-//               SHUFFLE_STATEMENT field orders (code % 3).
+//               read/write pattern FOR PACKETS THAT USE THE ENCRYPTER:
+//               0 takes the plain branch, 1..3 take the __USE_ENCRYPTER__
+//               branch through all three SHUFFLE_STATEMENT_3 field orders
+//               (code % 3). GCMoveOK and CGMove are such packets.
+//
+//               CGSay and CGWhisper do NOT reference the encrypter — they
+//               always take the plain path — so they are pinned at code 0
+//               only; recording four identical files would advertise
+//               coverage that does not exist. encrypterFreePacketsAreStill
+//               EncrypterFree below fails if that ever changes, which is
+//               the signal to add per-code goldens for them.
+//
+//               Coverage is still narrow: 17 packets use the encrypter,
+//               including SHUFFLE_STATEMENT_4/_5 whose case 3/4 orders are
+//               non-rotations, and none of those are pinned yet. Tracked
+//               as task 1.2 in docs/RESTRUCTURING.md.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -29,6 +42,7 @@
 using wiretest::expectGolden;
 using wiretest::Loopback;
 using wiretest::roundTrip;
+using wiretest::writeFramed;
 using wiretest::writeBody;
 
 namespace {
@@ -103,8 +117,9 @@ TEST(CGSayTest, bodyBytesMatchGolden) {
     CGSay packet;
     packet.setColor(0x11223344);
     packet.setMessage("hello darkeden");
-    for (size_t i = 0; i < sizeof(kEncryptCodes); i++)
-        expectGolden("CGSay", kEncryptCodes[i], writeBody(packet, kEncryptCodes[i]));
+    // Encrypter-free: one golden, not four identical ones. See the header
+    // comment and encrypterFreePacketsAreStillEncrypterFree.
+    expectGolden("CGSay", 0, writeBody(packet, 0));
 }
 
 TEST(CGSayTest, refusesOversizedMessage) {
@@ -138,13 +153,55 @@ TEST(CGWhisperTest, bodyBytesMatchGolden) {
     packet.setName("Reiot");
     packet.setColor(0xCAFEBABE);
     packet.setMessage("wire pin test");
-    for (size_t i = 0; i < sizeof(kEncryptCodes); i++)
-        expectGolden("CGWhisper", kEncryptCodes[i], writeBody(packet, kEncryptCodes[i]));
+    expectGolden("CGWhisper", 0, writeBody(packet, 0));
+}
+
+// The two packets above are pinned at one encrypt code because their
+// read/write ignore the encrypter. Prove that assumption rather than
+// trusting it: if either starts encrypting, its bytes would vary by code
+// and the single golden would silently stop covering three of them.
+TEST(EncrypterCoverageTest, encrypterFreePacketsAreStillEncrypterFree) {
+    CGSay say;
+    say.setColor(0x11223344);
+    say.setMessage("hello darkeden");
+
+    CGWhisper whisper;
+    whisper.setName("Reiot");
+    whisper.setColor(0xCAFEBABE);
+    whisper.setMessage("wire pin test");
+
+    for (size_t i = 1; i < sizeof(kEncryptCodes); i++) {
+        EXPECT_EQ(writeBody(say, 0), writeBody(say, kEncryptCodes[i]))
+            << "CGSay now varies with the encrypt code — add per-code goldens";
+        EXPECT_EQ(writeBody(whisper, 0), writeBody(whisper, kEncryptCodes[i]))
+            << "CGWhisper now varies with the encrypt code — add per-code goldens";
+    }
 }
 
 //////////////////////////////////////////////////////////////////////
 // Frame layout — writePacket's header is part of the contract too
 //////////////////////////////////////////////////////////////////////
+
+// The header is written by writePacket(), not by any packet's write(), so
+// no body golden covers it. Without this pin, widening PacketID_t,
+// PacketSize_t or SequenceSize_t in Packet.h leaves all 16 body goldens
+// and the whole inventory unchanged while desynchronising every client on
+// the first byte of all 463 packets: the round-trip and header tests read
+// back through the same typedefs and would still agree with themselves.
+TEST(PacketFramingTest, framedBytesMatchGolden) {
+    GCMoveOK packet(11, 22, 3);
+    expectGolden("GCMoveOK.framed", 0, writeFramed(packet, 0));
+}
+
+// Belt and braces: state the on-wire header widths as a compile-time fact,
+// so a typedef change fails at build time with a clear message instead of
+// only as a hex diff.
+TEST(PacketFramingTest, headerFieldWidthsAreUnchanged) {
+    EXPECT_EQ(2u, szPacketID) << "PacketID_t width changed — every client desyncs";
+    EXPECT_EQ(4u, szPacketSize) << "PacketSize_t width changed — every client desyncs";
+    EXPECT_EQ(1u, szSequenceSize) << "SequenceSize_t width changed — every client desyncs";
+    EXPECT_EQ(7u, szPacketHeader);
+}
 
 TEST(PacketFramingTest, headerIsIdSizeSequenceThenBody) {
     Loopback loopback;

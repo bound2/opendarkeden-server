@@ -17,7 +17,21 @@ set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
-add_executable(wire_tests
+# googletest declares its targets in the default `all`, so a stale
+# DARKEDEN_BUILD_TESTS=ON cache would drag them into a production build.
+# FetchContent's own EXCLUDE_FROM_ALL option needs CMake 3.28; this project
+# requires 3.16, so set the property directly.
+foreach(gtest_target gtest gtest_main)
+    if(TARGET ${gtest_target})
+        set_target_properties(${gtest_target} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    endif()
+endforeach()
+
+# EXCLUDE_FROM_ALL: even if a stale cache leaves DARKEDEN_BUILD_TESTS=ON,
+# a plain `cmake --build build` must not drag the 948-file TestPackets
+# library and googletest into the production build. `make test` names the
+# target explicitly.
+add_executable(wire_tests EXCLUDE_FROM_ALL
     support/TestStreams.cpp
     packet_roundtrip_test.cpp
     wire_layout_test.cpp
@@ -35,8 +49,9 @@ target_compile_definitions(wire_tests PRIVATE
 )
 
 # TestPackets (defined in src/Core/CMakeLists.txt) is the whole packet set
-# compiled with NO server-type macro: handlers collapse to no-ops, exactly
-# like the client's build of its packet copies, leaving pure wire code.
+# compiled with NO server-type macro: handlers collapse to no-ops, leaving
+# pure wire code. See the note there — this is not the client's own
+# configuration (the client defines __GAME_CLIENT__=1).
 # Core and TestPackets are mutually dependent static archives (Core's
 # Datagram.cpp calls back into PacketFactoryManager), so each is listed
 # twice for the single-pass linker.
@@ -53,6 +68,8 @@ if(XERCES_LIBRARY)
 endif()
 
 add_test(NAME wire_tests COMMAND wire_tests)
+# A hang here would otherwise sit for ctest's 1500s default with no output.
+set_tests_properties(wire_tests PROPERTIES TIMEOUT 120)
 
 add_test(
     NAME ratchets

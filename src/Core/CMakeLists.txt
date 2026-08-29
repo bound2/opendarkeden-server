@@ -668,11 +668,16 @@ target_include_directories(LoginServerPackets PRIVATE
 # TestPackets - the full packet set with NO server-type macro, for the
 # wire-contract tests (tests/). Handlers guard their server logic behind
 # #ifdef __GAME_SERVER__ etc., so compiling define-free leaves pure wire
-# code with no-op handlers — the same shape the client builds its own
-# packet copies in.
+# code with no-op handlers.
+#
+# NOTE: this is NOT the client's configuration — the client compiles with
+# __GAME_CLIENT__=1, so `#ifndef __GAME_CLIENT__` blocks (GCShopList) resolve
+# the opposite way here. None of those touch read()/write(), so the goldens
+# do reflect what the deployed server emits; but a future
+# __GAME_CLIENT__-guarded change to a wire method would be invisible here.
 # ============================================================================
 if(DARKEDEN_BUILD_TESTS)
-    add_library(TestPackets STATIC
+    add_library(TestPackets STATIC EXCLUDE_FROM_ALL
         ${GC_PACKET_SOURCES}
         ${CG_PACKET_SOURCES}
         ${CL_PACKET_SOURCES}

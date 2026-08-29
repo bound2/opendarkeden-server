@@ -25,10 +25,13 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "TestStreams.h"
 
 #define ALL_PACKET_FACTORIES_INCLUDES
 #include "AllPacketFactories.inc"
 #undef ALL_PACKET_FACTORIES_INCLUDES
+
+using wiretest::isRecording;
 
 namespace {
 
@@ -84,6 +87,7 @@ std::string renderInventory(const std::map<PacketID_t, InventoryEntry>& inventor
 
 TEST(WireLayoutTest, packetIdsAreUniqueAcrossAllFactories) {
     std::vector<PacketFactory*> factories = makeAllFactories();
+    ASSERT_FALSE(factories.empty());
     std::vector<std::string> idConflicts;
     buildInventory(factories, idConflicts);
     for (size_t i = 0; i < idConflicts.size(); i++)
@@ -101,7 +105,7 @@ TEST(WireLayoutTest, inventoryMatchesCommittedFile) {
     const std::string actual = renderInventory(inventory);
 
     const char* path = WIRETEST_LAYOUT_FILE;
-    if (getenv("UPDATE_GOLDENS") != NULL) {
+    if (isRecording()) {
         std::ofstream file(path, std::ios::trunc);
         ASSERT_TRUE(file.good()) << "cannot write " << path;
         file << actual;
@@ -126,6 +130,7 @@ TEST(WireLayoutTest, inventoryMatchesCommittedFile) {
 // would misroute packets at dispatch time.
 TEST(WireLayoutTest, everyFactoryCreatesAPacketWithItsOwnId) {
     std::vector<PacketFactory*> factories = makeAllFactories();
+    ASSERT_FALSE(factories.empty());
     for (size_t i = 0; i < factories.size(); i++) {
         Packet* pPacket = factories[i]->createPacket();
         ASSERT_TRUE(pPacket != NULL) << factories[i]->getPacketName();

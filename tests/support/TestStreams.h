@@ -29,7 +29,18 @@ namespace wiretest {
 // buffer contents; nothing is flushed to any socket.
 std::vector<unsigned char> writeBody(const Packet& packet, uchar code);
 
+// Serialize a packet the way the servers actually put it on the wire:
+// writePacket()'s header (id + size + sequence) followed by the body.
+// Pins the HEADER FIELD WIDTHS, which writeBody() cannot see — a change to
+// PacketID_t/PacketSize_t/SequenceSize_t desyncs every one of the 463
+// packets at byte one, while leaving every body golden untouched.
+std::vector<unsigned char> writeFramed(const Packet& packet, uchar code);
+
 std::string toHex(const std::vector<unsigned char>& bytes);
+
+// True only when UPDATE_GOLDENS is exactly "1". Deliberately strict: any
+// other value (including "0" and "") compares instead of re-recording.
+bool isRecording();
 
 // Golden pin: compares `bytes` against tests/golden/<name>.code<code>.hex.
 // Set UPDATE_GOLDENS=1 in the environment to (re)record the file instead

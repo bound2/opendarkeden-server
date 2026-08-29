@@ -8,3 +8,13 @@ docker-compose.yml text eol=lf
 
 # The server config parser treats a stray CR as a malformed line.
 *.conf text eol=lf
+
+# Wire-contract test data is compared byte-for-byte by tests that run inside
+# Linux containers over this worktree, where ifstream does no CRLF
+# translation. Without eol=lf a checkout on a core.autocrlf=true machine
+# fails all 16 golden assertions, the wire-layout inventory and the ratchet
+# freshness check — reported as "protocol-breaking change".
+tests/golden/*.hex text eol=lf
+tests/wire-layout.txt text eol=lf
+tests/generated/*.inc text eol=lf
+tests/ratchet/*.txt text eol=lf
