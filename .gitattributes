@@ -1,0 +1,9 @@
+# Shell scripts and container files must keep LF endings: a CRLF shebang
+# breaks `./start.sh` inside the Linux containers.
+*.sh text eol=lf
+Dockerfile text eol=lf
+Dockerfile.* text eol=lf
+docker-compose.yml text eol=lf
+
+# The server config parser treats a stray CR as a malformed line.
+*.conf text eol=lf
