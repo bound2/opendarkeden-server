@@ -96,9 +96,8 @@ string GCSkillToSelfOK2::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSkillToSelfOK2("
-        << "ObjectID:" << (int)m_ObjectID << ",SkillType:" << (int)m_SkillType << ",Duration:" << (int)m_Duration
-        << ",Grade:" << (int)m_Grade << ")";
+    msg << "GCSkillToSelfOK2(" << "ObjectID:" << (int)m_ObjectID << ",SkillType:" << (int)m_SkillType
+        << ",Duration:" << (int)m_Duration << ",Grade:" << (int)m_Grade << ")";
     return msg.toString();
 
     __END_CATCH

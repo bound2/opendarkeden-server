@@ -90,8 +90,7 @@ void SGExpelGuildMemberOK::execute(Player* pPlayer) {
 string SGExpelGuildMemberOK::toString() const {
     StringStream msg;
 
-    msg << "SGExpelGuildMemberOK("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "Sender:" << m_Sender << ")";
+    msg << "SGExpelGuildMemberOK(" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "Sender:" << m_Sender << ")";
 
     return msg.toString();
 }

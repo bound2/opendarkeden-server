@@ -42,8 +42,7 @@ string CGDepositPet::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGDepositPet("
-        << " ObjectID : " << (int)m_ObjectID << " Index : " << (int)m_Index << ")";
+    msg << "CGDepositPet(" << " ObjectID : " << (int)m_ObjectID << " Index : " << (int)m_Index << ")";
     return msg.toString();
 
     __END_CATCH

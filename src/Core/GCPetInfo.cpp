@@ -99,8 +99,7 @@ string GCPetInfo::toString() const
 
     StringStream msg;
 
-    msg << "GCPetInfo("
-        << "ObjectID:" << m_ObjectID << "PetInfo:";
+    msg << "GCPetInfo(" << "ObjectID:" << m_ObjectID << "PetInfo:";
 
     if (m_pPetInfo == NULL) {
         msg << "NULL";

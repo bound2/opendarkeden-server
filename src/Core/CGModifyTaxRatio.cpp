@@ -42,8 +42,7 @@ string CGModifyTaxRatio::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGModifyTaxRatio("
-        << "Ratio : " << (int)m_Ratio << ")";
+    msg << "CGModifyTaxRatio(" << "Ratio : " << (int)m_Ratio << ")";
     return msg.toString();
 
     __END_CATCH

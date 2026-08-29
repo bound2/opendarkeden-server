@@ -29,8 +29,8 @@ enum {
 
 class CGPartyInvite : public Packet {
 public:
-    CGPartyInvite() {};
-    ~CGPartyInvite() {};
+    CGPartyInvite(){};
+    ~CGPartyInvite(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

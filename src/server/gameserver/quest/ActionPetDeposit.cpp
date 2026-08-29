@@ -71,8 +71,7 @@ string ActionPetDeposit::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionPetDeposit("
-        << ")";
+    msg << "ActionPetDeposit(" << ")";
 
     return msg.toString();
 

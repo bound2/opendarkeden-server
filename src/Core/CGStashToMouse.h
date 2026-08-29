@@ -21,8 +21,8 @@
 
 class CGStashToMouse : public Packet {
 public:
-    CGStashToMouse() {};
-    virtual ~CGStashToMouse() {};
+    CGStashToMouse(){};
+    virtual ~CGStashToMouse(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

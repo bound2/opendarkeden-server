@@ -209,8 +209,7 @@ void PCOustersInfo::write(SocketOutputStream& oStream) const {
 string PCOustersInfo::toString() const {
     StringStream msg;
 
-    msg << "PCOustersInfo("
-        << "Name:" << m_Name << ",Level:" << (int)m_Level << ",Slot:" << Slot2String[m_Slot]
+    msg << "PCOustersInfo(" << "Name:" << m_Name << ",Level:" << (int)m_Level << ",Slot:" << Slot2String[m_Slot]
         << ",Alignment:" << m_Alignment << ",Sex:" << Sex2String[m_Sex] << ",CoatColor:" << (int)m_CoatColor
         << ",HairColor:" << (int)m_HairColor << ",ArmColor:" << (int)m_ArmColor << ",BootsColor:" << (int)m_BootsColor
         << ",CoatType:" << (int)m_CoatType << ",ArmType:" << (int)m_ArmType << ",STR[BASIC]:" << (int)m_STR

@@ -17,8 +17,8 @@
 
 class CGAuthKey : public Packet {
 public:
-    CGAuthKey() {};
-    ~CGAuthKey() {};
+    CGAuthKey(){};
+    ~CGAuthKey(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

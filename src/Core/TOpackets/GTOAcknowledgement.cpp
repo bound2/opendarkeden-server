@@ -79,9 +79,8 @@ void GTOAcknowledgement::execute(Player* pPlayer) throw(ProtocolException, Error
 string GTOAcknowledgement::toString() const throw() {
     StringStream msg;
 
-    msg << "GTOAcknowledgement("
-        << "ServerType : " << (int)m_ServerType << " ,Message : " << m_Message << " ,ServerIP : " << m_ServerIP
-        << " ,UDPPort : " << (int)m_udpPort << ")";
+    msg << "GTOAcknowledgement(" << "ServerType : " << (int)m_ServerType << " ,Message : " << m_Message
+        << " ,ServerIP : " << m_ServerIP << " ,UDPPort : " << (int)m_udpPort << ")";
 
     return msg.toString();
 }

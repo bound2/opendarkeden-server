@@ -52,8 +52,7 @@ string DarkLightInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "DarkLightInfo("
-        << ",DarkLevel:" << (int)m_DarkLevel << ",LightLevel:" << (int)m_LightLevel << ")";
+    msg << "DarkLightInfo(" << ",DarkLevel:" << (int)m_DarkLevel << ",LightLevel:" << (int)m_LightLevel << ")";
     return msg.toString();
 
     __END_CATCH

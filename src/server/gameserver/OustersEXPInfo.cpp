@@ -34,9 +34,8 @@ string OustersEXPInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "OustersEXPInfo ("
-        << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp << " AccumExp : " << (int)m_AccumExp
-        << " SkillPointBonus : " << (int)m_SkillPointBonus << ")";
+    msg << "OustersEXPInfo (" << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp
+        << " AccumExp : " << (int)m_AccumExp << " SkillPointBonus : " << (int)m_SkillPointBonus << ")";
     return msg.toString();
 
     __END_CATCH

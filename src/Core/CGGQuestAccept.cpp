@@ -42,9 +42,7 @@ string CGGQuestAccept::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGGQuestAccept("
-        << "QuestID:" << (int)m_QuestID << ","
-        << ")";
+    msg << "CGGQuestAccept(" << "QuestID:" << (int)m_QuestID << "," << ")";
 
     return msg.toString();
 

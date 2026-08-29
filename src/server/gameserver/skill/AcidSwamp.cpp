@@ -112,8 +112,7 @@ void AcidSwamp::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
                 bTileCheck = false;
             if (tile.getEffect(Effect::EFFECT_CLASS_HEAVEN_GROUND) != NULL)
                 bTileCheck = false;
-            {
-            }
+            {}
         }
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bTileCheck) {

@@ -32,9 +32,9 @@ string DomainInfo::toString() const
     __BEGIN_TRY
     StringStream msg;
 
-    msg << "DomainInfo("
-        << "DomainType : " << (int)m_Type << "Level : " << (int)m_Level << "GoalExp: " << (int)m_GoalExp
-        << "AccumExp: " << (int)m_AccumExp << "BestItemType: " << (int)m_BestItemType << ")";
+    msg << "DomainInfo(" << "DomainType : " << (int)m_Type << "Level : " << (int)m_Level
+        << "GoalExp: " << (int)m_GoalExp << "AccumExp: " << (int)m_AccumExp << "BestItemType: " << (int)m_BestItemType
+        << ")";
 
     return msg.toString();
 

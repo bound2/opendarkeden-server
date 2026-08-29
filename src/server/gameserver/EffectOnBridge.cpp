@@ -71,8 +71,7 @@ string EffectOnBridge::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectOnBridge("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectOnBridge(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

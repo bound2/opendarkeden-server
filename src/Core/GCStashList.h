@@ -109,8 +109,8 @@ public:
     }
     PacketSize_t getPacketMaxSize() const {
         PacketSize_t size = 0;
-        PacketSize_t unit_size = szBYTE * 2 +                             // rack과 인덱스
-                                                                          // sizeof(STASHITEM) +         // 실제 정보
+        PacketSize_t unit_size = szBYTE * 2 + // rack과 인덱스
+                                              // sizeof(STASHITEM) +         // 실제 정보
                                  STASHITEM::getPacketMaxSize() + szBYTE + // 벨트에 들어있는 아이템의 숫자
                                  SubItemInfo::getSize() * 8;              // 벨트 아이템(8개가 맥스)
 

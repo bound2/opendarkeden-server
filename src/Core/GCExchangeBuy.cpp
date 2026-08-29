@@ -49,10 +49,7 @@ PacketSize_t GCExchangeBuy::getPacketSize() const {
 
 string GCExchangeBuy::toString() const {
     StringStream msg;
-    msg << "GCExchangeBuy("
-        << "Success:" << (m_Success ? "true" : "false")
-        << ",Message:" << m_Message
-        << ",OrderID:" << (int)m_OrderID
-        << ")";
+    msg << "GCExchangeBuy(" << "Success:" << (m_Success ? "true" : "false") << ",Message:" << m_Message
+        << ",OrderID:" << (int)m_OrderID << ")";
     return msg.toString();
 }

@@ -124,7 +124,6 @@ string EventTransport::toString() const
 
 {
     StringStream msg;
-    msg << "EventTransport("
-        << ")";
+    msg << "EventTransport(" << ")";
     return msg.toString();
 }

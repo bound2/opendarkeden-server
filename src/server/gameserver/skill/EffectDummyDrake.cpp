@@ -230,8 +230,7 @@ string EffectDummyDrake::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectDummyDrake("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDummyDrake(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

@@ -124,8 +124,7 @@ void PCSlayerInfo3::write(SocketOutputStream& oStream) const {
 string PCSlayerInfo3::toString() const {
     StringStream msg;
 
-    msg << "PCSlayerInfo3("
-        << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",X:" << (int)m_X << ",Y:" << (int)m_Y
+    msg << "PCSlayerInfo3(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",X:" << (int)m_X << ",Y:" << (int)m_Y
         << ",Dir:" << Dir2String[m_Dir] << ",Sex:" << Sex2String[getSex()]
         << ",HairStyle:" << HairStyle2String[getHairStyle()] << ",HairColor:" << (int)getHairColor()
         << ",SkinColor:" << (int)getSkinColor() << ",Helmet:" << HelmetType2String[getHelmetType()];

@@ -85,8 +85,7 @@ string GCPhoneSay::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCPhoneSay("
-        << "SlotID:" << (int)m_SlotID << ",Message:" << m_Message << ")";
+    msg << "GCPhoneSay(" << "SlotID:" << (int)m_SlotID << ",Message:" << m_Message << ")";
     return msg.toString();
 
     __END_CATCH

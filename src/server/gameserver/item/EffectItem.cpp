@@ -148,8 +148,8 @@ string EffectItem::toString() const
 {
     StringStream msg;
 
-    msg << "EffectItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType() << ",Num:" << (int)getNum() << ")";
+    msg << "EffectItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType() << ",Num:" << (int)getNum()
+        << ")";
 
     return msg.toString();
 }
@@ -192,9 +192,8 @@ string EffectItemInfo::toString() const
 
 {
     StringStream msg;
-    msg << "EffectItemInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "EffectItemInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ")";
     return msg.toString();
 }

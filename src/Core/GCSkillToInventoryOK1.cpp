@@ -99,10 +99,9 @@ string GCSkillToInventoryOK1::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSkillToInventoryOK1("
-        << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID << ",ItemType:" << (int)m_ItemType
-        << ",CEffectID:" << (int)m_CEffectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y
-        << ",Duration: " << (int)m_Duration;
+    msg << "GCSkillToInventoryOK1(" << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID
+        << ",ItemType:" << (int)m_ItemType << ",CEffectID:" << (int)m_CEffectID << ",X:" << (int)m_X
+        << ",Y:" << (int)m_Y << ",Duration: " << (int)m_Duration;
     msg << ModifyInfo::toString();
     msg << ")";
 

@@ -23,8 +23,8 @@
 
 class GCShowGuildRegist : public Packet {
 public:
-    GCShowGuildRegist() {};
-    ~GCShowGuildRegist() {};
+    GCShowGuildRegist(){};
+    ~GCShowGuildRegist(){};
     // Initialize the packet by reading data from the input stream.
     void read(SocketInputStream& iStream);
 

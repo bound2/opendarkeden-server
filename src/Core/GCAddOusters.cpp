@@ -126,8 +126,8 @@ string GCAddOusters::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddOusters("
-        << "OustersInfo:" << m_OustersInfo.toString() << "EffectInfo:" << m_pEffectInfo->toString() << ")";
+    msg << "GCAddOusters(" << "OustersInfo:" << m_OustersInfo.toString() << "EffectInfo:" << m_pEffectInfo->toString()
+        << ")";
     return msg.toString();
 
     __END_CATCH

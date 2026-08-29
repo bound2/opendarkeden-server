@@ -160,8 +160,7 @@ string EffectXRLMissile::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectXRLMissile("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectXRLMissile(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

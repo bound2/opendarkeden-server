@@ -128,8 +128,7 @@ string EffectPenetrateWheel::toString() const {
 
     StringStream msg;
 
-    msg << "EffectPenetrateWheel("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectPenetrateWheel(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

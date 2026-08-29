@@ -28,8 +28,8 @@
 
 class CGSMSSend : public Packet {
 public:
-    CGSMSSend() {};
-    virtual ~CGSMSSend() {};
+    CGSMSSend(){};
+    virtual ~CGSMSSend(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

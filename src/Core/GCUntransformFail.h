@@ -23,7 +23,7 @@ class GCUntransformFail : public Packet {
 public:
     // constructor
     GCUntransformFail() {}
-    ~GCUntransformFail() {};
+    ~GCUntransformFail(){};
 
 
 public:

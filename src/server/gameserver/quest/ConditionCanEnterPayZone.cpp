@@ -62,8 +62,7 @@ string ConditionCanEnterPayZone::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionCanEnterPayZone("
-        << ")";
+    msg << "ConditionCanEnterPayZone(" << ")";
     return msg.toString();
 
     __END_CATCH

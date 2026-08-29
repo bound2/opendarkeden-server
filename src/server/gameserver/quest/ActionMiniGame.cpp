@@ -64,8 +64,7 @@ string ActionMiniGame::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionMiniGame("
-        << ",GameType:" << (int)m_GameType << ")";
+    msg << "ActionMiniGame(" << ",GameType:" << (int)m_GameType << ")";
 
     return msg.toString();
 

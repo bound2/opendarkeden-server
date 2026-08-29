@@ -98,9 +98,8 @@ string GCSkillToSelfOK3::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSkillToSelfOK3("
-        << "X,Y:" << (int)m_X << "," << (int)m_Y << ",SkillType:" << (int)m_SkillType << ",Duration:" << (int)m_Duration
-        << ",Grade:" << (int)m_Grade << ")";
+    msg << "GCSkillToSelfOK3(" << "X,Y:" << (int)m_X << "," << (int)m_Y << ",SkillType:" << (int)m_SkillType
+        << ",Duration:" << (int)m_Duration << ",Grade:" << (int)m_Grade << ")";
     return msg.toString();
 
     __END_CATCH

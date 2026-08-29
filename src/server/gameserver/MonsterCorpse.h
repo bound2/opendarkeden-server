@@ -134,7 +134,7 @@ protected:
     bool m_bhasHead;             // 머리가 달려 있나 없나.
     string m_HostName;           // 이 시체에서 나오는 아이템에 대한 우선권을 가진 자의 이름
     int m_HostPartyID;           // 이 시체에서 나오는 아이템에 대한 우선권을 가진 파티의 ID
-    string m_QuestHostName;      // 이 시체에서 나오는 퀘스트 아이템에 대한 우선권을 가진 자의 이름
+    string m_QuestHostName; // 이 시체에서 나오는 퀘스트 아이템에 대한 우선권을 가진 자의 이름
 
     bool m_bShrine; // 성단인가?
     ObjectID_t m_LastKiller;

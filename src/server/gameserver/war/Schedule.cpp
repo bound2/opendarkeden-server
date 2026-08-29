@@ -66,8 +66,7 @@ string Schedule::toString() const
 
     StringStream msg;
 
-    msg << "Schedule("
-        << "ScheduleType:" << (int)m_ScheduleType << ",ScheduledTime:" << m_ScheduledTime.toString();
+    msg << "Schedule(" << "ScheduleType:" << (int)m_ScheduleType << ",ScheduledTime:" << m_ScheduledTime.toString();
 
     if (m_pWork == NULL)
         msg << ",Work:NULL";

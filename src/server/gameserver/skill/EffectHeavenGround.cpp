@@ -195,8 +195,7 @@ string EffectHeavenGround::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHeavenGround("
-        << ")";
+    msg << "EffectHeavenGround(" << ")";
     return msg.toString();
 
     __END_CATCH

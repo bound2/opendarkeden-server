@@ -97,8 +97,7 @@ string ScriptParameter::toString() const {
 
     StringStream msg;
 
-    msg << "ScriptParameter( "
-        << "Name:" << m_Name << ",Value:" << m_Value << ")";
+    msg << "ScriptParameter( " << "Name:" << m_Name << ",Value:" << m_Value << ")";
 
     return msg.toString();
 

@@ -17,8 +17,8 @@
 
 class CGAddItemToCodeSheet : public Packet {
 public:
-    CGAddItemToCodeSheet() {};
-    ~CGAddItemToCodeSheet() {};
+    CGAddItemToCodeSheet(){};
+    ~CGAddItemToCodeSheet(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

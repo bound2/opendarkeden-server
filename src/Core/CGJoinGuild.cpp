@@ -59,8 +59,7 @@ string CGJoinGuild::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGJoinGuild("
-        << "GuildID:" << (int)m_GuildID << "GuildMemberRank:" << (int)m_GuildMemberRank
+    msg << "CGJoinGuild(" << "GuildID:" << (int)m_GuildID << "GuildMemberRank:" << (int)m_GuildMemberRank
         << "GuildMemberIntro:" << m_GuildMemberIntro << ")";
     return msg.toString();
 

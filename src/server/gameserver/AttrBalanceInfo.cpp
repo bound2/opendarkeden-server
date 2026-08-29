@@ -38,8 +38,8 @@ string STRBalanceInfo::toString() const
 
     StringStream msg;
 
-    msg << "STRBalanceInfo ("
-        << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp << " AccumExp : " << (int)m_AccumExp << ")";
+    msg << "STRBalanceInfo (" << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp
+        << " AccumExp : " << (int)m_AccumExp << ")";
 
     return msg.toString();
 
@@ -211,8 +211,8 @@ string DEXBalanceInfo::toString() const
 
     StringStream msg;
 
-    msg << "DEXBalanceInfo ("
-        << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp << " AccumExp : " << (int)m_AccumExp << ")";
+    msg << "DEXBalanceInfo (" << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp
+        << " AccumExp : " << (int)m_AccumExp << ")";
 
     return msg.toString();
 
@@ -384,8 +384,8 @@ string INTBalanceInfo::toString() const
 
     StringStream msg;
 
-    msg << "INTBalanceInfo ("
-        << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp << " AccumExp : " << (int)m_AccumExp << ")";
+    msg << "INTBalanceInfo (" << " Level : " << (int)m_Level << " GoalExp : " << (int)m_GoalExp
+        << " AccumExp : " << (int)m_AccumExp << ")";
 
     return msg.toString();
 

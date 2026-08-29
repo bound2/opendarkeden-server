@@ -58,8 +58,7 @@ string ActionDownSkill::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionDownSkill("
-        << ")";
+    msg << "ActionDownSkill(" << ")";
     return msg.toString();
 
     __END_CATCH

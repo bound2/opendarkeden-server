@@ -24,8 +24,7 @@ MonsterKillQuestInfo::~MonsterKillQuestInfo() {}
 string MonsterKillQuestInfo::toString() const {
     StringStream msg;
 
-    msg << "MonsterKillQuestInfo("
-        << "Target Monster Sprite Type : " << m_TargetMonsterSpriteType
+    msg << "MonsterKillQuestInfo(" << "Target Monster Sprite Type : " << m_TargetMonsterSpriteType
         << ", Chief Monster Quest : " << ((m_IsChief) ? "yes" : "no") << ", Goal Monster Num : " << m_GoalNum
         << ") : " << "\n"
         << QuestInfo::toString().c_str();

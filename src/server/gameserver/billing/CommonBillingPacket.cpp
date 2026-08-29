@@ -338,8 +338,7 @@ string CommonBillingPacket::toString() const {
 
     char str[80];
     StringStream msg;
-    msg << "CommonBillingPacket("
-        << "Packet_Type=" << Packet_Type << ",Result=" << Result;
+    msg << "CommonBillingPacket(" << "Packet_Type=" << Packet_Type << ",Result=" << Result;
 
     memcpy(str, S_KEY, 32);
     str[32] = '\0';

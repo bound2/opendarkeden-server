@@ -112,8 +112,7 @@ public:
     // get debug string
     string toString() const {
         StringStream msg;
-        msg << "GameServerInfo("
-            << "ServerID: " << (int)m_ServerID << ",Nickname:" << m_Nickname << ",IP: " << m_IP
+        msg << "GameServerInfo(" << "ServerID: " << (int)m_ServerID << ",Nickname:" << m_Nickname << ",IP: " << m_IP
             << ",TCPPort:" << m_TCPPort << ",UDPPort:" << m_UDPPort << ",GroupID:" << (int)m_GroupID
             << ",WorldID:" << (int)m_WorldID << ",ServerStat:" << (int)m_GroupID << ")";
         return msg.toString();

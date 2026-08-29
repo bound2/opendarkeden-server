@@ -73,8 +73,7 @@ void Mine::create(const string& ownerID, Storage storage, StorageID_t storageID,
 
         StringStream sql;
 
-        sql << "INSERT INTO MineObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num)"
+        sql << "INSERT INTO MineObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num)"
             << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
             << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << "," << (int)m_Num << ")";
 
@@ -161,8 +160,7 @@ string Mine::toString() const
 {
     StringStream msg;
 
-    msg << "Mine("
-        << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "Mine(" << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ",Num:" << (int)m_Num << ")";
 
     return msg.toString();
 }
@@ -238,10 +236,9 @@ string MineInfo::toString() const
 {
     StringStream msg;
 
-    msg << "MineInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "MineInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
 
     return msg.toString();
 }

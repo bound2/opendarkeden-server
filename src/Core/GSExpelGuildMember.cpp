@@ -93,8 +93,7 @@ void GSExpelGuildMember::execute(Player* pPlayer)
 string GSExpelGuildMember::toString() const {
     StringStream msg;
 
-    msg << "GSExpelGuildMember ("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "Sender:" << m_Sender << " )";
+    msg << "GSExpelGuildMember (" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "Sender:" << m_Sender << " )";
 
     return msg.toString();
 }

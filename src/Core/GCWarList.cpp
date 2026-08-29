@@ -171,8 +171,7 @@ string GCWarList::toString() const
 
     StringStream msg;
 
-    msg << "GCWarList("
-        << "WarNum : " << m_WarInfos.size();
+    msg << "GCWarList(" << "WarNum : " << m_WarInfos.size();
 
     WarInfoListItor itr = m_WarInfos.begin();
 

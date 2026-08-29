@@ -127,9 +127,8 @@ void DatabaseManager::init() {
             string wpassword = pResult->getString(5);
             uint port = pResult->getInt(6);
 
-            cout << "Connectiong: "
-                 << "WorldID=" << (int)WorldID << ", HOST=" << whost.c_str() << ", DB=" << wdb.c_str()
-                 << ", User=" << wuser.c_str() << ", Port=" << port << endl;
+            cout << "Connectiong: " << "WorldID=" << (int)WorldID << ", HOST=" << whost.c_str()
+                 << ", DB=" << wdb.c_str() << ", User=" << wuser.c_str() << ", Port=" << port << endl;
 
             Connection* pConnection = new Connection(whost, wdb, wuser, wpassword, port);
             Assert(pConnection != NULL);

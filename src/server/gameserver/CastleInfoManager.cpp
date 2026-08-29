@@ -178,9 +178,8 @@ string CastleInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CastleInfo("
-        << "ZoneID:" << m_ZoneID << ",Item Tax Ratie:" << m_ItemTaxRatio << ",Entrance Fee:" << m_EntranceFee
-        << ",Tax Balance:" << m_TaxBalance << ")";
+    msg << "CastleInfo(" << "ZoneID:" << m_ZoneID << ",Item Tax Ratie:" << m_ItemTaxRatio
+        << ",Entrance Fee:" << m_EntranceFee << ",Tax Balance:" << m_TaxBalance << ")";
     return msg.toString();
 
     __END_CATCH

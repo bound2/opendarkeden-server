@@ -161,8 +161,8 @@ string GCSkillToTileOK3::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSkillToTileOK3("
-        << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID << ",Grade:" << (int)m_Grade;
+    msg << "GCSkillToTileOK3(" << "SkillType:" << (int)m_SkillType << ",ObjectID:" << (int)m_ObjectID
+        << ",Grade:" << (int)m_Grade;
     msg << ")";
     return msg.toString();
 

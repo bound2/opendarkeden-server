@@ -92,8 +92,7 @@ string CGTypeStringList::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGTypeStringList("
-        << ")";
+    msg << "CGTypeStringList(" << ")";
     return msg.toString();
 
     __END_CATCH

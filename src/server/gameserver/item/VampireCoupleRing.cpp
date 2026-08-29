@@ -151,8 +151,7 @@ string VampireCoupleRing::toString() const
 
 {
     StringStream msg;
-    msg << "VampireCoupleRing("
-        << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ")";
+    msg << "VampireCoupleRing(" << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ")";
     return msg.toString();
 }
 
@@ -232,10 +231,9 @@ string VampireCoupleRingInfo::toString() const
 
 {
     StringStream msg;
-    msg << "VampireCoupleRingInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "VampireCoupleRingInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
     return msg.toString();
 }
 

@@ -103,8 +103,8 @@ string GCRing::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCRing("
-        << "PhoneNumber:" << (int)m_PhoneNumber << ",SlotID:" << (int)m_SlotID << ",Name:" << m_Name << " )";
+    msg << "GCRing(" << "PhoneNumber:" << (int)m_PhoneNumber << ",SlotID:" << (int)m_SlotID << ",Name:" << m_Name
+        << " )";
     return msg.toString();
 
     __END_CATCH

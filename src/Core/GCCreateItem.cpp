@@ -111,11 +111,11 @@ string GCCreateItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCCreateItem("
-        << "ObjectID:" << (int)m_ObjectID << ",ItemClass:" << (int)m_ItemClass << ",ItemType:" << (int)m_ItemType
-        << ",OptionTypeSize:" << (int)m_OptionType.size() << ",Durability:" << (int)m_Durability
-        << ",Silver:" << (int)m_Silver << ",Grade:" << (int)m_Grade << ",EnchantLEvel:" << (int)m_EnchantLevel
-        << ",ItemNum:" << (int)m_ItemNum << ",InvenX:" << (int)m_InvenX << ",InvenY:" << (int)m_InvenY << ")";
+    msg << "GCCreateItem(" << "ObjectID:" << (int)m_ObjectID << ",ItemClass:" << (int)m_ItemClass
+        << ",ItemType:" << (int)m_ItemType << ",OptionTypeSize:" << (int)m_OptionType.size()
+        << ",Durability:" << (int)m_Durability << ",Silver:" << (int)m_Silver << ",Grade:" << (int)m_Grade
+        << ",EnchantLEvel:" << (int)m_EnchantLevel << ",ItemNum:" << (int)m_ItemNum << ",InvenX:" << (int)m_InvenX
+        << ",InvenY:" << (int)m_InvenY << ")";
     return msg.toString();
 
     __END_CATCH

@@ -133,8 +133,7 @@ string EffectGreenPoison::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectGreenPoison("
-        << "DayTime:" << m_Deadline.tv_sec << ")";
+    msg << "EffectGreenPoison(" << "DayTime:" << m_Deadline.tv_sec << ")";
     return msg.toString();
 
     __END_CATCH

@@ -156,8 +156,7 @@ string GCSMSAddressList::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSMSAddressList("
-        << ")";
+    msg << "GCSMSAddressList(" << ")";
     return msg.toString();
 
     __END_CATCH

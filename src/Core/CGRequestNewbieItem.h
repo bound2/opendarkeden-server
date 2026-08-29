@@ -16,8 +16,8 @@
 
 class CGRequestNewbieItem : public Packet {
 public:
-    CGRequestNewbieItem() {};
-    virtual ~CGRequestNewbieItem() {};
+    CGRequestNewbieItem(){};
+    virtual ~CGRequestNewbieItem(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

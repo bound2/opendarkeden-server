@@ -101,8 +101,7 @@ string ActionCancelQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionCancelQuest("
-        << ")";
+    msg << "ActionCancelQuest(" << ")";
 
     return msg.toString();
 

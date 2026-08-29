@@ -68,19 +68,19 @@ enum ModifyType {
     MODIFY_DURATION,                // ����Ʈ ���� �ð��� ����
     MODIFY_BULLET,                  // ��� �ִ� �Ѿ��� �Ѿ� ���� ����
     MODIFY_BONUS_POINT,             // �����̾��� ���ʽ� ����Ʈ�� ����
-    MODIFY_DURABILITY,              // ��� �ִ� ������ �� �ϳ��� �������� ����
-    MODIFY_NOTORIETY,               // �Ǹ�ġ�� ����
-    MODIFY_VAMP_GOAL_EXP,           // �����̾��� ����ġ�� ����
-    MODIFY_SILVER_DAMAGE,           // �� �������� ����
-    MODIFY_ATTACK_SPEED,            // ���� �ӵ��� ����
-    MODIFY_ALIGNMENT,               // ����
-    MODIFY_SILVER_DURABILITY,       // �� ���ݾ��� ����
-    MODIFY_REGEN_RATE,              // ���� �ð��� �������� ����
-    MODIFY_GUILDID,                 // ��� ���̵� ����
-    MODIFY_RANK,                    // ��� �ܰ�
-    MODIFY_RANK_EXP,                // ��� ����ġ
-    MODIFY_OUSTERS_GOAL_EXP,        // �ƿ콺�ͽ��� ����ġ�� ����
-    MODIFY_SKILL_BONUS_POINT,       // �ƿ콺�ͽ��� ��ų ���ʽ� ����Ʈ�� ����
+    MODIFY_DURABILITY, // ��� �ִ� ������ �� �ϳ��� �������� ����
+    MODIFY_NOTORIETY,         // �Ǹ�ġ�� ����
+    MODIFY_VAMP_GOAL_EXP,     // �����̾��� ����ġ�� ����
+    MODIFY_SILVER_DAMAGE,     // �� �������� ����
+    MODIFY_ATTACK_SPEED,      // ���� �ӵ��� ����
+    MODIFY_ALIGNMENT,         // ����
+    MODIFY_SILVER_DURABILITY, // �� ���ݾ��� ����
+    MODIFY_REGEN_RATE,        // ���� �ð��� �������� ����
+    MODIFY_GUILDID,           // ��� ���̵� ����
+    MODIFY_RANK,              // ��� �ܰ�
+    MODIFY_RANK_EXP,          // ��� ����ġ
+    MODIFY_OUSTERS_GOAL_EXP,  // �ƿ콺�ͽ��� ����ġ�� ����
+    MODIFY_SKILL_BONUS_POINT, // �ƿ콺�ͽ��� ��ų ���ʽ� ����Ʈ�� ����
 
     MODIFY_ELEMENTAL_FIRE,
     MODIFY_ELEMENTAL_WATER,

@@ -87,8 +87,7 @@ string ActionGiveEventQuestScript::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveEventQuestScript("
-        << ")";
+    msg << "ActionGiveEventQuestScript(" << ")";
 
     return msg.toString();
 

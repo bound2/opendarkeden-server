@@ -105,8 +105,7 @@ string ActionStartPetQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionStartPetQuest("
-        << ")";
+    msg << "ActionStartPetQuest(" << ")";
 
     return msg.toString();
 

@@ -24,7 +24,7 @@ public:
     // constructor
     GCMoveError() {}
     GCMoveError(Coord_t x, Coord_t y) : m_X(x), m_Y(y) {}
-    ~GCMoveError() {};
+    ~GCMoveError(){};
 
 
 public:

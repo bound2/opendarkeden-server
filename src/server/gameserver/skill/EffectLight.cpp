@@ -127,10 +127,8 @@ void EffectLight::create(const string& ownerID)
         Turn_t currentYearTime;
         getCurrentYearTime(currentYearTime);
 
-        sql << "INSERT INTO EffectLight"
-            << "(OwnerID , YearTime, DayTime, OldSight)"
-            << " VALUES('" << ownerID << "' , " << currentYearTime << " , " << m_Deadline.tv_sec << ","
-            << (int)m_OldSight << ")";
+        sql << "INSERT INTO EffectLight" << "(OwnerID , YearTime, DayTime, OldSight)" << " VALUES('" << ownerID
+            << "' , " << currentYearTime << " , " << m_Deadline.tv_sec << "," << (int)m_OldSight << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -177,8 +175,7 @@ void EffectLight::save(const string& ownerID)
         Turn_t currentYearTime;
         getCurrentYearTime(currentYearTime);
 
-        sql << "UPDATE EffectLight SET "
-            << "YearTime = " << currentYearTime << ", DayTime = " << m_Deadline.tv_sec
+        sql << "UPDATE EffectLight SET " << "YearTime = " << currentYearTime << ", DayTime = " << m_Deadline.tv_sec
             << ", OldSight = " << (int)m_OldSight << " WHERE OwnerID = '" << ownerID << "'";
 
         pStmt->executeQueryString(sql.toString());
@@ -194,8 +191,7 @@ string EffectLight::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectLight("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectLight(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH
@@ -218,8 +214,8 @@ void EffectLightLoader::load(Creature* pCreature)
 
         StringStream sql;
 
-        sql << "SELECT YearTime, DayTime, OldSight FROM EffectLight"
-            << " WHERE OwnerID = '" << pCreature->getName() << "'";
+        sql << "SELECT YearTime, DayTime, OldSight FROM EffectLight" << " WHERE OwnerID = '" << pCreature->getName()
+            << "'";
 
         Result* pResult = pStmt->executeQueryString(sql.toString());
 

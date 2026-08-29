@@ -86,8 +86,7 @@ string GCSystemMessage::toString() const
 
     StringStream msg;
 
-    msg << "GCSystemMessage("
-        << "Type:" << (int)m_Type << ",Color:" << m_Color << ",Message:" << m_Message << ")";
+    msg << "GCSystemMessage(" << "Type:" << (int)m_Type << ",Color:" << m_Color << ",Message:" << m_Message << ")";
 
     return msg.toString();
 

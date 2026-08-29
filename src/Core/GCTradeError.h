@@ -68,8 +68,8 @@ enum {
 
 class GCTradeError : public Packet {
 public:
-    GCTradeError() {};
-    ~GCTradeError() {};
+    GCTradeError(){};
+    ~GCTradeError(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

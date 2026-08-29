@@ -24,8 +24,8 @@
 
 class CLQueryCharacterName : public Packet {
 public:
-    CLQueryCharacterName() {};
-    virtual ~CLQueryCharacterName() {};
+    CLQueryCharacterName(){};
+    virtual ~CLQueryCharacterName(){};
     // Initialize packet by reading data from the incoming stream.
     void read(SocketInputStream& iStream);
 

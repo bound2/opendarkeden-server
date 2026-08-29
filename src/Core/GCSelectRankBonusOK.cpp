@@ -78,8 +78,7 @@ string GCSelectRankBonusOK::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSelectRankBonusOK("
-        << "RankBonusType:" << m_RankBonusType << ")";
+    msg << "GCSelectRankBonusOK(" << "RankBonusType:" << m_RankBonusType << ")";
     return msg.toString();
 
     __END_CATCH

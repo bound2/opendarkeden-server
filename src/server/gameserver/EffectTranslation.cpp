@@ -81,8 +81,7 @@ string EffectTranslation::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectTranslation("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectTranslation(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

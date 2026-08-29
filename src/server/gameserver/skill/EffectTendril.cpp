@@ -81,8 +81,7 @@ string EffectTendril::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectTendril("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectTendril(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

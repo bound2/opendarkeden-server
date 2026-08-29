@@ -19,8 +19,8 @@
 
 class LCCreatePCError : public Packet {
 public:
-    LCCreatePCError() {};
-    ~LCCreatePCError() {};
+    LCCreatePCError(){};
+    ~LCCreatePCError(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

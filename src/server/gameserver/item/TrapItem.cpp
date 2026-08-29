@@ -144,8 +144,7 @@ string TrapItem::toString() const
 {
     StringStream msg;
 
-    msg << "TrapItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
+    msg << "TrapItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
 
     return msg.toString();
 }
@@ -188,9 +187,8 @@ string TrapItemInfo::toString() const
 
 {
     StringStream msg;
-    msg << "TrapItemInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "TrapItemInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ")";
     return msg.toString();
 }

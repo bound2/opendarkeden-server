@@ -135,8 +135,7 @@ string ActionWanderZone::toString() const
 
     StringStream msg;
 
-    msg << "ActionWanderZone("
-        << "MovePercentage:" << (int)m_MovePercentage << ")";
+    msg << "ActionWanderZone(" << "MovePercentage:" << (int)m_MovePercentage << ")";
 
     return msg.toString();
 

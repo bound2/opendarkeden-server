@@ -54,8 +54,7 @@ string GCGQuestStatusModify::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCGQuestStatusModify("
-        << ")";
+    msg << "GCGQuestStatusModify(" << ")";
     return msg.toString();
 
     __END_CATCH

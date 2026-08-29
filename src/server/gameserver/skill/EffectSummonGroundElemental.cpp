@@ -76,8 +76,7 @@ string EffectSummonGroundElemental::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSummonGroundElemental("
-        << ")";
+    msg << "EffectSummonGroundElemental(" << ")";
     return msg.toString();
 
     __END_CATCH

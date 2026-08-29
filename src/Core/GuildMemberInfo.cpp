@@ -95,8 +95,8 @@ string GuildMemberInfo::toString() const {
 
     StringStream msg;
 
-    msg << "GuildMemberInfo( "
-        << "Name:" << m_Name << "GuildMemberRank:" << m_Rank << "CurrentServerID :" << m_ServerID << ")";
+    msg << "GuildMemberInfo( " << "Name:" << m_Name << "GuildMemberRank:" << m_Rank << "CurrentServerID :" << m_ServerID
+        << ")";
 
     return msg.toString();
 

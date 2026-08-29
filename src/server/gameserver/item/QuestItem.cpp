@@ -144,8 +144,7 @@ string QuestItem::toString() const
 {
     StringStream msg;
 
-    msg << "QuestItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
+    msg << "QuestItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
 
     return msg.toString();
 }
@@ -188,9 +187,8 @@ string QuestItemInfo::toString() const
 
 {
     StringStream msg;
-    msg << "QuestItemInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "QuestItemInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",BonusRatio:" << (int)m_BonusRatio << ",Description:" << m_Description << ")";
     return msg.toString();
 }

@@ -103,8 +103,7 @@ string ActionWarpInZone::toString() const
 
     StringStream msg;
 
-    msg << "ActionWarpInZone("
-        << "MovePercentage:" << (int)m_MovePercentage << ")";
+    msg << "ActionWarpInZone(" << "MovePercentage:" << (int)m_MovePercentage << ")";
 
     return msg.toString();
 

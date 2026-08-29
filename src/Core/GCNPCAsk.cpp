@@ -77,8 +77,7 @@ string GCNPCAsk::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCNPCAsk("
-        << "ObjectID:" << m_ObjectID << ",ScriptID: " << m_ScriptID << ")";
+    msg << "GCNPCAsk(" << "ObjectID:" << m_ObjectID << ",ScriptID: " << m_ScriptID << ")";
     return msg.toString();
 
     __END_CATCH

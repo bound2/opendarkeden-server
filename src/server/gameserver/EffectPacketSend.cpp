@@ -42,8 +42,7 @@ string EffectPacketSend::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectPacketSend("
-        << "ObjectID:" << getObjectID() << ", Packet : " << m_pPacket->toString() << ")";
+    msg << "EffectPacketSend(" << "ObjectID:" << getObjectID() << ", Packet : " << m_pPacket->toString() << ")";
     return msg.toString();
 
     __END_CATCH

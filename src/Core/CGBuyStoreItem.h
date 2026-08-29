@@ -21,8 +21,8 @@
 
 class CGBuyStoreItem : public Packet {
 public:
-    CGBuyStoreItem() {};
-    ~CGBuyStoreItem() {};
+    CGBuyStoreItem(){};
+    ~CGBuyStoreItem(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

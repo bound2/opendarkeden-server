@@ -114,8 +114,7 @@ string GCAddWolf::toString() const
 
     StringStream msg;
 
-    msg << "GCAddWolf("
-        << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",Color:" << m_MainColor
+    msg << "GCAddWolf(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",Color:" << m_MainColor
         << ",ItemType:" << (int)m_ItemType << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir: " << (int)m_Dir
         << ",CurrentHP: " << (int)m_CurrentHP << ",MaxHP: " << (int)m_MaxHP << ",GuildID: " << (int)m_GuildID << ")";
 

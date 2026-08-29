@@ -76,8 +76,7 @@ string ActionClearBloodBible::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionClearBloodBible("
-        << ")";
+    msg << "ActionClearBloodBible(" << ")";
 
     return msg.toString();
 

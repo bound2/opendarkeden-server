@@ -42,8 +42,8 @@ string CGTradeAddItem::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGTradeAddItem("
-        << "TargetObjectID:" << (int)m_TargetObjectID << ",ItemObjectID:" << (int)m_ItemObjectID << ")";
+    msg << "CGTradeAddItem(" << "TargetObjectID:" << (int)m_TargetObjectID << ",ItemObjectID:" << (int)m_ItemObjectID
+        << ")";
     return msg.toString();
 
     __END_CATCH

@@ -36,8 +36,7 @@ string ConditionCanWarpGate::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionCanWarpGate("
-        << ")";
+    msg << "ConditionCanWarpGate(" << ")";
     return msg.toString();
 
     __END_CATCH

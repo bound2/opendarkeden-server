@@ -113,8 +113,7 @@ string EffectEternity::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectEternity("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectEternity(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

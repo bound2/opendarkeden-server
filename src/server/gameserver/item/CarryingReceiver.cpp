@@ -73,12 +73,10 @@ void CarryingReceiver::create(const string& ownerID, Storage storage, StorageID_
         string optionField;
         setOptionTypeToField(getOptionTypeList(), optionField);
 
-        sql << "INSERT INTO CarryingReceiverObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Grade, ItemFlag)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << getItemType() << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", '" << optionField.c_str()
-            << "', " << getGrade() << ", " << (int)m_CreateType << ")";
+        sql << "INSERT INTO CarryingReceiverObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
+            << " X, Y, OptionType, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
+            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
+            << (int)y << ", '" << optionField.c_str() << "', " << getGrade() << ", " << (int)m_CreateType << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -148,8 +146,7 @@ string CarryingReceiver::toString() const
 {
     StringStream msg;
 
-    msg << "CarryingReceiver("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
+    msg << "CarryingReceiver(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType()
         << ",OptionType:" << getOptionTypeToString(getOptionTypeList()).c_str()
         << ",EnchantLevel:" << (int)getEnchantLevel() << ")";
 
@@ -165,10 +162,9 @@ string CarryingReceiverInfo::toString() const
 {
     StringStream msg;
 
-    msg << "CarryingReceiverInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",DefenseBonus:" << m_DefenseBonus << ")";
+    msg << "CarryingReceiverInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",DefenseBonus:" << m_DefenseBonus << ")";
 
     return msg.toString();
 }

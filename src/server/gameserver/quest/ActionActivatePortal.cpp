@@ -164,8 +164,7 @@ string ActionActivatePortal::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionActivatePortal("
-        << "ZoneID:" << (int)m_ZoneID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
+    msg << "ActionActivatePortal(" << "ZoneID:" << (int)m_ZoneID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
     return msg.toString();
 
     __END_CATCH

@@ -74,10 +74,10 @@ string GCDropItemToZone::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCDropItemToZone("
-        << "ObjectID:" << m_ObjectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",ItemClass:" << (int)m_ItemClass
-        << ",ItemType:" << (int)m_ItemType << ",OptionTypeSize:" << (int)m_OptionType.size()
-        << ",Durability:" << (int)m_Durability << ",ItemNum:" << (int)m_ItemNum << ")";
+    msg << "GCDropItemToZone(" << "ObjectID:" << m_ObjectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y
+        << ",ItemClass:" << (int)m_ItemClass << ",ItemType:" << (int)m_ItemType
+        << ",OptionTypeSize:" << (int)m_OptionType.size() << ",Durability:" << (int)m_Durability
+        << ",ItemNum:" << (int)m_ItemNum << ")";
     return msg.toString();
 
     __END_CATCH

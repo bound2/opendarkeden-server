@@ -88,9 +88,9 @@ string CGAddZoneToInventory::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGAddZoneToInventory("
-        << "ObjectID : " << (int)m_ObjectID << ", ZoneX : " << (int)m_ZoneX << ", ZoneY : " << (int)m_ZoneY
-        << ", InventoryX : " << (int)m_InvenX << ", InventoryY : " << (int)m_InvenY << ")";
+    msg << "CGAddZoneToInventory(" << "ObjectID : " << (int)m_ObjectID << ", ZoneX : " << (int)m_ZoneX
+        << ", ZoneY : " << (int)m_ZoneY << ", InventoryX : " << (int)m_InvenX << ", InventoryY : " << (int)m_InvenY
+        << ")";
     return msg.toString();
 
     __END_CATCH

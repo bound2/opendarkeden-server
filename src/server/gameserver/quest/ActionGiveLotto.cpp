@@ -135,8 +135,7 @@ string ActionGiveLotto::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveLotto("
-        << "QuestLevel : " << m_QuestLevel << ")";
+    msg << "ActionGiveLotto(" << "QuestLevel : " << m_QuestLevel << ")";
 
     return msg.toString();
 

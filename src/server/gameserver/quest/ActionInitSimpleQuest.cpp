@@ -63,8 +63,7 @@ string ActionInitSimpleQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionInitSimpleQuest("
-        << ")";
+    msg << "ActionInitSimpleQuest(" << ")";
 
     return msg.toString();
 

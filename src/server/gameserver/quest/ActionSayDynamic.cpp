@@ -66,8 +66,7 @@ string ActionSayDynamic::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionSayDynamic("
-        << ",ScriptID:" << (int)m_ScriptID << ")";
+    msg << "ActionSayDynamic(" << ",ScriptID:" << (int)m_ScriptID << ")";
 
     return msg.toString();
 

@@ -77,8 +77,7 @@ string GCRequestedIP::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCRequestedIP("
-        << "Name: " << m_Name << "IP: " << m_IP << "Port: " << m_Port << ")";
+    msg << "GCRequestedIP(" << "Name: " << m_Name << "IP: " << m_IP << "Port: " << m_Port << ")";
     return msg.toString();
 
     __END_CATCH

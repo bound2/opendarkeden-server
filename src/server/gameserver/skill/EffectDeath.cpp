@@ -115,8 +115,7 @@ string EffectDeath::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectDeath("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDeath(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

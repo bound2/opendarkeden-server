@@ -85,8 +85,7 @@ string CGPortCheck::toString() const
 {
     StringStream msg;
 
-    msg << "CGPortCheck("
-        << ",PCName:" << m_PCName << ")";
+    msg << "CGPortCheck(" << ",PCName:" << m_PCName << ")";
 
     return msg.toString();
 }

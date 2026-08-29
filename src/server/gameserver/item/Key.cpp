@@ -65,8 +65,7 @@ void Key::create(const string& ownerID, Storage storage, StorageID_t storageID, 
 
         StringStream sql;
 
-        sql << "INSERT INTO KeyObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Target)"
+        sql << "INSERT INTO KeyObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Target)"
             << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
             << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", " << m_Target << ")";
 
@@ -205,8 +204,7 @@ string Key::toString() const
 {
     StringStream msg;
 
-    msg << "Key("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Target:" << (int)m_Target << ")";
+    msg << "Key(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Target:" << (int)m_Target << ")";
 
     return msg.toString();
 }
@@ -262,8 +260,7 @@ string KeyInfo::toString() const
 {
     StringStream msg;
 
-    msg << "KeyInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
+    msg << "KeyInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
         << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
         << ")";
 

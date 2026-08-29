@@ -43,8 +43,7 @@ string CGExpelGuild::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGExpelGuild("
-        << "GuildID:" << m_GuildID << ")";
+    msg << "CGExpelGuild(" << "GuildID:" << m_GuildID << ")";
     return msg.toString();
 
     __END_CATCH

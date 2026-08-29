@@ -71,8 +71,7 @@ string EffectPKZoneResurrection::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectPKZoneResurrection("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectPKZoneResurrection(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

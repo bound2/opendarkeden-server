@@ -41,8 +41,7 @@ string ConditionSameClan::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionSameClan("
-        << ")";
+    msg << "ConditionSameClan(" << ")";
     return msg.toString();
 
     __END_CATCH

@@ -12,8 +12,7 @@ RewardInfo::~RewardInfo() {}
 string RewardInfo::toString() const {
     StringStream msg;
 
-    msg << "RewardInfo("
-        << ", RewardID : " << m_RewardID << ")";
+    msg << "RewardInfo(" << ", RewardID : " << m_RewardID << ")";
 
     return msg.toString();
 }

@@ -80,8 +80,7 @@ string GCRemoveFromGear::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCRemoveFromGear("
-        << "Part:" << (int)m_SlotID << " )";
+    msg << "GCRemoveFromGear(" << "Part:" << (int)m_SlotID << " )";
     return msg.toString();
 
     __END_CATCH

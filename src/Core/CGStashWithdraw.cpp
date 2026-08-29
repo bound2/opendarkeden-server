@@ -40,8 +40,7 @@ string CGStashWithdraw::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGStashWithdraw("
-        << "Amount : " << (int)m_Amount << ")";
+    msg << "CGStashWithdraw(" << "Amount : " << (int)m_Amount << ")";
     return msg.toString();
 
     __END_CATCH

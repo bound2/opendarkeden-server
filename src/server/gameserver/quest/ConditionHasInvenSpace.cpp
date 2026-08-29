@@ -56,8 +56,7 @@ string ConditionHasInvenSpace::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionHasInvenSpace("
-        << ")";
+    msg << "ConditionHasInvenSpace(" << ")";
     return msg.toString();
 
     __END_CATCH

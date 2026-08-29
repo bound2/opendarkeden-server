@@ -377,9 +377,8 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                     if (pt.x == -1) {
                         StringStream msg;
-                        msg << "오토바이를 존에 넣을 수 없습니다: "
-                            << "ZoneID=" << (int)pZone->getZoneID() << ", X=" << (int)pSlayer->getX()
-                            << ", Y=" << (int)pSlayer->getY();
+                        msg << "오토바이를 존에 넣을 수 없습니다: " << "ZoneID=" << (int)pZone->getZoneID()
+                            << ", X=" << (int)pSlayer->getX() << ", Y=" << (int)pSlayer->getY();
 
                         filelog("motorError.txt", "%s", msg.toString().c_str());
                         // throw Error("오토바이를 존에 넣을 수 없습니다");

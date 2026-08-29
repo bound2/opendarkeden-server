@@ -42,8 +42,7 @@ string CGWithdrawTax::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGWithdrawTax("
-        << "Gold : " << (int)m_Gold << ")";
+    msg << "CGWithdrawTax(" << "Gold : " << (int)m_Gold << ")";
     return msg.toString();
 
     __END_CATCH

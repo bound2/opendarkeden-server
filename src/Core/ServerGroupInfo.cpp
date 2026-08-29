@@ -88,8 +88,8 @@ string ServerGroupInfo::toString() const {
 
     StringStream msg;
 
-    msg << "ServerGroupInfo( "
-        << "GroupID : " << m_GroupID << "GroupName : " << m_GroupName << "Stat : " << m_Stat << ")";
+    msg << "ServerGroupInfo( " << "GroupID : " << m_GroupID << "GroupName : " << m_GroupName << "Stat : " << m_Stat
+        << ")";
 
     return msg.toString();
 

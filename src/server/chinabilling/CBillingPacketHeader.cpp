@@ -65,8 +65,7 @@ void CBillingPacketHeader::write(SocketOutputStream& oStream) {
 
 string CBillingPacketHeader::toString() const {
     StringStream msg;
-    msg << "Header("
-        << "Version_No:" << Version_No << ",Packet_Type:" << Packet_Type << ",Method_Code:" << Method_Code
+    msg << "Header(" << "Version_No:" << Version_No << ",Packet_Type:" << Packet_Type << ",Method_Code:" << Method_Code
         << ",Return_Code:" << Return_Code << ",Session_ID:" << Session_ID << ",Body_Length:" << Body_Length << ")";
 
     return msg.toString();

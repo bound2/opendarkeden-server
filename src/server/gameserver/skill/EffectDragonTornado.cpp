@@ -256,8 +256,7 @@ string EffectDragonTornado::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectDragonTornado("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDragonTornado(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

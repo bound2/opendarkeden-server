@@ -71,8 +71,7 @@ string CGNPCAskAnswer::toString() const
 
 {
     StringStream msg;
-    msg << "CGNPCAskAnswer("
-        << "ObjectID : " << (int)m_ObjectID << "," << (int)m_ScriptID << "," << (int)m_AnswerID << ","
-        << ")";
+    msg << "CGNPCAskAnswer(" << "ObjectID : " << (int)m_ObjectID << "," << (int)m_ScriptID << "," << (int)m_AnswerID
+        << "," << ")";
     return msg.toString();
 }

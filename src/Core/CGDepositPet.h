@@ -21,8 +21,8 @@
 
 class CGDepositPet : public Packet {
 public:
-    CGDepositPet() {};
-    ~CGDepositPet() {};
+    CGDepositPet(){};
+    ~CGDepositPet(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

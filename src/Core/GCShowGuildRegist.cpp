@@ -61,8 +61,7 @@ string GCShowGuildRegist::toString() const
 
     StringStream msg;
 
-    msg << "GCShowGuildRegist("
-        << "RegistrationFee:" << m_RegistrationFee << ")";
+    msg << "GCShowGuildRegist(" << "RegistrationFee:" << m_RegistrationFee << ")";
 
     return msg.toString();
 

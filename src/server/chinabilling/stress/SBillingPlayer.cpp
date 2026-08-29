@@ -501,7 +501,7 @@ void SBillingPlayer::executeLogin(CBillingPacketHeader& header,
     if (body.Free_Left_Time + body.Rating_Left_Time <= 0)
         pPayUser->setLeftTime(0);
 
-    // disconnect if no Left Time
+        // disconnect if no Left Time
 #ifdef __Cout_CBILLING_SYSTEM__
     cout << "----------------------------------------------------------------" << endl;
     cout << "Response Login OK : " << body.Login_Name << " has no left time. DISCONNECT" << endl;
@@ -586,8 +586,8 @@ string SBillingPlayer::toString() const throw(Error) {
 
     StringStream msg;
 
-    msg << "SBillingPlayer("
-        << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost() << ",ID:" << m_ID << ")";
+    msg << "SBillingPlayer(" << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost()
+        << ",ID:" << m_ID << ")";
 
     return msg.toString();
 

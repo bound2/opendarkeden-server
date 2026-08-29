@@ -131,8 +131,7 @@ string EffectHeartCatalyst::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHeartCatalyst("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHeartCatalyst(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

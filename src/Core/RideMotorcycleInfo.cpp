@@ -117,8 +117,7 @@ string RideMotorcycleInfo::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "RideMotorcycleInfo( "
-        << "ObjectID : " << (int)m_ObjectID << ",ItemType : " << (int)m_ItemType
+    msg << "RideMotorcycleInfo( " << "ObjectID : " << (int)m_ObjectID << ",ItemType : " << (int)m_ItemType
         << ",OptionTypeSize : " << (int)m_OptionType.size() << ",ListNum :" << (int)m_ListNum << ",ListSet( ";
 
     list<RideMotorcycleSlotInfo*>::const_iterator itr = m_RideMotorcycleSlotInfoList.begin();

@@ -66,7 +66,6 @@ string EventSystemMessage::toString() const
 
 {
     StringStream msg;
-    msg << "EventSystemMessage("
-        << ")";
+    msg << "EventSystemMessage(" << ")";
     return msg.toString();
 }

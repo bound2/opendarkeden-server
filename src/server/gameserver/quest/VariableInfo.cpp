@@ -96,8 +96,7 @@ string VariableInfo::toString() const
 
     StringStream msg;
 
-    msg << "VariableInfo("
-        << "Name:" << m_Name << ",Keyword:" << m_Keyword << ",Parameter(";
+    msg << "VariableInfo(" << "Name:" << m_Name << ",Keyword:" << m_Keyword << ",Parameter(";
 
     vector<string>::const_iterator itr = m_Parameters.begin();
 

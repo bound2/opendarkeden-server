@@ -72,8 +72,7 @@ string SimpleCreatureEffect::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "SimpleCreatureEffect("
-        << "EffectClass:" << (int)m_EffectClass << ")";
+    msg << "SimpleCreatureEffect(" << "EffectClass:" << (int)m_EffectClass << ")";
     return msg.toString();
 
     __END_CATCH

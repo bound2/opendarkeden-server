@@ -131,8 +131,8 @@ string DyePotion::toString() const
 {
     StringStream msg;
 
-    msg << "DyePotion("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType() << ",Num:" << (int)getNum() << ")";
+    msg << "DyePotion(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType() << ",Num:" << (int)getNum()
+        << ")";
 
     return msg.toString();
 }
@@ -175,9 +175,8 @@ string DyePotionInfo::toString() const
 
 {
     StringStream msg;
-    msg << "DyePotionInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "DyePotionInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Function:" << (int)m_fFunction << ",FunctionValue:" << (int)m_FunctionValue
         << ",Description:" << m_Description << ")";
     return msg.toString();

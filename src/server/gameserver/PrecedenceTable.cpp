@@ -32,8 +32,7 @@ void PrecedenceElement::setNextTime(void) {
 
 string PrecedenceElement::toString(void) const {
     StringStream msg;
-    msg << "PrecedenceElement("
-        << "Name:" << m_Name << ",PartyID:" << m_PartyID << ",Damage:" << m_Damage << ")";
+    msg << "PrecedenceElement(" << "Name:" << m_Name << ",PartyID:" << m_PartyID << ",Damage:" << m_Damage << ")";
     return msg.toString();
 }
 
@@ -415,9 +414,9 @@ double PrecedenceTable::getDamagePercent(const string& Name, int PartyID) const 
 
 string PrecedenceTable::toString(void) const {
     StringStream msg;
-    msg << "PrecedenceTable("
-        << "FirstAttackerName:" << m_FirstAttackerName << ",FirstAttackerPartyID:" << m_FirstAttackerPartyID
-        << ",HostName:" << m_HostName << ",HostPartyID:" << m_HostPartyID << ",ComputeFlag:" << m_bComputeFlag;
+    msg << "PrecedenceTable(" << "FirstAttackerName:" << m_FirstAttackerName
+        << ",FirstAttackerPartyID:" << m_FirstAttackerPartyID << ",HostName:" << m_HostName
+        << ",HostPartyID:" << m_HostPartyID << ",ComputeFlag:" << m_bComputeFlag;
 
     msg << "\n,CreatureMap:\n";
 

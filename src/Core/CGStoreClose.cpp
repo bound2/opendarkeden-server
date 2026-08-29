@@ -38,8 +38,7 @@ string CGStoreClose::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGStoreClose("
-        << ")";
+    msg << "CGStoreClose(" << ")";
     return msg.toString();
 
     __END_CATCH

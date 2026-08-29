@@ -180,8 +180,7 @@ string EffectProminence::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectProminence("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectProminence(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

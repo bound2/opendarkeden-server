@@ -40,8 +40,7 @@ string AnotherQuestRewardInfo::toString() const {
 
     StringStream msg;
 
-    msg << "AnotherQuestRewardInfo("
-        << "QuestID : " << (uint)m_QuestID << ") : " << "\n"
+    msg << "AnotherQuestRewardInfo(" << "QuestID : " << (uint)m_QuestID << ") : " << "\n"
         << RewardInfo::toString().c_str();
 
     return msg.toString();

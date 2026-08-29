@@ -428,9 +428,7 @@ bool MonsterAI::moveNormal(ZoneCoord_t ex, ZoneCoord_t ey, ZoneCoord_t& nx, Zone
                 }
                 else
                 */
-                {
-                    found = true;
-                }
+                { found = true; }
             }
 
             bBlocked[ndir] = true;

@@ -87,8 +87,7 @@ string GCAttackMeleeOK2::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAttackMeleeOK2("
-        << "ObjectID: " << (int)m_ObjectID << ModifyInfo::toString() << ")";
+    msg << "GCAttackMeleeOK2(" << "ObjectID: " << (int)m_ObjectID << ModifyInfo::toString() << ")";
     return msg.toString();
 
     __END_CATCH

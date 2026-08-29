@@ -192,8 +192,7 @@ string EffectStormAcid::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectStormAcid("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectStormAcid(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

@@ -95,10 +95,8 @@ string GCShopMarketCondition::toString() const
 
     StringStream msg;
 
-    msg << "GCShopMarketCondition("
-        << "ObjectID: " << (int)m_ObjectID << ", "
-        << "MarketCondBuy: " << (int)m_MarketCondBuy << ", "
-        << "MarketCondsell: " << (int)m_MarketCondSell;
+    msg << "GCShopMarketCondition(" << "ObjectID: " << (int)m_ObjectID << ", "
+        << "MarketCondBuy: " << (int)m_MarketCondBuy << ", " << "MarketCondsell: " << (int)m_MarketCondSell;
     msg << ")";
 
     return msg.toString();

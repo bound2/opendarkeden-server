@@ -471,8 +471,8 @@ string BillingPlayer::toString() const {
 
     StringStream msg;
 
-    msg << "BillingPlayer("
-        << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost() << ",ID:" << m_ID << ")";
+    msg << "BillingPlayer(" << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost()
+        << ",ID:" << m_ID << ")";
 
     return msg.toString();
 

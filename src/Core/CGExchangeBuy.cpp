@@ -5,10 +5,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGExchangeBuy.h"
-#include "GCExchangeBuy.h"
 
-#include "PlayerCreature.h"
 #include "../server/gameserver/exchange/ExchangeService.h"
+#include "GCExchangeBuy.h"
+#include "PlayerCreature.h"
 
 void CGExchangeBuy::read(SocketInputStream& iStream) {
     __BEGIN_TRY
@@ -40,10 +40,7 @@ PacketSize_t CGExchangeBuy::getPacketSize() const {
 
 string CGExchangeBuy::toString() const {
     StringStream msg;
-    msg << "CGExchangeBuy("
-        << "ListingID:" << (int)m_ListingID
-        << ",IdempotencyKey:" << m_IdempotencyKey
-        << ")";
+    msg << "CGExchangeBuy(" << "ListingID:" << (int)m_ListingID << ",IdempotencyKey:" << m_IdempotencyKey << ")";
     return msg.toString();
 }
 

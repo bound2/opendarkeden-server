@@ -428,7 +428,7 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
 {
     const int maxGroup = m_ZoneGroups.size(); // zoneGroup 수
     // const int loadMultiplier 	= 5;					// load 가중치 - 느린 애들을 더 느리다...라고 하기 위한 것.
-    const int loadLimit = 500;  // load 값 제한 - sleep에 의해서 제한돼서 루프 처리회수 500이 최고다.
+    const int loadLimit = 500; // load 값 제한 - sleep에 의해서 제한돼서 루프 처리회수 500이 최고다.
     const int stableLoad = 120; // 안정적인 load - 이 정도면 balancing이 필요없다고 생각되는 수준
     // const int minLoadGap 		= 20 * loadMultiplier;	// load balancing을 하기 위한 load 차이 - 최고~최저의 차이가
     // 일정 값 이상이어야지 balancing이 의미있다.

@@ -39,9 +39,8 @@ string CastleShrineSet::toString() const
 
     StringStream msg;
 
-    msg << "ShrineSet("
-        << "ShrineID:" << (int)m_ShrineID << "," << m_GuardShrine.toString() << "," << m_HolyShrine.toString()
-        << ",ItemType:" << (int)m_ItemType << ")";
+    msg << "ShrineSet(" << "ShrineID:" << (int)m_ShrineID << "," << m_GuardShrine.toString() << ","
+        << m_HolyShrine.toString() << ",ItemType:" << (int)m_ItemType << ")";
 
     return msg.toString();
 
@@ -779,8 +778,7 @@ string CastleShrineInfoManager::toString() const
 
     StringStream msg;
 
-    msg << "ShrineInfoManager("
-        << "Size:" << size() << ",(\n";
+    msg << "ShrineInfoManager(" << "Size:" << size() << ",(\n";
 
     HashMapShrineSetConstItor itr = m_ShrineSets.begin();
 

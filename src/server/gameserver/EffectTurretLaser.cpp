@@ -108,8 +108,7 @@ string EffectTurretLaser::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectTurretLaser("
-        << ")";
+    msg << "EffectTurretLaser(" << ")";
     return msg.toString();
 
     __END_CATCH

@@ -60,8 +60,8 @@ enum {
 
 class GCTradeVerify : public Packet {
 public:
-    GCTradeVerify() {};
-    ~GCTradeVerify() {};
+    GCTradeVerify(){};
+    ~GCTradeVerify(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

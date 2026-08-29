@@ -53,8 +53,7 @@ string CGMakeItem::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGMakeItem("
-        << "ItemClass: " << (int)m_ItemClass << "ItemType: " << (int)m_ItemType << ")";
+    msg << "CGMakeItem(" << "ItemClass: " << (int)m_ItemClass << "ItemType: " << (int)m_ItemType << ")";
     return msg.toString();
 
     __END_CATCH

@@ -84,8 +84,8 @@ string CGPickupMoney::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGPickupMoney("
-        << "ObjectID : " << (int)m_ObjectID << ", ZoneX : " << (int)m_ZoneX << ", ZoneY : " << (int)m_ZoneY << ")";
+    msg << "CGPickupMoney(" << "ObjectID : " << (int)m_ObjectID << ", ZoneX : " << (int)m_ZoneX
+        << ", ZoneY : " << (int)m_ZoneY << ")";
     return msg.toString();
 
     __END_CATCH

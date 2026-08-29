@@ -145,8 +145,8 @@ string LGIncomingConnection::toString() const
 {
     StringStream msg;
 
-    msg << "LGIncomingConnection("
-        << "PlayerID:" << m_PlayerID << ",PCName:" << m_PCName << ",ClientIP:" << m_ClientIP << ")";
+    msg << "LGIncomingConnection(" << "PlayerID:" << m_PlayerID << ",PCName:" << m_PCName << ",ClientIP:" << m_ClientIP
+        << ")";
 
     return msg.toString();
 }

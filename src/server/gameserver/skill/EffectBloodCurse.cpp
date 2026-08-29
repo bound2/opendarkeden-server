@@ -252,8 +252,7 @@ string EffectBloodCurse::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectBloodCurse("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBloodCurse(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

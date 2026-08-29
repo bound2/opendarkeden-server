@@ -24,8 +24,7 @@ string DummyQuestStatus::toString() const {
 
     StringStream msg;
 
-    msg << "DummyQuestStatus("
-        << ") : " << QuestStatus::toString().c_str();
+    msg << "DummyQuestStatus(" << ") : " << QuestStatus::toString().c_str();
 
     return msg.toString();
 

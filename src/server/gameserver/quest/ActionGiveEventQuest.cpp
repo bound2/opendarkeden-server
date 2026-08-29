@@ -105,8 +105,7 @@ string ActionGiveEventQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveEventQuest("
-        << ")";
+    msg << "ActionGiveEventQuest(" << ")";
 
     return msg.toString();
 

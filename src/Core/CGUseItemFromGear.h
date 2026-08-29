@@ -18,8 +18,8 @@ class GamePlayer;
 
 class CGUseItemFromGear : public Packet {
 public:
-    CGUseItemFromGear() {};
-    virtual ~CGUseItemFromGear() {};
+    CGUseItemFromGear(){};
+    virtual ~CGUseItemFromGear(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

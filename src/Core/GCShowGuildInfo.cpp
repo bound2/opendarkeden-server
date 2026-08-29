@@ -116,10 +116,10 @@ string GCShowGuildInfo::toString() const
 
     StringStream msg;
 
-    msg << "GCShowGuildInfo("
-        << "GuildID:" << (int)m_GuildID << "GuildName:" << m_GuildName << "GuildState:" << (int)m_GuildState
-        << "GuildMaster:" << m_GuildMaster << "GuildMemberCount:" << (int)m_GuildMemberCount
-        << "GuildIntro:" << m_GuildIntro << "JoinFee:" << (int)m_JoinFee << ")";
+    msg << "GCShowGuildInfo(" << "GuildID:" << (int)m_GuildID << "GuildName:" << m_GuildName
+        << "GuildState:" << (int)m_GuildState << "GuildMaster:" << m_GuildMaster
+        << "GuildMemberCount:" << (int)m_GuildMemberCount << "GuildIntro:" << m_GuildIntro
+        << "JoinFee:" << (int)m_JoinFee << ")";
 
     return msg.toString();
 

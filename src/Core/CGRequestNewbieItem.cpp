@@ -38,7 +38,6 @@ void CGRequestNewbieItem::execute(Player* pPlayer)
 
 string CGRequestNewbieItem::toString() const {
     StringStream msg;
-    msg << "CGRequestNewbieItem("
-        << "ItemClass : " << (int)m_ItemClass << ")";
+    msg << "CGRequestNewbieItem(" << "ItemClass : " << (int)m_ItemClass << ")";
     return msg.toString();
 }

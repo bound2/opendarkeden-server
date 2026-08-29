@@ -135,8 +135,7 @@ string ActionEnterQuestZone::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionEnterQuestZone("
-        << "ZoneID:" << (int)m_ZoneID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
+    msg << "ActionEnterQuestZone(" << "ZoneID:" << (int)m_ZoneID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
     return msg.toString();
 
     __END_CATCH

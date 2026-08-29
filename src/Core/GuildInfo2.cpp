@@ -206,10 +206,10 @@ string GuildInfo2::toString() const {
 
     StringStream msg;
 
-    msg << "GuildInfo2( "
-        << "GuildID:" << m_ID << "GuildName:" << m_Name << "GuildType:" << (int)m_Type << "GuildRace:" << (int)m_Race
-        << "GuildState:" << (int)m_State << "ServerGroupID:" << (int)m_ServerGroupID << "ZoneID:" << (int)m_ZoneID
-        << "GuildMaster:" << m_Master << "GuildDate:" << m_Date << "GuildIntro:" << m_Intro << ")";
+    msg << "GuildInfo2( " << "GuildID:" << m_ID << "GuildName:" << m_Name << "GuildType:" << (int)m_Type
+        << "GuildRace:" << (int)m_Race << "GuildState:" << (int)m_State << "ServerGroupID:" << (int)m_ServerGroupID
+        << "ZoneID:" << (int)m_ZoneID << "GuildMaster:" << m_Master << "GuildDate:" << m_Date
+        << "GuildIntro:" << m_Intro << ")";
 
     return msg.toString();
 

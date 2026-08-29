@@ -59,8 +59,7 @@ string CGRelicToObject::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGRelicToObject("
-        << "X:" << (int)m_X << ",Y:" << (int)m_Y << ",ItemObjectID:" << (int)m_ItemObjectID
+    msg << "CGRelicToObject(" << "X:" << (int)m_X << ",Y:" << (int)m_Y << ",ItemObjectID:" << (int)m_ItemObjectID
         << ",ObjectID:" << (int)m_ObjectID << ")";
     return msg.toString();
 

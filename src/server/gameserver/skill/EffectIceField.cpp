@@ -154,8 +154,7 @@ string EffectIceField::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectIceField("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectIceField(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

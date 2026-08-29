@@ -84,8 +84,7 @@ string GCPetUseSkill::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCPetUseSkill("
-        << ")";
+    msg << "GCPetUseSkill(" << ")";
     return msg.toString();
 
     __END_CATCH

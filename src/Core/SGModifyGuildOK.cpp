@@ -57,8 +57,7 @@ void SGModifyGuildOK::execute(Player* pPlayer) {
 string SGModifyGuildOK::toString() const {
     StringStream msg;
 
-    msg << "SGModifyGuildOK("
-        << "GuildID:" << (int)m_GuildID << "GuildState:" << (int)m_GuildState << ")";
+    msg << "SGModifyGuildOK(" << "GuildID:" << (int)m_GuildID << "GuildState:" << (int)m_GuildState << ")";
 
     return msg.toString();
 }

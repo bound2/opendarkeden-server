@@ -59,8 +59,7 @@ string ActionPrepareTeach::toString() const
 
     StringStream msg;
 
-    msg << "ActionPrepareTeach("
-        << "MaxLevel:" << (int)m_MaxLevel << ")";
+    msg << "ActionPrepareTeach(" << "MaxLevel:" << (int)m_MaxLevel << ")";
 
     return msg.toString();
 

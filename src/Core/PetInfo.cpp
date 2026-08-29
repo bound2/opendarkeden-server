@@ -95,10 +95,10 @@ void PetInfo::write(SocketOutputStream& oStream) const {
 string PetInfo::toString() const {
     StringStream msg;
 
-    msg << "PetInfo("
-        << "PetType : " << (int)m_PetType << ", PetLevel : " << (int)m_PetLevel << ", PetExp : " << (int)m_PetExp
-        << ", PetHP : " << (int)m_PetHP << ", PetAttr : " << (int)m_PetAttr << ", PetOption : " << (int)m_PetOption
-        << ", PetFoodType : " << (int)m_PetFoodType << ", ItemObjectID : " << getItemObjectID() << ")";
+    msg << "PetInfo(" << "PetType : " << (int)m_PetType << ", PetLevel : " << (int)m_PetLevel
+        << ", PetExp : " << (int)m_PetExp << ", PetHP : " << (int)m_PetHP << ", PetAttr : " << (int)m_PetAttr
+        << ", PetOption : " << (int)m_PetOption << ", PetFoodType : " << (int)m_PetFoodType
+        << ", ItemObjectID : " << getItemObjectID() << ")";
 
     return msg.toString();
 }

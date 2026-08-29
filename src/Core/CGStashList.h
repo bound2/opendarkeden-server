@@ -21,8 +21,8 @@
 
 class CGStashList : public Packet {
 public:
-    CGStashList() {};
-    virtual ~CGStashList() {};
+    CGStashList(){};
+    virtual ~CGStashList(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

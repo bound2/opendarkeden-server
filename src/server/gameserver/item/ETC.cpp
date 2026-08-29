@@ -65,8 +65,7 @@ void ETC::create(const string& ownerID, Storage storage, StorageID_t storageID, 
 
         StringStream sql;
 
-        sql << "INSERT INTO ETCObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num)"
+        sql << "INSERT INTO ETCObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num)"
             << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
             << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << "," << (int)m_Num << ")";
 
@@ -151,8 +150,7 @@ string ETC::toString() const
 {
     StringStream msg;
 
-    msg << "ETC("
-        << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "ETC(" << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ",Num:" << (int)m_Num << ")";
 
     return msg.toString();
 }
@@ -208,8 +206,7 @@ string ETCInfo::toString() const
 {
     StringStream msg;
 
-    msg << "ETCInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
+    msg << "ETCInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
         << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
         << ")";
 

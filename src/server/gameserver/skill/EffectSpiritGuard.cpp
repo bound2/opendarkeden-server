@@ -236,8 +236,7 @@ string EffectSpiritGuard::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSpiritGuard("
-        << "Damage:" << (int)m_Damage << ", EffectClass:" << (int)m_EffectClass << ")";
+    msg << "EffectSpiritGuard(" << "Damage:" << (int)m_Damage << ", EffectClass:" << (int)m_EffectClass << ")";
     return msg.toString();
 
     __END_CATCH

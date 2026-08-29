@@ -91,8 +91,7 @@ string EffectFuryOfGnome::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectFuryOfGnome("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectFuryOfGnome(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

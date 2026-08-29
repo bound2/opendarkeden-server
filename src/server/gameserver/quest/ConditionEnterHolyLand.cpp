@@ -107,8 +107,7 @@ string ConditionEnterHolyLand::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionEnterHolyLand("
-        << "TargetZoneID:" << (int)m_TargetZoneID << ")";
+    msg << "ConditionEnterHolyLand(" << "TargetZoneID:" << (int)m_TargetZoneID << ")";
     return msg.toString();
 
     __END_CATCH

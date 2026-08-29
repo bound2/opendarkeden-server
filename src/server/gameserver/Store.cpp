@@ -135,7 +135,8 @@ void Store::updateStoreInfo() {
 
 // Exchange System: Check if item can be added to store
 bool Store::canAddItem(Item* pItem) const {
-    if (pItem == NULL) return false;
+    if (pItem == NULL)
+        return false;
 
     // Point-only items cannot be sold in player stores
     if (isPointOnlyTradeItem(pItem))

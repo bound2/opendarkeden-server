@@ -17,7 +17,7 @@
 class CGSkillToInventory : public Packet {
 public:
     CGSkillToInventory();
-    virtual ~CGSkillToInventory() {};
+    virtual ~CGSkillToInventory(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

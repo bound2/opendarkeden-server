@@ -92,12 +92,10 @@ void CodeSheet::create(const string& ownerID, Storage storage, StorageID_t stora
         string optionField;
         setOptionTypeToField(m_OptionType, optionField);
 
-        sql << "INSERT INTO CodeSheetObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", '" << optionField.c_str()
-            << "')";
+        sql << "INSERT INTO CodeSheetObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
+            << " X, Y, OptionType)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '"
+            << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", '"
+            << optionField.c_str() << "')";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -186,8 +184,7 @@ string CodeSheet::toString() const
 {
     StringStream msg;
 
-    msg << "CodeSheet("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType
+    msg << "CodeSheet(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType
         << ",OptionType:" << getOptionTypeToString(m_OptionType).c_str() << ")";
 
     return msg.toString();
@@ -243,10 +240,9 @@ string CodeSheetInfo::toString() const
 {
     StringStream msg;
 
-    msg << "CodeSheetInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "CodeSheetInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
 
     return msg.toString();
 }

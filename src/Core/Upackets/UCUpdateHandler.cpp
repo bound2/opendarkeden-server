@@ -12,11 +12,12 @@
 #ifdef __UPDATE_CLIENT__
 
 /*
-    #include <stdio.h>
-    #include <sys/types.h>
-    #include <fcntl.h>
-    #include <unistd.h>
     #include <errno.h>
+    #include <fcntl.h>
+    #include <stdio.h>
+    #include <unistd.h>
+
+    #include <sys/types.h>
 */
 
 #include "Assert.h"

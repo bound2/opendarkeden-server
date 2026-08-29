@@ -60,8 +60,7 @@ string GCVisibleOK::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCVisibleOK("
-        << ")";
+    msg << "GCVisibleOK(" << ")";
     return msg.toString();
 
     __END_CATCH

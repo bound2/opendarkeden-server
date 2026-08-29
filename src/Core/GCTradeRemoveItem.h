@@ -18,8 +18,8 @@
 
 class GCTradeRemoveItem : public Packet {
 public:
-    GCTradeRemoveItem() {};
-    ~GCTradeRemoveItem() {};
+    GCTradeRemoveItem(){};
+    ~GCTradeRemoveItem(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

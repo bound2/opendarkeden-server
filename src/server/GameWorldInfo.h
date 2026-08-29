@@ -53,8 +53,7 @@ public:
     // get debug string
     string toString() const {
         StringStream msg;
-        msg << "GameWorldInfo("
-            << "WorldID: " << (int)m_ID << ",Name:" << m_Name << ")";
+        msg << "GameWorldInfo(" << "WorldID: " << (int)m_ID << ",Name:" << m_Name << ")";
         return msg.toString();
     }
 

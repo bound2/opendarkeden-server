@@ -220,8 +220,7 @@ string EffectBloodyStorm::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectBloodyStorm("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBloodyStorm(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

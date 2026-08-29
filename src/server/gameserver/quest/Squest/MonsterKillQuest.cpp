@@ -202,9 +202,8 @@ string MonsterKillQuest::toString() const throw(Error) {
 
     StringStream msg;
 
-    msg << "몬스터 죽이기(" << getObjectiveToString() << "), "
-        << "성공(" << getRewardToString() << ") : "
-        << "실패(" << getPenaltyToString() << ")";
+    msg << "몬스터 죽이기(" << getObjectiveToString() << "), " << "성공(" << getRewardToString() << ") : " << "실패("
+        << getPenaltyToString() << ")";
 
     switch (getState()) {
     case Quest::STATE_NULL:

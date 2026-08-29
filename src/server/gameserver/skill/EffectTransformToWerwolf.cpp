@@ -124,8 +124,7 @@ string EffectTransformToWerwolf::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectTransformToWerwolf("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectTransformToWerwolf(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

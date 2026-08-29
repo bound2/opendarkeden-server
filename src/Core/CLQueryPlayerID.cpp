@@ -64,8 +64,7 @@ string CLQueryPlayerID::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CLQueryPlayerID("
-        << "PlayerID:" << m_PlayerID << ")";
+    msg << "CLQueryPlayerID(" << "PlayerID:" << m_PlayerID << ")";
     return msg.toString();
 
     __END_CATCH

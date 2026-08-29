@@ -204,8 +204,7 @@ string ActionRegisterSiege::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionRegisterSiege("
-        << ",ZoneID:" << (int)m_ZoneID << ")";
+    msg << "ActionRegisterSiege(" << ",ZoneID:" << (int)m_ZoneID << ")";
 
     return msg.toString();
 

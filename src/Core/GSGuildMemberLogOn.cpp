@@ -82,9 +82,8 @@ string GSGuildMemberLogOn::toString() const
 {
     StringStream msg;
 
-    msg << "GSGuildMemberLogOn ("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "LogOn:" << m_bLogOn << "ServerID:" << m_ServerID
-        << " )";
+    msg << "GSGuildMemberLogOn (" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "LogOn:" << m_bLogOn
+        << "ServerID:" << m_ServerID << " )";
 
     return msg.toString();
 }

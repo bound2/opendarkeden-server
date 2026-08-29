@@ -110,8 +110,7 @@ string ConditionEnterCastleDungeon::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionEnterCastleDungeon("
-        << "CastleZoneID:" << (int)m_CastleZoneID << ")";
+    msg << "ConditionEnterCastleDungeon(" << "CastleZoneID:" << (int)m_CastleZoneID << ")";
     return msg.toString();
 
     __END_CATCH

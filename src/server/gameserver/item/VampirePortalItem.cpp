@@ -231,8 +231,7 @@ string VampirePortalItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "VampirePortalItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Charge:" << m_Charge
+    msg << "VampirePortalItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Charge:" << m_Charge
         << ",TargetZID:" << (int)m_ZoneID << ",TargetX:" << (int)m_X << ",TargetY:" << (int)m_Y << ")";
 
     return msg.toString();
@@ -343,10 +342,9 @@ string VampirePortalItemInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "VampirePortalItemInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",MaxCharge:" << m_MaxCharge
-        << ")";
+    msg << "VampirePortalItemInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",MaxCharge:" << m_MaxCharge << ")";
     return msg.toString();
 
     __END_CATCH

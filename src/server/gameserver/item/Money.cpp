@@ -73,10 +73,9 @@ void Money::create(const string& ownerID, Storage storage, StorageID_t storageID
            << ", " <<(int)x << ", " <<(int)y << ", " << m_Amount << ")";
         */
         sql << "INSERT INTO MoneyObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Amount, Num )"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", " << m_Amount << ", "
-            << (int)m_Num << ")";
+            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Amount, Num )" << " VALUES("
+            << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', " << (int)storage << ", "
+            << storageID << ", " << (int)x << ", " << (int)y << ", " << m_Amount << ", " << (int)m_Num << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -161,8 +160,7 @@ string Money::toString() const
 {
     StringStream msg;
 
-    msg << "Money("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (uint)m_ItemType << ",Amount:" << (uint)m_Amount << ")";
+    msg << "Money(" << "ItemID:" << m_ItemID << ",ItemType:" << (uint)m_ItemType << ",Amount:" << (uint)m_Amount << ")";
 
     return msg.toString();
 }
@@ -218,10 +216,9 @@ string MoneyInfo::toString() const
 {
     StringStream msg;
 
-    msg << "MoneyInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "MoneyInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
 
     return msg.toString();
 }

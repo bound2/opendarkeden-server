@@ -61,8 +61,7 @@ string GCTakeOutOK::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCTakeOutOK("
-        << "ObjectId:" << (int)m_ObjectID << ")";
+    msg << "GCTakeOutOK(" << "ObjectId:" << (int)m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

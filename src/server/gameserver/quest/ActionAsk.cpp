@@ -64,8 +64,7 @@ string ActionAsk::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionAsk("
-        << ",ScriptID:" << (int)m_ScriptID << ")";
+    msg << "ActionAsk(" << ",ScriptID:" << (int)m_ScriptID << ")";
 
     return msg.toString();
 

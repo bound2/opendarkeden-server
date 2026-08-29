@@ -107,8 +107,7 @@ string ActionStartEventQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionStartEventQuest("
-        << ")";
+    msg << "ActionStartEventQuest(" << ")";
 
     return msg.toString();
 

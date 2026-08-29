@@ -722,8 +722,7 @@ void Ousters::save() const
     //--------------------------------------------------------------------------------
     BEGIN_DB {
         StringStream sql;
-        sql << "UPDATE Ousters SET"
-            << " CurrentHP = " << (int)m_HP[ATTR_CURRENT] << ", HP = " << (int)m_HP[ATTR_MAX]
+        sql << "UPDATE Ousters SET" << " CurrentHP = " << (int)m_HP[ATTR_CURRENT] << ", HP = " << (int)m_HP[ATTR_MAX]
             << ", CurrentMP = " << (int)m_MP[ATTR_CURRENT] << ", MP = " << (int)m_MP[ATTR_MAX]
             << ", ZoneID = " << (int)getZoneID() << ", XCoord = " << (int)m_X << ", YCoord = " << (int)m_Y
             << " WHERE Name = '" << m_Name << "'";

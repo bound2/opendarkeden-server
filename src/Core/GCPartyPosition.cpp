@@ -77,8 +77,7 @@ string GCPartyPosition::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCPartyPosition("
-        << "Name : " << m_Name << ", X : " << m_X << ", Y : " << m_Y << ")";
+    msg << "GCPartyPosition(" << "Name : " << m_Name << ", X : " << m_X << ", Y : " << m_Y << ")";
     return msg.toString();
 
     __END_CATCH

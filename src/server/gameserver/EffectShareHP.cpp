@@ -116,8 +116,7 @@ string EffectShareHP::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectShareHP("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectShareHP(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

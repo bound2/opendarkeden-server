@@ -98,8 +98,7 @@ string TreasureOptionType::toString(void) const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "TreasureOptionType("
-        << "OptionType:" << m_OptionType << ",Ratio:" << m_Ratio << ")";
+    msg << "TreasureOptionType(" << "OptionType:" << m_OptionType << ",Ratio:" << m_Ratio << ")";
     return msg.toString();
 
     __END_CATCH
@@ -327,8 +326,7 @@ string TreasureItemType::toString(void) const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "\tTreasureItemType\n\t\t\t("
-        << "\n\t\t\t\tItemType:" << m_ItemType << ",Ratio:" << m_Ratio << "\n";
+    msg << "\tTreasureItemType\n\t\t\t(" << "\n\t\t\t\tItemType:" << m_ItemType << ",Ratio:" << m_Ratio << "\n";
 
     for (uint i = 0; i < m_TreasureOptionTypes.size(); i++) {
         msg << "\t\t\t\t" << m_TreasureOptionTypes[i]->toString() << "\n";
@@ -527,8 +525,7 @@ string TreasureItemClass::toString(void) const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "\tTreasureItemClass\n\t\t("
-        << "\n\t\t\tItemClass:" << m_ItemClass << ",Ratio:" << m_Ratio << "\n";
+    msg << "\tTreasureItemClass\n\t\t(" << "\n\t\t\tItemClass:" << m_ItemClass << ",Ratio:" << m_Ratio << "\n";
 
     for (uint i = 0; i < m_TreasureItemTypes.size(); i++) {
         msg << "\t\t" << m_TreasureItemTypes[i]->toString() << "\n";
@@ -836,8 +833,7 @@ string Treasure::toString(void) const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "\tTreasure\n\t("
-        << "\n\t\tItemRatio:" << m_ItemRatio << "\n\t\tOptionRatio:" << m_ItemRatio << "\n";
+    msg << "\tTreasure\n\t(" << "\n\t\tItemRatio:" << m_ItemRatio << "\n\t\tOptionRatio:" << m_ItemRatio << "\n";
 
     for (uint i = 0; i < m_TreasureItemClasses.size(); i++) {
         msg << "\t" << m_TreasureItemClasses[i]->toString() << "\n";

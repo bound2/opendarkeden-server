@@ -28,7 +28,7 @@ public:
     typedef ListItem::const_iterator ListItemConstItr;
 
 public:
-    GoodsInventory() {};
+    GoodsInventory(){};
     ~GoodsInventory();
 
 public:

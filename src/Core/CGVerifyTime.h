@@ -32,8 +32,8 @@ class GamePlayer;
 
 class CGVerifyTime : public Packet {
 public:
-    CGVerifyTime() {};
-    virtual ~CGVerifyTime() {};
+    CGVerifyTime(){};
+    virtual ~CGVerifyTime(){};
     // Initialize packet from the input stream.
     void read(SocketInputStream& iStream);
 

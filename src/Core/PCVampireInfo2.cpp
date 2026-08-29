@@ -263,9 +263,8 @@ void PCVampireInfo2::write(SocketOutputStream& oStream) const {
 string PCVampireInfo2::toString() const {
     StringStream msg;
 
-    msg << "PCVampireInfo2("
-        << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",Level:" << m_Level << ",Sex:" << Sex2String[m_Sex]
-        << ",BatColor:" << (int)m_BatColor << ",SkinColor:" << (int)m_SkinColor
+    msg << "PCVampireInfo2(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",Level:" << m_Level
+        << ",Sex:" << Sex2String[m_Sex] << ",BatColor:" << (int)m_BatColor << ",SkinColor:" << (int)m_SkinColor
         << ",MasterEffectColor:" << (int)m_MasterEffectColor << ",Alignment:" << (int)m_Alignment
         << ",STR[CURRENT]:" << (int)m_STR[ATTR_CURRENT] << ",STR[MAX]:" << (int)m_STR[ATTR_MAX]
         << ",STR[BASIC]:" << (int)m_STR[ATTR_BASIC] << ",DEX[CURRENT]:" << (int)m_DEX[ATTR_CURRENT]

@@ -92,8 +92,7 @@ string EffectHallucination::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHallucination("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHallucination(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

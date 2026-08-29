@@ -18,8 +18,8 @@
 
 class CGSelectRegenZone : public Packet {
 public:
-    CGSelectRegenZone() {};
-    virtual ~CGSelectRegenZone() {};
+    CGSelectRegenZone(){};
+    virtual ~CGSelectRegenZone(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

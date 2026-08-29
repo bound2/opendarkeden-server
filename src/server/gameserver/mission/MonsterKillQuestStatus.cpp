@@ -44,8 +44,7 @@ string MonsterKillQuestStatus::toString() const {
 
     StringStream msg;
 
-    msg << "MonsterKillQuestStatus("
-        << "Target : " << (unsigned long)m_TargetMonsterSpriteType
+    msg << "MonsterKillQuestStatus(" << "Target : " << (unsigned long)m_TargetMonsterSpriteType
         << ", IsChief : " << ((m_IsChief == 0) ? "no" : "yes") << ", Goal : " << m_GoalNum
         << ", Current : " << m_CurrentNum << ") : " << QuestStatus::toString().c_str();
 

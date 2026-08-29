@@ -59,8 +59,7 @@ string CGPartySay::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGPartySay("
-        << "Message :" << m_Message << ")";
+    msg << "CGPartySay(" << "Message :" << m_Message << ")";
     return msg.toString();
 
     __END_CATCH

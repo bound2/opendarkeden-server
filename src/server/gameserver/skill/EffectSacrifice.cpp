@@ -91,8 +91,7 @@ string EffectSacrifice::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectSacrifice("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectSacrifice(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

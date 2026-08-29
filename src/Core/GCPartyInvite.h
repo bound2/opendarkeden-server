@@ -31,8 +31,8 @@ enum {
 
 class GCPartyInvite : public Packet {
 public:
-    GCPartyInvite() {};
-    ~GCPartyInvite() {};
+    GCPartyInvite(){};
+    ~GCPartyInvite(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

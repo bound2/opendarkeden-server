@@ -18,8 +18,8 @@
 
 class CGGQuestCancel : public Packet {
 public:
-    CGGQuestCancel() {};
-    ~CGGQuestCancel() {};
+    CGGQuestCancel(){};
+    ~CGGQuestCancel(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

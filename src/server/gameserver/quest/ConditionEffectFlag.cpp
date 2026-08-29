@@ -44,8 +44,7 @@ string ConditionEffectFlag::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionEffectFlag("
-        << "Index:" << (int)m_Index << ")";
+    msg << "ConditionEffectFlag(" << "Index:" << (int)m_Index << ")";
     return msg.toString();
 
     __END_CATCH

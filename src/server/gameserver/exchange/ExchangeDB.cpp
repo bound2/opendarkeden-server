@@ -5,14 +5,14 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "ExchangeDB.h"
-#include "GCExchangeList.h"  // For ExchangeListing definition
 
-#include <sstream>
-#include <iomanip>
 #include <cstdlib>
+#include <iomanip>
+#include <sstream>
 
-#include "DatabaseManager.h"
 #include "DB.h"
+#include "DatabaseManager.h"
+#include "GCExchangeList.h" // For ExchangeListing definition
 #include "StringStream.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -26,8 +26,7 @@ string getCurrentTime() {
     time_t now = time(NULL);
     struct tm* t = localtime(&now);
     char buffer[20];
-    snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d",
-             t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
+    snprintf(buffer, sizeof(buffer), "%04d-%02d-%02d %02d:%02d:%02d", t->tm_year + 1900, t->tm_mon + 1, t->tm_mday,
              t->tm_hour, t->tm_min, t->tm_sec);
     return string(buffer);
 }
@@ -65,47 +64,26 @@ int64_t ExchangeDB::createListing(const ExchangeListing& listing) {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
         // Build INSERT query - using printf-style format
-        pStmt->executeQuery(
-            "INSERT INTO ExchangeListing ("
-            "ServerID, SellerAccount, SellerPlayer, SellerRace, "
-            "ItemClass, ItemType, ItemID, ObjectID, "
-            "PricePoint, Currency, Status, "
-            "TaxRate, TaxAmount, "
-            "CreatedAt, ExpireAt, UpdatedAt, Version, "
-            "ItemName, EnchantLevel, Grade, Durability, Silver, "
-            "OptionType1, OptionType2, OptionType3, "
-            "OptionValue1, OptionValue2, OptionValue3, StackCount"
-            ") VALUES (%d, '%s', '%s', %d, %d, %d, %lld, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s', %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
-            listing.serverID,
-            escapeSQL(listing.sellerAccount).c_str(),
-            escapeSQL(listing.sellerPlayer).c_str(),
-            (int)listing.sellerRace,
-            (int)listing.itemClass,
-            listing.itemType,
-            (long long)listing.itemID,
-            listing.objectID,
-            listing.pricePoint,
-            (int)listing.currency,
-            (int)listing.status,
-            (int)listing.taxRate,
-            listing.taxAmount,
-            getCurrentTime().c_str(),
-            listing.expireAt.c_str(),
-            getCurrentTime().c_str(),
-            listing.version,
-            escapeSQL(listing.itemName).c_str(),
-            (int)listing.enchantLevel,
-            listing.grade,
-            listing.durability,
-            listing.silver,
-            (int)listing.optionType1,
-            (int)listing.optionType2,
-            (int)listing.optionType3,
-            listing.optionValue1,
-            listing.optionValue2,
-            listing.optionValue3,
-            listing.stackCount
-        );
+        pStmt->executeQuery("INSERT INTO ExchangeListing ("
+                            "ServerID, SellerAccount, SellerPlayer, SellerRace, "
+                            "ItemClass, ItemType, ItemID, ObjectID, "
+                            "PricePoint, Currency, Status, "
+                            "TaxRate, TaxAmount, "
+                            "CreatedAt, ExpireAt, UpdatedAt, Version, "
+                            "ItemName, EnchantLevel, Grade, Durability, Silver, "
+                            "OptionType1, OptionType2, OptionType3, "
+                            "OptionValue1, OptionValue2, OptionValue3, StackCount"
+                            ") VALUES (%d, '%s', '%s', %d, %d, %d, %lld, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s', %d, "
+                            "'%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d)",
+                            listing.serverID, escapeSQL(listing.sellerAccount).c_str(),
+                            escapeSQL(listing.sellerPlayer).c_str(), (int)listing.sellerRace, (int)listing.itemClass,
+                            listing.itemType, (long long)listing.itemID, listing.objectID, listing.pricePoint,
+                            (int)listing.currency, (int)listing.status, (int)listing.taxRate, listing.taxAmount,
+                            getCurrentTime().c_str(), listing.expireAt.c_str(), getCurrentTime().c_str(),
+                            listing.version, escapeSQL(listing.itemName).c_str(), (int)listing.enchantLevel,
+                            listing.grade, listing.durability, listing.silver, (int)listing.optionType1,
+                            (int)listing.optionType2, (int)listing.optionType3, listing.optionValue1,
+                            listing.optionValue2, listing.optionValue3, listing.stackCount);
 
         // Get the auto-generated listing ID
         pResult = pStmt->executeQuery("SELECT LAST_INSERT_ID()");
@@ -116,7 +94,8 @@ int64_t ExchangeDB::createListing(const ExchangeListing& listing) {
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     return 0;
 
@@ -132,21 +111,18 @@ bool ExchangeDB::cancelListing(int64_t listingID) {
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-        pStmt->executeQuery(
-            "UPDATE ExchangeListing SET "
-            "Status = 2, "  // CANCELLED
-            "CancelledAt = '%s', "
-            "UpdatedAt = '%s' "
-            "WHERE ListingID = %lld "
-            "AND Status = 0",  // Only ACTIVE listings
-            getCurrentTime().c_str(),
-            getCurrentTime().c_str(),
-            (long long)listingID
-        );
+        pStmt->executeQuery("UPDATE ExchangeListing SET "
+                            "Status = 2, " // CANCELLED
+                            "CancelledAt = '%s', "
+                            "UpdatedAt = '%s' "
+                            "WHERE ListingID = %lld "
+                            "AND Status = 0", // Only ACTIVE listings
+                            getCurrentTime().c_str(), getCurrentTime().c_str(), (long long)listingID);
 
         SAFE_DELETE(pStmt);
         return true;
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -162,19 +138,17 @@ bool ExchangeDB::expireListing(int64_t listingID) {
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-        pStmt->executeQuery(
-            "UPDATE ExchangeListing SET "
-            "Status = 3, "  // EXPIRED
-            "UpdatedAt = '%s' "
-            "WHERE ListingID = %lld "
-            "AND Status = 0",  // Only ACTIVE listings
-            getCurrentTime().c_str(),
-            (long long)listingID
-        );
+        pStmt->executeQuery("UPDATE ExchangeListing SET "
+                            "Status = 3, " // EXPIRED
+                            "UpdatedAt = '%s' "
+                            "WHERE ListingID = %lld "
+                            "AND Status = 0", // Only ACTIVE listings
+                            getCurrentTime().c_str(), (long long)listingID);
 
         SAFE_DELETE(pStmt);
         return true;
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -182,9 +156,7 @@ bool ExchangeDB::expireListing(int64_t listingID) {
 }
 
 // Mark listing as sold and set buyer info
-bool ExchangeDB::markListingSold(int64_t listingID,
-                                const string& buyerAccount,
-                                const string& buyerPlayer) {
+bool ExchangeDB::markListingSold(int64_t listingID, const string& buyerAccount, const string& buyerPlayer) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -192,25 +164,21 @@ bool ExchangeDB::markListingSold(int64_t listingID,
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-        pStmt->executeQuery(
-            "UPDATE ExchangeListing SET "
-            "Status = 1, "  // SOLD
-            "BuyerAccount = '%s', "
-            "BuyerPlayer = '%s', "
-            "SoldAt = '%s', "
-            "UpdatedAt = '%s' "
-            "WHERE ListingID = %lld "
-            "AND Status = 0",  // Only ACTIVE listings
-            escapeSQL(buyerAccount).c_str(),
-            escapeSQL(buyerPlayer).c_str(),
-            getCurrentTime().c_str(),
-            getCurrentTime().c_str(),
-            (long long)listingID
-        );
+        pStmt->executeQuery("UPDATE ExchangeListing SET "
+                            "Status = 1, " // SOLD
+                            "BuyerAccount = '%s', "
+                            "BuyerPlayer = '%s', "
+                            "SoldAt = '%s', "
+                            "UpdatedAt = '%s' "
+                            "WHERE ListingID = %lld "
+                            "AND Status = 0", // Only ACTIVE listings
+                            escapeSQL(buyerAccount).c_str(), escapeSQL(buyerPlayer).c_str(), getCurrentTime().c_str(),
+                            getCurrentTime().c_str(), (long long)listingID);
 
         SAFE_DELETE(pStmt);
         return true;
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -218,10 +186,7 @@ bool ExchangeDB::markListingSold(int64_t listingID,
 }
 
 // Query listings with pagination and filters
-vector<ExchangeListing> ExchangeDB::getListings(int16_t serverID,
-                                               uint8_t status,
-                                               int page,
-                                               int pageSize) {
+vector<ExchangeListing> ExchangeDB::getListings(int16_t serverID, uint8_t status, int page, int pageSize) {
     vector<ExchangeListing> listings;
 
     __BEGIN_TRY
@@ -234,17 +199,12 @@ vector<ExchangeListing> ExchangeDB::getListings(int16_t serverID,
 
         int offset = (page - 1) * pageSize;
 
-        pResult = pStmt->executeQuery(
-            "SELECT * FROM ExchangeListing "
-            "WHERE ServerID = %d "
-            "AND Status = %d "
-            "ORDER BY CreatedAt DESC "
-            "LIMIT %d OFFSET %d",
-            serverID,
-            (int)status,
-            pageSize,
-            offset
-        );
+        pResult = pStmt->executeQuery("SELECT * FROM ExchangeListing "
+                                      "WHERE ServerID = %d "
+                                      "AND Status = %d "
+                                      "ORDER BY CreatedAt DESC "
+                                      "LIMIT %d OFFSET %d",
+                                      serverID, (int)status, pageSize, offset);
 
         while (pResult->next()) {
             ExchangeListing listing;
@@ -291,7 +251,8 @@ vector<ExchangeListing> ExchangeDB::getListings(int16_t serverID,
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -308,11 +269,9 @@ ExchangeListing* ExchangeDB::getListing(int64_t listingID) {
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-        pResult = pStmt->executeQuery(
-            "SELECT * FROM ExchangeListing "
-            "WHERE ListingID = %lld",
-            (long long)listingID
-        );
+        pResult = pStmt->executeQuery("SELECT * FROM ExchangeListing "
+                                      "WHERE ListingID = %lld",
+                                      (long long)listingID);
 
         if (pResult->next()) {
             ExchangeListing* listing = new ExchangeListing();
@@ -360,7 +319,8 @@ ExchangeListing* ExchangeDB::getListing(int64_t listingID) {
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -368,8 +328,7 @@ ExchangeListing* ExchangeDB::getListing(int64_t listingID) {
 }
 
 // Get seller's listings
-vector<ExchangeListing> ExchangeDB::getSellerListings(const string& sellerAccount,
-                                                      uint8_t status) {
+vector<ExchangeListing> ExchangeDB::getSellerListings(const string& sellerAccount, uint8_t status) {
     vector<ExchangeListing> listings;
 
     __BEGIN_TRY
@@ -380,14 +339,11 @@ vector<ExchangeListing> ExchangeDB::getSellerListings(const string& sellerAccoun
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-        pResult = pStmt->executeQuery(
-            "SELECT * FROM ExchangeListing "
-            "WHERE SellerAccount = '%s' "
-            "AND Status = %d "
-            "ORDER BY CreatedAt DESC",
-            escapeSQL(sellerAccount).c_str(),
-            (int)status
-        );
+        pResult = pStmt->executeQuery("SELECT * FROM ExchangeListing "
+                                      "WHERE SellerAccount = '%s' "
+                                      "AND Status = %d "
+                                      "ORDER BY CreatedAt DESC",
+                                      escapeSQL(sellerAccount).c_str(), (int)status);
 
         while (pResult->next()) {
             ExchangeListing listing;
@@ -434,7 +390,8 @@ vector<ExchangeListing> ExchangeDB::getSellerListings(const string& sellerAccoun
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -455,14 +412,12 @@ vector<ExchangeListing> ExchangeDB::getExpiredListings() {
 
         // Query active listings that have expired
         // Use NOW() to compare with ExpireAt
-        pResult = pStmt->executeQuery(
-            "SELECT * FROM ExchangeListing "
-            "WHERE Status = %d "  // LISTING_STATUS_ACTIVE = 0
-            "AND ExpireAt < NOW() "
-            "ORDER BY ExpireAt ASC "
-            "LIMIT 1000",  // Process in batches to avoid long transactions
-            (int)LISTING_STATUS_ACTIVE
-        );
+        pResult = pStmt->executeQuery("SELECT * FROM ExchangeListing "
+                                      "WHERE Status = %d " // LISTING_STATUS_ACTIVE = 0
+                                      "AND ExpireAt < NOW() "
+                                      "ORDER BY ExpireAt ASC "
+                                      "LIMIT 1000", // Process in batches to avoid long transactions
+                                      (int)LISTING_STATUS_ACTIVE);
 
         while (pResult->next()) {
             ExchangeListing listing;
@@ -509,7 +464,8 @@ vector<ExchangeListing> ExchangeDB::getExpiredListings() {
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -530,20 +486,13 @@ int64_t ExchangeDB::createOrder(const ExchangeOrder& order) {
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-        pStmt->executeQuery(
-            "INSERT INTO ExchangeOrder ("
-            "ListingID, ServerID, BuyerAccount, BuyerPlayer, "
-            "PricePoint, TaxAmount, Status, CreatedAt"
-            ") VALUES (%lld, %d, '%s', '%s', %d, %d, %d, '%s')",
-            (long long)order.listingID,
-            order.serverID,
-            escapeSQL(order.buyerAccount).c_str(),
-            escapeSQL(order.buyerPlayer).c_str(),
-            order.pricePoint,
-            order.taxAmount,
-            (int)order.status,
-            getCurrentTime().c_str()
-        );
+        pStmt->executeQuery("INSERT INTO ExchangeOrder ("
+                            "ListingID, ServerID, BuyerAccount, BuyerPlayer, "
+                            "PricePoint, TaxAmount, Status, CreatedAt"
+                            ") VALUES (%lld, %d, '%s', '%s', %d, %d, %d, '%s')",
+                            (long long)order.listingID, order.serverID, escapeSQL(order.buyerAccount).c_str(),
+                            escapeSQL(order.buyerPlayer).c_str(), order.pricePoint, order.taxAmount, (int)order.status,
+                            getCurrentTime().c_str());
 
         // Get the auto-generated order ID
         pResult = pStmt->executeQuery("SELECT LAST_INSERT_ID()");
@@ -554,7 +503,8 @@ int64_t ExchangeDB::createOrder(const ExchangeOrder& order) {
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     return 0;
 
@@ -570,19 +520,17 @@ bool ExchangeDB::markOrderDelivered(int64_t orderID) {
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-        pStmt->executeQuery(
-            "UPDATE ExchangeOrder SET "
-            "Status = 1, "  // DELIVERED
-            "DeliveredAt = '%s' "
-            "WHERE OrderID = %lld "
-            "AND Status = 0",  // Only PAID orders
-            getCurrentTime().c_str(),
-            (long long)orderID
-        );
+        pStmt->executeQuery("UPDATE ExchangeOrder SET "
+                            "Status = 1, " // DELIVERED
+                            "DeliveredAt = '%s' "
+                            "WHERE OrderID = %lld "
+                            "AND Status = 0", // Only PAID orders
+                            getCurrentTime().c_str(), (long long)orderID);
 
         SAFE_DELETE(pStmt);
         return true;
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -590,8 +538,7 @@ bool ExchangeDB::markOrderDelivered(int64_t orderID) {
 }
 
 // Get buyer's orders
-vector<ExchangeOrder> ExchangeDB::getBuyerOrders(const string& buyerPlayer,
-                                               uint8_t status) {
+vector<ExchangeOrder> ExchangeDB::getBuyerOrders(const string& buyerPlayer, uint8_t status) {
     vector<ExchangeOrder> orders;
 
     __BEGIN_TRY
@@ -602,14 +549,11 @@ vector<ExchangeOrder> ExchangeDB::getBuyerOrders(const string& buyerPlayer,
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-        pResult = pStmt->executeQuery(
-            "SELECT * FROM ExchangeOrder "
-            "WHERE BuyerPlayer = '%s' "
-            "AND Status = %d "
-            "ORDER BY CreatedAt DESC",
-            escapeSQL(buyerPlayer).c_str(),
-            (int)status
-        );
+        pResult = pStmt->executeQuery("SELECT * FROM ExchangeOrder "
+                                      "WHERE BuyerPlayer = '%s' "
+                                      "AND Status = %d "
+                                      "ORDER BY CreatedAt DESC",
+                                      escapeSQL(buyerPlayer).c_str(), (int)status);
 
         while (pResult->next()) {
             ExchangeOrder order;
@@ -631,7 +575,8 @@ vector<ExchangeOrder> ExchangeDB::getBuyerOrders(const string& buyerPlayer,
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -639,8 +584,7 @@ vector<ExchangeOrder> ExchangeDB::getBuyerOrders(const string& buyerPlayer,
 }
 
 // Get seller's fulfilled orders
-vector<ExchangeOrder> ExchangeDB::getSellerOrders(const string& sellerPlayer,
-                                                 uint8_t status) {
+vector<ExchangeOrder> ExchangeDB::getSellerOrders(const string& sellerPlayer, uint8_t status) {
     vector<ExchangeOrder> orders;
 
     __BEGIN_TRY
@@ -651,15 +595,12 @@ vector<ExchangeOrder> ExchangeDB::getSellerOrders(const string& sellerPlayer,
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-        pResult = pStmt->executeQuery(
-            "SELECT o.* FROM ExchangeOrder o "
-            "INNER JOIN ExchangeListing l ON o.ListingID = l.ListingID "
-            "WHERE l.SellerPlayer = '%s' "
-            "AND o.Status = %d "
-            "ORDER BY o.CreatedAt DESC",
-            escapeSQL(sellerPlayer).c_str(),
-            (int)status
-        );
+        pResult = pStmt->executeQuery("SELECT o.* FROM ExchangeOrder o "
+                                      "INNER JOIN ExchangeListing l ON o.ListingID = l.ListingID "
+                                      "WHERE l.SellerPlayer = '%s' "
+                                      "AND o.Status = %d "
+                                      "ORDER BY o.CreatedAt DESC",
+                                      escapeSQL(sellerPlayer).c_str(), (int)status);
 
         while (pResult->next()) {
             ExchangeOrder order;
@@ -681,7 +622,8 @@ vector<ExchangeOrder> ExchangeDB::getSellerOrders(const string& sellerPlayer,
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -693,13 +635,8 @@ vector<ExchangeOrder> ExchangeDB::getSellerOrders(const string& sellerPlayer,
 //////////////////////////////////////////////////////////////////////////////
 
 // Adjust point balance with ledger record
-bool ExchangeDB::adjustPoints(const string& account,
-                             int delta,
-                             int& balanceAfter,
-                             uint8_t reason,
-                             int64_t refListingID,
-                             int64_t refOrderID,
-                             const string& idempotencyKey) {
+bool ExchangeDB::adjustPoints(const string& account, int delta, int& balanceAfter, uint8_t reason, int64_t refListingID,
+                              int64_t refOrderID, const string& idempotencyKey) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -711,10 +648,8 @@ bool ExchangeDB::adjustPoints(const string& account,
         // Check idempotency if key provided
         if (!idempotencyKey.empty()) {
             pStmt = pConn->createStatement();
-            pResult = pStmt->executeQuery(
-                "SELECT COUNT(*) FROM PointLedger WHERE IdempotencyKey = '%s'",
-                escapeSQL(idempotencyKey).c_str()
-            );
+            pResult = pStmt->executeQuery("SELECT COUNT(*) FROM PointLedger WHERE IdempotencyKey = '%s'",
+                                          escapeSQL(idempotencyKey).c_str());
 
             if (pResult->next() && pResult->getInt(1) > 0) {
                 // Idempotency key exists - already processed
@@ -726,10 +661,8 @@ bool ExchangeDB::adjustPoints(const string& account,
 
         // Get current balance
         pStmt = pConn->createStatement();
-        pResult = pStmt->executeQuery(
-            "SELECT PointBalance FROM AccountPoint WHERE Account = '%s'",
-            escapeSQL(account).c_str()
-        );
+        pResult = pStmt->executeQuery("SELECT PointBalance FROM AccountPoint WHERE Account = '%s'",
+                                      escapeSQL(account).c_str());
 
         int currentBalance = 0;
         if (pResult->next()) {
@@ -746,50 +679,33 @@ bool ExchangeDB::adjustPoints(const string& account,
 
         // Update or insert balance using REPLACE
         pStmt = pConn->createStatement();
-        pStmt->executeQuery(
-            "REPLACE INTO AccountPoint (Account, PointBalance, UpdatedAt) "
-            "VALUES ('%s', %d, '%s')",
-            escapeSQL(account).c_str(),
-            newBalance,
-            getCurrentTime().c_str()
-        );
+        pStmt->executeQuery("REPLACE INTO AccountPoint (Account, PointBalance, UpdatedAt) "
+                            "VALUES ('%s', %d, '%s')",
+                            escapeSQL(account).c_str(), newBalance, getCurrentTime().c_str());
         SAFE_DELETE(pStmt);
 
         // Insert ledger record
         pStmt = pConn->createStatement();
         if (idempotencyKey.empty()) {
-            pStmt->executeQuery(
-                "INSERT INTO PointLedger "
-                "(Account, Delta, BalanceAfter, Reason, RefListingID, RefOrderID, CreatedAt) "
-                "VALUES ('%s', %d, %d, %d, %lld, %lld, '%s')",
-                escapeSQL(account).c_str(),
-                delta,
-                newBalance,
-                (int)reason,
-                (long long)refListingID,
-                (long long)refOrderID,
-                getCurrentTime().c_str()
-            );
+            pStmt->executeQuery("INSERT INTO PointLedger "
+                                "(Account, Delta, BalanceAfter, Reason, RefListingID, RefOrderID, CreatedAt) "
+                                "VALUES ('%s', %d, %d, %d, %lld, %lld, '%s')",
+                                escapeSQL(account).c_str(), delta, newBalance, (int)reason, (long long)refListingID,
+                                (long long)refOrderID, getCurrentTime().c_str());
         } else {
             pStmt->executeQuery(
                 "INSERT INTO PointLedger "
                 "(Account, Delta, BalanceAfter, Reason, RefListingID, RefOrderID, IdempotencyKey, CreatedAt) "
                 "VALUES ('%s', %d, %d, %d, %lld, %lld, '%s', '%s')",
-                escapeSQL(account).c_str(),
-                delta,
-                newBalance,
-                (int)reason,
-                (long long)refListingID,
-                (long long)refOrderID,
-                escapeSQL(idempotencyKey).c_str(),
-                getCurrentTime().c_str()
-            );
+                escapeSQL(account).c_str(), delta, newBalance, (int)reason, (long long)refListingID,
+                (long long)refOrderID, escapeSQL(idempotencyKey).c_str(), getCurrentTime().c_str());
         }
         SAFE_DELETE(pStmt);
 
         balanceAfter = newBalance;
         return true;
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -806,10 +722,8 @@ int ExchangeDB::getPointBalance(const string& account) {
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("USERINFO")->createStatement();
 
-        pResult = pStmt->executeQuery(
-            "SELECT PointBalance FROM AccountPoint WHERE Account = '%s'",
-            escapeSQL(account).c_str()
-        );
+        pResult = pStmt->executeQuery("SELECT PointBalance FROM AccountPoint WHERE Account = '%s'",
+                                      escapeSQL(account).c_str());
 
         if (pResult->next()) {
             int balance = pResult->getInt(1);
@@ -818,7 +732,8 @@ int ExchangeDB::getPointBalance(const string& account) {
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -835,10 +750,8 @@ bool ExchangeDB::hasIdempotencyKey(const string& idempotencyKey) {
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("USERINFO")->createStatement();
 
-        pResult = pStmt->executeQuery(
-            "SELECT COUNT(*) FROM PointLedger WHERE IdempotencyKey = '%s'",
-            escapeSQL(idempotencyKey).c_str()
-        );
+        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM PointLedger WHERE IdempotencyKey = '%s'",
+                                      escapeSQL(idempotencyKey).c_str());
 
         if (pResult->next()) {
             int count = pResult->getInt(1);
@@ -847,7 +760,8 @@ bool ExchangeDB::hasIdempotencyKey(const string& idempotencyKey) {
         }
 
         SAFE_DELETE(pStmt);
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -876,7 +790,8 @@ bool ExchangeDB::beginTransaction() {
         SAFE_DELETE(pStmt);
 
         return true;
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -901,7 +816,8 @@ bool ExchangeDB::commit() {
         SAFE_DELETE(pStmt);
 
         return true;
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 
@@ -926,7 +842,8 @@ bool ExchangeDB::rollback() {
         SAFE_DELETE(pStmt);
 
         return true;
-    } END_DB(pStmt)
+    }
+    END_DB(pStmt)
 
     __END_CATCH
 

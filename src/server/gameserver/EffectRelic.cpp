@@ -122,8 +122,7 @@ string EffectRelic::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectRelic("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectRelic(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

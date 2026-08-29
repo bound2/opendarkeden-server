@@ -141,12 +141,12 @@ string GCTradeAddItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << " GCTradeAddItem("
-        << " TargetObjectID : " << (int)m_TargetObjectID << " ItemObjectID : " << (int)m_ItemObjectID
-        << " ItemClass : " << (int)m_ItemClass << " ItemType : " << (int)m_ItemType
-        << " OptionTypeSize : " << (int)m_OptionType.size() << " Durability : " << (int)m_Durability
-        << " ItemNum : " << (int)m_ItemNum << " Silver : " << (int)m_Silver << " Grade : " << (int)m_Grade
-        << " EnchantLevel : " << (int)m_EnchantLevel << " ListNum : " << (int)m_ListNum << " )";
+    msg << " GCTradeAddItem(" << " TargetObjectID : " << (int)m_TargetObjectID
+        << " ItemObjectID : " << (int)m_ItemObjectID << " ItemClass : " << (int)m_ItemClass
+        << " ItemType : " << (int)m_ItemType << " OptionTypeSize : " << (int)m_OptionType.size()
+        << " Durability : " << (int)m_Durability << " ItemNum : " << (int)m_ItemNum << " Silver : " << (int)m_Silver
+        << " Grade : " << (int)m_Grade << " EnchantLevel : " << (int)m_EnchantLevel << " ListNum : " << (int)m_ListNum
+        << " )";
     return msg.toString();
 
     __END_CATCH

@@ -154,8 +154,8 @@ ItemType_t InfoClassManager::getRandomItemType() const
         return 0;
 
     int gambleRatio = g_pVariableManager->getGambleItemTypeRatio(); // 200%
-    int failRatio = m_pItemInfos[0]->getRatio();                    // 0번 아이템의 확률이 실패할 확률이다.
-    int succeedRatio = m_TotalRatio - failRatio;                    // 0번 아이템을 제외한게 성공할 확률이다.
+    int failRatio = m_pItemInfos[0]->getRatio(); // 0번 아이템의 확률이 실패할 확률이다.
+    int succeedRatio = m_TotalRatio - failRatio; // 0번 아이템을 제외한게 성공할 확률이다.
     int newTotalRatio = failRatio + getPercentValue(succeedRatio, gambleRatio); // 실패 + 성공*gambleRatio
     int itemTypeRatio = rand() % newTotalRatio;
     int ratio;

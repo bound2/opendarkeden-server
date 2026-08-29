@@ -65,8 +65,8 @@ string GCChangeWeather::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCChangeWeather("
-        << "Weather:" << Weather2String[m_Weather] << ",WeatherLevel:" << (int)m_WeatherLevel << ")";
+    msg << "GCChangeWeather(" << "Weather:" << Weather2String[m_Weather] << ",WeatherLevel:" << (int)m_WeatherLevel
+        << ")";
     return msg.toString();
 
     __END_CATCH

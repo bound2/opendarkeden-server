@@ -24,7 +24,7 @@ public:
     // constructor
     GCDeleteInventoryItem() {}
     GCDeleteInventoryItem(ObjectID_t objectID) : m_ObjectID(objectID) {}
-    ~GCDeleteInventoryItem() {};
+    ~GCDeleteInventoryItem(){};
 
 
 public:

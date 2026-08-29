@@ -127,8 +127,7 @@ void EffectGateWayMonster::affect(Creature* pCreature)
         __BEGIN_TRY
 
         StringStream msg;
-        msg << "EffectGateWayMonster("
-            << "ObjectID:" << getObjectID() << ")";
+        msg << "EffectGateWayMonster(" << "ObjectID:" << getObjectID() << ")";
         return msg.toString();
 
         __END_CATCH

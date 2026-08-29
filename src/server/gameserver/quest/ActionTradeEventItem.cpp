@@ -373,8 +373,7 @@ string ActionTradeEventItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionTradeEventItem("
-        << ")";
+    msg << "ActionTradeEventItem(" << ")";
     return msg.toString();
 
     __END_CATCH

@@ -278,9 +278,8 @@ string ConditionAttrComp::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionAttrComp("
-        << "ReqSTR:" << (int)m_ReqSTR << " ,ReqDEX:" << (int)m_ReqDEX << " ,ReqINT:" << (int)m_ReqINT
-        << " ,ReqSum:" << (int)m_ReqSum << " ,ReqLevel:" << (int)m_ReqLevel
+    msg << "ConditionAttrComp(" << "ReqSTR:" << (int)m_ReqSTR << " ,ReqDEX:" << (int)m_ReqDEX
+        << " ,ReqINT:" << (int)m_ReqINT << " ,ReqSum:" << (int)m_ReqSum << " ,ReqLevel:" << (int)m_ReqLevel
         << " ,STROperator:" << ConditionAttrCompOperator2String[m_STROperator]
         << " ,DEXOperator:" << ConditionAttrCompOperator2String[m_DEXOperator]
         << " ,INTOperator:" << ConditionAttrCompOperator2String[m_INTOperator]

@@ -142,8 +142,8 @@ string MasterLairInfo::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "MasterLairInfo("
-        << "ZoneID:" << (int)m_ZoneID << ",MasterNotReadyMonsterType:" << (int)m_MasterNotReadyMonsterType
+    msg << "MasterLairInfo(" << "ZoneID:" << (int)m_ZoneID
+        << ",MasterNotReadyMonsterType:" << (int)m_MasterNotReadyMonsterType
         << ",MasterMonsterType:" << (int)m_MasterMonsterType << ",MasterRemainNotReady:" << (int)m_MasterRemainNotReady
         << ",MasterX:" << (int)m_MasterX << ",MasterY:" << (int)m_MasterY << ",MasterDir:" << (int)m_MasterDir
         << ",MaxPassPlayer:"

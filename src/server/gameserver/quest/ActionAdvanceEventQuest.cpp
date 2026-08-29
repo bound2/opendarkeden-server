@@ -143,8 +143,7 @@ string ActionAdvanceEventQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionAdvanceEventQuest("
-        << ")";
+    msg << "ActionAdvanceEventQuest(" << ")";
 
     return msg.toString();
 

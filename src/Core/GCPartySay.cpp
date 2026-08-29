@@ -74,8 +74,7 @@ string GCPartySay::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCPartySay("
-        << "Name : " << m_Name << ", Message : " << m_Message << ")";
+    msg << "GCPartySay(" << "Name : " << m_Name << ", Message : " << m_Message << ")";
     return msg.toString();
 
     __END_CATCH

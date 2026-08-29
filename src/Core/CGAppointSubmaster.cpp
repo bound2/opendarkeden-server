@@ -62,8 +62,7 @@ string CGAppointSubmaster::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGAppointSubmaster("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << ")";
+    msg << "CGAppointSubmaster(" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << ")";
     return msg.toString();
 
     __END_CATCH

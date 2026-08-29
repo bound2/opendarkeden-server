@@ -39,7 +39,7 @@ public:
     // constructor
     GCDeleteObject() {}
     GCDeleteObject(ObjectID_t objectID) : m_ObjectID(objectID) {}
-    ~GCDeleteObject() {};
+    ~GCDeleteObject(){};
 
 
 public:

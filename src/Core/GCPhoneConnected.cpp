@@ -103,8 +103,8 @@ string GCPhoneConnected::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCPhoneConnected("
-        << "PhoneNumber:" << (int)m_PhoneNumber << ",SlotID:" << (int)m_SlotID << ",Name:" << m_Name << " )";
+    msg << "GCPhoneConnected(" << "PhoneNumber:" << (int)m_PhoneNumber << ",SlotID:" << (int)m_SlotID
+        << ",Name:" << m_Name << " )";
     return msg.toString();
 
     __END_CATCH

@@ -65,9 +65,7 @@ void WarItem::create(const string& ownerID, Storage storage, StorageID_t storage
 
         StringStream sql;
 
-        sql << "INSERT INTO WarItemObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y)"
+        sql << "INSERT INTO WarItemObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ," << " X, Y)"
             << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
             << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ")";
 
@@ -140,8 +138,7 @@ string WarItem::toString() const
 {
     StringStream msg;
 
-    msg << "WarItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
+    msg << "WarItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ")";
 
     return msg.toString();
 }
@@ -197,10 +194,9 @@ string WarItemInfo::toString() const
 {
     StringStream msg;
 
-    msg << "WarItemInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "WarItemInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
 
     return msg.toString();
 }

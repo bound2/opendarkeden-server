@@ -291,8 +291,7 @@ string EffectHeterChakram::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectHeterChakram("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHeterChakram(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

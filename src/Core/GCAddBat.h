@@ -18,8 +18,8 @@
 
 class GCAddBat : public Packet {
 public:
-    GCAddBat() {};
-    ~GCAddBat() {};
+    GCAddBat(){};
+    ~GCAddBat(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

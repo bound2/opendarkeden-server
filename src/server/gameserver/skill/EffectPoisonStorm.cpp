@@ -219,8 +219,7 @@ string EffectPoisonStorm::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectPoisonStorm("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectPoisonStorm(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

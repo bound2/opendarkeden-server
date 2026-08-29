@@ -88,8 +88,8 @@ string GCHPRecoveryStartToSelf::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCHPRecoveryStartToSelf("
-        << "Delay:" << (int)m_Delay << "Period:" << (int)m_Period << "Quantity:" << (int)m_Quantity << ")";
+    msg << "GCHPRecoveryStartToSelf(" << "Delay:" << (int)m_Delay << "Period:" << (int)m_Period
+        << "Quantity:" << (int)m_Quantity << ")";
     return msg.toString();
 
     __END_CATCH

@@ -105,8 +105,7 @@ string EffectDetectInvisibility::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectDetectInvisibility("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDetectInvisibility(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

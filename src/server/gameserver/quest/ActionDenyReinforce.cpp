@@ -149,8 +149,7 @@ string ActionDenyReinforce::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionDenyReinforce("
-        << ",ZoneID:" << (int)m_ZoneID << ")";
+    msg << "ActionDenyReinforce(" << ",ZoneID:" << (int)m_ZoneID << ")";
 
     return msg.toString();
 

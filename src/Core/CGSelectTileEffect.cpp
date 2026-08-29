@@ -42,8 +42,7 @@ string CGSelectTileEffect::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSelectTileEffect("
-        << "EffectObjectID:" << (int)m_EffectObjectID << ")";
+    msg << "CGSelectTileEffect(" << "EffectObjectID:" << (int)m_EffectObjectID << ")";
     return msg.toString();
 
     __END_CATCH

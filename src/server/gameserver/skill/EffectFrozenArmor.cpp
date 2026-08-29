@@ -75,8 +75,7 @@ string EffectFrozenArmor::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectFrozenArmor("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectFrozenArmor(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

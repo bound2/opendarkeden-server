@@ -26,8 +26,8 @@
 
 class SGGuildMemberLogOnOK : public Packet {
 public:
-    SGGuildMemberLogOnOK() {};
-    ~SGGuildMemberLogOnOK() {};
+    SGGuildMemberLogOnOK(){};
+    ~SGGuildMemberLogOnOK(){};
     // Initialize the packet by reading data from the input stream.
     void read(SocketInputStream& iStream);
 

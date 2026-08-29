@@ -21,8 +21,8 @@
 
 class CLSelectServer : public Packet {
 public:
-    CLSelectServer() {};
-    virtual ~CLSelectServer() {};
+    CLSelectServer(){};
+    virtual ~CLSelectServer(){};
     // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
     void read(SocketInputStream& iStream);
 

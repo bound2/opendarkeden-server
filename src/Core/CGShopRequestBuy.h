@@ -21,8 +21,8 @@
 
 class CGShopRequestBuy : public Packet {
 public:
-    CGShopRequestBuy() {};
-    virtual ~CGShopRequestBuy() {};
+    CGShopRequestBuy(){};
+    virtual ~CGShopRequestBuy(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

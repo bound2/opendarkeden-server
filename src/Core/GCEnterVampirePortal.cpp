@@ -54,8 +54,7 @@ string GCEnterVampirePortal::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCEnterVampirePortal("
-        << "ObjectID:" << m_ObjectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
+    msg << "GCEnterVampirePortal(" << "ObjectID:" << m_ObjectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
     return msg.toString();
 
     __END_CATCH

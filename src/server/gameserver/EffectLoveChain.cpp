@@ -161,8 +161,7 @@ string EffectLoveChain::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectLoveChain("
-        << "ObjectID:" << getObjectID() << "TargetName:" << m_TargetName << ")";
+    msg << "EffectLoveChain(" << "ObjectID:" << getObjectID() << "TargetName:" << m_TargetName << ")";
     return msg.toString();
 
     __END_CATCH

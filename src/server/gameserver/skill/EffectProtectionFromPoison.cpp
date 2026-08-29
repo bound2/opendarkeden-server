@@ -95,8 +95,7 @@ string EffectProtectionFromPoison::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectProtectionFromPoison("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectProtectionFromPoison(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

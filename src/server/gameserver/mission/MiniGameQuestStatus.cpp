@@ -85,9 +85,8 @@ string MiniGameQuestStatus::toStrong() const {
 
     StringStream msg;
 
-    msg << "MiniGameQuestStatus("
-        << "Game Type : " << m_GameType << ", Score : " << ((m_bScoreSet) ? -1 : (int)m_GameScore)
-        << ") : " << QuestStatus::toString().c_str();
+    msg << "MiniGameQuestStatus(" << "Game Type : " << m_GameType
+        << ", Score : " << ((m_bScoreSet) ? -1 : (int)m_GameScore) << ") : " << QuestStatus::toString().c_str();
 
     return msg.toString();
 

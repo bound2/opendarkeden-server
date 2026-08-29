@@ -99,8 +99,7 @@ string EffectDonation200501::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectDonation200501("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDonation200501(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

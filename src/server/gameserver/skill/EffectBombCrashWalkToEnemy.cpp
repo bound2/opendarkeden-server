@@ -143,8 +143,7 @@ string EffectBombCrashWalkToEnemy::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectBombCrashWalkToEnemy("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBombCrashWalkToEnemy(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

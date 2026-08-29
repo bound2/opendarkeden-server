@@ -90,8 +90,7 @@ string GCCrossCounterOK3::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCCrossCounterOK3("
-        << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID:" << (int)m_TargetObjectID
+    msg << "GCCrossCounterOK3(" << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID:" << (int)m_TargetObjectID
         << ",SkillType: " << (int)m_SkillType << ")";
     return msg.toString();
 

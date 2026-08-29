@@ -84,8 +84,7 @@ string EffectHolyArmor::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHolyArmor("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHolyArmor(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

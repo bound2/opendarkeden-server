@@ -57,8 +57,8 @@ string CGAddMouseToInventory::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGAddMouseToInventory("
-        << "ObjectID:" << (int)m_ObjectID << ",InventoryX:" << (int)m_InvenX << ",InventoryY:" << (int)m_InvenY << ")";
+    msg << "CGAddMouseToInventory(" << "ObjectID:" << (int)m_ObjectID << ",InventoryX:" << (int)m_InvenX
+        << ",InventoryY:" << (int)m_InvenY << ")";
     return msg.toString();
 
     __END_CATCH

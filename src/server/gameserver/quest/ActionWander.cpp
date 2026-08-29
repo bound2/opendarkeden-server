@@ -131,8 +131,7 @@ string ActionWander::toString() const
 
     StringStream msg;
 
-    msg << "ActionWander("
-        << " X:" << (int)m_X << " ,Y:" << (int)m_Y << " ,Radius:" << (int)m_Radius
+    msg << "ActionWander(" << " X:" << (int)m_X << " ,Y:" << (int)m_Y << " ,Radius:" << (int)m_Radius
         << " ,MovePercentage:" << (int)m_MovePercentage << ")";
 
     return msg.toString();

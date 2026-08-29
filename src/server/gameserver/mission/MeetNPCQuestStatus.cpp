@@ -54,8 +54,7 @@ string MeetNPCQuestStatus::toString() const {
 
     StringStream msg;
 
-    msg << "MeetNPCQuestStatus("
-        << ") : " << QuestStatus::toString().c_str();
+    msg << "MeetNPCQuestStatus(" << ") : " << QuestStatus::toString().c_str();
 
     return msg.toString();
 

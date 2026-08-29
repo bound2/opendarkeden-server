@@ -490,8 +490,7 @@ string MonsterInfo::toString() const
 
     StringStream msg;
 
-    msg << "MonsterInfo("
-        << "MonsterType:" << m_MonsterType << ",SpriteType:" << m_SpriteType << ",HName:" << m_HName
+    msg << "MonsterInfo(" << "MonsterType:" << m_MonsterType << ",SpriteType:" << m_SpriteType << ",HName:" << m_HName
         << ",EName:" << m_EName << ",Level:" << (int)m_Level << ",STR:" << (int)m_STR << ",DEX:" << (int)m_DEX
         << ",INT:" << (int)m_INT << ",HP:" << m_HP << ",Exp:" << m_Exp << ",MainColor:" << (int)m_MainColor
         << ",SubColor:" << (int)m_SubColor << ",Alignment:" << MAlignment2String[m_Alignment]

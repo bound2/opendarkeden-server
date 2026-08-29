@@ -144,9 +144,8 @@ string EffectTransportCreature::toString() const
     StringStream msg;
 
     if (m_pZone) {
-        msg << "EffectTransportCreature("
-            << ",ZoneName:" << m_ZoneName.c_str() << ",ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX()
-            << ",Y:" << (int)getY() << ")";
+        msg << "EffectTransportCreature(" << ",ZoneName:" << m_ZoneName.c_str()
+            << ",ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX() << ",Y:" << (int)getY() << ")";
     }
 
     return msg.toString();

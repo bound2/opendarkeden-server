@@ -47,8 +47,7 @@ string GCKnockBack::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCKnockBack("
-        << "ObjectID:" << (int)m_ObjectID << "Origin(X,Y):" << (int)m_OriginX << "," << (int)m_OriginY
+    msg << "GCKnockBack(" << "ObjectID:" << (int)m_ObjectID << "Origin(X,Y):" << (int)m_OriginX << "," << (int)m_OriginY
         << "Target(X,Y):" << (int)m_TargetX << "," << (int)m_TargetY << ")";
     return msg.toString();
 

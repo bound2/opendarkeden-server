@@ -80,10 +80,9 @@ string GCAddMonsterCorpse::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddMonsterCorpse("
-        << "ObjectID:" << m_ObjectID << ",MonsterType:" << (int)m_MonsterType << ",MonsterName:" << m_MonsterName
-        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir] << ",hasHead:" << (int)m_bhasHead
-        << ",TreasureCount:" << (int)m_TreasureCount << ")";
+    msg << "GCAddMonsterCorpse(" << "ObjectID:" << m_ObjectID << ",MonsterType:" << (int)m_MonsterType
+        << ",MonsterName:" << m_MonsterName << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir]
+        << ",hasHead:" << (int)m_bhasHead << ",TreasureCount:" << (int)m_TreasureCount << ")";
     return msg.toString();
 
     __END_CATCH

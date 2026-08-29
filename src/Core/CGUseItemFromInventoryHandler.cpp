@@ -1263,9 +1263,8 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
 
         if (pt.x == -1) {
             StringStream msg;
-            msg << "¿ÀÅä¹ÙÀÌ¸¦ Á¸¿¡ ³ÖÀ» ¼ö ¾ø½À´Ï´Ù: "
-                << "ZoneID=" << (int)pZone->getZoneID() << ", X=" << (int)pSlayer->getX()
-                << ", Y=" << (int)pSlayer->getY();
+            msg << "¿ÀÅä¹ÙÀÌ¸¦ Á¸¿¡ ³ÖÀ» ¼ö ¾ø½À´Ï´Ù: " << "ZoneID=" << (int)pZone->getZoneID()
+                << ", X=" << (int)pSlayer->getX() << ", Y=" << (int)pSlayer->getY();
 
             filelog("motorError.txt", "%s", msg.toString().c_str());
             // throw Error("¿ÀÅä¹ÙÀÌ¸¦ Á¸¿¡ ³ÖÀ» ¼ö ¾ø½À´Ï´Ù");

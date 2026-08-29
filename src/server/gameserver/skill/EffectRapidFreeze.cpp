@@ -226,8 +226,7 @@ string EffectRapidFreeze::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectRapidFreeze("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectRapidFreeze(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

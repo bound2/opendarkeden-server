@@ -38,8 +38,8 @@ enum {
 
 class GCTradeFinish : public Packet {
 public:
-    GCTradeFinish() {};
-    ~GCTradeFinish() {};
+    GCTradeFinish(){};
+    ~GCTradeFinish(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

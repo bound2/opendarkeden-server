@@ -46,9 +46,8 @@ string CGSetSlayerHotKey::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSetSlayerHotKey("
-        << "F9:" << (int)m_HotKey[0] << ",F10:" << (int)m_HotKey[1] << ",F11:" << (int)m_HotKey[2]
-        << ",F12:" << (int)m_HotKey[3] << ")";
+    msg << "CGSetSlayerHotKey(" << "F9:" << (int)m_HotKey[0] << ",F10:" << (int)m_HotKey[1]
+        << ",F11:" << (int)m_HotKey[2] << ",F12:" << (int)m_HotKey[3] << ")";
 
     return msg.toString();
 

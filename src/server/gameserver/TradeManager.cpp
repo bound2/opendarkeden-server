@@ -672,13 +672,9 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
 
     BEGIN_DB {
         StringStream SQL;
-        SQL << "INSERT INTO TradeLog (Timeline, Name1, IP1, Name2, IP2, Content) VALUES ("
-            << "'" << VSDateTime::currentDateTime().toString() << "',"
-            << "'" << pCreature1->getName() << "',"
-            << "'" << ip1 << "',"
-            << "'" << pCreature2->getName() << "',"
-            << "'" << ip2 << "',"
-            << "'" << msg.toString() << "'"
+        SQL << "INSERT INTO TradeLog (Timeline, Name1, IP1, Name2, IP2, Content) VALUES (" << "'"
+            << VSDateTime::currentDateTime().toString() << "'," << "'" << pCreature1->getName() << "'," << "'" << ip1
+            << "'," << "'" << pCreature2->getName() << "'," << "'" << ip2 << "'," << "'" << msg.toString() << "'"
             << ")";
 
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();

@@ -398,9 +398,8 @@ string UpdateServerPlayer::toString() const throw(Error) {
 
     StringStream msg;
 
-    msg << "UpdateServerPlayer("
-        << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost() << ",Port:" << m_pSocket->getPort()
-        << ")";
+    msg << "UpdateServerPlayer(" << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost()
+        << ",Port:" << m_pSocket->getPort() << ")";
 
     return msg.toString();
 

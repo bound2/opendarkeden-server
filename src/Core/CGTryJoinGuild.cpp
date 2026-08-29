@@ -45,8 +45,7 @@ string CGTryJoinGuild::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGTryJoinGuild("
-        << "GuildID:" << (int)m_GuildID << "GuildMemberRank:" << (int)m_GuildMemberRank << ")";
+    msg << "CGTryJoinGuild(" << "GuildID:" << (int)m_GuildID << "GuildMemberRank:" << (int)m_GuildMemberRank << ")";
     return msg.toString();
 
     __END_CATCH

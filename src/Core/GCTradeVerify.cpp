@@ -55,8 +55,7 @@ string GCTradeVerify::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCTradeVerify("
-        << "CODE:" << (int)m_Code << ")";
+    msg << "GCTradeVerify(" << "CODE:" << (int)m_Code << ")";
     return msg.toString();
 
     __END_CATCH

@@ -109,8 +109,7 @@ string ModifyItemInfo::toString() const {
 
     StringStream msg;
 
-    msg << "ModifyItemInfo( "
-        << ",ListNum: " << (int)m_ListNum << " ListSet( ";
+    msg << "ModifyItemInfo( " << ",ListNum: " << (int)m_ListNum << " ListSet( ";
 
     for (list<DWORD>::const_iterator itr = m_SList.begin(); itr != m_SList.end(); itr++) {
         msg << (int)(*itr) << ",";

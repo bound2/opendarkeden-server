@@ -309,7 +309,7 @@ void Datagram::setAddress(SOCKADDR_IN* pSockAddr) {
 //////////////////////////////////////////////////////////////////////
 string Datagram::toString() const {
     StringStream msg;
-    msg << "Datagram("
-        << "Length:" << m_Length << ",InputOffset:" << m_InputOffset << ",OutputOffset:" << m_OutputOffset << ")";
+    msg << "Datagram(" << "Length:" << m_Length << ",InputOffset:" << m_InputOffset
+        << ",OutputOffset:" << m_OutputOffset << ")";
     return msg.toString();
 }

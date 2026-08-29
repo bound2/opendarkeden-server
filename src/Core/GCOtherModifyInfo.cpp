@@ -42,8 +42,7 @@ string GCOtherModifyInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCOtherModifyInfo("
-        << "ObjectID::" << (int)m_ObjectID << "," << ModifyInfo::toString() << ")";
+    msg << "GCOtherModifyInfo(" << "ObjectID::" << (int)m_ObjectID << "," << ModifyInfo::toString() << ")";
     return msg.toString();
 
     __END_CATCH

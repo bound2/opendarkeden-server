@@ -101,8 +101,8 @@ void CUBeginUpdate::execute(Player* pPlayer) throw(ProtocolException, Error) {
 string CUBeginUpdate::toString() const throw() {
     StringStream msg;
 
-    msg << "CUBeginUpdate("
-        << "Version:" << m_Version << "GuildVersion:" << m_GuildVersion << "InfoVersion:" << m_InfoVersion << ")";
+    msg << "CUBeginUpdate(" << "Version:" << m_Version << "GuildVersion:" << m_GuildVersion
+        << "InfoVersion:" << m_InfoVersion << ")";
 
     return msg.toString();
 }

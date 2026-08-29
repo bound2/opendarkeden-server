@@ -50,8 +50,7 @@ string ConditionCanEnterDynamicZone::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionCanEnterDynamicZone("
-        << "ZoneID:" << (int)m_DynamicZoneID << ")";
+    msg << "ConditionCanEnterDynamicZone(" << "ZoneID:" << (int)m_DynamicZoneID << ")";
     return msg.toString();
 
     __END_CATCH

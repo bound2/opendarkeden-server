@@ -71,8 +71,7 @@ string ActionAskDynamic::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionAskDynamic("
-        << ",ScriptID:" << (int)m_ScriptID << ")";
+    msg << "ActionAskDynamic(" << ",ScriptID:" << (int)m_ScriptID << ")";
 
     return msg.toString();
 

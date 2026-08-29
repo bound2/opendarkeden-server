@@ -106,8 +106,8 @@ string LGIncomingConnectionOK::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "LGIncomingConnectionOK("
-        << "PlayerID:" << m_PlayerID << ",TCPPort:" << m_TCPPort << ",Key:" << m_Key << ")";
+    msg << "LGIncomingConnectionOK(" << "PlayerID:" << m_PlayerID << ",TCPPort:" << m_TCPPort << ",Key:" << m_Key
+        << ")";
     return msg.toString();
 
     __END_CATCH

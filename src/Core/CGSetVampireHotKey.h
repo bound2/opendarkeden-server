@@ -22,8 +22,8 @@
 
 class CGSetVampireHotKey : public Packet {
 public:
-    CGSetVampireHotKey() {};
-    virtual ~CGSetVampireHotKey() {};
+    CGSetVampireHotKey(){};
+    virtual ~CGSetVampireHotKey(){};
     // Initialize the packet by reading data from the input stream.
     void read(SocketInputStream& iStream);
 

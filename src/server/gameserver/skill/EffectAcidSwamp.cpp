@@ -215,8 +215,7 @@ string EffectAcidSwamp::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectAcidSwamp("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectAcidSwamp(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

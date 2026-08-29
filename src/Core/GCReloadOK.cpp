@@ -85,8 +85,7 @@ string GCReloadOK::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCReloadOK("
-        << "BulletNum:" << (int)m_BulletNum << ")";
+    msg << "GCReloadOK(" << "BulletNum:" << (int)m_BulletNum << ")";
     return msg.toString();
 
     __END_CATCH

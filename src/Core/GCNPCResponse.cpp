@@ -143,8 +143,7 @@ string GCNPCResponse::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCNPCResponse("
-        << "Code : " << (int)m_Code << "Parameter : " << (int)m_Parameter << ")";
+    msg << "GCNPCResponse(" << "Code : " << (int)m_Code << "Parameter : " << (int)m_Parameter << ")";
     return msg.toString();
 
     __END_CATCH

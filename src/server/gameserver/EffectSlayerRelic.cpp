@@ -235,8 +235,7 @@ string EffectSlayerRelic::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSlayerRelic("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectSlayerRelic(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

@@ -201,8 +201,7 @@ void EffectPKZoneRegen::unaffect()
     StringStream msg;
 
     msg << "EffectPKZoneRegen[" << m_pZone->getZoneID() << "|(" << m_Rect.left << "," << m_Rect.top << ","
-        << m_Rect.right << "," << m_Rect.bottom << ")]"
-        << " 이펙트가 사라졌다..";
+        << m_Rect.right << "," << m_Rect.bottom << ")]" << " 이펙트가 사라졌다..";
 
     filelog("PKZone.txt", "EffectPKZoneRegen[%d|(%d,%d,%d,%d)] 이펙트가 사라졌다.", m_pZone->getZoneID(), m_Rect.left,
             m_Rect.top, m_Rect.right, m_Rect.bottom);
@@ -222,8 +221,7 @@ string EffectPKZoneRegen::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectPKZoneRegen("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectPKZoneRegen(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

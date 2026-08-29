@@ -104,8 +104,7 @@ string EffectRevealer::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectRevealer("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectRevealer(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

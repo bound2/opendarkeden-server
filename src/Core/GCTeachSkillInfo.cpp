@@ -90,9 +90,7 @@ string GCTeachSkillInfo::toString() const
         break;
     }
 
-    msg << "GCTeachSkillInfo("
-        << "DomainType:" << domain << ","
-        << "TargetLevel:" << (int)m_TargetLevel << ")";
+    msg << "GCTeachSkillInfo(" << "DomainType:" << domain << "," << "TargetLevel:" << (int)m_TargetLevel << ")";
 
     return msg.toString();
 

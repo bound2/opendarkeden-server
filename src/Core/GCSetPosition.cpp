@@ -63,8 +63,7 @@ string GCSetPosition::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSetPosition("
-        << "X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << (int)m_Dir << ")";
+    msg << "GCSetPosition(" << "X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << (int)m_Dir << ")";
     return msg.toString();
 
     __END_CATCH

@@ -47,8 +47,7 @@ string CGLotterySelect::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGLotterySelect("
-        << "QuestLevel:" << m_QuestLevel << ")";
+    msg << "CGLotterySelect(" << "QuestLevel:" << m_QuestLevel << ")";
     return msg.toString();
 
     __END_CATCH

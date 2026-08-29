@@ -101,8 +101,7 @@ string CLLogin::toString() const
 
 {
     StringStream msg;
-    msg << "CLLogin("
-        << "ID:" << m_ID << ",Password:" << m_Password << ")";
+    msg << "CLLogin(" << "ID:" << m_ID << ",Password:" << m_Password << ")";
     return msg.toString();
 }
 

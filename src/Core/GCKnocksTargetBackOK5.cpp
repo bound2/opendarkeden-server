@@ -112,8 +112,7 @@ string GCKnocksTargetBackOK5::toString() const {
     __BEGIN_DEBUG
 
     StringStream msg;
-    msg << "GCKnocksTargetBackOK5("
-        << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID: " << (int)m_TargetObjectID
+    msg << "GCKnocksTargetBackOK5(" << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID: " << (int)m_TargetObjectID
         << ",Success:" << (int)m_bSuccess << ",(Dir,X,Y) : " << (int)m_dir << "," << (int)m_X << "," << (int)m_Y << ")";
     return msg.toString();
 

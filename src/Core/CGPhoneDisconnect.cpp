@@ -51,8 +51,7 @@ string CGPhoneDisconnect::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGPhoneDisconnect("
-        << "SlotID: " << (int)m_SlotID << ")";
+    msg << "CGPhoneDisconnect(" << "SlotID: " << (int)m_SlotID << ")";
     return msg.toString();
 
     __END_CATCH

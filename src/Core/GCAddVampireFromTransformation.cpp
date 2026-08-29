@@ -74,8 +74,8 @@ string GCAddVampireFromTransformation::toString() const
 
     StringStream msg;
 
-    msg << "GCAddVampireFromTransformation("
-        << "VampireInfo:" << m_VampireInfo.toString() << "EffectInfo:" << m_pEffectInfo->toString() << ")";
+    msg << "GCAddVampireFromTransformation(" << "VampireInfo:" << m_VampireInfo.toString()
+        << "EffectInfo:" << m_pEffectInfo->toString() << ")";
 
     return msg.toString();
 

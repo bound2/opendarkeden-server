@@ -64,8 +64,7 @@ string CLQueryCharacterName::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CLQueryCharacterName("
-        << "CharacterName:" << m_CharacterName << ")";
+    msg << "CLQueryCharacterName(" << "CharacterName:" << m_CharacterName << ")";
     return msg.toString();
 
     __END_CATCH

@@ -187,8 +187,8 @@ string ComposMei::toString() const
 {
     StringStream msg;
 
-    msg << "ComposMei("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType() << ",Num:" << (int)getNum() << ")";
+    msg << "ComposMei(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType() << ",Num:" << (int)getNum()
+        << ")";
 
     return msg.toString();
 }
@@ -383,9 +383,8 @@ string ComposMeiInfo::toString() const
 
 {
     StringStream msg;
-    msg << "ComposMeiInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "ComposMeiInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ",HPAmount:" << (int)m_HPAmount << ",MPAmount:" << (int)m_MPAmount
         << ")";
     return msg.toString();

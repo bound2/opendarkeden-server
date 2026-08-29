@@ -45,8 +45,7 @@ string ConditionCanEnterEventZone::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionCanEnterEventZone("
-        << ")";
+    msg << "ConditionCanEnterEventZone(" << ")";
     return msg.toString();
 
     __END_CATCH

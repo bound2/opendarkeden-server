@@ -40,7 +40,6 @@ string CLVersionCheck::toString() const
 
 {
     StringStream msg;
-    msg << "CLVersionCheck("
-        << "Version:" << (int)m_Version << ")";
+    msg << "CLVersionCheck(" << "Version:" << (int)m_Version << ")";
     return msg.toString();
 }

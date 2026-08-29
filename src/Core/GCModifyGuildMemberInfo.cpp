@@ -86,9 +86,8 @@ string GCModifyGuildMemberInfo::toString() const
 
     StringStream msg;
 
-    msg << "GCModifyGuildMemberInfo("
-        << "GuildID:" << (int)m_GuildID << "GuildName:" << m_GuildName << "GuildMemberRank:" << (int)m_GuildMemberRank
-        << ")";
+    msg << "GCModifyGuildMemberInfo(" << "GuildID:" << (int)m_GuildID << "GuildName:" << m_GuildName
+        << "GuildMemberRank:" << (int)m_GuildMemberRank << ")";
 
     return msg.toString();
 

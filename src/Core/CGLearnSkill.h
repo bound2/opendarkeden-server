@@ -18,8 +18,8 @@
 
 class CGLearnSkill : public Packet {
 public:
-    CGLearnSkill() {};
-    ~CGLearnSkill() {};
+    CGLearnSkill(){};
+    ~CGLearnSkill(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

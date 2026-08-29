@@ -55,8 +55,7 @@ void SGDeleteGuildOK::execute(Player* pPlayer) {
 string SGDeleteGuildOK::toString() const {
     StringStream msg;
 
-    msg << "SGDeleteGuildOK("
-        << "GuildID:" << (int)m_GuildID << ")";
+    msg << "SGDeleteGuildOK(" << "GuildID:" << (int)m_GuildID << ")";
 
     return msg.toString();
 }

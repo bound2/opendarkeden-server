@@ -80,8 +80,8 @@ string EffectRideMotorcycle::toString() const
 {
     StringStream msg;
 
-    msg << "EffectRideMotorcycle("
-        << "ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX() << ",Y:" << (int)getY();
+    msg << "EffectRideMotorcycle(" << "ZoneID:" << (int)m_pZone->getZoneID() << ",X:" << (int)getX()
+        << ",Y:" << (int)getY();
 
     if (m_pTarget)
         msg << ",Target:" << m_pTarget->toString();

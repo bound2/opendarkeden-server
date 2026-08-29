@@ -20,8 +20,8 @@
 
 class GCAddVampirePortal : public Packet {
 public:
-    GCAddVampirePortal() {};
-    ~GCAddVampirePortal() {};
+    GCAddVampirePortal(){};
+    ~GCAddVampirePortal(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

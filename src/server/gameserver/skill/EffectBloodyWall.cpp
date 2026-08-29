@@ -277,8 +277,7 @@ string EffectBloodyWall::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectBloodyWall("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBloodyWall(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

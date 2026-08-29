@@ -56,8 +56,7 @@ string CGMixItem::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGMixItem("
-        << "ObjectID:" << (int)m_ObjectID << ",InvenX:" << (int)m_InvenX << ",InvenY:" << (int)m_InvenY
+    msg << "CGMixItem(" << "ObjectID:" << (int)m_ObjectID << ",InvenX:" << (int)m_InvenX << ",InvenY:" << (int)m_InvenY
         << ",ObjectID:" << (int)m_TargetObjectID[0] << ",ObjectID:" << (int)m_TargetObjectID[1] << ")";
     return msg.toString();
 

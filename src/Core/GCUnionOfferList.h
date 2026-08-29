@@ -26,8 +26,8 @@
 
 class SingleGuildUnionOffer {
 public:
-    SingleGuildUnionOffer() {};
-    ~SingleGuildUnionOffer() {};
+    SingleGuildUnionOffer(){};
+    ~SingleGuildUnionOffer(){};
     enum OfferType { JOIN, QUIT };
 
     PacketSize_t getSize() const {

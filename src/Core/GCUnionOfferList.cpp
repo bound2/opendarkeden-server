@@ -105,8 +105,7 @@ string GCUnionOfferList::toString() const
 
     StringStream msg;
 
-    msg << "GCUnionOfferList("
-        << ")";
+    msg << "GCUnionOfferList(" << ")";
 
     return msg.toString();
 

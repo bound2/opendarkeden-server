@@ -64,8 +64,7 @@ string GCSkillFailed1::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCSkillFailed1("
-        << "SkillType:" << (int)m_SkillType << ")" << ModifyInfo::toString();
+    msg << "GCSkillFailed1(" << "SkillType:" << (int)m_SkillType << ")" << ModifyInfo::toString();
     return msg.toString();
 
     __END_CATCH

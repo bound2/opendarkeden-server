@@ -42,10 +42,8 @@ string WeatherInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "WeatherInfo("
-        << "Clear:" << m_Probabilities[WEATHER_CLEAR] << "%"
-        << ",Rainy:" << m_Probabilities[WEATHER_RAINY] << "%"
-        << ",Snowy:" << m_Probabilities[WEATHER_SNOWY] << "%"
+    msg << "WeatherInfo(" << "Clear:" << m_Probabilities[WEATHER_CLEAR] << "%"
+        << ",Rainy:" << m_Probabilities[WEATHER_RAINY] << "%" << ",Snowy:" << m_Probabilities[WEATHER_SNOWY] << "%"
         << ")";
     return msg.toString();
 

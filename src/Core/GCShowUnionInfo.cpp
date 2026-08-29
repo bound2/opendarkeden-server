@@ -109,8 +109,7 @@ string GCShowUnionInfo::toString() const
 
     StringStream msg;
 
-    msg << "GCShowUnionInfo("
-        << ")";
+    msg << "GCShowUnionInfo(" << ")";
 
     return msg.toString();
 

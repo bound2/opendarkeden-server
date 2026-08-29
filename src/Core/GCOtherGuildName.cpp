@@ -85,8 +85,8 @@ string GCOtherGuildName::toString() const
 
     StringStream msg;
 
-    msg << "GCOtherGuildName("
-        << "ObjectID:" << (int)m_ObjectID << "GuildID:" << (int)m_GuildID << "GuildName:" << m_GuildName << ")";
+    msg << "GCOtherGuildName(" << "ObjectID:" << (int)m_ObjectID << "GuildID:" << (int)m_GuildID
+        << "GuildName:" << m_GuildName << ")";
 
     return msg.toString();
 

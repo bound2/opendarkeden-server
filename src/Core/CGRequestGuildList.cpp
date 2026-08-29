@@ -43,8 +43,7 @@ string CGRequestGuildList::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGRequestGuildList("
-        << "GuildType : " << m_GuildType << ")";
+    msg << "CGRequestGuildList(" << "GuildType : " << m_GuildType << ")";
     return msg.toString();
 
     __END_CATCH

@@ -70,8 +70,7 @@ QuestMessage RewardClass::canGiveReward(PlayerCreature* pPC) const
 string RewardClass::toString() const {
     StringStream msg;
 
-    msg << "RewardClass("
-        << "RewardClass# : " << m_RewardClass;
+    msg << "RewardClass(" << "RewardClass# : " << m_RewardClass;
 
     vector<RewardInfo*>::const_iterator itr = m_RewardInfos.begin();
     vector<RewardInfo*>::const_iterator endItr = m_RewardInfos.end();

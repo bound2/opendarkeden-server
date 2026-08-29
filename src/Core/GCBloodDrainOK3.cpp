@@ -88,8 +88,7 @@ string GCBloodDrainOK3::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCBloodDrainOK3("
-        << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID:" << (int)m_TargetObjectID << ")";
+    msg << "GCBloodDrainOK3(" << "ObjectID:" << (int)m_ObjectID << ",TargetObjectID:" << (int)m_TargetObjectID << ")";
     return msg.toString();
 
     __END_CATCH

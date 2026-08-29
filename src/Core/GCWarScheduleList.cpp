@@ -178,8 +178,7 @@ string GCWarScheduleList::toString() const
 
     StringStream msg;
 
-    msg << "GCWarScheduleList("
-        << "WarNum : " << m_WarScheduleList.size();
+    msg << "GCWarScheduleList(" << "WarNum : " << m_WarScheduleList.size();
 
     /*	WarScheduleInfoListItor itr = m_WarScheduleList.begin();
 

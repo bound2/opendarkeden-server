@@ -26,7 +26,7 @@ public:
     // constructor
     GCUntransformOK() {}
     GCUntransformOK(Coord_t x, Coord_t y, Dir_t dir) : m_X(x), m_Y(y), m_Dir(dir) {}
-    ~GCUntransformOK() {};
+    ~GCUntransformOK(){};
 
 
 public:

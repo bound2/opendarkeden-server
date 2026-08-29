@@ -43,8 +43,7 @@ string CGSelectNickname::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSelectNickname("
-        << "NicknameID:" << m_NicknameID << ")";
+    msg << "CGSelectNickname(" << "NicknameID:" << m_NicknameID << ")";
     return msg.toString();
 
     __END_CATCH

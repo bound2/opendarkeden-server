@@ -72,8 +72,7 @@ string CGRegistGuild::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGRegistGuild("
-        << "GuildName:" << m_GuildName << "GuildIntro:" << m_GuildIntro << ")";
+    msg << "CGRegistGuild(" << "GuildName:" << m_GuildName << "GuildIntro:" << m_GuildIntro << ")";
     return msg.toString();
 
     __END_CATCH

@@ -25,8 +25,8 @@
 
 class GCPhoneSay : public Packet {
 public:
-    GCPhoneSay() {};
-    ~GCPhoneSay() {};
+    GCPhoneSay(){};
+    ~GCPhoneSay(){};
     // Initialize packet by reading data from the incoming stream.
     void read(SocketInputStream& iStream);
 

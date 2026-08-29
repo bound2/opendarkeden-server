@@ -19,8 +19,8 @@
 
 class GCModifyInformation : public ModifyInfo {
 public:
-    GCModifyInformation() {};
-    ~GCModifyInformation() {};
+    GCModifyInformation(){};
+    ~GCModifyInformation(){};
     void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_MODIFY_INFORMATION;

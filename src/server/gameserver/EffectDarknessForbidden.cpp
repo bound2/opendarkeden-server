@@ -49,8 +49,7 @@ string EffectDarknessForbidden::toString() const {
 
     StringStream msg;
 
-    msg << "EffectDarknessForbidden("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectDarknessForbidden(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

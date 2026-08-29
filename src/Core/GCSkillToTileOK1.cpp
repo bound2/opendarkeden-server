@@ -163,9 +163,8 @@ string GCSkillToTileOK1::toString() const {
 
     StringStream msg;
 
-    msg << "GCSkillToTileOK1("
-        << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID << ",X:" << (int)m_X
-        << ",Y:" << (int)m_Y << ",Duration:" << (int)m_Duration << ",Range:" << (int)m_Range
+    msg << "GCSkillToTileOK1(" << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID
+        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Duration:" << (int)m_Duration << ",Range:" << (int)m_Range
         << ",Grade:" << (int)m_Grade << ",CListNum:" << (int)m_CListNum << "CListSet(";
 
     for (list<ObjectID_t>::const_iterator itr = m_CList.begin(); itr != m_CList.end(); itr++) {

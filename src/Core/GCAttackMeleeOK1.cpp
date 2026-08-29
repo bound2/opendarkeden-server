@@ -89,8 +89,7 @@ string GCAttackMeleeOK1::toString() const {
 
     StringStream msg;
 
-    msg << "GCAttackMeleeOK1("
-        << "ObjectID:" << (int)m_ObjectID << ModifyInfo::toString() << ")";
+    msg << "GCAttackMeleeOK1(" << "ObjectID:" << (int)m_ObjectID << ModifyInfo::toString() << ")";
     return msg.toString();
 
     __END_CATCH

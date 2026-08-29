@@ -76,8 +76,7 @@ string EffectIceFieldToCreature::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectIceFieldToCreature("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectIceFieldToCreature(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

@@ -203,7 +203,7 @@ private:
 
 class GCShowUnionInfo : public Packet {
 public:
-    GCShowUnionInfo() {};
+    GCShowUnionInfo(){};
     ~GCShowUnionInfo();
 
 
@@ -288,8 +288,8 @@ public:
 
 class GCShowUnionInfoHandler {
 public:
-    GCShowUnionInfoHandler() {};
-    ~GCShowUnionInfoHandler() {};
+    GCShowUnionInfoHandler(){};
+    ~GCShowUnionInfoHandler(){};
     // execute packet's handler
     static void execute(GCShowUnionInfo* pPacket, Player* pPlayer);
 };

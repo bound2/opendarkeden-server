@@ -148,8 +148,8 @@ string ZoneItemPosition::toString() const
 
     StringStream msg;
 
-    msg << "ZoneItemPosition("
-        << "ZoneID:" << (int)m_ZoneID << ",ZoneX:" << (int)m_ZoneX << ",ZoneY:" << (int)m_ZoneY << ")";
+    msg << "ZoneItemPosition(" << "ZoneID:" << (int)m_ZoneID << ",ZoneX:" << (int)m_ZoneX << ",ZoneY:" << (int)m_ZoneY
+        << ")";
 
     return msg.toString();
 

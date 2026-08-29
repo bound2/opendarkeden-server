@@ -42,8 +42,7 @@ string GCAuthKey::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAuthKey("
-        << "Key:" << m_Key << ")";
+    msg << "GCAuthKey(" << "Key:" << m_Key << ")";
     return msg.toString();
 
     __END_CATCH

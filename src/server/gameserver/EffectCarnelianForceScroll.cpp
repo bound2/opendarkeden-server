@@ -183,8 +183,7 @@ string EffectCarnelianForceScroll::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectCarnelianForceScroll("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectCarnelianForceScroll(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

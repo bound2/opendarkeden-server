@@ -77,8 +77,7 @@ string EffectSharpChakram::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSharpChakram("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectSharpChakram(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

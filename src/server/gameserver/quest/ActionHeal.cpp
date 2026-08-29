@@ -249,8 +249,7 @@ string ActionHeal::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionHeal("
-        << ")";
+    msg << "ActionHeal(" << ")";
     return msg.toString();
 
     __END_CATCH

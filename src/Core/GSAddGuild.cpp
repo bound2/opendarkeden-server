@@ -111,9 +111,8 @@ void GSAddGuild::execute(Player* pPlayer)
 string GSAddGuild::toString() const {
     StringStream msg;
 
-    msg << "GSAddGuild ("
-        << "GuildName:" << m_GuildName << "GuildMaster:" << m_GuildMaster << "GuildIntro:" << m_GuildIntro
-        << "GuildState:" << (int)m_GuildState << "GuildRace:" << (int)m_GuildRace
+    msg << "GSAddGuild (" << "GuildName:" << m_GuildName << "GuildMaster:" << m_GuildMaster
+        << "GuildIntro:" << m_GuildIntro << "GuildState:" << (int)m_GuildState << "GuildRace:" << (int)m_GuildRace
         << "ServerGroupID:" << (int)m_ServerGroupID << " )";
 
     return msg.toString();

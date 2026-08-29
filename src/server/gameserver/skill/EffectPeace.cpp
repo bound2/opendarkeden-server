@@ -119,8 +119,7 @@ string EffectPeace::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectPeace("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectPeace(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

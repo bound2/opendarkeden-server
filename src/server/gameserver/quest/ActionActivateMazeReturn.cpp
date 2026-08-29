@@ -91,8 +91,7 @@ string ActionActivateMazeReturn::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionActivateMazeReturn("
-        << "ZoneID:" << (int)m_ZoneID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
+    msg << "ActionActivateMazeReturn(" << "ZoneID:" << (int)m_ZoneID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ")";
     return msg.toString();
 
     __END_CATCH

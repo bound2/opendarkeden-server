@@ -60,7 +60,7 @@ public:
     typedef unordered_map<string, PartnerWaitInfo*> WaitInfoHashMap;
 
 public:
-    PartnerWaitingManager(WaitType waitType) : m_WaitType(waitType) {};
+    PartnerWaitingManager(WaitType waitType) : m_WaitType(waitType){};
     virtual ~PartnerWaitingManager();
 
 public:

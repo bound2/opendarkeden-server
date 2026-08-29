@@ -97,8 +97,7 @@ string ActionGiveItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveItem("
-        << ")";
+    msg << "ActionGiveItem(" << ")";
 
     return msg.toString();
 

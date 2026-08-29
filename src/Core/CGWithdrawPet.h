@@ -21,8 +21,8 @@
 
 class CGWithdrawPet : public Packet {
 public:
-    CGWithdrawPet() {};
-    virtual ~CGWithdrawPet() {};
+    CGWithdrawPet(){};
+    virtual ~CGWithdrawPet(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

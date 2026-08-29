@@ -112,9 +112,8 @@ string GCAttackArmsOK1::toString() const {
     __BEGIN_DEBUG
 
     StringStream msg;
-    msg << "GCAttackArmsOK1("
-        << "SkillType:" << (int)m_SkillType << "ObjectID:" << (int)m_ObjectID << ",BulletNum:" << (int)m_BulletNum
-        << ",Success:" << (int)m_bSuccess << ModifyInfo::toString() << ")";
+    msg << "GCAttackArmsOK1(" << "SkillType:" << (int)m_SkillType << "ObjectID:" << (int)m_ObjectID
+        << ",BulletNum:" << (int)m_BulletNum << ",Success:" << (int)m_bSuccess << ModifyInfo::toString() << ")";
     return msg.toString();
 
     __END_DEBUG

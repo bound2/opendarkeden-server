@@ -68,8 +68,7 @@ string EffectAutoTurret::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectAutoTurret("
-        << ")";
+    msg << "EffectAutoTurret(" << ")";
     return msg.toString();
 
     __END_CATCH

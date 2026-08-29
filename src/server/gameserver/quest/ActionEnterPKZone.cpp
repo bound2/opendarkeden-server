@@ -174,8 +174,7 @@ string ActionEnterPKZone::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionEnterPKZone("
-        << "ZoneID:" << (int)m_ZoneID << ")";
+    msg << "ActionEnterPKZone(" << "ZoneID:" << (int)m_ZoneID << ")";
     return msg.toString();
 
     __END_CATCH

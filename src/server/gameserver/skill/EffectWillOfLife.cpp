@@ -116,8 +116,7 @@ string EffectWillOfLife::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectWillOfLife("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectWillOfLife(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

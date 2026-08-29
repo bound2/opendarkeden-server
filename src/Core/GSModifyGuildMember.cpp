@@ -97,9 +97,8 @@ string GSModifyGuildMember::toString() const
 {
     StringStream msg;
 
-    msg << "GSModifyGuildMember ("
-        << "GuildID:" << (int)m_GuildID << "Name:" << m_Name << "GuildMemberRank:" << m_GuildMemberRank
-        << "Sender:" << m_Sender << " )";
+    msg << "GSModifyGuildMember (" << "GuildID:" << (int)m_GuildID << "Name:" << m_Name
+        << "GuildMemberRank:" << m_GuildMemberRank << "Sender:" << m_Sender << " )";
 
     return msg.toString();
 }

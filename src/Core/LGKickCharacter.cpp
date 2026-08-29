@@ -89,8 +89,7 @@ string LGKickCharacter::toString() const
 {
     StringStream msg;
 
-    msg << "LGKickCharacter("
-        << "ID:" << m_ID << ",PCName:" << m_PCName << ")";
+    msg << "LGKickCharacter(" << "ID:" << m_ID << ",PCName:" << m_PCName << ")";
 
     return msg.toString();
 }

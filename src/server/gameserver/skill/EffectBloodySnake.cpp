@@ -307,8 +307,7 @@ string EffectBloodySnake::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectBloodySnake("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBloodySnake(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

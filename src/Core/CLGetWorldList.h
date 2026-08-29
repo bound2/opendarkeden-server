@@ -21,8 +21,8 @@
 
 class CLGetWorldList : public Packet {
 public:
-    CLGetWorldList() {};
-    virtual ~CLGetWorldList() {};
+    CLGetWorldList(){};
+    virtual ~CLGetWorldList(){};
     // Initialize the packet by reading data from the input stream.
     void read(SocketInputStream& iStream);
 

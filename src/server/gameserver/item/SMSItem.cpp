@@ -145,8 +145,7 @@ string SMSItem::toString() const
 {
     StringStream msg;
 
-    msg << "SMSItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType() << ")";
+    msg << "SMSItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)getItemType() << ")";
 
     return msg.toString();
 }
@@ -189,9 +188,8 @@ string SMSItemInfo::toString() const
 
 {
     StringStream msg;
-    msg << "SMSItemInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "SMSItemInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ")";
     return msg.toString();
 }

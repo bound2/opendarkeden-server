@@ -30,8 +30,7 @@ string FameLimitInfo::toString() const
 
     StringStream msg;
 
-    msg << "FameLimitInfo ("
-        << " Level : " << (int)m_Level << " Fame : " << (int)m_Fame << ")";
+    msg << "FameLimitInfo (" << " Level : " << (int)m_Level << " Fame : " << (int)m_Fame << ")";
 
     return msg.toString();
 

@@ -176,8 +176,8 @@ string OustersSummonItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "OustersSummonItem("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Charge:" << m_Charge << ")";
+    msg << "OustersSummonItem(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Charge:" << m_Charge
+        << ")";
 
     return msg.toString();
 
@@ -254,10 +254,9 @@ string OustersSummonItemInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "OustersSummonItemInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",MaxCharge:" << m_MaxCharge
-        << ",EffectID:" << m_EffectID << ")";
+    msg << "OustersSummonItemInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",MaxCharge:" << m_MaxCharge << ",EffectID:" << m_EffectID << ")";
     return msg.toString();
 
     __END_CATCH

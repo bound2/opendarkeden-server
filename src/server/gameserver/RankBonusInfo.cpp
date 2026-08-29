@@ -22,8 +22,8 @@ string RankBonusInfo::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "RankBonusInfo ("
-        << "Type:" << (int)m_Type << ",Name:" << m_Name << ",Rank:" << m_Rank << ",Point:" << m_Point << ")";
+    msg << "RankBonusInfo (" << "Type:" << (int)m_Type << ",Name:" << m_Name << ",Rank:" << m_Rank
+        << ",Point:" << m_Point << ")";
     return msg.toString();
 
     __END_CATCH

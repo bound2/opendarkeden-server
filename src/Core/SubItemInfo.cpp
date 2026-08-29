@@ -54,8 +54,7 @@ void SubItemInfo::write(SocketOutputStream& oStream) const {
 string SubItemInfo::toString() const {
     StringStream msg;
 
-    msg << "SubItemInfo("
-        << "ObjectID:" << m_ObjectID << ",ItemClass:" << m_IClass << ",ItemType:" << m_ItemType
+    msg << "SubItemInfo(" << "ObjectID:" << m_ObjectID << ",ItemClass:" << m_IClass << ",ItemType:" << m_ItemType
         << ",Number:" << m_ItemNum << ",SlotID:" << m_SlotID << ")";
 
     return msg.toString();

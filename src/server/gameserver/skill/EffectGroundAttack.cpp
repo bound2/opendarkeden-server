@@ -215,8 +215,7 @@ string EffectGroundAttack::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectGroundAttack("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectGroundAttack(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

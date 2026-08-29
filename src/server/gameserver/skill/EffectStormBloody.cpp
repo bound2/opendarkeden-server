@@ -192,8 +192,7 @@ string EffectStormBloody::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectStormBloody("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectStormBloody(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

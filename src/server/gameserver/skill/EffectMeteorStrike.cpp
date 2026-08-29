@@ -252,8 +252,7 @@ string EffectMeteorStrike::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectMeteorStrike("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectMeteorStrike(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

@@ -166,8 +166,7 @@ string EffectIncreaseAttr::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectIncreaseAttr("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectIncreaseAttr(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

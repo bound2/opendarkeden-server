@@ -82,8 +82,7 @@ string EffectExplosionWater::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectExplosionWater("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectExplosionWater(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

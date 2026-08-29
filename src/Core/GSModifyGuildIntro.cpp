@@ -79,8 +79,7 @@ string GSModifyGuildIntro::toString() const
 {
     StringStream msg;
 
-    msg << "GSModifyGuildIntro ("
-        << "GuildID:" << (int)m_GuildID << "GuildIntro:" << m_GuildIntro << " )";
+    msg << "GSModifyGuildIntro (" << "GuildID:" << (int)m_GuildID << "GuildIntro:" << m_GuildIntro << " )";
 
     return msg.toString();
 }

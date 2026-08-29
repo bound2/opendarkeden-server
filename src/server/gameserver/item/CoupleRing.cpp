@@ -150,8 +150,7 @@ string CoupleRing::toString() const
 
 {
     StringStream msg;
-    msg << "CoupleRing("
-        << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ")";
+    msg << "CoupleRing(" << "ItemID:" << m_ItemID << ",ItemType:" << m_ItemType << ")";
     return msg.toString();
 }
 
@@ -232,10 +231,9 @@ string CoupleRingInfo::toString() const
 
 {
     StringStream msg;
-    msg << "CoupleRingInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << getName().c_str() << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ")";
+    msg << "CoupleRingInfo(" << "ItemType:" << m_ItemType << ",Name:" << getName().c_str() << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ")";
     return msg.toString();
 }
 

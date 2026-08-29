@@ -63,8 +63,7 @@ string GCTakeOutFail::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCTakeOutFail("
-        << "ObjectId:" << (int)m_ObjectID << ")";
+    msg << "GCTakeOutFail(" << "ObjectId:" << (int)m_ObjectID << ")";
     return msg.toString();
 
     __END_CATCH

@@ -261,19 +261,19 @@ void PCOustersInfo2::write(SocketOutputStream& oStream) const {
 string PCOustersInfo2::toString() const {
     StringStream msg;
 
-    msg << "PCOustersInfo2("
-        << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",Level:" << m_Level << ",Sex:" << Sex2String[m_Sex]
-        << ",HairColor:" << (int)m_HairColor << ",MasterEffectColor:" << (int)m_MasterEffectColor
-        << ",Alignment:" << (int)m_Alignment << ",STR[CURRENT]:" << (int)m_STR[ATTR_CURRENT]
-        << ",STR[MAX]:" << (int)m_STR[ATTR_MAX] << ",STR[BASIC]:" << (int)m_STR[ATTR_BASIC]
-        << ",DEX[CURRENT]:" << (int)m_DEX[ATTR_CURRENT] << ",DEX[MAX]:" << (int)m_DEX[ATTR_MAX]
-        << ",DEX[BASIC]:" << (int)m_DEX[ATTR_BASIC] << ",INT[CURRENT]:" << (int)m_INT[ATTR_CURRENT]
-        << ",INT[MAX]:" << (int)m_INT[ATTR_MAX] << ",INT[BASIC]:" << (int)m_INT[ATTR_BASIC]
-        << ",HP:" << m_HP[ATTR_CURRENT] << "/" << m_HP[ATTR_MAX] << ",MP:" << m_MP[ATTR_CURRENT] << "/"
-        << m_MP[ATTR_MAX] << ",Rank:" << (int)m_Rank << ",RankExp:" << (int)m_RankExp << ",Exp:" << m_Exp
-        << ",Gold:" << m_Gold << ",Fame:" << m_Fame << ",Sight:" << (int)m_Sight << ",Bonus:" << (int)m_Bonus
-        << ",SkillBonus:" << (int)m_SkillBonus << ",SilverDamage:" << (int)m_SilverDamage
-        << ",Competence:" << (int)m_Competence << ",GuildID:" << (int)m_GuildID << ",GuildName:" << m_GuildName
+    msg << "PCOustersInfo2(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",Level:" << m_Level
+        << ",Sex:" << Sex2String[m_Sex] << ",HairColor:" << (int)m_HairColor
+        << ",MasterEffectColor:" << (int)m_MasterEffectColor << ",Alignment:" << (int)m_Alignment
+        << ",STR[CURRENT]:" << (int)m_STR[ATTR_CURRENT] << ",STR[MAX]:" << (int)m_STR[ATTR_MAX]
+        << ",STR[BASIC]:" << (int)m_STR[ATTR_BASIC] << ",DEX[CURRENT]:" << (int)m_DEX[ATTR_CURRENT]
+        << ",DEX[MAX]:" << (int)m_DEX[ATTR_MAX] << ",DEX[BASIC]:" << (int)m_DEX[ATTR_BASIC]
+        << ",INT[CURRENT]:" << (int)m_INT[ATTR_CURRENT] << ",INT[MAX]:" << (int)m_INT[ATTR_MAX]
+        << ",INT[BASIC]:" << (int)m_INT[ATTR_BASIC] << ",HP:" << m_HP[ATTR_CURRENT] << "/" << m_HP[ATTR_MAX]
+        << ",MP:" << m_MP[ATTR_CURRENT] << "/" << m_MP[ATTR_MAX] << ",Rank:" << (int)m_Rank
+        << ",RankExp:" << (int)m_RankExp << ",Exp:" << m_Exp << ",Gold:" << m_Gold << ",Fame:" << m_Fame
+        << ",Sight:" << (int)m_Sight << ",Bonus:" << (int)m_Bonus << ",SkillBonus:" << (int)m_SkillBonus
+        << ",SilverDamage:" << (int)m_SilverDamage << ",Competence:" << (int)m_Competence
+        << ",GuildID:" << (int)m_GuildID << ",GuildName:" << m_GuildName
         << ",GuildMemberRank:" << (int)m_GuildMemberRank << ")";
 
     return msg.toString();

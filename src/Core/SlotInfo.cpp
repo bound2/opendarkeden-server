@@ -80,10 +80,10 @@ string SlotInfo::toString() const
 {
     StringStream msg;
 
-    msg << "SlotInfo("
-        << ",ObjectID:" << (int)m_ObjectID << ",ItemClass:" << (int)m_IClass << ",ItemType:" << (int)m_ItemType
-        << ",OptionTypeSize:" << (int)m_OptionType.size() << ",InvenX:" << (int)m_InvenX << ",InvenY:" << (int)m_InvenY
-        << ",Number:" << (int)m_ItemNum << ",MainColor:" << (int)m_MainColor << ")";
+    msg << "SlotInfo(" << ",ObjectID:" << (int)m_ObjectID << ",ItemClass:" << (int)m_IClass
+        << ",ItemType:" << (int)m_ItemType << ",OptionTypeSize:" << (int)m_OptionType.size()
+        << ",InvenX:" << (int)m_InvenX << ",InvenY:" << (int)m_InvenY << ",Number:" << (int)m_ItemNum
+        << ",MainColor:" << (int)m_MainColor << ")";
 
     return msg.toString();
 }

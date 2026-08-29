@@ -88,8 +88,7 @@ string EffectLightness::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectLightness("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectLightness(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

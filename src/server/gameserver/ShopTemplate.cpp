@@ -43,10 +43,10 @@ string ShopTemplate::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ShopTemplate("
-        << "TemplateID : " << (int)m_ID << ",RackType : " << (int)m_RackType << ",ItemClass : " << (int)m_ItemClass
-        << ",MinItemType : " << (int)m_MinItemType << ",MaxItemType : " << (int)m_MaxItemType
-        << ",MinOptionLevel : " << (int)m_MinOptionLevel << ",MaxOptionLevel : " << (int)m_MaxOptionLevel << ")";
+    msg << "ShopTemplate(" << "TemplateID : " << (int)m_ID << ",RackType : " << (int)m_RackType
+        << ",ItemClass : " << (int)m_ItemClass << ",MinItemType : " << (int)m_MinItemType
+        << ",MaxItemType : " << (int)m_MaxItemType << ",MinOptionLevel : " << (int)m_MinOptionLevel
+        << ",MaxOptionLevel : " << (int)m_MaxOptionLevel << ")";
     return msg.toString();
 
     __END_CATCH

@@ -85,8 +85,7 @@ string ActionAcceptCoupleRequest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionAcceptCoupleRequest("
-        << ")";
+    msg << "ActionAcceptCoupleRequest(" << ")";
 
     return msg.toString();
 

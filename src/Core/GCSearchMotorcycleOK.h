@@ -22,8 +22,8 @@
 
 class GCSearchMotorcycleOK : public Packet {
 public:
-    GCSearchMotorcycleOK() {};
-    ~GCSearchMotorcycleOK() {};
+    GCSearchMotorcycleOK(){};
+    ~GCSearchMotorcycleOK(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

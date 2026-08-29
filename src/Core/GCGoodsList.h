@@ -26,8 +26,7 @@ typedef struct _GoodsInfo {
 
     string toString() const {
         StringStream msg;
-        msg << "Good("
-            << "ObjectID : " << objectID << ", ItemClass : " << (int)itemClass << ", ItemType : " << itemType
+        msg << "Good(" << "ObjectID : " << objectID << ", ItemClass : " << (int)itemClass << ", ItemType : " << itemType
             << ", Grade : " << grade << ", Options : (";
 
         list<OptionType_t>::const_iterator itr = optionType.begin();

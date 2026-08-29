@@ -20,8 +20,8 @@
 
 class GCStashSell : public Packet {
 public:
-    GCStashSell() {};
-    ~GCStashSell() {};
+    GCStashSell(){};
+    ~GCStashSell(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

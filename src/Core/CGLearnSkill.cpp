@@ -73,9 +73,7 @@ string CGLearnSkill::toString() const
         break;
     }
 
-    msg << "CGLearnSkill("
-        << "SkillType:" << (int)m_SkillType << ","
-        << "DomainType:" << domain << ")";
+    msg << "CGLearnSkill(" << "SkillType:" << (int)m_SkillType << "," << "DomainType:" << domain << ")";
 
     return msg.toString();
 

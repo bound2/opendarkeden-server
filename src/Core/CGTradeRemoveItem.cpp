@@ -42,8 +42,8 @@ string CGTradeRemoveItem::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGTradeRemoveItem("
-        << "TargetObjectID:" << (int)m_TargetObjectID << ",ItemObjectID:" << (int)m_ItemObjectID << ")";
+    msg << "CGTradeRemoveItem(" << "TargetObjectID:" << (int)m_TargetObjectID << ",ItemObjectID:" << (int)m_ItemObjectID
+        << ")";
     return msg.toString();
 
     __END_CATCH

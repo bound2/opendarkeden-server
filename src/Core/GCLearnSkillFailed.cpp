@@ -80,9 +80,7 @@ string GCLearnSkillFailed::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCLearnSkillFailed("
-        << "SkillType:" << (int)m_SkillType << ","
-        << "Desc:" << (int)m_Desc << ")";
+    msg << "GCLearnSkillFailed(" << "SkillType:" << (int)m_SkillType << "," << "Desc:" << (int)m_Desc << ")";
     return msg.toString();
 
     __END_CATCH

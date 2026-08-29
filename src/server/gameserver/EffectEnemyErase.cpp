@@ -203,8 +203,7 @@ string EffectEnemyErase::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectEnemyErase("
-        << "EnemyName:" << getEnemyName() << ")";
+    msg << "EffectEnemyErase(" << "EnemyName:" << getEnemyName() << ")";
     return msg.toString();
 
     __END_CATCH

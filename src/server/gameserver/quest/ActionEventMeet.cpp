@@ -90,8 +90,7 @@ string ActionEventMeet::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionEventMeet("
-        << ",ScriptID:" << (int)m_ScriptID << ")";
+    msg << "ActionEventMeet(" << ",ScriptID:" << (int)m_ScriptID << ")";
 
     return msg.toString();
 

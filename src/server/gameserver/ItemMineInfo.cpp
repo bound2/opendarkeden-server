@@ -33,8 +33,7 @@ string ItemMineInfo::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ItemMineInfo("
-        << "m_ID : " << m_ID << "m_ItemClass : " << ItemClass2String[(int)m_ItemClass]
+    msg << "ItemMineInfo(" << "m_ID : " << m_ID << "m_ItemClass : " << ItemClass2String[(int)m_ItemClass]
         << "m_ItemType : " << (int)m_ItemType << "m_ItemOptions : " << getOptionTypeToString(m_ItemOptions) << ")";
     return msg.toString();
 

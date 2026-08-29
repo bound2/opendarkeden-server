@@ -43,7 +43,6 @@ void CGShopRequestList::execute(Player* pPlayer)
 
 string CGShopRequestList::toString() const {
     StringStream msg;
-    msg << "CGShopRequestList("
-        << "ObjectID:" << (int)m_ObjectID << "RackType:" << (int)m_RackType << ")";
+    msg << "CGShopRequestList(" << "ObjectID:" << (int)m_ObjectID << "RackType:" << (int)m_RackType << ")";
     return msg.toString();
 }

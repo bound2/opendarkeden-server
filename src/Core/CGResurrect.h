@@ -16,8 +16,8 @@
 
 class CGResurrect : public Packet {
 public:
-    CGResurrect() {};
-    virtual ~CGResurrect() {};
+    CGResurrect(){};
+    virtual ~CGResurrect(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

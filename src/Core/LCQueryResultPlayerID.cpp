@@ -95,8 +95,7 @@ string LCQueryResultPlayerID::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "LCQueryResultPlayerID("
-        << "PlayerID:" << m_PlayerID << ",Exist:" << m_bExist << ")";
+    msg << "LCQueryResultPlayerID(" << "PlayerID:" << m_PlayerID << ",Exist:" << m_bExist << ")";
     return msg.toString();
 
     __END_CATCH

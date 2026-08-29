@@ -51,8 +51,7 @@ string CGDeleteSMSAddress::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGDeleteSMSAddress("
-        << ")";
+    msg << "CGDeleteSMSAddress(" << ")";
     return msg.toString();
 
     __END_CATCH

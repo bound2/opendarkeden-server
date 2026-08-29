@@ -82,8 +82,7 @@ string GCPhoneDisconnected::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCPhoneDisconnected("
-        << "PhoneNumber:" << (int)m_PhoneNumber << ",SlotID:" << (int)m_SlotID << " )";
+    msg << "GCPhoneDisconnected(" << "PhoneNumber:" << (int)m_PhoneNumber << ",SlotID:" << (int)m_SlotID << " )";
     return msg.toString();
 
     __END_CATCH

@@ -50,12 +50,8 @@ void FlagSet::create(const string& owner)
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
         StringStream sql;
-        sql << "INSERT INTO FlagSet ("
-            << "OwnerID, FlagData"
-            << ") VALUES ("
-            << "'" << owner << "', "
-            << "'" << toString() << "'  "
-            << ")";
+        sql << "INSERT INTO FlagSet (" << "OwnerID, FlagData" << ") VALUES (" << "'" << owner << "', " << "'"
+            << toString() << "'  " << ")";
 
         pStmt->executeQueryString(sql.toString());
 
@@ -79,9 +75,7 @@ void FlagSet::load(const string& owner)
 
         if (pResult->getRowCount() == 0) {
             StringStream msg;
-            msg << "FlagSet::load() "
-                << "There is no flag data which owner is "
-                << "[" << owner << "]";
+            msg << "FlagSet::load() " << "There is no flag data which owner is " << "[" << owner << "]";
 
             filelog("flagSetError.txt", "%s", msg.toString().c_str());
 

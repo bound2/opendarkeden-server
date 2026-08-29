@@ -87,8 +87,7 @@ string EffectVampirePortal::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectVampirePortal("
-        << "DayTime:" << m_Deadline.tv_sec << ")";
+    msg << "EffectVampirePortal(" << "DayTime:" << m_Deadline.tv_sec << ")";
     return msg.toString();
 
     __END_CATCH

@@ -108,8 +108,7 @@ string CGSMSSend::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSMSSend("
-        << "Caller : " << m_CallerNumber << ", Receivers : (";
+    msg << "CGSMSSend(" << "Caller : " << m_CallerNumber << ", Receivers : (";
 
     list<string>::const_iterator itr = m_Numbers.begin();
     list<string>::const_iterator endItr = m_Numbers.end();

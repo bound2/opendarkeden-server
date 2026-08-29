@@ -40,8 +40,7 @@ void RaceWarInfo::write(SocketOutputStream& oStream) const {
 string RaceWarInfo::toString() const {
     StringStream msg;
 
-    msg << "RaceWarInfo("
-        << ",RemainTime:" << (int)m_RemainTime << ",Guilds:" << m_CastleIDs.toString() << ")";
+    msg << "RaceWarInfo(" << ",RemainTime:" << (int)m_RemainTime << ",Guilds:" << m_CastleIDs.toString() << ")";
 
     return msg.toString();
 }

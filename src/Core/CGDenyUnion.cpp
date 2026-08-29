@@ -43,8 +43,7 @@ string CGDenyUnion::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGDenyUnion("
-        << "GuildID:" << m_GuildID << ")";
+    msg << "CGDenyUnion(" << "GuildID:" << m_GuildID << ")";
     return msg.toString();
 
     __END_CATCH

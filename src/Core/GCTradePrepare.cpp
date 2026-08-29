@@ -57,8 +57,7 @@ string GCTradePrepare::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCTradePrepare("
-        << "TargetObjectID:" << (int)m_TargetObjectID << ",CODE:" << (int)m_Code << ")";
+    msg << "GCTradePrepare(" << "TargetObjectID:" << (int)m_TargetObjectID << ",CODE:" << (int)m_Code << ")";
     return msg.toString();
 
     __END_CATCH

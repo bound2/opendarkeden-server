@@ -353,9 +353,8 @@ string OptionInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "OptionInfo ("
-        << "Type:" << (int)m_OptionType << "Name:" << m_Name << "HName:" << m_HName << "Nickname:" << m_Nickname
-        << "Class:" << (int)m_OptionClass << "PlusPoint:" << (int)m_PlusPoint
+    msg << "OptionInfo (" << "Type:" << (int)m_OptionType << "Name:" << m_Name << "HName:" << m_HName
+        << "Nickname:" << m_Nickname << "Class:" << (int)m_OptionClass << "PlusPoint:" << (int)m_PlusPoint
         << "PriceMultiplier:" << (int)m_PriceMultiplier << "ReqSTR:" << (int)m_ReqSTR << "ReqDEX:" << (int)m_ReqDEX
         << "ReqINT:" << (int)m_ReqINT << "ReqSum:" << (int)m_ReqSum << "ReqLevel:" << (int)m_ReqLevel
         << "Level:" << (int)m_Level << "GambleLevel:" << (int)m_GambleLevel << "Color:" << (int)m_Color
@@ -545,12 +544,10 @@ void OptionInfoManager::load()
     try {
         BEGIN_DB {
             StringStream sql;
-            sql << "SELECT OptionType, Name, HName, Nickname, "
-                << "Class, PlusPoint, PriceMultiplier, "
+            sql << "SELECT OptionType, Name, HName, Nickname, " << "Class, PlusPoint, PriceMultiplier, "
                 << "ReqAbility, Color, Ratio, OptionLevel, GambleLevel, "
                 << "PreviousOptionType, UpgradeOptionType, UpgradeRatio, UpgradeSecondRatio, "
-                << "UpgradeCrashPercent, NextOptionRatio, Grade "
-                << "FROM OptionInfo";
+                << "UpgradeCrashPercent, NextOptionRatio, Grade " << "FROM OptionInfo";
 
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pResult = pStmt->executeQueryString(sql.toString());

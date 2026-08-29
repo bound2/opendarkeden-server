@@ -87,8 +87,7 @@ string EffectChargingPower::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectChargingPower("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectChargingPower(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

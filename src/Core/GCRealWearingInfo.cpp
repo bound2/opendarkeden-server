@@ -59,8 +59,7 @@ string GCRealWearingInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCRealWearingInfo("
-        << "Info:" << (int)m_Info << ")";
+    msg << "GCRealWearingInfo(" << "Info:" << (int)m_Info << ")";
     return msg.toString();
 
     __END_CATCH

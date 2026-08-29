@@ -273,8 +273,7 @@ string ActionGiveNewbieItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveNewbieItem("
-        << ")";
+    msg << "ActionGiveNewbieItem(" << ")";
     return msg.toString();
 
     __END_CATCH

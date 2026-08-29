@@ -61,8 +61,7 @@ string GCModifyMoney::toString() const
 
     StringStream msg;
 
-    msg << "GCModifyMoney("
-        << "Amount:" << m_Amount << ")";
+    msg << "GCModifyMoney(" << "Amount:" << m_Amount << ")";
 
     return msg.toString();
 

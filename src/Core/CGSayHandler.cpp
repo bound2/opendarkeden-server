@@ -2847,11 +2847,8 @@ void CGSayHandler::opcreate(GamePlayer* pGamePlayer, string msg, int i) {
         Statement* pStmt = NULL;
         BEGIN_DB {
             StringStream sql;
-            sql << "INSERT INTO OpCreate (OpName, DateTime, ItemDesc) VALUES ("
-                << "'" << pCreature->getName() << "',"
-                << "'" << VSDateTime::currentDateTime().toString() << "',"
-                << "'" << pItem->toString() << "'"
-                << ")";
+            sql << "INSERT INTO OpCreate (OpName, DateTime, ItemDesc) VALUES (" << "'" << pCreature->getName() << "',"
+                << "'" << VSDateTime::currentDateTime().toString() << "'," << "'" << pItem->toString() << "'" << ")";
 
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pStmt->executeQueryString(sql.toString());

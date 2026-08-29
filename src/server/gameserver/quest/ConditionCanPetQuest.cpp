@@ -54,8 +54,7 @@ string ConditionCanPetQuest::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ConditionCanPetQuest("
-        << ")";
+    msg << "ConditionCanPetQuest(" << ")";
     return msg.toString();
 
     __END_CATCH

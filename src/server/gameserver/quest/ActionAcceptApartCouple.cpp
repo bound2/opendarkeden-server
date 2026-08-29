@@ -85,8 +85,7 @@ string ActionAcceptApartCouple::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionAcceptApartCouple("
-        << ")";
+    msg << "ActionAcceptApartCouple(" << ")";
 
     return msg.toString();
 

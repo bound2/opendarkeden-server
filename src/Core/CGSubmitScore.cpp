@@ -57,8 +57,7 @@ string CGSubmitScore::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSubmitScore("
-        << ")";
+    msg << "CGSubmitScore(" << ")";
     return msg.toString();
 
     __END_CATCH

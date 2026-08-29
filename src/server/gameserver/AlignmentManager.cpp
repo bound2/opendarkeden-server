@@ -220,8 +220,7 @@ string AlignmentManager::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "AlignmentManager ("
-        << ")";
+    msg << "AlignmentManager (" << ")";
     return msg.toString();
 
     __END_CATCH

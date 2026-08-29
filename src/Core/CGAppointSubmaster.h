@@ -23,8 +23,8 @@
 
 class CGAppointSubmaster : public Packet {
 public:
-    CGAppointSubmaster() {};
-    ~CGAppointSubmaster() {};
+    CGAppointSubmaster(){};
+    ~CGAppointSubmaster(){};
     // Initialize the packet by reading data from the input stream.
     void read(SocketInputStream& iStream);
 

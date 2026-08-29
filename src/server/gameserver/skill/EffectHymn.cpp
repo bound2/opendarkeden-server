@@ -115,8 +115,7 @@ string EffectHymn::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHymn("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHymn(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

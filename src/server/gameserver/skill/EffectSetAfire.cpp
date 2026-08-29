@@ -129,8 +129,7 @@ string EffectSetAfire::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectSetAfire("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectSetAfire(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

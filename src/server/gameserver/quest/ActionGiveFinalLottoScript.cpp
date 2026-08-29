@@ -107,8 +107,7 @@ string ActionGiveFinalLottoScript::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveFinalLottoScript("
-        << ")";
+    msg << "ActionGiveFinalLottoScript(" << ")";
 
     return msg.toString();
 

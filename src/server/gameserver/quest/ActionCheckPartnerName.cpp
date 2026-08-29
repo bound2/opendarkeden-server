@@ -77,8 +77,7 @@ string ActionCheckPartnerName::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionCheckPartnerName("
-        << ")";
+    msg << "ActionCheckPartnerName(" << ")";
 
     return msg.toString();
 

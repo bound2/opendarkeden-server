@@ -99,8 +99,7 @@ string EffectGhostBlade::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectGhostBlade("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectGhostBlade(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

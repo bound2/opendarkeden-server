@@ -77,8 +77,7 @@ string ActionShowWarSchedule::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionShowWarSchedule("
-        << ",ZoneID:" << (int)m_ZoneID << ")";
+    msg << "ActionShowWarSchedule(" << ",ZoneID:" << (int)m_ZoneID << ")";
 
     return msg.toString();
 

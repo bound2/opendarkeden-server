@@ -88,8 +88,7 @@ string GCFlagWarStatus::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCFlagWarStatus("
-        << ")";
+    msg << "GCFlagWarStatus(" << ")";
     return msg.toString();
 
     __END_CATCH

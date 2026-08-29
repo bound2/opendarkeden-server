@@ -255,8 +255,8 @@ string GameServerPlayer::toString() const noexcept(false) {
 
     StringStream msg;
 
-    msg << "GameServerPlayer("
-        << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost() << ",ID:" << m_ID << ")";
+    msg << "GameServerPlayer(" << "SocketID:" << m_pSocket->getSOCKET() << ",Host:" << m_pSocket->getHost()
+        << ",ID:" << m_ID << ")";
 
     return msg.toString();
 

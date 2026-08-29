@@ -54,8 +54,7 @@ string GCPetStashVerify::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCPetStashVerify("
-        << "Code : " << (int)m_Code << ")";
+    msg << "GCPetStashVerify(" << "Code : " << (int)m_Code << ")";
     return msg.toString();
 
     __END_CATCH

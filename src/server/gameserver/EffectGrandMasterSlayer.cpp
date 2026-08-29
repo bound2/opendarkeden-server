@@ -121,8 +121,7 @@ string EffectGrandMasterSlayer::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectGrandMasterSlayer("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectGrandMasterSlayer(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

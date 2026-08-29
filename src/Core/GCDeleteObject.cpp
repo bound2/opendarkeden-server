@@ -58,7 +58,6 @@ string GCDeleteObject::toString() const
 
 {
     StringStream msg;
-    msg << "GCDeleteObject("
-        << "ObjectID:" << m_ObjectID << ")";
+    msg << "GCDeleteObject(" << "ObjectID:" << m_ObjectID << ")";
     return msg.toString();
 }

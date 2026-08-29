@@ -86,8 +86,7 @@ string GCStatusCurrentHP::toString() const
 
     StringStream msg;
 
-    msg << "GCStatusCurrentHP("
-        << "ObjectID:" << m_ObjectID << ",CurrentHP:" << (int)m_CurrentHP << ")";
+    msg << "GCStatusCurrentHP(" << "ObjectID:" << m_ObjectID << ",CurrentHP:" << (int)m_CurrentHP << ")";
 
     return msg.toString();
 

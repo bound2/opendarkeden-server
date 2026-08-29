@@ -54,8 +54,7 @@ void CUEndUpdate::execute(Player* pPlayer) throw(ProtocolException, Error) {
 string CUEndUpdate::toString() const throw() {
     StringStream msg;
 
-    msg << "CUEndUpdate("
-        << ")";
+    msg << "CUEndUpdate(" << ")";
 
     return msg.toString();
 }

@@ -40,7 +40,7 @@ public:
     GCRemoveCorpseHead() {}
 
     GCRemoveCorpseHead(ObjectID_t objectID) : m_ObjectID(objectID) {}
-    ~GCRemoveCorpseHead() {};
+    ~GCRemoveCorpseHead(){};
 
 
 public:

@@ -131,8 +131,7 @@ string GuildInfo::toString() const {
 
     StringStream msg;
 
-    msg << "GuildInfo( "
-        << "GuildID:" << m_GuildID << "GuildName:" << m_GuildName << "GuildMaster:" << m_GuildMaster
+    msg << "GuildInfo( " << "GuildID:" << m_GuildID << "GuildName:" << m_GuildName << "GuildMaster:" << m_GuildMaster
         << "GuildMemberCount:" << m_GuildMemberCount << "GuildExpireDate:" << m_GuildExpireDate << ")";
 
     return msg.toString();

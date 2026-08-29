@@ -88,8 +88,7 @@ string CGSkillToObject::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSkillToObject("
-        << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID
+    msg << "CGSkillToObject(" << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID
         << ",TargetSelfID :" << (int)m_TargetObjectID << ")";
     return msg.toString();
 

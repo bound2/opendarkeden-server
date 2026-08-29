@@ -82,8 +82,7 @@ string GCHPRecoveryEndToSelf::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCHPRecoveryEndToSelf("
-        << ",CurrentHP:" << (int)m_CurrentHP << ")";
+    msg << "GCHPRecoveryEndToSelf(" << ",CurrentHP:" << (int)m_CurrentHP << ")";
     return msg.toString();
 
     __END_CATCH

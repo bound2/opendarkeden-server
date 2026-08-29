@@ -183,8 +183,7 @@ string EffectHasCastleSymbol::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHasCastleSymbol("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHasCastleSymbol(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

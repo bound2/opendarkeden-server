@@ -72,10 +72,9 @@ string GCAddVampirePortal::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddVampirePortal("
-        << ",ObjectID:" << (int)m_ObjectID << ",OwnerID:" << m_OwnerID << ",Duration:" << (int)m_Duration
-        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",TZID:" << (int)m_TargetZoneID << ",TX:" << (int)m_TargetX
-        << ",TY:" << (int)m_TargetY << ",Flag:" << (int)m_CreateFlag << ")";
+    msg << "GCAddVampirePortal(" << ",ObjectID:" << (int)m_ObjectID << ",OwnerID:" << m_OwnerID
+        << ",Duration:" << (int)m_Duration << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",TZID:" << (int)m_TargetZoneID
+        << ",TX:" << (int)m_TargetX << ",TY:" << (int)m_TargetY << ",Flag:" << (int)m_CreateFlag << ")";
     return msg.toString();
 
     __END_CATCH

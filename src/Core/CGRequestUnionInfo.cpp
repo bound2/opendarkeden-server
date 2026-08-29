@@ -39,8 +39,7 @@ string CGRequestUnionInfo::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGRequestUnionInfo("
-        << ")";
+    msg << "CGRequestUnionInfo(" << ")";
     return msg.toString();
 
     __END_CATCH

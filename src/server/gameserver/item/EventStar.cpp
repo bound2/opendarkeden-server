@@ -147,8 +147,7 @@ string EventStar::toString() const
 {
     StringStream msg;
 
-    msg << "EventStar("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "EventStar(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
 
     return msg.toString();
 }
@@ -191,9 +190,8 @@ string EventStarInfo::toString() const
 
 {
     StringStream msg;
-    msg << "EventStarInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "EventStarInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Function:" << (int)m_fFunction << ",FunctionValue:" << (int)m_FunctionValue
         << ",Description:" << m_Description << ")";
     return msg.toString();

@@ -58,7 +58,6 @@ string GCDeleteInventoryItem::toString() const
 
 {
     StringStream msg;
-    msg << "GCDeleteInventoryItem("
-        << "ObjectID:" << m_ObjectID << ")";
+    msg << "GCDeleteInventoryItem(" << "ObjectID:" << m_ObjectID << ")";
     return msg.toString();
 }

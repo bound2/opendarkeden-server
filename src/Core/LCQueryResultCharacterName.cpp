@@ -97,8 +97,7 @@ string LCQueryResultCharacterName::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "LCQueryResultCharacterName("
-        << "CharacterName:" << m_CharacterName << ",Exist:" << m_bExist << ")";
+    msg << "LCQueryResultCharacterName(" << "CharacterName:" << m_CharacterName << ",Exist:" << m_bExist << ")";
     return msg.toString();
 
     __END_CATCH

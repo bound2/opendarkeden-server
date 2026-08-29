@@ -165,8 +165,7 @@ string Skull::toString() const
 
 {
     StringStream msg;
-    msg << "Skull("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "Skull(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
     return msg.toString();
 }
 
@@ -221,9 +220,8 @@ string SkullInfo::toString() const
 {
     StringStream msg;
 
-    msg << "SkullInfo("
-        << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << (int)m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
+    msg << "SkullInfo(" << "ItemType:" << (int)m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << (int)m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << (int)m_Weight
         << ",Description:" << m_Description << ",ItemLevel:" << (int)m_ItemLevel << ")";
 
     return msg.toString();

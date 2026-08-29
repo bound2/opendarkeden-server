@@ -123,8 +123,7 @@ string EffectFlagInsert::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectFlagInsert("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectFlagInsert(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

@@ -119,8 +119,7 @@ string LGIncomingConnectionError::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "LGIncomingConnectionError("
-        << "Message:" << m_Message << "PlayerID:" << m_PlayerID << ")";
+    msg << "LGIncomingConnectionError(" << "Message:" << m_Message << "PlayerID:" << m_PlayerID << ")";
     return msg.toString();
 
     __END_CATCH

@@ -41,8 +41,8 @@ enum {
 
 class CGTradePrepare : public Packet {
 public:
-    CGTradePrepare() {};
-    virtual ~CGTradePrepare() {};
+    CGTradePrepare(){};
+    virtual ~CGTradePrepare(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     void execute(Player* pPlayer);

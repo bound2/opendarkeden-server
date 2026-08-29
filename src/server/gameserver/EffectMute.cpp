@@ -202,8 +202,7 @@ string EffectMute::toString() const {
 
     StringStream msg;
 
-    msg << "EffectMute("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectMute(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

@@ -60,8 +60,7 @@ string GCNotifyWin::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCNotifyWin("
-        << "ObjectID:" << m_GiftID << ",Message:" << m_Name << ")";
+    msg << "GCNotifyWin(" << "ObjectID:" << m_GiftID << ",Message:" << m_Name << ")";
     return msg.toString();
 
     __END_CATCH

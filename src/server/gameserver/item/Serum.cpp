@@ -153,8 +153,7 @@ string Serum::toString() const
 
 {
     StringStream msg;
-    msg << "Serum("
-        << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
+    msg << "Serum(" << "ItemID:" << m_ItemID << ",ItemType:" << (int)m_ItemType << ",Num:" << (int)m_Num << ")";
     return msg.toString();
 }
 
@@ -265,10 +264,10 @@ string SerumInfo::toString() const
 
 {
     StringStream msg;
-    msg << "SerumInfo("
-        << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName << ",Price:" << m_Price
-        << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight << ",Description:" << m_Description
-        << ",HPAmount:" << m_HPAmount << ",Period:" << m_Period << ",Count:" << m_Count << ")";
+    msg << "SerumInfo(" << "ItemType:" << m_ItemType << ",Name:" << m_Name << ",EName:" << m_EName
+        << ",Price:" << m_Price << ",VolumeType:" << Volume2String[m_VolumeType] << ",Weight:" << m_Weight
+        << ",Description:" << m_Description << ",HPAmount:" << m_HPAmount << ",Period:" << m_Period
+        << ",Count:" << m_Count << ")";
     return msg.toString();
 }
 

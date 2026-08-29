@@ -84,9 +84,8 @@ string GCShowGuildJoin::toString() const
 
     StringStream msg;
 
-    msg << "GCShowGuildJoin("
-        << "GuildID:" << (int)m_GuildID << "GuildName:" << m_GuildName << "GuildMemberRank:" << (int)m_GuildMemberRank
-        << "JoinFee:" << (int)m_JoinFee << ")";
+    msg << "GCShowGuildJoin(" << "GuildID:" << (int)m_GuildID << "GuildName:" << m_GuildName
+        << "GuildMemberRank:" << (int)m_GuildMemberRank << "JoinFee:" << (int)m_JoinFee << ")";
 
     return msg.toString();
 

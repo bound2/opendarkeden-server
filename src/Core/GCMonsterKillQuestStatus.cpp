@@ -88,8 +88,7 @@ string GCMonsterKillQuestStatus::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCMonsterKillQuestStatus("
-        << "QuestID : " << (int)m_QuestID << " ,Current Num : " << (int)m_CurrentNum
+    msg << "GCMonsterKillQuestStatus(" << "QuestID : " << (int)m_QuestID << " ,Current Num : " << (int)m_CurrentNum
         << " ,Remaining Time : " << (int)m_Time << ")";
     return msg.toString();
 

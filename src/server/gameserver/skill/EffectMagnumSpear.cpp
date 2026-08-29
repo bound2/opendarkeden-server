@@ -127,8 +127,7 @@ string EffectMagnumSpear::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectMagnumSpear("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectMagnumSpear(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

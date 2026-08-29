@@ -551,21 +551,21 @@ public:
     ////////////////////////////////////////////////////////////
 private:
     // Á¸ÀÇ ±âº» ÀûÀÎ Á¤º¸
-    ZoneID_t m_ZoneID;               // zone id
-    ZoneGroup* m_pZoneGroup;         // parent zone group
-    ZoneType m_ZoneType;             // Á¸ Å¸ÀÔ(Á¸ Å¸ÀÔÀÌ ¹Ù®î¸é DB¿¡ ÀúÀåµÇ¾î¾ß ÇÑ´Ù.)
-    ZoneLevel_t m_ZoneLevel;         // Á¸ÀÇ ·¹º§.
+    ZoneID_t m_ZoneID;       // zone id
+    ZoneGroup* m_pZoneGroup; // parent zone group
+    ZoneType m_ZoneType;     // Á¸ Å¸ÀÔ(Á¸ Å¸ÀÔÀÌ ¹Ù®î¸é DB¿¡ ÀúÀåµÇ¾î¾ß ÇÑ´Ù.)
+    ZoneLevel_t m_ZoneLevel; // Á¸ÀÇ ·¹º§.
     ZoneAccessMode m_ZoneAccessMode; // Á¸¿¡ ´ëÇÑ Á¢±Ù ¸ðµå { PUBLIC | PRIVATE }
-    string m_OwnerID;                // Á¸ ¼ÒÀ¯ÀÚ ¾ÆÀÌµð(½½·¹ÀÌ¾î ±æµå ¾ÆÀÌµð È¤Àº ¹ìÆÄÀÌ¾î ¸¶½ºÅÍ ¾ÆÀÌµð)
-    DarkLevel_t m_DarkLevel;         // Á¸ÀÇ ¾îµÓ±â
-    LightLevel_t m_LightLevel;       // Á¸ÀÇ ºûÀÇ Å©±â
-    ZoneCoord_t m_Width;             // Á¸ÀÇ °¡·Î Å©±â
-    ZoneCoord_t m_Height;            // Á¸ÀÇ ¼¼·Î Å©±â
-    Tile** m_pTiles;                 // Å¸ÀÏÀÇ ÀÌÂ÷¿ø ¹è¿­
-    ZoneLevel_t** m_ppLevel;         // Á¸ ·¹º§ÀÇ ÀÌÂ÷¿ø ¹è¿­
-    Sector** m_pSectors;             // ¼½ÅÍÀÇ ÀÌÂ÷¿ø ¹è¿­
-    int m_SectorWidth;               // ¼½ÅÍÀÇ Å©±â
-    int m_SectorHeight;              // ¼½ÅÍÀÇ Å©±â
+    string m_OwnerID; // Á¸ ¼ÒÀ¯ÀÚ ¾ÆÀÌµð(½½·¹ÀÌ¾î ±æµå ¾ÆÀÌµð È¤Àº ¹ìÆÄÀÌ¾î ¸¶½ºÅÍ ¾ÆÀÌµð)
+    DarkLevel_t m_DarkLevel;   // Á¸ÀÇ ¾îµÓ±â
+    LightLevel_t m_LightLevel; // Á¸ÀÇ ºûÀÇ Å©±â
+    ZoneCoord_t m_Width;       // Á¸ÀÇ °¡·Î Å©±â
+    ZoneCoord_t m_Height;      // Á¸ÀÇ ¼¼·Î Å©±â
+    Tile** m_pTiles;           // Å¸ÀÏÀÇ ÀÌÂ÷¿ø ¹è¿­
+    ZoneLevel_t** m_ppLevel;   // Á¸ ·¹º§ÀÇ ÀÌÂ÷¿ø ¹è¿­
+    Sector** m_pSectors;       // ¼½ÅÍÀÇ ÀÌÂ÷¿ø ¹è¿­
+    int m_SectorWidth;         // ¼½ÅÍÀÇ Å©±â
+    int m_SectorHeight;        // ¼½ÅÍÀÇ Å©±â
 
     // °¢Á¾ ¸Å´ÏÀúµé
     PCManager* m_pPCManager;           // PC Manager

@@ -166,8 +166,7 @@ string EffectVigorDrop::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectVigorDrop("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectVigorDrop(" << "ObjectID:" << getObjectID() << ")";
 
     return msg.toString();
 

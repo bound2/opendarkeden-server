@@ -120,8 +120,7 @@ string GCAddSlayer::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddSlayer("
-        << "SlayerInfo:" << m_SlayerInfo.toString() << "EffectInfo:" << m_pEffectInfo->toString()
+    msg << "GCAddSlayer(" << "SlayerInfo:" << m_SlayerInfo.toString() << "EffectInfo:" << m_pEffectInfo->toString()
         << "PetInfo:" << ((m_pPetInfo) ? m_pPetInfo->toString() : "NULL") << ")";
     return msg.toString();
 

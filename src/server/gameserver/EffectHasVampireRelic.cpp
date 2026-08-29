@@ -154,8 +154,7 @@ string EffectHasVampireRelic::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectHasVampireRelic("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectHasVampireRelic(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

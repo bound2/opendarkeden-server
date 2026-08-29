@@ -189,8 +189,7 @@ string ActionTakeDonation::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionTakeDonation("
-        << "Amount:" << (int)m_Amount << ")";
+    msg << "ActionTakeDonation(" << "Amount:" << (int)m_Amount << ")";
     return msg.toString();
 
     __END_CATCH

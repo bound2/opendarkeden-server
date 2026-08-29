@@ -117,8 +117,7 @@ string GCNPCInfo::toString() const
 
     StringStream msg;
 
-    msg << "GCNPCInfo("
-        << "NPCInfos:";
+    msg << "GCNPCInfo(" << "NPCInfos:";
 
     list<NPCInfo*>::const_iterator itr = m_NPCInfos.begin();
     for (; itr != m_NPCInfos.end(); itr++) {

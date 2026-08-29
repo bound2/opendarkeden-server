@@ -96,8 +96,7 @@ string EffectPotentialExplosion::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectPotentialExplosion("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectPotentialExplosion(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

@@ -42,8 +42,7 @@ string CGTradeFinish::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGTradeFinish("
-        << "TargetObjectID:" << (int)m_TargetObjectID << ",CODE:" << (int)m_Code << ")";
+    msg << "CGTradeFinish(" << "TargetObjectID:" << (int)m_TargetObjectID << ",CODE:" << (int)m_Code << ")";
     return msg.toString();
 
     __END_CATCH

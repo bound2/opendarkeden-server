@@ -80,8 +80,7 @@ string EffectReputoFactum::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectReputoFactum("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectReputoFactum(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

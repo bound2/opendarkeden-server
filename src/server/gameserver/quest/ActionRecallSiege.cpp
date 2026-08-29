@@ -129,8 +129,7 @@ string ActionRecallSiege::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionRecallSiege("
-        << ")";
+    msg << "ActionRecallSiege(" << ")";
     return msg.toString();
 
     __END_CATCH

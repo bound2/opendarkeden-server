@@ -181,8 +181,7 @@ string EffectEnergyDropToCreature::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectEnergyDropToCreature("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectEnergyDropToCreature(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

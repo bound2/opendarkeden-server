@@ -40,8 +40,7 @@ string CGStashDeposit::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGStashDeposit("
-        << "Amount : " << (int)m_Amount << ")";
+    msg << "CGStashDeposit(" << "Amount : " << (int)m_Amount << ")";
     return msg.toString();
 
     __END_CATCH

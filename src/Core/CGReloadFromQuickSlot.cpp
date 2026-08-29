@@ -53,8 +53,7 @@ string CGReloadFromQuickSlot::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGReloadFromQuickSlot("
-        << "ObjectID : " << (int)m_ObjectID << ",SlotID: " << (int)m_SlotID << ")";
+    msg << "CGReloadFromQuickSlot(" << "ObjectID : " << (int)m_ObjectID << ",SlotID: " << (int)m_SlotID << ")";
     return msg.toString();
 
     __END_CATCH

@@ -135,16 +135,15 @@ string SkillInfo::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "SkillInfo ("
-        << "Type:" << (int)m_Type << ",Name:" << m_Name << ",Level:" << (int)m_Level << ",MinDam:" << (int)m_MinDamage
-        << ",MaxDam:" << (int)m_MaxDamage << ",MinDelay:" << (int)m_MinDelay << ",MaxDelay:" << (int)m_MaxDelay
-        << ",MinCastTime:" << (int)m_MinCastTime << ",MaxCastTime:" << (int)m_MaxCastTime
-        << ",MinDuration:" << (int)m_MinDuration << ",MaxDuration:" << (int)m_MaxDuration
-        << ",ConsumeMP:" << (int)m_ConsumeMP << ",MaxRange:" << (int)m_MaxRange << ",MinRange:" << (int)m_MinRange
-        << ",Point:" << (int)m_Point << ",Target:" << (int)m_Target << ",RequireFire:" << (int)m_RequireFire
-        << ",RequireWater:" << (int)m_RequireWater << ",RequireEarth:" << (int)m_RequireEarth
-        << ",RequireWind:" << (int)m_RequireWind << ",RequireSum:" << (int)m_RequireSum
-        << ",RequireWristletElemental:" << (int)m_RequireWristletElemental
+    msg << "SkillInfo (" << "Type:" << (int)m_Type << ",Name:" << m_Name << ",Level:" << (int)m_Level
+        << ",MinDam:" << (int)m_MinDamage << ",MaxDam:" << (int)m_MaxDamage << ",MinDelay:" << (int)m_MinDelay
+        << ",MaxDelay:" << (int)m_MaxDelay << ",MinCastTime:" << (int)m_MinCastTime
+        << ",MaxCastTime:" << (int)m_MaxCastTime << ",MinDuration:" << (int)m_MinDuration
+        << ",MaxDuration:" << (int)m_MaxDuration << ",ConsumeMP:" << (int)m_ConsumeMP << ",MaxRange:" << (int)m_MaxRange
+        << ",MinRange:" << (int)m_MinRange << ",Point:" << (int)m_Point << ",Target:" << (int)m_Target
+        << ",RequireFire:" << (int)m_RequireFire << ",RequireWater:" << (int)m_RequireWater
+        << ",RequireEarth:" << (int)m_RequireEarth << ",RequireWind:" << (int)m_RequireWind
+        << ",RequireSum:" << (int)m_RequireSum << ",RequireWristletElemental:" << (int)m_RequireWristletElemental
         << ",RequireStone1Elemental:" << (int)m_RequireStone1Elemental
         << ",RequireStone2Elemental:" << (int)m_RequireStone2Elemental
         << ",RequireStone3Elemental:" << (int)m_RequireStone3Elemental

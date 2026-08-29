@@ -620,7 +620,7 @@ void Typhoon::computeOutput(const SkillInput& input, SkillOutput& output) {
     // output.Duration = 10; // 1ÃÊ (Å¸°ÙÀÌ »æ»æ µ¹¾Æ°¡´Â ½Ã°£) - effect¾ø´Ù -_-;
     // output.Delay    = 15; // 1.5ÃÊ
     output.Duration = (1 + input.SkillLevel / 100) * 10; // 1ÃÊ (Å¸°ÙÀÌ »æ»æ µ¹¾Æ°¡´Â ½Ã°£) - effect¾ø´Ù -_-;
-    output.Delay = (3 - input.SkillLevel / 50) * 10;     // by bezz. 2002.12.10
+    output.Delay = (3 - input.SkillLevel / 50) * 10; // by bezz. 2002.12.10
 }
 
 //////////////////////////////////////////////////////////////////////////////

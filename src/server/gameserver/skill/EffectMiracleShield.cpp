@@ -99,8 +99,7 @@ string EffectMiracleShield::toString() const throw() {
 
     StringStream msg;
 
-    msg << "EffectMiracleShield("
-        << "Defense:" << m_DefenseBonus << ",Protection:" << m_ProtectionBonus << ")";
+    msg << "EffectMiracleShield(" << "Defense:" << m_DefenseBonus << ",Protection:" << m_ProtectionBonus << ")";
 
     return msg.toString();
 

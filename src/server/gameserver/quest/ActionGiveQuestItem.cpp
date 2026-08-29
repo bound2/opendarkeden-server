@@ -94,8 +94,7 @@ string ActionGiveQuestItem::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionGiveQuestItem("
-        << ")";
+    msg << "ActionGiveQuestItem(" << ")";
 
     return msg.toString();
 

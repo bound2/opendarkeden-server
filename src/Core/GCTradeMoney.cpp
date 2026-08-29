@@ -60,8 +60,8 @@ string GCTradeMoney::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCTradeMoney("
-        << "TargetObjectID:" << (int)m_TargetObjectID << ",Gold:" << (int)m_Gold << ",CODE:" << (int)m_Code << ")";
+    msg << "GCTradeMoney(" << "TargetObjectID:" << (int)m_TargetObjectID << ",Gold:" << (int)m_Gold
+        << ",CODE:" << (int)m_Code << ")";
     return msg.toString();
 
     __END_CATCH

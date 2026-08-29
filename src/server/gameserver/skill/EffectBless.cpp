@@ -117,8 +117,7 @@ string EffectBless::toString() const throw() {
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "EffectBless("
-        << "ObjectID:" << getObjectID() << ")";
+    msg << "EffectBless(" << "ObjectID:" << getObjectID() << ")";
     return msg.toString();
 
     __END_CATCH

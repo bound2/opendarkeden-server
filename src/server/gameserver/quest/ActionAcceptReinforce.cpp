@@ -149,8 +149,7 @@ string ActionAcceptReinforce::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "ActionAcceptReinforce("
-        << ",ZoneID:" << (int)m_ZoneID << ")";
+    msg << "ActionAcceptReinforce(" << ",ZoneID:" << (int)m_ZoneID << ")";
 
     return msg.toString();
 

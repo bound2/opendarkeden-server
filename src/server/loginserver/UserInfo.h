@@ -54,8 +54,8 @@ public:
     string toString() const throw() {
         StringStream msg;
 
-        msg << "UserInfo("
-            << "WorldID:" << m_WorldID << "ServerGroupID:" << m_ServerGroupID << ",UserNum:" << m_UserNum << ")";
+        msg << "UserInfo(" << "WorldID:" << m_WorldID << "ServerGroupID:" << m_ServerGroupID << ",UserNum:" << m_UserNum
+            << ")";
 
         return msg.toString();
     }
