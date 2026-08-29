@@ -24,7 +24,7 @@ debug:
 # Format code with clang-format
 fmt:
 	@echo "Formatting C++ code with clang-format..."
-	find src -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) -exec clang-format -i {} +
+	find src tests -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \) -exec clang-format -i {} +
 	@echo "Code formatted successfully!"
 
 # Check format for modified files only (fast)
@@ -55,7 +55,7 @@ fmt-check:
 fmt-check-all:
 	@echo "Checking format for ALL files..."
 	@failed=false; \
-	for file in $$(find src -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \)); do \
+	for file in $$(find src tests -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \)); do \
 		if ! clang-format "$$file" | diff -q "$$file" - > /dev/null 2>&1; then \
 			echo "[FAIL] $$file needs formatting"; \
 			failed=true; \

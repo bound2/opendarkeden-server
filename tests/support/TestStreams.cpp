@@ -6,17 +6,18 @@
 
 #include "TestStreams.h"
 
+#include <unistd.h>
+
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include <unistd.h>
+
+#include <gtest/gtest.h>
 
 #include "ServerSocket.h"
 #include "Socket.h"
-
-#include <gtest/gtest.h>
 
 namespace wiretest {
 

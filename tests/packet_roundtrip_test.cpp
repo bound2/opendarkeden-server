@@ -42,8 +42,8 @@
 using wiretest::expectGolden;
 using wiretest::Loopback;
 using wiretest::roundTrip;
-using wiretest::writeFramed;
 using wiretest::writeBody;
+using wiretest::writeFramed;
 
 namespace {
 

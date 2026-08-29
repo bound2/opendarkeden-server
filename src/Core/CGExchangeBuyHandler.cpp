@@ -8,9 +8,9 @@
 #include "GCExchangeBuy.h"
 
 #ifdef __GAME_SERVER__
-#include "PlayerCreature.h"
-#include "GamePlayer.h"
 #include "../server/gameserver/exchange/ExchangeService.h"
+#include "GamePlayer.h"
+#include "PlayerCreature.h"
 #endif
 
 void CGExchangeBuyHandler::execute(CGExchangeBuy* pPacket, Player* pPlayer) {
@@ -19,17 +19,15 @@ void CGExchangeBuyHandler::execute(CGExchangeBuy* pPacket, Player* pPlayer) {
 #ifdef __GAME_SERVER__
 
     // Validate player
-    if (pPlayer == NULL) return;
+    if (pPlayer == NULL)
+        return;
 
     PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pPlayer);
-    if (pPC == NULL) return;
+    if (pPC == NULL)
+        return;
 
     // Call service to buy
-    pair<bool, string> result = ExchangeService::buyListing(
-        pPC,
-        pPacket->getListingID(),
-        pPacket->getIdempotencyKey()
-    );
+    pair<bool, string> result = ExchangeService::buyListing(pPC, pPacket->getListingID(), pPacket->getIdempotencyKey());
 
     // Send response
     GCExchangeBuy gcPacket;

@@ -37,8 +37,21 @@ make fmt-check-all
 ```
 
 The project uses clang-format with a `.clang-format` configuration file.
-- Format checking is enforced via GitHub Actions on PRs
-- Always run `make fmt` before committing changes
+- Format checking is enforced via GitHub Actions on PRs, and it checks only
+  the files a PR **changed** (`git diff origin/master HEAD`), using whatever
+  clang-format `ubuntu-latest` installs (18.x as of 2026-08).
+- **Do not run bare `make fmt` before committing — the tree is not v18-clean.**
+  1,253 `src/` files were formatted with an older clang-format, so `make fmt`
+  reformats them all and buries your diff in unrelated churn. Format only what
+  you touched:
+  ```bash
+  git diff --name-only master HEAD | grep -E '\.(cpp|h|hpp)$' | xargs clang-format -i
+  ```
+- Touching a file that was never v18-formatted (the Exchange handlers were
+  merged unformatted) makes CI demand you reformat it. That is expected;
+  the reformat lands in your PR.
+- `make fmt` / `fmt-check-all` cover `src/` **and** `tests/`, matching what CI
+  checks.
 
 ### Tests
 
