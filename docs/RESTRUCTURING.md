@@ -186,9 +186,35 @@ before anything else moves. Everything later shelters under this pin.
   >    server has no such enumerator, so every id after it differs by one:
   >    client `CGExchangeList` = 486 = server `CG_EXCHANGE_CREATE_LISTING`,
   >    and so on through `GCExchangeClaimList`. The `// 484` comments in
-  >    both files are stale and hid this. Fix: pick one numbering (add the
-  >    enumerator to the server or remove it from the client), then
-  >    re-record both inventories.
+  >    both files are stale and hid this. **Fixed on the server side
+  >    2026-08-30:** `PACKET_GC_USE_SKILLCARD_OK` restored to `Packet.h`
+  >    at 485 (the server had dropped the packet and its enumerator
+  >    together; the client kept both), the id comments corrected, the
+  >    inventory re-recorded (`CGExchangeList` 486, `CGExchangeBuy` 489 —
+  >    now equal to the client's). The client's `// 484` comments are
+  >    still stale; fix them there.
+  >    Doing this exposed more in the Exchange block:
+  >    - The server's `GCExchangeList` / `GCExchangeBuy` had **no factory
+  >      class** (the only GC packets without one), so they were invisible
+  >      to the inventory. Factories added; their max sizes now compare.
+  >    - `GCExchangeList`: client `getPacketMaxSize()` is a hardcoded
+  >      2048; the server's write() layout is 14 + 1,855 per listing
+  >      (strings at their 255 max) — 37,114 at the default page of 20.
+  >      Any real listing page over 2048 bytes is dropped by the client
+  >      (`Player.cpp:172`). Page size is also client-chosen and
+  >      unbounded on the server (`CGExchangeListHandler.cpp:34`).
+  >    - `GCExchangeBuy::write()` emits the message with **no length
+  >      prefix** (`write(string)` is raw), so no receiver can frame it —
+  >      and the client has no `GCExchangeBuy` class at all.
+  >    - **The request layouts differ too**, so the feature still cannot
+  >      work after the id fix: server `CGExchangeList::read()` consumes
+  >      page, pageSize, itemClass, itemType, minPrice, maxPrice **and a
+  >      BYTE-length string** (max 77); the client writes only the first
+  >      six (19 bytes). Server `CGExchangeBuy::read()` consumes a listing
+  >      id **and an idempotency key** (max 72); the client writes a
+  >      4-byte listing id only. The two repos' Exchange packets were
+  >      written against different specs — reconcile them as one change
+  >      in both repos, then the diff's Exchange lines go green.
   > 2. **`CGBloodDrain` layout mismatch** — client writes
   >    `ObjectID, X, Y, Dir` (7 bytes); server reads `ObjectID` only and
   >    `getPacketMaxSize()` = 4, so `GamePlayer` would throw

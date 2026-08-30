@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Packet.h"
+#include "PacketFactory.h"
 
 using namespace std;
 
@@ -110,6 +111,52 @@ private:
     int m_Page;
     int m_PageSize;
     int m_Total;
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// class GCExchangeListFactory
+//
+// The server never receives this packet, so the factory exists for the
+// wire-layout inventory (tests/wire-layout.txt) and to keep the packet
+// comparable with the client's copy. The max size is the write() layout
+// at the default page size with every string at its BYTE-length maximum.
+//////////////////////////////////////////////////////////////////////////////
+
+class GCExchangeListFactory : public PacketFactory {
+public:
+    Packet* createPacket() {
+        return new GCExchangeList();
+    }
+
+    string getPacketName() const {
+        return "GCExchangeList";
+    }
+
+    PacketID_t getPacketID() const {
+        return Packet::PACKET_GC_EXCHANGE_LIST;
+    }
+
+    PacketSize_t getPacketMaxSize() const {
+        const PacketSize_t kMaxString = szBYTE + 255;
+        const PacketSize_t kDefaultPageSize = 20;
+        const PacketSize_t listing = sizeof(int64_t)                          // listingID
+                                     + sizeof(int16_t)                        // serverID
+                                     + kMaxString * 2                         // sellerAccount, sellerPlayer
+                                     + sizeof(uint8_t) * 2 + sizeof(uint16_t) // sellerRace, itemClass, itemType
+                                     + sizeof(int64_t)                        // itemID
+                                     + sizeof(int) * 2                        // objectID, pricePoint
+                                     + sizeof(uint8_t) * 2                    // currency, status
+                                     + kMaxString * 2                         // buyerAccount, buyerPlayer
+                                     + sizeof(uint8_t) + sizeof(int)          // taxRate, taxAmount
+                                     + kMaxString * 2                         // createdAt, expireAt
+                                     + sizeof(int)                            // version
+                                     + kMaxString                             // itemName
+                                     + sizeof(uint8_t) + sizeof(uint16_t) + sizeof(int) +
+                                     sizeof(uint16_t)                             // enchant, grade, durability, silver
+                                     + sizeof(uint8_t) * 3 + sizeof(uint16_t) * 3 // optionType1..3, optionValue1..3
+                                     + sizeof(int);                               // stackCount
+        return sizeof(int) * 3 + sizeof(uint16_t) + listing * kDefaultPageSize;
+    }
 };
 
 //////////////////////////////////////////////////////////////////////////////

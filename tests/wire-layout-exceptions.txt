@@ -48,3 +48,10 @@ GCShowGuildRegist
 # --- Client-only: client <-> updater/launcher protocol -----------------
 CURequestLoginMode
 UCRequestLoginMode
+
+# --- Client-only: packet the server dropped but whose ID it must keep ----
+# The client still has the class (Gpackets/GCUseOK.h); the server removed
+# it (its factory registration is commented out in PacketFactoryManager.cpp)
+# but keeps PACKET_GC_USE_SKILLCARD_OK in Packet.h so the ids after it stay
+# aligned. Never sent.
+GCUseSkillCardOK

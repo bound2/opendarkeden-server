@@ -234,6 +234,8 @@
 #include "GCDownSkillOK.h"
 #include "GCDropItemToZone.h"
 #include "GCEnterVampirePortal.h"
+#include "GCExchangeBuy.h"
+#include "GCExchangeList.h"
 #include "GCExecuteElement.h"
 #include "GCFakeMove.h"
 #include "GCFastMove.h"
@@ -700,6 +702,8 @@
     factories.push_back(new GCDownSkillOKFactory());
     factories.push_back(new GCDropItemToZoneFactory());
     factories.push_back(new GCEnterVampirePortalFactory());
+    factories.push_back(new GCExchangeBuyFactory());
+    factories.push_back(new GCExchangeListFactory());
     factories.push_back(new GCExecuteElementFactory());
     factories.push_back(new GCFakeMoveFactory());
     factories.push_back(new GCFastMoveFactory());
