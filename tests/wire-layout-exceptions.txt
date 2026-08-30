@@ -1,0 +1,50 @@
+# Packets present in only one of the two wire-layout inventories ON PURPOSE,
+# one name per line with the reason. tests/tools/wire_inventory_diff.sh
+# ignores these when reporting one-sided packets. Anything not listed here
+# that appears on one side only is a finding to triage in RESTRUCTURING.md
+# task 1.4 - do NOT add a line just to make the diff green.
+
+# --- Server-only: inter-server traffic the client never sees --------------
+# GG = game<->game, GS/SG = game<->shared, GL/LG = game<->login, GM = game
+# server -> monitor. No client copy exists and none is needed.
+GGCommand
+GGGuildChat
+GGServerChat
+GLIncomingConnection
+GLKickVerify
+GMServerInfo
+GSAddGuild
+GSAddGuildMember
+GSExpelGuildMember
+GSGuildMemberLogOn
+GSModifyGuildIntro
+GSModifyGuildMember
+GSQuitGuild
+GSRequestGuildInfo
+LGIncomingConnectionError
+LGIncomingConnectionOK
+LGKickCharacter
+SGAddGuildMemberOK
+SGAddGuildOK
+SGDeleteGuildOK
+SGExpelGuildMemberOK
+SGGuildInfo
+SGGuildMemberLogOnOK
+SGModifyGuildIntroOK
+SGModifyGuildMemberOK
+SGModifyGuildOK
+SGQuitGuildOK
+
+# --- Server-only: server packets with no client copy (verified 2026-08-30) --
+# CGExpelGuildMember / CGQuitGuild: the server registers factories for
+# them, but the client has no class and so can never send them.
+# GCModifyMoney / GCShowGuildRegist: defined, but no server source outside
+# their own handlers references them, so they are never sent.
+CGExpelGuildMember
+CGQuitGuild
+GCModifyMoney
+GCShowGuildRegist
+
+# --- Client-only: client <-> updater/launcher protocol -----------------
+CURequestLoginMode
+UCRequestLoginMode
