@@ -174,8 +174,10 @@ void PacketValidator::init() {
     // LPS_BEGIN_SESSION ( �α��� ������ ������ ���� )
     //----------------------------------------------------------------------
     pPacketIDSet = new PacketIDSet(LPS_BEGIN_SESSION);
-    //		pPacketIDSet->addPacketID( Packet::PACKET_CL_QUERY_PLAYER_ID );
-    //		pPacketIDSet->addPacketID( Packet::PACKET_CL_REGISTER_PLAYER );
+    // In-client account registration: a fresh connection may query an ID or
+    // register an account straight away, before any CLLogin.
+    pPacketIDSet->addPacketID(Packet::PACKET_CL_QUERY_PLAYER_ID);
+    pPacketIDSet->addPacketID(Packet::PACKET_CL_REGISTER_PLAYER);
     // add by viva 2008-12-31
     pPacketIDSet->addPacketID(Packet::PACKET_CG_ENCODE_KEY);
     // end
