@@ -36,6 +36,7 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_roundtrip_test.cpp
     packet_encrypter_test.cpp
     wire_layout_test.cpp
+    xml_parse_test.cpp
 )
 
 target_include_directories(wire_tests PRIVATE
@@ -47,6 +48,8 @@ target_include_directories(wire_tests PRIVATE
 target_compile_definitions(wire_tests PRIVATE
     WIRETEST_GOLDEN_DIR="${CMAKE_CURRENT_SOURCE_DIR}/golden"
     WIRETEST_LAYOUT_FILE="${CMAKE_CURRENT_SOURCE_DIR}/wire-layout.txt"
+    WIRETEST_XML_PARSE_FILE="${CMAKE_CURRENT_SOURCE_DIR}/golden/xml-parse.txt"
+    WIRETEST_DATA_DIR="${CMAKE_SOURCE_DIR}/data"
 )
 
 # TestPackets (defined in src/Core/CMakeLists.txt) is the whole packet set
@@ -64,10 +67,6 @@ target_link_libraries(wire_tests PRIVATE
     gtest_main
     Threads::Threads
 )
-if(XERCES_LIBRARY)
-    target_link_libraries(wire_tests PRIVATE ${XERCES_LIBRARY})
-endif()
-
 add_test(NAME wire_tests COMMAND wire_tests)
 # A hang here would otherwise sit for ctest's 1500s default with no output.
 set_tests_properties(wire_tests PROPERTIES TIMEOUT 120)

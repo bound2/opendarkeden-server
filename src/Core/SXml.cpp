@@ -27,25 +27,7 @@ void itoa(int value, char* buf, int r) {
 
 // using namespace std;
 
-// #pragma warning (push, 1)
-#include "xercesc/framework/MemBufInputSource.hpp"
-#include "xercesc/sax/SAXException.hpp"
-#include "xercesc/sax/SAXParseException.hpp"
-#include "xercesc/util/PlatformUtils.hpp"
-#include "xercesc/util/XMLString.hpp"
-
-// The Assert macro definitation pollute the include head files, result in build error.
-#undef Assert
-
-#include "xercesc/sax2/Attributes.hpp"
-#include "xercesc/sax2/DefaultHandler.hpp"
-#include "xercesc/sax2/SAX2XMLReader.hpp"
-#include "xercesc/sax2/XMLReaderFactory.hpp"
-// #pragma warning (pop)
-
-// #pragma warning(disable:4100)
-
-XERCES_CPP_NAMESPACE_USE
+#include "tinyxml2.h"
 
 //////////////////////////////////////////////////////////////////////////////
 /// \class XMLUtil
@@ -56,95 +38,88 @@ class XMLUtil {
 public:
     static string trim(const string& str);
     static void filelog(const char* fmt, ...);
-    static string WideCharToString(const XMLCh* wstr, int wstrlen = -1);
 };
 
 
 //////////////////////////////////////////////////////////////////////////////
-/// \class StrX
-/// \brief
+/// \brief Copy one parsed tinyxml2 element into an XMLTree node.
+///
+/// Reproduces the tree shape the previous SAX handler was written to build:
+///   - attribute names and values are trimmed, kept in document order
+///   - child elements become child XMLTree nodes, in document order
+///   - text runs are trimmed individually and appended to the enclosing
+///     element, so <a>X<b>Y</b>Z</a> yields a."XZ" and b."Y"
+///
+/// Two deliberate differences from the xerces path it replaces:
+///
+/// 1. Text is actually captured. XMLTreeGenerator::characters() declared its
+///    length parameter as `unsigned int`, but Xerces-C 3.x declares that
+///    virtual as XMLSize_t (size_t). The signatures never matched, so the
+///    override never bound and DefaultHandler's no-op ran instead — every
+///    text node in every file was silently discarded. No caller reads
+///    XMLTree::GetText() today, so nothing depended on the empty result.
+///
+/// 2. Bytes pass through untouched. tinyxml2 does no transcoding. The old
+///    path ran every string through XMLString::transcode() to the *local
+///    code page*, so results depended on the server's locale. The data files
+///    declare iso-8859-1 while actually holding EUC-KR, so any conversion
+///    here would be guessing; handing back the file's own bytes is
+///    deterministic, and re-encoding is a separate decision that belongs
+///    where the text is used.
 //////////////////////////////////////////////////////////////////////////////
-
-class StrX {
-private:
-    char* m_pCSTR; ///< ���� ���ڿ� ����
-
-public:
-    StrX(const XMLCh* const toTranscode) {
-        m_pCSTR = XMLString::transcode(toTranscode);
-    }
-    ~StrX() {
-        XMLString::release(&m_pCSTR);
+static void CopyElementToTree(const tinyxml2::XMLElement* pElement, XMLTree* pTree) {
+    for (const tinyxml2::XMLAttribute* pAttr = pElement->FirstAttribute(); pAttr != NULL; pAttr = pAttr->Next()) {
+        const char* pName = pAttr->Name();
+        const char* pValue = pAttr->Value();
+        pTree->AddAttribute(XMLUtil::trim(pName != NULL ? pName : ""), XMLUtil::trim(pValue != NULL ? pValue : ""));
     }
 
-    const char* c_str() const {
-        return m_pCSTR;
+    for (const tinyxml2::XMLNode* pNode = pElement->FirstChild(); pNode != NULL; pNode = pNode->NextSibling()) {
+        const tinyxml2::XMLText* pText = pNode->ToText();
+        if (pText != NULL) {
+            const char* pValue = pText->Value();
+            if (pValue != NULL)
+                pTree->SetText(pTree->GetText() + XMLUtil::trim(pValue));
+            continue;
+        }
+
+        const tinyxml2::XMLElement* pChild = pNode->ToElement();
+        if (pChild == NULL)
+            continue; // comments, declarations, unknowns: ignored as before
+
+        const char* pName = pChild->Name();
+        const string name = XMLUtil::trim(pName != NULL ? pName : "");
+        if (name.empty())
+            continue;
+
+        CopyElementToTree(pChild, pTree->AddChild(name));
     }
-    string toString() const {
-        return m_pCSTR;
-    }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-/// \class XMLTreeGenerator
-/// \brief
-//////////////////////////////////////////////////////////////////////////////
-
-class XMLTreeGenerator : public DefaultHandler {
-private:
-    XMLTree* m_pRoot;   ///< �ֻ��� ���
-    XMLTree* m_pBuffer; ///< XML �Ľ̿� �ӽ� ���
-
-
-public:
-    XMLTreeGenerator(XMLTree* pTree);
-    virtual ~XMLTreeGenerator();
-
-
-public:
-    // Handlers for the SAX ContentHandler interface
-    void startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname,
-                      const Attributes& attrs);
-    void endElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname);
-    void characters(const XMLCh* const chars, const unsigned int length);
-    void ignorableWhitespace(const XMLCh* const, const unsigned int) {}
-    void resetDocument();
-
-    // Handlers for the SAX ErrorHandler interface
-    void warning(const SAXParseException& e);
-    void error(const SAXParseException& e);
-    void fatalError(const SAXParseException& e);
-
-
-private:
-    XMLTreeGenerator(const XMLTreeGenerator&) {}
-    XMLTreeGenerator& operator=(const XMLTreeGenerator&) {
-        return *this;
-    }
-};
+}
 
 //////////////////////////////////////////////////////////////////////////////
-/// \class XMLParser
-/// \brief
+/// \brief Populate an XMLTree from an already-parsed tinyxml2 document.
+///
+/// Parse failures are logged and leave the tree empty, matching the previous
+/// behaviour of catching the xerces exception and carrying on.
 //////////////////////////////////////////////////////////////////////////////
+static void LoadTreeFromDocument(const tinyxml2::XMLDocument& document, XMLTree* pTree, const char* pWhat) {
+    if (document.Error()) {
+        const char* pDetail = document.ErrorStr();
+        XMLUtil::filelog("\nError during parsing %s! %s: %s\n", pWhat, document.ErrorName(),
+                         pDetail != NULL ? pDetail : "");
+        return;
+    }
 
-class XMLParser {
-private:
-    DefaultHandler* m_pHandler;
+    const tinyxml2::XMLElement* pRoot = document.RootElement();
+    if (pRoot == NULL) {
+        XMLUtil::filelog("\nNo root element while parsing %s\n", pWhat);
+        return;
+    }
 
-
-public:
-    XMLParser(XMLTree* pTree);
-    virtual ~XMLParser();
-
-
-public:
-    /// \brief ������ ��ġ�� �ִ� ���� �Ǵ� �� ������ �Ľ��Ѵ�.
-    void parseURL(const char* pURL);
-
-    /// \brief �μ��� �Ѱ����� ���ڿ��� XML ������ �����ϰ� �Ľ��Ѵ�.
-    void parse(const char* buffer);
-};
+    const char* pName = pRoot->Name();
+    pTree->SetName(XMLUtil::trim(pName != NULL ? pName : ""));
+    CopyElementToTree(pRoot, pTree);
+}
 
 
 static const char* XML_ERROR_FILENAME = "__XMLError.log";
@@ -154,59 +129,6 @@ static const char* XML_ERROR_FILENAME = "__XMLError.log";
 /// \param str
 /// \return string
 //////////////////////////////////////////////////////////////////////////////
-string XMLUtil::WideCharToString(const XMLCh* wstr, int wstrlen) {
-    //	return StrX( wstr ).c_str();
-
-    /*	if ( wstrlen == -1 )
-        {
-            wstrlen = (int)wcslen(wstr);
-        }*/
-
-    // test korean with WideCharToMultiByte
-    //	int WideCharToMultiByte(
-    //		UINT CodePage,            // code page
-    //		DWORD dwFlags,            // performance and mapping flags
-    //		LPCWSTR lpWideCharStr,    // wide-character string
-    //		int cchWideChar,          // number of chars in string
-    //		LPSTR lpMultiByteStr,     // buffer for new string
-    //		int cbMultiByte,          // size of buffer
-    //		LPCSTR lpDefaultChar,     // default for unmappable chars
-    //		LPBOOL lpUsedDefaultChar  // set when default char used
-    //	);
-    //
-    // lpDefaultChar
-    //	[in] Points to the character used if a wide character cannot be represented in the specified code page.
-    //  If this parameter is NULL, a system default value is used.
-    //  The function is faster when both lpDefaultChar and lpUsedDefaultChar are NULL.
-    //	For the code pages mentioned in dwFlags, lpDefaultChar must be NULL,
-    //  otherwise the function fails with ERROR_INVALID_PARAMETER.
-
-    //	lpUsedDefaultChar
-    //	[in] Points to a flag that indicates whether a default character was used.
-    //  The flag is set to TRUE if one or more wide characters in the source string
-    //  cannot be represented in the specified code page. Otherwise, the flag is set to FALSE.
-    //  This parameter may be NULL. The function is faster when both lpDefaultChar and lpUsedDefaultChar are NULL.
-    //	For the code pages mentioned in dwFlags, lpUsedDefaultChar must be NULL,
-    //  otherwise the function fails with ERROR_INVALID_PARAMETER.
-
-    // �ּ����� ���縦 ���̱� ���ؼ� ��Ʈ���� �غ�.
-    /*	string strBuffer;
-        strBuffer.reserve( wstrlen * 2 + 1 );		// capacity �� ����ϰ�..
-        int nCopied = WideCharToMultiByte(
-            CP_OEMCP,
-            WC_COMPOSITECHECK,
-            wstr,									// wide string
-            wstrlen,								// length of wide string
-            const_cast<LPSTR>(strBuffer.data()),	// mbcs string (unicode)
-            (int)strBuffer.capacity(),					// length of mbcs string
-            NULL,									// NULL �� �����ٴµ�?
-            NULL );
-        strBuffer[nCopied] = 0;
-        strBuffer._Mysize = nCopied;				// �������� �����ؾ� �Ѵ�.
-
-        return strBuffer;*/
-    return StrX(wstr).toString();
-}
 
 string XMLUtil::trim(const string& str) {
     if (str.size() == 0)
@@ -572,6 +494,13 @@ XMLTree* XMLTree::GetChild(const string& name) const {
     return itr->second;
 }
 
+XMLAttribute* XMLTree::GetAttribute(size_t index) const {
+    return ((index < m_AttributesVector.size()) ? m_AttributesVector[index] : NULL);
+}
+const size_t XMLTree::GetAttributeCount() const {
+    return m_AttributesVector.size();
+}
+
 XMLTree* XMLTree::GetChild(size_t index) const {
     return ((index < m_ChildrenVector.size()) ? m_ChildrenVector[index] : NULL);
 }
@@ -605,13 +534,15 @@ void XMLTree::Release() {
 }
 
 void XMLTree::LoadFromFile(const char* pFilename) {
-    XMLParser parser(this);
-    parser.parseURL(pFilename);
+    tinyxml2::XMLDocument document;
+    document.LoadFile(pFilename);
+    LoadTreeFromDocument(document, this, pFilename);
 }
 
 void XMLTree::LoadFromMem(const char* pBuffer) {
-    XMLParser parser(this);
-    parser.parse(pBuffer);
+    tinyxml2::XMLDocument document;
+    document.Parse(pBuffer);
+    LoadTreeFromDocument(document, this, "<memory buffer>");
 }
 
 void XMLTree::SaveToFile(const char* pFilename) {
@@ -665,207 +596,4 @@ void XMLTree::Save(ofstream& file, size_t indent) {
             file << "</" << m_Name << ">" << endl;
         }
     }
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-//
-//	XMLTreeGenerator
-//
-//////////////////////////////////////////////////////////////////////////////
-
-XMLTreeGenerator::XMLTreeGenerator(XMLTree* pTree) : m_pRoot(pTree), m_pBuffer(NULL) {}
-
-XMLTreeGenerator::~XMLTreeGenerator() {}
-
-void XMLTreeGenerator::startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname,
-                                    const Attributes& attrs) {
-    string name = XMLUtil::trim(XMLUtil::WideCharToString(localname));
-
-    if (name.empty())
-        return;
-
-    XMLTree* pTree = NULL;
-
-    if (m_pBuffer == NULL) {
-        m_pRoot->SetName(name);
-
-        pTree = m_pRoot;
-    } else {
-        pTree = m_pBuffer->AddChild(name);
-    }
-
-    for (unsigned int i = 0; i < attrs.getLength(); i++) {
-        pTree->AddAttribute(XMLUtil::trim(XMLUtil::WideCharToString(attrs.getLocalName(i))),
-                            XMLUtil::trim(XMLUtil::WideCharToString(attrs.getValue(i))));
-    }
-
-    m_pBuffer = pTree;
-}
-
-// #include <cassert>
-
-void XMLTreeGenerator::endElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname) {
-    // assert( m_pBuffer != NULL );
-
-    m_pBuffer = const_cast<XMLTree*>(m_pBuffer->GetParent());
-}
-
-void XMLTreeGenerator::characters(const XMLCh* const chars, const unsigned int length) {
-    // assert( m_pBuffer != NULL );
-
-    string text = XMLUtil::trim(XMLUtil::WideCharToString(chars));
-    m_pBuffer->SetText(m_pBuffer->GetText() + text);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-/// \brief
-//////////////////////////////////////////////////////////////////////////////
-void XMLTreeGenerator::resetDocument() {
-    m_pRoot->Release();
-}
-
-//////////////////////////////////////////////////////////////////////////////
-/// \brief
-/// \param e
-//////////////////////////////////////////////////////////////////////////////
-void XMLTreeGenerator::warning(const SAXParseException& e) {
-    XMLUtil::filelog("\nWarning at FILE %s, LINE %d, CHAR %d, \nMessage: %s\n",
-                     XMLUtil::WideCharToString(e.getSystemId()).c_str(), e.getLineNumber(), e.getColumnNumber(),
-                     XMLUtil::WideCharToString(e.getMessage()).c_str());
-
-    // assert(false);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-/// \brief
-/// \param e
-//////////////////////////////////////////////////////////////////////////////
-void XMLTreeGenerator::error(const SAXParseException& e) {
-    XMLUtil::filelog("\nError at FILE %s, LINE %d, CHAR %d, \nMessage: %s\n",
-                     XMLUtil::WideCharToString(e.getSystemId()).c_str(), e.getLineNumber(), e.getColumnNumber(),
-                     XMLUtil::WideCharToString(e.getMessage()).c_str());
-
-    // assert(false);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-/// \brief
-/// \param e
-//////////////////////////////////////////////////////////////////////////////
-void XMLTreeGenerator::fatalError(const SAXParseException& e) {
-    XMLUtil::filelog("\nFatal error at FILE %s, LINE %d, CHAR %d, \nMessage: %s\n",
-                     XMLUtil::WideCharToString(e.getSystemId()).c_str(), e.getLineNumber(), e.getColumnNumber(),
-                     XMLUtil::WideCharToString(e.getMessage()).c_str());
-
-    // assert(false);
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-/// \brief
-/// \param pTree
-//////////////////////////////////////////////////////////////////////////////
-XMLParser::XMLParser(XMLTree* pTree) {
-    try // Initialize the XML4C2 system
-    {
-        XMLPlatformUtils::Initialize();
-    } catch (const XMLException& toCatch) {
-        XMLUtil::filelog("Error during initialization! Message:%s\n",
-                         XMLUtil::WideCharToString(toCatch.getMessage()).c_str());
-    }
-
-    m_pHandler = new XMLTreeGenerator(pTree);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-/// \brief
-//////////////////////////////////////////////////////////////////////////////
-XMLParser::~XMLParser() {
-    if (m_pHandler != NULL)
-        delete m_pHandler;
-
-    // And call the termination method
-    XMLPlatformUtils::Terminate();
-}
-
-//////////////////////////////////////////////////////////////////////////////
-/// \brief ������ ��ġ�� �ִ� ���� �Ǵ� �� ������ �Ľ��Ѵ�.
-///
-/// \param pURL
-//////////////////////////////////////////////////////////////////////////////
-void XMLParser::parseURL(const char* pURL) {
-    // assert(pURL != NULL);
-    // assert(m_pHandler != NULL);
-
-    // SAX �ļ� ������Ʈ�� �����Ѵ�. �׸��� feature�� �����Ѵ�.
-    // SAX2���� �����Ǵ� feature�� ������ ����.
-    //
-    // validation (default: true)
-    // namespaces (default: true)
-    // namespace-prefixes (default: false)
-    // validation/dynamic (default: false)
-    // reuse-grammar (default: false)
-    // schema (default: true)
-    // schema-full-checking (default: false)
-    // load-external-dtd (default: true)
-    // continue-after-fatal-error (default: false)
-    // validation-error-as-fatal (default: false)
-    //
-    // �ڼ��� ������ ���� �ּҸ� �����ϱ� �ٶ���.
-    // http://xml.apache.org/xerces-c/program-sax2.html#SAX2Features
-    SAX2XMLReader* pParser = XMLReaderFactory::createXMLReader();
-    pParser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);
-    pParser->setFeature(XMLUni::fgXercesSchema, true);
-    pParser->setFeature(XMLUni::fgXercesSchemaFullChecking, false);
-    pParser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes, false);
-    pParser->setFeature(XMLUni::fgSAX2CoreValidation, true);
-    pParser->setFeature(XMLUni::fgXercesDynamic, true);
-    pParser->setContentHandler(m_pHandler);
-    pParser->setErrorHandler(m_pHandler);
-
-    try {
-        pParser->parse(pURL);
-    } catch (const XMLException& e) {
-        XMLUtil::filelog("\nError during parsing! Exception Message: \n%s\n",
-                         XMLUtil::WideCharToString(e.getMessage()).c_str());
-    } catch (...) {
-        XMLUtil::filelog("Unexpected exception during parsing!\n");
-    }
-
-    delete pParser;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-/// \brief �μ��� �Ѱ����� ���ڿ��� XML ������ �����ϰ� �Ľ��Ѵ�.
-///
-/// \param buffer
-//////////////////////////////////////////////////////////////////////////////
-void XMLParser::parse(const char* buffer) {
-    // assert(buffer != NULL);
-    // assert(m_pHandler != NULL);
-
-    // SAX �ļ� ������Ʈ�� �����Ѵ�. �׸��� feature�� �����Ѵ�.
-    // feature�� ���� ������ XMLParser::parseURL() �Լ��� �����ϱ� �ٶ���.
-    SAX2XMLReader* pParser = XMLReaderFactory::createXMLReader();
-    pParser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);
-    pParser->setFeature(XMLUni::fgXercesSchema, true);
-    pParser->setFeature(XMLUni::fgXercesSchemaFullChecking, false);
-    pParser->setFeature(XMLUni::fgSAX2CoreNameSpacePrefixes, false);
-    pParser->setFeature(XMLUni::fgSAX2CoreValidation, true);
-    pParser->setFeature(XMLUni::fgXercesDynamic, true);
-    pParser->setContentHandler(m_pHandler);
-    pParser->setErrorHandler(m_pHandler);
-
-    try {
-        MemBufInputSource source((const XMLByte*)(buffer), (unsigned int)strlen(buffer), "", false);
-        pParser->parse(source);
-    } catch (const XMLException& e) {
-        XMLUtil::filelog("\nError during parsing! Exception Message: \n%s\n",
-                         XMLUtil::WideCharToString(e.getMessage()).c_str());
-    } catch (...) {
-        XMLUtil::filelog("Unexpected exception during parsing!\n");
-    }
-
-    delete pParser;
 }

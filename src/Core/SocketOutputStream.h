@@ -171,11 +171,11 @@ template <typename T> uint SocketOutputStream::write(T buf) {
 
         if (m_Head == 0) {
             nFree = m_BufferLen - m_Tail - 1;
-            *((T*)(m_Buffer + m_Tail)) = buf;
+            memcpy(m_Buffer + m_Tail, &buf, len);
         } else {
             nFree = m_BufferLen - m_Tail;
             if (len <= nFree) {
-                *((T*)(m_Buffer + m_Tail)) = buf;
+                memcpy(m_Buffer + m_Tail, &buf, len);
             } else {
                 memcpy(&m_Buffer[m_Tail], (char*)&buf, nFree);
                 memcpy(m_Buffer, (((char*)&buf) + nFree), len - nFree);
@@ -188,7 +188,7 @@ template <typename T> uint SocketOutputStream::write(T buf) {
         // 0123456789
         // abcd...efg
         //
-        *((T*)(m_Buffer + m_Tail)) = buf;
+        memcpy(m_Buffer + m_Tail, &buf, len);
     }
 
     // advance m_Tail

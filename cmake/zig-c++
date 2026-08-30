@@ -1,0 +1,17 @@
+#!/bin/sh
+# Wrapper: see cmake/zig-cc. This is the C++ driver (`zig c++`).
+#
+# Note on the C++ runtime: `zig c++` links LLVM's libc++, not GNU libstdc++.
+# That is safe for this project because every remaining external dependency
+# exposes a C API (libmysqlclient, lua, zlib) and so carries no C++ ABI.
+# Re-introducing a C++-API dependency built against libstdc++ would reopen
+# that mismatch -- which is exactly what dropping xerces-c removed.
+set -e
+
+if [ -n "${ZIG}" ]; then
+    exec "${ZIG}" c++ ${ZIG_TARGET:+-target "${ZIG_TARGET}"} "$@"
+elif command -v zig >/dev/null 2>&1; then
+    exec zig c++ ${ZIG_TARGET:+-target "${ZIG_TARGET}"} "$@"
+else
+    exec python3 -m ziglang c++ ${ZIG_TARGET:+-target "${ZIG_TARGET}"} "$@"
+fi
