@@ -29,43 +29,49 @@ void GCExchangeList::read(SocketInputStream& iStream) {
     uint16_t count;
     iStream.read(count);
 
-    // Read listings
+    // Read listings — this must stay an exact mirror of write() below.
     for (uint16_t i = 0; i < count; i++) {
         ExchangeListing listing;
 
-        int64_t listingID;
-        uint16_t serverID;
-        uint8_t sellerRace, itemClass, currency, status, taxRate;
-        uint16_t itemType;
-        int pricePoint, taxAmount, objectID, version;
-
-        iStream.read(listingID);
-        iStream.read(serverID);
-
-        // Strings need special handling
         char buf[256];
         uint8_t len;
 
+        uint64_t listingID;
+        iStream.read(listingID);
+        listing.listingID = (int64_t)listingID;
+
+        uint16_t serverID;
+        iStream.read(serverID);
+        listing.serverID = (int16_t)serverID;
+
         // SellerAccount
         iStream.read(len);
-        iStream.read(buf, len);
-        buf[len] = '\0';
-        listing.sellerAccount = string(buf);
+        if (len > 0) {
+            iStream.read(buf, len);
+            buf[len] = '\0';
+            listing.sellerAccount = string(buf);
+        }
 
         // SellerPlayer
         iStream.read(len);
-        iStream.read(buf, len);
-        buf[len] = '\0';
-        listing.sellerPlayer = string(buf);
+        if (len > 0) {
+            iStream.read(buf, len);
+            buf[len] = '\0';
+            listing.sellerPlayer = string(buf);
+        }
 
-        iStream.read(sellerRace);
-        iStream.read(itemClass);
-        iStream.read(itemType);
-        iStream.read(listingID); // itemID
-        iStream.read(objectID);
-        iStream.read(pricePoint);
-        iStream.read(currency);
-        iStream.read(status);
+        iStream.read(listing.sellerRace);
+        iStream.read(listing.itemClass);
+        iStream.read(listing.itemType);
+
+        uint64_t itemID;
+        iStream.read(itemID);
+        listing.itemID = (int64_t)itemID;
+
+        iStream.read(listing.objectID);
+        iStream.read(listing.pricePoint);
+        iStream.read(listing.currency);
+        iStream.read(listing.status);
 
         // BuyerAccount
         iStream.read(len);
@@ -83,10 +89,10 @@ void GCExchangeList::read(SocketInputStream& iStream) {
             listing.buyerPlayer = string(buf);
         }
 
-        iStream.read(taxRate);
-        iStream.read(taxAmount);
+        iStream.read(listing.taxRate);
+        iStream.read(listing.taxAmount);
 
-        // Timestamp strings
+        // Timestamp strings (soldAt/cancelledAt/updatedAt are not on the wire)
         iStream.read(len);
         if (len > 0) {
             iStream.read(buf, len);
@@ -101,7 +107,7 @@ void GCExchangeList::read(SocketInputStream& iStream) {
             listing.expireAt = string(buf);
         }
 
-        iStream.read(version);
+        iStream.read(listing.version);
 
         // Snapshot fields
         // ItemName

@@ -69,7 +69,8 @@ public:
     }
     PacketSize_t getPacketMaxSize() const {
         return sizeof(uint64_t) + // listingID
-               64;                // idempotencyKey (max 64 chars)
+               szBYTE +           // idempotencyKey length byte
+               255;               // idempotencyKey (BYTE length => 255 max; client factory must match)
     }
 };
 

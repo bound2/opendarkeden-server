@@ -109,13 +109,14 @@ public:
         return Packet::PACKET_CG_EXCHANGE_LIST;
     }
     PacketSize_t getPacketMaxSize() const {
-        return szBYTE +      // m_Page
-               szBYTE +      // m_PageSize
+        return sizeof(int) + // m_Page
+               sizeof(int) + // m_PageSize
                szBYTE +      // m_ItemClass
                szWORD +      // m_ItemType (uint16)
                sizeof(int) + // m_MinPrice
                sizeof(int) + // m_MaxPrice
-               64;           // m_SellerFilter (max 64 chars)
+               szBYTE +      // m_SellerFilter length byte
+               255;          // m_SellerFilter (BYTE length => 255 max; client factory must match)
     }
 };
 

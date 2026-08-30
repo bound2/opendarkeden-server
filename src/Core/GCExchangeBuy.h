@@ -70,9 +70,8 @@ private:
 // The server never receives this packet; the factory exists for the
 // wire-layout inventory (tests/wire-layout.txt) and to keep the packet
 // comparable with the client's copy. write() emits a success BYTE, the
-// message bytes with NO length prefix (write(string) is raw), then the
-// order id; the max assumes a 255-byte message. A receiver cannot frame
-// that message — recorded in docs/RESTRUCTURING.md 1.4.
+// message as a BYTE length prefix followed by the message bytes, then
+// the order id; the max assumes a 255-byte message.
 //////////////////////////////////////////////////////////////////////////////
 
 class GCExchangeBuyFactory : public PacketFactory {
@@ -90,7 +89,7 @@ public:
     }
 
     PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 255 + sizeof(int64_t);
+        return szBYTE + szBYTE + 255 + sizeof(int64_t);
     }
 };
 

@@ -215,6 +215,31 @@ before anything else moves. Everything later shelters under this pin.
   >      4-byte listing id only. The two repos' Exchange packets were
   >      written against different specs — reconcile them as one change
   >      in both repos, then the diff's Exchange lines go green.
+  >      **Reconciled 2026-08-30** (`restructuring/exchange-reconcile` in
+  >      both repos; canonical string encoding = BYTE length always
+  >      written + raw bytes, all four factory maxes equal across repos,
+  >      pinned by `tests/packet_exchange_test.cpp` round-trips/goldens/
+  >      size checks). Fixing the layouts uncovered and removed on the
+  >      way:
+  >      * server `CGExchangeBuy::read()`/`GCExchangeBuy::read()` called
+  >        `iStream.read(std::string&)`, which resolves to the generic
+  >        `template read(T&)` — a raw `read((char*)&buf, sizeof(T))`
+  >        over the **string object** (memory corruption on every
+  >        received buy request); both now use BYTE-length encoding, and
+  >        the call sites carry a warning comment;
+  >      * server `GCExchangeList::read()` read `listingID` twice (once
+  >        where write() emits `itemID`) and discarded most fields into
+  >        locals — rewritten as write()'s exact mirror;
+  >      * client `GCExchangeList` parsed only page/pageSize/total and
+  >        capped at 2048 bytes; now parses the full 31-field listing
+  >        layout with max 37114 = the server's;
+  >      * client had no `GCExchangeBuy` class, and `GCExchangeListFactory`
+  >        was **never registered** in its `PacketFactoryManager` — the
+  >        listing reply was unroutable; both fixed.
+  >      Still open (out of layout scope): page size is client-chosen and
+  >      unbounded on the server (`CGExchangeListHandler.cpp:34`); the
+  >      client UI never sends these packets yet, so live testing awaits
+  >      the UI hookup.
   > 2. **`CGBloodDrain` layout mismatch** — client writes
   >    `ObjectID, X, Y, Dir` (7 bytes); server reads `ObjectID` only and
   >    `getPacketMaxSize()` = 4, so `GamePlayer` would throw
