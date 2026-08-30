@@ -24,6 +24,14 @@ class Socket;
 
 namespace wiretest {
 
+// Encrypt codes every per-code golden and round-trip runs under. 0 is the
+// unencrypted branch; 1..5 take the __USE_ENCRYPTER__ branch and between
+// them reach every `code % N` case of SHUFFLE_STATEMENT_2.._5 (the _4/_5
+// tables have non-rotation cases at 3 and 4 that codes 1..3 never hit).
+// ShuffleTableTest.encryptCodesReachEveryShuffleCase proves the claim.
+static const uchar kEncryptCodes[] = {0, 1, 2, 3, 4, 5};
+static const size_t kEncryptCodeCount = sizeof(kEncryptCodes) / sizeof(kEncryptCodes[0]);
+
 // Serialize a packet body exactly as a session with encrypt code `code`
 // would put it on the wire (0 = the unencrypted branch). Returns the raw
 // buffer contents; nothing is flushed to any socket.

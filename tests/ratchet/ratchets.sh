@@ -88,4 +88,27 @@ else
     echo "[OK]   every registered factory is covered by the wire inventory"
 fi
 
+# --- Every encrypter-using packet has per-code goldens -------------------
+# A packet whose read/write call readEncrypt/writeEncrypt puts bytes on the
+# wire that depend on the session encrypt code, and for the shuffled ones
+# on which code % N case runs. packet_encrypter_test.cpp pins them all;
+# this catches the next packet that starts using the encrypter without a
+# golden (exceptions, with reasons: tests/ratchet/encrypter_exceptions.txt).
+# Checks for code 5 specifically: that is the code that reaches the
+# SHUFFLE_STATEMENT_5 case 0 order through the encrypted branch.
+unpinned=$(grep -lE '(read|write)Encrypt\(' src/Core/*.cpp |
+    xargs -n1 basename | sed 's/\.cpp$//' | sort -u |
+    grep -vxFf <(grep -vE '^\s*(#|$)' tests/ratchet/encrypter_exceptions.txt) |
+    while read -r name; do
+        [ -f "tests/golden/$name.code5.hex" ] || echo "$name"
+    done)
+if [ -n "$unpinned" ]; then
+    echo "[FAIL] packets use the encrypter but have no per-code goldens (tests/golden/<Name>.code5.hex):"
+    echo "$unpinned" | sed 's/^/         /'
+    echo "         (add fill()/expectEqual() + ENCRYPTER_PACKET_TESTS in tests/packet_encrypter_test.cpp and record)"
+    fail=1
+else
+    echo "[OK]   every encrypter-using packet has per-code goldens"
+fi
+
 exit $fail

@@ -10,6 +10,7 @@
 #include <string>
 
 #include "Packet.h"
+#include "PacketFactory.h"
 
 using namespace std;
 
@@ -61,6 +62,36 @@ private:
     bool m_Success;
     string m_Message;
     int64_t m_OrderID;
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// class GCExchangeBuyFactory
+//
+// The server never receives this packet; the factory exists for the
+// wire-layout inventory (tests/wire-layout.txt) and to keep the packet
+// comparable with the client's copy. write() emits a success BYTE, the
+// message bytes with NO length prefix (write(string) is raw), then the
+// order id; the max assumes a 255-byte message. A receiver cannot frame
+// that message — recorded in docs/RESTRUCTURING.md 1.4.
+//////////////////////////////////////////////////////////////////////////////
+
+class GCExchangeBuyFactory : public PacketFactory {
+public:
+    Packet* createPacket() {
+        return new GCExchangeBuy();
+    }
+
+    string getPacketName() const {
+        return "GCExchangeBuy";
+    }
+
+    PacketID_t getPacketID() const {
+        return Packet::PACKET_GC_EXCHANGE_BUY;
+    }
+
+    PacketSize_t getPacketMaxSize() const {
+        return szBYTE + 255 + sizeof(int64_t);
+    }
 };
 
 //////////////////////////////////////////////////////////////////////////////

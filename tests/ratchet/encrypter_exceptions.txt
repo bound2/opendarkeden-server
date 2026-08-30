@@ -1,0 +1,8 @@
+# src/Core sources that call readEncrypt/writeEncrypt but deliberately have
+# no per-code golden of their own, one per line, each with a reason.
+# tests/ratchet/ratchets.sh treats these as covered.
+#
+# Abstract base with no packet ID; its layout rides the wire only through
+# GCAddNewItemToZone, GCAddInstalledMineToZone and GCDropItemToZone, all
+# pinned in tests/packet_encrypter_test.cpp.
+GCAddItemToZone

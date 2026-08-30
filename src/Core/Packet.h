@@ -549,26 +549,33 @@ public:
         PACKET_UC_UPDATE,                          //   481
         PACKET_UC_UPDATE_LIST,                     //   482
         PACKET_CG_ENCODE_KEY,                      //   483 add by viva 2008-12-27 : Packet Encode Key
-        PACKET_GC_FRIEND_CHATTING,                 // add by viva
+        PACKET_GC_FRIEND_CHATTING,                 //   484 add by viva
+        // The client's Packet.h carries this id (its GCUseSkillCardOK class);
+        // the server no longer has the packet (its factory registration is
+        // commented out in PacketFactoryManager.cpp) but MUST keep the
+        // enumerator, or every id below it shifts by one relative to the
+        // client. Dropping it silently broke the whole Exchange block
+        // (found by tests/tools/wire_inventory_diff.sh, 2026-08-30).
+        PACKET_GC_USE_SKILLCARD_OK, //   485 by viva
 
         // Exchange System Packets
-        PACKET_CG_EXCHANGE_LIST,           //   484 - Get listing list
-        PACKET_CG_EXCHANGE_CREATE_LISTING, //   485 - Create new listing
-        PACKET_CG_EXCHANGE_CANCEL_LISTING, //   486 - Cancel listing
-        PACKET_CG_EXCHANGE_BUY,            //   487 - Buy item
-        PACKET_CG_EXCHANGE_CLAIM,          //   488 - Claim item
-        PACKET_CG_EXCHANGE_MY_LISTINGS,    //   489 - Get my listings
-        PACKET_CG_EXCHANGE_ORDERS,         //   490 - Get my orders
-        PACKET_CG_EXCHANGE_BALANCE,        //   491 - Get point balance
-        PACKET_GC_EXCHANGE_LIST,           //   492 - Listing list response
-        PACKET_GC_EXCHANGE_CREATE_LISTING, //   493 - Create listing response
-        PACKET_GC_EXCHANGE_CANCEL_LISTING, //   494 - Cancel listing response
-        PACKET_GC_EXCHANGE_BUY,            //   495 - Buy response
-        PACKET_GC_EXCHANGE_CLAIM_LIST,     //   496 - Claim list response
-        PACKET_GC_EXCHANGE_CLAIM_RESULT,   //   497 - Claim result
-        PACKET_GC_EXCHANGE_MY_LISTINGS,    //   498 - My listings response
-        PACKET_GC_EXCHANGE_ORDERS,         //   499 - My orders response
-        PACKET_GC_EXCHANGE_BALANCE,        //   500 - Balance response
+        PACKET_CG_EXCHANGE_LIST,           //   486 - Get listing list
+        PACKET_CG_EXCHANGE_CREATE_LISTING, //   487 - Create new listing
+        PACKET_CG_EXCHANGE_CANCEL_LISTING, //   488 - Cancel listing
+        PACKET_CG_EXCHANGE_BUY,            //   489 - Buy item
+        PACKET_CG_EXCHANGE_CLAIM,          //   490 - Claim item
+        PACKET_CG_EXCHANGE_MY_LISTINGS,    //   491 - Get my listings
+        PACKET_CG_EXCHANGE_ORDERS,         //   492 - Get my orders
+        PACKET_CG_EXCHANGE_BALANCE,        //   493 - Get point balance
+        PACKET_GC_EXCHANGE_LIST,           //   494 - Listing list response
+        PACKET_GC_EXCHANGE_CREATE_LISTING, //   495 - Create listing response
+        PACKET_GC_EXCHANGE_CANCEL_LISTING, //   496 - Cancel listing response
+        PACKET_GC_EXCHANGE_BUY,            //   497 - Buy response
+        PACKET_GC_EXCHANGE_CLAIM_LIST,     //   498 - Claim list response
+        PACKET_GC_EXCHANGE_CLAIM_RESULT,   //   499 - Claim result
+        PACKET_GC_EXCHANGE_MY_LISTINGS,    //   500 - My listings response
+        PACKET_GC_EXCHANGE_ORDERS,         //   501 - My orders response
+        PACKET_GC_EXCHANGE_BALANCE,        //   502 - Balance response
 
         PACKET_MAX
     };
