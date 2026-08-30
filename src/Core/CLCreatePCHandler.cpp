@@ -426,7 +426,7 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
             "RankExp, RankGoalExp, HP, CurrentHP, MP, CurrentMP, ZoneID, XCoord, YCoord, Sight, Gold, Alignment, "
             "Shape, HelmetColor, JacketColor, PantsColor, WeaponColor, ShieldColor, creation_date) VALUES ('%s', '%s', "
             "'%s', '%s', %d, 'ACTIVE', '%s', '%s', %d, %d, 0, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
-            "%d, %d, 12, 237, 138, 13, 0, 7500, %d, %d, %d, %d, %d, %d, now())",
+            "%d, %d, 2101, 65, 45, 13, 0, 7500, %d, %d, %d, %d, %d, %d, now())",
             race.c_str(), pPacket->getName().c_str(), pLoginPlayer->getID().c_str(),
             Slot2String[pPacket->getSlot()].c_str(), (int)CurrentServerGroupID, Sex2String[pPacket->getSex()].c_str(),
             HairStyle2String[pPacket->getHairStyle()].c_str(), (int)pPacket->getHairColor(),

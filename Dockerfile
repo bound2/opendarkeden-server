@@ -16,7 +16,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    ccache \
     cmake \
+    ninja-build \
     pkg-config \
     libxerces-c-dev \
     libmysqlclient-dev \
@@ -37,8 +39,23 @@ ARG BUILD_TYPE=Release
 # Number of parallel compile jobs; defaults to all available cores.
 ARG BUILD_JOBS=
 
-RUN cmake -B build -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-    && cmake --build build -j "${BUILD_JOBS:-$(nproc)}"
+# Ninja instead of Unix Makefiles: with Makefiles a target's objects are not
+# compiled until every library it links against has finished *linking*, which
+# leaves cores idle at each Core -> Packets -> server layer boundary. Ninja
+# orders individual compile steps only by their headers, so every translation
+# unit in the tree compiles concurrently across all cores.
+#
+# ccache in a BuildKit cache mount keeps object files across image rebuilds so
+# only the sources that changed are recompiled. Needs BuildKit (the default
+# for docker >= 23 and docker compose v2).
+ENV CCACHE_DIR=/ccache
+RUN --mount=type=cache,target=/ccache,sharing=locked \
+    cmake -G Ninja -B build \
+        -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    && cmake --build build -j "${BUILD_JOBS:-$(nproc)}" \
+    && ccache -s
 
 # ----------------------------------------------------------------------------
 # Stage 2: runtime - only the shared libraries the servers link against
