@@ -13,12 +13,26 @@
 #include "LCRegisterPlayerError.h"
 #include "LCRegisterPlayerOK.h"
 #include "LoginPlayer.h"
+#include "Properties.h"
+#endif
+
+#ifdef __LOGIN_SERVER__
+namespace {
+
+// Every string in the registration packet is interpolated into SQL text
+// verbatim, so anything that could break out of a quoted literal is refused.
+bool containsSqlMetaCharacter(const string& s) {
+    return s.find_first_of("'\\\";") != string::npos;
+}
+
+} // namespace
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// When a client requests player registration, first verify the temporary
-// login ID is "guest", validate the registration packet, then insert into
-// the DB and respond.
+// A fresh connection (LPS_BEGIN_SESSION) may register an account: validate
+// the packet, insert the Player row, and answer with LCRegisterPlayerOK or
+// LCRegisterPlayerError. On success the session is logged in as the new
+// account and continues like a normal login (world list, PC list, ...).
 //////////////////////////////////////////////////////////////////////////////
 void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer)
 
@@ -60,21 +74,19 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
             throw string("too small ID length");
         }
 
+        if (containsSqlMetaCharacter(pPacket->getID())) {
+            lcRegisterPlayerError.setErrorID(ETC_ERROR);
+            throw string("Invalid ID");
+        }
+
         if (pPacket->getPassword() == "") {
             lcRegisterPlayerError.setErrorID(EMPTY_PASSWORD);
             throw string("Password field is empty");
-        } else {
-            string password = pPacket->getPassword();
-            if (password.find("\'") < password.size())
-                throw string("Invalid Password");
-            if (password.find("'") < password.size())
-                throw string("Invalid Password");
-            else if (password.find("\\") < password.size())
-                throw string("Invalid Password");
-            else if (password.find("\"") < password.size())
-                throw string("Invalid Password");
-            else if (password.find(";") < password.size())
-                throw string("Invalid Password");
+        }
+
+        if (containsSqlMetaCharacter(pPacket->getPassword())) {
+            lcRegisterPlayerError.setErrorID(ETC_ERROR);
+            throw string("Invalid Password");
         }
 
         if (pPacket->getPassword().size() < 6) {
@@ -92,6 +104,15 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
             throw string("SSN field is empty");
         }
 
+        if (containsSqlMetaCharacter(pPacket->getName()) || containsSqlMetaCharacter(pPacket->getSSN()) ||
+            containsSqlMetaCharacter(pPacket->getTelephone()) || containsSqlMetaCharacter(pPacket->getCellular()) ||
+            containsSqlMetaCharacter(pPacket->getZipCode()) || containsSqlMetaCharacter(pPacket->getAddress()) ||
+            containsSqlMetaCharacter(pPacket->getEmail()) || containsSqlMetaCharacter(pPacket->getHomepage()) ||
+            containsSqlMetaCharacter(pPacket->getProfile())) {
+            lcRegisterPlayerError.setErrorID(ETC_ERROR);
+            throw string("Invalid profile field");
+        }
+
     } catch (string& errstr) {
         pLoginPlayer->sendPacket(&lcRegisterPlayerError);
 
@@ -107,8 +128,8 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
     // Insert into the database.
     //----------------------------------------------------------------------
 
-    Statement* pStmt;
-    Result* pResult;
+    Statement* pStmt = NULL;
+    Result* pResult = NULL;
 
     try {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
@@ -120,42 +141,47 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
 
         if (pResult->getRowCount() != 0) {
             lcRegisterPlayerError.setErrorID(ALREADY_REGISTER_ID);
-            throw DuplicatedException("�׷� ���̵� �̹� �����մϴ�.");
+            throw DuplicatedException("that ID already exists");
         }
 
-
         //--------------------------------------------------------------------------------
-        // Validate SSN (placeholder).
+        // The SSN used to be checked for uniqueness here. The client no longer
+        // collects a national ID number and sends a fixed placeholder, so a
+        // uniqueness check would reject every account after the first.
         //--------------------------------------------------------------------------------
-
-
-        //--------------------------------------------------------------------------------
-        // Check for duplicate SSN.
-        //--------------------------------------------------------------------------------
-        pResult = pStmt->executeQuery("SELECT SSN FROM Player WHERE SSN = '%s'", pPacket->getSSN().c_str());
-
-        if (pResult->getRowCount() != 0) {
-            lcRegisterPlayerError.setErrorID(ALREADY_REGISTER_SSN);
-            throw DuplicatedException("�̹� ��ϵ� �ֹε�Ϲ�ȣ�Դϴ�.");
-        }
-
 
         //--------------------------------------------------------------------------------
         // Insert the new player row.
+        //
+        // The password must be stored the way CLLoginHandler compares it:
+        // OLD_PASSWORD() when DB_VERSION starts with '4', otherwise plain text
+        // (the Password column is varchar(16), which cannot hold a PASSWORD()
+        // hash anyway).
         //--------------------------------------------------------------------------------
+        const bool bOldPasswordHash = g_pConfig->hasKey("DB_VERSION") && g_pConfig->getProperty("DB_VERSION")[0] == '4';
+
         pResult = pStmt->executeQuery(
             "INSERT INTO Player (PlayerID , Password , Name , Sex , SSN , Telephone , Cellular , Zipcode , Address , "
-            "Nation , Email , Homepage , Profile , Pub) VALUES ('%s' , PASSWORD('%s') , '%s' , '%s' , '%s' , '%s' , "
+            "Nation , Email , Homepage , Profile , Pub) VALUES ('%s' , %s('%s') , '%s' , '%s' , '%s' , '%s' , "
             "'%s' , '%s' , '%s' , %d , '%s' , '%s' , '%s' , '%s')",
-            pPacket->getID().c_str(), pPacket->getPassword().c_str(), pPacket->getName().c_str(),
-            Sex2String[pPacket->getSex()].c_str(), pPacket->getSSN().c_str(), pPacket->getTelephone().c_str(),
-            pPacket->getCellular().c_str(), pPacket->getZipCode().c_str(), pPacket->getAddress().c_str(),
-            (int)pPacket->getNation(), pPacket->getEmail().c_str(), pPacket->getHomepage().c_str(),
-            pPacket->getProfile().c_str(), (pPacket->getPublic() == true) ? "PUBLIC" : "PRIVATE");
+            pPacket->getID().c_str(), bOldPasswordHash ? "OLD_PASSWORD" : "", pPacket->getPassword().c_str(),
+            pPacket->getName().c_str(), Sex2String[pPacket->getSex()].c_str(), pPacket->getSSN().c_str(),
+            pPacket->getTelephone().c_str(), pPacket->getCellular().c_str(), pPacket->getZipCode().c_str(),
+            pPacket->getAddress().c_str(), (int)pPacket->getNation(), pPacket->getEmail().c_str(),
+            pPacket->getHomepage().c_str(), pPacket->getProfile().c_str(),
+            (pPacket->getPublic() == true) ? "PUBLIC" : "PRIVATE");
 
         // After successful insert, send LCRegisterPlayerOK to the client.
         Assert(pResult == NULL);
         Assert(pStmt->getAffectedRowCount() == 1);
+
+        // The client goes on to the world list exactly as after CLLogin, so
+        // mark the account logged on the way CLLoginHandler does; the
+        // disconnect path only clears LogOn when it is 'LOGON'.
+        pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGON', LoginIP = '%s', CurrentLoginServerID=%d, "
+                            "LastLoginDate=now() WHERE PlayerID = '%s'",
+                            pLoginPlayer->getSocket()->getHost().c_str(), g_pConfig->getPropertyInt("LoginServerID"),
+                            pPacket->getID().c_str());
 
         // Retrieve current world/group IDs for the new user.
         pResult = pStmt->executeQuery("SELECT CurrentWorldID, CurrentServerGroupID FROM Player WHERE PlayerID = '%s'",
@@ -163,14 +189,16 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
 
         if (pResult->getRowCount() == 0) {
             lcRegisterPlayerError.setErrorID(ETC_ERROR);
-            throw SQLQueryException("���������� �����ͺ��̽��� �Է�, ��� ���� �ʾҽ��ϴ�.");
+            throw SQLQueryException("the new player row could not be read back after the insert");
         }
 
         WorldID_t WorldID = 0;
         ServerGroupID_t ServerGroupID = 0;
 
-        if (pResult->next())
-            throw SQLQueryException("�����ͺ��̽��� ġ������ ������ �ֽ��ϴ�.");
+        // next() is true when a row was fetched; the old check had this
+        // inverted and turned every successful registration into ETC_ERROR.
+        if (!pResult->next())
+            throw SQLQueryException("the new player row could not be fetched after the insert");
 
         WorldID = pResult->getInt(1);
         ServerGroupID = pResult->getInt(2);
@@ -182,106 +210,63 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
         lcRegisterPlayerOK.setGroupName(
             g_pGameServerGroupInfoManager->getGameServerGroupInfo(ServerGroupID, WorldID)->getGroupName());
 
-        string SSN = pPacket->getSSN();
-        string preSSN;
-        bool isChina = false;
-        // Country-specific handling (e.g., China SSN) follows.
-        if (strstr(SSN.c_str(), "-") != NULL) {
-            preSSN = SSN.substr(0, 6);
-        }
-        // �߱�
-        else {
-            isChina = true;
-            if (SSN.size() == 15) {
-                preSSN = SSN.substr(6, 12);
-            } else if (SSN.size() == 18) {
-                preSSN = SSN.substr(8, 14);
-            } else {
-                // �̷� ���� ���ٰ� ������ -_- �� ��ư
-                preSSN = SSN.substr(0, 6);
-            }
-        }
-        //        string preSSN = pPacket->getSSN().substr(0, 6).c_str();
-
-        StringStream AdultSSN;
-
-        time_t daytime = time(0);
-        tm Timec;
-        localtime_r(&daytime, &Timec);
-        AdultSSN << Timec.tm_year - 20 << Timec.tm_mon << Timec.tm_mday;
-
-        // Verify SSN indicates adult or minor.
-        if (atoi(preSSN.c_str()) <= atoi(AdultSSN.toString().c_str())) {
-            lcRegisterPlayerOK.setAdult(true);
-        } else {
-            lcRegisterPlayerOK.setAdult(false);
-        }
-
-        // �߱��̸� ������ ����
-        if (isChina) {
-            lcRegisterPlayerOK.setAdult(true);
-        }
+        // The client does not collect a real national ID any more, so the
+        // adult flag cannot be derived from the SSN. CLLoginHandler's client
+        // side already ignores the flag and decides gore level from the
+        // teen-version option alone; report the same thing here.
+        lcRegisterPlayerOK.setAdult(true);
 
         pLoginPlayer->sendPacket(&lcRegisterPlayerOK);
 
-        // �̸��� ��������� �Ѵ�.
+        // Remember the ID: the session is now logged in as the new account.
         pLoginPlayer->setID(pPacket->getID());
 
-        // ��Ͽ� �������� ���, CLGetPCList ��Ŷ�� ��ٸ���.
+        // Registration succeeded; wait for the world/PC list requests.
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
 
         SAFE_DELETE(pStmt);
     } catch (DuplicatedException& de) {
         SAFE_DELETE(pStmt);
 
-        // cout << de.toString() << endl;
-
         //--------------------------------------------------------------------------------
-        // ��� ���� ��Ŷ�� �����Ѵ�.
+        // Report the registration failure.
         //--------------------------------------------------------------------------------
         pLoginPlayer->sendPacket(&lcRegisterPlayerError);
 
         //--------------------------------------------------------------------------------
-        // ���� ȸ���� ������Ų��. �ʹ� ���� �������� ���, ������ �����Ѵ�.
+        // Count the failure; too many failures end the session.
         //--------------------------------------------------------------------------------
-        uint nFailed = pLoginPlayer->getFailureCount();
-
-        // cout << pLoginPlayer->getID() << "'s Failure Count = " << ++nFailed << endl;
+        uint nFailed = pLoginPlayer->getFailureCount() + 1;
 
         if (nFailed > 3)
             throw DisconnectException("too many failure");
 
         pLoginPlayer->setFailureCount(nFailed);
 
-        // ��Ͽ� ������ ���, �ٽ� CLRegisterPlayer ��Ŷ�� ��ٸ���.
+        // Registration failed; wait for another CLRegisterPlayer.
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
 
     } catch (SQLQueryException& sqe) {
         SAFE_DELETE(pStmt);
 
-        // ��. SQL �����̵��� ����� �� �ȵǾ��ٴ� �Ҹ���.
-        // cout << sqe.toString() << endl;
-
         //--------------------------------------------------------------------------------
-        // ��� ���� ��Ŷ�� �����Ѵ�.
+        // Report the registration failure.
         //--------------------------------------------------------------------------------
         lcRegisterPlayerError.setErrorID(ETC_ERROR);
 
         pLoginPlayer->sendPacket(&lcRegisterPlayerError);
 
         //--------------------------------------------------------------------------------
-        // ���� ȸ���� ������Ų��. �ʹ� ���� �������� ���, ������ �����Ѵ�.
+        // Count the failure; too many failures end the session.
         //--------------------------------------------------------------------------------
-        uint nFailed = pLoginPlayer->getFailureCount();
-
-        // cout << pLoginPlayer->getID() << "'s Failure Count = " << ++nFailed << endl;
+        uint nFailed = pLoginPlayer->getFailureCount() + 1;
 
         if (nFailed > 3)
             throw DisconnectException("too many failure");
 
         pLoginPlayer->setFailureCount(nFailed);
 
-        // ��Ͽ� ������ ���, �ٽ� CLRegisterPlayer ��Ŷ�� ��ٸ���.
+        // Registration failed; wait for another CLRegisterPlayer.
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
     }
 
