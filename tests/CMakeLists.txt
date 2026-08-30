@@ -34,6 +34,7 @@ endforeach()
 add_executable(wire_tests EXCLUDE_FROM_ALL
     support/TestStreams.cpp
     packet_roundtrip_test.cpp
+    packet_encrypter_test.cpp
     wire_layout_test.cpp
 )
 

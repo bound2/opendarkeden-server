@@ -59,6 +59,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R4 | Packet headers with `execute()` still on the packet | 481 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| wc -l` |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
+| R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
 
 God-file baselines (R6):
 
@@ -103,24 +104,41 @@ before anything else moves. Everything later shelters under this pin.
   part of the wire format.
   > **Status:** in progress — harness + goldens and loopback round-trips
   > landed for GCMoveOK, CGMove, CGSay, CGWhisper, plus a framed-bytes
-  > golden and header-width assertions; remaining GC/CG coverage
-  > outstanding. **Adversarial review (2026-08-29) named the specific
-  > gaps, in priority order:**
-  > 1. Only 2 of the 17 encrypter-using packets are pinned, and both use
-  >    `SHUFFLE_STATEMENT_3`. `_4` (case 3 = `D;A;C;B`) and `_5` (cases
-  >    3/4) are **non-rotations** — exactly what a hand-maintained client
-  >    copy gets wrong — and nothing pins them. `kEncryptCodes` stops at 3,
-  >    so `_5` case 4 is unreachable; extend it when adding a `_5` packet.
-  >    Unpinned: `CGSkillToSelf`, `CGUseItemFromGear`, `GCMoveError` (_2);
-  >    `CGAttack`, `CGDissectionCorpse`, `CGSkillToTile` (_4);
-  >    `CGAddZoneToInventory`, `CGSkillToInventory`, `GCAddItemToZone` (_5).
+  > golden and header-width assertions. **2026-08-30: every encrypter
+  > path is pinned** — `tests/packet_encrypter_test.cpp` covers all 19
+  > `readEncrypt`/`writeEncrypt` users (17 shuffle packets, with the
+  > abstract `GCAddItemToZone` pinned through its three concrete
+  > subclasses, plus the unshuffled `CGAddMouseToZone`/`CGDropMoney`) at
+  > encrypt codes 0..5, which reach every `code % N` case of every
+  > `SHUFFLE_STATEMENT_N`; the shuffle tables themselves are asserted as
+  > literals, and `ratchets.sh` fails on any new encrypter user without
+  > goldens (`tests/ratchet/encrypter_exceptions.txt` for the base
+  > class). Remaining non-encrypter GC/CG coverage outstanding.
+  > **Adversarial review (2026-08-29) named the specific gaps, in
+  > priority order:**
+  > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed
+  >    2026-08-30 as above. Pinning them surfaced three read/write/size
+  >    disagreements, each stated as a fact by a test that flips when it
+  >    is fixed (record the fix in `docs/FIXES.md`, task 5.3):
+  >    - `GCDropItemToZone::read()` consumes a leading `BYTE flag` that
+  >      `write()` no longer emits (commented out) and `getPacketSize()`
+  >      does not count. The server only writes this packet, so write()
+  >      is the pinned contract; no round-trip until read() is fixed or
+  >      removed. Check the client copy in 1.4.
+  >    - `CGUseItemFromInventory` and `CGSkillToInventory`:
+  >      `getPacketSize()` counts `m_InventoryItemObjectID`, which
+  >      `read()`/`write()` skip — over-reports by `szObjectID`. Dormant on
+  >      the live wire only because the server never *writes* CG packets;
+  >      verify the client copies do not share the bug in 1.4.
   > 2. For the 459 unpinned packets, `getPacketMaxSize()` is invariant
   >    under field reordering and same-width type changes — e.g. swapping
   >    the two shuffle arguments in both `GCMoveError::read`/`write` passes
   >    the whole suite while transposing X/Y on every odd encrypt code.
   > 3. Test values in the pinned packets are all < 128, so a signedness
   >    flip on `Coord_t`/`Dir_t` yields byte-identical goldens. Prefer
-  >    values ≥ 128 and distinct per field when adding packets.
+  >    values ≥ 128 and distinct per field when adding packets. (The
+  >    encrypter pins added 2026-08-30 follow this; the four original
+  >    fixtures still use small values.)
   - Owner: the golden files — any layout change is a byte-diff in the commit.
   - Note: packets whose `read`/`write` depend on game-state globals need those
     globals stubbed; list any such packet here as found (they are also the
@@ -372,6 +390,39 @@ gating; `Zone.cpp` under 2,000 lines.
   diffs, races, double-frees), record them in `docs/FIXES.md` with sidecar's
   `> **Status:**` convention rather than fixing silently.
   > **Status:** not started
+
+- [ ] **5.4 Language standard: C++11 → C++17 now, C++20 with the image bump.**
+  Assessed 2026-08-30. No open task is *blocked* on the standard, but 3.1
+  `Outcome` wants `std::variant` + `[[nodiscard]]` (an unchecked rejection
+  becomes a compiler warning instead of a convention), the packet layer
+  wants `string_view`/`optional`/`if constexpr`, and googletest is pinned at
+  1.12.1 only because it is the last C++11 release. The Docker image is
+  `ubuntu:20.04` → GCC 9.4: full C++17, only partial `-std=c++2a` (no
+  `<ranges>`/`<format>`, incomplete concepts), so real C++20 is an infra
+  change (22.04/GCC 11 or 24.04/GCC 13, which also moves `libmysqlclient`
+  to the 8.0 client) and must not be bundled with the language switch.
+  The only migration cost is pre-C++11 dynamic exception specifications;
+  everything else removed by C++17/20 (`auto_ptr`, `bind1st`,
+  `random_shuffle`, `hash_map`, `register`, …) is already absent:
+
+  | Form | Measured | C++17 | C++20 |
+  |------|---------:|-------|-------|
+  | typed `throw(Error)`, `throw(ProtocolException, Error)`, … | 139 files / ~650 sites | hard error | hard error |
+  | empty `throw()` | ~2,600 sites | accepted (= `noexcept`) | removed (GCC/Clang warn; `-pedantic-errors` fails) |
+
+  Plan: one mechanical PR that (a) **deletes** typed specs — never replace
+  with `noexcept`: `throw(Error)` means *may throw Error*, and `noexcept`
+  would turn every thrown `Error` into `std::terminate`; (b) deletes the
+  empty `throw()` in the same sweep so the later C++20 flip is free; (c) sets
+  `CMAKE_CXX_STANDARD 17`; (d) v18-reformats every touched file — CI demands
+  it anyway, and this is the one-time reformat CLAUDE.md has been deferring,
+  so land it when no feature branch is in flight; (e) `make test` green: the
+  goldens and inventory prove the wire layer did not move. Then rewrite 3.1's
+  "C++11 template" to `std::variant` + `[[nodiscard]]` and unpin googletest.
+  Not pursued: modules (4,271 TUs on GCC, no upside), coroutines (the
+  thread-per-zone-group model stays, see non-goals), concepts (few templates).
+  > **Status:** not started
+  - Owner: ratchet R7, held at 0 once the sweep lands.
 
 ---
 
