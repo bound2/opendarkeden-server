@@ -59,7 +59,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
-| R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
+| R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 867 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` (867 since the never-compiled `SlotInfo.cpp`'s stale specs left with the file, 2.4 review) |
 
 God-file baselines (R6):
 
@@ -464,11 +464,17 @@ visibility can't express.
   in the right target from day one.
   > **Status:** in progress — `de-kernel` is a real CMake target
   > (2026-08-31): a STATIC library whose membership is
-  > `tests/arch/kernel_files.txt` (57 files: Types/types/, Exception/
-  > Assert/StringStream/Utility, the socket+stream family, Encrypter/
-  > EncryptUtility, `Packet.h`/`PacketFactory.h`, datagram headers) and
-  > whose only include dir is `src/Core` — a kernel source reaching for a
-  > gameserver header fails to compile. Built in every configuration;
+  > `tests/arch/kernel_files.txt` (grown from the 57-file seed past a
+  > thousand files with 2.4's packet directions and the non-packet
+  > utilities — the 2.4 status tracks the exact count; Datagram/
+  > SerialDatagram cpps stay header-only members — their bodies call
+  > `PacketFactoryManager`, which K2 bars from the kernel forever, so
+  > compiling them would give the archive permanently unresolvable
+  > externals) and whose only include dir is `src/Core` (pinned as the
+  > target's own INCLUDE_DIRECTORIES — the top-level directory include
+  > path would otherwise leak `src/server` and MySQL in) — a kernel
+  > source reaching for an app header fails to compile. Built in every
+  > configuration;
   > nothing links it yet (apps still get the objects through `Core`,
   > which deliberately keeps its gameserver include leak until 2.3/2.4).
   > Getting the seed macro-free removed four dead `__GAME_CLIENT__`
@@ -612,9 +618,12 @@ visibility can't express.
   >    and GCSkillToTileOK2 instead needed the `SkillTypes` enum + name
   >    table extracted from gameserver's `skill/Skill.h` into
   >    `src/Core/types/SkillTypes.h` (wire vocabulary, not game logic).
-  >    `PetInfo::write()`'s pet-item ObjectID is now cached by the
-  >    app-side setter instead of read through the live pointer — same
-  >    bytes, no game include. Dead `__GAME_CLIENT__` branches in five
+  >    `PetInfo::write()` resolves the pet-item ObjectID through a
+  >    type-erased thunk the app-side setter installs — still a LIVE
+  >    read at write time (an earlier cached-id version shipped stale
+  >    ids and asserted on unregistered items; caught in the 2.4
+  >    adversarial review), same bytes, no game include. Dead
+  >    `__GAME_CLIENT__` branches in five
   >    GC files were removed (this repo never defines the macro; the
   >    client keeps its own copies). R5 scope note: `packetfill/` is
   >    excluded alongside `handler/` (one `__BEGIN_TRY` moved there).
