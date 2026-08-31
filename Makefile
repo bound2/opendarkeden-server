@@ -1,6 +1,7 @@
 # DarkEden Makefile
 
-.PHONY: all fmt fmt fmt-check fmt-check-all clean help debug test
+.PHONY: all fmt fmt fmt-check fmt-check-all clean help debug test \
+        dev-test dev-build dev-shell dev-clean
 
 # Default target
 all: debug
@@ -11,6 +12,22 @@ test:
 	cmake -B build -DCMAKE_BUILD_TYPE=Debug -DDARKEDEN_BUILD_TESTS=ON
 	cmake --build build --target wire_tests -j$(shell sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
 	cd build && ctest --output-on-failure
+
+# Containerised build and test (tools/devbuild.sh). Prefer these on a machine
+# where the checkout is a bind mount into the container - a Windows host, say -
+# because compiling straight off the mount is I/O bound and leaves most of the
+# CPU idle. Measured on this project: a full build went from ~20 minutes at
+# ~20% CPU to ~3.5 minutes at ~95%, and a no-op rebuild from minutes to
+# seconds. The script explains why; it needs the darkeden-dev image
+# (docker build -f Dockerfile.dev -t darkeden-dev .).
+dev-test:
+	bash tools/devbuild.sh test
+dev-build:
+	bash tools/devbuild.sh build
+dev-shell:
+	bash tools/devbuild.sh shell
+dev-clean:
+	bash tools/devbuild.sh clean
 
 release:
 	cmake -B build -DCMAKE_BUILD_TYPE=Release -DDARKEDEN_BUILD_TESTS=OFF

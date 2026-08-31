@@ -2,11 +2,16 @@ FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# ninja-build, ccache and rsync are what tools/devbuild.sh needs; see that
+# script for why the dev build does not compile straight off the bind mount.
 RUN apt update && apt install -y \
     gcc \
     build-essential \
+    ccache \
     cmake \
+    ninja-build \
     pkg-config \
+    rsync \
     libxerces-c-dev \
     libmysqlclient-dev \
     liblua5.1-dev \

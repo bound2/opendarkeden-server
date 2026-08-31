@@ -58,7 +58,35 @@ The project uses clang-format with a `.clang-format` configuration file.
 ```bash
 # Build and run the wire-contract test suite (local only — no CI tier yet)
 make test
+
+# Same suite, but built inside the container off a local workspace. On a
+# Windows host this is the one to use — see "Building in the container" below.
+make dev-test
 ```
+
+#### Building in the container
+
+**Do not compile straight off the bind-mounted checkout.** Measured inside
+the container, the Windows mount costs ~160x on `stat` and ~145x on reads
+versus the container's own filesystem, and since every translation unit opens
+dozens of headers the build becomes I/O bound: a full build took ~20 minutes
+at ~20% CPU on 8 cores. `tools/devbuild.sh` syncs the build *inputs*
+(`src/`, `tests/`, the top-level CMake/Makefile — ~37 MB) into a container
+volume, builds there with Ninja and ccache, and copies only generated test
+data back. Same build: **~3.5 minutes at ~95% CPU**, and a no-op rebuild in
+seconds instead of minutes.
+
+```bash
+make dev-test                      # build wire_tests + ctest
+bash tools/devbuild.sh test --record   # re-record goldens, then run
+make dev-build                     # all production targets
+make dev-shell                     # shell in the workspace
+make dev-clean                     # drop the workspace + ccache volumes
+```
+
+Needs the image once: `docker build -f Dockerfile.dev -t darkeden-dev .`
+(it now carries ninja, ccache and rsync). Artifacts live in the volume, so
+`bin/` and `lib/` in the checkout are **not** updated by these targets.
 
 - The suite (in `tests/`) pins the client/server wire contract: golden byte
   fixtures and loopback round-trips for representative packets, a generated
