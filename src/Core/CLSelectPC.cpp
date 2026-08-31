@@ -62,7 +62,6 @@ void CLSelectPC::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-// execute packet's handler
 // get packet's debug string
 string CLSelectPC::toString() const
 

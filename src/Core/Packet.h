@@ -613,10 +613,6 @@ public:
         }
     }
 
-    // Handlers are bound per packet id at each app's composition root
-    // (PacketDispatcher, docs/RESTRUCTURING.md 2.3); packets carry no
-    // execute() anymore.
-
     // get packet's PacketID
     virtual PacketID_t getPacketID() const = 0;
 

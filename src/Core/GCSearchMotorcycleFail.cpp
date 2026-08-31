@@ -30,9 +30,6 @@ void GCSearchMotorcycleFail::write(SocketOutputStream& oStream) const
     {__BEGIN_TRY __END_CATCH}
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCSearchMotorcycleFail::toString() const

@@ -51,10 +51,6 @@ void GCAddVampireFromTransformation::write(SocketOutputStream& oStream) const
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCAddVampireFromTransformation::toString() const
