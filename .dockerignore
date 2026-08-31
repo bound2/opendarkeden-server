@@ -8,6 +8,7 @@
 
 # Build output (the image builds its own)
 build/
+build-tests/
 bin/
 lib/
 *.o
@@ -20,8 +21,4 @@ conf/
 Dockerfile.dev
 Dockerfile.pub
 *.md
-filelist.txt
-make_tree.bat
-분석관련/
-작업지시/
-기동오류/
+docs
