@@ -340,20 +340,6 @@
 #endif
 
 
-#ifdef __GAME_CLIENT__
-#include "Rpackets/CRConnect.h"
-#include "Rpackets/CRDisconnect.h"
-#include "Rpackets/CRRequest.h"
-#include "Rpackets/CRWhisper.h"
-#include "Rpackets/RCCharacterInfo.h"
-#include "Rpackets/RCConnectVerify.h"
-#include "Rpackets/RCPositionInfo.h"
-#include "Rpackets/RCRequestVerify.h"
-#include "Rpackets/RCRequestedFile.h"
-#include "Rpackets/RCSay.h"
-#include "Rpackets/RCStatusHP.h"
-#endif
-
 // Guild feature update - 2002.05.31 (bezz)
 // #include "GCShowGuildRegist.h"
 #include "CGJoinGuild.h"
@@ -1128,20 +1114,6 @@ void PacketFactoryManager::init() {
     addFactory(new GLIncomingConnectionErrorFactory());
     addFactory(new GLIncomingConnectionOKFactory());
     addFactory(new GLKickVerifyFactory());
-#endif
-
-#ifdef __GAME_CLIENT__
-    addFactory(new CRConnectFactory());
-    addFactory(new RCConnectVerifyFactory());
-    addFactory(new CRRequestFactory());
-    addFactory(new RCPositionInfoFactory());
-    addFactory(new CRDisconnectFactory());
-    addFactory(new RCSayFactory());
-    addFactory(new RCStatusHPFactory());
-    addFactory(new CRWhisperFactory());
-    addFactory(new RCRequestVerifyFactory());
-    addFactory(new RCRequestedFileFactory());
-    addFactory(new RCCharacterInfoFactory());
 #endif
 
 #if defined(__GAME_SERVER__) || defined(__SHARED_SERVER__)

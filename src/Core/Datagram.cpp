@@ -58,8 +58,6 @@ bool Datagram::isDatagram(PacketID_t packetID) {
     case Packet::PACKET_GL_KICK_VERIFY:
     case Packet::PACKET_GM_SERVER_INFO:
     case Packet::PACKET_LG_KICK_CHARACTER:
-    case Packet::PACKET_RC_SAY:
-    case Packet::PACKET_GTO_ACKNOWLEDGEMENT:
     case Packet::PACKET_LG_INCOMING_CONNECTION:
     case Packet::PACKET_LG_INCOMING_CONNECTION_ERROR:
     case Packet::PACKET_LG_INCOMING_CONNECTION_OK:

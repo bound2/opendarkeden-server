@@ -10,7 +10,6 @@
 #include "GCShopListMysterious.h"
 
 #include "Assert1.h"
-#include "Item.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // constructor
@@ -175,20 +174,6 @@ SHOPLISTITEM_MYSTERIOUS GCShopListMysterious::getShopItem(BYTE index) const
     return m_pBuffer[index];
 }
 
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-void GCShopListMysterious::setShopItem(BYTE index, const Item* pItem)
-
-{
-    // check bound
-    if (index >= SHOP_RACK_INDEX_MAX)
-        throw("GCShopListMysterious::setShopItem() : Out of Bound!");
-
-    // check pointer
-    Assert(pItem != NULL);
-
-    // set shop item info
-    m_pBuffer[index].bExist = true;
-    m_pBuffer[index].itemClass = pItem->getItemClass();
-    m_pBuffer[index].itemType = pItem->getItemType();
-}
+// setShopItem(BYTE, const Item*) is defined in the gameserver
+// (packetfill/GCShopListMysteriousFill.cpp): it reads a live Item, which
+// the wire library must not depend on.

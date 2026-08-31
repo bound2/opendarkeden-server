@@ -36,7 +36,15 @@
 #     tools/devbuild.sh build             # build every production target
 #     tools/devbuild.sh build wire_tests  # build one target
 #     tools/devbuild.sh shell             # interactive shell in the workspace
-#     tools/devbuild.sh clean             # drop the workspace and ccache
+#     tools/devbuild.sh clean             # drop the workspace (and ccache,
+#                                         # unless only the workspace volume
+#                                         # was overridden — see below)
+#
+# Parallel checkouts (git worktrees): set DEVBUILD_WORK_VOLUME to give each
+# checkout its own workspace volume — two concurrent builds sharing one
+# volume race this script's rsync --delete. DEVBUILD_CCACHE_VOLUME may stay
+# shared (ccache is concurrency-safe). `clean` under a DEVBUILD_WORK_VOLUME
+# override removes only that workspace, never the shared default ccache.
 #
 # Generated test data (goldens, the wire-layout inventory, the generated
 # factory list) is copied back into the checkout after a run, so a --record
@@ -45,8 +53,11 @@
 set -euo pipefail
 
 IMAGE=darkeden-dev
-WORK_VOLUME=darkeden-work
-CCACHE_VOLUME=darkeden-ccache
+# Overridable so parallel checkouts (git worktrees) can each build in their
+# own workspace volume without racing this script's rsync --delete. The
+# ccache volume is safe to share — ccache is designed for concurrent use.
+WORK_VOLUME=${DEVBUILD_WORK_VOLUME:-darkeden-work}
+CCACHE_VOLUME=${DEVBUILD_CCACHE_VOLUME:-darkeden-ccache}
 BUILD_TYPE=${BUILD_TYPE:-Debug}
 
 # Git Bash mangles absolute paths in docker arguments unless this is set.
@@ -61,8 +72,21 @@ command=${1:-test}
 shift || true
 
 if [ "$command" = "clean" ]; then
-    docker volume rm -f "$WORK_VOLUME" "$CCACHE_VOLUME" >/dev/null 2>&1 || true
-    echo "removed the $WORK_VOLUME and $CCACHE_VOLUME volumes"
+    # A worktree that overrides only its workspace volume must not wipe the
+    # ccache every other checkout shares; remove the ccache volume only when
+    # it was named explicitly or when nothing was overridden (the original
+    # single-checkout behavior).
+    volumes=("$WORK_VOLUME")
+    if [ -n "${DEVBUILD_CCACHE_VOLUME:-}" ] || [ -z "${DEVBUILD_WORK_VOLUME:-}" ]; then
+        volumes+=("$CCACHE_VOLUME")
+    fi
+    for v in "${volumes[@]}"; do
+        if docker volume rm -f "$v" >/dev/null 2>&1; then
+            echo "removed volume $v"
+        else
+            echo "could not remove volume $v (in use by a running container?)" >&2
+        fi
+    done
     exit 0
 fi
 

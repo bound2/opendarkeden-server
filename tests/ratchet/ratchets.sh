@@ -36,18 +36,18 @@ check_ratchet R2 "gameserver-root files with inline SQL" 104 "$R2"
 
 # --- R3: files with inline SQL anywhere outside database/ ------------------
 R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' | wc -l)
-check_ratchet R3 "files with inline SQL outside database/" 319 "$R3"
+check_ratchet R3 "files with inline SQL outside database/" 318 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------
 R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)
 check_ratchet R4 "packet headers with execute()" 0 "$R4"
 
 # --- R5: __BEGIN_TRY control-flow macro sites in gameserver ----------------
-# handler/ is excluded: the packet handlers moved there from src/Core in
-# task 2.4, where this metric never counted them — including them would
-# jump the baseline by +284 without any new debt. Fold them in (with a
+# handler/ and packetfill/ are excluded: those sources moved there from
+# src/Core in task 2.4, where this metric never counted them — including
+# them would jump the baseline without any new debt. Fold them in (with a
 # re-baseline note) when they become de-core extraction targets in 3.x.
-R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -v 'gameserver/handler/' | wc -l)
+R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(handler|packetfill)/' | wc -l)
 check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5984 "$R5"
 
 # --- Generated factory list is fresh ---------------------------------------
@@ -70,15 +70,24 @@ else
 fi
 
 # --- Every server-side factory the manager registers is in the inventory ---
-# Client-only registrations (the __GAME_CLIENT__ branch of init()) are listed
-# in tests/ratchet/factory_exceptions.txt.
+# Registrations deliberately outside the inventory are listed (with reasons)
+# in tests/ratchet/factory_exceptions.txt — currently empty since the
+# __GAME_CLIENT__ relic registrations were deleted in 2.4. The file must
+# still exist: with zero entries nothing exercises this plumbing, so a
+# deleted or mistyped path would otherwise pass silently. The `|| true`
+# keeps the no-match grep exit (1) from mattering if this script ever
+# adopts `set -e` like its siblings.
+if [ ! -f tests/ratchet/factory_exceptions.txt ]; then
+    echo "[FAIL] tests/ratchet/factory_exceptions.txt is missing"
+    fail=1
+fi
 registered=$(mktemp)
 inventory=$(mktemp)
 sed -n '/void PacketFactoryManager::init/,/^}/p' src/Core/PacketFactoryManager.cpp |
     grep -oE 'addFactory\(new [A-Za-z0-9_]+' | sed 's/addFactory(new //' | sort -u > "$registered"
 {
     grep -oE 'new [A-Za-z0-9_]+Factory' tests/generated/AllPacketFactories.inc | sed 's/new //'
-    grep -vE '^\s*(#|$)' tests/ratchet/factory_exceptions.txt
+    grep -vE '^\s*(#|$)' tests/ratchet/factory_exceptions.txt || true
 } | sort -u > "$inventory"
 missing=$(comm -23 "$registered" "$inventory")
 rm -f "$registered" "$inventory"

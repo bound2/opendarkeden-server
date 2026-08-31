@@ -7,14 +7,12 @@
 #ifndef __GC_SELECT_QUEST_ID_H__
 #define __GC_SELECT_QUEST_ID_H__
 
+#include <algorithm>
+#include <iterator>
 #include <list>
 
 #include "Packet.h"
 #include "PacketFactory.h"
-
-#ifdef __GAME_SERVER__
-#include <algorithm>
-#endif
 
 const BYTE maxQuestNum = 255;
 
@@ -24,12 +22,10 @@ const BYTE maxQuestNum = 255;
 
 class GCSelectQuestID : public Packet {
 public:
-#ifdef __GAME_SERVER__
-    // inItr은 container<QuestID_t>::input_iterator 여야 한다.
+    // inItr must be a container<QuestID_t>::input_iterator.
     template <class inItr> explicit GCSelectQuestID(inItr b, inItr e) {
         copy(b, e, back_inserter(m_QuestIDList));
     }
-#endif
     GCSelectQuestID() {}
     virtual ~GCSelectQuestID();
 

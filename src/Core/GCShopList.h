@@ -87,9 +87,9 @@ public:
 
     SHOPLISTITEM getShopItem(BYTE index) const;
 
-#ifndef __GAME_CLIENT__
+    // defined in the gameserver (packetfill/): converts a live Item into
+    // wire fields, so the definition stays out of the wire library.
     void setShopItem(BYTE index, const Item* pItem);
-#endif
 
     BYTE getNPCShopType(void) const {
         return m_ShopType;
