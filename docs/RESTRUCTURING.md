@@ -599,12 +599,17 @@ visibility can't express.
   >    A second dead pair surfaced and was deleted:
   >    `GCMonsterKillQuestStatus` (id enum never existed, commented out
   >    of every build — same story as `CGAddInjuriousCreature`).
-  > Remaining: the CL/LC/inter-server packet sources (small sets, same
-  > fixpoint method), the 23 held-back GC packets (need their game-object
-  > setters split out), `Core`'s non-packet utilities sorted
-  > kernel-vs-app, then apps link `de-kernel` instead of getting these
-  > objects through `Core`. R5's scope note: `handler/` excluded (the
-  > moved handlers were never counted in `src/Core`).
+  > 5. **CL/LC and every inter-server direction are kernel** (1,038
+  >    files total): the same fixpoint admitted all of CL/LC/GL/LG/GS/
+  >    SG/GG/`GMServerInfo` except `CLSelectPC` (includes `Player.h`,
+  >    the transport base). A third dead pair fell out: `CLAgreement`
+  >    (no id enum — which is why it was in no validator whitelist).
+  > Remaining: `CLSelectPC` (drop the transport dependency), the 23
+  > held-back GC packets (split their game-object setters out),
+  > `Core`'s non-packet utilities sorted kernel-vs-app, then apps link
+  > `de-kernel` instead of getting these objects through `Core`. R5's
+  > scope note: `handler/` excluded (the moved handlers were never
+  > counted in `src/Core`).
   - Owner: CMake target membership + include-graph test.
 
 **Phase exit criteria:** `de-kernel` builds standalone with no MySQL/Lua/Zone

@@ -4,9 +4,9 @@
 //               task 2.3): every packet id the loginserver receives is
 //               bound to its handler here. CL rides the client TCP
 //               connection (LoginPlayer), GL rides the GameServerManager
-//               datagram socket. CLAgreement is deliberately absent: its
-//               handler is a netmarble-only no-op and the id is in no
-//               PacketValidator whitelist, so it can never reach dispatch.
+//               datagram socket. (CLAgreement turned out to be a dead
+//               packet - its id enum never existed - and was deleted
+//               in 2.4.)
 //////////////////////////////////////////////////////////////////////////////
 
 #include "LoginPacketDispatch.h"
