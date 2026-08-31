@@ -79,7 +79,8 @@ done
 # Only the build inputs are synced. Everything else in the checkout (the
 # 2.7 GB of build trees, lib/, bin/, .git) never crosses the mount.
 sync_in='rsync -a --delete --exclude=.git \
-    /repo/src /repo/tests /repo/CMakeLists.txt /repo/Makefile /work/'
+    /repo/src /repo/tests /repo/third_party /repo/data \
+    /repo/CMakeLists.txt /repo/Makefile /work/'
 
 # Copy generated test data back so a re-record shows up as a normal diff.
 # --checksum because the container clock and the mount can disagree on mtime.
@@ -125,8 +126,13 @@ elif [ "$command" = "shell" ]; then
     exit 2
 fi
 
+# The checkout stays read-only except tests/, the one place sync_out writes:
+# a nested rw mount over the ro one. Without it a --record run's rsync back
+# fails on the read-only filesystem — and silently, since exit $rc reports
+# ctest's status, not the copy's.
 exec docker run --rm "${tty_args[@]}" \
     -v "$repo_mount:/repo:ro" \
+    -v "$repo_mount/tests:/repo/tests" \
     -v "$WORK_VOLUME:/work" \
     -v "$CCACHE_VOLUME:/ccache" \
     -e CCACHE_DIR=/ccache \

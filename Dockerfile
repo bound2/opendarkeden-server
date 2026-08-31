@@ -20,7 +20,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     ninja-build \
     pkg-config \
-    libxerces-c-dev \
     libmysqlclient-dev \
     liblua5.1-dev \
     zlib1g-dev \
@@ -30,6 +29,7 @@ WORKDIR /home/darkeden/vs
 
 # Only the sources are needed to build; data/ and conf/ go into the final image.
 COPY CMakeLists.txt ./
+COPY third_party ./third_party
 COPY src ./src
 
 # Release by default. Optimized builds no longer define NDEBUG (see
@@ -65,7 +65,6 @@ FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libxerces-c3.2 \
     libmysqlclient21 \
     liblua5.1-0 \
     zlib1g \

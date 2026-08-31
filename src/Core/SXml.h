@@ -95,6 +95,8 @@ public:
     void AddAttribute(const string& name, const bool& value);
 
     XMLAttribute* GetAttribute(const string& name) const;
+    XMLAttribute* GetAttribute(size_t index) const;
+    const size_t GetAttributeCount() const;
 
     const bool GetAttribute(const string& name, string& value);
     const bool GetAttribute(const string& name, int& value);

@@ -84,6 +84,9 @@ set(CORE_SOURCES
 )
 
 add_library(Core STATIC ${CORE_SOURCES})
+# SXml.cpp parses with tinyxml2; PUBLIC so consumers inherit the include path
+# and the archive without each having to name it.
+target_link_libraries(Core PUBLIC tinyxml2)
 target_include_directories(Core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src/server/gameserver

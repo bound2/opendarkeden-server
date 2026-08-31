@@ -156,7 +156,7 @@ template <typename T> uint SocketInputStream::read(T& buf) {
         // 0123456789
         // ...abcd...
         //
-        buf = *(T*)(m_Buffer + m_Head);
+        memcpy(&buf, m_Buffer + m_Head, len);
 
     } else // reversed order ( m_Head > m_Tail )
     {
@@ -167,7 +167,7 @@ template <typename T> uint SocketInputStream::read(T& buf) {
         //
         uint rightLen = m_BufferLen - m_Head;
         if (len <= rightLen) {
-            buf = *(T*)(m_Buffer + m_Head);
+            memcpy(&buf, m_Buffer + m_Head, len);
         } else {
             memcpy((char*)&buf, &m_Buffer[m_Head], rightLen);
             memcpy(((char*)(&buf) + rightLen), m_Buffer, len - rightLen);

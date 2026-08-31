@@ -434,7 +434,6 @@ target_link_libraries(gameserver PRIVATE
     GameServerCBilling
     ${MYSQL_LIBRARY}
     ${LUA51_LIBRARIES}
-    ${XERCES_LIBRARY}
     Threads::Threads
     ${EXTRA_LIBS}
 )

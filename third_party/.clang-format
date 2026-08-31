@@ -1,0 +1,6 @@
+# Vendored upstream code is kept byte-identical to its release tags so it can
+# be diffed against upstream and bumped mechanically. clang-format must leave
+# it alone: DisableFormat stops reformatting, and SortIncludes must be turned
+# off separately because DisableFormat alone does not disable it.
+DisableFormat: true
+SortIncludes: Never

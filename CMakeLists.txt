@@ -111,20 +111,18 @@ if(NOT LUA51_FOUND)
     endif()
 endif()
 
-# Xerces-C
-if(APPLE)
-    find_path(XERCES_INCLUDE_DIR xercesc/util/XercesVersion.hpp
-        PATHS
-        /opt/homebrew/include
-        /opt/homebrew/Cellar/xerces-c/*/include
-        /usr/local/include
-    )
-    find_library(XERCES_LIBRARY xerces-c
-        PATHS /opt/homebrew/lib /usr/local/lib
-    )
-else()
-    find_library(XERCES_LIBRARY xerces-c)
-endif()
+# XML parsing: vendored tinyxml2 (third_party/tinyxml2, pinned at 10.0.0).
+#
+# Replaces xerces-c. The five data/*.xml files declare no schema, DTD or
+# namespace, so none of xerces' validation machinery had anything to act on,
+# and it was the project's only C++-ABI-sensitive dependency -- which made it
+# the one thing standing between this build and an alternative toolchain
+# (libc++ vs libstdc++ would clash on the XMLException catch in SXml.cpp).
+# Vendoring keeps the version pinned in-tree instead of taking whatever the
+# host distribution happens to ship.
+add_library(tinyxml2 STATIC third_party/tinyxml2/tinyxml2.cpp)
+target_include_directories(tinyxml2 PUBLIC third_party/tinyxml2)
+set_target_properties(tinyxml2 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # ============================================================================
 # 包含目录（全局）
@@ -136,9 +134,7 @@ include_directories(
     ${MYSQL_INCLUDE_DIR}
 )
 
-if(XERCES_INCLUDE_DIR)
-    include_directories(${XERCES_INCLUDE_DIR})
-endif()
+include_directories(third_party/tinyxml2)
 
 # ============================================================================
 # 子目录

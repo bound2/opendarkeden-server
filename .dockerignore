@@ -1,5 +1,5 @@
-# Keep the build context small - only CMakeLists.txt, src/, data/ and
-# docker/ are consumed by the Dockerfile.
+# Keep the build context small - only CMakeLists.txt, src/, third_party/,
+# data/ and docker/ are consumed by the Dockerfile.
 .git
 .github
 .claude

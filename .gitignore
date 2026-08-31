@@ -6,6 +6,10 @@ build/
 # lib/, so two trees overwrite each other's binaries while each still
 # considers its own targets up to date.
 build-tests/
+# Scratch tree for the zig cc toolchain build (cmake/zig-toolchain.cmake).
+# Same one-tree-at-a-time caveat as build-tests/ above: it shares bin/ and
+# lib/ with build/, so a zig build overwrites the gcc binaries in place.
+build-zig/
 *.o
 *.a
 .deps
