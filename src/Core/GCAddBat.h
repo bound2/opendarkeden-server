@@ -22,7 +22,6 @@ public:
     ~GCAddBat(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_BAT;
     }
@@ -171,15 +170,6 @@ public:
                //+ szColor + szColor
                + szCoord + szCoord + szDir + szHP * 2 + szGuildID + szColor;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddBatHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddBatHandler {
-public:
-    static void execute(GCAddBat* pPacket, Player* pPlayer);
 };
 
 #endif

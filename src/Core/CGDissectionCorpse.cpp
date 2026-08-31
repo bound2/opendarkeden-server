@@ -71,16 +71,6 @@ void CGDissectionCorpse::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGDissectionCorpse::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGDissectionCorpseHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGDissectionCorpse::toString() const
 
 {

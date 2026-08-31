@@ -12,12 +12,3 @@
 //----------------------------------------------------------------------
 // execute packet handler
 //----------------------------------------------------------------------
-void LCCreatePCOK::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    LCCreatePCOKHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

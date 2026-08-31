@@ -22,7 +22,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_GEAR_TO_ZONE;
     }
@@ -65,15 +64,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szSlotID;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddGearToZoneHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddGearToZoneHandler {
-public:
-    static void execute(GCAddGearToZone* pPacket, Player* player);
 };
 
 #endif

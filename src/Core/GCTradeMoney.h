@@ -40,7 +40,6 @@ public:
     ~GCTradeMoney(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_TRADE_MONEY;
     }
@@ -106,13 +105,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// class GCTradeMoneyHandler;
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-class GCTradeMoneyHandler {
-public:
-    static void execute(GCTradeMoney* pPacket, Player* pPlayer);
-};
 
 #endif

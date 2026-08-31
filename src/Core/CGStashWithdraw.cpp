@@ -26,16 +26,6 @@ void CGStashWithdraw::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGStashWithdraw::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGStashWithdrawHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGStashWithdraw::toString() const {
     __BEGIN_TRY
 

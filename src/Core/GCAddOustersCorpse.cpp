@@ -40,20 +40,6 @@ void GCAddOustersCorpse::write(SocketOutputStream& oStream) const
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCAddOustersCorpse::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddOustersCorpseHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCAddOustersCorpse::toString() const

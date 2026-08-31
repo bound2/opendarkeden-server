@@ -60,7 +60,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_SHOP_BUY_FAIL;
     }
@@ -117,14 +116,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCShopBuyFailHandler;
-//////////////////////////////////////////////////////////////////////////////
-class GCShopBuyFailHandler {
-public:
-    static void execute(GCShopBuyFail* pPacket, Player* pPlayer);
 };
 
 #endif

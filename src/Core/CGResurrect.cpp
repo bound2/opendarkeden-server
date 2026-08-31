@@ -15,20 +15,7 @@ void CGResurrect::read(SocketInputStream& iStream)
 
 void CGResurrect::write(SocketOutputStream& oStream) const
 
-{
-    __BEGIN_TRY
-    __END_CATCH
-}
-
-void CGResurrect::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGResurrectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 string CGResurrect::toString() const {
     __BEGIN_TRY

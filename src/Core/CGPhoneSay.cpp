@@ -50,16 +50,6 @@ void CGPhoneSay::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGPhoneSay::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGPhoneSayHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGPhoneSay::toString() const
 
 {

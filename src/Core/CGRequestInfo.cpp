@@ -28,16 +28,6 @@ void CGRequestInfo::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGRequestInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRequestInfoHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRequestInfo::toString() const
 
 {

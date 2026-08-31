@@ -32,7 +32,6 @@ public:
     ~CGGetEventItem(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_CG_GET_EVENT_ITEM;
     }
@@ -90,11 +89,9 @@ class CGGetEventItemHandler {
 public:
     static void execute(CGGetEventItem* pPacket, Player* player);
 
-#ifdef __GAME_SERVER__
     static void executeCombackItem(CGGetEventItem* pPacket, Player* pPlayer);
     static void executeCombackPremiumItem(CGGetEventItem* pPacket, Player* pPlayer);
     static void executeCombackRecommendItem(CGGetEventItem* pPacket, Player* pPlayer);
-#endif
 };
 
 #endif

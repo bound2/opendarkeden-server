@@ -41,8 +41,6 @@ public:
     // Serialize packet data to the outgoing stream.
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {
@@ -136,14 +134,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCSkillInfoHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCSkillInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSkillInfo* pPacket, Player* pPlayer);
-};
 
 #endif

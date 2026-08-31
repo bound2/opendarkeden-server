@@ -39,16 +39,6 @@ void CGAddMouseToQuickSlot::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAddMouseToQuickSlot::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAddMouseToQuickSlotHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAddMouseToQuickSlot::toString() const {
     __BEGIN_TRY
 

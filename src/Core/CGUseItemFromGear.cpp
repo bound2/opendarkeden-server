@@ -55,16 +55,6 @@ void CGUseItemFromGear::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGUseItemFromGear::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUseItemFromGearHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGUseItemFromGear::toString() const {
     __BEGIN_TRY
 

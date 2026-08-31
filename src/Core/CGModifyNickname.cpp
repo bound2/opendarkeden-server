@@ -47,16 +47,6 @@ void CGModifyNickname::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGModifyNickname::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGModifyNicknameHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGModifyNickname::toString() const {
     __BEGIN_TRY
 

@@ -26,7 +26,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_FLAG_WAR_STATUS;
     }
@@ -81,15 +80,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szWORD + szBYTE * 3;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCFlagWarStatusHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCFlagWarStatusHandler {
-public:
-    static void execute(GCFlagWarStatus* pGCFlagWarStatus, Player* pPlayer);
 };
 
 #endif

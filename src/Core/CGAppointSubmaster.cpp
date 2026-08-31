@@ -46,16 +46,6 @@ void CGAppointSubmaster::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAppointSubmaster::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAppointSubmasterHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAppointSubmaster::toString() const
 
 {

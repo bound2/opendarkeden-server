@@ -3,6 +3,15 @@
 # ============================================================================
 
 set(SHAREDSERVER_SOURCES
+    handler/GSAddGuildHandler.cpp
+    handler/GSAddGuildMemberHandler.cpp
+    handler/GSExpelGuildMemberHandler.cpp
+    handler/GSGuildMemberLogOnHandler.cpp
+    handler/GSModifyGuildIntroHandler.cpp
+    handler/GSModifyGuildMemberHandler.cpp
+    handler/GSQuitGuildHandler.cpp
+    handler/GSRequestGuildInfoHandler.cpp
+    SharedPacketDispatch.cpp
     Guild.cpp
     GuildManager.cpp
     ResurrectLocationManager.cpp

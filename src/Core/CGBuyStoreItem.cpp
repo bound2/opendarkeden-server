@@ -33,16 +33,6 @@ void CGBuyStoreItem::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGBuyStoreItem::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGBuyStoreItemHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGBuyStoreItem::toString() const {
     __BEGIN_TRY
 

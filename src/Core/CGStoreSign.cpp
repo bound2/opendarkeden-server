@@ -30,16 +30,6 @@ void CGStoreSign::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGStoreSign::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGStoreSignHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGStoreSign::toString() const
 
 {

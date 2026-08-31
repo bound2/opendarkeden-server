@@ -19,11 +19,3 @@ void CLGetServerList::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
     __END_CATCH
 }
-
-void CLGetServerList::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-    CLGetServerListHandler::execute(this, pPlayer);
-    __END_CATCH
-}

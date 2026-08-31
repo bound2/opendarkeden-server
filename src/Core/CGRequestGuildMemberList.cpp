@@ -27,16 +27,6 @@ void CGRequestGuildMemberList::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGRequestGuildMemberList::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRequestGuildMemberListHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRequestGuildMemberList::toString() const
 
 {

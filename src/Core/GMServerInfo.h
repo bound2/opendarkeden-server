@@ -44,8 +44,6 @@ public:
     // Serialize the packet into the datagram payload.
     void write(Datagram& oDatagram) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {

@@ -63,16 +63,6 @@ void GCRequestedIP::write(SocketOutputStream& oStream) const {
     __END_CATCH
 }
 
-void GCRequestedIP::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCRequestedIPHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCRequestedIP::toString() const {
     __BEGIN_TRY
 

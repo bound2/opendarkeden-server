@@ -71,19 +71,6 @@ void GCShopSellFail::write(SocketOutputStream& oStream) const
 }
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCShopSellFail::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCShopSellFailHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCShopSellFail::toString() const

@@ -23,7 +23,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_MONSTER;
     }
@@ -189,15 +188,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddMonsterHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddMonsterHandler {
-public:
-    // execute packet's handler
-    static void execute(GCAddMonster* pPacket, Player* pPlayer);
-};
 
 #endif

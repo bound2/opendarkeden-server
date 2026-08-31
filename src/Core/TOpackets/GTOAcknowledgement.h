@@ -49,8 +49,6 @@ public:
     // Datagram 객체로 패킷의 바이너리 이미지를 보낸다.
     void write(Datagram& oDatagram) const throw(ProtocolException, Error);
 
-    // execute packet's handler
-    void execute(Player* pPlayer) throw(ProtocolException, Error);
 
     // get packet id
     PacketID_t getPacketID() const throw() {

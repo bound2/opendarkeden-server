@@ -22,7 +22,6 @@ public:
     ~GCTradeRemoveItem(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_TRADE_REMOVE_ITEM;
     }
@@ -80,13 +79,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// class GCTradeRemoveItemHandler;
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-class GCTradeRemoveItemHandler {
-public:
-    static void execute(GCTradeRemoveItem* pPacket, Player* pPlayer);
-};
 
 #endif

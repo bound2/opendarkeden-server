@@ -48,16 +48,6 @@ void CGModifyGuildMember::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGModifyGuildMember::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGModifyGuildMemberHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGModifyGuildMember::toString() const
 
 {

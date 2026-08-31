@@ -293,7 +293,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
 
     PacketID_t getPacketID() const {
         return PACKET_GC_NPC_RESPONSE;
@@ -345,14 +344,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCNPCResponseHandler
-//////////////////////////////////////////////////////////////////////////////
-
-class GCNPCResponseHandler {
-public:
-    static void execute(GCNPCResponse* pPacket, Player* pPlayer);
-};
 
 #endif

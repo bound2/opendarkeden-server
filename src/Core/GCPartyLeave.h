@@ -20,7 +20,6 @@ public:
     ~GCPartyLeave(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_PARTY_LEAVE;
     }
@@ -78,14 +77,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCPartyLeaveHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCPartyLeaveHandler {
-public:
-    static void execute(GCPartyLeave* pPacket, Player* pPlayer);
-};
 
 #endif

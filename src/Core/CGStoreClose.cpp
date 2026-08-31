@@ -16,21 +16,9 @@ void CGStoreClose::read(SocketInputStream& iStream)
 
 void CGStoreClose::write(SocketOutputStream& oStream) const
 
-{
-    __BEGIN_TRY
+    {__BEGIN_TRY
 
-    __END_CATCH
-}
-
-void CGStoreClose::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGStoreCloseHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
+         __END_CATCH}
 
 string CGStoreClose::toString() const
 

@@ -37,8 +37,6 @@ public:
     // ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {
@@ -129,14 +127,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCServerListHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCServerListHandler {
-public:
-    // execute packet's handler
-    static void execute(LCServerList* pPacket, Player* pPlayer);
-};
 
 #endif

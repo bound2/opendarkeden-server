@@ -21,7 +21,6 @@ public:
     ~GCNPCSay(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_NPC_SAY;
     }
@@ -80,15 +79,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + szScriptID + szBYTE;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCNPCSayHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCNPCSayHandler {
-public:
-    static void execute(GCNPCSay* pPacket, Player* pPlayer);
 };
 
 #endif

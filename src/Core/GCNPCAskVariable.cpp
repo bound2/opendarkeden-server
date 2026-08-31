@@ -118,19 +118,6 @@ string GCNPCAskVariable::getValue(const string& name) const {
 }
 
 
-//////////////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////////////
-void GCNPCAskVariable::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCNPCAskVariableHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 PacketSize_t GCNPCAskVariable::getPacketSize() const
 
 {

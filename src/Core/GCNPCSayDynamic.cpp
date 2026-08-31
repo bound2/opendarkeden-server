@@ -44,16 +44,6 @@ void GCNPCSayDynamic::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCNPCSayDynamic::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCNPCSayDynamicHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCNPCSayDynamic::toString() const
 
 {

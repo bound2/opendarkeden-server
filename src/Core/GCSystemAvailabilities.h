@@ -26,7 +26,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_SYSTEM_AVAILABILITIES;
     }
@@ -89,15 +88,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szDWORD + szBYTE + szBYTE;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCSystemAvailabilitiesHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCSystemAvailabilitiesHandler {
-public:
-    static void execute(GCSystemAvailabilities* pGCSystemAvailabilities, Player* pPlayer);
 };
 
 #endif

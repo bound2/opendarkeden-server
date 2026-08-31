@@ -27,7 +27,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_TRADE_ADD_ITEM;
     }
@@ -231,13 +230,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// class GCTradeAddItemHandler;
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-class GCTradeAddItemHandler {
-public:
-    static void execute(GCTradeAddItem* pPacket, Player* pPlayer);
-};
 
 #endif

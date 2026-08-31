@@ -39,20 +39,6 @@ void GCMorphVampire2::write(SocketOutputStream& oStream) const
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCMorphVampire2::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCMorphVampire2Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCMorphVampire2::toString() const

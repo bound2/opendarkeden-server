@@ -23,7 +23,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_REMOVE_STORE_ITEM;
     }
@@ -72,15 +71,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + szBYTE;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCRemoveStoreItemHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCRemoveStoreItemHandler {
-public:
-    static void execute(GCRemoveStoreItem* pPacket, Player* pPlayer);
 };
 
 #endif

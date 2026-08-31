@@ -15,20 +15,7 @@ void CGUntransform::read(SocketInputStream& iStream)
 
 void CGUntransform::write(SocketOutputStream& oStream) const
 
-{
-    __BEGIN_TRY
-    __END_CATCH
-}
-
-void CGUntransform::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUntransformHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 string CGUntransform::toString() const
 

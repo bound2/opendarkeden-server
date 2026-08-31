@@ -92,20 +92,6 @@ void GLIncomingConnectionError::write(Datagram& oDatagram) const {
 
 
 //////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void GLIncomingConnectionError::execute(Player* pPlayer) {
-    __BEGIN_TRY
-
-    // cout << "GLIncomingConnectionError::execute() called." << endl;
-
-    GLIncomingConnectionErrorHandler::execute(this);
-
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 string GLIncomingConnectionError::toString() const {
     __BEGIN_TRY

@@ -72,9 +72,6 @@ void GCWaitGuildList::write(SocketOutputStream& oStream) const
 }
 
 
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
 void GCWaitGuildList::clearGuildInfoList()
 
 {
@@ -86,20 +83,6 @@ void GCWaitGuildList::clearGuildInfoList()
         m_GuildInfoList.pop_front();
         SAFE_DELETE(pGuildInfo);
     }
-
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void GCWaitGuildList::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCWaitGuildListHandler::execute(this, pPlayer);
 
     __END_CATCH
 }

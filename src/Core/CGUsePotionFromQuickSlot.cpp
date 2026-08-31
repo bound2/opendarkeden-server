@@ -39,16 +39,6 @@ void CGUsePotionFromQuickSlot::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGUsePotionFromQuickSlot::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUsePotionFromQuickSlotHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGUsePotionFromQuickSlot::toString() const {
     __BEGIN_TRY
 

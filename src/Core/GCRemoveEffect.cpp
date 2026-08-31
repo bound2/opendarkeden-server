@@ -79,22 +79,6 @@ void GCRemoveEffect::write(SocketOutputStream& oStream) const {
 
 //////////////////////////////////////////////////////////////////////
 //
-// execute packet's handler
-//
-//////////////////////////////////////////////////////////////////////
-void GCRemoveEffect::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCRemoveEffectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////
-//
 // GCRemoveEffect::addListElement()
 //
 // (변화부위, 변화수치 ) 의 한 셋을 리스트에 넣기 위한 멤버 함수.

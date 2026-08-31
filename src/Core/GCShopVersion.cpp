@@ -77,19 +77,6 @@ void GCShopVersion::write(SocketOutputStream& oStream) const
 }
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCShopVersion::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCShopVersionHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCShopVersion::toString() const

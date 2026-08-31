@@ -23,7 +23,6 @@ public:
     ~GCTeachSkillInfo(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_TEACH_SKILL_INFO;
     }
@@ -73,15 +72,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szSkillDomainType + szSkillLevel;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCTeachSkillInfoHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCTeachSkillInfoHandler {
-public:
-    static void execute(GCTeachSkillInfo* pPacket, Player* pPlayer);
 };
 
 #endif

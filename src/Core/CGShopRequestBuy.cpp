@@ -39,16 +39,6 @@ void CGShopRequestBuy::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGShopRequestBuy::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGShopRequestBuyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGShopRequestBuy::toString() const {
     __BEGIN_TRY
 

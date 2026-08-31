@@ -42,7 +42,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_SHOP_LIST;
     }
@@ -148,14 +147,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCShopListHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCShopListHandler {
-public:
-    static void execute(GCShopList* pPacket, Player* pPlayer);
-};
 
 #endif

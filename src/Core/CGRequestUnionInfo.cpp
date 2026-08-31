@@ -17,21 +17,9 @@ void CGRequestUnionInfo::read(SocketInputStream& iStream)
 
 void CGRequestUnionInfo::write(SocketOutputStream& oStream) const
 
-{
-    __BEGIN_TRY
+    {__BEGIN_TRY
 
-    __END_CATCH
-}
-
-void CGRequestUnionInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRequestUnionInfoHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
+         __END_CATCH}
 
 string CGRequestUnionInfo::toString() const
 

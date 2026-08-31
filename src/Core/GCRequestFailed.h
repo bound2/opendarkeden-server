@@ -27,7 +27,6 @@ public:
     ~GCRequestFailed(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_REQUEST_FAILED;
     }
@@ -79,14 +78,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCRequestFailedHandler
-//////////////////////////////////////////////////////////////////////////////
-
-class GCRequestFailedHandler {
-public:
-    static void execute(GCRequestFailed* pPacket, Player* pPlayer);
-};
 
 #endif

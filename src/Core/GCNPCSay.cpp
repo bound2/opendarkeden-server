@@ -33,16 +33,6 @@ void GCNPCSay::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCNPCSay::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCNPCSayHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCNPCSay::toString() const
 
 {

@@ -46,16 +46,6 @@ void CGRangerSay::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGRangerSay::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRangerSayHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRangerSay::toString() const
 
 {

@@ -1,5 +1,32 @@
 # Fix log
 
+## SGModifyGuildMemberOK was never handled: `#ifdef __GAME_SERER__` (2026-08-31)
+
+Found while migrating the SG direction onto the dispatch table (task
+2.3): `SGModifyGuildMemberOK::execute()` wrapped its handler call in
+`#ifdef __GAME_SERER__` — a misspelling of `__GAME_SERVER__` that no
+build defines — so the shared server's acknowledgement of a guild-member
+rank change was silently dropped by every game server, leaving the
+in-memory `Guild` stale until reload. The other nine SG packets spell
+the guard correctly. The dispatch table now registers the handler like
+its siblings, which both fixes the bug and makes the class of bug
+impossible: registration is plain code at the composition root, not a
+per-file macro spelling.
+> **Status:** fixed (restructuring/dispatch-cg)
+
+## Types.h include order broke the container build (2026-08-31)
+
+The Phase 2 scaffolding PR (#14) clang-formatted `Types.h` *after* its
+verification build had already synced sources into the container volume:
+the formatter sorted `#include "Utility.h"` above the `types/` block, but
+`Utility.h` uses `BYTE`/`WORD`/`sz*` from those headers and its own
+`#include "Types.h"` is an empty no-op mid-expansion (the guard is
+already set) — so every TU failed on a fresh build while the stale
+volume kept passing. Fixed by pinning `Utility.h` below the `types/`
+block behind `// clang-format off`. Lesson recorded: **re-run the build
+after formatting**, not before.
+> **Status:** fixed (restructuring/dispatch-cg)
+
 Real bugs uncovered by the restructuring work (task 5.3 in
 `docs/RESTRUCTURING.md`), recorded instead of fixed silently. Sidecar's
 convention: every entry has a `> **Status:**` line updated in the same

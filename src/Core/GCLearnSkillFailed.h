@@ -35,8 +35,6 @@ public:
     // Ãâ·Â½ºÆ®¸²(¹öÆÛ)À¸·Î ÆÐÅ¶ÀÇ ¹ÙÀÌ³Ê¸® ÀÌ¹ÌÁö¸¦ º¸³½´Ù.
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {
@@ -118,17 +116,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCLearnSkillFailedHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCLearnSkillFailedHandler {
-public:
-    // execute packet's handler
-    static void execute(GCLearnSkillFailed* pGCLearnSkillFailed, Player* pPlayer);
-};
 
 #endif // __GC_LEARN_SKILL_FAILED_H__

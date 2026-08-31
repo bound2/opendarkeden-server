@@ -38,7 +38,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_WAR_SCHEDULE_LIST;
     }
@@ -73,11 +72,6 @@ public:
         return (szBYTE +
                 (szBYTE + szWORD + szBYTE + szBYTE + szBYTE + szGuildID * 6 + (szBYTE * 16) * 6) * MAX_WAR_NUM);
     }
-};
-
-class GCWarScheduleListHandler {
-public:
-    static void execute(GCWarScheduleList* pPacket, Player* pPlayer);
 };
 
 #endif // __GC_WAR_SCHEDULE_LIST_H__

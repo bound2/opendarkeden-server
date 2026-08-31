@@ -85,20 +85,6 @@ void LCReconnect::write(SocketOutputStream& oStream) const
 
 
 //----------------------------------------------------------------------
-// execute packet's handler
-//----------------------------------------------------------------------
-void LCReconnect::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    LCReconnectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//----------------------------------------------------------------------
 // get packet's debug string
 //----------------------------------------------------------------------
 string LCReconnect::toString() const

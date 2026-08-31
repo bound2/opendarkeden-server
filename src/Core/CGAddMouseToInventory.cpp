@@ -43,16 +43,6 @@ void CGAddMouseToInventory::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAddMouseToInventory::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAddMouseToInventoryHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAddMouseToInventory::toString() const {
     __BEGIN_TRY
 

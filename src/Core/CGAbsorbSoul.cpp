@@ -51,16 +51,6 @@ void CGAbsorbSoul::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAbsorbSoul::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAbsorbSoulHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAbsorbSoul::toString() const
 
 {

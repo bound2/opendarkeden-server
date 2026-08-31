@@ -22,7 +22,6 @@ public:
     ~GCEnterVampirePortal(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ENTER_VAMPIRE_PORTAL;
     }
@@ -80,15 +79,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + szCoord * 2;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCEnterVampirePortalHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCEnterVampirePortalHandler {
-public:
-    static void execute(GCEnterVampirePortal* pPacket, Player* pPlayer);
 };
 
 #endif

@@ -26,16 +26,6 @@ void CGRequestNewbieItem::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGRequestNewbieItem::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRequestNewbieItemHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRequestNewbieItem::toString() const {
     StringStream msg;
     msg << "CGRequestNewbieItem(" << "ItemClass : " << (int)m_ItemClass << ")";

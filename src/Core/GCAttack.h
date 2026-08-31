@@ -40,8 +40,6 @@ public:
     // Serialize the packet into the output stream.
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {
@@ -145,14 +143,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCAttackHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCAttackHandler {
-public:
-    // execute packet's handler
-    static void execute(GCAttack* pGCAttack, Player* pPlayer);
-};
 
 #endif

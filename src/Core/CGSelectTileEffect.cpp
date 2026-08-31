@@ -26,16 +26,6 @@ void CGSelectTileEffect::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSelectTileEffect::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSelectTileEffectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSelectTileEffect::toString() const
 
 {

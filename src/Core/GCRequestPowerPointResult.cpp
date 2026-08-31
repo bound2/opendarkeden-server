@@ -66,20 +66,6 @@ void GCRequestPowerPointResult::write(SocketOutputStream& oStream) const
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCRequestPowerPointResult::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCRequestPowerPointResultHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCRequestPowerPointResult::toString() const

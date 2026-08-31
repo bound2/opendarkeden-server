@@ -158,16 +158,6 @@ void GCPartyJoined::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCPartyJoined::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCPartyJoinedHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCPartyJoined::toString() const
 
 {

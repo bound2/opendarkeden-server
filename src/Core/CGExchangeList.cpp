@@ -6,11 +6,8 @@
 
 #include "CGExchangeList.h"
 
-#include "GCExchangeList.h"
-#include "PlayerCreature.h"
 
 // Forward declaration of exchange service
-#include "../server/gameserver/exchange/ExchangeService.h"
 
 // Out-of-line definition so the constant may also be odr-used (bound to a
 // reference, e.g. std::min) by handlers and tests, not only read as a
@@ -96,12 +93,4 @@ string CGExchangeList::toString() const {
         << ",ItemClass:" << (int)m_ItemClass << ",ItemType:" << (int)m_ItemType << ",MinPrice:" << m_MinPrice
         << ",MaxPrice:" << m_MaxPrice << ",SellerFilter:" << m_SellerFilter << ")";
     return msg.toString();
-}
-
-void CGExchangeList::execute(Player* pPlayer) {
-    __BEGIN_TRY
-
-    CGExchangeListHandler::execute(this, pPlayer);
-
-    __END_CATCH
 }

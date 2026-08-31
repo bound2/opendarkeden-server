@@ -41,16 +41,6 @@ void CGRideMotorCycle::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGRideMotorCycle::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRideMotorCycleHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRideMotorCycle::toString() const
 
 {

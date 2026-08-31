@@ -24,7 +24,6 @@ public:
     ~GCStashSell(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_STASH_SELL;
     }
@@ -74,13 +73,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// class GCStashSellHandler;
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-class GCStashSellHandler {
-public:
-    static void execute(GCStashSell* pPacket, Player* pPlayer);
-};
 
 #endif

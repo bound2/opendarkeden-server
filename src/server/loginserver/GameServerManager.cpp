@@ -15,6 +15,7 @@
 #include "DatagramPacket.h"
 #include "LGKickCharacter.h"
 #include "LogClient.h"
+#include "PacketDispatcher.h"
 #include "Properties.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -111,7 +112,7 @@ void GameServerManager::run() {
 
                     if (pDatagramPacket != NULL) {
                         // ����� �����ͱ׷� ��Ŷ ��ü�� �����Ѵ�.
-                        pDatagramPacket->execute(NULL);
+                        PacketDispatcher::dispatch(pDatagramPacket, NULL);
 
                         // �����ͱ׷� ��Ŷ ��ü�� �����Ѵ�.
                         delete pDatagramPacket;

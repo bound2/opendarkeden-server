@@ -30,16 +30,6 @@ void CGSetSlayerHotKey::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSetSlayerHotKey::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSetSlayerHotKeyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSetSlayerHotKey::toString() const
 
 {

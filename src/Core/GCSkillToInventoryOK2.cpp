@@ -70,16 +70,6 @@ void GCSkillToInventoryOK2::write(SocketOutputStream& oStream) const {
 // GCSkillToInventoryOK2::execute()
 //
 //////////////////////////////////////////////////////////////////////
-void GCSkillToInventoryOK2::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSkillToInventoryOK2Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

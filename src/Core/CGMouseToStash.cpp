@@ -30,16 +30,6 @@ void CGMouseToStash::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGMouseToStash::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGMouseToStashHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGMouseToStash::toString() const {
     __BEGIN_TRY
 

@@ -30,7 +30,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_NPC_ASK_VARIABLE;
     }
@@ -86,15 +85,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + szScriptID + szBYTE + ScriptParameter::getMaxSize() * 255;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCNPCAskVariableHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCNPCAskVariableHandler {
-public:
-    static void execute(GCNPCAskVariable* pPacket, Player* pPlayer);
 };
 
 #endif

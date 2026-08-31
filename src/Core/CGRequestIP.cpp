@@ -50,16 +50,6 @@ void CGRequestIP::write(SocketOutputStream& oStream) const {
     __END_CATCH
 }
 
-void CGRequestIP::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRequestIPHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRequestIP::toString() const {
     __BEGIN_TRY
 

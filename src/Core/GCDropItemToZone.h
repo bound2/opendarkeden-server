@@ -34,8 +34,6 @@ public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {
@@ -100,14 +98,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCDropItemToZoneHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCDropItemToZoneHandler {
-public:
-    // execute packet's handler
-    static void execute(GCDropItemToZone* pPacket, Player* pPlayer);
-};
 
 #endif

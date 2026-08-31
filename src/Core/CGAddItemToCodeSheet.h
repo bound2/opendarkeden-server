@@ -21,7 +21,6 @@ public:
     ~CGAddItemToCodeSheet(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_CG_ADD_ITEM_TO_CODE_SHEET;
     }

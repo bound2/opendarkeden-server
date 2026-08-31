@@ -41,7 +41,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_VAMPIRE;
     }
@@ -143,14 +142,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddVampireHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddVampireHandler {
-public:
-    static void execute(GCAddVampire* pPacket, Player* pPlayer);
-};
 
 #endif

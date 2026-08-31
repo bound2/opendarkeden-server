@@ -46,16 +46,6 @@ void CGGlobalChat::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGGlobalChat::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGGlobalChatHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGGlobalChat::toString() const
 
 {

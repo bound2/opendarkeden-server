@@ -33,7 +33,6 @@ public:
     ~CGPartyInvite(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_CG_PARTY_INVITE;
     }

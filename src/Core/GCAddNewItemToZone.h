@@ -27,8 +27,6 @@ public:
     GCAddNewItemToZone();
     ~GCAddNewItemToZone();
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {
@@ -82,14 +80,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCAddNewItemToZoneHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCAddNewItemToZoneHandler {
-public:
-    // execute packet's handler
-    static void execute(GCAddNewItemToZone* pPacket, Player* pPlayer);
-};
 
 #endif

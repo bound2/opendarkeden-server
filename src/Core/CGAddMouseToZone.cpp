@@ -62,16 +62,6 @@ void CGAddMouseToZone::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAddMouseToZone::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAddMouseToZoneHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAddMouseToZone::toString() const {
     __BEGIN_TRY
 

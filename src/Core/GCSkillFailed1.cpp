@@ -48,16 +48,6 @@ void GCSkillFailed1::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCSkillFailed1::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSkillFailed1Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCSkillFailed1::toString() const
 
 {

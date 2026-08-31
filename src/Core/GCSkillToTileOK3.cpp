@@ -141,16 +141,6 @@ void GCSkillToTileOK3::deleteCListElement()
 // GCSkillToTileOK3::execute()
 //
 //////////////////////////////////////////////////////////////////////
-void GCSkillToTileOK3::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSkillToTileOK3Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

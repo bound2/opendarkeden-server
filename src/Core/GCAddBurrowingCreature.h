@@ -22,7 +22,6 @@ public:
     ~GCAddBurrowingCreature(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_BURROWING_CREATURE;
     }
@@ -93,13 +92,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////
 //
-// class GCAddBurrowingCreatureHandler;
 //
 //////////////////////////////////////////////////////////////////////////////
-
-class GCAddBurrowingCreatureHandler {
-public:
-    static void execute(GCAddBurrowingCreature* pPacket, Player* pPlayer);
-};
 
 #endif

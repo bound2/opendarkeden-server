@@ -71,9 +71,6 @@ void GCSweeperBonusInfo::write(SocketOutputStream& oStream) const
 }
 
 
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
 void GCSweeperBonusInfo::clearSweeperBonusInfoList()
 
 {
@@ -85,20 +82,6 @@ void GCSweeperBonusInfo::clearSweeperBonusInfoList()
         m_SweeperBonusInfoList.pop_front();
         SAFE_DELETE(pSweeperBonusInfo);
     }
-
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void GCSweeperBonusInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSweeperBonusInfoHandler::execute(this, pPlayer);
 
     __END_CATCH
 }

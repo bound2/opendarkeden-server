@@ -6,10 +6,6 @@
 
 #include "CGSay.h"
 
-#ifdef __GAME_SERVER__
-#include "GamePlayer.h"
-#endif
-
 void CGSay::read(SocketInputStream& iStream)
 
 {
@@ -50,16 +46,6 @@ void CGSay::write(SocketOutputStream& oStream) const
     oStream.write(szMessage);
 
     oStream.write(m_Message);
-
-    __END_CATCH
-}
-
-void CGSay::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSayHandler::execute(this, pPlayer);
 
     __END_CATCH
 }

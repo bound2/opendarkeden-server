@@ -37,16 +37,6 @@ void CGPhoneDisconnect::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGPhoneDisconnect::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGPhoneDisconnectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGPhoneDisconnect::toString() const {
     __BEGIN_TRY
 

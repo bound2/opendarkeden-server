@@ -24,7 +24,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_STORE_ITEM;
     }
@@ -78,15 +77,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + szBYTE + StoreItemInfo::getMaxSize();
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddStoreItemHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddStoreItemHandler {
-public:
-    static void execute(GCAddStoreItem* pPacket, Player* pPlayer);
 };
 
 #endif

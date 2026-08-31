@@ -26,7 +26,6 @@ public:
     ~GCSearchMotorcycleOK(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_SEARCH_MOTORCYCLE_OK;
     }
@@ -101,14 +100,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSearchMotorcycleOKHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCSearchMotorcycleOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSearchMotorcycleOK* pPacket, Player* pPlayer);
-};
 
 #endif

@@ -613,9 +613,6 @@ public:
         }
     }
 
-    // execute packet's handler
-    virtual void execute(Player* pPlayer) = 0;
-
     // get packet's PacketID
     virtual PacketID_t getPacketID() const = 0;
 

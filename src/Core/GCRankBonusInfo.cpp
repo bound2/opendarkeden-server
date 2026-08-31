@@ -69,20 +69,6 @@ void GCRankBonusInfo::write(SocketOutputStream& oStream) const
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCRankBonusInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCRankBonusInfoHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCRankBonusInfo::toString() const

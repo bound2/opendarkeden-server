@@ -93,7 +93,6 @@ public:
 
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer); // Stub for server side
 
     PacketSize_t getPacketSize() const;
     PacketID_t getPacketID() const {
@@ -190,15 +189,6 @@ public:
         // Header: m_Page + m_PageSize + m_Total + the uint16 listing count.
         return sizeof(int) * 3 + sizeof(uint16_t) + listing * GCExchangeList::kMaxListingsPerPage;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCExchangeListHandler
-//////////////////////////////////////////////////////////////////////////////
-
-class GCExchangeListHandler {
-public:
-    static void execute(GCExchangeList* pPacket, Player* pPlayer);
 };
 
 #endif // __GC_EXCHANGE_LIST_H__

@@ -47,18 +47,6 @@ void UCUpdateList::write(Socket* pSocket) const throw(ProtocolException, Error) 
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void UCUpdateList::execute(Player* pPlayer) throw(ProtocolException, Error) {
-    __BEGIN_TRY
-
-    UCUpdateListHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
 // get debug string
 //--------------------------------------------------------------------------------
 string UCUpdateList::toString() const throw() {

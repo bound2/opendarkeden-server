@@ -38,7 +38,6 @@ public:
 
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_PET_STASH_LIST;
     }
@@ -86,14 +85,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCPetStashListHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCPetStashListHandler {
-public:
-    static void execute(GCPetStashList* pPacket, Player* pPlayer);
-};
 
 #endif

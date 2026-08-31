@@ -26,16 +26,6 @@ void GCAuthKey::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCAuthKey::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAuthKeyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCAuthKey::toString() const
 
 {

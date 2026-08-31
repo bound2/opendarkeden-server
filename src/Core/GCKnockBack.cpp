@@ -33,16 +33,6 @@ void GCKnockBack::write(SocketOutputStream& oStream) const {
     __END_CATCH
 }
 
-void GCKnockBack::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCKnockBackHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCKnockBack::toString() const {
     __BEGIN_TRY
 

@@ -26,7 +26,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_EFFECT;
     }
@@ -89,15 +88,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + szEffectID + szDuration;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddEffectHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddEffectHandler {
-public:
-    static void execute(GCAddEffect* pGCAddEffect, Player* pPlayer);
 };
 
 #endif

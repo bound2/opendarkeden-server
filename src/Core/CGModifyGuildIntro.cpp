@@ -47,16 +47,6 @@ void CGModifyGuildIntro::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGModifyGuildIntro::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGModifyGuildIntroHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGModifyGuildIntro::toString() const
 
 {

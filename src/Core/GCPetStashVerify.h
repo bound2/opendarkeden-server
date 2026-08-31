@@ -34,7 +34,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
 
     PacketID_t getPacketID() const {
         return PACKET_GC_PET_STASH_VERIFY;
@@ -80,14 +79,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCPetStashVerifyHandler
-//////////////////////////////////////////////////////////////////////////////
-
-class GCPetStashVerifyHandler {
-public:
-    static void execute(GCPetStashVerify* pPacket, Player* pPlayer);
-};
 
 #endif

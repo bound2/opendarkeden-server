@@ -25,13 +25,3 @@ void CLSelectWorld::write(SocketOutputStream& oStream) const
 
     __END_CATCH
 }
-
-void CLSelectWorld::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CLSelectWorldHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

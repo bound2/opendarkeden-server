@@ -23,7 +23,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_NPC_ASK_DYNAMIC;
     }
@@ -107,15 +106,6 @@ public:
 
         return size;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCNPCAskDynamicHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCNPCAskDynamicHandler {
-public:
-    static void execute(GCNPCAskDynamic* pPacket, Player* pPlayer);
 };
 
 #endif

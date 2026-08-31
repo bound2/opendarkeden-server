@@ -27,16 +27,6 @@ void CGQuitGuild::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGQuitGuild::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGQuitGuildHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGQuitGuild::toString() const
 
 {

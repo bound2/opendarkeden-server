@@ -73,19 +73,6 @@ void GCShopMarketCondition::write(SocketOutputStream& oStream) const
 }
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCShopMarketCondition::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCShopMarketConditionHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCShopMarketCondition::toString() const

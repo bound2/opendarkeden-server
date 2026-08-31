@@ -24,7 +24,6 @@ public:
     ~GCAddInstalledMineToZone();
 
 public:
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_INSTALLED_MINE_TO_ZONE;
     }
@@ -53,15 +52,6 @@ public:
         return szObjectID + szCoord + szCoord + szBYTE + szItemType + szBYTE + 255 + szDurability + szItemNum + szBYTE +
                (szObjectID + szBYTE + szItemType + szItemNum + szSlotID) * 12;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddInstalledMineToZoneHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddInstalledMineToZoneHandler {
-public:
-    static void execute(GCAddInstalledMineToZone* pPacket, Player* pPlayer);
 };
 
 #endif

@@ -69,9 +69,6 @@ void GCActiveGuildList::write(SocketOutputStream& oStream) const {
 }
 
 
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
 void GCActiveGuildList::clearGuildInfoList()
 
 {
@@ -83,18 +80,6 @@ void GCActiveGuildList::clearGuildInfoList()
         m_GuildInfoList.pop_front();
         SAFE_DELETE(pGuildInfo);
     }
-
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void GCActiveGuildList::execute(Player* pPlayer) {
-    __BEGIN_TRY
-
-    GCActiveGuildListHandler::execute(this, pPlayer);
 
     __END_CATCH
 }

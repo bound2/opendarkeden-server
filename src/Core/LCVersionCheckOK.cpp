@@ -29,17 +29,3 @@ void LCVersionCheckOK::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
     __END_CATCH
 }
-
-
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void LCVersionCheckOK::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    LCVersionCheckOKHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

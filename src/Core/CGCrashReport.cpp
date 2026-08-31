@@ -78,16 +78,6 @@ void CGCrashReport::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGCrashReport::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGCrashReportHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGCrashReport::toString() const {
     __BEGIN_TRY
 

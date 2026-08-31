@@ -36,7 +36,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_OUSTERS;
     }
@@ -112,15 +111,6 @@ public:
         return PCOustersInfo3::getMaxSize() + EffectInfo::getMaxSize() + PetInfo::getMaxSize() +
                NicknameInfo::getMaxSize() + StoreOutlook::getMaxSize();
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddOustersHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddOustersHandler {
-public:
-    static void execute(GCAddOusters* pPacket, Player* pPlayer);
 };
 
 #endif

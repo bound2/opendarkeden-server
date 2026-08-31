@@ -10,6 +10,7 @@
 
 #include "Assert.h"
 #include "Packet.h"
+#include "PacketDispatcher.h"
 #include "PacketFactoryManager.h"
 #include "Socket.h"
 #include "SocketInputStream.h"
@@ -157,9 +158,7 @@ void GameServerPlayer::processCommand() noexcept(false) {
             // �ڵ������� �ʱ�ȭ�ȴ�.
             m_pInputStream->readPacket(pPacket);
 
-            // ���� �� ��Ŷ��Ʈ��ó�� ������ ��Ŷ�ڵ鷯�� �����ϸ� �ȴ�.
-            // ��Ŷ���̵� �߸��� ���� ��Ŷ�ڵ鷯�Ŵ������� ó���Ѵ�.
-            pPacket->execute(this);
+            PacketDispatcher::dispatch(pPacket, this);
 
             // ��Ŷ�� �����Ѵ�
             delete pPacket;

@@ -67,7 +67,8 @@ void EffectRideMotorcycle::unaffect()
     cgRide.setY(m_MotorY);
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pOwner->getPlayer());
-    cgRide.execute(pGamePlayer);
+    // synthetic packet straight to the handler (2.3)
+    CGRideMotorCycleHandler::execute(&cgRide, pGamePlayer);
 
     __END_CATCH
 }

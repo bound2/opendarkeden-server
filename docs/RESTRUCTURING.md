@@ -55,9 +55,9 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 104 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` |
-| R3 | Files with inline SQL anywhere outside `database/` | 320 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
-| R4 | Packet headers with `execute()` still on the packet | 481 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| wc -l` |
+| R3 | Files with inline SQL anywhere outside `database/` | 319 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
+| R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -v 'gameserver/handler/' \| wc -l` (handler/ holds the 2.4-moved packet handlers, never counted while they lived in `src/Core`; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
 
@@ -67,7 +67,7 @@ God-file baselines (R6):
 |------|---------------:|
 | `src/server/gameserver/Zone.cpp` | 7,616 |
 | `src/server/gameserver/skill/SkillUtil.cpp` | 5,631 |
-| `src/Core/CGSayHandler.cpp` | 3,967 |
+| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 3,967 |
 | `src/server/gameserver/InitAllStat.cpp` | 4,158 |
 | `src/server/gameserver/Slayer.cpp` | 3,511 |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 2,640 |
@@ -500,7 +500,7 @@ visibility can't express.
   > users — all Player-transport classes, 2.3's problem).
   - Owner: the include-graph test.
 
-- [ ] **2.3 Strip `execute()` off packets; dispatch table at the composition
+- [x] **2.3 Strip `execute()` off packets; dispatch table at the composition
   root.** The crux. Today packet classes carry `execute()` → `*Handler` which
   reaches into gameserver internals, with `#ifdef __GAME_SERVER__` /
   `__GAME_CLIENT__` switching (vestige of the once-shared codebase). Replace
@@ -510,14 +510,106 @@ visibility can't express.
   `de-kernel` actually framework-free. Migrate direction-by-direction under
   the Phase 1 pin (layout must not change — golden tests prove it).
   Track with ratchet R4 (packets still carrying `execute()`).
-  > **Status:** not started
+  > **Status:** in progress — infrastructure + the CG direction landed
+  > (2026-08-31). `PacketDispatcher` (kernel: id → `void(*)(Packet*,
+  > Player*)` table, written only at startup so zone threads read it
+  > lock-free) is consulted first in all five receive loops
+  > (GamePlayer, LoginPlayer, SharedServerClient, sharedserver's
+  > GameServerPlayer, Core `Player`), falling back to the legacy
+  > virtual for unmigrated packets. `Packet::execute` is no longer pure:
+  > the default throws `InvalidProtocolException`, so a migrated id
+  > received by a server that does not register it now disconnects the
+  > sender instead of running a no-op handler — the only intended
+  > behavior change, and only for protocol-violating peers.
+  > All 150 CG packets are migrated: `execute()` deleted from their
+  > headers/cpps (two intermediate bases, `DatagramPacket` and
+  > `SerialDatagramPacket`, dropped their pure redeclarations), and
+  > `src/server/gameserver/GamePacketDispatch.cpp` binds every CG id at
+  > the gameserver composition root (`registerGameServerPacketHandlers()`
+  > from `main()`; `CGPortCheck`'s player-less handler and `CGStashList`'s
+  > `__BEGIN_DEBUG` wrapper preserved as explicit thunks). R4 481→329.
+  > **GC migrated the same day**: all 255 GC handler bodies were
+  > preprocessor-classified under the server defines (regex was not
+  > enough — the guard vocabulary spans `__GAME_CLIENT__`,
+  > `#if __TEST_CLIENT__`, `#elif __WINDOWS__`); exactly one is live
+  > server-side, `GCFriendChatting` (the friend system rides this "GC"
+  > packet client→server), now registered for real. The live client's
+  > store UI also *sends* `GCAddStoreItem`/`GCRemoveStoreItem` (and
+  > legacy paths `GCCannotUse`) — registered as explicit ignore-thunks
+  > to preserve today's silent no-op, since the validator's `GPS_NORMAL`
+  > set is `PIST_ANY` and would otherwise let the new default disconnect
+  > a legitimate client; `GC_MY/OTHER_STORE_INFO` were already
+  > force-rejected pre-dispatch by `GamePlayer`. `execute()` deleted from
+  > all 258 GC packet cpps/headers. R4 329→74.
+  > **All remaining directions migrated the same day** (R4 74→1 — only
+  > `Packet.h`'s transitional default remains): every direction handler
+  > was preprocessor-classified under all three server defines, and each
+  > is live on exactly one server. Composition roots:
+  > `LoginPacketDispatch.cpp` (16 CL + 4 GL + `GMServerInfo`, all
+  > datagram GL riding `GameServerManager`'s socket),
+  > `SharedPacketDispatch.cpp` (8 GS), and `GamePacketDispatch.cpp`
+  > gains 10 SG + 4 LG + 3 GG (LG/GG arrive on `LoginServerManager`'s
+  > datagram socket — GG is game→game UDP, not relayed through shared).
+  > Both datagram receive loops are dispatch-first now too. All 17 LC
+  > handlers are no-ops on every server (pure delete); `CLAgreement` is
+  > netmarble-dead and in no validator whitelist, so it needs no
+  > registration; `RCSay`/Upackets/TOpackets are not compiled by any
+  > target (client-only or dead subsystems) and were stripped textually.
+  > Registration macros live in `PacketDispatcher.h`
+  > (`DE_REGISTER_PACKET_HANDLER[_NOPLAYER]`). Found + fixed on the way:
+  > `SGModifyGuildMemberOK`'s handler had never run — misspelled
+  > `#ifdef __GAME_SERER__` guard (`docs/FIXES.md`).
+  > **Closed 2026-08-31** after a live smoke test of all three servers
+  > against the real client (login, guild ops, friend chat): `Packet`
+  > carries no `execute()` at all, `PacketDispatcher::dispatch` throws
+  > `InvalidProtocolException` on an unregistered id, and the seven
+  > receive loops call it unconditionally. R4 = 0, held by the ratchet.
+  > Handler file moves out of `Core` are 2.4.
   - Owner: R4 ratchet test + include-graph test (a kernel packet including a
     Zone header fails).
 
 - [ ] **2.4 Move packet sources into the kernel target.** Once a direction's
   handlers are out (2.3), move those packet files under the `de-kernel`
   target. `Core`'s non-packet utilities get sorted kernel-vs-app as touched.
-  > **Status:** not started
+  > **Status:** in progress (2026-08-31) —
+  > 1. The 271 no-op GC/LC handler files are **deleted** (2.3's
+  >    classification proved the server never runs them; the client repo
+  >    keeps its own copies), their dangling declarations stripped from
+  >    the packet headers.
+  > 2. The 197 live handlers moved out of `Core` into per-app
+  >    `handler/` dirs (gameserver 168, loginserver 21, sharedserver 8) —
+  >    plain app sources bound by the composition roots; the packet
+  >    libraries carry only wire classes. Handler class *declarations*
+  >    stay in the packet headers for now (no includes behind them; two
+  >    lost their `#ifdef __GAME_SERVER__` around member decls, with
+  >    `class Item;` forward-declared). The dead `CGAddInjuriousCreature`
+  >    pair (no id enum, never in any build) is deleted.
+  > 3. **The whole CG direction is kernel**: all 149 CG packet pairs +
+  >    `Assert1.h` + `NicknameInfo` joined `tests/arch/kernel_files.txt`
+  >    (360 files) after removing a handful of vestigial includes
+  >    (`GamePlayer.h`, `ExchangeService.h`, `libcpsso.h` — leftovers of
+  >    the removed `execute()`); `de-kernel` compiles them under K1/K2
+  >    with zero new baseline entries.
+  > 4. **The info classes + most of GC are kernel too** (914 files):
+  >    membership computed by fixpoint against the include-graph
+  >    checker — every candidate that passes K1/K2 joins; 23 GC packets
+  >    stay out because they build wire fields from live game objects
+  >    (`Item`/`Skill`/`PetItem` includes — `GCStashList` is the
+  >    archetype), and `PetInfo` joins header-only for the same reason.
+  >    A second dead pair surfaced and was deleted:
+  >    `GCMonsterKillQuestStatus` (id enum never existed, commented out
+  >    of every build — same story as `CGAddInjuriousCreature`).
+  > 5. **CL/LC and every inter-server direction are kernel** (1,038
+  >    files total): the same fixpoint admitted all of CL/LC/GL/LG/GS/
+  >    SG/GG/`GMServerInfo` except `CLSelectPC` (includes `Player.h`,
+  >    the transport base). A third dead pair fell out: `CLAgreement`
+  >    (no id enum — which is why it was in no validator whitelist).
+  > Remaining: `CLSelectPC` (drop the transport dependency), the 23
+  > held-back GC packets (split their game-object setters out),
+  > `Core`'s non-packet utilities sorted kernel-vs-app, then apps link
+  > `de-kernel` instead of getting these objects through `Core`. R5's
+  > scope note: `handler/` excluded (the moved handlers were never
+  > counted in `src/Core`).
   - Owner: CMake target membership + include-graph test.
 
 **Phase exit criteria:** `de-kernel` builds standalone with no MySQL/Lua/Zone

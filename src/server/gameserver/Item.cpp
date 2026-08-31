@@ -140,6 +140,7 @@ void Item::whenPCLost(PlayerCreature* pPC) {
 
         CGRequestStoreInfo cgInfo;
         cgInfo.setOwnerObjectID(0);
-        cgInfo.execute(pPC->getPlayer());
+        // synthetic packet straight to the handler (2.3)
+        CGRequestStoreInfoHandler::execute(&cgInfo, pPC->getPlayer());
     }
 }

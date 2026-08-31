@@ -38,8 +38,6 @@ public:
     // ÃÂÃÂ¢ÃÂ·ÃÂÃÂ½ÃÂºÃÂÃÂ®ÃÂ¸ÃÂ²(ÃÂ¹ÃÂ¶ÃÂÃÂ)ÃÂÃÂ¸ÃÂ·ÃÂ ÃÂÃÂÃÂÃÂ¶ÃÂÃÂ ÃÂ¹ÃÂÃÂÃÂÃÂ³ÃÂÃÂ¸ÃÂ® ÃÂÃÂÃÂ¹ÃÂÃÂÃÂ¶ÃÂ¸ÃÂ¦ ÃÂºÃÂ¸ÃÂ³ÃÂ½ÃÂ´ÃÂ.
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {
@@ -123,17 +121,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCLearnSkillOKHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCLearnSkillOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCLearnSkillOK* pGCLearnSkillOK, Player* pPlayer);
-};
 
 #endif // __GC_LEARN_SKILL_OK_H__

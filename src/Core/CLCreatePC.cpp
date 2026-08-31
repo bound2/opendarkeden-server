@@ -75,16 +75,6 @@ void CLCreatePC::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CLCreatePC::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CLCreatePCHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CLCreatePC::toString() const
 
 {

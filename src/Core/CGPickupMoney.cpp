@@ -70,16 +70,6 @@ void CGPickupMoney::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGPickupMoney::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGPickupMoneyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGPickupMoney::toString() const {
     __BEGIN_TRY
 

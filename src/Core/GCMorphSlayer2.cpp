@@ -39,20 +39,6 @@ void GCMorphSlayer2::write(SocketOutputStream& oStream) const
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCMorphSlayer2::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCMorphSlayer2Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCMorphSlayer2::toString() const

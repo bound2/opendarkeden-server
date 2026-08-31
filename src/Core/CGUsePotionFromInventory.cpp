@@ -68,16 +68,6 @@ void CGUsePotionFromInventory::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGUsePotionFromInventory::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUsePotionFromInventoryHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGUsePotionFromInventory::toString() const {
     __BEGIN_TRY
 

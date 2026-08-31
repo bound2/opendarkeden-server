@@ -30,16 +30,6 @@ void CGAddItemToItem::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAddItemToItem::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAddItemToItemHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAddItemToItem::toString() const
 
 {

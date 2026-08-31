@@ -26,16 +26,6 @@ void CGSelectRegenZone::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSelectRegenZone::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSelectRegenZoneHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSelectRegenZone::toString() const
 
 {

@@ -53,16 +53,6 @@ void CGGuildChat::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGGuildChat::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGGuildChatHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGGuildChat::toString() const
 
 {

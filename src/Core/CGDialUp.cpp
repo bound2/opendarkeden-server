@@ -37,16 +37,6 @@ void CGDialUp::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGDialUp::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGDialUpHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGDialUp::toString() const {
     __BEGIN_TRY
 

@@ -46,18 +46,6 @@ void CURequest::write(SocketOutputStream& oStream) const throw(ProtocolException
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void CURequest::execute(Player* pPlayer) throw(ProtocolException, Error) {
-    __BEGIN_TRY
-
-    CURequestHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
 // get debug string
 //--------------------------------------------------------------------------------
 string CURequest::toString() const throw() {

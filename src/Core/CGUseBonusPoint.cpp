@@ -37,16 +37,6 @@ void CGUseBonusPoint::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGUseBonusPoint::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUseBonusPointHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGUseBonusPoint::toString() const
 
 {

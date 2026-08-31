@@ -72,16 +72,6 @@ void CLDeletePC::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CLDeletePC::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CLDeletePCHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CLDeletePC::toString() const
 
 {

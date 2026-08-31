@@ -71,9 +71,6 @@ void GCHolyLandBonusInfo::write(SocketOutputStream& oStream) const
 }
 
 
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
 void GCHolyLandBonusInfo::clearBloodBibleBonusInfoList()
 
 {
@@ -85,20 +82,6 @@ void GCHolyLandBonusInfo::clearBloodBibleBonusInfoList()
         m_BloodBibleBonusInfoList.pop_front();
         SAFE_DELETE(pBloodBibleBonusInfo);
     }
-
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void GCHolyLandBonusInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCHolyLandBonusInfoHandler::execute(this, pPlayer);
 
     __END_CATCH
 }

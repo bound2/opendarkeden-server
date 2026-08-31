@@ -29,8 +29,6 @@ public:
     // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {
@@ -115,14 +113,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCChangeDarkLightHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCChangeDarkLightHandler {
-public:
-    // execute packet's handler
-    static void execute(GCChangeDarkLight* pPacket, Player* pPlayer);
-};
 
 #endif

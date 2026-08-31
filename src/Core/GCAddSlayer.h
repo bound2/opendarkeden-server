@@ -32,7 +32,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_SLAYER;
     }
@@ -108,15 +107,6 @@ public:
         return PCSlayerInfo3::getMaxSize() + EffectInfo::getMaxSize() + PetInfo::getMaxSize() +
                NicknameInfo::getMaxSize() + StoreOutlook::getMaxSize();
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddSlayerHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddSlayerHandler {
-public:
-    static void execute(GCAddSlayer* pPacket, Player* pPlayer);
 };
 
 #endif

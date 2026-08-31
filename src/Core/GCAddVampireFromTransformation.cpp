@@ -51,20 +51,6 @@ void GCAddVampireFromTransformation::write(SocketOutputStream& oStream) const
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCAddVampireFromTransformation::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddVampireFromTransformationHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCAddVampireFromTransformation::toString() const

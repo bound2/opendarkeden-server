@@ -63,16 +63,6 @@ void CGConnect::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGConnect::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGConnectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGConnect::toString() const
 
 {

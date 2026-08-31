@@ -47,8 +47,6 @@ public:
     // ��½�Ʈ��(����)���� ��Ŷ�� ���̳ʸ� �̹����� ������.
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {
@@ -133,14 +131,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCAddVampireFromBurrowingHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCAddVampireFromBurrowingHandler {
-public:
-    // execute packet's handler
-    static void execute(GCAddVampireFromBurrowing* pPacket, Player* pPlayer);
-};
 
 #endif

@@ -11,9 +11,6 @@
 
 // include files
 
-// #ifdef __GAME_SERVER__
-// #include "GamePlayer.h"
-// #endif
 
 #include "Packet.h"
 #include "PacketFactory.h"
@@ -41,8 +38,6 @@ public:
     // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {

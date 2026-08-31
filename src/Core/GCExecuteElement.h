@@ -34,7 +34,6 @@ public:
         oStream.write(m_Condition);
         oStream.write(m_Index);
     }
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_EXECUTE_ELEMENT;
     }
@@ -97,15 +96,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szDWORD + szBYTE + szWORD;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCExecuteElementHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCExecuteElementHandler {
-public:
-    static void execute(GCExecuteElement* pGCExecuteElement, Player* pPlayer);
 };
 
 #endif

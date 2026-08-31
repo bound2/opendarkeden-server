@@ -34,16 +34,6 @@ void CGThrowBomb::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGThrowBomb::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGThrowBombHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGThrowBomb::toString() const
 
 {

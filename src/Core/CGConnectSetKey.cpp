@@ -6,7 +6,6 @@
 
 #include "CGConnectSetKey.h"
 
-#include "libcpsso.h"
 
 // #include "Properties.h"
 
@@ -24,14 +23,6 @@ void CGConnectSetKey::write(SocketOutputStream& oStream) const {
 
     oStream.write(m_EncryptKey);
     oStream.write(m_HashKey);
-
-    __END_CATCH
-}
-
-void CGConnectSetKey::execute(Player* pPlayer) {
-    __BEGIN_TRY
-
-    CGConnectSetKeyHandler::execute(this, pPlayer);
 
     __END_CATCH
 }

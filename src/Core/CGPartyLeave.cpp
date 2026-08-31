@@ -34,16 +34,6 @@ void CGPartyLeave::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGPartyLeave::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGPartyLeaveHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGPartyLeave::toString() const {
     __BEGIN_TRY
 

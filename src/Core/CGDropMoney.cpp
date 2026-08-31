@@ -62,16 +62,6 @@ void CGDropMoney::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGDropMoney::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGDropMoneyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGDropMoney::toString() const {
     __BEGIN_TRY
 

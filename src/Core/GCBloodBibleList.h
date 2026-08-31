@@ -24,7 +24,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_BLOOD_BIBLE_LIST;
     }
@@ -64,15 +63,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szBYTE + szItemType * 12;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCBloodBibleListHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCBloodBibleListHandler {
-public:
-    static void execute(GCBloodBibleList* pPacket, Player* pPlayer);
 };
 
 #endif

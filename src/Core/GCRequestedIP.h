@@ -24,7 +24,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_REQUESTED_IP;
     }
@@ -82,15 +81,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szBYTE + szuint + 10 + 4;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCRequestedIPHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCRequestedIPHandler {
-public:
-    static void execute(GCRequestedIP* pGCRequestedIP, Player* pPlayer);
 };
 
 #endif

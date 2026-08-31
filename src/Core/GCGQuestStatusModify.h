@@ -41,7 +41,6 @@ public:
         oStream.write(m_Type);
         m_pInfo->write(oStream);
     }
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_GQUEST_STATUS_MODIFY;
     }
@@ -96,15 +95,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szBYTE + QuestStatusInfo::getMaxSize();
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCGQuestStatusModifyHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCGQuestStatusModifyHandler {
-public:
-    static void execute(GCGQuestStatusModify* pGCGQuestStatusModify, Player* pPlayer);
 };
 
 #endif

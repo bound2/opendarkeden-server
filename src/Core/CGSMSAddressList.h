@@ -22,7 +22,6 @@ public:
     virtual ~CGSMSAddressList(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_CG_SMS_ADDRESS_LIST;
     }

@@ -64,19 +64,6 @@ void GCSelectQuestID::write(SocketOutputStream& oStream) const
 }
 
 
-//////////////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////////////
-void GCSelectQuestID::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSelectQuestIDHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 PacketSize_t GCSelectQuestID::getPacketSize() const
 
 {

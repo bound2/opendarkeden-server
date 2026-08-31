@@ -19,7 +19,6 @@ public:
 
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_SUB_INVENTORY_INFO;
     }
@@ -65,11 +64,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + InventoryInfo::getMaxSize();
     }
-};
-
-class GCSubInventoryInfoHandler {
-public:
-    static void execute(GCSubInventoryInfo* pPacket, Player* pPlayer);
 };
 
 #endif // __GC_SUB_INVENTORY_INFO_H__

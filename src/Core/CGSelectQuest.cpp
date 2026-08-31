@@ -28,16 +28,6 @@ void CGSelectQuest::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSelectQuest::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSelectQuestHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSelectQuest::toString() const
 
 {

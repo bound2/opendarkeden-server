@@ -122,20 +122,6 @@ PacketSize_t GCSkillInfo::getPacketSize() const
 
 
 //--------------------------------------------------------------------------------
-// execute packet's handler
-//--------------------------------------------------------------------------------
-void GCSkillInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSkillInfoHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
 string GCSkillInfo::toString() const

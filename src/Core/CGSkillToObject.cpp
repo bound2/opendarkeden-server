@@ -72,16 +72,6 @@ void CGSkillToObject::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSkillToObject::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSkillToObjectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSkillToObject::toString() const
 
 {

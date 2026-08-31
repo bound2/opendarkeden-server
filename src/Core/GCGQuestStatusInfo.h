@@ -32,7 +32,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return Packet::PACKET_GC_GQUEST_STATUS_INFO;
     }
@@ -83,15 +82,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szBYTE + QuestStatusInfo::getMaxSize() * MAX_QUEST_NUM;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCGQuestStatusInfoHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCGQuestStatusInfoHandler {
-public:
-    static void execute(GCGQuestStatusInfo* pGCGQuestStatusInfo, Player* pPlayer);
 };
 
 #endif

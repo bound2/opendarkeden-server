@@ -26,7 +26,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_EFFECT_TO_TILE;
     }
@@ -97,15 +96,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + szCoord * 2 + szEffectID + szDuration;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddEffectToTileHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddEffectToTileHandler {
-public:
-    static void execute(GCAddEffectToTile* pGCAddEffectToTile, Player* pPlayer);
 };
 
 #endif

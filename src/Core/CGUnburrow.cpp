@@ -30,16 +30,6 @@ void CGUnburrow::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGUnburrow::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUnburrowHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGUnburrow::toString() const
 
 {

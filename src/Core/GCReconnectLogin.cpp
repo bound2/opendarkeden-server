@@ -85,20 +85,6 @@ void GCReconnectLogin::write(SocketOutputStream& oStream) const
 
 
 //----------------------------------------------------------------------
-// execute packet's handler
-//----------------------------------------------------------------------
-void GCReconnectLogin::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCReconnectLoginHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
-
-//----------------------------------------------------------------------
 // get packet's debug string
 //----------------------------------------------------------------------
 string GCReconnectLogin::toString() const

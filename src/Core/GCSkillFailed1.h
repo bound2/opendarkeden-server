@@ -24,7 +24,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_SKILL_FAILED_1;
     }
@@ -85,16 +84,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCSkillFailed1Handler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCSkillFailed1Handler {
-public:
-    static void execute(GCSkillFailed1* pGCSkillFailed1, Player* pPlayer);
-};
 
 #endif // __GC_SKILL_FAILED_1_H__

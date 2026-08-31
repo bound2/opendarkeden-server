@@ -14,12 +14,6 @@
 const PacketSize_t GCExchangeBuy::kMaxMessage;
 
 // Stub execute() for server side (GC packets don't execute on server)
-void GCExchangeBuy::execute(Player* pPlayer) {
-    __BEGIN_TRY
-    // Server doesn't execute GC packets
-    __END_CATCH
-}
-
 void GCExchangeBuy::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 

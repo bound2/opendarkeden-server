@@ -46,7 +46,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_SMS_ADDRESS_LIST;
     }
@@ -87,15 +86,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szBYTE + AddressUnit::getMaxPacketSize() * MAX_ADDRESS_NUM;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCSMSAddressListHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCSMSAddressListHandler {
-public:
-    static void execute(GCSMSAddressList* pGCSMSAddressList, Player* pPlayer);
 };
 
 #endif

@@ -27,16 +27,6 @@ void CGSelectNickname::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSelectNickname::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSelectNicknameHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSelectNickname::toString() const
 
 {

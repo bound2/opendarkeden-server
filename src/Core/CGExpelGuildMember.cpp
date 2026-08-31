@@ -46,16 +46,6 @@ void CGExpelGuildMember::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGExpelGuildMember::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGExpelGuildMemberHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGExpelGuildMember::toString() const
 
 {

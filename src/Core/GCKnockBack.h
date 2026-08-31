@@ -24,7 +24,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_KNOCK_BACK;
     }
@@ -107,15 +106,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + szZoneCoord * 4;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCKnockBackHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCKnockBackHandler {
-public:
-    static void execute(GCKnockBack* pGCKnockBack, Player* pPlayer);
 };
 
 #endif

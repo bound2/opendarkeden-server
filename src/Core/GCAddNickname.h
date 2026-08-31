@@ -27,7 +27,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_NICKNAME;
     }
@@ -71,15 +70,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return NicknameInfo::getMaxSize();
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddNicknameHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddNicknameHandler {
-public:
-    static void execute(GCAddNickname* pGCAddNickname, Player* pPlayer);
 };
 
 #endif

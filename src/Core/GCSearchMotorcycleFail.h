@@ -26,7 +26,6 @@ public:
     ~GCSearchMotorcycleFail(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_SEARCH_MOTORCYCLE_FAIL;
     }
@@ -67,14 +66,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSearchMotorcycleFailHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCSearchMotorcycleFailHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSearchMotorcycleFail* pPacket, Player* pPlayer);
-};
 
 #endif

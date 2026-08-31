@@ -26,16 +26,6 @@ void CGStashDeposit::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGStashDeposit::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGStashDepositHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGStashDeposit::toString() const {
     __BEGIN_TRY
 

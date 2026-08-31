@@ -36,7 +36,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
 
     PacketID_t getPacketID() const {
         return PACKET_GC_NICKNAME_VERIFY;
@@ -88,14 +87,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCNicknameVerifyHandler
-//////////////////////////////////////////////////////////////////////////////
-
-class GCNicknameVerifyHandler {
-public:
-    static void execute(GCNicknameVerify* pPacket, Player* pPlayer);
-};
 
 #endif

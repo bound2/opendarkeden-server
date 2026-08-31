@@ -26,16 +26,6 @@ void CGSelectRankBonus::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSelectRankBonus::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSelectRankBonusHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSelectRankBonus::toString() const
 
 {

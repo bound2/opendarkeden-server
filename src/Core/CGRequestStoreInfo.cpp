@@ -26,16 +26,6 @@ void CGRequestStoreInfo::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGRequestStoreInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRequestStoreInfoHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRequestStoreInfo::toString() const
 
 {

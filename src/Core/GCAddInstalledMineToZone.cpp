@@ -26,19 +26,6 @@ GCAddInstalledMineToZone::~GCAddInstalledMineToZone() noexcept {
     // no resources; keep noexcept
 }
 
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void GCAddInstalledMineToZone::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddInstalledMineToZoneHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

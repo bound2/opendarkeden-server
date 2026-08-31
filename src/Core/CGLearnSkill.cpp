@@ -28,16 +28,6 @@ void CGLearnSkill::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGLearnSkill::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGLearnSkillHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGLearnSkill::toString() const
 
 {

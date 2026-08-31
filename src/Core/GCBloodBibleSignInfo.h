@@ -23,7 +23,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_BLOOD_BIBLE_SIGN_INFO;
     }
@@ -65,15 +64,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return BloodBibleSignInfo::getMaxSize();
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCBloodBibleSignInfoHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCBloodBibleSignInfoHandler {
-public:
-    static void execute(GCBloodBibleSignInfo* pPacket, Player* pPlayer);
 };
 
 #endif

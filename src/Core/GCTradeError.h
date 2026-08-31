@@ -72,7 +72,6 @@ public:
     ~GCTradeError(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_TRADE_ERROR;
     }
@@ -130,13 +129,7 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// class GCTradeErrorHandler;
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-class GCTradeErrorHandler {
-public:
-    static void execute(GCTradeError* pPacket, Player* pPlayer);
-};
 
 #endif

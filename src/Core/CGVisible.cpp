@@ -16,20 +16,7 @@ void CGVisible::read(SocketInputStream& iStream)
 
 void CGVisible::write(SocketOutputStream& oStream) const
 
-{
-    __BEGIN_TRY
-    __END_CATCH
-}
-
-void CGVisible::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGVisibleHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 string CGVisible::toString() const
 

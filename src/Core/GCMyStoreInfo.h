@@ -23,7 +23,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_MY_STORE_INFO;
     }
@@ -73,15 +72,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szBYTE + StoreInfo::getMaxSize();
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCMyStoreInfoHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCMyStoreInfoHandler {
-public:
-    static void execute(GCMyStoreInfo* pPacket, Player* pPlayer);
 };
 
 #endif

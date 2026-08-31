@@ -36,7 +36,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_SELECT_QUEST_ID;
     }
@@ -78,15 +77,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szBYTE + szQuestID * maxQuestNum;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCSelectQuestIDHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCSelectQuestIDHandler {
-public:
-    static void execute(GCSelectQuestID* pPacket, Player* pPlayer);
 };
 
 #endif

@@ -123,7 +123,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
 
     PacketID_t getPacketID() const {
         return PACKET_GC_NOTICE_EVENT;
@@ -181,14 +180,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCNoticeEventHandler
-//////////////////////////////////////////////////////////////////////////////
-
-class GCNoticeEventHandler {
-public:
-    static void execute(GCNoticeEvent* pPacket, Player* pPlayer);
-};
 
 #endif

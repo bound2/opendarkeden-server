@@ -30,7 +30,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_GQUEST_INVENTORY;
     }
@@ -77,15 +76,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szBYTE + szItemType * MAX_GQUEST_INVENTORY_ITEM_NUM;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCGQuestInventoryHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCGQuestInventoryHandler {
-public:
-    static void execute(GCGQuestInventory* pGCGQuestInventory, Player* pPlayer);
 };
 
 #endif

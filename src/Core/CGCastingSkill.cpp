@@ -37,16 +37,6 @@ void CGCastingSkill::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGCastingSkill::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGCastingSkillHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGCastingSkill::toString() const
 
 {

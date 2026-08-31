@@ -23,7 +23,6 @@ public:
     ~LCCreatePCError(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_LC_CREATE_PC_ERROR;
     }
@@ -77,14 +76,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCCreatePCErrorHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCCreatePCErrorHandler {
-public:
-    // execute packet's handler
-    static void execute(LCCreatePCError* pPacket, Player* pPlayer);
-};
 
 #endif

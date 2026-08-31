@@ -39,16 +39,6 @@ void CGMakeItem::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGMakeItem::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGMakeItemHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGMakeItem::toString() const {
     __BEGIN_TRY
 

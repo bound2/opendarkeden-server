@@ -31,7 +31,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_MINI_GAME_SCORES;
     }
@@ -97,15 +96,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szBYTE + szBYTE + szBYTE + (szWORD + 21) * 10;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCMiniGameScoresHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCMiniGameScoresHandler {
-public:
-    static void execute(GCMiniGameScores* pGCMiniGameScores, Player* pPlayer);
 };
 
 #endif

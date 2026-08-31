@@ -37,16 +37,6 @@ void CGBloodDrain::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGBloodDrain::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGBloodDrainHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGBloodDrain::toString() const
 
 {

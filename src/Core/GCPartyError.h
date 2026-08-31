@@ -51,7 +51,6 @@ public:
     ~GCPartyError(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_PARTY_ERROR;
     }
@@ -104,14 +103,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCPartyErrorHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCPartyErrorHandler {
-public:
-    static void execute(GCPartyError* pPacket, Player* pPlayer);
-};
 
 #endif

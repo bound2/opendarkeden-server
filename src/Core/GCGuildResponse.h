@@ -25,7 +25,6 @@ public:
 public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
 
     PacketID_t getPacketID() const {
         return PACKET_GC_GUILD_RESPONSE;
@@ -77,14 +76,5 @@ public:
     }
 };
 
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCGuildResponseHandler
-//////////////////////////////////////////////////////////////////////////////
-
-class GCGuildResponseHandler {
-public:
-    static void execute(GCGuildResponse* pPacket, Player* pPlayer);
-};
 
 #endif

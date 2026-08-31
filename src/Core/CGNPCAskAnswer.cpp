@@ -57,16 +57,6 @@ void CGNPCAskAnswer::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGNPCAskAnswer::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGNPCAskAnswerHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGNPCAskAnswer::toString() const
 
 {

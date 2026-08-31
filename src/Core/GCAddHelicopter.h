@@ -23,7 +23,6 @@ public:
     ~GCAddHelicopter(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_HELICOPTER;
     }
@@ -73,15 +72,6 @@ public:
     PacketSize_t getPacketMaxSize() const {
         return szObjectID + szBYTE;
     }
-};
-
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddHelicopterHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddHelicopterHandler {
-public:
-    static void execute(GCAddHelicopter* pGCAddHelicopter, Player* pPlayer);
 };
 
 #endif
