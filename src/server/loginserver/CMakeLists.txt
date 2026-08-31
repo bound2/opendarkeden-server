@@ -3,6 +3,27 @@
 # ============================================================================
 
 set(LOGINSERVER_SOURCES
+    handler/CLChangeServerHandler.cpp
+    handler/CLCreatePCHandler.cpp
+    handler/CLDeletePCHandler.cpp
+    handler/CLGetPCListHandler.cpp
+    handler/CLGetServerListHandler.cpp
+    handler/CLGetWorldListHandler.cpp
+    handler/CLLoginHandler.cpp
+    handler/CLLogoutHandler.cpp
+    handler/CLQueryCharacterNameHandler.cpp
+    handler/CLQueryPlayerIDHandler.cpp
+    handler/CLReconnectLoginHandler.cpp
+    handler/CLRegisterPlayerHandler.cpp
+    handler/CLSelectPCHandler.cpp
+    handler/CLSelectServerHandler.cpp
+    handler/CLSelectWorldHandler.cpp
+    handler/CLVersionCheckHandler.cpp
+    handler/GLIncomingConnectionErrorHandler.cpp
+    handler/GLIncomingConnectionHandler.cpp
+    handler/GLIncomingConnectionOKHandler.cpp
+    handler/GLKickVerifyHandler.cpp
+    handler/GMServerInfoHandler.cpp
     LoginPacketDispatch.cpp
     ClientManager.cpp
     UserInfoManager.cpp

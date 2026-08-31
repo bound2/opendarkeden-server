@@ -98,16 +98,4 @@ public:
 };
 
 
-//--------------------------------------------------------------------------------
-//
-// class CLAgreementHandler;
-//
-//--------------------------------------------------------------------------------
-
-class CLAgreementHandler {
-public:
-    // execute packet's handler
-    static void execute(CLAgreement* pPacket, Player* pPlayer);
-};
-
 #endif
