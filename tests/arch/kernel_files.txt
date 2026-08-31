@@ -1124,3 +1124,5 @@ src/Core/SGModifyGuildOK.cpp
 src/Core/SGModifyGuildOK.h
 src/Core/SGQuitGuildOK.cpp
 src/Core/SGQuitGuildOK.h
+# 3.1 Outcome
+src/Core/Outcome.h

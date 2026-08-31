@@ -629,7 +629,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   return `Ok(events)` or `Rejected(reason)`; exceptions reserved for
   programming/config errors. New/refactored domain code uses it; the
   `__BEGIN_TRY/__END_CATCH` macros stop being control flow (ratchet R5).
-  > **Status:** not started
+  > **Status:** in progress (2026-08-31) — `src/Core/Outcome.h` exists in the
+  > kernel with unit tests (tests/outcome_test.cpp: factories, accessors,
+  > throw-on-wrong-side, value semantics); adoption by domain code pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).
 
