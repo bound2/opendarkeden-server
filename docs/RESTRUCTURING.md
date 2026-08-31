@@ -55,9 +55,9 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 104 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` |
-| R3 | Files with inline SQL anywhere outside `database/` | 320 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
+| R3 | Files with inline SQL anywhere outside `database/` | 319 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| wc -l` |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -v 'gameserver/handler/' \| wc -l` (handler/ holds the 2.4-moved packet handlers, never counted while they lived in `src/Core`; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
 
@@ -67,7 +67,7 @@ God-file baselines (R6):
 |------|---------------:|
 | `src/server/gameserver/Zone.cpp` | 7,616 |
 | `src/server/gameserver/skill/SkillUtil.cpp` | 5,631 |
-| `src/Core/CGSayHandler.cpp` | 3,967 |
+| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 3,967 |
 | `src/server/gameserver/InitAllStat.cpp` | 4,158 |
 | `src/server/gameserver/Slayer.cpp` | 3,511 |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 2,640 |
