@@ -672,26 +672,21 @@ allloginserver : $(TARGETS)
 	$(MAKE) -C Lpackets allloginserver
 	$(MAKE) -C Gpackets allloginserver
 	$(MAKE) -C Cpackets allloginserver
-	$(MAKE) -C Upackets allloginserver
 	$(MAKE) -C Spackets allloginserver
 
 allgameserver : $(TARGETS)
 	$(MAKE) -C Lpackets allgameserver
 	$(MAKE) -C Gpackets allgameserver
 	$(MAKE) -C Cpackets allgameserver
-	$(MAKE) -C Upackets allgameserver
 	$(MAKE) -C Spackets allgameserver
-	$(MAKE) -C TOpackets allgameserver
 
 allsharedserver : $(TARGETS)
 	$(MAKE) -C Lpackets allsharedserver
 	$(MAKE) -C Gpackets allsharedserver
 	$(MAKE) -C Cpackets allsharedserver
 	$(MAKE) -C Spackets allsharedserver
-#	$(MAKE) -C Upackets allsharedserver
 
 alltheoneserver : $(CORE_LIB)
-	$(MAKE) -C TOpackets alltheoneserver
 
 $(LIBDIR) :
 	mkdir -p $(LIBDIR)
@@ -718,34 +713,27 @@ clean :
 	# $(MAKE) -C Lpackets clean
 	# $(MAKE) -C Gpackets clean
 	# $(MAKE) -C Cpackets clean
-	# $(MAKE) -C Upackets clean
 	# $(MAKE) -C Spackets clean
-	# $(MAKE) -C TOpackets clean
 	rm -rf *.o
 
 cleanall :
 	$(MAKE) -C Lpackets cleanall
 	$(MAKE) -C Gpackets cleanall
 	$(MAKE) -C Cpackets cleanall
-	$(MAKE) -C Upackets cleanall
 	$(MAKE) -C Spackets cleanall
-	$(MAKE) -C TOpackets cleanall
 	rm -rf *.o $(TARGETS)
 
 cleangameserver :
 	$(MAKE) -C Lpackets cleangameserver
 	$(MAKE) -C Gpackets cleangameserver
 	$(MAKE) -C Cpackets cleangameserver
-	$(MAKE) -C Upackets cleangameserver
 	$(MAKE) -C Spackets cleangameserver
-	$(MAKE) -C TOpackets cleangameserver
 	rm -rf *.o $(TARGETS)
 
 cleanloginserver :
 	$(MAKE) -C Lpackets cleanloginserver
 	$(MAKE) -C Gpackets cleanloginserver
 	$(MAKE) -C Cpackets cleanloginserver
-	$(MAKE) -C Upackets cleanloginserver
 	$(MAKE) -C Spackets cleanloginserver
 	rm -rf *.o $(TARGETS)
 
@@ -753,7 +741,6 @@ cleansharedserver :
 	$(MAKE) -C Lpackets cleansharedserver
 	$(MAKE) -C Gpackets cleansharedserver
 	$(MAKE) -C Cpackets cleansharedserver
-	$(MAKE) -C Upackets cleansharedserver
 	$(MAKE) -C Spackets cleansharedserver
 	rm -rf *.o $(TARGETS)
 

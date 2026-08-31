@@ -538,7 +538,6 @@ set(GAMESERVER_MAIN_SOURCES
     SlayerAttrExpTable.cpp
     Pet.cpp
     SystemAvailabilitiesManager.cpp
-    LocalIP.cpp
     ItemGradeManager.cpp
     EventZoneInfo.cpp
     SMSServiceThread.cpp
