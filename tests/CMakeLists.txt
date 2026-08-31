@@ -1,10 +1,8 @@
-# ============================================================================
-# Wire-contract test suite (docs/RESTRUCTURING.md Phase 1)
+# =====================================================================# Wire-contract test suite (docs/RESTRUCTURING.md Phase 1)
 #
 # Built only with -DDARKEDEN_BUILD_TESTS=ON (make test does this). Runs
 # locally by design — CI is deliberately Phase 6.
-# ============================================================================
-
+# =====================================================================
 include(FetchContent)
 
 # googletest release-1.12.1 is the last line supporting C++11, which is what
@@ -77,6 +75,28 @@ add_dependencies(wire_tests de-kernel)
 add_test(NAME wire_tests COMMAND wire_tests)
 # A hang here would otherwise sit for ctest's 1500s default with no output.
 set_tests_properties(wire_tests PROPERTIES TIMEOUT 120)
+
+# Repository/domain unit tests (docs/RESTRUCTURING.md 3.2): pure rules and
+# fake-backed repository contracts. Header-only against the sources — no
+# game or database libraries linked, which is the point of the seam.
+add_executable(repository_tests EXCLUDE_FROM_ALL
+    repository_test.cpp
+)
+target_include_directories(repository_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(repository_tests PRIVATE
+    gtest_main
+    Threads::Threads
+)
+# devbuild's test path builds the wire_tests target then runs all of ctest;
+# hang this off it (like de-kernel above) so the suite is always built.
+add_dependencies(wire_tests repository_tests)
+
+add_test(NAME repository_tests COMMAND repository_tests)
+set_tests_properties(repository_tests PROPERTIES TIMEOUT 60)
 
 # Pure-formula unit tests (docs/RESTRUCTURING.md 3.3). Linking ONLY de-core
 # and gtest is deliberate: it proves de-core stays freestanding — pulling

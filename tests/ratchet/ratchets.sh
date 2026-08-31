@@ -38,11 +38,11 @@ check_ratchet R1 "global singleton externs" 351 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
-check_ratchet R2 "gameserver-root files with inline SQL" 104 "$R2"
+check_ratchet R2 "gameserver-root files with inline SQL" 103 "$R2"
 
 # --- R3: files with inline SQL anywhere outside database/ ------------------
 R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' | wc -l)
-check_ratchet R3 "files with inline SQL outside database/" 318 "$R3"
+check_ratchet R3 "files with inline SQL outside database/" 317 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------
 R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)

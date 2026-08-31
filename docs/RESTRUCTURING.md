@@ -54,8 +54,8 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 104 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` |
-| R3 | Files with inline SQL anywhere outside `database/` | 318 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
+| R2 | Files with inline SQL in gameserver root | 103 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*, R3 still counts the impl files) |
+| R3 | Files with inline SQL anywhere outside `database/` | 317 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -688,7 +688,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   quarantined and documented *there*, never leaked into domain types. Order
   of attack: `PlayerCreature`/`Slayer`/`Vampire`/`Ousters` persistence first
   (biggest testability win), then Zone, then the long tail. Ratchets R2/R3.
-  > **Status:** not started
+  > **Status:** pilot landed (2026-08-31) — `NicknameRepository`
+  > (`gameserver/repository/`): interface + MySQL impl carrying the
+  > NicknameBook table's quirks, fake + `repository_tests` in ctest;
+  > `NicknameBook.cpp` and `CGModifyNicknameHandler.cpp` no longer touch
+  > SQL (R2 104→103, R3 318→317). CGSayHandler's two NicknameBook
+  > queries wait for the god-file work. Pattern to repeat table-by-table.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
