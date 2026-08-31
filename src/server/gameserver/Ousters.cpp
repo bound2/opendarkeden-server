@@ -819,18 +819,17 @@ void Ousters::addSkill(SkillType_t SkillType)
     unordered_map<SkillType_t, OustersSkillSlot*>::iterator itr = m_SkillSlot.find(SkillType);
 
     if (itr == m_SkillSlot.end()) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        Turn_t Delay = pSkillInfo->getMaxDelay();
-
         OustersSkillSlot* pOustersSkillSlot = new OustersSkillSlot;
 
         pOustersSkillSlot->setName(m_Name);
         pOustersSkillSlot->setSkillType(SkillType);
-        // Stamp the run time BEFORE seeding the interval, and with no delay:
-        // the freshly learned skill must be usable immediately instead of
-        // being locked for the table's MaxDelay. See Vampire::addSkill.
+        // A freshly learned skill starts with no run-time lock and a zero
+        // interval — the seeded MaxDelay leaked to the client as a sticky
+        // per-cast cooldown via the skill-info refresh; the first
+        // successful cast installs the real formula delay. See
+        // Vampire::addSkill for the full story.
         pOustersSkillSlot->setRunTime(0);
-        pOustersSkillSlot->setInterval(Delay);
+        pOustersSkillSlot->setInterval(0);
         pOustersSkillSlot->setExpLevel(1);
         pOustersSkillSlot->create(m_Name);
 
