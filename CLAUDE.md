@@ -235,6 +235,78 @@ sudo apt install libxerces-c-dev libmysqlclient-dev liblua5.1-dev
 - **Guild/Party** - Social grouping systems
 - **DynamicZone** - Instanced content (e.g., dungeons)
 
+## Thread ownership
+
+The gameserver's threading contract, as the code actually implements it
+(task 3.4 of `docs/RESTRUCTURING.md`). This documents the EXISTING design;
+known violations are listed at the end, not silently fixed.
+
+### Threads in the gameserver process
+
+- **Main thread** — runs `GameServer::init()` (single-threaded startup:
+  config, DB, zone loading), then `GameServer::start()`, which spawns the
+  threads below and finally becomes the `ClientManager::run()` infinite
+  loop: accepting client TCP connections and driving the pre-zone
+  login/handshake phase before a player is handed to a zone group.
+- **`ZoneGroupThread` (one per `ZoneGroup`,** via
+  `ThreadManager`/`ThreadPool`) — the owner of all zone-group state. Its
+  loop is: lock the group's mutex → `ZoneGroup::processPlayers()` (socket
+  `select`, read, parse, `PacketDispatcher::dispatch` of **CG** packets)
+  and `ZoneGroup::heartbeat()` (NPC/monster AI, effects, zone systems) →
+  unlock. So all CG handler code runs on the zone thread **with the group
+  mutex held**. Each zone thread registers its own DB `Connection` keyed
+  by thread id (`DatabaseManager::addConnection(Thread::self(), …)`) — DB
+  connections are thread-local by convention, never shared.
+- **`LoginServerManager` thread** — UDP datagram link to the loginserver;
+  dispatches **LG** and **GG** packets on its own thread under its own
+  `m_Mutex`.
+- **`SharedServerManager` thread** — TCP link to the sharedserver;
+  dispatches **SG** packets on its own thread under its own `m_Mutex`.
+- **`BillingPlayerManager` / `CBillingPlayerManager`, `MPlayerManager`
+  (mofus), `GDRLairManager`** — auxiliary threads with their own loops.
+  (`SMSServiceThread` exists but is not started.)
+
+### The mutation rule
+
+**Zone-group state (Zones, Creatures in them, the group's
+`ZonePlayerManager`) may only be touched while that group's mutex is
+held.** The group's own `ZoneGroupThread` holds it for its entire tick;
+any other thread must take it explicitly — `GDRLairManager` is the model
+citizen: `__ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))` around
+every zone mutation it performs from its own thread.
+
+This is mutex-guarded ownership, not pure thread-affinity: the guarded
+region is the contract. Debug builds enforce it — `ZoneGroup::lock()`
+records the holding thread, `ZoneGroup::assertOwned()` (called from the
+`Zone` mutation gateways `addPC`/`addCreature`/`deleteCreature`/
+`moveCreature`) aborts if the calling thread does not hold the group's
+mutex. The check is armed by `ZoneGroupThread::run()`, so single-threaded
+startup/loading is exempt; release builds compile it away (`NDEBUG`).
+
+### Cross-thread communication
+
+- Cross-thread packet handlers (SG/LG/GG, on the manager threads) reach
+  player creatures through `g_pPCFinder` under **its** critical section
+  (`getCreature_LOCKED`), then use `pPlayer->sendPacket(...)` — sending
+  to a player's socket is the main legitimate cross-thread operation.
+- Players enter a zone group through the `ZonePlayerManager` under its
+  lock; the zone thread integrates them on its next tick.
+
+### Known violations (documented, not yet fixed)
+
+- SG/LG/GG handlers **mutate** creature/guild state (e.g.
+  `SGAddGuildMemberOKHandler` rewrites guild membership on the
+  `SharedServerManager` thread) holding only the `PCFinder` lock. The
+  `PCFinder` lock serializes lookup/removal, but NOT against the zone
+  thread concurrently mutating the same creature under the group mutex.
+  Long-standing data race; fixing it means routing these mutations
+  through the owning group's mutex or a per-group command queue (Phase 3
+  work).
+- `EventMorph.cpp` mutates `Tile` contents directly
+  (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
+  assert cannot see such call sites — the assert covers the gateway
+  methods only.
+
 ## Running the Servers
 
 Start servers in this order:

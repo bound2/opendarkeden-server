@@ -25,7 +25,7 @@
 //////////////////////////////////////////////////////////////////////////////
 ZoneGroup::ZoneGroup(ZoneGroupID_t zoneGroupID)
 
-    : m_ZoneGroupID(zoneGroupID), m_pZonePlayerManager(NULL) {
+    : m_ZoneGroupID(zoneGroupID), m_pZonePlayerManager(NULL), m_LockHolder(), m_OwnershipArmed(false) {
     __BEGIN_TRY
 
     m_Mutex.setName("ZoneGroupMutex");
@@ -50,6 +50,27 @@ ZoneGroup::~ZoneGroup()
     m_Zones.clear();
 
     __END_CATCH_NO_RETHROW
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Debug-build check of the thread-ownership contract: zone-group state may
+// only be touched with this group's mutex held (see CLAUDE.md, "Thread
+// ownership"). Armed by ZoneGroupThread::run() once the thread exists, so
+// single-threaded startup/loading is exempt. Reading m_LockHolder without
+// the mutex is racy only for a thread that does NOT hold it — exactly the
+// case that should fail — so a false pass cannot occur for the holder.
+//////////////////////////////////////////////////////////////////////////////
+void ZoneGroup::assertOwned() const {
+#ifndef NDEBUG
+    if (!m_OwnershipArmed)
+        return;
+    if (m_LockHolder != Thread::self()) {
+        filelog("threadOwnership.log",
+                "ZoneGroup %d state touched without holding the group mutex (tid=%lu, holder=%lu)", (int)m_ZoneGroupID,
+                (unsigned long)Thread::self(), (unsigned long)m_LockHolder);
+        Assert(false);
+    }
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////

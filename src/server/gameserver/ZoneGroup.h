@@ -15,6 +15,7 @@
 #include "Exception.h"
 #include "GMServerInfo.h"
 #include "GameTime.h"
+#include "Thread.h"
 #include "Types.h"
 #include "Zone.h"
 
@@ -109,12 +110,28 @@ public:
     string toString() const;
 
 public:
+    // Thread-ownership contract (see "Thread ownership" in CLAUDE.md):
+    // zone-group state may only be touched while this group's mutex is
+    // held — the group's ZoneGroupThread holds it for its whole tick, and
+    // any other thread (e.g. GDRLairManager) must take it explicitly.
+    // lock()/unlock() record the holding thread so assertOwned() can
+    // verify the contract in debug builds. The check is armed by the
+    // ZoneGroupThread when it starts; before that, single-threaded
+    // startup/loading passes vacuously. The mutex is non-recursive, so
+    // clearing the holder on unlock is sound.
     void lock() {
         m_Mutex.lock();
+        m_LockHolder = Thread::self();
     }
     void unlock() {
+        m_LockHolder = TID();
         m_Mutex.unlock();
     }
+
+    void armOwnershipAssert() {
+        m_OwnershipArmed = true;
+    }
+    void assertOwned() const;
 
     void initLoadValue();
     DWORD getLoadValue() const;
@@ -142,6 +159,10 @@ private:
     DWORD m_LoadValue;
 
     mutable Mutex m_Mutex;
+
+    // debug-only ownership tracking (see lock()/unlock()/assertOwned())
+    volatile TID m_LockHolder;
+    volatile bool m_OwnershipArmed;
 };
 
 #endif

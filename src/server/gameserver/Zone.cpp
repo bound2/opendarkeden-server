@@ -2868,6 +2868,9 @@ void Zone::moveCreature(Creature* pCreature, ZoneCoord_t nx, ZoneCoord_t ny, Dir
 {
     __BEGIN_TRY
 
+    if (m_pZoneGroup != NULL)
+        m_pZoneGroup->assertOwned();
+
     ZoneCoord_t cx = pCreature->getX();
     ZoneCoord_t cy = pCreature->getY();
 
@@ -2915,6 +2918,9 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 {
     __BEGIN_TRY
     __BEGIN_DEBUG
+
+    if (m_pZoneGroup != NULL)
+        m_pZoneGroup->assertOwned();
 
     __BEGIN_PROFILE_ZONE("Z_ADD_PC")
 
@@ -3882,6 +3888,9 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
 {
     __BEGIN_TRY
 
+    if (m_pZoneGroup != NULL)
+        m_pZoneGroup->assertOwned();
+
     __BEGIN_PROFILE_ZONE("Z_ADD_CREATURE")
 
     TPOINT pt = findSuitablePosition(this, cx, cy, pCreature->getMoveMode());
@@ -4433,6 +4442,9 @@ void Zone::addPC(Creature* pCreature)
 {
     __BEGIN_TRY
 
+    if (m_pZoneGroup != NULL)
+        m_pZoneGroup->assertOwned();
+
     Assert(pCreature != NULL);
     m_pPCManager->addCreature(pCreature);
 
@@ -4447,6 +4459,9 @@ void Zone::deleteCreature(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y)
 
 {
     __BEGIN_TRY
+
+    if (m_pZoneGroup != NULL)
+        m_pZoneGroup->assertOwned();
 
     __BEGIN_PROFILE_ZONE("Z_DELETE_CREATURE")
 

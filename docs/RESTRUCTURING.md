@@ -660,7 +660,16 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   debug-build `assertOwnedByZoneThread()` checks on Zone/Creature mutation
   entry points (sidecar analog: "never block the registry mailbox" — the
   invariant is written down *and* asserted).
-  > **Status:** not started
+  > **Status:** contract documented in CLAUDE.md ("Thread ownership",
+  > 2026-08-31): ownership is mutex-guarded, not thread-affine — the
+  > `ZoneGroupThread` holds the group mutex for its whole tick and other
+  > threads must take it (`GDRLairManager` already does). Debug-only
+  > `ZoneGroup::assertOwned()` (holder recorded in `lock()`, armed when
+  > the zone thread starts, `NDEBUG` compiles it away) guards the five
+  > `Zone` mutation gateways `addPC`×2/`addCreature`/`deleteCreature`/
+  > `moveCreature`. Documented violations: SG/LG/GG handlers mutate
+  > creature/guild state on manager threads holding only the `PCFinder`
+  > lock; `EventMorph` mutates tiles below the gateways.
   - Owner: the debug asserts.
 
 - [ ] **3.5 Globals → context (long tail).** No big-bang DI. Introduce a
