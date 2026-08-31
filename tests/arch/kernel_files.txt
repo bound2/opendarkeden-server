@@ -1,0 +1,73 @@
+# de-kernel membership (docs/RESTRUCTURING.md 2.1) — the wire primitives.
+# Rules K1/K2 in tests/arch/check_includes.pl bind every file here:
+# quoted includes must stay inside this list, and no server-type macros.
+# Extend deliberately; a file that cannot comply belongs in core or app.
+#
+# Types and base utilities
+src/Core/Types.h
+src/Core/types/CreatureTypes.h
+src/Core/types/GuildTypes.h
+src/Core/types/ItemTypes.h
+src/Core/types/ObjectTypes.h
+src/Core/types/PetTypes.h
+src/Core/types/PlayerTypes.h
+src/Core/types/QuestTypes.h
+src/Core/types/ServerType.h
+src/Core/types/ShopTypes.h
+src/Core/types/SystemTypes.h
+src/Core/types/WarTypes.h
+src/Core/types/ZoneTypes.h
+src/Core/Exception.h
+src/Core/Assert.h
+src/Core/Assert.cpp
+src/Core/StringStream.h
+src/Core/StringStream.cpp
+src/Core/Utility.h
+src/Core/Utility.cpp
+src/Core/VSDateTime.h
+src/Core/VSDateTime.cpp
+src/Core/FileAPI.h
+src/Core/FileAPI.cpp
+src/Core/Properties.h
+src/Core/Properties.cpp
+src/Core/GameTime.h
+src/Core/GameTime.cpp
+src/Core/md5.h
+src/Core/md5.cpp
+#
+# Sockets and streams
+src/Core/SocketAPI.h
+src/Core/SocketAPI.cpp
+src/Core/SocketImpl.h
+src/Core/SocketImpl.cpp
+src/Core/Socket.h
+src/Core/Socket.cpp
+src/Core/ServerSocket.h
+src/Core/ServerSocket.cpp
+src/Core/SocketInputStream.h
+src/Core/SocketInputStream.cpp
+src/Core/SocketOutputStream.h
+src/Core/SocketOutputStream.cpp
+src/Core/SocketEncryptInputStream.h
+src/Core/SocketEncryptInputStream.cpp
+src/Core/SocketEncryptOutputStream.h
+src/Core/SocketEncryptOutputStream.cpp
+#
+# Encryption
+src/Core/EncryptUtility.h
+src/Core/Encrypter.h
+src/Core/Encrypter.cpp
+#
+# Packet base (the concrete packet classes follow in 2.3/2.4, once
+# execute() is off them)
+src/Core/Packet.h
+src/Core/PacketFactory.h
+#
+# Datagram framing (headers only: Datagram.cpp/SerialDatagram.cpp call
+# into PacketFactoryManager, which still owns the whole packet set)
+src/Core/Datagram.h
+src/Core/DatagramPacket.h
+src/Core/DatagramSocket.h
+src/Core/DatagramSocket.cpp
+src/Core/SerialDatagram.h
+src/Core/SerialDatagramPacket.h

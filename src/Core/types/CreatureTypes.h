@@ -7,10 +7,6 @@
 #define __CREATURE_TYPES_H__
 
 #include "SystemTypes.h"
-#ifdef __GAME_CLIENT__
-#include "ModifyDef.h"
-#include "PacketItemDef.h"
-#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // Player Character Type
@@ -35,7 +31,6 @@ enum Competence { GOD = 0, DM, HELPER, PLAYER };
 //////////////////////////////////////////////////////////////////////////////
 // 클라이언트와 복장 공유를 위한...
 //////////////////////////////////////////////////////////////////////////////
-#ifndef __GAME_CLIENT__
 enum ADDON {
     ADDON_HAIR,      // 머리
     ADDON_HELM,      // 모자
@@ -47,7 +42,6 @@ enum ADDON {
     ADDON_SHOULDER,  // 어깨
     ADDON_MAX
 };
-#endif
 
 enum HelmetType { HELMET_NONE, HELMET1, HELMET2, HELMET3, HELMET_MAX };
 

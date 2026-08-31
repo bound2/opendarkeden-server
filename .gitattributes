@@ -19,4 +19,9 @@ tests/golden/*.txt text eol=lf
 tests/wire-layout.txt text eol=lf
 tests/generated/*.inc text eol=lf
 tests/ratchet/*.txt text eol=lf
+# tests/arch/kernel_files.txt is read by CMake file(STRINGS) inside the
+# Linux container: a CRLF checkout leaves \r on every entry, the .cpp$
+# match fails, and de-kernel configures with zero sources.
+tests/arch/*.txt text eol=lf
+tests/arch/*.pl text eol=lf
 tools/*.sh text eol=lf

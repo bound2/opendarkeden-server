@@ -462,8 +462,23 @@ visibility can't express.
     adapters, network transport, handler wiring, composition root.
   Initially the split is aspirational for existing files; new code must land
   in the right target from day one.
-  > **Status:** not started
-  - Owner: CMake `PRIVATE` include dirs on each target.
+  > **Status:** in progress — `de-kernel` is a real CMake target
+  > (2026-08-31): a STATIC library whose membership is
+  > `tests/arch/kernel_files.txt` (57 files: Types/types/, Exception/
+  > Assert/StringStream/Utility, the socket+stream family, Encrypter/
+  > EncryptUtility, `Packet.h`/`PacketFactory.h`, datagram headers) and
+  > whose only include dir is `src/Core` — a kernel source reaching for a
+  > gameserver header fails to compile. Built in every configuration;
+  > nothing links it yet (apps still get the objects through `Core`,
+  > which deliberately keeps its gameserver include leak until 2.3/2.4).
+  > Getting the seed macro-free removed four dead `__GAME_CLIENT__`
+  > branches from `Types.h`/`CreatureTypes.h`/`Packet.h` (the macro is
+  > never defined in this repo; wire tests prove no layout change).
+  > Remaining: `de-core` target (needs 2.3's handler extraction before
+  > any domain file can compile against kernel+interfaces only), then
+  > flipping apps to link the split targets.
+  - Owner: CMake `PRIVATE` include dirs on each target; membership file
+    shared with the 2.2 test.
 
 - [ ] **2.2 Include-graph architecture test.** A Python script under `tests/`
   (run by `make test`) that parses `#include` edges and fails on forbidden
@@ -472,7 +487,17 @@ visibility can't express.
   rule list in one file (sidecar's `ArchitectureRules` pattern: extend the
   list deliberately, never weaken a rule to fix a compile error — a violation
   means the class is in the wrong module).
-  > **Status:** not started
+  > **Status:** done — `tests/arch/check_includes.pl` (perl, not python:
+  > the dev image has no python3 and the repo's generators are already
+  > perl), run by ctest as `arch_includes` (2026-08-31). Rules: K1 a
+  > kernel file quote-includes only kernel files (transitive by
+  > construction), K2 no server-type macros in kernel files, C1 the
+  > gameserver domain dirs (skill/item/quest/war/mission/couple/ctf/
+  > mofus/exchange/billing) must not include MySQL, Lua, or
+  > socket-transport headers. K rules have no baseline (the list is
+  > defined as what complies); C1's 9 pre-existing violations are frozen
+  > shrink-only in `tests/arch/baseline.txt` (billing/mofus Socket.h
+  > users — all Player-transport classes, 2.3's problem).
   - Owner: the include-graph test.
 
 - [ ] **2.3 Strip `execute()` off packets; dispatch table at the composition
