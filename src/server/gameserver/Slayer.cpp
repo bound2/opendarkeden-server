@@ -60,7 +60,6 @@
 #include "GCTradeFinish.h"
 #include "LoginServerManager.h"
 #include "Properties.h"
-#include "Rpackets/RCSay.h"
 #include "item/AR.h"
 #include "item/Belt.h"
 #include "item/Motorcycle.h"
