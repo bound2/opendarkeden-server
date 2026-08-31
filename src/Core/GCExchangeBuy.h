@@ -31,7 +31,6 @@ public:
 
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer); // Stub for server side
 
     PacketSize_t getPacketSize() const;
     PacketID_t getPacketID() const {

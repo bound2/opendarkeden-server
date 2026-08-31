@@ -65,16 +65,6 @@ void GCRideMotorCycleFailed::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCRideMotorCycleFailed::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCRideMotorCycleFailedHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

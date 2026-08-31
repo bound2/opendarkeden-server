@@ -71,16 +71,6 @@ void GCHPRecoveryStartToOthers::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCHPRecoveryStartToOthers::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCHPRecoveryStartToOthersHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

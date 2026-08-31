@@ -53,16 +53,6 @@ void GCAddVampireFromBurrowing::write(SocketOutputStream& oStream) const
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void GCAddVampireFromBurrowing::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddVampireFromBurrowingHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //--------------------------------------------------------------------------------
 // get packet's debug string

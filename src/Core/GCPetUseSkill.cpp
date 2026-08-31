@@ -64,16 +64,6 @@ void GCPetUseSkill::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCPetUseSkill::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCPetUseSkillHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

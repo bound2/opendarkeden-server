@@ -64,16 +64,6 @@ void GCMakeItemOK::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCMakeItemOK::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCMakeItemOKHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

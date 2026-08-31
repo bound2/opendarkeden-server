@@ -48,16 +48,6 @@ void GCPartyLeave::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCPartyLeave::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCPartyLeaveHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCPartyLeave::toString() const
 
 {

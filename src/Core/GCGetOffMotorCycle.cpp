@@ -65,16 +65,6 @@ void GCGetOffMotorCycle::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCGetOffMotorCycle::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCGetOffMotorCycleHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

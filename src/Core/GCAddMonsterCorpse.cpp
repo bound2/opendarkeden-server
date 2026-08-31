@@ -64,14 +64,6 @@ void GCAddMonsterCorpse::write(SocketOutputStream& oStream) const {
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void GCAddMonsterCorpse::execute(Player* pPlayer) {
-    __BEGIN_TRY
-
-    GCAddMonsterCorpseHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //--------------------------------------------------------------------------------
 // get packet's debug string

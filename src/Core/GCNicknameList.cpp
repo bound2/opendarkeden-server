@@ -94,16 +94,6 @@ PacketSize_t GCNicknameList::getPacketSize() const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCNicknameList::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCNicknameListHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

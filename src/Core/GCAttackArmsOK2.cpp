@@ -78,16 +78,6 @@ void GCAttackArmsOK2::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCAttackArmsOK2::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAttackArmsOK2Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

@@ -57,16 +57,6 @@ void GCAddNickname::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCAddNickname::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddNicknameHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

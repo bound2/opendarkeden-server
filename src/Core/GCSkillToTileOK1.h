@@ -42,8 +42,6 @@ public:
     // Serialize the packet into the output stream.
     void write(SocketOutputStream& oStream) const;
 
-    // execute packet's handler
-    void execute(Player* pPlayer);
 
     // get packet id
     PacketID_t getPacketID() const {

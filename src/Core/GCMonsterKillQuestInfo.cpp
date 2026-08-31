@@ -84,19 +84,6 @@ void GCMonsterKillQuestInfo::write(SocketOutputStream& oStream) const
 }
 
 
-//////////////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////////////
-void GCMonsterKillQuestInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCMonsterKillQuestInfoHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 PacketSize_t GCMonsterKillQuestInfo::getPacketSize() const
 
 {

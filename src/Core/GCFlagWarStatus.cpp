@@ -68,16 +68,6 @@ void GCFlagWarStatus::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCFlagWarStatus::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCFlagWarStatusHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

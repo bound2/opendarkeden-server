@@ -76,16 +76,6 @@ void GCSkillToSelfOK3::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCSkillToSelfOK3::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSkillToSelfOK3Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

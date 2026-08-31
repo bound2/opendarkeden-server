@@ -24,7 +24,6 @@ public:
     ~GCAddInstalledMineToZone();
 
 public:
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_INSTALLED_MINE_TO_ZONE;
     }

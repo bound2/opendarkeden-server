@@ -71,16 +71,6 @@ void GCDeleteEffectFromTile::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCDeleteEffectFromTile::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCDeleteEffectFromTileHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

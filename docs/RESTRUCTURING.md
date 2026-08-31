@@ -56,7 +56,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 104 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` |
 | R3 | Files with inline SQL anywhere outside `database/` | 320 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
-| R4 | Packet headers with `execute()` still on the packet | 329 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
+| R4 | Packet headers with `execute()` still on the packet | 74 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| wc -l` |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
@@ -524,14 +524,26 @@ visibility can't express.
   > All 150 CG packets are migrated: `execute()` deleted from their
   > headers/cpps (two intermediate bases, `DatagramPacket` and
   > `SerialDatagramPacket`, dropped their pure redeclarations), and
-  > `src/server/gameserver/CGPacketDispatch.cpp` binds every CG id at
-  > the gameserver composition root (`registerCGPacketHandlers()` from
-  > `main()`; `CGPortCheck`'s player-less handler and `CGStashList`'s
+  > `src/server/gameserver/GamePacketDispatch.cpp` binds every CG id at
+  > the gameserver composition root (`registerGameServerPacketHandlers()`
+  > from `main()`; `CGPortCheck`'s player-less handler and `CGStashList`'s
   > `__BEGIN_DEBUG` wrapper preserved as explicit thunks). R4 481→329.
-  > Remaining: GC (server-side handlers are no-ops — mostly a delete),
-  > then CL/LC for loginserver, inter-server directions, then remove the
-  > fallback + the base method when R4 is 0; handler file moves out of
-  > `Core` are 2.4.
+  > **GC migrated the same day**: all 255 GC handler bodies were
+  > preprocessor-classified under the server defines (regex was not
+  > enough — the guard vocabulary spans `__GAME_CLIENT__`,
+  > `#if __TEST_CLIENT__`, `#elif __WINDOWS__`); exactly one is live
+  > server-side, `GCFriendChatting` (the friend system rides this "GC"
+  > packet client→server), now registered for real. The live client's
+  > store UI also *sends* `GCAddStoreItem`/`GCRemoveStoreItem` (and
+  > legacy paths `GCCannotUse`) — registered as explicit ignore-thunks
+  > to preserve today's silent no-op, since the validator's `GPS_NORMAL`
+  > set is `PIST_ANY` and would otherwise let the new default disconnect
+  > a legitimate client; `GC_MY/OTHER_STORE_INFO` were already
+  > force-rejected pre-dispatch by `GamePlayer`. `execute()` deleted from
+  > all 258 GC packet cpps/headers. R4 329→74.
+  > Remaining: CL/LC for loginserver, inter-server directions (GG/GL/LG/
+  > GS/SG), then remove the fallback + the base method when R4 is 0;
+  > handler file moves out of `Core` are 2.4.
   - Owner: R4 ratchet test + include-graph test (a kernel packet including a
     Zone header fails).
 

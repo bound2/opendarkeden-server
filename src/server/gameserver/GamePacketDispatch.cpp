@@ -1,13 +1,14 @@
 //////////////////////////////////////////////////////////////////////////////
-// Filename    : CGPacketDispatch.cpp
-// Description : the gameserver composition root for the CG (client->game)
-//               direction (docs/RESTRUCTURING.md task 2.3): every CG
-//               packet id is bound to its handler here, instead of each
-//               packet class carrying a virtual execute(). Generated
-//               from the CG packet list; keep alphabetical.
+// Filename    : GamePacketDispatch.cpp
+// Description : the gameserver composition root (docs/RESTRUCTURING.md
+//               task 2.3): every packet id the gameserver receives from
+//               clients is bound to its handler here, instead of each
+//               packet class carrying a virtual execute(). All CG
+//               packets (keep alphabetical), plus the handful of GC
+//               packets the live client sends server-ward.
 //////////////////////////////////////////////////////////////////////////////
 
-#include "CGPacketDispatch.h"
+#include "GamePacketDispatch.h"
 
 #include "CGAbsorbSoul.h"
 #include "CGAcceptUnion.h"
@@ -158,6 +159,10 @@
 #include "CGWhisper.h"
 #include "CGWithdrawPet.h"
 #include "CGWithdrawTax.h"
+#include "GCAddStoreItem.h"
+#include "GCCannotUse.h"
+#include "GCFriendChatting.h"
+#include "GCRemoveStoreItem.h"
 #include "PacketDispatcher.h"
 
 // Binds one packet class to the static execute() of its handler class,
@@ -186,9 +191,17 @@ void dispatchCGStashList(Packet* pPacket, Player* pPlayer) {
     __END_DEBUG
 }
 
+// The live client's personal-store UI sends GCAddStoreItem /
+// GCRemoveStoreItem to the server (the store flow is disabled server-side:
+// GamePlayer force-disconnects the GC_MY/OTHER_STORE_INFO requests that
+// precede them), and its legacy code paths could emit GCCannotUse. Their
+// handlers were server-side no-ops, so keep the silent ignore instead of
+// letting the unregistered-id default disconnect a legitimate client.
+void dispatchIgnore(Packet*, Player*) {}
+
 } // namespace
 
-void registerCGPacketHandlers() {
+void registerGameServerPacketHandlers() {
     DE_REGISTER_CG(CGAbsorbSoul);
     DE_REGISTER_CG(CGAcceptUnion);
     DE_REGISTER_CG(CGAddGearToMouse);
@@ -339,4 +352,12 @@ void registerCGPacketHandlers() {
 
     PacketDispatcher::registerHandler(CGPortCheck().getPacketID(), &dispatchCGPortCheck);
     PacketDispatcher::registerHandler(CGStashList().getPacketID(), &dispatchCGStashList);
+
+    // GC packets the gameserver really receives (see the thunks above).
+    // GCFriendChatting is the one GC packet with a live server handler:
+    // the friend system's requests ride it client -> server.
+    DE_REGISTER_CG(GCFriendChatting);
+    PacketDispatcher::registerHandler(GCAddStoreItem().getPacketID(), &dispatchIgnore);
+    PacketDispatcher::registerHandler(GCRemoveStoreItem().getPacketID(), &dispatchIgnore);
+    PacketDispatcher::registerHandler(GCCannotUse().getPacketID(), &dispatchIgnore);
 }

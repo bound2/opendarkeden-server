@@ -54,16 +54,6 @@ void GCAddBurrowingCreature::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCAddBurrowingCreature::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddBurrowingCreatureHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

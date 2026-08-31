@@ -47,11 +47,9 @@ void GCGetOffMotorCycleOK::read(SocketInputStream& iStream)
 //////////////////////////////////////////////////////////////////////
 // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
 //////////////////////////////////////////////////////////////////////
-void GCGetOffMotorCycleOK::write(SocketOutputStream& oStream) const {
-    __BEGIN_TRY
+void GCGetOffMotorCycleOK::write(SocketOutputStream& oStream) const {__BEGIN_TRY
 
-    __END_CATCH
-}
+                                                                         __END_CATCH}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -59,16 +57,6 @@ void GCGetOffMotorCycleOK::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCGetOffMotorCycleOK::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCGetOffMotorCycleOKHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

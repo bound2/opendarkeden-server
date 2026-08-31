@@ -27,24 +27,11 @@ void GCSearchMotorcycleFail::read(SocketInputStream& iStream)
 //--------------------------------------------------------------------------------
 void GCSearchMotorcycleFail::write(SocketOutputStream& oStream) const
 
-{
-    __BEGIN_TRY
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void GCSearchMotorcycleFail::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSearchMotorcycleFailHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 //--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------

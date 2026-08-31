@@ -68,16 +68,6 @@ void GCMonsterKillQuestStatus::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCMonsterKillQuestStatus::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCMonsterKillQuestStatusHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

@@ -68,16 +68,6 @@ void GCQuestStatus::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCQuestStatus::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCQuestStatusHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

@@ -34,7 +34,6 @@ public:
         oStream.write(m_Condition);
         oStream.write(m_Index);
     }
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_GC_EXECUTE_ELEMENT;
     }

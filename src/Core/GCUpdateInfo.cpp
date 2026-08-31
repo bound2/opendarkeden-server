@@ -333,16 +333,6 @@ void GCUpdateInfo::write(SocketOutputStream& oStream) const
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void GCUpdateInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCUpdateInfoHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //--------------------------------------------------------------------------------
 // get packet's debug string

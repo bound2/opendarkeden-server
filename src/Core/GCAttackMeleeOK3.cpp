@@ -68,16 +68,6 @@ void GCAttackMeleeOK3::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCAttackMeleeOK3::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAttackMeleeOK3Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

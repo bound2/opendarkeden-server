@@ -65,16 +65,6 @@ void GCRideMotorCycleOK::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCRideMotorCycleOK::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCRideMotorCycleOKHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

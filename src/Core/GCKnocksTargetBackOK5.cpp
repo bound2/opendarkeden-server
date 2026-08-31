@@ -89,18 +89,6 @@ void GCKnocksTargetBackOK5::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCKnocksTargetBackOK5::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-    __BEGIN_DEBUG
-
-    GCKnocksTargetBackOK5Handler::execute(this, pPlayer);
-
-    __END_DEBUG
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

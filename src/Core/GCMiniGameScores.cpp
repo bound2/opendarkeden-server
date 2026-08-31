@@ -107,16 +107,6 @@ PacketSize_t GCMiniGameScores::getPacketSize() const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCMiniGameScores::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCMiniGameScoresHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

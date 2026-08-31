@@ -67,16 +67,6 @@ void GCSystemAvailabilities::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCSystemAvailabilities::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSystemAvailabilitiesHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

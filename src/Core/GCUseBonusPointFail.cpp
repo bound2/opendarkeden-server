@@ -25,25 +25,9 @@ void GCUseBonusPointFail::read(SocketInputStream& iStream)
 //////////////////////////////////////////////////////////////////////
 void GCUseBonusPointFail::write(SocketOutputStream& oStream) const
 
-{
-    __BEGIN_TRY
+    {__BEGIN_TRY
 
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void GCUseBonusPointFail::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCUseBonusPointFailHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
+         __END_CATCH}
 
 
 //////////////////////////////////////////////////////////////////////

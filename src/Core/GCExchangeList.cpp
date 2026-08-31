@@ -17,12 +17,6 @@ const PacketSize_t GCExchangeList::kMaxListingString;
 const PacketSize_t GCExchangeList::kMaxListingsPerPage;
 
 // Stub execute() for server side (GC packets don't execute on server)
-void GCExchangeList::execute(Player* pPlayer) {
-    __BEGIN_TRY
-    // Server doesn't execute GC packets
-    __END_CATCH
-}
-
 void GCExchangeList::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 

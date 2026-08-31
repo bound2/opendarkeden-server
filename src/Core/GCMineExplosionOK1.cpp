@@ -139,16 +139,6 @@ void GCMineExplosionOK1::deleteCListElement()
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCMineExplosionOK1::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCMineExplosionOK1Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

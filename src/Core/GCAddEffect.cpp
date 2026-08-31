@@ -65,16 +65,6 @@ void GCAddEffect::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCAddEffect::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddEffectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

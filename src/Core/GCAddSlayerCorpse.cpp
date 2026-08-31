@@ -48,16 +48,6 @@ void GCAddSlayerCorpse::write(SocketOutputStream& oStream) const
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void GCAddSlayerCorpse::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddSlayerCorpseHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //--------------------------------------------------------------------------------
 // get packet's debug string

@@ -80,16 +80,6 @@ void GCAttackArmsOK3::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCAttackArmsOK3::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAttackArmsOK3Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

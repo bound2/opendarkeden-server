@@ -74,16 +74,6 @@ void GCSkillToObjectOK4::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCSkillToObjectOK4::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSkillToObjectOK4Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

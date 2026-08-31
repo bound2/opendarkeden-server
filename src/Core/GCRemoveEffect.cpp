@@ -82,16 +82,6 @@ void GCRemoveEffect::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCRemoveEffect::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCRemoveEffectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

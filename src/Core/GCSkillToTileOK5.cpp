@@ -144,16 +144,6 @@ void GCSkillToTileOK5::deleteCListElement()
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCSkillToTileOK5::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSkillToTileOK5Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

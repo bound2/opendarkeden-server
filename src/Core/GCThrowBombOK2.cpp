@@ -142,16 +142,6 @@ void GCThrowBombOK2::deleteCListElement()
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCThrowBombOK2::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCThrowBombOK2Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

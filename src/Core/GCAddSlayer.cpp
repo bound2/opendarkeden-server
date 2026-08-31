@@ -81,16 +81,6 @@ void GCAddSlayer::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCAddSlayer::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddSlayerHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 PacketSize_t GCAddSlayer::getPacketSize() const
 
 {

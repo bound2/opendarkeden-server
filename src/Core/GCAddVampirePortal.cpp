@@ -58,16 +58,6 @@ void GCAddVampirePortal::write(SocketOutputStream& oStream) const {
     __END_CATCH
 }
 
-void GCAddVampirePortal::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddVampirePortalHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCAddVampirePortal::toString() const {
     __BEGIN_TRY
 

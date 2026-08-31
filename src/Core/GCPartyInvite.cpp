@@ -35,16 +35,6 @@ void GCPartyInvite::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCPartyInvite::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCPartyInviteHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCPartyInvite::toString() const
 
 {

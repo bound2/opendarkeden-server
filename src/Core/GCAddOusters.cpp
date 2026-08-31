@@ -88,16 +88,6 @@ void GCAddOusters::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCAddOusters::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddOustersHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 PacketSize_t GCAddOusters::getPacketSize() const
 
 {

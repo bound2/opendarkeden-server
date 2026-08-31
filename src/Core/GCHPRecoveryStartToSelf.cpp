@@ -68,16 +68,6 @@ void GCHPRecoveryStartToSelf::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCHPRecoveryStartToSelf::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCHPRecoveryStartToSelfHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

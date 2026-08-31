@@ -36,16 +36,6 @@ void GCPartyError::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCPartyError::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCPartyErrorHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCPartyError::toString() const
 
 {

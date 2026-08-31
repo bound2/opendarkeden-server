@@ -67,16 +67,6 @@ void GCGQuestInventory::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCGQuestInventory::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCGQuestInventoryHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

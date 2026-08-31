@@ -42,16 +42,6 @@ void GCShopBuyFail::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCShopBuyFail::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCShopBuyFailHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCShopBuyFail::toString() const
 
 {

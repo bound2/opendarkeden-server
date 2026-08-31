@@ -67,16 +67,6 @@ void GCAttackMeleeOK2::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCAttackMeleeOK2::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAttackMeleeOK2Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

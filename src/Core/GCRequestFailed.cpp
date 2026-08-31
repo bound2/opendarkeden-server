@@ -41,16 +41,6 @@ void GCRequestFailed::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCRequestFailed::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCRequestFailedHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCRequestFailed::toString() const
 
 {

@@ -73,16 +73,6 @@ void GCCrossCounterOK1::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCCrossCounterOK1::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCCrossCounterOK1Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

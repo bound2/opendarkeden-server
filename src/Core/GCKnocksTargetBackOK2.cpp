@@ -75,16 +75,6 @@ void GCKnocksTargetBackOK2::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCKnocksTargetBackOK2::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCKnocksTargetBackOK2Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

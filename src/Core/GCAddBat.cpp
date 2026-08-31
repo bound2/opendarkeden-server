@@ -79,16 +79,6 @@ void GCAddBat::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void GCAddBat::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCAddBatHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string GCAddBat::toString() const
 
 {

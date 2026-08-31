@@ -90,18 +90,6 @@ void GCAttackArmsOK5::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCAttackArmsOK5::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-    __BEGIN_DEBUG
-
-    GCAttackArmsOK5Handler::execute(this, pPlayer);
-
-    __END_DEBUG
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

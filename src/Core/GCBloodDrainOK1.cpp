@@ -69,16 +69,6 @@ void GCBloodDrainOK1::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCBloodDrainOK1::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCBloodDrainOK1Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

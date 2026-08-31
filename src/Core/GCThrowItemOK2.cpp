@@ -68,16 +68,6 @@ void GCThrowItemOK2::write(SocketOutputStream& oStream) const {
 // execute packet's handler
 //
 //////////////////////////////////////////////////////////////////////
-void GCThrowItemOK2::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCThrowItemOK2Handler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////
 //

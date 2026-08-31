@@ -45,16 +45,6 @@ void GCSearchMotorcycleOK::write(SocketOutputStream& oStream) const
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void GCSearchMotorcycleOK::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    GCSearchMotorcycleOKHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 //--------------------------------------------------------------------------------
 // get packet's debug string
 //--------------------------------------------------------------------------------
