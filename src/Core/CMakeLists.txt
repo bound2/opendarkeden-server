@@ -7,8 +7,14 @@
 # it yet — the apps still get these objects through Core — but it builds in
 # every configuration so the layering rule is enforced by every build.
 # ============================================================================
+# REGEX keeps only the entry lines: comment lines can contain ';', which
+# CMake list expansion would otherwise split into pseudo-entries. Editing
+# the list must retrigger configure, hence CONFIGURE_DEPENDS — without it a
+# bare `ninja` keeps building the previous membership.
 file(STRINGS ${CMAKE_SOURCE_DIR}/tests/arch/kernel_files.txt
-     DARKEDEN_KERNEL_ENTRIES)
+     DARKEDEN_KERNEL_ENTRIES REGEX "^src/")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+             ${CMAKE_SOURCE_DIR}/tests/arch/kernel_files.txt)
 set(KERNEL_SOURCES "")
 foreach(entry ${DARKEDEN_KERNEL_ENTRIES})
     if(entry MATCHES "^src/.*\\.cpp$")
@@ -18,6 +24,13 @@ endforeach()
 add_library(de-kernel STATIC ${KERNEL_SOURCES})
 target_include_directories(de-kernel PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(de-kernel PUBLIC Threads::Threads)
+# The top-level include_directories() (src/server, src/server/database,
+# MySQL) is a directory property this target would inherit, letting a kernel
+# source include an app or DB header and compile clean. Pin the target's own
+# include path to src/Core alone so the compiler enforces K1 alongside the
+# perl checker.
+set_target_properties(de-kernel PROPERTIES
+    INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # ============================================================================
 # Core 库 - 基础核心代码，不依赖服务器类型
@@ -109,10 +122,12 @@ add_library(Core STATIC ${CORE_SOURCES})
 # SXml.cpp parses with tinyxml2; PUBLIC so consumers inherit the include path
 # and the archive without each having to name it.
 target_link_libraries(Core PUBLIC tinyxml2)
+# The gameserver include dirs Core used to PUBLIC-export are gone: the last
+# wire classes that reached into live game objects had those member functions
+# split out to src/server/gameserver/packetfill/ (task 2.4), so nothing Core
+# compiles needs a gameserver header any more.
 target_include_directories(Core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver/item
 )
 
 # ============================================================================
@@ -663,10 +678,6 @@ target_include_directories(GameServerPackets PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/database
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver/item
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver/skill
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver/billing
 )
 
 # ============================================================================
@@ -686,7 +697,6 @@ target_include_directories(LoginServerPackets PRIVATE
     ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/database
     ${CMAKE_SOURCE_DIR}/src/server/loginserver
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver
 )
 
 # ============================================================================
@@ -696,10 +706,12 @@ target_include_directories(LoginServerPackets PRIVATE
 # code with no-op handlers.
 #
 # NOTE: this is NOT the client's configuration — the client compiles with
-# __GAME_CLIENT__=1, so `#ifndef __GAME_CLIENT__` blocks (GCShopList) resolve
-# the opposite way here. None of those touch read()/write(), so the goldens
-# do reflect what the deployed server emits; but a future
-# __GAME_CLIENT__-guarded change to a wire method would be invisible here.
+# __GAME_CLIENT__=1. The wire classes carry no such guards any more (the
+# last ones left with task 2.4's split; only PacketFactoryManager.cpp /
+# PacketValidator.cpp / PlayerStatus.h still mention the macro, none of it
+# wire code), so the goldens reflect what the deployed server emits; a
+# future __GAME_CLIENT__-guarded change to a wire method would be invisible
+# here.
 # ============================================================================
 if(DARKEDEN_BUILD_TESTS)
     add_library(TestPackets STATIC EXCLUDE_FROM_ALL
@@ -715,18 +727,13 @@ if(DARKEDEN_BUILD_TESTS)
         ${GM_PACKET_SOURCES}
         ${PACKET_COMMON_SOURCES}
     )
-    # The gameserver include dirs are needed because a handful of packet
-    # classes still reach into gameserver headers for constants (e.g.
-    # GCAttackArmsOK1 uses SKILL_ATTACK_ARMS from skill/Skill.h) — a Phase 2
-    # boundary violation to remove; no server-type macro is defined here.
+    # No gameserver include dirs any more: the constants packets used to pull
+    # from skill/Skill.h now live in Core (types/SkillTypes.h), and the
+    # game-object member functions moved to gameserver/packetfill/ (task 2.4).
     target_include_directories(TestPackets PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src/server
         ${CMAKE_SOURCE_DIR}/src/server/database
-        ${CMAKE_SOURCE_DIR}/src/server/gameserver
-        ${CMAKE_SOURCE_DIR}/src/server/gameserver/item
-        ${CMAKE_SOURCE_DIR}/src/server/gameserver/skill
-        ${CMAKE_SOURCE_DIR}/src/server/gameserver/billing
     )
 endif()
 
@@ -745,5 +752,4 @@ target_include_directories(SharedServerPackets PRIVATE
     ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/database
     ${CMAKE_SOURCE_DIR}/src/server/sharedserver
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver
 )

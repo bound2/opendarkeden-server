@@ -19,10 +19,8 @@
 #include "ZoneGroupManager.h"
 #include "ZonePlayerManager.h"
 // #include "UserGateway.h"
-#include <list>
 
 #include "GDRLairManager.h"
-#include "LoginServerManager.h"
 #include "ParkingCenter.h"
 #include "WarSystem.h"
 #include "ctf/FlagManager.h"
