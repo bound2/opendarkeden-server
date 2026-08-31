@@ -7,13 +7,12 @@
 #ifndef __GC_SELECT_QUEST_ID_H__
 #define __GC_SELECT_QUEST_ID_H__
 
+#include <algorithm>
+#include <iterator>
 #include <list>
 
 #include "Packet.h"
 #include "PacketFactory.h"
-
-#include <algorithm>
-#include <iterator>
 
 const BYTE maxQuestNum = 255;
 

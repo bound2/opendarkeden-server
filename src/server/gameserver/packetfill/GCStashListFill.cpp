@@ -6,11 +6,10 @@
 //               library (see src/Core/GCStashList.cpp).
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GCStashList.h"
-
 #include "AR.h"
 #include "Assert1.h"
 #include "Belt.h"
+#include "GCStashList.h"
 #include "Inventory.h"
 #include "Item.h"
 #include "ItemInfoManager.h"

@@ -9,7 +9,6 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
-
 #include "Utility.h"
 
 enum {

@@ -6,9 +6,8 @@
 //               library (see src/Core/GCShopList.cpp).
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GCShopList.h"
-
 #include "Assert1.h"
+#include "GCShopList.h"
 #include "Item.h"
 
 void GCShopList::setShopItem(BYTE index, const Item* pItem)

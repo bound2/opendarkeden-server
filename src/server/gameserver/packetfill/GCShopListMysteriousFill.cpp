@@ -6,9 +6,8 @@
 //               of the wire library (see src/Core/GCShopListMysterious.cpp).
 //////////////////////////////////////////////////////////////////////////////
 
-#include "GCShopListMysterious.h"
-
 #include "Assert1.h"
+#include "GCShopListMysterious.h"
 #include "Item.h"
 
 void GCShopListMysterious::setShopItem(BYTE index, const Item* pItem)
