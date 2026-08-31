@@ -536,6 +536,7 @@ set(GAMESERVER_MAIN_SOURCES
     GDRLairManager.cpp
     GDRLairAbstractStates.cpp
     NicknameBook.cpp
+    repository/MySQLNicknameRepository.cpp
     LevelNickInfoManager.cpp
     SiegeManager.cpp
     BroadcastFilter.cpp

@@ -8,7 +8,6 @@
 
 #ifdef __GAME_SERVER__
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "GCModifyNickname.h"
 #include "GCNicknameVerify.h"
 #include "GCUseOK.h"
@@ -21,25 +20,8 @@
 #include "Zone.h"
 #include "item/EventGiftBox.h"
 #include "item/PetItem.h"
+#include "repository/NicknameRepository.h"
 #endif
-
-string getDBString(const string& str) {
-    char ret[100];
-    int index = 0;
-
-    for (int i = 0; i < str.size(); ++i) {
-        char c = str[i];
-        if (c == '\\' || c == '\'') {
-            ret[index++] = '\\';
-        }
-        ret[index++] = c;
-        if (index >= 100)
-            break;
-    }
-    ret[index] = 0;
-
-    return string(ret);
-}
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -151,16 +133,8 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
         //			pPC->removeFlag(Effect::EFFECT_CLASS_CAN_MODIFY_NICKNAME_0);
         pNickname->setNickname(pPacket->getNickname());
 
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("UPDATE NicknameBook SET Nickname='%s' WHERE OwnerID='%s' AND nID=%u",
-                                getDBString(pNickname->getNickname()).c_str(), pPC->getName().c_str(),
-                                pNickname->getNicknameID());
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultNicknameRepository().updateNickname(pPC->getName(), pNickname->getNicknameID(),
+                                                   pNickname->getNickname());
 
         gcNV.setCode(NICKNAME_MODIFY_OK);
         pGamePlayer->sendPacket(&gcNV);
@@ -199,17 +173,8 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
 
         pPC->getNicknameBook()->setNicknameInfo(pNickname->getNicknameID(), pNickname);
 
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO NicknameBook (nID, OwnerID, NickType, Nickname, Time) "
-                                "VALUES (%u, '%s', %u, '%s', now())",
-                                pNickname->getNicknameID(), pPC->getName().c_str(), pNickname->getNicknameType(),
-                                getDBString(pNickname->getNickname()).c_str());
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultNicknameRepository().insert(pPC->getName(), pNickname->getNicknameID(), pNickname->getNicknameType(),
+                                           pNickname->getNickname());
 
         gcNV.setCode(NICKNAME_MODIFY_OK);
         pGamePlayer->sendPacket(&gcNV);
