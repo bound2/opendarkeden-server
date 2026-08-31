@@ -618,9 +618,12 @@ visibility can't express.
   >    and GCSkillToTileOK2 instead needed the `SkillTypes` enum + name
   >    table extracted from gameserver's `skill/Skill.h` into
   >    `src/Core/types/SkillTypes.h` (wire vocabulary, not game logic).
-  >    `PetInfo::write()`'s pet-item ObjectID is now cached by the
-  >    app-side setter instead of read through the live pointer — same
-  >    bytes, no game include. Dead `__GAME_CLIENT__` branches in five
+  >    `PetInfo::write()` resolves the pet-item ObjectID through a
+  >    type-erased thunk the app-side setter installs — still a LIVE
+  >    read at write time (an earlier cached-id version shipped stale
+  >    ids and asserted on unregistered items; caught in the 2.4
+  >    adversarial review), same bytes, no game include. Dead
+  >    `__GAME_CLIENT__` branches in five
   >    GC files were removed (this repo never defines the macro; the
   >    client keeps its own copies). R5 scope note: `packetfill/` is
   >    excluded alongside `handler/` (one `__BEGIN_TRY` moved there).

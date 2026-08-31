@@ -50,6 +50,10 @@ target_include_directories(loginserver PRIVATE
     ${CMAKE_SOURCE_DIR}/src/Core
     ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/database
+    # The CL handlers include gameserver's OptionInfo.h; name the dir here
+    # rather than relying on the billing library's PUBLIC export to leak it
+    # (Core's own gameserver export is gone since task 2.4).
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/billing
 )
 

@@ -19,7 +19,7 @@ PetInfo::PetInfo() {
     m_CurrentFeedTurn = 0;
 
     m_pPetItem = NULL;
-    m_ItemObjectID = 0;
+    m_GetItemObjectID = NULL;
 }
 
 void PetInfo::read(SocketInputStream& iStream) {
