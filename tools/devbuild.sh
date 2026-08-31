@@ -126,8 +126,13 @@ elif [ "$command" = "shell" ]; then
     exit 2
 fi
 
+# The checkout stays read-only except tests/, the one place sync_out writes:
+# a nested rw mount over the ro one. Without it a --record run's rsync back
+# fails on the read-only filesystem — and silently, since exit $rc reports
+# ctest's status, not the copy's.
 exec docker run --rm "${tty_args[@]}" \
     -v "$repo_mount:/repo:ro" \
+    -v "$repo_mount/tests:/repo/tests" \
     -v "$WORK_VOLUME:/work" \
     -v "$CCACHE_VOLUME:/ccache" \
     -e CCACHE_DIR=/ccache \
