@@ -1303,16 +1303,18 @@ void Slayer::addSkill(SkillType_t SkillType)
     unordered_map<SkillType_t, SkillSlot*>::iterator itr = m_SkillSlot.find(SkillType);
 
     if (itr == m_SkillSlot.end()) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        Turn_t Delay = pSkillInfo->getMaxDelay();
-
         SkillSlot* pSkillSlot = new SkillSlot();
         pSkillSlot->setName(m_Name);
         pSkillSlot->setSkillType(SkillType);
-        pSkillSlot->setInterval(Delay);
+        // A freshly learned skill starts with no run-time lock and a zero
+        // interval — the seeded MaxDelay leaked to the client as a sticky
+        // per-cast cooldown via the skill-info refresh; the first
+        // successful cast installs the real formula delay. See
+        // Vampire::addSkill for the full story.
+        pSkillSlot->setRunTime(0, false);
+        pSkillSlot->setInterval(0);
         pSkillSlot->setExpLevel(0);
         pSkillSlot->setExp(1);
-        pSkillSlot->setRunTime();
         pSkillSlot->create(m_Name);
 
         m_SkillSlot[SkillType] = pSkillSlot;

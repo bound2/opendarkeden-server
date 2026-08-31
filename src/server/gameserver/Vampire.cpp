@@ -929,15 +929,23 @@ void Vampire::addSkill(SkillType_t SkillType)
     unordered_map<SkillType_t, VampireSkillSlot*>::iterator itr = m_SkillSlot.find(SkillType);
 
     if (itr == m_SkillSlot.end()) {
-        SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        Turn_t Delay = pSkillInfo->getMaxDelay();
-
         VampireSkillSlot* pVampireSkillSlot = new VampireSkillSlot;
 
         pVampireSkillSlot->setName(m_Name);
         pVampireSkillSlot->setSkillType(SkillType);
-        pVampireSkillSlot->setInterval(Delay);
-        pVampireSkillSlot->setRunTime();
+        // A freshly learned skill starts with no run-time lock and a ZERO
+        // interval. The old code seeded the interval from SkillBalance's
+        // MaxDelay (2.0 s for e.g. Bloody Nail and Violent Phantom), and
+        // that seed leaked to the client: GCSkillInfo sends the slot
+        // interval on every login and zone change, the client keeps any
+        // delay of 1.8 s or more as a per-cast cooldown, and it holds that
+        // value until the next refresh — so a skill learned mid-session
+        // stuttered for the rest of the session even after the server-side
+        // interval healed. Seeding zero matches the healed steady state:
+        // the first successful cast installs the real per-cast formula
+        // delay (setRunTime(delay)) and persists it, exactly as before.
+        pVampireSkillSlot->setRunTime(0);
+        pVampireSkillSlot->setInterval(0);
         pVampireSkillSlot->create(m_Name);
 
         m_SkillSlot[SkillType] = pVampireSkillSlot;
