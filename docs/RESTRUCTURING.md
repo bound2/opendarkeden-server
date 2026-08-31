@@ -290,7 +290,46 @@ before anything else moves. Everything later shelters under this pin.
   >        the stack; buffers widened to 24 and switched to `snprintf`.
   >        (The exchange packets format their ids independently, so they
   >        never depended on that overload.)
-  >      Still open, deliberately out of scope for a layout change:
+  >      A second adversarial review pass over the fixes returned SHIP with
+      no blockers, and found these, fixed in the same branch: the
+      `float`/`double` `StringStream` overloads had the *same* buffer
+      overflow as `long`/`ulong` (`"%f"` never uses exponent form, so a
+      float ≥ 10,000 already overruns `buf[12]`); the server's
+      `GCExchangeList::read()` lacked the listing-count bound its client
+      twin has; and three comments claimed more than the code delivered
+      (the `NO_BACKSLASH_ESCAPES` fallback is safe but *not* "exactly
+      right" — it can alter a backslash; the wire cap does not make the
+      stored key identical, because the ledger suffix trims it; and the
+      fallback key is not yet unique across game servers, since
+      `_getServerID()` is a hardcoded 1 and every containerised server is
+      pid 1).
+      Left as follow-ups, each recorded rather than fixed silently:
+      * `ExchangeService::buyListing` checks
+        `hasIdempotencyKey(rawKey)`, but only the suffixed `_buy`/`_sale`
+        keys are ever inserted, so that early-out is dead code —
+        duplicate protection currently rests on `adjustPoints`' own check
+        inside the transaction. Combined with the client never setting a
+        key, end-to-end dedupe is inert today;
+      * `Statement::executeQuery`'s `vsnprintf` guard tests `> 2048`, so
+        a query of exactly 2048 characters is silently truncated and
+        executed;
+      * `ExchangeService::buyListing` leaks the `ExchangeListing` from
+        `ExchangeDB::getListing` on every path, and `GamePlayer` leaks a
+        packet when `readPacket` throws;
+      * `GCExchangeList`'s 37114 max is 4.5× the client's default 8 KB
+        socket ring, which only grows opportunistically — worth either
+        pre-sizing that ring or lowering the page bound;
+      * on success `GCExchangeBuy`'s message field carries the bare
+        decimal order id, now redundant with `setOrderID()`;
+      * neither repo clamps the listing count in `write()`:
+        `(uint16_t)m_Listings.size()` narrows silently while the body
+        loop iterates the full vector, so at 65536+ listings the count
+        wraps to 0 with the body still emitted and counted — header and
+        bytes agree, but `read()` parses fewer listings and desyncs.
+        Unreachable only because the handler clamps the page to 20, i.e.
+        the invariant lives a layer above the packet. Identical in both
+        repos, so it is not a divergence.
+      Still open, deliberately out of scope for a layout change:
   >      `CGExchangeListHandler` ignores the `sellerFilter` the packet now
   >      carries (adding it means changing `ExchangeService::getListings`
   >      and its SQL), and the client UI sends `CGExchangeBuy` with an

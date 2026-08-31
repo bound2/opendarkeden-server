@@ -26,8 +26,12 @@ public:
     // (initdb/USERINFO.sql). A longer key would be silently truncated on
     // insert, so two different keys sharing a 64-byte prefix would collide on
     // the unique index and the duplicate-purchase guard would misfire.
-    // Clamping on the wire keeps what the client sends, what the server reads
-    // and what the database stores identical.
+    // Clamping on the wire keeps what the client sends and what the server
+    // reads identical, and bounds what reaches the column. Note the buy path
+    // does not store this value verbatim: ExchangeService::_makeLedgerKey()
+    // appends a "_buy"/"_sale" leg suffix and trims the base to fit 64, so two
+    // keys sharing a 59-byte prefix still collide in the ledger. Keys are
+    // normally far shorter than that.
     static const PacketSize_t kMaxIdempotencyKey = 64;
 
     CGExchangeBuy() : m_ListingID(0){};

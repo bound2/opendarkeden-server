@@ -35,6 +35,14 @@ void GCExchangeList::read(SocketInputStream& iStream) {
     uint16_t count;
     iStream.read(count);
 
+    // A count above the page bound cannot have been produced by write() (the
+    // handler clamps the page size to it, which is what makes getPacketMaxSize()
+    // a real bound), and honouring one would consume far past this packet into
+    // whatever is queued behind it. The client's counterpart refuses it here
+    // too; keep the two in step.
+    if (count > kMaxListingsPerPage)
+        throw InvalidProtocolException("GCExchangeList: more listings than a page can hold");
+
     // Drop whatever a previous read left behind. read() must fully overwrite
     // the packet's state to be a true mirror of write(); appending to the old
     // contents would make a recycled packet object report more listings than

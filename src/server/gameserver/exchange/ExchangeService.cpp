@@ -79,6 +79,13 @@ const size_t kMaxIdempotencyKeyLength = 64;
 // restarted, since the counter starts over at zero - can mint the same key
 // within the same second, and whoever loses that collision has a legitimate
 // purchase rejected as an already-processed replay.
+//
+// This does NOT yet make the key unique across game servers. _getServerID()
+// above is a hardcoded 1 (its TODO), and under docker/docker-compose.yml every
+// containerised server is pid 1, so two such servers agree on both components
+// and their Nth key of the same second is identical. Restart-within-a-second
+// and the cross-thread race are covered; cross-server uniqueness needs that
+// TODO resolved.
 string _generateIdempotencyKey() {
     static long counter = 0;
 

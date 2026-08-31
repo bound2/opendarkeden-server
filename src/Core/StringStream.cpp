@@ -150,8 +150,11 @@ StringStream& StringStream::operator<<(ulong T) {
 }
 
 StringStream& StringStream::operator<<(float T) {
-    char buf[12];
-    sprintf(buf, "%f", T);
+    // Same defect as operator<<(long) had: "%f" prints the number in full,
+    // never in exponent form, plus six decimals. A float argument is promoted
+    // to double here, so FLT_MAX needs 39 integer digits + '.' + 6 + sign.
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%f", T);
 
     string str(buf);
 
@@ -164,8 +167,9 @@ StringStream& StringStream::operator<<(float T) {
 }
 
 StringStream& StringStream::operator<<(double T) {
-    char buf[22];
-    sprintf(buf, "%f", T);
+    // See operator<<(float): DBL_MAX is 309 integer digits under "%f".
+    char buf[352];
+    snprintf(buf, sizeof(buf), "%f", T);
 
     string str(buf);
 

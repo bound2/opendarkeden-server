@@ -92,8 +92,14 @@ string escapeSQL(const string& input) {
         unsigned long escapedLength =
             mysql_real_escape_string(pConnection->getMYSQL(), &buffer[0], value.c_str(), (unsigned long)value.size());
         // It reports (unsigned long)-1 only when NO_BACKSLASH_ESCAPES is active
-        // and it cannot know the quoting character. In that mode doubling the
-        // quote - which the fallback below does - is exactly right anyway.
+        // and it cannot know the quoting character. Falling through to the
+        // manual pass is then SAFE but not ideal: doubling the quote is exactly
+        // right in that mode, while doubling the backslash - which the manual
+        // pass also does - stores a backslash the server would have taken
+        // literally. It never under-escapes, so it cannot open an injection;
+        // it can only alter a value containing a backslash. This project
+        // mandates a sql_mode without NO_BACKSLASH_ESCAPES (see CLAUDE.md), so
+        // the path is unreachable in a correct deployment.
         if (escapedLength != (unsigned long)-1)
             return string(&buffer[0], escapedLength);
     }
