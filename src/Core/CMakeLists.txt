@@ -233,7 +233,7 @@ set(GC_PACKET_SOURCES
     GCModifyNickname.cpp 
     GCModyfyMoney.cpp 
     GCMonsterKillQuestInfo.cpp 
-#    GCMonsterKillQuestStatus.cpp 
+# (GCMonsterKillQuestStatus deleted in 2.4 - dead packet, id enum never existed)
     GCMorph1.cpp 
     GCMorphSlayer2.cpp 
     GCMorphVampire2.cpp 

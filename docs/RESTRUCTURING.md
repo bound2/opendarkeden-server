@@ -590,9 +590,18 @@ visibility can't express.
   >    (`GamePlayer.h`, `ExchangeService.h`, `libcpsso.h` — leftovers of
   >    the removed `execute()`); `de-kernel` compiles them under K1/K2
   >    with zero new baseline entries.
-  > Remaining: GC and the other directions' packet sources (their
-  > headers pull the info classes — InventoryInfo/PCSlayerInfo2/… must
-  > join the kernel first), then `Core`'s non-packet utilities sorted
+  > 4. **The info classes + most of GC are kernel too** (914 files):
+  >    membership computed by fixpoint against the include-graph
+  >    checker — every candidate that passes K1/K2 joins; 23 GC packets
+  >    stay out because they build wire fields from live game objects
+  >    (`Item`/`Skill`/`PetItem` includes — `GCStashList` is the
+  >    archetype), and `PetInfo` joins header-only for the same reason.
+  >    A second dead pair surfaced and was deleted:
+  >    `GCMonsterKillQuestStatus` (id enum never existed, commented out
+  >    of every build — same story as `CGAddInjuriousCreature`).
+  > Remaining: the CL/LC/inter-server packet sources (small sets, same
+  > fixpoint method), the 23 held-back GC packets (need their game-object
+  > setters split out), `Core`'s non-packet utilities sorted
   > kernel-vs-app, then apps link `de-kernel` instead of getting these
   > objects through `Core`. R5's scope note: `handler/` excluded (the
   > moved handlers were never counted in `src/Core`).
