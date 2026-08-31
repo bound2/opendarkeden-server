@@ -46,9 +46,8 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult =
-                pStmt->executeQuery("SELECT nID, NickType, Nickname, NickIndex FROM NicknameBook WHERE OwnerID='%s'",
-                                    ownerName.c_str());
+            Result* pResult = pStmt->executeQuery(
+                "SELECT nID, NickType, Nickname, NickIndex FROM NicknameBook WHERE OwnerID='%s'", ownerName.c_str());
 
             while (pResult->next()) {
                 NicknameRecord record;
