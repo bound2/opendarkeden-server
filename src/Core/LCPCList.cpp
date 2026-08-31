@@ -166,7 +166,9 @@ void LCPCList::execute(Player* pPlayer)
 PacketSize_t LCPCList::getPacketSize() const
 
 {
-    PacketSize_t packetSize = 0;
+    // write() emits one type char per slot before the info bodies; the old
+    // code did not count them, under-reporting the size header by SLOT_MAX.
+    PacketSize_t packetSize = SLOT_MAX;
     for (uint i = 0; i < SLOT_MAX; i++) {
         if (m_pPCInfos[i]) { // m_pPCInfos[i] != NULL
             packetSize += m_pPCInfos[i]->getSize();

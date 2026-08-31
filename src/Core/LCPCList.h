@@ -116,9 +116,14 @@ public:
 
     // get packet's max body size
     PacketSize_t getPacketMaxSize() const {
-        // 슬레이어 정보가 뱀파이어 정보보다 사이즈가 크기 때문에,
-        // 이 패킷의 최대 크기는 슬레이어 3 명일 경우이다.
-        return PCSlayerInfo::getMaxSize() * SLOT_MAX + SLOT_MAX + szBYTE;
+        // Slayer info is the largest of the three races, so the packet is
+        // biggest with SLOT_MAX slayers. The m_Agree byte is only on the
+        // wire for netmarble builds (see write()).
+        return PCSlayerInfo::getMaxSize() * SLOT_MAX + SLOT_MAX
+#ifdef __NETMARBLE_SERVER__
+               + szBYTE
+#endif
+            ;
     }
 };
 

@@ -68,6 +68,11 @@ target_link_libraries(wire_tests PRIVATE
     gtest_main
     Threads::Threads
 )
+# Build-only dependency: de-kernel links into nothing yet, so without
+# this the test tier (ninja wire_tests) would never compile it and its
+# "only src/Core includes" enforcement would only run in full builds.
+add_dependencies(wire_tests de-kernel)
+
 add_test(NAME wire_tests COMMAND wire_tests)
 # A hang here would otherwise sit for ctest's 1500s default with no output.
 set_tests_properties(wire_tests PROPERTIES TIMEOUT 120)
@@ -75,5 +80,14 @@ set_tests_properties(wire_tests PROPERTIES TIMEOUT 120)
 add_test(
     NAME ratchets
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/ratchet/ratchets.sh
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
+# Include-graph architecture test (docs/RESTRUCTURING.md 2.2): layering
+# rules + shrink-only baseline in tests/arch/. Perl, not Python — the
+# dev image ships perl and the repo's generators already use it.
+add_test(
+    NAME arch_includes
+    COMMAND perl ${CMAKE_SOURCE_DIR}/tests/arch/check_includes.pl
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )

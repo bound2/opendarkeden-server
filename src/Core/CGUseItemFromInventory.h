@@ -26,8 +26,9 @@ public:
     PacketID_t getPacketID() const {
         return PACKET_CG_USE_ITEM_FROM_INVENTORY;
     }
+    // m_InventoryItemObjectID is not on the wire (read/write skip it)
     PacketSize_t getPacketSize() const {
-        return szObjectID + szObjectID + szCoordInven + szCoordInven;
+        return szObjectID + szCoordInven + szCoordInven;
     }
     string getPacketName() const {
         return "CGUseItemFromInventory";
@@ -88,7 +89,7 @@ public:
         return Packet::PACKET_CG_USE_ITEM_FROM_INVENTORY;
     }
     PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szObjectID + szCoordInven + szCoordInven;
+        return szObjectID + szCoordInven + szCoordInven;
     }
 };
 

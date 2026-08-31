@@ -153,8 +153,11 @@ public:
     }
 
     // get packet's max body size
+    // szID + ID(<=30) + szPassword + password(<=30) + mac(6) + loginMode —
+    // read() rejects longer strings; the old netmarble sso layout (szint +
+    // 2048) is no longer read.
     PacketSize_t getPacketMaxSize() const {
-        return szint + 2048 + szBYTE + 30 + 6 + szBYTE;
+        return szBYTE + 30 + szBYTE + 30 + 6 + szBYTE;
     }
 };
 

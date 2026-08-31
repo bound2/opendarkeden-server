@@ -24,8 +24,9 @@ public:
     PacketID_t getPacketID() const {
         return PACKET_CG_SKILL_TO_INVENTORY;
     }
+    // m_InventoryItemObjectID is not on the wire (read/write skip it)
     PacketSize_t getPacketSize() const {
-        return szSkillType + szObjectID + szObjectID + szCoordInven * 4;
+        return szSkillType + szObjectID + szCoordInven * 4;
     }
     string getPacketName() const {
         return "CGSkillToInventory";
@@ -109,7 +110,7 @@ public:
         return Packet::PACKET_CG_SKILL_TO_INVENTORY;
     }
     PacketSize_t getPacketMaxSize() const {
-        return szSkillType + szObjectID + szObjectID + szCoordInven * 4;
+        return szSkillType + szObjectID + szCoordInven * 4;
     }
 };
 

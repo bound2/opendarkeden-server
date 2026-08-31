@@ -7,6 +7,7 @@
 #ifndef __TYPES_H__
 #define __TYPES_H__
 
+#include "Utility.h"
 #include "types/CreatureTypes.h"
 #include "types/GuildTypes.h"
 #include "types/ItemTypes.h"
@@ -18,10 +19,6 @@
 #include "types/SystemTypes.h"
 #include "types/WarTypes.h"
 #include "types/ZoneTypes.h"
-
-#ifndef __GAME_CLIENT__
-#include "Utility.h"
-#endif
 
 #ifndef __XMAS_EVENT_CODE__
 #define __XMAS_EVENT_CODE__

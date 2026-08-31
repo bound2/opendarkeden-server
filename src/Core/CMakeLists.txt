@@ -1,4 +1,25 @@
 # ============================================================================
+# de-kernel (docs/RESTRUCTURING.md 2.1) — the wire primitives, built as a
+# standalone target whose only include dir is src/Core. Membership is the
+# single source of truth in tests/arch/kernel_files.txt (the include-graph
+# test binds the same list); a kernel source that reaches for a gameserver
+# header fails to compile here, which is the point. Nothing links against
+# it yet — the apps still get these objects through Core — but it builds in
+# every configuration so the layering rule is enforced by every build.
+# ============================================================================
+file(STRINGS ${CMAKE_SOURCE_DIR}/tests/arch/kernel_files.txt
+     DARKEDEN_KERNEL_ENTRIES)
+set(KERNEL_SOURCES "")
+foreach(entry ${DARKEDEN_KERNEL_ENTRIES})
+    if(entry MATCHES "^src/.*\\.cpp$")
+        list(APPEND KERNEL_SOURCES ${CMAKE_SOURCE_DIR}/${entry})
+    endif()
+endforeach()
+add_library(de-kernel STATIC ${KERNEL_SOURCES})
+target_include_directories(de-kernel PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(de-kernel PUBLIC Threads::Threads)
+
+# ============================================================================
 # Core 库 - 基础核心代码，不依赖服务器类型
 # ============================================================================
 

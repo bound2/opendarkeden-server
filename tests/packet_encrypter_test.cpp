@@ -87,34 +87,10 @@ namespace {
             expectGolden(#Name, kEncryptCodes[i], writeBody(packet, kEncryptCodes[i])); \
     }
 
-// For packets whose getPacketSize() disagrees with write() (see the two
-// below), the stock roundTrip() cannot be used: it pumps getPacketSize()
-// bytes and stalls. Pump exactly what write() produced instead, so the
-// read()/write() field agreement is still proven under every code, and
-// state the over-report as a fact so its fix is a visible change.
-#define ENCRYPTER_PACKET_TESTS_WITH_SIZE_DRIFT(Name, OVERREPORTED_BY)                      \
-    TEST(Name##Test, roundTripsThroughLoopbackForEveryEncryptCode) {                       \
-        for (size_t i = 0; i < kEncryptCodeCount; i++) {                                   \
-            SCOPED_TRACE(testing::Message() << "encrypt code " << (int)kEncryptCodes[i]);  \
-            Name src;                                                                      \
-            fill(src);                                                                     \
-            Name dst;                                                                      \
-            wiretest::Loopback loopback;                                                   \
-            loopback.setCodes(kEncryptCodes[i]);                                           \
-            src.write(loopback.out());                                                     \
-            loopback.pump(writeBody(src, kEncryptCodes[i]).size());                        \
-            dst.read(loopback.in());                                                       \
-            expectEqual(src, dst);                                                         \
-        }                                                                                  \
-    }                                                                                      \
-    TEST(Name##Test, getPacketSizeStillOverReportsTheBody) {                               \
-        Name packet;                                                                       \
-        fill(packet);                                                                      \
-        EXPECT_EQ(writeBody(packet, 0).size() + (OVERREPORTED_BY), packet.getPacketSize()) \
-            << "getPacketSize() now matches write() — switch " #Name " back to "           \
-               "ENCRYPTER_PACKET_TESTS and close the entry in docs/RESTRUCTURING.md 1.2";  \
-    }                                                                                      \
-    ENCRYPTER_PACKET_GOLDENS(Name)
+// ENCRYPTER_PACKET_TESTS_WITH_SIZE_DRIFT used to live here for the two
+// packets whose getPacketSize() over-reported write() by a phantom
+// szObjectID (CGUseItemFromInventory, CGSkillToInventory). Both were
+// fixed in the 1.4 max-size reconcile; the stock macro now covers them.
 
 //////////////////////////////////////////////////////////////////////
 // SHUFFLE_STATEMENT_2
@@ -216,7 +192,7 @@ void expectEqual(CGUseItemFromInventory& a, CGUseItemFromInventory& b) {
     EXPECT_EQ(a.getX(), b.getX());
     EXPECT_EQ(a.getY(), b.getY());
 }
-ENCRYPTER_PACKET_TESTS_WITH_SIZE_DRIFT(CGUseItemFromInventory, szObjectID)
+ENCRYPTER_PACKET_TESTS(CGUseItemFromInventory)
 
 void fill(CGUsePotionFromInventory& p) {
     p.setObjectID(0x8C9DAEBF);
@@ -317,7 +293,7 @@ void expectEqual(CGSkillToInventory& a, CGSkillToInventory& b) {
     EXPECT_EQ(a.getTargetX(), b.getTargetX());
     EXPECT_EQ(a.getTargetY(), b.getTargetY());
 }
-ENCRYPTER_PACKET_TESTS_WITH_SIZE_DRIFT(CGSkillToInventory, szObjectID)
+ENCRYPTER_PACKET_TESTS(CGSkillToInventory)
 
 // GCAddItemToZone is the abstract base (no packet ID of its own) of the
 // three item-to-zone packets. It is the only encrypter layout with a

@@ -622,13 +622,11 @@ public:
     // get packet's size
     virtual PacketSize_t getPacketSize() const = 0;
 
-#if !defined(__GAME_CLIENT__) || defined(__DEBUG_OUTPUT__)
     // get packet's name
     virtual string getPacketName() const = 0;
 
     // get packet's debug string
     virtual string toString() const = 0;
-#endif
 };
 
 #endif

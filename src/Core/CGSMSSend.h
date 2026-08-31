@@ -18,7 +18,9 @@
 
 #define MAX_NUMBER_LENGTH 11
 #define MAX_RECEVIER_NUM 5
-#define MAX_MESSAGE_LENGTH 80
+// 40 matches the client's cap (its write() asserts size < 40); the server
+// once accepted 80, which the client can never send.
+#define MAX_MESSAGE_LENGTH 40
 
 //////////////////////////////////////////////////////////////////////
 //
