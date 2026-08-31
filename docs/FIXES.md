@@ -1,5 +1,18 @@
 # Fix log
 
+## Types.h include order broke the container build (2026-08-31)
+
+The Phase 2 scaffolding PR (#14) clang-formatted `Types.h` *after* its
+verification build had already synced sources into the container volume:
+the formatter sorted `#include "Utility.h"` above the `types/` block, but
+`Utility.h` uses `BYTE`/`WORD`/`sz*` from those headers and its own
+`#include "Types.h"` is an empty no-op mid-expansion (the guard is
+already set) — so every TU failed on a fresh build while the stale
+volume kept passing. Fixed by pinning `Utility.h` below the `types/`
+block behind `// clang-format off`. Lesson recorded: **re-run the build
+after formatting**, not before.
+> **Status:** fixed (restructuring/dispatch-cg)
+
 Real bugs uncovered by the restructuring work (task 5.3 in
 `docs/RESTRUCTURING.md`), recorded instead of fixed silently. Sidecar's
 convention: every entry has a `> **Status:**` line updated in the same

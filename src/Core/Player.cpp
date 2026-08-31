@@ -12,6 +12,7 @@
 
 #include "Assert.h"
 #include "Packet.h"
+#include "PacketDispatcher.h"
 #include "Socket.h"
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
@@ -147,9 +148,8 @@ void Player::processCommand(bool Option) {
                 // �ڵ������� �ʱ�ȭ�ȴ�.
                 m_pInputStream->read( pPacket );
 
-                // ���� �� ��Ŷ��Ʈ��ó�� ������ ��Ŷ�ڵ鷯�� �����ϸ� �ȴ�.
-                // ��Ŷ���̵� �߸��� ���� ��Ŷ�ڵ鷯�Ŵ������� ó���Ѵ�.
-                pPacket->execute( this );
+                if (!PacketDispatcher::dispatch(pPacket, this))
+                    pPacket->execute( this );
 
                 // ��Ŷ�� �����Ѵ�
                 delete pPacket;

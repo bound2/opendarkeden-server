@@ -26,16 +26,6 @@ void CGGetEventItem::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGGetEventItem::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGGetEventItemHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGGetEventItem::toString() const {
     __BEGIN_TRY
 

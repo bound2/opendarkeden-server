@@ -40,16 +40,6 @@ void CGTakeOutGood::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGTakeOutGood::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGTakeOutGoodHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGTakeOutGood::toString() const {
     __BEGIN_TRY
 

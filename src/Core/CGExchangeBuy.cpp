@@ -96,11 +96,3 @@ string CGExchangeBuy::toString() const {
     msg << "CGExchangeBuy(" << "ListingID:" << listingIDBuf << ",IdempotencyKey:" << m_IdempotencyKey << ")";
     return msg.toString();
 }
-
-void CGExchangeBuy::execute(Player* pPlayer) {
-    __BEGIN_TRY
-
-    CGExchangeBuyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

@@ -27,16 +27,6 @@ void CGAcceptUnion::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAcceptUnion::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAcceptUnionHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAcceptUnion::toString() const
 
 {

@@ -24,6 +24,7 @@
 #include "LogClient.h"
 #include "Ousters.h"
 #include "PCFinder.h"
+#include "PacketDispatcher.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 #include "Properties.h"
@@ -471,12 +472,14 @@ void GamePlayer::processCommand(bool Option) {
 #ifdef __PROFILE_PACKETS__
 
                     beginProfileEx(pPacket->getPacketName().c_str());
-                    pPacket->execute(this);
+                    if (!PacketDispatcher::dispatch(pPacket, this))
+                        pPacket->execute(this);
                     endProfileEx(pPacket->getPacketName().c_str());
 
 #else
                     verifySpeed(pPacket);
-                    pPacket->execute(this);
+                    if (!PacketDispatcher::dispatch(pPacket, this))
+                        pPacket->execute(this);
 #endif
                 } /*catch ( Throwable& t )
                {

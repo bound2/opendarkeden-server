@@ -19,13 +19,3 @@ void CGLogout::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
     __END_CATCH
 }
-
-void CGLogout::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGLogoutHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

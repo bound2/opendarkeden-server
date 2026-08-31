@@ -30,16 +30,6 @@ void CGStashToMouse::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGStashToMouse::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGStashToMouseHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGStashToMouse::toString() const {
     __BEGIN_TRY
 

@@ -28,20 +28,7 @@ void CGUsePowerPoint::read(SocketInputStream& iStream)
     __END_CATCH
 }
 
-void CGUsePowerPoint::write(SocketOutputStream& oStream) const {
-    __BEGIN_TRY
-    __END_CATCH
-}
-
-void CGUsePowerPoint::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUsePowerPointHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
+void CGUsePowerPoint::write(SocketOutputStream& oStream) const {__BEGIN_TRY __END_CATCH}
 
 string CGUsePowerPoint::toString() const {
     __BEGIN_TRY

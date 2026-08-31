@@ -56,7 +56,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 104 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` |
 | R3 | Files with inline SQL anywhere outside `database/` | 320 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
-| R4 | Packet headers with `execute()` still on the packet | 481 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
+| R4 | Packet headers with `execute()` still on the packet | 329 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| wc -l` |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
@@ -510,7 +510,28 @@ visibility can't express.
   `de-kernel` actually framework-free. Migrate direction-by-direction under
   the Phase 1 pin (layout must not change — golden tests prove it).
   Track with ratchet R4 (packets still carrying `execute()`).
-  > **Status:** not started
+  > **Status:** in progress — infrastructure + the CG direction landed
+  > (2026-08-31). `PacketDispatcher` (kernel: id → `void(*)(Packet*,
+  > Player*)` table, written only at startup so zone threads read it
+  > lock-free) is consulted first in all five receive loops
+  > (GamePlayer, LoginPlayer, SharedServerClient, sharedserver's
+  > GameServerPlayer, Core `Player`), falling back to the legacy
+  > virtual for unmigrated packets. `Packet::execute` is no longer pure:
+  > the default throws `InvalidProtocolException`, so a migrated id
+  > received by a server that does not register it now disconnects the
+  > sender instead of running a no-op handler — the only intended
+  > behavior change, and only for protocol-violating peers.
+  > All 150 CG packets are migrated: `execute()` deleted from their
+  > headers/cpps (two intermediate bases, `DatagramPacket` and
+  > `SerialDatagramPacket`, dropped their pure redeclarations), and
+  > `src/server/gameserver/CGPacketDispatch.cpp` binds every CG id at
+  > the gameserver composition root (`registerCGPacketHandlers()` from
+  > `main()`; `CGPortCheck`'s player-less handler and `CGStashList`'s
+  > `__BEGIN_DEBUG` wrapper preserved as explicit thunks). R4 481→329.
+  > Remaining: GC (server-side handlers are no-ops — mostly a delete),
+  > then CL/LC for loginserver, inter-server directions, then remove the
+  > fallback + the base method when R4 is 0; handler file moves out of
+  > `Core` are 2.4.
   - Owner: R4 ratchet test + include-graph test (a kernel packet including a
     Zone header fails).
 

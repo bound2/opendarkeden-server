@@ -87,6 +87,7 @@ set(CORE_SOURCES
     GuildInfo2.cpp
     GuildMemberInfo2.cpp
     Encrypter.cpp
+    PacketDispatcher.cpp
     SocketEncryptInputStream.cpp
     SocketEncryptOutputStream.cpp
     OustersSkillInfo.cpp

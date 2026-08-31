@@ -39,16 +39,6 @@ void CGAddMouseToGear::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAddMouseToGear::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAddMouseToGearHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAddMouseToGear::toString() const {
     __BEGIN_TRY
 

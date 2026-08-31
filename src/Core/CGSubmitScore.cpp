@@ -41,16 +41,6 @@ void CGSubmitScore::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSubmitScore::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSubmitScoreHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSubmitScore::toString() const
 
 {

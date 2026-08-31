@@ -79,16 +79,6 @@ void CGSkillToInventory::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSkillToInventory::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSkillToInventoryHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSkillToInventory::toString() const
 
 {

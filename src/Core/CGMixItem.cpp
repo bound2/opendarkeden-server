@@ -42,16 +42,6 @@ void CGMixItem::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGMixItem::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGMixItemHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGMixItem::toString() const {
     __BEGIN_TRY
 

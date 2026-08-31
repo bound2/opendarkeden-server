@@ -26,18 +26,6 @@ void CGStashList::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGStashList::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-    __BEGIN_DEBUG
-
-    CGStashListHandler::execute(this, pPlayer);
-
-    __END_DEBUG
-    __END_CATCH
-}
-
 string CGStashList::toString() const {
     __BEGIN_TRY
 

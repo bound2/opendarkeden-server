@@ -28,16 +28,6 @@ void CGWithdrawPet::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGWithdrawPet::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGWithdrawPetHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGWithdrawPet::toString() const {
     __BEGIN_TRY
 

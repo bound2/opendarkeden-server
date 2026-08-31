@@ -25,7 +25,6 @@ public:
     ~CGBuyStoreItem(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_CG_BUY_STORE_ITEM;
     }

@@ -45,16 +45,6 @@ void CGPartyPosition::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGPartyPosition::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGPartyPositionHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGPartyPosition::toString() const
 
 {

@@ -29,14 +29,6 @@ void CGQuitUnion::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGQuitUnion::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-    CGQuitUnionHandler::execute(this, pPlayer);
-    __END_CATCH
-}
-
 string CGQuitUnion::toString() const
 
 {

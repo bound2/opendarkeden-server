@@ -26,16 +26,6 @@ void CGModifyTaxRatio::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGModifyTaxRatio::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGModifyTaxRatioHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGModifyTaxRatio::toString() const
 
 {

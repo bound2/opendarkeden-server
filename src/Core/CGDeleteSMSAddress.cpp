@@ -37,16 +37,6 @@ void CGDeleteSMSAddress::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGDeleteSMSAddress::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGDeleteSMSAddressHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGDeleteSMSAddress::toString() const {
     __BEGIN_TRY
 

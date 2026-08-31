@@ -31,16 +31,6 @@ void CGLotterySelect::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGLotterySelect::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGLotterySelectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGLotterySelect::toString() const
 
 {

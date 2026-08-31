@@ -25,7 +25,6 @@ public:
     virtual ~CGShopRequestBuy(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
-    void execute(Player* pPlayer);
     PacketID_t getPacketID() const {
         return PACKET_CG_SHOP_REQUEST_BUY;
     }

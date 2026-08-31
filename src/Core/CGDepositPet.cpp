@@ -28,16 +28,6 @@ void CGDepositPet::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGDepositPet::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGDepositPetHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGDepositPet::toString() const {
     __BEGIN_TRY
 

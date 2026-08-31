@@ -30,16 +30,6 @@ void CGSetVampireHotKey::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSetVampireHotKey::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSetVampireHotKeyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSetVampireHotKey::toString() const
 
 {

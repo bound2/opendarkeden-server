@@ -27,16 +27,6 @@ void CGDenyUnion::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGDenyUnion::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGDenyUnionHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGDenyUnion::toString() const
 
 {

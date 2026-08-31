@@ -58,16 +58,6 @@ void CGAddSMSAddress::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAddSMSAddress::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAddSMSAddressHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAddSMSAddress::toString() const {
     __BEGIN_TRY
 

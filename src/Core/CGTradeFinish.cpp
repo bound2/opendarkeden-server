@@ -28,16 +28,6 @@ void CGTradeFinish::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGTradeFinish::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGTradeFinishHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGTradeFinish::toString() const {
     __BEGIN_TRY
 

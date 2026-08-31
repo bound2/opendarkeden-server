@@ -48,16 +48,6 @@ void CGAddInjuriousCreature::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAddInjuriousCreature::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAddInjuriousCreatureHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAddInjuriousCreature::toString() const
 
 {

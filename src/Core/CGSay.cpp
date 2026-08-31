@@ -54,16 +54,6 @@ void CGSay::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSay::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSayHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSay::toString() const
 
 {

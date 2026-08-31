@@ -236,6 +236,7 @@ set(GQUEST_SOURCES
 # 主要源文件
 # ============================================================================
 set(GAMESERVER_MAIN_SOURCES
+    CGPacketDispatch.cpp
     main.cpp
     Zone.cpp
     Slayer.cpp

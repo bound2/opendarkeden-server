@@ -34,16 +34,6 @@ void CGDisplayItem::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGDisplayItem::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGDisplayItemHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGDisplayItem::toString() const
 
 {

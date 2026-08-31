@@ -31,16 +31,6 @@ void CGShopRequestList::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGShopRequestList::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGShopRequestListHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGShopRequestList::toString() const {
     StringStream msg;
     msg << "CGShopRequestList(" << "ObjectID:" << (int)m_ObjectID << "RackType:" << (int)m_RackType << ")";

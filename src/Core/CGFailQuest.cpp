@@ -26,16 +26,6 @@ void CGFailQuest::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGFailQuest::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGFailQuestHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGFailQuest::toString() const
 
 {

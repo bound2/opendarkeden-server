@@ -26,16 +26,6 @@ void CGNPCTalk::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGNPCTalk::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGNPCTalkHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGNPCTalk::toString() const {
     __BEGIN_TRY
 

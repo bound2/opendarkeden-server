@@ -26,16 +26,6 @@ void CGWithdrawTax::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGWithdrawTax::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGWithdrawTaxHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGWithdrawTax::toString() const
 
 {

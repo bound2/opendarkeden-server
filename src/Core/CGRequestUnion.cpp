@@ -27,16 +27,6 @@ void CGRequestUnion::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGRequestUnion::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRequestUnionHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRequestUnion::toString() const
 
 {

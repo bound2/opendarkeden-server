@@ -62,6 +62,8 @@ src/Core/Encrypter.cpp
 # execute() is off them)
 src/Core/Packet.h
 src/Core/PacketFactory.h
+src/Core/PacketDispatcher.h
+src/Core/PacketDispatcher.cpp
 #
 # Datagram framing (headers only: Datagram.cpp/SerialDatagram.cpp call
 # into PacketFactoryManager, which still owns the whole packet set)

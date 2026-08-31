@@ -78,16 +78,6 @@ void CGTypeStringList::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGTypeStringList::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGTypeStringListHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGTypeStringList::toString() const {
     __BEGIN_TRY
 

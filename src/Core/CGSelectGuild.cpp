@@ -27,16 +27,6 @@ void CGSelectGuild::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSelectGuild::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSelectGuildHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSelectGuild::toString() const
 
 {

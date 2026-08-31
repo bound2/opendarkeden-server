@@ -66,16 +66,6 @@ void CGSkillToSelf::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSkillToSelf::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSkillToSelfHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSkillToSelf::toString() const
 
 {

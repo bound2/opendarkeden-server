@@ -28,16 +28,6 @@ void CGDonationMoney::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGDonationMoney::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGDonationMoneyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGDonationMoney::toString() const {
     __BEGIN_TRY
 

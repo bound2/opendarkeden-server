@@ -28,16 +28,6 @@ void CGUseItemFromGQuestInventory::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGUseItemFromGQuestInventory::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUseItemFromGQuestInventoryHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGUseItemFromGQuestInventory::toString() const {
     __BEGIN_TRY
 

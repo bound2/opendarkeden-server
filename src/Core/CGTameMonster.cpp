@@ -42,16 +42,6 @@ void CGTameMonster::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGTameMonster::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGTameMonsterHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGTameMonster::toString() const
 
 {

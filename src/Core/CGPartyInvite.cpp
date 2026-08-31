@@ -28,16 +28,6 @@ void CGPartyInvite::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGPartyInvite::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGPartyInviteHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGPartyInvite::toString() const {
     __BEGIN_TRY
 

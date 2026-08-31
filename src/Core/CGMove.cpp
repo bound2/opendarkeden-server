@@ -57,16 +57,6 @@ void CGMove::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGMove::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGMoveHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGMove::toString() const
 
 {

@@ -97,11 +97,3 @@ string CGExchangeList::toString() const {
         << ",MaxPrice:" << m_MaxPrice << ",SellerFilter:" << m_SellerFilter << ")";
     return msg.toString();
 }
-
-void CGExchangeList::execute(Player* pPlayer) {
-    __BEGIN_TRY
-
-    CGExchangeListHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

@@ -11,6 +11,7 @@
 #include "Assert.h"
 #include "Guild.h"
 #include "GuildManager.h"
+#include "PacketDispatcher.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 
@@ -115,11 +116,13 @@ void SharedServerClient::processCommand() {
 #ifdef __PROFILE_PACKETS__
 
                 beginProfileEx(pPacket->getPacketName().c_str());
-                pPacket->execute(this);
+                if (!PacketDispatcher::dispatch(pPacket, this))
+                    pPacket->execute(this);
                 endProfileEx(pPacket->getPacketName().c_str());
 
 #else
-                pPacket->execute(this);
+                if (!PacketDispatcher::dispatch(pPacket, this))
+                    pPacket->execute(this);
 #endif
             } catch (IgnorePacketException& igpe) {
                 // 패킷 크기가 너무 크면 프로토콜 에러로 간주한다.

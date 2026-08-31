@@ -30,16 +30,6 @@ void CGAddItemToCodeSheet::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAddItemToCodeSheet::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAddItemToCodeSheetHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAddItemToCodeSheet::toString() const
 
 {

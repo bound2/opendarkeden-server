@@ -49,8 +49,6 @@ public:
     // Datagram 객체로 패킷의 바이너리 이미지를 보낸다.
     virtual void write(Datagram& oDatagram) const = 0;
 
-    // execute packet's handler
-    virtual void execute(Player* pPlayer) = 0;
 
     // get packet's DatagramPacketID
     virtual PacketID_t getPacketID() const = 0;

@@ -59,16 +59,6 @@ void CGUseMessageItemFromInventory::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGUseMessageItemFromInventory::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUseMessageItemFromInventoryHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGUseMessageItemFromInventory::toString() const {
     __BEGIN_TRY
 

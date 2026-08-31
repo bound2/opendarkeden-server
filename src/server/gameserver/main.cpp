@@ -17,6 +17,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
+#include "CGPacketDispatch.h"
 #include "Exception.h"
 #include "GameServer.h"
 #include "LogClient.h"
@@ -86,6 +87,11 @@ int main(int argc, char* argv[]) {
     // ÀûÀýÇÑ À§Ä¡¸¦ Ã£¾Æº¸ÀÚ.
     srand(time(0));
     cout << ">>> RANDOMIZATION INITIALIZATION SUCCESS..." << endl;
+
+    // Bind every CG packet id to its handler before any thread can
+    // receive a packet (docs/RESTRUCTURING.md task 2.3).
+    registerCGPacketHandlers();
+    cout << ">>> PACKET DISPATCH TABLE REGISTERED..." << endl;
 
     if (argc < 3) {
         // cout << "Usage : gameserver -f È¯°æÆÄÀÏ" << endl;

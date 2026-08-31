@@ -30,16 +30,6 @@ void CGTradeMoney::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGTradeMoney::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGTradeMoneyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGTradeMoney::toString() const {
     __BEGIN_TRY
 

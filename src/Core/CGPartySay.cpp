@@ -43,16 +43,6 @@ void CGPartySay::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGPartySay::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGPartySayHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGPartySay::toString() const
 
 {

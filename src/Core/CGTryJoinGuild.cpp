@@ -29,16 +29,6 @@ void CGTryJoinGuild::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGTryJoinGuild::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGTryJoinGuildHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGTryJoinGuild::toString() const
 
 {

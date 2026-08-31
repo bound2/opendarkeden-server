@@ -613,8 +613,14 @@ public:
         }
     }
 
-    // execute packet's handler
-    virtual void execute(Player* pPlayer) = 0;
+    // execute packet's handler. Packets migrated to the composition-root
+    // dispatch table (PacketDispatcher, docs/RESTRUCTURING.md 2.3) do not
+    // override this; reaching the default means the received id was
+    // neither registered nor legacy-migrated — a protocol error. Delete
+    // this method entirely once ratchet R4 reaches 0.
+    virtual void execute(Player*) {
+        throw InvalidProtocolException("packet has no registered handler");
+    }
 
     // get packet's PacketID
     virtual PacketID_t getPacketID() const = 0;

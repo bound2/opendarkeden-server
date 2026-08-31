@@ -27,11 +27,3 @@ void CGConnectSetKey::write(SocketOutputStream& oStream) const {
 
     __END_CATCH
 }
-
-void CGConnectSetKey::execute(Player* pPlayer) {
-    __BEGIN_TRY
-
-    CGConnectSetKeyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

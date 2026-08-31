@@ -77,16 +77,6 @@ void CGWhisper::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGWhisper::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGWhisperHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGWhisper::toString() const
 
 {

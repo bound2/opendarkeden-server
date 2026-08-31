@@ -92,16 +92,6 @@ PacketSize_t CGSMSSend::getPacketSize() const {
     __END_CATCH
 }
 
-void CGSMSSend::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSMSSendHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSMSSend::toString() const
 
 {

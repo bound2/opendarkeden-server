@@ -32,16 +32,6 @@ void CGUndisplayItem::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGUndisplayItem::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGUndisplayItemHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGUndisplayItem::toString() const
 
 {

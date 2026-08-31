@@ -70,16 +70,6 @@ void CGAttack::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGAttack::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGAttackHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGAttack::toString() const
 
 {

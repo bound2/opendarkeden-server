@@ -26,16 +26,6 @@ void CGGQuestAccept::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGGQuestAccept::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGGQuestAcceptHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGGQuestAccept::toString() const
 
 {

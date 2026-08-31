@@ -28,16 +28,6 @@ void CGTradeRemoveItem::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGTradeRemoveItem::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGTradeRemoveItemHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGTradeRemoveItem::toString() const {
     __BEGIN_TRY
 

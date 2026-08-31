@@ -30,21 +30,9 @@ void CGPetGamble::read(SocketInputStream& iStream)
 
 void CGPetGamble::write(SocketOutputStream& oStream) const
 
-{
-    __BEGIN_TRY
+    {__BEGIN_TRY
 
-    __END_CATCH
-}
-
-void CGPetGamble::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGPetGambleHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
+         __END_CATCH}
 
 string CGPetGamble::toString() const {
     __BEGIN_TRY

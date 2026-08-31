@@ -73,16 +73,6 @@ void CGSkillToTile::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSkillToTile::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSkillToTileHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGSkillToTile::toString() const
 
 {

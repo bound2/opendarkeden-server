@@ -58,16 +58,6 @@ void CGSkillToNamed::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGSkillToNamed::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGSkillToNamedHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 string CGSkillToNamed::toString() const
 

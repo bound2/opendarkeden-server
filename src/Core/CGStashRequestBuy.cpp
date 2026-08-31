@@ -15,20 +15,7 @@ void CGStashRequestBuy::read(SocketInputStream& iStream)
 
 void CGStashRequestBuy::write(SocketOutputStream& oStream) const
 
-{
-    __BEGIN_TRY
-    __END_CATCH
-}
-
-void CGStashRequestBuy::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGStashRequestBuyHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 string CGStashRequestBuy::toString() const {
     StringStream msg;

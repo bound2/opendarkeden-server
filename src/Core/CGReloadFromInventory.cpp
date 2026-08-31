@@ -41,16 +41,6 @@ void CGReloadFromInventory::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGReloadFromInventory::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGReloadFromInventoryHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGReloadFromInventory::toString() const {
     __BEGIN_TRY
 

@@ -43,16 +43,6 @@ void CGRelicToObject::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGRelicToObject::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRelicToObjectHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRelicToObject::toString() const
 
 {

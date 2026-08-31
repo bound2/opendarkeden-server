@@ -58,16 +58,6 @@ void CGRequestPowerPoint::write(SocketOutputStream& oStream) const {
     __END_CATCH
 }
 
-void CGRequestPowerPoint::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGRequestPowerPointHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGRequestPowerPoint::toString() const {
     __BEGIN_TRY
 

@@ -39,16 +39,6 @@ void CGReloadFromQuickSlot::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CGReloadFromQuickSlot::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CGReloadFromQuickSlotHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CGReloadFromQuickSlot::toString() const {
     __BEGIN_TRY
 
