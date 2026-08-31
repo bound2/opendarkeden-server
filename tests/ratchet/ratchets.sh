@@ -15,7 +15,13 @@ fail=0
 
 check_ratchet() {
     local id="$1" desc="$2" baseline="$3" measured="$4"
-    if [ "$measured" -gt "$baseline" ]; then
+    # A non-numeric measurement (e.g. `wc -l < missing-file` yields "")
+    # would make both [ -gt ] and [ -lt ] fail and fall through to [OK] —
+    # a ratchet that silently passes when its subject disappears.
+    if ! [[ "$measured" =~ ^[0-9]+$ ]]; then
+        echo "[FAIL] $id $desc: measurement produced '$measured' (not a number — file missing or renamed?)"
+        fail=1
+    elif [ "$measured" -gt "$baseline" ]; then
         echo "[FAIL] $id $desc: measured $measured > baseline $baseline (new debt — remove it instead)"
         fail=1
     elif [ "$measured" -lt "$baseline" ]; then
@@ -49,6 +55,19 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # re-baseline note) when they become de-core extraction targets in 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(handler|packetfill)/' | wc -l)
 check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5984 "$R5"
+
+# --- R6: god-file line counts (task 3.3 files only, so far) -----------------
+# Formula extraction to de-core (src/domain) shrinks these; each delegation
+# that moves math out must tighten the number here. The doc's other god
+# files join when their own extractions start. Baselines measured
+# 2026-08-31, post-3.3-extraction (the doc's 08-29 numbers predate the
+# clang-format-18 pass and are superseded).
+R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
+check_ratchet R6a "SkillUtil.cpp lines" 6745 "$R6a"
+R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
+check_ratchet R6b "InitAllStat.cpp lines" 4949 "$R6b"
+R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
+check_ratchet R6c "HitRoll.cpp lines" 774 "$R6c"
 
 # --- Generated factory list is fresh ---------------------------------------
 # The generator only writes to $OUT, so point it at a scratch copy of the

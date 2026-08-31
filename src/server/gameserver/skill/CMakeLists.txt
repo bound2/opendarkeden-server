@@ -525,6 +525,10 @@ add_library(Skill STATIC
 )
 
 target_compile_definitions(Skill PRIVATE __GAME_SERVER__)
+# For the pure-formula delegations in SkillUtil.cpp ("domain/Formulas.h").
+# Linking a static lib to a static lib only propagates usage requirements
+# (the include dir); the objects still meet in the gameserver link.
+target_link_libraries(Skill PRIVATE de-core)
 target_include_directories(Skill PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src/Core

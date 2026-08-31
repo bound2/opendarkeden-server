@@ -78,6 +78,24 @@ add_test(NAME wire_tests COMMAND wire_tests)
 # A hang here would otherwise sit for ctest's 1500s default with no output.
 set_tests_properties(wire_tests PROPERTIES TIMEOUT 120)
 
+# Pure-formula unit tests (docs/RESTRUCTURING.md 3.3). Linking ONLY de-core
+# and gtest is deliberate: it proves de-core stays freestanding — pulling
+# Core, transport, or a gameserver header into it breaks this link.
+add_executable(formula_tests EXCLUDE_FROM_ALL
+    formula_test.cpp
+)
+target_link_libraries(formula_tests PRIVATE
+    de-core
+    gtest_main
+    Threads::Threads
+)
+# `make dev-test` builds the wire_tests target; ride along so ctest always
+# has a fresh binary (same pattern as the de-kernel build-only dependency).
+add_dependencies(wire_tests formula_tests)
+
+add_test(NAME formula_tests COMMAND formula_tests)
+set_tests_properties(formula_tests PROPERTIES TIMEOUT 60)
+
 add_test(
     NAME ratchets
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/ratchet/ratchets.sh

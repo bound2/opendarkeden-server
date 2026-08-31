@@ -15,6 +15,7 @@
 #include "Slayer.h"
 #include "Vampire.h"
 #include "Zone.h"
+#include "domain/Formulas.h"
 // #include <math.h>
 
 #include "EffectHymn.h"
@@ -124,33 +125,21 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
     int RandValue = Random(0, 100);
     int Result = 0;
 
+#ifdef __CHINA_SERVER__
     if (ToHit >= Defense) {
-        // 투힛이 디펜스보다 높은 경우에는 맞출 확률이 꽤...높다.
-#ifdef __CHINA_SERVER__
+        // ToHit above Defense: the chance to land is quite high.
         Result = min(90, (int)(((ToHit - Defense) / 1.5) + 60) + ToHitBonus);
-#else
-        if (isMonster) {
-            Result = min(95, (int)(((ToHit - Defense) / 3) + 50) + ToHitBonus / 2);
-        } else {
-            Result = min(90, (int)(((ToHit - Defense) / 3) + 50) + ToHitBonus / 2);
-        }
-#endif
     } else {
-        // 투힛이 디펜스보다 낮은 경우에는 맞출 확률이 많이 떨어진다.
-#ifdef __CHINA_SERVER__
+        // ToHit below Defense: the chance to land drops sharply.
         if (isMonster) {
             Result = max(10, (int)(60 - ((Defense - ToHit) / 1.5) + ToHitBonus));
         } else {
             Result = max(20, (int)(60 - ((Defense - ToHit) / 1.5) + ToHitBonus));
         }
-#else
-        if (isMonster) {
-            Result = max(5, (int)(50 - ((Defense - ToHit) / 3) + ToHitBonus / 2));
-        } else {
-            Result = max(10, (int)(50 - ((Defense - ToHit) / 3) + ToHitBonus / 2));
-        }
-#endif
     }
+#else
+    Result = decore::meleeHitRatio(ToHit, Defense, ToHitBonus, isMonster);
+#endif
 
     // cout << ToHit << " --> " << Defense << " : " << RandValue << "<=" << Result
     //		<< (RandValue <= Result? "Success" : "Fail") << endl;
@@ -251,14 +240,14 @@ bool HitRoll::isSuccessMagic(Slayer* pSlayer, SkillInfo* pSkillInfo, SkillSlot* 
 #ifdef __CHINA_SERVER__
     int SuccessRatio =
         (int)(45 - pSkillInfo->getLevel() / 2 + (int)((pSlayer->getINT() + pSkillSlot->getExpLevel()) / 2.5));
-#else
-    int SuccessRatio =
-        (int)(60 - pSkillInfo->getLevel() / 3 + (int)((pSlayer->getINT() + pSkillSlot->getExpLevel()) / 2.5));
-#endif
 
-    // 슬레이어 셀프 스킬일 경우 최소 확률이 50%이다.
+    // Slayer self skills succeed at least half the time.
     if (isSlayerSelfSkill(pSkillSlot->getSkillType()))
         SuccessRatio = max(50, SuccessRatio);
+#else
+    int SuccessRatio = decore::slayerMagicRatio(pSkillInfo->getLevel(), pSlayer->getINT(), pSkillSlot->getExpLevel(),
+                                                isSlayerSelfSkill(pSkillSlot->getSkillType()));
+#endif
 
     if (RandValue < SuccessRatio)
         return true;
@@ -277,11 +266,8 @@ bool HitRoll::isSuccessMagic(Vampire* pVampire, SkillInfo* pSkillInfo, VampireSk
     Assert(pVampireSkillSlot != NULL);
 
     int RandValue = Random(1, 100);
-    int Success = (int)(45 - pSkillInfo->getLevel() / 2 + (pVampire->getINT() + pVampire->getLevel()) / 4);
-
-    if (BonusPoint != 0) {
-        Success = getPercentValue(Success, 100 + BonusPoint);
-    }
+    int Success =
+        decore::vampireMagicRatio(pSkillInfo->getLevel(), pVampire->getINT(), pVampire->getLevel(), BonusPoint);
 
     if (RandValue < Success)
         return true;
@@ -304,15 +290,8 @@ bool HitRoll::isSuccessMagic(Ousters* pOusters, SkillInfo* pSkillInfo, OustersSk
 
     int RandValue = Random(1, 100);
     //	int Success = (int)( 45 - pSkillInfo->getLevel() / 2 + (pOusters->getINT() + pOusters->getLevel())/10 );
-    int Success = (int)(45 + (pOusters->getINT() + pOusters->getLevel()) / 4 + pOustersSkillSlot->getExpLevel() / 3);
-
-    if (isOustersSelfSkill(pOustersSkillSlot->getSkillType())) {
-        Success = max(Success, 60);
-    }
-
-    if (BonusPoint != 0) {
-        Success = getPercentValue(Success, 100 + BonusPoint);
-    }
+    int Success = decore::oustersMagicRatio(pOusters->getINT(), pOusters->getLevel(), pOustersSkillSlot->getExpLevel(),
+                                            isOustersSelfSkill(pOustersSkillSlot->getSkillType()), BonusPoint);
 
     if (RandValue < Success)
         return true;
@@ -328,7 +307,7 @@ bool HitRoll::isSuccessMagic(Monster* pMonster, SkillInfo* pSkillInfo) {
     Assert(pMonster != NULL);
     Assert(pSkillInfo != NULL);
 
-    int ratio = (int)(45 - pSkillInfo->getLevel() / 2 + (pMonster->getINT() + pMonster->getLevel()) / 4);
+    int ratio = decore::monsterMagicRatio(pSkillInfo->getLevel(), pMonster->getINT(), pMonster->getLevel());
     if (rand() % 100 < ratio)
         return true;
 
@@ -373,7 +352,7 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
         int MaxHP = pTargetSlayer->getHP(ATTR_MAX);
         int CurHP = pTargetSlayer->getHP(ATTR_CURRENT);
 
-        bHPCheck = (CurHP * multiplier <= MaxHP) ? true : false;
+        bHPCheck = decore::bloodDrainHPGate(CurHP, MaxHP, multiplier);
         bEffected = (normalMultiplier == multiplier) && pTargetSlayer->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         Defense = pTargetSlayer->getDefense();
 
@@ -395,7 +374,7 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
         int MaxHP = pTargetVampire->getHP(ATTR_MAX);
         int CurHP = pTargetVampire->getHP(ATTR_CURRENT);
 
-        bHPCheck = (CurHP * multiplier <= MaxHP) ? true : false;
+        bHPCheck = decore::bloodDrainHPGate(CurHP, MaxHP, multiplier);
         // bEffected  = pTargetVampire->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         bEffected = (normalMultiplier == multiplier) && pTargetVampire->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         Defense = pTargetVampire->getDefense() + pTargetVampire->getLevel() / 5;
@@ -412,7 +391,7 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
         int MaxHP = pTargetOusters->getHP(ATTR_MAX);
         int CurHP = pTargetOusters->getHP(ATTR_CURRENT);
 
-        bHPCheck = (CurHP * multiplier <= MaxHP) ? true : false;
+        bHPCheck = decore::bloodDrainHPGate(CurHP, MaxHP, multiplier);
         // bEffected  = pTargetOusters->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         bEffected = (normalMultiplier == multiplier) && pTargetOusters->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         Defense = pTargetOusters->getDefense() + pTargetOusters->getLevel() / 5;
@@ -427,7 +406,7 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
         int MaxHP = pTargetMonster->getHP(ATTR_MAX);
         int CurHP = pTargetMonster->getHP(ATTR_CURRENT);
 
-        bHPCheck = (CurHP * multiplier <= MaxHP) ? true : false;
+        bHPCheck = decore::bloodDrainHPGate(CurHP, MaxHP, multiplier);
         // bEffected  = pTargetMonster->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         bEffected = (normalMultiplier == multiplier) && pTargetMonster->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         Defense = pTargetMonster->getDefense() + pTargetMonster->getLevel() / 5;
@@ -479,13 +458,7 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
     //	cout << pAttacker->getName() << "의 투힛 : " << ToHit << endl;
     //	cout << pDefender->getName() << "의 디펜 : " << Defense << endl;
 
-    if (ToHit >= Defense) {
-        // 투힛이 디펜스보다 높은 경우에는 맞출 확률이 꽤...높다.
-        ratio = min(90, (ToHit - Defense) / 2 + 70);
-    } else {
-        // 투힛이 디펜스보다 낮은 경우에는 맞출 확률이 많이 떨어진다.
-        ratio = max(10, 70 - (Defense - ToHit) / 2);
-    }
+    ratio = decore::bloodDrainHitRatio(ToHit, Defense);
 
     if ((rand() % 100) < ratio) {
         //		cout << "흡혈 성공" << endl;
@@ -511,9 +484,7 @@ bool HitRoll::isSuccessCurse(int MagicLevel, Resist_t resist) {
     int prob_penalty = (int)(MagicLevel - resist);
     int curse_prob = 65 + prob_penalty;
 #else
-    int prob_penalty = (int)(MagicLevel * 2 / 1.5 - resist);
-    int curse_prob = 75 + prob_penalty;
-    curse_prob = max(5, curse_prob);
+    int curse_prob = decore::curseRatio(MagicLevel, resist);
 #endif
     int randomValue = rand() % 100;
 
@@ -536,9 +507,7 @@ bool HitRoll::isSuccessVampireCurse(int MagicLevel, Resist_t resist) {
     // curse_prob = 110이고, 저주는 항상 성공하게 된다.
     // MagicLevel이 30이고, 저항이 100이라면...
     // curse_prob = 30이고, 마법은 70% 확률로 실패하게 된다.
-    int prob_penalty = (int)((int)(MagicLevel / 1.5) - resist);
-    int curse_prob = 75 + prob_penalty;
-    curse_prob = max(5, curse_prob);
+    int curse_prob = decore::vampireCurseRatio(MagicLevel, resist);
 
     int randomValue = rand() % 100;
 
@@ -554,10 +523,8 @@ bool HitRoll::isSuccessVampireCurse(int MagicLevel, Resist_t resist) {
 // CurePoison 명중굴림 함수
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessCurePoison(int Base, int SkillLevel, int Difficulty, int MagicLevel, int MinRatio) {
-    int ratio = Base + SkillLevel - Difficulty - MagicLevel;
-
-    // 최소확률을 집어넣었다. by Sequoia 2003. 3. 20
-    ratio = max(MinRatio, ratio);
+    // Minimum ratio added by Sequoia 2003. 3. 20
+    int ratio = decore::dispelRatio(Base, SkillLevel, Difficulty, MagicLevel, MinRatio);
 
     if (rand() % 100 < ratio)
         return true;
@@ -578,7 +545,7 @@ bool HitRoll::isSuccessFlare(Creature* pTargetCreature, int SkillLevel) {
 
     if (pTargetCreature->isPC()) {
         //		Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
-        ratio = 75 + SkillLevel - pTargetCreature->getLevel();
+        ratio = decore::flareRatio(SkillLevel, pTargetCreature->getLevel());
     } else if (pTargetCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
 
@@ -592,7 +559,7 @@ bool HitRoll::isSuccessFlare(Creature* pTargetCreature, int SkillLevel) {
             return false;
         }
 
-        ratio = 75 + SkillLevel - pMonster->getLevel();
+        ratio = decore::flareRatio(SkillLevel, pMonster->getLevel());
     }
 
     if (rand() % 100 < ratio)
@@ -605,10 +572,8 @@ bool HitRoll::isSuccessFlare(Creature* pTargetCreature, int SkillLevel) {
 // RemoveCurse 명중굴림 함수
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessRemoveCurse(int Base, int SkillLevel, int Difficulty, int MagicLevel, int MinRatio /* = 0 */) {
-    int ratio = Base + SkillLevel - Difficulty - MagicLevel;
-
-    // 최소확률을 집어넣었다. by Sequoia 2003. 3. 20
-    ratio = max(MinRatio, ratio);
+    // Minimum ratio added by Sequoia 2003. 3. 20
+    int ratio = decore::dispelRatio(Base, SkillLevel, Difficulty, MagicLevel, MinRatio);
 
     if (rand() % 100 < ratio)
         return true;
@@ -648,7 +613,7 @@ bool HitRoll::isSuccessRebuke(Slayer* pSlayer, SkillSlot* pSkillSlot, Creature* 
     SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
     //	int ratio = ( INTE / 10 ) + ( SkillLevel / 3 );
-    int ratio = 20 + (INTE / 10) + (SkillLevel / 2);
+    int ratio = decore::rebukeRatio(INTE, SkillLevel);
     if (rand() % 100 < ratio)
         return true;
     return false;
@@ -659,7 +624,7 @@ bool HitRoll::isSuccessRebuke(Slayer* pSlayer, SkillSlot* pSkillSlot, Creature* 
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessMagicElusion(Slayer* pSlayer) {
     Attr_t SUM = pSlayer->getTotalAttr(ATTR_CURRENT);
-    int Ratio = 50 + (SUM / 15);
+    int Ratio = decore::totalAttrDefenseRatio(SUM);
 
     return (rand() % 100) < Ratio;
 }
@@ -668,7 +633,7 @@ bool HitRoll::isSuccessMagicElusion(Slayer* pSlayer) {
 // Posion Mesh 명중굴림 함수
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessPoisonMesh(Vampire* pVampire) {
-    int Ratio = 30 + (pVampire->getLevel() / 5);
+    int Ratio = decore::poisonMeshRatio(pVampire->getLevel());
 
     return (rand() % 100) < Ratio;
 }
@@ -678,7 +643,7 @@ bool HitRoll::isSuccessPoisonMesh(Vampire* pVampire) {
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessIllusionOfAvenge(Slayer* pSlayer) {
     Attr_t SUM = pSlayer->getTotalAttr(ATTR_CURRENT);
-    int Ratio = 50 + (SUM / 15);
+    int Ratio = decore::totalAttrDefenseRatio(SUM);
 
     return (rand() % 100) < Ratio;
 }
@@ -687,7 +652,7 @@ bool HitRoll::isSuccessIllusionOfAvenge(Slayer* pSlayer) {
 // Will Of Life 명중굴림 함수
 //////////////////////////////////////////////////////////////////////////////
 bool HitRoll::isSuccessWillOfLife(Vampire* pVampire) {
-    int Ratio = 50 + pVampire->getLevel() / 5;
+    int Ratio = decore::willOfLifeRatio(pVampire->getLevel());
 
     return (rand() % 100) < Ratio;
 }
@@ -796,15 +761,13 @@ bool HitRoll::isSuccessHallucination(Vampire* pAttacker, Creature* pTarget) {
     } else
         return false;
 
-    int Ratio = attackTotalAttr - targetTotalAttr;
-    Ratio = max(minRatio, Ratio);
-    Ratio = min(maxRatio, Ratio);
+    int Ratio = decore::hallucinationRatio(attackTotalAttr, targetTotalAttr, minRatio, maxRatio);
 
     return (rand() % 100) < Ratio;
 }
 
 bool HitRoll::isSuccessBackStab(Ousters* pAttacker) {
-    int Ratio = min(50, (pAttacker->getINT() / 5) + (pAttacker->getDEX() / 5));
+    int Ratio = decore::backStabRatio(pAttacker->getINT(), pAttacker->getDEX());
     if (rand() % 100 < Ratio)
         return true;
     return false;

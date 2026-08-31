@@ -9,6 +9,7 @@
 #include "Monster.h"
 #include "Player.h"
 #include "SkillInfo.h"
+#include "domain/Formulas.h"
 // #include "AttrBalanceInfo.h"
 #include <math.h>
 #include <stdio.h>
@@ -282,49 +283,9 @@ Damage_t computeDamage(Creature* pCreature, Creature* pTargetCreature, int Criti
 //////////////////////////////////////////////////////////////////////////////
 double computeFinalDamage(Damage_t minDamage, Damage_t maxDamage, Damage_t realDamage, Protection_t Protection,
                           bool bCritical) {
-    // Å©¸®Æ¼ÄÃ È÷Æ®¶ó¸é ÇÁ·ÎÅØ¼ÇÀ» °í·ÁÇÏÁö ¾Ê°í, µ¥¹ÌÁö ±×´ë·Î µé¾î°£´Ù.
-    if (bCritical)
-        return realDamage;
-
-    if (Protection > 640)
-        Protection = 640;
-
-    Damage_t FinalDamage;
-    FinalDamage = realDamage - (realDamage * (Protection / 8)) / 100;
-    // FinalDamage = realDamage - ( realDamage * ( Protection / 10 ) ) / 100;
-
-    return max(1, (int)FinalDamage);
-    /*
-        Damage_t avgDamage   = (minDamage + maxDamage) >> 1;
-        int      DamageRatio = 100;
-
-        if (Protection < avgDamage)
-        {
-            DamageRatio = 100;
-        }
-        else if (Protection < getPercentValue(avgDamage, 150))
-        {
-            DamageRatio = 90;
-        }
-        else if (Protection < getPercentValue(avgDamage, 200))
-        {
-            DamageRatio = 80;
-        }
-        else if (Protection < getPercentValue(avgDamage, 250))
-        {
-            DamageRatio = 70;
-        }
-        else if (Protection < getPercentValue(avgDamage, 300))
-        {
-            DamageRatio = 60;
-        }
-        else
-        {
-            DamageRatio = 50;
-        }
-
-        return max(1, getPercentValue(realDamage, DamageRatio));
-    */
+    // minDamage/maxDamage are unused by the current formula; the parameters
+    // stay for the many call sites. The math lives in de-core (task 3.3).
+    return decore::finalDamage(realDamage, Protection, bCritical);
 }
 
 
@@ -778,26 +739,10 @@ void computeCriticalBonus(Ousters* pOusters, SkillType_t skillType, Damage_t& Da
 
 RankExp_t computeRankExp(int myLevel, int otherLevel) // by sigi. 2002.12.31
 {
-    RankExp_t rankExp = 0;
-
-    if (myLevel != 0 && otherLevel != 0) {
-        int checkValue = otherLevel * 100 / myLevel;
-
-        if (checkValue > 120) {
-            rankExp = (otherLevel - myLevel) * (otherLevel - myLevel) / 10 + otherLevel * 100 / myLevel;
-        } else {
-            rankExp = otherLevel * 100 / myLevel - 10;
-        }
-
-        rankExp = max(0, (int)rankExp);
-
-        // by sigi. 2002.12.31
-        rankExp = getPercentValue(rankExp, g_pVariableManager->getVariable(RANK_EXP_GAIN_PERCENT));
-    }
-
-    rankExp = getPercentValue(rankExp, g_pVariableManager->getPremiumExpBonusPercent());
-
-    return rankExp;
+    // The formula lives in de-core (task 3.3); this adapter only supplies
+    // the two server-configured percentages.
+    return decore::rankExp(myLevel, otherLevel, g_pVariableManager->getVariable(RANK_EXP_GAIN_PERCENT),
+                           g_pVariableManager->getPremiumExpBonusPercent());
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2976,31 +2921,8 @@ MP_t decreaseConsumeMP(Vampire* pVampire, SkillInfo* pSkillInfo) {
     Assert(pVampire != NULL);
     Assert(pSkillInfo != NULL);
 
-    int OriginalMP = pSkillInfo->getConsumeMP();
-    int MagicLevel = pSkillInfo->getLevel();
-    int INTE = max(0, pVampire->getINT() - 20);
-    int DecreaseAmount = 0;
-
-    if (INTE <= MagicLevel) {
-    } else if (MagicLevel < INTE && INTE <= (MagicLevel * 1.5)) {
-        DecreaseAmount = getPercentValue(OriginalMP, 10);
-    } else if ((MagicLevel * 1.5) < INTE && INTE <= (MagicLevel * 2.0)) {
-        DecreaseAmount = getPercentValue(OriginalMP, 25);
-    } else if ((MagicLevel * 2.0) < INTE && INTE <= (MagicLevel * 3.0)) {
-        DecreaseAmount = getPercentValue(OriginalMP, 50);
-    } else if ((MagicLevel * 3.0) < INTE && INTE <= (MagicLevel * 4.0)) {
-        DecreaseAmount = getPercentValue(OriginalMP, 60);
-    } else if ((MagicLevel * 4.0) < INTE && INTE <= (MagicLevel * 5.0)) {
-        DecreaseAmount = getPercentValue(OriginalMP, 75);
-    } else if ((MagicLevel * 5.0) < INTE && INTE <= (MagicLevel * 6.0)) {
-        DecreaseAmount = getPercentValue(OriginalMP, 85);
-    } else if ((MagicLevel * 6.0) < INTE && INTE <= (MagicLevel * 7.0)) {
-        DecreaseAmount = getPercentValue(OriginalMP, 90);
-    } else if ((MagicLevel * 7.0) < INTE) {
-        DecreaseAmount = getPercentValue(OriginalMP, 95);
-    }
-
-    return (OriginalMP - DecreaseAmount);
+    // The INT-discount bracket table lives in de-core (task 3.3).
+    return decore::vampireSkillConsumeMP(pSkillInfo->getConsumeMP(), pSkillInfo->getLevel(), pVampire->getINT());
 }
 
 
@@ -3231,16 +3153,8 @@ Range_t computeSkillRange(SkillSlot* pSkillSlot, SkillInfo* pSkillInfo) {
 // (OX,OY)¿Í (TX,TY) »çÀÌÀÇ °Å¸®¸¦ ±¸ÇÑ´Ù.
 //////////////////////////////////////////////////////////////////////////////
 Range_t getDistance(ZoneCoord_t Ox, ZoneCoord_t Oy, ZoneCoord_t Tx, ZoneCoord_t Ty) {
-    double OriginX = Ox;
-    double OriginY = Oy;
-    double TargetX = Tx;
-    double TargetY = Ty;
-
-    double XOffset = pow(OriginX - TargetX, 2.0);
-    double YOffset = pow(OriginY - TargetY, 2.0);
-    Range_t range = (Range_t)(sqrt(XOffset + YOffset));
-
-    return range;
+    // Pure geometry — lives in de-core (task 3.3).
+    return decore::tileDistance(Ox, Oy, Tx, Ty);
 }
 
 //////////////////////////////////////////////////////////////////////////////

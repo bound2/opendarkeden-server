@@ -63,14 +63,18 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 God-file baselines (R6):
 
+All rows re-measured 2026-08-31 post-clang-format-18 (the 08-29 numbers
+predated that pass); only the rows `ratchets.sh` names are enforced so far.
+
 | File | Baseline lines |
 |------|---------------:|
-| `src/server/gameserver/Zone.cpp` | 7,616 |
-| `src/server/gameserver/skill/SkillUtil.cpp` | 5,631 |
-| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 3,967 |
-| `src/server/gameserver/InitAllStat.cpp` | 4,158 |
-| `src/server/gameserver/Slayer.cpp` | 3,511 |
-| `src/server/gameserver/skill/SkillFormula.cpp` | 2,640 |
+| `src/server/gameserver/Zone.cpp` | 9,297 |
+| `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (enforced by `ratchets.sh` R6a) |
+| `src/server/gameserver/InitAllStat.cpp` | 4,949 (enforced by `ratchets.sh` R6b) |
+| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,905 |
+| `src/server/gameserver/Slayer.cpp` | 4,375 |
+| `src/server/gameserver/skill/SkillFormula.cpp` | 3,081 |
+| `src/server/gameserver/skill/HitRoll.cpp` | 774 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 
 Once Phase 1's test harness exists, encode R1–R5 as **ratchet tests**: the
 checked-in expected count lives next to the test, the test fails when the
@@ -693,9 +697,27 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   `SkillFormula`/`SkillUtil` math and stat calculations (`InitAllStat.cpp`)
   into pure functions in `de-core`. These are the highest-value tests in the
   game — they encode balance — and the cheapest to write.
-  > **Status:** not started
-  - Owner: the formula test suite; R6 line ratchet on `SkillUtil.cpp` /
-    `InitAllStat.cpp`.
+  > **Status:** in progress (2026-08-31) — the `de-core` STATIC target
+  > exists (`src/domain/`, freestanding by construction) with its first
+  > content: all of `AbilityBalance.cpp` (HP/MP/to-hit/defense/protection/
+  > damage/attack-speed/critical/steal per race) plus `computeFinalDamage`,
+  > `getDistance`, `computeRankExp` and `decreaseConsumeMP` from
+  > `SkillUtil.cpp`, transplanted verbatim into `src/domain/Formulas.cpp`
+  > (narrow-integer wrap-around preserved) behind thin adapters at the old
+  > entry points. `formula_tests` (ctest, links ONLY de-core + gtest) pins
+  > the math including the wrap cases; R6 is now enforced by `ratchets.sh`
+  > for `SkillUtil.cpp`/`InitAllStat.cpp`. **`HitRoll.cpp`'s success-ratio
+  > formulas are extracted too** (melee/blood-drain/magic-per-race/curse/
+  > dispel/flare/rebuke/self-buff/hallucination/backstab — the dice rolls
+  > and live-state gates stay in the adapters; the `__CHINA_SERVER__`
+  > variants stay behind their #ifdef there; `isCriticalHit`'s additive
+  > ratio and the blood-drain defense gathering remain inline), pinned by
+  > 19 more tests (62 assertions) including the floorless negative
+  > `flareRatio` and the toward-zero negative-bonus truncation;
+  > `HitRoll.cpp` joins R6 as R6c. Next: `SkillFormula.cpp` (hit-chance), then the
+  > `InitAllStat.cpp` bodies.
+  - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
+    `InitAllStat.cpp` / `HitRoll.cpp`.
 
 - [ ] **3.4 Codify thread ownership.** Document (in CLAUDE.md) which state is
   owned by which thread: zone-group state mutated only on its
