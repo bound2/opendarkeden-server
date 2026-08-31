@@ -12,7 +12,7 @@
 //----------------------------------------------------------------------
 // read data from socket input stream
 //----------------------------------------------------------------------
-void SlotInfo::read(SocketInputStream& iStream) throw(ProtocolException, Error) {
+void SlotInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
     try {
         iStream.read(m_ObjectID);
@@ -43,7 +43,7 @@ void SlotInfo::read(SocketInputStream& iStream) throw(ProtocolException, Error) 
 //----------------------------------------------------------------------
 // write data to socket output stream
 //----------------------------------------------------------------------
-void SlotInfo::write(SocketOutputStream& oStream) const throw(ProtocolException, Error) {
+void SlotInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
     try {
