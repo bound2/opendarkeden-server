@@ -9,9 +9,9 @@
 // The suite links ONLY de-core and gtest: it is also the proof that de-core
 // stays freestanding (no Core, no gameserver, no transport).
 
-#include "domain/Formulas.h"
-
 #include <gtest/gtest.h>
+
+#include "domain/Formulas.h"
 
 using decore::StatAttr;
 using decore::WeaponFamily;
