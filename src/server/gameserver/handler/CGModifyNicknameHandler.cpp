@@ -133,8 +133,8 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
         //			pPC->removeFlag(Effect::EFFECT_CLASS_CAN_MODIFY_NICKNAME_0);
         pNickname->setNickname(pPacket->getNickname());
 
-        defaultNicknameRepository().updateNickname(pPC->getName(), pNickname->getNicknameID(),
-                                                   pNickname->getNickname());
+        pPC->getNicknameBook()->repository().updateNickname(pPC->getName(), pNickname->getNicknameID(),
+                                                            pNickname->getNickname());
 
         gcNV.setCode(NICKNAME_MODIFY_OK);
         pGamePlayer->sendPacket(&gcNV);
@@ -173,8 +173,8 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
 
         pPC->getNicknameBook()->setNicknameInfo(pNickname->getNicknameID(), pNickname);
 
-        defaultNicknameRepository().insert(pPC->getName(), pNickname->getNicknameID(), pNickname->getNicknameType(),
-                                           pNickname->getNickname());
+        pPC->getNicknameBook()->repository().insert(pPC->getName(), pNickname->getNicknameID(),
+                                                    pNickname->getNicknameType(), pNickname->getNickname());
 
         gcNV.setCode(NICKNAME_MODIFY_OK);
         pGamePlayer->sendPacket(&gcNV);

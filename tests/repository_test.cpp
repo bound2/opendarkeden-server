@@ -3,6 +3,9 @@
 // in for the MySQL implementation in domain tests; a MySQL-backed
 // integration tier is a later task.
 
+#include <stdexcept>
+#include <string>
+
 #include <gtest/gtest.h>
 
 #include "FakeNicknameRepository.h"
@@ -124,6 +127,43 @@ TEST(NicknameRepositoryContract, OwnersAreIsolated) {
 
     EXPECT_TRUE(repository.load("Someone").empty());
     ASSERT_EQ(1u, repository.load("Hyanggi").size());
+}
+
+TEST(NicknameRepositoryContract, DuplicateInsertThrows) {
+    // The real table has PRIMARY KEY (nID, OwnerID) and the plain INSERT is
+    // not INSERT IGNORE: a duplicate raises through the DB layer. Reachable
+    // in production — nextNicknameIDAfter() skips NICK_NONE rows, so a book
+    // holding one can re-issue a taken id.
+    FakeNicknameRepository repository;
+    repository.insert("Hyanggi", 12000, NicknameInfo::NICK_CUSTOM, "taken");
+
+    EXPECT_THROW(repository.insert("Hyanggi", 12000, NicknameInfo::NICK_CUSTOM, "again"), std::runtime_error);
+    // a different owner may reuse the id (the key is compound)
+    repository.insert("Someone", 12000, NicknameInfo::NICK_CUSTOM, "theirs");
+}
+
+TEST(NicknameRepositoryContract, LoadReturnsInsertionOrderNotIDOrder) {
+    // The real SELECT has no ORDER BY; the fake returns insertion order so
+    // no test can quietly start relying on sorted ids.
+    FakeNicknameRepository repository;
+    repository.insert("Hyanggi", 10001, NicknameInfo::NICK_CUSTOM, "second-id-first");
+    repository.insert("Hyanggi", 10000, NicknameInfo::NICK_CUSTOM, "first-id-second");
+
+    std::vector<NicknameRecord> records = repository.load("Hyanggi");
+    ASSERT_EQ(2u, records.size());
+    EXPECT_EQ(10001, records[0].id);
+    EXPECT_EQ(10000, records[1].id);
+}
+
+TEST(NicknameRepositoryContract, NicknameTruncatesToColumnWidth) {
+    // Nickname is varchar(22) latin1 and the server runs with
+    // STRICT_TRANS_TABLES off: over-long values silently truncate.
+    FakeNicknameRepository repository;
+    repository.insert("Hyanggi", 10000, NicknameInfo::NICK_CUSTOM, "abcdefghijklmnopqrstuvwxyz");
+    EXPECT_EQ("abcdefghijklmnopqrstuv", repository.load("Hyanggi")[0].nickname);
+
+    repository.updateNickname("Hyanggi", 10000, std::string(30, 'x'));
+    EXPECT_EQ(std::string(22, 'x'), repository.load("Hyanggi")[0].nickname);
 }
 
 } // namespace

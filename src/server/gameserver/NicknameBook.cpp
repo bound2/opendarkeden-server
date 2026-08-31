@@ -12,8 +12,12 @@
 #define LEVEL_NICKNAME_BASE_ID 1
 #define GUILD_MASTER_NICKNAME_ID 11
 
+// m_NextNicknameID starts at 10000 unconditionally, exactly as the inline
+// SQL version set it before opening its DB block: if load()'s query throws,
+// popNicknameID() must still hand out well-defined ids.
 NicknameBook::NicknameBook(PlayerCreature* pOwner, NicknameRepository* pRepository)
-    : m_pOwner(pOwner), m_pRepository(pRepository != 0 ? pRepository : &defaultNicknameRepository()) {}
+    : m_pOwner(pOwner), m_pRepository(pRepository != 0 ? pRepository : &defaultNicknameRepository()),
+      m_NextNicknameID(10000) {}
 
 void NicknameBook::load() {
     __BEGIN_TRY
@@ -39,7 +43,7 @@ void NicknameBook::load() {
         }
     }
 
-    if (getNicknameInfo(CUSTOM_NICKNAME_ID) == NULL) {
+    if (!hasCustomSlot(records)) {
         NicknameInfo* pLevelNickname = new NicknameInfo;
         pLevelNickname->setNicknameID(CUSTOM_NICKNAME_ID);
         pLevelNickname->setNicknameType(NicknameInfo::NICK_CUSTOM);

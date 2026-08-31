@@ -31,6 +31,14 @@ public:
     void load();
     void addNewNickname(const string& nick);
 
+    // The persistence seam this book was constructed with. Callers that
+    // mutate the book's rows (the modify-nickname handler) must write
+    // through THIS, not the process-wide default — otherwise a book built
+    // over a fake still writes to MySQL and the injection point is a lie.
+    NicknameRepository& repository() const {
+        return *m_pRepository;
+    }
+
 private:
     PlayerCreature* m_pOwner;
     NicknameRepository* m_pRepository;

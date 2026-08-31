@@ -1,27 +1,26 @@
 #include "DB.h"
 #include "repository/NicknameRepository.h"
 
-// Legacy ad-hoc SQL escaper, moved verbatim from CGModifyNicknameHandler.cpp
-// (PetItem.cpp still declares it extern). Quirks preserved on purpose: it
-// truncates at 100 bytes, and when it truncates, the terminator lands one
-// past the buffer. Belongs in the database layer once more repositories
-// need it.
+// Legacy ad-hoc SQL escaper, moved here from CGModifyNicknameHandler.cpp
+// (PetItem.cpp still declares it extern). The original accumulated into a
+// char[100] and, when input reached the boundary, wrote the escaped byte
+// and the terminator up to TWO bytes past the buffer — with client-
+// controlled input reaching it through CGModifyNickname (docs/FIXES.md).
+// This version emits byte-identical output for every input the old code
+// handled without overflowing and truncates cleanly at the same ~100-byte
+// horizon for the rest (the Nickname column is varchar(22) regardless).
+// Belongs in the database layer once more repositories need it.
 string getDBString(const string& str) {
-    char ret[100];
-    int index = 0;
-
-    for (int i = 0; i < str.size(); ++i) {
+    string ret;
+    ret.reserve(str.size() + 8);
+    for (string::size_type i = 0; i < str.size() && ret.size() < 100; ++i) {
         char c = str[i];
         if (c == '\\' || c == '\'') {
-            ret[index++] = '\\';
+            ret += '\\';
         }
-        ret[index++] = c;
-        if (index >= 100)
-            break;
+        ret += c;
     }
-    ret[index] = 0;
-
-    return string(ret);
+    return ret;
 }
 
 namespace {

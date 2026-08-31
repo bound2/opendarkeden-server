@@ -129,3 +129,16 @@ noted.
   described the old layout. Now 4 (`szObjectID`) in both repos. The
   client's only send site remains commented out (`MPlayer.cpp:3457`).
   > **Status:** fixed (restructuring/wire-maxsize-reconcile)
+
+- **`getDBString` wrote up to two bytes past its `char[100]` with
+  client-controlled input.** The legacy SQL escaper (formerly in
+  `CGModifyNicknameHandler.cpp`, now single-sourced in
+  `MySQLNicknameRepository.cpp`) appended the escape byte and the NUL
+  terminator past the buffer whenever an escaped character landed on the
+  boundary — and `CGModifyNickname` feeds it a client-supplied string of
+  up to 255 bytes with only an empty-string check in front. Rewritten as
+  a bounded `std::string` accumulator: byte-identical output for every
+  input the old code survived, clean truncation at the same ~100-byte
+  horizon for the rest (the column is `varchar(22)` regardless). Found
+  by the 3.2 adversarial review.
+  > **Status:** fixed (restructuring/repository-pilot)
