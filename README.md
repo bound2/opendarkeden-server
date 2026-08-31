@@ -1,95 +1,126 @@
-![](https://user-images.githubusercontent.com/1420062/121156821-a0d86180-c87b-11eb-9b41-4d75940f2d88.png)
+# opendarkeden-server
 
-The client is in this [repo](https://github.com/opendarkeden/client).
+## Install using Docker
 
-If you're using Windows or Docker environment, skip the following content and see [install using docker](./docker_install.md).
+Everything below builds the server **from the sources in this repository** - no
+pre-built image is downloaded.
 
-TL;DR
+## Quick start (docker compose)
 
-## Compile
-
-~~The development environment is Ubuntu 20.04, other linux release should also work.~~
-
-### dependency
-
-- libmysqlclient-dev 5.7
-- lua 5.1
-- xerces-c 3.2.3
-
-All the dependencies can be installed using `apt`.
-
-```
-sudo apt install \
-    libxerces-c-dev \
-    libmysqlclient-dev \
-    liblua5.1-dev
+```sh
+cd docker
+docker compose up -d --build
 ```
 
-### compile
+That command:
 
-```
-    mkdir build
-    cd build
-    cmake ..
-	make
-```
+1. builds `../Dockerfile`, which compiles `loginserver`, `sharedserver` and
+   `gameserver` inside an Ubuntu 20.04 container and packages the binaries
+   together with `data/` and `docker/conf/`;
+2. starts MySQL 5.7 and imports `initdb/*.sql` on first run;
+3. applies `docker/initdb-docker.sql`, which points `DARKEDEN.WorldDBInfo` and
+   `DARKEDEN.GameServerInfo` at this stack (the dumps ship with the original
+   developers' LAN addresses);
+4. starts the three servers in order once the database is ready
+   (see `docker/start.sh`).
 
-or `make -j 8` for the last step if you have a 8 cores CPU computor to accelerate the compilation.
+Follow the logs:
 
-## Setup the Database
-
-MySQL 5.7 or 8 are tested.
-
-Create a user 'elcastle'@'%' with password 'elca110'
-
-Create the `DARKEDEN` and `USERINFO` database:
-
-```
-create database DARKEDEN;
-create database USERINFO;
+```sh
+docker compose logs -f odk-server
 ```
 
-Make sure the `sql_mode` allow [zero date time](https://github.com/opendarkeden/server/issues/5), remove the `NO_ZERO_DATE` from the `sql_mode`.
-And also remove the `STRICT_TRANS_TABLES` from it to workaround a guild related [issue](https://github.com/opendarkeden/server/issues/111) :
+Stop everything (the database keeps its data in the `odk-mysql-data` volume):
 
-```
-mysql> select @@global.sql_mode;
-+-------------------------------------------------------------------------------------------------------------------------------------------+
-| @@global.sql_mode                                                                                                                         |
-+-------------------------------------------------------------------------------------------------------------------------------------------+
-| ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION |
-+-------------------------------------------------------------------------------------------------------------------------------------------+
-1 row in set (0.00 sec)
-
-mysql> set @@global.sql_mode = 'ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
-Query OK, 0 rows affected (0.02 sec)
+```sh
+docker compose down
 ```
 
-Then load the SQL file `initdb/DARKEDEN.sql` and `initdb/USERINFO.sql`:
+Add `-v` to `docker compose down` to wipe the database as well.
 
-```
-mysql -h 127.0.0.1 -u elcastle -D 'DARKEDEN' -p < initdb/DARKEDEN.sql
-mysql -h 127.0.0.1 -u elcastle -D 'USERINFO' -p < initdb/USERINFO.sql
-```
+**NOTE:** the compose setup assumes server and client run on the same machine.
+To run the client on another machine, set the server IP in the
+`DARKEDEN.GameServerInfo` table (or in `docker/initdb-docker.sql` before the
+first start) and restart the server container.
 
-Update the `DARKEDEN.WorldDBInfo` and `DARKEDEN.GameServerInfo` table to set the correct IP/PORT().
+### Rebuild after changing the code
 
-## Modify Configure
-
-You need to change the configure files in the `conf/` directory.
-`HomePath` should be the repository directory path.
-
-The `DB_HOST` should be you database IP address, `LoginServerIP` should also be changed accordingly.
-
-**DON'T forget the `DARKEDEN.WorldDBInfo` and `DARKEDEN.GameServerInfo` tables in the database**, they are not in the configure files, but the data should match, otherwise you can't login.
-
-## Start the server
-
-Start the loginserver, sharedserver, gameserver in order:
-
-```
-./bin/loginserver -f ./conf/loginserver.conf
-./bin/sharedserver -f ./conf/sharedserver.conf
-./bin/gameserver -f ./conf/gameserver.conf
+```sh
+cd docker
+docker compose up -d --build
 ```
 
+The image is built with `CMAKE_BUILD_TYPE=Release`. For a debug build:
+
+```sh
+docker build -t darkeden:local --build-arg BUILD_TYPE=Debug .
+```
+
+### Start the servers by hand
+
+Set `command: ["sleep","infinity"]` on the `odk-server` service, then:
+
+```sh
+docker exec -w /home/darkeden/vs/bin -it odk-server /bin/bash
+./start.sh
+```
+
+## Building the binaries into the working tree (development)
+
+Use `Dockerfile.dev` when you want the compiled binaries in your local `bin/`
+directory instead of inside an image.
+
+First, build the development image:
+
+```bash
+docker build -t darkeden:dev . -f Dockerfile.dev
+```
+
+Second, run the container with the repository mounted:
+
+```bash
+docker run -v `pwd`:/home/darkeden/vs/ -it darkeden:dev /bin/bash
+```
+
+On Windows `pwd` should be changed to %cd%
+
+```
+docker run -v %cd%/:/home/darkeden/vs/ -it darkeden:dev /bin/bash
+```
+
+Third, build the darkeden server binary files
+
+```
+make
+```
+
+`make` produces a debug build; use `make release` for an optimized one. The
+build uses every core it can find, so no `-j` flag is needed.
+
+When the build process finishes, exit docker; loginserver/sharedserver/gameserver
+are in the `bin/` directory.
+
+To run those binaries with compose, uncomment the volume mounts in
+`docker/docker-compose.yml` and mount `../bin/` as well.
+
+## Howto
+
+### Login to the MySQL
+
+```sh
+docker exec -it odk-mysql mysql -u elcastle -pelca110
+```
+
+```SQL
+use DARKEDEN;
+update GameServerInfo set IP = '192.168.0.16';
+```
+
+### Pack pre-built binaries into an image
+
+`Dockerfile.pub` packages an already-compiled `bin/` directory instead of
+compiling from source, which is useful when publishing a release image:
+
+```sh
+docker build . -t darkeden:latest -f Dockerfile.pub
+```
