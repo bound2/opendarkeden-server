@@ -75,9 +75,4 @@ public:
     }
 };
 
-class GCPetInfoHandler {
-public:
-    static void execute(GCPetInfo* pPacket, Player* pPlayer);
-};
-
 #endif // __GC_PET_INFO_H__

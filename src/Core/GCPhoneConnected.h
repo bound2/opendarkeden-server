@@ -138,14 +138,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCPhoneConnectedHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCPhoneConnectedHandler {
-public:
-    // execute packet's handler
-    static void execute(GCPhoneConnected* pGCPhoneConnected, Player* pPlayer);
-};
 
 #endif

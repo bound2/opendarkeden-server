@@ -143,14 +143,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCUsePowerPointResultHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCUsePowerPointResultHandler {
-public:
-    // execute packet's handler
-    static void execute(GCUsePowerPointResult* pPacket, Player* pPlayer);
-};
 
 #endif

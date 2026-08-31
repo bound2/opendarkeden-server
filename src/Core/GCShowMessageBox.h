@@ -105,10 +105,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCShowMessageBoxHandler {
-public:
-    // execute packet's handler
-    static void execute(GCShowMessageBox* pPacket, Player* pPlayer);
-};
-
 #endif

@@ -145,14 +145,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCNPCInfoHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCNPCInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCNPCInfo* pPacket, Player* pPlayer);
-};
 
 #endif

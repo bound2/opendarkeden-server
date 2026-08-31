@@ -109,14 +109,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCMakeItemFailHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCMakeItemFailHandler {
-public:
-    // execute packet's handler
-    static void execute(GCMakeItemFail* pGCMakeItemFail, Player* pPlayer);
-};
 
 #endif

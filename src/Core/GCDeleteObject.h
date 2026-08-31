@@ -117,14 +117,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCDeleteObjectHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCDeleteObjectHandler {
-public:
-    // execute packet's handler
-    static void execute(GCDeleteObject* pPacket, Player* player);
-};
 
 #endif

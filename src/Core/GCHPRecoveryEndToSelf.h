@@ -105,14 +105,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCHPRecoveryEndToSelfHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCHPRecoveryEndToSelfHandler {
-public:
-    // execute packet's handler
-    static void execute(GCHPRecoveryEndToSelf* pPacket, Player* pPlayer);
-};
 
 #endif

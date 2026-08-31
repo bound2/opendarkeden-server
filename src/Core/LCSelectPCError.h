@@ -109,14 +109,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCSelectPCErrorHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCSelectPCErrorHandler {
-public:
-    // execute packet's handler
-    static void execute(LCSelectPCError* pPacket, Player* pPlayer);
-};
 
 #endif

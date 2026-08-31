@@ -189,10 +189,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCShowGuildInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCShowGuildInfo* pPacket, Player* pPlayer);
-};
-
 #endif

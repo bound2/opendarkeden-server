@@ -145,14 +145,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCAttackArmsOK1Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCAttackArmsOK1Handler {
-public:
-    // execute packet's handler
-    static void execute(GCAttackArmsOK1* pGCAttackArmsOK1, Player* pPlayer);
-};
 
 #endif

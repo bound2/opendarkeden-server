@@ -148,14 +148,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCHPRecoveryStartToOthersHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCHPRecoveryStartToOthersHandler {
-public:
-    // execute packet's handler
-    static void execute(GCHPRecoveryStartToOthers* pGCHPRecoveryStartToOthers, Player* pPlayer);
-};
 
 #endif

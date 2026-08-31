@@ -165,13 +165,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////////////
-// class GCAddMonsterFromTransformationHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCAddMonsterFromTransformationHandler {
-public:
-    static void execute(GCAddMonsterFromTransformation* pPacket, Player* pPlayer);
-};
-
 #endif

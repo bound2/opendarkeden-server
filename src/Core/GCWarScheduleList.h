@@ -74,9 +74,4 @@ public:
     }
 };
 
-class GCWarScheduleListHandler {
-public:
-    static void execute(GCWarScheduleList* pPacket, Player* pPlayer);
-};
-
 #endif // __GC_WAR_SCHEDULE_LIST_H__

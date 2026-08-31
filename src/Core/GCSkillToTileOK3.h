@@ -189,14 +189,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSkillToTileOK3Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCSkillToTileOK3Handler {
-public:
-    // execute packet's handler
-    static void execute(GCSkillToTileOK3* pGCSkillToTileOK3, Player* pPlayer);
-};
 
 #endif

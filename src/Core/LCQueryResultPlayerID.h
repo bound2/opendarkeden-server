@@ -114,14 +114,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCQueryResultPlayerIDHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCQueryResultPlayerIDHandler {
-public:
-    // execute packet's handler
-    static void execute(LCQueryResultPlayerID* pPacket, Player* pPlayer);
-};
 
 #endif

@@ -137,14 +137,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCHPRecoveryStartToSelfHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCHPRecoveryStartToSelfHandler {
-public:
-    // execute packet's handler
-    static void execute(GCHPRecoveryStartToSelf* pGCHPRecoveryStartToSelf, Player* pPlayer);
-};
 
 #endif

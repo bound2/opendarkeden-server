@@ -105,14 +105,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCPhoneConnectionFailedHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCPhoneConnectionFailedHandler {
-public:
-    // execute packet's handler
-    static void execute(GCPhoneConnectionFailed* pGCPhoneConnectionFailed, Player* pPlayer);
-};
 
 #endif

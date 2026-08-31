@@ -106,14 +106,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCMorphSlayer2Handler;
 //
 //--------------------------------------------------------------------------------
-
-class GCMorphSlayer2Handler {
-public:
-    // execute packet's handler
-    static void execute(GCMorphSlayer2* pPacket, Player* pPlayer);
-};
 
 #endif

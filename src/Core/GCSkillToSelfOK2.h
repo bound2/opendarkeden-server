@@ -146,14 +146,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSkillToSelfOK2Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCSkillToSelfOK2Handler {
-public:
-    // execute packet's handler
-    static void execute(GCSkillToSelfOK2* pGCSkillToSelfOK2, Player* pPlayer);
-};
 
 #endif

@@ -99,14 +99,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCDeletePCErrorHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCDeletePCErrorHandler {
-public:
-    // execute packet's handler
-    static void execute(LCDeletePCError* pPacket, Player* pPlayer);
-};
 
 #endif

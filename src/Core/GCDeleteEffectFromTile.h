@@ -140,14 +140,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCDeleteEffectFromTileHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCDeleteEffectFromTileHandler {
-public:
-    // execute packet's handler
-    static void execute(GCDeleteEffectFromTile* pGCDeleteEffectFromTile, Player* pPlayer);
-};
 
 #endif

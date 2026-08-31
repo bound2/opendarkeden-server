@@ -115,14 +115,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCGetOffMotorCycleHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCGetOffMotorCycleHandler {
-public:
-    // execute packet's handler
-    static void execute(GCGetOffMotorCycle* pGCGetOffMotorCycle, Player* pPlayer);
-};
 
 #endif

@@ -72,10 +72,5 @@ public:
     }
 };
 
-class GCWarListHandler {
-public:
-    static void execute(GCWarList* pPacket, Player* pPlayer);
-};
-
 
 #endif // __GC_WAR_LIST_H__

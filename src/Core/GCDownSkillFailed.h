@@ -117,16 +117,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCDownSkillFailedHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCDownSkillFailedHandler {
-public:
-    // execute packet's handler
-    static void execute(GCDownSkillFailed* pGCDownSkillFailed, Player* pPlayer);
-};
-
 #endif // __GC_DOWN_SKILL_FAILED_H__

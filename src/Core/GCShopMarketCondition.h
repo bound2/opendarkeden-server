@@ -122,14 +122,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCShopMarketConditionHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCShopMarketConditionHandler {
-public:
-    // execute packet's handler
-    static void execute(GCShopMarketCondition* pPacket, Player* pPlayer);
-};
 
 #endif

@@ -90,13 +90,4 @@ public:
     }
 };
 
-//////////////////////////////////////////////////////////////////////////////
-// class GCMonsterKillQuestStatusHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCMonsterKillQuestStatusHandler {
-public:
-    static void execute(GCMonsterKillQuestStatus* pGCMonsterKillQuestStatus, Player* pPlayer);
-};
-
 #endif

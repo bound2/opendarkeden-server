@@ -105,10 +105,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCShowGuildRegistHandler {
-public:
-    // execute packet's handler
-    static void execute(GCShowGuildRegist* pPacket, Player* pPlayer);
-};
-
 #endif

@@ -181,13 +181,4 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSkillToInventoryOK1Handler;
-//
-//////////////////////////////////////////////////////////////////////
-class GCSkillToInventoryOK1Handler {
-public:
-    // execute packet's handler
-    static void execute(GCSkillToInventoryOK1* pGCSkillToInventoryOK1, Player* pPlayer);
-};
-
 #endif

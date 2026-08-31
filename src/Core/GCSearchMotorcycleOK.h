@@ -100,14 +100,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSearchMotorcycleOKHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCSearchMotorcycleOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSearchMotorcycleOK* pPacket, Player* pPlayer);
-};
 
 #endif

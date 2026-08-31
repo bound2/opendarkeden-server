@@ -105,14 +105,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCMPRecoveryEndHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCMPRecoveryEndHandler {
-public:
-    // execute packet's handler
-    static void execute(GCMPRecoveryEnd* pPacket, Player* pPlayer);
-};
 
 #endif

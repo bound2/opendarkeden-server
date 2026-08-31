@@ -122,14 +122,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCOtherGuildNameHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCOtherGuildNameHandler {
-public:
-    // execute packet's handler
-    static void execute(GCOtherGuildName* pPacket, Player* pPlayer);
-};
 
 #endif

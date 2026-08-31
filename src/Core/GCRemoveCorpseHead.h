@@ -118,14 +118,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCRemoveCorpseHeadHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCRemoveCorpseHeadHandler {
-public:
-    // execute packet's handler
-    static void execute(GCRemoveCorpseHead* pPacket, Player* player);
-};
 
 #endif

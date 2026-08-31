@@ -99,14 +99,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCAddInjuriousCreatureHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCAddInjuriousCreatureHandler {
-public:
-    // execute packet's handler
-    static void execute(GCAddInjuriousCreature* pPacket, Player* pPlayer);
-};
 
 #endif

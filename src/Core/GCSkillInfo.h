@@ -134,14 +134,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCSkillInfoHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCSkillInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSkillInfo* pPacket, Player* pPlayer);
-};
 
 #endif

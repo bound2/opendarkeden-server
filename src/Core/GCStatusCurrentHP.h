@@ -116,14 +116,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCStatusCurrentHPHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCStatusCurrentHPHandler {
-public:
-    // execute packet's handler
-    static void execute(GCStatusCurrentHP* pPacket, Player* pPlayer);
-};
 
 #endif

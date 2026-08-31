@@ -128,14 +128,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCShopVersionHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCShopVersionHandler {
-public:
-    // execute packet's handler
-    static void execute(GCShopVersion* pPacket, Player* pPlayer);
-};
 
 #endif

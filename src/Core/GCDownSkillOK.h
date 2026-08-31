@@ -111,16 +111,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCDownSkillOKHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCDownSkillOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCDownSkillOK* pGCDownSkillOK, Player* pPlayer);
-};
-
 #endif // __GC_DOWN_SKILL_OK_H__

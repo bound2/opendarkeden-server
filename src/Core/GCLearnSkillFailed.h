@@ -117,16 +117,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCLearnSkillFailedHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCLearnSkillFailedHandler {
-public:
-    // execute packet's handler
-    static void execute(GCLearnSkillFailed* pGCLearnSkillFailed, Player* pPlayer);
-};
-
 #endif // __GC_LEARN_SKILL_FAILED_H__

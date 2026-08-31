@@ -121,10 +121,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCHolyLandBonusInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCHolyLandBonusInfo* pPacket, Player* pPlayer);
-};
-
 #endif

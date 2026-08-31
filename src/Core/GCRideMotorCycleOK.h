@@ -113,13 +113,4 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCRideMotorCycleOKHandler;
-//
-//////////////////////////////////////////////////////////////////////
-class GCRideMotorCycleOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCRideMotorCycleOK* pGCRideMotorCycleOK, Player* pPlayer);
-};
-
 #endif

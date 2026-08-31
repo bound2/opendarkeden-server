@@ -237,10 +237,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCUnionOfferListHandler {
-public:
-    // execute packet's handler
-    static void execute(GCUnionOfferList* pPacket, Player* pPlayer);
-};
-
 #endif

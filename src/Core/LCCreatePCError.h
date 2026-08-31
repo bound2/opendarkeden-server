@@ -76,14 +76,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCCreatePCErrorHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCCreatePCErrorHandler {
-public:
-    // execute packet's handler
-    static void execute(LCCreatePCError* pPacket, Player* pPlayer);
-};
 
 #endif

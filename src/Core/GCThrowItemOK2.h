@@ -115,14 +115,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCThrowItemOK2Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCThrowItemOK2Handler {
-public:
-    // execute packet's handler
-    static void execute(GCThrowItemOK2* pGCThrowItemOK2, Player* pPlayer);
-};
 
 #endif

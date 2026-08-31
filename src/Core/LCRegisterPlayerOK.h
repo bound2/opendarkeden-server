@@ -116,14 +116,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCRegisterPlayerOKHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCRegisterPlayerOKHandler {
-public:
-    // execute packet's handler
-    static void execute(LCRegisterPlayerOK* pPacket, Player* pPlayer);
-};
 
 #endif

@@ -125,14 +125,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCCrossCounterOK2Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCCrossCounterOK2Handler {
-public:
-    // execute packet's handler
-    static void execute(GCCrossCounterOK2* pGCCrossCounterOK2, Player* pPlayer);
-};
 
 #endif

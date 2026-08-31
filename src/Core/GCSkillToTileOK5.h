@@ -212,14 +212,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSkillToTileOK5Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCSkillToTileOK5Handler {
-public:
-    // execute packet's handler
-    static void execute(GCSkillToTileOK5* pGCSkillToTileOK5, Player* pPlayer);
-};
 
 #endif

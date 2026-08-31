@@ -116,14 +116,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCRemoveFromGearHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCRemoveFromGearHandler {
-public:
-    // execute packet's handler
-    static void execute(GCRemoveFromGear* pGCRemoveFromGear, Player* pPlayer);
-};
 
 #endif

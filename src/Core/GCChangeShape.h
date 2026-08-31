@@ -173,14 +173,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCChangeShapeHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCChangeShapeHandler {
-public:
-    // execute packet's handler
-    static void execute(GCChangeShape* pGCChangeShape, Player* pPlayer);
-};
 
 #endif

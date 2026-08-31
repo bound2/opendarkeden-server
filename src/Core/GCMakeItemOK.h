@@ -111,14 +111,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCMakeItemOKHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCMakeItemOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCMakeItemOK* pGCMakeItemOK, Player* pPlayer);
-};
 
 #endif

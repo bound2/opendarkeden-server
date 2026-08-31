@@ -129,14 +129,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCReconnectLoginHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCReconnectLoginHandler {
-public:
-    // execute packet's handler
-    static void execute(GCReconnectLogin* pPacket, Player* pPlayer);
-};
 
 #endif

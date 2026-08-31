@@ -118,14 +118,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCAddOustersCorpseHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCAddOustersCorpseHandler {
-public:
-    // execute packet's handler
-    static void execute(GCAddOustersCorpse* pPacket, Player* pPlayer);
-};
 
 #endif

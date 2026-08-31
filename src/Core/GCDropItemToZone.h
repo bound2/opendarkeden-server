@@ -98,14 +98,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCDropItemToZoneHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCDropItemToZoneHandler {
-public:
-    // execute packet's handler
-    static void execute(GCDropItemToZone* pPacket, Player* pPlayer);
-};
 
 #endif

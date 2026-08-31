@@ -159,14 +159,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSkillToObjectOK6Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCSkillToObjectOK6Handler {
-public:
-    // execute packet's handler
-    static void execute(GCSkillToObjectOK6* pGCSkillToObjectOK6, Player* pPlayer);
-};
 
 #endif

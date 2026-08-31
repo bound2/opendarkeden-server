@@ -113,14 +113,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCChangeDarkLightHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCChangeDarkLightHandler {
-public:
-    // execute packet's handler
-    static void execute(GCChangeDarkLight* pPacket, Player* pPlayer);
-};
 
 #endif

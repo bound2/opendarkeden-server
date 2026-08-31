@@ -90,16 +90,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCUnburrowFailHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCUnburrowFailHandler {
-public:
-    // execute packet's handler
-    static void execute(GCUnburrowFail* pPacket, Player* pPlayer);
-};
-
 #endif

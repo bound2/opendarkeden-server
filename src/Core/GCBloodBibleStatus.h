@@ -174,14 +174,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCBloodBibleStatusHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCBloodBibleStatusHandler {
-public:
-    // execute packet's handler
-    static void execute(GCBloodBibleStatus* pPacket, Player* pPlayer);
-};
 
 #endif

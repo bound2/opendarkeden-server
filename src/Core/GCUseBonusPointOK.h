@@ -94,14 +94,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCUseBonusPointOKHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCUseBonusPointOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCUseBonusPointOK* pPacket, Player* player);
-};
 
 #endif

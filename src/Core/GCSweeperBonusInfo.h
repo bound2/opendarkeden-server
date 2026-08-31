@@ -121,10 +121,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCSweeperBonusInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSweeperBonusInfo* pPacket, Player* pPlayer);
-};
-
 #endif

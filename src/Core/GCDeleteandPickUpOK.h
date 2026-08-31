@@ -102,14 +102,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCDeleteandPickUpOKHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCDeleteandPickUpOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCDeleteandPickUpOK* pPacket, Player* player);
-};
 
 #endif

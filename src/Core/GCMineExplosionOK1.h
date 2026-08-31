@@ -184,14 +184,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCMineExplosionOK1Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCMineExplosionOK1Handler {
-public:
-    // execute packet's handler
-    static void execute(GCMineExplosionOK1* pGCMineExplosionOK1, Player* pPlayer);
-};
 
 #endif

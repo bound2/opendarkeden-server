@@ -208,13 +208,4 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSkillToTileOK1Handler;
-//
-//////////////////////////////////////////////////////////////////////
-class GCSkillToTileOK1Handler {
-public:
-    // execute packet's handler
-    static void execute(GCSkillToTileOK1* pGCSkillToTileOK1, Player* pPlayer);
-};
-
 #endif

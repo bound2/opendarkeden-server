@@ -90,16 +90,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCUseBonusPointFailHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCUseBonusPointFailHandler {
-public:
-    // execute packet's handler
-    static void execute(GCUseBonusPointFail* pPacket, Player* pPlayer);
-};
-
 #endif

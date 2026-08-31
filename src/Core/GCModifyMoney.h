@@ -105,10 +105,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCModifyMoneyHandler {
-public:
-    // execute packet's handler
-    static void execute(GCModifyMoney* pPacket, Player* pPlayer);
-};
-
 #endif

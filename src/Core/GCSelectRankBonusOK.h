@@ -111,16 +111,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCSelectRankBonusOKHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCSelectRankBonusOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSelectRankBonusOK* pGCSelectRankBonusOK, Player* pPlayer);
-};
-
 #endif

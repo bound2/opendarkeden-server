@@ -122,16 +122,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCLearnSkillOKHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCLearnSkillOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCLearnSkillOK* pGCLearnSkillOK, Player* pPlayer);
-};
-
 #endif // __GC_LEARN_SKILL_OK_H__

@@ -132,14 +132,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCAddVampireFromTransformationHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCAddVampireFromTransformationHandler {
-public:
-    // execute packet's handler
-    static void execute(GCAddVampireFromTransformation* pPacket, Player* pPlayer);
-};
 
 #endif

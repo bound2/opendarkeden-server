@@ -90,16 +90,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCVersionCheckOKHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCVersionCheckOKHandler {
-public:
-    LCVersionCheckOKHandler(){};
-    virtual ~LCVersionCheckOKHandler(){};
-    // execute packet's handler
-    static void execute(LCVersionCheckOK* pPacket, Player* pPlayer);
-};
 
 #endif

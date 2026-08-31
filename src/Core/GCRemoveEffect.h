@@ -142,15 +142,8 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCRemoveEffectHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCRemoveEffectHandler {
-public:
-    // execute packet's handler
-    static void execute(GCRemoveEffect* pGCRemoveEffect, Player* pPlayer);
-};
 
 
 #endif

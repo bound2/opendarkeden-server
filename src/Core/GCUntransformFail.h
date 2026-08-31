@@ -90,16 +90,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCUntransformFailHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCUntransformFailHandler {
-public:
-    // execute packet's handler
-    static void execute(GCUntransformFail* pPacket, Player* pPlayer);
-};
-
 #endif

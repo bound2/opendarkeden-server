@@ -131,14 +131,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCAddVampireFromBurrowingHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCAddVampireFromBurrowingHandler {
-public:
-    // execute packet's handler
-    static void execute(GCAddVampireFromBurrowing* pPacket, Player* pPlayer);
-};
 
 #endif

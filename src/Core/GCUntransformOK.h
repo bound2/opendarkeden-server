@@ -125,16 +125,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCUntransformOKHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCUntransformOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCUntransformOK* pPacket, Player* pPlayer);
-};
-
 #endif

@@ -123,16 +123,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCGetDamageHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCGetDamageHandler {
-public:
-    // execute packet's handler
-    static void execute(GCGetDamage* pGCGetDamage, Player* pPlayer);
-};
-
 #endif

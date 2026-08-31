@@ -116,14 +116,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCHPRecoveryEndToOthersHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCHPRecoveryEndToOthersHandler {
-public:
-    // execute packet's handler
-    static void execute(GCHPRecoveryEndToOthers* pPacket, Player* pPlayer);
-};
 
 #endif

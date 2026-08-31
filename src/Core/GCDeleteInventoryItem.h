@@ -102,14 +102,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCDeleteInventoryItemHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCDeleteInventoryItemHandler {
-public:
-    // execute packet's handler
-    static void execute(GCDeleteInventoryItem* pPacket, Player* player);
-};
 
 #endif

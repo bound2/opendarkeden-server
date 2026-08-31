@@ -115,14 +115,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCBloodDrainOK2Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCBloodDrainOK2Handler {
-public:
-    // execute packet's handler
-    static void execute(GCBloodDrainOK2* pGCBloodDrainOK2, Player* pPlayer);
-};
 
 #endif

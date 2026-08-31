@@ -140,14 +140,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCPartyPositionHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCPartyPositionHandler {
-public:
-    // execute packet's handler
-    static void execute(GCPartyPosition* pPacket, Player* pPlayer);
-};
 
 #endif

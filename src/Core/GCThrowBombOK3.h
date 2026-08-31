@@ -197,14 +197,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCThrowBombOK3Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCThrowBombOK3Handler {
-public:
-    // execute packet's handler
-    static void execute(GCThrowBombOK3* pGCThrowBombOK3, Player* pPlayer);
-};
 
 #endif

@@ -90,13 +90,4 @@ public:
     }
 };
 
-//////////////////////////////////////////////////////////////////////////////
-// class GCSystemAvailabilitiesHandler;
-//////////////////////////////////////////////////////////////////////////////
-
-class GCSystemAvailabilitiesHandler {
-public:
-    static void execute(GCSystemAvailabilities* pGCSystemAvailabilities, Player* pPlayer);
-};
-
 #endif

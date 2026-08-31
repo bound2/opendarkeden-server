@@ -174,14 +174,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCMorph1Handler;
 //
 //--------------------------------------------------------------------------------
-
-class GCMorph1Handler {
-public:
-    // execute packet's handler
-    static void execute(GCMorph1* pPacket, Player* pPlayer);
-};
 
 #endif

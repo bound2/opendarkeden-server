@@ -66,9 +66,4 @@ public:
     }
 };
 
-class GCSubInventoryInfoHandler {
-public:
-    static void execute(GCSubInventoryInfo* pPacket, Player* pPlayer);
-};
-
 #endif // __GC_SUB_INVENTORY_INFO_H__

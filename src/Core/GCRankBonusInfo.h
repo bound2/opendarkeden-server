@@ -115,14 +115,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCRankBonusInfoHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCRankBonusInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCRankBonusInfo* pPacket, Player* pPlayer);
-};
 
 #endif

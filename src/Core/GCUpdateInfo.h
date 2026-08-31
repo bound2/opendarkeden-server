@@ -569,14 +569,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCUpdateInfoHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCUpdateInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCUpdateInfo* pPacket, Player* pPlayer);
-};
 
 #endif

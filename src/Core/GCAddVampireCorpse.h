@@ -127,14 +127,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCAddVampireCorpseHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCAddVampireCorpseHandler {
-public:
-    // execute packet's handler
-    static void execute(GCAddVampireCorpse* pPacket, Player* pPlayer);
-};
 
 #endif

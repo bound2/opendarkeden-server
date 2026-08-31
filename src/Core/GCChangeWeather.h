@@ -108,14 +108,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCChangeWeatherHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCChangeWeatherHandler {
-public:
-    // execute packet's handler
-    static void execute(GCChangeWeather* pPacket, Player* pPlayer);
-};
 
 #endif

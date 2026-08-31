@@ -115,14 +115,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCAttackMeleeOK1Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCAttackMeleeOK1Handler {
-public:
-    // execute packet's handler
-    static void execute(GCAttackMeleeOK1* pGCAttackMeleeOK1, Player* pPlayer);
-};
 
 #endif

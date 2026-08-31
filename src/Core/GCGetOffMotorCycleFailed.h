@@ -103,13 +103,4 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCGetOffMotorCycleFailedHandler;
-//
-//////////////////////////////////////////////////////////////////////
-class GCGetOffMotorCycleFailedHandler {
-public:
-    // execute packet's handler
-    static void execute(GCGetOffMotorCycleFailed* pGCGetOffMotorCycleFailed, Player* pPlayer);
-};
-
 #endif

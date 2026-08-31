@@ -122,14 +122,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCKickMessageHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCKickMessageHandler {
-public:
-    // execute packet's handler
-    static void execute(GCKickMessage* pPacket, Player* pPlayer);
-};
 
 #endif

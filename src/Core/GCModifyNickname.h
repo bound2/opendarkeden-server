@@ -68,9 +68,4 @@ public:
     }
 };
 
-class GCModifyNicknameHandler {
-public:
-    static void execute(GCModifyNickname* pPacket, Player* pPlayer);
-};
-
 #endif // __GC_MODIFY_NICKNAME_H__

@@ -114,16 +114,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCMoveErrorHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCMoveErrorHandler {
-public:
-    // execute packet's handler
-    static void execute(GCMoveError* pPacket, Player* pPlayer);
-};
-
 #endif

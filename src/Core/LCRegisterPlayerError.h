@@ -95,14 +95,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCRegisterPlayerErrorHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCRegisterPlayerErrorHandler {
-public:
-    // execute packet's handler
-    static void execute(LCRegisterPlayerError* pPacket, Player* pPlayer);
-};
 
 #endif

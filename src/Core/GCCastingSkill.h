@@ -111,16 +111,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCCastingSkillHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCCastingSkillHandler {
-public:
-    // execute packet's handler
-    static void execute(GCCastingSkill* pGCCastingSkill, Player* pPlayer);
-};
-
 #endif // __GC_CASTING_SKILL_H__

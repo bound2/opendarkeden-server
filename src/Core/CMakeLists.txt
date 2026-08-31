@@ -121,265 +121,265 @@ target_include_directories(Core PUBLIC
 
 # GC Packets (Game -> Client)
 set(GC_PACKET_SOURCES
-    GCActiveGuildList.cpp GCActiveGuildListHandler.cpp
-    GCAddBat.cpp GCAddBatHandler.cpp
-    GCAddBurrowingCreature.cpp GCAddBurrowingCreatureHandler.cpp
-    GCAddEffect.cpp GCAddEffectHandler.cpp
-    GCAddEffectToTile.cpp GCAddEffectToTileHandler.cpp
-    GCAddGearToInventory.cpp GCAddGearToInventoryHandler.cpp
-    GCAddGearToZone.cpp GCAddGearToZoneHandler.cpp
-    GCAddHelicopter.cpp GCAddHelicopterHandler.cpp
-    GCAddInjuriousCreature.cpp GCAddInjuriousCreatureHandler.cpp
-    GCAddInstalledMineToZone.cpp GCAddInstalledMineToZoneHandler.cpp
+    GCActiveGuildList.cpp 
+    GCAddBat.cpp 
+    GCAddBurrowingCreature.cpp 
+    GCAddEffect.cpp 
+    GCAddEffectToTile.cpp 
+    GCAddGearToInventory.cpp 
+    GCAddGearToZone.cpp 
+    GCAddHelicopter.cpp 
+    GCAddInjuriousCreature.cpp 
+    GCAddInstalledMineToZone.cpp 
     GCAddItemToInventory.cpp
-    GCAddItemToItemVerify.cpp GCAddItemToItemVerifyHandler.cpp
+    GCAddItemToItemVerify.cpp 
     GCAddItemToZone.cpp
-    GCAddMonster.cpp GCAddMonsterHandler.cpp
-    GCAddMonsterCorpse.cpp GCAddMonsterCorpseHandler.cpp
-    GCAddMonsterFromBurrowing.cpp GCAddMonsterFromBurrowingHandler.cpp
-    GCAddMonsterFromTransformation.cpp GCAddMonsterFromTransformationHandler.cpp
-    GCAddNewItemToZone.cpp GCAddNewItemToZoneHandler.cpp
-    GCAddNickname.cpp GCAddNicknameHandler.cpp
-    GCAddNPC.cpp GCAddNPCHandler.cpp
-    GCAddOusters.cpp GCAddOustersHandler.cpp
-    GCAddOustersCorpse.cpp GCAddOustersCorpseHandler.cpp
-    GCAddSlayer.cpp GCAddSlayerHandler.cpp
-    GCAddSlayerCorpse.cpp GCAddSlayerCorpseHandler.cpp
-    GCAddStoreItem.cpp GCAddStoreItemHandler.cpp
-    GCAddVampire.cpp GCAddVampireHandler.cpp
-    GCAddVampireCorpse.cpp GCAddVampireCorpseHandler.cpp
-    GCAddVampireFromBurrowing.cpp GCAddVampireFromBurrowingHandler.cpp
-    GCAddVampireFromTransformation.cpp GCAddVampireFromTransformationHandler.cpp
-    GCAddVampirePortal.cpp GCAddVampirePortalHandler.cpp
-    GCAddWolf.cpp GCAddWolfHandler.cpp
-    GCAddressListVerify.cpp GCAddressListVerifyHandler.cpp
-    GCAttack.cpp GCAttackHandler.cpp
-    GCAttackArmsOK1.cpp GCAttackArmsOK1Handler.cpp
-    GCAttackArmsOK2.cpp GCAttackArmsOK2Handler.cpp
-    GCAttackArmsOK3.cpp GCAttackArmsOK3Handler.cpp
-    GCAttackArmsOK4.cpp GCAttackArmsOK4Handler.cpp
-    GCAttackArmsOK5.cpp GCAttackArmsOK5Handler.cpp
-    GCAttackMeleeOK1.cpp GCAttackMeleeOK1Handler.cpp
-    GCAttackMeleeOK2.cpp GCAttackMeleeOK2Handler.cpp
-    GCAttackMeleeOK3.cpp GCAttackMeleeOK3Handler.cpp
-    GCAuthKey.cpp GCAuthKeyHandler.cpp
-    GCBloodBibleList.cpp GCBloodBibleListHandler.cpp
-    GCBloodBibleSignInfo.cpp GCBloodBibleSignInfoHandler.cpp
-    GCBloodBibleStatus.cpp GCBloodBibleStatusHandler.cpp
-    GCBloodDrainOK1.cpp GCBloodDrainOK1Handler.cpp
-    GCBloodDrainOK2.cpp GCBloodDrainOK2Handler.cpp
-    GCBloodDrainOK3.cpp GCBloodDrainOK3Handler.cpp
-    GCCannotAdd.cpp GCCannotAddHandler.cpp
-    GCCannotUse.cpp GCCannotUseHandler.cpp
-    GCCastingSkill.cpp GCCastingSkillHandler.cpp
-    GCChangeDarkLight.cpp GCChangeDarkLightHandler.cpp
+    GCAddMonster.cpp 
+    GCAddMonsterCorpse.cpp 
+    GCAddMonsterFromBurrowing.cpp 
+    GCAddMonsterFromTransformation.cpp 
+    GCAddNewItemToZone.cpp 
+    GCAddNickname.cpp 
+    GCAddNPC.cpp 
+    GCAddOusters.cpp 
+    GCAddOustersCorpse.cpp 
+    GCAddSlayer.cpp 
+    GCAddSlayerCorpse.cpp 
+    GCAddStoreItem.cpp 
+    GCAddVampire.cpp 
+    GCAddVampireCorpse.cpp 
+    GCAddVampireFromBurrowing.cpp 
+    GCAddVampireFromTransformation.cpp 
+    GCAddVampirePortal.cpp 
+    GCAddWolf.cpp 
+    GCAddressListVerify.cpp 
+    GCAttack.cpp 
+    GCAttackArmsOK1.cpp 
+    GCAttackArmsOK2.cpp 
+    GCAttackArmsOK3.cpp 
+    GCAttackArmsOK4.cpp 
+    GCAttackArmsOK5.cpp 
+    GCAttackMeleeOK1.cpp 
+    GCAttackMeleeOK2.cpp 
+    GCAttackMeleeOK3.cpp 
+    GCAuthKey.cpp 
+    GCBloodBibleList.cpp 
+    GCBloodBibleSignInfo.cpp 
+    GCBloodBibleStatus.cpp 
+    GCBloodDrainOK1.cpp 
+    GCBloodDrainOK2.cpp 
+    GCBloodDrainOK3.cpp 
+    GCCannotAdd.cpp 
+    GCCannotUse.cpp 
+    GCCastingSkill.cpp 
+    GCChangeDarkLight.cpp 
     GCChangeInventoryItemNum.cpp
-    GCChangeShape.cpp GCChangeShapeHandler.cpp
-    GCChangeWeather.cpp GCChangeWeatherHandler.cpp
-    GCCreateItem.cpp GCCreateItemHandler.cpp
-    GCCreatureDied.cpp GCCreatureDiedHandler.cpp
-    GCCrossCounterOK1.cpp GCCrossCounterOK1Handler.cpp
-    GCCrossCounterOK2.cpp GCCrossCounterOK2Handler.cpp
-    GCCrossCounterOK3.cpp GCCrossCounterOK3Handler.cpp
-    GCDeleteandPickUpOK.cpp GCDeleteandPickUpOKHandler.cpp
-    GCDeleteEffectFromTile.cpp GCDeleteEffectFromTileHandler.cpp
-    GCDeleteInventoryItem.cpp GCDeleteInventoryItemHandler.cpp
-    GCDeleteObject.cpp GCDeleteObjectHandler.cpp
-    GCDisconnect.cpp GCDisconnectHandler.cpp
-    GCDownSkillFailed.cpp GCDownSkillFailedHandler.cpp
-    GCDownSkillOK.cpp GCDownSkillOKHandler.cpp
-    GCDropItemToZone.cpp GCDropItemToZoneHandler.cpp
-    GCEnterVampirePortal.cpp GCEnterVampirePortalHandler.cpp
-    GCExecuteElement.cpp GCExecuteElementHandler.cpp
-    GCFakeMove.cpp GCFakeMoveHandler.cpp
-    GCFastMove.cpp GCFastMoveHandler.cpp
-    GCFlagWarStatus.cpp GCFlagWarStatusHandler.cpp
+    GCChangeShape.cpp 
+    GCChangeWeather.cpp 
+    GCCreateItem.cpp 
+    GCCreatureDied.cpp 
+    GCCrossCounterOK1.cpp 
+    GCCrossCounterOK2.cpp 
+    GCCrossCounterOK3.cpp 
+    GCDeleteandPickUpOK.cpp 
+    GCDeleteEffectFromTile.cpp 
+    GCDeleteInventoryItem.cpp 
+    GCDeleteObject.cpp 
+    GCDisconnect.cpp 
+    GCDownSkillFailed.cpp 
+    GCDownSkillOK.cpp 
+    GCDropItemToZone.cpp 
+    GCEnterVampirePortal.cpp 
+    GCExecuteElement.cpp 
+    GCFakeMove.cpp 
+    GCFastMove.cpp 
+    GCFlagWarStatus.cpp 
     GCFriendChatting.cpp GCFriendChattingHandler.cpp
-    GCGetDamage.cpp GCGetDamageHandler.cpp
-    GCGetOffMotorCycle.cpp GCGetOffMotorCycleHandler.cpp
-    GCGetOffMotorCycleFailed.cpp GCGetOffMotorCycleFailedHandler.cpp
-    GCGetOffMotorCycleOK.cpp GCGetOffMotorCycleOKHandler.cpp
-    GCGlobalChat.cpp GCGlobalChatHandler.cpp
-    GCGoodsList.cpp GCGoodsListHandler.cpp
-    GCGQuestInventory.cpp GCGQuestInventoryHandler.cpp
-    GCGQuestStatusInfo.cpp GCGQuestStatusInfoHandler.cpp
-    GCGQuestStatusModify.cpp GCGQuestStatusModifyHandler.cpp
-    GCGuildChat.cpp GCGuildChatHandler.cpp
-    GCGuildMemberList.cpp GCGuildMemberListHandler.cpp
-    GCGuildResponse.cpp GCGuildResponseHandler.cpp
-    GCHolyLandBonusInfo.cpp GCHolyLandBonusInfoHandler.cpp
-    GCHPRecoveryEndToOthers.cpp GCHPRecoveryEndToOthersHandler.cpp
-    GCHPRecoveryEndToSelf.cpp GCHPRecoveryEndToSelfHandler.cpp
-    GCHPRecoveryStartToOthers.cpp GCHPRecoveryStartToOthersHandler.cpp
-    GCHPRecoveryStartToSelf.cpp GCHPRecoveryStartToSelfHandler.cpp
-    GCKickMessage.cpp GCKickMessageHandler.cpp
-    GCKnockBack.cpp GCKnockBackHandler.cpp
-    GCKnocksTargetBackOK1.cpp GCKnocksTargetBackOK1Handler.cpp
-    GCKnocksTargetBackOK2.cpp GCKnocksTargetBackOK2Handler.cpp
-    GCKnocksTargetBackOK4.cpp GCKnocksTargetBackOK4Handler.cpp
-    GCKnocksTargetBackOK5.cpp GCKnocksTargetBackOK5Handler.cpp
-    GCLearnSkillFailed.cpp GCLearnSkillFailedHandler.cpp
-    GCLearnSkillOK.cpp GCLearnSkillOKHandler.cpp
-    GCLearnSkillReady.cpp GCLearnSkillReadyHandler.cpp
-    GCLightning.cpp GCLightningHandler.cpp
-    GCMakeItemFail.cpp GCMakeItemFailHandler.cpp
-    GCMakeItemOK.cpp GCMakeItemOKHandler.cpp
-    GCMineExplosionOK1.cpp GCMineExplosionOK1Handler.cpp
-    GCMineExplosionOK2.cpp GCMineExplosionOK2Handler.cpp
-    GCMiniGameScores.cpp GCMiniGameScoresHandler.cpp
-    GCModifyGuildMemberInfo.cpp GCModifyGuildMemberInfoHandler.cpp
-    GCModifyInformation.cpp GCModifyInformationHandler.cpp
-    GCModifyMoney.cpp GCModifyMoneyHandler.cpp
-    GCModifyNickname.cpp GCModifyNicknameHandler.cpp
-    GCModyfyMoney.cpp GCModyfyMoneyHandler.cpp
-    GCMonsterKillQuestInfo.cpp GCMonsterKillQuestInfoHandler.cpp
-#    GCMonsterKillQuestStatus.cpp GCMonsterKillQuestStatusHandler.cpp
-    GCMorph1.cpp GCMorph1Handler.cpp
-    GCMorphSlayer2.cpp GCMorphSlayer2Handler.cpp
-    GCMorphVampire2.cpp GCMorphVampire2Handler.cpp
-    GCMove.cpp GCMoveHandler.cpp
-    GCMoveError.cpp GCMoveErrorHandler.cpp
-    GCMoveOK.cpp GCMoveOKHandler.cpp
-    GCMPRecoveryEnd.cpp GCMPRecoveryEndHandler.cpp
-    GCMPRecoveryStart.cpp GCMPRecoveryStartHandler.cpp
-    GCMyStoreInfo.cpp GCMyStoreInfoHandler.cpp
-    GCNicknameList.cpp GCNicknameListHandler.cpp
-    GCNicknameVerify.cpp GCNicknameVerifyHandler.cpp
-    GCNoticeEvent.cpp GCNoticeEventHandler.cpp
-    GCNotifyWin.cpp GCNotifyWinHandler.cpp
-    GCNPCAsk.cpp GCNPCAskHandler.cpp
-    GCNPCAskDynamic.cpp GCNPCAskDynamicHandler.cpp
-    GCNPCAskVariable.cpp GCNPCAskVariableHandler.cpp
-    GCNPCInfo.cpp GCNPCInfoHandler.cpp
-    GCNPCResponse.cpp GCNPCResponseHandler.cpp
-    GCNPCSay.cpp GCNPCSayHandler.cpp
-    GCNPCSayDynamic.cpp GCNPCSayDynamicHandler.cpp
-    GCOtherGuildName.cpp GCOtherGuildNameHandler.cpp
-    GCOtherModifyInfo.cpp GCOtherModifyInfoHandler.cpp
-    GCOtherStoreInfo.cpp GCOtherStoreInfoHandler.cpp
-    GCPartyError.cpp GCPartyErrorHandler.cpp
-    GCPartyInvite.cpp GCPartyInviteHandler.cpp
-    GCPartyJoined.cpp GCPartyJoinedHandler.cpp
-    GCPartyLeave.cpp GCPartyLeaveHandler.cpp
-    GCPartyPosition.cpp GCPartyPositionHandler.cpp
-    GCPartySay.cpp GCPartySayHandler.cpp
-    GCPetInfo.cpp GCPetInfoHandler.cpp
-    GCPetStashList.cpp GCPetStashListHandler.cpp
-    GCPetStashVerify.cpp GCPetStashVerifyHandler.cpp
-    GCPetUseSkill.cpp GCPetUseSkillHandler.cpp
-    GCPhoneConnected.cpp GCPhoneConnectedHandler.cpp
-    GCPhoneConnectionFailed.cpp GCPhoneConnectionFailedHandler.cpp
-    GCPhoneDisconnected.cpp GCPhoneDisconnectedHandler.cpp
-    GCPhoneSay.cpp GCPhoneSayHandler.cpp
-    GCQuestStatus.cpp GCQuestStatusHandler.cpp
-    GCRankBonusInfo.cpp GCRankBonusInfoHandler.cpp
-    GCRealWearingInfo.cpp GCRealWearingInfoHandler.cpp
-    GCReconnect.cpp GCReconnectHandler.cpp
-    GCReconnectLogin.cpp GCReconnectLoginHandler.cpp
-    GCRegenZoneStatus.cpp GCRegenZoneStatusHandler.cpp
-    GCReloadOK.cpp GCReloadOKHandler.cpp
-    GCRemoveCorpseHead.cpp GCRemoveCorpseHeadHandler.cpp
-    GCRemoveEffect.cpp GCRemoveEffectHandler.cpp
-    GCRemoveFromGear.cpp GCRemoveFromGearHandler.cpp
-    GCRemoveInjuriousCreature.cpp GCRemoveInjuriousCreatureHandler.cpp
-    GCRemoveStoreItem.cpp GCRemoveStoreItemHandler.cpp
-    GCRequestedIP.cpp GCRequestedIPHandler.cpp
-    GCRequestFailed.cpp GCRequestFailedHandler.cpp
-    GCRequestPowerPointResult.cpp GCRequestPowerPointResultHandler.cpp
-    GCRideMotorCycle.cpp GCRideMotorCycleHandler.cpp
-    GCRideMotorCycleFailed.cpp GCRideMotorCycleFailedHandler.cpp
-    GCRideMotorCycleOK.cpp GCRideMotorCycleOKHandler.cpp
-    GCRing.cpp GCRingHandler.cpp
-    GCSay.cpp GCSayHandler.cpp
-    GCSearchMotorcycleFail.cpp GCSearchMotorcycleFailHandler.cpp
-    GCSearchMotorcycleOK.cpp GCSearchMotorcycleOKHandler.cpp
-    GCSelectQuestID.cpp GCSelectQuestIDHandler.cpp
-    GCSelectRankBonusFailed.cpp GCSelectRankBonusFailedHandler.cpp
-    GCSelectRankBonusOK.cpp GCSelectRankBonusOKHandler.cpp
-    GCSetPosition.cpp GCSetPositionHandler.cpp
-    GCShopBought.cpp GCShopBoughtHandler.cpp
-    GCShopBuyFail.cpp GCShopBuyFailHandler.cpp
-    GCShopBuyOK.cpp GCShopBuyOKHandler.cpp
-    GCShopList.cpp GCShopListHandler.cpp
-    GCShopListMysterious.cpp GCShopListMysteriousHandler.cpp
-    GCShopMarketCondition.cpp GCShopMarketConditionHandler.cpp
-    GCShopSellFail.cpp GCShopSellFailHandler.cpp
-    GCShopSellOK.cpp GCShopSellOKHandler.cpp
-    GCShopSold.cpp GCShopSoldHandler.cpp
-    GCShopVersion.cpp GCShopVersionHandler.cpp
-    GCShowGuildInfo.cpp GCShowGuildInfoHandler.cpp
-    GCShowGuildJoin.cpp GCShowGuildJoinHandler.cpp
-    GCShowGuildMemberInfo.cpp GCShowGuildMemberInfoHandler.cpp
-    GCShowGuildRegist.cpp GCShowGuildRegistHandler.cpp
-    GCShowMessageBox.cpp GCShowMessageBoxHandler.cpp
-    GCShowUnionInfo.cpp GCShowUnionInfoHandler.cpp
-    GCShowWaitGuildInfo.cpp GCShowWaitGuildInfoHandler.cpp
-    GCSkillFailed1.cpp GCSkillFailed1Handler.cpp
-    GCSkillFailed2.cpp GCSkillFailed2Handler.cpp
-    GCSkillInfo.cpp GCSkillInfoHandler.cpp
-    GCSkillToInventoryOK1.cpp GCSkillToInventoryOK1Handler.cpp
-    GCSkillToInventoryOK2.cpp GCSkillToInventoryOK2Handler.cpp
-    GCSkillToObjectOK1.cpp GCSkillToObjectOK1Handler.cpp
-    GCSkillToObjectOK2.cpp GCSkillToObjectOK2Handler.cpp
-    GCSkillToObjectOK3.cpp GCSkillToObjectOK3Handler.cpp
-    GCSkillToObjectOK4.cpp GCSkillToObjectOK4Handler.cpp
-    GCSkillToObjectOK5.cpp GCSkillToObjectOK5Handler.cpp
-    GCSkillToObjectOK6.cpp GCSkillToObjectOK6Handler.cpp
-    GCSkillToSelfOK1.cpp GCSkillToSelfOK1Handler.cpp
-    GCSkillToSelfOK2.cpp GCSkillToSelfOK2Handler.cpp
-    GCSkillToSelfOK3.cpp GCSkillToSelfOK3Handler.cpp
-    GCSkillToTileOK1.cpp GCSkillToTileOK1Handler.cpp
-    GCSkillToTileOK2.cpp GCSkillToTileOK2Handler.cpp
-    GCSkillToTileOK3.cpp GCSkillToTileOK3Handler.cpp
-    GCSkillToTileOK4.cpp GCSkillToTileOK4Handler.cpp
-    GCSkillToTileOK5.cpp GCSkillToTileOK5Handler.cpp
-    GCSkillToTileOK6.cpp GCSkillToTileOK6Handler.cpp
-    GCSMSAddressList.cpp GCSMSAddressListHandler.cpp
-    GCStashList.cpp GCStashListHandler.cpp
-    GCStashSell.cpp GCStashSellHandler.cpp
-    GCStatusCurrentHP.cpp GCStatusCurrentHPHandler.cpp
-    GCSubInventoryInfo.cpp GCSubInventoryInfoHandler.cpp
-    GCSweeperBonusInfo.cpp GCSweeperBonusInfoHandler.cpp
-    GCSystemAvailabilities.cpp GCSystemAvailabilitiesHandler.cpp
-    GCSystemMessage.cpp GCSystemMessageHandler.cpp
-    GCTakeOff.cpp GCTakeOffHandler.cpp
-    GCTakeOutFail.cpp GCTakeOutFailHandler.cpp
-    GCTakeOutOK.cpp GCTakeOutOKHandler.cpp
-    GCTeachSkillInfo.cpp GCTeachSkillInfoHandler.cpp
-    GCThrowBombOK1.cpp GCThrowBombOK1Handler.cpp
-    GCThrowBombOK2.cpp GCThrowBombOK2Handler.cpp
-    GCThrowBombOK3.cpp GCThrowBombOK3Handler.cpp
-    GCThrowItemOK1.cpp GCThrowItemOK1Handler.cpp
-    GCThrowItemOK2.cpp GCThrowItemOK2Handler.cpp
-    GCThrowItemOK3.cpp GCThrowItemOK3Handler.cpp
-    GCTimeLimitItemInfo.cpp GCTimeLimitItemInfoHandler.cpp
-    GCTradeAddItem.cpp GCTradeAddItemHandler.cpp
-    GCTradeError.cpp GCTradeErrorHandler.cpp
-    GCTradeFinish.cpp GCTradeFinishHandler.cpp
-    GCTradeMoney.cpp GCTradeMoneyHandler.cpp
-    GCTradePrepare.cpp GCTradePrepareHandler.cpp
-    GCTradeRemoveItem.cpp GCTradeRemoveItemHandler.cpp
-    GCTradeVerify.cpp GCTradeVerifyHandler.cpp
-    GCUnburrowFail.cpp GCUnburrowFailHandler.cpp
-    GCUnburrowOK.cpp GCUnburrowOKHandler.cpp
-    GCUnionOfferList.cpp GCUnionOfferListHandler.cpp
-    GCUntransformFail.cpp GCUntransformFailHandler.cpp
-    GCUntransformOK.cpp GCUntransformOKHandler.cpp
-    GCUpdateInfo.cpp GCUpdateInfoHandler.cpp
-    GCUseBonusPointFail.cpp GCUseBonusPointFailHandler.cpp
-    GCUseBonusPointOK.cpp GCUseBonusPointOKHandler.cpp
-    GCUseOK.cpp GCUseOKHandler.cpp
-    GCUsePowerPointResult.cpp GCUsePowerPointResultHandler.cpp
-    GCVisibleFail.cpp GCVisibleFailHandler.cpp
-    GCVisibleOK.cpp GCVisibleOKHandler.cpp
-    GCWaitGuildList.cpp GCWaitGuildListHandler.cpp
-    GCWarList.cpp GCWarListHandler.cpp
-    GCWarScheduleList.cpp GCWarScheduleListHandler.cpp
-    GCWhisper.cpp GCWhisperHandler.cpp
-    GCWhisperFailed.cpp GCWhisperFailedHandler.cpp
+    GCGetDamage.cpp 
+    GCGetOffMotorCycle.cpp 
+    GCGetOffMotorCycleFailed.cpp 
+    GCGetOffMotorCycleOK.cpp 
+    GCGlobalChat.cpp 
+    GCGoodsList.cpp 
+    GCGQuestInventory.cpp 
+    GCGQuestStatusInfo.cpp 
+    GCGQuestStatusModify.cpp 
+    GCGuildChat.cpp 
+    GCGuildMemberList.cpp 
+    GCGuildResponse.cpp 
+    GCHolyLandBonusInfo.cpp 
+    GCHPRecoveryEndToOthers.cpp 
+    GCHPRecoveryEndToSelf.cpp 
+    GCHPRecoveryStartToOthers.cpp 
+    GCHPRecoveryStartToSelf.cpp 
+    GCKickMessage.cpp 
+    GCKnockBack.cpp 
+    GCKnocksTargetBackOK1.cpp 
+    GCKnocksTargetBackOK2.cpp 
+    GCKnocksTargetBackOK4.cpp 
+    GCKnocksTargetBackOK5.cpp 
+    GCLearnSkillFailed.cpp 
+    GCLearnSkillOK.cpp 
+    GCLearnSkillReady.cpp 
+    GCLightning.cpp 
+    GCMakeItemFail.cpp 
+    GCMakeItemOK.cpp 
+    GCMineExplosionOK1.cpp 
+    GCMineExplosionOK2.cpp 
+    GCMiniGameScores.cpp 
+    GCModifyGuildMemberInfo.cpp 
+    GCModifyInformation.cpp 
+    GCModifyMoney.cpp 
+    GCModifyNickname.cpp 
+    GCModyfyMoney.cpp 
+    GCMonsterKillQuestInfo.cpp 
+#    GCMonsterKillQuestStatus.cpp 
+    GCMorph1.cpp 
+    GCMorphSlayer2.cpp 
+    GCMorphVampire2.cpp 
+    GCMove.cpp 
+    GCMoveError.cpp 
+    GCMoveOK.cpp 
+    GCMPRecoveryEnd.cpp 
+    GCMPRecoveryStart.cpp 
+    GCMyStoreInfo.cpp 
+    GCNicknameList.cpp 
+    GCNicknameVerify.cpp 
+    GCNoticeEvent.cpp 
+    GCNotifyWin.cpp 
+    GCNPCAsk.cpp 
+    GCNPCAskDynamic.cpp 
+    GCNPCAskVariable.cpp 
+    GCNPCInfo.cpp 
+    GCNPCResponse.cpp 
+    GCNPCSay.cpp 
+    GCNPCSayDynamic.cpp 
+    GCOtherGuildName.cpp 
+    GCOtherModifyInfo.cpp 
+    GCOtherStoreInfo.cpp 
+    GCPartyError.cpp 
+    GCPartyInvite.cpp 
+    GCPartyJoined.cpp 
+    GCPartyLeave.cpp 
+    GCPartyPosition.cpp 
+    GCPartySay.cpp 
+    GCPetInfo.cpp 
+    GCPetStashList.cpp 
+    GCPetStashVerify.cpp 
+    GCPetUseSkill.cpp 
+    GCPhoneConnected.cpp 
+    GCPhoneConnectionFailed.cpp 
+    GCPhoneDisconnected.cpp 
+    GCPhoneSay.cpp 
+    GCQuestStatus.cpp 
+    GCRankBonusInfo.cpp 
+    GCRealWearingInfo.cpp 
+    GCReconnect.cpp 
+    GCReconnectLogin.cpp 
+    GCRegenZoneStatus.cpp 
+    GCReloadOK.cpp 
+    GCRemoveCorpseHead.cpp 
+    GCRemoveEffect.cpp 
+    GCRemoveFromGear.cpp 
+    GCRemoveInjuriousCreature.cpp 
+    GCRemoveStoreItem.cpp 
+    GCRequestedIP.cpp 
+    GCRequestFailed.cpp 
+    GCRequestPowerPointResult.cpp 
+    GCRideMotorCycle.cpp 
+    GCRideMotorCycleFailed.cpp 
+    GCRideMotorCycleOK.cpp 
+    GCRing.cpp 
+    GCSay.cpp 
+    GCSearchMotorcycleFail.cpp 
+    GCSearchMotorcycleOK.cpp 
+    GCSelectQuestID.cpp 
+    GCSelectRankBonusFailed.cpp 
+    GCSelectRankBonusOK.cpp 
+    GCSetPosition.cpp 
+    GCShopBought.cpp 
+    GCShopBuyFail.cpp 
+    GCShopBuyOK.cpp 
+    GCShopList.cpp 
+    GCShopListMysterious.cpp 
+    GCShopMarketCondition.cpp 
+    GCShopSellFail.cpp 
+    GCShopSellOK.cpp 
+    GCShopSold.cpp 
+    GCShopVersion.cpp 
+    GCShowGuildInfo.cpp 
+    GCShowGuildJoin.cpp 
+    GCShowGuildMemberInfo.cpp 
+    GCShowGuildRegist.cpp 
+    GCShowMessageBox.cpp 
+    GCShowUnionInfo.cpp 
+    GCShowWaitGuildInfo.cpp 
+    GCSkillFailed1.cpp 
+    GCSkillFailed2.cpp 
+    GCSkillInfo.cpp 
+    GCSkillToInventoryOK1.cpp 
+    GCSkillToInventoryOK2.cpp 
+    GCSkillToObjectOK1.cpp 
+    GCSkillToObjectOK2.cpp 
+    GCSkillToObjectOK3.cpp 
+    GCSkillToObjectOK4.cpp 
+    GCSkillToObjectOK5.cpp 
+    GCSkillToObjectOK6.cpp 
+    GCSkillToSelfOK1.cpp 
+    GCSkillToSelfOK2.cpp 
+    GCSkillToSelfOK3.cpp 
+    GCSkillToTileOK1.cpp 
+    GCSkillToTileOK2.cpp 
+    GCSkillToTileOK3.cpp 
+    GCSkillToTileOK4.cpp 
+    GCSkillToTileOK5.cpp 
+    GCSkillToTileOK6.cpp 
+    GCSMSAddressList.cpp 
+    GCStashList.cpp 
+    GCStashSell.cpp 
+    GCStatusCurrentHP.cpp 
+    GCSubInventoryInfo.cpp 
+    GCSweeperBonusInfo.cpp 
+    GCSystemAvailabilities.cpp 
+    GCSystemMessage.cpp 
+    GCTakeOff.cpp 
+    GCTakeOutFail.cpp 
+    GCTakeOutOK.cpp 
+    GCTeachSkillInfo.cpp 
+    GCThrowBombOK1.cpp 
+    GCThrowBombOK2.cpp 
+    GCThrowBombOK3.cpp 
+    GCThrowItemOK1.cpp 
+    GCThrowItemOK2.cpp 
+    GCThrowItemOK3.cpp 
+    GCTimeLimitItemInfo.cpp 
+    GCTradeAddItem.cpp 
+    GCTradeError.cpp 
+    GCTradeFinish.cpp 
+    GCTradeMoney.cpp 
+    GCTradePrepare.cpp 
+    GCTradeRemoveItem.cpp 
+    GCTradeVerify.cpp 
+    GCUnburrowFail.cpp 
+    GCUnburrowOK.cpp 
+    GCUnionOfferList.cpp 
+    GCUntransformFail.cpp 
+    GCUntransformOK.cpp 
+    GCUpdateInfo.cpp 
+    GCUseBonusPointFail.cpp 
+    GCUseBonusPointOK.cpp 
+    GCUseOK.cpp 
+    GCUsePowerPointResult.cpp 
+    GCVisibleFail.cpp 
+    GCVisibleOK.cpp 
+    GCWaitGuildList.cpp 
+    GCWarList.cpp 
+    GCWarScheduleList.cpp 
+    GCWhisper.cpp 
+    GCWhisperFailed.cpp 
     # Exchange System Packets
-    GCExchangeList.cpp GCExchangeListHandler.cpp
-    GCExchangeBuy.cpp GCExchangeBuyHandler.cpp
+    GCExchangeList.cpp 
+    GCExchangeBuy.cpp 
 )
 
 
@@ -556,29 +556,29 @@ set(CL_PACKET_SOURCES
     CLSelectServer.cpp CLSelectServerHandler.cpp
     CLSelectWorld.cpp CLSelectWorldHandler.cpp
     CLVersionCheck.cpp CLVersionCheckHandler.cpp
-    GCDisconnect.cpp GCDisconnectHandler.cpp
+    GCDisconnect.cpp 
 	CGConnectSetKey.cpp CGConnectSetKeyHandler.cpp 
 )
 
 # LC Packets (Login -> Client)
 set(LC_PACKET_SOURCES
-    LCCreatePCError.cpp LCCreatePCErrorHandler.cpp
-    LCCreatePCOK.cpp LCCreatePCOKHandler.cpp
-    LCDeletePCError.cpp LCDeletePCErrorHandler.cpp
-    LCDeletePCOK.cpp LCDeletePCOKHandler.cpp
-    LCLoginError.cpp LCLoginErrorHandler.cpp
-    LCLoginOK.cpp LCLoginOKHandler.cpp
-    LCPCList.cpp LCPCListHandler.cpp
-    LCQueryResultCharacterName.cpp LCQueryResultCharacterNameHandler.cpp
-    LCQueryResultPlayerID.cpp LCQueryResultPlayerIDHandler.cpp
-    LCReconnect.cpp LCReconnectHandler.cpp
-    LCRegisterPlayerError.cpp LCRegisterPlayerErrorHandler.cpp
-    LCRegisterPlayerOK.cpp LCRegisterPlayerOKHandler.cpp
-    LCSelectPCError.cpp LCSelectPCErrorHandler.cpp
-    LCServerList.cpp LCServerListHandler.cpp
-    LCVersionCheckError.cpp LCVersionCheckErrorHandler.cpp
-    LCVersionCheckOK.cpp LCVersionCheckOKHandler.cpp
-    LCWorldList.cpp LCWorldListHandler.cpp
+    LCCreatePCError.cpp 
+    LCCreatePCOK.cpp 
+    LCDeletePCError.cpp 
+    LCDeletePCOK.cpp 
+    LCLoginError.cpp 
+    LCLoginOK.cpp 
+    LCPCList.cpp 
+    LCQueryResultCharacterName.cpp 
+    LCQueryResultPlayerID.cpp 
+    LCReconnect.cpp 
+    LCRegisterPlayerError.cpp 
+    LCRegisterPlayerOK.cpp 
+    LCSelectPCError.cpp 
+    LCServerList.cpp 
+    LCVersionCheckError.cpp 
+    LCVersionCheckOK.cpp 
+    LCWorldList.cpp 
 )
 
 # GL Packets (Game -> Login)

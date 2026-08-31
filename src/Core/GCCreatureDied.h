@@ -104,14 +104,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCCreatureDiedHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCCreatureDiedHandler {
-public:
-    // execute packet's handler
-    static void execute(GCCreatureDied* pPacket, Player* pPlayer);
-};
 
 #endif

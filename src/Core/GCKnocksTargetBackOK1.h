@@ -164,14 +164,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCKnocksTargetBackOK1Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCKnocksTargetBackOK1Handler {
-public:
-    // execute packet's handler
-    static void execute(GCKnocksTargetBackOK1* pGCKnocksTargetBackOK1, Player* pPlayer);
-};
 
 #endif

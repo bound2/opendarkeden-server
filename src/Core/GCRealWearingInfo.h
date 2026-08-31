@@ -98,14 +98,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCRealWearingInfoHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCRealWearingInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCRealWearingInfo* pPacket, Player* player);
-};
 
 #endif

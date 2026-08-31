@@ -201,10 +201,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCShowWaitGuildInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCShowWaitGuildInfo* pPacket, Player* pPlayer);
-};
-
 #endif

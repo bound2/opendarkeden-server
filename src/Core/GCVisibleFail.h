@@ -90,16 +90,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCVisibleFailHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCVisibleFailHandler {
-public:
-    // execute packet's handler
-    static void execute(GCVisibleFail* pPacket, Player* pPlayer);
-};
-
 #endif

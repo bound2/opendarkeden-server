@@ -84,10 +84,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCTimeLimitItemInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCTimeLimitItemInfo* pPacket, Player* pPlayer);
-};
-
 #endif

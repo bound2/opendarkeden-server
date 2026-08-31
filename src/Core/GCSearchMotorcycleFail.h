@@ -66,14 +66,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSearchMotorcycleFailHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCSearchMotorcycleFailHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSearchMotorcycleFail* pPacket, Player* pPlayer);
-};
 
 #endif

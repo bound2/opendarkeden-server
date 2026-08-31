@@ -143,16 +143,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCSkillFailed2Handler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCSkillFailed2Handler {
-public:
-    // execute packet's handler
-    static void execute(GCSkillFailed2* pGCSkillFailed2, Player* pPlayer);
-};
-
 #endif // __GC_SKILL_FAILED_2_H__

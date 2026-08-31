@@ -145,14 +145,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCSystemMessageHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCSystemMessageHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSystemMessage* pPacket, Player* pPlayer);
-};
 
 #endif

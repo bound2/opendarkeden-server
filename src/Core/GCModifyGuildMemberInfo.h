@@ -124,14 +124,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCModifyGuildMemberInfoHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCModifyGuildMemberInfoHandler {
-public:
-    // execute packet's handler
-    static void execute(GCModifyGuildMemberInfo* pPacket, Player* pPlayer);
-};
 
 #endif

@@ -104,14 +104,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCShopSellFailHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCShopSellFailHandler {
-public:
-    // execute packet's handler
-    static void execute(GCShopSellFail* pPacket, Player* pPlayer);
-};
 
 #endif

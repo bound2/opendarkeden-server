@@ -139,14 +139,7 @@ public:
 
 //--------------------------------------------------------------------------------
 //
-// class GCRequestPowerPointResultHandler;
 //
 //--------------------------------------------------------------------------------
-
-class GCRequestPowerPointResultHandler {
-public:
-    // execute packet's handler
-    static void execute(GCRequestPowerPointResult* pPacket, Player* pPlayer);
-};
 
 #endif

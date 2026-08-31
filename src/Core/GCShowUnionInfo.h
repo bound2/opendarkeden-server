@@ -284,12 +284,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCShowUnionInfoHandler {
-public:
-    GCShowUnionInfoHandler(){};
-    ~GCShowUnionInfoHandler(){};
-    // execute packet's handler
-    static void execute(GCShowUnionInfo* pPacket, Player* pPlayer);
-};
-
 #endif

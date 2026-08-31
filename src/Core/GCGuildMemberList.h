@@ -135,10 +135,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCGuildMemberListHandler {
-public:
-    // execute packet's handler
-    static void execute(GCGuildMemberList* pPacket, Player* pPlayer);
-};
-
 #endif

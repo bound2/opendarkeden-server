@@ -110,16 +110,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCLearnSkillReadyHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCLearnSkillReadyHandler {
-public:
-    // execute packet's handler
-    static void execute(GCLearnSkillReady* pGCLearnSkillReady, Player* pPlayer);
-};
-
 #endif // __GC_LEARN_SKILL_READY_H__

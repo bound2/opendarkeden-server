@@ -114,14 +114,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCQueryResultCharacterNameHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCQueryResultCharacterNameHandler {
-public:
-    // execute packet's handler
-    static void execute(LCQueryResultCharacterName* pPacket, Player* pPlayer);
-};
 
 #endif

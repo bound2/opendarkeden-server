@@ -105,14 +105,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCWhisperFailedHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCWhisperFailedHandler {
-public:
-    // execute packet's handler
-    static void execute(GCWhisperFailed* pGCWhisperFailed, Player* pPlayer);
-};
 
 #endif

@@ -85,14 +85,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class LCVersionCheckErrorHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class LCVersionCheckErrorHandler {
-public:
-    // execute packet's handler
-    static void execute(LCVersionCheckError* pPacket, Player* pPlayer);
-};
 
 #endif

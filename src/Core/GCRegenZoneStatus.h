@@ -100,14 +100,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCRegenZoneStatusHandler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCRegenZoneStatusHandler {
-public:
-    // execute packet's handler
-    static void execute(GCRegenZoneStatus* pPacket, Player* pPlayer);
-};
 
 #endif

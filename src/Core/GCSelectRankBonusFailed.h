@@ -116,16 +116,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCSelectRankBonusFailedHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCSelectRankBonusFailedHandler {
-public:
-    // execute packet's handler
-    static void execute(GCSelectRankBonusFailed* pGCSelectRankBonusFailed, Player* pPlayer);
-};
-
 #endif // __GC_LEARN_SKILL_FAILED_H__

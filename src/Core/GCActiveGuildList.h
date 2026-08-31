@@ -127,10 +127,4 @@ public:
 //
 //////////////////////////////////////////////////////////////////////
 
-class GCActiveGuildListHandler {
-public:
-    // execute packet's handler
-    static void execute(GCActiveGuildList* pPacket, Player* pPlayer);
-};
-
 #endif

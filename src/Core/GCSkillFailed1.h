@@ -85,15 +85,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCSkillFailed1Handler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCSkillFailed1Handler {
-public:
-    static void execute(GCSkillFailed1* pGCSkillFailed1, Player* pPlayer);
-};
-
 #endif // __GC_SKILL_FAILED_1_H__

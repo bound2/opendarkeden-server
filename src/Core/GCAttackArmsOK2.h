@@ -122,14 +122,7 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// class GCAttackArmsOK2Handler;
 //
 //////////////////////////////////////////////////////////////////////
-
-class GCAttackArmsOK2Handler {
-public:
-    // execute packet's handler
-    static void execute(GCAttackArmsOK2* pGCAttackArmsOK2, Player* pPlayer);
-};
 
 #endif

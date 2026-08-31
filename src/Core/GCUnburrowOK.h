@@ -125,16 +125,4 @@ public:
 };
 
 
-//////////////////////////////////////////////////////////////////////
-//
-// class  GCUnburrowOKHandler;
-//
-//////////////////////////////////////////////////////////////////////
-
-class GCUnburrowOKHandler {
-public:
-    // execute packet's handler
-    static void execute(GCUnburrowOK* pPacket, Player* pPlayer);
-};
-
 #endif
