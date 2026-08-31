@@ -31,6 +31,10 @@ WORKDIR /home/darkeden/vs
 COPY CMakeLists.txt ./
 COPY third_party ./third_party
 COPY src ./src
+# src/Core/CMakeLists.txt reads the de-kernel membership list at configure
+# time (docs/RESTRUCTURING.md 2.1), so this one file from tests/ must be in
+# the build context even though the test suite itself is not built here.
+COPY tests/arch/kernel_files.txt ./tests/arch/kernel_files.txt
 
 # Release by default. Optimized builds no longer define NDEBUG (see
 # CMakeLists.txt), which is what used to strip the side effects out of the
