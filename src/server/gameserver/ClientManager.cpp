@@ -22,10 +22,8 @@
 #include <list>
 
 #include "GDRLairManager.h"
-#include "LocalIP.h"
 #include "LoginServerManager.h"
 #include "ParkingCenter.h"
-#include "TOpackets/GTOAcknowledgement.h"
 #include "WarSystem.h"
 #include "ctf/FlagManager.h"
 
@@ -113,15 +111,6 @@ void ClientManager::run()
     Timeval dummyQueryTime;
     getCurrentTime(dummyQueryTime);
 
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-    Timeval theOneAckTime;
-    getCurrentTime(theOneAckTime);
-    //	theOneAckTime.tv_sec += 198 * 60;
-    theOneAckTime.tv_sec += (10 + rand() % 20) * 60;
-
-    //	theOneAckTime.tv_sec += 1 * 60;
-#endif
-
     Timeval userGatewayTime;
     getCurrentTime(userGatewayTime);
     userGatewayTime.tv_sec += 10;
@@ -203,30 +192,6 @@ void ClientManager::run()
             // Set a dummy query time between 1h and 1h30 to avoid timeouts.
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
         }
-
-#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__)
-        if (theOneAckTime < currentTime) {
-            list<string> ips = getLocalIP();
-            list<string>::iterator itr = ips.begin();
-            list<string>::iterator endItr = ips.end();
-
-            for (; itr != endItr; ++itr) {
-                string& myIP = *itr;
-                //				cout << "My IP Address is : " << myIP << endl;
-
-                GTOAcknowledgement GTO;
-                GTO.setServerIP(myIP);
-                GTO.setServerType(0);
-                GTO.setUDPPort(g_pConfig->getPropertyInt("GameServerUDPPort"));
-
-                // g_pLoginServerManager->sendPacket( "61.78.53.244", 9981, &GTO );
-                g_pLoginServerManager->sendPacket("61.78.53.244", 19982, &GTO);
-            }
-
-            // theOneAckTime.tv_sec += ( 180 + rand()%300 ) * 60;
-            theOneAckTime.tv_sec += (60 + rand() % 120) * 60;
-        }
-#endif
 
         if (m_BalanceZoneGroupTime < currentTime) {
             g_pZoneGroupManager->balanceZoneGroup(m_bForceZoneGroupBalancing, m_bDefaultZoneGroupBalancing);
