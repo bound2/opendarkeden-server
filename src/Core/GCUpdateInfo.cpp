@@ -43,25 +43,13 @@ GCUpdateInfo::~GCUpdateInfo()
     SAFE_DELETE(m_pEffectInfo);
     SAFE_DELETE(m_pRideMotorcycleInfo);
 
-    // 서버 쪽에서는 존 내부에서 NPCInfo의 리스트가 존재한다.
-    // 이 리스트는 현재로서는 불변이다. 그러므로 매번 NPCInfo를
-    // new로 생성하여, GCUpdateInfo에다 넣어주고, 다시 delete하는 것은
-    // 속도 면에서 봤을 때 상당히 손해다. 그래서 GCUpdateInfo 안에
-    // 있는 NPCInfoList에는 Zone의 NPCInfoList의 포인터를 그냥
-    // 전달해 준다. 그러므로 서버 측에서는 이를 삭제하면 안 된다.
-    // 그러나 클라이언트에서는 이를 삭제해 줘야 한다.
-
-#ifdef __GAME_CLIENT__
-    list<NPCInfo*>::iterator itr = m_NPCInfos.begin();
-    for (; itr != m_NPCInfos.end(); itr++) {
-        NPCInfo* pInfo = *itr;
-        SAFE_DELETE(pInfo);
-    }
-    SAFE_DELETE(m_pNicknameInfo);
-#else
-
+    // On the server the Zone owns a (currently immutable) list of NPCInfo
+    // objects. Creating them with new, putting them into GCUpdateInfo and
+    // deleting them again for every packet would cost real speed, so the
+    // NPCInfoList here just carries pointers into the Zone's NPCInfoList —
+    // the server must never delete them. (The client's copy of this packet
+    // does delete them.)
     m_NPCInfos.clear();
-#endif
 }
 
 //--------------------------------------------------------------------------------

@@ -124,9 +124,10 @@ public:
         m_CanAttack = bAttack;
     }
 
-    void setPetItem(PetItem* pPetItem) {
-        m_pPetItem = pPetItem;
-    }
+    // defined in the gameserver (packetfill/PetInfoFill.cpp): caches the
+    // item's ObjectID for the wire, so the wire library never needs the
+    // PetItem definition.
+    void setPetItem(PetItem* pPetItem);
     PetItem* getPetItem() const {
         return m_pPetItem;
     }
@@ -138,8 +139,9 @@ public:
         m_IsSummonInfo = isSummon;
     }
 
-    // -_- 게임서버쪽에 정의해야쥐 PetItem.cpp 에 있음
-    ObjectID_t getItemObjectID() const;
+    ObjectID_t getItemObjectID() const {
+        return m_ItemObjectID;
+    }
 
     VSDateTime& getLastFeedTime() {
         return m_LastFeedTime;
@@ -148,7 +150,7 @@ public:
         m_LastFeedTime = time;
     }
 
-    // #ifdef __GAME_SERVER__
+    // server-side pet state (not on the wire)
     BYTE getFeedTurn() const {
         return m_FeedTurn;
     }
@@ -162,7 +164,6 @@ public:
     void setCurrentFeedTurn(BYTE turn) {
         m_CurrentFeedTurn = turn;
     }
-    // #endif
 
     string getNickname() const {
         return m_Nickname;
@@ -190,13 +191,13 @@ private:
     BYTE m_IsSummonInfo;
     VSDateTime m_LastFeedTime;
 
-    // #ifdef __GAME_SERVER__
+    // server-side pet state (not on the wire)
     BYTE m_FeedTurn;
     BYTE m_CurrentFeedTurn;
     string m_Nickname;
-    // #endif
 
     PetItem* m_pPetItem;
+    ObjectID_t m_ItemObjectID;
 };
 
 #endif

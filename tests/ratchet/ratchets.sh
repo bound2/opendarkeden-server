@@ -43,11 +43,11 @@ R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)
 check_ratchet R4 "packet headers with execute()" 0 "$R4"
 
 # --- R5: __BEGIN_TRY control-flow macro sites in gameserver ----------------
-# handler/ is excluded: the packet handlers moved there from src/Core in
-# task 2.4, where this metric never counted them — including them would
-# jump the baseline by +284 without any new debt. Fold them in (with a
+# handler/ and packetfill/ are excluded: those sources moved there from
+# src/Core in task 2.4, where this metric never counted them — including
+# them would jump the baseline without any new debt. Fold them in (with a
 # re-baseline note) when they become de-core extraction targets in 3.x.
-R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -v 'gameserver/handler/' | wc -l)
+R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(handler|packetfill)/' | wc -l)
 check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5984 "$R5"
 
 # --- Generated factory list is fresh ---------------------------------------

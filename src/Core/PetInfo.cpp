@@ -1,7 +1,5 @@
 #include "PetInfo.h"
 
-#include "PetItem.h"
-
 PetInfo::PetInfo() {
     m_PetType = PET_NONE;
     m_PetLevel = 0;
@@ -16,10 +14,12 @@ PetInfo::PetInfo() {
     m_CanAttack = 0;
     m_CanGamble = 0;
 
-    // #ifdef __GAME_SERVER__
+    // server-side pet state (not on the wire)
     m_FeedTurn = 1;
     m_CurrentFeedTurn = 0;
-    // #endif
+
+    m_pPetItem = NULL;
+    m_ItemObjectID = 0;
 }
 
 void PetInfo::read(SocketInputStream& iStream) {
@@ -101,10 +101,4 @@ string PetInfo::toString() const {
         << ", ItemObjectID : " << getItemObjectID() << ")";
 
     return msg.toString();
-}
-
-ObjectID_t PetInfo::getItemObjectID() const {
-    if (m_pPetItem == NULL)
-        return 0;
-    return m_pPetItem->getObjectID();
 }

@@ -34,16 +34,9 @@ GCNPCInfo::GCNPCInfo()
 GCNPCInfo::~GCNPCInfo()
 
 {
-#ifdef __GAME_CLIENT__
-    list<NPCInfo*>::iterator itr = m_NPCInfos.begin();
-    for (; itr != m_NPCInfos.end(); itr++) {
-        NPCInfo* pInfo = *itr;
-        SAFE_DELETE(pInfo);
-    }
-#else
-
+    // the NPCInfo objects are owned by the Zone, not the packet — see
+    // GCUpdateInfo's destructor. (The client's copy deletes them.)
     m_NPCInfos.clear();
-#endif
 }
 
 //--------------------------------------------------------------------------------

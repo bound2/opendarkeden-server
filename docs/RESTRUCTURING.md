@@ -57,7 +57,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R2 | Files with inline SQL in gameserver root | 104 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` |
 | R3 | Files with inline SQL anywhere outside `database/` | 319 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -v 'gameserver/handler/' \| wc -l` (handler/ holds the 2.4-moved packet handlers, never counted while they lived in `src/Core`; fold in with a re-baseline when they become 3.x extraction targets) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
 

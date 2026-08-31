@@ -85,14 +85,7 @@ void GCPartyJoined::clear(void)
     while (!m_MemberInfoList.empty()) {
         PARTY_MEMBER_INFO* pInfo = m_MemberInfoList.front();
 
-#ifdef __GAME_CLIENT__
-        if (pInfo != NULL) {
-            delete pInfo;
-            pInfo = NULL;
-        }
-#else
         SAFE_DELETE(pInfo);
-#endif
 
         m_MemberInfoList.pop_front();
     }
