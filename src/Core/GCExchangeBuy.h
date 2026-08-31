@@ -20,6 +20,12 @@ using namespace std;
 
 class GCExchangeBuy : public Packet {
 public:
+    // Maximum wire length, in bytes, of m_Message. write(), read() and
+    // getPacketSize() all clamp to this value, and the factory's max size is
+    // derived from it. MUST stay equal to the client repo's constant of the
+    // same name.
+    static const PacketSize_t kMaxMessage = 255;
+
     GCExchangeBuy() : m_Success(false), m_OrderID(0){};
     virtual ~GCExchangeBuy(){};
 
@@ -70,9 +76,9 @@ private:
 // The server never receives this packet; the factory exists for the
 // wire-layout inventory (tests/wire-layout.txt) and to keep the packet
 // comparable with the client's copy. write() emits a success BYTE, the
-// message bytes with NO length prefix (write(string) is raw), then the
-// order id; the max assumes a 255-byte message. A receiver cannot frame
-// that message — recorded in docs/RESTRUCTURING.md 1.4.
+// message as a BYTE length prefix followed by the message bytes, then
+// the order id; the max assumes a message at kMaxMessage, which is the
+// longest write() can emit because it clamps to that constant.
 //////////////////////////////////////////////////////////////////////////////
 
 class GCExchangeBuyFactory : public PacketFactory {
@@ -89,8 +95,12 @@ public:
         return Packet::PACKET_GC_EXCHANGE_BUY;
     }
 
+    // 1 + 1 + 255 + 8 = 265. The client factory must match.
     PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 255 + sizeof(int64_t);
+        return szBYTE +                     // m_Success
+               szBYTE +                     // m_Message length byte
+               GCExchangeBuy::kMaxMessage + // m_Message body (write() clamps to this)
+               sizeof(int64_t);             // m_OrderID
     }
 };
 

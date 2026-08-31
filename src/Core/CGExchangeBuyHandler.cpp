@@ -8,6 +8,8 @@
 #include "GCExchangeBuy.h"
 
 #ifdef __GAME_SERVER__
+#include <stdlib.h>
+
 #include "../server/gameserver/exchange/ExchangeService.h"
 #include "GamePlayer.h"
 #include "PlayerCreature.h"
@@ -33,6 +35,13 @@ void CGExchangeBuyHandler::execute(CGExchangeBuy* pPacket, Player* pPlayer) {
     GCExchangeBuy gcPacket;
     gcPacket.setSuccess(result.first);
     gcPacket.setMessage(result.second);
+
+    if (result.first) {
+        // On success the service returns the new order id as a decimal string.
+        // The client parses m_OrderID out of this reply, so it has to be carried
+        // across; on failure the string is an error message and the id stays 0.
+        gcPacket.setOrderID((int64_t)strtoll(result.second.c_str(), NULL, 10));
+    }
 
     pPlayer->sendPacket(&gcPacket);
 

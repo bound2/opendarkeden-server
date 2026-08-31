@@ -18,3 +18,4 @@ tests/golden/*.hex text eol=lf
 tests/wire-layout.txt text eol=lf
 tests/generated/*.inc text eol=lf
 tests/ratchet/*.txt text eol=lf
+tools/*.sh text eol=lf

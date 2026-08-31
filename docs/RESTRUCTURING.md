@@ -215,6 +215,128 @@ before anything else moves. Everything later shelters under this pin.
   >      4-byte listing id only. The two repos' Exchange packets were
   >      written against different specs — reconcile them as one change
   >      in both repos, then the diff's Exchange lines go green.
+  >      **Reconciled 2026-08-30** (`restructuring/exchange-reconcile` in
+  >      both repos; canonical string encoding = BYTE length always
+  >      written + raw bytes, all four factory maxes equal across repos,
+  >      pinned by `tests/packet_exchange_test.cpp` round-trips/goldens/
+  >      size checks). Fixing the layouts uncovered and removed on the
+  >      way:
+  >      * server `CGExchangeBuy::read()`/`GCExchangeBuy::read()` called
+  >        `iStream.read(std::string&)`, which resolves to the generic
+  >        `template read(T&)`. That template's normal-order path is
+  >        `buf = *(T*)(m_Buffer + m_Head)` — `std::string::operator=`
+  >        against a **fabricated string object overlaid on the wire
+  >        buffer**, so the copy follows a pointer and length taken from
+  >        attacker-supplied bytes (arbitrary read, not merely a clobber),
+  >        on every received buy request. Both now use BYTE-length
+  >        encoding, and the call sites carry a warning comment;
+  >      * server `GCExchangeList::read()` read `listingID` twice (once
+  >        where write() emits `itemID`) and discarded most fields into
+  >        locals — rewritten as write()'s exact mirror;
+  >      * client `GCExchangeList` parsed only page/pageSize/total and
+  >        capped at 2048 bytes; now parses the full 31-field listing
+  >        layout with max 37114 = the server's;
+  >      * client had no `GCExchangeBuy` class, and `GCExchangeListFactory`
+  >        was **never registered** in its `PacketFactoryManager` — the
+  >        listing reply was unroutable; both fixed.
+  >
+  >      Adversarial review of the reconcile branches (2026-08-30, one
+  >      reviewer per repo) then found a further set, all fixed in the
+  >      same branches:
+  >      * **SQL injection.** `escapeSQL()`
+  >        (`gameserver/exchange/ExchangeDB.cpp`, 18 call sites) doubled
+  >        the single quote and nothing else, so a backslash before a
+  >        quote escaped the doubled quote and broke out of the literal.
+  >        Reachable by any logged-in player through
+  >        `CGExchangeBuy`'s idempotency key, which this very branch had
+  >        widened from 64 to 255 bytes;
+  >      * **size/body disagreement on long strings.** `write()` truncated
+  >        the length byte with `(uint8_t)s.length()` while
+  >        `getPacketSize()` counted the untruncated length — and
+  >        `SocketOutputStream::writePacket()` emits that size header
+  >        *before* calling `write()`, so the peer frames on a wrong
+  >        length and the stream desyncs permanently. (For the same
+  >        reason, throwing from `write()` the way `CGSay` does is not a
+  >        fix here — the header is already out.) Every string field in
+  >        both repos now clamps identically in `write()`,
+  >        `getPacketSize()` and `read()`, against a named per-field cap;
+  >      * the idempotency key's wire cap is 64, not 255, because
+  >        `PointLedger.IdempotencyKey` is `VARCHAR(64) UNIQUE`: under
+  >        this project's mandated non-strict `sql_mode` a longer key was
+  >        silently truncated on insert while the dedupe guard compared
+  >        the full key, so the guard passed and the INSERT then hit the
+  >        unique index and rolled the purchase back. `CGExchangeBuy`'s
+  >        max is therefore 73 in both repos;
+  >      * client `GCExchangeList::read()` trusted a server-supplied
+  >        `uint16` listing count with no bound — the first client packet
+  >        whose byte consumption was not bounded by the declared
+  >        `packetSize`, so a hostile count silently ate following
+  >        packets. Bounded by `kMaxListingsPerPage` (20), the same
+  >        constant the 37114 max is computed from, and the server
+  >        handler now clamps the client-chosen page size to it (it went
+  >        straight into a SQL `LIMIT` before);
+  >      * `CGExchangeBuyHandler` never called `setOrderID()`, so the
+  >        order id the client now parses would have been 0 forever;
+  >      * `read()` did not reset state (no `m_Listings.clear()`, no
+  >        clearing of a string whose length byte is 0), so the two
+  >        "mirrors" differed on a reused packet object;
+  >      * 64-bit ids were logged through `(int)` casts in `toString()`,
+  >        which runs on every packet. Fixing that surfaced a **stack
+  >        buffer overflow in `StringStream`** itself: its `long` and
+  >        `ulong` `operator<<` both `sprintf("%ld"/"%lu")` into a
+  >        `char buf[12]` copy-pasted from the 32-bit `int` overload,
+  >        while `long` is 64-bit on the LP64 build target and needs 21
+  >        bytes. Any `<<` of a value outside the 32-bit range smashed
+  >        the stack; buffers widened to 24 and switched to `snprintf`.
+  >        (The exchange packets format their ids independently, so they
+  >        never depended on that overload.)
+  >      A second adversarial review pass over the fixes returned SHIP with
+      no blockers, and found these, fixed in the same branch: the
+      `float`/`double` `StringStream` overloads had the *same* buffer
+      overflow as `long`/`ulong` (`"%f"` never uses exponent form, so a
+      float ≥ 10,000 already overruns `buf[12]`); the server's
+      `GCExchangeList::read()` lacked the listing-count bound its client
+      twin has; and three comments claimed more than the code delivered
+      (the `NO_BACKSLASH_ESCAPES` fallback is safe but *not* "exactly
+      right" — it can alter a backslash; the wire cap does not make the
+      stored key identical, because the ledger suffix trims it; and the
+      fallback key is not yet unique across game servers, since
+      `_getServerID()` is a hardcoded 1 and every containerised server is
+      pid 1).
+      Left as follow-ups, each recorded rather than fixed silently:
+      * `ExchangeService::buyListing` checks
+        `hasIdempotencyKey(rawKey)`, but only the suffixed `_buy`/`_sale`
+        keys are ever inserted, so that early-out is dead code —
+        duplicate protection currently rests on `adjustPoints`' own check
+        inside the transaction. Combined with the client never setting a
+        key, end-to-end dedupe is inert today;
+      * `Statement::executeQuery`'s `vsnprintf` guard tests `> 2048`, so
+        a query of exactly 2048 characters is silently truncated and
+        executed;
+      * `ExchangeService::buyListing` leaks the `ExchangeListing` from
+        `ExchangeDB::getListing` on every path, and `GamePlayer` leaks a
+        packet when `readPacket` throws;
+      * `GCExchangeList`'s 37114 max is 4.5× the client's default 8 KB
+        socket ring, which only grows opportunistically — worth either
+        pre-sizing that ring or lowering the page bound;
+      * on success `GCExchangeBuy`'s message field carries the bare
+        decimal order id, now redundant with `setOrderID()`;
+      * neither repo clamps the listing count in `write()`:
+        `(uint16_t)m_Listings.size()` narrows silently while the body
+        loop iterates the full vector, so at 65536+ listings the count
+        wraps to 0 with the body still emitted and counted — header and
+        bytes agree, but `read()` parses fewer listings and desyncs.
+        Unreachable only because the handler clamps the page to 20, i.e.
+        the invariant lives a layer above the packet. Identical in both
+        repos, so it is not a divergence.
+      Still open, deliberately out of scope for a layout change:
+  >      `CGExchangeListHandler` ignores the `sellerFilter` the packet now
+  >      carries (adding it means changing `ExchangeService::getListings`
+  >      and its SQL), and the client UI sends `CGExchangeBuy` with an
+  >      empty idempotency key (`VS_UI_PointExchange.cpp:436`), so the
+  >      server auto-generates one per request and the double-click
+  >      dedupe the field exists for is not yet achieved. Both UI send
+  >      paths do exist (`VS_UI_PointExchange.cpp:390` and `:436`).
   > 2. **`CGBloodDrain` layout mismatch** — client writes
   >    `ObjectID, X, Y, Dir` (7 bytes); server reads `ObjectID` only and
   >    `getPacketMaxSize()` = 4, so `GamePlayer` would throw

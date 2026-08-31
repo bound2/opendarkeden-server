@@ -463,7 +463,7 @@
 479	SGQuitGuildOK	23
 483	CGConnectSetKey	4
 484	GCFriendChatting	553
-486	CGExchangeList	77
-489	CGExchangeBuy	72
+486	CGExchangeList	275
+489	CGExchangeBuy	73
 494	GCExchangeList	37114
-497	GCExchangeBuy	264
+497	GCExchangeBuy	265

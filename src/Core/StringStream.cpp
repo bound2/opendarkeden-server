@@ -118,8 +118,11 @@ StringStream& StringStream::operator<<(uint T) {
 }
 
 StringStream& StringStream::operator<<(long T) {
-    char buf[12];
-    sprintf(buf, "%ld", T);
+    // 64-bit on the LP64 build target: LONG_MIN prints as 20 digits plus a
+    // sign, so the 12-byte buffer this was copy-pasted from the int overload
+    // with overflowed the stack for any value outside the 32-bit range.
+    char buf[24];
+    snprintf(buf, sizeof(buf), "%ld", T);
 
     string str(buf);
 
@@ -132,8 +135,9 @@ StringStream& StringStream::operator<<(long T) {
 }
 
 StringStream& StringStream::operator<<(ulong T) {
-    char buf[12];
-    sprintf(buf, "%lu", T);
+    // See operator<<(long): 64-bit here, ULONG_MAX is 20 digits.
+    char buf[24];
+    snprintf(buf, sizeof(buf), "%lu", T);
 
     string str(buf);
 
@@ -146,8 +150,11 @@ StringStream& StringStream::operator<<(ulong T) {
 }
 
 StringStream& StringStream::operator<<(float T) {
-    char buf[12];
-    sprintf(buf, "%f", T);
+    // Same defect as operator<<(long) had: "%f" prints the number in full,
+    // never in exponent form, plus six decimals. A float argument is promoted
+    // to double here, so FLT_MAX needs 39 integer digits + '.' + 6 + sign.
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%f", T);
 
     string str(buf);
 
@@ -160,8 +167,9 @@ StringStream& StringStream::operator<<(float T) {
 }
 
 StringStream& StringStream::operator<<(double T) {
-    char buf[22];
-    sprintf(buf, "%f", T);
+    // See operator<<(float): DBL_MAX is 309 integer digits under "%f".
+    char buf[352];
+    snprintf(buf, sizeof(buf), "%f", T);
 
     string str(buf);
 
