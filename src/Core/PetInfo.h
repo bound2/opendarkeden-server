@@ -124,9 +124,14 @@ public:
         m_CanAttack = bAttack;
     }
 
-    void setPetItem(PetItem* pPetItem) {
-        m_pPetItem = pPetItem;
-    }
+    // defined in the gameserver (packetfill/PetInfoFill.cpp): installs the
+    // pet item together with a thunk that reads its ObjectID, so the wire
+    // library never needs the PetItem definition. The ObjectID must stay a
+    // LIVE lookup at write() time — ObjectIDs are zone-local and reassigned
+    // on every zone entry, and a freshly created item has none until it is
+    // registered (caching here shipped stale ids and asserted on unregistered
+    // items; see the 2.4 review).
+    void setPetItem(PetItem* pPetItem);
     PetItem* getPetItem() const {
         return m_pPetItem;
     }
@@ -138,8 +143,9 @@ public:
         m_IsSummonInfo = isSummon;
     }
 
-    // -_- 게임서버쪽에 정의해야쥐 PetItem.cpp 에 있음
-    ObjectID_t getItemObjectID() const;
+    ObjectID_t getItemObjectID() const {
+        return (m_pPetItem != NULL && m_GetItemObjectID != NULL) ? m_GetItemObjectID(m_pPetItem) : 0;
+    }
 
     VSDateTime& getLastFeedTime() {
         return m_LastFeedTime;
@@ -148,7 +154,7 @@ public:
         m_LastFeedTime = time;
     }
 
-    // #ifdef __GAME_SERVER__
+    // server-side pet state (not on the wire)
     BYTE getFeedTurn() const {
         return m_FeedTurn;
     }
@@ -162,7 +168,6 @@ public:
     void setCurrentFeedTurn(BYTE turn) {
         m_CurrentFeedTurn = turn;
     }
-    // #endif
 
     string getNickname() const {
         return m_Nickname;
@@ -190,13 +195,17 @@ private:
     BYTE m_IsSummonInfo;
     VSDateTime m_LastFeedTime;
 
-    // #ifdef __GAME_SERVER__
+    // server-side pet state (not on the wire)
     BYTE m_FeedTurn;
     BYTE m_CurrentFeedTurn;
     string m_Nickname;
-    // #endif
 
     PetItem* m_pPetItem;
+    // Type-erased ObjectID reader, installed by the app-side setPetItem();
+    // a function pointer over the incomplete type keeps the live lookup
+    // without giving the wire library the PetItem definition. NULL in
+    // wire-only builds (tests), where getItemObjectID() reads 0.
+    ObjectID_t (*m_GetItemObjectID)(const PetItem*);
 };
 
 #endif

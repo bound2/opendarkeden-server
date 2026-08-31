@@ -1,10 +1,8 @@
-# ============================================================================
-# Wire-contract test suite (docs/RESTRUCTURING.md Phase 1)
+# =====================================================================# Wire-contract test suite (docs/RESTRUCTURING.md Phase 1)
 #
 # Built only with -DDARKEDEN_BUILD_TESTS=ON (make test does this). Runs
 # locally by design — CI is deliberately Phase 6.
-# ============================================================================
-
+# =====================================================================
 include(FetchContent)
 
 # googletest release-1.12.1 is the last line supporting C++11, which is what
@@ -33,6 +31,7 @@ endforeach()
 # target explicitly.
 add_executable(wire_tests EXCLUDE_FROM_ALL
     support/TestStreams.cpp
+    outcome_test.cpp
     packet_roundtrip_test.cpp
     packet_encrypter_test.cpp
     packet_exchange_test.cpp
@@ -98,6 +97,24 @@ add_dependencies(wire_tests repository_tests)
 
 add_test(NAME repository_tests COMMAND repository_tests)
 set_tests_properties(repository_tests PROPERTIES TIMEOUT 60)
+
+# Pure-formula unit tests (docs/RESTRUCTURING.md 3.3). Linking ONLY de-core
+# and gtest is deliberate: it proves de-core stays freestanding — pulling
+# Core, transport, or a gameserver header into it breaks this link.
+add_executable(formula_tests EXCLUDE_FROM_ALL
+    formula_test.cpp
+)
+target_link_libraries(formula_tests PRIVATE
+    de-core
+    gtest_main
+    Threads::Threads
+)
+# `make dev-test` builds the wire_tests target; ride along so ctest always
+# has a fresh binary (same pattern as the de-kernel build-only dependency).
+add_dependencies(wire_tests formula_tests)
+
+add_test(NAME formula_tests COMMAND formula_tests)
+set_tests_properties(formula_tests PROPERTIES TIMEOUT 60)
 
 add_test(
     NAME ratchets

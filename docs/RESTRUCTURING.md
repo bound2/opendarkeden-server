@@ -55,22 +55,26 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 103 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*, R3 still counts the impl files) |
-| R3 | Files with inline SQL anywhere outside `database/` | 318 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
+| R3 | Files with inline SQL anywhere outside `database/` | 317 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -v 'gameserver/handler/' \| wc -l` (handler/ holds the 2.4-moved packet handlers, never counted while they lived in `src/Core`; fold in with a re-baseline when they become 3.x extraction targets) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
-| R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
+| R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 867 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` (867 since the never-compiled `SlotInfo.cpp`'s stale specs left with the file, 2.4 review) |
 
 God-file baselines (R6):
 
+All rows re-measured 2026-08-31 post-clang-format-18 (the 08-29 numbers
+predated that pass); only the rows `ratchets.sh` names are enforced so far.
+
 | File | Baseline lines |
 |------|---------------:|
-| `src/server/gameserver/Zone.cpp` | 7,616 |
-| `src/server/gameserver/skill/SkillUtil.cpp` | 5,631 |
-| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 3,967 |
-| `src/server/gameserver/InitAllStat.cpp` | 4,158 |
-| `src/server/gameserver/Slayer.cpp` | 3,511 |
-| `src/server/gameserver/skill/SkillFormula.cpp` | 2,640 |
+| `src/server/gameserver/Zone.cpp` | 9,297 |
+| `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (enforced by `ratchets.sh` R6a) |
+| `src/server/gameserver/InitAllStat.cpp` | 4,949 (enforced by `ratchets.sh` R6b) |
+| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,905 |
+| `src/server/gameserver/Slayer.cpp` | 4,375 |
+| `src/server/gameserver/skill/SkillFormula.cpp` | 3,081 |
+| `src/server/gameserver/skill/HitRoll.cpp` | 774 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 
 Once Phase 1's test harness exists, encode R1–R5 as **ratchet tests**: the
 checked-in expected count lives next to the test, the test fails when the
@@ -464,11 +468,17 @@ visibility can't express.
   in the right target from day one.
   > **Status:** in progress — `de-kernel` is a real CMake target
   > (2026-08-31): a STATIC library whose membership is
-  > `tests/arch/kernel_files.txt` (57 files: Types/types/, Exception/
-  > Assert/StringStream/Utility, the socket+stream family, Encrypter/
-  > EncryptUtility, `Packet.h`/`PacketFactory.h`, datagram headers) and
-  > whose only include dir is `src/Core` — a kernel source reaching for a
-  > gameserver header fails to compile. Built in every configuration;
+  > `tests/arch/kernel_files.txt` (grown from the 57-file seed past a
+  > thousand files with 2.4's packet directions and the non-packet
+  > utilities — the 2.4 status tracks the exact count; Datagram/
+  > SerialDatagram cpps stay header-only members — their bodies call
+  > `PacketFactoryManager`, which K2 bars from the kernel forever, so
+  > compiling them would give the archive permanently unresolvable
+  > externals) and whose only include dir is `src/Core` (pinned as the
+  > target's own INCLUDE_DIRECTORIES — the top-level directory include
+  > path would otherwise leak `src/server` and MySQL in) — a kernel
+  > source reaching for an app header fails to compile. Built in every
+  > configuration;
   > nothing links it yet (apps still get the objects through `Core`,
   > which deliberately keeps its gameserver include leak until 2.3/2.4).
   > Getting the seed macro-free removed four dead `__GAME_CLIENT__`
@@ -604,12 +614,47 @@ visibility can't express.
   >    SG/GG/`GMServerInfo` except `CLSelectPC` (includes `Player.h`,
   >    the transport base). A third dead pair fell out: `CLAgreement`
   >    (no id enum — which is why it was in no validator whitelist).
-  > Remaining: `CLSelectPC` (drop the transport dependency), the 23
-  > held-back GC packets (split their game-object setters out),
-  > `Core`'s non-packet utilities sorted kernel-vs-app, then apps link
-  > `de-kernel` instead of getting these objects through `Core`. R5's
-  > scope note: `handler/` excluded (the moved handlers were never
-  > counted in `src/Core`).
+  > 6. **The last held-back wire classes are kernel** (1,098 files): the
+  >    23 game-coupled GC packets, `CLSelectPC` and `PetInfo` joined
+  >    after their game-object member *definitions* moved to
+  >    `src/server/gameserver/packetfill/` (declarations stay in the
+  >    headers with the game types forward-declared); GCAttackArmsOK1–5
+  >    and GCSkillToTileOK2 instead needed the `SkillTypes` enum + name
+  >    table extracted from gameserver's `skill/Skill.h` into
+  >    `src/Core/types/SkillTypes.h` (wire vocabulary, not game logic).
+  >    `PetInfo::write()` resolves the pet-item ObjectID through a
+  >    type-erased thunk the app-side setter installs — still a LIVE
+  >    read at write time (an earlier cached-id version shipped stale
+  >    ids and asserted on unregistered items; caught in the 2.4
+  >    adversarial review), same bytes, no game include. Dead
+  >    `__GAME_CLIENT__` branches in five
+  >    GC files were removed (this repo never defines the macro; the
+  >    client keeps its own copies). R5 scope note: `packetfill/` is
+  >    excluded alongside `handler/` (one `__BEGIN_TRY` moved there).
+  > 7. **`Core`'s non-packet utilities are sorted** (1,121 files):
+  >    Geometry, Shape, HashMap, VSTemplateLib, ValueList, SlotInfo, the
+  >    WarInfo family, Assert1.cpp, Datagram/SerialDatagram,
+  >    PacketFactoryManager.h, `Player.{h,cpp}` and the Update/Resource
+  >    families all joined on the first fixpoint pass. Never-compiled
+  >    `SlotInfo.cpp` lost its stale `throw()` specs; dead-on-arrival
+  >    `AttributeListPacket` deleted. Held out by design:
+  >    `PlayerStatus.h`/`PacketIDSet`/`PacketValidator`/
+  >    `PacketFactoryManager.cpp` (per-server `#if` is their purpose),
+  >    `TimeChecker` (server Timeval), `SXml` (tinyxml2 binding),
+  >    `libcpsso.h` (billing SSO), `Rpackets`/`Upackets`/`TOpackets`
+  >    — all three relic packet dirs are now **deleted** (`Upackets`/
+  >    `TOpackets` with the dead `ClientManager.cpp` phone-home beacon;
+  >    `Rpackets` in the follow-up, closing `factory_exceptions.txt` to
+  >    zero entries). `src/server/updateserver/` and `theoneserver/`
+  >    still reference the deleted headers but are built by no target;
+  >    deleting those dead server trees is an open decision.
+  > 8. **Core's gameserver include leak is gone**: with the splits above,
+  >    nothing Core compiles needs a gameserver header, so the PUBLIC
+  >    `src/server/gameserver[/item]` exports on `Core` and the private
+  >    gameserver dirs on all four packet libraries are removed.
+  > Remaining: apps link `de-kernel` instead of getting these objects
+  > through `Core` (the kernel target exists and compiles standalone,
+  > but the executables still link the monolithic `Core`).
   - Owner: CMake target membership + include-graph test.
 
 **Phase exit criteria:** `de-kernel` builds standalone with no MySQL/Lua/Zone
@@ -629,7 +674,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   return `Ok(events)` or `Rejected(reason)`; exceptions reserved for
   programming/config errors. New/refactored domain code uses it; the
   `__BEGIN_TRY/__END_CATCH` macros stop being control flow (ratchet R5).
-  > **Status:** not started
+  > **Status:** in progress (2026-08-31) — `src/Core/Outcome.h` exists in the
+  > kernel with unit tests (tests/outcome_test.cpp: factories, accessors,
+  > throw-on-wrong-side, value semantics); adoption by domain code pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).
 
@@ -645,7 +692,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > (`gameserver/repository/`): interface + MySQL impl carrying the
   > NicknameBook table's quirks, fake + `repository_tests` in ctest;
   > `NicknameBook.cpp` and `CGModifyNicknameHandler.cpp` no longer touch
-  > SQL (R2 104→103, R3 319→318). CGSayHandler's two NicknameBook
+  > SQL (R2 104→103, R3 318→317). CGSayHandler's two NicknameBook
   > queries wait for the god-file work. Pattern to repeat table-by-table.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
@@ -655,9 +702,27 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   `SkillFormula`/`SkillUtil` math and stat calculations (`InitAllStat.cpp`)
   into pure functions in `de-core`. These are the highest-value tests in the
   game — they encode balance — and the cheapest to write.
-  > **Status:** not started
-  - Owner: the formula test suite; R6 line ratchet on `SkillUtil.cpp` /
-    `InitAllStat.cpp`.
+  > **Status:** in progress (2026-08-31) — the `de-core` STATIC target
+  > exists (`src/domain/`, freestanding by construction) with its first
+  > content: all of `AbilityBalance.cpp` (HP/MP/to-hit/defense/protection/
+  > damage/attack-speed/critical/steal per race) plus `computeFinalDamage`,
+  > `getDistance`, `computeRankExp` and `decreaseConsumeMP` from
+  > `SkillUtil.cpp`, transplanted verbatim into `src/domain/Formulas.cpp`
+  > (narrow-integer wrap-around preserved) behind thin adapters at the old
+  > entry points. `formula_tests` (ctest, links ONLY de-core + gtest) pins
+  > the math including the wrap cases; R6 is now enforced by `ratchets.sh`
+  > for `SkillUtil.cpp`/`InitAllStat.cpp`. **`HitRoll.cpp`'s success-ratio
+  > formulas are extracted too** (melee/blood-drain/magic-per-race/curse/
+  > dispel/flare/rebuke/self-buff/hallucination/backstab — the dice rolls
+  > and live-state gates stay in the adapters; the `__CHINA_SERVER__`
+  > variants stay behind their #ifdef there; `isCriticalHit`'s additive
+  > ratio and the blood-drain defense gathering remain inline), pinned by
+  > 19 more tests (62 assertions) including the floorless negative
+  > `flareRatio` and the toward-zero negative-bonus truncation;
+  > `HitRoll.cpp` joins R6 as R6c. Next: `SkillFormula.cpp` (hit-chance), then the
+  > `InitAllStat.cpp` bodies.
+  - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
+    `InitAllStat.cpp` / `HitRoll.cpp`.
 
 - [ ] **3.4 Codify thread ownership.** Document (in CLAUDE.md) which state is
   owned by which thread: zone-group state mutated only on its

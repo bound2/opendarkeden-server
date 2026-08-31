@@ -142,6 +142,7 @@ include_directories(third_party/tinyxml2)
 option(DARKEDEN_BUILD_TESTS "Build the wire-contract test suite (tests/)" OFF)
 
 add_subdirectory(src/Core)
+add_subdirectory(src/domain)
 add_subdirectory(src/server)
 
 if(DARKEDEN_BUILD_TESTS)

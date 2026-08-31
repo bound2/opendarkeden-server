@@ -15,7 +15,13 @@ fail=0
 
 check_ratchet() {
     local id="$1" desc="$2" baseline="$3" measured="$4"
-    if [ "$measured" -gt "$baseline" ]; then
+    # A non-numeric measurement (e.g. `wc -l < missing-file` yields "")
+    # would make both [ -gt ] and [ -lt ] fail and fall through to [OK] —
+    # a ratchet that silently passes when its subject disappears.
+    if ! [[ "$measured" =~ ^[0-9]+$ ]]; then
+        echo "[FAIL] $id $desc: measurement produced '$measured' (not a number — file missing or renamed?)"
+        fail=1
+    elif [ "$measured" -gt "$baseline" ]; then
         echo "[FAIL] $id $desc: measured $measured > baseline $baseline (new debt — remove it instead)"
         fail=1
     elif [ "$measured" -lt "$baseline" ]; then
@@ -36,19 +42,32 @@ check_ratchet R2 "gameserver-root files with inline SQL" 103 "$R2"
 
 # --- R3: files with inline SQL anywhere outside database/ ------------------
 R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' | wc -l)
-check_ratchet R3 "files with inline SQL outside database/" 318 "$R3"
+check_ratchet R3 "files with inline SQL outside database/" 317 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------
 R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)
 check_ratchet R4 "packet headers with execute()" 0 "$R4"
 
 # --- R5: __BEGIN_TRY control-flow macro sites in gameserver ----------------
-# handler/ is excluded: the packet handlers moved there from src/Core in
-# task 2.4, where this metric never counted them — including them would
-# jump the baseline by +284 without any new debt. Fold them in (with a
+# handler/ and packetfill/ are excluded: those sources moved there from
+# src/Core in task 2.4, where this metric never counted them — including
+# them would jump the baseline without any new debt. Fold them in (with a
 # re-baseline note) when they become de-core extraction targets in 3.x.
-R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -v 'gameserver/handler/' | wc -l)
+R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(handler|packetfill)/' | wc -l)
 check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5984 "$R5"
+
+# --- R6: god-file line counts (task 3.3 files only, so far) -----------------
+# Formula extraction to de-core (src/domain) shrinks these; each delegation
+# that moves math out must tighten the number here. The doc's other god
+# files join when their own extractions start. Baselines measured
+# 2026-08-31, post-3.3-extraction (the doc's 08-29 numbers predate the
+# clang-format-18 pass and are superseded).
+R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
+check_ratchet R6a "SkillUtil.cpp lines" 6745 "$R6a"
+R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
+check_ratchet R6b "InitAllStat.cpp lines" 4949 "$R6b"
+R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
+check_ratchet R6c "HitRoll.cpp lines" 774 "$R6c"
 
 # --- Generated factory list is fresh ---------------------------------------
 # The generator only writes to $OUT, so point it at a scratch copy of the
@@ -70,15 +89,24 @@ else
 fi
 
 # --- Every server-side factory the manager registers is in the inventory ---
-# Client-only registrations (the __GAME_CLIENT__ branch of init()) are listed
-# in tests/ratchet/factory_exceptions.txt.
+# Registrations deliberately outside the inventory are listed (with reasons)
+# in tests/ratchet/factory_exceptions.txt — currently empty since the
+# __GAME_CLIENT__ relic registrations were deleted in 2.4. The file must
+# still exist: with zero entries nothing exercises this plumbing, so a
+# deleted or mistyped path would otherwise pass silently. The `|| true`
+# keeps the no-match grep exit (1) from mattering if this script ever
+# adopts `set -e` like its siblings.
+if [ ! -f tests/ratchet/factory_exceptions.txt ]; then
+    echo "[FAIL] tests/ratchet/factory_exceptions.txt is missing"
+    fail=1
+fi
 registered=$(mktemp)
 inventory=$(mktemp)
 sed -n '/void PacketFactoryManager::init/,/^}/p' src/Core/PacketFactoryManager.cpp |
     grep -oE 'addFactory\(new [A-Za-z0-9_]+' | sed 's/addFactory(new //' | sort -u > "$registered"
 {
     grep -oE 'new [A-Za-z0-9_]+Factory' tests/generated/AllPacketFactories.inc | sed 's/new //'
-    grep -vE '^\s*(#|$)' tests/ratchet/factory_exceptions.txt
+    grep -vE '^\s*(#|$)' tests/ratchet/factory_exceptions.txt || true
 } | sort -u > "$inventory"
 missing=$(comm -23 "$registered" "$inventory")
 rm -f "$registered" "$inventory"

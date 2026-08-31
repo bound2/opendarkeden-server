@@ -12,7 +12,8 @@
 // include files
 #include "Packet.h"
 #include "PacketFactory.h"
-#include "Player.h"
+
+class Player;
 
 //////////////////////////////////////////////////////////////////////
 //

@@ -235,6 +235,17 @@ set(GQUEST_SOURCES
 # ============================================================================
 # 主要源文件
 # ============================================================================
+# Gameserver-side halves of wire classes (docs/RESTRUCTURING.md 2.4):
+# member functions that convert live game objects (Item, PetItem, ...) into
+# wire fields. Declared in the packet headers, defined here so the wire
+# library never depends on game objects.
+set(PACKETFILL_SOURCES
+    packetfill/GCShopListFill.cpp
+    packetfill/GCShopListMysteriousFill.cpp
+    packetfill/GCStashListFill.cpp
+    packetfill/PetInfoFill.cpp
+)
+
 # Packet handlers, moved out of src/Core (docs/RESTRUCTURING.md 2.4):
 # the app owns which handler runs; the kernel keeps only the wire classes.
 set(HANDLER_SOURCES
@@ -527,7 +538,6 @@ set(GAMESERVER_MAIN_SOURCES
     SlayerAttrExpTable.cpp
     Pet.cpp
     SystemAvailabilitiesManager.cpp
-    LocalIP.cpp
     ItemGradeManager.cpp
     EventZoneInfo.cpp
     SMSServiceThread.cpp
@@ -567,6 +577,7 @@ set(EXCHANGE_SOURCES
 # GameServer 可执行文件
 # ============================================================================
 add_executable(gameserver
+    ${PACKETFILL_SOURCES}
     ${HANDLER_SOURCES}
     ${GAMESERVER_MAIN_SOURCES}
     ${MONSTER_SOURCES}
@@ -607,6 +618,7 @@ target_link_libraries(gameserver PRIVATE
     Mission
     CTF
     GameServerCBilling
+    de-core
     ${MYSQL_LIBRARY}
     ${LUA51_LIBRARIES}
     Threads::Threads
