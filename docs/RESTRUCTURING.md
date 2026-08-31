@@ -705,7 +705,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > (narrow-integer wrap-around preserved) behind thin adapters at the old
   > entry points. `formula_tests` (ctest, links ONLY de-core + gtest) pins
   > the math including the wrap cases; R6 is now enforced by `ratchets.sh`
-  > for `SkillUtil.cpp`/`InitAllStat.cpp`. Next: `HitRoll.cpp`/
+  > for `SkillUtil.cpp`/`InitAllStat.cpp`. **All of `HitRoll.cpp`'s ratio
+  > math is extracted too** (melee/blood-drain/magic-per-race/curse/dispel/
+  > flare/rebuke/self-buff/hallucination/backstab success ratios — the dice
+  > rolls and live-state gates stay in the adapters; the `__CHINA_SERVER__`
+  > variants stay behind their #ifdef there), pinned by 19 more test cases
+  > including the floorless negative `flareRatio`. Next:
   > `SkillFormula.cpp` (hit-chance), then the `InitAllStat.cpp` bodies.
   - Owner: the formula test suite; R6 line ratchet on `SkillUtil.cpp` /
     `InitAllStat.cpp`.

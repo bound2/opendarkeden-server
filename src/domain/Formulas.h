@@ -123,6 +123,59 @@ int rankExp(int myLevel, int otherLevel, int gainPercent, int premiumPercent);
 // INT stat; the 20-point deadband and the bracket table live here.
 int vampireSkillConsumeMP(int originalMP, int magicLevel, int intStat);
 
+//////////////////////////////////////////////////////////////////////////////
+// Hit-roll success ratios (adapters: skill/HitRoll.cpp). Each function
+// returns the success percentage that the caller compares against its dice
+// roll — the roll itself (Random/rand) stays out of de-core, as do the
+// gate checks on live game state (no-damage flags, master monsters,
+// precedence effects). Stat sums arrive already accumulated at their
+// original (possibly narrow) widths in the adapter.
+//////////////////////////////////////////////////////////////////////////////
+
+// Melee hit chance. involvesMonster is true when either combatant is a
+// monster: the cap rises to 95 and the floor drops to 5 for those fights.
+int meleeHitRatio(int toHit, int defense, int toHitBonus, bool involvesMonster);
+
+// Blood-drain landing chance, over the drain-specific defense the adapter
+// computes (defense + level/5 for non-slayer targets, timeband-scaled).
+int bloodDrainHitRatio(int toHit, int defense);
+
+// Blood drain requires the target at or below 1/multiplier of max HP
+// (multiplier 3 normally, 2 for masters).
+bool bloodDrainHPGate(int curHP, int maxHP, int multiplier);
+
+// Magic success per race. Self skills floor at 50 (slayer) / 60 (ousters);
+// a nonzero bonusPoint scales the result to (100+bonusPoint)%.
+int slayerMagicRatio(int skillLevel, int intStat, int expLevel, bool selfSkill);
+int vampireMagicRatio(int skillLevel, int intStat, int level, int bonusPoint);
+int oustersMagicRatio(int intStat, int level, int expLevel, bool selfSkill, int bonusPoint);
+int monsterMagicRatio(int skillLevel, int intStat, int level);
+
+// Curse landing chance vs. resist; the vampire-cast variant divides the
+// magic level by 1.5 (truncated) instead of scaling it by 2/1.5.
+int curseRatio(int magicLevel, int resist);
+int vampireCurseRatio(int magicLevel, int resist);
+
+// CurePoison and RemoveCurse share this exact formula.
+int dispelRatio(int base, int skillLevel, int difficulty, int magicLevel, int minRatio);
+
+// Flare has NO floor: a target enough levels above the skill drives the
+// ratio negative and the roll can never succeed — preserved behavior.
+int flareRatio(int skillLevel, int targetLevel);
+
+int rebukeRatio(int intStat, int skillExpLevel);
+
+// MagicElusion and IllusionOfAvenge share 50 + totalAttr/15.
+int totalAttrDefenseRatio(int totalAttr);
+
+int poisonMeshRatio(int level);
+int willOfLifeRatio(int level);
+int backStabRatio(int intStat, int dexStat);
+
+// Hallucination: attacker attr sum vs. target attr sum, clamped into the
+// per-race [minRatio, maxRatio] band the adapter selects.
+int hallucinationRatio(int attackerAttrSum, int targetAttrSum, int minRatio, int maxRatio);
+
 } // namespace decore
 
 #endif

@@ -298,4 +298,132 @@ TEST(VampireSkillConsumeMP, DiscountTruncatesViaPercentValue) {
     EXPECT_EQ(9, decore::vampireSkillConsumeMP(33, 1, 25));
 }
 
+//////////////////////////////////////////////////////////////////////////
+// Hit-roll success ratios (skill/HitRoll.cpp adapters). These are all int
+// math — the narrow-width accumulation (Attr_t sums, ToHit_t) happens in
+// the adapters before the values arrive here — so the pinned oddities are
+// truncations, asymmetric caps/floors, and missing floors.
+//////////////////////////////////////////////////////////////////////////
+
+TEST(MeleeHitRatio, EqualStatsLandAtFifty) {
+    EXPECT_EQ(50, decore::meleeHitRatio(100, 100, 0, false));
+    EXPECT_EQ(56, decore::meleeHitRatio(120, 100, 0, false)); // 20/3 truncates to 6
+}
+
+TEST(MeleeHitRatio, MonsterFightsWidenTheBand) {
+    // Cap 90 vs 95, floor 10 vs 5: monsters are easier to hit AND miss.
+    EXPECT_EQ(90, decore::meleeHitRatio(300, 100, 0, false));
+    EXPECT_EQ(95, decore::meleeHitRatio(300, 100, 0, true));
+    EXPECT_EQ(10, decore::meleeHitRatio(100, 300, 0, false));
+    EXPECT_EQ(5, decore::meleeHitRatio(100, 300, 0, true));
+}
+
+TEST(MeleeHitRatio, BonusIsHalvedWithTruncation) {
+    EXPECT_EQ(52, decore::meleeHitRatio(100, 100, 5, false)); // 5/2 -> 2
+    EXPECT_EQ(51, decore::meleeHitRatio(100, 103, 5, false)); // 50 - 1 + 2
+}
+
+TEST(BloodDrainHitRatio, SeventyBaseWithHalfSlope) {
+    EXPECT_EQ(70, decore::bloodDrainHitRatio(100, 100));
+    EXPECT_EQ(72, decore::bloodDrainHitRatio(105, 100)); // 5/2 truncates
+    EXPECT_EQ(90, decore::bloodDrainHitRatio(300, 100)); // cap
+    EXPECT_EQ(10, decore::bloodDrainHitRatio(100, 300)); // floor
+}
+
+TEST(BloodDrainHPGate, ThirdForNormalHalfForMasters) {
+    EXPECT_TRUE(decore::bloodDrainHPGate(33, 100, 3));
+    EXPECT_FALSE(decore::bloodDrainHPGate(34, 100, 3));
+    EXPECT_TRUE(decore::bloodDrainHPGate(50, 100, 2));
+    EXPECT_FALSE(decore::bloodDrainHPGate(51, 100, 2));
+}
+
+TEST(SlayerMagicRatio, IntAndExpDividedByTwoPointFive) {
+    EXPECT_EQ(72, decore::slayerMagicRatio(30, 50, 5, false)); // 55/2.5 = 22 exactly
+    EXPECT_EQ(71, decore::slayerMagicRatio(30, 50, 4, false)); // 54/2.5 = 21.6 -> 21
+    EXPECT_EQ(71, decore::slayerMagicRatio(33, 50, 5, false)); // 33/3 = 11
+}
+
+TEST(SlayerMagicRatio, SelfSkillsFloorAtFifty) {
+    EXPECT_EQ(50, decore::slayerMagicRatio(90, 0, 0, true));
+    EXPECT_EQ(30, decore::slayerMagicRatio(90, 0, 0, false));
+    EXPECT_EQ(160, decore::slayerMagicRatio(0, 250, 0, true)); // floor never lowers
+}
+
+TEST(VampireMagicRatio, LevelPenaltyAndBonusPercent) {
+    EXPECT_EQ(45, decore::vampireMagicRatio(30, 40, 20, 0));
+    EXPECT_EQ(46, decore::vampireMagicRatio(29, 40, 20, 0)); // 29/2 -> 14
+    EXPECT_EQ(45, decore::vampireMagicRatio(30, 41, 20, 0)); // 61/4 -> 15
+    EXPECT_EQ(67, decore::vampireMagicRatio(30, 40, 20, 50)); // 45 * 150% -> 67.5 -> 67
+}
+
+TEST(OustersMagicRatio, SelfFloorAppliesBeforeBonus) {
+    EXPECT_EQ(63, decore::oustersMagicRatio(40, 20, 9, false, 0));
+    EXPECT_EQ(64, decore::oustersMagicRatio(40, 20, 12, false, 0)); // 12/3 -> 4
+    EXPECT_EQ(60, decore::oustersMagicRatio(0, 0, 0, true, 0));
+    EXPECT_EQ(66, decore::oustersMagicRatio(0, 0, 0, true, 10)); // bonus scales the floored value
+}
+
+TEST(MonsterMagicRatio, SameShapeAsVampire) {
+    EXPECT_EQ(45, decore::monsterMagicRatio(30, 40, 20));
+    EXPECT_EQ(44, decore::monsterMagicRatio(33, 40, 20)); // 33/2 -> 16
+}
+
+TEST(CurseRatio, MagicLevelScaledByTwoOverOnePointFive) {
+    EXPECT_EQ(95, decore::curseRatio(30, 20)); // 60/1.5 = 40, -20, +75
+    EXPECT_EQ(96, decore::curseRatio(31, 20)); // 62/1.5 = 41.33 -> 21 after subtract+cast
+    EXPECT_EQ(15, decore::curseRatio(30, 100));
+    EXPECT_EQ(5, decore::curseRatio(30, 200)); // floor
+}
+
+TEST(VampireCurseRatio, MagicLevelDividedByOnePointFiveTruncated) {
+    EXPECT_EQ(75, decore::vampireCurseRatio(30, 20));
+    EXPECT_EQ(75, decore::vampireCurseRatio(31, 20)); // (int)(31/1.5) = 20, same as 30
+    EXPECT_EQ(5, decore::vampireCurseRatio(30, 100)); // floor
+}
+
+TEST(DispelRatio, SharedByCurePoisonAndRemoveCurse) {
+    EXPECT_EQ(50, decore::dispelRatio(50, 30, 20, 10, 0));
+    EXPECT_EQ(15, decore::dispelRatio(50, 0, 100, 10, 15)); // MinRatio floor
+    EXPECT_EQ(0, decore::dispelRatio(10, 0, 50, 10, 0));    // floor of 0, not negative
+}
+
+TEST(FlareRatio, HasNoFloorAndGoesNegative) {
+    EXPECT_EQ(85, decore::flareRatio(30, 20));
+    // A high-level target drives the ratio negative: rand()%100 < -15 never
+    // succeeds. Shipped behavior — there is no floor here.
+    EXPECT_EQ(-15, decore::flareRatio(10, 100));
+}
+
+TEST(RebukeRatio, TenthIntPlusHalfSkill) {
+    EXPECT_EQ(45, decore::rebukeRatio(100, 30));
+    EXPECT_EQ(45, decore::rebukeRatio(109, 31)); // both divisions truncate
+    EXPECT_EQ(46, decore::rebukeRatio(110, 31));
+}
+
+TEST(TotalAttrDefenseRatio, SharedByMagicElusionAndIllusionOfAvenge) {
+    EXPECT_EQ(50, decore::totalAttrDefenseRatio(0));
+    EXPECT_EQ(59, decore::totalAttrDefenseRatio(149));
+    EXPECT_EQ(60, decore::totalAttrDefenseRatio(150));
+}
+
+TEST(LevelSelfRatios, PoisonMeshAndWillOfLife) {
+    EXPECT_EQ(50, decore::poisonMeshRatio(100));
+    EXPECT_EQ(49, decore::poisonMeshRatio(99));
+    EXPECT_EQ(70, decore::willOfLifeRatio(100));
+    EXPECT_EQ(50, decore::willOfLifeRatio(4));
+}
+
+TEST(BackStabRatio, FifthOfIntPlusDexCappedAtFifty) {
+    EXPECT_EQ(40, decore::backStabRatio(100, 100));
+    EXPECT_EQ(39, decore::backStabRatio(101, 99)); // per-stat truncation
+    EXPECT_EQ(50, decore::backStabRatio(150, 150));
+}
+
+TEST(HallucinationRatio, AttrGapClampedIntoPerRaceBand) {
+    EXPECT_EQ(45, decore::hallucinationRatio(140, 95, 30, 60));
+    EXPECT_EQ(30, decore::hallucinationRatio(100, 90, 30, 60)); // slayer floor
+    EXPECT_EQ(60, decore::hallucinationRatio(200, 50, 30, 60)); // slayer cap
+    EXPECT_EQ(40, decore::hallucinationRatio(200, 50, 10, 40)); // vampire band
+}
+
 } // namespace

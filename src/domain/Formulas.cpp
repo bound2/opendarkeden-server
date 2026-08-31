@@ -635,4 +635,119 @@ int vampireSkillConsumeMP(int originalMP, int magicLevel, int intStat) {
     return (OriginalMP - DecreaseAmount);
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Hit-roll success ratios (transplanted verbatim from skill/HitRoll.cpp,
+// non-__CHINA_SERVER__ branches; the China variants stay behind their
+// #ifdef in the adapter).
+//////////////////////////////////////////////////////////////////////////////
+
+int meleeHitRatio(int toHit, int defense, int toHitBonus, bool involvesMonster) {
+    int Result = 0;
+
+    if (toHit >= defense) {
+        // ToHit above Defense: the chance to land is quite high. Note the
+        // bonus/2 is added OUTSIDE the cast here but INSIDE it below —
+        // preserved as shipped.
+        if (involvesMonster) {
+            Result = min(95, (int)(((toHit - defense) / 3) + 50) + toHitBonus / 2);
+        } else {
+            Result = min(90, (int)(((toHit - defense) / 3) + 50) + toHitBonus / 2);
+        }
+    } else {
+        // ToHit below Defense: the chance to land drops sharply.
+        if (involvesMonster) {
+            Result = max(5, (int)(50 - ((defense - toHit) / 3) + toHitBonus / 2));
+        } else {
+            Result = max(10, (int)(50 - ((defense - toHit) / 3) + toHitBonus / 2));
+        }
+    }
+
+    return Result;
+}
+
+int bloodDrainHitRatio(int toHit, int defense) {
+    if (toHit >= defense) {
+        return min(90, (toHit - defense) / 2 + 70);
+    }
+    return max(10, 70 - (defense - toHit) / 2);
+}
+
+bool bloodDrainHPGate(int curHP, int maxHP, int multiplier) { return curHP * multiplier <= maxHP; }
+
+int slayerMagicRatio(int skillLevel, int intStat, int expLevel, bool selfSkill) {
+    int SuccessRatio = (int)(60 - skillLevel / 3 + (int)((intStat + expLevel) / 2.5));
+
+    // Slayer self skills succeed at least half the time.
+    if (selfSkill)
+        SuccessRatio = max(50, SuccessRatio);
+
+    return SuccessRatio;
+}
+
+int vampireMagicRatio(int skillLevel, int intStat, int level, int bonusPoint) {
+    int Success = (int)(45 - skillLevel / 2 + (intStat + level) / 4);
+
+    if (bonusPoint != 0) {
+        Success = percentValue(Success, 100 + bonusPoint);
+    }
+
+    return Success;
+}
+
+int oustersMagicRatio(int intStat, int level, int expLevel, bool selfSkill, int bonusPoint) {
+    int Success = (int)(45 + (intStat + level) / 4 + expLevel / 3);
+
+    if (selfSkill) {
+        Success = max(Success, 60);
+    }
+
+    if (bonusPoint != 0) {
+        Success = percentValue(Success, 100 + bonusPoint);
+    }
+
+    return Success;
+}
+
+int monsterMagicRatio(int skillLevel, int intStat, int level) {
+    return (int)(45 - skillLevel / 2 + (intStat + level) / 4);
+}
+
+int curseRatio(int magicLevel, int resist) {
+    int prob_penalty = (int)(magicLevel * 2 / 1.5 - resist);
+    int curse_prob = 75 + prob_penalty;
+    curse_prob = max(5, curse_prob);
+    return curse_prob;
+}
+
+int vampireCurseRatio(int magicLevel, int resist) {
+    int prob_penalty = (int)((int)(magicLevel / 1.5) - resist);
+    int curse_prob = 75 + prob_penalty;
+    curse_prob = max(5, curse_prob);
+    return curse_prob;
+}
+
+int dispelRatio(int base, int skillLevel, int difficulty, int magicLevel, int minRatio) {
+    int ratio = base + skillLevel - difficulty - magicLevel;
+    return max(minRatio, ratio);
+}
+
+int flareRatio(int skillLevel, int targetLevel) { return 75 + skillLevel - targetLevel; }
+
+int rebukeRatio(int intStat, int skillExpLevel) { return 20 + (intStat / 10) + (skillExpLevel / 2); }
+
+int totalAttrDefenseRatio(int totalAttr) { return 50 + (totalAttr / 15); }
+
+int poisonMeshRatio(int level) { return 30 + (level / 5); }
+
+int willOfLifeRatio(int level) { return 50 + level / 5; }
+
+int backStabRatio(int intStat, int dexStat) { return min(50, (intStat / 5) + (dexStat / 5)); }
+
+int hallucinationRatio(int attackerAttrSum, int targetAttrSum, int minRatio, int maxRatio) {
+    int Ratio = attackerAttrSum - targetAttrSum;
+    Ratio = max(minRatio, Ratio);
+    Ratio = min(maxRatio, Ratio);
+    return Ratio;
+}
+
 } // namespace decore
