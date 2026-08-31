@@ -638,7 +638,12 @@ visibility can't express.
   >    `PacketFactoryManager.cpp` (per-server `#if` is their purpose),
   >    `TimeChecker` (server Timeval), `SXml` (tinyxml2 binding),
   >    `libcpsso.h` (billing SSO), `Rpackets`/`Upackets`/`TOpackets`
-  >    (client/update-server relics, deletion candidates).
+  >    — all three relic packet dirs are now **deleted** (`Upackets`/
+  >    `TOpackets` with the dead `ClientManager.cpp` phone-home beacon;
+  >    `Rpackets` in the follow-up, closing `factory_exceptions.txt` to
+  >    zero entries). `src/server/updateserver/` and `theoneserver/`
+  >    still reference the deleted headers but are built by no target;
+  >    deleting those dead server trees is an open decision.
   > 8. **Core's gameserver include leak is gone**: with the splits above,
   >    nothing Core compiles needs a gameserver header, so the PUBLIC
   >    `src/server/gameserver[/item]` exports on `Core` and the private

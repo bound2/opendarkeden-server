@@ -70,15 +70,24 @@ else
 fi
 
 # --- Every server-side factory the manager registers is in the inventory ---
-# Client-only registrations (the __GAME_CLIENT__ branch of init()) are listed
-# in tests/ratchet/factory_exceptions.txt.
+# Registrations deliberately outside the inventory are listed (with reasons)
+# in tests/ratchet/factory_exceptions.txt — currently empty since the
+# __GAME_CLIENT__ relic registrations were deleted in 2.4. The file must
+# still exist: with zero entries nothing exercises this plumbing, so a
+# deleted or mistyped path would otherwise pass silently. The `|| true`
+# keeps the no-match grep exit (1) from mattering if this script ever
+# adopts `set -e` like its siblings.
+if [ ! -f tests/ratchet/factory_exceptions.txt ]; then
+    echo "[FAIL] tests/ratchet/factory_exceptions.txt is missing"
+    fail=1
+fi
 registered=$(mktemp)
 inventory=$(mktemp)
 sed -n '/void PacketFactoryManager::init/,/^}/p' src/Core/PacketFactoryManager.cpp |
     grep -oE 'addFactory\(new [A-Za-z0-9_]+' | sed 's/addFactory(new //' | sort -u > "$registered"
 {
     grep -oE 'new [A-Za-z0-9_]+Factory' tests/generated/AllPacketFactories.inc | sed 's/new //'
-    grep -vE '^\s*(#|$)' tests/ratchet/factory_exceptions.txt
+    grep -vE '^\s*(#|$)' tests/ratchet/factory_exceptions.txt || true
 } | sort -u > "$inventory"
 missing=$(comm -23 "$registered" "$inventory")
 rm -f "$registered" "$inventory"
