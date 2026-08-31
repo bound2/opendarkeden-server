@@ -1064,9 +1064,6 @@ src/Core/SGModifyGuildOK.cpp
 src/Core/SGModifyGuildOK.h
 src/Core/SGQuitGuildOK.cpp
 src/Core/SGQuitGuildOK.h
-src/Core/Assert1.cpp
-src/Core/Datagram.cpp
-src/Core/SerialDatagram.cpp
 src/Core/Geometry.h
 src/Core/Geometry.cpp
 src/Core/Shape.h
@@ -1074,8 +1071,6 @@ src/Core/Shape.cpp
 src/Core/HashMap.h
 src/Core/VSTemplateLib.h
 src/Core/ValueList.h
-src/Core/SlotInfo.h
-src/Core/SlotInfo.cpp
 src/Core/WarInfo.h
 src/Core/WarInfo.cpp
 src/Core/GuildWarInfo.h
@@ -1084,7 +1079,6 @@ src/Core/LevelWarInfo.h
 src/Core/LevelWarInfo.cpp
 src/Core/RaceWarInfo.h
 src/Core/RaceWarInfo.cpp
-src/Core/PacketFactoryManager.h
 src/Core/Player.h
 src/Core/Player.cpp
 src/Core/UpdateDef.h

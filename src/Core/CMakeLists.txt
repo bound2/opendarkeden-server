@@ -7,8 +7,14 @@
 # it yet — the apps still get these objects through Core — but it builds in
 # every configuration so the layering rule is enforced by every build.
 # ============================================================================
+# REGEX keeps only the entry lines: comment lines can contain ';', which
+# CMake list expansion would otherwise split into pseudo-entries. Editing
+# the list must retrigger configure, hence CONFIGURE_DEPENDS — without it a
+# bare `ninja` keeps building the previous membership.
 file(STRINGS ${CMAKE_SOURCE_DIR}/tests/arch/kernel_files.txt
-     DARKEDEN_KERNEL_ENTRIES)
+     DARKEDEN_KERNEL_ENTRIES REGEX "^src/")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+             ${CMAKE_SOURCE_DIR}/tests/arch/kernel_files.txt)
 set(KERNEL_SOURCES "")
 foreach(entry ${DARKEDEN_KERNEL_ENTRIES})
     if(entry MATCHES "^src/.*\\.cpp$")
@@ -18,6 +24,13 @@ endforeach()
 add_library(de-kernel STATIC ${KERNEL_SOURCES})
 target_include_directories(de-kernel PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(de-kernel PUBLIC Threads::Threads)
+# The top-level include_directories() (src/server, src/server/database,
+# MySQL) is a directory property this target would inherit, letting a kernel
+# source include an app or DB header and compile clean. Pin the target's own
+# include path to src/Core alone so the compiler enforces K1 alongside the
+# perl checker.
+set_target_properties(de-kernel PROPERTIES
+    INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # ============================================================================
 # Core 库 - 基础核心代码，不依赖服务器类型
