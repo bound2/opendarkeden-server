@@ -45,8 +45,11 @@
 set -euo pipefail
 
 IMAGE=darkeden-dev
-WORK_VOLUME=darkeden-work
-CCACHE_VOLUME=darkeden-ccache
+# Overridable so parallel checkouts (git worktrees) can each build in their
+# own workspace volume without racing this script's rsync --delete. The
+# ccache volume is safe to share — ccache is designed for concurrent use.
+WORK_VOLUME=${DEVBUILD_WORK_VOLUME:-darkeden-work}
+CCACHE_VOLUME=${DEVBUILD_CCACHE_VOLUME:-darkeden-ccache}
 BUILD_TYPE=${BUILD_TYPE:-Debug}
 
 # Git Bash mangles absolute paths in docker arguments unless this is set.
