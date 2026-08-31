@@ -1133,17 +1133,8 @@ src/Core/Shape.h
 src/Core/Shape.cpp
 src/Core/HashMap.h
 src/Core/VSTemplateLib.h
-src/Core/ValueList.h
 src/Core/SlotInfo.h
 src/Core/SlotInfo.cpp
-src/Core/WarInfo.h
-src/Core/WarInfo.cpp
-src/Core/GuildWarInfo.h
-src/Core/GuildWarInfo.cpp
-src/Core/LevelWarInfo.h
-src/Core/LevelWarInfo.cpp
-src/Core/RaceWarInfo.h
-src/Core/RaceWarInfo.cpp
 src/Core/PacketFactoryManager.h
 src/Core/Player.h
 src/Core/Player.cpp

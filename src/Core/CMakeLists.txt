@@ -109,10 +109,12 @@ add_library(Core STATIC ${CORE_SOURCES})
 # SXml.cpp parses with tinyxml2; PUBLIC so consumers inherit the include path
 # and the archive without each having to name it.
 target_link_libraries(Core PUBLIC tinyxml2)
+# The gameserver include dirs Core used to PUBLIC-export are gone: the last
+# wire classes that reached into live game objects had those member functions
+# split out to src/server/gameserver/packetfill/ (task 2.4), so nothing Core
+# compiles needs a gameserver header any more.
 target_include_directories(Core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver/item
 )
 
 # ============================================================================
@@ -663,10 +665,6 @@ target_include_directories(GameServerPackets PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/database
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver/item
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver/skill
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver/billing
 )
 
 # ============================================================================
@@ -686,7 +684,6 @@ target_include_directories(LoginServerPackets PRIVATE
     ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/database
     ${CMAKE_SOURCE_DIR}/src/server/loginserver
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver
 )
 
 # ============================================================================
@@ -715,18 +712,13 @@ if(DARKEDEN_BUILD_TESTS)
         ${GM_PACKET_SOURCES}
         ${PACKET_COMMON_SOURCES}
     )
-    # The gameserver include dirs are needed because a handful of packet
-    # classes still reach into gameserver headers for constants (e.g.
-    # GCAttackArmsOK1 uses SKILL_ATTACK_ARMS from skill/Skill.h) — a Phase 2
-    # boundary violation to remove; no server-type macro is defined here.
+    # No gameserver include dirs any more: the constants packets used to pull
+    # from skill/Skill.h now live in Core (types/SkillTypes.h), and the
+    # game-object member functions moved to gameserver/packetfill/ (task 2.4).
     target_include_directories(TestPackets PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/src/server
         ${CMAKE_SOURCE_DIR}/src/server/database
-        ${CMAKE_SOURCE_DIR}/src/server/gameserver
-        ${CMAKE_SOURCE_DIR}/src/server/gameserver/item
-        ${CMAKE_SOURCE_DIR}/src/server/gameserver/skill
-        ${CMAKE_SOURCE_DIR}/src/server/gameserver/billing
     )
 endif()
 
@@ -745,5 +737,4 @@ target_include_directories(SharedServerPackets PRIVATE
     ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/database
     ${CMAKE_SOURCE_DIR}/src/server/sharedserver
-    ${CMAKE_SOURCE_DIR}/src/server/gameserver
 )

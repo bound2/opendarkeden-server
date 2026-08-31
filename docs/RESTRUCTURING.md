@@ -604,12 +604,39 @@ visibility can't express.
   >    SG/GG/`GMServerInfo` except `CLSelectPC` (includes `Player.h`,
   >    the transport base). A third dead pair fell out: `CLAgreement`
   >    (no id enum — which is why it was in no validator whitelist).
-  > Remaining: `CLSelectPC` (drop the transport dependency), the 23
-  > held-back GC packets (split their game-object setters out),
-  > `Core`'s non-packet utilities sorted kernel-vs-app, then apps link
-  > `de-kernel` instead of getting these objects through `Core`. R5's
-  > scope note: `handler/` excluded (the moved handlers were never
-  > counted in `src/Core`).
+  > 6. **The last held-back wire classes are kernel** (1,098 files): the
+  >    23 game-coupled GC packets, `CLSelectPC` and `PetInfo` joined
+  >    after their game-object member *definitions* moved to
+  >    `src/server/gameserver/packetfill/` (declarations stay in the
+  >    headers with the game types forward-declared); GCAttackArmsOK1–5
+  >    and GCSkillToTileOK2 instead needed the `SkillTypes` enum + name
+  >    table extracted from gameserver's `skill/Skill.h` into
+  >    `src/Core/types/SkillTypes.h` (wire vocabulary, not game logic).
+  >    `PetInfo::write()`'s pet-item ObjectID is now cached by the
+  >    app-side setter instead of read through the live pointer — same
+  >    bytes, no game include. Dead `__GAME_CLIENT__` branches in five
+  >    GC files were removed (this repo never defines the macro; the
+  >    client keeps its own copies). R5 scope note: `packetfill/` is
+  >    excluded alongside `handler/` (one `__BEGIN_TRY` moved there).
+  > 7. **`Core`'s non-packet utilities are sorted** (1,121 files):
+  >    Geometry, Shape, HashMap, VSTemplateLib, ValueList, SlotInfo, the
+  >    WarInfo family, Assert1.cpp, Datagram/SerialDatagram,
+  >    PacketFactoryManager.h, `Player.{h,cpp}` and the Update/Resource
+  >    families all joined on the first fixpoint pass. Never-compiled
+  >    `SlotInfo.cpp` lost its stale `throw()` specs; dead-on-arrival
+  >    `AttributeListPacket` deleted. Held out by design:
+  >    `PlayerStatus.h`/`PacketIDSet`/`PacketValidator`/
+  >    `PacketFactoryManager.cpp` (per-server `#if` is their purpose),
+  >    `TimeChecker` (server Timeval), `SXml` (tinyxml2 binding),
+  >    `libcpsso.h` (billing SSO), `Rpackets`/`Upackets`/`TOpackets`
+  >    (client/update-server relics, deletion candidates).
+  > 8. **Core's gameserver include leak is gone**: with the splits above,
+  >    nothing Core compiles needs a gameserver header, so the PUBLIC
+  >    `src/server/gameserver[/item]` exports on `Core` and the private
+  >    gameserver dirs on all four packet libraries are removed.
+  > Remaining: apps link `de-kernel` instead of getting these objects
+  > through `Core` (the kernel target exists and compiles standalone,
+  > but the executables still link the monolithic `Core`).
   - Owner: CMake target membership + include-graph test.
 
 **Phase exit criteria:** `de-kernel` builds standalone with no MySQL/Lua/Zone
