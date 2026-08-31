@@ -104,8 +104,9 @@ public:
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GLIncomingConnectionErrorPacketMaxSize 를 정의, 리턴하라.
+    // two length-prefixed strings, each capped at 127 by read()/write()
     PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 128;
+        return szBYTE + 127 + szBYTE + 127;
     }
 };
 

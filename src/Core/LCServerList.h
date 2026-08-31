@@ -121,9 +121,8 @@ public:
 
     // get packet's max body size
     PacketSize_t getPacketMaxSize() const {
-        // �����̾� ������ �����̾� �������� �����
-        // ũ�� ������, �� ��Ŷ�� �ִ� ũ��� �����̾� 3 ���� ����̴�.
-        return szServerGroupID + ServerGroupInfo::getMaxSize();
+        // write() emits a BYTE ListNum between the group id and the infos
+        return szServerGroupID + szBYTE + ServerGroupInfo::getMaxSize();
     }
 };
 

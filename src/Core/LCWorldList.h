@@ -121,9 +121,8 @@ public:
 
     // get packet's max body size
     PacketSize_t getPacketMaxSize() const {
-        // �����̾� ������ �����̾� �������� �����
-        // ũ�� ������, �� ��Ŷ�� �ִ� ũ��� �����̾� 3 ���� ����̴�.
-        return szWorldID + WorldInfo::getMaxSize();
+        // write() emits a BYTE ListNum between the world id and the infos
+        return szWorldID + szBYTE + WorldInfo::getMaxSize();
     }
 };
 

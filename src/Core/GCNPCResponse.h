@@ -341,7 +341,7 @@ public:
         return Packet::PACKET_GC_NPC_RESPONSE;
     }
     PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szuint;
+        return szWORD + szuint;
     }
 };
 

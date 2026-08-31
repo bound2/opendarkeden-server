@@ -95,7 +95,7 @@ public:
         return Packet::PACKET_GC_EXECUTE_ELEMENT;
     }
     PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szWORD;
+        return szDWORD + szBYTE + szWORD;
     }
 };
 
