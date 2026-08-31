@@ -6,11 +6,8 @@
 
 #include "CGExchangeList.h"
 
-#include "GCExchangeList.h"
-#include "PlayerCreature.h"
 
 // Forward declaration of exchange service
-#include "../server/gameserver/exchange/ExchangeService.h"
 
 // Out-of-line definition so the constant may also be odr-used (bound to a
 // reference, e.g. std::min) by handlers and tests, not only read as a

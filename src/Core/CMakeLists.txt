@@ -388,7 +388,7 @@ set(CG_PACKET_SOURCES
     CGAbsorbSoul.cpp 
     CGAcceptUnion.cpp 
     CGAddGearToMouse.cpp 
-#    CGAddInjuriousCreature.cpp 
+# (CGAddInjuriousCreature deleted in 2.4 - dead packet, id enum never existed)
     CGAddInventoryToMouse.cpp 
     CGAddItemToCodeSheet.cpp 
     CGAddItemToItem.cpp 

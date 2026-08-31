@@ -106,12 +106,10 @@ class CGMixItemHandler {
 public:
     static void execute(CGMixItem* pPacket, Player* pPlayer);
 
-#ifdef __GAME_SERVER__
 public:
     static void executeMix(CGMixItem* pPacket, Player* pPlayer, Item* pItem);
     static void executeDetach(CGMixItem* pPacket, Player* pPlayer, Item* pItem);
     static void executeClearOption(CGMixItem* pPacket, Player* pPlayer, Item* pItem);
-#endif
 };
 
 #endif

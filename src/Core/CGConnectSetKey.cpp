@@ -6,7 +6,6 @@
 
 #include "CGConnectSetKey.h"
 
-#include "libcpsso.h"
 
 // #include "Properties.h"
 

@@ -11,9 +11,6 @@
 
 // include files
 
-// #ifdef __GAME_SERVER__
-// #include "GamePlayer.h"
-// #endif
 
 #include "Packet.h"
 #include "PacketFactory.h"

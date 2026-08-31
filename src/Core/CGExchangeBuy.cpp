@@ -8,9 +8,6 @@
 
 #include <stdio.h>
 
-#include "../server/gameserver/exchange/ExchangeService.h"
-#include "GCExchangeBuy.h"
-#include "PlayerCreature.h"
 
 // Out-of-line definition so the constant may also be odr-used (bound to a
 // reference, e.g. std::min) by handlers and tests, not only read as a

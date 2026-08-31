@@ -6,10 +6,6 @@
 
 #include "CGVerifyTime.h"
 
-#ifdef __GAME_SERVER__
-#include "GamePlayer.h"
-#endif
-
 void CGVerifyTime::read(SocketInputStream& iStream)
 
 {

@@ -571,7 +571,31 @@ visibility can't express.
 - [ ] **2.4 Move packet sources into the kernel target.** Once a direction's
   handlers are out (2.3), move those packet files under the `de-kernel`
   target. `Core`'s non-packet utilities get sorted kernel-vs-app as touched.
-  > **Status:** not started
+  > **Status:** in progress (2026-08-31) —
+  > 1. The 271 no-op GC/LC handler files are **deleted** (2.3's
+  >    classification proved the server never runs them; the client repo
+  >    keeps its own copies), their dangling declarations stripped from
+  >    the packet headers.
+  > 2. The 197 live handlers moved out of `Core` into per-app
+  >    `handler/` dirs (gameserver 168, loginserver 21, sharedserver 8) —
+  >    plain app sources bound by the composition roots; the packet
+  >    libraries carry only wire classes. Handler class *declarations*
+  >    stay in the packet headers for now (no includes behind them; two
+  >    lost their `#ifdef __GAME_SERVER__` around member decls, with
+  >    `class Item;` forward-declared). The dead `CGAddInjuriousCreature`
+  >    pair (no id enum, never in any build) is deleted.
+  > 3. **The whole CG direction is kernel**: all 149 CG packet pairs +
+  >    `Assert1.h` + `NicknameInfo` joined `tests/arch/kernel_files.txt`
+  >    (360 files) after removing a handful of vestigial includes
+  >    (`GamePlayer.h`, `ExchangeService.h`, `libcpsso.h` — leftovers of
+  >    the removed `execute()`); `de-kernel` compiles them under K1/K2
+  >    with zero new baseline entries.
+  > Remaining: GC and the other directions' packet sources (their
+  > headers pull the info classes — InventoryInfo/PCSlayerInfo2/… must
+  > join the kernel first), then `Core`'s non-packet utilities sorted
+  > kernel-vs-app, then apps link `de-kernel` instead of getting these
+  > objects through `Core`. R5's scope note: `handler/` excluded (the
+  > moved handlers were never counted in `src/Core`).
   - Owner: CMake target membership + include-graph test.
 
 **Phase exit criteria:** `de-kernel` builds standalone with no MySQL/Lua/Zone
