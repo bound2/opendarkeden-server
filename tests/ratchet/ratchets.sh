@@ -15,7 +15,13 @@ fail=0
 
 check_ratchet() {
     local id="$1" desc="$2" baseline="$3" measured="$4"
-    if [ "$measured" -gt "$baseline" ]; then
+    # A non-numeric measurement (e.g. `wc -l < missing-file` yields "")
+    # would make both [ -gt ] and [ -lt ] fail and fall through to [OK] —
+    # a ratchet that silently passes when its subject disappears.
+    if ! [[ "$measured" =~ ^[0-9]+$ ]]; then
+        echo "[FAIL] $id $desc: measurement produced '$measured' (not a number — file missing or renamed?)"
+        fail=1
+    elif [ "$measured" -gt "$baseline" ]; then
         echo "[FAIL] $id $desc: measured $measured > baseline $baseline (new debt — remove it instead)"
         fail=1
     elif [ "$measured" -lt "$baseline" ]; then
@@ -56,9 +62,9 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5984 "$R5"
 # files join when their own extractions start. Baselines measured
 # 2026-08-31, post-3.3-extraction (the doc's 08-29 numbers predate the
 # clang-format-18 pass and are superseded).
-R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp)
+R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
 check_ratchet R6a "SkillUtil.cpp lines" 6745 "$R6a"
-R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp)
+R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
 check_ratchet R6b "InitAllStat.cpp lines" 4949 "$R6b"
 
 # --- Generated factory list is fresh ---------------------------------------

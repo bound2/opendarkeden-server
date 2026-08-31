@@ -12,3 +12,8 @@ add_library(de-core STATIC
 )
 
 target_include_directories(de-core PUBLIC ${CMAKE_SOURCE_DIR}/src)
+# "Freestanding by construction" must actually be constructed: the top-level
+# include_directories() would leak src/Core and src/server into this target,
+# letting a Core/transport include compile clean. Pin the target's own
+# include path so the compiler enforces the boundary, not just review.
+set_target_properties(de-core PROPERTIES INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/src")

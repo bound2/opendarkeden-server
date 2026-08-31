@@ -17,6 +17,11 @@
 
 using std::max;
 using std::min;
+// <cmath> is only guaranteed to provide std::pow/std::sqrt; the global
+// names are an implementation courtesy this freestanding library must not
+// lean on.
+using std::pow;
+using std::sqrt;
 
 namespace decore {
 

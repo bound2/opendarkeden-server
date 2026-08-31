@@ -56,14 +56,22 @@ int domainLevelOf(decore::WeaponFamily family, BASIC_ATTR* pAttr) {
     }
 }
 
-decore::StatAttr toStatAttr(BASIC_ATTR* pAttr) {
+// Only the Slayer formulas read the weapon fields, and the original code
+// only ever touched pAttr->pWeapon inside the CREATURE_CLASS_SLAYER branch.
+// That is load-bearing: BASIC_ATTR is a bare POD, and several call sites
+// (Monster's constructor, Monster::initAllStat, Vampire/Ousters
+// computeStatOffset) fill in only nSTR/nDEX/nINT/nLevel — their pWeapon and
+// pDomainLevel[] are uninitialized stack. Reading them off the Slayer path
+// is a wild-pointer virtual call, so the weapon data is gathered only when
+// the caller's class actually consumes it.
+decore::StatAttr toStatAttr(BASIC_ATTR* pAttr, bool withWeapon) {
     decore::StatAttr a;
     a.str = pAttr->nSTR;
     a.dex = pAttr->nDEX;
     a.inte = pAttr->nINT;
     a.level = pAttr->nLevel;
-    a.weapon = weaponFamilyOf(pAttr->pWeapon);
-    a.weaponDomainLevel = domainLevelOf(a.weapon, pAttr);
+    a.weapon = withWeapon ? weaponFamilyOf(pAttr->pWeapon) : decore::WeaponFamily::None;
+    a.weaponDomainLevel = withWeapon ? domainLevelOf(a.weapon, pAttr) : 0;
     return a;
 }
 
@@ -78,7 +86,7 @@ bool isHardcore() {
 HP_t computeHP(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
 
-    decore::StatAttr a = toStatAttr(pAttr);
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerMaxHP(a, g_pVariableManager->getVariable(SLAYER_HP_RATIO), isHardcore());
@@ -96,7 +104,7 @@ HP_t computeHP(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
 MP_t computeMP(Creature::CreatureClass CClass, BASIC_ATTR* pAttr) {
     Assert(pAttr != NULL);
 
-    decore::StatAttr a = toStatAttr(pAttr);
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerMaxMP(a);
@@ -110,7 +118,7 @@ MP_t computeMP(Creature::CreatureClass CClass, BASIC_ATTR* pAttr) {
 ToHit_t computeToHit(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
 
-    decore::StatAttr a = toStatAttr(pAttr);
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerToHit(a);
@@ -128,7 +136,7 @@ ToHit_t computeToHit(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enha
 Defense_t computeDefense(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
 
-    decore::StatAttr a = toStatAttr(pAttr);
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerDefense(a);
@@ -146,7 +154,7 @@ Defense_t computeDefense(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int 
 Protection_t computeProtection(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
 
-    decore::StatAttr a = toStatAttr(pAttr);
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerProtection(a);
@@ -164,7 +172,7 @@ Protection_t computeProtection(Creature::CreatureClass CClass, BASIC_ATTR* pAttr
 Damage_t computeMinDamage(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
 
-    decore::StatAttr a = toStatAttr(pAttr);
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerMinDamage(a, g_pVariableManager->getCombatSlayerDamageBonus());
@@ -182,7 +190,7 @@ Damage_t computeMinDamage(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int
 Damage_t computeMaxDamage(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
 
-    decore::StatAttr a = toStatAttr(pAttr);
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerMaxDamage(a, g_pVariableManager->getCombatSlayerDamageBonus());
@@ -200,7 +208,7 @@ Damage_t computeMaxDamage(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int
 Speed_t computeAttackSpeed(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
 
-    decore::StatAttr a = toStatAttr(pAttr);
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerAttackSpeed(a);
@@ -216,7 +224,7 @@ Speed_t computeAttackSpeed(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, in
 int computeCriticalRatio(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int enhance) {
     Assert(pAttr != NULL);
 
-    decore::StatAttr a = toStatAttr(pAttr);
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerCriticalRatio(a);
@@ -232,7 +240,12 @@ int computeCriticalRatio(Creature::CreatureClass CClass, BASIC_ATTR* pAttr, int 
 }
 
 Steal_t computeStealRatio(Creature::CreatureClass CClass, Steal_t amount, BASIC_ATTR* pAttr) {
-    decore::StatAttr a = toStatAttr(pAttr);
+    // The original returned before touching pAttr at all when amount == 0;
+    // keep that ordering so the guard runs ahead of any input gathering.
+    if (amount == 0)
+        return 0;
+
+    decore::StatAttr a = toStatAttr(pAttr, CClass == Creature::CREATURE_CLASS_SLAYER);
 
     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
         return decore::slayerStealRatio(a, amount);

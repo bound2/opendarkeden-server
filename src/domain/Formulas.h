@@ -14,6 +14,13 @@
 // weapon-family branches, magic constants) are preserved on purpose and
 // pinned by tests/formula_test.cpp; fixing one is a balance change, not a
 // refactor.
+//
+// Known DIVERGENT copies that this file does NOT own (pre-existing drift,
+// left untouched): Vampire::load() and Ousters::load() compute a maxHP with
+// different STR coefficients than vampireMaxHP/oustersMaxHP below, and
+// src/Core/Utility.h declares a Chebyshev getDistance(int,int,int,int)
+// alongside SkillUtil's Euclidean one (which delegates to tileDistance
+// here). Folding them in is a balance decision, not a refactor.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __DECORE_FORMULAS_H__

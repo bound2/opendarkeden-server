@@ -63,14 +63,17 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 God-file baselines (R6):
 
+All rows re-measured 2026-08-31 post-clang-format-18 (the 08-29 numbers
+predated that pass); only the rows `ratchets.sh` names are enforced so far.
+
 | File | Baseline lines |
 |------|---------------:|
-| `src/server/gameserver/Zone.cpp` | 7,616 |
-| `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (re-measured 2026-08-31 post-formatting, enforced by `ratchets.sh`) |
-| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 3,967 |
-| `src/server/gameserver/InitAllStat.cpp` | 4,949 (re-measured 2026-08-31 post-formatting, enforced by `ratchets.sh`) |
-| `src/server/gameserver/Slayer.cpp` | 3,511 |
-| `src/server/gameserver/skill/SkillFormula.cpp` | 2,640 |
+| `src/server/gameserver/Zone.cpp` | 9,297 |
+| `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (enforced by `ratchets.sh` R6a) |
+| `src/server/gameserver/InitAllStat.cpp` | 4,949 (enforced by `ratchets.sh` R6b) |
+| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,905 |
+| `src/server/gameserver/Slayer.cpp` | 4,375 |
+| `src/server/gameserver/skill/SkillFormula.cpp` | 3,081 |
 
 Once Phase 1's test harness exists, encode R1–R5 as **ratchet tests**: the
 checked-in expected count lives next to the test, the test fails when the
