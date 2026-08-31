@@ -15,6 +15,7 @@ docker-compose.yml text eol=lf
 # fails all 16 golden assertions, the wire-layout inventory and the ratchet
 # freshness check — reported as "protocol-breaking change".
 tests/golden/*.hex text eol=lf
+tests/golden/*.txt text eol=lf
 tests/wire-layout.txt text eol=lf
 tests/generated/*.inc text eol=lf
 tests/ratchet/*.txt text eol=lf

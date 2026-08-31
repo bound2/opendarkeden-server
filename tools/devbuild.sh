@@ -79,7 +79,8 @@ done
 # Only the build inputs are synced. Everything else in the checkout (the
 # 2.7 GB of build trees, lib/, bin/, .git) never crosses the mount.
 sync_in='rsync -a --delete --exclude=.git \
-    /repo/src /repo/tests /repo/CMakeLists.txt /repo/Makefile /work/'
+    /repo/src /repo/tests /repo/third_party /repo/data \
+    /repo/CMakeLists.txt /repo/Makefile /work/'
 
 # Copy generated test data back so a re-record shows up as a normal diff.
 # --checksum because the container clock and the mount can disagree on mtime.
