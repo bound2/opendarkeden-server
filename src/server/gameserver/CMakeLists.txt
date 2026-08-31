@@ -617,6 +617,7 @@ target_link_libraries(gameserver PRIVATE
     Mission
     CTF
     GameServerCBilling
+    de-core
     ${MYSQL_LIBRARY}
     ${LUA51_LIBRARIES}
     Threads::Threads

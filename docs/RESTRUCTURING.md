@@ -66,9 +66,9 @@ God-file baselines (R6):
 | File | Baseline lines |
 |------|---------------:|
 | `src/server/gameserver/Zone.cpp` | 7,616 |
-| `src/server/gameserver/skill/SkillUtil.cpp` | 5,631 |
+| `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (re-measured 2026-08-31 post-formatting, enforced by `ratchets.sh`) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 3,967 |
-| `src/server/gameserver/InitAllStat.cpp` | 4,158 |
+| `src/server/gameserver/InitAllStat.cpp` | 4,949 (re-measured 2026-08-31 post-formatting, enforced by `ratchets.sh`) |
 | `src/server/gameserver/Slayer.cpp` | 3,511 |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 2,640 |
 
@@ -693,7 +693,17 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   `SkillFormula`/`SkillUtil` math and stat calculations (`InitAllStat.cpp`)
   into pure functions in `de-core`. These are the highest-value tests in the
   game — they encode balance — and the cheapest to write.
-  > **Status:** not started
+  > **Status:** in progress (2026-08-31) — the `de-core` STATIC target
+  > exists (`src/domain/`, freestanding by construction) with its first
+  > content: all of `AbilityBalance.cpp` (HP/MP/to-hit/defense/protection/
+  > damage/attack-speed/critical/steal per race) plus `computeFinalDamage`,
+  > `getDistance`, `computeRankExp` and `decreaseConsumeMP` from
+  > `SkillUtil.cpp`, transplanted verbatim into `src/domain/Formulas.cpp`
+  > (narrow-integer wrap-around preserved) behind thin adapters at the old
+  > entry points. `formula_tests` (ctest, links ONLY de-core + gtest) pins
+  > the math including the wrap cases; R6 is now enforced by `ratchets.sh`
+  > for `SkillUtil.cpp`/`InitAllStat.cpp`. Next: `HitRoll.cpp`/
+  > `SkillFormula.cpp` (hit-chance), then the `InitAllStat.cpp` bodies.
   - Owner: the formula test suite; R6 line ratchet on `SkillUtil.cpp` /
     `InitAllStat.cpp`.
 
