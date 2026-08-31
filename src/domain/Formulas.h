@@ -129,7 +129,12 @@ int vampireSkillConsumeMP(int originalMP, int magicLevel, int intStat);
 // roll — the roll itself (Random/rand) stays out of de-core, as do the
 // gate checks on live game state (no-damage flags, master monsters,
 // precedence effects). Stat sums arrive already accumulated at their
-// original (possibly narrow) widths in the adapter.
+// original (possibly narrow) widths in the adapter. One deliberate width
+// note: skill levels arrive as int though SkillInfo::getLevel() returns
+// uint, so the magic-ratio expressions now evaluate signed where the
+// originals were unsigned — provably identical results (every operand fits
+// in int; the original's final (int) cast made the values equal by
+// two's-complement), verified in the 3.3 adversarial review.
 //////////////////////////////////////////////////////////////////////////////
 
 // Melee hit chance. involvesMonster is true when either combatant is a
