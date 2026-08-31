@@ -321,6 +321,9 @@ TEST(MeleeHitRatio, MonsterFightsWidenTheBand) {
 TEST(MeleeHitRatio, BonusIsHalvedWithTruncation) {
     EXPECT_EQ(52, decore::meleeHitRatio(100, 100, 5, false)); // 5/2 -> 2
     EXPECT_EQ(51, decore::meleeHitRatio(100, 103, 5, false)); // 50 - 1 + 2
+    // Production passes NEGATIVE bonuses (e.g. DoubleShot's ToHitPenalty):
+    // integer division truncates toward zero, so -5/2 is -2, not -3.
+    EXPECT_EQ(48, decore::meleeHitRatio(100, 100, -5, false));
 }
 
 TEST(BloodDrainHitRatio, SeventyBaseWithHalfSlope) {
@@ -351,8 +354,8 @@ TEST(SlayerMagicRatio, SelfSkillsFloorAtFifty) {
 
 TEST(VampireMagicRatio, LevelPenaltyAndBonusPercent) {
     EXPECT_EQ(45, decore::vampireMagicRatio(30, 40, 20, 0));
-    EXPECT_EQ(46, decore::vampireMagicRatio(29, 40, 20, 0)); // 29/2 -> 14
-    EXPECT_EQ(45, decore::vampireMagicRatio(30, 41, 20, 0)); // 61/4 -> 15
+    EXPECT_EQ(46, decore::vampireMagicRatio(29, 40, 20, 0));  // 29/2 -> 14
+    EXPECT_EQ(45, decore::vampireMagicRatio(30, 41, 20, 0));  // 61/4 -> 15
     EXPECT_EQ(67, decore::vampireMagicRatio(30, 40, 20, 50)); // 45 * 150% -> 67.5 -> 67
 }
 

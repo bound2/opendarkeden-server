@@ -645,9 +645,13 @@ int meleeHitRatio(int toHit, int defense, int toHitBonus, bool involvesMonster) 
     int Result = 0;
 
     if (toHit >= defense) {
-        // ToHit above Defense: the chance to land is quite high. Note the
-        // bonus/2 is added OUTSIDE the cast here but INSIDE it below —
-        // preserved as shipped.
+        // ToHit above Defense: the chance to land is quite high. The
+        // bonus/2 sits outside the (int) cast here and inside it below,
+        // preserved as shipped — but note the cast is a NO-OP on this
+        // path (every operand is already int; the division truncates
+        // regardless), so the placement changes nothing here. The real
+        // asymmetry lives in the __CHINA_SERVER__ /1.5 double branch,
+        // which stays in the adapter.
         if (involvesMonster) {
             Result = min(95, (int)(((toHit - defense) / 3) + 50) + toHitBonus / 2);
         } else {
@@ -672,7 +676,9 @@ int bloodDrainHitRatio(int toHit, int defense) {
     return max(10, 70 - (defense - toHit) / 2);
 }
 
-bool bloodDrainHPGate(int curHP, int maxHP, int multiplier) { return curHP * multiplier <= maxHP; }
+bool bloodDrainHPGate(int curHP, int maxHP, int multiplier) {
+    return curHP * multiplier <= maxHP;
+}
 
 int slayerMagicRatio(int skillLevel, int intStat, int expLevel, bool selfSkill) {
     int SuccessRatio = (int)(60 - skillLevel / 3 + (int)((intStat + expLevel) / 2.5));
@@ -731,17 +737,29 @@ int dispelRatio(int base, int skillLevel, int difficulty, int magicLevel, int mi
     return max(minRatio, ratio);
 }
 
-int flareRatio(int skillLevel, int targetLevel) { return 75 + skillLevel - targetLevel; }
+int flareRatio(int skillLevel, int targetLevel) {
+    return 75 + skillLevel - targetLevel;
+}
 
-int rebukeRatio(int intStat, int skillExpLevel) { return 20 + (intStat / 10) + (skillExpLevel / 2); }
+int rebukeRatio(int intStat, int skillExpLevel) {
+    return 20 + (intStat / 10) + (skillExpLevel / 2);
+}
 
-int totalAttrDefenseRatio(int totalAttr) { return 50 + (totalAttr / 15); }
+int totalAttrDefenseRatio(int totalAttr) {
+    return 50 + (totalAttr / 15);
+}
 
-int poisonMeshRatio(int level) { return 30 + (level / 5); }
+int poisonMeshRatio(int level) {
+    return 30 + (level / 5);
+}
 
-int willOfLifeRatio(int level) { return 50 + level / 5; }
+int willOfLifeRatio(int level) {
+    return 50 + level / 5;
+}
 
-int backStabRatio(int intStat, int dexStat) { return min(50, (intStat / 5) + (dexStat / 5)); }
+int backStabRatio(int intStat, int dexStat) {
+    return min(50, (intStat / 5) + (dexStat / 5));
+}
 
 int hallucinationRatio(int attackerAttrSum, int targetAttrSum, int minRatio, int maxRatio) {
     int Ratio = attackerAttrSum - targetAttrSum;

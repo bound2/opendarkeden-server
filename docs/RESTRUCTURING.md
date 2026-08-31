@@ -72,6 +72,7 @@ predated that pass); only the rows `ratchets.sh` names are enforced so far.
 | `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (enforced by `ratchets.sh` R6a) |
 | `src/server/gameserver/InitAllStat.cpp` | 4,949 (enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,905 |
+| `src/server/gameserver/skill/HitRoll.cpp` | 774 (joined with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 | `src/server/gameserver/Slayer.cpp` | 4,375 |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 3,081 |
 
@@ -705,15 +706,18 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > (narrow-integer wrap-around preserved) behind thin adapters at the old
   > entry points. `formula_tests` (ctest, links ONLY de-core + gtest) pins
   > the math including the wrap cases; R6 is now enforced by `ratchets.sh`
-  > for `SkillUtil.cpp`/`InitAllStat.cpp`. **All of `HitRoll.cpp`'s ratio
-  > math is extracted too** (melee/blood-drain/magic-per-race/curse/dispel/
-  > flare/rebuke/self-buff/hallucination/backstab success ratios — the dice
-  > rolls and live-state gates stay in the adapters; the `__CHINA_SERVER__`
-  > variants stay behind their #ifdef there), pinned by 19 more test cases
-  > including the floorless negative `flareRatio`. Next:
-  > `SkillFormula.cpp` (hit-chance), then the `InitAllStat.cpp` bodies.
-  - Owner: the formula test suite; R6 line ratchet on `SkillUtil.cpp` /
-    `InitAllStat.cpp`.
+  > for `SkillUtil.cpp`/`InitAllStat.cpp`. **`HitRoll.cpp`'s success-ratio
+  > formulas are extracted too** (melee/blood-drain/magic-per-race/curse/
+  > dispel/flare/rebuke/self-buff/hallucination/backstab — the dice rolls
+  > and live-state gates stay in the adapters; the `__CHINA_SERVER__`
+  > variants stay behind their #ifdef there; `isCriticalHit`'s additive
+  > ratio and the blood-drain defense gathering remain inline), pinned by
+  > 20 more test cases including the floorless negative `flareRatio` and
+  > the toward-zero negative-bonus truncation; `HitRoll.cpp` joins R6 as
+  > R6c. Next: `SkillFormula.cpp` (hit-chance), then the
+  > `InitAllStat.cpp` bodies.
+  - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
+    `InitAllStat.cpp` / `HitRoll.cpp`.
 
 - [ ] **3.4 Codify thread ownership.** Document (in CLAUDE.md) which state is
   owned by which thread: zone-group state mutated only on its

@@ -66,6 +66,8 @@ R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo miss
 check_ratchet R6a "SkillUtil.cpp lines" 6745 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
 check_ratchet R6b "InitAllStat.cpp lines" 4949 "$R6b"
+R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
+check_ratchet R6c "HitRoll.cpp lines" 774 "$R6c"
 
 # --- Generated factory list is fresh ---------------------------------------
 # The generator only writes to $OUT, so point it at a scratch copy of the

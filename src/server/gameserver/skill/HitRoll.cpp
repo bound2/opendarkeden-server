@@ -6,8 +6,6 @@
 
 #include "HitRoll.h"
 
-#include "domain/Formulas.h"
-
 #include "LogClient.h"
 #include "Monster.h"
 #include "Ousters.h"
@@ -17,6 +15,7 @@
 #include "Slayer.h"
 #include "Vampire.h"
 #include "Zone.h"
+#include "domain/Formulas.h"
 // #include <math.h>
 
 #include "EffectHymn.h"
@@ -267,7 +266,8 @@ bool HitRoll::isSuccessMagic(Vampire* pVampire, SkillInfo* pSkillInfo, VampireSk
     Assert(pVampireSkillSlot != NULL);
 
     int RandValue = Random(1, 100);
-    int Success = decore::vampireMagicRatio(pSkillInfo->getLevel(), pVampire->getINT(), pVampire->getLevel(), BonusPoint);
+    int Success =
+        decore::vampireMagicRatio(pSkillInfo->getLevel(), pVampire->getINT(), pVampire->getLevel(), BonusPoint);
 
     if (RandValue < Success)
         return true;
