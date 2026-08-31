@@ -33,4 +33,28 @@ private:
     static HandlerFn s_Handlers[];
 };
 
+// Registration helpers for the composition roots: bind packet class Cls
+// to Cls##Handler::execute, preserving the exact call the packet's own
+// execute() used to make before task 2.3. The _NOPLAYER form is for
+// handlers that take only the packet (the inter-server directions).
+#define DE_REGISTER_PACKET_HANDLER(Cls)                                       \
+    {                                                                         \
+        struct Thunk {                                                        \
+            static void call(Packet* pPacket, Player* pPlayer) {              \
+                Cls##Handler::execute(static_cast<Cls*>(pPacket), pPlayer);   \
+            }                                                                 \
+        };                                                                    \
+        PacketDispatcher::registerHandler(Cls().getPacketID(), &Thunk::call); \
+    }
+
+#define DE_REGISTER_PACKET_HANDLER_NOPLAYER(Cls)                              \
+    {                                                                         \
+        struct Thunk {                                                        \
+            static void call(Packet* pPacket, Player*) {                      \
+                Cls##Handler::execute(static_cast<Cls*>(pPacket));            \
+            }                                                                 \
+        };                                                                    \
+        PacketDispatcher::registerHandler(Cls().getPacketID(), &Thunk::call); \
+    }
+
 #endif

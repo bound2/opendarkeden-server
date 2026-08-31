@@ -30,15 +30,3 @@ void GSRequestGuildInfo::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
     __END_CATCH
 }
-
-
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void GSRequestGuildInfo::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-    GSRequestGuildInfoHandler::execute(this, pPlayer);
-    __END_CATCH
-}

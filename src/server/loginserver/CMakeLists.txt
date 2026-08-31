@@ -3,6 +3,7 @@
 # ============================================================================
 
 set(LOGINSERVER_SOURCES
+    LoginPacketDispatch.cpp
     ClientManager.cpp
     UserInfoManager.cpp
     GameServerGroupInfoManager.cpp

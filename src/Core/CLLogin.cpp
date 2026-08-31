@@ -87,16 +87,6 @@ void CLLogin::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CLLogin::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CLLoginHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CLLogin::toString() const
 
 {

@@ -43,14 +43,6 @@ void UCRequestLoginMode::write(Socket* pSocket) const throw(ProtocolException, E
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void UCRequestLoginMode::execute(Player* pPlayer) throw(ProtocolException, Error) {
-    __BEGIN_TRY
-
-    UCRequestLoginModeHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //--------------------------------------------------------------------------------
 // get debug string

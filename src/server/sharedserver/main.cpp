@@ -16,6 +16,7 @@
 #include "Exception.h"
 #include "LogClient.h"
 #include "Properties.h"
+#include "SharedPacketDispatch.h"
 #include "SharedServer.h"
 #include "StringStream.h"
 #include "Types.h"
@@ -33,6 +34,10 @@ void memoryError() {
 int main(int argc, char* argv[]) {
     // ¸Þ¸ð¸® ¾ø´Ù.. ÇÔ¼ö¸¦ ¼³Á¤ÇÑ´Ù.
     set_new_handler(memoryError);
+
+    // Bind every packet id the sharedserver receives to its handler before
+    // any thread can receive one (docs/RESTRUCTURING.md task 2.3).
+    registerSharedServerPacketHandlers();
 
     if (argc < 3) {
         cout << "Usage : sharedserver -f È¯°æÆÄÀÏ" << endl;

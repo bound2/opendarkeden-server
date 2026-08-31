@@ -41,17 +41,3 @@ void LCRegisterPlayerOK::write(SocketOutputStream& oStream) const
 
     __END_CATCH
 }
-
-
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void LCRegisterPlayerOK::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    LCRegisterPlayerOKHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

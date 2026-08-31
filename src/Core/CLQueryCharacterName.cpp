@@ -48,16 +48,6 @@ void CLQueryCharacterName::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CLQueryCharacterName::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CLQueryCharacterNameHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CLQueryCharacterName::toString() const
 
 {

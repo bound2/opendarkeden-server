@@ -56,7 +56,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 104 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` |
 | R3 | Files with inline SQL anywhere outside `database/` | 320 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
-| R4 | Packet headers with `execute()` still on the packet | 74 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
+| R4 | Packet headers with `execute()` still on the packet | 1 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| wc -l` |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
@@ -541,9 +541,27 @@ visibility can't express.
   > a legitimate client; `GC_MY/OTHER_STORE_INFO` were already
   > force-rejected pre-dispatch by `GamePlayer`. `execute()` deleted from
   > all 258 GC packet cpps/headers. R4 329→74.
-  > Remaining: CL/LC for loginserver, inter-server directions (GG/GL/LG/
-  > GS/SG), then remove the fallback + the base method when R4 is 0;
-  > handler file moves out of `Core` are 2.4.
+  > **All remaining directions migrated the same day** (R4 74→1 — only
+  > `Packet.h`'s transitional default remains): every direction handler
+  > was preprocessor-classified under all three server defines, and each
+  > is live on exactly one server. Composition roots:
+  > `LoginPacketDispatch.cpp` (16 CL + 4 GL + `GMServerInfo`, all
+  > datagram GL riding `GameServerManager`'s socket),
+  > `SharedPacketDispatch.cpp` (8 GS), and `GamePacketDispatch.cpp`
+  > gains 10 SG + 4 LG + 3 GG (LG/GG arrive on `LoginServerManager`'s
+  > datagram socket — GG is game→game UDP, not relayed through shared).
+  > Both datagram receive loops are dispatch-first now too. All 17 LC
+  > handlers are no-ops on every server (pure delete); `CLAgreement` is
+  > netmarble-dead and in no validator whitelist, so it needs no
+  > registration; `RCSay`/Upackets/TOpackets are not compiled by any
+  > target (client-only or dead subsystems) and were stripped textually.
+  > Registration macros live in `PacketDispatcher.h`
+  > (`DE_REGISTER_PACKET_HANDLER[_NOPLAYER]`). Found + fixed on the way:
+  > `SGModifyGuildMemberOK`'s handler had never run — misspelled
+  > `#ifdef __GAME_SERER__` guard (`docs/FIXES.md`).
+  > Remaining: delete `Packet::execute` + the receive-loop fallbacks
+  > (R4 1→0) after a live smoke test of all three servers against the
+  > real client; handler file moves out of `Core` are 2.4.
   - Owner: R4 ratchet test + include-graph test (a kernel packet including a
     Zone header fails).
 

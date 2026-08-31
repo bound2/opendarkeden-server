@@ -3,6 +3,7 @@
 # ============================================================================
 
 set(SHAREDSERVER_SOURCES
+    SharedPacketDispatch.cpp
     Guild.cpp
     GuildManager.cpp
     ResurrectLocationManager.cpp

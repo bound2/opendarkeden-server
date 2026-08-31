@@ -25,13 +25,3 @@ void CLSelectServer::write(SocketOutputStream& oStream) const
 
     __END_CATCH
 }
-
-void CLSelectServer::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CLSelectServerHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

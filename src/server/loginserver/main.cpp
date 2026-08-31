@@ -18,6 +18,7 @@
 
 #include "Exception.h"
 #include "LogClient.h"
+#include "LoginPacketDispatch.h"
 #include "LoginServer.h"
 #include "Properties.h"
 #include "StringStream.h"
@@ -36,6 +37,10 @@ void memoryError() {
 int main(int argc, char* argv[]) {
     // ¸Þ¸ð¸® ¾ø´Ù.. ÇÔ¼ö¸¦ ¼³Á¤ÇÑ´Ù.
     set_new_handler(memoryError);
+
+    // Bind every packet id the loginserver receives to its handler before
+    // any thread can receive one (docs/RESTRUCTURING.md task 2.3).
+    registerLoginServerPacketHandlers();
 
     if (argc < 3) {
         cout << "Usage : loginserver -f È¯°æÆÄÀÏ [-p port]" << endl;

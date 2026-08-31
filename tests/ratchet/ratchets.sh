@@ -40,7 +40,7 @@ check_ratchet R3 "files with inline SQL outside database/" 320 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------
 R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)
-check_ratchet R4 "packet headers with execute()" 74 "$R4"
+check_ratchet R4 "packet headers with execute()" 1 "$R4"
 
 # --- R5: __BEGIN_TRY control-flow macro sites in gameserver ----------------
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | wc -l)

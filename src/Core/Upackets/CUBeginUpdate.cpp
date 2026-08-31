@@ -86,14 +86,6 @@ void CUBeginUpdate::write(SocketOutputStream& oStream) const throw(ProtocolExcep
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void CUBeginUpdate::execute(Player* pPlayer) throw(ProtocolException, Error) {
-    __BEGIN_TRY
-
-    CUBeginUpdateHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //--------------------------------------------------------------------------------
 // get debug string

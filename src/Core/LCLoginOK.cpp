@@ -41,15 +41,3 @@ void LCLoginOK::write(SocketOutputStream& oStream) const {
 
     __END_CATCH
 }
-
-
-//////////////////////////////////////////////////////////////////////
-// execute packet's handler
-//////////////////////////////////////////////////////////////////////
-void LCLoginOK::execute(Player* pPlayer) {
-    __BEGIN_TRY
-
-    LCLoginOKHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}

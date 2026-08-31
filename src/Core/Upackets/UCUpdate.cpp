@@ -43,14 +43,6 @@ void UCUpdate::write(Socket* pSocket) const throw(ProtocolException, Error) {
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void UCUpdate::execute(Player* pPlayer) throw(ProtocolException, Error) {
-    __BEGIN_TRY
-
-    UCUpdateHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //--------------------------------------------------------------------------------
 // get debug string

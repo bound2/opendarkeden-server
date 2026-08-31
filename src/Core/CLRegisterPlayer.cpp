@@ -232,16 +232,6 @@ void CLRegisterPlayer::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CLRegisterPlayer::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CLRegisterPlayerHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CLRegisterPlayer::toString() const
 
 {

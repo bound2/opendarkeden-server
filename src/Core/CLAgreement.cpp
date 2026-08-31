@@ -26,16 +26,6 @@ void CLAgreement::write(SocketOutputStream& oStream) const
     __END_CATCH
 }
 
-void CLAgreement::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    CLAgreementHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 string CLAgreement::toString() const
 
 {

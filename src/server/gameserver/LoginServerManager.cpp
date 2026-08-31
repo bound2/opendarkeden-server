@@ -16,6 +16,7 @@
 #include "Datagram.h"
 #include "DatagramPacket.h"
 #include "LogClient.h"
+#include "PacketDispatcher.h"
 #include "Properties.h"
 #include "ThreadManager.h"
 #include "ThreadPool.h"
@@ -117,7 +118,8 @@ void LoginServerManager::run() {
                         //  끄집어낸 데이터그램 패킷 객체를 실행한다.
                         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-                        pDatagramPacket->execute(NULL);
+                        if (!PacketDispatcher::dispatch(pDatagramPacket, NULL))
+                            pDatagramPacket->execute(NULL);
 
                         __LEAVE_CRITICAL_SECTION(m_Mutex)
 

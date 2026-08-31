@@ -1,5 +1,19 @@
 # Fix log
 
+## SGModifyGuildMemberOK was never handled: `#ifdef __GAME_SERER__` (2026-08-31)
+
+Found while migrating the SG direction onto the dispatch table (task
+2.3): `SGModifyGuildMemberOK::execute()` wrapped its handler call in
+`#ifdef __GAME_SERER__` — a misspelling of `__GAME_SERVER__` that no
+build defines — so the shared server's acknowledgement of a guild-member
+rank change was silently dropped by every game server, leaving the
+in-memory `Guild` stale until reload. The other nine SG packets spell
+the guard correctly. The dispatch table now registers the handler like
+its siblings, which both fixes the bug and makes the class of bug
+impossible: registration is plain code at the composition root, not a
+per-file macro spelling.
+> **Status:** fixed (restructuring/dispatch-cg)
+
 ## Types.h include order broke the container build (2026-08-31)
 
 The Phase 2 scaffolding PR (#14) clang-formatted `Types.h` *after* its

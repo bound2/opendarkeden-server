@@ -77,16 +77,6 @@ void LCQueryResultCharacterName::write(SocketOutputStream& oStream) const
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void LCQueryResultCharacterName::execute(Player* pPlayer)
-
-{
-    __BEGIN_TRY
-
-    LCQueryResultCharacterNameHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //--------------------------------------------------------------------------------
 // get debug string

@@ -30,23 +30,13 @@ void CURequestLoginMode::read(Socket* pSocket) throw(ProtocolException, Error) {
 //--------------------------------------------------------------------------------
 // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
 //--------------------------------------------------------------------------------
-void CURequestLoginMode::write(SocketOutputStream& oStream) const throw(ProtocolException, Error) {
-    __BEGIN_TRY
-    __END_CATCH
-}
+void CURequestLoginMode::write(SocketOutputStream& oStream) const
+    throw(ProtocolException, Error){__BEGIN_TRY __END_CATCH}
 
 
 //--------------------------------------------------------------------------------
 // execute packet's handler
 //--------------------------------------------------------------------------------
-void CURequestLoginMode::execute(Player* pPlayer) throw(ProtocolException, Error) {
-    __BEGIN_TRY
-
-    CURequestLoginModeHandler::execute(this, pPlayer);
-
-    __END_CATCH
-}
-
 
 //--------------------------------------------------------------------------------
 // get debug string
