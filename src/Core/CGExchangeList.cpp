@@ -12,6 +12,11 @@
 // Forward declaration of exchange service
 #include "../server/gameserver/exchange/ExchangeService.h"
 
+// Out-of-line definition so the constant may also be odr-used (bound to a
+// reference, e.g. std::min) by handlers and tests, not only read as a
+// compile-time constant.
+const PacketSize_t CGExchangeList::kMaxSellerFilter;
+
 void CGExchangeList::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
@@ -22,14 +27,22 @@ void CGExchangeList::read(SocketInputStream& iStream) {
     iStream.read(m_MinPrice);
     iStream.read(m_MaxPrice);
 
-    // Read seller filter string
+    // Read seller filter string.
+    // The else-branch is not optional: read() must fully overwrite the packet's
+    // state so it is a true mirror of write(). A recycled packet object whose
+    // previous read left a filter behind would otherwise keep the stale value
+    // when the new wire data carries a zero length.
     uint8_t len;
     iStream.read(len);
     if (len > 0) {
+        // char buf[256] is safe for any uint8_t len: at len == 255 the
+        // terminator lands on buf[255], the last element.
         char buf[256];
         iStream.read(buf, len);
         buf[len] = '\0';
-        m_SellerFilter = string(buf);
+        m_SellerFilter = buf;
+    } else {
+        m_SellerFilter.clear();
     }
 
     __END_CATCH
@@ -45,8 +58,18 @@ void CGExchangeList::write(SocketOutputStream& oStream) const {
     oStream.write(m_MinPrice);
     oStream.write(m_MaxPrice);
 
-    // Write seller filter string
-    uint8_t len = (uint8_t)m_SellerFilter.length();
+    // Write seller filter string with a BYTE length prefix.
+    //
+    // The clamp to kMaxSellerFilter is duplicated, deliberately and identically,
+    // in write() and in getPacketSize(). SocketOutputStream::writePacket() emits
+    // getPacketSize() into the stream header BEFORE it calls write(), so the two
+    // must agree for every possible value of the field. A length byte cannot
+    // carry more than 255 anyway, so an over-long string has to lose bytes; the
+    // only question is whether both sides lose the same ones. Clamping in only
+    // one place (or throwing from write(), with the header already on the wire)
+    // desynchronises the stream for every subsequent packet on the connection.
+    const uint8_t len =
+        (uint8_t)(m_SellerFilter.length() > kMaxSellerFilter ? kMaxSellerFilter : m_SellerFilter.length());
     oStream.write(len);
     if (len > 0)
         oStream.write(m_SellerFilter.c_str(), len);
@@ -62,8 +85,8 @@ PacketSize_t CGExchangeList::getPacketSize() const {
     size += sizeof(m_ItemType);
     size += sizeof(m_MinPrice);
     size += sizeof(m_MaxPrice);
-    size += sizeof(uint8_t); // seller filter length
-    size += m_SellerFilter.length();
+    // Same clamp as write(), so getPacketSize() == bytes written for ANY value.
+    size += szBYTE + (m_SellerFilter.length() > kMaxSellerFilter ? kMaxSellerFilter : m_SellerFilter.length());
     return size;
 }
 

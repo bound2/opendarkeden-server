@@ -17,7 +17,13 @@
 
 class CGExchangeList : public Packet {
 public:
-    CGExchangeList(){};
+    // Maximum wire length, in bytes, of m_SellerFilter. write(), read() and
+    // getPacketSize() all clamp to this value, and the factory's max size is
+    // derived from it. MUST stay equal to the client repo's constant of the
+    // same name.
+    static const PacketSize_t kMaxSellerFilter = 255;
+
+    CGExchangeList() : m_Page(1), m_PageSize(20), m_ItemClass(0xFF), m_ItemType(0xFFFF), m_MinPrice(0), m_MaxPrice(0){};
     virtual ~CGExchangeList(){};
 
     void read(SocketInputStream& iStream);
@@ -108,14 +114,16 @@ public:
     PacketID_t getPacketID() const {
         return Packet::PACKET_CG_EXCHANGE_LIST;
     }
+    // 4 + 4 + 1 + 2 + 4 + 4 + 1 + 255 = 275. The client factory must match.
     PacketSize_t getPacketMaxSize() const {
-        return szBYTE +      // m_Page
-               szBYTE +      // m_PageSize
-               szBYTE +      // m_ItemClass
-               szWORD +      // m_ItemType (uint16)
-               sizeof(int) + // m_MinPrice
-               sizeof(int) + // m_MaxPrice
-               64;           // m_SellerFilter (max 64 chars)
+        return sizeof(int) +                     // m_Page
+               sizeof(int) +                     // m_PageSize
+               szBYTE +                          // m_ItemClass
+               szWORD +                          // m_ItemType (uint16)
+               sizeof(int) +                     // m_MinPrice
+               sizeof(int) +                     // m_MaxPrice
+               szBYTE +                          // m_SellerFilter length byte
+               CGExchangeList::kMaxSellerFilter; // m_SellerFilter body (write() clamps to this)
     }
 };
 

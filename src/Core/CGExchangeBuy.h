@@ -16,6 +16,24 @@
 
 class CGExchangeBuy : public Packet {
 public:
+    // Maximum wire length, in bytes, of m_IdempotencyKey. write(), read() and
+    // getPacketSize() all clamp to this value, and the factory's max size is
+    // derived from it. MUST stay equal to the client repo's constant of the
+    // same name.
+    //
+    // Deliberately 64 and not the 255 a BYTE length prefix would allow: the
+    // PointLedger.IdempotencyKey column is VARCHAR(64) UNIQUE
+    // (initdb/USERINFO.sql). A longer key would be silently truncated on
+    // insert, so two different keys sharing a 64-byte prefix would collide on
+    // the unique index and the duplicate-purchase guard would misfire.
+    // Clamping on the wire keeps what the client sends and what the server
+    // reads identical, and bounds what reaches the column. Note the buy path
+    // does not store this value verbatim: ExchangeService::_makeLedgerKey()
+    // appends a "_buy"/"_sale" leg suffix and trims the base to fit 64, so two
+    // keys sharing a 59-byte prefix still collide in the ledger. Keys are
+    // normally far shorter than that.
+    static const PacketSize_t kMaxIdempotencyKey = 64;
+
     CGExchangeBuy() : m_ListingID(0){};
     virtual ~CGExchangeBuy(){};
 
@@ -67,9 +85,11 @@ public:
     PacketID_t getPacketID() const {
         return Packet::PACKET_CG_EXCHANGE_BUY;
     }
+    // 8 + 1 + 64 = 73. The client factory must match.
     PacketSize_t getPacketMaxSize() const {
-        return sizeof(uint64_t) + // listingID
-               64;                // idempotencyKey (max 64 chars)
+        return sizeof(uint64_t) +                 // listingID
+               szBYTE +                           // idempotencyKey length byte
+               CGExchangeBuy::kMaxIdempotencyKey; // idempotencyKey body (write() clamps to this)
     }
 };
 

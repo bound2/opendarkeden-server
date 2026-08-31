@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
+
+#include <algorithm>
 
 #include "GCExchangeList.h" // For ExchangeListing definition
 #include "Inventory.h"
@@ -53,19 +56,63 @@ string _toInt64String(int64_t value) {
     return string(buf);
 }
 
-// Generate unique idempotency key
-string _generateIdempotencyKey() {
-    static long counter = 0;
-    time_t now = time(NULL);
-    char buf[128];
-    snprintf(buf, sizeof(buf), "EX_%ld_%ld", (long)now, (long)counter++);
-    return string(buf);
-}
-
 int16_t _getServerID() {
     // TODO: Get actual server ID from configuration
     // For now, return a default value
     return 1;
+}
+
+// Longest key PointLedger.IdempotencyKey can hold: it is VARCHAR(64) UNIQUE,
+// and this project mandates a non-strict sql_mode, so anything longer is
+// silently truncated on insert instead of being rejected.
+const size_t kMaxIdempotencyKeyLength = 64;
+
+// Generate a fallback idempotency key for a buy that arrived without one.
+//
+// Fixed width by construction: "EX_" plus 4 + 8 + 8 + 8 hex digits = 31
+// characters, which leaves room for the "_buy"/"_sale" suffix the buy path
+// appends and stays well inside kMaxIdempotencyKeyLength.
+//
+// The server id and the process id are part of the key because PointLedger
+// lives in the shared USERINFO database. Time plus a counter alone is not
+// unique across the deployment: two game servers - or one game server
+// restarted, since the counter starts over at zero - can mint the same key
+// within the same second, and whoever loses that collision has a legitimate
+// purchase rejected as an already-processed replay.
+//
+// This does NOT yet make the key unique across game servers. _getServerID()
+// above is a hardcoded 1 (its TODO), and under docker/docker-compose.yml every
+// containerised server is pid 1, so two such servers agree on both components
+// and their Nth key of the same second is identical. Restart-within-a-second
+// and the cross-thread race are covered; cross-server uniqueness needs that
+// TODO resolved.
+string _generateIdempotencyKey() {
+    static long counter = 0;
+
+    // The counter is bumped from every zone thread, so read-modify-write it
+    // atomically; two threads sharing a value would share the whole key.
+    const unsigned long sequence = (unsigned long)__sync_fetch_and_add(&counter, 1);
+    const time_t now = time(NULL);
+
+    char buf[64];
+    snprintf(buf, sizeof(buf), "EX_%04x%08lx%08lx%08lx", (unsigned int)(_getServerID() & 0xFFFF),
+             (unsigned long)(getpid() & 0xFFFFFFFF), (unsigned long)((unsigned long long)now & 0xFFFFFFFF),
+             (unsigned long)(sequence & 0xFFFFFFFF));
+    return string(buf);
+}
+
+// Build the per-leg ledger key ("<base>_buy", "<base>_sale").
+//
+// The base can be client-supplied, and CGExchangeBuy caps it on the wire at the
+// full column width, so appending the suffix would push it past that width. The
+// base is therefore trimmed to make room: without that, a maximum-length key
+// makes both legs truncate to the SAME stored value, they collide on
+// UNQ_Ledger_IdempotencyKey, and the whole purchase rolls back. Two bases that
+// only differ past the trim point still collide - that is inherent to a 64-byte
+// column carrying a suffix, and it fails closed (a replay is refused).
+string _makeLedgerKey(const string& base, const string& suffix) {
+    const size_t room = (suffix.length() < kMaxIdempotencyKeyLength) ? kMaxIdempotencyKeyLength - suffix.length() : 0;
+    return base.substr(0, min(base.length(), room)) + suffix;
 }
 
 // Check if player has inventory space
@@ -314,7 +361,7 @@ pair<bool, string> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t l
         // Deduct points from buyer
         int buyerBalanceAfter;
         if (!ExchangeDB::adjustPoints(buyerAccount, -totalCost, buyerBalanceAfter, POINT_REASON_BUY, listingID, 0,
-                                      autoKey + "_buy")) {
+                                      _makeLedgerKey(autoKey, "_buy"))) {
             throw string("Failed to deduct buyer points");
         }
 
@@ -322,7 +369,7 @@ pair<bool, string> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t l
         int sellerIncome = price - tax;
         int sellerBalanceAfter;
         if (!ExchangeDB::adjustPoints(pListing->sellerAccount, sellerIncome, sellerBalanceAfter, POINT_REASON_SALE,
-                                      listingID, 0, autoKey + "_sale")) {
+                                      listingID, 0, _makeLedgerKey(autoKey, "_sale"))) {
             throw string("Failed to add seller points");
         }
 
