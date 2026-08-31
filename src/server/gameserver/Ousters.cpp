@@ -826,8 +826,11 @@ void Ousters::addSkill(SkillType_t SkillType)
 
         pOustersSkillSlot->setName(m_Name);
         pOustersSkillSlot->setSkillType(SkillType);
+        // Stamp the run time BEFORE seeding the interval, and with no delay:
+        // the freshly learned skill must be usable immediately instead of
+        // being locked for the table's MaxDelay. See Vampire::addSkill.
+        pOustersSkillSlot->setRunTime(0);
         pOustersSkillSlot->setInterval(Delay);
-        pOustersSkillSlot->setRunTime();
         pOustersSkillSlot->setExpLevel(1);
         pOustersSkillSlot->create(m_Name);
 

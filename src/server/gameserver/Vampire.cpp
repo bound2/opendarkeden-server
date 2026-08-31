@@ -936,8 +936,15 @@ void Vampire::addSkill(SkillType_t SkillType)
 
         pVampireSkillSlot->setName(m_Name);
         pVampireSkillSlot->setSkillType(SkillType);
+        // Stamp the run time BEFORE seeding the interval, and with no delay:
+        // the freshly learned skill must be usable immediately. The old
+        // order (setInterval, then setRunTime()) locked the skill for the
+        // table's MaxDelay — 2.0 s for e.g. Bloody Nail and Violent
+        // Phantom — and the client, which only learns delays at login,
+        // whiffed every cast inside that window. The first successful cast
+        // overwrites the interval with the per-cast formula delay anyway.
+        pVampireSkillSlot->setRunTime(0);
         pVampireSkillSlot->setInterval(Delay);
-        pVampireSkillSlot->setRunTime();
         pVampireSkillSlot->create(m_Name);
 
         m_SkillSlot[SkillType] = pVampireSkillSlot;

@@ -1309,10 +1309,13 @@ void Slayer::addSkill(SkillType_t SkillType)
         SkillSlot* pSkillSlot = new SkillSlot();
         pSkillSlot->setName(m_Name);
         pSkillSlot->setSkillType(SkillType);
+        // Stamp the run time BEFORE seeding the interval, and with no delay:
+        // the freshly learned skill must be usable immediately instead of
+        // being locked for the table's MaxDelay. See Vampire::addSkill.
+        pSkillSlot->setRunTime(0, false);
         pSkillSlot->setInterval(Delay);
         pSkillSlot->setExpLevel(0);
         pSkillSlot->setExp(1);
-        pSkillSlot->setRunTime();
         pSkillSlot->create(m_Name);
 
         m_SkillSlot[SkillType] = pSkillSlot;
