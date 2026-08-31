@@ -20,7 +20,6 @@
 #include "Zone.h"
 
 // forward declaration
-class ZoneThread;
 class ZonePlayerManager;
 
 // type redefinition
@@ -33,7 +32,6 @@ class ZonePlayerManager;
 //////////////////////////////////////////////////////////////////////
 class ZoneGroup {
     // friend declaration
-    friend class ZoneThread;
 
 public:
     // constructor
@@ -114,24 +112,49 @@ public:
     // zone-group state may only be touched while this group's mutex is
     // held — the group's ZoneGroupThread holds it for its whole tick, and
     // any other thread (e.g. GDRLairManager) must take it explicitly.
-    // lock()/unlock() record the holding thread so assertOwned() can
-    // verify the contract in debug builds. The check is armed by the
+    //
+    // Under DE_OWNERSHIP_CHECKS (defined only for Debug builds — this
+    // project deliberately never defines NDEBUG, so gating on our own
+    // macro is the only way the checks truly vanish from release),
+    // lock()/unlock() record the holding thread and assertOwned() ABORTS
+    // on a violation. abort(), not a throw: an AssertionError is a
+    // Throwable, and the legacy catch(Throwable&) blocks on exactly these
+    // paths would swallow it — turning a detected race into a silently
+    // half-applied mutation (e.g. GamePlayer::disconnect's empty catch
+    // would skip the character save). The check is armed by the
     // ZoneGroupThread when it starts; before that, single-threaded
-    // startup/loading passes vacuously. The mutex is non-recursive, so
-    // clearing the holder on unlock is sound.
+    // startup/loading passes vacuously.
+    //
+    // Invariant that makes false FIRES impossible: m_LockHolder and
+    // m_LockHolderValid are written only while the mutex is held (the
+    // mutex is non-recursive — Mutex::lock() throws on self-relock before
+    // the holder is written — so clearing on unlock is sound). A racing
+    // reader that does not hold the mutex may see stale values, but that
+    // is precisely the caller that must fail.
     void lock() {
         m_Mutex.lock();
+#ifdef DE_OWNERSHIP_CHECKS
         m_LockHolder = Thread::self();
+        m_LockHolderValid = true;
+#endif
     }
     void unlock() {
-        m_LockHolder = TID();
+#ifdef DE_OWNERSHIP_CHECKS
+        m_LockHolderValid = false;
+#endif
         m_Mutex.unlock();
     }
 
+#ifdef DE_OWNERSHIP_CHECKS
     void armOwnershipAssert() {
         m_OwnershipArmed = true;
     }
     void assertOwned() const;
+#else
+    // Release: empty inlines so the gateway call sites compile away.
+    void armOwnershipAssert() {}
+    void assertOwned() const {}
+#endif
 
     void initLoadValue();
     DWORD getLoadValue() const;
@@ -160,9 +183,17 @@ private:
 
     mutable Mutex m_Mutex;
 
-    // debug-only ownership tracking (see lock()/unlock()/assertOwned())
+#ifdef DE_OWNERSHIP_CHECKS
+    // Debug-only ownership tracking (see lock()/unlock()/assertOwned()).
+    // pthread_t is opaque — compared with pthread_equal(), never ==, and a
+    // separate valid flag stands in for the old "zero tid" sentinel POSIX
+    // never promised. Members exist only in checking builds; ZoneGroup's
+    // layout differs between configs, which is fine for a type never
+    // serialized or shared across differently-configured TUs.
     volatile TID m_LockHolder;
+    volatile bool m_LockHolderValid;
     volatile bool m_OwnershipArmed;
+#endif
 };
 
 #endif

@@ -262,26 +262,40 @@ known violations are listed at the end, not silently fixed.
   `m_Mutex`.
 - **`SharedServerManager` thread** — TCP link to the sharedserver;
   dispatches **SG** packets on its own thread under its own `m_Mutex`.
-- **`BillingPlayerManager` / `CBillingPlayerManager`, `MPlayerManager`
-  (mofus), `GDRLairManager`** — auxiliary threads with their own loops.
-  (`SMSServiceThread` exists but is not started.)
+- **`BillingPlayerManager`, `MPlayerManager` (mofus), `GDRLairManager`** —
+  auxiliary threads with their own loops. (`SMSServiceThread` exists but is
+  not started, and `CBillingPlayerManager`'s start is compiled out —
+  `__CONNECT_CBILLING_SYSTEM__` is commented out in
+  `chinabilling/CBillingInfo.h` — so it never runs either.)
 
 ### The mutation rule
 
 **Zone-group state (Zones, Creatures in them, the group's
 `ZonePlayerManager`) may only be touched while that group's mutex is
 held.** The group's own `ZoneGroupThread` holds it for its entire tick;
-any other thread must take it explicitly — `GDRLairManager` is the model
-citizen: `__ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))` around
-every zone mutation it performs from its own thread.
+any other thread must take it explicitly, e.g.
+`__ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))` — `GDRLairManager`
+does this at most (not all — see Known violations) of its zone-mutation
+sites. Note `Zone::m_Mutex` is a **different, narrower** lock some
+main-thread heartbeats take (war/ctf via `pZone->lock()`); holding it does
+NOT exclude the zone-group tick and does not satisfy this rule.
 
 This is mutex-guarded ownership, not pure thread-affinity: the guarded
-region is the contract. Debug builds enforce it — `ZoneGroup::lock()`
-records the holding thread, `ZoneGroup::assertOwned()` (called from the
-`Zone` mutation gateways `addPC`/`addCreature`/`deleteCreature`/
-`moveCreature`) aborts if the calling thread does not hold the group's
-mutex. The check is armed by `ZoneGroupThread::run()`, so single-threaded
-startup/loading is exempt; release builds compile it away (`NDEBUG`).
+region is the contract. Under `DE_OWNERSHIP_CHECKS` — defined only for
+Debug builds; this project deliberately never defines `NDEBUG`, so the
+checks ride their own macro and every optimized build compiles them away
+completely — `ZoneGroup::lock()` records the holding thread
+(`pthread_equal` + a valid flag, never a raw `==` or zero-tid sentinel)
+and `ZoneGroup::assertOwned()` **calls `abort()`** on a violation. It
+must not throw: an `AssertionError` is a `Throwable`, and the
+`catch (Throwable&)` blocks sitting on these very paths would swallow it,
+turning a detected race into a silently half-applied mutation. The check
+is armed by `ZoneGroupThread::run()`, so single-threaded startup/loading
+is exempt. Coverage is exactly the five `Zone` gateways
+`addPC` (both overloads)/`addCreature`/`deleteCreature`/`moveCreature`;
+`Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` and direct
+`Tile` writes are **not** gated — the assert is a tripwire on the main
+gateways, not a full guarantee.
 
 ### Cross-thread communication
 
@@ -306,6 +320,26 @@ startup/loading is exempt; release builds compile it away (`NDEBUG`).
   (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
   assert cannot see such call sites — the assert covers the gateway
   methods only.
+- **Cross-group `ZoneGroup::addZone()` race**: `DynamicZone.cpp` (reached
+  from `CGSelectWayPointHandler` / `ActionEnterQuestZone` on the
+  *requesting player's* zone thread) inserts the new zone into the
+  **template zone's** group — generally a different group — while that
+  group's own thread iterates `m_Zones` in its heartbeat
+  (`unordered_map` rehash-during-iteration). Ungated by the assert
+  (`addZone` is not a gateway); the fix is a deferred handoff to the
+  owning thread, and simply taking the target group's mutex risks a
+  lock-ordering deadlock while the caller holds its own group's.
+- `GDRLairManager` locks correctly at most sites but not all:
+  `GDRLairIcepole::start`, `GDRLairScene6::start` (iterates the zone's
+  PCManager and registers objects) and `GDRLairEnding::start` mutate zone
+  state from the GDR thread without the group mutex. None hits a gated
+  gateway, so the assert stays blind to them.
+- ~~Packets pipelined behind `CGReady` drained on the main thread after
+  `GPS_NORMAL` opened the validator gate, reaching the gateways with no
+  group mutex~~ — **fixed**: `GamePlayer::processCommand` stops the
+  main-thread (IncomingPlayerManager) drain once the status flips to
+  `GPS_NORMAL`; the zone thread's `ZonePlayerManager` drains the rest on
+  its next tick.
 
 ## Running the Servers
 

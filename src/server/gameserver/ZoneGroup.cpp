@@ -6,6 +6,8 @@
 
 #include "ZoneGroup.h"
 
+#include <cstdlib>
+
 #include "Assert.h"
 #include "Profile.h"
 #include "VSDateTime.h"
@@ -25,8 +27,14 @@
 //////////////////////////////////////////////////////////////////////////////
 ZoneGroup::ZoneGroup(ZoneGroupID_t zoneGroupID)
 
-    : m_ZoneGroupID(zoneGroupID), m_pZonePlayerManager(NULL), m_LockHolder(), m_OwnershipArmed(false) {
+    : m_ZoneGroupID(zoneGroupID), m_pZonePlayerManager(NULL) {
     __BEGIN_TRY
+
+#ifdef DE_OWNERSHIP_CHECKS
+    m_LockHolder = TID();
+    m_LockHolderValid = false;
+    m_OwnershipArmed = false;
+#endif
 
     m_Mutex.setName("ZoneGroupMutex");
 
@@ -53,25 +61,35 @@ ZoneGroup::~ZoneGroup()
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Debug-build check of the thread-ownership contract: zone-group state may
-// only be touched with this group's mutex held (see CLAUDE.md, "Thread
-// ownership"). Armed by ZoneGroupThread::run() once the thread exists, so
-// single-threaded startup/loading is exempt. Reading m_LockHolder without
-// the mutex is racy only for a thread that does NOT hold it — exactly the
-// case that should fail — so a false pass cannot occur for the holder.
+// Debug-build (DE_OWNERSHIP_CHECKS) check of the thread-ownership contract:
+// zone-group state may only be touched with this group's mutex held (see
+// CLAUDE.md, "Thread ownership"). Armed by ZoneGroupThread::run() once the
+// thread exists, so single-threaded startup/loading is exempt. The holder
+// fields are written only under the mutex, so a false FIRE cannot occur for
+// the actual holder; a reader that does not hold the mutex may read them
+// racily — and that reader is exactly the violation being detected.
+//
+// A violation ABORTS. It must not throw: AssertionError is a Throwable, and
+// the catch(Throwable&) blocks sitting on these very paths (e.g. the empty
+// one in GamePlayer::disconnect) would swallow it, converting a detected
+// cross-thread race into a silently half-applied mutation — quieter and
+// more destructive than the race itself. abort() cannot be caught, leaves a
+// core, and the filelog line says which group and which threads.
 //////////////////////////////////////////////////////////////////////////////
+#ifdef DE_OWNERSHIP_CHECKS
 void ZoneGroup::assertOwned() const {
-#ifndef NDEBUG
     if (!m_OwnershipArmed)
         return;
-    if (m_LockHolder != Thread::self()) {
+    TID holder = m_LockHolder;
+    if (!m_LockHolderValid || !pthread_equal(holder, Thread::self())) {
         filelog("threadOwnership.log",
-                "ZoneGroup %d state touched without holding the group mutex (tid=%lu, holder=%lu)", (int)m_ZoneGroupID,
-                (unsigned long)Thread::self(), (unsigned long)m_LockHolder);
-        Assert(false);
+                "ZoneGroup %d state touched without holding the group mutex (tid=%lu, holder=%lu, holderValid=%d) — "
+                "aborting",
+                (int)m_ZoneGroupID, (unsigned long)Thread::self(), (unsigned long)holder, (int)m_LockHolderValid);
+        abort();
     }
-#endif
 }
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // initialize zone group

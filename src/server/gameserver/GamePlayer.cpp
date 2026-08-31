@@ -500,6 +500,19 @@ void GamePlayer::processCommand(bool Option) {
                     SAFE_DELETE(oldPacket);
                     m_PacketHistory.pop_front();
                 }
+
+                // CGReady's handler runs on the MAIN thread (this loop, called
+                // from IncomingPlayerManager with Option == false), hands the
+                // player to the zone pipeline and flips the status to
+                // GPS_NORMAL — which opens PacketValidator's PIST_ANY gate.
+                // Packets a client pipelined behind CGReady must not keep
+                // draining here: they would dispatch on the main thread and
+                // reach the Zone mutation gateways with no group mutex held
+                // (a real, client-triggerable race — task 3.4 review). Stop;
+                // the zone thread's ZonePlayerManager drains the remainder on
+                // its next tick.
+                if (!Option && getPlayerStatus() == GPS_NORMAL)
+                    break;
             } catch (IgnorePacketException& igpe) {
                 // PacketValidator ¿¡¼­ ÆÐÅ¶À» ¹«½ÃÇÏ¶ó°í ÇßÀ¸´Ï,
                 // ÀÔ·Â½ºÆ®¸²¿¡¼­ ¸ðµÎ Áö¿ö¹ö¸®°í ½ÇÇàÇÏÁö ¾Êµµ·Ï ÇÑ´Ù.
