@@ -472,14 +472,12 @@ void GamePlayer::processCommand(bool Option) {
 #ifdef __PROFILE_PACKETS__
 
                     beginProfileEx(pPacket->getPacketName().c_str());
-                    if (!PacketDispatcher::dispatch(pPacket, this))
-                        pPacket->execute(this);
+                    PacketDispatcher::dispatch(pPacket, this);
                     endProfileEx(pPacket->getPacketName().c_str());
 
 #else
                     verifySpeed(pPacket);
-                    if (!PacketDispatcher::dispatch(pPacket, this))
-                        pPacket->execute(this);
+                    PacketDispatcher::dispatch(pPacket, this);
 #endif
                 } /*catch ( Throwable& t )
                {

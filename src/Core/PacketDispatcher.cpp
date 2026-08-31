@@ -15,15 +15,14 @@ void PacketDispatcher::registerHandler(PacketID_t packetID, HandlerFn fn) {
     s_Handlers[packetID] = fn;
 }
 
-bool PacketDispatcher::dispatch(Packet* pPacket, Player* pPlayer) {
+void PacketDispatcher::dispatch(Packet* pPacket, Player* pPlayer) {
     PacketID_t packetID = pPacket->getPacketID();
     if (packetID >= Packet::PACKET_MAX)
-        return false;
+        throw InvalidProtocolException("packet id out of range");
 
     HandlerFn fn = s_Handlers[packetID];
     if (fn == 0)
-        return false;
+        throw InvalidProtocolException("packet has no registered handler");
 
     fn(pPacket, pPlayer);
-    return true;
 }

@@ -404,7 +404,8 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                         cgRide.setObjectID(pMotorcycle->getObjectID());
                         cgRide.setX(pt.x);
                         cgRide.setY(pt.y);
-                        cgRide.execute(pGamePlayer);
+                        // synthetic packet straight to the handler (2.3)
+                        CGRideMotorCycleHandler::execute(&cgRide, pGamePlayer);
                     }
 
 

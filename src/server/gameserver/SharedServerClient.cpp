@@ -116,13 +116,11 @@ void SharedServerClient::processCommand() {
 #ifdef __PROFILE_PACKETS__
 
                 beginProfileEx(pPacket->getPacketName().c_str());
-                if (!PacketDispatcher::dispatch(pPacket, this))
-                    pPacket->execute(this);
+                PacketDispatcher::dispatch(pPacket, this);
                 endProfileEx(pPacket->getPacketName().c_str());
 
 #else
-                if (!PacketDispatcher::dispatch(pPacket, this))
-                    pPacket->execute(this);
+                PacketDispatcher::dispatch(pPacket, this);
 #endif
             } catch (IgnorePacketException& igpe) {
                 // 패킷 크기가 너무 크면 프로토콜 에러로 간주한다.

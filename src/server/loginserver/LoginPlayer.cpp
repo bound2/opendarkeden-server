@@ -238,8 +238,7 @@ void LoginPlayer::processCommand(bool Option) {
 
                 // 이제 이 패킷스트럭처를 가지고 패킷핸들러를 수행하면 된다.
                 // 패킷아이디가 잘못될 경우는 패킷핸들러매니저에서 처리한다.
-                if (!PacketDispatcher::dispatch(pPacket, this))
-                    pPacket->execute(this);
+                PacketDispatcher::dispatch(pPacket, this);
 
                 getCurrentTime(end);
                 g_PacketProfileManager.addAccuTime(pPacket->getPacketName(), start, end);

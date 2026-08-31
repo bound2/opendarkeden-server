@@ -158,8 +158,7 @@ void GameServerPlayer::processCommand() noexcept(false) {
             // �ڵ������� �ʱ�ȭ�ȴ�.
             m_pInputStream->readPacket(pPacket);
 
-            if (!PacketDispatcher::dispatch(pPacket, this))
-                pPacket->execute(this);
+            PacketDispatcher::dispatch(pPacket, this);
 
             // ��Ŷ�� �����Ѵ�
             delete pPacket;

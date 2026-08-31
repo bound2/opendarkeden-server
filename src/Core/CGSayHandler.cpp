@@ -4757,7 +4757,12 @@ void CGSayHandler::opsoulchain(GamePlayer* pPlayer, string msg, int i) {
     packet.setSkillType(SKILL_SOUL_CHAIN);
     packet.setTargetName(Name);
 
-    packet.execute(pPlayer);
+    // The GM command feeds a synthetic packet straight to the handler
+    // (packets carry no execute() since task 2.3). NOTE: this call had
+    // been broken at runtime between the CG dispatch migration and this
+    // commit — the base default threw — caught by the compiler the
+    // moment the base method was deleted.
+    CGSkillToNamedHandler::execute(&packet, pPlayer);
 
     __END_DEBUG_EX __END_CATCH
 }

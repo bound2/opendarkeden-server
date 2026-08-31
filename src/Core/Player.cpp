@@ -148,8 +148,7 @@ void Player::processCommand(bool Option) {
                 // �ڵ������� �ʱ�ȭ�ȴ�.
                 m_pInputStream->read( pPacket );
 
-                if (!PacketDispatcher::dispatch(pPacket, this))
-                    pPacket->execute( this );
+                PacketDispatcher::dispatch(pPacket, this);
 
                 // ��Ŷ�� �����Ѵ�
                 delete pPacket;

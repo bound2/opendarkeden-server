@@ -56,7 +56,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 104 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` |
 | R3 | Files with inline SQL anywhere outside `database/` | 320 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| wc -l` |
-| R4 | Packet headers with `execute()` still on the packet | 1 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
+| R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| wc -l` |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 868 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` |
@@ -500,7 +500,7 @@ visibility can't express.
   > users — all Player-transport classes, 2.3's problem).
   - Owner: the include-graph test.
 
-- [ ] **2.3 Strip `execute()` off packets; dispatch table at the composition
+- [x] **2.3 Strip `execute()` off packets; dispatch table at the composition
   root.** The crux. Today packet classes carry `execute()` → `*Handler` which
   reaches into gameserver internals, with `#ifdef __GAME_SERVER__` /
   `__GAME_CLIENT__` switching (vestige of the once-shared codebase). Replace
@@ -559,9 +559,12 @@ visibility can't express.
   > (`DE_REGISTER_PACKET_HANDLER[_NOPLAYER]`). Found + fixed on the way:
   > `SGModifyGuildMemberOK`'s handler had never run — misspelled
   > `#ifdef __GAME_SERER__` guard (`docs/FIXES.md`).
-  > Remaining: delete `Packet::execute` + the receive-loop fallbacks
-  > (R4 1→0) after a live smoke test of all three servers against the
-  > real client; handler file moves out of `Core` are 2.4.
+  > **Closed 2026-08-31** after a live smoke test of all three servers
+  > against the real client (login, guild ops, friend chat): `Packet`
+  > carries no `execute()` at all, `PacketDispatcher::dispatch` throws
+  > `InvalidProtocolException` on an unregistered id, and the seven
+  > receive loops call it unconditionally. R4 = 0, held by the ratchet.
+  > Handler file moves out of `Core` are 2.4.
   - Owner: R4 ratchet test + include-graph test (a kernel packet including a
     Zone header fails).
 

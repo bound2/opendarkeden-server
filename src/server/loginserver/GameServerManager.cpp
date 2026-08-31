@@ -112,8 +112,7 @@ void GameServerManager::run() {
 
                     if (pDatagramPacket != NULL) {
                         // ����� �����ͱ׷� ��Ŷ ��ü�� �����Ѵ�.
-                        if (!PacketDispatcher::dispatch(pDatagramPacket, NULL))
-                            pDatagramPacket->execute(NULL);
+                        PacketDispatcher::dispatch(pDatagramPacket, NULL);
 
                         // �����ͱ׷� ��Ŷ ��ü�� �����Ѵ�.
                         delete pDatagramPacket;

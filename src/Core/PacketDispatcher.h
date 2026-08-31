@@ -22,12 +22,11 @@ public:
     // Asserts on an out-of-range id and on double registration.
     static void registerHandler(PacketID_t packetID, HandlerFn fn);
 
-    // Runs the registered handler for the packet's id. Returns false when
-    // no handler is registered, so receive loops can fall back to the
-    // legacy Packet::execute() until every direction is migrated. The
-    // table is written only during startup, so this is safe to call from
-    // every zone thread without locking.
-    static bool dispatch(Packet* pPacket, Player* pPlayer);
+    // Runs the registered handler for the packet's id; receiving an id
+    // with no registered handler is a protocol error and throws
+    // InvalidProtocolException. The table is written only during startup,
+    // so this is safe to call from every zone thread without locking.
+    static void dispatch(Packet* pPacket, Player* pPlayer);
 
 private:
     static HandlerFn s_Handlers[];

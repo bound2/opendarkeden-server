@@ -118,8 +118,7 @@ void LoginServerManager::run() {
                         //  끄집어낸 데이터그램 패킷 객체를 실행한다.
                         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-                        if (!PacketDispatcher::dispatch(pDatagramPacket, NULL))
-                            pDatagramPacket->execute(NULL);
+                        PacketDispatcher::dispatch(pDatagramPacket, NULL);
 
                         __LEAVE_CRITICAL_SECTION(m_Mutex)
 
