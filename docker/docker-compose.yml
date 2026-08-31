@@ -26,7 +26,7 @@ services:
     healthcheck:
       # The entrypoint only listens on TCP once the initdb scripts are done,
       # so this also tells us the DARKEDEN/USERINFO dumps have been imported.
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uelcastle", "-pelca110"]
       interval: 10s
       timeout: 5s
       retries: 60

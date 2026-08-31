@@ -464,6 +464,6 @@
 483	CGConnectSetKey	4
 484	GCFriendChatting	553
 486	CGExchangeList	275
-489	CGExchangeBuy	264
+489	CGExchangeBuy	73
 494	GCExchangeList	37114
 497	GCExchangeBuy	265

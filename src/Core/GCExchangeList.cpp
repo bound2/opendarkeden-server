@@ -10,6 +10,12 @@
 
 using namespace std;
 
+// Out-of-line definitions so the constants may also be odr-used (bound to a
+// reference, e.g. std::min) by handlers and tests, not only read as
+// compile-time constants.
+const PacketSize_t GCExchangeList::kMaxListingString;
+const PacketSize_t GCExchangeList::kMaxListingsPerPage;
+
 // Stub execute() for server side (GC packets don't execute on server)
 void GCExchangeList::execute(Player* pPlayer) {
     __BEGIN_TRY
@@ -29,10 +35,21 @@ void GCExchangeList::read(SocketInputStream& iStream) {
     uint16_t count;
     iStream.read(count);
 
-    // Read listings — this must stay an exact mirror of write() below.
+    // Drop whatever a previous read left behind. read() must fully overwrite
+    // the packet's state to be a true mirror of write(); appending to the old
+    // contents would make a recycled packet object report more listings than
+    // the wire carried. The client's counterpart clears here too.
+    m_Listings.clear();
+
+    // Read listings — this must stay an exact mirror of write() below, both in
+    // field order and in the clamping of every length-prefixed string. Each
+    // string's else-branch is part of that mirror: a zero length on the wire
+    // must leave an empty string, not the value the listing happened to hold.
     for (uint16_t i = 0; i < count; i++) {
         ExchangeListing listing;
 
+        // char buf[256] is safe for any uint8_t len: at len == 255 the
+        // terminator lands on buf[255], the last element.
         char buf[256];
         uint8_t len;
 
@@ -49,7 +66,9 @@ void GCExchangeList::read(SocketInputStream& iStream) {
         if (len > 0) {
             iStream.read(buf, len);
             buf[len] = '\0';
-            listing.sellerAccount = string(buf);
+            listing.sellerAccount = buf;
+        } else {
+            listing.sellerAccount.clear();
         }
 
         // SellerPlayer
@@ -57,7 +76,9 @@ void GCExchangeList::read(SocketInputStream& iStream) {
         if (len > 0) {
             iStream.read(buf, len);
             buf[len] = '\0';
-            listing.sellerPlayer = string(buf);
+            listing.sellerPlayer = buf;
+        } else {
+            listing.sellerPlayer.clear();
         }
 
         iStream.read(listing.sellerRace);
@@ -78,7 +99,9 @@ void GCExchangeList::read(SocketInputStream& iStream) {
         if (len > 0) {
             iStream.read(buf, len);
             buf[len] = '\0';
-            listing.buyerAccount = string(buf);
+            listing.buyerAccount = buf;
+        } else {
+            listing.buyerAccount.clear();
         }
 
         // BuyerPlayer
@@ -86,7 +109,9 @@ void GCExchangeList::read(SocketInputStream& iStream) {
         if (len > 0) {
             iStream.read(buf, len);
             buf[len] = '\0';
-            listing.buyerPlayer = string(buf);
+            listing.buyerPlayer = buf;
+        } else {
+            listing.buyerPlayer.clear();
         }
 
         iStream.read(listing.taxRate);
@@ -97,14 +122,18 @@ void GCExchangeList::read(SocketInputStream& iStream) {
         if (len > 0) {
             iStream.read(buf, len);
             buf[len] = '\0';
-            listing.createdAt = string(buf);
+            listing.createdAt = buf;
+        } else {
+            listing.createdAt.clear();
         }
 
         iStream.read(len);
         if (len > 0) {
             iStream.read(buf, len);
             buf[len] = '\0';
-            listing.expireAt = string(buf);
+            listing.expireAt = buf;
+        } else {
+            listing.expireAt.clear();
         }
 
         iStream.read(listing.version);
@@ -115,7 +144,9 @@ void GCExchangeList::read(SocketInputStream& iStream) {
         if (len > 0) {
             iStream.read(buf, len);
             buf[len] = '\0';
-            listing.itemName = string(buf);
+            listing.itemName = buf;
+        } else {
+            listing.itemName.clear();
         }
 
         iStream.read(listing.enchantLevel);
@@ -148,7 +179,17 @@ void GCExchangeList::write(SocketOutputStream& oStream) const {
     uint16_t count = (uint16_t)m_Listings.size();
     oStream.write(count);
 
-    // Write listings
+    // Write listings.
+    //
+    // Every string below is clamped to kMaxListingString, and getPacketSize()
+    // repeats the identical clamp field for field. SocketOutputStream::
+    // writePacket() emits getPacketSize() into the stream header BEFORE it
+    // calls write(), so the two must agree for every possible value. A BYTE
+    // length prefix cannot carry more than 255 anyway, so an over-long string
+    // has to lose bytes; the only question is whether both sides lose the same
+    // ones. Clamping in only one place (or throwing from write(), with the
+    // header already on the wire) desynchronises the stream for every
+    // subsequent packet on the connection.
     for (const auto& listing : m_Listings) {
         // Write basic fields
         oStream.write((uint64_t)listing.listingID);
@@ -156,13 +197,15 @@ void GCExchangeList::write(SocketOutputStream& oStream) const {
 
         // Write strings with length prefix
         // SellerAccount
-        uint8_t len = (uint8_t)listing.sellerAccount.length();
+        uint8_t len = (uint8_t)(listing.sellerAccount.length() > kMaxListingString ? kMaxListingString
+                                                                                   : listing.sellerAccount.length());
         oStream.write(len);
         if (len > 0)
             oStream.write(listing.sellerAccount.c_str(), len);
 
         // SellerPlayer
-        len = (uint8_t)listing.sellerPlayer.length();
+        len = (uint8_t)(listing.sellerPlayer.length() > kMaxListingString ? kMaxListingString
+                                                                          : listing.sellerPlayer.length());
         oStream.write(len);
         if (len > 0)
             oStream.write(listing.sellerPlayer.c_str(), len);
@@ -177,13 +220,15 @@ void GCExchangeList::write(SocketOutputStream& oStream) const {
         oStream.write(listing.status);
 
         // BuyerAccount
-        len = (uint8_t)listing.buyerAccount.length();
+        len = (uint8_t)(listing.buyerAccount.length() > kMaxListingString ? kMaxListingString
+                                                                          : listing.buyerAccount.length());
         oStream.write(len);
         if (len > 0)
             oStream.write(listing.buyerAccount.c_str(), len);
 
         // BuyerPlayer
-        len = (uint8_t)listing.buyerPlayer.length();
+        len = (uint8_t)(listing.buyerPlayer.length() > kMaxListingString ? kMaxListingString
+                                                                         : listing.buyerPlayer.length());
         oStream.write(len);
         if (len > 0)
             oStream.write(listing.buyerPlayer.c_str(), len);
@@ -192,12 +237,13 @@ void GCExchangeList::write(SocketOutputStream& oStream) const {
         oStream.write(listing.taxAmount);
 
         // Timestamp strings
-        len = (uint8_t)listing.createdAt.length();
+        len =
+            (uint8_t)(listing.createdAt.length() > kMaxListingString ? kMaxListingString : listing.createdAt.length());
         oStream.write(len);
         if (len > 0)
             oStream.write(listing.createdAt.c_str(), len);
 
-        len = (uint8_t)listing.expireAt.length();
+        len = (uint8_t)(listing.expireAt.length() > kMaxListingString ? kMaxListingString : listing.expireAt.length());
         oStream.write(len);
         if (len > 0)
             oStream.write(listing.expireAt.c_str(), len);
@@ -205,7 +251,7 @@ void GCExchangeList::write(SocketOutputStream& oStream) const {
         oStream.write(listing.version);
 
         // Snapshot fields
-        len = (uint8_t)listing.itemName.length();
+        len = (uint8_t)(listing.itemName.length() > kMaxListingString ? kMaxListingString : listing.itemName.length());
         oStream.write(len);
         if (len > 0)
             oStream.write(listing.itemName.c_str(), len);
@@ -236,8 +282,11 @@ PacketSize_t GCExchangeList::getPacketSize() const {
     for (const auto& listing : m_Listings) {
         size += sizeof(uint64_t); // listingID
         size += sizeof(uint16_t); // serverID
-        size += sizeof(uint8_t) + listing.sellerAccount.length();
-        size += sizeof(uint8_t) + listing.sellerPlayer.length();
+        // Same clamps as write(), so getPacketSize() == bytes written for ANY value.
+        size += szBYTE + (listing.sellerAccount.length() > kMaxListingString ? kMaxListingString
+                                                                             : listing.sellerAccount.length());
+        size += szBYTE +
+                (listing.sellerPlayer.length() > kMaxListingString ? kMaxListingString : listing.sellerPlayer.length());
         size += sizeof(listing.sellerRace);
         size += sizeof(listing.itemClass);
         size += sizeof(listing.itemType);
@@ -246,14 +295,19 @@ PacketSize_t GCExchangeList::getPacketSize() const {
         size += sizeof(listing.pricePoint);
         size += sizeof(listing.currency);
         size += sizeof(listing.status);
-        size += sizeof(uint8_t) + listing.buyerAccount.length();
-        size += sizeof(uint8_t) + listing.buyerPlayer.length();
+        size += szBYTE +
+                (listing.buyerAccount.length() > kMaxListingString ? kMaxListingString : listing.buyerAccount.length());
+        size += szBYTE +
+                (listing.buyerPlayer.length() > kMaxListingString ? kMaxListingString : listing.buyerPlayer.length());
         size += sizeof(listing.taxRate);
         size += sizeof(listing.taxAmount);
-        size += sizeof(uint8_t) + listing.createdAt.length();
-        size += sizeof(uint8_t) + listing.expireAt.length();
+        size +=
+            szBYTE + (listing.createdAt.length() > kMaxListingString ? kMaxListingString : listing.createdAt.length());
+        size +=
+            szBYTE + (listing.expireAt.length() > kMaxListingString ? kMaxListingString : listing.expireAt.length());
         size += sizeof(listing.version);
-        size += sizeof(uint8_t) + listing.itemName.length();
+        size +=
+            szBYTE + (listing.itemName.length() > kMaxListingString ? kMaxListingString : listing.itemName.length());
         size += sizeof(listing.enchantLevel);
         size += sizeof(listing.grade);
         size += sizeof(listing.durability);

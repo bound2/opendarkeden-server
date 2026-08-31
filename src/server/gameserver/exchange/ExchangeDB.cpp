@@ -9,6 +9,9 @@
 #include <cstdlib>
 #include <iomanip>
 #include <sstream>
+#include <vector>
+
+#include <mysql/mysql.h> // For mysql_real_escape_string() in escapeSQL()
 
 #include "DB.h"
 #include "DatabaseManager.h"
@@ -31,13 +34,81 @@ string getCurrentTime() {
     return string(buffer);
 }
 
-// Escape string for SQL
+// Escape a value so it can be interpolated into a SINGLE-QUOTED SQL literal.
+//
+// What it guarantees:
+//   * NUL bytes are dropped before anything else. Every caller in this file
+//     builds its query with printf-style "%s" plus c_str(), which stops at the
+//     first NUL - an embedded NUL would silently truncate the statement into
+//     something malformed (or, worse, still valid but different).
+//   * When the thread's database connection is reachable, the escaping is done
+//     by mysql_real_escape_string(). That is the correct answer: it is aware of
+//     the connection's character set (so a multi-byte lead byte is never
+//     mistaken for an ASCII quote or backslash) and it follows the server's
+//     NO_BACKSLASH_ESCAPES setting.
+//   * Otherwise a manual escape runs, which handles BOTH the backslash and the
+//     single quote. MySQL treats the backslash as an escape character inside
+//     string literals by default, so doubling the quote alone is not enough: a
+//     value such as  \' OR 1=1#  escapes its own doubled quote and breaks out
+//     of the literal. It becomes  \\'' OR 1=1#  here, which the server reads
+//     back as one literal backslash, one literal quote, and no statement break.
+//     The pass maps each input byte independently in a single sweep, so an
+//     escape it emits is never fed back through the loop. That is what makes it
+//     correct without an ordering argument: a two-pass version would be safe
+//     only because the quote is escaped by DOUBLING it (which introduces no new
+//     backslashes for a backslash pass to re-double). Escape the quote as \'
+//     instead and the order becomes load-bearing - quote pass first, backslash
+//     pass second, and the \' turns into \\' with the quote left live. Do not
+//     switch this to backslash-style quote escaping.
+//
+// What it does NOT guarantee:
+//   * It is not a bound parameter. The result is only safe inside a
+//     single-quoted string literal - never paste it into an identifier, a
+//     double-quoted literal, an unquoted numeric slot, or a LIKE pattern
+//     (% and _ stay live wildcards there).
+//   * The manual fallback assumes an ASCII-compatible client character set and
+//     the default backslash-escaping SQL mode. It is conservative and never
+//     under-escapes, but under NO_BACKSLASH_ESCAPES it would double a backslash
+//     the server takes literally, i.e. it can corrupt data where the library
+//     path would not. Keep a connection available.
+//   * Nothing about length. Callers remain responsible for column widths and
+//     for the fixed statement buffer in Statement::executeQuery().
 string escapeSQL(const string& input) {
-    string result = input;
-    size_t pos = 0;
-    while ((pos = result.find("'", pos)) != string::npos) {
-        result.replace(pos, 1, "''");
-        pos += 2;
+    // Strip NUL bytes up front so the result can never truncate a "%s" query.
+    string value;
+    value.reserve(input.size());
+    for (size_t i = 0; i < input.size(); ++i) {
+        if (input[i] != '\0')
+            value += input[i];
+    }
+
+    // Preferred path: let the client library escape against the live
+    // connection. getConnection() is a cheap per-thread lookup with no side
+    // effects, and it hands back the very connection these queries run on.
+    Connection* pConnection = (g_pDatabaseManager != NULL) ? g_pDatabaseManager->getConnection("DARKEDEN") : NULL;
+    if (pConnection != NULL && pConnection->isConnected()) {
+        // mysql_real_escape_string() needs room for 2*length + 1 bytes.
+        vector<char> buffer(value.size() * 2 + 1);
+        unsigned long escapedLength =
+            mysql_real_escape_string(pConnection->getMYSQL(), &buffer[0], value.c_str(), (unsigned long)value.size());
+        // It reports (unsigned long)-1 only when NO_BACKSLASH_ESCAPES is active
+        // and it cannot know the quoting character. In that mode doubling the
+        // quote - which the fallback below does - is exactly right anyway.
+        if (escapedLength != (unsigned long)-1)
+            return string(&buffer[0], escapedLength);
+    }
+
+    // Fallback: escape the backslash and the quote in a single pass.
+    string result;
+    result.reserve(value.size());
+    for (size_t i = 0; i < value.size(); ++i) {
+        const char c = value[i];
+        if (c == '\\')
+            result += "\\\\";
+        else if (c == '\'')
+            result += "''";
+        else
+            result += c;
     }
     return result;
 }
