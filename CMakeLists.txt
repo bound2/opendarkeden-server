@@ -46,7 +46,13 @@ add_compile_options(${WARNING_FLAGS})
 #
 # Only the non-NDEBUG configuration has ever been exercised; keep it that way
 # and let the optimizer do the rest.
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
+# DE_OWNERSHIP_CHECKS arms the thread-ownership machinery (task 3.4:
+# ZoneGroup lock bookkeeping + the aborting assertOwned() on the Zone
+# mutation gateways). It rides its own macro rather than NDEBUG because this
+# project deliberately never defines NDEBUG (see below) — Debug is the only
+# configuration where the checks exist at all; every optimized build
+# compiles them away completely.
+set(CMAKE_CXX_FLAGS_DEBUG "-g -DDE_OWNERSHIP_CHECKS")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
 set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")

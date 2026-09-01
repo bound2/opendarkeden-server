@@ -50,6 +50,10 @@ void ZoneGroupThread::run()
 {
     __BEGIN_DEBUG
 
+    // From here on, this thread owns the zone group's state: arm the
+    // debug ownership check (see CLAUDE.md, "Thread ownership").
+    m_pZoneGroup->armOwnershipAssert();
+
     string host = g_pConfig->getProperty("DB_HOST");
     string db = g_pConfig->getProperty("DB_DB");
     string user = g_pConfig->getProperty("DB_USER");

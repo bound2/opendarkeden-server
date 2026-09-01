@@ -11,6 +11,7 @@
 
 #include "LoginPacketDispatch.h"
 
+#include "CGConnectSetKey.h"
 #include "CLChangeServer.h"
 #include "CLCreatePC.h"
 #include "CLDeletePC.h"
@@ -35,6 +36,11 @@
 #include "PacketDispatcher.h"
 
 void registerLoginServerPacketHandlers() {
+    // CG by name, but the client opens EVERY fresh connection with it -
+    // including the login connection - to install the socket encrypt/hash
+    // keys before CLVersionCheck/CLLogin. See handler/CGConnectSetKeyHandler.
+    DE_REGISTER_PACKET_HANDLER(CGConnectSetKey);
+
     DE_REGISTER_PACKET_HANDLER(CLChangeServer);
     DE_REGISTER_PACKET_HANDLER(CLCreatePC);
     DE_REGISTER_PACKET_HANDLER(CLDeletePC);

@@ -11,6 +11,15 @@
 SkillSlot::SkillSlot() throw() {
     __BEGIN_TRY
 
+    // The Vampire/Ousters slot classes zero these in their default
+    // constructors; this one historically left them uninitialized, which
+    // makes setRunTime(0)'s m_Interval comparison read garbage on a
+    // freshly new'd slot.
+    m_SkillType = 0;
+    m_Exp = 0;
+    m_ExpLevel = 0;
+    m_Interval = 0;
+    m_CastingTime = 0;
     m_Enable = true;
 
     __END_CATCH

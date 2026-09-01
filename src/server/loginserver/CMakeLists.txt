@@ -3,6 +3,7 @@
 # ============================================================================
 
 set(LOGINSERVER_SOURCES
+    handler/CGConnectSetKeyHandler.cpp
     handler/CLChangeServerHandler.cpp
     handler/CLCreatePCHandler.cpp
     handler/CLDeletePCHandler.cpp

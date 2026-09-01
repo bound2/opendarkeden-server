@@ -730,7 +730,26 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   debug-build `assertOwnedByZoneThread()` checks on Zone/Creature mutation
   entry points (sidecar analog: "never block the registry mailbox" — the
   invariant is written down *and* asserted).
-  > **Status:** not started
+  > **Status:** contract documented in CLAUDE.md ("Thread ownership",
+  > 2026-08-31): ownership is mutex-guarded, not thread-affine — the
+  > `ZoneGroupThread` holds the group mutex for its whole tick and other
+  > threads must take it. Debug-only `ZoneGroup::assertOwned()` guards
+  > the five `Zone` mutation gateways `addPC`×2/`addCreature`/
+  > `deleteCreature`/`moveCreature`. Hardened by the adversarial review:
+  > the machinery rides `DE_OWNERSHIP_CHECKS` (Debug-only compile flag —
+  > this repo never defines `NDEBUG`, so gating on it was a no-op and
+  > the bookkeeping was live in release), a violation now `abort()`s
+  > instead of throwing (an `AssertionError` is a `Throwable`, and the
+  > `catch (Throwable&)` on these very paths swallowed it — e.g.
+  > `GamePlayer::disconnect`'s empty catch would have skipped the
+  > character save), `pthread_equal` + a valid flag replace the raw
+  > compare/zero sentinel, and the review's main-thread hole is closed:
+  > packets pipelined behind `CGReady` no longer drain on the main
+  > thread after `GPS_NORMAL` opens the validator gate. Documented
+  > violations (CLAUDE.md has the full list): SG/LG/GG handlers under
+  > only the `PCFinder` lock; `EventMorph` tile writes below the
+  > gateways; cross-group `DynamicZone` `addZone()`; three unlocked
+  > `GDRLair*::start` loops.
   - Owner: the debug asserts.
 
 - [ ] **3.5 Globals → context (long tail).** No big-bang DI. Introduce a
