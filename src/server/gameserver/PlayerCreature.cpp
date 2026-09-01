@@ -7,7 +7,6 @@
 #include "PlayerCreature.h"
 
 #include "Belt.h"
-#include "DB.h"
 #include "EventKick.h"
 #include "FlagSet.h"
 #include "GCModifyInformation.h"
@@ -56,6 +55,10 @@
 #include "Store.h"
 #include "VariableManager.h"
 #include "mofus/Mofus.h"
+#include "repository/BloodBibleSignRepository.h"
+#include "repository/GoodsRepository.h"
+#include "repository/RankBonusRepository.h"
+#include "repository/StashRepository.h"
 
 const int MAX_GOODS_INVENTORY_SIZE = 10;
 
@@ -370,18 +373,10 @@ void PlayerCreature::loadItem()
     m_pNicknameBook->load();
     m_pGQuestManager->init();
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemType FROM BloodBibleSignObject WHERE OwnerID='%s' ORDER BY ItemType", getName().c_str());
-
-        while (pResult->next()) {
-            m_pBloodBibleSign->getList().push_back(pResult->getInt(1));
-        }
+    vector<ItemType_t> signs = defaultBloodBibleSignRepository().loadItemTypes(getName());
+    for (size_t i = 0; i < signs.size(); ++i) {
+        m_pBloodBibleSign->getList().push_back(signs[i]);
     }
-    END_DB(pStmt);
 
     __END_CATCH
 }
@@ -554,29 +549,9 @@ void PlayerCreature::setStashNumEx(BYTE num)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     setStashNum(num);
 
-    BEGIN_DB {
-        StringStream sqlSlayer;
-        StringStream sqlVampire;
-        StringStream sqlOusters;
-
-        sqlSlayer << "UPDATE Slayer set StashNum = " << (int)num << " WHERE Name = '" << getName() << "'";
-        sqlVampire << "UPDATE Vampire set StashNum = " << (int)num << " WHERE Name = '" << getName() << "'";
-        sqlOusters << "UPDATE Ousters set StashNum = " << (int)num << " WHERE Name = '" << getName() << "'";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQueryString(sqlSlayer.toString());
-        if (!isOusters())
-            pStmt->executeQueryString(sqlVampire.toString());
-        else
-            pStmt->executeQueryString(sqlOusters.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultStashRepository().saveStashNum(getName(), isOusters(), num);
 
     __END_CATCH
 }
@@ -589,29 +564,9 @@ void PlayerCreature::setStashGoldEx(Gold_t gold)
     __BEGIN_TRY
 
     // cout << "setStashGoldEx Called" << "Name:" << getName() << " Gold: " << (int)gold << endl;
-    Statement* pStmt = NULL;
-
     setStashGold(gold);
 
-    BEGIN_DB {
-        StringStream sqlSlayer;
-        StringStream sqlVampire;
-        StringStream sqlOusters;
-
-        sqlSlayer << "UPDATE Slayer set StashGold = " << (int)gold << " WHERE Name = '" << getName() << "'";
-        sqlVampire << "UPDATE Vampire set StashGold = " << (int)gold << " WHERE Name = '" << getName() << "'";
-        sqlOusters << "UPDATE Ousters set StashGold = " << (int)gold << " WHERE Name = '" << getName() << "'";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQueryString(sqlSlayer.toString());
-        if (!isOusters())
-            pStmt->executeQueryString(sqlVampire.toString());
-        else
-            pStmt->executeQueryString(sqlOusters.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultStashRepository().saveStashGold(getName(), isOusters(), gold);
 
     __END_CATCH
 }
@@ -623,29 +578,9 @@ void PlayerCreature::increaseStashGoldEx(Gold_t gold)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     setStashGold(m_StashGold + gold);
 
-    BEGIN_DB {
-        StringStream sqlSlayer;
-        StringStream sqlVampire;
-        StringStream sqlOusters;
-
-        sqlSlayer << "UPDATE Slayer set StashGold = " << (int)m_StashGold << " WHERE Name = '" << getName() << "'";
-        sqlVampire << "UPDATE Vampire set StashGold = " << (int)m_StashGold << " WHERE Name = '" << getName() << "'";
-        sqlOusters << "UPDATE Ousters set StashGold = " << (int)m_StashGold << " WHERE Name = '" << getName() << "'";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQueryString(sqlSlayer.toString());
-        if (!isOusters())
-            pStmt->executeQueryString(sqlVampire.toString());
-        else
-            pStmt->executeQueryString(sqlOusters.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultStashRepository().saveStashGold(getName(), isOusters(), m_StashGold);
 
     __END_CATCH
 }
@@ -657,29 +592,9 @@ void PlayerCreature::decreaseStashGoldEx(Gold_t gold)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     setStashGold(m_StashGold - gold);
 
-    BEGIN_DB {
-        StringStream sqlSlayer;
-        StringStream sqlVampire;
-        StringStream sqlOusters;
-
-        sqlSlayer << "UPDATE Slayer set StashGold = " << (int)m_StashGold << " WHERE Name = '" << getName() << "'";
-        sqlVampire << "UPDATE Vampire set StashGold = " << (int)m_StashGold << " WHERE Name = '" << getName() << "'";
-        sqlOusters << "UPDATE Ousters set StashGold = " << (int)m_StashGold << " WHERE Name = '" << getName() << "'";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQueryString(sqlSlayer.toString());
-        if (!isOusters())
-            pStmt->executeQueryString(sqlVampire.toString());
-        else
-            pStmt->executeQueryString(sqlOusters.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultStashRepository().saveStashGold(getName(), isOusters(), m_StashGold);
 
     __END_CATCH
 }
@@ -847,13 +762,7 @@ void PlayerCreature::clearRankBonus()
     m_RankBonuses.clear();
     m_RankBonusFlag.reset();
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("DELETE FROM RankBonusData WHERE OwnerID = '%s'", getName().c_str());
-    }
-    END_DB(pStmt)
+    defaultRankBonusRepository().deleteAll(getName());
 
     __END_CATCH
 }
@@ -896,14 +805,7 @@ void PlayerCreature::clearRankBonus(Rank_t rank)
         m_RankBonuses.erase(itr);
     }
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("DELETE FROM RankBonusData WHERE OwnerID = '%s' AND Type = %d", getName().c_str(),
-                            (int)rankBonusType);
-    }
-    END_DB(pStmt)
+    defaultRankBonusRepository().deleteOne(getName(), rankBonusType);
 
     __END_CATCH
 }
@@ -946,16 +848,7 @@ bool PlayerCreature::learnRankBonus(DWORD type)
 
         addRankBonus(rankBonus);
 
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO RankBonusData ( OwnerID, Type )  VALUES ( '%s', %d )", getName().c_str(),
-                                type);
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultRankBonusRepository().insert(getName(), type);
 
         return true;
     } catch (Throwable& t) {
@@ -989,32 +882,23 @@ void PlayerCreature::loadRankBonus()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<DWORD> types = defaultRankBonusRepository().loadTypes(getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT Type FROM RankBonusData WHERE OwnerID ='%s'", getName().c_str());
+    for (size_t i = 0; i < types.size(); ++i) {
+        DWORD rankBonusType = types[i];
 
-        while (pResult->next()) {
-            DWORD rankBonusType = pResult->getInt(1);
+        RankBonusInfo* pRankBonusInfo = g_pRankBonusInfoManager->getRankBonusInfo(rankBonusType);
 
-            RankBonusInfo* pRankBonusInfo = g_pRankBonusInfoManager->getRankBonusInfo(rankBonusType);
+        if (getRace() == pRankBonusInfo->getRace()) {
+            RankBonus* pRankBonus = new RankBonus();
 
-            if (getRace() == pRankBonusInfo->getRace()) {
-                RankBonus* pRankBonus = new RankBonus();
+            pRankBonus->setType(rankBonusType);
+            pRankBonus->setPoint(pRankBonusInfo->getPoint());
+            pRankBonus->setRank(pRankBonusInfo->getRank());
 
-                pRankBonus->setType(rankBonusType);
-                pRankBonus->setPoint(pRankBonusInfo->getPoint());
-                pRankBonus->setRank(pRankBonusInfo->getRank());
-
-                addRankBonus(pRankBonus);
-            }
+            addRankBonus(pRankBonus);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -1110,38 +994,24 @@ void PlayerCreature::loadGoods()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
     if (m_pGoodsInventory->getNum() != 0) {
         filelog("GoodsReload.log", "  ? : %s", getName().c_str());
         m_pGoodsInventory->clear();
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+    vector<GoodsRecord> records =
+        defaultGoodsRepository().loadPending(g_pConfig->getPropertyInt("WorldID"), getPlayer()->getID(), getName());
 
-        pResult =
-            pStmt->executeQuery("SELECT ID, GoodsID, Num FROM GoodsListObject WHERE World = %d AND PlayerID = '%s' AND "
-                                "Name = '%s' AND Status = 'NOT'",
-                                g_pConfig->getPropertyInt("WorldID"), getPlayer()->getID().c_str(), getName().c_str());
+    for (size_t r = 0; r < records.size(); ++r) {
+        const GoodsRecord& record = records[r];
 
-        while (pResult->next()) {
-            string ID = pResult->getString(1);
-            DWORD goodsID = pResult->getInt(2);
-            int num = pResult->getInt(3);
-
-            for (int i = 0; i < max(1, min(50, num)); i++) {
-                Item* pItem = createItemByGoodsID(goodsID);
-                if (pItem != NULL) {
-                    m_pGoodsInventory->addItem(ID, pItem);
-                }
+        for (int i = 0; i < max(1, min(50, record.num)); i++) {
+            Item* pItem = createItemByGoodsID(record.goodsID);
+            if (pItem != NULL) {
+                m_pGoodsInventory->addItem(record.id, pItem);
             }
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

@@ -38,11 +38,20 @@ check_ratchet R1 "global singleton externs" 351 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
-check_ratchet R2 "gameserver-root files with inline SQL" 103 "$R2"
+check_ratchet R2 "gameserver-root files with inline SQL" 101 "$R2"
 
-# --- R3: files with inline SQL anywhere outside database/ ------------------
-R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' | wc -l)
-check_ratchet R3 "files with inline SQL outside database/" 317 "$R3"
+# --- R3: files with inline SQL outside database/ and repository/ -----------
+# gameserver/repository/ joined the exclusion 2026-09-01 (baseline 317→314:
+# two files cleansed, one pilot impl no longer counted). The original note
+# said the impl files stay counted, but that only worked while an extraction
+# cleansed at least as many files as it created: the PlayerCreature round
+# (4 tables, 2 files) would have RAISED a shrink-only ratchet. Repository
+# impls are the sanctioned quarantine for SQL — R3 measures SQL loose in
+# game logic, and still counts loginserver/sharedserver and the dead
+# theoneserver tree. (Trailing slash: only the directory is excluded.)
+R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' |
+    grep -v 'server/gameserver/repository/' | wc -l)
+check_ratchet R3 "files with inline SQL outside database/, repository/" 314 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------
 R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)

@@ -1,12 +1,12 @@
 //////////////////////////////////////////////////////////////////////////
 // Filename			: GoodsInventory.cpp
 // Written By		: bezz
-// Description		: 홈페이지에서 구매한 아이템이 담겨 있는 Inventory
+// Description		: Inventory holding the items purchased on the website
 //////////////////////////////////////////////////////////////////////////
 
 #include "GoodsInventory.h"
 
-#include "DB.h"
+#include "repository/GoodsRepository.h"
 
 
 GoodsInventory::~GoodsInventory()
@@ -84,26 +84,12 @@ Item* GoodsInventory::popItem(ObjectID_t oid)
         if ((*itr).m_pItem->getObjectID() == oid) {
             pItem = (*itr).m_pItem;
 
-            filelog("Goods.log", "아이템을 찾아갔습니다. : [%s:%s]", (*itr).m_ID.c_str(),
+            filelog("Goods.log", "The item was picked up. : [%s:%s]", (*itr).m_ID.c_str(),
                     (*itr).m_pItem->toString().c_str());
 
-            Statement* pStmt = NULL;
-
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-                Result* pResult = pStmt->executeQuery(
-                    "UPDATE GoodsListObject SET Num = Num - 1, Status = IF( NUM < 1, 'GET', 'NOT' ) WHERE ID=%s",
-                    (*itr).m_ID.c_str());
-
-                // UPDATE인 경우는 Result* 대신에.. pStmt->getAffectedRowCount()
-
-                if (pStmt->getAffectedRowCount() == 0) {
-                    filelog("Goods.log", "근데 DB에 업데이트가 안됐습니다. : %s", (*itr).m_ID.c_str());
-                }
-
-                SAFE_DELETE(pStmt);
+            if (!defaultGoodsRepository().takeOne((*itr).m_ID)) {
+                filelog("Goods.log", "But the DB was not updated. : %s", (*itr).m_ID.c_str());
             }
-            END_DB(pStmt)
 
             m_Goods.erase(itr);
             break;
