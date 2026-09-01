@@ -22,8 +22,9 @@
 
 // ZoneInfoManager::load — the 17 columns of a ZoneInfo row, in SELECT
 // order. The SELECT spells three columns differently from the schema
-// (SMPFilename/SSIFilename vs SmpFileName/SsiFileName): MySQL column
-// names are case-insensitive, so it resolves; kept verbatim.
+// (OwnerID, SMPFilename, SSIFilename vs OwnerId, SmpFileName,
+// SsiFileName): MySQL column names are case-insensitive, so it
+// resolves; kept verbatim.
 struct ZoneInfoRow {
     int zoneID;
     int zoneGroupID;

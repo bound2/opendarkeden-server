@@ -19,8 +19,10 @@ namespace {
 //  - loadBulletinBoard's expired-row DELETE used a SECOND statement it
 //    never freed (a leak per expired notice); remove() frees it — fixed
 //    knowingly, as in earlier rounds.
-//  - Message text arrives already run through Guild::correctString by
-//    the caller; the seam interpolates it as it was handed over.
+//  - Message text arrives already run through ZoneUtil.cpp's free function
+//    correctString by the caller (the first draft said Guild::correctString
+//    — a different function with the same escaping); the seam
+//    interpolates it as it was handed over.
 class MySQLBulletinBoardRepository : public BulletinBoardRepository {
 public:
     int insert(int serverID, ZoneID_t zoneID, int x, int y, const string& message, uint type, const string& timeLimit) {
@@ -32,7 +34,7 @@ public:
             pStmt->executeQuery("INSERT INTO BulletinBoardObject VALUES (0, %u, %u, %u, %u, '%s', %u, '%s')", serverID,
                                 zoneID, x, y, message.c_str(), type, timeLimit.c_str());
 
-            // UPDATE인 경우는 Result* 대신에.. pStmt->getAffectedRowCount()
+            // an UPDATE/INSERT has no Result; the affected-row count is the answer
             affected = pStmt->getAffectedRowCount();
 
             SAFE_DELETE(pStmt);

@@ -9,8 +9,9 @@
 // Persistence seam for the BulletinBoardObject table (task 3.2, the
 // Zone milestone): the player-written notice "corpses" placed in a
 // zone, persisted so they outlive a restart. Rows are keyed by server
-// AND zone; the message text is already escaped by the caller
-// (Guild::correctString) and the time limit is a datetime text the
+// AND zone; the message text is already escaped by the caller (the
+// free function correctString in ZoneUtil.cpp, not Guild::correctString
+// — same logic) and the time limit is a datetime text the
 // caller formats.
 //
 // What loadForZone() returns — each field typed to the driver getter

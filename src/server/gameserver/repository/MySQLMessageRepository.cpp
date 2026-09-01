@@ -11,7 +11,7 @@ namespace {
 //    they keep their own literals).
 //  - Keyless table: a receiver can hold any number of rows, and the
 //    DELETE takes them all.
-//  - Zone::addCreature ran the SELECT and the DELETE on ONE statement
+//  - Zone::addPC ran the SELECT and the DELETE on ONE statement
 //    inside ONE BEGIN_DB: a failing DELETE escaped after the messages
 //    had already been sent. Two calls now, same visible sequence.
 //  - Receiver and message text are interpolated raw, as before — the

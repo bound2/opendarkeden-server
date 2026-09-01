@@ -2274,7 +2274,7 @@ void Zone::loadTriggeredPortal()
         for (int x = left; x <= right; x++) {
             for (int y = top; y <= bottom; y++) {
                 if (getTile(x, y).hasPortal()) {
-                    // cerr << "loadTriggeredPortal : 이미 포탈이 존재합니다." << endl;
+                    // cerr << "loadTriggeredPortal : a portal already exists here." << endl;
                     // cerr << "ZONEID:" << m_ZoneID << ",X:" << x << "Y:" << y << endl;
                     // Portal* pPortal = getTile(x,y).getPortal();
                     // SAFE_DELETE(pPortal);

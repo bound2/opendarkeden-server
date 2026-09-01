@@ -11,10 +11,12 @@
 // character next enters a zone.
 //
 // The table is keyless (a Receiver index only) with a Sender column
-// this seam's INSERT never sets (it defaults to ''). The guild
-// handlers (CGQuitUnion*, SG*Guild*) and the sharedserver's GS*Guild*
-// handlers write and drain it with their own inline SQL — their own
-// extractions.
+// this seam's INSERT never sets (it defaults to ''). Other users keep
+// their own inline SQL — their own extractions: the gameserver's
+// CGQuitUnion*, CGAcceptUnion, CGDenyUnion and CGExpelGuild handlers
+// INSERT; its SGDeleteGuildOK / SGModifyGuildOK / SGModifyGuildMemberOK
+// handlers SELECT and DELETE (drain, never insert); the sharedserver's
+// GS*Guild* handlers INSERT.
 class MessageRepository {
 public:
     virtual ~MessageRepository() {}

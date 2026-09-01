@@ -36,6 +36,9 @@ public:
     }
 
 private:
+    // The three literals above reach executeQuery through this pointer
+    // rather than in place — executeQuery carries no printf format
+    // attribute (see Statement.h), so nothing is lost to -Wformat.
     static bool exists(const char* format, const string& playerID) {
         bool found = false;
         Statement* pStmt = NULL;
