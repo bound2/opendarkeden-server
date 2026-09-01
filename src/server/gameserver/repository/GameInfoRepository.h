@@ -9,10 +9,14 @@
 // bonuses (RankBonusInfo), the pet types (PetTypeInfo), the game
 // server groups (GameServerGroupInfo), the blood-bible bonuses
 // (BloodBibleBonusInfo) and the monster name parts (FirstNameInfo,
-// MiddleNameInfo, LastNameInfo). Every field is typed to the driver
-// getter the inline code called (getInt → int, getString →
-// std::string), so each caller's narrowing still happens at the
-// caller on the same value.
+// MiddleNameInfo, LastNameInfo). The config round added the
+// whole-table boot reads: WeatherInfo, GSStringPool, ShopTemplate,
+// NicknameIndex ('LEVEL' rows), ItemMineInfo, ItemGradeRatioInfo,
+// GoodsListInfo (on the dist connection), DefaultOptionSetInfo,
+// DarkLightInfo, CastleSkillInfo, CastleShrineInfo and LogUserInfo.
+// Every field is typed to the driver getter the inline code called
+// (getInt → int, getString → std::string), so each caller's narrowing
+// still happens at the caller on the same value.
 //
 // The MAX probes the loaders use to size their arrays are exposed as
 // bools for the reason BalanceInfoRepository.h gives: MAX() over an
@@ -125,12 +129,6 @@ struct GoodsInfoRow {
     int hour;
 };
 
-struct WorldRow {
-    int id;
-    std::string name;
-    int stat;
-};
-
 struct DefaultOptionSetRow {
     int type;
     std::string optionList;
@@ -175,7 +173,6 @@ public:
     virtual std::vector<ItemMineRow> loadItemMines() = 0;
     virtual std::vector<ItemGradeRatioRow> loadItemGradeRatios() = 0;
     virtual std::vector<GoodsInfoRow> loadGoods() = 0;
-    virtual std::vector<WorldRow> loadWorlds() = 0;
     virtual std::vector<DefaultOptionSetRow> loadDefaultOptionSets() = 0;
     virtual std::vector<DarkLightRow> loadDarkLight() = 0;
     virtual std::vector<CastleSkillRow> loadCastleSkills() = 0;

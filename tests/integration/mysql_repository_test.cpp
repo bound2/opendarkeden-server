@@ -1683,7 +1683,6 @@ TEST(ConfigLoadersMySQL, EveryWholeTableConfigListIsNonEmpty) {
     EXPECT_FALSE(repository.loadShopTemplates().empty());
     EXPECT_FALSE(repository.loadLevelNicks().empty());
     EXPECT_FALSE(repository.loadItemMines().empty());
-    EXPECT_FALSE(repository.loadWorlds().empty());
     EXPECT_FALSE(repository.loadDefaultOptionSets().empty());
     EXPECT_FALSE(repository.loadDarkLight().empty());
     EXPECT_FALSE(repository.loadCastleSkills().empty());
@@ -1698,22 +1697,52 @@ TEST(ConfigLoadersMySQL, EveryWholeTableConfigListIsNonEmpty) {
     EXPECT_FALSE(levelWarZones.empty());
 }
 
-TEST(ConfigLoadersMySQL, GoodsComeFromTheDistConnectionWithoutTheSetKind) {
+class GoodsListMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        execSQL("DELETE FROM GoodsListInfo WHERE GoodsID >= 31000");
+    }
+    virtual void TearDown() {
+        execSQL("DELETE FROM GoodsListInfo WHERE GoodsID >= 31000");
+    }
+};
+
+TEST_F(GoodsListMySQL, GoodsComeFromTheDistConnectionWithoutTheSetKind) {
     // GoodsListInfo is read on the thread's dist connection (same schema
     // in this stack) and the SELECT excludes Kind 'SET'; Limited+0 is the
-    // enum ordinal, 1..3.
+    // enum ordinal, 1..3. The shipped seed has neither a 'SET' nor a
+    // 'FOREVER' row, so both are inserted here: without them the filter
+    // and the ordinal's upper bound would pass unexercised.
+    execSQL("INSERT INTO GoodsListInfo (GoodsID, Name, Description, Limited, Kind) "
+            "VALUES (31000, 'it-set', '', 'LIMITED', 'SET')");
+    execSQL("INSERT INTO GoodsListInfo (GoodsID, Name, Description, Limited, Kind) "
+            "VALUES (31001, 'it-forever', '', 'FOREVER', 'ETC')");
+
     std::vector<GoodsInfoRow> goods = defaultGameInfoRepository().loadGoods();
     ASSERT_FALSE(goods.empty());
+    bool sawSet = false, sawForever = false;
     for (size_t r = 0; r < goods.size(); r++) {
         EXPECT_TRUE(goods[r].limited >= 1 && goods[r].limited <= 3);
         EXPECT_NE("SET",
                   queryScalar("SELECT Kind FROM GoodsListInfo WHERE GoodsID=" + std::to_string(goods[r].goodsID)));
+        if (goods[r].goodsID == 31000)
+            sawSet = true;
+        if (goods[r].goodsID == 31001) {
+            sawForever = true;
+            EXPECT_EQ(3, goods[r].limited);
+        }
     }
+    EXPECT_FALSE(sawSet);
+    EXPECT_TRUE(sawForever);
 }
 
 class ZoneConfigMySQL : public ::testing::Test {
 protected:
     virtual void SetUp() {
+        execSQL("DELETE FROM ZoneInfo WHERE ZoneID >= 31000");
+        execSQL("DELETE FROM ZoneEffectInfo WHERE ZoneID >= 31000");
+    }
+    virtual void TearDown() {
         execSQL("DELETE FROM ZoneInfo WHERE ZoneID >= 31000");
         execSQL("DELETE FROM ZoneEffectInfo WHERE ZoneID >= 31000");
     }

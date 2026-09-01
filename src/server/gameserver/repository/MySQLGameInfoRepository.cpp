@@ -397,29 +397,6 @@ public:
         return rows;
     }
 
-    vector<WorldRow> loadWorlds() {
-        vector<WorldRow> rows;
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery("SELECT ID, Name, Stat FROM WorldInfo");
-
-            while (pResult->next()) {
-                WorldRow row;
-                row.id = pResult->getInt(1);
-                row.name = pResult->getString(2);
-                row.stat = pResult->getInt(3);
-                rows.push_back(row);
-            }
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-
-        return rows;
-    }
-
     vector<DefaultOptionSetRow> loadDefaultOptionSets() {
         vector<DefaultOptionSetRow> rows;
         Statement* pStmt = NULL;

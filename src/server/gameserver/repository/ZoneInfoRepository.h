@@ -10,7 +10,10 @@
 // milestone): ZoneGroupInfo, ZoneInfo, ZoneTriggers, EffectPKZoneRegen
 // and WayPointInfo — the data the gameserver reads while it bootstraps
 // its zone groups, zones, threads and per-zone effects, and never
-// writes. Every row field is typed to the driver getter the inline code
+// writes. The config round added ZoneEffectInfo (one zone, one effect
+// class), ZoneInfo's MonsterList/EventMonsterList texts, and the
+// PKZoneInfo / EventZoneInfo / LevelWarZoneInfo tables.
+// Every row field is typed to the driver getter the inline code
 // called on that column (getInt → int, getString → std::string), so
 // each narrowing a caller performed when it stored the value still
 // happens there, on the same value.
@@ -137,8 +140,12 @@ public:
     virtual ~ZoneInfoRepository() {}
 
     // ZoneEffectInfo rectangles of one effect class in a zone
-    // (EffectOnBridgeLoader; the nine skill effects that read the same
-    // table still carry their own literals — a later round).
+    // (EffectOnBridgeLoader). Of the nine skill/Effect*.cpp that name the
+    // same table, six live loaders (AcidSwamp, ContinualBloodyWall,
+    // GreenPoison, IceField, Prominence, YellowPoison) use this exact
+    // 7-column literal and are this method's next callers; EffectDarkness
+    // reads a 4-column "%u" variant that needs its own method; BloodyWall
+    // and GrayDarkness only mention it inside commented-out loaders.
     virtual std::vector<ZoneEffectRow> loadZoneEffectRects(ZoneID_t zoneID, int effectID) = 0;
 
     // ZoneInfo's MonsterList / EventMonsterList texts for a zone
