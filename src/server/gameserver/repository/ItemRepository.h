@@ -21,8 +21,11 @@
 // "%d" in the position read, as before).
 //
 // Not enclosed: the item-object tables' own INSERT/UPDATE/SELECT paths in
-// gameserver/item/ (their own round), and MoonCardUtil.cpp's copy of the
-// CardCount UPDATE, which no build target compiles.
+// gameserver/item/ (their own round); the two remaining raw
+// "DELETE FROM TimeLimitItems WHERE OwnerID='%s'" writers — CreatureUtil.cpp
+// (the character-deletion flow) and the loginserver's
+// CLDeletePCHandler.cpp; and MoonCardUtil.cpp's copy of the CardCount
+// UPDATE, which no build target compiles.
 
 // remainTraceLog's INSERT: the item's id and type as their own types, the
 // rest the strings the caller resolved from its lookup tables.

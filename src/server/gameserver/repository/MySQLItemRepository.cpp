@@ -7,16 +7,26 @@ namespace {
 // are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
 //  - Every statement is byte-for-byte the inline original, including
 //    TimeLimitItems' lower-case "from"/"where"/"and", the trace logs'
-//    "( %u,'%s',..." spacing and their SQL-side now(), and the counters'
-//    "Count = Count + 1" vs UniqueItemInfo's "CurrentNumber=CurrentNumber+1".
-//  - Item::destroy's DELETE streams an ItemID_t (DWORD) through "%lu",
-//    GlobalItemPositionLoader's SELECT the same type through "%d", and
-//    bWinPrize's two DWORDs go through "%d" — the varargs mismatches the
-//    originals had (see MySQLCharacterRepository.cpp for why they are
-//    benign on this ABI in practice and latent on others). Kept.
+//    "( %u,'%s',..." spacing and their SQL-side now(), and the two
+//    spacings of the same increment: EventItemCount's and the reward
+//    schedule's "Count = Count + 1" / "Count = Count - 1" against
+//    UniqueItemInfo's "CurrentNumber=CurrentNumber+1" and
+//    ResurrectItemCount's "Count=Count+1".
+//  - Four varargs mismatches the originals had are kept: Item::destroy's
+//    DELETE streams an ItemID_t (DWORD) through "%lu",
+//    GlobalItemPositionLoader's SELECT the same type through "%d",
+//    bWinPrize's two DWORDs go through "%d", and the trace log's
+//    ItemType_t (WORD, promoted to int) through "%u". MySQLCharacterRepository.cpp
+//    calls this family a latent bug, not a benign quirk: at stack-passed
+//    vararg positions clang -O0 has been seen to read garbage. The
+//    mismatched arguments here sit at positions 2-3, register-passed on
+//    the SysV ABI, which is why they have never misbehaved; still latent.
 //  - The two per-class item-object operations take the TABLE NAME as a
-//    parameter and interpolate it raw through "%s" — the caller picks it
-//    from Item's ItemObjectTableName[] table, so it is never user text.
+//    parameter and interpolate it raw through "%s". GlobalItemPositionLoader
+//    and ConcreteItem::getObjectTableName() pick it from Item's
+//    ItemObjectTableName[] table; Corpse::getObjectTableName() returns ""
+//    (pre-existing, a destroy on a corpse would emit "DELETE FROM  WHERE").
+//    Never user text either way.
 //  - Names and dates are interpolated raw, as before.
 class MySQLItemRepository : public ItemRepository {
 public:

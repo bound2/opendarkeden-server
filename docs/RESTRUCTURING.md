@@ -1233,23 +1233,35 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > and "%d" in the position read, bWinPrize's two DWORDs through "%d".
   > Disclosures: UniqueItemManager::isPossibleCreate returned from inside
   > its BEGIN_DB block on the found path and so never freed its
-  > Statement — the seam does, fixed knowingly; remainTraceLogNew's
+  > Statement, and four loaders (UniqueItemManager::init,
+  > OptionInfoManager::load, TimeLimitItemManager::load,
+  > GlobalItemPositionLoader::load) did their row processing inside the
+  > block that owned the Statement, so any non-SQL Throwable from that
+  > processing leaked it — the seam frees before the caller processes,
+  > fixed knowingly; OptionInfo's four queries shared one Statement where
+  > the seam uses one per call, and its SELECT now runs through
+  > executeQuery's 2048-byte format buffer instead of executeQueryString
+  > (the literal is ~250 bytes); remainTraceLogNew's
   > commented-out ItemTrace2Log block (dead since it was written) is
   > deleted because R2's grep is textual; the Korean comments inside the
   > replaced blocks (UniqueItemManager, Item) went with them or are
   > translated, the rest of those files' comments stay. Not enclosed: the
   > item-object tables' own create/save/load SQL in gameserver/item/ (90
-  > files, R3 territory), and MoonCardUtil.cpp's copy of the CardCount
-  > UPDATE (in no build target). No fake tier; +7 integration tests
+  > files, R3 territory); the two remaining raw TimeLimitItems deletes,
+  > CreatureUtil.cpp's (the character-deletion flow) and the
+  > loginserver's CLDeletePCHandler.cpp's; and MoonCardUtil.cpp's copy of
+  > the CardCount UPDATE (in no build target). No fake tier; +7 integration tests
   > (trace logs with their enum texts and a server-side time;
   > unique-item numbers read and counted per class+type, the no-row
   > false, and the UNSIGNED decrement at 0 erroring (ER 1690) with the
   > row untouched; time-limited items by owner+status with the
   > owner+class+id status update; the four keyed counters touching only
-  > their row and the keyless ResurrectItemCount touching every row; the
-  > event-quest reward taken once per Count and only when due; the
-  > PotionObject position read and delete by table name; the option
-  > tables read in SELECT order). Remaining SQL under gameserver/: R2 =
+  > their row and the keyless ResurrectItemCount touching every row (a
+  > second row is inserted — the seed has one, so before+1 == after
+  > alone would not tell the two apart); the event-quest reward taken
+  > once per Count and only when due; the PotionObject position read and
+  > delete by table name; OptionInfo read in SELECT order and the other
+  > three option tables non-empty). Remaining SQL under gameserver/: R2 =
   > 30 files.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs

@@ -2197,6 +2197,7 @@ protected:
         execSQL("DELETE FROM LuckyBagCount WHERE BAGKIND >= 31000");
         execSQL("DELETE FROM GiftBoxCount WHERE BOXKIND >= 31000");
         execSQL("DELETE FROM EventItemCount WHERE ItemClass >= 31000");
+        execSQL("DELETE FROM ResurrectItemCount WHERE Count >= 31000");
         execSQL("DELETE FROM PotionObject WHERE ItemID >= 31000");
     }
 };
@@ -2326,11 +2327,15 @@ TEST_F(ItemMySQL, EventCountersIncrementOnlyTheirRowExceptTheKeylessResurrectCou
     EXPECT_EQ("5", queryScalar("SELECT Count FROM EventItemCount WHERE ItemClass=31000 AND ItemType=2"));
 
     // ResurrectItemCount has no key column: the UPDATE touches every row.
-    int before = atoi(queryScalar("SELECT COALESCE(SUM(Count), 0) FROM ResurrectItemCount").c_str());
+    // The seed has one row, so a second is inserted (and cleaned by value)
+    // to tell an every-row UPDATE from a one-row one.
+    execSQL("INSERT INTO ResurrectItemCount (Count) VALUES (31000)");
+    int before = atoi(queryScalar("SELECT SUM(Count) FROM ResurrectItemCount").c_str());
     int rowCount = atoi(queryScalar("SELECT COUNT(*) FROM ResurrectItemCount").c_str());
-    ASSERT_GT(rowCount, 0);
+    ASSERT_GE(rowCount, 2);
     repository.incrementResurrectItemCount();
     EXPECT_EQ(before + rowCount, atoi(queryScalar("SELECT SUM(Count) FROM ResurrectItemCount").c_str()));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM ResurrectItemCount WHERE Count=31001"));
 }
 
 TEST_F(ItemMySQL, EventQuestRewardIsTakenOncePerCountAndOnlyWhenDue) {
@@ -2368,7 +2373,7 @@ TEST_F(ItemMySQL, ItemRowPositionReadAndDeleteWorkOnTheNamedObjectTable) {
     EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM PotionObject WHERE ItemID=31000"));
 }
 
-TEST(ConfigLoadersMySQL, OptionTablesAreSeededAndReadInSelectOrder) {
+TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {
     GameInfoRepository& repository = defaultGameInfoRepository();
 
     std::vector<OptionInfoRow> options = repository.loadOptionInfos();

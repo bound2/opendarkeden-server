@@ -557,6 +557,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLCharacterRepository.cpp
     repository/MySQLGoldRepository.cpp
     repository/MySQLGoodsRepository.cpp
+    repository/MySQLItemRepository.cpp
     repository/MySQLEffectSaveRepository.cpp
     repository/MySQLFlagSetRepository.cpp
     repository/MySQLGameInfoRepository.cpp
@@ -566,7 +567,6 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLSkillSaveRepository.cpp
     repository/MySQLStashRepository.cpp
     repository/MySQLWarInfoRepository.cpp
-    repository/MySQLItemRepository.cpp
     LevelNickInfoManager.cpp
     SiegeManager.cpp
     BroadcastFilter.cpp
