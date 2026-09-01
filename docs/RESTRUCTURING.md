@@ -1011,8 +1011,17 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > CLLoginHandler's event stamps, and two dead files R3 still counts
   > (`src/server/ZoneUtil.cpp`, an unbuilt byte-identical sibling of the
   > old bulletin-board code, never-freed statement included, and
-  > `src/server/theoneserver/ThreadManager.cpp`) — each its own
-  > extraction. The adversarial round also caught the R2/R3 baseline
+  > `src/server/theoneserver/ThreadManager.cpp`, plus the sharedserver's
+  > two-race variant of the resurrect SELECT in its own
+  > ResurrectLocationManager.cpp) — each its own extraction. Two fixes
+  > the round made without saying so, named by the fidelity review:
+  > RegenZoneManager declared its `Statement* pStmt` uninitialised while
+  > END_DB deletes it (a throwing createStatement would have deleted an
+  > indeterminate pointer — the seam initialises), and
+  > ResurrectLocationManager's "table does not exist" throw used to
+  > escape BEGIN_DB with the statement still allocated. The
+  > bulletin-board insert returns the affected count as the driver's
+  > uint. The adversarial round also caught the R2/R3 baseline
   > COLUMNS of the ratchet table lagging their prose since the effect
   > round (the prose said 295/285 while the column still read 308) —
   > fixed here; the number in the column is the contract. Remaining SQL under gameserver/: the long

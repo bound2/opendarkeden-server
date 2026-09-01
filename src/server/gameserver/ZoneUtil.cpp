@@ -2829,7 +2829,7 @@ bool createBulletinBoard(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y, MonsterType_
     }
 
     string dbmsg = correctString(msg);
-    int affectedRows =
+    uint affectedRows =
         defaultBulletinBoardRepository().insert(g_pConfig->getPropertyInt("ServerID"), pZone->getZoneID(), pt.x, pt.y,
                                                 dbmsg, (uint)type, timeLimit.toDateTime());
 

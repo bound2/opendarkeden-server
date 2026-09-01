@@ -30,10 +30,11 @@ class BulletinBoardRepository {
 public:
     virtual ~BulletinBoardRepository() {}
 
-    // A new notice. Returns the affected-row count — the caller logs a
+    // A new notice. Returns the affected-row count (uint, as the driver
+    // reports it) — the caller logs a
     // zero (the auto-increment ID is never read back).
-    virtual int insert(int serverID, ZoneID_t zoneID, int x, int y, const std::string& message, uint type,
-                       const std::string& timeLimit) = 0;
+    virtual uint insert(int serverID, ZoneID_t zoneID, int x, int y, const std::string& message, uint type,
+                        const std::string& timeLimit) = 0;
 
     // Every notice of a zone on this server.
     virtual std::vector<BulletinBoardRow> loadForZone(int serverID, ZoneID_t zoneID) = 0;

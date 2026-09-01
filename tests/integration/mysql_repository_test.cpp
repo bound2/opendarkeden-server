@@ -1483,8 +1483,8 @@ protected:
 TEST_F(BulletinBoardMySQL, InsertLoadForZoneAndRemove) {
     BulletinBoardRepository& repository = defaultBulletinBoardRepository();
 
-    EXPECT_EQ(1, repository.insert(IT_SERVER, IT_ZONE, 40, 50, "hello board", 673, "2030-01-02 03:04:05"));
-    EXPECT_EQ(1, repository.insert(IT_SERVER, IT_ZONE_2, 1, 1, "other zone", 673, "2030-01-02 03:04:05"));
+    EXPECT_EQ(1u, repository.insert(IT_SERVER, IT_ZONE, 40, 50, "hello board", 673, "2030-01-02 03:04:05"));
+    EXPECT_EQ(1u, repository.insert(IT_SERVER, IT_ZONE_2, 1, 1, "other zone", 673, "2030-01-02 03:04:05"));
 
     std::vector<BulletinBoardRow> rows = repository.loadForZone(IT_SERVER, IT_ZONE);
     ASSERT_EQ(1u, rows.size());

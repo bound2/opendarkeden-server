@@ -25,8 +25,9 @@ namespace {
 //    interpolates it as it was handed over.
 class MySQLBulletinBoardRepository : public BulletinBoardRepository {
 public:
-    int insert(int serverID, ZoneID_t zoneID, int x, int y, const string& message, uint type, const string& timeLimit) {
-        int affected = 0;
+    uint insert(int serverID, ZoneID_t zoneID, int x, int y, const string& message, uint type,
+                const string& timeLimit) {
+        uint affected = 0;
         Statement* pStmt = NULL;
 
         BEGIN_DB {
