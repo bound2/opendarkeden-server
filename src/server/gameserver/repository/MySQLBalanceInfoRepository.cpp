@@ -12,8 +12,9 @@ namespace {
 //    limits and the pet tables; a TRAILING SPACE after the table name
 //    on the three attribute ladders and none on the vampire/ousters
 //    ones; "WHERE RankType=%d" unspaced vs "WHERE DomainType = %d"
-//    spaced for the rows but "WHERE DomainType=%d" unspaced for the
-//    fame MAX. Immaterial to the parser, kept for fidelity.
+//    spaced (both the domain MAX and its rows) but "WHERE DomainType=%d"
+//    unspaced for the fame MAX. Immaterial to the parser, kept for
+//    fidelity.
 //  - The MAX probes: MySQL answers MAX() over an EMPTY table (or a
 //    WHERE that matches nothing) with ONE row whose value is NULL.
 //    The inline loaders tested getRowCount()==0 or !next() — never
@@ -30,10 +31,14 @@ namespace {
 //  - The rank/domain/fame filters take the caller's int (the enum or
 //    loop index, exactly the expression the inline code streamed
 //    through %d).
-//  - AccumExp is bigint on the attribute ladders and is read through
-//    getInt (atoi), as before — values beyond int range would be
-//    clamped by atoi's undefined overflow; the shipped ladders stay
-//    within range.
+//  - AccumExp is bigint on all five ladders and is read through
+//    getInt (atoi), as before. The shipped ladders EXCEED int range
+//    (STRBalanceInfo tops out at 2431521747, the vampire and ousters
+//    ladders at 3344798380): atoi truncates the 64-bit strtol result
+//    to int, i.e. a negative value, which the caller's DWORD Exp_t
+//    turns back into the original number — lossless below 2^32 and
+//    exactly what the inline code did, so nothing changes; documented
+//    because the first draft claimed the data stayed within range.
 struct LadderSpec {
     const char* max;
     const char* rows;

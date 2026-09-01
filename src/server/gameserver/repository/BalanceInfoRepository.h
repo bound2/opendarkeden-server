@@ -16,10 +16,12 @@
 // narrowing (Level_t, Exp_t, SkillBonus_t, PetLevel_t, ...) still
 // happens at the caller on the same value.
 //
-// Every ladder loader first asks for MAX(<key>) to size an array, then
-// reads the rows. The MAX probe is exposed as a bool: MySQL answers
-// MAX() over an EMPTY table with one row holding NULL, and the driver's
-// getInt would then atoi(NULL). The inline code's "no data" checks
+// The level-indexed loaders (the five ladders, the rank, domain and
+// fame ladders) first ask for MAX(<key>) to size an array, then read
+// the rows; the three pet tables are read whole, no probe. Each MAX
+// probe is exposed as a bool: MySQL answers MAX() over an EMPTY table
+// with one row holding NULL, and the driver's getInt would then
+// atoi(NULL). The inline code's "no data" checks on those probes
 // (getRowCount()==0 / !next()) could therefore never fire — an empty
 // table crashed instead of throwing. The seam maps the NULL to "no
 // maximum" so the callers' intended throws fire; see the MySQL

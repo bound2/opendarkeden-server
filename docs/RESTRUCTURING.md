@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 61 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 271 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 271 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -1026,8 +1026,14 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > round (the prose said 295/285 while the column still read 308) —
   > fixed here; the number in the column is the contract.
   > **Balance / game-info loaders (2026-09-01, stacked on the Zone
-  > round)**: fourteen boot-time, read-only loaders cleansed (R2 75→61,
-  > R3 285→271), two seams. **`BalanceInfoRepository`** — the level/exp
+  > round)**: fourteen read-only loader files cleansed (R2 75→61,
+  > R3 285→271), two seams. Ten of their sixteen managers run at boot;
+  > SIX are dead — ObjectManager has the STR/DEX/INT balance,
+  > SkillParent, RankEXP and FameLimit managers' construction and load
+  > commented out, and their surviving getter call sites sit inside
+  > comment blocks (Slayer.cpp, skill/SkillUtil.cpp) — so those
+  > extractions are for the ratchet, not for a running server.
+  > **`BalanceInfoRepository`** — the level/exp
   > ladders: STR/DEX/INT, VampEXP, OustersEXP (per-table statement
   > pairs kept as data: mixed-case "Select ... from", the trailing
   > space after the three attribute table names, SkillPointBonus only
@@ -1041,15 +1047,20 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > caller), BloodBibleBonusInfo, and the four monster-name lists
   > (FirstNameInfo/MiddleNameInfo/LastNameInfo with the 'BASIC'/'EVENT'
   > filter inline in the literal — four statements, kept as four).
-  > **One knowing behavior change, disclosed and pinned:** every loader
-  > sizes its array from a `SELECT MAX(...)` probe and guarded the
-  > "empty table" case with `getRowCount()==0` or `!next()` — guards
-  > that can never fire, because MySQL answers MAX() over nothing with
-  > ONE row holding NULL; the inline code then called `getInt(1)`, i.e.
+  > **One knowing behavior change, disclosed and pinned:** the eleven
+  > level-indexed loaders (all but PetExpInfo, PetAttrInfo and
+  > MonsterNameManager, which read their tables whole) size an array
+  > from a `SELECT MAX(...)` probe and guarded the "empty table" case
+  > with `getRowCount()==0` or `!next()` ON THAT PROBE — guards that
+  > can never fire, because MySQL answers MAX() over nothing with ONE
+  > row holding NULL; the inline code then called `getInt(1)`, i.e.
   > `atoi(NULL)`, and an empty table crashed the boot instead of raising
   > the intended "There is no data" Error. The seams' `loadMax*` return
   > false on the NULL, so the callers' throws fire as written. Pinned
-  > by the tier through a RankType/DomainType no ladder has. Other
+  > by the tier through a RankType/DomainType no ladder has.
+  > MonsterNameManager's four `getRowCount()==0` guards are on real row
+  > queries, DO fire on an empty list, and are kept as `size()==0`. (The
+  > first draft said "every loader" — the claims audit counted.) Other
   > disclosures: GameServerGroupInfoManager's hand-written try turned a
   > SQLQueryException into an Error and swallowed other Throwables with
   > a cout — the SQL failure now takes every repository's path
@@ -1057,13 +1068,40 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > FameLimitInfoManager is never constructed and its table is absent
   > from the shipped schema (dead, extracted for the ratchet, the tier
   > pins that its first query throws); EventMonsterNameManager.cpp is
-  > an unbuilt duplicate of MonsterNameManager and stays as is (still
-  > one of R2's counted files). No fake tier; +7 integration tests
+  > an unbuilt OLDER VARIANT of MonsterNameManager (a second definition
+  > of `MonsterNameManager::init` with three unfiltered `SELECT *`
+  > lists) and stays as is (still one of R2's counted files). **The
+  > fidelity review caught what the first draft missed: THREE of the
+  > fourteen files — AttrBalanceInfo.cpp, RankEXPInfo.cpp and
+  > FameLimitInfo.cpp — are in no CMakeLists (they still `#include
+  > <algo.h>`, an SGI header that no longer exists), so those
+  > conversions, including the three STR/DEX/INT blocks, are text-only
+  > and no compiler has seen them; the other eleven are built and
+  > linked.** Also disclosed on review: PetTypeInfo's original declared
+  > its Statement uninitialised and never freed it on success (one leak
+  > per boot; END_DB would have deleted an indeterminate pointer on a
+  > SQL failure), PetAttrInfo's was uninitialised too, and
+  > MonsterNameManager/GameServerGroupInfoManager leaked theirs on
+  > their throw paths — the seams initialise and free; two Korean
+  > message strings were translated (PetTypeInfo's throw text,
+  > PetAttrInfo's cout), an observable-output delta CLAUDE.md sanctions;
+  > the two per-domain loaders (SkillDomainInfoManager, FameLimitInfo)
+  > now create a Statement per query instead of one for the loop —
+  > same queries, same order, boot-time only; and the attribute
+  > ladders' bigint AccumExp EXCEEDS int range in the shipped data
+  > (2431521747, 3344798380) — read through atoi as before, lossless
+  > through the int→DWORD round trip below 2^32, the first draft's
+  > "stays within range" retracted. No fake tier; +7 integration tests
   > asserting the SHAPE of the shipped data (a maximum exists, rows
-  > stay within it, no list empty — what the boot requires). Not
-  > enclosed: the loginserver's CLCreatePCHandler single-row reads of
-  > the ladders and the loginserver/sharedserver GameServerGroupInfo
-  > loads. Remaining SQL under gameserver/: the long tail (R2 = 61
+  > stay within it, no list empty — what the boot requires). One field
+  > the seam reads that the inline code never fetched: PetAttrBalanceInfo's
+  > AddAttr (column 3) rides along in the row; the caller still uses
+  > AccumAttr (column 4) exactly as before. Not enclosed: the
+  > loginserver's CLCreatePCHandler single-row reads of the ladders,
+  > the loginserver/sharedserver GameServerGroupInfo loads, and the
+  > loginserver's UserInfoManager — a byte-level clone of the
+  > GameServerGroupInfo MAX-probe-plus-rows pattern, same never-firing
+  > guard, same +2. Remaining SQL under gameserver/: the long tail (R2 = 61
   > files) — biggest remaining clusters are CreatureUtil.cpp's
   > 128-statement character deletion and the guild trio
   > (Guild/GuildManager/GuildUnion, 65 statements).
