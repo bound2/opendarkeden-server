@@ -21,8 +21,11 @@
 //    caller passes a freshly zeroed SkillOutput).
 //
 // The math is game balance: oddities (dead case-fallthroughs, negative
-// damages, commented-out history) are preserved on purpose. Comments came
-// along verbatim, legacy encoding included.
+// damages, commented-out history) are preserved on purpose. The legacy
+// comments arrived as double-encoded mojibake (EUC-KR — and GBK for the
+// 2007 Chinese-era additions — read as Latin-1, re-saved as UTF-8); they
+// were machine-recovered through that chain and translated to English
+// (2026-09-01), code untouched (verified by a comment-stripped diff).
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __DECORE_SKILL_OUTPUT_FORMULAS_H__

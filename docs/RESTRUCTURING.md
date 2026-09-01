@@ -770,8 +770,10 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > per-skill `computeOutput` formula bodies moved verbatim to
   > `src/domain/SkillOutputFormulas.cpp` (decore::skillformula — mirror
   > SkillInput/SkillOutput structs with identical field names/enum values
-  > so the diff is a pure move; comments carried along, legacy encoding
-  > included); the member functions are now one-line delegation macros
+  > so the diff is a pure move; the legacy comments — double-encoded
+  > EUC-KR/GBK mojibake — were then machine-recovered and translated to
+  > English in a follow-up commit, code untouched by comment-stripped
+  > diff); the member functions are now one-line delegation macros
   > (SkillFormula.cpp 3,081→820, joins R6 as R6d). The 11 formulas that
   > roll dice inline (`Random()`/`rand()` — CriticalGround, MeteorStrike,
   > DuplicateSelf, the four axe-throw skills, Cannonade, SelfDestruction,
