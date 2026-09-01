@@ -48,6 +48,7 @@ echo "--- starting throwaway MySQL ($MYSQL_IMAGE)"
 docker network create "$NET" >/dev/null
 docker run -d --name "$DB" --network "$NET" \
     -v "$repo_mount/initdb/DARKEDEN.sql":/docker-entrypoint-initdb.d/1-DARKEDEN.sql:ro \
+    -v "$repo_mount/initdb/USERINFO.sql":/docker-entrypoint-initdb.d/1b-USERINFO.sql:ro \
     -v "$repo_mount/initdb/a-setup.sql":/docker-entrypoint-initdb.d/2-a-setup.sql:ro \
     -e MYSQL_ROOT_PASSWORD=123456 \
     "$MYSQL_IMAGE" mysqld --sql_mode="$SQL_MODE" >/dev/null

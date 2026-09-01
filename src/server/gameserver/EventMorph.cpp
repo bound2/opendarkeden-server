@@ -11,7 +11,6 @@
 #include <fstream>
 
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "GCMorph1.h"
 #include "GCMorphVampire2.h"
 #include "GCUpdateInfo.h"
@@ -36,6 +35,7 @@
 #include "ZoneInfoManager.h"
 #include "ZonePlayerManager.h"
 #include "ZoneUtil.h"
+#include "repository/SessionRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class EventMorph member methods
@@ -163,13 +163,8 @@ void EventMorph::activate()
 
             g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
-            Statement* pStmt = NULL;
-            // 디비에 업데이트 한다.
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pStmt->executeQuery("UPDATE GuildMember SET LogOn = 0 WHERE Name = '%s'", pSlayer->getName().c_str());
-            }
-            END_DB(pStmt)
+            // Update the DB.
+            defaultSessionRepository().markGuildMemberLoggedOff(pSlayer->getName());
         } else
             filelog("GuildMissing.log", "[NoSuchGuild] GuildID : %d, Name : %s\n", (int)pSlayer->getGuildID(),
                     pSlayer->getName().c_str());

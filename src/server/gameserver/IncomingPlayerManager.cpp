@@ -33,6 +33,7 @@
 #include "ZoneGroup.h"
 #include "ZoneInfoManager.h"
 #include "ZonePlayerManager.h"
+#include "repository/SessionRepository.h"
 
 // #include "UserGateway.h"
 #include "SystemAvailabilitiesManager.h"
@@ -152,78 +153,20 @@ void IncomingPlayerManager::init()
     cout << " TID Number = " << (int)(long)Thread::self() << endl;
     cout << "******************************************************" << endl;
 
-    /*
-    // Login DB 의 PCRoomDBInfo Table 읽어서 Connection 만들기
-    pStmt = pDistConnection->createStatement();
-    Result * pResult = NULL;
+    // Tidy up Player.LogOn: clear the PC-room records of everyone this
+    // server left in GAME, then flip them to LOGOFF. Billing~ by sigi 2002.5.31
+    SessionRepository& repository = defaultSessionRepository();
 
-    pResult = pStmt->executeQuery("SELECT ID, Host, DB, User, Password FROM PCRoomDBInfo");
+    vector<string> inGame =
+        repository.loadPlayersInGame(g_pConfig->getPropertyInt("WorldID"), g_pConfig->getPropertyInt("ServerID"));
 
-    if (pResult->next())
-    {
-        WorldID_t ID = pResult->getInt(1);
-        string host = pResult->getString(2);
-        string db = pResult->getString(3);
-        string user = pResult->getString(4);
-        string password = pResult->getString(5);
-
-        cout << "Connection: "
-             << "  ID=" << (int)ID
-             << ", HOST=" << host.c_str()
-             << ", DB=" << db.c_str()
-             << ", User=" << user.c_str() << endl;
-
-        Connection * pConnection = new Connection(host, db, user, password);
-        Assert(pConnection!=NULL);
-
-        g_pDatabaseManager->addPCRoomConnection((int)(Thread::self()) , pConnection );
+    for (size_t p = 0; p < inGame.size(); p++) {
+        repository.deletePCRoomUser(inGame[p]);
     }
-    */
 
-    // Player.LogOn 를 정리해준다.
-    Statement* pStmt = NULL;
-    Statement* pStmt2 = NULL;
-    BEGIN_DB {
-        // pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    repository.logOffPlayersOfServer(g_pConfig->getPropertyInt("WorldID"), g_pConfig->getPropertyInt("ServerID"));
 
-        // pStmt = g_pDatabaseManager->getDistConnection( (int)(long)Thread::self() )->createStatement();
-        // pStmt2 = g_pDatabaseManager->getDistConnection( (int)(long)Thread::self() )->createStatement();
-
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-        pStmt2 = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-        Result* pResult = pStmt->executeQuery(
-            "SELECT PlayerID from Player WHERE LogOn='GAME' AND CurrentWorldID=%d AND CurrentServerGroupID=%d",
-            g_pConfig->getPropertyInt("WorldID"), g_pConfig->getPropertyInt("ServerID"));
-
-        // 겜방에서 놀던애들 정리해준다.
-        // 빌링~ by sigi 2002.5.31
-        while (pResult->next()) {
-            string playerID = pResult->getString(1);
-
-            pStmt2->executeQuery("DELETE FROM PCRoomUserInfo WHERE PlayerID='%s'", playerID.c_str());
-        }
-
-        pStmt->executeQuery(
-            "UPDATE Player SET LogOn = 'LOGOFF' WHERE LogOn = 'GAME' AND CurrentWorldID=%d AND CurrentServerGroupID=%d",
-            g_pConfig->getPropertyInt("WorldID"), g_pConfig->getPropertyInt("ServerID"));
-
-        /*
-        // 두번 하는거 제거. by sigi. 2002.5.9
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("DELETE FROM UserIPInfo WHERE ServerID = %d", g_pConfig->getPropertyInt("ServerID") );
-        */
-        SAFE_DELETE(pStmt);
-        SAFE_DELETE(pStmt2);
-    }
-    END_DB(pStmt)
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("DELETE FROM UserIPInfo WHERE ServerID = %d", g_pConfig->getPropertyInt("ServerID"));
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    repository.deleteUserIPsOfServer(g_pConfig->getPropertyInt("ServerID"));
 
     __END_CATCH
 }

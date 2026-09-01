@@ -37,6 +37,12 @@ public:
     Connection* getUserInfoConnection(void) {
         return m_pUserInfoConnection;
     }
+    // For processes that do not run init() (the integration tests): the
+    // USERINFO connection the repositories reach through
+    // getUserInfoConnection(). Takes ownership like init() does.
+    void setUserInfoConnection(Connection* pConnection) {
+        m_pUserInfoConnection = pConnection;
+    }
     void executeDummyQuery(Connection* pConnection);
 
     //--------------------------------------------------------------------

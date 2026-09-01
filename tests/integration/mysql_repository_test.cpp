@@ -49,6 +49,7 @@
 #include "repository/RankBonusRepository.h"
 #include "repository/RegenZoneRepository.h"
 #include "repository/SMSAddressRepository.h"
+#include "repository/SessionRepository.h"
 #include "repository/SkillSaveRepository.h"
 #include "repository/StashRepository.h"
 #include "repository/WarInfoRepository.h"
@@ -2730,6 +2731,138 @@ TEST_F(PlayRecordMySQL, MiniGameScoreReadReportsTheRowOrNone) {
     EXPECT_FALSE(repository.loadMiniGameScore(120, 6, name, score)); // other level
 }
 
+// --- the session cluster against real MySQL ----------------------------------
+// Session end, the boot sweep, the PC-room lotto and the NetMarble user
+// count. Player/PCRoom rows go through the dist connection (same schema),
+// UserStatus through the USERINFO connection the tier now registers. All
+// rows use 'it-' ids or ids from 31000 up and are cleaned in SetUp/TearDown.
+
+class SessionMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM GuildMember WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM Player WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM PCRoomUserInfo WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM PCRoomLottoObject WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM UserIPInfo WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM USERINFO.UserStatus WHERE ServerID >= 31000");
+    }
+};
+
+TEST_F(SessionMySQL, GuildMemberLogOffFlagsOnlyThatMember) {
+    execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-gm-a', 1, '', 1)");
+    execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-gm-b', 1, '', 1)");
+
+    defaultSessionRepository().markGuildMemberLoggedOff("it-gm-a");
+
+    EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-gm-a'"));
+    EXPECT_EQ("1", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-gm-b'"));
+}
+
+TEST_F(SessionMySQL, SessionEndFlipsOnlyGameRowsAndTheBootSweepClearsThisServersAccounts) {
+    execSQL("INSERT INTO Player (PlayerID, LogOn, CurrentWorldID, CurrentServerGroupID) VALUES ('it-p1', 'GAME', 250, "
+            "251)");
+    execSQL("INSERT INTO Player (PlayerID, LogOn, CurrentWorldID, CurrentServerGroupID) VALUES ('it-p2', 'LOGON', 250, "
+            "251)");
+    execSQL("INSERT INTO Player (PlayerID, LogOn, CurrentWorldID, CurrentServerGroupID) VALUES ('it-p3', 'GAME', 250, "
+            "252)");
+    execSQL("INSERT INTO Player (PlayerID, LogOn, CurrentWorldID, CurrentServerGroupID) VALUES ('it-p4', 'GAME', 250, "
+            "251)");
+    execSQL("INSERT INTO PCRoomUserInfo (ID, PlayerID) VALUES (31000, 'it-p4')");
+    execSQL("INSERT INTO PCRoomUserInfo (ID, PlayerID) VALUES (31000, 'it-p3')");
+    execSQL("INSERT INTO UserIPInfo (Name, IP, ServerID) VALUES ('it-ip1', 1, 31000)");
+    execSQL("INSERT INTO UserIPInfo (Name, IP, ServerID) VALUES ('it-ip2', 2, 31001)");
+    execSQL("INSERT INTO UserIPInfo (Name, IP, ServerID) VALUES ('it-ip3', 3, 31001)");
+
+    SessionRepository& repository = defaultSessionRepository();
+
+    // Session end: only a row still in GAME flips, and it gets a logout time.
+    repository.markPlayerLoggedOff("it-p1");
+    repository.markPlayerLoggedOff("it-p2");
+    EXPECT_EQ("LOGOFF", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-p1'"));
+    EXPECT_NE("0000-00-00 00:00:00", queryScalar("SELECT LastLogoutDate FROM Player WHERE PlayerID='it-p1'"));
+    EXPECT_EQ("LOGON", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-p2'"));
+    EXPECT_EQ("0000-00-00 00:00:00", queryScalar("SELECT LastLogoutDate FROM Player WHERE PlayerID='it-p2'"));
+
+    // The boot sweep sees only this world/server group's GAME rows.
+    std::vector<std::string> inGame = repository.loadPlayersInGame(250, 251);
+    ASSERT_EQ(1u, inGame.size());
+    EXPECT_EQ("it-p4", inGame[0]);
+
+    repository.deletePCRoomUser("it-p4");
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM PCRoomUserInfo WHERE PlayerID='it-p4'"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM PCRoomUserInfo WHERE PlayerID='it-p3'"));
+
+    repository.logOffPlayersOfServer(250, 251);
+    EXPECT_EQ("LOGOFF", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-p4'"));
+    EXPECT_EQ("GAME", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-p3'"));  // other server group
+    EXPECT_EQ("LOGON", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-p2'")); // not in GAME
+
+    repository.deleteUserIP("it-ip1");
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name='it-ip1'"));
+    repository.deleteUserIPsOfServer(31001);
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name LIKE 'it-%'"));
+}
+
+TEST_F(SessionMySQL, SpecialEventCountIsReadSavedAndFalseForAnUnknownAccount) {
+    execSQL("INSERT INTO Player (PlayerID, SpecialEventCount) VALUES ('it-p1', 7)");
+
+    SessionRepository& repository = defaultSessionRepository();
+    DWORD count = 0;
+    ASSERT_TRUE(repository.loadSpecialEventCount("it-p1", count));
+    EXPECT_EQ(7u, count);
+
+    repository.saveSpecialEventCount(9, "it-p1");
+    EXPECT_EQ("9", queryScalar("SELECT SpecialEventCount FROM Player WHERE PlayerID='it-p1'"));
+
+    EXPECT_FALSE(repository.loadSpecialEventCount("it-none", count));
+}
+
+TEST_F(SessionMySQL, PCRoomLottoRowIsInsertedWithItsPositionalColumnsThenCounted) {
+    SessionRepository& repository = defaultSessionRepository();
+    int amount = -1;
+
+    EXPECT_FALSE(repository.loadPCRoomLottoAmount("it-p1", "it-name", 250, 251, amount));
+    EXPECT_EQ(-1, amount); // untouched when there is no row
+
+    repository.insertPCRoomLotto(31000, "it-p1", 250, 251, "it-name", 1);
+    ASSERT_TRUE(repository.loadPCRoomLottoAmount("it-p1", "it-name", 250, 251, amount));
+    EXPECT_EQ(1, amount);
+    EXPECT_EQ("31000", queryScalar("SELECT PCRoomID FROM PCRoomLottoObject WHERE PlayerID='it-p1'"));
+    EXPECT_EQ("1", queryScalar("SELECT Race FROM PCRoomLottoObject WHERE PlayerID='it-p1'"));
+    EXPECT_EQ("250", queryScalar("SELECT DimensionID FROM PCRoomLottoObject WHERE PlayerID='it-p1'"));
+    EXPECT_EQ("251", queryScalar("SELECT WorldID FROM PCRoomLottoObject WHERE PlayerID='it-p1'"));
+
+    repository.updatePCRoomLottoAmount(2, "it-p1", "it-name", 250, 251);
+    ASSERT_TRUE(repository.loadPCRoomLottoAmount("it-p1", "it-name", 250, 251, amount));
+    EXPECT_EQ(2, amount);
+
+    EXPECT_FALSE(repository.loadPCRoomLottoAmount("it-p1", "it-name", 252, 251, amount)); // other dimension
+}
+
+TEST_F(SessionMySQL, UserStatusIsUpdatedOrInsertedOnTheUserInfoDatabase) {
+    SessionRepository& repository = defaultSessionRepository();
+
+    EXPECT_FALSE(repository.updateUserStatus(5, 120, 31000)); // no row yet
+    repository.insertUserStatus(120, 31000, 5);
+    EXPECT_EQ("5", queryScalar("SELECT CurrentUser FROM USERINFO.UserStatus WHERE WorldID=120 AND ServerID=31000"));
+
+    EXPECT_TRUE(repository.updateUserStatus(6, 120, 31000));
+    EXPECT_EQ("6", queryScalar("SELECT CurrentUser FROM USERINFO.UserStatus WHERE WorldID=120 AND ServerID=31000"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM USERINFO.UserStatus WHERE ServerID=31000"));
+
+    // CurrentUser is a signed tinyint: a count above 127 is clamped by the
+    // tier's non-strict sql_mode, not stored. Pinned as observed.
+    EXPECT_TRUE(repository.updateUserStatus(300, 120, 31000));
+    EXPECT_EQ("127", queryScalar("SELECT CurrentUser FROM USERINFO.UserStatus WHERE WorldID=120 AND ServerID=31000"));
+}
+
 } // namespace
 
 int main(int argc, char** argv) {
@@ -2744,6 +2877,10 @@ int main(int argc, char** argv) {
     g_pDatabaseManager = new DatabaseManager();
     g_pDatabaseManager->addConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
     g_pDatabaseManager->addDistConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
+    // The USERINFO database the session seam writes UserStatus to; the
+    // tier loads initdb/USERINFO.sql next to DARKEDEN.sql.
+    std::string userInfoDb = env("IT_DB_USERINFO_DB", "USERINFO");
+    g_pDatabaseManager->setUserInfoConnection(new Connection(host, userInfoDb, user, password, port));
 
     return RUN_ALL_TESTS();
 }
