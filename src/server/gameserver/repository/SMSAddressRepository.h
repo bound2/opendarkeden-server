@@ -9,7 +9,10 @@
 // Persistence seam for the SMSAddressBook table (task 3.2): a
 // character's phone-number book, one row per entry keyed by
 // (eID, OwnerID). The SMSAddressBook class owns the in-memory map and
-// the eID allocation; this seam moves rows.
+// the eID allocation; this seam moves rows. Nothing purges the table
+// when a character is deleted (neither CreatureUtil.cpp nor the
+// loginserver's CLDeletePCHandler names it), so a name-reuser inherits
+// the previous owner's phone book.
 //
 // What load() returns — each field typed to the driver getter the
 // inline code called: eID through getInt (the column is int unsigned;

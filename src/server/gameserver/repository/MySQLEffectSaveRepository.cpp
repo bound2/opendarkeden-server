@@ -8,23 +8,27 @@ namespace {
 //  - Every statement is byte-for-byte what its Effect*.cpp emitted, and
 //    the eight classes did NOT agree on spacing, so the format strings
 //    are per-table data rather than one template: "VALUES('%s', ..." vs
-//    CanEnterGDRLair's "VALUES ('%s', ..."; EffectMute's "YearTime=%ld"
-//    and "OwnerID='%s'" where the others space around "="; the force
-//    scrolls' "(OwnerID, RemainTime )" and "VALUES('%s',%lu)"; and the
-//    force-scroll loads' "SELECt" (a typo MySQL accepts — keywords are
-//    case-insensitive).
+//    the "VALUES ('%s', ..." of CanEnterGDRLair and EnemyErase;
+//    EffectMute's "YearTime=%ld" and "OwnerID='%s'" where the others
+//    space around "="; the force scrolls' "(OwnerID, RemainTime )" and
+//    "VALUES('%s',%lu)"; and the force-scroll loads' "SELECt" (a typo
+//    MySQL accepts — keywords are case-insensitive).
 //  - The varargs conversions are the originals': the Turn_t (DWORD)
 //    year time and remain turn through %ld/%lu — the 4-byte-through-
 //    8-byte-conversion latent bug documented in
-//    MySQLCharacterRepository.cpp, register-passed here so GCC's
+//    MySQLCharacterRepository.cpp; every call in this seam has at most
+//    four varargs, so they are all register-passed and GCC's
 //    zero-extension keeps it benign — and the time_t DayTime through
-//    %ld, which is exact. Preserved, not fixed.
-//  - The int(10) unsigned columns receive whatever the conversion
-//    printed; a negative remain turn (a deadline already in the past at
-//    save time: timediff yields a negative tv_sec) prints as a huge
-//    unsigned through %lu and is clamped to the column's maximum under
-//    the non-strict sql_mode. Not reached in practice (an expired effect
-//    is removed, not saved) and not pinned.
+//    %ld, which is exact. Preserved, not fixed. A DWORD can never print
+//    more than 4294967295 this way, which is exactly the int(10)
+//    unsigned columns' maximum: no value from this seam is ever clamped.
+//  - The remain turn the force scrolls store is computed from
+//    timediff(m_Deadline, now), and Timeval.cpp's timediff returns the
+//    ABSOLUTE difference. A scroll saved after its deadline has passed
+//    therefore stores the time elapsed SINCE expiry as its "remaining"
+//    time, and the loader would resurrect it with that much left. The
+//    save paths run only while the effect is alive, so this is not
+//    reached in practice; documented, not pinned.
 //  - All eight tables are keyless (OwnerID index only) EXCEPT
 //    EffectKillAftermath, whose OwnerID is the PRIMARY KEY: its insert
 //    raises ER_DUP_ENTRY (1062) for an owner that already has a row,

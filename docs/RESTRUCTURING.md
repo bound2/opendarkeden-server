@@ -954,8 +954,17 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > original load/removeOne leaked their Statement on success, fixed
   > knowingly). No fake tier for any of the four (integration over
   > fakes); +11 integration tests. The per-character purges
-  > (CreatureUtil.cpp, CLDeletePCHandler) still DELETE from all of
-  > these tables inline, as before. Remaining SQL under gameserver/:
+  > (CreatureUtil.cpp, CLDeletePCHandler) still DELETE inline from
+  > FIVE of the eleven tables — EffectAftermath, EffectMute, EnemyErase,
+  > FlagSet, GQuestItemObject; nothing purges EffectKillAftermath,
+  > CanEnterGDRLair, the three force scrolls or SMSAddressBook, whose
+  > rows outlive the character and are inherited by a name-reuser (the
+  > adversarial round caught the first draft claiming "all of these
+  > tables", and a fabricated "negative remain turn clamps to the
+  > column maximum" quirk: Timeval's timediff returns the absolute
+  > difference and a DWORD cannot exceed the column, so the real quirk
+  > is that a scroll saved past its deadline would store the elapsed
+  > time as remaining — unreached, now documented as such). Remaining SQL under gameserver/:
   > the long tail (R2 = 85 files) — biggest remaining clusters are
   > CreatureUtil.cpp's 128-statement character deletion, the guild
   > trio (Guild/GuildManager/GuildUnion, 65 statements) and the
