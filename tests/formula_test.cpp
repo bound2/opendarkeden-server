@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 
 #include "domain/Formulas.h"
+#include "domain/SkillOutputFormulas.h"
 
 using decore::StatAttr;
 using decore::WeaponFamily;
@@ -427,6 +428,382 @@ TEST(HallucinationRatio, AttrGapClampedIntoPerRaceBand) {
     EXPECT_EQ(30, decore::hallucinationRatio(100, 90, 30, 60)); // slayer floor
     EXPECT_EQ(60, decore::hallucinationRatio(200, 50, 30, 60)); // slayer cap
     EXPECT_EQ(40, decore::hallucinationRatio(200, 50, 10, 40)); // vampire band
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Per-skill computeOutput formulas (src/domain/SkillOutputFormulas.cpp,
+// adapters: skill/SkillFormula.cpp). 293 formulas moved verbatim (11
+// dice-roll ones stayed in the adapter); this suite pins every gun-class
+// branch (MultiShot, HeadShot, MoleShot), every grade switch including
+// the unset-grade default, and the HeadShot fallthrough, plus a spread
+// of representative shapes: party boosts, clamps, negative outputs,
+// Delay=Duration couplings, the boost-after-Delay ordering quirk, and
+// the empty formulas.
+//////////////////////////////////////////////////////////////////////////////
+
+using SFIn = decore::skillformula::SkillInput;
+using SFOut = decore::skillformula::SkillOutput;
+using decore::skillformula::GunClass;
+
+SFIn sfin() {
+    SFIn in;
+    in.SkillLevel = 0;
+    in.DomainLevel = 0;
+    in.DomainGrade = -1;
+    in.STR = 0;
+    in.DEX = 0;
+    in.INTE = 0;
+    in.TargetType = SFIn::TARGET_SELF;
+    in.Range = 0;
+    in.Gun = GunClass::Other;
+    in.PartySize = 0;
+    return in;
+}
+
+TEST(SkillOutputFormula, DoubleImpactStrAndLevel) {
+    SFIn in = sfin();
+    in.STR = 100;
+    in.SkillLevel = 60;
+    SFOut out;
+    decore::skillformula::DoubleImpact(in, out);
+    EXPECT_EQ(9, out.Damage); // 1 + 100/20 + 60/20
+    EXPECT_EQ(8, out.Delay);
+    EXPECT_EQ(0, out.Duration);
+    EXPECT_EQ(0, out.ToHit);
+}
+
+TEST(SkillOutputFormula, TripleShotNegativeOutputsPreserved) {
+    SFIn in = sfin();
+    in.SkillLevel = 30;
+    SFOut out;
+    decore::skillformula::TripleShot(in, out);
+    EXPECT_EQ(-14, out.ToHit);  // -20 + 30/5
+    EXPECT_EQ(-40, out.Damage); // -50 + 30/3
+    EXPECT_EQ(2, out.Delay);
+}
+
+TEST(SkillOutputFormula, MultiShotBranchesPerGunClass) {
+    SFIn in = sfin();
+    in.SkillLevel = 50;
+    SFOut out;
+    in.Gun = GunClass::SG;
+    decore::skillformula::MultiShot(in, out);
+    EXPECT_EQ(13, out.Damage); // 8 + 50/10
+    EXPECT_EQ(-10, out.ToHit);
+    EXPECT_EQ(8, out.Delay);
+    in.Gun = GunClass::AR;
+    out = SFOut();
+    decore::skillformula::MultiShot(in, out);
+    EXPECT_EQ(8, out.Damage); // 5 + 50/15
+    in.Gun = GunClass::SMG;
+    out = SFOut();
+    decore::skillformula::MultiShot(in, out);
+    EXPECT_EQ(8, out.Damage); // AR and SMG share the branch
+    in.Gun = GunClass::SR;
+    out = SFOut();
+    decore::skillformula::MultiShot(in, out);
+    EXPECT_EQ(5, out.Damage); // 3 + 50/20
+    in.Gun = GunClass::Other;
+    out = SFOut();
+    decore::skillformula::MultiShot(in, out);
+    EXPECT_EQ(0, out.Damage); // no branch taken — damage stays zero
+    EXPECT_EQ(-10, out.ToHit);
+}
+
+TEST(SkillOutputFormula, MoleShotBranchesPerGunClass) {
+    SFIn in = sfin();
+    in.SkillLevel = 50;
+    SFOut out;
+    in.Gun = GunClass::SG;
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(8, out.Damage); // 3 + 50/10
+    EXPECT_EQ(-10, out.ToHit);
+    EXPECT_EQ(2, out.Delay);
+    in.Gun = GunClass::AR;
+    out = SFOut();
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(2, out.Damage); // 1 + 50/30
+    in.Gun = GunClass::SMG;
+    out = SFOut();
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(2, out.Damage); // shares the AR branch
+    in.Gun = GunClass::SR;
+    out = SFOut();
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(1, out.Damage); // 50/50
+    in.Gun = GunClass::Other;
+    out = SFOut();
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(0, out.Damage); // no branch taken
+}
+
+TEST(SkillOutputFormula, HeadShotCaseFallthroughIsTheBalance) {
+    // The switch has no breaks: every in-range Range cascades to the
+    // case-1 value. Shipped behavior — preserved on purpose.
+    for (int range = 1; range <= 3; ++range) {
+        SFIn in = sfin();
+        in.Gun = GunClass::SG;
+        in.Range = range;
+        SFOut out;
+        decore::skillformula::HeadShot(in, out);
+        EXPECT_EQ(10, out.Damage) << "SG range " << range;
+        EXPECT_EQ(8, out.Delay);
+    }
+    SFIn in = sfin();
+    in.Gun = GunClass::AR;
+    in.Range = 3;
+    SFOut out;
+    decore::skillformula::HeadShot(in, out);
+    EXPECT_EQ(8, out.Damage); // 5 -> 6 -> 8
+    in.Gun = GunClass::SR;
+    in.Range = 2;
+    out = SFOut();
+    decore::skillformula::HeadShot(in, out);
+    EXPECT_EQ(8, out.Damage); // 6 -> 8
+    in.Gun = GunClass::SG;
+    in.Range = 0;
+    out = SFOut();
+    decore::skillformula::HeadShot(in, out);
+    EXPECT_EQ(0, out.Damage); // default: untouched
+}
+
+TEST(SkillOutputFormula, BlessSelfOtherAndPartyBoosts) {
+    SFIn in = sfin();
+    in.INTE = 80;
+    in.SkillLevel = 40;
+    in.PartySize = 4;
+    SFOut out;
+    decore::skillformula::Bless(in, out);
+    EXPECT_EQ(11, out.Damage);     // (4 + 80/40 + 40/20) = 8, then 8*140/100
+    EXPECT_EQ(1575, out.Duration); // (30 + 40*3/2)*10 = 900, then 900*175/100
+    EXPECT_EQ(50, out.Delay);      // (7 - 40/20)*10
+    in.TargetType = SFIn::TARGET_OTHER;
+    out = SFOut();
+    decore::skillformula::Bless(in, out);
+    EXPECT_EQ(8, out.Damage); // (2 + 2 + 2) = 6, then 6*140/100
+}
+
+TEST(SkillOutputFormula, StrikingDurationBoostOnly) {
+    SFIn in = sfin();
+    in.TargetType = SFIn::TARGET_OTHER;
+    in.INTE = 90;
+    in.SkillLevel = 40;
+    in.PartySize = 2;
+    SFOut out;
+    decore::skillformula::Striking(in, out);
+    EXPECT_EQ(5, out.Damage);      // 90/30 + 40/20, no effect boost
+    EXPECT_EQ(1170, out.Duration); // 900 * 130/100
+    EXPECT_EQ(50, out.Delay);      // (6 - 40/33)*10
+}
+
+TEST(SkillOutputFormula, RevealerBoostAppliesAfterDelayCopiesDuration) {
+    // Delay is assigned from Duration BEFORE the party boost scales
+    // Duration — so they intentionally end up different. Ordering quirk,
+    // pinned.
+    SFIn in = sfin();
+    in.SkillLevel = 50;
+    in.PartySize = 6;
+    SFOut out;
+    decore::skillformula::Revealer(in, out);
+    EXPECT_EQ(400, out.Delay);    // (30 + 50/5)*10, pre-boost
+    EXPECT_EQ(800, out.Duration); // 400 * 200/100
+}
+
+TEST(SkillOutputFormula, GradeSwitchesReadDomainGrade) {
+    SFIn in = sfin();
+    in.SkillLevel = 50;
+    in.DomainGrade = decore::skillformula::SKILL_GRADE_EXPERT;
+    SFOut out;
+    decore::skillformula::ContinualLight(in, out);
+    EXPECT_EQ(4, out.Range);
+    EXPECT_EQ(40, out.Delay);     // (6 - 50/25)*10
+    EXPECT_EQ(350, out.Duration); // (10 + 50/2)*10
+
+    in = sfin();
+    in.SkillLevel = 40;
+    in.DomainGrade = decore::skillformula::SKILL_GRADE_GRAND_MASTER;
+    out = SFOut();
+    decore::skillformula::Purify(in, out);
+    EXPECT_EQ(14, out.Damage); // 10 + 40/10
+    EXPECT_EQ(40, out.Delay);  // (5 - 40/33)*10
+    EXPECT_EQ(7, out.Range);
+
+    in = sfin();
+    in.SkillLevel = 20;
+    in.PartySize = 3;
+    in.DomainGrade = decore::skillformula::SKILL_GRADE_MASTER;
+    out = SFOut();
+    decore::skillformula::DetectInvisibility(in, out);
+    EXPECT_EQ(5, out.Range);
+    EXPECT_EQ(310, out.Duration); // (10 + 20/2)*10 = 200, then *155/100
+    EXPECT_EQ(60, out.Delay);     // (6 - 20/33)*10
+
+    // Unset grade (-1): the default case zeroes Range in all three grade
+    // switches while the other fields still compute.
+    in = sfin();
+    in.SkillLevel = 50;
+    out = SFOut();
+    decore::skillformula::ContinualLight(in, out);
+    EXPECT_EQ(0, out.Range);
+    in = sfin();
+    in.SkillLevel = 40;
+    out = SFOut();
+    decore::skillformula::Purify(in, out);
+    EXPECT_EQ(0, out.Range);
+    EXPECT_EQ(14, out.Damage);
+    in = sfin();
+    in.SkillLevel = 20;
+    in.PartySize = 3;
+    out = SFOut();
+    decore::skillformula::DetectInvisibility(in, out);
+    EXPECT_EQ(0, out.Range);
+    EXPECT_EQ(310, out.Duration);
+}
+
+TEST(SkillOutputFormula, ExpansionDelayEqualsDuration) {
+    SFIn in = sfin();
+    in.STR = 100;
+    in.SkillLevel = 60;
+    SFOut out;
+    decore::skillformula::Expansion(in, out);
+    EXPECT_EQ(40, out.Damage);     // 10 + 60/2
+    EXPECT_EQ(25, out.ToHit);      // 5 + 60/3
+    EXPECT_EQ(1150, out.Duration); // (45 + 100/10 + 60)*10
+    EXPECT_EQ(out.Duration, out.Delay);
+}
+
+TEST(SkillOutputFormula, DancingSwordDelayEqualsDuration) {
+    SFIn in = sfin();
+    in.DEX = 100;
+    in.STR = 100;
+    in.SkillLevel = 50;
+    SFOut out;
+    decore::skillformula::DancingSword(in, out);
+    EXPECT_EQ(16, out.Damage);    // 1 + 100/10 + 50/10
+    EXPECT_EQ(650, out.Duration); // (30 + 100/10 + 50/2)*10
+    EXPECT_EQ(out.Duration, out.Delay);
+}
+
+TEST(SkillOutputFormula, FlashSlidingClampAndNegativeDuration) {
+    SFIn in = sfin();
+    in.SkillLevel = 200;
+    SFOut out;
+    decore::skillformula::FlashSliding(in, out);
+    EXPECT_EQ(10, out.Delay);    // max(3 - 200/50, 1)*10
+    EXPECT_EQ(-1, out.Duration); // 3 - 200/50: unclamped, preserved
+    in.SkillLevel = 0;
+    out = SFOut();
+    decore::skillformula::FlashSliding(in, out);
+    EXPECT_EQ(30, out.Delay);
+    EXPECT_EQ(3, out.Duration);
+}
+
+TEST(SkillOutputFormula, AuraRingDelayFloor) {
+    SFIn in = sfin();
+    in.INTE = 90;
+    in.SkillLevel = 60;
+    SFOut out;
+    decore::skillformula::AuraRing(in, out);
+    EXPECT_EQ(44, out.Damage); // 15 + 90/10 + 60/3
+    EXPECT_EQ(10, out.Delay);  // max(1, 2 - 60/50)*10
+    in.SkillLevel = 20;
+    out = SFOut();
+    decore::skillformula::AuraRing(in, out);
+    EXPECT_EQ(20, out.Delay); // max(1, 2 - 0)*10
+}
+
+TEST(SkillOutputFormula, AcidBoltMinMaxClamps) {
+    SFIn in = sfin();
+    in.STR = 100;
+    in.INTE = 100;
+    in.DEX = 100;
+    SFOut out;
+    decore::skillformula::AcidBolt(in, out);
+    EXPECT_EQ(25, out.Damage); // min(40, 100/20 + 100/5)
+    EXPECT_EQ(10, out.Delay);  // max(1, 3 - 2 - 2)*10
+    in.STR = 400;
+    in.INTE = 200;
+    out = SFOut();
+    decore::skillformula::AcidBolt(in, out);
+    EXPECT_EQ(40, out.Damage); // clamped
+}
+
+TEST(SkillOutputFormula, GreenStalkerTickAndDelayFloor) {
+    SFIn in = sfin();
+    in.STR = 100;
+    in.INTE = 50;
+    in.DEX = 200;
+    SFOut out;
+    decore::skillformula::GreenStalker(in, out);
+    EXPECT_EQ(10, out.Damage); // 100/20 + 50/10
+    EXPECT_EQ(40, out.Tick);
+    EXPECT_EQ(500, out.Duration); // (200/5 + 50/5)*10
+    EXPECT_EQ(10, out.Delay);     // max(1, 5 - 200/40)*10
+}
+
+TEST(SkillOutputFormula, BloodySnakeInteMinusTwentyBase) {
+    SFIn in = sfin();
+    in.INTE = 290;
+    SFOut out;
+    decore::skillformula::BloodySnake(in, out);
+    EXPECT_EQ(35, out.Damage);   // min(35, 10 + 270/9)
+    EXPECT_EQ(40, out.Duration); // (1 + 270/80)*10
+    EXPECT_EQ(30, out.Delay);    // max(3, 6 - 270/50)*10
+    EXPECT_EQ(3, out.Tick);
+    in.INTE = 20;
+    out = SFOut();
+    decore::skillformula::BloodySnake(in, out);
+    EXPECT_EQ(10, out.Damage);
+    EXPECT_EQ(10, out.Duration);
+    EXPECT_EQ(60, out.Delay);
+}
+
+TEST(SkillOutputFormula, EmptyFormulasLeaveEverythingZero) {
+    SFIn in = sfin();
+    in.STR = 999;
+    in.SkillLevel = 999;
+    SFOut out;
+    decore::skillformula::RegenerationSkill(in, out);
+    EXPECT_EQ(0, out.Damage);
+    EXPECT_EQ(0, out.Duration);
+    EXPECT_EQ(0, out.Tick);
+    EXPECT_EQ(0, out.ToHit);
+    EXPECT_EQ(0, out.Range);
+    EXPECT_EQ(0, out.Delay);
+}
+
+TEST(SkillOutputFormula, MagicElusionAttrSumIsWordWide) {
+    SFIn in = sfin();
+    in.STR = 100;
+    in.DEX = 100;
+    in.INTE = 100;
+    SFOut out;
+    decore::skillformula::MagicElusion(in, out);
+    EXPECT_EQ(60, out.Damage);    // 300/5
+    EXPECT_EQ(150, out.Duration); // 50 + 300/3
+    EXPECT_EQ(50, out.Delay);
+    // The sum funnels through Attr_t (WORD): 70000 wraps to 4464 before
+    // the divisions. Shipped behavior, preserved.
+    in.STR = 30000;
+    in.DEX = 30000;
+    in.INTE = 10000;
+    out = SFOut();
+    decore::skillformula::MagicElusion(in, out);
+    EXPECT_EQ(892, out.Damage);    // 4464/5
+    EXPECT_EQ(1538, out.Duration); // 50 + 4464/3
+    out = SFOut();
+    decore::skillformula::IllusionOfAvenge(in, out);
+    EXPECT_EQ(1503, out.Damage); // 15 + 4464/3
+}
+
+TEST(SkillOutputFormula, MentalSwordRangeGrowsWithLevel) {
+    SFIn in = sfin();
+    in.SkillLevel = 50;
+    SFOut out;
+    decore::skillformula::MentalSword(in, out);
+    EXPECT_EQ(45, out.Damage); // 30 + 15*50/50
+    EXPECT_EQ(3, out.Range);   // 2 + 50/33
+    EXPECT_EQ(60, out.Delay);  // (8 - 50/20)*10
 }
 
 } // namespace
