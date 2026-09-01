@@ -559,6 +559,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLCharacterRepository.cpp
     repository/MySQLGoldRepository.cpp
     repository/MySQLGoodsRepository.cpp
+    repository/MySQLGuildRepository.cpp
     repository/MySQLItemRepository.cpp
     repository/MySQLEffectSaveRepository.cpp
     repository/MySQLFlagSetRepository.cpp

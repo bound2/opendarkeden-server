@@ -54,10 +54,10 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 13 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 224 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files) |
+| R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 221 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,980 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 867 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` (867 since the never-compiled `SlotInfo.cpp`'s stale specs left with the file, 2.4 review) |
 
@@ -1491,6 +1491,69 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > GameServer.cpp never starts, and its own connection), and the five
   > no build target compiles (Vampire_backup, GameServerInfoManager,
   > EventMonsterNameManager, GameWorldInfoManager, MoonCardUtil).
+  > **Guild cluster (2026-09-02, stacked on the ExpTable round)**: the
+  > last live cluster in the gameserver root — Guild.cpp, GuildManager.cpp
+  > and GuildUnion.cpp — R2 13→10, R3 224→221, R5 5,984→5,980 (the four
+  > __BEGIN_TRY macros inside the deleted dead blocks). A new `GuildRepository`
+  > takes GuildMember (exists / insert and re-join in the plain and
+  > waiting variants / load / save / delete / the rank-plus-ExpireDate
+  > write behind expire() and leave() / intro read and write / the
+  > boot-time Rank IN (0,1,2,3) list), GuildInfo (insert with the
+  > corrected intro / load / save without the intro / delete together
+  > with the guild's GuildUnionMember rows / the GuildState IN (%d, %d)
+  > list / the name-and-master lookup the offer list makes), the
+  > guild-scoped war reads (castle count and lookup, the five-slot
+  > WarScheduleInfo count in WAIT/START, the ReinforceRegisterInfo join,
+  > the two Status='START' counts), the unions (insert returning the
+  > AUTO_INCREMENT id, member insert / delete-reporting-a-hit / union
+  > delete, the two loads, the guild→union and union→master lookups, the
+  > quoted-key member count) and the union offers (the ten-day ESCAPE
+  > penalty count, the stale-offer delete, JOIN and QUIT inserts, the
+  > OfferType+0 / DATE_FORMAT list, the per-type UnionID lookups, delete
+  > and count). Every literal byte-for-byte: the `Rank` backticks, the
+  > spaced "GuildMember( ... ) VALUES ( ... )" against the unspaced union
+  > inserts, the quoted numeric keys, the lower-case "and", "count(*)"
+  > against "COUNT(*)", the doubled %% in the DATE_FORMAT literal; the
+  > WORD guild ids and BYTE rank/type/race/state stream through "%d" or
+  > "%u" exactly where they did. Dead code deleted: the gameserver's
+  > `#ifdef __SHARED_SERVER__` blocks that no build compiles (the
+  > sharedserver builds its own Guild.cpp / GuildManager.cpp) —
+  > Guild::saveIntro / tinysave / saveCount, GuildManager::init's whole
+  > body (the MaxGuildID and per-race MaxZoneID probes), and
+  > deleteGuild's DB purge — and hasWarSchedule's `#else` branch for the
+  > __OLD_GUILD_WAR__ macro that Types.h comments out. Disclosures:
+  > GuildUnion::destroy, clearOffer, and the early-return paths of
+  > removeMasterGuild, makeOfferList, acceptJoin and hasOffer's false path
+  > never freed their Statements — the seam does, fixed knowingly;
+  > GuildUnionManager::removeMasterGuild's non-master branch ran its
+  > GuildUnionInfo lookup through the OUTER statement (`pStmt`, not the
+  > `pStmt2` it had just created), which freed the outer result it then
+  > kept reading (`pResult->next()`, `pResult->getInt(1)`,
+  > `pResult->getInt(2)`) — a use-after-free; the seam reads the guild's
+  > UnionID and OwnerGuildID before the master lookup, so the values that
+  > were intended are the ones used (knowing fix of undefined behaviour;
+  > the stray second `pResult->next()` is gone with it); GuildManager::load
+  > read RequestDateTime only for waiting members — the row reads it for
+  > every member (a nullable datetime; getString gives "" for NULL);
+  > Korean comments inside the replaced blocks are translated, the
+  > GuildUnion.log format string stays. Not enclosed: the sharedserver's
+  > own Guild.cpp / GuildManager.cpp copies, the war scheduler's
+  > WarScheduleInfo writes (war/), CGSayHandler's GM guild commands, and
+  > the SG*Guild* handlers that mutate guild rows from the
+  > SharedServerManager thread. No fake tier; +5 integration tests
+  > (members created, re-joined in both variants, saved, expired, intro
+  > round-tripped, the rank 0..3 list, deleted; guilds created, loaded,
+  > saved without touching the intro, listed by state, name/master looked
+  > up, deleted with their union rows; the castle and war counts scoped to
+  > the guild and to WAIT/START/START; a union created with its
+  > AUTO_INCREMENT id, members read, the guild→union and union→master
+  > lookups, member delete reporting a hit then a miss, union delete;
+  > offers inserted, read by type with the enum ordinal and today's
+  > yymmdd, the ten-day ESCAPE penalty, stale offers aged out, cleared).
+  > Remaining SQL under gameserver/: R2 = 10 files — CreatureUtil.cpp (the
+  > character-deletion flow), TradeManager (deferred above), and eight
+  > files whose SQL never runs (EventShutdown, SystemAvailabilitiesManager,
+  > SMSServiceThread, and the five in no build target).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

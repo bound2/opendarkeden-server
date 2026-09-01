@@ -41,6 +41,7 @@
 #include "repository/GameInfoRepository.h"
 #include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
+#include "repository/GuildRepository.h"
 #include "repository/ItemRepository.h"
 #include "repository/MessageRepository.h"
 #include "repository/NicknameRepository.h"
@@ -2892,6 +2893,287 @@ TEST(ExpTableMySQL, ExpTablesLoadByNamedColumnsWithAndWithoutACondition) {
     // STRBalanceInfo.AccumExp exceeds INT_MAX in the top rows; the row's int
     // (getInt = atoi) truncates exactly as the original's getInt did.
     EXPECT_FALSE(repository.loadExpTable("Level", "GoalExp", "AccumExp", "STRBalanceInfo", "").empty());
+}
+
+// --- the guild cluster against real MySQL --------------------------------------
+// Guilds, members, unions and union offers, plus the guild-scoped war reads.
+// GuildInfo and GuildMember are unseeded; the union and war tables are
+// seeded, so the tests use ids from 31000 up and clean them in SetUp/TearDown.
+
+class GuildMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM GuildMember WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM GuildInfo WHERE GuildID >= 31000");
+        execSQL("DELETE FROM GuildUnionMember WHERE OwnerGuildID >= 31000");
+        execSQL("DELETE FROM GuildUnionInfo WHERE MasterGuildID >= 31000");
+        execSQL("DELETE FROM GuildUnionOffer WHERE OwnerGuildID >= 31000");
+        execSQL("DELETE FROM WarScheduleInfo WHERE WarID >= 31000");
+        execSQL("DELETE FROM ReinforceRegisterInfo WHERE WarID >= 31000");
+        execSQL("DELETE FROM CastleInfo WHERE ServerID >= 31000");
+    }
+};
+
+TEST_F(GuildMySQL, MemberRowsAreCreatedRejoinedSavedExpiredAndDeleted) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    EXPECT_FALSE(repository.memberExists("it-m1"));
+    repository.insertMember(31000, "it-m1", 2);
+    EXPECT_TRUE(repository.memberExists("it-m1"));
+
+    GuildMemberRow row;
+    ASSERT_TRUE(repository.loadMember("it-m1", row));
+    EXPECT_EQ(31000, row.guildID);
+    EXPECT_EQ("it-m1", row.name);
+    EXPECT_EQ(2, row.rank);
+    EXPECT_EQ(0, row.logOn);
+    EXPECT_FALSE(repository.loadMember("it-none", row));
+
+    // Re-joining rewrites the row and clears the expiry.
+    repository.setMemberRankAndExpireDate(5, "1260901", "it-m1");
+    EXPECT_EQ("5", queryScalar("SELECT `Rank` FROM GuildMember WHERE Name='it-m1'"));
+    EXPECT_EQ("1260901", queryScalar("SELECT ExpireDate FROM GuildMember WHERE Name='it-m1'"));
+    repository.rejoinWaitingMember(31001, 1, "2026-01-02 03:04:05", "it-m1");
+    EXPECT_EQ("31001", queryScalar("SELECT GuildID FROM GuildMember WHERE Name='it-m1'"));
+    EXPECT_EQ("1", queryScalar("SELECT `Rank` FROM GuildMember WHERE Name='it-m1'"));
+    EXPECT_EQ("", queryScalar("SELECT ExpireDate FROM GuildMember WHERE Name='it-m1'"));
+    EXPECT_EQ("2026-01-02 03:04:05", queryScalar("SELECT RequestDateTime FROM GuildMember WHERE Name='it-m1'"));
+    repository.rejoinMember(31000, 3, "it-m1");
+    EXPECT_EQ("31000", queryScalar("SELECT GuildID FROM GuildMember WHERE Name='it-m1'"));
+    EXPECT_EQ("3", queryScalar("SELECT `Rank` FROM GuildMember WHERE Name='it-m1'"));
+
+    repository.saveMember(31002, 2, "it-m1");
+    EXPECT_EQ("31002", queryScalar("SELECT GuildID FROM GuildMember WHERE Name='it-m1'"));
+
+    repository.saveMemberIntro("hello", "it-m1");
+    std::string intro;
+    ASSERT_TRUE(repository.loadMemberIntro("it-m1", intro));
+    EXPECT_EQ("hello", intro);
+    EXPECT_FALSE(repository.loadMemberIntro("it-none", intro));
+
+    // The boot-time member list takes ranks 0..3 only.
+    repository.insertWaitingMember(31002, "it-m2", 0, "2026-02-03 04:05:06");
+    repository.insertMember(31002, "it-m3", 7);
+    std::vector<GuildMemberListRow> active = repository.loadActiveMembers();
+    bool seenM1 = false, seenM2 = false, seenM3 = false;
+    for (size_t r = 0; r < active.size(); r++) {
+        if (active[r].name == "it-m1")
+            seenM1 = true;
+        if (active[r].name == "it-m2") {
+            seenM2 = true;
+            EXPECT_EQ(31002, active[r].guildID);
+            EXPECT_EQ(0, active[r].rank);
+            EXPECT_EQ("2026-02-03 04:05:06", active[r].requestDateTime);
+        }
+        if (active[r].name == "it-m3")
+            seenM3 = true;
+    }
+    EXPECT_TRUE(seenM1);
+    EXPECT_TRUE(seenM2);
+    EXPECT_FALSE(seenM3);
+
+    repository.deleteMember("it-m2");
+    EXPECT_FALSE(repository.loadMember("it-m2", row));
+}
+
+TEST_F(GuildMySQL, GuildRowsAreCreatedLoadedSavedListedByStateAndDeletedWithTheirUnionRows) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    GuildRecord record;
+    record.id = 31000;
+    record.name = "it-guild";
+    record.type = 1;
+    record.race = 2;
+    record.state = 1;
+    record.serverGroupID = 3;
+    record.zoneID = 31000;
+    record.master = "it-master";
+    record.date = "2026-09-02";
+    record.intro = "intro";
+    repository.insertGuild(record);
+
+    GuildRow row;
+    ASSERT_TRUE(repository.loadGuild(31000, row));
+    EXPECT_EQ("it-guild", row.name);
+    EXPECT_EQ(1, row.type);
+    EXPECT_EQ(2, row.race);
+    EXPECT_EQ(1, row.state);
+    EXPECT_EQ(3, row.serverGroupID);
+    EXPECT_EQ(31000, row.zoneID);
+    EXPECT_EQ("it-master", row.master);
+    EXPECT_EQ("2026-09-02", row.date);
+    EXPECT_EQ("intro", queryScalar("SELECT Intro FROM GuildInfo WHERE GuildID=31000"));
+    EXPECT_FALSE(repository.loadGuild(31001, row));
+
+    record.name = "it-renamed";
+    record.state = 2;
+    record.master = "it-master2";
+    repository.saveGuild(record);
+    ASSERT_TRUE(repository.loadGuild(31000, row));
+    EXPECT_EQ("it-renamed", row.name);
+    EXPECT_EQ(2, row.state);
+    EXPECT_EQ("it-master2", row.master);
+    EXPECT_EQ("intro", queryScalar("SELECT Intro FROM GuildInfo WHERE GuildID=31000")); // save leaves the intro alone
+
+    record.id = 31001;
+    record.state = 9;
+    repository.insertGuild(record);
+    std::vector<GuildListRow> listed = repository.loadGuildsInStates(1, 2);
+    bool seen31000 = false, seen31001 = false;
+    for (size_t r = 0; r < listed.size(); r++) {
+        if (listed[r].id == 31000) {
+            seen31000 = true;
+            EXPECT_EQ("it-renamed", listed[r].name);
+            EXPECT_EQ(2, listed[r].state);
+            EXPECT_EQ("intro", listed[r].intro);
+        }
+        if (listed[r].id == 31001)
+            seen31001 = true;
+    }
+    EXPECT_TRUE(seen31000);
+    EXPECT_FALSE(seen31001);
+
+    std::string name, master;
+    ASSERT_TRUE(repository.loadGuildNameAndMaster(31000, name, master));
+    EXPECT_EQ("it-renamed", name);
+    EXPECT_EQ("it-master2", master);
+    EXPECT_FALSE(repository.loadGuildNameAndMaster(31002, name, master));
+
+    // Destroying a guild also drops its union memberships.
+    execSQL("INSERT INTO GuildUnionMember (UnionID, OwnerGuildID) VALUES (31000, 31000)");
+    repository.deleteGuild(31000);
+    EXPECT_FALSE(repository.loadGuild(31000, row));
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM GuildUnionMember WHERE OwnerGuildID=31000"));
+    EXPECT_TRUE(repository.loadGuild(31001, row));
+}
+
+TEST_F(GuildMySQL, CastleAndWarReadsAreScopedToTheGuild) {
+    execSQL("INSERT INTO CastleInfo (ServerID, ZoneID, GuildID, Name, BonusOptionType, ZoneIDList) "
+            "VALUES (31000, 31000, 31000, 'it-castle', '', '')");
+    execSQL("INSERT INTO WarScheduleInfo (WarID, ServerID, ZoneID, AttackGuildID3, Status) "
+            "VALUES (31000, 31000, 31000, 31000, 'WAIT')");
+    execSQL("INSERT INTO WarScheduleInfo (WarID, ServerID, ZoneID, AttackGuildID, Status) "
+            "VALUES (31001, 31000, 31000, 31000, 'END')");
+    execSQL("INSERT INTO WarScheduleInfo (WarID, ServerID, ZoneID, AttackGuildID, Status) "
+            "VALUES (31002, 31000, 31000, 31002, 'START')");
+    execSQL("INSERT INTO ReinforceRegisterInfo (WarID, ServerID, ReinforceGuildID, Status) "
+            "VALUES (31000, 31000, 31005, 'WAIT')");
+    execSQL("INSERT INTO ReinforceRegisterInfo (WarID, ServerID, ReinforceGuildID, Status) "
+            "VALUES (31000, 31000, 31006, 'DENY')");
+
+    GuildRepository& repository = defaultGuildRepository();
+
+    EXPECT_EQ(1, repository.countCastlesOfGuild(31000));
+    EXPECT_EQ(0, repository.countCastlesOfGuild(31001));
+    int serverID = 0, zoneID = 0;
+    ASSERT_TRUE(repository.loadCastleOfGuild(31000, serverID, zoneID));
+    EXPECT_EQ(31000, serverID);
+    EXPECT_EQ(31000, zoneID);
+    EXPECT_FALSE(repository.loadCastleOfGuild(31001, serverID, zoneID));
+
+    // Any of the five attacker slots counts, but only WAIT/START wars.
+    EXPECT_EQ(1, repository.countWarSchedulesOfAttacker(31000));
+    EXPECT_EQ(1, repository.countWarSchedulesOfAttacker(31002));
+    EXPECT_EQ(0, repository.countWarSchedulesOfAttacker(31003));
+
+    EXPECT_EQ(1, repository.countReinforceRegistrations(31005));
+    EXPECT_EQ(0, repository.countReinforceRegistrations(31006)); // DENY
+
+    EXPECT_EQ(1, repository.countStartedWarsAtCastle(31000, 31000));
+    EXPECT_EQ(0, repository.countStartedWarsAtCastle(31000, 31001));
+    EXPECT_EQ(1, repository.countStartedWarsOfAttacker(31002));
+    EXPECT_EQ(0, repository.countStartedWarsOfAttacker(31000)); // its war is WAIT
+}
+
+TEST_F(GuildMySQL, UnionsAreCreatedWithAnAutoIncrementIdAndTheirMembersReadAndRemoved) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    uint unionID = repository.insertUnion(31000);
+    ASSERT_GT(unionID, 0u);
+    repository.insertUnionMember(unionID, 31000);
+    repository.insertUnionMember(unionID, 31001);
+
+    std::vector<UnionRow> unions = repository.loadUnions();
+    bool seen = false;
+    for (size_t r = 0; r < unions.size(); r++) {
+        if (unions[r].unionID == (int)unionID) {
+            seen = true;
+            EXPECT_EQ(31000, unions[r].masterGuildID);
+        }
+    }
+    EXPECT_TRUE(seen);
+
+    std::vector<int> members = repository.loadUnionMemberGuilds(unionID);
+    ASSERT_EQ(2u, members.size());
+    EXPECT_EQ(2, repository.countUnionMembers(unionID));
+
+    int foundUnion = 0, foundOwner = 0;
+    ASSERT_TRUE(repository.loadUnionOfGuild(31001, foundUnion, foundOwner));
+    EXPECT_EQ((int)unionID, foundUnion);
+    EXPECT_EQ(31001, foundOwner);
+    EXPECT_FALSE(repository.loadUnionOfGuild(31002, foundUnion, foundOwner));
+
+    int master = 0;
+    ASSERT_TRUE(repository.loadUnionMaster((int)unionID, master));
+    EXPECT_EQ(31000, master);
+
+    EXPECT_TRUE(repository.deleteUnionMember(unionID, 31001));
+    EXPECT_FALSE(repository.deleteUnionMember(unionID, 31001)); // already gone
+    EXPECT_EQ(1, repository.countUnionMembers(unionID));
+
+    repository.deleteUnion(unionID);
+    EXPECT_FALSE(repository.loadUnionMaster((int)unionID, master));
+    EXPECT_EQ(0, repository.countUnionMembers(unionID));
+}
+
+TEST_F(GuildMySQL, UnionOffersAreInsertedReadByTypeAgedAndCleared) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    EXPECT_EQ(0, repository.countOffers(31000));
+    repository.insertJoinOffer(31000, 31000);
+    repository.insertQuitOffer(31000, 31001);
+    EXPECT_EQ(1, repository.countOffers(31000));
+
+    int unionID = 0;
+    ASSERT_TRUE(repository.loadJoinOfferUnion(31000, unionID));
+    EXPECT_EQ(31000, unionID);
+    EXPECT_FALSE(repository.loadQuitOfferUnion(31000, unionID));
+    ASSERT_TRUE(repository.loadQuitOfferUnion(31001, unionID));
+    EXPECT_EQ(31000, unionID);
+
+    std::vector<UnionOfferRow> offers = repository.loadOffers(31000);
+    ASSERT_EQ(2u, offers.size());
+    int today = atoi(queryScalar("SELECT DATE_FORMAT(now(),'%y%m%d')").c_str());
+    for (size_t r = 0; r < offers.size(); r++) {
+        EXPECT_EQ(today, offers[r].date);
+        if (offers[r].ownerGuildID == 31000)
+            EXPECT_EQ(1, offers[r].offerType); // JOIN is the enum's first value
+        if (offers[r].ownerGuildID == 31001)
+            EXPECT_EQ(2, offers[r].offerType); // QUIT
+    }
+
+    // The join penalty looks ten days back for an ESCAPE.
+    execSQL("INSERT INTO GuildUnionOffer (UnionID, OfferType, OwnerGuildID, OfferTime) "
+            "VALUES (31000, 'ESCAPE', 31002, now())");
+    execSQL("INSERT INTO GuildUnionOffer (UnionID, OfferType, OwnerGuildID, OfferTime) "
+            "VALUES (31000, 'ESCAPE', 31003, now() - interval 20 day)");
+    EXPECT_EQ(1, repository.countRecentEscapes(31002));
+    EXPECT_EQ(0, repository.countRecentEscapes(31003));
+
+    repository.deleteStaleOffers(31003);
+    EXPECT_EQ(0, repository.countOffers(31003));
+    repository.deleteStaleOffers(31002);
+    EXPECT_EQ(1, repository.countOffers(31002)); // fresh, kept
+
+    repository.deleteOffers(31000);
+    EXPECT_EQ(0, repository.countOffers(31000));
+    EXPECT_EQ(1, repository.countOffers(31001));
 }
 
 } // namespace
