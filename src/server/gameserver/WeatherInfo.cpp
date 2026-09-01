@@ -7,7 +7,7 @@
 #include "WeatherInfo.h"
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/GameInfoRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // global variable definition
@@ -59,26 +59,16 @@ void WeatherInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<WeatherRow> rows = defaultGameInfoRepository().loadWeather();
 
-    BEGIN_DB {
-        // pStmt   = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt = NEW_STMT;
-        pResult = pStmt->executeQuery("SELECT Month, Clear, Rainy, Snowy FROM WeatherInfo");
+    Assert(rows.size() == 12);
 
-        Assert(pResult->getRowCount() == 12);
-
-        while (pResult->next()) {
-            int month = pResult->getInt(1);
-            m_WeatherInfos[month - 1].setProbability(WEATHER_CLEAR, pResult->getInt(2));
-            m_WeatherInfos[month - 1].setProbability(WEATHER_RAINY, pResult->getInt(3));
-            m_WeatherInfos[month - 1].setProbability(WEATHER_SNOWY, pResult->getInt(4));
-        }
-
-        SAFE_DELETE(pStmt);
+    for (size_t r = 0; r < rows.size(); r++) {
+        int month = rows[r].month;
+        m_WeatherInfos[month - 1].setProbability(WEATHER_CLEAR, rows[r].clear);
+        m_WeatherInfos[month - 1].setProbability(WEATHER_RAINY, rows[r].rainy);
+        m_WeatherInfos[month - 1].setProbability(WEATHER_SNOWY, rows[r].snowy);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

@@ -83,9 +83,72 @@ struct WayPointRow {
     int race;
 };
 
+// ZoneEffectInfo's row: a rectangle plus the three effect values (the
+// bridge loader reads the rectangle only; other effects read the values).
+struct ZoneEffectRow {
+    int left;
+    int top;
+    int right;
+    int bottom;
+    int value1;
+    int value2;
+    int value3;
+};
+
+// PKZoneInfo's row (PKZoneInfoManager).
+struct PKZoneRow {
+    int zoneID;
+    int race;
+    int enterX;
+    int enterY;
+    int resurrectX;
+    int resurrectY;
+    int pcLimit;
+};
+
+// EventZoneInfo's row (EventZoneInfoManager).
+struct EventZoneRow {
+    int eventID;
+    int zoneID;
+    int enterX;
+    int enterY;
+    int resurrectX;
+    int resurrectY;
+    int pcLimit;
+};
+
+// LevelWarZoneInfo's row (LevelWarZoneInfoManager).
+struct LevelWarZoneRow {
+    int id;
+    int zoneID;
+    int sweeperTypeMin;
+    int sweeperTypeMax;
+    int slayerMin;
+    int slayerMax;
+    int vampireMin;
+    int vampireMax;
+    int oustersMin;
+    int oustersMax;
+    std::string zoneIDList;
+};
+
 class ZoneInfoRepository {
 public:
     virtual ~ZoneInfoRepository() {}
+
+    // ZoneEffectInfo rectangles of one effect class in a zone
+    // (EffectOnBridgeLoader; the nine skill effects that read the same
+    // table still carry their own literals — a later round).
+    virtual std::vector<ZoneEffectRow> loadZoneEffectRects(ZoneID_t zoneID, int effectID) = 0;
+
+    // ZoneInfo's MonsterList / EventMonsterList texts for a zone
+    // (MonsterManager::load). Returns false when the zone has no row.
+    virtual bool loadMonsterLists(ZoneID_t zoneID, std::string& monsterList, std::string& eventMonsterList) = 0;
+
+    // The whole PKZoneInfo / EventZoneInfo / LevelWarZoneInfo tables.
+    virtual std::vector<PKZoneRow> loadPKZones() = 0;
+    virtual std::vector<EventZoneRow> loadEventZones() = 0;
+    virtual std::vector<LevelWarZoneRow> loadLevelWarZones() = 0;
 
     // ZoneGroupInfo.ZoneGroupID for every group. ZoneGroupManager::load
     // asks for them ORDER BY ZoneGroupID; makeDefaultLoadInfo and

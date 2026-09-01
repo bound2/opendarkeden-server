@@ -6,8 +6,8 @@
 
 #include "DefaultOptionSetInfo.h"
 
-#include "DB.h"
 #include "ItemUtil.h"
+#include "repository/GameInfoRepository.h"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -33,28 +33,19 @@ DefaultOptionSetInfoManager::~DefaultOptionSetInfoManager() {}
 void DefaultOptionSetInfoManager::load()
 
 {
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<DefaultOptionSetRow> rows = defaultGameInfoRepository().loadDefaultOptionSets();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT Type, OptionList FROM DefaultOptionSetInfo");
+    for (size_t r = 0; r < rows.size(); r++) {
+        DefaultOptionSetInfo* pDefaultOptionSetInfo = new DefaultOptionSetInfo();
 
-        while (pResult->next()) {
-            uint i = 0;
+        pDefaultOptionSetInfo->setType((DefaultOptionSetType_t)rows[r].type);
+        string optionField = rows[r].optionList;
+        list<OptionType_t> optionList;
+        makeOptionList(optionField, optionList);
+        pDefaultOptionSetInfo->setOptionTypeList(optionList);
 
-            DefaultOptionSetInfo* pDefaultOptionSetInfo = new DefaultOptionSetInfo();
-
-            pDefaultOptionSetInfo->setType((DefaultOptionSetType_t)pResult->getInt(++i));
-            string optionField = pResult->getString(++i);
-            list<OptionType_t> optionList;
-            makeOptionList(optionField, optionList);
-            pDefaultOptionSetInfo->setOptionTypeList(optionList);
-
-            addDefaultOptionSetInfo(pDefaultOptionSetInfo);
-        }
+        addDefaultOptionSetInfo(pDefaultOptionSetInfo);
     }
-    END_DB(pStmt)
 }
 
 DefaultOptionSetInfo* DefaultOptionSetInfoManager::getDefaultOptionSetInfo(DefaultOptionSetType_t type) {

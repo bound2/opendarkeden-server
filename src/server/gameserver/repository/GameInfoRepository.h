@@ -65,9 +65,122 @@ enum MonsterNameList {
     MONSTER_NAME_LIST_MAX
 };
 
+// --- the config tables the second round added ------------------------------
+
+struct WeatherRow {
+    int month;
+    int clear;
+    int rainy;
+    int snowy;
+};
+
+struct StringPoolRow {
+    int id;
+    std::string text;
+};
+
+struct ShopTemplateRow {
+    int id;
+    int shopType;
+    int itemClass;
+    int minItemType;
+    int maxItemType;
+    int minOptionLevel;
+    int maxOptionLevel;
+};
+
+// NicknameIndex rows of NickType 'LEVEL' (LevelNickInfoManager).
+struct LevelNickRow {
+    int nickIndex;
+    int race;
+    int level10;
+};
+
+struct ItemMineRow {
+    int id;
+    std::string itemClass;
+    int itemType;
+    std::string itemOption;
+};
+
+struct ItemGradeRatioRow {
+    int grade;
+    int ratio;
+    int gambleRatio;
+    int beadRatio;
+};
+
+// GoodsListInfo rows other than Kind 'SET' (GoodsInfoManager, on the
+// dist connection). limited is the enum's ordinal ("Limited+0": 1 =
+// LIMITED, 2 = UNLIMITED, 3 = FOREVER).
+struct GoodsInfoRow {
+    int goodsID;
+    std::string name;
+    int itemClass;
+    int itemType;
+    int grade;
+    std::string optionType;
+    int num;
+    int limited;
+    int hour;
+};
+
+struct WorldRow {
+    int id;
+    std::string name;
+    int stat;
+};
+
+struct DefaultOptionSetRow {
+    int type;
+    std::string optionList;
+};
+
+struct DarkLightRow {
+    int month;
+    int hour;
+    int minute;
+    int darkLevel;
+    int lightLevel;
+};
+
+struct CastleSkillRow {
+    int skillType;
+    int zoneID;
+};
+
+struct CastleShrineRow {
+    int id;
+    std::string name;
+    int itemType;
+    int guardZoneID;
+    int guardX;
+    int guardY;
+    int guardMonsterType;
+    int holyZoneID;
+    int holyX;
+    int holyY;
+    int holyMonsterType;
+};
+
 class GameInfoRepository {
 public:
     virtual ~GameInfoRepository() {}
+
+    // The whole-table config reads of the second round, one per table.
+    virtual std::vector<WeatherRow> loadWeather() = 0;
+    virtual std::vector<StringPoolRow> loadStrings() = 0;
+    virtual std::vector<ShopTemplateRow> loadShopTemplates() = 0;
+    virtual std::vector<LevelNickRow> loadLevelNicks() = 0;
+    virtual std::vector<ItemMineRow> loadItemMines() = 0;
+    virtual std::vector<ItemGradeRatioRow> loadItemGradeRatios() = 0;
+    virtual std::vector<GoodsInfoRow> loadGoods() = 0;
+    virtual std::vector<WorldRow> loadWorlds() = 0;
+    virtual std::vector<DefaultOptionSetRow> loadDefaultOptionSets() = 0;
+    virtual std::vector<DarkLightRow> loadDarkLight() = 0;
+    virtual std::vector<CastleSkillRow> loadCastleSkills() = 0;
+    virtual std::vector<CastleShrineRow> loadCastleShrines() = 0;
+    virtual std::vector<std::string> loadLogUserNames() = 0;
 
     virtual bool loadMaxSkillType(int& maxSkillType) = 0;
     virtual std::vector<SkillParentRow> loadSkillTree() = 0;

@@ -1,37 +1,29 @@
 #include "ItemGradeManager.h"
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/GameInfoRepository.h"
 
 void ItemGradeManager::load() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    vector<ItemGradeRatioRow> rows = defaultGameInfoRepository().loadItemGradeRatios();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT Grade, Ratio, GambleRatio, BeadRatio FROM ItemGradeRatioInfo");
+    Assert(rows.size() == 10);
+    m_GradeGambleRatios.reserve(10);
+    m_GradeBeadRatios.reserve(10);
+    m_GradeRatios.reserve(10);
 
-        Assert(pResult->getRowCount() == 10);
-        m_GradeGambleRatios.reserve(10);
-        m_GradeBeadRatios.reserve(10);
-        m_GradeRatios.reserve(10);
+    for (size_t r = 0; r < rows.size(); r++) {
+        int Grade = rows[r].grade;
+        int Ratio = rows[r].ratio;
+        int GambleRatio = rows[r].gambleRatio;
+        int BeadRatio = rows[r].beadRatio;
 
-        while (pResult->next()) {
-            int Grade = pResult->getInt(1);
-            int Ratio = pResult->getInt(2);
-            int GambleRatio = pResult->getInt(3);
-            int BeadRatio = pResult->getInt(4);
-
-            m_GradeRatios[Grade - 1] = Ratio;
-            m_GradeGambleRatios[Grade - 1] = GambleRatio;
-            m_GradeBeadRatios[Grade - 1] = BeadRatio;
-            cout << Grade << "급 : " << Ratio << ", " << GambleRatio << ", " << BeadRatio << endl;
-        }
-
-        SAFE_DELETE(pStmt);
+        m_GradeRatios[Grade - 1] = Ratio;
+        m_GradeGambleRatios[Grade - 1] = GambleRatio;
+        m_GradeBeadRatios[Grade - 1] = BeadRatio;
+        cout << Grade << "급 : " << Ratio << ", " << GambleRatio << ", " << BeadRatio << endl;
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

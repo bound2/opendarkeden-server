@@ -7,7 +7,6 @@
 #include "EffectOnBridge.h"
 
 #include "Creature.h"
-#include "DB.h"
 #include "GCModifyInformation.h"
 #include "GCRemoveEffect.h"
 #include "GCStatusCurrentHP.h"
@@ -19,6 +18,7 @@
 #include "Vampire.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/ZoneInfoRepository.h"
 #include "skill/EffectBloodDrain.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -81,48 +81,36 @@ void EffectOnBridgeLoader::load(Zone* pZone)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<ZoneEffectRow> rows =
+        defaultZoneInfoRepository().loadZoneEffectRects(pZone->getZoneID(), (int)Effect::EFFECT_CLASS_ON_BRIDGE);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT LeftX, TopY, RightX, BottomY, Value1, Value2, Value3 FROM ZoneEffectInfo "
-                                      "WHERE ZoneID = %d AND EffectID = %d",
-                                      pZone->getZoneID(), (int)Effect::EFFECT_CLASS_ON_BRIDGE);
+    for (size_t r = 0; r < rows.size(); r++) {
+        ZoneCoord_t left = rows[r].left;
+        ZoneCoord_t top = rows[r].top;
+        ZoneCoord_t right = rows[r].right;
+        ZoneCoord_t bottom = rows[r].bottom;
+        // rows[r].value1 / value2 / value3 are selected and ignored, as before
 
-        while (pResult->next()) {
-            int count = 0;
+        VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
 
-            ZoneCoord_t left = pResult->getInt(++count);
-            ZoneCoord_t top = pResult->getInt(++count);
-            ZoneCoord_t right = pResult->getInt(++count);
-            ZoneCoord_t bottom = pResult->getInt(++count);
-            //          int         value1  = pResult->getInt( ++count );
-            //          int         value2  = pResult->getInt( ++count );
-            //          int         value3  = pResult->getInt( ++count );
+        for (int X = left; X <= right; X++)
+            for (int Y = top; Y <= bottom; Y++) {
+                if (rect.ptInRect(X, Y)) {
+                    Tile& tile = pZone->getTile(X, Y);
+                    if (tile.canAddEffect()) {
+                        EffectOnBridge* pEffect = new EffectOnBridge(pZone, X, Y);
 
-            VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
-
-            for (int X = left; X <= right; X++)
-                for (int Y = top; Y <= bottom; Y++) {
-                    if (rect.ptInRect(X, Y)) {
-                        Tile& tile = pZone->getTile(X, Y);
-                        if (tile.canAddEffect()) {
-                            EffectOnBridge* pEffect = new EffectOnBridge(pZone, X, Y);
-
-                            // Tile-level effects should NOT be added to Zone's EffectManager.
-                            // They are permanent (deadline=99999999) and managed by Tile itself.
-                            // Adding them to Zone's EffectManager causes severe CPU overhead
-                            // because heartbeat() iterates through all effects every tick.
-                            pZone->registerObject(pEffect);
-                            // pZone->addEffect(pEffect);  // REMOVED: Don't add permanent tile effects to Zone
-                            tile.addEffect(pEffect);
-                        }
+                        // Tile-level effects should NOT be added to Zone's EffectManager.
+                        // They are permanent (deadline=99999999) and managed by Tile itself.
+                        // Adding them to Zone's EffectManager causes severe CPU overhead
+                        // because heartbeat() iterates through all effects every tick.
+                        pZone->registerObject(pEffect);
+                        // pZone->addEffect(pEffect);  // REMOVED: Don't add permanent tile effects to Zone
+                        tile.addEffect(pEffect);
                     }
                 }
-        }
+            }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

@@ -7,10 +7,10 @@
 #include "DarkLightInfo.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "GameTime.h"
 #include "TimeManager.h"
 #include "Zone.h"
+#include "repository/GameInfoRepository.h"
 
 const int DLIndexByTimeband[4] = {
     // (month-1)*(24*6) + (hour)*6 + (minute/10)
@@ -100,38 +100,27 @@ void DarkLightInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<DarkLightRow> rows = defaultGameInfoRepository().loadDarkLight();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT Month , Hour , Minute , DarkLevel , LightLevel FROM DarkLightInfo");
+    for (size_t r = 0; r < rows.size(); r++) {
+        BYTE month = rows[r].month;
+        Assert(month != 0 && month <= 12);
 
-        while (pResult->next()) {
-            uint i = 0;
+        BYTE hour = rows[r].hour;
+        Assert(hour < 24);
 
-            BYTE month = pResult->getInt(++i);
-            Assert(month != 0 && month <= 12);
+        BYTE minute = rows[r].minute;
+        Assert(minute < 60 && minute % 10 == 0);
 
-            BYTE hour = pResult->getInt(++i);
-            Assert(hour < 24);
+        DarkLightInfo* pDIInfo = new DarkLightInfo();
+        pDIInfo->setDarkLevel(rows[r].darkLevel);
+        pDIInfo->setLightLevel(rows[r].lightLevel);
 
-            BYTE minute = pResult->getInt(++i);
-            Assert(minute < 60 && minute % 10 == 0);
-
-            DarkLightInfo* pDIInfo = new DarkLightInfo();
-            pDIInfo->setDarkLevel(pResult->getInt(++i));
-            pDIInfo->setLightLevel(pResult->getInt(++i));
-
-            // 월은 1-12 이지만, 시간은 0-23 이며, 분은 0, 10, 20, 30, 40, 50 이다.
-            int index = (month - 1) * (24 * 6) + (hour) * 6 + (minute / 10);
-            Assert(m_DarkLightInfos[index] == NULL);
-            m_DarkLightInfos[index] = pDIInfo;
-        }
-
-        SAFE_DELETE(pStmt);
+        // Months run 1-12, hours 0-23, and minutes are 0, 10, 20, 30, 40, 50.
+        int index = (month - 1) * (24 * 6) + (hour) * 6 + (minute / 10);
+        Assert(m_DarkLightInfos[index] == NULL);
+        m_DarkLightInfos[index] = pDIInfo;
     }
-    END_DB(pStmt)
 
     // 지정되지 않은 빈칸은 이전값을 사용해서 복사한다.
     Assert(m_DarkLightInfos[0] != NULL);

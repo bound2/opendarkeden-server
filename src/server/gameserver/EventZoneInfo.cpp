@@ -1,9 +1,9 @@
 #include "EventZoneInfo.h"
 
-#include "DB.h"
 #include "PCManager.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/ZoneInfoRepository.h"
 
 EventZoneInfo::EventZoneInfo(WORD eventID, ZoneID_t zoneID) : m_EventID(eventID) {
     m_pZone = getZoneByZoneID(zoneID);
@@ -68,35 +68,28 @@ EventZoneInfo* EventZoneInfoManager::getEventZoneInfo(ZoneID_t zoneID) const {
 void EventZoneInfoManager::load() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    vector<EventZoneRow> rows = defaultZoneInfoRepository().loadEventZones();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT EventID, ZoneID, EnterX, EnterY, ResurrectX, ResurrectY, PCLimit FROM EventZoneInfo");
+    for (size_t r = 0; r < rows.size(); r++) {
+        WORD eventID = rows[r].eventID;
+        ZoneID_t zoneID = rows[r].zoneID;
+        EventZoneInfo* pEventZoneInfo = new EventZoneInfo(eventID, zoneID);
 
-        while (pResult->next()) {
-            WORD eventID = pResult->getInt(1);
-            ZoneID_t zoneID = pResult->getInt(2);
-            EventZoneInfo* pEventZoneInfo = new EventZoneInfo(eventID, zoneID);
+        pEventZoneInfo->m_EnterX = rows[r].enterX;
+        pEventZoneInfo->m_EnterY = rows[r].enterY;
+        pEventZoneInfo->m_ResurrectX = rows[r].resurrectX;
+        pEventZoneInfo->m_ResurrectY = rows[r].resurrectY;
 
-            pEventZoneInfo->m_EnterX = pResult->getInt(3);
-            pEventZoneInfo->m_EnterY = pResult->getInt(4);
-            pEventZoneInfo->m_ResurrectX = pResult->getInt(5);
-            pEventZoneInfo->m_ResurrectY = pResult->getInt(6);
+        pEventZoneInfo->m_PCLimit = rows[r].pcLimit;
+        pEventZoneInfo->m_bEventOn = false;
 
-            pEventZoneInfo->m_PCLimit = pResult->getInt(7);
-            pEventZoneInfo->m_bEventOn = false;
-
-            if (m_ZoneEventInfos[eventID] == NULL) {
-                m_ZoneEventInfos[eventID] = new ZoneEventInfo(eventID);
-            }
-
-            m_ZoneEventInfos[eventID]->addEventZoneInfo(pEventZoneInfo);
-            m_EventZoneInfos[zoneID] = pEventZoneInfo;
+        if (m_ZoneEventInfos[eventID] == NULL) {
+            m_ZoneEventInfos[eventID] = new ZoneEventInfo(eventID);
         }
+
+        m_ZoneEventInfos[eventID]->addEventZoneInfo(pEventZoneInfo);
+        m_EventZoneInfos[zoneID] = pEventZoneInfo;
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

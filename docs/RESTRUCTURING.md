@@ -54,8 +54,8 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 61 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 271 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders) |
+| R2 | Files with inline SQL in gameserver root | 43 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→43 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, GameWorldInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 253 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→253 the same day: the eighteen config loaders) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -1101,10 +1101,41 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > the loginserver/sharedserver GameServerGroupInfo loads, and the
   > loginserver's UserInfoManager — a byte-level clone of the
   > GameServerGroupInfo MAX-probe-plus-rows pattern, same never-firing
-  > guard, same +2. Remaining SQL under gameserver/: the long tail (R2 = 61
-  > files) — biggest remaining clusters are CreatureUtil.cpp's
-  > 128-statement character deletion and the guild trio
-  > (Guild/GuildManager/GuildUnion, 65 statements).
+  > guard, same +2.
+  > **Config loaders (2026-09-01, stacked on the balance round)**:
+  > eighteen more read-only boot-time loaders cleansed (R2 61→43, R3
+  > 271→253) by extending the two existing seams rather than adding a
+  > third. `ZoneInfoRepository` gains the zone-shaped config reads:
+  > ZoneEffectInfo rectangles by zone and effect (EffectOnBridge; the
+  > nine skill/Effect*.cpp that read the same table with their own
+  > literals are the next round's candidates for this method),
+  > ZoneInfo's MonsterList/EventMonsterList texts for a zone
+  > (MonsterManager, dynamic zones reading their template's), and the
+  > PKZoneInfo / EventZoneInfo / LevelWarZoneInfo tables.
+  > `GameInfoRepository` gains WeatherInfo, GSStringPool, ShopTemplate,
+  > NicknameIndex's 'LEVEL' rows, ItemMineInfo, ItemGradeRatioInfo,
+  > GoodsListInfo (on the dist connection, "Limited+0" enum ordinal,
+  > "Kind<>'SET'" filter — as GoodsInfoManager read it), WorldInfo,
+  > DefaultOptionSetInfo, DarkLightInfo (its " , "-spaced column list
+  > kept), CastleSkillInfo (mixed-case "Select ... from"),
+  > CastleShrineInfo and LogUserInfo. Every row field is the driver
+  > getter's type; the callers keep their narrowings and their
+  > Asserts on the shipped shape (WeatherInfo's 12 rows,
+  > ItemGradeRatioInfo's 10, DarkLightInfo's month/hour/minute ranges).
+  > Disclosures: GameWorldInfoManager had the same hand-written
+  > SQLQueryException→Error / Throwable→cout try as
+  > GameServerGroupInfoManager and gets the same treatment; six of the
+  > originals never freed their Statement on the success path
+  > (StringPool, LevelWarZoneInfoManager, ItemMineInfo, EventZoneInfo,
+  > DefaultOptionSetInfo, CastleShrineInfoManager) — the seams do, fixed
+  > knowingly; SystemAvailabilitiesManager's SELECT sits under
+  > `__CHINA_SERVER__`/`__THAILAND_SERVER__` (uncompiled) and stays. No
+  > fake tier; +5 integration tests (fixed row counts, non-empty lists,
+  > the dist-connection goods read excluding 'SET', and the two per-zone
+  > reads against inserted rows). Remaining SQL under gameserver/: the
+  > long tail (R2 = 43 files) — biggest remaining clusters are
+  > CreatureUtil.cpp's 128-statement character deletion and the guild
+  > trio (Guild/GuildManager/GuildUnion, 65 statements).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

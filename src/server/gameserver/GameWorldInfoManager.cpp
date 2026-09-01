@@ -9,10 +9,7 @@
 // include files
 #include "GameWorldInfoManager.h"
 
-#include "database/Connection.h"
-#include "database/DatabaseManager.h"
-#include "database/Result.h"
-#include "database/Statement.h"
+#include "repository/GameInfoRepository.h"
 
 //----------------------------------------------------------------------
 // constructor
@@ -69,35 +66,28 @@ void GameWorldInfoManager::load()
     // clear GameWorldInfos
     clear();
 
-    Statement* pStmt = NULL;
-
+    // The query used to sit in a hand-written try that turned a
+    // SQLQueryException into an Error and swallowed any other Throwable
+    // with a cout (the same shape as GameServerGroupInfoManager). The
+    // seam converts a SQL failure the way every repository does
+    // (DBError.log + a thrown const char*, see DB.h's END_DB), so only
+    // the Throwable arm is kept: a failure in addGameWorldInfo is still
+    // printed and swallowed.
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT ID, Name, Stat FROM WorldInfo");
+        vector<WorldRow> rows = defaultGameInfoRepository().loadWorlds();
 
         cout << "Loading GameWorldInfoManager...." << endl;
 
-        while (pResult->next()) {
+        for (size_t r = 0; r < rows.size(); r++) {
             // cout << "TICK" << endl;
             GameWorldInfo* pGameWorldInfo = new GameWorldInfo();
-            pGameWorldInfo->setID(pResult->getInt(1));
-            pGameWorldInfo->setName(pResult->getString(2));
-            pGameWorldInfo->setStatus((WorldStatus)pResult->getInt(3));
+            pGameWorldInfo->setID(rows[r].id);
+            pGameWorldInfo->setName(rows[r].name);
+            pGameWorldInfo->setStatus((WorldStatus)rows[r].stat);
             addGameWorldInfo(pGameWorldInfo);
         }
         cout << "End GameWorldInfoManager Load" << endl;
-
-        // 필살 삭제!
-        SAFE_DELETE(pStmt);
-
-    } catch (SQLQueryException& sqe) {
-        // 필살 삭제!
-        SAFE_DELETE(pStmt);
-
-        throw Error(sqe.toString());
-
     } catch (Throwable& t) {
-        SAFE_DELETE(pStmt);
         cout << t.toString() << endl;
     }
 

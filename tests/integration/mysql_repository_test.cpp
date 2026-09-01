@@ -1657,6 +1657,98 @@ TEST(GameInfoMySQL, EveryMonsterNameListIsNonEmpty) {
     }
 }
 
+// --- the config loaders of the second game-info round ---------------------
+// All read-only, all shipped seeded: the tests assert the shape the boot
+// requires (the weather and grade tables' exact row counts, the others
+// non-empty and internally consistent) plus the two per-zone reads
+// against rows they insert with ids from 31000 up.
+
+TEST(ConfigLoadersMySQL, WeatherAndGradeTablesHaveTheirFixedRowCounts) {
+    // WeatherInfoManager asserts 12 rows, ItemGradeManager 10 — the shipped
+    // data must satisfy both or the boot would assert-fail.
+    std::vector<WeatherRow> weather = defaultGameInfoRepository().loadWeather();
+    ASSERT_EQ(12u, weather.size());
+    for (size_t r = 0; r < weather.size(); r++)
+        EXPECT_TRUE(weather[r].month >= 1 && weather[r].month <= 12);
+
+    std::vector<ItemGradeRatioRow> grades = defaultGameInfoRepository().loadItemGradeRatios();
+    ASSERT_EQ(10u, grades.size());
+    for (size_t r = 0; r < grades.size(); r++)
+        EXPECT_TRUE(grades[r].grade >= 1 && grades[r].grade <= 10);
+}
+
+TEST(ConfigLoadersMySQL, EveryWholeTableConfigListIsNonEmpty) {
+    GameInfoRepository& repository = defaultGameInfoRepository();
+    EXPECT_FALSE(repository.loadStrings().empty());
+    EXPECT_FALSE(repository.loadShopTemplates().empty());
+    EXPECT_FALSE(repository.loadLevelNicks().empty());
+    EXPECT_FALSE(repository.loadItemMines().empty());
+    EXPECT_FALSE(repository.loadWorlds().empty());
+    EXPECT_FALSE(repository.loadDefaultOptionSets().empty());
+    EXPECT_FALSE(repository.loadDarkLight().empty());
+    EXPECT_FALSE(repository.loadCastleSkills().empty());
+    EXPECT_FALSE(repository.loadCastleShrines().empty());
+    EXPECT_FALSE(repository.loadLogUserNames().empty());
+
+    std::vector<PKZoneRow> pkZones = defaultZoneInfoRepository().loadPKZones();
+    EXPECT_FALSE(pkZones.empty());
+    std::vector<EventZoneRow> eventZones = defaultZoneInfoRepository().loadEventZones();
+    EXPECT_FALSE(eventZones.empty());
+    std::vector<LevelWarZoneRow> levelWarZones = defaultZoneInfoRepository().loadLevelWarZones();
+    EXPECT_FALSE(levelWarZones.empty());
+}
+
+TEST(ConfigLoadersMySQL, GoodsComeFromTheDistConnectionWithoutTheSetKind) {
+    // GoodsListInfo is read on the thread's dist connection (same schema
+    // in this stack) and the SELECT excludes Kind 'SET'; Limited+0 is the
+    // enum ordinal, 1..3.
+    std::vector<GoodsInfoRow> goods = defaultGameInfoRepository().loadGoods();
+    ASSERT_FALSE(goods.empty());
+    for (size_t r = 0; r < goods.size(); r++) {
+        EXPECT_TRUE(goods[r].limited >= 1 && goods[r].limited <= 3);
+        EXPECT_NE("SET",
+                  queryScalar("SELECT Kind FROM GoodsListInfo WHERE GoodsID=" + std::to_string(goods[r].goodsID)));
+    }
+}
+
+class ZoneConfigMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        execSQL("DELETE FROM ZoneInfo WHERE ZoneID >= 31000");
+        execSQL("DELETE FROM ZoneEffectInfo WHERE ZoneID >= 31000");
+    }
+};
+
+TEST_F(ZoneConfigMySQL, ZoneEffectRectsAreScopedToZoneAndEffect) {
+    execSQL("INSERT INTO ZoneEffectInfo (ZoneID, EffectID, LeftX, TopY, RightX, BottomY, Value1, Value2, Value3) "
+            "VALUES (31000, 7, 1, 2, 3, 4, 5, 6, 7)");
+    execSQL("INSERT INTO ZoneEffectInfo (ZoneID, EffectID, LeftX, TopY, RightX, BottomY, Value1, Value2, Value3) "
+            "VALUES (31000, 8, 9, 9, 9, 9, 9, 9, 9)"); // other effect
+    execSQL("INSERT INTO ZoneEffectInfo (ZoneID, EffectID, LeftX, TopY, RightX, BottomY, Value1, Value2, Value3) "
+            "VALUES (31001, 7, 9, 9, 9, 9, 9, 9, 9)"); // other zone
+
+    std::vector<ZoneEffectRow> rows = defaultZoneInfoRepository().loadZoneEffectRects(IT_ZONE, 7);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(1, rows[0].left);
+    EXPECT_EQ(2, rows[0].top);
+    EXPECT_EQ(3, rows[0].right);
+    EXPECT_EQ(4, rows[0].bottom);
+    EXPECT_EQ(5, rows[0].value1);
+    EXPECT_EQ(6, rows[0].value2);
+    EXPECT_EQ(7, rows[0].value3);
+}
+
+TEST_F(ZoneConfigMySQL, MonsterListsComeFromTheZoneRowOrReportNoRow) {
+    execSQL("INSERT INTO ZoneInfo (ZoneID, MonsterList, EventMonsterList) VALUES (31000, 'a:1', 'b:2')");
+
+    std::string monsters, eventMonsters;
+    ASSERT_TRUE(defaultZoneInfoRepository().loadMonsterLists(IT_ZONE, monsters, eventMonsters));
+    EXPECT_EQ("a:1", monsters);
+    EXPECT_EQ("b:2", eventMonsters);
+
+    EXPECT_FALSE(defaultZoneInfoRepository().loadMonsterLists(IT_ZONE_2, monsters, eventMonsters));
+}
+
 // --- BloodBibleSignObject against real MySQL ------------------------------
 
 class BloodBibleSignMySQL : public ::testing::Test {
