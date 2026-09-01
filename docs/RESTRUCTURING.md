@@ -437,7 +437,7 @@ same branch; recorded here because each is a trap worth not re-entering:
 - **`make test` poisoned the production build cache.** `DARKEDEN_BUILD_TESTS`
   is a cached BOOL and `make debug`/`release` reused the same `build/` dir
   without resetting it, so a later production build pulled in googletest and
-  the 948-file `TestPackets`. Fixed with explicit `=OFF` in those recipes
+  the then-948-file `TestPackets`. Fixed with explicit `=OFF` in those recipes
   plus `EXCLUDE_FROM_ALL` on both test targets.
 - **`ratchets.sh` overwrote a tracked file with no trap** — an interrupt
   between generate and restore left `AllPacketFactories.inc` clobbered. It
@@ -466,13 +466,15 @@ visibility can't express.
     adapters, network transport, handler wiring, composition root.
   Initially the split is aspirational for existing files; new code must land
   in the right target from day one.
-  > **Status:** done (2026-09-01) — all three targets exist and the apps
-  > link them: `de-kernel` (below) is the one wire archive every server
-  > links; `de-core` (`src/domain/`, created by 3.3) is linked by the
-  > gameserver and grows as extractions land; the per-app targets remain
-  > the composition roots. The file sort for legacy code continues under
-  > Phase 3 ratchets; layering is enforced by the 2.2 test + the kernel
-  > target's pinned include path.
+  > **Status:** done (2026-09-01) — the three layers exist as real,
+  > linked targets: `de-kernel` (below) is the one wire archive every
+  > server links; `de-core` (`src/domain/`, created by 3.3) is so far
+  > linked only by the gameserver and holds only the extracted formulas —
+  > the domain dirs named above are still gameserver app libraries, and
+  > moving them is 3.x extraction work, not part of this task's "define
+  > the layering". The file sort for legacy code continues under Phase 3
+  > ratchets; layering is enforced by the 2.2 test + the kernel target's
+  > pinned include path.
   > History: `de-kernel` became a real CMake target
   > (2026-08-31): a STATIC library whose membership is
   > `tests/arch/kernel_files.txt` (grown from the 57-file seed past a
@@ -494,7 +496,7 @@ visibility can't express.
   - Owner: CMake `PRIVATE` include dirs on each target; membership file
     shared with the 2.2 test.
 
-- [ ] **2.2 Include-graph architecture test.** A Python script under `tests/`
+- [x] **2.2 Include-graph architecture test.** A Python script under `tests/`
   (run by `make test`) that parses `#include` edges and fails on forbidden
   ones: kernel → core/app; core → `mysql.h`, socket headers, Lua headers;
   any core/app → kernel-internal detail headers as they get marked. Keep the
@@ -524,7 +526,8 @@ visibility can't express.
   `de-kernel` actually framework-free. Migrate direction-by-direction under
   the Phase 1 pin (layout must not change — golden tests prove it).
   Track with ratchet R4 (packets still carrying `execute()`).
-  > **Status:** in progress — infrastructure + the CG direction landed
+  > **Status:** done (2026-08-31; see the closing paragraph below) —
+  > history of how it landed: infrastructure + the CG direction landed
   > (2026-08-31). `PacketDispatcher` (kernel: id → `void(*)(Packet*,
   > Player*)` table, written only at startup so zone threads read it
   > lock-free) is consulted first in all five receive loops
@@ -608,7 +611,24 @@ visibility can't express.
   > kernel compiles see the same headers the per-server compiles saw, and
   > K2 — extended to ban `__COMBAT__` too, since a macro-conditional in a
   > kernel file would now silently compile as "off" for everyone — means
-  > no kernel object ever depended on the per-server defines.
+  > no kernel object ever depended on the per-server defines. Two
+  > adversarial reviewers (2026-09-01) verified this empirically:
+  > preprocessing all 545 kernel TUs under the old per-server flags and
+  > include paths vs de-kernel's produced zero differing TUs in every
+  > configuration. Their surviving findings, fixed: a `ratchets.sh`
+  > failure message still pointed at the deleted CMake lists; the
+  > `wire_tests` link comment described a Core↔TestPackets cycle the
+  > Datagram split had just removed; new checker rule **K3** (the packet
+  > libraries may define only K2-banned macros — "one meaning" enforced
+  > at the definition site, not held by coincidence of today's `-D` set)
+  > and a K1 ban on parent-relative includes (which resolve from the
+  > including file's directory and could bypass both the checker's
+  > basename match and the pinned include path). One tripwire was lost
+  > knowingly: the old thin per-server packet archives made a
+  > cross-server factory registration a link error; now every executable
+  > links all packet objects, so per-server over-registration in
+  > `PacketFactoryManager.cpp`'s `#if` blocks would link clean — the
+  > per-server validator whitelists remain the runtime gate.
   > Steps that got here:
   > 1. The 271 no-op GC/LC handler files are **deleted** (2.3's
   >    classification proved the server never runs them; the client repo
@@ -661,8 +681,8 @@ visibility can't express.
   >    excluded alongside `handler/` (one `__BEGIN_TRY` moved there).
   > 7. **`Core`'s non-packet utilities are sorted** (1,121 files):
   >    Geometry, Shape, HashMap, VSTemplateLib, ValueList, SlotInfo, the
-  >    WarInfo family, Assert1.cpp, Datagram/SerialDatagram,
-  >    PacketFactoryManager.h, `Player.{h,cpp}` and the Update/Resource
+  >    WarInfo family, Assert1.h, Datagram/SerialDatagram,
+  >    `Player.{h,cpp}` and the Update/Resource
   >    families all joined on the first fixpoint pass. Never-compiled
   >    `SlotInfo.cpp` lost its stale `throw()` specs; dead-on-arrival
   >    `AttributeListPacket` deleted. Held out by design:

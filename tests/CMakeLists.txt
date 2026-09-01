@@ -57,10 +57,11 @@ target_compile_definitions(wire_tests PRIVATE
 # which it links — the same macro-free compile the deployed servers link
 # (task 2.4). See the note there — this is not the client's own
 # configuration (the client defines __GAME_CLIENT__=1).
-# Core and TestPackets are mutually dependent static archives (Core's
-# DatagramFactoryRead.cpp calls back into PacketFactoryManager), so each
-# is listed twice for the single-pass linker; de-kernel follows
-# transitively, last.
+# The dependency between these archives is one-way since the kernel flip:
+# Core's DatagramFactoryRead.cpp calls into PacketFactoryManager
+# (TestPackets); TestPackets needs nothing from Core. The double listing
+# is kept as insurance against the cycle ever coming back; de-kernel
+# follows transitively, last.
 target_link_libraries(wire_tests PRIVATE
     TestPackets
     Core

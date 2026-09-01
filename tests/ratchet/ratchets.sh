@@ -117,7 +117,7 @@ rm -f "$registered" "$inventory"
 if [ -n "$missing" ]; then
     echo "[FAIL] factories registered in PacketFactoryManager but missing from the wire inventory:"
     echo "$missing" | sed 's/^/         /'
-    echo "         (add the packet sources to src/Core/CMakeLists.txt lists and regenerate, or"
+    echo "         (add the packet sources to tests/arch/kernel_files.txt and regenerate, or"
     echo "          justify an entry in tests/ratchet/factory_exceptions.txt)"
     fail=1
 else

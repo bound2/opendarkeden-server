@@ -26,6 +26,11 @@
 #       not four — and since the 2.4 flip every app links the ONE
 #       macro-free de-kernel compile, so a macro-conditional in a
 #       kernel file would silently compile as "off" everywhere.
+#   K3  the packet libraries in src/Core/CMakeLists.txt may not define
+#       any macro outside the K2 banned set: the kernel objects they
+#       share from de-kernel are guaranteed macro-independent only for
+#       macros K2 scans for, so "one meaning" must be enforced at the
+#       definition site too, not hold by coincidence of today's -D set.
 #   C1  a core file may not include MySQL, Lua, or socket-transport
 #       headers. Persistence belongs behind repository interfaces
 #       (task 3.2), transport belongs to the apps.
@@ -92,6 +97,15 @@ my @violations;
 # K1 + K2 over the kernel list.
 for my $file (sort keys %kernel) {
     for my $inc (quoted_includes($file)) {
+        # A parent-relative quoted include resolves from the including
+        # file's own directory BEFORE any -I, so it can escape src/Core
+        # while the basename check below still passes (e.g.
+        # "../server/gameserver/Player.h" — basename Player.h IS a
+        # kernel file). Ban the form outright.
+        if ($inc =~ m{\.\.}) {
+            push @violations, "K1 $file uses parent-relative include \"$inc\"";
+            next;
+        }
         my ($base) = $inc =~ m{([^/]+)$};
         push @violations, "K1 $file includes non-kernel \"$inc\""
             unless $kernel_base{$base};
@@ -104,6 +118,29 @@ for my $file (sort keys %kernel) {
         }
     }
     close $fh;
+}
+
+# K3: the packet libraries may only define K2-banned macros. The whole
+# link-flip safety argument (task 2.4) is that the shared de-kernel
+# objects could never have depended on the per-server defines because K2
+# scans kernel files for exactly those macros; a NEW define on a packet
+# library would sit outside that guarantee.
+{
+    my %k2_banned = map { $_ => 1 }
+        qw(__GAME_SERVER__ __LOGIN_SERVER__ __SHARED_SERVER__
+           __GAME_CLIENT__ __COMBAT__);
+    my $core_cmake = 'src/Core/CMakeLists.txt';
+    open(my $cm, '<', $core_cmake) or die "$core_cmake: $!";
+    while (<$cm>) {
+        next unless /target_compile_definitions\s*\(\s*(\S+)\s+\S+\s+(.+?)\)/;
+        my ($target, $defs) = ($1, $2);
+        for my $d (split ' ', $defs) {
+            push @violations,
+                "K3 $core_cmake: $target defines $d, outside the K2 set"
+                unless $k2_banned{$d};
+        }
+    }
+    close $cm;
 }
 
 # C1 over the core dirs.
