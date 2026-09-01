@@ -2863,6 +2863,34 @@ TEST_F(SessionMySQL, UserStatusIsUpdatedOrInsertedOnTheUserInfoDatabase) {
     EXPECT_EQ("127", queryScalar("SELECT CurrentUser FROM USERINFO.UserStatus WHERE WorldID=120 AND ServerID=31000"));
 }
 
+// --- the ExpTable template's generic balance read ---------------------------
+// SomethingGrowingUp.h's ExpTable::load names its table and columns; the seam
+// formats "SELECT %s, %s, %s FROM %s %s" from them. The seeded RankEXPInfo,
+// AdvancementClassEXPInfo and the attribute balance tables stand in.
+
+TEST(ExpTableMySQL, ExpTablesLoadByNamedColumnsWithAndWithoutACondition) {
+    BalanceInfoRepository& repository = defaultBalanceInfoRepository();
+
+    std::vector<ExpTableRow> ranks =
+        repository.loadExpTable("Level", "GoalExp", "AccumExp", "RankEXPInfo", "where RankType=0");
+    ASSERT_FALSE(ranks.empty());
+    EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM RankEXPInfo where RankType=0").c_str()), (int)ranks.size());
+    for (size_t r = 0; r < ranks.size(); r++) {
+        EXPECT_TRUE(ranks[r].level >= 1 && ranks[r].level <= 50);
+        EXPECT_EQ(atoi(queryScalar("SELECT GoalExp FROM RankEXPInfo where RankType=0 AND Level=" +
+                                   std::to_string(ranks[r].level))
+                           .c_str()),
+                  ranks[r].goalExp);
+    }
+
+    // No condition: the whole table (and the original's trailing space).
+    std::vector<ExpTableRow> all = repository.loadExpTable("Level", "GoalExp", "AccumExp", "RankEXPInfo", "");
+    EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM RankEXPInfo").c_str()), (int)all.size());
+
+    EXPECT_FALSE(repository.loadExpTable("Level", "GoalExp", "AccumExp", "AdvancementClassEXPInfo", "").empty());
+    EXPECT_FALSE(repository.loadExpTable("Level", "GoalExp", "AccumExp", "STRBalanceInfo", "").empty());
+}
+
 } // namespace
 
 int main(int argc, char** argv) {

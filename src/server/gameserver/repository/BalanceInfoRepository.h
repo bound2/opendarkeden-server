@@ -85,6 +85,13 @@ struct PetAttrRatioRow {
     int enchantRatio;
 };
 
+// One (level, goal, accum) row of a balance table ExpTable::load names.
+struct ExpTableRow {
+    int level;
+    int goalExp;
+    int accumExp;
+};
+
 class BalanceInfoRepository {
 public:
     virtual ~BalanceInfoRepository() {}
@@ -109,6 +116,14 @@ public:
     virtual std::vector<PetExpRow> loadPetExp() = 0;
     virtual std::vector<PetAttrBalanceRow> loadPetAttrBalance() = 0;
     virtual std::vector<PetAttrRatioRow> loadPetAttrRatios() = 0;
+
+    // SomethingGrowingUp.h's ExpTable::load — "SELECT %s, %s, %s FROM %s %s"
+    // with the level, goal and accumulated-exp column names, the table and
+    // a trailing condition ("" leaves the original's trailing space). The
+    // identifiers are the ExpTable subclasses' constants, never user text.
+    virtual std::vector<ExpTableRow> loadExpTable(const std::string& levelField, const std::string& goalField,
+                                                  const std::string& accumField, const std::string& table,
+                                                  const std::string& condition) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in

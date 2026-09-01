@@ -308,6 +308,31 @@ public:
 
         return rows;
     }
+
+    vector<ExpTableRow> loadExpTable(const string& levelField, const string& goalField, const string& accumField,
+                                     const string& table, const string& condition) {
+        vector<ExpTableRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT %s, %s, %s FROM %s %s", levelField.c_str(), goalField.c_str(),
+                                                  accumField.c_str(), table.c_str(), condition.c_str());
+
+            while (pResult->next()) {
+                ExpTableRow row;
+                row.level = pResult->getInt(1);
+                row.goalExp = pResult->getInt(2);
+                row.accumExp = pResult->getInt(3);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
 };
 
 } // namespace

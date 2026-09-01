@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/BalanceInfoRepository.h"
 
 template <typename _GoalExpType, typename _LevelType, _LevelType _MinLevel, _LevelType _MaxLevel,
           typename _TotalExpType = _GoalExpType>
@@ -63,35 +63,17 @@ template <typename GoalExpType, typename LevelType, LevelType MinLevel, LevelTyp
 void ExpTable<GoalExpType, LevelType, MinLevel, MaxLevel, TotalExpType>::load() {
     __BEGIN_TRY
 
-    const string QueryTemplate = "SELECT %s, %s, %s FROM %s %s";
+    vector<ExpTableRow> rows =
+        defaultBalanceInfoRepository().loadExpTable(getDBLevelFieldName(), getDBGoalExpFieldName(),
+                                                    getDBAccumExpFieldName(), getDBTableName(), getDBQueryCondition());
 
-    // 10바이트 정도 오바는 봐주자
-    int size = QueryTemplate.size() + getDBTableName().size() + getDBGoalExpFieldName().size() +
-               getDBAccumExpFieldName().size() + getDBLevelFieldName().size() + getDBQueryCondition().size();
-    char* query = new char[size];
-
-    snprintf(query, size, QueryTemplate.c_str(), getDBLevelFieldName().c_str(), getDBGoalExpFieldName().c_str(),
-             getDBAccumExpFieldName().c_str(), getDBTableName().c_str(), getDBQueryCondition().c_str());
-
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(query);
-
-        while (pResult->next()) {
-            LevelType level = pResult->getInt(1);
-            Assert(level >= MinLevel);
-            Assert(level <= MaxLevel);
-            m_Records[level].m_GoalExp = pResult->getInt(2);
-            m_Records[level].m_AccumExp = pResult->getInt(3);
-        }
-
-        SAFE_DELETE(pStmt);
+    for (size_t r = 0; r < rows.size(); r++) {
+        LevelType level = rows[r].level;
+        Assert(level >= MinLevel);
+        Assert(level <= MaxLevel);
+        m_Records[level].m_GoalExp = rows[r].goalExp;
+        m_Records[level].m_AccumExp = rows[r].accumExp;
     }
-    END_DB(pStmt);
-
-    SAFE_DELETE(query);
 
     __END_CATCH
 }
