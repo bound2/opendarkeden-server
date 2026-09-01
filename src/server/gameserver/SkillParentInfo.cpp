@@ -9,7 +9,7 @@
 #include "SkillParentInfo.h"
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/GameInfoRepository.h"
 // #include <algo.h>
 
 //----------------------------------------------------------------------
@@ -183,58 +183,44 @@ void SkillParentInfoManager::load()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL; // by sigi
-    Result* pResult;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(SkillType) FROM SkillTreeInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in SkillTreeInfo Table");
-        }
-
-        pResult->next();
-
-        m_SkillCount = pResult->getInt(1) + 1;
-
-        Assert(m_SkillCount > 0);
-
-        m_SkillParentInfoList = new SkillParentInfo*[m_SkillCount];
-
-        for (uint i = 0; i < m_SkillCount; i++)
-            m_SkillParentInfoList[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT SkillType, Parent FROM SkillTreeInfo ");
-
-        // cout<<"======= SkillParentInfo Manager ==========="<<endl;
-
-        SkillType_t tempSkillType = 0;
-
-        while (pResult->next()) {
-            int i = 0;
-            SkillType_t SkillType = pResult->getInt(++i);
-
-            if (tempSkillType != SkillType) {
-                SkillParentInfo* pSkillParentInfo = new SkillParentInfo(SkillType);
-                pSkillParentInfo->addParents(pResult->getInt(++i));
-                addSkillParentInfo(pSkillParentInfo);
-                tempSkillType = SkillType;
-            } else {
-                m_SkillParentInfoList[SkillType]->addParents(pResult->getInt(++i));
-            }
-        }
-
-        // for (uint i = 0; i < m_SkillCount; i++)
-        //{
-        //	if (m_SkillParentInfoList[ i ] != NULL)
-        //		//cout<< m_SkillParentInfoList[ i ]->toString()<<endl;
-        // }
-
-        SAFE_DELETE(pStmt);
+    int maxSkillType = 0;
+    if (!defaultGameInfoRepository().loadMaxSkillType(maxSkillType)) {
+        throw Error("There is no data in SkillTreeInfo Table");
     }
-    END_DB(pStmt)
+
+    m_SkillCount = maxSkillType + 1;
+
+    Assert(m_SkillCount > 0);
+
+    m_SkillParentInfoList = new SkillParentInfo*[m_SkillCount];
+
+    for (uint i = 0; i < m_SkillCount; i++)
+        m_SkillParentInfoList[i] = NULL;
+
+    vector<SkillParentRow> rows = defaultGameInfoRepository().loadSkillTree();
+
+    // cout<<"======= SkillParentInfo Manager ==========="<<endl;
+
+    SkillType_t tempSkillType = 0;
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        SkillType_t SkillType = rows[r].skillType;
+
+        if (tempSkillType != SkillType) {
+            SkillParentInfo* pSkillParentInfo = new SkillParentInfo(SkillType);
+            pSkillParentInfo->addParents(rows[r].parent);
+            addSkillParentInfo(pSkillParentInfo);
+            tempSkillType = SkillType;
+        } else {
+            m_SkillParentInfoList[SkillType]->addParents(rows[r].parent);
+        }
+    }
+
+    // for (uint i = 0; i < m_SkillCount; i++)
+    //{
+    //	if (m_SkillParentInfoList[ i ] != NULL)
+    //		//cout<< m_SkillParentInfoList[ i ]->toString()<<endl;
+    // }
 
     __END_DEBUG
     __END_CATCH

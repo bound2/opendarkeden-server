@@ -1,7 +1,7 @@
 #include "PetAttrInfo.h"
 
-#include "DB.h"
 #include "PetInfo.h"
+#include "repository/BalanceInfoRepository.h"
 
 void PetAttrInfoManager::clear() {
     unordered_map<PetAttr_t, PetAttrInfo*>::iterator itr = m_PetAttrInfoMap.begin();
@@ -15,35 +15,27 @@ void PetAttrInfoManager::clear() {
 }
 
 void PetAttrInfoManager::load() {
-    Statement* pStmt;
+    vector<PetAttrBalanceRow> balances = defaultBalanceInfoRepository().loadPetAttrBalance();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT PetAttr, Level, AddAttr, AccumAttr FROM PetAttrBalanceInfo");
+    for (size_t r = 0; r < balances.size(); r++) {
+        PetAttr_t PetAttr = balances[r].petAttr;
 
-        while (pResult->next()) {
-            PetAttr_t PetAttr = pResult->getInt(1);
+        if (m_PetAttrInfoMap[PetAttr] == NULL)
+            m_PetAttrInfoMap[PetAttr] = new PetAttrInfo(PetAttr);
+        PetLevel_t PetLevel = balances[r].level;
 
-            if (m_PetAttrInfoMap[PetAttr] == NULL)
-                m_PetAttrInfoMap[PetAttr] = new PetAttrInfo(PetAttr);
-            PetLevel_t PetLevel = pResult->getInt(2);
-
-            m_PetAttrInfoMap[PetAttr]->setPetAttrLevel(PetLevel, (PetAttrLevel_t)pResult->getInt(4));
-        }
-
-        pResult = pStmt->executeQuery("SELECT PetAttr, EnchantRatio FROM PetAttrInfo");
-
-        while (pResult->next()) {
-            PetAttr_t PetAttr = pResult->getInt(1);
-            if (m_PetAttrInfoMap[PetAttr] != NULL)
-                m_PetAttrInfoMap[PetAttr]->setEnchantRatio(pResult->getInt(2));
-            else
-                cout << "PetAttrInfo에 있는 PetAttr이 존재하지 않는 속성입니다." << endl;
-        }
-
-        SAFE_DELETE(pStmt);
+        m_PetAttrInfoMap[PetAttr]->setPetAttrLevel(PetLevel, (PetAttrLevel_t)balances[r].accumAttr);
     }
-    END_DB(pStmt)
+
+    vector<PetAttrRatioRow> ratios = defaultBalanceInfoRepository().loadPetAttrRatios();
+
+    for (size_t r = 0; r < ratios.size(); r++) {
+        PetAttr_t PetAttr = ratios[r].petAttr;
+        if (m_PetAttrInfoMap[PetAttr] != NULL)
+            m_PetAttrInfoMap[PetAttr]->setEnchantRatio(ratios[r].enchantRatio);
+        else
+            cout << "PetAttrInfo names a PetAttr that has no balance rows." << endl;
+    }
 }
 
 bool PetAttrInfoManager::enchantRandomAttr(PetInfo* pPetInfo, int ratio) {

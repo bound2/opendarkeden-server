@@ -547,6 +547,7 @@ set(GAMESERVER_MAIN_SOURCES
     GDRLairAbstractStates.cpp
     NicknameBook.cpp
     repository/MySQLNicknameRepository.cpp
+    repository/MySQLBalanceInfoRepository.cpp
     repository/MySQLBloodBibleSignRepository.cpp
     repository/MySQLBulletinBoardRepository.cpp
     repository/MySQLComebackEventRepository.cpp
@@ -558,6 +559,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLGoodsRepository.cpp
     repository/MySQLEffectSaveRepository.cpp
     repository/MySQLFlagSetRepository.cpp
+    repository/MySQLGameInfoRepository.cpp
     repository/MySQLQuestItemRepository.cpp
     repository/MySQLRankBonusRepository.cpp
     repository/MySQLSMSAddressRepository.cpp

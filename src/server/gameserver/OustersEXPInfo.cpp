@@ -7,7 +7,7 @@
 #include "OustersEXPInfo.h"
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/BalanceInfoRepository.h"
 // #include <algo.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,49 +87,36 @@ void OustersEXPInfoManager::load()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL; // by sigi
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Level) FROM OustersEXPBalanceInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in OustersEXPInfo Table");
-        }
-
-        // 전체 갯수를 세팅한다.
-        pResult->next();
-        m_OustersEXPCount = pResult->getInt(1) + 1;
-
-        Assert(m_OustersEXPCount > 0);
-
-        m_OustersEXPInfoList = new OustersEXPInfo*[m_OustersEXPCount];
-
-        Assert(m_OustersEXPInfoList != NULL);
-
-        // 배열을 초기화
-        for (uint i = 0; i < m_OustersEXPCount; i++)
-            m_OustersEXPInfoList[i] = NULL;
-
-        pResult = pStmt->executeQuery("Select Level, GoalExp, AccumExp, SkillPointBonus from OustersEXPBalanceInfo");
-
-        while (pResult->next()) {
-            OustersEXPInfo* pOustersEXPInfo = new OustersEXPInfo();
-            int i = 0;
-
-            pOustersEXPInfo->setLevel(pResult->getInt(++i));
-            pOustersEXPInfo->setGoalExp(pResult->getInt(++i));
-            pOustersEXPInfo->setAccumExp(pResult->getInt(++i));
-            pOustersEXPInfo->setSkillPointBonus((SkillBonus_t)pResult->getInt(++i));
-
-            addOustersEXPInfo(pOustersEXPInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxLevel = 0;
+    if (!defaultBalanceInfoRepository().loadMaxLevel(LEVEL_EXP_TABLE_OUSTERS_EXP, maxLevel)) {
+        throw Error("There is no data in OustersEXPInfo Table");
     }
-    END_DB(pStmt)
+
+    // Size the table from the highest level.
+    m_OustersEXPCount = maxLevel + 1;
+
+    Assert(m_OustersEXPCount > 0);
+
+    m_OustersEXPInfoList = new OustersEXPInfo*[m_OustersEXPCount];
+
+    Assert(m_OustersEXPInfoList != NULL);
+
+    // Clear the array.
+    for (uint i = 0; i < m_OustersEXPCount; i++)
+        m_OustersEXPInfoList[i] = NULL;
+
+    vector<LevelExpRow> rows = defaultBalanceInfoRepository().loadLevels(LEVEL_EXP_TABLE_OUSTERS_EXP);
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        OustersEXPInfo* pOustersEXPInfo = new OustersEXPInfo();
+
+        pOustersEXPInfo->setLevel(rows[r].level);
+        pOustersEXPInfo->setGoalExp(rows[r].goalExp);
+        pOustersEXPInfo->setAccumExp(rows[r].accumExp);
+        pOustersEXPInfo->setSkillPointBonus((SkillBonus_t)rows[r].skillPointBonus);
+
+        addOustersEXPInfo(pOustersEXPInfo);
+    }
 
     __END_DEBUG
     __END_CATCH

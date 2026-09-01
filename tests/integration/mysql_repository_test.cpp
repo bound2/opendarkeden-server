@@ -30,12 +30,14 @@
 
 #include "PlayerFixtures.h"
 #include "Thread.h"
+#include "repository/BalanceInfoRepository.h"
 #include "repository/BloodBibleSignRepository.h"
 #include "repository/BulletinBoardRepository.h"
 #include "repository/CharacterRepository.h"
 #include "repository/ComebackEventRepository.h"
 #include "repository/EffectSaveRepository.h"
 #include "repository/FlagSetRepository.h"
+#include "repository/GameInfoRepository.h"
 #include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
 #include "repository/MessageRepository.h"
@@ -1522,6 +1524,137 @@ TEST_F(RegenZoneMySQL, LoadPositionsReturnsEveryColumnInSelectPosition) {
     EXPECT_EQ(20, found->zoneX);
     EXPECT_EQ(30, found->zoneY);
     EXPECT_EQ(2, found->owner);
+}
+
+// --- the balance and game-info tables against real MySQL ------------------
+// Every one of these tables ships seeded in initdb/DARKEDEN.sql and is
+// read-only for the gameserver, so the tests assert on the shipped data's
+// shape (a maximum exists, the rows stay within it, the lists are not
+// empty — exactly what the boot-time loaders require) rather than on
+// rows they insert. The one write-free quirk worth pinning is the MAX()
+// probe over nothing: MySQL answers with one NULL row, which the inline
+// code would have atoi(NULL)'d; the seam reports "no maximum".
+
+TEST(BalanceInfoMySQL, EveryLadderHasAMaximumAndItsRowsStayWithinIt) {
+    BalanceInfoRepository& repository = defaultBalanceInfoRepository();
+
+    for (int t = 0; t < LEVEL_EXP_TABLE_MAX; t++) {
+        LevelExpTable table = (LevelExpTable)t;
+        SCOPED_TRACE(t);
+        int maxLevel = -1;
+        ASSERT_TRUE(repository.loadMaxLevel(table, maxLevel));
+        EXPECT_GT(maxLevel, 0);
+
+        std::vector<LevelExpRow> rows = repository.loadLevels(table);
+        ASSERT_FALSE(rows.empty());
+        for (size_t r = 0; r < rows.size(); r++) {
+            EXPECT_LE(rows[r].level, maxLevel);
+            if (table != LEVEL_EXP_TABLE_OUSTERS_EXP)
+                EXPECT_EQ(0, rows[r].skillPointBonus); // not selected for the other four tables
+        }
+    }
+}
+
+TEST(BalanceInfoMySQL, RankLaddersExistPerRankTypeAndAMissingTypeHasNoMaximum) {
+    BalanceInfoRepository& repository = defaultBalanceInfoRepository();
+
+    for (int rankType = 0; rankType < 3; rankType++) {
+        SCOPED_TRACE(rankType);
+        int maxLevel = -1;
+        ASSERT_TRUE(repository.loadMaxRankLevel(rankType, maxLevel));
+        EXPECT_GT(maxLevel, 0);
+        std::vector<LevelExpRow> rows = repository.loadRankLevels(rankType);
+        ASSERT_FALSE(rows.empty());
+        for (size_t r = 0; r < rows.size(); r++)
+            EXPECT_LE(rows[r].level, maxLevel);
+    }
+
+    // MAX() over a WHERE that matches nothing is ONE row holding NULL —
+    // reported as "no maximum", where the inline loader would have
+    // called atoi(NULL) on it.
+    int maxLevel = -1;
+    EXPECT_FALSE(repository.loadMaxRankLevel(99, maxLevel));
+    EXPECT_TRUE(repository.loadRankLevels(99).empty());
+}
+
+TEST(BalanceInfoMySQL, DomainLaddersExistAndAMissingDomainHasNoMaximum) {
+    BalanceInfoRepository& repository = defaultBalanceInfoRepository();
+
+    int maxLevel = -1;
+    ASSERT_TRUE(repository.loadMaxDomainLevel(0, maxLevel));
+    EXPECT_GT(maxLevel, 0);
+    std::vector<DomainLevelRow> rows = repository.loadDomainLevels(0);
+    ASSERT_FALSE(rows.empty());
+    for (size_t r = 0; r < rows.size(); r++) {
+        EXPECT_EQ(0, rows[r].domainType);
+        EXPECT_LE(rows[r].level, maxLevel);
+    }
+
+    EXPECT_FALSE(repository.loadMaxDomainLevel(99, maxLevel));
+    EXPECT_TRUE(repository.loadDomainLevels(99).empty());
+}
+
+TEST(BalanceInfoMySQL, TheFameLimitTableIsNotInTheShippedSchema) {
+    // FameLimitInfoManager is never constructed by the gameserver, and
+    // its table is absent from initdb/DARKEDEN.sql: the dead loader would
+    // fail on its first query. Pinned so a schema that grows the table
+    // (or a boot that revives the manager) shows up here.
+    int maxLevel = -1;
+    EXPECT_ANY_THROW(defaultBalanceInfoRepository().loadMaxFameLevel(0, maxLevel));
+}
+
+TEST(BalanceInfoMySQL, ThePetTablesLoad) {
+    BalanceInfoRepository& repository = defaultBalanceInfoRepository();
+
+    EXPECT_FALSE(repository.loadPetExp().empty());
+    EXPECT_FALSE(repository.loadPetAttrBalance().empty());
+    EXPECT_FALSE(repository.loadPetAttrRatios().empty());
+}
+
+TEST(GameInfoMySQL, EveryMaximumExistsAndEveryListIsNonEmpty) {
+    GameInfoRepository& repository = defaultGameInfoRepository();
+    int maximum = -1;
+
+    ASSERT_TRUE(repository.loadMaxSkillType(maximum));
+    EXPECT_GT(maximum, 0);
+    std::vector<SkillParentRow> tree = repository.loadSkillTree();
+    ASSERT_FALSE(tree.empty());
+    for (size_t r = 0; r < tree.size(); r++)
+        EXPECT_LE(tree[r].skillType, maximum);
+
+    ASSERT_TRUE(repository.loadMaxRankBonusType(maximum));
+    std::vector<RankBonusInfoRow> bonuses = repository.loadRankBonusInfos();
+    ASSERT_FALSE(bonuses.empty());
+    for (size_t r = 0; r < bonuses.size(); r++)
+        EXPECT_LE(bonuses[r].type, maximum);
+
+    ASSERT_TRUE(repository.loadMaxPetType(maximum));
+    std::vector<PetTypeRow> pets = repository.loadPetTypes();
+    ASSERT_FALSE(pets.empty());
+    for (size_t r = 0; r < pets.size(); r++)
+        EXPECT_LE(pets[r].petType, maximum);
+
+    ASSERT_TRUE(repository.loadMaxWorldID(maximum));
+    std::vector<GameServerGroupRow> groups = repository.loadGameServerGroups();
+    ASSERT_FALSE(groups.empty());
+    for (size_t r = 0; r < groups.size(); r++)
+        EXPECT_LE(groups[r].worldID, maximum);
+
+    ASSERT_TRUE(repository.loadMaxBloodBibleBonusType(maximum));
+    std::vector<BloodBibleBonusRow> bibles = repository.loadBloodBibleBonuses();
+    ASSERT_FALSE(bibles.empty());
+    for (size_t r = 0; r < bibles.size(); r++)
+        EXPECT_LE(bibles[r].type, maximum);
+}
+
+TEST(GameInfoMySQL, EveryMonsterNameListIsNonEmpty) {
+    // MonsterNameManager::init throws on an empty list, so the shipped
+    // data must carry all four — including the event monsters' last
+    // names.
+    for (int l = 0; l < MONSTER_NAME_LIST_MAX; l++) {
+        SCOPED_TRACE(l);
+        EXPECT_FALSE(defaultGameInfoRepository().loadMonsterNames((MonsterNameList)l).empty());
+    }
 }
 
 // --- BloodBibleSignObject against real MySQL ------------------------------

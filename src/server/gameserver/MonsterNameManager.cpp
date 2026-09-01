@@ -6,9 +6,9 @@
 
 #include "MonsterNameManager.h"
 
-#include "DB.h"
 #include "Monster.h"
 #include "MonsterInfo.h"
+#include "repository/GameInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // global varible
@@ -53,88 +53,70 @@ void MonsterNameManager::init()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
     int nCount = 0;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // First Name을 로드한다.
-        pResult = pStmt->executeQuery("SELECT Name FROM FirstNameInfo WHERE MonsterType='BASIC'");
-        nCount = pResult->getRowCount();
-        if (nCount == 0) {
-            cerr << "MonsterNameManager::init() : No data exist on FirstNameInfo" << endl;
-            throw("MonsterNameManager::init() : No data exist on FirstNameInfo");
-        }
-
-        m_nFirstNameCount = nCount;
-        m_pFirstName = new string[m_nFirstNameCount];
-        nCount = 0;
-
-        while (pResult->next()) {
-            m_pFirstName[nCount] = pResult->getString(1);
-            nCount++;
-        }
-
-        // Middle Name을 로드한다.
-        pResult = pStmt->executeQuery("SELECT Name FROM MiddleNameInfo WHERE MonsterType='BASIC'");
-        nCount = pResult->getRowCount();
-        if (nCount == 0) {
-            cerr << "MonsterNameManager::init() : No data exist on MiddleNameInfo" << endl;
-            throw("MonsterNameManager::init() : No data exist on MiddleNameInfo");
-        }
-
-        m_nMiddleNameCount = nCount;
-        m_pMiddleName = new string[m_nMiddleNameCount];
-        nCount = 0;
-
-        while (pResult->next()) {
-            m_pMiddleName[nCount] = pResult->getString(1);
-            nCount++;
-        }
-
-        // Last Name을 로드한다.
-        pResult = pStmt->executeQuery("SELECT Name FROM LastNameInfo WHERE MonsterType='BASIC'");
-        nCount = pResult->getRowCount();
-        if (nCount == 0) {
-            cerr << "MonsterNameManager::init() : No data exist on LastNameInfo" << endl;
-            throw("MonsterNameManager::init() : No data exist on LastNameInfo");
-        }
-
-        m_nLastNameCount = nCount;
-        m_pLastName = new string[m_nLastNameCount];
-        nCount = 0;
-
-        while (pResult->next()) {
-            m_pLastName[nCount] = pResult->getString(1);
-            nCount++;
-        }
-
-
-        /////////////////////////////////////////////////////////////////////////////////////////
-        // 이벤트 몬스터의 경우 별도의 배열을 만들어서 저장하도록 한다.
-        ////////////////////////////////////////////////////////////////////////////////////////
-        pResult = pStmt->executeQuery("SELECT Name FROM LastNameInfo WHERE MonsterType='EVENT'");
-        nCount = pResult->getRowCount();
-        if (nCount == 0) {
-            cerr << "MonsterNameManager::init() : no data exist on EventMiddleNameInfo" << endl;
-            throw("MonsterNameManager::init() : no data exist on EventMiddleNameInfo");
-        }
-
-        m_nEventLastNameCount = nCount;
-        m_pEventLastName = new string[m_nEventLastNameCount];
-        nCount = 0;
-
-        while (pResult->next()) {
-            m_pEventLastName[nCount] = pResult->getString(1);
-            nCount++;
-        }
-
-
-        SAFE_DELETE(pStmt);
+    // Load the first names.
+    vector<string> firstNames = defaultGameInfoRepository().loadMonsterNames(MONSTER_NAMES_FIRST_BASIC);
+    nCount = firstNames.size();
+    if (nCount == 0) {
+        cerr << "MonsterNameManager::init() : No data exist on FirstNameInfo" << endl;
+        throw("MonsterNameManager::init() : No data exist on FirstNameInfo");
     }
-    END_DB(pStmt);
+
+    m_nFirstNameCount = nCount;
+    m_pFirstName = new string[m_nFirstNameCount];
+
+    for (nCount = 0; nCount < (int)firstNames.size(); nCount++) {
+        m_pFirstName[nCount] = firstNames[nCount];
+    }
+
+    // Load the middle names.
+    vector<string> middleNames = defaultGameInfoRepository().loadMonsterNames(MONSTER_NAMES_MIDDLE_BASIC);
+    nCount = middleNames.size();
+    if (nCount == 0) {
+        cerr << "MonsterNameManager::init() : No data exist on MiddleNameInfo" << endl;
+        throw("MonsterNameManager::init() : No data exist on MiddleNameInfo");
+    }
+
+    m_nMiddleNameCount = nCount;
+    m_pMiddleName = new string[m_nMiddleNameCount];
+
+    for (nCount = 0; nCount < (int)middleNames.size(); nCount++) {
+        m_pMiddleName[nCount] = middleNames[nCount];
+    }
+
+    // Load the last names.
+    vector<string> lastNames = defaultGameInfoRepository().loadMonsterNames(MONSTER_NAMES_LAST_BASIC);
+    nCount = lastNames.size();
+    if (nCount == 0) {
+        cerr << "MonsterNameManager::init() : No data exist on LastNameInfo" << endl;
+        throw("MonsterNameManager::init() : No data exist on LastNameInfo");
+    }
+
+    m_nLastNameCount = nCount;
+    m_pLastName = new string[m_nLastNameCount];
+
+    for (nCount = 0; nCount < (int)lastNames.size(); nCount++) {
+        m_pLastName[nCount] = lastNames[nCount];
+    }
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////
+    // Event monsters get their own array of last names.
+    ////////////////////////////////////////////////////////////////////////////////////////
+    vector<string> eventLastNames = defaultGameInfoRepository().loadMonsterNames(MONSTER_NAMES_LAST_EVENT);
+    nCount = eventLastNames.size();
+    if (nCount == 0) {
+        cerr << "MonsterNameManager::init() : no data exist on EventMiddleNameInfo" << endl;
+        throw("MonsterNameManager::init() : no data exist on EventMiddleNameInfo");
+    }
+
+    m_nEventLastNameCount = nCount;
+    m_pEventLastName = new string[m_nEventLastNameCount];
+
+    for (nCount = 0; nCount < (int)eventLastNames.size(); nCount++) {
+        m_pEventLastName[nCount] = eventLastNames[nCount];
+    }
 
     __END_CATCH
 }

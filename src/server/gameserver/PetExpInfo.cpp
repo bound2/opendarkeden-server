@@ -1,6 +1,6 @@
 #include "PetExpInfo.h"
 
-#include "DB.h"
+#include "repository/BalanceInfoRepository.h"
 
 void PetExpInfoManager::clear() {
     vector<PetExpInfo*>::iterator itr = m_PetExpInfos.begin();
@@ -14,22 +14,14 @@ void PetExpInfoManager::clear() {
 }
 
 void PetExpInfoManager::load() {
-    Statement* pStmt = NULL;
+    vector<PetExpRow> rows = defaultBalanceInfoRepository().loadPetExp();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT PetLevel, PetAccumExp FROM PetExpInfo");
+    for (size_t r = 0; r < rows.size(); r++) {
+        PetLevel_t PetLevel = rows[r].petLevel;
+        PetExp_t PetExp = rows[r].petAccumExp;
 
-        while (pResult->next()) {
-            PetLevel_t PetLevel = pResult->getInt(1);
-            PetExp_t PetExp = pResult->getInt(2);
-
-            m_PetExpInfos[PetLevel] = new PetExpInfo(PetLevel, PetExp);
-        }
-
-        SAFE_DELETE(pStmt);
+        m_PetExpInfos[PetLevel] = new PetExpInfo(PetLevel, PetExp);
     }
-    END_DB(pStmt)
 }
 
 bool PetExpInfoManager::canLevelUp(PetLevel_t level, PetExp_t exp) {

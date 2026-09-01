@@ -9,7 +9,7 @@
 #include <algo.h>
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/BalanceInfoRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // class FameLimitInfo member methods
@@ -89,48 +89,34 @@ void FameLimitInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL; // by sigi
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        for (int i = 0; i < SKILL_DOMAIN_MAX; i++) {
-            pResult = pStmt->executeQuery("SELECT MAX(Level) FROM FameLimitInfo WHERE DomainType=%d", i);
-
-            if (pResult->getRowCount() == 0) {
-                SAFE_DELETE(pStmt);
-                throw Error("There is no data in FameLimitInfo Table");
-            }
-
-            // 전체 갯수를 세팅한다.
-            pResult->next();
-
-            int count = pResult->getInt(1) + 1;
-
-            Assert(count > 0);
-            Assert(count <= 151);
-
-            m_FameLimitInfoList[i] = new FameLimitInfo*[count];
-
-            for (int j = 0; j < count; j++)
-                m_FameLimitInfoList[i][j] = NULL;
-
-            pResult = pStmt->executeQuery("SELECT DomainType, Level, Fame FROM FameLimitInfo WHERE DomainType = %d", i);
-            while (pResult->next()) {
-                FameLimitInfo* pFameLimitInfo = new FameLimitInfo();
-                int i = 0;
-
-                pFameLimitInfo->setDomainType(pResult->getInt(++i));
-                pFameLimitInfo->setLevel(pResult->getInt(++i));
-                pFameLimitInfo->setFame(pResult->getInt(++i));
-
-                addFameLimitInfo(pFameLimitInfo);
-            }
+    for (int i = 0; i < SKILL_DOMAIN_MAX; i++) {
+        int maxLevel = 0;
+        if (!defaultBalanceInfoRepository().loadMaxFameLevel(i, maxLevel)) {
+            throw Error("There is no data in FameLimitInfo Table");
         }
 
-        SAFE_DELETE(pStmt);
+        // Size the table from the highest level.
+        int count = maxLevel + 1;
+
+        Assert(count > 0);
+        Assert(count <= 151);
+
+        m_FameLimitInfoList[i] = new FameLimitInfo*[count];
+
+        for (int j = 0; j < count; j++)
+            m_FameLimitInfoList[i][j] = NULL;
+
+        vector<FameLimitRow> rows = defaultBalanceInfoRepository().loadFameLimits(i);
+        for (size_t r = 0; r < rows.size(); r++) {
+            FameLimitInfo* pFameLimitInfo = new FameLimitInfo();
+
+            pFameLimitInfo->setDomainType(rows[r].domainType);
+            pFameLimitInfo->setLevel(rows[r].level);
+            pFameLimitInfo->setFame(rows[r].fame);
+
+            addFameLimitInfo(pFameLimitInfo);
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
