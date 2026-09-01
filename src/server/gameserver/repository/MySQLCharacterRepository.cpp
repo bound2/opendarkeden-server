@@ -1,29 +1,42 @@
 #include "DB.h"
-#include "StringStream.h"
 #include "repository/CharacterRepository.h"
 
 namespace {
 
 // MySQL implementation of the character-row persistence seam. The legacy
 // quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Each race's SQL is preserved byte-for-byte, INCLUDING its build
-//    mechanism: the Slayer vitals go through printf-style interpolation
-//    while Vampire/Ousters build a StringStream (spacing differs —
-//    "CurrentHP=%d" vs "CurrentHP = 12" — and both shapes are kept).
+//  - The emitted SQL is byte-for-byte what the inline code produced,
+//    spacing included: the Slayer vitals keep their "CurrentHP=%d"
+//    printf spacing, Vampire/Ousters keep the "CurrentHP = 12" spacing
+//    their StringStreams emitted (the streams themselves were replaced
+//    with format strings carrying the same bytes — repository SQL uses
+//    the parameterized executeQuery form, never string concatenation).
 //  - Vampire saveExps writes SilverDamage ONLY when it is non-zero: the
 //    original composed an optional ",SilverDamage = %d" fragment into a
-//    %s slot, and a zero value leaves the column untouched. Ousters
-//    writes it unconditionally. Slayer has no SilverDamage at all.
+//    %s slot, and a zero value leaves the column untouched — this save
+//    cannot reset a vampire's silver damage. Ousters writes it
+//    unconditionally. Slayer has no SilverDamage at all.
 //  - tinysave's SET fragment is caller-composed raw SQL (sprintf'd
-//    "Column=value" strings from dozens of sites), applied verbatim.
-//    Slayer's WHERE uses uppercase NAME; Vampire/Ousters use Name.
-//  - Wide exp values ride the same varargs slots as before (DWORD
-//    members against %lu/%ld conversions — a pre-existing LP64 mismatch
-//    that works through the ABI's register/slot zero-extension; the
-//    record fields keep the member types so the bytes are unchanged).
-//  - An UPDATE for a name with no row matches zero rows, silently; the
-//    old save() comment documenting that affected-rows may be 0 when
-//    nothing changed still applies (no CLIENT_FOUND_ROWS).
+//    "Column=value" strings from ~400 sites), applied verbatim.
+//    Slayer's WHERE spells the column NAME, the others Name — purely
+//    cosmetic (MySQL column identifiers are case-insensitive), kept
+//    only for byte-fidelity.
+//  - The `Rank` backticks are LOAD-BEARING on MySQL 8: RANK became a
+//    reserved word in 8.0.2, and this project supports 5.7 or 8. The
+//    5.7-based integration tier cannot catch their removal.
+//  - Wide exp values ride the same varargs slots as before — and that
+//    is a LATENT BUG, not a benign quirk: DWORD (4-byte) arguments are
+//    read through %lu/%ld (8-byte) conversions. It works today because
+//    GCC's codegen zero-extends when pushing stack varargs, but the ABI
+//    leaves the upper bytes of sub-eightbyte stack slots unspecified —
+//    clang at -O0 demonstrably reads garbage for every stack-passed
+//    %lu/%ld field (args 5+; saveSlayerExps passes 20). The extraction
+//    preserves the behavior bit-for-bit under either compiler; fixing
+//    the conversions to %u is deliberate follow-up work, not a silent
+//    edit here.
+//  - An UPDATE for a name with no row matches zero rows, silently, and
+//    affected-rows may be 0 when nothing changed (no CLIENT_FOUND_ROWS)
+//    — nothing here checks it, exactly like the inline code.
 //  - Character names are interpolated raw (no escaping), as the call
 //    sites always did.
 class MySQLCharacterRepository : public CharacterRepository {
@@ -46,13 +59,13 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            StringStream sql;
-            sql << "UPDATE Vampire SET" << " CurrentHP = " << record.currentHP << ", HP = " << record.maxHP
-                << ", SilverDamage = " << record.silverDamage << ", ZoneID = " << record.zoneID
-                << ", XCoord = " << record.x << ", YCoord = " << record.y << " WHERE Name = '" << ownerName << "'";
-
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQueryString(sql.toString());
+            // the format string carries the exact spacing the old
+            // StringStream emitted
+            pStmt->executeQuery("UPDATE Vampire SET CurrentHP = %d, HP = %d, SilverDamage = %d, ZoneID = %d, "
+                                "XCoord = %d, YCoord = %d WHERE Name = '%s'",
+                                record.currentHP, record.maxHP, record.silverDamage, record.zoneID, record.x, record.y,
+                                ownerName.c_str());
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
@@ -62,13 +75,13 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            StringStream sql;
-            sql << "UPDATE Ousters SET" << " CurrentHP = " << record.currentHP << ", HP = " << record.maxHP
-                << ", CurrentMP = " << record.currentMP << ", MP = " << record.maxMP << ", ZoneID = " << record.zoneID
-                << ", XCoord = " << record.x << ", YCoord = " << record.y << " WHERE Name = '" << ownerName << "'";
-
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQueryString(sql.toString());
+            // the format string carries the exact spacing the old
+            // StringStream emitted
+            pStmt->executeQuery("UPDATE Ousters SET CurrentHP = %d, HP = %d, CurrentMP = %d, MP = %d, ZoneID = %d, "
+                                "XCoord = %d, YCoord = %d WHERE Name = '%s'",
+                                record.currentHP, record.maxHP, record.currentMP, record.maxMP, record.zoneID, record.x,
+                                record.y, ownerName.c_str());
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
@@ -142,17 +155,6 @@ public:
                 pStmt->executeQuery("UPDATE Vampire SET %s WHERE Name='%s'", fieldFragment.c_str(), ownerName.c_str());
             else
                 pStmt->executeQuery("UPDATE Ousters SET %s WHERE Name='%s'", fieldFragment.c_str(), ownerName.c_str());
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-    }
-
-    void resetSlayerReward(const string& ownerName) {
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("UPDATE Slayer SET Reward = 0 WHERE Name='%s'", ownerName.c_str());
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)

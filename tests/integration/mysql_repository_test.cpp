@@ -229,9 +229,15 @@ TEST_F(GoldMySQL, OperationsAgainstMissingRowsAreSilentNoOps) {
 }
 
 // --- character-row saves against real MySQL -------------------------------
-// CharacterRepository is a write-only seam, so it has NO fake tier: these
-// tests are its whole safety net (maintainer's call — integration over
-// fakes for a project this thinly tested).
+// CharacterRepository is a write-only seam with NO fake tier (maintainer's
+// call — integration over fakes), so these tests carry the load: every
+// written column is asserted with a distinct sentinel so argument
+// transpositions cannot survive, and every dispatch branch is exercised.
+// Known holes, stated honestly: the `Rank` backticks (load-bearing only
+// on MySQL 8, where RANK is reserved — this tier runs 5.7) and the
+// tinysave WHERE-casing byte-fidelity (immaterial to MySQL) are not
+// testable here; a signature break surfaces in the gameserver build, not
+// in the default ctest suite (nothing there compiles this seam).
 
 class CharacterMySQL : public ::testing::Test {
 protected:
@@ -240,7 +246,9 @@ protected:
     }
 };
 
-TEST_F(CharacterMySQL, SlayerVitalsLandInTheSlayerRow) {
+TEST_F(CharacterMySQL, SlayerVitalsLandInTheSlayerRowInFull) {
+    // Every written column is asserted with a distinct sentinel: an
+    // argument transposition in the impl cannot survive this test.
     PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
     slayer.persist();
 
@@ -255,12 +263,15 @@ TEST_F(CharacterMySQL, SlayerVitalsLandInTheSlayerRow) {
     defaultCharacterRepository().saveSlayerVitals(slayer.name, record);
 
     EXPECT_EQ("111", queryScalar("SELECT CurrentHP FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("222", queryScalar("SELECT HP FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("33", queryScalar("SELECT CurrentMP FROM Slayer WHERE Name='" + slayer.name + "'"));
     EXPECT_EQ("44", queryScalar("SELECT MP FROM Slayer WHERE Name='" + slayer.name + "'"));
     EXPECT_EQ("21", queryScalar("SELECT ZoneID FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("100", queryScalar("SELECT XCoord FROM Slayer WHERE Name='" + slayer.name + "'"));
     EXPECT_EQ("200", queryScalar("SELECT YCoord FROM Slayer WHERE Name='" + slayer.name + "'"));
 }
 
-TEST_F(CharacterMySQL, VampireVitalsCarrySilverDamageInsteadOfMP) {
+TEST_F(CharacterMySQL, VampireVitalsCarrySilverDamageInsteadOfMPInFull) {
     PlayerFixture vampire = PlayerFixtures::midLevelVampire();
     vampire.persist();
 
@@ -274,11 +285,14 @@ TEST_F(CharacterMySQL, VampireVitalsCarrySilverDamageInsteadOfMP) {
     defaultCharacterRepository().saveVampireVitals(vampire.name, record);
 
     EXPECT_EQ("150", queryScalar("SELECT CurrentHP FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("300", queryScalar("SELECT HP FROM Vampire WHERE Name='" + vampire.name + "'"));
     EXPECT_EQ("12", queryScalar("SELECT SilverDamage FROM Vampire WHERE Name='" + vampire.name + "'"));
     EXPECT_EQ("23", queryScalar("SELECT ZoneID FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("50", queryScalar("SELECT XCoord FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("60", queryScalar("SELECT YCoord FROM Vampire WHERE Name='" + vampire.name + "'"));
 }
 
-TEST_F(CharacterMySQL, OustersVitalsLandInTheOustersRow) {
+TEST_F(CharacterMySQL, OustersVitalsLandInTheOustersRowInFull) {
     PlayerFixture ousters = PlayerFixtures::lowLevelOusters();
     ousters.persist();
 
@@ -293,8 +307,12 @@ TEST_F(CharacterMySQL, OustersVitalsLandInTheOustersRow) {
     defaultCharacterRepository().saveOustersVitals(ousters.name, record);
 
     EXPECT_EQ("90", queryScalar("SELECT CurrentHP FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("120", queryScalar("SELECT HP FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("70", queryScalar("SELECT CurrentMP FROM Ousters WHERE Name='" + ousters.name + "'"));
     EXPECT_EQ("80", queryScalar("SELECT MP FROM Ousters WHERE Name='" + ousters.name + "'"));
     EXPECT_EQ("51", queryScalar("SELECT ZoneID FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("10", queryScalar("SELECT XCoord FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("20", queryScalar("SELECT YCoord FROM Ousters WHERE Name='" + ousters.name + "'"));
 }
 
 TEST_F(CharacterMySQL, SlayerExpsTailLandsInFull) {
@@ -323,10 +341,25 @@ TEST_F(CharacterMySQL, SlayerExpsTailLandsInFull) {
     record.advancedAttrBonus = 14;
     defaultCharacterRepository().saveSlayerExps(slayer.name, record);
 
+    // all 19 written columns, distinct sentinels — transpositions die here
     EXPECT_EQ("1001", queryScalar("SELECT STRGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("1002", queryScalar("SELECT DEXGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("1003", queryScalar("SELECT INTGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("2001", queryScalar("SELECT BladeGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("2002", queryScalar("SELECT SwordGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("2003", queryScalar("SELECT GunGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("2004", queryScalar("SELECT EnchantGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("2005", queryScalar("SELECT HealGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
     EXPECT_EQ("2006", queryScalar("SELECT ETCGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("-50", queryScalar("SELECT Alignment FROM Slayer WHERE Name='" + slayer.name + "'"));
     EXPECT_EQ("777", queryScalar("SELECT Fame FROM Slayer WHERE Name='" + slayer.name + "'"));
     EXPECT_EQ("9", queryScalar("SELECT `Rank` FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("3001", queryScalar("SELECT RankGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("4", queryScalar("SELECT AdvancementClass FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("4001", queryScalar("SELECT AdvancementGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("11", queryScalar("SELECT AdvancedSTR FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("12", queryScalar("SELECT AdvancedDEX FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("13", queryScalar("SELECT AdvancedINT FROM Slayer WHERE Name='" + slayer.name + "'"));
     EXPECT_EQ("14", queryScalar("SELECT Bonus FROM Slayer WHERE Name='" + slayer.name + "'"));
 }
 
@@ -349,7 +382,14 @@ TEST_F(CharacterMySQL, VampireExpsSkipSilverDamageWhenZero) {
     record.advancementGoalExp = 700;
     defaultCharacterRepository().saveVampireExps(vampire.name, record);
     EXPECT_EQ("7", queryScalar("SELECT SilverDamage FROM Vampire WHERE Name='" + vampire.name + "'"));
+    // the other seven written columns, distinct sentinels
+    EXPECT_EQ("10", queryScalar("SELECT Alignment FROM Vampire WHERE Name='" + vampire.name + "'"));
     EXPECT_EQ("55", queryScalar("SELECT Fame FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("900", queryScalar("SELECT GoalExp FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("3", queryScalar("SELECT `Rank` FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("800", queryScalar("SELECT RankGoalExp FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("1", queryScalar("SELECT AdvancementClass FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("700", queryScalar("SELECT AdvancementGoalExp FROM Vampire WHERE Name='" + vampire.name + "'"));
 
     record.silverDamage = 5;
     defaultCharacterRepository().saveVampireExps(vampire.name, record);
@@ -375,9 +415,21 @@ TEST_F(CharacterMySQL, OustersExpsAlwaysWriteSilverDamage) {
     defaultCharacterRepository().saveOustersExps(ousters.name, record);
 
     EXPECT_EQ("0", queryScalar("SELECT SilverDamage FROM Ousters WHERE Name='" + ousters.name + "'"));
+    // the other seven written columns, distinct sentinels
+    EXPECT_EQ("10", queryScalar("SELECT Alignment FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("55", queryScalar("SELECT Fame FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("900", queryScalar("SELECT GoalExp FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("3", queryScalar("SELECT `Rank` FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("800", queryScalar("SELECT RankGoalExp FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("1", queryScalar("SELECT AdvancementClass FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("700", queryScalar("SELECT AdvancementGoalExp FROM Ousters WHERE Name='" + ousters.name + "'"));
 }
 
-TEST_F(CharacterMySQL, TinysaveAppliesTheFragmentToTheOwnTableOnly) {
+TEST_F(CharacterMySQL, TinysaveSlayerBranchHitsOnlyTheSlayerTable) {
+    // tinysave is the seam's only dispatching method (~400 call sites,
+    // including the absolute setGoldEx writes): every branch gets its
+    // own test, each asserting the target row changed AND the twin row
+    // did not.
     PlayerFixture slayer = PlayerFixtures::lowLevelSlayer();
     slayer.persist(); // Slayer + twin Vampire row
 
@@ -387,14 +439,24 @@ TEST_F(CharacterMySQL, TinysaveAppliesTheFragmentToTheOwnTableOnly) {
     EXPECT_EQ("0", queryScalar("SELECT StashNum FROM Vampire WHERE Name='" + slayer.name + "'"));
 }
 
-TEST_F(CharacterMySQL, ResetSlayerRewardZeroesTheColumn) {
-    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
-    slayer.persist();
-    execSQL("UPDATE Slayer SET Reward = 5 WHERE Name='" + slayer.name + "'");
+TEST_F(CharacterMySQL, TinysaveVampireBranchHitsOnlyTheVampireTable) {
+    PlayerFixture vampire = PlayerFixtures::lowLevelVampire();
+    vampire.persist(); // Slayer + Vampire rows
 
-    defaultCharacterRepository().resetSlayerReward(slayer.name);
+    defaultCharacterRepository().tinysave(vampire.name, CHARACTER_RACE_VAMPIRE, "StashNum=9");
 
-    EXPECT_EQ("0", queryScalar("SELECT Reward FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("9", queryScalar("SELECT StashNum FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("0", queryScalar("SELECT StashNum FROM Slayer WHERE Name='" + vampire.name + "'"));
+}
+
+TEST_F(CharacterMySQL, TinysaveOustersBranchHitsOnlyTheOustersTable) {
+    PlayerFixture ousters = PlayerFixtures::lowLevelOusters();
+    ousters.persist(); // Slayer + Ousters rows
+
+    defaultCharacterRepository().tinysave(ousters.name, CHARACTER_RACE_OUSTERS, "StashNum=9");
+
+    EXPECT_EQ("9", queryScalar("SELECT StashNum FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("0", queryScalar("SELECT StashNum FROM Slayer WHERE Name='" + ousters.name + "'"));
 }
 
 // --- BloodBibleSignObject against real MySQL ------------------------------

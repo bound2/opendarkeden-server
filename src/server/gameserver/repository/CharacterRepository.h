@@ -7,13 +7,14 @@
 #include "Types.h"
 
 // Persistence seam for the character row's non-load writes (task 3.2):
-// the periodic vitals/position save, the exp/fame/rank tail save, the
-// caller-composed tinysave fragments, and the load-flow reward reset.
-// The race tables carry different columns, so the records are per-race;
-// field types mirror the member variables the inline SQL marshalled, so
-// the varargs bytes reaching the format strings are unchanged. The
-// load() SELECTs stay inline in the race classes for now — they are the
-// next extraction round.
+// the periodic vitals/position save, the exp/fame/rank tail save, and
+// the caller-composed tinysave fragments. The race tables carry
+// different columns, so the records are per-race; each field mirrors the
+// ORIGINAL EXPRESSION's type — the member/getter type, or int where the
+// inline SQL applied an explicit (int) cast — so the varargs bytes
+// reaching the format strings are unchanged. The load() SELECTs stay
+// inline in the race classes for now — they are the next extraction
+// round.
 
 // Slayer save(): CurrentHP/HP/CurrentMP/MP/ZoneID/XCoord/YCoord.
 struct SlayerVitalsRecord {
@@ -118,10 +119,6 @@ public:
     // buffers) — a legacy quirk this seam quarantines but cannot yet
     // retire; narrowing it to typed columns is later work.
     virtual void tinysave(const std::string& ownerName, CharacterRace race, const std::string& fieldFragment) = 0;
-
-    // The load-flow reward reset. Slayer-only: the vampire copy of the
-    // reward flow is commented out in Vampire::load().
-    virtual void resetSlayerReward(const std::string& ownerName) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in

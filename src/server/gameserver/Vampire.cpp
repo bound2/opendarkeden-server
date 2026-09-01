@@ -798,8 +798,7 @@ void Vampire::save() const
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // Save the vampire information. Affected rows may be 0 when nothing
-    // changed and must not be checked.
+    // Save the vampire information.
     VampireVitalsRecord record;
     record.currentHP = (int)m_HP[ATTR_CURRENT];
     record.maxHP = (int)m_HP[ATTR_MAX];
@@ -2582,10 +2581,10 @@ void Vampire::saveExps(void) const
 {
     __BEGIN_TRY
 
-    // 스킬 핸들러에서 쿼리 숫자를 줄이기 위해서 10으로 나누는 부분들은,
-    // 서버 다운이 되지 않고, 정상적으로 로그아웃하는 경우에
-    // 세이브를 명시적으로 해주지 않으면 10 이하 올라간 부분은 날아가 버리게 된다.
-    // 그러므로 여기서 세이브를 해 준다.
+    // Divide by 10 to reduce the number of queries in the skill handler,
+    // If the server is not down and you log out normally
+    // If you don't explicitly save, the part that goes up below 10 will be blown away.
+    // So save here.
     /*
     StringStream sql;
     sql << "UPDATE Vampire SET "

@@ -4,7 +4,7 @@
 #include <string>
 
 #include "DB.h"
-#include "repository/StashRepository.h"
+#include "repository/CharacterRace.h"
 
 // SQL helpers for the MySQL integration tier: direct statements on the
 // same connection the repositories use, for seeding and row inspection.

@@ -6,14 +6,21 @@
 #include "CharacterRace.h"
 #include "Types.h"
 
-// Persistence seam for the carried-gold column (task 3.2). Like stash,
-// Gold is a column ON the three race tables — but unlike stash, every
-// operation targets ONLY the character's own table, and the writes are
-// RELATIVE (Gold = Gold ± delta, arithmetic done by the database against
-// whatever the row holds). The gameplay clamps (MAX_MONEY on the way up,
-// zero on the way down) happen in the calling creature against its
-// in-memory balance BEFORE the delta reaches this seam — the repository
-// applies the already-clamped delta, exactly as the inline SQL did.
+// Persistence seam for the RELATIVE carried-gold writes and the
+// integrity read (task 3.2). Like stash, Gold is a column ON the three
+// race tables — but unlike stash, every operation targets ONLY the
+// character's own table, and the writes are relative (Gold = Gold ±
+// delta, arithmetic done by the database against whatever the row
+// holds). The gameplay clamps (MAX_MONEY on the way up, zero on the way
+// down) happen in the calling creature against its in-memory balance
+// BEFORE the delta reaches this seam — the repository applies the
+// already-clamped delta, exactly as the inline SQL did.
+//
+// This seam does NOT enclose every writer of the Gold column: setGoldEx
+// in all three races writes it ABSOLUTELY through a tinysave fragment,
+// SGAddGuildMemberOKHandler.cpp writes it inline with its own DB-side
+// clamp, and the sharedserver binary's GSQuitGuildHandler.cpp writes it
+// from another process entirely. Those join their own extractions.
 class GoldRepository {
 public:
     virtual ~GoldRepository() {}

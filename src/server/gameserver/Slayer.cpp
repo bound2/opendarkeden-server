@@ -819,7 +819,13 @@ bool Slayer::load()
 
             if (bSuccess)
             {
-                defaultCharacterRepository().resetSlayerReward(m_Name);
+                BEGIN_DB
+                {
+                    pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+                    pStmt->executeQuery("UPDATE Slayer SET Reward = 0 WHERE Name='%s'", m_Name.c_str());
+                    SAFE_DELETE(pStmt);
+                }
+                END_DB(pStmt)
 
                 GCModifyInformation gcModifyInformation;
 

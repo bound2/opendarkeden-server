@@ -21,6 +21,10 @@
 //    (1690), leaving the row untouched. The real error surfaces as a raw
 //    const char* out of END_DB; the fake throws std::runtime_error so
 //    tests have something typed to catch.
+//  - NOT modeled: deltas above INT_MAX and sums above the column's
+//    4294967295 maximum (real MySQL would clamp with a warning under the
+//    non-strict sql_mode; the fake's int arithmetic would just go
+//    negative). Unreachable while the callers clamp at MAX_MONEY.
 class FakeGoldRepository : public GoldRepository {
 public:
     // Test seeding: the character's row in one race table.
