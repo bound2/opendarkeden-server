@@ -788,6 +788,61 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > contract (fake-tier +18, integration tier 14 tests incl. the pilot's
   > NicknameBook nID-ascending order, which its fake had also
   > mis-documented).
+  > **Gold + character-row round (2026-09-01)**: `GoldRepository` — the
+  > carried-gold column on the three race tables, from
+  > `increaseGoldEx`/`decreaseGoldEx`/`checkGoldIntegrity` in
+  > Slayer/Vampire/Ousters.cpp. The writes are RELATIVE
+  > (`Gold = Gold ± %u`, database-side arithmetic) and target ONLY the
+  > character's own table (no Slayer fan-out, unlike stash); the gameplay
+  > clamps (MAX_MONEY up, zero down) stay in the creature against its
+  > in-memory balance, so a decrease can still hit
+  > ER_DATA_OUT_OF_RANGE (1690) when the ROW holds less than memory says
+  > (integrity drift) — pinned by the integration tier, with the row
+  > verified untouched. **`CharacterRepository`** takes the rest of the
+  > race files' non-load writes: the `save()` vitals/position UPDATEs
+  > (per-race records; the emitted SQL keeps each race's original
+  > spacing byte-for-byte — Slayer's printf `CurrentHP=%d`,
+  > Vampire/Ousters' `CurrentHP = 12`; Vampire has no MP columns and
+  > carries SilverDamage instead), the `saveExps()` tails (Vampire's
+  > conditional `,SilverDamage = %d` fragment preserved — a zero value
+  > leaves the column untouched, while Ousters always writes it), and
+  > `tinysave` (caller-composed raw SET fragments — quarantined, not
+  > yet retired; the WHERE's NAME-vs-Name casing is cosmetic, kept for
+  > byte-fidelity, and the `Rank` backticks are load-bearing on MySQL 8
+  > where RANK is reserved). The adversarial round (2x xhigh,
+  > 2026-09-01, both NO-SHIP as written; the extraction itself was
+  > machine-verified byte-identical, 17/17 literals, every record field
+  > type traced) corrected two things the first draft got wrong: the
+  > reward-reset flow is DEAD in BOTH races (Slayer's call site sits
+  > inside a ~100-line `/* */` block, which the draft edited without
+  > noticing — that edit was reverted and no reward method ships), and
+  > the DWORD-vs-%lu varargs mismatch in the exp saves is a LATENT BUG
+  > masked by GCC codegen, not an ABI guarantee (clang -O0 demonstrably
+  > reads garbage for stack-passed %lu/%ld fields; the extraction
+  > preserves it bit-for-bit, the %u fix is deliberate follow-up).
+  > Repository SQL now uses the parameterized `executeQuery` form
+  > exclusively — never string concatenation (maintainer rule; the
+  > vitals and stash StringStreams were converted with byte-identical
+  > output; true server-side prepared statements don't exist in this DB
+  > layer and remain the upgrade that would also retire the raw-name
+  > interpolation). CharacterRepository is write-only and has NO fake
+  > tier — its 10 integration tests assert EVERY written column with
+  > distinct sentinels and exercise every tinysave dispatch branch, by
+  > the maintainer's integration-over-fakes call; known blind spots,
+  > documented in the suite: the `Rank` backticks are untestable on the
+  > 5.7 tier, a seam signature break surfaces in the gameserver build
+  > rather than default ctest, and DBError.log now attributes failures
+  > to repository methods instead of game-flow functions. The shared
+  > race enum moved to `repository/CharacterRace.h` (`CharacterRace`,
+  > née StashRace). Ratchets unchanged: the race files keep exactly
+  > their `load()` SELECT + skill-save load (the 53+ positional-column
+  > transplant is the NEXT round); the dead comment blocks (Slayer's
+  > `getIP` UserIPInfo, Slayer's AND Vampire's reward flows) are
+  > comments, not debt. Gold's seam does not enclose every Gold writer:
+  > `setGoldEx` writes the column absolutely via tinysave,
+  > SGAddGuildMemberOKHandler inline, and the sharedserver's
+  > GSQuitGuildHandler from another process — named in
+  > GoldRepository.h, to be extracted with their own flows.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

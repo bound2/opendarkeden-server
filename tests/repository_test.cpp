@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 
 #include "FakeBloodBibleSignRepository.h"
+#include "FakeGoldRepository.h"
 #include "FakeGoodsRepository.h"
 #include "FakeNicknameRepository.h"
 #include "FakeRankBonusRepository.h"
@@ -266,14 +267,14 @@ TEST(StashRepositoryContract, GoldAboveIntMaxMarshalsNegativeAndStoresZero) {
     // The balance is destroyed, not stored negative. Unreachable with the
     // MAX_MONEY cap, preserved anyway.
     FakeStashRepository repository;
-    repository.addRow(STASH_RACE_SLAYER, "Hyanggi");
+    repository.addRow(CHARACTER_RACE_SLAYER, "Hyanggi");
     repository.saveStashGold("Hyanggi", false, 4000000000u);
 
     ASSERT_EQ(2u, repository.writes().size());
     EXPECT_EQ(-294967296, repository.writes()[0].value); // the marshalled literal
 
     int gold = -1;
-    ASSERT_TRUE(repository.loadStashGold("Hyanggi", STASH_RACE_SLAYER, gold));
+    ASSERT_TRUE(repository.loadStashGold("Hyanggi", CHARACTER_RACE_SLAYER, gold));
     EXPECT_EQ(0, gold); // the stored outcome
 }
 
@@ -284,7 +285,7 @@ TEST(StashRepositoryContract, SaveAgainstAMissingRowIsASilentNoOp) {
     repository.saveStashGold("Nobody", false, 500);
 
     int gold = -1;
-    EXPECT_FALSE(repository.loadStashGold("Nobody", STASH_RACE_SLAYER, gold));
+    EXPECT_FALSE(repository.loadStashGold("Nobody", CHARACTER_RACE_SLAYER, gold));
     EXPECT_EQ(2u, repository.writes().size()); // the attempts still happened
 }
 
@@ -292,16 +293,16 @@ TEST(StashRepositoryContract, LoadStashGoldReadsTheCharactersOwnTable) {
     // The integrity check reads ONE table (the character's own race),
     // while the writes fan out to Slayer + the race's own table.
     FakeStashRepository repository;
-    repository.addRow(STASH_RACE_SLAYER, "Yerin");
-    repository.addRow(STASH_RACE_OUSTERS, "Yerin");
+    repository.addRow(CHARACTER_RACE_SLAYER, "Yerin");
+    repository.addRow(CHARACTER_RACE_OUSTERS, "Yerin");
     repository.saveStashGold("Yerin", true, 700);
 
     int gold = -1;
-    ASSERT_TRUE(repository.loadStashGold("Yerin", STASH_RACE_OUSTERS, gold));
+    ASSERT_TRUE(repository.loadStashGold("Yerin", CHARACTER_RACE_OUSTERS, gold));
     EXPECT_EQ(700, gold);
-    ASSERT_TRUE(repository.loadStashGold("Yerin", STASH_RACE_SLAYER, gold));
+    ASSERT_TRUE(repository.loadStashGold("Yerin", CHARACTER_RACE_SLAYER, gold));
     EXPECT_EQ(700, gold); // the unconditional Slayer write landed too
-    EXPECT_FALSE(repository.loadStashGold("Yerin", STASH_RACE_VAMPIRE, gold));
+    EXPECT_FALSE(repository.loadStashGold("Yerin", CHARACTER_RACE_VAMPIRE, gold));
 }
 
 // --- BloodBibleSignObject contract, pinned via the fake -------------------
@@ -394,6 +395,58 @@ TEST(GoodsRepositoryContract, TakingAZeroCountRowThrowsAndLeavesItStuck) {
     std::vector<GoodsRecord> records = repository.loadPending(1, "account", "Hyanggi");
     ASSERT_EQ(1u, records.size());
     EXPECT_EQ(0, records[0].num);
+}
+
+// --- carried-gold contract, pinned via the fake ---------------------------
+
+TEST(GoldRepositoryContract, IncreaseIsRelativeOnTheRowBalance) {
+    FakeGoldRepository repository;
+    repository.addRow(CHARACTER_RACE_SLAYER, "Hyanggi", 100);
+
+    repository.increaseGold("Hyanggi", CHARACTER_RACE_SLAYER, 50);
+
+    int gold = -1;
+    ASSERT_TRUE(repository.loadGold("Hyanggi", CHARACTER_RACE_SLAYER, gold));
+    EXPECT_EQ(150, gold);
+}
+
+TEST(GoldRepositoryContract, OperationsTargetOnlyTheOwnRaceTable) {
+    // Unlike the stash writes, gold has NO Slayer fan-out: a slayer's
+    // twin Vampire row keeps its own balance.
+    FakeGoldRepository repository;
+    repository.addRow(CHARACTER_RACE_SLAYER, "Hyanggi", 2000);
+    repository.addRow(CHARACTER_RACE_VAMPIRE, "Hyanggi", 0);
+
+    repository.increaseGold("Hyanggi", CHARACTER_RACE_SLAYER, 500);
+
+    int gold = -1;
+    ASSERT_TRUE(repository.loadGold("Hyanggi", CHARACTER_RACE_SLAYER, gold));
+    EXPECT_EQ(2500, gold);
+    ASSERT_TRUE(repository.loadGold("Hyanggi", CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(0, gold);
+}
+
+TEST(GoldRepositoryContract, IncreaseAgainstAMissingRowIsASilentNoOp) {
+    FakeGoldRepository repository;
+    repository.increaseGold("Nobody", CHARACTER_RACE_SLAYER, 500);
+
+    int gold = -1;
+    EXPECT_FALSE(repository.loadGold("Nobody", CHARACTER_RACE_SLAYER, gold));
+}
+
+TEST(GoldRepositoryContract, DecreaseBelowTheRowBalanceThrowsAndLeavesTheRowUntouched) {
+    // The caller clamps the delta against its IN-MEMORY balance; when the
+    // row holds less (integrity drift), the unsigned subtraction raises
+    // ER_DATA_OUT_OF_RANGE and the row is untouched — the same failure
+    // shape as taking a Num=0 goods row.
+    FakeGoldRepository repository;
+    repository.addRow(CHARACTER_RACE_VAMPIRE, "Hyanggi", 10);
+
+    EXPECT_THROW(repository.decreaseGold("Hyanggi", CHARACTER_RACE_VAMPIRE, 50), std::runtime_error);
+
+    int gold = -1;
+    ASSERT_TRUE(repository.loadGold("Hyanggi", CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(10, gold);
 }
 
 } // namespace

@@ -10,6 +10,8 @@
 #include "EffectManager.h"
 #include "LogClient.h"
 #include "Player.h"
+#include "repository/CharacterRepository.h"
+#include "repository/GoldRepository.h"
 #include "repository/StashRepository.h"
 // #include <algo.h>
 #include <stdio.h>
@@ -1011,99 +1013,28 @@ void Slayer::save() const
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        /*
-        // StringStream 안쓰기. by sigi. 2002.5.9
-        StringStream sql;
-        sql << "UPDATE Slayer SET"
-            //<< " Competence = " << (int)m_Competence
-            //<< ", HairStyle = '" << HairStyle2String[m_HairStyle]
-            //<< "', HairColor = " << (int)m_HairColor
-            //<< ", SkinColor = " << (int)m_SkinColor
-            //<< ", STR = " << (int)m_STR[ATTR_MAX]
-            //<< ", DEX = " << (int)m_DEX[ATTR_MAX]
-            //<< ", INTE = " << (int)m_INT[ATTR_MAX]
-            //<< ", STRExp = " << m_STRExp
-            //<< ", DEXExp = " << m_DEXExp
-            //<< ", INTExp = " << m_INTExp
-            //<< ", STRExpLevel = " << (int)m_STRExpLevel
-            //<< ", DEXExpLevel = " << (int)m_DEXExpLevel
-            //<< ", INTExpLevel = " << (int)m_INTExpLevel
-            << " CurrentHP = " << m_HP[ATTR_CURRENT]
-            << ", HP = " << m_HP[ATTR_MAX]
-            << ", CurrentMP = " << m_MP[ATTR_CURRENT]
-            << ", MP = " << m_MP[ATTR_MAX]
-            //<< ", Fame = " << m_Fame
-            //<< ", Gold = " << m_Gold
-            //<< ", GuildID = " << m_GuildID
-            //<< ", InMagics = '" << ??? << "'"
-            //<< ", BladeLevel = " << (int)m_SkillDomainLevels[SKILL_DOMAIN_BLADE]
-            //<< ", BladeExp = " << m_SkillDomainExps[SKILL_DOMAIN_BLADE]
-            //<< ", BladeGoalExp = " << m_GoalExp[SKILL_DOMAIN_BLADE]
-            //<< ", SwordLevel = " << (int)m_SkillDomainLevels[SKILL_DOMAIN_SWORD]
-            //<< ", SwordExp = " << m_SkillDomainExps[SKILL_DOMAIN_SWORD]
-            //<< ", SwordGoalExp = " << m_GoalExp[SKILL_DOMAIN_SWORD]
-            //<< ", GunLevel = " << (int)m_SkillDomainLevels[SKILL_DOMAIN_GUN]
-            //<< ", GunExp = " << m_SkillDomainExps[SKILL_DOMAIN_GUN]
-            //<< ", GunGoalExp = " << m_GoalExp[SKILL_DOMAIN_GUN]
-            //<< ", RifleLevel = " << (int)m_SkillDomainLevels[SKILL_DOMAIN_RIFLE]
-            //<< ", RifleExp = " << m_SkillDomainExps[SKILL_DOMAIN_RIFLE]
-            //<< ", RifleGoalExp = " << m_GoalExp[SKILL_DOMAIN_RIFLE]
-            //<< ", EnchantLevel = " << (int)m_SkillDomainLevels[SKILL_DOMAIN_ENCHANT]
-            //<< ", EnchantExp = " << m_SkillDomainExps[SKILL_DOMAIN_ENCHANT]
-            //<< ", EnchantGoalExp = " << m_GoalExp[SKILL_DOMAIN_ENCHANT]
-            //<< ", HealLevel = " << (int)m_SkillDomainLevels[SKILL_DOMAIN_HEAL]
-            //<< ", HealExp = " << m_SkillDomainExps[SKILL_DOMAIN_HEAL]
-            //<< ", HealGoalExp = " << m_GoalExp[SKILL_DOMAIN_HEAL]
-            //<< ", ETCLevel = " << (int)m_SkillDomainLevels[SKILL_DOMAIN_ETC]
-            //<< ", ETCExp = " << m_SkillDomainExps[SKILL_DOMAIN_ETC]
-            //<< ", ETCGoalExp = " << m_GoalExp[SKILL_DOMAIN_ETC]
-            //<< ", SubSkills = '" << ??? << "'"
-            << ", ZoneID = " << getZoneID()
-            << ", XCoord = " << (int)m_X
-            << ", YCoord = " << (int)m_Y
-            //<< ", Sight = " << (int)m_Sight
-            //<< ", GunBonusExp = " << (int)m_GunBonusExp
-            //<< ", RifleBonusExp = " << (int)m_GunBonusExp
-            << ", F9 = " << (int)m_HotKey[0]
-            << ", F10 = " << (int)m_HotKey[1]
-            << ", F11 = " << (int)m_HotKey[2]
-            << ", F12 = " << (int)m_HotKey[3]
-            << "  WHERE Name = '" << m_Name << "'";
-
-            pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE Slayer SET CurrentHP=%d, HP=%d, CurrentMP=%d, MP=%d, ZoneID=%d, XCoord=%d, "
-                            "YCoord=%d WHERE Name='%s'",
-                            m_HP[ATTR_CURRENT], m_HP[ATTR_MAX], m_MP[ATTR_CURRENT], m_MP[ATTR_MAX], getZoneID(),
-                            (int)m_X, (int)m_Y, m_Name.c_str());
-
-
-        // 일반적으로, 아무런 데이타도 바뀌지 않았을 경우
-        // #Affected Rows == 0 이다. 그런데, 대부분의 경우
-        // 데이타가 약간이라도 바뀌게 된다. 그러나, 안바뀔
-        // 가능성도 있다. 따라서, AffectedRows 는 체크되지
-        // 않아야 한다.
-        // Assert(pStmt->getAffectedRowCount() == 1);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    // Normally, when no data has changed at all, #Affected Rows == 0.
+    // In most cases the data changes at least a little, but it may
+    // not - so affected rows must not be checked.
+    SlayerVitalsRecord record;
+    record.currentHP = m_HP[ATTR_CURRENT];
+    record.maxHP = m_HP[ATTR_MAX];
+    record.currentMP = m_MP[ATTR_CURRENT];
+    record.maxMP = m_MP[ATTR_MAX];
+    record.zoneID = getZoneID();
+    record.x = (int)m_X;
+    record.y = (int)m_Y;
+    defaultCharacterRepository().saveSlayerVitals(m_Name, record);
 
     /*
-    // 인벤토리의 아이템들을 세이브 한다.
+    // Save the inventory's items.
     m_pInventory->save(m_Name);
     */
 
-    // 이펙트를 세이브 한다.
+    // Save the effects.
     m_pEffectManager->save(m_Name);
 
-    // 오토바이를 세이브 한다.
+    // Save the motorcycle.
     if (m_pMotorcycle != NULL) {
         // m_pMotorcycle->save("", STORAGE_ZONE, m_pZone->getZoneID(), m_X, m_Y);
         //  by sigi. 2002.5.15
@@ -1123,14 +1054,7 @@ void Slayer::save() const
 void Slayer::tinysave(const string& field) const {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Slayer SET %s WHERE NAME='%s'", field.c_str(), m_Name.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultCharacterRepository().tinysave(m_Name, CHARACTER_RACE_SLAYER, field);
 
     __END_CATCH
 }
@@ -2964,22 +2888,14 @@ void Slayer::increaseGoldEx(Gold_t gold)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // MAX_MONEY 를 넘어가는 걸 막는다
+    // Prevent going over MAX_MONEY
     // 2003.1.8  by bezz.
     if (m_Gold + gold > MAX_MONEY)
         gold = MAX_MONEY - m_Gold;
 
     setGold(m_Gold + gold);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Slayer SET Gold=Gold+%u WHERE NAME='%s'", gold, m_Name.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
+    defaultGoldRepository().increaseGold(m_Name, CHARACTER_RACE_SLAYER, gold);
 
     __END_DEBUG
     __END_CATCH
@@ -2991,21 +2907,14 @@ void Slayer::decreaseGoldEx(Gold_t gold)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // 0 미만이 되는 걸 막는다. 0 미만이 되면 underflow 되서 난리가 난다.
+    // Prevent going below 0. Below 0 it underflows and causes chaos.
     // 2003.1.8  by bezz.
     if (m_Gold < gold)
         gold = m_Gold;
 
     setGold(m_Gold - gold);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Slayer SET Gold=Gold-%u WHERE NAME='%s'", gold, m_Name.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultGoldRepository().decreaseGold(m_Name, CHARACTER_RACE_SLAYER, gold);
 
     __END_DEBUG
     __END_CATCH
@@ -3014,22 +2923,11 @@ void Slayer::decreaseGoldEx(Gold_t gold)
 bool Slayer::checkGoldIntegrity() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    bool ret = false;
+    int gold = 0;
+    if (!defaultGoldRepository().loadGold(m_Name, CHARACTER_RACE_SLAYER, gold))
+        return false;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT Gold FROM Slayer WHERE NAME='%s'", m_Name.c_str());
-
-        if (pResult->next()) {
-            ret = pResult->getInt(1) == m_Gold;
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-    return ret;
+    return gold == m_Gold;
 
     __END_CATCH
 }
@@ -3038,7 +2936,7 @@ bool Slayer::checkStashGoldIntegrity() {
     __BEGIN_TRY
 
     int gold = 0;
-    if (!defaultStashRepository().loadStashGold(m_Name, STASH_RACE_SLAYER, gold))
+    if (!defaultStashRepository().loadStashGold(m_Name, CHARACTER_RACE_SLAYER, gold))
         return false;
 
     return gold == m_StashGold;
@@ -3518,26 +3416,27 @@ void Slayer::saveExps(void) const
     // If you don't explicitly save, the part that goes up below 10 will be blown away.
     // So save here.
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery(
-            "UPDATE Slayer SET STRGoalExp=%lu, DEXGoalExp=%lu, INTGoalExp=%lu, BladeGoalExp=%lu, SwordGoalExp=%lu, "
-            "GunGoalExp=%lu, EnchantGoalExp=%lu, HealGoalExp=%lu, ETCGoalExp=%lu, Alignment=%d, Fame=%ld, `Rank`=%d, "
-            "RankGoalExp=%lu, AdvancementClass=%u, AdvancementGoalExp=%d, AdvancedSTR=%u, AdvancedDEX=%u, "
-            "AdvancedINT=%u, Bonus=%u WHERE Name='%s'",
-            getSTRGoalExp(), getDEXGoalExp(), getINTGoalExp(), m_GoalExp[SKILL_DOMAIN_BLADE],
-            m_GoalExp[SKILL_DOMAIN_SWORD], m_GoalExp[SKILL_DOMAIN_GUN], m_GoalExp[SKILL_DOMAIN_ENCHANT],
-            m_GoalExp[SKILL_DOMAIN_HEAL], m_GoalExp[SKILL_DOMAIN_ETC], m_Alignment, m_Fame, getRank(), getRankGoalExp(),
-            getAdvancementClassLevel(), getAdvancementClassGoalExp(), m_AdvancedSTR, m_AdvancedDEX, m_AdvancedINT,
-            m_AdvancedAttrBonus, m_Name.c_str());
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    SlayerExpsRecord record;
+    record.strGoalExp = getSTRGoalExp();
+    record.dexGoalExp = getDEXGoalExp();
+    record.intGoalExp = getINTGoalExp();
+    record.bladeGoalExp = m_GoalExp[SKILL_DOMAIN_BLADE];
+    record.swordGoalExp = m_GoalExp[SKILL_DOMAIN_SWORD];
+    record.gunGoalExp = m_GoalExp[SKILL_DOMAIN_GUN];
+    record.enchantGoalExp = m_GoalExp[SKILL_DOMAIN_ENCHANT];
+    record.healGoalExp = m_GoalExp[SKILL_DOMAIN_HEAL];
+    record.etcGoalExp = m_GoalExp[SKILL_DOMAIN_ETC];
+    record.alignment = m_Alignment;
+    record.fame = m_Fame;
+    record.rank = getRank();
+    record.rankGoalExp = getRankGoalExp();
+    record.advancementClass = getAdvancementClassLevel();
+    record.advancementGoalExp = getAdvancementClassGoalExp();
+    record.advancedSTR = m_AdvancedSTR;
+    record.advancedDEX = m_AdvancedDEX;
+    record.advancedINT = m_AdvancedINT;
+    record.advancedAttrBonus = m_AdvancedAttrBonus;
+    defaultCharacterRepository().saveSlayerExps(m_Name, record);
 
     __END_CATCH
 }

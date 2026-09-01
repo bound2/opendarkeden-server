@@ -4,7 +4,7 @@
 #include <string>
 
 #include "DB.h"
-#include "repository/StashRepository.h"
+#include "repository/CharacterRace.h"
 
 // SQL helpers for the MySQL integration tier: direct statements on the
 // same connection the repositories use, for seeding and row inspection.
@@ -47,17 +47,17 @@ inline std::string queryScalar(const std::string& sql) {
 // SwordLevel.
 struct PlayerFixture {
     std::string name; // fits every OwnerID/Name column (varchar(10))
-    StashRace race;
+    CharacterRace race;
     int level;
 
     void persist() const {
         char sql[160];
-        if (race == STASH_RACE_SLAYER) {
+        if (race == CHARACTER_RACE_SLAYER) {
             sprintf(sql, "INSERT INTO Slayer (Name, SwordLevel) VALUES ('%s', %d)", name.c_str(), level);
             execSQL(sql);
             sprintf(sql, "INSERT INTO Vampire (Name) VALUES ('%s')", name.c_str());
             execSQL(sql);
-        } else if (race == STASH_RACE_VAMPIRE) {
+        } else if (race == CHARACTER_RACE_VAMPIRE) {
             sprintf(sql, "INSERT INTO Slayer (Name) VALUES ('%s')", name.c_str());
             execSQL(sql);
             sprintf(sql, "INSERT INTO Vampire (Name, Level) VALUES ('%s', %d)", name.c_str(), level);
@@ -79,31 +79,31 @@ struct PlayerFixture {
 
 struct PlayerFixtures {
     static PlayerFixture lowLevelSlayer() {
-        return make("itslaylo", STASH_RACE_SLAYER, 5);
+        return make("itslaylo", CHARACTER_RACE_SLAYER, 5);
     }
     static PlayerFixture midLevelSlayer() {
-        return make("itslaymid", STASH_RACE_SLAYER, 75);
+        return make("itslaymid", CHARACTER_RACE_SLAYER, 75);
     }
     static PlayerFixture highLevelSlayer() {
-        return make("itslayhi", STASH_RACE_SLAYER, 150);
+        return make("itslayhi", CHARACTER_RACE_SLAYER, 150);
     }
     static PlayerFixture lowLevelVampire() {
-        return make("itvamplo", STASH_RACE_VAMPIRE, 5);
+        return make("itvamplo", CHARACTER_RACE_VAMPIRE, 5);
     }
     static PlayerFixture midLevelVampire() {
-        return make("itvampmid", STASH_RACE_VAMPIRE, 75);
+        return make("itvampmid", CHARACTER_RACE_VAMPIRE, 75);
     }
     static PlayerFixture highLevelVampire() {
-        return make("itvamphi", STASH_RACE_VAMPIRE, 150);
+        return make("itvamphi", CHARACTER_RACE_VAMPIRE, 150);
     }
     static PlayerFixture lowLevelOusters() {
-        return make("itoustlo", STASH_RACE_OUSTERS, 5);
+        return make("itoustlo", CHARACTER_RACE_OUSTERS, 5);
     }
     static PlayerFixture midLevelOusters() {
-        return make("itoustmid", STASH_RACE_OUSTERS, 75);
+        return make("itoustmid", CHARACTER_RACE_OUSTERS, 75);
     }
     static PlayerFixture highLevelOusters() {
-        return make("itousthi", STASH_RACE_OUSTERS, 150);
+        return make("itousthi", CHARACTER_RACE_OUSTERS, 150);
     }
 
     // Wipe every profile's rows — cheap enough to run in every SetUp so a
@@ -117,7 +117,7 @@ struct PlayerFixtures {
     }
 
 private:
-    static PlayerFixture make(const char* name, StashRace race, int level) {
+    static PlayerFixture make(const char* name, CharacterRace race, int level) {
         PlayerFixture fixture;
         fixture.name = name;
         fixture.race = race;

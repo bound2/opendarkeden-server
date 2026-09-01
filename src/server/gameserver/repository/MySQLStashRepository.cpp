@@ -1,5 +1,4 @@
 #include "DB.h"
-#include "StringStream.h"
 #include "repository/StashRepository.h"
 
 namespace {
@@ -29,20 +28,14 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            StringStream sqlSlayer;
-            StringStream sqlVampire;
-            StringStream sqlOusters;
-
-            sqlSlayer << "UPDATE Slayer set StashNum = " << (int)num << " WHERE Name = '" << ownerName << "'";
-            sqlVampire << "UPDATE Vampire set StashNum = " << (int)num << " WHERE Name = '" << ownerName << "'";
-            sqlOusters << "UPDATE Ousters set StashNum = " << (int)num << " WHERE Name = '" << ownerName << "'";
-
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQueryString(sqlSlayer.toString());
+            // format strings carry the exact spacing (and lowercase
+            // "set") the old StringStreams emitted
+            pStmt->executeQuery("UPDATE Slayer set StashNum = %d WHERE Name = '%s'", (int)num, ownerName.c_str());
             if (!isOusters)
-                pStmt->executeQueryString(sqlVampire.toString());
+                pStmt->executeQuery("UPDATE Vampire set StashNum = %d WHERE Name = '%s'", (int)num, ownerName.c_str());
             else
-                pStmt->executeQueryString(sqlOusters.toString());
+                pStmt->executeQuery("UPDATE Ousters set StashNum = %d WHERE Name = '%s'", (int)num, ownerName.c_str());
 
             SAFE_DELETE(pStmt);
         }
@@ -53,28 +46,22 @@ public:
         Statement* pStmt = NULL;
 
         BEGIN_DB {
-            StringStream sqlSlayer;
-            StringStream sqlVampire;
-            StringStream sqlOusters;
-
-            sqlSlayer << "UPDATE Slayer set StashGold = " << (int)gold << " WHERE Name = '" << ownerName << "'";
-            sqlVampire << "UPDATE Vampire set StashGold = " << (int)gold << " WHERE Name = '" << ownerName << "'";
-            sqlOusters << "UPDATE Ousters set StashGold = " << (int)gold << " WHERE Name = '" << ownerName << "'";
-
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQueryString(sqlSlayer.toString());
+            pStmt->executeQuery("UPDATE Slayer set StashGold = %d WHERE Name = '%s'", (int)gold, ownerName.c_str());
             if (!isOusters)
-                pStmt->executeQueryString(sqlVampire.toString());
+                pStmt->executeQuery("UPDATE Vampire set StashGold = %d WHERE Name = '%s'", (int)gold,
+                                    ownerName.c_str());
             else
-                pStmt->executeQueryString(sqlOusters.toString());
+                pStmt->executeQuery("UPDATE Ousters set StashGold = %d WHERE Name = '%s'", (int)gold,
+                                    ownerName.c_str());
 
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
     }
 
-    bool loadStashGold(const string& ownerName, StashRace race, int& gold) {
-        const char* table = race == STASH_RACE_SLAYER ? "Slayer" : race == STASH_RACE_VAMPIRE ? "Vampire" : "Ousters";
+    bool loadStashGold(const string& ownerName, CharacterRace race, int& gold) {
+        const char* table = characterRaceTable(race);
         bool found = false;
         Statement* pStmt = NULL;
 

@@ -26,6 +26,8 @@
 #include "SkillUtil.h"
 #include "Stash.h"
 #include "TradeManager.h"
+#include "repository/CharacterRepository.h"
+#include "repository/GoldRepository.h"
 #include "repository/StashRepository.h"
 // #include "RankEXPInfo.h"
 #include <stdio.h>
@@ -717,26 +719,18 @@ void Ousters::save() const
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    Statement* pStmt;
-
-    //--------------------------------------------------------------------------------
-    //--------------------------------------------------------------------------------
-    BEGIN_DB {
-        StringStream sql;
-        sql << "UPDATE Ousters SET" << " CurrentHP = " << (int)m_HP[ATTR_CURRENT] << ", HP = " << (int)m_HP[ATTR_MAX]
-            << ", CurrentMP = " << (int)m_MP[ATTR_CURRENT] << ", MP = " << (int)m_MP[ATTR_MAX]
-            << ", ZoneID = " << (int)getZoneID() << ", XCoord = " << (int)m_X << ", YCoord = " << (int)m_Y
-            << " WHERE Name = '" << m_Name << "'";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    OustersVitalsRecord record;
+    record.currentHP = (int)m_HP[ATTR_CURRENT];
+    record.maxHP = (int)m_HP[ATTR_MAX];
+    record.currentMP = (int)m_MP[ATTR_CURRENT];
+    record.maxMP = (int)m_MP[ATTR_MAX];
+    record.zoneID = (int)getZoneID();
+    record.x = (int)m_X;
+    record.y = (int)m_Y;
+    defaultCharacterRepository().saveOustersVitals(m_Name, record);
 
     //--------------------------------------------------
+    // Save the effects.
     //--------------------------------------------------
     m_pEffectManager->save(m_Name);
 
@@ -752,14 +746,7 @@ void Ousters::tinysave(const string& field) // by sigi. 2002.5.15
     const {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Ousters SET %s WHERE Name='%s'", field.c_str(), m_Name.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultCharacterRepository().tinysave(m_Name, CHARACTER_RACE_OUSTERS, field);
 
     __END_CATCH
 }
@@ -1974,15 +1961,7 @@ void Ousters::increaseGoldEx(Gold_t gold)
 
     setGold(m_Gold + gold);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Ousters SET Gold=Gold+%u WHERE NAME='%s'", gold, m_Name.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
+    defaultGoldRepository().increaseGold(m_Name, CHARACTER_RACE_OUSTERS, gold);
 
     __END_DEBUG
     __END_CATCH
@@ -2000,14 +1979,7 @@ void Ousters::decreaseGoldEx(Gold_t gold)
 
     setGold(m_Gold - gold);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Ousters SET Gold=Gold-%u WHERE NAME='%s'", gold, m_Name.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultGoldRepository().decreaseGold(m_Name, CHARACTER_RACE_OUSTERS, gold);
 
     __END_DEBUG
     __END_CATCH
@@ -2031,22 +2003,11 @@ void Ousters::saveSilverDamage(Silver_t damage)
 bool Ousters::checkGoldIntegrity() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    bool ret = false;
+    int gold = 0;
+    if (!defaultGoldRepository().loadGold(m_Name, CHARACTER_RACE_OUSTERS, gold))
+        return false;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT Gold FROM Ousters WHERE NAME='%s'", m_Name.c_str());
-
-        if (pResult->next()) {
-            ret = pResult->getInt(1) == m_Gold;
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-    return ret;
+    return gold == m_Gold;
 
     __END_CATCH
 }
@@ -2055,7 +2016,7 @@ bool Ousters::checkStashGoldIntegrity() {
     __BEGIN_TRY
 
     int gold = 0;
-    if (!defaultStashRepository().loadStashGold(m_Name, STASH_RACE_OUSTERS, gold))
+    if (!defaultStashRepository().loadStashGold(m_Name, CHARACTER_RACE_OUSTERS, gold))
         return false;
 
     return gold == m_StashGold;
@@ -2276,25 +2237,16 @@ void Ousters::saveExps(void) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    /*	char silverDam[40];
-        if (m_SilverDamage != 0)
-        {
-            sprintf(silverDam, ",SilverDamage = %d", m_SilverDamage);
-        }
-        else silverDam[0]='\0'; */
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Ousters SET Alignment=%d, Fame=%d, GoalExp=%lu, SilverDamage = %d, `Rank`=%d, "
-                            "RankGoalExp=%lu, AdvancementClass=%u, AdvancementGoalExp=%d WHERE Name='%s'",
-                            m_Alignment, m_Fame, m_GoalExp, m_SilverDamage, getRank(), getRankGoalExp(),
-                            getAdvancementClassLevel(), getAdvancementClassGoalExp(), m_Name.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    OustersExpsRecord record;
+    record.alignment = m_Alignment;
+    record.fame = m_Fame;
+    record.goalExp = m_GoalExp;
+    record.silverDamage = m_SilverDamage;
+    record.rank = getRank();
+    record.rankGoalExp = getRankGoalExp();
+    record.advancementClass = getAdvancementClassLevel();
+    record.advancementGoalExp = getAdvancementClassGoalExp();
+    defaultCharacterRepository().saveOustersExps(m_Name, record);
 
     __END_CATCH
 }
