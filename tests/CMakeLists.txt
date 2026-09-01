@@ -109,6 +109,11 @@ set_tests_properties(repository_tests PROPERTIES TIMEOUT 60)
 add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     integration/mysql_repository_test.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBloodBibleSignRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBulletinBoardRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLComebackEventRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLMessageRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLRegenZoneRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLZoneInfoRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLCharacterRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLGoldRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLGoodsRepository.cpp

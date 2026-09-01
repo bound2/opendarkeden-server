@@ -54,7 +54,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 85 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements) |
+| R2 | Files with inline SQL in gameserver root | 85 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager) |
 | R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 308 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
@@ -964,11 +964,49 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > column maximum" quirk: Timeval's timediff returns the absolute
   > difference and a DWORD cannot exceed the column, so the real quirk
   > is that a scroll saved past its deadline would store the elapsed
-  > time as remaining — unreached, now documented as such). Remaining SQL under gameserver/:
-  > the long tail (R2 = 85 files) — biggest remaining clusters are
-  > CreatureUtil.cpp's 128-statement character deletion, the guild
-  > trio (Guild/GuildManager/GuildUnion, 65 statements) and the
-  > read-only info loaders.
+  > time as remaining — unreached, now documented as such).
+  > **Zone milestone (2026-09-01, stacked on the effect round)**: every
+  > SQL statement the zone layer ran is behind a seam — ten files
+  > cleansed (R2 85→75, R3 295→285). **`ZoneInfoRepository`** is the
+  > read-only zone CONFIGURATION seam: the group list (with and without
+  > ORDER BY — two statements, kept as two, the caller choosing;
+  > ZoneGroupManager::load, makeDefaultLoadInfo, ThreadManager::init),
+  > the zones of a group (same pair), the 17-column ZoneInfo row
+  > (ZoneInfoManager; the SELECT's SMPFilename/SSIFilename spelling
+  > differs from the schema's SmpFileName — case-insensitive, kept), the
+  > per-zone resurrect positions (ResurrectLocationManager, its "table
+  > does not exist" throw on an empty result kept), the ZoneTriggers
+  > rectangles (Zone::loadTriggeredPortal), the EffectPKZoneRegen
+  > rectangles and the per-zone/per-race WayPointInfo points
+  > (Zone::loadEffect) and every way point (WayPointManager).
+  > **`MessageRepository`** — the keyless Messages queue the zone drains
+  > on entry (load, delete; the pay-zone eviction INSERT in the
+  > `__PAY_SYSTEM_ZONE__` branch of ZonePlayerManager, which no build
+  > config compiles — converted by hand, not compile-checked).
+  > **`ComebackEventRepository`** — the three Event200501 zero-date
+  > predicates on the dist connection (Zone.cpp ran them on one
+  > never-freed statement; three calls now, each freeing its own).
+  > **`BulletinBoardRepository`** — the notice corpses: the column-less
+  > `VALUES (0, ...)` INSERT that leans on the table's column order and
+  > the auto-increment, returning the affected count the caller logs;
+  > the per-zone load; the expired-row DELETE that used a second, never-
+  > freed statement (fixed knowingly). **`RegenZoneRepository`** — the
+  > race-war towers (load and reload issued the identical SELECT and
+  > neither freed its statement; fixed knowingly). Two dead blocks that
+  > still spelled `executeQuery` were deleted rather than edited:
+  > ZoneGroupManager's `/* */` copy of load() and ZoneInfo::load's
+  > commented-out body (the live function is `Assert(false)`). No fake
+  > tier; +9 integration tests, seeded config rows kept clear of the
+  > shipped data by using ids from 31000 up. Not enclosed: the
+  > loginserver/sharedserver's own ZoneGroupInfo/ZoneInfo reads, the
+  > MAX(ZoneGroupID) probes (ConnectionInfoManager, EffectShutDown,
+  > CGSayHandler), the guild handlers' and sharedserver's Messages
+  > inserts, and CGGetEventItemHandler/CLLoginHandler's event stamps —
+  > each its own extraction. Remaining SQL under gameserver/: the long
+  > tail (R2 = 75 files) — biggest remaining clusters are
+  > CreatureUtil.cpp's 128-statement character deletion, the guild trio
+  > (Guild/GuildManager/GuildUnion, 65 statements) and the read-only
+  > info loaders.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

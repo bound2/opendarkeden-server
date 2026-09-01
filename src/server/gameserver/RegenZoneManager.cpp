@@ -1,7 +1,6 @@
 #include "RegenZoneManager.h"
 
 #include "CastleInfoManager.h"
-#include "DB.h"
 #include "EffectRegenZone.h"
 #include "EffectTryingPosition.h"
 #include "GCAddEffect.h"
@@ -21,6 +20,7 @@
 #include "Vampire.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/RegenZoneRepository.h"
 #include "war/WarSystem.h"
 
 void RegenZoneInfo::putTryingPosition() {
@@ -82,64 +82,58 @@ RegenZoneManager::~RegenZoneManager() {
 void RegenZoneManager::reload() {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    vector<RegenZoneRow> rows = defaultRegenZoneRepository().loadPositions();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT ID, ZoneID, ZoneX, ZoneY, Owner FROM RegenZonePosition");
+    m_pStatusPacket = new GCRegenZoneStatus();
 
-        m_pStatusPacket = new GCRegenZoneStatus();
+    for (size_t r = 0; r < rows.size(); r++) {
+        uint ID = rows[r].id;
+        ZoneID_t ZoneID = rows[r].zoneID;
+        ZoneCoord_t ZoneX = rows[r].zoneX;
+        ZoneCoord_t ZoneY = rows[r].zoneY;
+        uint Owner = rows[r].owner;
 
-        while (pResult->next()) {
-            uint ID = pResult->getInt(1);
-            ZoneID_t ZoneID = pResult->getInt(2);
-            ZoneCoord_t ZoneX = pResult->getInt(3);
-            ZoneCoord_t ZoneY = pResult->getInt(4);
-            uint Owner = pResult->getInt(5);
+        Assert(Owner < 4);
 
-            Assert(Owner < 4);
+        Zone* pZone = getZoneByZoneID(ZoneID);
+        Assert(pZone != NULL);
 
-            Zone* pZone = getZoneByZoneID(ZoneID);
-            Assert(pZone != NULL);
+        __ENTER_CRITICAL_SECTION((*pZone))
 
-            __ENTER_CRITICAL_SECTION((*pZone))
-
-            Item* pTowerItem = pZone->getTile(ZoneX, ZoneY).getItem();
-            if (pTowerItem == NULL || pTowerItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
-                pTowerItem->getItemType() != MONSTER_CORPSE) {
-                filelog("RaceWar.log", "리젠존 타워를 못 찾았습니다. [%d:(%d,%d)]", ZoneID, ZoneX, ZoneY);
-                pZone->unlock();
-                continue;
-            }
-
-            MonsterCorpse* pTower = dynamic_cast<MonsterCorpse*>(pTowerItem);
-            Assert(pTower != NULL);
-
-            RegenZoneInfo* pInfo = m_RegenZoneInfos[ID];
-            if (pInfo == NULL) {
-                filelog("RaceWar.log", "Reload : 해당되는 리젠존이 없습니다. [%d]", ID);
-                m_RegenZoneInfos.erase(ID);
-                pZone->unlock();
-                continue;
-            }
-
-            pInfo->setOwner((RegenZoneInfo::RegenZoneIndex)Owner);
-
-            EffectRegenZone* pEffect = dynamic_cast<EffectRegenZone*>(
-                pTower->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_REGEN_ZONE));
-            if (pEffect == NULL) {
-                filelog("RaceWar.log", "Reload : 리젠존 이펙트가 날라갔습니다. [%d]", ID);
-                pZone->unlock();
-                continue;
-            }
-
-            pEffect->setOwner(m_RegenZoneInfos[ID]->getOwner());
-            m_pStatusPacket->setStatus(ID, Owner);
-
-            __LEAVE_CRITICAL_SECTION((*pZone))
+        Item* pTowerItem = pZone->getTile(ZoneX, ZoneY).getItem();
+        if (pTowerItem == NULL || pTowerItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
+            pTowerItem->getItemType() != MONSTER_CORPSE) {
+            filelog("RaceWar.log", "리젠존 타워를 못 찾았습니다. [%d:(%d,%d)]", ZoneID, ZoneX, ZoneY);
+            pZone->unlock();
+            continue;
         }
+
+        MonsterCorpse* pTower = dynamic_cast<MonsterCorpse*>(pTowerItem);
+        Assert(pTower != NULL);
+
+        RegenZoneInfo* pInfo = m_RegenZoneInfos[ID];
+        if (pInfo == NULL) {
+            filelog("RaceWar.log", "Reload : 해당되는 리젠존이 없습니다. [%d]", ID);
+            m_RegenZoneInfos.erase(ID);
+            pZone->unlock();
+            continue;
+        }
+
+        pInfo->setOwner((RegenZoneInfo::RegenZoneIndex)Owner);
+
+        EffectRegenZone* pEffect = dynamic_cast<EffectRegenZone*>(
+            pTower->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_REGEN_ZONE));
+        if (pEffect == NULL) {
+            filelog("RaceWar.log", "Reload : 리젠존 이펙트가 날라갔습니다. [%d]", ID);
+            pZone->unlock();
+            continue;
+        }
+
+        pEffect->setOwner(m_RegenZoneInfos[ID]->getOwner());
+        m_pStatusPacket->setStatus(ID, Owner);
+
+        __LEAVE_CRITICAL_SECTION((*pZone))
     }
-    END_DB(pStmt);
 
     broadcastStatus();
 
@@ -149,47 +143,41 @@ void RegenZoneManager::reload() {
 void RegenZoneManager::load() {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    vector<RegenZoneRow> rows = defaultRegenZoneRepository().loadPositions();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT ID, ZoneID, ZoneX, ZoneY, Owner FROM RegenZonePosition");
+    m_pStatusPacket = new GCRegenZoneStatus();
 
-        m_pStatusPacket = new GCRegenZoneStatus();
+    for (size_t r = 0; r < rows.size(); r++) {
+        uint ID = rows[r].id;
+        ZoneID_t ZoneID = rows[r].zoneID;
+        ZoneCoord_t ZoneX = rows[r].zoneX;
+        ZoneCoord_t ZoneY = rows[r].zoneY;
+        uint Owner = rows[r].owner;
 
-        while (pResult->next()) {
-            uint ID = pResult->getInt(1);
-            ZoneID_t ZoneID = pResult->getInt(2);
-            ZoneCoord_t ZoneX = pResult->getInt(3);
-            ZoneCoord_t ZoneY = pResult->getInt(4);
-            uint Owner = pResult->getInt(5);
+        Assert(Owner < 4);
 
-            Assert(Owner < 4);
+        Zone* pZone = getZoneByZoneID(ZoneID);
+        Assert(pZone != NULL);
 
-            Zone* pZone = getZoneByZoneID(ZoneID);
-            Assert(pZone != NULL);
+        MonsterCorpse* pTower = new MonsterCorpse(673, g_pStringPool->getString(STRID_REGENZONE_TOWER), 2);
+        Assert(pTower != NULL);
 
-            MonsterCorpse* pTower = new MonsterCorpse(673, g_pStringPool->getString(STRID_REGENZONE_TOWER), 2);
-            Assert(pTower != NULL);
+        pTower->setShrine(true);
 
-            pTower->setShrine(true);
+        pZone->registerObject(pTower);
+        pZone->addItem(pTower, ZoneX, ZoneY);
 
-            pZone->registerObject(pTower);
-            pZone->addItem(pTower, ZoneX, ZoneY);
+        m_RegenZoneInfos[ID] = new RegenZoneInfo(ID, pTower, Owner);
+        m_RegenZoneInfos[ID]->setOriginalOwner((RegenZoneInfo::RegenZoneIndex)Owner);
 
-            m_RegenZoneInfos[ID] = new RegenZoneInfo(ID, pTower, Owner);
-            m_RegenZoneInfos[ID]->setOriginalOwner((RegenZoneInfo::RegenZoneIndex)Owner);
+        EffectRegenZone* pEffect = new EffectRegenZone(pTower);
+        pEffect->setOwner(m_RegenZoneInfos[ID]->getOwner());
+        pTower->setFlag(pEffect->getEffectClass());
 
-            EffectRegenZone* pEffect = new EffectRegenZone(pTower);
-            pEffect->setOwner(m_RegenZoneInfos[ID]->getOwner());
-            pTower->setFlag(pEffect->getEffectClass());
+        pTower->getEffectManager().addEffect(pEffect);
 
-            pTower->getEffectManager().addEffect(pEffect);
-
-            m_pStatusPacket->setStatus(ID, Owner);
-        }
+        m_pStatusPacket->setStatus(ID, Owner);
     }
-    END_DB(pStmt);
 
     __END_CATCH
 }

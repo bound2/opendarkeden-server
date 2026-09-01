@@ -548,6 +548,11 @@ set(GAMESERVER_MAIN_SOURCES
     NicknameBook.cpp
     repository/MySQLNicknameRepository.cpp
     repository/MySQLBloodBibleSignRepository.cpp
+    repository/MySQLBulletinBoardRepository.cpp
+    repository/MySQLComebackEventRepository.cpp
+    repository/MySQLMessageRepository.cpp
+    repository/MySQLRegenZoneRepository.cpp
+    repository/MySQLZoneInfoRepository.cpp
     repository/MySQLCharacterRepository.cpp
     repository/MySQLGoldRepository.cpp
     repository/MySQLGoodsRepository.cpp

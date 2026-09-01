@@ -12,7 +12,6 @@
 #include "CastleInfoManager.h"
 #include "Corpse.h"
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "Effect.h"
 #include "EffectDarknessForbidden.h"
 #include "EffectGnomesWhisper.h"
@@ -82,6 +81,7 @@
 #include "ZoneUtil.h"
 #include "ctf/FlagManager.h"
 #include "item/Mine.h"
+#include "repository/BulletinBoardRepository.h"
 #include "skill/EffectTrapInstalled.h"
 #include "skill/SummonGroundElemental.h"
 #include "war/WarSystem.h"
@@ -2828,25 +2828,15 @@ bool createBulletinBoard(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y, MonsterType_
         return false;
     }
 
-    Statement* pStmt = NULL;
+    string dbmsg = correctString(msg);
+    int affectedRows =
+        defaultBulletinBoardRepository().insert(g_pConfig->getPropertyInt("ServerID"), pZone->getZoneID(), pt.x, pt.y,
+                                                dbmsg, (uint)type, timeLimit.toDateTime());
 
-    BEGIN_DB {
-        string dbmsg = correctString(msg);
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("INSERT INTO BulletinBoardObject VALUES (0, %u, %u, %u, %u, '%s', %u, '%s')",
-                            g_pConfig->getPropertyInt("ServerID"), pZone->getZoneID(), pt.x, pt.y, dbmsg.c_str(),
-                            (uint)type, timeLimit.toDateTime().c_str());
-
-        // UPDATE인 경우는 Result* 대신에.. pStmt->getAffectedRowCount()
-
-        if (pStmt->getAffectedRowCount() == 0) {
-            filelog("BulletinBoard.log", "DB에 저장이 안되버렸습니다. : %u, %u, %u, [%u:%s]", pZone->getZoneID(), pt.x,
-                    pt.y, type, msg.c_str());
-        }
-
-        SAFE_DELETE(pStmt);
+    if (affectedRows == 0) {
+        filelog("BulletinBoard.log", "DB에 저장이 안되버렸습니다. : %u, %u, %u, [%u:%s]", pZone->getZoneID(), pt.x,
+                pt.y, type, msg.c_str());
     }
-    END_DB(pStmt)
 
     return true;
 
@@ -2858,50 +2848,38 @@ void loadBulletinBoard(Zone* pZone) {
 
     VSDateTime currentDateTime = VSDateTime::currentDateTime();
 
-    Statement* pStmt = NULL;
+    vector<BulletinBoardRow> rows =
+        defaultBulletinBoardRepository().loadForZone(g_pConfig->getPropertyInt("ServerID"), pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ID, X, Y, Message, Type, TimeLimit FROM BulletinBoardObject WHERE ServerID = %u AND ZoneID = %u",
-            g_pConfig->getPropertyInt("ServerID"), pZone->getZoneID());
+    for (size_t r = 0; r < rows.size(); r++) {
+        uint ID = rows[r].id;
+        ZoneCoord_t X = rows[r].x;
+        ZoneCoord_t Y = rows[r].y;
+        string msg = rows[r].message;
+        MonsterType_t type = rows[r].type;
+        VSDateTime timeLimit(rows[r].timeLimit);
 
-        // UPDATE인 경우는 Result* 대신에.. pStmt->getAffectedRowCount()
-
-        while (pResult->next()) {
-            uint ID = pResult->getInt(1);
-            ZoneCoord_t X = pResult->getInt(2);
-            ZoneCoord_t Y = pResult->getInt(3);
-            string msg = pResult->getString(4);
-            MonsterType_t type = pResult->getInt(5);
-            VSDateTime timeLimit(pResult->getString(6));
-
-            if (timeLimit < currentDateTime) {
-                cout << "게시판 시간 다되서 지워버립니다." << ID << " : [" << X << "," << Y << "] " << msg << " ["
-                     << type << "] " << endl;
-                Statement* pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pStmt2->executeQuery("DELETE FROM BulletinBoardObject WHERE ID = %u", ID);
-                continue;
-            }
-
-            int delayTime = currentDateTime.secsTo(timeLimit);
-
-            MonsterCorpse* pCorpse = new MonsterCorpse(type, msg, 2);
-            Assert(pCorpse != NULL);
-
-            pZone->registerObject(pCorpse);
-
-            TPOINT pt = pZone->addItem(pCorpse, X, Y, true, delayTime * 10);
-
-            if (pt.x == -1) {
-                filelog("BulletinBoard.log", "DB에서 읽었는데 존에 안들어가버렸습니다. : %u, %u, %u, [%u:%s]",
-                        pZone->getZoneID(), X, Y, type, msg.c_str());
-            }
+        if (timeLimit < currentDateTime) {
+            cout << "게시판 시간 다되서 지워버립니다." << ID << " : [" << X << "," << Y << "] " << msg << " [" << type
+                 << "] " << endl;
+            defaultBulletinBoardRepository().remove(ID);
+            continue;
         }
 
-        SAFE_DELETE(pStmt);
+        int delayTime = currentDateTime.secsTo(timeLimit);
+
+        MonsterCorpse* pCorpse = new MonsterCorpse(type, msg, 2);
+        Assert(pCorpse != NULL);
+
+        pZone->registerObject(pCorpse);
+
+        TPOINT pt = pZone->addItem(pCorpse, X, Y, true, delayTime * 10);
+
+        if (pt.x == -1) {
+            filelog("BulletinBoard.log", "DB에서 읽었는데 존에 안들어가버렸습니다. : %u, %u, %u, [%u:%s]",
+                    pZone->getZoneID(), X, Y, type, msg.c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

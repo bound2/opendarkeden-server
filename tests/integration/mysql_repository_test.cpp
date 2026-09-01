@@ -31,17 +31,22 @@
 #include "PlayerFixtures.h"
 #include "Thread.h"
 #include "repository/BloodBibleSignRepository.h"
+#include "repository/BulletinBoardRepository.h"
 #include "repository/CharacterRepository.h"
+#include "repository/ComebackEventRepository.h"
 #include "repository/EffectSaveRepository.h"
 #include "repository/FlagSetRepository.h"
 #include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
+#include "repository/MessageRepository.h"
 #include "repository/NicknameRepository.h"
 #include "repository/QuestItemRepository.h"
 #include "repository/RankBonusRepository.h"
+#include "repository/RegenZoneRepository.h"
 #include "repository/SMSAddressRepository.h"
 #include "repository/SkillSaveRepository.h"
 #include "repository/StashRepository.h"
+#include "repository/ZoneInfoRepository.h"
 
 namespace {
 
@@ -1240,6 +1245,283 @@ TEST_F(QuestItemMySQL, RowsAreScopedToTheOwner) {
     itemTypes = repository.loadItemTypes(vampire.name);
     ASSERT_EQ(1u, itemTypes.size());
     EXPECT_EQ(5, itemTypes[0]);
+}
+
+// --- zone configuration against real MySQL --------------------------------
+// The config tables ship seeded in initdb/DARKEDEN.sql (zone groups 1
+// and 2, the real zones), so these tests add rows with ids far above the
+// shipped range and assert on those, never on the seeded set's size.
+
+const int IT_ZONE_GROUP = 31000;
+const int IT_ZONE_GROUP_2 = 31001;
+const int IT_ZONE = 31000;
+const int IT_ZONE_2 = 31001;
+const int IT_ZONE_3 = 31003;
+const int IT_SERVER = 250; // ServerID is tinyint unsigned
+
+class ZoneInfoMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        execSQL("DELETE FROM ZoneGroupInfo WHERE ZoneGroupID >= 31000");
+        execSQL("DELETE FROM ZoneInfo WHERE ZoneID >= 31000");
+        execSQL("DELETE FROM ZoneTriggers WHERE ZoneID >= 31000");
+        execSQL("DELETE FROM EffectPKZoneRegen WHERE ID >= 31000");
+        execSQL("DELETE FROM WayPointInfo WHERE ZoneID >= 31000");
+    }
+
+    static bool contains(const std::vector<int>& ids, int id) {
+        for (size_t i = 0; i < ids.size(); i++)
+            if (ids[i] == id)
+                return true;
+        return false;
+    }
+};
+
+TEST_F(ZoneInfoMySQL, ZoneGroupIDsComeBackOrderedOnlyWhenAsked) {
+    execSQL("INSERT INTO ZoneGroupInfo (ZoneGroupID, ServerID) VALUES (31001, 1)");
+    execSQL("INSERT INTO ZoneGroupInfo (ZoneGroupID, ServerID) VALUES (31000, 1)");
+
+    std::vector<int> ordered = defaultZoneInfoRepository().loadZoneGroupIDs(true);
+    ASSERT_GE(ordered.size(), 2u);
+    EXPECT_EQ(IT_ZONE_GROUP, ordered[ordered.size() - 2]);
+    EXPECT_EQ(IT_ZONE_GROUP_2, ordered[ordered.size() - 1]);
+
+    std::vector<int> unordered = defaultZoneInfoRepository().loadZoneGroupIDs(false);
+    EXPECT_EQ(ordered.size(), unordered.size());
+    EXPECT_TRUE(contains(unordered, IT_ZONE_GROUP));
+    EXPECT_TRUE(contains(unordered, IT_ZONE_GROUP_2));
+}
+
+TEST_F(ZoneInfoMySQL, ZoneIDsOfAGroupComeBackOrderedOnlyWhenAsked) {
+    execSQL("INSERT INTO ZoneInfo (ZoneID, ZoneGroupID) VALUES (31003, 31000)");
+    execSQL("INSERT INTO ZoneInfo (ZoneID, ZoneGroupID) VALUES (31001, 31000)");
+    execSQL("INSERT INTO ZoneInfo (ZoneID, ZoneGroupID) VALUES (31000, 31001)"); // another group
+
+    std::vector<int> ordered = defaultZoneInfoRepository().loadZoneIDsOfGroup(IT_ZONE_GROUP, true);
+    ASSERT_EQ(2u, ordered.size());
+    EXPECT_EQ(IT_ZONE_2, ordered[0]);
+    EXPECT_EQ(IT_ZONE_3, ordered[1]);
+
+    std::vector<int> unordered = defaultZoneInfoRepository().loadZoneIDsOfGroup(IT_ZONE_GROUP, false);
+    ASSERT_EQ(2u, unordered.size());
+    EXPECT_TRUE(contains(unordered, IT_ZONE_2));
+    EXPECT_TRUE(contains(unordered, IT_ZONE_3));
+}
+
+TEST_F(ZoneInfoMySQL, LoadZoneInfosReturnsEveryColumnInSelectPosition) {
+    execSQL("INSERT INTO ZoneInfo (ZoneID, ZoneGroupID, Type, Level, AccessMode, OwnerId, PayPlayZone, PremiumZone, "
+            "PKZone, NoPortalZone, HolyLand, Available, OpenLevel, SmpFileName, SsiFileName, FullName, ShortName) "
+            "VALUES (31000, 31001, 'NPC_SHOP', 7, 'PRIVATE', 'itowner', 1, 0, 1, 0, 1, 0, 13, 'it.smp', 'it.ssi', "
+            "'It Full', 'ItShort')");
+
+    std::vector<ZoneInfoRow> rows = defaultZoneInfoRepository().loadZoneInfos();
+    const ZoneInfoRow* found = NULL;
+    for (size_t r = 0; r < rows.size(); r++)
+        if (rows[r].zoneID == IT_ZONE)
+            found = &rows[r];
+    ASSERT_TRUE(found != NULL);
+    EXPECT_EQ(31001, found->zoneGroupID);
+    EXPECT_EQ("NPC_SHOP", found->type);
+    EXPECT_EQ(7, found->level);
+    EXPECT_EQ("PRIVATE", found->accessMode);
+    EXPECT_EQ("itowner", found->ownerID);
+    EXPECT_EQ(1, found->payPlayZone);
+    EXPECT_EQ(0, found->premiumZone);
+    EXPECT_EQ(1, found->pkZone);
+    EXPECT_EQ(0, found->noPortalZone);
+    EXPECT_EQ(1, found->holyLand);
+    EXPECT_EQ(0, found->available);
+    EXPECT_EQ(13, found->openLevel);
+    EXPECT_EQ("it.smp", found->smpFilename);
+    EXPECT_EQ("it.ssi", found->ssiFilename);
+    EXPECT_EQ("It Full", found->fullName);
+    EXPECT_EQ("ItShort", found->shortName);
+}
+
+TEST_F(ZoneInfoMySQL, LoadResurrectLocationsReturnsEveryColumnInSelectPosition) {
+    execSQL("INSERT INTO ZoneInfo (ZoneID, SResurrectZoneID, SResurrectX, SResurrectY, VResurrectZoneID, "
+            "VResurrectX, VResurrectY, OResurrectZoneID, OResurrectX, OResurrectY) "
+            "VALUES (31000, 2, 3, 4, 5, 6, 7, 8, 9, 10)");
+
+    std::vector<ResurrectLocationRow> rows = defaultZoneInfoRepository().loadResurrectLocations();
+    const ResurrectLocationRow* found = NULL;
+    for (size_t r = 0; r < rows.size(); r++)
+        if (rows[r].zoneID == IT_ZONE)
+            found = &rows[r];
+    ASSERT_TRUE(found != NULL);
+    EXPECT_EQ(2, found->slayerZoneID);
+    EXPECT_EQ(3, found->slayerX);
+    EXPECT_EQ(4, found->slayerY);
+    EXPECT_EQ(5, found->vampireZoneID);
+    EXPECT_EQ(6, found->vampireX);
+    EXPECT_EQ(7, found->vampireY);
+    EXPECT_EQ(8, found->oustersZoneID);
+    EXPECT_EQ(9, found->oustersX);
+    EXPECT_EQ(10, found->oustersY);
+}
+
+TEST_F(ZoneInfoMySQL, TriggersRegenRectsAndWayPointsAreScopedToTheZoneAndRace) {
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, CounterActions) "
+            "VALUES (31000, 31000, 1, 2, 3, 4, '', '', '')");
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, CounterActions) "
+            "VALUES (31001, 31001, 9, 9, 9, 9, '', '', '')");
+    execSQL(
+        "INSERT INTO EffectPKZoneRegen (ID, ZoneID, LeftX, TopY, RightX, BottomY) VALUES (31000, 31000, 5, 6, 7, 8)");
+    execSQL(
+        "INSERT INTO EffectPKZoneRegen (ID, ZoneID, LeftX, TopY, RightX, BottomY) VALUES (31001, 31001, 9, 9, 9, 9)");
+    execSQL("INSERT INTO WayPointInfo (ZoneID, X, Y, Race) VALUES (31000, 10, 11, 2)");
+    execSQL("INSERT INTO WayPointInfo (ZoneID, X, Y, Race) VALUES (31000, 12, 13, 0)"); // other race
+    execSQL("INSERT INTO WayPointInfo (ZoneID, X, Y, Race) VALUES (31001, 14, 15, 2)"); // other zone
+
+    std::vector<ZoneRectRow> triggers = defaultZoneInfoRepository().loadTriggerRects(IT_ZONE);
+    ASSERT_EQ(1u, triggers.size());
+    EXPECT_EQ(1, triggers[0].left);
+    EXPECT_EQ(2, triggers[0].top);
+    EXPECT_EQ(3, triggers[0].right);
+    EXPECT_EQ(4, triggers[0].bottom);
+
+    std::vector<ZoneRectRow> regens = defaultZoneInfoRepository().loadPKZoneRegenRects(IT_ZONE);
+    ASSERT_EQ(1u, regens.size());
+    EXPECT_EQ(5, regens[0].left);
+    EXPECT_EQ(6, regens[0].top);
+    EXPECT_EQ(7, regens[0].right);
+    EXPECT_EQ(8, regens[0].bottom);
+
+    std::vector<ZonePointRow> points = defaultZoneInfoRepository().loadWayPoints(IT_ZONE, 2);
+    ASSERT_EQ(1u, points.size());
+    EXPECT_EQ(10, points[0].x);
+    EXPECT_EQ(11, points[0].y);
+
+    std::vector<WayPointRow> all = defaultZoneInfoRepository().loadAllWayPoints();
+    int seen = 0;
+    for (size_t w = 0; w < all.size(); w++) {
+        if (all[w].zoneID == IT_ZONE && all[w].x == 10 && all[w].y == 11 && all[w].race == 2)
+            seen++;
+        if (all[w].zoneID == IT_ZONE && all[w].x == 12 && all[w].y == 13 && all[w].race == 0)
+            seen++;
+        if (all[w].zoneID == IT_ZONE_2 && all[w].x == 14 && all[w].y == 15 && all[w].race == 2)
+            seen++;
+    }
+    EXPECT_EQ(3, seen);
+}
+
+// --- Messages against real MySQL ------------------------------------------
+
+class MessageMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        PlayerFixtures::removeAll();
+        execSQL(std::string("DELETE FROM Messages WHERE Receiver IN ") + PlayerFixtures::nameList());
+    }
+};
+
+TEST_F(MessageMySQL, InsertLoadAndDeleteAreScopedToTheReceiver) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    PlayerFixture other = PlayerFixtures::midLevelOusters();
+    slayer.persist();
+    other.persist();
+    MessageRepository& repository = defaultMessageRepository();
+
+    repository.insertMessage(slayer.name, "first");
+    repository.insertMessage(slayer.name, "first"); // keyless: a repeat is a second row
+    repository.insertMessage(other.name, "elsewhere");
+
+    std::vector<std::string> messages = repository.loadMessages(slayer.name);
+    ASSERT_EQ(2u, messages.size());
+    EXPECT_EQ("first", messages[0]);
+    EXPECT_EQ("first", messages[1]);
+
+    repository.deleteMessages(slayer.name);
+    EXPECT_TRUE(repository.loadMessages(slayer.name).empty());
+    EXPECT_EQ(1u, repository.loadMessages(other.name).size());
+}
+
+// --- Event200501 against real MySQL (the dist connection) -----------------
+
+class ComebackEventMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        execSQL("DELETE FROM Event200501Main WHERE PlayerID = 'itaccount'");
+        execSQL("DELETE FROM Event200501Recommend WHERE PlayerID = 'itaccount'");
+    }
+};
+
+TEST_F(ComebackEventMySQL, ThePredicatesFollowTheZeroDateColumns) {
+    ComebackEventRepository& repository = defaultComebackEventRepository();
+
+    EXPECT_FALSE(repository.hasUnclaimedItem("itaccount"));
+    EXPECT_FALSE(repository.hasUnclaimedPremiumItem("itaccount"));
+    EXPECT_FALSE(repository.hasUnclaimedRecommendItem("itaccount"));
+
+    execSQL("INSERT INTO Event200501Main (PlayerID) VALUES ('itaccount')"); // every date at the zero default
+    EXPECT_TRUE(repository.hasUnclaimedItem("itaccount"));
+    EXPECT_FALSE(repository.hasUnclaimedPremiumItem("itaccount")); // never paid
+
+    execSQL("UPDATE Event200501Main SET PayPremiumDate = '2005-01-02' WHERE PlayerID = 'itaccount'");
+    EXPECT_TRUE(repository.hasUnclaimedPremiumItem("itaccount"));
+
+    execSQL("UPDATE Event200501Main SET RecvItemDate = '2005-01-03', RecvPremiumItemDate = '2005-01-03' "
+            "WHERE PlayerID = 'itaccount'");
+    EXPECT_FALSE(repository.hasUnclaimedItem("itaccount"));
+    EXPECT_FALSE(repository.hasUnclaimedPremiumItem("itaccount"));
+
+    execSQL("INSERT INTO Event200501Recommend (PlayerID, Recommender) VALUES ('itaccount', 'friend')");
+    EXPECT_TRUE(repository.hasUnclaimedRecommendItem("itaccount"));
+    execSQL("UPDATE Event200501Recommend SET RecvItemDate = '2005-01-04' WHERE PlayerID = 'itaccount'");
+    EXPECT_FALSE(repository.hasUnclaimedRecommendItem("itaccount"));
+}
+
+// --- BulletinBoardObject against real MySQL -------------------------------
+
+class BulletinBoardMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        execSQL("DELETE FROM BulletinBoardObject WHERE ServerID = 250");
+    }
+};
+
+TEST_F(BulletinBoardMySQL, InsertLoadForZoneAndRemove) {
+    BulletinBoardRepository& repository = defaultBulletinBoardRepository();
+
+    EXPECT_EQ(1, repository.insert(IT_SERVER, IT_ZONE, 40, 50, "hello board", 673, "2030-01-02 03:04:05"));
+    EXPECT_EQ(1, repository.insert(IT_SERVER, IT_ZONE_2, 1, 1, "other zone", 673, "2030-01-02 03:04:05"));
+
+    std::vector<BulletinBoardRow> rows = repository.loadForZone(IT_SERVER, IT_ZONE);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(40, rows[0].x);
+    EXPECT_EQ(50, rows[0].y);
+    EXPECT_EQ("hello board", rows[0].message);
+    EXPECT_EQ(673, rows[0].type);
+    EXPECT_EQ("2030-01-02 03:04:05", rows[0].timeLimit);
+    EXPECT_TRUE(repository.loadForZone(IT_SERVER + 1, IT_ZONE).empty()); // other server
+
+    repository.remove(rows[0].id);
+    EXPECT_TRUE(repository.loadForZone(IT_SERVER, IT_ZONE).empty());
+    EXPECT_EQ(1u, repository.loadForZone(IT_SERVER, IT_ZONE_2).size());
+}
+
+// --- RegenZonePosition against real MySQL ---------------------------------
+
+class RegenZoneMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        execSQL("DELETE FROM RegenZonePosition WHERE ID >= 31000");
+    }
+};
+
+TEST_F(RegenZoneMySQL, LoadPositionsReturnsEveryColumnInSelectPosition) {
+    execSQL("INSERT INTO RegenZonePosition (ID, ZoneID, ZoneX, ZoneY, Owner) VALUES (31000, 31000, 20, 30, 2)");
+
+    std::vector<RegenZoneRow> rows = defaultRegenZoneRepository().loadPositions();
+    const RegenZoneRow* found = NULL;
+    for (size_t r = 0; r < rows.size(); r++)
+        if (rows[r].id == 31000)
+            found = &rows[r];
+    ASSERT_TRUE(found != NULL);
+    EXPECT_EQ(IT_ZONE, found->zoneID);
+    EXPECT_EQ(20, found->zoneX);
+    EXPECT_EQ(30, found->zoneY);
+    EXPECT_EQ(2, found->owner);
 }
 
 // --- BloodBibleSignObject against real MySQL ------------------------------

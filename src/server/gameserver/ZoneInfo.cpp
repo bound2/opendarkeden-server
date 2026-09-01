@@ -6,7 +6,6 @@
 
 #include "ZoneInfo.h"
 
-#include "DB.h"
 #include "StringStream.h"
 
 ZoneInfo::ZoneInfo() {
@@ -21,41 +20,6 @@ void ZoneInfo::load(ZoneID_t zoneID)
 {
     __BEGIN_TRY
 
-    /*
-    Statement* pStmt = NULL;
-
-    BEGIN_DB
-    {
-        // create statement
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // OwnerID, 가 다 NULL이라서 일단 빼버렸다.
-        Result* pResult = pStmt->executeQuery( "SELECT ZoneGroupID, Type, Level, AccessMode, PayPlayZone, PremiumZone,
-    PKZone, NoPortalZone, SMPFilename, SSIFilename, FullName, ShortName FROM ZoneInfo WHERE ZoneID = %d", zoneID ); if (
-    pResult->next() )
-        {
-            uint i = 0;
-
-            m_ZoneID = zoneID;
-            m_ZoneGroupID = pResult->getInt(++i);
-            setZoneType( pResult->getString(++i) );
-            m_ZoneLevel = pResult->getInt(++i);
-            m_ZoneAccessMode = (ZoneAccessMode)pResult->getInt(++i);
-            //m_OwnerID = pResult->getString(++i);
-            m_bPayPlay = pResult->getInt(++i)!=0;
-            m_bPremiumZone = pResult->getInt(++i)!=0;
-            m_bPKZone = pResult->getInt(++i)!=0;
-            m_bNoPortalZone = pResult->getInt(++i)!=0;
-            m_SMPFilename = pResult->getString(++i);
-            m_SSIFilename = pResult->getString(++i);
-            m_FullName = pResult->getString(++i);
-            m_ShortName = pResult->getString(++i);
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-    */
     Assert(false);
 
     __END_CATCH

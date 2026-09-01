@@ -35,7 +35,6 @@
 #include "CastleInfoManager.h"
 #include "CombatInfoManager.h"
 #include "Creature.h"
-#include "DB.h"
 #include "DarkLightInfo.h"
 #include "DefaultOptionSetInfo.h"
 #include "EffectDarkness.h"
@@ -82,6 +81,9 @@
 #include "WeatherManager.h"
 #include "ZoneUtil.h"
 #include "ctf/FlagManager.h"
+#include "repository/ComebackEventRepository.h"
+#include "repository/MessageRepository.h"
+#include "repository/ZoneInfoRepository.h"
 // #include "EffectRevealer.h"
 #include "EffectAddItem.h"
 #include "EffectAddItemToCorpse.h"
@@ -2249,58 +2251,49 @@ void Zone::loadTriggeredPortal()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    // A dynamic zone loads its template zone's triggers.
+    ZoneID_t zoneID = m_ZoneID;
+    if (isDynamicZone()) {
+        zoneID = m_pDynamicZone->getTemplateZoneID();
+    }
 
-    BEGIN_DB {
-        // DynamicZone 일 경우 처리
-        ZoneID_t zoneID = m_ZoneID;
-        if (isDynamicZone()) {
-            zoneID = m_pDynamicZone->getTemplateZoneID();
-        }
+    vector<ZoneRectRow> rects = defaultZoneInfoRepository().loadTriggerRects(zoneID);
 
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT X1, Y1, X2, Y2 FROM ZoneTriggers WHERE ZoneID=%d", zoneID);
+    for (size_t r = 0; r < rects.size(); r++) {
+        int left = rects[r].left;
+        int top = rects[r].top;
+        int right = rects[r].right;
+        int bottom = rects[r].bottom;
 
-        while (pResult->next()) {
-            int left = pResult->getInt(1);
-            int top = pResult->getInt(2);
-            int right = pResult->getInt(3);
-            int bottom = pResult->getInt(4);
+        Assert(left <= right);
+        Assert(top <= bottom);
 
-            Assert(left <= right);
-            Assert(top <= bottom);
+        Assert(m_OuterRect.ptInRect(left, top));
+        Assert(m_OuterRect.ptInRect(right, bottom));
 
-            Assert(m_OuterRect.ptInRect(left, top));
-            Assert(m_OuterRect.ptInRect(right, bottom));
-
-            for (int x = left; x <= right; x++) {
-                for (int y = top; y <= bottom; y++) {
-                    if (getTile(x, y).hasPortal()) {
-                        // cerr << "loadTriggeredPortal : 이미 포탈이 존재합니다." << endl;
-                        // cerr << "ZONEID:" << m_ZoneID << ",X:" << x << "Y:" << y << endl;
-                        // Portal* pPortal = getTile(x,y).getPortal();
-                        // SAFE_DELETE(pPortal);
-                        getTile(x, y).deletePortal();
-                    }
-
-                    // 포탈을 생성하고, 등록한다.
-                    TriggeredPortal* pPortal = new TriggeredPortal();
-                    getObjectRegistry().registerObject(pPortal);
-
-                    // 포탈 내용을 로드한다.
-                    pPortal->setObjectType(PORTAL_NORMAL);
-                    pPortal->load(zoneID, left, top, right, bottom);
-
-                    // 타일에다 포탈을 붙인다.
-                    getTile(x, y).addPortal(pPortal);
+        for (int x = left; x <= right; x++) {
+            for (int y = top; y <= bottom; y++) {
+                if (getTile(x, y).hasPortal()) {
+                    // cerr << "loadTriggeredPortal : 이미 포탈이 존재합니다." << endl;
+                    // cerr << "ZONEID:" << m_ZoneID << ",X:" << x << "Y:" << y << endl;
+                    // Portal* pPortal = getTile(x,y).getPortal();
+                    // SAFE_DELETE(pPortal);
+                    getTile(x, y).deletePortal();
                 }
+
+                // Create and register the portal.
+                TriggeredPortal* pPortal = new TriggeredPortal();
+                getObjectRegistry().registerObject(pPortal);
+
+                // Load the portal's contents.
+                pPortal->setObjectType(PORTAL_NORMAL);
+                pPortal->load(zoneID, left, top, right, bottom);
+
+                // Attach the portal to the tile.
+                getTile(x, y).addPortal(pPortal);
             }
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt);
 
     __END_CATCH
 }
@@ -3071,25 +3064,15 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         // 일단 막아둔다. - bezz 2002. 07. 13
         //////////////////////////////////////////////////////////////////////////////
         if (!pCreature->isFlag(Effect::EFFECT_CLASS_LOGIN_GUILD_MESSAGE)) {
-            Statement* pStmt = NULL;
-            Result* pResult = NULL;
+            vector<string> messages = defaultMessageRepository().loadMessages(pCreature->getName());
 
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pResult = pStmt->executeQuery("SELECT Message FROM Messages WHERE Receiver = '%s'",
-                                              pCreature->getName().c_str());
-
-                while (pResult->next()) {
-                    GCSystemMessage message;
-                    message.setMessage(pResult->getString(1));
-                    pCreature->getPlayer()->sendPacket(&message);
-                }
-
-                pStmt->executeQuery("DELETE FROM Messages WHERE Receiver = '%s'", pCreature->getName().c_str());
-
-                SAFE_DELETE(pStmt);
+            for (size_t m = 0; m < messages.size(); m++) {
+                GCSystemMessage message;
+                message.setMessage(messages[m]);
+                pCreature->getPlayer()->sendPacket(&message);
             }
-            END_DB(pStmt)
+
+            defaultMessageRepository().deleteMessages(pCreature->getName());
 
             pCreature->setFlag(Effect::EFFECT_CLASS_LOGIN_GUILD_MESSAGE);
         }
@@ -3324,45 +3307,27 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
                 pPC->getPlayer()->sendPacket(&gcNoticeEvent);
             }
         } else if (!pPC->isFlag(Effect::EFFECT_CLASS_JUST_LOGIN)) {
-            // 컴백 이벤트 광고
-            Statement* pStmt = NULL;
-            Result* pResult = NULL;
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-                pResult = pStmt->executeQuery(
-                    "SELECT PlayerID FROM Event200501Main WHERE PlayerID = '%s' AND RecvItemDate = '0000-00-00'",
-                    pPC->getPlayer()->getID().c_str());
-
-                if (pResult->next()) {
-                    GCNPCResponse response;
-                    response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);
-                    response.setParameter(YOU_CAN_GET_EVENT_200501_COMBACK_ITEM);
-                    pPC->getPlayer()->sendPacket(&response);
-                }
-
-                pResult = pStmt->executeQuery("SELECT PlayerID FROM Event200501Main WHERE PlayerID = '%s' AND "
-                                              "PayPremiumDate <> '0000-00-00' AND RecvPremiumItemDate = '0000-00-00'",
-                                              pPC->getPlayer()->getID().c_str());
-
-                if (pResult->next()) {
-                    GCNPCResponse response;
-                    response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);
-                    response.setParameter(YOU_CAN_GET_EVENT_200501_COMBACK_PREMIUM_ITEM);
-                    pPC->getPlayer()->sendPacket(&response);
-                }
-
-                pResult = pStmt->executeQuery(
-                    "SELECT PlayerID FROM Event200501Recommend WHERE PlayerID = '%s' AND RecvItemDate = '0000-00-00'",
-                    pPC->getPlayer()->getID().c_str());
-
-                if (pResult->next()) {
-                    GCNPCResponse response;
-                    response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);
-                    response.setParameter(YOU_CAN_GET_EVENT_200501_COMBACK_RECOMMEND_ITEM);
-                    pPC->getPlayer()->sendPacket(&response);
-                }
+            // Comeback-event reminders.
+            if (defaultComebackEventRepository().hasUnclaimedItem(pPC->getPlayer()->getID())) {
+                GCNPCResponse response;
+                response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);
+                response.setParameter(YOU_CAN_GET_EVENT_200501_COMBACK_ITEM);
+                pPC->getPlayer()->sendPacket(&response);
             }
-            END_DB(pStmt);
+
+            if (defaultComebackEventRepository().hasUnclaimedPremiumItem(pPC->getPlayer()->getID())) {
+                GCNPCResponse response;
+                response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);
+                response.setParameter(YOU_CAN_GET_EVENT_200501_COMBACK_PREMIUM_ITEM);
+                pPC->getPlayer()->sendPacket(&response);
+            }
+
+            if (defaultComebackEventRepository().hasUnclaimedRecommendItem(pPC->getPlayer()->getID())) {
+                GCNPCResponse response;
+                response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);
+                response.setParameter(YOU_CAN_GET_EVENT_200501_COMBACK_RECOMMEND_ITEM);
+                pPC->getPlayer()->sendPacket(&response);
+            }
 
             if (g_pVariableManager->getVariable(TODAY_IS_HOLYDAY)) {
                 GCNoticeEvent gcNoticeEvent;
@@ -8987,64 +8952,50 @@ void Zone::loadEffect()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    ///////////////////////////////////////////////////////////////////////////////
+    // Load the EffectPKZoneRegen rectangles.
+    ///////////////////////////////////////////////////////////////////////////////
+    vector<ZoneRectRow> regenRects = defaultZoneInfoRepository().loadPKZoneRegenRects(getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < regenRects.size(); r++) {
+        ZoneCoord_t left = regenRects[r].left;
+        ZoneCoord_t top = regenRects[r].top;
+        ZoneCoord_t right = regenRects[r].right;
+        ZoneCoord_t bottom = regenRects[r].bottom;
 
-        ///////////////////////////////////////////////////////////////////////////////
-        // EffectPKZoneRegen 로드
-        ///////////////////////////////////////////////////////////////////////////////
-        pResult = pStmt->executeQuery("SELECT LeftX, TopY, RightX, BottomY FROM EffectPKZoneRegen WHERE ZoneID=%u",
-                                      getZoneID());
+        EffectPKZoneRegen* pEffect = new EffectPKZoneRegen(this, left, top, right, bottom);
+        pEffect->setSlayer();
+        pEffect->setVampire();
+        pEffect->setOusters();
+        pEffect->setTurn(10);
+        pEffect->setHP(40);
+        pEffect->setNextTime(0);
 
-        while (pResult->next()) {
-            int count = 0;
+        registerObject(pEffect);
+        addEffect(pEffect);
+    }
 
-            ZoneCoord_t left = pResult->getInt(++count);
-            ZoneCoord_t top = pResult->getInt(++count);
-            ZoneCoord_t right = pResult->getInt(++count);
-            ZoneCoord_t bottom = pResult->getInt(++count);
+    ///////////////////////////////////////////////////////////////////////////////
+    // Load the Gnome's Horn way points: Ousters standing on the 3x3 tiles
+    // around a way point regain 1 HP and MP per second.
+    ///////////////////////////////////////////////////////////////////////////////
+    vector<ZonePointRow> wayPoints = defaultZoneInfoRepository().loadWayPoints(getZoneID(), RACE_OUSTERS);
 
-            EffectPKZoneRegen* pEffect = new EffectPKZoneRegen(this, left, top, right, bottom);
-            pEffect->setSlayer();
-            pEffect->setVampire();
+    for (size_t w = 0; w < wayPoints.size(); w++) {
+        ZoneCoord_t X = wayPoints[w].x;
+        ZoneCoord_t Y = wayPoints[w].y;
+
+        if (isValidZoneCoord(this, X - 1, Y - 1) && isValidZoneCoord(this, X + 1, Y + 1)) {
+            EffectPKZoneRegen* pEffect = new EffectPKZoneRegen(this, X - 1, Y - 1, X + 1, Y + 1);
             pEffect->setOusters();
             pEffect->setTurn(10);
-            pEffect->setHP(40);
+            pEffect->setHP(4);
             pEffect->setNextTime(0);
 
             registerObject(pEffect);
             addEffect(pEffect);
         }
-
-        ///////////////////////////////////////////////////////////////////////////////
-        // Gnome's Horn의 Waypoint 로드
-        // WayPoint 주위의 3X3 타일에 있는 아우스터즈는 초당 1씩 HP,MP 가 회복된다.
-        ///////////////////////////////////////////////////////////////////////////////
-        pResult = pStmt->executeQuery("SELECT X, Y FROM WayPointInfo WHERE ZoneID = %u AND Race = %d", getZoneID(),
-                                      RACE_OUSTERS);
-
-        while (pResult->next()) {
-            ZoneCoord_t X = pResult->getInt(1);
-            ZoneCoord_t Y = pResult->getInt(2);
-
-            if (isValidZoneCoord(this, X - 1, Y - 1) && isValidZoneCoord(this, X + 1, Y + 1)) {
-                EffectPKZoneRegen* pEffect = new EffectPKZoneRegen(this, X - 1, Y - 1, X + 1, Y + 1);
-                pEffect->setOusters();
-                pEffect->setTurn(10);
-                pEffect->setHP(4);
-                pEffect->setNextTime(0);
-
-                registerObject(pEffect);
-                addEffect(pEffect);
-            }
-        }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     //	if ( m_ZoneID == 3001 || m_ZoneID == 71 || m_ZoneID == 72 || m_ZoneID == 73 )
     g_pEffectLoaderManager->load(this);
