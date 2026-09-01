@@ -20,7 +20,11 @@
 // different STR coefficients than vampireMaxHP/oustersMaxHP below, and
 // src/Core/Utility.h declares a Chebyshev getDistance(int,int,int,int)
 // alongside SkillUtil's Euclidean one (which delegates to tileDistance
-// here). Folding them in is a balance decision, not a refactor.
+// here). Near-twin inside de-core itself: skillformula's WildWolf
+// computeOutput independently encodes the same DEX/8 + STR/30 core as
+// wolfDamageBonus below — both pinned, but the coefficient pair exists
+// twice. Folding any of these together is a balance decision, not a
+// refactor.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __DECORE_FORMULAS_H__
@@ -232,8 +236,44 @@ int werwolfDamageBonus(int dex, int str);
 int extremeDamageBonus(int str);
 int extremeToHitBonus(int str, int dex);
 
-// Intimate Grail self-penalty percent (vampire and ousters share it).
-int intimateGrailPenaltyRatio(int skillLevel);
+// Intimate Grail ratios. All three races share the 10 + level/10 ratio,
+// but the SIGN of application stays at the call sites: the slayer applies
+// it (and the 6.6-divisor HP ratio) as a blessing (+=), vampire and
+// ousters as a penalty (-=).
+int intimateGrailRatio(int skillLevel);
+int intimateGrailHPRatio(int skillLevel);
+
+// Slayer gun-domain flat damage bonus while holding a gun.
+int gunDomainDamageBonus(int gunDomainLevel);
+
+// Vampire Nail Mastery: same const + (level - const)/divisor family as
+// the slayer passives, negative below level 32 (truncated toward zero
+// like evasion).
+int nailMasteryDamageBonus(int level);
+
+// Vampire basic-DEX HP-regen ladder: seven thresholds, 0 at DEX <= 50.
+int vampireDexHPRegenBonus(int dexBasic);
+
+// Ousters soul-stone passive points (adapter gates on
+// satisfySkillRequire and stores into m_PassiveSkillMap; the original
+// (uint) store of the double is value-identical to the int return for
+// the reachable non-negative range).
+int fireOfSoulStonePoint(int str, int dex);
+int iceOfSoulStonePoint(int dex);
+int sandOfSoulStonePoint(int str, int dex);
+int blockHeadPoint(int dex);
+int blessFirePoint(int str, int dex);
+int sandCrossPoint(int str, int dex);
+
+// Blood Bible sign-open ladders, one per race — the fame thresholds have
+// drifted between races and slayer has a second ladder for HEAL/ENCHANT
+// domains, which is exactly why they are pinned here. fame is Fame_t
+// (DWORD) — unsigned comparison semantics preserved. The adapters keep
+// the pay-status openNumLimit, the __TEST_SERVER__ fame*10, and the
+// canApplyBloodBibleSign() gate (0 when closed).
+int slayerBloodBibleSignOpenNum(unsigned int fame, int openNumLimit, bool healOrEnchantDomain);
+int vampireBloodBibleSignOpenNum(unsigned int fame, int openNumLimit);
+int oustersBloodBibleSignOpenNum(unsigned int fame, int openNumLimit);
 
 // Ousters Summon Sylph flat bonuses, floored at 5.
 int summonSylphProtectionBonus(int level);

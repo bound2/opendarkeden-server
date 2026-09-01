@@ -70,7 +70,7 @@ predated that pass); only the rows `ratchets.sh` names are enforced so far.
 |------|---------------:|
 | `src/server/gameserver/Zone.cpp` | 9,297 |
 | `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (enforced by `ratchets.sh` R6a) |
-| `src/server/gameserver/InitAllStat.cpp` | 4,886 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
+| `src/server/gameserver/InitAllStat.cpp` | 4,803 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,905 |
 | `src/server/gameserver/Slayer.cpp` | 4,375 |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 820 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
@@ -747,8 +747,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   `SkillFormula`/`SkillUtil` math and stat calculations (`InitAllStat.cpp`)
   into pure functions in `de-core`. These are the highest-value tests in the
   game — they encode balance — and the cheapest to write.
-  > **Status:** in progress (the `InitAllStat.cpp` bodies remain;
-  > updated 2026-09-01) — the `de-core` STATIC target
+  > **Status:** in progress (no named extraction targets remain — new
+  > formulas join as code is touched; updated 2026-09-01 after the
+  > InitAllStat review round) — the `de-core` STATIC target
   > exists (`src/domain/`, freestanding by construction) with its first
   > content: all of `AbilityBalance.cpp` (HP/MP/to-hit/defense/protection/
   > damage/attack-speed/critical/steal per race) plus `computeFinalDamage`,
@@ -817,14 +818,33 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > 10% truncated bump at exactly exp level 30. The adapters keep every
   > live-state gate (canUse, effect flags, item class, isRealWearing)
   > and every member write incl. the per-race caps — same split as the
-  > HitRoll extraction. Everything else in `InitAllStat.cpp` is
-  > orchestration (effect gathering, rank bonuses as stored points,
-  > percentValue applications of effect-carried parameters) with no
-  > formula content to extract; further decomposition of the file is 3.5
-  > (globals→context) and repository work, not formula extraction.
-  > InitAllStat.cpp 4,949→4,886 (R6b tightened); +7 tests (35 new
-  > assertions). Remaining in 3.3: nothing named — new formulas join as
-  > they are touched.
+  > HitRoll extraction.
+  > **The adversarial review round (2x xhigh, 2026-09-01) proved the 19
+  > transplants exact** — one reviewer ran a differential harness
+  > compiling master's removed expressions verbatim (at master's declared
+  > widths) against libde-core: 59.7M input combinations at -O0 and -O2,
+  > zero mismatches — **but falsified the first draft's "no formula
+  > content left" claim and caught a divergence the extraction itself
+  > created** (the slayer's third Intimate Grail block kept `10+level/10`
+  > inline while the vampire/ousters copies got the pinned function). The
+  > fix round extracted everything the reviewers named: the slayer grail
+  > ratios (`intimateGrailRatio`, sign of application stays at the call
+  > sites, + the 6.6-divisor `intimateGrailHPRatio`), the gun-domain /10
+  > damage term, Vampire Nail Mastery and the DEX→HPRegen ladder, the six
+  > Ousters soul-stone passive points, and the three per-race
+  > BloodBibleSign fame ladders (whose thresholds had already drifted
+  > between races — now pinned per race). de-core now owns 33 InitAllStat
+  > formulas. Deliberately NOT extracted, with reasons: percentValue
+  > applications of effect-carried parameters and rank bonuses applied as
+  > stored points (parameter application, no formula), Mephisto's capped
+  > percent application (same category), Monster::initAllStat's
+  > hardcoded event `HP*10` for four monster ids (no stat/level
+  > composition), and the flat arms-mastery constants (`ToHitBonus += 5`
+  > etc. — no computation). The `__CHINA_SERVER__` liveness path is
+  > compiled by no build config; it was hand-compiled clean in the
+  > review, and `livenessBonusChina` is now compiled and unit-tested for
+  > the first time. InitAllStat.cpp 4,949→4,803 across both commits (R6b
+  > tightened).
   - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
     `InitAllStat.cpp` / `HitRoll.cpp` / `SkillFormula.cpp`.
 

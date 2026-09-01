@@ -844,6 +844,9 @@ LivenessBonus livenessBonusChina(int grade) {
     default:
         break;
     }
+    // The original china branch carried this commented-out line of
+    // history where the normal table's live override sits:
+    //		if ( level >= 125 ) HPBonusPercent = 50;
     return b;
 }
 
@@ -889,8 +892,117 @@ int extremeToHitBonus(int str, int dex) {
     return min(20, 4 + ((str + dex) / 40));
 }
 
-int intimateGrailPenaltyRatio(int skillLevel) {
+int intimateGrailRatio(int skillLevel) {
     return 10 + (skillLevel / 10);
+}
+
+int intimateGrailHPRatio(int skillLevel) {
+    return 15 + (int)(skillLevel / 6.6);
+}
+
+int gunDomainDamageBonus(int gunDomainLevel) {
+    return gunDomainLevel / 10;
+}
+
+int nailMasteryDamageBonus(int level) {
+    return 3 + ((level - 56) / 8);
+}
+
+int vampireDexHPRegenBonus(int dexBasic) {
+    if (dexBasic > 450)
+        return 7;
+    else if (dexBasic > 390)
+        return 6;
+    else if (dexBasic > 330)
+        return 5;
+    else if (dexBasic > 260)
+        return 4;
+    else if (dexBasic > 190)
+        return 3;
+    else if (dexBasic > 120)
+        return 2;
+    else if (dexBasic > 50)
+        return 1;
+    return 0;
+}
+
+int fireOfSoulStonePoint(int str, int dex) {
+    return (int)((str / 12.0) + (dex / 3.0));
+}
+
+int iceOfSoulStonePoint(int dex) {
+    return min(5, 1 + dex / 20) * 10;
+}
+
+int sandOfSoulStonePoint(int str, int dex) {
+    return (int)((str / 15.0) + (dex / 5.0));
+}
+
+int blockHeadPoint(int dex) {
+    return min(4, 1 + dex / 30) * 10;
+}
+
+int blessFirePoint(int str, int dex) {
+    return (int)((str / 10.0) + (dex / 2.0));
+}
+
+int sandCrossPoint(int str, int dex) {
+    return (int)((str / 10.0) + (dex / 10.0));
+}
+
+int slayerBloodBibleSignOpenNum(unsigned int fame, int openNumLimit, bool healOrEnchantDomain) {
+    if (healOrEnchantDomain) {
+        if (fame < 100000)
+            return min(openNumLimit, 1);
+        else if (fame < 500000)
+            return min(openNumLimit, 2);
+        else if (fame < 2000000)
+            return min(openNumLimit, 3);
+        else if (fame < 4000000)
+            return min(openNumLimit, 4);
+        else if (fame < 60000000)
+            return min(openNumLimit, 5);
+        return min(openNumLimit, 6);
+    }
+    if (fame < 200000)
+        return min(openNumLimit, 1);
+    else if (fame < 1000000)
+        return min(openNumLimit, 2);
+    else if (fame < 5000000)
+        return min(openNumLimit, 3);
+    else if (fame < 10000000)
+        return min(openNumLimit, 4);
+    else if (fame < 100000000)
+        return min(openNumLimit, 5);
+    return min(openNumLimit, 6);
+}
+
+int vampireBloodBibleSignOpenNum(unsigned int fame, int openNumLimit) {
+    if (fame < 100000)
+        return min(openNumLimit, 1);
+    else if (fame < 1000000)
+        return min(openNumLimit, 2);
+    else if (fame < 5000000)
+        return min(openNumLimit, 3);
+    else if (fame < 10000000)
+        return min(openNumLimit, 4);
+    else if (fame < 200000000)
+        return min(openNumLimit, 5);
+    return min(openNumLimit, 6);
+}
+
+int oustersBloodBibleSignOpenNum(unsigned int fame, int openNumLimit) {
+    if (fame < 30000)
+        return min(openNumLimit, 1);
+    else if (fame < 500000)
+        return min(openNumLimit, 2);
+    else if (fame < 3000000)
+        return min(openNumLimit, 3);
+    else if (fame < 7000000)
+        return min(openNumLimit, 4);
+    else if (fame < 50000000)
+        return min(openNumLimit, 5);
+    return min(openNumLimit, 6);
 }
 
 int summonSylphProtectionBonus(int level) {

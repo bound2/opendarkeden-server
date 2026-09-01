@@ -810,11 +810,11 @@ void Slayer::initAllStat(int numPartyMember) {
 
         if (pIntimateGrail != NULL) {
             // 슬레이어는 축복
-            int hpratio = 15 + (int)(pIntimateGrail->getSkillLevel() / 6.6);
+            int hpratio = decore::intimateGrailHPRatio(pIntimateGrail->getSkillLevel());
             m_HP[ATTR_MAX] += getPercentValue(m_HP[ATTR_MAX], hpratio);
             m_MP[ATTR_MAX] += getPercentValue(m_MP[ATTR_MAX], hpratio);
 
-            int defratio = 10 + (pIntimateGrail->getSkillLevel() / 10);
+            int defratio = decore::intimateGrailRatio(pIntimateGrail->getSkillLevel());
             m_Defense[ATTR_CURRENT] += getPercentValue(m_Defense[ATTR_CURRENT], defratio);
             m_Protection[ATTR_CURRENT] += getPercentValue(m_Protection[ATTR_CURRENT], defratio);
         }
@@ -860,7 +860,7 @@ void Slayer::initAllStat(int numPartyMember) {
         }
 
         if (pWeapon->isGun()) {
-            DamageBonus += getSkillDomainLevel(SKILL_DOMAIN_GUN) / 10;
+            DamageBonus += decore::gunDomainDamageBonus(getSkillDomainLevel(SKILL_DOMAIN_GUN));
         }
 
         SkillSlot* pArmsMastery1 = getSkill(SKILL_ARMS_MASTERY_1);
@@ -1317,47 +1317,12 @@ int Slayer::getBloodBibleSignOpenNum() const {
     Fame_t fame = getFame();
 #endif
 
-    uint openNum = 1;
+    if (!g_pWarSystem->canApplyBloodBibleSign())
+        return 0;
 
-    if (g_pWarSystem->canApplyBloodBibleSign()) {
-        switch (getHighestSkillDomain()) {
-        case SKILL_DOMAIN_HEAL:
-        case SKILL_DOMAIN_ENCHANT: {
-            if (fame < 100000) {
-                openNum = min(openNumLimit, 1);
-            } else if (fame < 500000) {
-                openNum = min(openNumLimit, 2);
-            } else if (fame < 2000000) {
-                openNum = min(openNumLimit, 3);
-            } else if (fame < 4000000) {
-                openNum = min(openNumLimit, 4);
-            } else if (fame < 60000000) {
-                openNum = min(openNumLimit, 5);
-            } else {
-                openNum = min(openNumLimit, 6);
-            }
-        } break;
-        default: {
-            if (fame < 200000) {
-                openNum = min(openNumLimit, 1);
-            } else if (fame < 1000000) {
-                openNum = min(openNumLimit, 2);
-            } else if (fame < 5000000) {
-                openNum = min(openNumLimit, 3);
-            } else if (fame < 10000000) {
-                openNum = min(openNumLimit, 4);
-            } else if (fame < 100000000) {
-                openNum = min(openNumLimit, 5);
-            } else {
-                openNum = min(openNumLimit, 6);
-            }
-        } break;
-        }
-    } else {
-        openNum = 0;
-    }
-
-    return openNum;
+    SkillDomainType_t domain = getHighestSkillDomain();
+    bool healOrEnchant = (domain == SKILL_DOMAIN_HEAL || domain == SKILL_DOMAIN_ENCHANT);
+    return decore::slayerBloodBibleSignOpenNum(fame, openNumLimit, healOrEnchant);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2476,7 +2441,7 @@ void Vampire::initAllStat(int numPartyMember)
         EffectIntimateGrail* pIntimateGrail =
             dynamic_cast<EffectIntimateGrail*>(findEffect(Effect::EFFECT_CLASS_INTIMATE_GRAIL));
         if (pIntimateGrail != NULL) {
-            int ratio = decore::intimateGrailPenaltyRatio(pIntimateGrail->getSkillLevel());
+            int ratio = decore::intimateGrailRatio(pIntimateGrail->getSkillLevel());
             m_Defense[ATTR_CURRENT] -= getPercentValue(m_Defense[ATTR_CURRENT], ratio);
             m_HP[ATTR_CURRENT] -= getPercentValue(m_HP[ATTR_CURRENT], ratio);
             m_HP[ATTR_MAX] -= getPercentValue(m_HP[ATTR_MAX], ratio);
@@ -2601,21 +2566,7 @@ void Vampire::initAllStat(int numPartyMember)
     }
 
     // DEX 에 따른 HPRegenBonus 포인트
-    if (m_DEX[ATTR_BASIC] > 450) {
-        m_HPRegenBonus += 7;
-    } else if (m_DEX[ATTR_BASIC] > 390) {
-        m_HPRegenBonus += 6;
-    } else if (m_DEX[ATTR_BASIC] > 330) {
-        m_HPRegenBonus += 5;
-    } else if (m_DEX[ATTR_BASIC] > 260) {
-        m_HPRegenBonus += 4;
-    } else if (m_DEX[ATTR_BASIC] > 190) {
-        m_HPRegenBonus += 3;
-    } else if (m_DEX[ATTR_BASIC] > 120) {
-        m_HPRegenBonus += 2;
-    } else if (m_DEX[ATTR_BASIC] > 50) {
-        m_HPRegenBonus += 1;
-    }
+    m_HPRegenBonus += decore::vampireDexHPRegenBonus(m_DEX[ATTR_BASIC]);
 
     // 파티의 크기에 따라서 능력치가 변할 수 있다.
 
@@ -2652,7 +2603,7 @@ void Vampire::initAllStat(int numPartyMember)
     //////////////////////////////////////////////////////////////////////////////
     VampireSkillSlot* pNailMastery = getSkill(SKILL_NAIL_MASTERY);
     if (pNailMastery != NULL) {
-        int DamageBonus = 3 + ((getLevel() - 56) / 8);
+        int DamageBonus = decore::nailMasteryDamageBonus(getLevel());
 
         m_Damage[ATTR_CURRENT] = max(0, m_Damage[ATTR_CURRENT] + DamageBonus);
         m_Damage[ATTR_MAX] = max(0, m_Damage[ATTR_MAX] + DamageBonus);
@@ -2737,27 +2688,10 @@ int Vampire::getBloodBibleSignOpenNum() const {
     Fame_t fame = getFame();
 #endif
 
-    uint openNum = 1;
+    if (!g_pWarSystem->canApplyBloodBibleSign())
+        return 0;
 
-    if (g_pWarSystem->canApplyBloodBibleSign()) {
-        if (fame < 100000) {
-            openNum = min(openNumLimit, 1);
-        } else if (fame < 1000000) {
-            openNum = min(openNumLimit, 2);
-        } else if (fame < 5000000) {
-            openNum = min(openNumLimit, 3);
-        } else if (fame < 10000000) {
-            openNum = min(openNumLimit, 4);
-        } else if (fame < 200000000) {
-            openNum = min(openNumLimit, 5);
-        } else {
-            openNum = min(openNumLimit, 6);
-        }
-    } else {
-        openNum = 0;
-    }
-
-    return openNum;
+    return decore::vampireBloodBibleSignOpenNum(fame, openNumLimit);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -3854,7 +3788,7 @@ void Ousters::initAllStat(int numPartyMember)
         EffectIntimateGrail* pIntimateGrail =
             dynamic_cast<EffectIntimateGrail*>(findEffect(Effect::EFFECT_CLASS_INTIMATE_GRAIL));
         if (pIntimateGrail != NULL) {
-            int ratio = decore::intimateGrailPenaltyRatio(pIntimateGrail->getSkillLevel());
+            int ratio = decore::intimateGrailRatio(pIntimateGrail->getSkillLevel());
             m_Defense[ATTR_CURRENT] -= getPercentValue(m_Defense[ATTR_CURRENT], ratio);
             m_HP[ATTR_CURRENT] -= getPercentValue(m_HP[ATTR_CURRENT], ratio);
             m_HP[ATTR_MAX] -= getPercentValue(m_HP[ATTR_MAX], ratio);
@@ -4159,7 +4093,7 @@ void Ousters::initAllStat(int numPartyMember)
             bCanUsePassive = true;
 
             m_PassiveSkillMap[SKILL_FIRE_OF_SOUL_STONE].first = true;
-            m_PassiveSkillMap[SKILL_FIRE_OF_SOUL_STONE].second = (uint)((getSTR() / 12.0) + (getDEX() / 3.0));
+            m_PassiveSkillMap[SKILL_FIRE_OF_SOUL_STONE].second = decore::fireOfSoulStonePoint(getSTR(), getDEX());
         }
     }
 
@@ -4177,7 +4111,7 @@ void Ousters::initAllStat(int numPartyMember)
             bCanUsePassive = true;
 
             m_PassiveSkillMap[SKILL_ICE_OF_SOUL_STONE].first = true;
-            m_PassiveSkillMap[SKILL_ICE_OF_SOUL_STONE].second = min(5, 1 + getDEX() / 20) * 10;
+            m_PassiveSkillMap[SKILL_ICE_OF_SOUL_STONE].second = decore::iceOfSoulStonePoint(getDEX());
         }
     }
 
@@ -4195,7 +4129,7 @@ void Ousters::initAllStat(int numPartyMember)
             bCanUsePassive = true;
 
             m_PassiveSkillMap[SKILL_SAND_OF_SOUL_STONE].first = true;
-            m_PassiveSkillMap[SKILL_SAND_OF_SOUL_STONE].second = (uint)((getSTR() / 15.0) + (getDEX() / 5.0));
+            m_PassiveSkillMap[SKILL_SAND_OF_SOUL_STONE].second = decore::sandOfSoulStonePoint(getSTR(), getDEX());
         }
     }
 
@@ -4213,7 +4147,7 @@ void Ousters::initAllStat(int numPartyMember)
             bCanUsePassive = true;
 
             m_PassiveSkillMap[SKILL_BLOCK_HEAD].first = true;
-            m_PassiveSkillMap[SKILL_BLOCK_HEAD].second = min(4, 1 + getDEX() / 30) * 10;
+            m_PassiveSkillMap[SKILL_BLOCK_HEAD].second = decore::blockHeadPoint(getDEX());
         }
     }
 
@@ -4231,7 +4165,7 @@ void Ousters::initAllStat(int numPartyMember)
             bCanUsePassive = true;
 
             m_PassiveSkillMap[SKILL_BLESS_FIRE].first = true;
-            m_PassiveSkillMap[SKILL_BLESS_FIRE].second = (uint)((getSTR() / 10.0) + (getDEX() / 2.0));
+            m_PassiveSkillMap[SKILL_BLESS_FIRE].second = decore::blessFirePoint(getSTR(), getDEX());
         }
     }
 
@@ -4267,7 +4201,7 @@ void Ousters::initAllStat(int numPartyMember)
             bCanUsePassive = true;
 
             m_PassiveSkillMap[SKILL_SAND_CROSS].first = true;
-            m_PassiveSkillMap[SKILL_SAND_CROSS].second = (uint)((getSTR() / 10.0) + (getDEX() / 10.0));
+            m_PassiveSkillMap[SKILL_SAND_CROSS].second = decore::sandCrossPoint(getSTR(), getDEX());
         }
     }
 
@@ -4333,27 +4267,10 @@ int Ousters::getBloodBibleSignOpenNum() const {
     Fame_t fame = getFame();
 #endif
 
-    uint openNum = 1;
+    if (!g_pWarSystem->canApplyBloodBibleSign())
+        return 0;
 
-    if (g_pWarSystem->canApplyBloodBibleSign()) {
-        if (fame < 30000) {
-            openNum = min(openNumLimit, 1);
-        } else if (fame < 500000) {
-            openNum = min(openNumLimit, 2);
-        } else if (fame < 3000000) {
-            openNum = min(openNumLimit, 3);
-        } else if (fame < 7000000) {
-            openNum = min(openNumLimit, 4);
-        } else if (fame < 50000000) {
-            openNum = min(openNumLimit, 5);
-        } else {
-            openNum = min(openNumLimit, 6);
-        }
-    } else {
-        openNum = 0;
-    }
-
-    return openNum;
+    return decore::oustersBloodBibleSignOpenNum(fame, openNumLimit);
 }
 
 //////////////////////////////////////////////////////////////////////////////
