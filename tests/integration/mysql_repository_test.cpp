@@ -35,6 +35,7 @@
 #include "repository/BulletinBoardRepository.h"
 #include "repository/CharacterRepository.h"
 #include "repository/ComebackEventRepository.h"
+#include "repository/ContentInfoRepository.h"
 #include "repository/EffectSaveRepository.h"
 #include "repository/FlagSetRepository.h"
 #include "repository/GameInfoRepository.h"
@@ -2394,6 +2395,265 @@ TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAre
     EXPECT_FALSE(repository.loadOptionClassInfos().empty());
     EXPECT_FALSE(repository.loadRareEnchantInfos().empty());
     EXPECT_FALSE(repository.loadPetEnchantOptionRatios().empty());
+}
+
+// --- the content-info cluster against real MySQL ---------------------------
+// Monsters, skill balance, NPCs, scripts, directive sets and variables. The
+// tables are seeded; the tests insert their own rows (ids from 31000 up)
+// and clean them in SetUp/TearDown.
+
+class ContentInfoMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM MonsterInfo WHERE MType >= 31000");
+        execSQL("DELETE FROM SkillBalance WHERE Type >= 31000");
+        execSQL("DELETE FROM NPC WHERE ZoneID >= 31000");
+        execSQL("DELETE FROM Script WHERE ScriptID >= 31000");
+        execSQL("DELETE FROM DirectiveSet WHERE ID >= 31000");
+        execSQL("DELETE FROM AttrInfo WHERE attrID >= 31000");
+    }
+    static int scalar(const std::string& sql) {
+        return atoi(queryScalar(sql).c_str());
+    }
+};
+
+TEST_F(ContentInfoMySQL, SeededReadsAreNonEmptyAndEveryMaxProbeMatchesItsTable) {
+    ContentInfoRepository& repository = defaultContentInfoRepository();
+    int maximum = -1;
+
+    ASSERT_TRUE(repository.loadMaxMonsterType(maximum));
+    EXPECT_EQ(scalar("SELECT MAX(MType) FROM MonsterInfo"), maximum);
+    std::vector<MonsterInfoRow> monsters = repository.loadMonsterInfos();
+    EXPECT_FALSE(monsters.empty());
+    EXPECT_EQ(monsters.size(), repository.loadMonsterSummonInfos().size());
+    EXPECT_EQ(monsters.size(), repository.loadMonsterInfosForReload().size());
+
+    ASSERT_TRUE(repository.loadMaxSkillBalanceType(maximum));
+    EXPECT_EQ(scalar("SELECT MAX(Type) FROM SkillBalance"), maximum);
+    EXPECT_FALSE(repository.loadSkillBalances().empty());
+
+    EXPECT_FALSE(repository.loadScripts().empty());
+
+    ASSERT_TRUE(repository.loadMaxDirectiveSetID(maximum));
+    EXPECT_EQ(scalar("SELECT MAX(ID) FROM DirectiveSet"), maximum);
+    EXPECT_FALSE(repository.loadDirectiveSets().empty());
+
+    ASSERT_TRUE(repository.loadMaxAttrID(maximum));
+    EXPECT_EQ(scalar("SELECT MAX(attrID) FROM AttrInfo"), maximum);
+    EXPECT_FALSE(repository.loadVariables().empty());
+
+    ASSERT_TRUE(defaultZoneInfoRepository().loadMaxZoneGroupID(maximum));
+    EXPECT_EQ(scalar("SELECT MAX(ZoneGroupID) FROM ZoneGroupInfo"), maximum);
+}
+
+TEST_F(ContentInfoMySQL, MonsterRowsCarryEveryColumnAndReloadReadsOneTypeOrAll) {
+    execSQL("INSERT INTO MonsterInfo (MType, SType, HName, EName, Level, STR, DEX, INTE, BSize, Exp, MColor, SColor, "
+            "Align, AOrder, Moral, Delay, ADelay, Sight, MeleeRange, MissileRange, RegenPortal, RegenInvisible, "
+            "RegenBat, UnburrowChance, MMode, AIType, Enhance, Master, ClanType, MonsterSummonInfo, DefaultEffects, "
+            "Chief, NormalRegen, HasTreasure, MonsterClass, SkullType) VALUES (31000, 2, 'it-h', 'it-e', 5, 6, 7, 8, "
+            "9, 10, 11, 12, 1, 2, 15, 16, 17, 18, 19, 20, 21, 22, 23, 27, 'FLY', 25, 'e26', 1, 29, 's30', 'd31', 1, "
+            "0, 1, 35, 36)");
+
+    ContentInfoRepository& repository = defaultContentInfoRepository();
+
+    std::vector<MonsterInfoRow> all = repository.loadMonsterInfos();
+    const MonsterInfoRow* mine = NULL;
+    for (size_t r = 0; r < all.size(); r++)
+        if (all[r].monsterType == 31000)
+            mine = &all[r];
+    ASSERT_TRUE(mine != NULL);
+    EXPECT_EQ(2, mine->spriteType);
+    EXPECT_EQ("it-h", mine->hName);
+    EXPECT_EQ("it-e", mine->eName);
+    EXPECT_EQ(5, mine->level);
+    EXPECT_EQ(6, mine->str);
+    EXPECT_EQ(7, mine->dex);
+    EXPECT_EQ(8, mine->inte);
+    EXPECT_EQ(9, mine->bodySize);
+    EXPECT_EQ(10, mine->exp);
+    EXPECT_EQ(11, mine->mainColor);
+    EXPECT_EQ(12, mine->subColor);
+    EXPECT_EQ(1, mine->alignment);
+    EXPECT_EQ(2, mine->attackOrder);
+    EXPECT_EQ(15, mine->moral);
+    EXPECT_EQ(16, mine->delay);
+    EXPECT_EQ(17, mine->attackDelay);
+    EXPECT_EQ(18, mine->sight);
+    EXPECT_EQ(19, mine->meleeRange);
+    EXPECT_EQ(20, mine->missileRange);
+    EXPECT_EQ(21, mine->regenPortal);
+    EXPECT_EQ(22, mine->regenInvisible);
+    EXPECT_EQ(23, mine->regenBat);
+    EXPECT_EQ("FLY", mine->moveMode);
+    EXPECT_EQ(25, mine->aiType);
+    EXPECT_EQ("e26", mine->enhance);
+    EXPECT_EQ(27, mine->unburrowChance);
+    EXPECT_EQ(1, mine->master);
+    EXPECT_EQ(29, mine->clanType);
+    EXPECT_EQ("d31", mine->defaultEffects);
+    EXPECT_EQ(1, mine->chief);
+    EXPECT_EQ(0, mine->normalRegen);
+    EXPECT_EQ(1, mine->hasTreasure);
+    EXPECT_EQ(35, mine->monsterClass);
+    EXPECT_EQ(36, mine->skullType);
+
+    std::vector<MonsterSummonRow> summons = repository.loadMonsterSummonInfos();
+    bool seenSummon = false;
+    for (size_t r = 0; r < summons.size(); r++) {
+        if (summons[r].monsterType == 31000) {
+            seenSummon = true;
+            EXPECT_EQ("s30", summons[r].summonInfo);
+        }
+    }
+    EXPECT_TRUE(seenSummon);
+
+    std::vector<MonsterReloadRow> one = repository.loadMonsterInfoForReload(31000);
+    ASSERT_EQ(1u, one.size());
+    EXPECT_EQ(31000, one[0].monsterType);
+    EXPECT_EQ("it-e", one[0].eName);
+    EXPECT_EQ(20, one[0].missileRange);
+    EXPECT_EQ("FLY", one[0].moveMode);
+    EXPECT_EQ("s30", one[0].monsterSummonInfo);
+    EXPECT_EQ("d31", one[0].defaultEffects);
+    EXPECT_EQ(0, one[0].normalRegen);
+    EXPECT_TRUE(repository.loadMonsterInfoForReload(31001).empty());
+    EXPECT_EQ(all.size(), repository.loadMonsterInfosForReload().size());
+}
+
+TEST_F(ContentInfoMySQL, SkillBalanceRowsCarryEveryColumnWithByteDomains) {
+    execSQL("INSERT INTO SkillBalance (Type, Name, HName, Level, MinDam, MaxDam, MinDelay, MaxDelay, MinDur, MaxDur, "
+            "Mana, MinRange, MaxRange, Target, SubExp, Point, Domain, MagicDomain, Melee, Magic, Physic, SkillPoint, "
+            "LevelUpPoint, RequireSkill, `Condition`, ElementalDomain, CanDelete) VALUES (31000, 'it-skill', '', 3, "
+            "4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 3, 4, 18, 19, 20, 21, 22, 'r23', 'c24', 25, 1)");
+
+    std::vector<SkillBalanceRow> rows = defaultContentInfoRepository().loadSkillBalances();
+    const SkillBalanceRow* mine = NULL;
+    for (size_t r = 0; r < rows.size(); r++)
+        if (rows[r].type == 31000)
+            mine = &rows[r];
+    ASSERT_TRUE(mine != NULL);
+    EXPECT_EQ("it-skill", mine->name);
+    EXPECT_EQ(3, mine->level);
+    EXPECT_EQ(4, mine->minDamage);
+    EXPECT_EQ(5, mine->maxDamage);
+    EXPECT_EQ(6, mine->minDelay);
+    EXPECT_EQ(7, mine->maxDelay);
+    EXPECT_EQ(8, mine->minDuration);
+    EXPECT_EQ(9, mine->maxDuration);
+    EXPECT_EQ(10, mine->mana);
+    EXPECT_EQ(11, mine->minRange);
+    EXPECT_EQ(12, mine->maxRange);
+    EXPECT_EQ(13, mine->target);
+    EXPECT_EQ(14, mine->subExp);
+    EXPECT_EQ(15, mine->point);
+    EXPECT_EQ(3, (int)mine->domain);
+    EXPECT_EQ(4, (int)mine->magicDomain);
+    EXPECT_EQ(18, mine->melee);
+    EXPECT_EQ(19, mine->magic);
+    EXPECT_EQ(20, mine->physic);
+    EXPECT_EQ(21, mine->skillPoint);
+    EXPECT_EQ(22, mine->levelUpPoint);
+    EXPECT_EQ("r23", mine->requireSkill);
+    EXPECT_EQ("c24", mine->condition);
+    EXPECT_EQ(25, mine->elementalDomain);
+    EXPECT_EQ(1, mine->canDelete);
+}
+
+TEST_F(ContentInfoMySQL, NPCsAreScopedToTheZoneAndOptionallyTheRace) {
+    execSQL("INSERT INTO NPC (Name, NPCID, SpriteType, Race, MainColor, SubColor, ZoneID, ClanType, ShowInMinimap, "
+            "Description, TaxingCastleZoneID) VALUES ('it-npc-a', 1, 2, 1, 4, 5, 31000, 7, 1, '', 9)");
+    execSQL("INSERT INTO NPC (Name, NPCID, SpriteType, Race, MainColor, SubColor, ZoneID, ClanType, ShowInMinimap, "
+            "Description, TaxingCastleZoneID) VALUES ('it-npc-b', 11, 12, 2, 14, 15, 31000, 17, 0, '', 19)");
+    execSQL("INSERT INTO NPC (Name, NPCID, SpriteType, Race, MainColor, SubColor, ZoneID, ClanType, ShowInMinimap, "
+            "Description, TaxingCastleZoneID) VALUES ('it-npc-c', 21, 22, 2, 24, 25, 31001, 27, 1, '', 29)");
+
+    ContentInfoRepository& repository = defaultContentInfoRepository();
+
+    std::vector<NPCRow> zone = repository.loadNPCs(31000);
+    ASSERT_EQ(2u, zone.size());
+
+    std::vector<NPCRow> race = repository.loadNPCsOfRace(31000, 2);
+    ASSERT_EQ(1u, race.size());
+    EXPECT_EQ("it-npc-b", race[0].name);
+    EXPECT_EQ(11, race[0].npcID);
+    EXPECT_EQ(12, race[0].spriteType);
+    EXPECT_EQ(2, race[0].race);
+    EXPECT_EQ(14, race[0].mainColor);
+    EXPECT_EQ(15, race[0].subColor);
+    EXPECT_EQ(17, race[0].clanType);
+    EXPECT_EQ(0, race[0].showInMinimap);
+    EXPECT_EQ(19, race[0].taxingCastleZoneID);
+
+    EXPECT_TRUE(repository.loadNPCsOfRace(31000, 3).empty());
+    EXPECT_EQ(1u, repository.loadNPCs(31001).size());
+}
+
+TEST_F(ContentInfoMySQL, ScriptsComeBackOrderedByScriptID) {
+    execSQL("INSERT INTO Script (ScriptID, OwnerID, Subject, Content) VALUES (31001, 'it-owner', 's1**s2', 'c1')");
+    execSQL("INSERT INTO Script (ScriptID, OwnerID, Subject, Content) VALUES (31000, 'it-owner', 's0', 'c0**c1')");
+
+    std::vector<ScriptRow> rows = defaultContentInfoRepository().loadScripts();
+    int at31000 = -1, at31001 = -1;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].scriptID == 31000) {
+            at31000 = (int)r;
+            EXPECT_EQ("it-owner", rows[r].ownerID);
+            EXPECT_EQ("s0", rows[r].subject);
+            EXPECT_EQ("c0**c1", rows[r].content);
+        }
+        if (rows[r].scriptID == 31001)
+            at31001 = (int)r;
+    }
+    ASSERT_NE(-1, at31000);
+    ASSERT_NE(-1, at31001);
+    EXPECT_LT(at31000, at31001); // ORDER BY ScriptID, despite the reversed insert order
+    for (size_t r = 1; r < rows.size(); r++)
+        EXPECT_LT(rows[r - 1].scriptID, rows[r].scriptID);
+}
+
+TEST_F(ContentInfoMySQL, DirectiveSetsAndVariablesAreReadAndTheVariableSaved) {
+    execSQL("INSERT INTO DirectiveSet (ID, Name, Content, DeadContent) VALUES (31000, 'it-set', 'live', 'dead')");
+    execSQL("INSERT INTO AttrInfo (attrID, attr1, attr2, comm) VALUES (31000, 5, 6, 'it')");
+
+    ContentInfoRepository& repository = defaultContentInfoRepository();
+
+    int maximum = -1;
+    ASSERT_TRUE(repository.loadMaxDirectiveSetID(maximum));
+    EXPECT_EQ(31000, maximum);
+    std::vector<DirectiveSetRow> sets = repository.loadDirectiveSets();
+    bool seenSet = false;
+    for (size_t r = 0; r < sets.size(); r++) {
+        if (sets[r].id == 31000) {
+            seenSet = true;
+            EXPECT_EQ("it-set", sets[r].name);
+            EXPECT_EQ("live", sets[r].content);
+            EXPECT_EQ("dead", sets[r].deadContent);
+        }
+    }
+    EXPECT_TRUE(seenSet);
+
+    ASSERT_TRUE(repository.loadMaxAttrID(maximum));
+    EXPECT_EQ(31000, maximum);
+    std::vector<VariableRow> variables = repository.loadVariables();
+    bool seenVariable = false;
+    for (size_t r = 0; r < variables.size(); r++) {
+        if (variables[r].attrID == 31000) {
+            seenVariable = true;
+            EXPECT_EQ(5, variables[r].attr1);
+            EXPECT_EQ(6, variables[r].attr2);
+        }
+    }
+    EXPECT_TRUE(seenVariable);
+
+    repository.saveVariable(9, 31000);
+    EXPECT_EQ("9", queryScalar("SELECT attr1 FROM AttrInfo WHERE attrID=31000"));
+    EXPECT_EQ("6", queryScalar("SELECT attr2 FROM AttrInfo WHERE attrID=31000"));
 }
 
 } // namespace

@@ -380,6 +380,29 @@ public:
 
         return rows;
     }
+
+    bool loadMaxZoneGroupID(int& maxZoneGroupID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT MAX(ZoneGroupID) FROM ZoneGroupInfo");
+
+            if (pResult->next()) {
+                const char* field = pResult->getField(1);
+                if (field != NULL) {
+                    maxZoneGroupID = atoi(field);
+                    found = true;
+                }
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
 };
 
 } // namespace

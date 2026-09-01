@@ -20,8 +20,9 @@
 //
 // The loginserver and sharedserver read ZoneGroupInfo/ZoneInfo with
 // their own inline SELECTs (their own extraction), and the
-// MAX(ZoneGroupID) probes in ConnectionInfoManager, EffectShutDown and
-// CGSayHandler are not enclosed here either.
+// MAX(ZoneGroupID) probes in ConnectionInfoManager and CGSayHandler are
+// not enclosed here either (EffectShutDown's two went through
+// loadMaxZoneGroupID in the info round).
 
 // ZoneInfoManager::load — the 17 columns of a ZoneInfo row, in SELECT
 // order. The SELECT spells three columns differently from the schema
@@ -183,6 +184,10 @@ public:
 
     // Every WayPointInfo row (WayPointManager::load).
     virtual std::vector<WayPointRow> loadAllWayPoints() = 0;
+
+    // MAX(ZoneGroupID) — the group count EffectShutDown iterates; false on
+    // an empty table (one NULL row, which the inline code atoi(NULL)'d).
+    virtual bool loadMaxZoneGroupID(int& maxZoneGroupID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in

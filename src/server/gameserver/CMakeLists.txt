@@ -551,6 +551,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLBloodBibleSignRepository.cpp
     repository/MySQLBulletinBoardRepository.cpp
     repository/MySQLComebackEventRepository.cpp
+    repository/MySQLContentInfoRepository.cpp
     repository/MySQLMessageRepository.cpp
     repository/MySQLRegenZoneRepository.cpp
     repository/MySQLZoneInfoRepository.cpp

@@ -54,8 +54,8 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 30 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 240 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files) |
+| R2 | Files with inline SQL in gameserver root | 23 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 233 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -1263,6 +1263,56 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > delete by table name; OptionInfo read in SELECT order and the other
   > three option tables non-empty). Remaining SQL under gameserver/: R2 =
   > 30 files.
+  > **Content-info cluster (2026-09-02, stacked on the item round)**:
+  > seven more files (MonsterInfo, SkillInfo, NPCManager, ScriptManager,
+  > Directive, VariableManager, EffectShutDown) — R2 30→23, R3 240→233.
+  > A new `ContentInfoRepository` takes the content tables the server
+  > loads at boot: MonsterInfo (MAX probe as a bool, the 35-column load,
+  > the second-pass MonsterSummonInfo read, and reload's own 32-column
+  > SELECT in both shapes — every row, or the one row the caller's
+  > StringStream used to append " WHERE MType=<n>" for), SkillBalance
+  > (MAX probe, the 26-column mixed-case "Select ... from" with its
+  > `RequireSkill`/`Condition` backticks, Domain/MagicDomain through
+  > getBYTE), NPC (by zone, or by zone and race), Script (ORDER BY
+  > ScriptID — the one ordered load here), DirectiveSet (MAX probe,
+  > rows) and AttrInfo (MAX probe, rows, and the GM-driven attr1 UPDATE).
+  > `ZoneInfoRepository` gains `loadMaxZoneGroupID` for EffectShutDown's
+  > two MAX(ZoneGroupID) probes (ConnectionInfoManager's and
+  > CGSayHandler's stay inline). Two literals change bytes: the
+  > backslash-continued MonsterInfo and SkillBalance SELECTs drop their
+  > leaked indentation tabs for single spaces — the same whitespace-run
+  > collapse the character-load round made, and the only byte change.
+  > Kept: the reload SELECT's double space before "FROM" (a StringStream
+  > joined "NormalRegen " to " FROM MonsterInfo"). Disclosures: the MAX
+  > probes' dead `getRowCount() == 0` guards (MonsterInfo, SkillBalance,
+  > DirectiveSet's `throw(const char*)`, AttrInfo) now fire on an empty
+  > table where the originals atoi(NULL)'d; EffectShutDown had no guard
+  > at all and now throws a new Error("Critical Error : ZoneGroupInfo
+  > table is empty.") where it crashed; MonsterInfoManager::reload ran a
+  > MAX(MType) probe whose result it never read — dropped; the row
+  > structs read every column of every row where three inline loops
+  > read the tail columns only inside a branch (NPCManager behind
+  > `getCreature(Name) == NULL`, reload behind `getMonsterInfo() !=
+  > NULL`, SkillBalance's last six behind the Ousters-domain check) —
+  > harmless, the seam reads NULL text as "" and the tail int columns
+  > are NOT NULL; four dead comment blocks that mentioned executeQuery
+  > are deleted (MonsterInfo::load's older StringStream SELECT and its
+  > GROUP BY treasure loader, SkillInfo's SkillInfo-table probe,
+  > ScriptManager's per-owner SELECT) because R2's grep is textual;
+  > NPCManager's commented-out cout went with its block; Korean comments
+  > inside the replaced blocks are translated (MonsterInfo, SkillInfo,
+  > NPCManager, Directive), the thrown Korean Error strings and the
+  > NPC.log format stay. Not enclosed: EventMonsterNameManager.cpp and
+  > GameServerInfoManager.cpp (in no build target) and the
+  > MAX(ZoneGroupID) probes named above. No fake tier; +6 integration
+  > tests (seeded reads non-empty with every MAX probe checked against
+  > its table; a 35-column monster row read back and reload's one-row
+  > and every-row shapes; a 26-column skill row incl. the BYTE domains;
+  > NPCs scoped to zone and race; scripts ordered by ScriptID; a
+  > directive set and a variable inserted, read and the variable saved).
+  > Remaining SQL under gameserver/: R2 = 23 files — CreatureUtil.cpp
+  > (128), the guild trio (65), EventShutdown (18), GamePlayer (11) and
+  > a tail of ≤6.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

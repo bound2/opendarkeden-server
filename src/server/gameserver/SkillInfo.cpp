@@ -7,9 +7,9 @@
 #include "SkillInfo.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "SkillPropertyManager.h"
 #include "SkillUtil.h"
+#include "repository/ContentInfoRepository.h"
 
 // #include <algo.h>
 
@@ -299,89 +299,73 @@ void SkillInfoManager::load() {
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    // Skill Property Manager 를 초기화한다.
+    // Initialise the skill property manager first.
     g_pSkillPropertyManager->init();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Type) FROM SkillBalance");
-        // Result = pStmt->executeQuery("SELECT MAX(Type) FROM SkillInfo");
+    ContentInfoRepository& repository = defaultContentInfoRepository();
 
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in SkillInfo Table");
-        }
-
-        pResult->next();
-
-        m_SkillCount = pResult->getInt(1) + 1;
-
-        Assert(m_SkillCount > 0);
-
-        m_SkillInfoList = new SkillInfo*[m_SkillCount];
-
-        for (uint i = 0; i < m_SkillCount; i++)
-            m_SkillInfoList[i] = NULL;
-
-        pResult = pStmt->executeQuery("Select \
-			Type, Name, Level, MinDam, MaxDam, MinDelay, MaxDelay, MinDur, MaxDur,\
-			Mana, MinRange, MaxRange, Target, SubExp, Point, Domain, MagicDomain,\
-			Melee, Magic, Physic, SkillPoint, LevelUpPoint, `RequireSkill`, `Condition`, ElementalDomain, CanDelete\
-			from SkillBalance");
-
-        while (pResult->next()) {
-            SkillInfo* pSkillInfo = new SkillInfo();
-            int i = 0;
-
-            pSkillInfo->setType(pResult->getInt(++i));
-            pSkillInfo->setName(pResult->getString(++i));
-            pSkillInfo->setLevel(pResult->getInt(++i));
-
-            pSkillInfo->setMinDamage(pResult->getInt(++i));
-            pSkillInfo->setMaxDamage(pResult->getInt(++i));
-            pSkillInfo->setMinDelay(pResult->getInt(++i));
-            pSkillInfo->setMaxDelay(pResult->getInt(++i));
-            pSkillInfo->setMinDuration(pResult->getInt(++i));
-            pSkillInfo->setMaxDuration(pResult->getInt(++i));
-
-            pSkillInfo->setConsumeMP(pResult->getInt(++i));
-            pSkillInfo->setMinRange(pResult->getInt(++i));
-            pSkillInfo->setMaxRange(pResult->getInt(++i));
-            pSkillInfo->setTarget(pResult->getInt(++i));
-            pSkillInfo->setSubSkill(pResult->getInt(++i));
-            pSkillInfo->setPoint(pResult->getInt(++i));
-            pSkillInfo->setDomainType(pResult->getBYTE(++i));
-            pSkillInfo->setMagicDomain(pResult->getBYTE(++i));
-
-            // Skill Property 추가
-            SkillProperty* pSkillProperty = new SkillProperty();
-
-            pSkillProperty->setType(pSkillInfo->getType());
-            pSkillProperty->setMelee(pResult->getInt(++i));
-            pSkillProperty->setMagic(pResult->getInt(++i));
-            pSkillProperty->setPhysic(pResult->getInt(++i));
-
-            g_pSkillPropertyManager->addSkillProperty(pSkillProperty);
-
-            if (pSkillInfo->getDomainType() == SKILL_DOMAIN_OUSTERS) {
-                pSkillInfo->setSkillPoint(pResult->getInt(++i));
-                pSkillInfo->setLevelUpPoint(pResult->getInt(++i));
-                pSkillInfo->setRequireSkill(pResult->getString(++i));
-                pSkillInfo->setCondition(pResult->getString(++i));
-                pSkillInfo->setElementalDomain(pResult->getInt(++i));
-                pSkillInfo->setCanDelete(pResult->getInt(++i));
-            }
-
-            // Skill Info 추가
-            addSkillInfo(pSkillInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxType = 0;
+    if (!repository.loadMaxSkillBalanceType(maxType)) {
+        throw Error("There is no data in SkillInfo Table");
     }
-    END_DB(pStmt)
+
+    m_SkillCount = maxType + 1;
+
+    Assert(m_SkillCount > 0);
+
+    m_SkillInfoList = new SkillInfo*[m_SkillCount];
+
+    for (uint i = 0; i < m_SkillCount; i++)
+        m_SkillInfoList[i] = NULL;
+
+    vector<SkillBalanceRow> rows = repository.loadSkillBalances();
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        const SkillBalanceRow& row = rows[r];
+        SkillInfo* pSkillInfo = new SkillInfo();
+
+        pSkillInfo->setType(row.type);
+        pSkillInfo->setName(row.name);
+        pSkillInfo->setLevel(row.level);
+
+        pSkillInfo->setMinDamage(row.minDamage);
+        pSkillInfo->setMaxDamage(row.maxDamage);
+        pSkillInfo->setMinDelay(row.minDelay);
+        pSkillInfo->setMaxDelay(row.maxDelay);
+        pSkillInfo->setMinDuration(row.minDuration);
+        pSkillInfo->setMaxDuration(row.maxDuration);
+
+        pSkillInfo->setConsumeMP(row.mana);
+        pSkillInfo->setMinRange(row.minRange);
+        pSkillInfo->setMaxRange(row.maxRange);
+        pSkillInfo->setTarget(row.target);
+        pSkillInfo->setSubSkill(row.subExp);
+        pSkillInfo->setPoint(row.point);
+        pSkillInfo->setDomainType(row.domain);
+        pSkillInfo->setMagicDomain(row.magicDomain);
+
+        // Add the skill property.
+        SkillProperty* pSkillProperty = new SkillProperty();
+
+        pSkillProperty->setType(pSkillInfo->getType());
+        pSkillProperty->setMelee(row.melee);
+        pSkillProperty->setMagic(row.magic);
+        pSkillProperty->setPhysic(row.physic);
+
+        g_pSkillPropertyManager->addSkillProperty(pSkillProperty);
+
+        if (pSkillInfo->getDomainType() == SKILL_DOMAIN_OUSTERS) {
+            pSkillInfo->setSkillPoint(row.skillPoint);
+            pSkillInfo->setLevelUpPoint(row.levelUpPoint);
+            pSkillInfo->setRequireSkill(row.requireSkill);
+            pSkillInfo->setCondition(row.condition);
+            pSkillInfo->setElementalDomain(row.elementalDomain);
+            pSkillInfo->setCanDelete(row.canDelete);
+        }
+
+        // Add the skill info.
+        addSkillInfo(pSkillInfo);
+    }
 
     __END_DEBUG
     __END_CATCH

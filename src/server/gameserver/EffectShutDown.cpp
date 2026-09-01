@@ -13,7 +13,6 @@
 #include "Assert.h"
 #include "ClientManager.h"
 #include "Corpse.h"
-#include "DB.h"
 #include "EventShutdown.h"
 #include "GCSystemMessage.h"
 #include "StringPool.h"
@@ -21,6 +20,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 #include "ZonePlayerManager.h"
+#include "repository/ZoneInfoRepository.h"
 #include "signal.h"
 #include "unistd.h"
 
@@ -79,8 +79,6 @@ void EffectShutDown::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
     Timeval nextTime = getNextTime();
     Timeval deadLine = getDeadline();
     Turn_t RemainTime = deadLine.tv_sec - nextTime.tv_sec;
@@ -96,31 +94,27 @@ void EffectShutDown::affect(Creature* pCreature)
 
     setNextTime(m_Delay);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(ZoneGroupID) FROM ZoneGroupInfo");
 
-        pResult->next();
+    int maxZoneGroupID = 0;
+    if (!defaultZoneInfoRepository().loadMaxZoneGroupID(maxZoneGroupID)) {
+        throw Error("Critical Error : ZoneGroupInfo table is empty.");
+    }
 
-        BYTE GroupCount = pResult->getInt(1) + 1;
+    BYTE GroupCount = maxZoneGroupID + 1;
 
-        for (int i = 1; i < GroupCount; i++) {
-            ZoneGroup* pZoneGroup;
+    for (int i = 1; i < GroupCount; i++) {
+        ZoneGroup* pZoneGroup;
 
-            try {
-                pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
-            } catch (NoSuchElementException&) {
-                SAFE_DELETE(pStmt);
-                throw Error("Critical Error : ZoneInfoManager꼇닸瞳맡契삔.");
-            }
-
-            ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();
-            pZonePlayerManager->broadcastPacket(&gcSystemMessage);
+        try {
+            pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
+        } catch (NoSuchElementException&) {
+            throw Error("Critical Error : ZoneInfoManager꼇닸瞳맡契삔.");
         }
 
-        SAFE_DELETE(pStmt);
+        ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();
+        pZonePlayerManager->broadcastPacket(&gcSystemMessage);
     }
-    END_DB(pStmt)
+
 
     /*
 
@@ -180,8 +174,6 @@ void EffectShutDown::unaffect()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
     //	StringStream msg;
 
     //	msg << "서버가 종료됩니다.";
@@ -189,30 +181,27 @@ void EffectShutDown::unaffect()
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_SERVER_SHUT_DOWN));
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(ZoneGroupID) FROM ZoneGroupInfo");
 
-        pResult->next();
-        BYTE GroupCount = pResult->getInt(1) + 1;
+    int maxZoneGroupID = 0;
+    if (!defaultZoneInfoRepository().loadMaxZoneGroupID(maxZoneGroupID)) {
+        throw Error("Critical Error : ZoneGroupInfo table is empty.");
+    }
 
-        for (int i = 1; i < GroupCount; i++) {
-            ZoneGroup* pZoneGroup;
+    BYTE GroupCount = maxZoneGroupID + 1;
 
-            try {
-                pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
-            } catch (NoSuchElementException&) {
-                SAFE_DELETE(pStmt);
-                throw Error("Critical Error : ZoneInfoManager꼇닸瞳맡契삔.");
-            }
+    for (int i = 1; i < GroupCount; i++) {
+        ZoneGroup* pZoneGroup;
 
-            ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();
-            pZonePlayerManager->broadcastPacket(&gcSystemMessage);
+        try {
+            pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
+        } catch (NoSuchElementException&) {
+            throw Error("Critical Error : ZoneInfoManager꼇닸瞳맡契삔.");
         }
 
-        SAFE_DELETE(pStmt);
+        ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();
+        pZonePlayerManager->broadcastPacket(&gcSystemMessage);
     }
-    END_DB(pStmt)
+
 
     // kill(getpid() , 9);
     EventShutdown* pEventShutdown = new EventShutdown(NULL);

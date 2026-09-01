@@ -112,6 +112,7 @@ add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBloodBibleSignRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBulletinBoardRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLComebackEventRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLContentInfoRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLMessageRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLRegenZoneRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLZoneInfoRepository.cpp
