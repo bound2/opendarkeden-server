@@ -19,11 +19,18 @@
 // connection, the rest through the DARKEDEN connection. Write parameters
 // are typed to the members/expressions each caller streamed.
 //
-// Not enclosed: the session START side — CGConnectHandler's Player
-// LogOn='GAME' flip and GuildMember LogOn = 1 writes, CGPortCheckHandler's
-// UserIPInfo upsert, CGRequestIPHandler's and CGSayHandler's UserIPInfo
-// reads — all handler-directory files (R3), and the loginserver's copy of
-// addLogoutPlayerData (the gameserver's copy was dead and is deleted).
+// Not enclosed: skill/Restore.cpp's GuildMember LogOn = 0 write (the
+// vampire->slayer restore, built and live, the same unfreed Statement);
+// the session START side — CGConnectHandler's Player LogOn='GAME' flip
+// and GuildMember LogOn = 1 writes, CGPortCheckHandler's UserIPInfo
+// upsert, CGRequestIPHandler's and CGSayHandler's UserIPInfo reads — all
+// handler-directory files (R3); CGSayHandler's and
+// billing/CommonBillingPacket.cpp's Player.LogOn / LastLogoutDate reads;
+// src/server/PaySystem.cpp's PCRoomUserInfo statements (ServerCore, every
+// caller under the disabled __PAY_SYSTEM_* macros); the loginserver's
+// LoginPlayerManager sweep and its copy of addLogoutPlayerData (the
+// gameserver's copy was dead and is deleted); and the unbuilt
+// src/server/IncomingPlayerManager.cpp fork that still carries the sweep.
 
 class SessionRepository {
 public:

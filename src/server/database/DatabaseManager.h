@@ -39,10 +39,9 @@ public:
     }
     // For processes that do not run init() (the integration tests): the
     // USERINFO connection the repositories reach through
-    // getUserInfoConnection(). Takes ownership like init() does.
-    void setUserInfoConnection(Connection* pConnection) {
-        m_pUserInfoConnection = pConnection;
-    }
+    // getUserInfoConnection(). Takes ownership like init() does and
+    // frees a previously set one (defined in the .cpp for SAFE_DELETE).
+    void setUserInfoConnection(Connection* pConnection);
     void executeDummyQuery(Connection* pConnection);
 
     //--------------------------------------------------------------------

@@ -1375,56 +1375,80 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > EventMorph, ConnectionInfoManager) — R2 19→14, R3 229→224. A new
   > `SessionRepository` takes the session-END bookkeeping: GuildMember's
   > LogOn = 0 (GamePlayer's three races and EventMorph's slayer→vampire
-  > morph shared one literal — one method), the account row on the dist
-  > connection (LogOn='LOGOFF' + LastLogoutDate=now() for a row still in
-  > 'GAME'; the boot-time sweep that lists this server's 'GAME' accounts,
-  > clears their PCRoomUserInfo rows and flips them to LOGOFF; the
-  > SpecialEventCount read through getDWORD and its "%d" write of the
-  > uint member), the PC-room lotto row (SELECT / UPDATE / positional
-  > INSERT with the AUTO_INCREMENT 0 and the first Amount 1), UserIPInfo's
-  > two deletes, and the NetMarble user count on the USERINFO connection
-  > (UPDATE, then INSERT IGNORE when no row changed).
-  > ConnectionInfoManager's MAX(ZoneGroupID) goes through
+  > morph — the four sites in these files — shared one literal, one
+  > method; a fifth, built copy in skill/Restore.cpp stays inline, see
+  > below), the account row on the dist connection (LogOn='LOGOFF' +
+  > LastLogoutDate=now() for a row still in 'GAME'; the boot-time sweep
+  > that lists this server's 'GAME' accounts, clears their
+  > PCRoomUserInfo rows and flips them to LOGOFF; the SpecialEventCount
+  > read through getDWORD and its "%d" write of the uint member), the
+  > PC-room lotto row (SELECT / UPDATE / positional INSERT with the
+  > AUTO_INCREMENT 0 and the first Amount 1), UserIPInfo's two deletes,
+  > and the NetMarble user count on the USERINFO connection (UPDATE,
+  > then INSERT IGNORE when no row changed). ConnectionInfoManager's
+  > MAX(ZoneGroupID) goes through
   > `ZoneInfoRepository::loadMaxZoneGroupID` (CGSayHandler's two probes
   > are the last inline ones). Every literal byte-for-byte — the sweep's
   > lower-case "from", "LogOn='GAME'" against "LogOn = 'LOGOFF'", the
   > UserStatus INSERT's "Values". The tier gains the USERINFO database
   > (initdb/USERINFO.sql mounted next to DARKEDEN.sql;
   > `DatabaseManager::setUserInfoConnection` added for processes that
-  > never run init()). Disclosures: GamePlayer's three GuildMember blocks
-  > and EventMorph's never freed their Statement — the seam does, fixed
+  > never run init()). Disclosures: GamePlayer's three GuildMember
+  > blocks, EventMorph's and giveLotto never freed their Statement on
+  > the success path, and IncomingPlayerManager's sweep leaked its
+  > second Statement on the error path — the seam frees, fixed
   > knowingly; giveLotto's SELECT and its UPDATE/INSERT shared one
-  > Statement, the seam uses one per call; the empty
-  > `if (getAffectedRowCount() == 0) {}` after the LOGOFF update is gone;
-  > loadSpecialEventCount's `throw(const char*)` now follows a bool (its
-  > unreachable `return;` is gone); ConnectionInfoManager had no guard on
-  > its MAX probe and now throws Error("Critical Error : ZoneGroupInfo
-  > table is empty.") where it crashed; the gameserver's
-  > `addLogoutPlayerData` — its only call commented out, the live copy in
-  > the loginserver's LoginPlayer.cpp — is deleted rather than extracted,
-  > and with it the only USERINFO.LogoutPlayerData write on this side;
-  > the dead PCRoomDBInfo comment blocks in IncomingPlayerManager and
-  > ZoneGroupThread (the latter's only mention of executeQuery) and
-  > IncomingPlayerManager's commented-out duplicate UserIPInfo delete are
-  > deleted because R2's grep is textual; the mojibake comments inside
-  > the replaced GamePlayer blocks are replaced by English ones, the
-  > GuildMissing.log format strings stay. Not enclosed: the session START
-  > side — CGConnectHandler's Player LogOn='GAME' and GuildMember LogOn
-  > = 1 writes, CGPortCheckHandler's UserIPInfo upsert,
-  > CGRequestIPHandler's and CGSayHandler's UserIPInfo reads (handler/,
-  > R3) — and the loginserver's addLogoutPlayerData. No fake tier; +5
-  > integration tests (the guild flag scoped to one member; session end
-  > flipping only a 'GAME' row with a server-side logout time and the
-  > boot sweep listing, clearing and flipping only this server's
-  > accounts; the event counter read/saved and false for an unknown
-  > account; the lotto row inserted with its positional columns, read and
-  > counted; UserStatus update→false / insert / update→true on USERINFO,
-  > plus the CurrentUser tinyint's clamp at 127 pinned as observed).
-  > Remaining SQL under gameserver/: R2 = 14 files — CreatureUtil.cpp
-  > (128, the character-deletion flow), the guild trio (65), EventShutdown
-  > (18), TradeManager (deferred above), SMSServiceThread (a thread that
-  > is never started), SomethingGrowingUp.h, SystemAvailabilitiesManager
-  > (under an undefined macro) and five files no build target compiles
+  > Statement and the sweep's per-player PCRoomUserInfo deletes reused
+  > one — the seam uses one per call; loadSpecialEventCount's
+  > `getRowCount() != 0` became `next()` (equivalent under
+  > mysql_store_result); the `#if __PAY_SYSTEM_*` block in the session
+  > end used to sit inside the BEGIN_DB block that converted its
+  > SQLQueryException and now sits between two repository calls (dead in
+  > every shipped build: all three macros are commented out in
+  > PaySystem.h); the empty `if (getAffectedRowCount() == 0) {}` after
+  > the LOGOFF update is gone; loadSpecialEventCount's `throw(const
+  > char*)` now follows a bool (its unreachable `return;` is gone);
+  > ConnectionInfoManager had no guard on its MAX probe and now throws
+  > Error("Critical Error : ZoneGroupInfo table is empty.") where it
+  > crashed; the gameserver's `addLogoutPlayerData` — its only call
+  > commented out, the live copy in the loginserver's LoginPlayer.cpp —
+  > is deleted rather than extracted, and with it the only
+  > USERINFO.LogoutPlayerData write on this side; the dead PCRoomDBInfo
+  > comment blocks in IncomingPlayerManager and ZoneGroupThread (the
+  > latter's only mention of executeQuery) and IncomingPlayerManager's
+  > commented-out duplicate UserIPInfo delete are deleted because R2's
+  > grep is textual; the mojibake comments inside the replaced
+  > session-end, event-count and lotto blocks are replaced by English
+  > ones (the three GuildMember blocks keep theirs; EventMorph's Korean
+  > comment is translated and IncomingPlayerManager's two are merged
+  > into one English one), the GuildMissing.log format strings stay;
+  > `DatabaseManager::setUserInfoConnection` frees a previously set
+  > connection (init() is the only other assigning writer);
+  > USERINFO.UserStatus has no primary or unique key, so its INSERT
+  > IGNORE ignores nothing (faithful). Not enclosed: skill/Restore.cpp's
+  > GuildMember LogOn = 0 write (built; the same unfreed Statement); the
+  > session START side — CGConnectHandler's Player LogOn='GAME' and
+  > GuildMember LogOn = 1 writes, CGPortCheckHandler's UserIPInfo
+  > upsert, CGRequestIPHandler's and CGSayHandler's UserIPInfo reads
+  > (handler/, R3); CGSayHandler's and billing/CommonBillingPacket.cpp's
+  > Player LogOn / LastLogoutDate reads; src/server/PaySystem.cpp's
+  > PCRoomUserInfo statements (ServerCore, every caller under the
+  > disabled __PAY_SYSTEM_* macros); the loginserver's
+  > LoginPlayerManager sweep and addLogoutPlayerData; and the unbuilt
+  > src/server/IncomingPlayerManager.cpp fork that still carries the
+  > whole sweep. No fake tier; +5 integration tests (the guild flag
+  > scoped to one member; session end flipping only a 'GAME' row with a
+  > server-side logout time and the boot sweep listing, clearing and
+  > flipping only this server's accounts; the event counter read/saved
+  > and false for an unknown account; the lotto row inserted with its
+  > positional columns, read and counted; UserStatus update→false /
+  > insert / update→true on USERINFO, plus the CurrentUser tinyint's
+  > clamp at 127 pinned as observed). Remaining SQL under gameserver/:
+  > R2 = 14 files — CreatureUtil.cpp (128, the character-deletion flow),
+  > the guild trio (65), EventShutdown (18), TradeManager (deferred
+  > above), SMSServiceThread (a thread that is never started),
+  > SomethingGrowingUp.h, SystemAvailabilitiesManager (under two ORed
+  > undefined macros) and five files no build target compiles
   > (Vampire_backup, GameServerInfoManager, EventMonsterNameManager,
   > GameWorldInfoManager, MoonCardUtil).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
