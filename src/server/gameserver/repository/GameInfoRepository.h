@@ -13,7 +13,9 @@
 // whole-table boot reads: WeatherInfo, GSStringPool, ShopTemplate,
 // NicknameIndex ('LEVEL' rows), ItemMineInfo, ItemGradeRatioInfo,
 // GoodsListInfo (on the dist connection), DefaultOptionSetInfo,
-// DarkLightInfo, CastleSkillInfo, CastleShrineInfo and LogUserInfo.
+// DarkLightInfo, CastleSkillInfo, CastleShrineInfo and LogUserInfo; the
+// item round added the option tables OptionInfoManager loads (OptionInfo,
+// OptionClassInfo, RareEnchantInfo, PetEnchantOptionRatioInfo).
 // Every field is typed to the driver getter the inline code called
 // (getInt → int, getString → std::string), so each caller's narrowing
 // still happens at the caller on the same value.
@@ -161,9 +163,62 @@ struct CastleShrineRow {
     int holyMonsterType;
 };
 
+// OptionInfo's 19 columns in SELECT order. The original assembled the
+// SELECT from StringStream pieces and ran it through executeQueryString;
+// the joined bytes are the literal the seam runs.
+struct OptionInfoRow {
+    int optionType;
+    std::string name;
+    std::string hName;
+    std::string nickname;
+    int optionClass;
+    int plusPoint;
+    int priceMultiplier;
+    std::string reqAbility;
+    int color;
+    int ratio;
+    int optionLevel;
+    int gambleLevel;
+    int previousOptionType;
+    int upgradeOptionType;
+    int upgradeRatio;
+    int upgradeSecondRatio;
+    int upgradeCrashPercent;
+    int nextOptionRatio;
+    int grade;
+};
+
+struct OptionClassInfoRow {
+    int optionClassType;
+    std::string name;
+    std::string hName;
+    int level;
+    int totalGrade;
+    int optionGroup;
+};
+
+struct RareEnchantRow {
+    int level;
+    int totalGrade;
+    int grade;
+    int ratioWhenFail;
+    int ratioWhenSuccess;
+};
+
+struct PetEnchantOptionRatioRow {
+    int optionType;
+    int ratio;
+};
+
 class GameInfoRepository {
 public:
     virtual ~GameInfoRepository() {}
+
+    // The option tables (OptionInfoManager::load), whole-table reads.
+    virtual std::vector<OptionInfoRow> loadOptionInfos() = 0;
+    virtual std::vector<OptionClassInfoRow> loadOptionClassInfos() = 0;
+    virtual std::vector<RareEnchantRow> loadRareEnchantInfos() = 0;
+    virtual std::vector<PetEnchantOptionRatioRow> loadPetEnchantOptionRatios() = 0;
 
     // The whole-table config reads of the second round, one per table.
     virtual std::vector<WeatherRow> loadWeather() = 0;

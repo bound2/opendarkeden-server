@@ -40,6 +40,7 @@
 #include "repository/GameInfoRepository.h"
 #include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
+#include "repository/ItemRepository.h"
 #include "repository/MessageRepository.h"
 #include "repository/NicknameRepository.h"
 #include "repository/QuestItemRepository.h"
@@ -2169,6 +2170,225 @@ TEST_F(WarInfoMySQL, MasterLairRowsCarryAllTwentyFiveColumns) {
     EXPECT_EQ("\"ds\"", mine->masterDeadSlayerSay);
     EXPECT_EQ("\"dv\"", mine->masterDeadVampireSay);
     EXPECT_EQ("\"nd\"", mine->masterNotDeadSay);
+}
+
+// --- the item bookkeeping cluster against real MySQL --------------------
+// Seven item files, one seam plus four option-table loads on the game-info
+// seam. The tests work on rows they insert (ids from 31000 up; ItemClass
+// 250 for UniqueItemInfo's tinyint key; 'it-' owners) and clean them in
+// SetUp/TearDown. PotionObject stands in for the per-class item-object
+// tables whose NAME the seam takes as data.
+
+class ItemMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM ItemTraceLog WHERE OwnerID LIKE 'it-%'");
+        execSQL("DELETE FROM MoneyTraceLog WHERE OwnerID LIKE 'it-%'");
+        execSQL("DELETE FROM EventQuestRewardSchedule WHERE RewardID >= 31000");
+        execSQL("DELETE FROM UniqueItemInfo WHERE ItemClass >= 250");
+        execSQL("DELETE FROM TimeLimitItems WHERE OwnerID LIKE 'it-%'");
+        execSQL("DELETE FROM CardCount WHERE CARDKIND >= 31000");
+        execSQL("DELETE FROM LuckyBagCount WHERE BAGKIND >= 31000");
+        execSQL("DELETE FROM GiftBoxCount WHERE BOXKIND >= 31000");
+        execSQL("DELETE FROM EventItemCount WHERE ItemClass >= 31000");
+        execSQL("DELETE FROM PotionObject WHERE ItemID >= 31000");
+    }
+};
+
+TEST_F(ItemMySQL, TraceLogsAreInsertedWithTheirEnumTextsAndAServerSideTime) {
+    ItemTraceRecord record;
+    record.itemID = 31000;
+    record.itemClass = "it-class";
+    record.itemType = 7;
+    record.optionName = "1,2";
+    record.preOwner = "it-pre";
+    record.owner = "it-own";
+    record.logType = "TRADE";
+    record.detailType = "PICKUP";
+    defaultItemRepository().insertItemTraceLog(record);
+
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM ItemTraceLog WHERE ItemID=31000 AND OwnerID='it-own'"));
+    EXPECT_EQ("it-class", queryScalar("SELECT ItemClass FROM ItemTraceLog WHERE ItemID=31000"));
+    EXPECT_EQ("7", queryScalar("SELECT ItemType FROM ItemTraceLog WHERE ItemID=31000"));
+    EXPECT_EQ("1,2", queryScalar("SELECT OptionType FROM ItemTraceLog WHERE ItemID=31000"));
+    EXPECT_EQ("it-pre", queryScalar("SELECT PreOwnerID FROM ItemTraceLog WHERE ItemID=31000"));
+    EXPECT_EQ("TRADE", queryScalar("SELECT LogType FROM ItemTraceLog WHERE ItemID=31000"));
+    EXPECT_EQ("PICKUP", queryScalar("SELECT DetailType FROM ItemTraceLog WHERE ItemID=31000"));
+    EXPECT_NE("0000-00-00 00:00:00", queryScalar("SELECT Time FROM ItemTraceLog WHERE ItemID=31000"));
+
+    defaultItemRepository().insertMoneyTraceLog("it-pre", "it-own", "TRADE", "DROP", 12345);
+
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM MoneyTraceLog WHERE OwnerID='it-own'"));
+    EXPECT_EQ("it-pre", queryScalar("SELECT PreOwnerID FROM MoneyTraceLog WHERE OwnerID='it-own'"));
+    EXPECT_EQ("TRADE", queryScalar("SELECT LogType FROM MoneyTraceLog WHERE OwnerID='it-own'"));
+    EXPECT_EQ("DROP", queryScalar("SELECT DetailType FROM MoneyTraceLog WHERE OwnerID='it-own'"));
+    EXPECT_EQ("12345", queryScalar("SELECT Amount FROM MoneyTraceLog WHERE OwnerID='it-own'"));
+    EXPECT_NE("0000-00-00 00:00:00", queryScalar("SELECT Time FROM MoneyTraceLog WHERE OwnerID='it-own'"));
+}
+
+TEST_F(ItemMySQL, UniqueItemNumbersAreReadAndCountedPerClassAndType) {
+    execSQL("INSERT INTO UniqueItemInfo (ItemClass, ItemType, LimitNumber, CurrentNumber, ItemClassName) "
+            "VALUES (250, 1, 3, 2, 'it-a')");
+    execSQL("INSERT INTO UniqueItemInfo (ItemClass, ItemType, LimitNumber, CurrentNumber, ItemClassName) "
+            "VALUES (250, 2, 0, 9, 'it-b')");
+    execSQL("INSERT INTO UniqueItemInfo (ItemClass, ItemType, LimitNumber, CurrentNumber, ItemClassName) "
+            "VALUES (250, 3, 1, 0, 'it-c')");
+
+    ItemRepository& repository = defaultItemRepository();
+
+    std::vector<UniqueItemRow> rows = repository.loadUniqueItems();
+    int seen = 0;
+    for (size_t r = 0; r < rows.size(); r++)
+        if (rows[r].itemClass == 250)
+            seen++;
+    EXPECT_EQ(3, seen);
+
+    int limit = -1, current = -1;
+    ASSERT_TRUE(repository.loadUniqueItemNumbers(250, 1, limit, current));
+    EXPECT_EQ(3, limit);
+    EXPECT_EQ(2, current);
+    EXPECT_FALSE(repository.loadUniqueItemNumbers(250, 4, limit, current)); // no such row
+
+    repository.incrementUniqueItemCount(250, 1);
+    EXPECT_EQ("3", queryScalar("SELECT CurrentNumber FROM UniqueItemInfo WHERE ItemClass=250 AND ItemType=1"));
+    repository.decrementUniqueItemCount(250, 1);
+    repository.decrementUniqueItemCount(250, 1);
+    EXPECT_EQ("1", queryScalar("SELECT CurrentNumber FROM UniqueItemInfo WHERE ItemClass=250 AND ItemType=1"));
+    EXPECT_EQ("9", queryScalar("SELECT CurrentNumber FROM UniqueItemInfo WHERE ItemClass=250 AND ItemType=2"));
+
+    // CurrentNumber is UNSIGNED: a decrement at 0 is an out-of-range error
+    // (ER 1690), not a clamp — the statement fails, the row is untouched,
+    // and the failure surfaces as END_DB's rethrow. Pinned as observed.
+    EXPECT_ANY_THROW(repository.decrementUniqueItemCount(250, 3));
+    EXPECT_EQ("0", queryScalar("SELECT CurrentNumber FROM UniqueItemInfo WHERE ItemClass=250 AND ItemType=3"));
+}
+
+TEST_F(ItemMySQL, TimeLimitItemsAreLoadedByOwnerAndStatusAndUpdatedByOwnerClassAndId) {
+    ItemRepository& repository = defaultItemRepository();
+    repository.insertTimeLimitItem("it-owner", 5, 31000u, "2030-01-02 03:04:05");
+    repository.insertTimeLimitItem("it-owner", 6, 31001u, "2031-01-02 03:04:05");
+    repository.insertTimeLimitItem("it-other", 5, 31002u, "2032-01-02 03:04:05");
+
+    std::vector<TimeLimitItemRow> rows = repository.loadTimeLimitItems("it-owner", 0);
+    ASSERT_EQ(2u, rows.size());
+    bool seen31000 = false;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].itemID == 31000) {
+            seen31000 = true;
+            EXPECT_EQ(5, rows[r].itemClass);
+            EXPECT_EQ("2030-01-02 03:04:05", rows[r].limitDateTime);
+        }
+    }
+    EXPECT_TRUE(seen31000);
+
+    EXPECT_TRUE(repository.updateTimeLimitItemStatus(1, "it-owner", 5, 31000u));
+    EXPECT_FALSE(repository.updateTimeLimitItemStatus(1, "it-owner", 5, 31009u)); // no such item
+    EXPECT_FALSE(repository.updateTimeLimitItemStatus(1, "it-owner", 6, 31000u)); // wrong class
+
+    EXPECT_EQ("1", queryScalar("SELECT Status FROM TimeLimitItems WHERE OwnerID='it-owner' AND ItemID=31000"));
+    EXPECT_EQ("0", queryScalar("SELECT Status FROM TimeLimitItems WHERE OwnerID='it-owner' AND ItemID=31001"));
+
+    rows = repository.loadTimeLimitItems("it-owner", 0);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(31001, rows[0].itemID);
+    EXPECT_EQ(1u, repository.loadTimeLimitItems("it-other", 0).size());
+}
+
+TEST_F(ItemMySQL, EventCountersIncrementOnlyTheirRowExceptTheKeylessResurrectCount) {
+    execSQL("INSERT INTO CardCount (CARDKIND, CARDCOUNT) VALUES (31000, 5)");
+    execSQL("INSERT INTO CardCount (CARDKIND, CARDCOUNT) VALUES (31001, 5)");
+    execSQL("INSERT INTO LuckyBagCount (BAGKIND, BAGCOUNT) VALUES (31000, 5)");
+    execSQL("INSERT INTO LuckyBagCount (BAGKIND, BAGCOUNT) VALUES (31001, 5)");
+    execSQL("INSERT INTO GiftBoxCount (BOXKIND, BOXCOUNT) VALUES (31000, 5)");
+    execSQL("INSERT INTO GiftBoxCount (BOXKIND, BOXCOUNT) VALUES (31001, 5)");
+    execSQL("INSERT INTO EventItemCount (ItemClass, ItemType, Count) VALUES (31000, 1, 5)");
+    execSQL("INSERT INTO EventItemCount (ItemClass, ItemType, Count) VALUES (31000, 2, 5)");
+
+    ItemRepository& repository = defaultItemRepository();
+    repository.incrementCardCount(31000);
+    repository.incrementLuckyBagCount(31000);
+    repository.incrementGiftBoxCount(31000);
+    repository.incrementEventItemCount(31000u, 1u);
+
+    EXPECT_EQ("6", queryScalar("SELECT CARDCOUNT FROM CardCount WHERE CARDKIND=31000"));
+    EXPECT_EQ("5", queryScalar("SELECT CARDCOUNT FROM CardCount WHERE CARDKIND=31001"));
+    EXPECT_EQ("6", queryScalar("SELECT BAGCOUNT FROM LuckyBagCount WHERE BAGKIND=31000"));
+    EXPECT_EQ("5", queryScalar("SELECT BAGCOUNT FROM LuckyBagCount WHERE BAGKIND=31001"));
+    EXPECT_EQ("6", queryScalar("SELECT BOXCOUNT FROM GiftBoxCount WHERE BOXKIND=31000"));
+    EXPECT_EQ("5", queryScalar("SELECT BOXCOUNT FROM GiftBoxCount WHERE BOXKIND=31001"));
+    EXPECT_EQ("6", queryScalar("SELECT Count FROM EventItemCount WHERE ItemClass=31000 AND ItemType=1"));
+    EXPECT_EQ("5", queryScalar("SELECT Count FROM EventItemCount WHERE ItemClass=31000 AND ItemType=2"));
+
+    // ResurrectItemCount has no key column: the UPDATE touches every row.
+    int before = atoi(queryScalar("SELECT COALESCE(SUM(Count), 0) FROM ResurrectItemCount").c_str());
+    int rowCount = atoi(queryScalar("SELECT COUNT(*) FROM ResurrectItemCount").c_str());
+    ASSERT_GT(rowCount, 0);
+    repository.incrementResurrectItemCount();
+    EXPECT_EQ(before + rowCount, atoi(queryScalar("SELECT SUM(Count) FROM ResurrectItemCount").c_str()));
+}
+
+TEST_F(ItemMySQL, EventQuestRewardIsTakenOncePerCountAndOnlyWhenDue) {
+    execSQL("INSERT INTO EventQuestRewardSchedule (RewardID, QuestLevel, Count, Time) "
+            "VALUES (31000, 3, 1, '2000-01-01 00:00:00')");
+    execSQL("INSERT INTO EventQuestRewardSchedule (RewardID, QuestLevel, Count, Time) "
+            "VALUES (31001, 3, 5, '2099-01-01 00:00:00')"); // not due yet
+
+    ItemRepository& repository = defaultItemRepository();
+    EXPECT_TRUE(repository.takeEventQuestReward(31000, 3));
+    EXPECT_EQ("0", queryScalar("SELECT Count FROM EventQuestRewardSchedule WHERE RewardID=31000"));
+    EXPECT_FALSE(repository.takeEventQuestReward(31000, 3)); // exhausted
+    EXPECT_FALSE(repository.takeEventQuestReward(31000, 4)); // other level
+    EXPECT_FALSE(repository.takeEventQuestReward(31001, 3)); // not due
+    EXPECT_EQ("5", queryScalar("SELECT Count FROM EventQuestRewardSchedule WHERE RewardID=31001"));
+}
+
+TEST_F(ItemMySQL, ItemRowPositionReadAndDeleteWorkOnTheNamedObjectTable) {
+    execSQL("INSERT INTO PotionObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) "
+            "VALUES (31000, 77, 2, 'it-owner', 1, 5, 3, 4, 1)");
+
+    ItemRepository& repository = defaultItemRepository();
+    ItemPositionRow row;
+    ASSERT_TRUE(repository.loadItemPosition("PotionObject", 31000, row));
+    EXPECT_EQ("it-owner", row.ownerID);
+    EXPECT_EQ(1, row.storage);
+    EXPECT_EQ(5, row.storageID);
+    EXPECT_EQ(3, row.x);
+    EXPECT_EQ(4, row.y);
+    EXPECT_EQ(77, row.objectID);
+    EXPECT_FALSE(repository.loadItemPosition("PotionObject", 31001, row));
+
+    EXPECT_TRUE(repository.deleteItemRow("PotionObject", 31000));
+    EXPECT_FALSE(repository.deleteItemRow("PotionObject", 31000)); // already gone
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM PotionObject WHERE ItemID=31000"));
+}
+
+TEST(ConfigLoadersMySQL, OptionTablesAreSeededAndReadInSelectOrder) {
+    GameInfoRepository& repository = defaultGameInfoRepository();
+
+    std::vector<OptionInfoRow> options = repository.loadOptionInfos();
+    ASSERT_FALSE(options.empty());
+    // The schema orders UpgradeOptionType before PreviousOptionType; the
+    // SELECT (and so the row) the other way round. Pin the mapping.
+    std::string id = std::to_string(options[0].optionType);
+    EXPECT_EQ(options[0].name, queryScalar("SELECT Name FROM OptionInfo WHERE OptionType=" + id));
+    EXPECT_EQ(options[0].nickname, queryScalar("SELECT Nickname FROM OptionInfo WHERE OptionType=" + id));
+    EXPECT_EQ(std::to_string(options[0].optionClass),
+              queryScalar("SELECT Class FROM OptionInfo WHERE OptionType=" + id));
+    EXPECT_EQ(std::to_string(options[0].previousOptionType),
+              queryScalar("SELECT PreviousOptionType FROM OptionInfo WHERE OptionType=" + id));
+    EXPECT_EQ(std::to_string(options[0].upgradeOptionType),
+              queryScalar("SELECT UpgradeOptionType FROM OptionInfo WHERE OptionType=" + id));
+    EXPECT_EQ(std::to_string(options[0].grade), queryScalar("SELECT Grade FROM OptionInfo WHERE OptionType=" + id));
+
+    EXPECT_FALSE(repository.loadOptionClassInfos().empty());
+    EXPECT_FALSE(repository.loadRareEnchantInfos().empty());
+    EXPECT_FALSE(repository.loadPetEnchantOptionRatios().empty());
 }
 
 } // namespace

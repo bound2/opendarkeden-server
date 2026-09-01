@@ -10,11 +10,11 @@
 
 #include "Assert.h"
 #include "CGRequestStoreInfo.h"
-#include "DB.h"
 #include "ItemInfoManager.h"
 #include "PCItemInfo.h"
 #include "PlayerCreature.h"
 #include "Store.h"
+#include "repository/ItemRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class Item member methods
@@ -42,23 +42,10 @@ bool Item::destroy()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("DELETE FROM %s WHERE ItemID = %lu", getObjectTableName().c_str(), m_ItemID);
-
-        // DB에서 지우는건데..
-        // DB에 이미 아이템이 없는 경우
-        if (pStmt->getAffectedRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            return false;
-        }
-
-        SAFE_DELETE(pStmt);
+    // Deleting from the DB; the item may already be gone there.
+    if (!defaultItemRepository().deleteItemRow(getObjectTableName(), m_ItemID)) {
+        return false;
     }
-    END_DB(pStmt)
 
     return true;
 

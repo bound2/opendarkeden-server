@@ -1,42 +1,32 @@
 #include "GlobalItemPositionLoader.h"
 
 #include "CorpseItemPosition.h"
-#include "DB.h"
 #include "InventoryItemPosition.h"
 #include "MouseItemPosition.h"
 #include "ZoneItemPosition.h"
+#include "repository/ItemRepository.h"
 
 GlobalItemPosition* GlobalItemPositionLoader::load(Item::ItemClass itemClass, ItemID_t itemID)
 
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
     GlobalItemPosition* pRet = NULL;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT OwnerID, Storage, StorageID, X, Y, ObjectID FROM %s WHERE ItemID = %d",
-                                ItemObjectTableName[(int)itemClass].c_str(), itemID);
+    ItemPositionRow row;
+    if (defaultItemRepository().loadItemPosition(ItemObjectTableName[(int)itemClass], itemID, row)) {
+        GlobalDBItemPosition gip;
+        gip.OwnerID = row.ownerID;
+        gip.ItemStorage = (Storage)row.storage;
+        gip.StorageID = (StorageID_t)row.storageID;
+        gip.X = row.x;
+        gip.Y = row.y;
+        gip.ObjectID = row.objectID;
 
-        if (pResult->next()) {
-            int i = 0;
-            GlobalDBItemPosition gip;
-            gip.OwnerID = pResult->getString(++i);
-            gip.ItemStorage = (Storage)pResult->getInt(++i);
-            gip.StorageID = (StorageID_t)pResult->getInt(++i);
-            gip.X = pResult->getInt(++i);
-            gip.Y = pResult->getInt(++i);
-            gip.ObjectID = pResult->getInt(++i);
-
-            pRet = makeGlobalItemPosition(gip);
-        } else {
-            pRet = NULL;
-        }
-        SAFE_DELETE(pStmt);
+        pRet = makeGlobalItemPosition(gip);
+    } else {
+        pRet = NULL;
     }
-    END_DB(pStmt)
 
     return pRet;
 

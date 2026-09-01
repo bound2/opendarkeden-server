@@ -1,9 +1,9 @@
 #include "TimeLimitItemManager.h"
 
-#include "DB.h"
 #include "GCTimeLimitItemInfo.h"
 #include "Item.h"
 #include "PlayerCreature.h"
+#include "repository/ItemRepository.h"
 
 TimeLimitItemManager::~TimeLimitItemManager() {
     TableRecordList::iterator itr = m_TableRecords.begin();
@@ -22,29 +22,19 @@ void TimeLimitItemManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    vector<TimeLimitItemRow> rows = defaultItemRepository().loadTimeLimitItems(m_pOwnerPC->getName(), (uint)VALID);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemClass, ItemID, LimitDateTime from TimeLimitItems where OwnerID='%s' and Status=%u",
-            m_pOwnerPC->getName().c_str(), (uint)VALID);
+    for (size_t r = 0; r < rows.size(); r++) {
+        TableRecord* pTableRecord = new TableRecord;
 
-        while (pResult->next()) {
-            TableRecord* pTableRecord = new TableRecord;
+        pTableRecord->m_ItemClass = (Item::ItemClass)rows[r].itemClass;
+        pTableRecord->m_ItemID = rows[r].itemID;
 
-            pTableRecord->m_ItemClass = (Item::ItemClass)pResult->getInt(1);
-            pTableRecord->m_ItemID = pResult->getInt(2);
+        const string limitDateTime = rows[r].limitDateTime;
+        pTableRecord->m_TimeLimit = VSDateTime(limitDateTime);
 
-            const string limitDateTime = pResult->getString(3);
-            pTableRecord->m_TimeLimit = VSDateTime(limitDateTime);
-
-            m_TableRecords.push_back(pTableRecord);
-        }
-
-        SAFE_DELETE(pStmt);
+        m_TableRecords.push_back(pTableRecord);
     }
-    END_DB(pStmt)
 
     m_loaded = true;
 
@@ -122,22 +112,10 @@ bool TimeLimitItemManager::wasteIfTimeOver(Item* pItem)
     if (checkTimeLimit(pItem))
         return false;
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE TimeLimitItems SET Status=%u where OwnerID='%s' and ItemClass=%u and ItemID=%u",
-                            (uint)EXPIRED, m_pOwnerPC->getName().c_str(), (uint)pItem->getItemClass(),
-                            (uint)pItem->getItemID());
-
-        if (pStmt->getAffectedRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            return false;
-        }
-
-        SAFE_DELETE(pStmt);
+    if (!defaultItemRepository().updateTimeLimitItemStatus((uint)EXPIRED, m_pOwnerPC->getName(),
+                                                           (uint)pItem->getItemClass(), (uint)pItem->getItemID())) {
+        return false;
     }
-    END_DB(pStmt)
 
     return true;
 
@@ -198,18 +176,8 @@ void TimeLimitItemManager::addTimeLimitItem(Item* pItem, DWORD time)
 
     VSDateTime timeLimit = VSDateTime::currentDateTime().addSecs(time);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery(
-            "INSERT INTO TimeLimitItems (OwnerID, ItemClass, ItemID, LimitDateTime) VALUES ('%s',%u,%u,'%s')",
-            m_pOwnerPC->getName().c_str(), (uint)pItem->getItemClass(), (uint)pItem->getItemID(),
-            timeLimit.toDateTime().c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemRepository().insertTimeLimitItem(m_pOwnerPC->getName(), (uint)pItem->getItemClass(),
+                                                (uint)pItem->getItemID(), timeLimit.toDateTime());
 
     TableRecord* pTableRecord = new TableRecord;
 
@@ -230,22 +198,10 @@ bool TimeLimitItemManager::changeStatus(Item* pItem, TimeLimitStatus status) {
 
     Assert(status != VALID);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE TimeLimitItems SET Status=%u where OwnerID='%s' and ItemClass=%u and ItemID=%u",
-                            (uint)status, m_pOwnerPC->getName().c_str(), (uint)pItem->getItemClass(),
-                            (uint)pItem->getItemID());
-
-        if (pStmt->getAffectedRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            return false;
-        }
-
-        SAFE_DELETE(pStmt);
+    if (!defaultItemRepository().updateTimeLimitItemStatus((uint)status, m_pOwnerPC->getName(),
+                                                           (uint)pItem->getItemClass(), (uint)pItem->getItemID())) {
+        return false;
     }
-    END_DB(pStmt)
 
     TableRecordList::iterator itr = m_TableRecords.begin();
     TableRecordList::iterator endItr = m_TableRecords.end();

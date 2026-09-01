@@ -539,6 +539,125 @@ public:
 
         return names;
     }
+
+    vector<OptionInfoRow> loadOptionInfos() {
+        vector<OptionInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT OptionType, Name, HName, Nickname, Class, PlusPoint, PriceMultiplier, ReqAbility, Color, "
+                "Ratio, "
+                "OptionLevel, GambleLevel, PreviousOptionType, UpgradeOptionType, UpgradeRatio, UpgradeSecondRatio, "
+                "UpgradeCrashPercent, NextOptionRatio, Grade FROM OptionInfo");
+
+            while (pResult->next()) {
+                int i = 0;
+                OptionInfoRow row;
+                row.optionType = pResult->getInt(++i);
+                row.name = pResult->getString(++i);
+                row.hName = pResult->getString(++i);
+                row.nickname = pResult->getString(++i);
+                row.optionClass = pResult->getInt(++i);
+                row.plusPoint = pResult->getInt(++i);
+                row.priceMultiplier = pResult->getInt(++i);
+                row.reqAbility = pResult->getString(++i);
+                row.color = pResult->getInt(++i);
+                row.ratio = pResult->getInt(++i);
+                row.optionLevel = pResult->getInt(++i);
+                row.gambleLevel = pResult->getInt(++i);
+                row.previousOptionType = pResult->getInt(++i);
+                row.upgradeOptionType = pResult->getInt(++i);
+                row.upgradeRatio = pResult->getInt(++i);
+                row.upgradeSecondRatio = pResult->getInt(++i);
+                row.upgradeCrashPercent = pResult->getInt(++i);
+                row.nextOptionRatio = pResult->getInt(++i);
+                row.grade = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<OptionClassInfoRow> loadOptionClassInfos() {
+        vector<OptionClassInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT OptionClassType, Name, HName, Level, TotalGrade, OptionGroup FROM OptionClassInfo");
+
+            while (pResult->next()) {
+                OptionClassInfoRow row;
+                row.optionClassType = pResult->getInt(1);
+                row.name = pResult->getString(2);
+                row.hName = pResult->getString(3);
+                row.level = pResult->getInt(4);
+                row.totalGrade = pResult->getInt(5);
+                row.optionGroup = pResult->getInt(6);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<RareEnchantRow> loadRareEnchantInfos() {
+        vector<RareEnchantRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT Level, TotalGrade, Grade, RatioWhenFail, RatioWhenSuccess FROM RareEnchantInfo");
+
+            while (pResult->next()) {
+                RareEnchantRow row;
+                row.level = pResult->getInt(1);
+                row.totalGrade = pResult->getInt(2);
+                row.grade = pResult->getInt(3);
+                row.ratioWhenFail = pResult->getInt(4);
+                row.ratioWhenSuccess = pResult->getInt(5);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<PetEnchantOptionRatioRow> loadPetEnchantOptionRatios() {
+        vector<PetEnchantOptionRatioRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT OptionType, Ratio FROM PetEnchantOptionRatioInfo");
+
+            while (pResult->next()) {
+                PetEnchantOptionRatioRow row;
+                row.optionType = pResult->getInt(1);
+                row.ratio = pResult->getInt(2);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
 };
 
 } // namespace
