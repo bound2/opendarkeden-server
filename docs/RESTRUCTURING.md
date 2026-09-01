@@ -1339,24 +1339,33 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > the optimizer hands back, not a top score; false when none). Every
   > literal byte-for-byte; the DWORD quest id, BYTE status, BYTE levels
   > and uint count stream through "%u" as before. Disclosures:
-  > EventHeadCount::activate never freed its Statement (once per player
-  > every half hour) — the seam does, fixed knowingly; GQuestManager's
-  > loop read the save-age column only for the three event quests
-  > (1001/2001/3001) in COMPLETE state — the row reads it for every save
-  > (harmless, the expression is never NULL); PacketUtil's commented-out
-  > second score read (the player's own) is deleted because R2's grep is
-  > textual. **Deferred with a reason**: TradeManager's TradeLog INSERT
+  > EventHeadCount::activate never freed its Statement (at most once per
+  > player every half hour, for the level bands it counts) — the seam
+  > does, fixed knowingly; GQuestManager::load did its row processing
+  > (new GQuestStatus, addEffect, filelog) inside the block that owned
+  > the Statement, so any non-SQL Throwable from it leaked the Statement
+  > — the seam frees before the caller loops; GQuestManager's loop read
+  > the save-age column only for the three event quests (1001/2001/3001)
+  > in COMPLETE state — the row reads it for every save (harmless: Time
+  > is NOT NULL, so the unix_timestamp subtraction is never NULL);
+  > PacketUtil's commented-out second score read (the player's own) and
+  > its Korean note on getAffectedRowCount are deleted because R2's grep
+  > is textual. **Deferred with a reason**: TradeManager's TradeLog INSERT
   > concatenates a trade summary of unbounded length (every traded
   > item's toString) and runs it through executeQueryString; the
   > repository convention is parameterized executeQuery, whose 2048-byte
   > vsnprintf buffer throws on longer statements — converting it would
   > turn a large trade's log into a new failure after the gold has
   > already moved. It waits for an uncapped parameterized path in the
-  > DB layer (CGBuyStoreItemHandler's copy too). Not enclosed: the
+  > DB layer. (CGBuyStoreItemHandler's TradeLog INSERT is a different
+  > case: already parameterized, one item's toString — it stays inline
+  > only because it is a handler-directory file.) Not enclosed: the
   > character-deletion sweeps of GQuestSave (CreatureUtil.cpp, the
-  > loginserver's CLDeletePCHandler.cpp) and the MiniGameScores
-  > writers/readers in CGSubmitScoreHandler, CGSayHandler and
-  > mission/MiniGameQuestStatus.cpp. No fake tier; +3 integration tests
+  > loginserver's CLDeletePCHandler.cpp) and CGSubmitScoreHandler's
+  > MiniGameScores UPDATE; CGSayHandler's and
+  > mission/MiniGameQuestStatus.cpp's MiniGameScores reads are
+  > commented out (the latter calls sendGCMiniGameScores, now a caller
+  > of the seam). No fake tier; +3 integration tests
   > (saved quests replaced, loaded per owner with a sane save age,
   > re-replaced in place and deleted; the head-count row with its
   > server-side time; the score read's found/none paths). Remaining SQL

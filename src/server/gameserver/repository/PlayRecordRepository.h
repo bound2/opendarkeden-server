@@ -17,11 +17,13 @@
 //
 // Not enclosed: the character-deletion sweeps of GQuestSave in
 // CreatureUtil.cpp and the loginserver's CLDeletePCHandler.cpp; the
-// MiniGameScores writers and readers in CGSubmitScoreHandler,
-// CGSayHandler and mission/MiniGameQuestStatus.cpp; and the TradeLog
-// inserts (TradeManager, CGBuyStoreItemHandler), which concatenate an
-// unbounded trade summary that executeQuery's 2048-byte format buffer
-// could not carry — they wait for a DB-layer change.
+// MiniGameScores UPDATE in CGSubmitScoreHandler (CGSayHandler's and
+// mission/MiniGameQuestStatus.cpp's reads are commented out; the latter
+// calls sendGCMiniGameScores, a caller of this seam); TradeManager's
+// TradeLog INSERT, which concatenates an unbounded trade summary that
+// executeQuery's 2048-byte format buffer could not carry — it waits for
+// a DB-layer change; and CGBuyStoreItemHandler's already-parameterized
+// single-item TradeLog INSERT (a handler-directory file).
 
 // One GQuestSave row for an owner, plus the server-side age of the save
 // (unix_timestamp(now()) - unix_timestamp(Time)).
