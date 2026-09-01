@@ -10,6 +10,10 @@ namespace {
 //  - ItemType is a tinyint widened into ItemType_t (WORD) on read.
 //  - Duplicate ItemType rows are possible (the key is the auto-increment
 //    ItemID) and are surfaced as-is, exactly as the inline loop did.
+//  - The character-deletion purges (gameserver CreatureUtil.cpp,
+//    loginserver CLDeletePCHandler.cpp) never touch this table: a
+//    deleted character's signs persist and are re-read by any later
+//    character taking the same name.
 //  - Owner names are interpolated raw (no escaping), as the call site
 //    always did.
 class MySQLBloodBibleSignRepository : public BloodBibleSignRepository {

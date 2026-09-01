@@ -26,6 +26,7 @@
 #include "SkillUtil.h"
 #include "Stash.h"
 #include "TradeManager.h"
+#include "repository/StashRepository.h"
 // #include "RankEXPInfo.h"
 #include <stdio.h>
 
@@ -2053,22 +2054,11 @@ bool Ousters::checkGoldIntegrity() {
 bool Ousters::checkStashGoldIntegrity() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    bool ret = false;
+    int gold = 0;
+    if (!defaultStashRepository().loadStashGold(m_Name, STASH_RACE_OUSTERS, gold))
+        return false;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT StashGold FROM Ousters WHERE NAME='%s'", m_Name.c_str());
-
-        if (pResult->next()) {
-            ret = pResult->getInt(1) == m_StashGold;
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-    return ret;
+    return gold == m_StashGold;
 
     __END_CATCH
 }

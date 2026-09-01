@@ -16,8 +16,11 @@ class RankBonusRepository {
 public:
     virtual ~RankBonusRepository() {}
 
-    // Every stored Type for a character, in storage order. The table has no
-    // unique key, so duplicates can come back; the in-memory book dedups.
+    // Every stored Type for a character, Type ascending: the query has no
+    // ORDER BY, but the covering index (OwnerID, Type) fully serves it, so
+    // InnoDB's index scan returns Type order deterministically (pinned by
+    // the MySQL integration tier). The table has no unique key, so
+    // duplicates can come back; the in-memory book dedups.
     virtual std::vector<DWORD> loadTypes(const std::string& ownerName) = 0;
 
     // Record a learned bonus. Plain INSERT into a keyless table: inserting

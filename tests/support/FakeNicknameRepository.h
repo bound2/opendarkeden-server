@@ -1,6 +1,7 @@
 #ifndef __FAKE_NICKNAME_REPOSITORY_H__
 #define __FAKE_NICKNAME_REPOSITORY_H__
 
+#include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -13,9 +14,11 @@
 //  - PRIMARY KEY (nID, OwnerID): insert() on an existing (owner, id) THROWS,
 //    like the real plain INSERT's duplicate-key error; only
 //    insertDefaultCustomSlot() is idempotent (INSERT IGNORE).
-//  - load() returns rows in INSERTION order — the real SELECT carries no
-//    ORDER BY, so tests must not lean on any particular order beyond what
-//    they themselves inserted.
+//  - load() returns rows in nID-ASCENDING order — the real SELECT carries
+//    no ORDER BY, but the secondary index IDX_OwnerID carries the primary
+//    key (nID, OwnerID) as its suffix, so the ref scan returns nID order
+//    (pinned by the MySQL integration tier; this comment originally said
+//    "insertion order" — falsified there).
 //  - Nickname is varchar(22) latin1 with STRICT_TRANS_TABLES off: stored
 //    values silently truncate to 22 bytes.
 class FakeNicknameRepository : public NicknameRepository {
@@ -26,6 +29,7 @@ public:
             if (itr->first.first == ownerName)
                 records.push_back(itr->second);
         }
+        std::sort(records.begin(), records.end(), byID);
         return records;
     }
 
@@ -64,6 +68,10 @@ private:
 
     static RowKey key(const std::string& ownerName, WORD id) {
         return RowKey(ownerName, id);
+    }
+
+    static bool byID(const NicknameRecord& a, const NicknameRecord& b) {
+        return a.id < b.id;
     }
 
     static std::string truncateToColumn(const std::string& nickname) {

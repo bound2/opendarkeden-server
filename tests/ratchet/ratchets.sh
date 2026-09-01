@@ -47,9 +47,10 @@ check_ratchet R2 "gameserver-root files with inline SQL" 101 "$R2"
 # cleansed at least as many files as it created: the PlayerCreature round
 # (4 tables, 2 files) would have RAISED a shrink-only ratchet. Repository
 # impls are the sanctioned quarantine for SQL — R3 measures SQL loose in
-# game logic, and still counts loginserver/sharedserver/tools.
+# game logic, and still counts loginserver/sharedserver and the dead
+# theoneserver tree. (Trailing slash: only the directory is excluded.)
 R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' |
-    grep -v 'server/gameserver/repository' | wc -l)
+    grep -v 'server/gameserver/repository/' | wc -l)
 check_ratchet R3 "files with inline SQL outside database/, repository/" 314 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------

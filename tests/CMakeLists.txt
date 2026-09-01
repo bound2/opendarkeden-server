@@ -97,6 +97,38 @@ add_dependencies(wire_tests repository_tests)
 add_test(NAME repository_tests COMMAND repository_tests)
 set_tests_properties(repository_tests PROPERTIES TIMEOUT 60)
 
+# MySQL-backed integration tier (docs/RESTRUCTURING.md 3.2): the REAL
+# repository implementations against a throwaway MySQL 5.7 with the
+# initdb/ schema — the authority the fakes above are corrected against.
+# Deliberately NOT registered with ctest: it needs the database that
+# tests/integration/mysql_test.sh provides (a handrolled container
+# fixture); run `make integration-test` from the host. Compiles the MySQL
+# impl sources directly and links the macro-free Database library — the
+# repositories carry no server-type macros, so the objects match what the
+# gameserver builds.
+add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
+    integration/mysql_repository_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBloodBibleSignRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLGoodsRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLNicknameRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLRankBonusRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLStashRepository.cpp
+)
+target_include_directories(mysql_repository_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/integration
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(mysql_repository_tests PRIVATE
+    Database
+    ServerCore
+    de-kernel
+    ${MYSQL_LIBRARY}
+    gtest
+    Threads::Threads
+)
+
 # Pure-formula unit tests (docs/RESTRUCTURING.md 3.3). Linking ONLY de-core
 # and gtest is deliberate: it proves de-core stays freestanding — pulling
 # Core, transport, or a gameserver header into it breaks this link.

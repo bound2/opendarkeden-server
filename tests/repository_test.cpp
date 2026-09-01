@@ -1,7 +1,10 @@
 // Task 3.2: pins the repository contracts and the pure nickname-book rules
 // extracted from NicknameBook::load(). The fakes stand in for the MySQL
-// implementations in domain tests; a MySQL-backed integration tier is a
-// later task.
+// implementations in domain tests — these tests pin the INTENDED contract
+// only and are not evidence about MySQL. The MySQL-backed integration tier
+// (tests/integration/, `make integration-test`) runs the real
+// implementations against a throwaway MySQL 5.7 with the initdb/ schema
+// and is the authority the fakes are corrected against.
 
 #include <stdexcept>
 #include <string>
@@ -146,17 +149,20 @@ TEST(NicknameRepositoryContract, DuplicateInsertThrows) {
     repository.insert("Someone", 12000, NicknameInfo::NICK_CUSTOM, "theirs");
 }
 
-TEST(NicknameRepositoryContract, LoadReturnsInsertionOrderNotIDOrder) {
-    // The real SELECT has no ORDER BY; the fake returns insertion order so
-    // no test can quietly start relying on sorted ids.
+TEST(NicknameRepositoryContract, LoadReturnsNIDAscendingNotInsertionOrder) {
+    // The real SELECT has no ORDER BY, but the secondary index IDX_OwnerID
+    // carries the primary key (nID, OwnerID) as its suffix, so the ref
+    // scan returns nID ascending — pinned against real MySQL by the
+    // integration tier. (This test originally asserted insertion order;
+    // the 2026-09-01 review round falsified that.)
     FakeNicknameRepository repository;
     repository.insert("Hyanggi", 10001, NicknameInfo::NICK_CUSTOM, "second-id-first");
     repository.insert("Hyanggi", 10000, NicknameInfo::NICK_CUSTOM, "first-id-second");
 
     std::vector<NicknameRecord> records = repository.load("Hyanggi");
     ASSERT_EQ(2u, records.size());
-    EXPECT_EQ(10001, records[0].id);
-    EXPECT_EQ(10000, records[1].id);
+    EXPECT_EQ(10000, records[0].id);
+    EXPECT_EQ(10001, records[1].id);
 }
 
 TEST(NicknameRepositoryContract, NicknameTruncatesToColumnWidth) {
@@ -177,15 +183,17 @@ TEST(RankBonusRepositoryContract, LoadOfAnUnknownOwnerIsEmpty) {
     EXPECT_TRUE(repository.loadTypes("nobody").empty());
 }
 
-TEST(RankBonusRepositoryContract, InsertedTypesComeBackInInsertionOrder) {
+TEST(RankBonusRepositoryContract, LoadTypesComeBackTypeAscending) {
+    // The query has no ORDER BY, but the covering index (OwnerID, Type)
+    // fully serves it, so InnoDB returns Type order — NOT insertion order.
     FakeRankBonusRepository repository;
     repository.insert("Hyanggi", 7);
     repository.insert("Hyanggi", 3);
 
     std::vector<DWORD> types = repository.loadTypes("Hyanggi");
     ASSERT_EQ(2u, types.size());
-    EXPECT_EQ(7u, types[0]);
-    EXPECT_EQ(3u, types[1]);
+    EXPECT_EQ(3u, types[0]);
+    EXPECT_EQ(7u, types[1]);
 }
 
 TEST(RankBonusRepositoryContract, DuplicateInsertStoresTwoRows) {
@@ -251,15 +259,49 @@ TEST(StashRepositoryContract, OustersSaveWritesSlayerAndOustersTables) {
     EXPECT_EQ(5000, repository.writes()[0].value);
 }
 
-TEST(StashRepositoryContract, GoldAboveIntMaxIsStoredNegative) {
-    // Gold_t is a DWORD but the SQL interpolation goes through (int):
-    // a balance above 2^31-1 would be stored as a negative number.
-    // Unreachable with current gold caps, preserved anyway.
+TEST(StashRepositoryContract, GoldAboveIntMaxMarshalsNegativeAndStoresZero) {
+    // Gold_t is a DWORD but the SQL interpolation goes through (int): a
+    // balance above 2^31-1 emits a NEGATIVE literal — which the UNSIGNED
+    // StashGold column then clamps to 0 under the non-strict sql_mode.
+    // The balance is destroyed, not stored negative. Unreachable with the
+    // MAX_MONEY cap, preserved anyway.
     FakeStashRepository repository;
+    repository.addRow(STASH_RACE_SLAYER, "Hyanggi");
     repository.saveStashGold("Hyanggi", false, 4000000000u);
 
     ASSERT_EQ(2u, repository.writes().size());
-    EXPECT_EQ(-294967296, repository.writes()[0].value);
+    EXPECT_EQ(-294967296, repository.writes()[0].value); // the marshalled literal
+
+    int gold = -1;
+    ASSERT_TRUE(repository.loadStashGold("Hyanggi", STASH_RACE_SLAYER, gold));
+    EXPECT_EQ(0, gold); // the stored outcome
+}
+
+TEST(StashRepositoryContract, SaveAgainstAMissingRowIsASilentNoOp) {
+    // An UPDATE against a table with no row for the name matches zero
+    // rows: no error, no warning, nothing stored.
+    FakeStashRepository repository;
+    repository.saveStashGold("Nobody", false, 500);
+
+    int gold = -1;
+    EXPECT_FALSE(repository.loadStashGold("Nobody", STASH_RACE_SLAYER, gold));
+    EXPECT_EQ(2u, repository.writes().size()); // the attempts still happened
+}
+
+TEST(StashRepositoryContract, LoadStashGoldReadsTheCharactersOwnTable) {
+    // The integrity check reads ONE table (the character's own race),
+    // while the writes fan out to Slayer + the race's own table.
+    FakeStashRepository repository;
+    repository.addRow(STASH_RACE_SLAYER, "Yerin");
+    repository.addRow(STASH_RACE_OUSTERS, "Yerin");
+    repository.saveStashGold("Yerin", true, 700);
+
+    int gold = -1;
+    ASSERT_TRUE(repository.loadStashGold("Yerin", STASH_RACE_OUSTERS, gold));
+    EXPECT_EQ(700, gold);
+    ASSERT_TRUE(repository.loadStashGold("Yerin", STASH_RACE_SLAYER, gold));
+    EXPECT_EQ(700, gold); // the unconditional Slayer write landed too
+    EXPECT_FALSE(repository.loadStashGold("Yerin", STASH_RACE_VAMPIRE, gold));
 }
 
 // --- BloodBibleSignObject contract, pinned via the fake -------------------
@@ -337,17 +379,21 @@ TEST(GoodsRepositoryContract, TakeOneOfAnUnknownIdIsFalse) {
     EXPECT_FALSE(repository.takeOne("999"));
 }
 
-TEST(GoodsRepositoryContract, ZeroCountRowFlipsToTakenWithoutGoingNegative) {
+TEST(GoodsRepositoryContract, TakingAZeroCountRowThrowsAndLeavesItStuck) {
     // A pending row can sit at Num=0 (the loader still delivers one item:
-    // its loop runs max(1, min(50, num)) times). Taking it clamps Num at 0
-    // — tinyint UNSIGNED with strict mode off — and flips Status, which
-    // counts as a change; a second take changes nothing and reports false.
+    // its loop runs max(1, min(50, num)) times), but taking it FAILS:
+    // Num - 1 on the UNSIGNED column raises ER_DATA_OUT_OF_RANGE
+    // regardless of strict mode, and the row is left untouched — so the
+    // purchase stays pending and is re-delivered on the next load (the
+    // pre-existing stuck-item bug documented on the MySQL impl).
     FakeGoodsRepository repository;
     repository.addPurchase("101", 1, "account", "Hyanggi", 5000, 0);
 
-    EXPECT_TRUE(repository.takeOne("101"));
-    EXPECT_TRUE(repository.loadPending(1, "account", "Hyanggi").empty());
-    EXPECT_FALSE(repository.takeOne("101"));
+    EXPECT_THROW(repository.takeOne("101"), std::runtime_error);
+
+    std::vector<GoodsRecord> records = repository.loadPending(1, "account", "Hyanggi");
+    ASSERT_EQ(1u, records.size());
+    EXPECT_EQ(0, records[0].num);
 }
 
 } // namespace

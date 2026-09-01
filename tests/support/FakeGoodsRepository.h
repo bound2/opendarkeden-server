@@ -1,6 +1,7 @@
 #ifndef __FAKE_GOODS_REPOSITORY_H__
 #define __FAKE_GOODS_REPOSITORY_H__
 
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -8,16 +9,19 @@
 
 // In-memory GoodsRepository for domain tests (docs/RESTRUCTURING.md 3.2).
 // addPurchase() stands in for the website writing a purchase row. Mirrors
-// the MySQL implementation's contract:
+// the MySQL implementation's contract (empirically pinned by the MySQL
+// integration tier in tests/integration/):
 //  - loadPending() filters on world + playerID + character name + Status
 //    'NOT' and returns storage order (the real SELECT has no ORDER BY).
-//  - takeOne() finds by id alone (no Status check in its WHERE): the
-//    decrement clamps at 0 (Num is tinyint UNSIGNED with strict mode
-//    off), and Status becomes 'GET' when the ALREADY-DECREMENTED count
-//    is below 1 — MySQL's left-to-right SET evaluation quirk.
-//  - takeOne() returns whether anything CHANGED (the connection lacks
-//    CLIENT_FOUND_ROWS): an unknown id is false, and so is a re-take of
-//    an exhausted row already at Num=0/'GET'.
+//  - takeOne() finds by id alone (no Status check in its WHERE): Status
+//    becomes 'GET' when the ALREADY-DECREMENTED count is below 1 —
+//    MySQL's left-to-right SET evaluation quirk.
+//  - takeOne() on a row at Num=0 THROWS: Num - 1 on the UNSIGNED column
+//    raises ER_DATA_OUT_OF_RANGE (1690) regardless of strict mode, and
+//    the row is left untouched. The real error surfaces as a raw
+//    const char* out of END_DB; the fake throws std::runtime_error so
+//    tests have something typed to catch.
+//  - takeOne() of an unknown id returns false (no row matched).
 class FakeGoodsRepository : public GoodsRepository {
 public:
     void addPurchase(const std::string& id, int world, const std::string& playerID, const std::string& characterName,
@@ -53,12 +57,13 @@ public:
             if (itr->id != id)
                 continue;
 
-            int newNum = itr->num > 0 ? itr->num - 1 : 0; // unsigned clamp
-            bool newTaken = newNum < 1;                   // IF() sees the new Num
-            bool changed = newNum != itr->num || newTaken != itr->taken;
-            itr->num = newNum;
-            itr->taken = newTaken;
-            return changed;
+            if (itr->num < 1)
+                // ER_DATA_OUT_OF_RANGE: the row is left untouched
+                throw std::runtime_error("FakeGoodsRepository: BIGINT UNSIGNED value is out of range in 'Num - 1'");
+
+            itr->num = itr->num - 1;
+            itr->taken = itr->num < 1; // IF() sees the new Num
+            return true;
         }
         return false;
     }

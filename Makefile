@@ -1,7 +1,7 @@
 # DarkEden Makefile
 
 .PHONY: all fmt fmt fmt-check fmt-check-all clean help debug test \
-        dev-test dev-build dev-shell dev-clean
+        dev-test dev-build dev-shell dev-clean integration-test
 
 # Default target
 all: debug
@@ -28,6 +28,12 @@ dev-shell:
 	bash tools/devbuild.sh shell
 dev-clean:
 	bash tools/devbuild.sh clean
+
+# MySQL-backed repository integration tier (docs/RESTRUCTURING.md 3.2):
+# throwaway MySQL 5.7 + initdb/ schema + the real MySQL*Repository impls,
+# fixture lifecycle handrolled in the script. Needs docker + darkeden-dev.
+integration-test:
+	bash tests/integration/mysql_test.sh
 
 release:
 	cmake -B build -DCMAKE_BUILD_TYPE=Release -DDARKEDEN_BUILD_TESTS=OFF

@@ -17,9 +17,9 @@ struct GoodsRecord {
 };
 
 // Persistence seam for the GoodsListObject table (task 3.2): items bought
-// on the game's website, waiting to be picked up in-game. Lives in the
-// shared web-shop database, not the world database — see the connection
-// quirk on the MySQL implementation.
+// on the game's website, waiting to be picked up in-game. Reached through
+// the second per-thread connection — see the connection quirk on the
+// MySQL implementation.
 class GoodsRepository {
 public:
     virtual ~GoodsRepository() {}
@@ -29,10 +29,11 @@ public:
                                                  const std::string& characterName) = 0;
 
     // Deliver one unit of a purchase row: decrement its count and mark it
-    // taken once the count runs out. False when no row matched the id —
-    // or when the row matched but nothing changed (the connection is
-    // opened without CLIENT_FOUND_ROWS, so affected rows counts CHANGED
-    // rows: an already-exhausted 'GET' row at Num=0 reports false).
+    // taken once the count runs out. False when no row matched the id.
+    // A row already at Num=0 does NOT report false: the decrement of the
+    // UNSIGNED column raises ER_DATA_OUT_OF_RANGE, the row is left
+    // untouched, and the error escapes as an exception — see the MySQL
+    // implementation's quirk notes.
     virtual bool takeOne(const std::string& id) = 0;
 };
 

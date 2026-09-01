@@ -5,14 +5,27 @@ namespace {
 
 // MySQL implementation of the GoodsListObject persistence seam. The legacy
 // schema quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The table lives in the web-shop database, reached through
-//    getDistConnection("PLAYER_DB") — NOT the "DARKEDEN" world connection
-//    every other repository uses.
+//  - getDistConnection("PLAYER_DB") IGNORES its name argument
+//    (DatabaseManager.cpp: a bare per-thread lookup, name-based routing
+//    commented out): it returns the thread's second connection, built
+//    from the UI_DB_* config keys with the schema hard-coded to
+//    "DARKEDEN" (ZoneGroupThread.cpp), and silently falls back to the
+//    world default connection on a thread that never registered one. In
+//    the shipped stack both connections point at the same server and
+//    schema — the "dist" connection is just a second socket.
 //  - Status is an enum('NOT','GET'): 'NOT' = still waiting for pickup.
 //  - takeOne()'s single UPDATE decrements Num and sets Status in one
 //    statement, relying on MySQL's non-standard left-to-right SET
 //    evaluation: the IF() reads the ALREADY-DECREMENTED Num, so a row at
 //    Num=1 flips to 'GET' in the same statement that takes its last unit.
+//  - A pending row at Num=0 is reachable (the loader delivers one item
+//    for it: its loop runs max(1, min(50, num)) times) and taking it
+//    FAILS: Num - 1 on the UNSIGNED column raises ER_DATA_OUT_OF_RANGE
+//    (1690) — an expression error independent of strict mode — leaving
+//    the row untouched. The SQLQueryException escapes through END_DB
+//    (as a const char*), GoodsInventory::popItem never erases the entry,
+//    and the purchase is re-delivered on the next load: a pre-existing
+//    stuck-item bug this seam documents rather than silently fixes.
 //  - The row id is a bigint but is carried and interpolated as a string,
 //    unquoted (%s straight into the numeric comparison), exactly as the
 //    call site always did.
