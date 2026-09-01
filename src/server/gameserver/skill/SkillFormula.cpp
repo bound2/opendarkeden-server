@@ -9,7 +9,7 @@
 #include "SkillHandler.h"
 #include "Vampire.h"
 
-// °Ë°è¿­
+// Sword family
 #include "CrossCounter.h"
 #include "DancingSword.h"
 #include "DoubleImpact.h"
@@ -32,7 +32,7 @@
 #include "WideLightning.h"
 #include "WindDivider.h"
 
-// µµ°è¿­
+// Blade family
 #include "AirShield.h"
 #include "Berserker.h"
 #include "ChargingPower.h"
@@ -53,7 +53,7 @@
 #include "WildSmash.h"
 #include "WildTyphoon.h"
 
-// ±ºÀÎ °è¿­
+// Soldier family
 #include "DoubleShot.h"
 #include "HeadShot.h"
 #include "MindControl.h"
@@ -74,7 +74,7 @@
 #include "Revealer.h"
 #include "UltimateBlow.h"
 
-// ÀÎÃ¦ °è¿­
+// Enchant family
 #include "AuraBall.h"
 #include "AuraRing.h"
 #include "Bless.h"
@@ -100,7 +100,7 @@
 #include "VigorDrop.h"
 #include "Visible.h"
 
-// Èú¸µ °è¿­
+// Healing family
 #include "Activation.h"
 #include "CauseCriticalWounds.h"
 #include "CauseLightWounds.h"
@@ -128,7 +128,7 @@
 #include "TurnUndead.h"
 
 
-// ¹ìÇÁ °è¿­
+// Vampire family
 #include "AcidBall.h"
 #include "AcidBolt.h"
 #include "AcidSwamp.h"
@@ -181,7 +181,7 @@
 #include "PoisonStrike.h"
 #include "Transfusion.h"
 
-// ±âÅ¸
+// Misc
 #include "CriticalGround.h"
 #include "DuplicateSelf.h"
 #include "GroundAttack.h"
@@ -192,13 +192,13 @@
 #include "SoulChain.h"
 #include "SummonMonsters.h"
 
-// ¼ºÁö½ºÅ³
+// Holy-land skills
 #include "IllusionOfAvenge.h"
 #include "MagicElusion.h"
 #include "PoisonMesh.h"
 #include "WillOfLife.h"
 
-// ¾Æ¿ì½ºÅÍÁî ½ºÅ³
+// Ousters skills
 #include "AcidEruption.h"
 #include "BackStab.h"
 #include "BeatHead.h"
@@ -304,7 +304,7 @@
 #include "WideIceField.h"
 #include "WideIceHail.h"
 
-// ¾Æ¿ì½ºÅÍÁî 140·¹º§ ½ºÅ³
+// Ousters level-140 skills
 #include "ARAttack.h"
 #include "Aberration.h"
 #include "BikeCrash.h"
@@ -326,27 +326,27 @@
 #include "SummonMigaAttack.h"
 #include "WildWolf.h"
 // add by coffee 2007-2-17
-#include "BloodCurse.h"        //ÑªÖ®?Öä
-#include "BloodyScarify.h"     //ÑªÖ®ÀÓÓ¡
-#include "BombCrashWalk.h"     //¾ÞÅÚºäÕ¨
-#include "HeavenGround.h"      //ÌìÉñ½µÁÙ
-#include "IllusionInversion.h" //¿Ö²À»Ã¾õ(ÈËÀà·¨Ê¦)
-#include "SatelliteBomb.h"     //ÎÀÐÇºä»÷ (ÈËÀàÇ¹ÐÂ¼¼ÄÜ)
-#include "ShineSword.h"        //ÉÁÒ«Ö®½£
-// Ä§Áé
+#include "BloodCurse.h"        //Blood Curse
+#include "BloodyScarify.h"     //Blood Brand
+#include "BombCrashWalk.h"     //Cannon Bombardment
+#include "HeavenGround.h"      //Heaven's Descent
+#include "IllusionInversion.h" //Terror Hallucination (human mage)
+#include "SatelliteBomb.h"     //Satellite Strike (human gunner new skill)
+#include "ShineSword.h"        //Shining Sword
+// Ousters
 #include "BigRockfall.h"      //395 ADD BY RALLSER
 #include "BrambleHalo.h"      //390 ADD BY RALLSER
 #include "CutStorm.h"         //387 ADD BY RALLSER
-#include "DeadlyClaw.h"       //391ÖÂÉËÁÑ×¦ add by rallser
-#include "DummyDrake.h"       // µÂÀ×¿Ë¿þÀÜ(»ð·¨)
+#include "DeadlyClaw.h"       //391 Deadly Claw add by rallser
+#include "DummyDrake.h"       // Drake Puppet (fire magic)
 #include "FireMeteor.h"       //394 ADD BY RALLSER
-#include "HeterChakram.h"     // ÏÄ²¼Àû»ùÒò(ÃôÕ½)
-#include "HydroConvergence.h" // ¸´ºÏË®ÁÆ(Ë®·¨)
+#include "HeterChakram.h"     // Heter Chakram (agility warrior)
+#include "HydroConvergence.h" // Composite Water Heal (water magic)
 #include "PenetrateWheel.h"   //393 ADD BY RALLSER
 #include "RapidFreeze.h"      //396 ADD BY RALLSER
 #include "SacredStamp.h"      //389 ADD BY RALLSER
-#include "SkyFire.h"          //386 ÌìÀ×»ð»¨ ADD BY RALLSER
-#include "SummonClay.h"       // ÍÁ·¨
+#include "SkyFire.h"          //386 Sky Fire ADD BY RALLSER
+#include "SummonClay.h"       // earth magic
 #include "VoodooRing.h"       //392 ADD BY RALLSER
 #include "XRLMissile.h"       //388 ADD BY RALLSER
 
@@ -569,13 +569,13 @@ DE_SKILL_FORMULA(AcidStorm)
 DE_SKILL_FORMULA(BloodyStorm)
 DE_SKILL_FORMULA(Extreme)
 void CriticalGround::computeOutput(const SkillInput& input, SkillOutput& output) {
-    // acid bolt¶û ¶È°°´ç - -;
+    // same as acid bolt - -;
     // output.Damage = min(40, 20 + (input.INTE-20)/6);
-    // output.Delay  = 10; // 1ÃÊ
+    // output.Delay  = 10; // 1 sec
 
     // 20
     // 145 --> 145~290 --> 22~46
-    // 500 --> 500~1000 --> 125~250 (±âÈ¹140~280)
+    // 500 --> 500~1000 --> 125~250 (design: 140~280)
 
     int divider = 1;
     if (input.STR < 200) {
@@ -585,9 +585,9 @@ void CriticalGround::computeOutput(const SkillInput& input, SkillOutput& output)
     }
 
     output.Damage = max(20, (input.STR + rand() % input.STR) / divider);
-    output.Delay = 10; // 0.6ÃÊ
+    output.Delay = 10; // 0.6 sec
 
-    // °ø°Ý°è ±â¼ú¿¡´Â ÆÄÆ¼ º¸³Ê½º°¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù.
+    // Attack-type skills have no party bonus.
 }
 DE_SKILL_FORMULA(Peace)
 DE_SKILL_FORMULA(Death)
@@ -598,12 +598,12 @@ DE_SKILL_FORMULA(GroundAttack)
 void MeteorStrike::computeOutput(const SkillInput& input, SkillOutput& output) {
     output.Damage =
         (int)(input.SkillLevel * 0.8 + (rand() % (int)(input.SkillLevel * 0.4 + 1))) + (input.STR + input.DEX) / 6;
-    output.Duration = 10; // ¸î ÃÊÈÄ Æø¹ß
+    output.Duration = 10; // explodes a few seconds later
     output.Delay = 10;
 }
 DE_SKILL_FORMULA(Hallucination)
 void DuplicateSelf::computeOutput(const SkillInput& input, SkillOutput& output) {
-    output.Damage = min((3 + rand() % 5), input.INTE / 100); // ºÐ½Å °³¼ö
+    output.Damage = min((3 + rand() % 5), input.INTE / 100); // number of clones
     output.Duration = min(80, 30 + (input.INTE - 20) / 3) * 10;
     output.Delay = max(3, 5 - (input.INTE - 20) / 10) * 10;
 }
@@ -731,22 +731,22 @@ DE_SKILL_FORMULA(SummonGoreGland)
 DE_SKILL_FORMULA(GoreGlandFire)
 void ThrowingAxe::computeOutput(const SkillInput& input, SkillOutput& output) {
     output.Damage = Random(870, 1000);
-    output.Duration = 20; // ¸î ÃÊÈÄ Æø¹ß
+    output.Duration = 20; // explodes a few seconds later
     output.Delay = 10;
 }
 void ChoppingFirewood::computeOutput(const SkillInput& input, SkillOutput& output) {
     output.Damage = Random(870, 1000);
-    output.Duration = 10; // ¸î ÃÊÈÄ Æø¹ß
+    output.Duration = 10; // explodes a few seconds later
     output.Delay = 10;
 }
 void ChainThrowingAxe::computeOutput(const SkillInput& input, SkillOutput& output) {
     output.Damage = Random(500, 650);
-    output.Duration = 20; // ¸î ÃÊÈÄ Æø¹ß
+    output.Duration = 20; // explodes a few seconds later
     output.Delay = 10;
 }
 void MultiThrowingAxe::computeOutput(const SkillInput& input, SkillOutput& output) {
     output.Damage = Random(870, 1000);
-    output.Duration = 20; // ¸î ÃÊÈÄ Æø¹ß
+    output.Duration = 20; // explodes a few seconds later
     output.Delay = 10;
 }
 DE_SKILL_FORMULA(PlayingWithFire)
@@ -788,7 +788,7 @@ DE_SKILL_FORMULA(BloodyScarify)
 void BloodCurse::computeOutput(const SkillInput& input, SkillOutput& output) {
     output.Damage =
         (int)(input.SkillLevel * 0.8 + (rand() % (int)(input.SkillLevel * 0.4 + 1))) + (input.INTE + input.DEX) / 4;
-    output.Duration = 28; // ÑÓÊ±ÏÔÊ¾Ð§¹û
+    output.Duration = 28; // delay before the effect shows
     output.Delay = max(5, (10 - (input.DEX / 200))) * 10;
     ;
 }
@@ -810,7 +810,7 @@ DE_SKILL_FORMULA(DeadlyClaw)
 void VoodooRing::computeOutput(const SkillInput& input, SkillOutput& output) {
     output.Damage =
         (int)(input.SkillLevel * 0.8 + (rand() % (int)(input.SkillLevel * 0.4 + 1))) + (input.INTE + input.DEX) / 4;
-    output.Duration = 28; // ÑÓÊ±ÏÔÊ¾Ð§¹û
+    output.Duration = 28; // delay before the effect shows
     output.Delay = max(5, (10 - (input.DEX / 200))) * 10;
     ;
 }
