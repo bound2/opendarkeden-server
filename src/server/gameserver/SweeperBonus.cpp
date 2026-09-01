@@ -5,22 +5,14 @@
 
 #include "SweeperBonus.h"
 
-#include "DB.h"
+#include "repository/WarInfoRepository.h"
 
 void SweeperBonus::setRace(Race_t race) {
     __BEGIN_TRY
 
     if (m_Race != race) {
         m_Race = race;
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("UPDATE SweeperBonusInfo SET OwnerRace = %d WHERE Type = %d", m_Race, m_Type);
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultWarInfoRepository().saveSweeperBonusOwner(m_Race, m_Type);
     }
 
     __END_CATCH

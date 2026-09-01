@@ -1,7 +1,6 @@
 #include "SweeperSet.h"
 
 #include "CorpseItemPosition.h"
-#include "DB.h"
 #include "EffectKeepSweeper.h"
 #include "GCAddEffect.h"
 #include "GlobalItemPosition.h"
@@ -14,6 +13,7 @@
 #include "Utility.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/WarInfoRepository.h"
 
 MonsterCorpse* SweeperSet::getSweeperSafes(uint itemType) {
     map<uint, MonsterCorpse*>::iterator itr = m_SweeperSafes.find(itemType);
@@ -61,128 +61,88 @@ SweeperSetManager::~SweeperSetManager() {
 void SweeperSetManager::load(int level, Zone* pZone) {
     m_SweeperSets.clear();
 
-    Statement* pStmt = NULL;
-    Statement* pStmt2 = NULL;
-
     m_SweeperSets[0] = new SweeperSet(SweeperSet::SWEEPER_SLAYER);
     m_SweeperSets[1] = new SweeperSet(SweeperSet::SWEEPER_VAMPIRE);
     m_SweeperSets[2] = new SweeperSet(SweeperSet::SWEEPER_OUSTERS);
     m_SweeperSets[3] = new SweeperSet(SweeperSet::SWEEPER_DEFAULT);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT ItemType, "
-                                              "SlayerX, SlayerY, SlayerMType, "
-                                              "VampireX, VampireY, VampireMType, "
-                                              "OustersX, OustersY, OustersMType, "
-                                              "DefaultX, DefaultY, DefaultMType, "
-                                              "Name "
-                                              "FROM SweeperSetInfo WHERE ZoneID = %d",
-                                              pZone->getZoneID());
+    vector<SweeperSetRow> sets = defaultWarInfoRepository().loadSweeperSets(pZone->getZoneID());
 
-        while (pResult->next()) {
-            ItemType_t ItemType = pResult->getInt(1);
+    for (size_t r = 0; r < sets.size(); r++) {
+        const SweeperSetRow& row = sets[r];
 
-            ZoneCoord_t SlayerX = pResult->getInt(2);
-            ZoneCoord_t SlayerY = pResult->getInt(3);
-            MonsterType_t SlayerMType = pResult->getInt(4);
+        ItemType_t ItemType = row.itemType;
 
-            ZoneCoord_t VampireX = pResult->getInt(5);
-            ZoneCoord_t VampireY = pResult->getInt(6);
-            MonsterType_t VampireMType = pResult->getInt(7);
+        ZoneCoord_t SlayerX = row.slayerX;
+        ZoneCoord_t SlayerY = row.slayerY;
+        MonsterType_t SlayerMType = row.slayerMonsterType;
 
-            ZoneCoord_t OustersX = pResult->getInt(8);
-            ZoneCoord_t OustersY = pResult->getInt(9);
-            MonsterType_t OustersMType = pResult->getInt(10);
+        ZoneCoord_t VampireX = row.vampireX;
+        ZoneCoord_t VampireY = row.vampireY;
+        MonsterType_t VampireMType = row.vampireMonsterType;
 
-            ZoneCoord_t DefaultX = pResult->getInt(11);
-            ZoneCoord_t DefaultY = pResult->getInt(12);
-            MonsterType_t DefaultMType = pResult->getInt(13);
+        ZoneCoord_t OustersX = row.oustersX;
+        ZoneCoord_t OustersY = row.oustersY;
+        MonsterType_t OustersMType = row.oustersMonsterType;
 
-            //			uint OwnerID = pResult->getInt(14);
-            //			Assert( OwnerID < 4 );
+        ZoneCoord_t DefaultX = row.defaultX;
+        ZoneCoord_t DefaultY = row.defaultY;
+        MonsterType_t DefaultMType = row.defaultMonsterType;
 
-            //			SweeperSet::SweeperIndex Owner = (SweeperSet::SweeperIndex)OwnerID;
+        string name = row.name;
 
-            //			StringStream name;
-            //			name << "보관대" << (int)ItemType;
+        MonsterCorpse* SlayerSafe = new MonsterCorpse(SlayerMType, name, 2);
+        MonsterCorpse* VampireSafe = new MonsterCorpse(VampireMType, name, 2);
+        MonsterCorpse* OustersSafe = new MonsterCorpse(OustersMType, name, 2);
+        MonsterCorpse* DefaultSafe = new MonsterCorpse(DefaultMType, name, 2);
 
-            string name = pResult->getString(14);
+        SlayerSafe->setShrine(true);
+        VampireSafe->setShrine(true);
+        OustersSafe->setShrine(true);
+        DefaultSafe->setShrine(true);
 
-            MonsterCorpse* SlayerSafe = new MonsterCorpse(SlayerMType, name, 2);
-            MonsterCorpse* VampireSafe = new MonsterCorpse(VampireMType, name, 2);
-            MonsterCorpse* OustersSafe = new MonsterCorpse(OustersMType, name, 2);
-            MonsterCorpse* DefaultSafe = new MonsterCorpse(DefaultMType, name, 2);
-            //			Item* Sweeper = g_pItemFactoryManager->createItem( Item::ITEM_CLASS_SWEEPER, ItemType,
-            // list<OptionType_t>() );
+        pZone->registerObject(SlayerSafe);
+        pZone->registerObject(VampireSafe);
+        pZone->registerObject(OustersSafe);
+        pZone->registerObject(DefaultSafe);
 
-            SlayerSafe->setShrine(true);
-            VampireSafe->setShrine(true);
-            OustersSafe->setShrine(true);
-            DefaultSafe->setShrine(true);
+        pZone->addItem(SlayerSafe, SlayerX, SlayerY, true);
+        pZone->addItem(VampireSafe, VampireX, VampireY, true);
+        pZone->addItem(OustersSafe, OustersX, OustersY, true);
+        pZone->addItem(DefaultSafe, DefaultX, DefaultY, true);
 
-            pZone->registerObject(SlayerSafe);
-            pZone->registerObject(VampireSafe);
-            pZone->registerObject(OustersSafe);
-            pZone->registerObject(DefaultSafe);
-            //			pZone->registerObject( Sweeper );
+        forbidDarkness(pZone, SlayerX, SlayerY, 1);
+        forbidDarkness(pZone, VampireX, VampireY, 1);
+        forbidDarkness(pZone, OustersX, OustersY, 1);
+        forbidDarkness(pZone, DefaultX, DefaultY, 1);
 
-            pZone->addItem(SlayerSafe, SlayerX, SlayerY, true);
-            pZone->addItem(VampireSafe, VampireX, VampireY, true);
-            pZone->addItem(OustersSafe, OustersX, OustersY, true);
-            pZone->addItem(DefaultSafe, DefaultX, DefaultY, true);
-
-            forbidDarkness(pZone, SlayerX, SlayerY, 1);
-            forbidDarkness(pZone, VampireX, VampireY, 1);
-            forbidDarkness(pZone, OustersX, OustersY, 1);
-            forbidDarkness(pZone, DefaultX, DefaultY, 1);
-
-            //			Assert( m_SweeperSets[ItemType] == NULL );
-            //			m_SweeperSets[ItemType] = new SweeperSet( SlayerSafe, VampireSafe, OustersSafe, DefaultSafe,
-            // Sweeper );
-
-            m_SweeperSets[0]->addSafe(ItemType, SlayerSafe);
-            m_SweeperSets[1]->addSafe(ItemType, VampireSafe);
-            m_SweeperSets[2]->addSafe(ItemType, OustersSafe);
-            m_SweeperSets[3]->addSafe(ItemType, DefaultSafe);
-
-            //			Assert( m_Sweepers[Sweeper->getItemType()] == NULL );
-            //			m_Sweepers[Sweeper->getItemType()] = Sweeper;
-
-            //			MonsterCorpse* TargetSafe = m_SweeperSets[ItemType]->getSweeperSafes( Owner );
-            //			MonsterCorpse* TargetSafe = m_SweeperSets[Owner]->getLastSafe();
-
-            //			Sweeper->create( itos( pZone->getZoneID() ), STORAGE_CORPSE, TargetSafe->getObjectID(), 0, 0 );
-            //			TargetSafe->addTreasure( Sweeper );
-        }
-
-        pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult2 = pStmt2->executeQuery(
-            "SELECT SweeperType, OwnerRace, SweeperSafeType FROM SweeperOwnerInfo WHERE ZoneID = %d",
-            pZone->getZoneID());
-
-        while (pResult2->next()) {
-            int type = pResult2->getInt(1);
-            int race = pResult2->getInt(2);
-            Assert(race < 4);
-            int safeType = pResult2->getInt(3);
-
-            Item* Sweeper = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_SWEEPER, type, list<OptionType_t>());
-            pZone->registerObject(Sweeper);
-
-            Assert(m_Sweepers[Sweeper->getItemType()] == NULL);
-            m_Sweepers[Sweeper->getItemType()] = Sweeper;
-
-            MonsterCorpse* TargetSafe = m_SweeperSets[race]->getSweeperSafes(safeType);
-
-            Assert(TargetSafe != NULL);
-
-            Sweeper->create(itos(pZone->getZoneID()), STORAGE_CORPSE, TargetSafe->getObjectID(), 0, 0);
-            //			TargetSafe->addTreasure( Sweeper );
-            putSweeper(Sweeper, TargetSafe);
-        }
+        m_SweeperSets[0]->addSafe(ItemType, SlayerSafe);
+        m_SweeperSets[1]->addSafe(ItemType, VampireSafe);
+        m_SweeperSets[2]->addSafe(ItemType, OustersSafe);
+        m_SweeperSets[3]->addSafe(ItemType, DefaultSafe);
     }
-    END_DB(pStmt)
+
+    vector<SweeperOwnerRow> owners = defaultWarInfoRepository().loadSweeperOwners(pZone->getZoneID());
+
+    for (size_t r = 0; r < owners.size(); r++) {
+        int type = owners[r].sweeperType;
+        int race = owners[r].ownerRace;
+        Assert(race < 4);
+        int safeType = owners[r].sweeperSafeType;
+
+        Item* Sweeper = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_SWEEPER, type, list<OptionType_t>());
+        pZone->registerObject(Sweeper);
+
+        Assert(m_Sweepers[Sweeper->getItemType()] == NULL);
+        m_Sweepers[Sweeper->getItemType()] = Sweeper;
+
+        MonsterCorpse* TargetSafe = m_SweeperSets[race]->getSweeperSafes(safeType);
+
+        Assert(TargetSafe != NULL);
+
+        Sweeper->create(itos(pZone->getZoneID()), STORAGE_CORPSE, TargetSafe->getObjectID(), 0, 0);
+        putSweeper(Sweeper, TargetSafe);
+    }
 }
 
 
@@ -341,14 +301,5 @@ bool SweeperSetManager::returnSweeper( Zone* pZone, Sweeper* pSweeper ) const
 */
 
 void SweeperSetManager::saveSweeperOwner(uint itemType, int safeType, int ownerRace) {
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE SweeperOwnerInfo SET OwnerRace = %ld, SweeperSafeType = %d WHERE SweeperType = %d",
-                            ownerRace, safeType, itemType);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().saveSweeperOwner(ownerRace, safeType, itemType);
 }

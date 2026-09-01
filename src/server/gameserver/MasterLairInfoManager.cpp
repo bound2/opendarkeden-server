@@ -7,10 +7,10 @@
 #include "MasterLairInfoManager.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "MonsterInfo.h"
 #include "ZoneInfo.h"
 #include "ZoneInfoManager.h"
+#include "repository/WarInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // constructor
@@ -216,103 +216,88 @@ void MasterLairInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    vector<MasterLairRow> rows = defaultWarInfoRepository().loadMasterLairs();
 
-    BEGIN_DB {
-        // create statement
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        const MasterLairRow& row = rows[r];
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ZoneID, MasterNotReadyMonsterType, MasterMonsterType, MasterRemainNotReady, MasterX, MasterY, "
-            "MasterDir, MaxPassPlayer, SummonX, SummonY, FirstRegenDelay, RegenDelay, StartDelay, EndDelay, "
-            "KickOutDelay, KickZoneID, KickZoneX, KickZoneY, LairAttackTick, LairAttackMinNumber, LairAttackMaxNumber, "
-            "MasterSummonSay, MasterDeadSlayerSay, MasterDeadVampireSay, MasterNotDeadSay FROM MasterLairInfo");
+        ZoneID_t zoneID = row.zoneID;
 
-        while (pResult->next()) {
-            uint i = 0;
-
-            ZoneID_t zoneID = pResult->getInt(++i);
-
-            ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zoneID);
-            Assert(pZoneInfo != NULL);
+        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zoneID);
+        Assert(pZoneInfo != NULL);
 
 #if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
 
-            if (pZoneInfo->isAvailable()) {
-                cout << "LOAD MASTER LAIR : ZoneID(" << (int)zoneID << ") , Enable " << endl;
+        if (pZoneInfo->isAvailable()) {
+            cout << "LOAD MASTER LAIR : ZoneID(" << (int)zoneID << ") , Enable " << endl;
 
 #endif
 
-                pZoneInfo->setMasterLair();
+            pZoneInfo->setMasterLair();
 
-                MasterLairInfo* pMasterLairInfo = new MasterLairInfo();
-                // cout << "new OK" << endl;
+            MasterLairInfo* pMasterLairInfo = new MasterLairInfo();
+            // cout << "new OK" << endl;
 
-                pMasterLairInfo->setZoneID(zoneID);
-                pMasterLairInfo->setMasterNotReadyMonsterType(pResult->getInt(++i));
-                pMasterLairInfo->setMasterMonsterType(pResult->getInt(++i));
-                pMasterLairInfo->setMasterRemainNotReady(pResult->getInt(++i) != 0);
-                pMasterLairInfo->setMasterX(pResult->getInt(++i));
-                pMasterLairInfo->setMasterY(pResult->getInt(++i));
-                pMasterLairInfo->setMasterDir(pResult->getInt(++i));
-                pMasterLairInfo->setMaxPassPlayer(pResult->getInt(++i));
-                // pMasterLairInfo->setMaxSummonMonster( pResult->getInt(++i) );
-                pMasterLairInfo->setSummonX(pResult->getInt(++i));
-                pMasterLairInfo->setSummonY(pResult->getInt(++i));
-                pMasterLairInfo->setFirstRegenDelay(pResult->getInt(++i));
-                pMasterLairInfo->setRegenDelay(pResult->getInt(++i));
-                pMasterLairInfo->setStartDelay(pResult->getInt(++i));
-                pMasterLairInfo->setEndDelay(pResult->getInt(++i));
-                pMasterLairInfo->setKickOutDelay(pResult->getInt(++i));
-                pMasterLairInfo->setKickZoneID(pResult->getInt(++i));
-                pMasterLairInfo->setKickZoneX(pResult->getInt(++i));
-                pMasterLairInfo->setKickZoneY(pResult->getInt(++i));
-                pMasterLairInfo->setLairAttackTick(pResult->getInt(++i));
-                pMasterLairInfo->setLairAttackMinNumber(pResult->getInt(++i));
-                pMasterLairInfo->setLairAttackMaxNumber(pResult->getInt(++i));
-                pMasterLairInfo->setMasterSummonSay(pResult->getString(++i));
-                pMasterLairInfo->setMasterDeadSlayerSay(pResult->getString(++i));
-                pMasterLairInfo->setMasterDeadVampireSay(pResult->getString(++i));
-                pMasterLairInfo->setMasterNotDeadSay(pResult->getString(++i));
+            pMasterLairInfo->setZoneID(zoneID);
+            pMasterLairInfo->setMasterNotReadyMonsterType(row.masterNotReadyMonsterType);
+            pMasterLairInfo->setMasterMonsterType(row.masterMonsterType);
+            pMasterLairInfo->setMasterRemainNotReady(row.masterRemainNotReady != 0);
+            pMasterLairInfo->setMasterX(row.masterX);
+            pMasterLairInfo->setMasterY(row.masterY);
+            pMasterLairInfo->setMasterDir(row.masterDir);
+            pMasterLairInfo->setMaxPassPlayer(row.maxPassPlayer);
+            // pMasterLairInfo->setMaxSummonMonster( ... );
+            pMasterLairInfo->setSummonX(row.summonX);
+            pMasterLairInfo->setSummonY(row.summonY);
+            pMasterLairInfo->setFirstRegenDelay(row.firstRegenDelay);
+            pMasterLairInfo->setRegenDelay(row.regenDelay);
+            pMasterLairInfo->setStartDelay(row.startDelay);
+            pMasterLairInfo->setEndDelay(row.endDelay);
+            pMasterLairInfo->setKickOutDelay(row.kickOutDelay);
+            pMasterLairInfo->setKickZoneID(row.kickZoneID);
+            pMasterLairInfo->setKickZoneX(row.kickZoneX);
+            pMasterLairInfo->setKickZoneY(row.kickZoneY);
+            pMasterLairInfo->setLairAttackTick(row.lairAttackTick);
+            pMasterLairInfo->setLairAttackMinNumber(row.lairAttackMinNumber);
+            pMasterLairInfo->setLairAttackMaxNumber(row.lairAttackMaxNumber);
+            pMasterLairInfo->setMasterSummonSay(row.masterSummonSay);
+            pMasterLairInfo->setMasterDeadSlayerSay(row.masterDeadSlayerSay);
+            pMasterLairInfo->setMasterDeadVampireSay(row.masterDeadVampireSay);
+            pMasterLairInfo->setMasterNotDeadSay(row.masterNotDeadSay);
 
-                addMasterLairInfo(pMasterLairInfo);
+            addMasterLairInfo(pMasterLairInfo);
 
-                // cout << pMasterLairInfo->toString().c_str() << endl;
+            // cout << pMasterLairInfo->toString().c_str() << endl;
 
-                // 체크 코드
-                // 마스터의 몬스터 정보가 있는지 체크한다.
-                try {
-                    const MonsterInfo* pMonsterInfo =
-                        g_pMonsterInfoManager->getMonsterInfo(pMasterLairInfo->getMasterMonsterType());
+            // Sanity check: the master's monster info must exist and be a master.
+            try {
+                const MonsterInfo* pMonsterInfo =
+                    g_pMonsterInfoManager->getMonsterInfo(pMasterLairInfo->getMasterMonsterType());
 
-                    if (pMonsterInfo == NULL) // 나중을 위해서. -_-;
-                    {
-                        throw Error("마스터의 몬스터 정보가 없당.");
-                    }
-
-                    if (!pMonsterInfo->isMaster()) {
-                        StringStream msg;
-                        msg << "몬스터 타잎[" << (int)pMasterLairInfo->getMasterMonsterType() << "]은 마스터가 아니다.";
-
-                        throw Error(msg.toString());
-                    }
-
-                } catch (Throwable& t) {
-                    cout << t.toString().c_str() << endl;
+                if (pMonsterInfo == NULL) // for later. -_-;
+                {
                     throw Error("마스터의 몬스터 정보가 없당.");
                 }
 
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
-            } // isAvailable
-            else {
-                cout << "LOAD MASTER LAIR : ZoneID(" << (int)zoneID << "), Disable " << endl;
-            }
-#endif
-        }
+                if (!pMonsterInfo->isMaster()) {
+                    StringStream msg;
+                    msg << "몬스터 타잎[" << (int)pMasterLairInfo->getMasterMonsterType() << "]은 마스터가 아니다.";
 
-        SAFE_DELETE(pStmt);
+                    throw Error(msg.toString());
+                }
+
+            } catch (Throwable& t) {
+                cout << t.toString().c_str() << endl;
+                throw Error("마스터의 몬스터 정보가 없당.");
+            }
+
+#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
+        } // isAvailable
+        else {
+            cout << "LOAD MASTER LAIR : ZoneID(" << (int)zoneID << "), Disable " << endl;
+        }
+#endif
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -327,83 +312,68 @@ void MasterLairInfoManager::reload()
 
     // cout << "MasterLairInfoManager::reload()" << endl;
 
-    Statement* pStmt = NULL;
+    vector<MasterLairRow> rows = defaultWarInfoRepository().loadMasterLairs();
 
-    BEGIN_DB {
-        // create statement
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        const MasterLairRow& row = rows[r];
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ZoneID, MasterNotReadyMonsterType, MasterMonsterType, MasterRemainNotReady, MasterX, MasterY, "
-            "MasterDir, MaxPassPlayer, SummonX, SummonY, FirstRegenDelay, RegenDelay, StartDelay, EndDelay, "
-            "KickOutDelay, KickZoneID, KickZoneX, KickZoneY, LairAttackTick, LairAttackMinNumber, LairAttackMaxNumber, "
-            "MasterSummonSay, MasterDeadSlayerSay, MasterDeadVampireSay, MasterNotDeadSay FROM MasterLairInfo");
+        ZoneID_t zoneID = row.zoneID;
 
-        while (pResult->next()) {
-            uint i = 0;
+        MasterLairInfo* pMasterLairInfo = getMasterLairInfo(zoneID);
+        // cout << "new OK" << endl;
 
-            ZoneID_t zoneID = pResult->getInt(++i);
+        if (pMasterLairInfo != NULL) {
+            // cout << "Reload: " << zoneID << endl;
+            pMasterLairInfo->setZoneID(zoneID);
+            pMasterLairInfo->setMasterNotReadyMonsterType(row.masterNotReadyMonsterType);
+            pMasterLairInfo->setMasterMonsterType(row.masterMonsterType);
+            pMasterLairInfo->setMasterRemainNotReady(row.masterRemainNotReady != 0);
+            pMasterLairInfo->setMasterX(row.masterX);
+            pMasterLairInfo->setMasterY(row.masterY);
+            pMasterLairInfo->setMasterDir(row.masterDir);
+            pMasterLairInfo->setMaxPassPlayer(row.maxPassPlayer);
+            // pMasterLairInfo->setMaxSummonMonster( ... );
+            pMasterLairInfo->setSummonX(row.summonX);
+            pMasterLairInfo->setSummonY(row.summonY);
+            pMasterLairInfo->setFirstRegenDelay(row.firstRegenDelay);
+            pMasterLairInfo->setRegenDelay(row.regenDelay);
+            pMasterLairInfo->setStartDelay(row.startDelay);
+            pMasterLairInfo->setEndDelay(row.endDelay);
+            pMasterLairInfo->setKickOutDelay(row.kickOutDelay);
+            pMasterLairInfo->setKickZoneID(row.kickZoneID);
+            pMasterLairInfo->setKickZoneX(row.kickZoneX);
+            pMasterLairInfo->setKickZoneY(row.kickZoneY);
+            pMasterLairInfo->setLairAttackTick(row.lairAttackTick);
+            pMasterLairInfo->setLairAttackMinNumber(row.lairAttackMinNumber);
+            pMasterLairInfo->setLairAttackMaxNumber(row.lairAttackMaxNumber);
+            pMasterLairInfo->setMasterSummonSay(row.masterSummonSay);
+            pMasterLairInfo->setMasterDeadSlayerSay(row.masterDeadSlayerSay);
+            pMasterLairInfo->setMasterDeadVampireSay(row.masterDeadVampireSay);
+            pMasterLairInfo->setMasterNotDeadSay(row.masterNotDeadSay);
 
-            MasterLairInfo* pMasterLairInfo = getMasterLairInfo(zoneID);
-            // cout << "new OK" << endl;
+            // Sanity check: the master's monster info must exist and be a master.
+            try {
+                const MonsterInfo* pMonsterInfo =
+                    g_pMonsterInfoManager->getMonsterInfo(pMasterLairInfo->getMasterMonsterType());
 
-            if (pMasterLairInfo != NULL) {
-                // cout << "Reload: " << zoneID << endl;
-                pMasterLairInfo->setZoneID(zoneID);
-                pMasterLairInfo->setMasterNotReadyMonsterType(pResult->getInt(++i));
-                pMasterLairInfo->setMasterMonsterType(pResult->getInt(++i));
-                pMasterLairInfo->setMasterRemainNotReady(pResult->getInt(++i) != 0);
-                pMasterLairInfo->setMasterX(pResult->getInt(++i));
-                pMasterLairInfo->setMasterY(pResult->getInt(++i));
-                pMasterLairInfo->setMasterDir(pResult->getInt(++i));
-                pMasterLairInfo->setMaxPassPlayer(pResult->getInt(++i));
-                // pMasterLairInfo->setMaxSummonMonster( pResult->getInt(++i) );
-                pMasterLairInfo->setSummonX(pResult->getInt(++i));
-                pMasterLairInfo->setSummonY(pResult->getInt(++i));
-                pMasterLairInfo->setFirstRegenDelay(pResult->getInt(++i));
-                pMasterLairInfo->setRegenDelay(pResult->getInt(++i));
-                pMasterLairInfo->setStartDelay(pResult->getInt(++i));
-                pMasterLairInfo->setEndDelay(pResult->getInt(++i));
-                pMasterLairInfo->setKickOutDelay(pResult->getInt(++i));
-                pMasterLairInfo->setKickZoneID(pResult->getInt(++i));
-                pMasterLairInfo->setKickZoneX(pResult->getInt(++i));
-                pMasterLairInfo->setKickZoneY(pResult->getInt(++i));
-                pMasterLairInfo->setLairAttackTick(pResult->getInt(++i));
-                pMasterLairInfo->setLairAttackMinNumber(pResult->getInt(++i));
-                pMasterLairInfo->setLairAttackMaxNumber(pResult->getInt(++i));
-                pMasterLairInfo->setMasterSummonSay(pResult->getString(++i));
-                pMasterLairInfo->setMasterDeadSlayerSay(pResult->getString(++i));
-                pMasterLairInfo->setMasterDeadVampireSay(pResult->getString(++i));
-                pMasterLairInfo->setMasterNotDeadSay(pResult->getString(++i));
-
-                // 체크 코드
-                // 마스터의 몬스터 정보가 있는지 체크한다.
-                try {
-                    const MonsterInfo* pMonsterInfo =
-                        g_pMonsterInfoManager->getMonsterInfo(pMasterLairInfo->getMasterMonsterType());
-
-                    if (pMonsterInfo == NULL) // 나중을 위해서. -_-;
-                    {
-                        throw Error("마스터의 몬스터 정보가 없당.");
-                    }
-
-                    if (!pMonsterInfo->isMaster()) {
-                        StringStream msg;
-                        msg << "몬스터 타잎[" << (int)pMasterLairInfo->getMasterMonsterType() << "]은 마스터가 아니다.";
-
-                        throw Error(msg.toString());
-                    }
-
-                } catch (Throwable& t) {
-                    cout << t.toString().c_str() << endl;
+                if (pMonsterInfo == NULL) // for later. -_-;
+                {
                     throw Error("마스터의 몬스터 정보가 없당.");
                 }
+
+                if (!pMonsterInfo->isMaster()) {
+                    StringStream msg;
+                    msg << "몬스터 타잎[" << (int)pMasterLairInfo->getMasterMonsterType() << "]은 마스터가 아니다.";
+
+                    throw Error(msg.toString());
+                }
+
+            } catch (Throwable& t) {
+                cout << t.toString().c_str() << endl;
+                throw Error("마스터의 몬스터 정보가 없당.");
             }
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

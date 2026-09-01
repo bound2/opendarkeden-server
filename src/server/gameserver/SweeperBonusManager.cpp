@@ -6,13 +6,13 @@
 
 #include "SweeperBonusManager.h"
 
-#include "DB.h"
 #include "GCSweeperBonusInfo.h"
 #include "LevelWarManager.h"
 #include "LevelWarZoneInfoManager.h"
 #include "SweeperBonus.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/WarInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class SweeperBonusManager member methods
@@ -71,42 +71,29 @@ void SweeperBonusManager::load()
 
     clear();
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Type) FROM SweeperBonusInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in SweeperBonusInfo Table");
-        }
-
-        pResult->next();
-
-        m_Count = pResult->getInt(1) + 1;
-
-        Assert(m_Count > 0);
-
-        pResult = pStmt->executeQuery("SELECT Type, Name, OptionList, OwnerRace, Level FROM SweeperBonusInfo");
-
-        while (pResult->next()) {
-            SweeperBonus* pSweeperBonus = new SweeperBonus();
-            int i = 0;
-
-            pSweeperBonus->setType(pResult->getInt(++i));
-            pSweeperBonus->setName(pResult->getString(++i));
-            pSweeperBonus->setOptionTypeList(pResult->getString(++i));
-            pSweeperBonus->setRace(pResult->getInt(++i));
-            pSweeperBonus->setLevel(pResult->getInt(++i));
-
-            addSweeperBonus(pSweeperBonus);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxType = 0;
+    if (!defaultWarInfoRepository().loadMaxSweeperBonusType(maxType)) {
+        throw Error("There is no data in SweeperBonusInfo Table");
     }
-    END_DB(pStmt)
+
+    m_Count = maxType + 1;
+
+    Assert(m_Count > 0);
+
+    vector<SweeperBonusRow> rows = defaultWarInfoRepository().loadSweeperBonuses();
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        const SweeperBonusRow& row = rows[r];
+        SweeperBonus* pSweeperBonus = new SweeperBonus();
+
+        pSweeperBonus->setType(row.type);
+        pSweeperBonus->setName(row.name);
+        pSweeperBonus->setOptionTypeList(row.optionList);
+        pSweeperBonus->setRace(row.ownerRace);
+        pSweeperBonus->setLevel(row.level);
+
+        addSweeperBonus(pSweeperBonus);
+    }
 
     __END_DEBUG
     __END_CATCH
@@ -118,40 +105,26 @@ void SweeperBonusManager::reloadOwner(int level)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Type) FROM SweeperBonusInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in SweeperBonusInfo Table");
-        }
-
-        pResult->next();
-
-        m_Count = pResult->getInt(1) + 1;
-
-        Assert(m_Count > 0);
-
-        pResult = pStmt->executeQuery("SELECT Type, OwnerRace FROM SweeperBonusInfo WHERE Level = %d", level);
-
-        while (pResult->next()) {
-            int i = 0;
-            SweeperBonusType_t type = pResult->getInt(++i);
-
-            SweeperBonusHashMapItor itr = m_SweeperBonuses.find(type);
-
-            if (itr != m_SweeperBonuses.end()) {
-                itr->second->setRace(pResult->getInt(++i));
-            }
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxType = 0;
+    if (!defaultWarInfoRepository().loadMaxSweeperBonusType(maxType)) {
+        throw Error("There is no data in SweeperBonusInfo Table");
     }
-    END_DB(pStmt)
+
+    m_Count = maxType + 1;
+
+    Assert(m_Count > 0);
+
+    vector<SweeperBonusOwnerRow> owners = defaultWarInfoRepository().loadSweeperBonusOwners(level);
+
+    for (size_t r = 0; r < owners.size(); r++) {
+        SweeperBonusType_t type = owners[r].type;
+
+        SweeperBonusHashMapItor itr = m_SweeperBonuses.find(type);
+
+        if (itr != m_SweeperBonuses.end()) {
+            itr->second->setRace(owners[r].ownerRace);
+        }
+    }
 
     __END_DEBUG
     __END_CATCH

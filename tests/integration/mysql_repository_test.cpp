@@ -48,6 +48,7 @@
 #include "repository/SMSAddressRepository.h"
 #include "repository/SkillSaveRepository.h"
 #include "repository/StashRepository.h"
+#include "repository/WarInfoRepository.h"
 #include "repository/ZoneInfoRepository.h"
 
 namespace {
@@ -1913,6 +1914,261 @@ TEST_F(NicknameMySQL, LoadReturnsNIDAscendingNotInsertionOrder) {
     ASSERT_EQ(2u, records.size());
     EXPECT_EQ(10000, records[0].id);
     EXPECT_EQ(10001, records[1].id);
+}
+
+// --- the race-war cluster against real MySQL -------------------------------
+// Seven war files, one seam mixing boot-time reads with runtime writes.
+// Every table is seeded; the tests work on rows they insert (ids from
+// 31000 up where the column allows it, 250 up for the BYTE-typed sweeper
+// bonus Type) and clean them in SetUp/TearDown.
+
+class WarInfoMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM ShrineInfo WHERE ID >= 31000");
+        execSQL("DELETE FROM CastleInfo WHERE ServerID >= 31000");
+        execSQL("DELETE FROM SweeperBonusInfo WHERE Type >= 250");
+        execSQL("DELETE FROM SweeperSetInfo WHERE ID >= 31000");
+        execSQL("DELETE FROM SweeperOwnerInfo WHERE SweeperType >= 31000");
+        execSQL("DELETE FROM LevelWarHistory WHERE Level >= 31000");
+        execSQL("DELETE FROM MasterLairInfo WHERE ZoneID >= 31000");
+    }
+};
+
+TEST_F(WarInfoMySQL, SeededWholeTableReadsAreNonEmptyAndTheMaxProbeMatchesTheTable) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+    EXPECT_FALSE(repository.loadShrines().empty());
+    EXPECT_FALSE(repository.loadShrineOwners().empty());
+    EXPECT_FALSE(repository.loadSweeperBonuses().empty());
+    EXPECT_FALSE(repository.loadMasterLairs().empty());
+
+    int maxType = -1;
+    ASSERT_TRUE(repository.loadMaxSweeperBonusType(maxType));
+    EXPECT_EQ(atoi(queryScalar("SELECT MAX(Type) FROM SweeperBonusInfo").c_str()), maxType);
+}
+
+TEST_F(WarInfoMySQL, ShrineOwnerSaveRewritesOnlyThatShrine) {
+    execSQL("INSERT INTO ShrineInfo (ID, Name, OwnerRace) VALUES (31000, 'it-shrine-a', 0)");
+    execSQL("INSERT INTO ShrineInfo (ID, Name, OwnerRace) VALUES (31001, 'it-shrine-b', 0)");
+
+    defaultWarInfoRepository().saveShrineOwner(2, 31000);
+
+    EXPECT_EQ("2", queryScalar("SELECT OwnerRace FROM ShrineInfo WHERE ID=31000"));
+    EXPECT_EQ("0", queryScalar("SELECT OwnerRace FROM ShrineInfo WHERE ID=31001"));
+
+    std::vector<ShrineOwnerRow> owners = defaultWarInfoRepository().loadShrineOwners();
+    bool seen = false;
+    for (size_t r = 0; r < owners.size(); r++) {
+        if (owners[r].id == 31000) {
+            seen = true;
+            EXPECT_EQ(2, owners[r].ownerRace);
+        }
+    }
+    EXPECT_TRUE(seen);
+}
+
+TEST_F(WarInfoMySQL, CastlesAreScopedToTheServerAndTheSavesKeyOnServerAndZone) {
+    execSQL("INSERT INTO CastleInfo (ServerID, ZoneID, ShrineID, Name, GuildID, Race, ItemTaxRatio, EntranceFee, "
+            "TaxBalance, BonusOptionType, FirstResurrectZoneID, FirstResurrectX, FirstResurrectY, "
+            "SecondResurrectZoneID, SecondResurrectX, SecondResurrectY, ThirdResurrectZoneID, ThirdResurrectX, "
+            "ThirdResurrectY, ZoneIDList) VALUES (31000, 31000, 5, 'it-castle', 7, 1, 10, 100, 1000, '1,2', "
+            "31000, 3, 4, 31001, 5, 6, 31002, 7, 8, '31000,31001')");
+    execSQL("INSERT INTO CastleInfo (ServerID, ZoneID, Name, BonusOptionType, ZoneIDList) "
+            "VALUES (31001, 31000, 'other-server', '', '')");
+
+    std::vector<CastleRow> rows = defaultWarInfoRepository().loadCastles(31000);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(31000, rows[0].zoneID);
+    EXPECT_EQ(5, rows[0].shrineID);
+    EXPECT_EQ(7, rows[0].guildID);
+    EXPECT_EQ("it-castle", rows[0].name);
+    EXPECT_EQ(1, rows[0].race);
+    EXPECT_EQ(10, rows[0].itemTaxRatio);
+    EXPECT_EQ(100, rows[0].entranceFee);
+    EXPECT_EQ(1000, rows[0].taxBalance);
+    EXPECT_EQ("1,2", rows[0].bonusOptionType);
+    EXPECT_EQ(31000, rows[0].firstResurrectZoneID);
+    EXPECT_EQ(3, rows[0].firstResurrectX);
+    EXPECT_EQ(4, rows[0].firstResurrectY);
+    EXPECT_EQ(31001, rows[0].secondResurrectZoneID);
+    EXPECT_EQ(5, rows[0].secondResurrectX);
+    EXPECT_EQ(6, rows[0].secondResurrectY);
+    EXPECT_EQ(31002, rows[0].thirdResurrectZoneID);
+    EXPECT_EQ(7, rows[0].thirdResurrectX);
+    EXPECT_EQ(8, rows[0].thirdResurrectY);
+    EXPECT_EQ("31000,31001", rows[0].zoneIDList);
+
+    CastleStateRecord record;
+    record.guildID = 8;
+    record.name = "renamed";
+    record.race = 2;
+    record.itemTaxRatio = 20;
+    record.entranceFee = 200;
+    record.taxBalance = 2000;
+    defaultWarInfoRepository().saveCastle(31000, 31000, record);
+
+    EXPECT_EQ("8", queryScalar("SELECT GuildID FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("renamed", queryScalar("SELECT Name FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("2", queryScalar("SELECT Race FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("20", queryScalar("SELECT ItemTaxRatio FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("200", queryScalar("SELECT EntranceFee FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("2000", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_EQ("other-server", queryScalar("SELECT Name FROM CastleInfo WHERE ServerID=31001 AND ZoneID=31000"));
+
+    // tinysave applies the caller's SET fragment verbatim and reports
+    // whether a row changed.
+    EXPECT_TRUE(defaultWarInfoRepository().tinysaveCastle("TaxBalance=1", 31000, 31000));
+    EXPECT_EQ("1", queryScalar("SELECT TaxBalance FROM CastleInfo WHERE ServerID=31000 AND ZoneID=31000"));
+    EXPECT_FALSE(defaultWarInfoRepository().tinysaveCastle("TaxBalance=1", 31002, 31000)); // no such zone
+}
+
+TEST_F(WarInfoMySQL, SweeperBonusOwnersAreFilteredByLevelAndSavedByType) {
+    // Type is a BYTE at the callers (SweeperBonusType_t), so the rows sit
+    // at 250/251; the seed uses 0..11 with levels 0..3.
+    execSQL("INSERT INTO SweeperBonusInfo (Type, Name, OptionList, OwnerRace, Level) "
+            "VALUES (250, 'it-a', 'ATTR+2', 0, 200)");
+    execSQL("INSERT INTO SweeperBonusInfo (Type, Name, OptionList, OwnerRace, Level) "
+            "VALUES (251, 'it-b', 'DAM+3', 1, 201)");
+
+    int maxType = 0;
+    ASSERT_TRUE(defaultWarInfoRepository().loadMaxSweeperBonusType(maxType));
+    EXPECT_EQ(251, maxType);
+
+    std::vector<SweeperBonusRow> all = defaultWarInfoRepository().loadSweeperBonuses();
+    bool seen = false;
+    for (size_t r = 0; r < all.size(); r++) {
+        if (all[r].type == 250) {
+            seen = true;
+            EXPECT_EQ("it-a", all[r].name);
+            EXPECT_EQ("ATTR+2", all[r].optionList);
+            EXPECT_EQ(0, all[r].ownerRace);
+            EXPECT_EQ(200, all[r].level);
+        }
+    }
+    EXPECT_TRUE(seen);
+
+    std::vector<SweeperBonusOwnerRow> owners = defaultWarInfoRepository().loadSweeperBonusOwners(200);
+    ASSERT_EQ(1u, owners.size());
+    EXPECT_EQ(250, owners[0].type);
+    EXPECT_EQ(0, owners[0].ownerRace);
+
+    defaultWarInfoRepository().saveSweeperBonusOwner((Race_t)2, (SweeperBonusType_t)250);
+    EXPECT_EQ("2", queryScalar("SELECT OwnerRace FROM SweeperBonusInfo WHERE Type=250"));
+    EXPECT_EQ("1", queryScalar("SELECT OwnerRace FROM SweeperBonusInfo WHERE Type=251"));
+}
+
+TEST_F(WarInfoMySQL, SweeperSetsAndOwnersAreScopedToTheZoneAndTheOwnerSaveKeysOnTypeAlone) {
+    execSQL("INSERT INTO SweeperSetInfo (ID, Name, ZoneID, ItemType, SlayerX, SlayerY, SlayerMType, VampireX, "
+            "VampireY, VampireMType, OustersX, OustersY, OustersMType, DefaultX, DefaultY, DefaultMType) "
+            "VALUES (31000, 'it-set', 31000, 3, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)");
+    execSQL("INSERT INTO SweeperSetInfo (ID, Name, ZoneID, ItemType) VALUES (31001, 'other-zone', 31001, 4)");
+    execSQL("INSERT INTO SweeperOwnerInfo (SweeperType, ZoneID, OwnerRace, SweeperSafeType) "
+            "VALUES (31000, 31000, 1, 3)");
+    execSQL("INSERT INTO SweeperOwnerInfo (SweeperType, ZoneID, OwnerRace, SweeperSafeType) "
+            "VALUES (31001, 31001, 0, 4)");
+
+    std::vector<SweeperSetRow> sets = defaultWarInfoRepository().loadSweeperSets(IT_ZONE);
+    ASSERT_EQ(1u, sets.size());
+    EXPECT_EQ(3, sets[0].itemType);
+    EXPECT_EQ(1, sets[0].slayerX);
+    EXPECT_EQ(2, sets[0].slayerY);
+    EXPECT_EQ(3, sets[0].slayerMonsterType);
+    EXPECT_EQ(4, sets[0].vampireX);
+    EXPECT_EQ(5, sets[0].vampireY);
+    EXPECT_EQ(6, sets[0].vampireMonsterType);
+    EXPECT_EQ(7, sets[0].oustersX);
+    EXPECT_EQ(8, sets[0].oustersY);
+    EXPECT_EQ(9, sets[0].oustersMonsterType);
+    EXPECT_EQ(10, sets[0].defaultX);
+    EXPECT_EQ(11, sets[0].defaultY);
+    EXPECT_EQ(12, sets[0].defaultMonsterType);
+    EXPECT_EQ("it-set", sets[0].name);
+
+    std::vector<SweeperOwnerRow> owners = defaultWarInfoRepository().loadSweeperOwners(IT_ZONE);
+    ASSERT_EQ(1u, owners.size());
+    EXPECT_EQ(31000, owners[0].sweeperType);
+    EXPECT_EQ(1, owners[0].ownerRace);
+    EXPECT_EQ(3, owners[0].sweeperSafeType);
+
+    std::vector<SweeperBonusOwnerRow> races = defaultWarInfoRepository().loadSweeperOwnerRaces(IT_ZONE);
+    ASSERT_EQ(1u, races.size());
+    EXPECT_EQ(31000, races[0].type);
+    EXPECT_EQ(1, races[0].ownerRace);
+
+    // The UPDATE keys on SweeperType alone (the table's PK), not on ZoneID.
+    defaultWarInfoRepository().saveSweeperOwner(2, 5, 31000u);
+    EXPECT_EQ("2", queryScalar("SELECT OwnerRace FROM SweeperOwnerInfo WHERE SweeperType=31000"));
+    EXPECT_EQ("5", queryScalar("SELECT SweeperSafeType FROM SweeperOwnerInfo WHERE SweeperType=31000"));
+    EXPECT_EQ("0", queryScalar("SELECT OwnerRace FROM SweeperOwnerInfo WHERE SweeperType=31001"));
+}
+
+TEST_F(WarInfoMySQL, LevelWarHistoryInsertThenUpdateFillsOnlyThatWarsNewColumns) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+    repository.insertLevelWarHistory(31000, "it-a", "1|", "2|", "3|", "4|");
+    repository.insertLevelWarHistory(31000, "it-b", "", "", "", "");
+
+    EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM LevelWarHistory WHERE Level=31000"));
+    EXPECT_EQ("1|",
+              queryScalar("SELECT SlayerOldSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-a'"));
+    EXPECT_EQ("4|",
+              queryScalar("SELECT DefaultOldSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-a'"));
+    EXPECT_EQ("", queryScalar("SELECT SlayerSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-a'"));
+
+    repository.updateLevelWarHistory("5|", "6|", "7|", "8|", 31000, "it-a");
+
+    EXPECT_EQ("5|", queryScalar("SELECT SlayerSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-a'"));
+    EXPECT_EQ("6|", queryScalar("SELECT VampireSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-a'"));
+    EXPECT_EQ("7|", queryScalar("SELECT OustersSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-a'"));
+    EXPECT_EQ("8|", queryScalar("SELECT DefaultSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-a'"));
+    EXPECT_EQ("1|",
+              queryScalar("SELECT SlayerOldSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-a'"));
+    EXPECT_EQ("", queryScalar("SELECT SlayerSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-b'"));
+}
+
+TEST_F(WarInfoMySQL, MasterLairRowsCarryAllTwentyFiveColumns) {
+    execSQL("INSERT INTO MasterLairInfo (ZoneID, MasterNotReadyMonsterType, MasterMonsterType, MasterRemainNotReady, "
+            "MasterX, MasterY, MasterDir, MaxPassPlayer, SummonX, SummonY, FirstRegenDelay, RegenDelay, StartDelay, "
+            "EndDelay, KickOutDelay, KickZoneID, KickZoneX, KickZoneY, LairAttackTick, LairAttackMinNumber, "
+            "LairAttackMaxNumber, MasterSummonSay, MasterDeadSlayerSay, MasterDeadVampireSay, MasterNotDeadSay) "
+            "VALUES (31000, 1, 2, 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, "
+            "'\"s\"', '\"ds\"', '\"dv\"', '\"nd\"')");
+
+    std::vector<MasterLairRow> rows = defaultWarInfoRepository().loadMasterLairs();
+    const MasterLairRow* mine = NULL;
+    for (size_t r = 0; r < rows.size(); r++)
+        if (rows[r].zoneID == 31000)
+            mine = &rows[r];
+    ASSERT_TRUE(mine != NULL);
+    EXPECT_EQ(1, mine->masterNotReadyMonsterType);
+    EXPECT_EQ(2, mine->masterMonsterType);
+    EXPECT_EQ(1, mine->masterRemainNotReady);
+    EXPECT_EQ(4, mine->masterX);
+    EXPECT_EQ(5, mine->masterY);
+    EXPECT_EQ(6, mine->masterDir);
+    EXPECT_EQ(7, mine->maxPassPlayer);
+    EXPECT_EQ(8, mine->summonX);
+    EXPECT_EQ(9, mine->summonY);
+    EXPECT_EQ(10, mine->firstRegenDelay);
+    EXPECT_EQ(11, mine->regenDelay);
+    EXPECT_EQ(12, mine->startDelay);
+    EXPECT_EQ(13, mine->endDelay);
+    EXPECT_EQ(14, mine->kickOutDelay);
+    EXPECT_EQ(15, mine->kickZoneID);
+    EXPECT_EQ(16, mine->kickZoneX);
+    EXPECT_EQ(17, mine->kickZoneY);
+    EXPECT_EQ(18, mine->lairAttackTick);
+    EXPECT_EQ(19, mine->lairAttackMinNumber);
+    EXPECT_EQ(20, mine->lairAttackMaxNumber);
+    EXPECT_EQ("\"s\"", mine->masterSummonSay);
+    EXPECT_EQ("\"ds\"", mine->masterDeadSlayerSay);
+    EXPECT_EQ("\"dv\"", mine->masterDeadVampireSay);
+    EXPECT_EQ("\"nd\"", mine->masterNotDeadSay);
 }
 
 } // namespace

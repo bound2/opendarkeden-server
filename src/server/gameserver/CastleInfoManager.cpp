@@ -19,7 +19,6 @@
 // #include "HolyLandRaceBonus.h"
 #include "CastleSkillInfo.h"
 #include "ClientManager.h"
-#include "DB.h"
 #include "EffectHasBloodBible.h"
 #include "EventRefreshHolyLandPlayer.h"
 #include "GCModifyInformation.h"
@@ -37,6 +36,7 @@
 #include "WarSystem.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/WarInfoRepository.h"
 
 CastleInfo::CastleInfo() : m_Name(""), m_BonusOptionList(), m_CastleZoneIDList() {
     m_ZoneID = 0;
@@ -237,76 +237,61 @@ void CastleInfoManager::load()
 
     clearCastleZoneIDs();
 
-    Statement* pStmt = NULL;
+    vector<CastleRow> rows = defaultWarInfoRepository().loadCastles(g_pConfig->getPropertyInt("ServerID"));
 
-    BEGIN_DB {
-        // create statement
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    ZoneCoord_t x, y;
+    ZONE_COORD zoneCoord;
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT ZoneID, ShrineID, GuildID, Name, Race, ItemTaxRatio, EntranceFee, TaxBalance, "
-                                "BonusOptionType, FirstResurrectZoneID, FirstResurrectX, FirstResurrectY, "
-                                "SecondResurrectZoneID, SecondResurrectX, SecondResurrectY, ThirdResurrectZoneID, "
-                                "ThirdResurrectX, ThirdResurrectY, ZoneIDList FROM CastleInfo WHERE ServerID = %d",
-                                g_pConfig->getPropertyInt("ServerID"));
+    for (size_t r = 0; r < rows.size(); r++) {
+        const CastleRow& row = rows[r];
 
-        ZoneCoord_t x, y;
-        ZONE_COORD zoneCoord;
+        ZoneID_t zoneID = row.zoneID;
 
-        while (pResult->next()) {
-            uint i = 0;
+        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zoneID);
+        Assert(pZoneInfo != NULL);
 
-            ZoneID_t zoneID = pResult->getInt(++i);
+        pZoneInfo->setCastle();
 
-            ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(zoneID);
-            Assert(pZoneInfo != NULL);
+        CastleInfo* pCastleInfo = new CastleInfo();
+        // cout << "new OK" << endl;
 
-            pZoneInfo->setCastle();
+        pCastleInfo->setZoneID(zoneID);
+        pCastleInfo->setShrineID(row.shrineID);
+        pCastleInfo->setGuildID(row.guildID);
+        pCastleInfo->setName(row.name);
+        pCastleInfo->setRace(row.race);
+        pCastleInfo->setItemTaxRatio(row.itemTaxRatio);
+        pCastleInfo->setEntranceFee(row.entranceFee);
+        pCastleInfo->setTaxBalance(row.taxBalance);
+        pCastleInfo->setOptionTypeList(row.bonusOptionType);
 
-            CastleInfo* pCastleInfo = new CastleInfo();
-            // cout << "new OK" << endl;
+        zoneID = row.firstResurrectZoneID;
+        x = row.firstResurrectX;
+        y = row.firstResurrectY;
 
-            pCastleInfo->setZoneID(zoneID);
-            pCastleInfo->setShrineID(pResult->getInt(++i));
-            pCastleInfo->setGuildID(pResult->getInt(++i));
-            pCastleInfo->setName(pResult->getString(++i));
-            pCastleInfo->setRace(pResult->getInt(++i));
-            pCastleInfo->setItemTaxRatio(pResult->getInt(++i));
-            pCastleInfo->setEntranceFee(pResult->getInt(++i));
-            pCastleInfo->setTaxBalance(pResult->getInt(++i));
-            pCastleInfo->setOptionTypeList(pResult->getString(++i));
+        zoneCoord.set(zoneID, x, y);
+        pCastleInfo->setResurrectPosition(CastleInfo::CASTLE_RESURRECT_PRIORITY_FIRST, zoneCoord);
 
-            zoneID = pResult->getInt(++i);
-            x = pResult->getInt(++i);
-            y = pResult->getInt(++i);
+        zoneID = row.secondResurrectZoneID;
+        x = row.secondResurrectX;
+        y = row.secondResurrectY;
 
-            zoneCoord.set(zoneID, x, y);
-            pCastleInfo->setResurrectPosition(CastleInfo::CASTLE_RESURRECT_PRIORITY_FIRST, zoneCoord);
+        zoneCoord.set(zoneID, x, y);
+        pCastleInfo->setResurrectPosition(CastleInfo::CASTLE_RESURRECT_PRIORITY_SECOND, zoneCoord);
 
-            zoneID = pResult->getInt(++i);
-            x = pResult->getInt(++i);
-            y = pResult->getInt(++i);
+        zoneID = row.thirdResurrectZoneID;
+        x = row.thirdResurrectX;
+        y = row.thirdResurrectY;
 
-            zoneCoord.set(zoneID, x, y);
-            pCastleInfo->setResurrectPosition(CastleInfo::CASTLE_RESURRECT_PRIORITY_SECOND, zoneCoord);
+        zoneCoord.set(zoneID, x, y);
+        pCastleInfo->setResurrectPosition(CastleInfo::CASTLE_RESURRECT_PRIORITY_THIRD, zoneCoord);
 
-            zoneID = pResult->getInt(++i);
-            x = pResult->getInt(++i);
-            y = pResult->getInt(++i);
+        pCastleInfo->setZoneIDList(row.zoneIDList);
 
-            zoneCoord.set(zoneID, x, y);
-            pCastleInfo->setResurrectPosition(CastleInfo::CASTLE_RESURRECT_PRIORITY_THIRD, zoneCoord);
+        addCastleInfo(pCastleInfo);
 
-            pCastleInfo->setZoneIDList(pResult->getString(++i));
-
-            addCastleInfo(pCastleInfo);
-
-            cout << pCastleInfo->toString().c_str() << endl;
-        }
-
-        SAFE_DELETE(pStmt);
+        cout << pCastleInfo->toString().c_str() << endl;
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -320,21 +305,14 @@ void CastleInfoManager::save(ZoneID_t zoneID)
     if (pCastleInfo == NULL)
         return;
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        // create statement
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE CastleInfo SET GuildID=%d, Name='%s', Race=%d, ItemTaxRatio=%d, EntranceFee=%d, "
-                            "TaxBalance=%d WHERE ServerID=%d AND ZoneID=%d",
-                            (int)pCastleInfo->getGuildID(), pCastleInfo->getName().c_str(), (int)pCastleInfo->getRace(),
-                            pCastleInfo->getItemTaxRatio(), (int)pCastleInfo->getEntranceFee(),
-                            (int)pCastleInfo->getTaxBalance(), (int)g_pConfig->getPropertyInt("ServerID"), (int)zoneID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    CastleStateRecord record;
+    record.guildID = (int)pCastleInfo->getGuildID();
+    record.name = pCastleInfo->getName();
+    record.race = (int)pCastleInfo->getRace();
+    record.itemTaxRatio = pCastleInfo->getItemTaxRatio();
+    record.entranceFee = (int)pCastleInfo->getEntranceFee();
+    record.taxBalance = (int)pCastleInfo->getTaxBalance();
+    defaultWarInfoRepository().saveCastle((int)g_pConfig->getPropertyInt("ServerID"), (int)zoneID, record);
 
     __END_CATCH
 }
@@ -947,22 +925,8 @@ bool CastleInfoManager::tinysave(ZoneID_t zoneID, const string& query)
     if (pCastleInfo == NULL)
         return false;
 
-    Statement* pStmt = NULL;
-    bool isAffected = false;
-
-    BEGIN_DB {
-        // create statement
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE CastleInfo SET %s WHERE ZoneID=%d AND ServerID=%d", query.c_str(),
-                            pCastleInfo->getZoneID(), g_pConfig->getPropertyInt("ServerID"));
-
-        if (pStmt->getAffectedRowCount() > 0)
-            isAffected = true;
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    bool isAffected = defaultWarInfoRepository().tinysaveCastle(query, pCastleInfo->getZoneID(),
+                                                                g_pConfig->getPropertyInt("ServerID"));
 
     return isAffected;
 

@@ -54,8 +54,8 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 44 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 254 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders) |
+| R2 | Files with inline SQL in gameserver root | 37 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 the same day, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 247 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 the same day: the seven race-war files) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -1154,6 +1154,46 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > gameserver/: the long tail (R2 = 44 files) — biggest remaining
   > clusters are CreatureUtil.cpp's 128-statement character deletion
   > and the guild trio (Guild/GuildManager/GuildUnion, 65 statements).
+  > **Race-war cluster (2026-09-02, stacked on the config round)**: the
+  > seven war files (ShrineInfoManager, CastleInfoManager,
+  > SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager,
+  > MasterLairInfoManager) move to a new `WarInfoRepository` — the first
+  > seam in this stack that mixes boot-time reads with runtime writes:
+  > ShrineInfo (load, owner reload, owner save), CastleInfo (load by
+  > ServerID, the six-column state save, and `tinysave`'s caller-composed
+  > SET fragment — the same raw-SQL quarantine as
+  > CharacterRepository::tinysave), SweeperBonusInfo (MAX probe as a
+  > bool, rows, owners by level, owner save), SweeperSetInfo and
+  > SweeperOwnerInfo (both per zone; LevelWarManager's two-column read
+  > of the owners has its own method; the owner UPDATE keys on
+  > SweeperType alone, the table's PK), LevelWarHistory (keyless; INSERT
+  > of the "Old" sweeper columns at war start, UPDATE of the "new" ones
+  > at war end keyed on Level + a caller-formatted start time) and
+  > MasterLairInfo's 25-column row. R2 44→37, R3 254→247. Every literal
+  > byte-for-byte, including the SweeperOwnerInfo UPDATE's `%ld` for an
+  > int OwnerRace and `%d` for a uint SweeperType, and the castle save's
+  > unspaced `GuildID=%d` list against the sweeper writes' spaced ones.
+  > Disclosures: LevelWarManager's two recorders and SweeperSet's load
+  > (both of its Statements) never freed on the success path — the seam
+  > does, fixed knowingly; ShrineInfoManager::saveBloodBibleOwner opened
+  > a BEGIN_DB block and created a Statement it never used around a loop
+  > whose body already went through the seam — the block is gone, the
+  > loop stays; SweeperSet's commented-out first-generation loader
+  > (owner-per-set, "보관대" names) is deleted rather than carried;
+  > SweeperBonusManager's two "There is no data" throws now fire on the
+  > MAX probe's false where the originals' `getRowCount() == 0` guard
+  > never could (one NULL row); MasterLairInfoManager's Korean comments
+  > are translated, its thrown Error strings are not. Not enclosed:
+  > war/RaceWar.cpp's ShrineInfo owner reads and the gameserver /
+  > sharedserver GuildManager castle counts and lists. No fake tier; +7
+  > integration tests (seeded reads non-empty and the MAX probe against
+  > the table, shrine-owner save scoped to one shrine, castles scoped to
+  > the server with save and `tinysave` keyed on server+zone, sweeper
+  > bonus owners by level and save by type, sweeper sets/owners scoped
+  > to the zone with the PK-only owner save, level-war history insert
+  > then update filling only that war's "new" columns, and a 25-column
+  > master-lair row read back). Remaining SQL under gameserver/: R2 = 37
+  > files.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
