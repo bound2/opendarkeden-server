@@ -21,12 +21,17 @@ namespace {
 //    first row of a duplicated type, so which duplicate wins is
 //    plan-dependent too.
 //  - Every integer rides the same varargs conversion as before: the
-//    DWORD-typed level/exp/delay members through %d (a value at or above
-//    2^31 would print negative and be clamped to 0 by the UNSIGNED
-//    column under the non-strict sql_mode — unreachable for skill data
-//    in practice), and the time_t NextTime through %d (the low 32 bits,
-//    the whole value until 2038). Preserved bit-for-bit, not fixed —
-//    the DB layer's conversion cleanup is deliberate follow-up work.
+//    DWORD-typed exp and delay members (Exp_t, Turn_t) through %d (a
+//    value at or above 2^31 would print negative and be clamped to 0 by
+//    the UNSIGNED column under the non-strict sql_mode — unreachable for
+//    skill data in practice); the WORD-typed type and level members
+//    (SkillType_t, ExpLevel_t) promote to int, so %d is exact for them;
+//    and the time_t NextTime through %d — stack-passed in all three
+//    INSERTs (vararg 5 or 7 of a variadic member function), where
+//    va_arg reads the low 32 bits of the 8-byte slot and still advances
+//    the whole slot, so the arguments after it land correctly. The
+//    whole value until 2038. Preserved bit-for-bit, not fixed — the DB
+//    layer's conversion cleanup is deliberate follow-up work.
 //  - An UPDATE/DELETE for a row that does not exist matches zero rows,
 //    silently; nothing checks it, exactly like the inline code.
 //  - Owner names are interpolated raw (no escaping), as the call sites

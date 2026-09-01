@@ -13,7 +13,8 @@
 // (OwnerID, SkillType); the tables are KEYLESS — a non-unique index only
 // — so nothing stops a second row for the same skill, and the loaders
 // have to cope (the vampire/ousters loaders skip a type they already
-// hold; the slayer loader does not).
+// hold; the slayer loader does not, but Slayer::addSkill drops the
+// duplicate slot itself — first row wins either way).
 //
 // Two record families per table, on purpose:
 //  - the *Row structs are what load() returns: every field typed to the

@@ -45,8 +45,17 @@ namespace {
 //    "Sex,MasterEffectColor" token and the INTE spelling (INT is a
 //    MySQL type keyword). The one deliberate byte change: the original
 //    literals were backslash-continued across source lines and leaked
-//    their indentation tabs into the SQL text; those tab runs are single
-//    spaces here. Whitespace between tokens, immaterial to the parser.
+//    their indentation tabs into the SQL text; each whitespace run (a
+//    space followed by the tabs, or the tabs alone) is a single space
+//    here. Whitespace between tokens, immaterial to the parser.
+//  - The loaders apply the record AFTER this method returns, so the
+//    race classes' setters now run outside the BEGIN_DB/END_DB try —
+//    inert, since none of them raise the SQLQueryException it catches —
+//    and the Statement is freed before they run, so a setter throwing
+//    (setSex's InvalidProtocolException, the skill loop's Assert) no
+//    longer leaks it. The one real delta: a driver exception mid-read
+//    now applies nothing to the creature instead of the columns read so
+//    far — unreachable with a fixed column count.
 //  - The loads filter on Active = 'ACTIVE': an INACTIVE row (a character
 //    deleted while the login server handed it over) loads as "no row".
 //    Name is the primary key, so at most one row can match.

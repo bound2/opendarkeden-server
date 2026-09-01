@@ -662,9 +662,11 @@ TEST_F(CharacterMySQL, LoadsSkipInactiveRowsAndMissingRows) {
 
 TEST_F(CharacterMySQL, LoadSlayerFindsTheTwinRowEveryCharacterGetsAtCreation) {
     // Character creation writes a Slayer row for every race, so a
-    // vampire's name loads as a (default-valued, ACTIVE) slayer too. The
-    // race chosen at login decides which loader runs — nothing in the
-    // rows does.
+    // vampire's name loads as an ACTIVE slayer too (in production the
+    // twin row carries the character's real stats — CLCreatePCHandler
+    // writes STR/DEX/INTE/HP/Sight/Gold into it; only this fixture
+    // leaves it at the column defaults). The race chosen at login
+    // decides which loader runs — nothing in the rows does.
     PlayerFixture vampire = PlayerFixtures::midLevelVampire();
     vampire.persist();
 
@@ -739,18 +741,48 @@ TEST_F(SkillSaveMySQL, SlayerInsertThenLoadRoundTripsEveryColumn) {
     EXPECT_EQ(1700000006, rows[0].nextTime);
 }
 
-TEST_F(SkillSaveMySQL, LoadOrderIsTheOptimizersChoiceNotSkillTypeOrder) {
-    // No ORDER BY and no primary key, so the row order is whatever
-    // access path the optimizer picks. The first draft of this test
-    // asserted SkillType-ascending order (reasoning from the
-    // (OwnerID, SkillType) secondary index) and the real server
-    // FALSIFIED it: on this tier's near-empty table the SELECT — which
-    // the index does not cover — comes back in insertion order, i.e. a
-    // scan in hidden-row-id order. A production-sized table may well
-    // take the index and reorder. Pinned as observed, and as a warning:
-    // nothing may rely on this order — yet the vampire/ousters loaders
-    // do, in one way: with duplicate rows of a type (the keyless table
-    // cannot refuse them) they keep whichever row arrives FIRST.
+TEST_F(SkillSaveMySQL, LoadReturnsEveryRowIncludingDuplicateTypes) {
+    // The contract: every row comes back, duplicates of a type included
+    // (the keyless table cannot refuse them). Asserted as a multiset —
+    // the order is deliberately NOT part of this test, see the next one.
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+
+    defaultSkillSaveRepository().insertSlayerSkill(slayer.name, slayerSkill(7, 1, 0, 11, 0, 0));
+    defaultSkillSaveRepository().insertSlayerSkill(slayer.name, slayerSkill(3, 1, 0, 22, 0, 0));
+    defaultSkillSaveRepository().insertSlayerSkill(slayer.name, slayerSkill(7, 1, 0, 33, 0, 0));
+
+    std::vector<SlayerSkillRow> rows = defaultSkillSaveRepository().loadSlayerSkills(slayer.name);
+    ASSERT_EQ(3u, rows.size());
+    int seenType7Delay11 = 0, seenType3Delay22 = 0, seenType7Delay33 = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].skillType == 7 && rows[r].delay == 11)
+            seenType7Delay11++;
+        else if (rows[r].skillType == 3 && rows[r].delay == 22)
+            seenType3Delay22++;
+        else if (rows[r].skillType == 7 && rows[r].delay == 33)
+            seenType7Delay33++;
+        else
+            ADD_FAILURE() << "unexpected row " << rows[r].skillType << "/" << rows[r].delay;
+    }
+    EXPECT_EQ(1, seenType7Delay11);
+    EXPECT_EQ(1, seenType3Delay22);
+    EXPECT_EQ(1, seenType7Delay33);
+}
+
+TEST_F(SkillSaveMySQL, LoadOrderObservedOnThe57TierIsInsertionOrderNotSkillTypeOrder) {
+    // An OBSERVATION, not a contract: no ORDER BY and no primary key, so
+    // the row order is whatever access path the optimizer picks. The
+    // first draft asserted SkillType-ascending order (reasoning from the
+    // (OwnerID, SkillType) secondary index) and the real MySQL 5.7
+    // FALSIFIED it: on this tier's near-empty table — where the WHERE
+    // matches essentially every row and the index does not cover the
+    // SELECT — the rows come back in insertion order, a scan in
+    // hidden-row-id order. A populated table, or MySQL 8 (supported, but
+    // not what this tier runs), may reorder. If this test fails on such
+    // a configuration, update the observation — do NOT "fix" a loader.
+    // Why it matters at all: the vampire/ousters loaders keep whichever
+    // duplicate of a type arrives FIRST, so that choice is plan-dependent.
     PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
     slayer.persist();
 
@@ -778,14 +810,19 @@ TEST_F(SkillSaveMySQL, SlayerUpdateWritesLevelExpAndDelayOnly) {
 
     std::vector<SlayerSkillRow> rows = defaultSkillSaveRepository().loadSlayerSkills(slayer.name);
     ASSERT_EQ(2u, rows.size());
-    EXPECT_EQ(9, rows[0].skillLevel);
-    EXPECT_EQ(9999, rows[0].skillExp);
-    EXPECT_EQ(88, rows[0].delay);
-    EXPECT_EQ(55, rows[0].castingTime);      // not part of the update
-    EXPECT_EQ(1700000006, rows[0].nextTime); // not part of the update
-    EXPECT_EQ(1, rows[1].skillLevel);
-    EXPECT_EQ(10, rows[1].skillExp);
-    EXPECT_EQ(20, rows[1].delay);
+    // select each row by type — the load order is not a contract
+    const SlayerSkillRow& updated = rows[0].skillType == 101 ? rows[0] : rows[1];
+    const SlayerSkillRow& untouched = rows[0].skillType == 101 ? rows[1] : rows[0];
+    ASSERT_EQ(101, updated.skillType);
+    ASSERT_EQ(102, untouched.skillType);
+    EXPECT_EQ(9, updated.skillLevel);
+    EXPECT_EQ(9999, updated.skillExp);
+    EXPECT_EQ(88, updated.delay);
+    EXPECT_EQ(55, updated.castingTime);      // not part of the update
+    EXPECT_EQ(1700000006, updated.nextTime); // not part of the update
+    EXPECT_EQ(1, untouched.skillLevel);
+    EXPECT_EQ(10, untouched.skillExp);
+    EXPECT_EQ(20, untouched.delay);
 }
 
 TEST_F(SkillSaveMySQL, VampireInsertLoadAndUpdateDelayOnly) {

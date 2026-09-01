@@ -854,23 +854,37 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > each narrowing the race class performed at its setter still happens
   > there on the same value. Quirks quarantined in the impl: the column
   > lists are the positional contract and are verbatim (the only byte
-  > change is the indentation tabs the backslash-continued literals had
-  > leaked into the SQL, now single spaces); `Active = 'ACTIVE'` filters
+  > change is the whitespace the backslash-continued literals had
+  > leaked into the SQL — a space plus indentation tabs — each run now
+  > a single space); `Active = 'ACTIVE'` filters
   > an INACTIVE (deleted-in-handover) row into "no row"; the vampire/
   > ousters Competence pair is read through getBYTE where the slayer
-  > uses getInt (tinyint columns, so nothing is lost); Sight and Reward
-  > are selected and surfaced but the loader overrides the one (to 13)
-  > and nothing consumes the other (the reward flow is dead in both
-  > races). **`SkillSaveRepository`** is new and encloses the three
-  > learned-skill tables completely on the gameserver side: the loads
-  > from the race files AND the insert/update/delete from
-  > `SkillSlot`/`VampireSkillSlot`/`OustersSkillSlot` (the per-character
-  > purges in CreatureUtil.cpp and the loginserver's CLDeletePCHandler
-  > stay inline with their multi-table deletion flow). Two record
+  > uses getInt (tinyint columns, so nothing is lost); the SLAYER loader
+  > overrides the Sight it just applied (to 13 — vampire/ousters apply
+  > theirs as loaded), and the Slayer/Vampire Reward column is selected
+  > and surfaced but consumed by nothing (the reward flow is dead in
+  > both races that have the column; Ousters never selected it). The
+  > setters now run OUTSIDE the `BEGIN_DB`/`END_DB` try — inert, since
+  > none of them can raise the SQLQueryException that catch handles —
+  > and the Statement is freed BEFORE the setters run, so a setter
+  > throwing (setSex's InvalidProtocolException, the skill loop's
+  > Assert) no longer leaks it; the one real delta is that a mid-read
+  > driver exception now applies nothing instead of the columns read so
+  > far (unreachable with a fixed column count). **`SkillSaveRepository`**
+  > is new and encloses the three learned-skill tables on the compiled
+  > gameserver side: the loads from the race files AND the
+  > insert/update/delete from `SkillSlot`/`VampireSkillSlot`/
+  > `OustersSkillSlot` (the per-character purges in CreatureUtil.cpp and
+  > the loginserver's CLDeletePCHandler stay inline with their
+  > multi-table deletion flow; the unbuilt `Vampire_backup.cpp` still
+  > carries the old VampireSkillSave SELECT and is one of R2's counted
+  > files). Two record
   > families on purpose — driver-typed `*Row` for loads, member-typed
   > `*Record` for writes — so the varargs bytes reaching the format
-  > strings are unchanged (incl. the time_t NextTime through `%d` and
-  > the DWORD level/exp/delay through `%d`, preserved not fixed). The
+  > strings are unchanged (incl. the stack-passed time_t NextTime
+  > through `%d` — the low 32 bits, whole until 2038 — and the DWORD
+  > exp/delay through `%d`; the WORD type/level members promote to int
+  > exactly; preserved not fixed). The
   > tables are keyless: duplicates store, an UPDATE/DELETE hits every
   > row of the type. Row order of the ORDER-BY-less loads was checked
   > against the real server BEFORE being written down — and the server
@@ -880,19 +894,29 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > production-sized table may take the index and reorder. Pinned as
   > observed and documented as the optimizer's choice, not a contract;
   > the vampire/ousters loaders keep the first row of a duplicated type,
-  > so which duplicate wins is plan-dependent. No fake
-  > tier for either seam, by the standing integration-over-fakes call;
-  > +14 integration tests (every load column asserted at its SELECT
-  > position as the sentinel, so a transposed pair fails; every
-  > skill-save write asserted for both the columns it writes and the
-  > ones it must leave alone). Slayer.cpp, Vampire.cpp and Ousters.cpp
-  > are now SQL-free (R2 101→98), as are the three slot files (R3
-  > 314→308). To make R2's textual grep honest, the dead commented-out
-  > blocks that still spelled `executeQuery` were deleted rather than
-  > edited: both races' `if (reward != 0)` reward flows (already proven
-  > dead in the previous round) and Slayer::getIP's UserIPInfo lookup —
-  > git history keeps them. The `#include "DB.h"` left each cleansed
-  > file. Korean comments on the re-indented lines were translated.
+  > so which duplicate wins is plan-dependent — the order test asserts
+  > the multiset as the contract and records the 5.7 tier's insertion
+  > order separately as an observation. No fake tier for either seam,
+  > by the standing integration-over-fakes call; +13 integration tests
+  > (every load column asserted with a sentinel unique within the test
+  > — its SELECT position for the numeric columns, the negated position
+  > for the signed ones, distinct enum/varchar values for the three text
+  > columns — so a transposed pair fails; every skill-save write
+  > asserted for both the columns it writes and the ones it must leave
+  > alone). Slayer.cpp, Vampire.cpp and Ousters.cpp no longer execute
+  > any SQL (R2 101→98; Vampire.cpp's saveExps still carries a
+  > pre-existing commented-out StringStream UPDATE with no
+  > `executeQuery` token), and neither do the three slot files (R3
+  > 314→308). Because both ratchets grep textually, the dead
+  > commented-out blocks that still spelled `executeQuery` were deleted
+  > rather than edited: both races' `if (reward != 0)` reward flows
+  > (already proven dead in the previous round), Slayer::getIP's
+  > UserIPInfo lookup, and the `/* StringStream ... executeQueryString
+  > */` blocks inside the slot files' replaced DB blocks (load-bearing
+  > for R3) — git history keeps them. The `#include "DB.h"` left each
+  > cleansed file, which decouples only the slot files: the race files
+  > still reach DB.h transitively through ConcreteItem.h. Korean
+  > comments on the re-indented lines were translated.
   > Remaining SQL under gameserver/: the long tail (R2 = 98 files).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
