@@ -70,7 +70,7 @@ predated that pass); only the rows `ratchets.sh` names are enforced so far.
 |------|---------------:|
 | `src/server/gameserver/Zone.cpp` | 9,297 |
 | `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (enforced by `ratchets.sh` R6a) |
-| `src/server/gameserver/InitAllStat.cpp` | 4,949 (enforced by `ratchets.sh` R6b) |
+| `src/server/gameserver/InitAllStat.cpp` | 4,886 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,905 |
 | `src/server/gameserver/Slayer.cpp` | 4,375 |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 820 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
@@ -803,7 +803,28 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > 2026-09-01) returned SHIP; their byte-level audit found 286 of the
   > 293 moved bodies byte-identical and the other 7 differing only by
   > the documented substitutions.
-  > Next: the `InitAllStat.cpp` bodies.
+  > **The `InitAllStat.cpp` bonus formulas are extracted (2026-09-01)**:
+  > 19 pure functions joined `Formulas.{h,cpp}` — Concealment's
+  > divide-then-float-scale bonuses, Will of Iron's truncated 15%, both
+  > Liveness grade tables (normal keeps its level>=125 hpPercent
+  > override; the `__CHINA_SERVER__` selection stays behind the #ifdef in
+  > the adapter), Sniping's divide-first percents, the four slayer
+  > weapon-domain passives (sword mastery / concentration / evasion /
+  > shield mastery, including evasion's negative-term truncation below
+  > level 20), the vampire wolf/werwolf damage bonuses and Extreme's
+  > capped bonuses, Intimate Grail's shared penalty ratio, Summon
+  > Sylph's floored bonuses, and Hide Sight's two level bands with the
+  > 10% truncated bump at exactly exp level 30. The adapters keep every
+  > live-state gate (canUse, effect flags, item class, isRealWearing)
+  > and every member write incl. the per-race caps — same split as the
+  > HitRoll extraction. Everything else in `InitAllStat.cpp` is
+  > orchestration (effect gathering, rank bonuses as stored points,
+  > percentValue applications of effect-carried parameters) with no
+  > formula content to extract; further decomposition of the file is 3.5
+  > (globals→context) and repository work, not formula extraction.
+  > InitAllStat.cpp 4,949→4,886 (R6b tightened); +7 tests (35 new
+  > assertions). Remaining in 3.3: nothing named — new formulas join as
+  > they are touched.
   - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
     `InitAllStat.cpp` / `HitRoll.cpp` / `SkillFormula.cpp`.
 

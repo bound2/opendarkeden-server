@@ -768,4 +768,149 @@ int hallucinationRatio(int attackerAttrSum, int targetAttrSum, int minRatio, int
     return Ratio;
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// initAllStat bonus formulas (adapters: InitAllStat.cpp). Math transplanted
+// verbatim; see Formulas.h for the per-function notes.
+//////////////////////////////////////////////////////////////////////////////
+
+int concealmentDefenseBonus(int dex, int effectLevel) {
+    return (int)((dex / 20) * (1.0f + ((float)effectLevel / 25.0f)));
+}
+
+int concealmentProtectionBonus(int str, int effectLevel) {
+    return (int)((str / 10) * (1.0f + ((float)effectLevel / 25.0f)));
+}
+
+int willOfIronHPBonus(int maxHP) {
+    return maxHP * 0.15;
+}
+
+LivenessBonus livenessBonus(int grade, int domainLevel) {
+    LivenessBonus b = {0, 0};
+    switch (grade) {
+    case 0: // apprentice
+        b.hpPercent = 0;
+        b.defenseBonus = 0;
+        break;
+    case 1: // adept
+        b.hpPercent = 10;
+        b.defenseBonus = 10;
+        break;
+    case 2: // expert
+        b.hpPercent = 20;
+        b.defenseBonus = 35;
+        break;
+    case 3: // master
+        b.hpPercent = 30;
+        b.defenseBonus = 60;
+        break;
+    case 4: // grand master
+        b.hpPercent = 40;
+        b.defenseBonus = 100;
+        break;
+    default:
+        break;
+    }
+
+    if (domainLevel >= 125)
+        b.hpPercent = 50;
+
+    return b;
+}
+
+LivenessBonus livenessBonusChina(int grade) {
+    LivenessBonus b = {0, 0};
+    switch (grade) {
+    case 0: // apprentice
+        b.hpPercent = 0;
+        b.defenseBonus = 0;
+        break;
+    case 1: // adept
+        b.hpPercent = 10;
+        b.defenseBonus = 10;
+        break;
+    case 2: // expert
+        b.hpPercent = 25;
+        b.defenseBonus = 35;
+        break;
+    case 3: // master
+        b.hpPercent = 40;
+        b.defenseBonus = 60;
+        break;
+    case 4: // grand master
+        b.hpPercent = 100;
+        b.defenseBonus = 100;
+        break;
+    default:
+        break;
+    }
+    return b;
+}
+
+int snipingDamageBonus(int curDamage, int str, int expLevel) {
+    int damageBonusPercent = str / 20 * expLevel / 20;
+    return curDamage * damageBonusPercent / 100;
+}
+
+int snipingToHitBonus(int curToHit, int dex, int expLevel) {
+    int toHitBonusPercent = dex / 10 * expLevel / 20;
+    return curToHit * toHitBonusPercent / 100;
+}
+
+int swordMasteryDamageBonus(int domainLevel) {
+    return 3 + domainLevel / 15;
+}
+
+int concentrationToHitBonus(int domainLevel) {
+    return 3 + (domainLevel / 10);
+}
+
+int evasionDefenseBonus(int domainLevel) {
+    return 3 + (domainLevel - 20) / 5;
+}
+
+int shieldMasteryProtectionBonus(int domainLevel) {
+    return 5 + (domainLevel - 20) / 5;
+}
+
+int wolfDamageBonus(int dex, int str) {
+    return dex / 8 + str / 30;
+}
+
+int werwolfDamageBonus(int dex, int str) {
+    return dex / 6 + str / 40;
+}
+
+int extremeDamageBonus(int str) {
+    return min(15, 4 + ((str - 20) / 30));
+}
+
+int extremeToHitBonus(int str, int dex) {
+    return min(20, 4 + ((str + dex) / 40));
+}
+
+int intimateGrailPenaltyRatio(int skillLevel) {
+    return 10 + (skillLevel / 10);
+}
+
+int summonSylphProtectionBonus(int level) {
+    return max(5, level / 10);
+}
+
+int summonSylphResistBonus(int level) {
+    return max(5, level / 15);
+}
+
+int hideSightToHitBonus(int expLevel) {
+    if (expLevel <= 15) {
+        // m_ToHit += (int)((DEX / 20.0) * ( 1.0 + (level / 15.0) ));  (old)
+        return 15 + (expLevel * 8 / 9);
+    }
+    // m_ToHit += (int)((DEX / 20.0) * ( 1.5 + (level / 30.0) ));  (old)
+    int ToHitBonus = (35 + (expLevel * 4 / 9));
+    if (expLevel == 30)
+        ToHitBonus = (int)(ToHitBonus * 1.1);
+    return ToHitBonus;
+}
+
 } // namespace decore

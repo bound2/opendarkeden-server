@@ -181,6 +181,68 @@ int backStabRatio(int intStat, int dexStat);
 // per-race [minRatio, maxRatio] band the adapter selects.
 int hallucinationRatio(int attackerAttrSum, int targetAttrSum, int minRatio, int maxRatio);
 
+//////////////////////////////////////////////////////////////////////////////
+// initAllStat bonus formulas (adapters: InitAllStat.cpp). The adapters
+// keep every gate on live state (equipped item class, canUse() on the
+// skill slot, effect flags, isRealWearing) and every member write
+// including the per-race stat caps; only the bonus arithmetic lives
+// here. grade parameters are the SkillGrade value (0 apprentice ..
+// 4 grand master) as an int, same convention as skillformula's
+// DomainGrade.
+//////////////////////////////////////////////////////////////////////////////
+
+// Concealment (guns only): int-divided stat scaled by a float level
+// factor; the divide-then-scale truncation is the shipped math.
+int concealmentDefenseBonus(int dex, int effectLevel);
+int concealmentProtectionBonus(int str, int effectLevel);
+
+// Will of Iron / Fabulous Soul passive: 15% of max HP via a double
+// multiply, truncated.
+int willOfIronHPBonus(int maxHP);
+
+struct LivenessBonus {
+    int hpPercent;
+    int defenseBonus;
+};
+// Liveness passive (gun domain). The normal table jumps hpPercent to 50
+// from domain level 125 regardless of grade; the China-server table has
+// different steps and no level override — the #ifdef __CHINA_SERVER__
+// selection stays in the adapter.
+LivenessBonus livenessBonus(int grade, int domainLevel);
+LivenessBonus livenessBonusChina(int grade);
+
+// Sniping mode (SR): percent = STR/20 * expLevel / 20 of current damage,
+// DEX/10 * expLevel / 20 of current to-hit — evaluated left to right:
+// the stat division truncates first, the final /20 only after the
+// multiply. Shipped operator order, preserved.
+int snipingDamageBonus(int curDamage, int str, int expLevel);
+int snipingToHitBonus(int curToHit, int dex, int expLevel);
+
+// Weapon-domain passives (slayer).
+int swordMasteryDamageBonus(int domainLevel);
+int concentrationToHitBonus(int domainLevel);
+int evasionDefenseBonus(int domainLevel);
+int shieldMasteryProtectionBonus(int domainLevel);
+
+// Vampire transform damage bonuses (same value for min and max damage).
+int wolfDamageBonus(int dex, int str);
+int werwolfDamageBonus(int dex, int str);
+
+// Vampire Extreme effect (caps included — they are the formula).
+int extremeDamageBonus(int str);
+int extremeToHitBonus(int str, int dex);
+
+// Intimate Grail self-penalty percent (vampire and ousters share it).
+int intimateGrailPenaltyRatio(int skillLevel);
+
+// Ousters Summon Sylph flat bonuses, floored at 5.
+int summonSylphProtectionBonus(int level);
+int summonSylphResistBonus(int level);
+
+// Ousters Hide Sight passive (chakram): two level bands, with a 10%
+// bump exactly at exp level 30, truncated.
+int hideSightToHitBonus(int expLevel);
+
 } // namespace decore
 
 #endif

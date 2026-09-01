@@ -806,4 +806,98 @@ TEST(SkillOutputFormula, MentalSwordRangeGrowsWithLevel) {
     EXPECT_EQ(60, out.Delay);  // (8 - 50/20)*10
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// initAllStat bonus formulas (src/domain/Formulas.cpp, adapters:
+// InitAllStat.cpp).
+//////////////////////////////////////////////////////////////////////////////
+
+TEST(InitAllStatBonus, ConcealmentDividesBeforeScaling) {
+    // The int division by 20/10 happens BEFORE the float scale — 85 DEX
+    // gives 4*1.4 = 5.6 -> 5, not (85*1.4)/20 = 5.95 -> 5. Pinned via a
+    // value where the orders differ: dex 99, level 25 -> 4*2.0 = 8
+    // (naive order would give 9).
+    EXPECT_EQ(10, decore::concealmentDefenseBonus(100, 25));    // 5 * 2.0
+    EXPECT_EQ(5, decore::concealmentDefenseBonus(85, 10));      // 4 * 1.4
+    EXPECT_EQ(8, decore::concealmentDefenseBonus(99, 25));      // 4 * 2.0
+    EXPECT_EQ(20, decore::concealmentProtectionBonus(100, 25)); // 10 * 2.0
+    EXPECT_EQ(12, decore::concealmentProtectionBonus(95, 10));  // 9 * 1.4
+}
+
+TEST(InitAllStatBonus, WillOfIronFifteenPercentTruncated) {
+    EXPECT_EQ(150, decore::willOfIronHPBonus(1000));
+    EXPECT_EQ(149, decore::willOfIronHPBonus(999)); // 149.85 truncates
+    EXPECT_EQ(1, decore::willOfIronHPBonus(13));    // 1.95 truncates
+    EXPECT_EQ(0, decore::willOfIronHPBonus(0));
+}
+
+TEST(InitAllStatBonus, LivenessTablesAndLevelOverride) {
+    decore::LivenessBonus b = decore::livenessBonus(4, 100);
+    EXPECT_EQ(40, b.hpPercent);
+    EXPECT_EQ(100, b.defenseBonus);
+    b = decore::livenessBonus(4, 125); // level >= 125 overrides hpPercent
+    EXPECT_EQ(50, b.hpPercent);
+    EXPECT_EQ(100, b.defenseBonus);
+    b = decore::livenessBonus(1, 130); // override applies whatever the grade
+    EXPECT_EQ(50, b.hpPercent);
+    EXPECT_EQ(10, b.defenseBonus);
+    b = decore::livenessBonus(2, 60);
+    EXPECT_EQ(20, b.hpPercent);
+    EXPECT_EQ(35, b.defenseBonus);
+    b = decore::livenessBonus(-1, 0); // unknown grade: zeros
+    EXPECT_EQ(0, b.hpPercent);
+    EXPECT_EQ(0, b.defenseBonus);
+    // China table: different steps, no level override.
+    b = decore::livenessBonusChina(2);
+    EXPECT_EQ(25, b.hpPercent);
+    EXPECT_EQ(35, b.defenseBonus);
+    b = decore::livenessBonusChina(3);
+    EXPECT_EQ(40, b.hpPercent);
+    b = decore::livenessBonusChina(4);
+    EXPECT_EQ(100, b.hpPercent);
+    EXPECT_EQ(100, b.defenseBonus);
+}
+
+TEST(InitAllStatBonus, SnipingPercentsEvaluateLeftToRight) {
+    // percent = stat/div * level / 20, LEFT TO RIGHT: the stat division
+    // truncates first, the /20 only after the multiply — so 95 DEX at
+    // level 50 gives (95/10)*50/20 = 450/20 = 22%, not 9*(50/20) = 18%.
+    EXPECT_EQ(20, decore::snipingDamageBonus(200, 100, 40)); // (5*40)/20=10% of 200
+    EXPECT_EQ(0, decore::snipingDamageBonus(200, 19, 40));   // 19/20=0 -> 0%
+    EXPECT_EQ(33, decore::snipingToHitBonus(150, 95, 50));   // 22% of 150
+}
+
+TEST(InitAllStatBonus, SlayerWeaponPassives) {
+    EXPECT_EQ(7, decore::swordMasteryDamageBonus(60)); // 3 + 60/15
+    EXPECT_EQ(8, decore::concentrationToHitBonus(50)); // 3 + 50/10
+    EXPECT_EQ(19, decore::evasionDefenseBonus(100));   // 3 + 80/5
+    // Below level 20 the (level-20)/5 term goes negative, toward zero.
+    EXPECT_EQ(1, decore::evasionDefenseBonus(10));            // 3 + (-10)/5
+    EXPECT_EQ(5, decore::shieldMasteryProtectionBonus(20));   // 5 + 0
+    EXPECT_EQ(25, decore::shieldMasteryProtectionBonus(120)); // 5 + 20
+}
+
+TEST(InitAllStatBonus, VampireTransformAndExtreme) {
+    EXPECT_EQ(13, decore::wolfDamageBonus(80, 90));     // 80/8 + 90/30
+    EXPECT_EQ(18, decore::werwolfDamageBonus(90, 120)); // 90/6 + 120/40
+    EXPECT_EQ(5, decore::extremeDamageBonus(50));       // 4 + 30/30
+    EXPECT_EQ(15, decore::extremeDamageBonus(470));     // capped
+    EXPECT_EQ(9, decore::extremeToHitBonus(100, 100));  // 4 + 200/40
+    EXPECT_EQ(20, decore::extremeToHitBonus(500, 500)); // capped
+}
+
+TEST(InitAllStatBonus, OustersEffectsAndHideSight) {
+    EXPECT_EQ(13, decore::intimateGrailPenaltyRatio(35)); // 10 + 35/10
+    EXPECT_EQ(5, decore::summonSylphProtectionBonus(40)); // floor
+    EXPECT_EQ(10, decore::summonSylphProtectionBonus(100));
+    EXPECT_EQ(5, decore::summonSylphResistBonus(60)); // floor (60/15 = 4)
+    EXPECT_EQ(6, decore::summonSylphResistBonus(90));
+    // Hide Sight: low band 15 + level*8/9, high band 35 + level*4/9,
+    // with a 10% truncated bump exactly at level 30.
+    EXPECT_EQ(23, decore::hideSightToHitBonus(9));  // 15 + 8
+    EXPECT_EQ(28, decore::hideSightToHitBonus(15)); // 15 + 13 (last low)
+    EXPECT_EQ(42, decore::hideSightToHitBonus(16)); // 35 + 7 (first high)
+    EXPECT_EQ(47, decore::hideSightToHitBonus(29)); // 35 + 12
+    EXPECT_EQ(52, decore::hideSightToHitBonus(30)); // 48 * 1.1 = 52.8 -> 52
+}
+
 } // namespace
