@@ -26,9 +26,9 @@ foreach(gtest_target gtest gtest_main)
 endforeach()
 
 # EXCLUDE_FROM_ALL: even if a stale cache leaves DARKEDEN_BUILD_TESTS=ON,
-# a plain `cmake --build build` must not drag the 948-file TestPackets
-# library and googletest into the production build. `make test` names the
-# target explicitly.
+# a plain `cmake --build build` must not drag the TestPackets library and
+# googletest into the production build. `make test` names the target
+# explicitly.
 add_executable(wire_tests EXCLUDE_FROM_ALL
     support/TestStreams.cpp
     outcome_test.cpp
@@ -52,13 +52,16 @@ target_compile_definitions(wire_tests PRIVATE
     WIRETEST_DATA_DIR="${CMAKE_SOURCE_DIR}/data"
 )
 
-# TestPackets (defined in src/Core/CMakeLists.txt) is the whole packet set
-# compiled with NO server-type macro: handlers collapse to no-ops, leaving
-# pure wire code. See the note there — this is not the client's own
+# TestPackets (defined in src/Core/CMakeLists.txt) is the define-free
+# factory/validator set; the wire classes themselves come from de-kernel,
+# which it links — the same macro-free compile the deployed servers link
+# (task 2.4). See the note there — this is not the client's own
 # configuration (the client defines __GAME_CLIENT__=1).
-# Core and TestPackets are mutually dependent static archives (Core's
-# Datagram.cpp calls back into PacketFactoryManager), so each is listed
-# twice for the single-pass linker.
+# The dependency between these archives is one-way since the kernel flip:
+# Core's DatagramFactoryRead.cpp calls into PacketFactoryManager
+# (TestPackets); TestPackets needs nothing from Core. The double listing
+# is kept as insurance against the cycle ever coming back; de-kernel
+# follows transitively, last.
 target_link_libraries(wire_tests PRIVATE
     TestPackets
     Core
@@ -67,10 +70,6 @@ target_link_libraries(wire_tests PRIVATE
     gtest_main
     Threads::Threads
 )
-# Build-only dependency: de-kernel links into nothing yet, so without
-# this the test tier (ninja wire_tests) would never compile it and its
-# "only src/Core includes" enforcement would only run in full builds.
-add_dependencies(wire_tests de-kernel)
 
 add_test(NAME wire_tests COMMAND wire_tests)
 # A hang here would otherwise sit for ctest's 1500s default with no output.
@@ -92,7 +91,7 @@ target_link_libraries(repository_tests PRIVATE
     Threads::Threads
 )
 # devbuild's test path builds the wire_tests target then runs all of ctest;
-# hang this off it (like de-kernel above) so the suite is always built.
+# hang this off it so the suite is always built.
 add_dependencies(wire_tests repository_tests)
 
 add_test(NAME repository_tests COMMAND repository_tests)
@@ -110,7 +109,7 @@ target_link_libraries(formula_tests PRIVATE
     Threads::Threads
 )
 # `make dev-test` builds the wire_tests target; ride along so ctest always
-# has a fresh binary (same pattern as the de-kernel build-only dependency).
+# has a fresh binary (same pattern as repository_tests above).
 add_dependencies(wire_tests formula_tests)
 
 add_test(NAME formula_tests COMMAND formula_tests)

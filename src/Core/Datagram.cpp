@@ -2,7 +2,10 @@
 //
 // Filename    : Datagram.cpp
 // Written By  : reiot@ewestsoft.com
-// Description :
+// Description : Pure wire framing for UDP datagrams. The factory-backed
+//               receive path (read(DatagramPacket*&)) lives in
+//               DatagramFactoryRead.cpp: it needs PacketFactoryManager,
+//               which the kernel must not depend on (rule K1/K2).
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -16,7 +19,6 @@
 #include "Assert.h"
 #include "DatagramPacket.h"
 #include "Packet.h"
-#include "PacketFactoryManager.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -68,7 +70,7 @@ bool Datagram::isDatagram(PacketID_t packetID) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// ���� ���ۿ� ����ִ� ������ �ܺ� ���۷� �����Ѵ�.
+// Copy data from the internal buffer to an external buffer.
 //////////////////////////////////////////////////////////////////////
 void Datagram::read(char* buf, uint len) {
     __BEGIN_TRY
@@ -85,7 +87,7 @@ void Datagram::read(char* buf, uint len) {
 
 
 //////////////////////////////////////////////////////////////////////
-// ���� ���ۿ� ����ִ� ������ �ܺ� ��Ʈ������ �����Ѵ�.
+// Copy data from the internal buffer to an external string.
 //////////////////////////////////////////////////////////////////////
 void Datagram::read(string& str, uint len) {
     __BEGIN_TRY
@@ -103,77 +105,7 @@ void Datagram::read(string& str, uint len) {
 
 
 //////////////////////////////////////////////////////////////////////
-//
-// Datagram ��ü���� Packet ��ü�� �������.
-// DatagramSocket �� ���� ������ ũ�⸸ �����(?) ũ�ٸ�,
-// peer���� ���� ��Ŷ�� �߷��� ���� ���ɼ��� ����.
-//
-// (Ư�� �츮 ���ӿ����� UDP�� ���� ���󿡼��� ���Ǳ�
-// ������ Ȯ���� �� ����..)
-//
-// *CAUTION*
-//
-// �Ʒ��� �˰�������, (1) ���� �ּҿ��� ���ƿ� 2���� ���� �ٸ� ��Ŷ��
-// recvfrom()���� ���� ���� ���ϵǾ�� �ϸ�, (2) �ϳ��� ��Ŷ�� �Ѳ�����
-// ��������.. ��� �����Ͽ����� �ǹ̰� �ִ�.
-//
-//////////////////////////////////////////////////////////////////////
-void Datagram::read(DatagramPacket*& pPacket) {
-    __BEGIN_TRY
-
-    Assert(pPacket == NULL);
-
-    PacketID_t packetID;
-    PacketSize_t packetSize;
-
-    // initialize packet header
-    read((char*)&packetID, szPacketID);
-    read((char*)&packetSize, szPacketSize);
-
-    // cout << "DatagramPacket I  D : " << packetID << endl;
-
-    // ��Ŷ ���̵� �̻��� ���
-    if (packetID >= Packet::PACKET_MAX)
-        throw InvalidProtocolException("invalid packet id");
-
-    // ��Ŷ ����� �̻��� ���
-    if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
-        throw InvalidProtocolException("too large packet size");
-
-    // �����ͱ׷��� ũ�Ⱑ ��Ŷ�� ũ�⺸�� ���� ���
-    if (m_Length < szPacketHeader + packetSize)
-        throw Error(
-            "�����ͱ׷� ��Ŷ�� �ѹ��� �������� �ʾҽ��ϴ�.");
-
-    // �����ͱ׷��� ũ�Ⱑ ��Ŷ�� ũ�⺸�� Ŭ ���
-    if (m_Length > szPacketHeader + packetSize)
-        throw Error("���� ���� �����ͱ׷� ��Ŷ�� �Ѳ����� "
-                    "���������ϴ�.");
-
-    // �ж��Ƿ��ǺϷ���udp ����
-    if (!isDatagram(packetID)) {
-        filelog("datagram.txt", "id:%u host:%s", packetID, getHost().c_str());
-        throw InvalidProtocolException("packet is not UDP");
-    }
-
-    pPacket = (DatagramPacket*)g_pPacketFactoryManager->createPacket(packetID);
-
-    Assert(pPacket != NULL);
-
-    // ��Ŷ�� �ʱ�ȭ�Ѵ�.
-    // filelog("datagram.txt","id:%u host:%s",packetID,getHost().c_str());
-    pPacket->read(*this);
-
-    // ��Ŷ�� ���� �ּ�/��Ʈ�� �����Ѵ�.
-    pPacket->setHost(getHost());
-    pPacket->setPort(getPort());
-
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// �ܺ� ���ۿ� ����ִ� ������ ���� ���۷� �����Ѵ�.
+// Copy data from an external buffer into the internal buffer.
 //////////////////////////////////////////////////////////////////////
 void Datagram::write(const char* buf, uint len) {
     __BEGIN_TRY
@@ -182,7 +114,7 @@ void Datagram::write(const char* buf, uint len) {
     Assert(m_OutputOffset + len <= m_Length);
     //	if (m_OutputOffset + len > m_Length)
     //	{
-    //		throw Error( "Datagram::write(): ������ ������ ������ ũ�⺸�� Ů�ϴ�.");
+    //		throw Error( "Datagram::write(): data is larger than the buffer.");
     //	}
 
     memcpy(&m_Data[m_OutputOffset], buf, len);
@@ -194,12 +126,12 @@ void Datagram::write(const char* buf, uint len) {
 
 
 //////////////////////////////////////////////////////////////////////
-// �ܺ� ��Ʈ���� ����ִ� ������ ���� ���۷� �����Ѵ�.
+// Copy an external string into the internal buffer.
 //
 // *CAUTION*
 //
-// ��� write()���� write(const char*,uint)�� ����ϹǷ�, m_OutputOffset
-// �� �������� �ʿ�� ����.
+// Every write() goes through write(const char*,uint), so m_OutputOffset
+// does not need adjusting here.
 //
 //////////////////////////////////////////////////////////////////////
 void Datagram::write(const string& str) {
@@ -219,11 +151,9 @@ void Datagram::write(const string& str) {
 //
 // write packet
 //
-// ��Ŷ�� ���̳ʸ� �̹����� �����ͱ׷����� ����ִ´�.
-// ��Ŷ�� �����ϴ� �ʿ��� �� �޽�带 ȣ���ϸ�, �� ���¿���
-// �����ͱ׷���
-// ���� ���۴� NULL �̾�� �Ѵ�. �� �� �޽�带 ȣ���� �� ���۰�
-// �Ҵ� �Ǿ�� �Ѵ�.
+// Serializes the packet's binary image into the datagram. Call this on
+// the sending side; the datagram's internal buffer must be NULL before
+// the call and is allocated by it.
 //
 //////////////////////////////////////////////////////////////////////
 void Datagram::write(const DatagramPacket* pPacket) {
@@ -234,14 +164,14 @@ void Datagram::write(const DatagramPacket* pPacket) {
     PacketID_t packetID = pPacket->getPacketID();
     PacketSize_t packetSize = pPacket->getPacketSize();
 
-    // ����Ÿ�׷��� ���۸� ������ ũ��� �����Ѵ�.
+    // Size the datagram buffer to the packet.
     setData(szPacketHeader + packetSize);
 
-    // ��Ŷ ����� �����Ѵ�.
+    // Write the packet header.
     write((char*)&packetID, szPacketID);
     write((char*)&packetSize, szPacketSize);
 
-    // ��Ŷ �ٵ� �����Ѵ�.
+    // Write the packet body.
     pPacket->write(*this);
 
     __END_CATCH
@@ -252,8 +182,7 @@ void Datagram::write(const DatagramPacket* pPacket) {
 //
 // set data
 //
-// �����ͱ׷����Ͽ��� �о���� �����͸� ���ι��ۿ�
-// �����Ѵ�.
+// Stores data read from the datagram socket into the internal buffer.
 //
 //////////////////////////////////////////////////////////////////////
 void Datagram::setData(char* data, uint len) {

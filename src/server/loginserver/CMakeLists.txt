@@ -72,6 +72,9 @@ target_link_libraries(loginserver PRIVATE
     Core
     LoginServerBilling
     LoginServerCBilling
+    # The wire archive itself (task 2.4) — also reached transitively through
+    # Core/LoginServerPackets, named here so the layering is visible.
+    de-kernel
     ${MYSQL_LIBRARY}
     Threads::Threads
     ${EXTRA_LIBS}

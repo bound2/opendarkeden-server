@@ -2,7 +2,11 @@
 //
 // Filename    : SerialDatagram.cpp
 // Written By  : reiot@ewestsoft.com
-// Description :
+// Description : Pure wire framing for serial-numbered UDP datagrams.
+//               The factory-backed receive path
+//               (read(SerialDatagramPacket*&)) lives in
+//               DatagramFactoryRead.cpp: it needs PacketFactoryManager,
+//               which the kernel must not depend on (rule K1/K2).
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -12,7 +16,6 @@
 #include <exception>
 
 #include "Assert.h"
-#include "PacketFactoryManager.h"
 #include "SerialDatagramPacket.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -44,7 +47,7 @@ SerialDatagram::~SerialDatagram() noexcept {
 
 
 //////////////////////////////////////////////////////////////////////
-// ���� ���ۿ� ����ִ� ������ �ܺ� ���۷� �����Ѵ�.
+// Copy data from the internal buffer to an external buffer.
 //////////////////////////////////////////////////////////////////////
 void SerialDatagram::read(char* buf, uint len) {
     __BEGIN_TRY
@@ -61,7 +64,7 @@ void SerialDatagram::read(char* buf, uint len) {
 
 
 //////////////////////////////////////////////////////////////////////
-// ���� ���ۿ� ����ִ� ������ �ܺ� ��Ʈ������ �����Ѵ�.
+// Copy data from the internal buffer to an external string.
 //////////////////////////////////////////////////////////////////////
 void SerialDatagram::read(string& str, uint len) {
     __BEGIN_TRY
@@ -79,76 +82,7 @@ void SerialDatagram::read(string& str, uint len) {
 
 
 //////////////////////////////////////////////////////////////////////
-//
-// SerialDatagram ��ü���� Packet ��ü�� �������.
-// SerialDatagramSocket �� ���� ������ ũ�⸸ �����(?) ũ�ٸ�,
-// peer���� ���� ��Ŷ�� �߷��� ���� ���ɼ��� ����.
-//
-// (Ư�� �츮 ���ӿ����� UDP�� ���� ���󿡼��� ���Ǳ�
-// ������ Ȯ���� �� ����..)
-//
-// *CAUTION*
-//
-// �Ʒ��� �˰�������, (1) ���� �ּҿ��� ���ƿ� 2���� ���� �ٸ� ��Ŷ��
-// recvfrom()���� ���� ���� ���ϵǾ�� �ϸ�, (2) �ϳ��� ��Ŷ�� �Ѳ�����
-// ��������.. ��� �����Ͽ����� �ǹ̰� �ִ�.
-//
-//////////////////////////////////////////////////////////////////////
-void SerialDatagram::read(SerialDatagramPacket*& pPacket) {
-    __BEGIN_TRY
-
-    Assert(pPacket == NULL);
-
-    PacketID_t packetID;
-    PacketSize_t packetSize;
-    uint serial;
-
-    // initialize packet header
-    read((char*)&packetID, szPacketID);
-    read((char*)&packetSize, szPacketSize);
-    read((char*)&serial, szuint);
-
-    cout << "SerialDatagramPacket I  D : " << packetID << endl;
-
-    // ��Ŷ ���̵� �̻��� ���
-    if (packetID >= Packet::PACKET_MAX)
-        throw InvalidProtocolException("invalid packet id");
-
-    // ��Ŷ ����� �̻��� ���
-    if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
-        throw InvalidProtocolException("too large packet size");
-
-    // �����ͱ׷��� ũ�Ⱑ ��Ŷ�� ũ�⺸�� ���� ���
-    if (m_Length < szPacketHeader + packetSize)
-        throw Error(
-            "�����ͱ׷� ��Ŷ�� �ѹ��� �������� �ʾҽ��ϴ�.");
-
-    // �����ͱ׷��� ũ�Ⱑ ��Ŷ�� ũ�⺸�� Ŭ ���
-    if (m_Length > szPacketHeader + packetSize)
-        throw Error("���� ���� �����ͱ׷� ��Ŷ�� �Ѳ����� "
-                    "���������ϴ�.");
-
-    // ��Ŷ�� �����Ѵ�.
-    pPacket = (SerialDatagramPacket*)g_pPacketFactoryManager->createPacket(packetID);
-
-    Assert(pPacket != NULL);
-
-    // �ø����� �ִ´�
-    pPacket->setSerial(serial);
-
-    // ��Ŷ�� �ʱ�ȭ�Ѵ�.
-    pPacket->read(*this);
-
-    // ��Ŷ�� ���� �ּ�/��Ʈ�� �����Ѵ�.
-    pPacket->setHost(getHost());
-    pPacket->setPort(getPort());
-
-    __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////
-// �ܺ� ���ۿ� ����ִ� ������ ���� ���۷� �����Ѵ�.
+// Copy data from an external buffer into the internal buffer.
 //////////////////////////////////////////////////////////////////////
 void SerialDatagram::write(const char* buf, uint len) {
     __BEGIN_TRY
@@ -157,7 +91,7 @@ void SerialDatagram::write(const char* buf, uint len) {
     Assert(m_OutputOffset + len <= m_Length);
     //	if (m_OutputOffset + len > m_Length)
     //	{
-    //		throw Error( "SerialDatagram::write(): ������ ������ ������ ũ�⺸�� Ů�ϴ�.");
+    //		throw Error( "SerialDatagram::write(): data is larger than the buffer.");
     //	}
 
     memcpy(&m_Data[m_OutputOffset], buf, len);
@@ -169,12 +103,12 @@ void SerialDatagram::write(const char* buf, uint len) {
 
 
 //////////////////////////////////////////////////////////////////////
-// �ܺ� ��Ʈ���� ����ִ� ������ ���� ���۷� �����Ѵ�.
+// Copy an external string into the internal buffer.
 //
 // *CAUTION*
 //
-// ��� write()���� write(const char*,uint)�� ����ϹǷ�, m_OutputOffset
-// �� �������� �ʿ�� ����.
+// Every write() goes through write(const char*,uint), so m_OutputOffset
+// does not need adjusting here.
 //
 //////////////////////////////////////////////////////////////////////
 void SerialDatagram::write(const string& str) {
@@ -194,11 +128,9 @@ void SerialDatagram::write(const string& str) {
 //
 // write packet
 //
-// ��Ŷ�� ���̳ʸ� �̹����� �����ͱ׷����� ����ִ´�.
-// ��Ŷ�� �����ϴ� �ʿ��� �� �޽�带 ȣ���ϸ�, �� ���¿���
-// �����ͱ׷���
-// ���� ���۴� NULL �̾�� �Ѵ�. �� �� �޽�带 ȣ���� �� ���۰�
-// �Ҵ� �Ǿ�� �Ѵ�.
+// Serializes the packet's binary image into the datagram. Call this on
+// the sending side; the datagram's internal buffer must be NULL before
+// the call and is allocated by it.
 //
 //////////////////////////////////////////////////////////////////////
 void SerialDatagram::write(const SerialDatagramPacket* pPacket) {
@@ -210,15 +142,15 @@ void SerialDatagram::write(const SerialDatagramPacket* pPacket) {
     PacketSize_t packetSize = pPacket->getPacketSize();
     uint serial = pPacket->getSerial();
 
-    // ����Ÿ�׷��� ���۸� ������ ũ��� �����Ѵ�.
+    // Size the datagram buffer to the packet.
     setData(szPacketHeader + packetSize);
 
-    // ��Ŷ ����� �����Ѵ�.
+    // Write the packet header.
     write((char*)&packetID, szPacketID);
     write((char*)&packetSize, szPacketSize);
     write((char*)&serial, szuint);
 
-    // ��Ŷ �ٵ� �����Ѵ�.
+    // Write the packet body.
     pPacket->write(*this);
 
     __END_CATCH
@@ -229,8 +161,7 @@ void SerialDatagram::write(const SerialDatagramPacket* pPacket) {
 //
 // set data
 //
-// �����ͱ׷����Ͽ��� �о���� �����͸� ���ι��ۿ�
-// �����Ѵ�.
+// Stores data read from the datagram socket into the internal buffer.
 //
 //////////////////////////////////////////////////////////////////////
 void SerialDatagram::setData(char* data, uint len) {
