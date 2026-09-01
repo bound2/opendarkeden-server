@@ -9,6 +9,7 @@
 
 add_library(de-core STATIC
     Formulas.cpp
+    SkillOutputFormulas.cpp
 )
 
 target_include_directories(de-core PUBLIC ${CMAKE_SOURCE_DIR}/src)

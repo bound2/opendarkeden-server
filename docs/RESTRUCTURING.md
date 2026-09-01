@@ -73,7 +73,7 @@ predated that pass); only the rows `ratchets.sh` names are enforced so far.
 | `src/server/gameserver/InitAllStat.cpp` | 4,949 (enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,905 |
 | `src/server/gameserver/Slayer.cpp` | 4,375 |
-| `src/server/gameserver/skill/SkillFormula.cpp` | 3,081 |
+| `src/server/gameserver/skill/SkillFormula.cpp` | 809 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
 | `src/server/gameserver/skill/HitRoll.cpp` | 774 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 
 Once Phase 1's test harness exists, encode R1–R5 as **ratchet tests**: the
@@ -764,8 +764,34 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > ratio and the blood-drain defense gathering remain inline), pinned by
   > 19 more tests (62 assertions) including the floorless negative
   > `flareRatio` and the toward-zero negative-bonus truncation;
-  > `HitRoll.cpp` joins R6 as R6c. Next: `SkillFormula.cpp` (hit-chance), then the
-  > `InitAllStat.cpp` bodies.
+  > `HitRoll.cpp` joins R6 as R6c.
+  > **`SkillFormula.cpp` is extracted (2026-09-01)**: 293 of the 304
+  > per-skill `computeOutput` formula bodies moved verbatim to
+  > `src/domain/SkillOutputFormulas.cpp` (decore::skillformula — mirror
+  > SkillInput/SkillOutput structs with identical field names/enum values
+  > so the diff is a pure move; comments carried along, legacy encoding
+  > included); the member functions are now one-line delegation macros
+  > (SkillFormula.cpp 3,081→809, joins R6 as R6d). The 11 formulas that
+  > roll dice inline (`Random()`/`rand()` — CriticalGround, MeteorStrike,
+  > DuplicateSelf, the four axe-throw skills, Cannonade, SelfDestruction,
+  > BloodCurse, VoodooRing) keep their original bodies in the adapter
+  > file: the roll stays out of de-core, the HitRoll rule. Three
+  > impurities were externalized, each preserving observable behavior: the
+  > `g_pSkillInfoManager->getGradeByDomainLevel` call becomes a
+  > `DomainGrade` input fetched only by the three grade-using adapters
+  > (ContinualLight/Purify/DetectInvisibility — same call, same possible
+  > throw, on the same invocations); the `Item::ItemClass` comparisons
+  > become a `GunClass` enum the adapter maps (four gun classes + Other);
+  > `HeadShot`'s `Assert(false)` on a non-gun class fires in the adapter
+  > before delegation (equivalent: every caller passes a freshly zeroed
+  > SkillOutput — verified across all 402 call sites — so the copy-back of
+  > all six fields is also identical to the original partial assignments).
+  > `formula_tests` pins every special-cased formula (gun branches, grade
+  > switches, party boosts, the no-break HeadShot fallthrough where every
+  > in-range Range cascades to the case-1 damage, Revealer's
+  > Delay-before-boost ordering quirk) plus a representative spread
+  > (clamps, negative outputs, Delay=Duration couplings, empty formulas).
+  > Next: the `InitAllStat.cpp` bodies.
   - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
     `InitAllStat.cpp` / `HitRoll.cpp`.
 
