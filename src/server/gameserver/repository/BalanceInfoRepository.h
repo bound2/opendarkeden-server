@@ -1,6 +1,7 @@
 #ifndef __BALANCE_INFO_REPOSITORY_H__
 #define __BALANCE_INFO_REPOSITORY_H__
 
+#include <string>
 #include <vector>
 
 // Read-only seam for the level/exp BALANCE tables (task 3.2): the

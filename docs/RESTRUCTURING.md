@@ -1451,34 +1451,46 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > undefined macros) and five files no build target compiles
   > (Vampire_backup, GameServerInfoManager, EventMonsterNameManager,
   > GameWorldInfoManager, MoonCardUtil).
-  > **ExpTable template (2026-09-02, stacked on the session round)**: the
-  > one header R2 counted, SomethingGrowingUp.h — R2 14→13, R3 unchanged
-  > (it counts .cpp files). `ExpTable<...>::load` formatted
+  > **ExpTable template (2026-09-02, stacked on the session round)**:
+  > the one header R2 counted, SomethingGrowingUp.h — R2 14→13, R3
+  > unchanged (it counts .cpp files). `ExpTable<...>::load` formatted
   > "SELECT %s, %s, %s FROM %s %s" from its subclasses' column and table
   > names (RankExpTable's "where RankType=<n>" condition, or "" — which
   > leaves the original's trailing space) into a heap buffer and handed
   > that string to executeQuery as a FORMAT — a second printf pass that
   > was harmless only because every '%' had already been expanded.
   > `BalanceInfoRepository::loadExpTable` takes the five identifiers as
-  > data and formats once; the bytes on the wire are the same. Its
-  > callers are the three ExpTable subclasses (AdvancementClassExpTable,
-  > RankExpTable, SlayerAttrExpTable's STR/DEX/INT tables). Disclosures:
-  > the original declared `Statement* pStmt` uninitialised while END_DB
-  > deletes it (the RegenZoneManager quirk again), and freed its
-  > `new char[]` query buffer with SAFE_DELETE (delete, not delete[]) —
-  > both gone with the buffer; the seam initialises its Statement. No fake
-  > tier; +1 integration test (RankEXPInfo with and without the condition
-  > against COUNT(*) and per-level GoalExp, AdvancementClassEXPInfo and
-  > STRBalanceInfo non-empty). Remaining SQL under gameserver/: R2 = 13
-  > files — CreatureUtil.cpp (128, the character-deletion flow), the
-  > guild trio (65), TradeManager (deferred above), and nine files whose
-  > SQL never runs: EventShutdown (its two blocks sit in the `#else` of
-  > `#if !defined(__THAILAND_SERVER__) && !defined(__CHINA_SERVER__)`)
-  > and SystemAvailabilitiesManager (under the same undefined macros),
-  > SMSServiceThread (a thread GameServer.cpp never starts, and its own
-  > connection), and the five no build target compiles (Vampire_backup,
-  > GameServerInfoManager, EventMonsterNameManager, GameWorldInfoManager,
-  > MoonCardUtil).
+  > data and formats once; the bytes on the wire are the same (the
+  > template is 28 bytes and its five "%s" expand to nothing, so the
+  > output is 18 + pieces against a buffer of 28 + pieces — nine bytes
+  > of headroom for every input — and the original snprintf never
+  > truncated). Its callers are the three ExpTable subclasses
+  > (AdvancementClassExpTable, RankExpTable, SlayerAttrExpTable's
+  > STR/DEX/INT tables). Disclosures: the original declared `Statement*
+  > pStmt` uninitialised while END_DB deletes it (the RegenZoneManager
+  > quirk again), and freed its `new char[]` query buffer with
+  > SAFE_DELETE (delete, not delete[]) — both gone with the buffer; the
+  > seam initialises its Statement; the original leaked that buffer on
+  > every throwing path (END_DB rethrew before the trailing SAFE_DELETE,
+  > and an AssertionError bypassed END_DB altogether, taking the
+  > Statement with it), and the level Asserts now fire after the
+  > statement is closed rather than mid-cursor (the partial fill of
+  > m_Records is the same). STRBalanceInfo.AccumExp exceeds INT_MAX in
+  > its top rows and truncates through getInt as it always did. No fake
+  > tier; +1 integration test (RankEXPInfo with and without the
+  > condition against COUNT(*) and per-level GoalExp,
+  > AdvancementClassEXPInfo and STRBalanceInfo non-empty). Remaining SQL
+  > under gameserver/: R2 = 13 files — CreatureUtil.cpp (128, the
+  > character-deletion flow), the guild trio (65), TradeManager
+  > (deferred above), and eight files whose SQL never runs:
+  > EventShutdown (its two blocks sit in the `#else` of `#if
+  > !defined(__THAILAND_SERVER__) && !defined(__CHINA_SERVER__)`) and
+  > SystemAvailabilitiesManager (under the same two macros, which no
+  > build file defines — ItemUtil.cpp's TU-local `#define
+  > __THAILAND_SERVER__` reaches neither), SMSServiceThread (a thread
+  > GameServer.cpp never starts, and its own connection), and the five
+  > no build target compiles (Vampire_backup, GameServerInfoManager,
+  > EventMonsterNameManager, GameWorldInfoManager, MoonCardUtil).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

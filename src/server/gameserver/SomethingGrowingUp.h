@@ -1,7 +1,6 @@
 #ifndef __SOMETHING_GROWING_UP_H__
 #define __SOMETHING_GROWING_UP_H__
 
-#include <cstdio>
 #include <string>
 #include <vector>
 

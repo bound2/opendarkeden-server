@@ -2883,11 +2883,14 @@ TEST(ExpTableMySQL, ExpTablesLoadByNamedColumnsWithAndWithoutACondition) {
                   ranks[r].goalExp);
     }
 
-    // No condition: the whole table (and the original's trailing space).
+    // No condition: the whole table. The original's trailing space lives only
+    // in the statement's bytes; the rows cannot show it.
     std::vector<ExpTableRow> all = repository.loadExpTable("Level", "GoalExp", "AccumExp", "RankEXPInfo", "");
     EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM RankEXPInfo").c_str()), (int)all.size());
 
     EXPECT_FALSE(repository.loadExpTable("Level", "GoalExp", "AccumExp", "AdvancementClassEXPInfo", "").empty());
+    // STRBalanceInfo.AccumExp exceeds INT_MAX in the top rows; the row's int
+    // (getInt = atoi) truncates exactly as the original's getInt did.
     EXPECT_FALSE(repository.loadExpTable("Level", "GoalExp", "AccumExp", "STRBalanceInfo", "").empty());
 }
 
