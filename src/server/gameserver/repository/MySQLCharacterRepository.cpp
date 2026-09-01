@@ -39,8 +39,226 @@ namespace {
 //    — nothing here checks it, exactly like the inline code.
 //  - Character names are interpolated raw (no escaping), as the call
 //    sites always did.
+//  - The load SELECTs are POSITIONAL: the loaders read column N of the
+//    result, so the column list's order is the contract and is kept
+//    verbatim — including `Rank` (see above), the un-spaced
+//    "Sex,MasterEffectColor" token and the INTE spelling (INT is a
+//    MySQL type keyword). The one deliberate byte change: the original
+//    literals were backslash-continued across source lines and leaked
+//    their indentation tabs into the SQL text; those tab runs are single
+//    spaces here. Whitespace between tokens, immaterial to the parser.
+//  - The loads filter on Active = 'ACTIVE': an INACTIVE row (a character
+//    deleted while the login server handed it over) loads as "no row".
+//    Name is the primary key, so at most one row can match.
+//  - Every selected column is read with the driver getter the inline
+//    code used on it — getInt (atoi of the field text) for nearly all,
+//    getBYTE for StashNum and the vampire/ousters Competence pair,
+//    getString for the enum/varchar columns. Out-of-int-range unsigned
+//    values (Fame, Gold, GoalExp are int(10) unsigned) come back through
+//    atoi exactly as they always did.
 class MySQLCharacterRepository : public CharacterRepository {
 public:
+    bool loadSlayer(const string& ownerName, SlayerLoadRecord& record) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT Name, AdvancementClass, AdvancementGoalExp, Competence, CompetenceShape, "
+                "Sex,MasterEffectColor, "
+                "HairStyle, HairColor, SkinColor, Phone, STR, STRGoalExp, DEX, DEXGoalExp, INTE, INTGoalExp, "
+                "AdvancedSTR, AdvancedDEX, AdvancedINT, Bonus, `Rank`, RankGoalExp, CurrentHP, HP, CurrentMP, MP, "
+                "Fame, Gold, GuildID, BladeLevel, BladeGoalExp, SwordLevel, SwordGoalExp, GunLevel, GunGoalExp, "
+                "EnchantLevel, EnchantGoalExp, HealLevel, HealGoalExp, ETCLevel, ETCGoalExp, ZoneID, XCoord, YCoord, "
+                "Sight, GunBonusExp, RifleBonusExp, Alignment, StashGold, StashNum, ResurrectZone, Reward, SMSCharge "
+                "FROM Slayer WHERE Name = '%s' AND Active = 'ACTIVE'",
+                ownerName.c_str());
+
+            if (pResult->next()) {
+                uint i = 0;
+                record.name = pResult->getString(++i);
+                record.advancementClass = pResult->getInt(++i);
+                record.advancementGoalExp = pResult->getInt(++i);
+                record.competence = pResult->getInt(++i);
+                record.competenceShape = pResult->getInt(++i);
+                record.sex = pResult->getString(++i);
+                record.masterEffectColor = pResult->getInt(++i);
+                record.hairStyle = pResult->getString(++i);
+                record.hairColor = pResult->getInt(++i);
+                record.skinColor = pResult->getInt(++i);
+                record.phone = pResult->getString(++i);
+                record.str = pResult->getInt(++i);
+                record.strGoalExp = pResult->getInt(++i);
+                record.dex = pResult->getInt(++i);
+                record.dexGoalExp = pResult->getInt(++i);
+                record.inte = pResult->getInt(++i);
+                record.intGoalExp = pResult->getInt(++i);
+                record.advancedSTR = pResult->getInt(++i);
+                record.advancedDEX = pResult->getInt(++i);
+                record.advancedINT = pResult->getInt(++i);
+                record.bonus = pResult->getInt(++i);
+                record.rank = pResult->getInt(++i);
+                record.rankGoalExp = pResult->getInt(++i);
+                record.currentHP = pResult->getInt(++i);
+                record.maxHP = pResult->getInt(++i);
+                record.currentMP = pResult->getInt(++i);
+                record.maxMP = pResult->getInt(++i);
+                record.fame = pResult->getInt(++i);
+                record.gold = pResult->getInt(++i);
+                record.guildID = pResult->getInt(++i);
+                record.bladeLevel = pResult->getInt(++i);
+                record.bladeGoalExp = pResult->getInt(++i);
+                record.swordLevel = pResult->getInt(++i);
+                record.swordGoalExp = pResult->getInt(++i);
+                record.gunLevel = pResult->getInt(++i);
+                record.gunGoalExp = pResult->getInt(++i);
+                record.enchantLevel = pResult->getInt(++i);
+                record.enchantGoalExp = pResult->getInt(++i);
+                record.healLevel = pResult->getInt(++i);
+                record.healGoalExp = pResult->getInt(++i);
+                record.etcLevel = pResult->getInt(++i);
+                record.etcGoalExp = pResult->getInt(++i);
+                record.zoneID = pResult->getInt(++i);
+                record.x = pResult->getInt(++i);
+                record.y = pResult->getInt(++i);
+                record.sight = pResult->getInt(++i);
+                record.gunBonusExp = pResult->getInt(++i);
+                record.rifleBonusExp = pResult->getInt(++i);
+                record.alignment = pResult->getInt(++i);
+                record.stashGold = pResult->getInt(++i);
+                record.stashNum = pResult->getBYTE(++i);
+                record.resurrectZone = pResult->getInt(++i);
+                record.reward = pResult->getInt(++i);
+                record.smsCharge = pResult->getInt(++i);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool loadVampire(const string& ownerName, VampireLoadRecord& record) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT Name, AdvancementClass, AdvancementGoalExp, Sex, MasterEffectColor, BatColor, SkinColor, STR, "
+                "DEX, INTE, HP, CurrentHP, Fame, GoalExp, Level, Bonus, Gold, GuildID, ZoneID, XCoord, YCoord, Sight, "
+                "Alignment, StashGold, StashNum, Competence, CompetenceShape, ResurrectZone, SilverDamage, Reward, "
+                "SMSCharge, `Rank`, RankGoalExp FROM Vampire WHERE Name = '%s' AND Active = 'ACTIVE'",
+                ownerName.c_str());
+
+            if (pResult->next()) {
+                uint i = 0;
+                record.name = pResult->getString(++i);
+                record.advancementClass = pResult->getInt(++i);
+                record.advancementGoalExp = pResult->getInt(++i);
+                record.sex = pResult->getString(++i);
+                record.masterEffectColor = pResult->getInt(++i);
+                record.batColor = pResult->getInt(++i);
+                record.skinColor = pResult->getInt(++i);
+                record.str = pResult->getInt(++i);
+                record.dex = pResult->getInt(++i);
+                record.inte = pResult->getInt(++i);
+                record.maxHP = pResult->getInt(++i);
+                record.currentHP = pResult->getInt(++i);
+                record.fame = pResult->getInt(++i);
+                record.goalExp = pResult->getInt(++i);
+                record.level = pResult->getInt(++i);
+                record.bonus = pResult->getInt(++i);
+                record.gold = pResult->getInt(++i);
+                record.guildID = pResult->getInt(++i);
+                record.zoneID = pResult->getInt(++i);
+                record.x = pResult->getInt(++i);
+                record.y = pResult->getInt(++i);
+                record.sight = pResult->getInt(++i);
+                record.alignment = pResult->getInt(++i);
+                record.stashGold = pResult->getInt(++i);
+                record.stashNum = pResult->getBYTE(++i);
+                record.competence = pResult->getBYTE(++i);
+                record.competenceShape = pResult->getBYTE(++i);
+                record.resurrectZone = pResult->getInt(++i);
+                record.silverDamage = pResult->getInt(++i);
+                record.reward = pResult->getInt(++i);
+                record.smsCharge = pResult->getInt(++i);
+                record.rank = pResult->getInt(++i);
+                record.rankGoalExp = pResult->getInt(++i);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool loadOusters(const string& ownerName, OustersLoadRecord& record) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT Name, AdvancementClass, AdvancementGoalExp, Sex,MasterEffectColor, STR, DEX, INTE, HP, "
+                "CurrentHP, MP, CurrentMP, Fame, GoalExp, Level, Bonus, SkillBonus, Gold, GuildID, ZoneID, XCoord, "
+                "YCoord, Sight, Alignment, StashGold, StashNum, Competence, CompetenceShape, ResurrectZone, "
+                "SilverDamage, SMSCharge, `Rank`, RankGoalExp, HairColor FROM Ousters WHERE Name = '%s' AND Active = "
+                "'ACTIVE'",
+                ownerName.c_str());
+
+            if (pResult->next()) {
+                uint i = 0;
+                record.name = pResult->getString(++i);
+                record.advancementClass = pResult->getInt(++i);
+                record.advancementGoalExp = pResult->getInt(++i);
+                record.sex = pResult->getString(++i);
+                record.masterEffectColor = pResult->getInt(++i);
+                record.str = pResult->getInt(++i);
+                record.dex = pResult->getInt(++i);
+                record.inte = pResult->getInt(++i);
+                record.maxHP = pResult->getInt(++i);
+                record.currentHP = pResult->getInt(++i);
+                record.maxMP = pResult->getInt(++i);
+                record.currentMP = pResult->getInt(++i);
+                record.fame = pResult->getInt(++i);
+                record.goalExp = pResult->getInt(++i);
+                record.level = pResult->getInt(++i);
+                record.bonus = pResult->getInt(++i);
+                record.skillBonus = pResult->getInt(++i);
+                record.gold = pResult->getInt(++i);
+                record.guildID = pResult->getInt(++i);
+                record.zoneID = pResult->getInt(++i);
+                record.x = pResult->getInt(++i);
+                record.y = pResult->getInt(++i);
+                record.sight = pResult->getInt(++i);
+                record.alignment = pResult->getInt(++i);
+                record.stashGold = pResult->getInt(++i);
+                record.stashNum = pResult->getBYTE(++i);
+                record.competence = pResult->getBYTE(++i);
+                record.competenceShape = pResult->getBYTE(++i);
+                record.resurrectZone = pResult->getInt(++i);
+                record.silverDamage = pResult->getInt(++i);
+                record.smsCharge = pResult->getInt(++i);
+                record.rank = pResult->getInt(++i);
+                record.rankGoalExp = pResult->getInt(++i);
+                record.hairColor = pResult->getInt(++i);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
     void saveSlayerVitals(const string& ownerName, const SlayerVitalsRecord& record) {
         Statement* pStmt = NULL;
 

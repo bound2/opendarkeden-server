@@ -54,8 +54,8 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 101 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 314 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining) |
+| R2 | Files with inline SQL in gameserver root | 98 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 308 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -843,6 +843,57 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > SGAddGuildMemberOKHandler inline, and the sharedserver's
   > GSQuitGuildHandler from another process — named in
   > GoldRepository.h, to be extracted with their own flows.
+  > **Character-load round (2026-09-01)**: the race files' login-time
+  > `load()` SELECTs moved into `CharacterRepository` as
+  > `loadSlayer/loadVampire/loadOusters` returning per-race load
+  > records (54/33/34 columns, in SELECT order). The transplant was
+  > mechanical — a script mapped every positional `pResult->getX(++i)`
+  > read, in order, to a record field and left comment lines alone, so
+  > the diff is checkable rather than transcribed; every record field is
+  > typed to the driver getter the inline code used (int/BYTE/string), so
+  > each narrowing the race class performed at its setter still happens
+  > there on the same value. Quirks quarantined in the impl: the column
+  > lists are the positional contract and are verbatim (the only byte
+  > change is the indentation tabs the backslash-continued literals had
+  > leaked into the SQL, now single spaces); `Active = 'ACTIVE'` filters
+  > an INACTIVE (deleted-in-handover) row into "no row"; the vampire/
+  > ousters Competence pair is read through getBYTE where the slayer
+  > uses getInt (tinyint columns, so nothing is lost); Sight and Reward
+  > are selected and surfaced but the loader overrides the one (to 13)
+  > and nothing consumes the other (the reward flow is dead in both
+  > races). **`SkillSaveRepository`** is new and encloses the three
+  > learned-skill tables completely on the gameserver side: the loads
+  > from the race files AND the insert/update/delete from
+  > `SkillSlot`/`VampireSkillSlot`/`OustersSkillSlot` (the per-character
+  > purges in CreatureUtil.cpp and the loginserver's CLDeletePCHandler
+  > stay inline with their multi-table deletion flow). Two record
+  > families on purpose — driver-typed `*Row` for loads, member-typed
+  > `*Record` for writes — so the varargs bytes reaching the format
+  > strings are unchanged (incl. the time_t NextTime through `%d` and
+  > the DWORD level/exp/delay through `%d`, preserved not fixed). The
+  > tables are keyless: duplicates store, an UPDATE/DELETE hits every
+  > row of the type. Row order of the ORDER-BY-less loads was checked
+  > against the real server BEFORE being written down — and the server
+  > falsified the first draft's "SkillType ascending via the secondary
+  > index" claim: on the tier's near-empty table the uncovered SELECT
+  > comes back in INSERTION order (a scan in hidden-row-id order), and a
+  > production-sized table may take the index and reorder. Pinned as
+  > observed and documented as the optimizer's choice, not a contract;
+  > the vampire/ousters loaders keep the first row of a duplicated type,
+  > so which duplicate wins is plan-dependent. No fake
+  > tier for either seam, by the standing integration-over-fakes call;
+  > +14 integration tests (every load column asserted at its SELECT
+  > position as the sentinel, so a transposed pair fails; every
+  > skill-save write asserted for both the columns it writes and the
+  > ones it must leave alone). Slayer.cpp, Vampire.cpp and Ousters.cpp
+  > are now SQL-free (R2 101→98), as are the three slot files (R3
+  > 314→308). To make R2's textual grep honest, the dead commented-out
+  > blocks that still spelled `executeQuery` were deleted rather than
+  > edited: both races' `if (reward != 0)` reward flows (already proven
+  > dead in the previous round) and Slayer::getIP's UserIPInfo lookup —
+  > git history keeps them. The `#include "DB.h"` left each cleansed
+  > file. Korean comments on the re-indented lines were translated.
+  > Remaining SQL under gameserver/: the long tail (R2 = 98 files).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

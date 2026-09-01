@@ -552,6 +552,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLGoldRepository.cpp
     repository/MySQLGoodsRepository.cpp
     repository/MySQLRankBonusRepository.cpp
+    repository/MySQLSkillSaveRepository.cpp
     repository/MySQLStashRepository.cpp
     LevelNickInfoManager.cpp
     SiegeManager.cpp

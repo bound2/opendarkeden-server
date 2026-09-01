@@ -6,7 +6,7 @@
 
 #include "VampireSkillSlot.h"
 
-#include "DB.h"
+#include "repository/SkillSaveRepository.h"
 
 VampireSkillSlot::VampireSkillSlot() throw() {
     __BEGIN_TRY
@@ -41,33 +41,12 @@ void VampireSkillSlot::create(const string& OwnerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-        sql << "INSERT INTO VampireSkillSave "
-            << "(OwnerID , SkillType , Delay , CastingTime , NextTime)"
-            << " VALUES ('" << OwnerID
-            <<"' , " << (int)m_SkillType
-            << " , " << (int)m_Interval
-            << " , " << (int)m_CastingTime
-            << " , " << (int)m_runTime.tv_sec
-            << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("INSERT INTO VampireSkillSave (OwnerID, SkillType, Delay, CastingTime, NextTime) VALUES ( "
-                            "'%s', %d, %d, %d, %d )",
-                            OwnerID.c_str(), m_SkillType, m_Interval, m_CastingTime, m_runTime.tv_sec);
-
-
-        SAFE_DELETE(pStmt); // by sigi
-    }
-    END_DB(pStmt)
+    VampireSkillRecord record;
+    record.skillType = m_SkillType;
+    record.delay = m_Interval;
+    record.castingTime = m_CastingTime;
+    record.nextTime = m_runTime.tv_sec;
+    defaultSkillSaveRepository().insertVampireSkill(OwnerID, record);
 
     __END_CATCH
 }
@@ -77,28 +56,7 @@ void VampireSkillSlot::save(const string& OwnerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE VampireSkillSave SET "
-            << "Delay = " << (int)m_Interval
-            << " WHERE OwnerID = '" << OwnerID
-            << "' AND SkillType = " << (int)m_SkillType;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("UPDATE VampireSkillSave SET Delay=%d WHERE OwnerID='%s' AND SkillType=%d", m_Interval,
-                            OwnerID.c_str(), m_SkillType);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSkillSaveRepository().updateVampireSkill(OwnerID, m_SkillType, m_Interval);
 
     __END_CATCH
 }
@@ -108,29 +66,7 @@ void VampireSkillSlot::save()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE VampireSkillSave SET "
-            << "Delay = " << (int)m_Interval
-            << " WHERE OwnerID = '" << m_Name
-            << "' AND SkillType = " << (int)m_SkillType;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-
-        pStmt->executeQuery("UPDATE VampireSkillSave SET Delay=%d WHERE OwnerID='%s' AND SkillType=%d", m_Interval,
-                            m_Name.c_str(), m_SkillType);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSkillSaveRepository().updateVampireSkill(m_Name, m_SkillType, m_Interval);
 
     __END_CATCH
 }

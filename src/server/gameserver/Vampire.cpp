@@ -8,7 +8,6 @@
 
 #include "AbilityBalance.h"
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "EffectLoaderManager.h"
 #include "FlagSet.h"
 #include "GamePlayer.h"
@@ -28,6 +27,7 @@
 #include "VampEXPInfo.h"
 #include "repository/CharacterRepository.h"
 #include "repository/GoldRepository.h"
+#include "repository/SkillSaveRepository.h"
 #include "repository/StashRepository.h"
 // #include "RankEXPInfo.h"
 #include <stdio.h>
@@ -500,174 +500,113 @@ bool Vampire::load()
     if (!PlayerCreature::load())
         return false;
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    VampireLoadRecord record;
+    if (!defaultCharacterRepository().loadVampire(m_Name, record))
+        return false;
 
-    int reward = 0;
+    setName(record.name);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        // add by Sonic 2006.10.28
-        pResult = pStmt->executeQuery("SELECT Name, AdvancementClass, AdvancementGoalExp, Sex, \
-			MasterEffectColor, \
-			BatColor, SkinColor,\
-			STR, DEX, INTE, HP, CurrentHP, Fame,\
-			GoalExp, Level, Bonus, Gold, GuildID,\
-			ZoneID, XCoord, YCoord, Sight, Alignment,\
-			StashGold, StashNum, Competence, CompetenceShape, ResurrectZone, SilverDamage, Reward, SMSCharge,\
-			`Rank`, RankGoalExp FROM Vampire WHERE Name = '%s' AND Active = 'ACTIVE'",
-                                      m_Name.c_str());
-        // end by Sonic
+    Level_t advLevel = record.advancementClass;
+    Exp_t advGoalExp = record.advancementGoalExp;
 
-        if (pResult->getRowCount() == 0) {
-            // throw Error("Critical Error : data intergrity broken. (로그인 서버에서 게임 서버로 넘어오는 동안에
-            // 캐릭터가 삭제되었습니다.)");
-            SAFE_DELETE(pStmt);
-            return false;
-        }
+    m_pAdvancementClass =
+        new AdvancementClass(advLevel, advGoalExp, AdvancementClassExpTable::s_AdvancementClassExpTable);
+    if (getAdvancementClassLevel() > 0)
+        m_bAdvanced = true;
 
-        pResult->next();
+    setSex(record.sex);
+    // edit by sonic 2006.10.28
+    setMasterEffectColor(record.masterEffectColor);
+    // end by sonic
+    setBatColor(record.batColor);
+    setSkinColor(record.skinColor);
 
-        uint i = 0;
+    m_STR[ATTR_BASIC] = record.str;
+    m_STR[ATTR_CURRENT] = m_STR[ATTR_BASIC];
+    m_STR[ATTR_MAX] = m_STR[ATTR_BASIC];
 
-        setName(pResult->getString(++i));
+    m_DEX[ATTR_BASIC] = record.dex;
+    m_DEX[ATTR_CURRENT] = m_DEX[ATTR_BASIC];
+    m_DEX[ATTR_MAX] = m_DEX[ATTR_BASIC];
 
-        Level_t advLevel = pResult->getInt(++i);
-        Exp_t advGoalExp = pResult->getInt(++i);
+    m_INT[ATTR_BASIC] = record.inte;
+    m_INT[ATTR_CURRENT] = m_INT[ATTR_BASIC];
+    m_INT[ATTR_MAX] = m_INT[ATTR_BASIC];
 
-        m_pAdvancementClass =
-            new AdvancementClass(advLevel, advGoalExp, AdvancementClassExpTable::s_AdvancementClassExpTable);
-        if (getAdvancementClassLevel() > 0)
-            m_bAdvanced = true;
+    setHP(record.maxHP, ATTR_MAX);
+    setHP(getHP(ATTR_MAX), ATTR_BASIC);
+    setHP(record.currentHP, ATTR_CURRENT);
 
-        setSex(pResult->getString(++i));
-        // edit by sonic 2006.10.28
-        setMasterEffectColor(pResult->getInt(++i));
-        // end by sonic
-        setBatColor(pResult->getInt(++i));
-        setSkinColor(pResult->getInt(++i));
+    setFame(record.fame);
 
-        m_STR[ATTR_BASIC] = pResult->getInt(++i);
-        m_STR[ATTR_CURRENT] = m_STR[ATTR_BASIC];
-        m_STR[ATTR_MAX] = m_STR[ATTR_BASIC];
+    //		setExp(pResult->getInt(++i));
+    setGoalExp(record.goalExp);
+    //		setExpOffset(pResult->getInt(++i));
+    setLevel(record.level);
+    setBonus(record.bonus);
 
-        m_DEX[ATTR_BASIC] = pResult->getInt(++i);
-        m_DEX[ATTR_CURRENT] = m_DEX[ATTR_BASIC];
-        m_DEX[ATTR_MAX] = m_DEX[ATTR_BASIC];
+    // setInMagics(pResult->getString(++i));
+    setGold(record.gold);
+    setGuildID(record.guildID);
 
-        m_INT[ATTR_BASIC] = pResult->getInt(++i);
-        m_INT[ATTR_CURRENT] = m_INT[ATTR_BASIC];
-        m_INT[ATTR_MAX] = m_INT[ATTR_BASIC];
+    //		setZoneID(pResult->getInt(++i));
+    ZoneID_t zoneID = record.zoneID;
+    setX(record.x);
+    setY(record.y);
 
-        setHP(pResult->getInt(++i), ATTR_MAX);
-        setHP(getHP(ATTR_MAX), ATTR_BASIC);
-        setHP(pResult->getInt(++i), ATTR_CURRENT);
+    setSight(record.sight);
 
-        setFame(pResult->getInt(++i));
+    setAlignment(record.alignment);
 
-        //		setExp(pResult->getInt(++i));
-        setGoalExp(pResult->getInt(++i));
-        //		setExpOffset(pResult->getInt(++i));
-        setLevel(pResult->getInt(++i));
-        setBonus(pResult->getInt(++i));
+    //		for (int j = 0; j < 8; j++)
+    //			setHotKey(j, pResult->getInt(++i));
 
-        // setInMagics(pResult->getString(++i));
-        setGold(pResult->getInt(++i));
-        setGuildID(pResult->getInt(++i));
+    setStashGold(record.stashGold);
+    setStashNum(record.stashNum);
 
-        //		setZoneID(pResult->getInt(++i));
-        ZoneID_t zoneID = pResult->getInt(++i);
-        setX(pResult->getInt(++i));
-        setY(pResult->getInt(++i));
+    m_Competence = record.competence;
 
-        setSight(pResult->getInt(++i));
+    if (m_Competence >= 4)
+        m_Competence = 3;
 
-        setAlignment(pResult->getInt(++i));
+    m_CompetenceShape = record.competenceShape;
 
-        //		for (int j = 0; j < 8; j++)
-        //			setHotKey(j, pResult->getInt(++i));
+    setResurrectZoneID(record.resurrectZone);
 
-        setStashGold(pResult->getInt(++i));
-        setStashNum(pResult->getBYTE(++i));
+    m_SilverDamage = record.silverDamage;
 
-        m_Competence = pResult->getBYTE(++i);
+    // record.reward is not consumed: the reward flow that read it is dead.
+    setSMSCharge(record.smsCharge);
 
-        if (m_Competence >= 4)
-            m_Competence = 3;
+    Rank_t CurRank = record.rank;
+    RankExp_t RankGoalExp = record.rankGoalExp;
 
-        m_CompetenceShape = pResult->getBYTE(++i);
+    m_pRank = new Rank(CurRank, RankGoalExp, RankExpTable::s_RankExpTables[RANK_TYPE_VAMPIRE]);
 
-        setResurrectZoneID(pResult->getInt(++i));
+    //		setRank( pResult->getInt(++i) );
+    //		setRankExp( pResult->getInt(++i) );
+    //		setRankGoalExp( pResult->getInt(++i) );
 
-        m_SilverDamage = pResult->getInt(++i);
+    // Recompute and set maxHP.
+    // 2002.7.15 by sigi
+    // If the formula changes, computeHP in AbilityBalance.cpp must change too.
+    int maxHP = m_STR[ATTR_CURRENT] * 2 + m_INT[ATTR_CURRENT] + m_DEX[ATTR_CURRENT] + m_Level;
+    maxHP = min((int)maxHP, VAMPIRE_MAX_HP);
+    setHP(maxHP, ATTR_MAX);
 
-        reward = pResult->getInt(++i);
-        setSMSCharge(pResult->getInt(++i));
-
-        Rank_t CurRank = pResult->getInt(++i);
-        RankExp_t RankGoalExp = pResult->getInt(++i);
-
-        m_pRank = new Rank(CurRank, RankGoalExp, RankExpTable::s_RankExpTables[RANK_TYPE_VAMPIRE]);
-
-        //		setRank( pResult->getInt(++i) );
-        //		setRankExp( pResult->getInt(++i) );
-        //		setRankGoalExp( pResult->getInt(++i) );
-
-        // maxHP를 다시 계산해서 설정해준다.
-        // 2002.7.15 by sigi
-        // 공식 바뀌면 AbilityBalance.cpp의 computeHP도 수정해야한다.
-        int maxHP = m_STR[ATTR_CURRENT] * 2 + m_INT[ATTR_CURRENT] + m_DEX[ATTR_CURRENT] + m_Level;
-        maxHP = min((int)maxHP, VAMPIRE_MAX_HP);
-        setHP(maxHP, ATTR_MAX);
-
-        try {
-            setZoneID(zoneID);
-        } catch (Error& e) {
-            // 길드 아지트 문제로 본다.
-            // 길드 아지트가 한 게임 서버에만 존재하므로 다른 게임서버로 접속할 때 그 아지트로 들어가지 못한다.
-            // 길드 아지트 입구로 옮긴다.
-            ZONE_COORD ResurrectCoord;
-            g_pResurrectLocationManager->getVampirePosition(1003, ResurrectCoord);
-            setZoneID(ResurrectCoord.id);
-            setX(ResurrectCoord.x);
-            setY(ResurrectCoord.y);
-        }
-
-        SAFE_DELETE(pStmt);
+    try {
+        setZoneID(zoneID);
+    } catch (Error& e) {
+        // Treated as the guild-hideout problem:
+        // a guild hideout exists on one game server only, so a character
+        // connecting to another game server cannot enter it.
+        // Move to the hideout entrance instead.
+        ZONE_COORD ResurrectCoord;
+        g_pResurrectLocationManager->getVampirePosition(1003, ResurrectCoord);
+        setZoneID(ResurrectCoord.id);
+        setX(ResurrectCoord.x);
+        setY(ResurrectCoord.y);
     }
-    END_DB(pStmt)
-
-    /*	if (reward != 0)
-        {
-            BEGIN_DB
-            {
-                StringStream SQL;
-                SQL << "UPDATE Vampire SET Reward = 0 WHERE Name = '" << m_Name << "'";
-
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pStmt->executeQuery(SQL.toString());
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
-
-            int amount = 0;
-
-            if (m_Level>=1 && m_Level<=10)
-                amount = m_Level*2000;
-            else if (m_Level>10 && m_Level<=30)
-                amount = m_Level*3000;
-            else if (m_Level>30)
-                amount = m_Level*10000;
-
-            int offset = 1000;
-
-            for (int i=0; i<amount; i += offset)
-            {
-                increaseVampExp(offset);
-            }
-
-            reward = 0;
-        }*/
 
     //----------------------------------------------------------------------
     // Vampire Outlook Information 을 구성한다.
@@ -683,35 +622,26 @@ bool Vampire::load()
     m_VampireInfo.setCompetence(m_CompetenceShape);
 
     //----------------------------------------------------------------------
-    // 스킬을 로딩한다.
+    // Load the learned skills.
     //----------------------------------------------------------------------
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery(
-            "SELECT SkillType, Delay, CastingTime, NextTime FROM VampireSkillSave WHERE OwnerID = '%s'",
-            m_Name.c_str());
+    vector<VampireSkillRow> skillRows = defaultSkillSaveRepository().loadVampireSkills(m_Name);
+    for (size_t r = 0; r < skillRows.size(); r++) {
+        const VampireSkillRow& row = skillRows[r];
+        SkillType_t SkillType = row.skillType;
 
-        while (pResult->next()) {
-            int i = 0;
-            SkillType_t SkillType = pResult->getInt(++i);
+        if (hasSkill(SkillType) == NULL) {
+            VampireSkillSlot* pVampireSkillSlot = new VampireSkillSlot();
 
-            if (hasSkill(SkillType) == NULL) {
-                VampireSkillSlot* pVampireSkillSlot = new VampireSkillSlot();
+            pVampireSkillSlot->setName(m_Name);
+            pVampireSkillSlot->setSkillType(SkillType);
+            pVampireSkillSlot->setInterval(row.delay);
+            pVampireSkillSlot->setCastingTime(row.castingTime);
+            // pVampireSkillSlot->setRunTime (pResult->getInt(++i));
+            pVampireSkillSlot->setRunTime();
 
-                pVampireSkillSlot->setName(m_Name);
-                pVampireSkillSlot->setSkillType(SkillType);
-                pVampireSkillSlot->setInterval(pResult->getInt(++i));
-                pVampireSkillSlot->setCastingTime(pResult->getInt(++i));
-                // pVampireSkillSlot->setRunTime (pResult->getInt(++i));
-                pVampireSkillSlot->setRunTime();
-
-                addSkill(pVampireSkillSlot);
-            }
+            addSkill(pVampireSkillSlot);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     //----------------------------------------------------------------------
     // Rank Bonus 를  로딩한다.

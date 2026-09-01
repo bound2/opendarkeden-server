@@ -36,6 +36,7 @@
 #include "repository/GoodsRepository.h"
 #include "repository/NicknameRepository.h"
 #include "repository/RankBonusRepository.h"
+#include "repository/SkillSaveRepository.h"
 #include "repository/StashRepository.h"
 
 namespace {
@@ -457,6 +458,420 @@ TEST_F(CharacterMySQL, TinysaveOustersBranchHitsOnlyTheOustersTable) {
 
     EXPECT_EQ("9", queryScalar("SELECT StashNum FROM Ousters WHERE Name='" + ousters.name + "'"));
     EXPECT_EQ("0", queryScalar("SELECT StashNum FROM Slayer WHERE Name='" + ousters.name + "'"));
+}
+
+// --- character-row loads against real MySQL -------------------------------
+// The loads are POSITIONAL (column N of the SELECT lands in field N of
+// the record), so each test sets every column to its own SELECT position
+// as the sentinel: a transposed pair in the column list or the reader
+// swaps two values and fails here. Name is the one column left as
+// persisted (it is the key).
+
+TEST_F(CharacterMySQL, LoadSlayerReturnsEveryColumnInSelectPosition) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+    execSQL("UPDATE Slayer SET AdvancementClass=2, AdvancementGoalExp=3, Competence=4, CompetenceShape=5, "
+            "Sex='FEMALE', MasterEffectColor=7, HairStyle='HAIR_STYLE2', HairColor=9, SkinColor=10, "
+            "Phone='1234567', STR=12, STRGoalExp=13, DEX=14, DEXGoalExp=15, INTE=16, INTGoalExp=17, "
+            "AdvancedSTR=18, AdvancedDEX=19, AdvancedINT=20, Bonus=21, `Rank`=22, RankGoalExp=23, CurrentHP=24, "
+            "HP=25, CurrentMP=26, MP=27, Fame=28, Gold=29, GuildID=30, BladeLevel=31, BladeGoalExp=32, "
+            "SwordLevel=33, SwordGoalExp=34, GunLevel=35, GunGoalExp=36, EnchantLevel=37, EnchantGoalExp=38, "
+            "HealLevel=39, HealGoalExp=40, ETCLevel=41, ETCGoalExp=42, ZoneID=43, XCoord=44, YCoord=45, Sight=46, "
+            "GunBonusExp=47, RifleBonusExp=48, Alignment=-49, StashGold=50, StashNum=51, ResurrectZone=52, "
+            "Reward=-53, SMSCharge=54 WHERE Name='" +
+            slayer.name + "'");
+
+    SlayerLoadRecord record;
+    ASSERT_TRUE(defaultCharacterRepository().loadSlayer(slayer.name, record));
+    EXPECT_EQ(slayer.name, record.name);
+    EXPECT_EQ(2, record.advancementClass);
+    EXPECT_EQ(3, record.advancementGoalExp);
+    EXPECT_EQ(4, record.competence);
+    EXPECT_EQ(5, record.competenceShape);
+    EXPECT_EQ("FEMALE", record.sex);
+    EXPECT_EQ(7, record.masterEffectColor);
+    EXPECT_EQ("HAIR_STYLE2", record.hairStyle);
+    EXPECT_EQ(9, record.hairColor);
+    EXPECT_EQ(10, record.skinColor);
+    EXPECT_EQ("1234567", record.phone);
+    EXPECT_EQ(12, record.str);
+    EXPECT_EQ(13, record.strGoalExp);
+    EXPECT_EQ(14, record.dex);
+    EXPECT_EQ(15, record.dexGoalExp);
+    EXPECT_EQ(16, record.inte);
+    EXPECT_EQ(17, record.intGoalExp);
+    EXPECT_EQ(18, record.advancedSTR);
+    EXPECT_EQ(19, record.advancedDEX);
+    EXPECT_EQ(20, record.advancedINT);
+    EXPECT_EQ(21, record.bonus);
+    EXPECT_EQ(22, record.rank);
+    EXPECT_EQ(23, record.rankGoalExp);
+    EXPECT_EQ(24, record.currentHP);
+    EXPECT_EQ(25, record.maxHP);
+    EXPECT_EQ(26, record.currentMP);
+    EXPECT_EQ(27, record.maxMP);
+    EXPECT_EQ(28, record.fame);
+    EXPECT_EQ(29, record.gold);
+    EXPECT_EQ(30, record.guildID);
+    EXPECT_EQ(31, record.bladeLevel);
+    EXPECT_EQ(32, record.bladeGoalExp);
+    EXPECT_EQ(33, record.swordLevel);
+    EXPECT_EQ(34, record.swordGoalExp);
+    EXPECT_EQ(35, record.gunLevel);
+    EXPECT_EQ(36, record.gunGoalExp);
+    EXPECT_EQ(37, record.enchantLevel);
+    EXPECT_EQ(38, record.enchantGoalExp);
+    EXPECT_EQ(39, record.healLevel);
+    EXPECT_EQ(40, record.healGoalExp);
+    EXPECT_EQ(41, record.etcLevel);
+    EXPECT_EQ(42, record.etcGoalExp);
+    EXPECT_EQ(43, record.zoneID);
+    EXPECT_EQ(44, record.x);
+    EXPECT_EQ(45, record.y);
+    EXPECT_EQ(46, record.sight);
+    EXPECT_EQ(47, record.gunBonusExp);
+    EXPECT_EQ(48, record.rifleBonusExp);
+    EXPECT_EQ(-49, record.alignment);
+    EXPECT_EQ(50, record.stashGold);
+    EXPECT_EQ(51, record.stashNum);
+    EXPECT_EQ(52, record.resurrectZone);
+    EXPECT_EQ(-53, record.reward);
+    EXPECT_EQ(54, record.smsCharge);
+}
+
+TEST_F(CharacterMySQL, LoadVampireReturnsEveryColumnInSelectPosition) {
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    vampire.persist();
+    execSQL("UPDATE Vampire SET AdvancementClass=2, AdvancementGoalExp=3, Sex='FEMALE', MasterEffectColor=5, "
+            "BatColor=6, SkinColor=7, STR=8, DEX=9, INTE=10, HP=11, CurrentHP=12, Fame=13, GoalExp=14, Level=15, "
+            "Bonus=16, Gold=17, GuildID=18, ZoneID=19, XCoord=20, YCoord=21, Sight=22, Alignment=-23, "
+            "StashGold=24, StashNum=25, Competence=26, CompetenceShape=27, ResurrectZone=28, SilverDamage=29, "
+            "Reward=-30, SMSCharge=31, `Rank`=32, RankGoalExp=33 WHERE Name='" +
+            vampire.name + "'");
+
+    VampireLoadRecord record;
+    ASSERT_TRUE(defaultCharacterRepository().loadVampire(vampire.name, record));
+    EXPECT_EQ(vampire.name, record.name);
+    EXPECT_EQ(2, record.advancementClass);
+    EXPECT_EQ(3, record.advancementGoalExp);
+    EXPECT_EQ("FEMALE", record.sex);
+    EXPECT_EQ(5, record.masterEffectColor);
+    EXPECT_EQ(6, record.batColor);
+    EXPECT_EQ(7, record.skinColor);
+    EXPECT_EQ(8, record.str);
+    EXPECT_EQ(9, record.dex);
+    EXPECT_EQ(10, record.inte);
+    EXPECT_EQ(11, record.maxHP);
+    EXPECT_EQ(12, record.currentHP);
+    EXPECT_EQ(13, record.fame);
+    EXPECT_EQ(14, record.goalExp);
+    EXPECT_EQ(15, record.level);
+    EXPECT_EQ(16, record.bonus);
+    EXPECT_EQ(17, record.gold);
+    EXPECT_EQ(18, record.guildID);
+    EXPECT_EQ(19, record.zoneID);
+    EXPECT_EQ(20, record.x);
+    EXPECT_EQ(21, record.y);
+    EXPECT_EQ(22, record.sight);
+    EXPECT_EQ(-23, record.alignment);
+    EXPECT_EQ(24, record.stashGold);
+    EXPECT_EQ(25, record.stashNum);
+    EXPECT_EQ(26, record.competence);
+    EXPECT_EQ(27, record.competenceShape);
+    EXPECT_EQ(28, record.resurrectZone);
+    EXPECT_EQ(29, record.silverDamage);
+    EXPECT_EQ(-30, record.reward);
+    EXPECT_EQ(31, record.smsCharge);
+    EXPECT_EQ(32, record.rank);
+    EXPECT_EQ(33, record.rankGoalExp);
+}
+
+TEST_F(CharacterMySQL, LoadOustersReturnsEveryColumnInSelectPosition) {
+    PlayerFixture ousters = PlayerFixtures::midLevelOusters();
+    ousters.persist();
+    execSQL("UPDATE Ousters SET AdvancementClass=2, AdvancementGoalExp=3, Sex='FEMALE', MasterEffectColor=5, "
+            "STR=6, DEX=7, INTE=8, HP=9, CurrentHP=10, MP=11, CurrentMP=12, Fame=13, GoalExp=14, Level=15, "
+            "Bonus=16, SkillBonus=17, Gold=18, GuildID=19, ZoneID=20, XCoord=21, YCoord=22, Sight=23, "
+            "Alignment=-24, StashGold=25, StashNum=26, Competence=27, CompetenceShape=28, ResurrectZone=29, "
+            "SilverDamage=30, SMSCharge=31, `Rank`=32, RankGoalExp=33, HairColor=34 WHERE Name='" +
+            ousters.name + "'");
+
+    OustersLoadRecord record;
+    ASSERT_TRUE(defaultCharacterRepository().loadOusters(ousters.name, record));
+    EXPECT_EQ(ousters.name, record.name);
+    EXPECT_EQ(2, record.advancementClass);
+    EXPECT_EQ(3, record.advancementGoalExp);
+    EXPECT_EQ("FEMALE", record.sex);
+    EXPECT_EQ(5, record.masterEffectColor);
+    EXPECT_EQ(6, record.str);
+    EXPECT_EQ(7, record.dex);
+    EXPECT_EQ(8, record.inte);
+    EXPECT_EQ(9, record.maxHP);
+    EXPECT_EQ(10, record.currentHP);
+    EXPECT_EQ(11, record.maxMP);
+    EXPECT_EQ(12, record.currentMP);
+    EXPECT_EQ(13, record.fame);
+    EXPECT_EQ(14, record.goalExp);
+    EXPECT_EQ(15, record.level);
+    EXPECT_EQ(16, record.bonus);
+    EXPECT_EQ(17, record.skillBonus);
+    EXPECT_EQ(18, record.gold);
+    EXPECT_EQ(19, record.guildID);
+    EXPECT_EQ(20, record.zoneID);
+    EXPECT_EQ(21, record.x);
+    EXPECT_EQ(22, record.y);
+    EXPECT_EQ(23, record.sight);
+    EXPECT_EQ(-24, record.alignment);
+    EXPECT_EQ(25, record.stashGold);
+    EXPECT_EQ(26, record.stashNum);
+    EXPECT_EQ(27, record.competence);
+    EXPECT_EQ(28, record.competenceShape);
+    EXPECT_EQ(29, record.resurrectZone);
+    EXPECT_EQ(30, record.silverDamage);
+    EXPECT_EQ(31, record.smsCharge);
+    EXPECT_EQ(32, record.rank);
+    EXPECT_EQ(33, record.rankGoalExp);
+    EXPECT_EQ(34, record.hairColor);
+}
+
+TEST_F(CharacterMySQL, LoadsSkipInactiveRowsAndMissingRows) {
+    // An INACTIVE row is what the login server leaves behind when a
+    // character is deleted; a load must treat it exactly like no row.
+    PlayerFixture slayer = PlayerFixtures::lowLevelSlayer();
+    PlayerFixture vampire = PlayerFixtures::lowLevelVampire();
+    PlayerFixture ousters = PlayerFixtures::lowLevelOusters();
+    slayer.persist();
+    vampire.persist();
+    ousters.persist();
+    execSQL("UPDATE Slayer SET Active='INACTIVE' WHERE Name='" + slayer.name + "'");
+    execSQL("UPDATE Vampire SET Active='INACTIVE' WHERE Name='" + vampire.name + "'");
+    execSQL("UPDATE Ousters SET Active='INACTIVE' WHERE Name='" + ousters.name + "'");
+
+    SlayerLoadRecord slayerRecord;
+    VampireLoadRecord vampireRecord;
+    OustersLoadRecord oustersRecord;
+    EXPECT_FALSE(defaultCharacterRepository().loadSlayer(slayer.name, slayerRecord));
+    EXPECT_FALSE(defaultCharacterRepository().loadVampire(vampire.name, vampireRecord));
+    EXPECT_FALSE(defaultCharacterRepository().loadOusters(ousters.name, oustersRecord));
+
+    PlayerFixture ghost = PlayerFixtures::highLevelOusters(); // never persisted
+    EXPECT_FALSE(defaultCharacterRepository().loadSlayer(ghost.name, slayerRecord));
+    EXPECT_FALSE(defaultCharacterRepository().loadVampire(ghost.name, vampireRecord));
+    EXPECT_FALSE(defaultCharacterRepository().loadOusters(ghost.name, oustersRecord));
+}
+
+TEST_F(CharacterMySQL, LoadSlayerFindsTheTwinRowEveryCharacterGetsAtCreation) {
+    // Character creation writes a Slayer row for every race, so a
+    // vampire's name loads as a (default-valued, ACTIVE) slayer too. The
+    // race chosen at login decides which loader runs — nothing in the
+    // rows does.
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    vampire.persist();
+
+    SlayerLoadRecord record;
+    ASSERT_TRUE(defaultCharacterRepository().loadSlayer(vampire.name, record));
+    EXPECT_EQ(2000, record.gold); // the Slayer table's Gold default
+    EXPECT_EQ(0, record.swordLevel);
+}
+
+// --- SkillSave / VampireSkillSave / OustersSkillSave against real MySQL ---
+// Like CharacterRepository, a seam with NO fake tier: these tests are the
+// net. Every inserted column is read back through the load, every
+// update asserts both the columns it writes and the ones it must leave
+// alone, and the row order the ORDER-BY-less loads produce is pinned
+// against the real server rather than assumed.
+
+class SkillSaveMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        PlayerFixtures::removeAll();
+        execSQL(std::string("DELETE FROM SkillSave WHERE OwnerID IN ") + PlayerFixtures::nameList());
+        execSQL(std::string("DELETE FROM VampireSkillSave WHERE OwnerID IN ") + PlayerFixtures::nameList());
+        execSQL(std::string("DELETE FROM OustersSkillSave WHERE OwnerID IN ") + PlayerFixtures::nameList());
+    }
+
+    static SlayerSkillRecord slayerSkill(SkillType_t type, ExpLevel_t level, Exp_t exp, Turn_t delay,
+                                         Turn_t castingTime, time_t nextTime) {
+        SlayerSkillRecord record;
+        record.skillType = type;
+        record.skillLevel = level;
+        record.skillExp = exp;
+        record.delay = delay;
+        record.castingTime = castingTime;
+        record.nextTime = nextTime;
+        return record;
+    }
+
+    static VampireSkillRecord vampireSkill(SkillType_t type, Turn_t delay, Turn_t castingTime, time_t nextTime) {
+        VampireSkillRecord record;
+        record.skillType = type;
+        record.delay = delay;
+        record.castingTime = castingTime;
+        record.nextTime = nextTime;
+        return record;
+    }
+
+    static OustersSkillRecord oustersSkill(SkillType_t type, ExpLevel_t level, Turn_t delay, Turn_t castingTime,
+                                           time_t nextTime) {
+        OustersSkillRecord record;
+        record.skillType = type;
+        record.skillLevel = level;
+        record.delay = delay;
+        record.castingTime = castingTime;
+        record.nextTime = nextTime;
+        return record;
+    }
+};
+
+TEST_F(SkillSaveMySQL, SlayerInsertThenLoadRoundTripsEveryColumn) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+
+    defaultSkillSaveRepository().insertSlayerSkill(slayer.name, slayerSkill(101, 2, 3003, 44, 55, 1700000006));
+
+    std::vector<SlayerSkillRow> rows = defaultSkillSaveRepository().loadSlayerSkills(slayer.name);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(101, rows[0].skillType);
+    EXPECT_EQ(2, rows[0].skillLevel);
+    EXPECT_EQ(3003, rows[0].skillExp);
+    EXPECT_EQ(44, rows[0].delay);
+    EXPECT_EQ(55, rows[0].castingTime);
+    EXPECT_EQ(1700000006, rows[0].nextTime);
+}
+
+TEST_F(SkillSaveMySQL, LoadOrderIsTheOptimizersChoiceNotSkillTypeOrder) {
+    // No ORDER BY and no primary key, so the row order is whatever
+    // access path the optimizer picks. The first draft of this test
+    // asserted SkillType-ascending order (reasoning from the
+    // (OwnerID, SkillType) secondary index) and the real server
+    // FALSIFIED it: on this tier's near-empty table the SELECT — which
+    // the index does not cover — comes back in insertion order, i.e. a
+    // scan in hidden-row-id order. A production-sized table may well
+    // take the index and reorder. Pinned as observed, and as a warning:
+    // nothing may rely on this order — yet the vampire/ousters loaders
+    // do, in one way: with duplicate rows of a type (the keyless table
+    // cannot refuse them) they keep whichever row arrives FIRST.
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+
+    defaultSkillSaveRepository().insertSlayerSkill(slayer.name, slayerSkill(7, 1, 0, 11, 0, 0));
+    defaultSkillSaveRepository().insertSlayerSkill(slayer.name, slayerSkill(3, 1, 0, 22, 0, 0));
+    defaultSkillSaveRepository().insertSlayerSkill(slayer.name, slayerSkill(7, 1, 0, 33, 0, 0));
+
+    std::vector<SlayerSkillRow> rows = defaultSkillSaveRepository().loadSlayerSkills(slayer.name);
+    ASSERT_EQ(3u, rows.size());
+    EXPECT_EQ(7, rows[0].skillType);
+    EXPECT_EQ(11, rows[0].delay);
+    EXPECT_EQ(3, rows[1].skillType);
+    EXPECT_EQ(22, rows[1].delay);
+    EXPECT_EQ(7, rows[2].skillType);
+    EXPECT_EQ(33, rows[2].delay);
+}
+
+TEST_F(SkillSaveMySQL, SlayerUpdateWritesLevelExpAndDelayOnly) {
+    PlayerFixture slayer = PlayerFixtures::highLevelSlayer();
+    slayer.persist();
+    defaultSkillSaveRepository().insertSlayerSkill(slayer.name, slayerSkill(101, 2, 3003, 44, 55, 1700000006));
+    defaultSkillSaveRepository().insertSlayerSkill(slayer.name, slayerSkill(102, 1, 10, 20, 30, 40)); // untouched
+
+    defaultSkillSaveRepository().updateSlayerSkill(slayer.name, 101, 9, 9999, 88);
+
+    std::vector<SlayerSkillRow> rows = defaultSkillSaveRepository().loadSlayerSkills(slayer.name);
+    ASSERT_EQ(2u, rows.size());
+    EXPECT_EQ(9, rows[0].skillLevel);
+    EXPECT_EQ(9999, rows[0].skillExp);
+    EXPECT_EQ(88, rows[0].delay);
+    EXPECT_EQ(55, rows[0].castingTime);      // not part of the update
+    EXPECT_EQ(1700000006, rows[0].nextTime); // not part of the update
+    EXPECT_EQ(1, rows[1].skillLevel);
+    EXPECT_EQ(10, rows[1].skillExp);
+    EXPECT_EQ(20, rows[1].delay);
+}
+
+TEST_F(SkillSaveMySQL, VampireInsertLoadAndUpdateDelayOnly) {
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    vampire.persist();
+
+    defaultSkillSaveRepository().insertVampireSkill(vampire.name, vampireSkill(201, 10, 20, 1700000030));
+
+    std::vector<VampireSkillRow> rows = defaultSkillSaveRepository().loadVampireSkills(vampire.name);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(201, rows[0].skillType);
+    EXPECT_EQ(10, rows[0].delay);
+    EXPECT_EQ(20, rows[0].castingTime);
+    EXPECT_EQ(1700000030, rows[0].nextTime);
+
+    defaultSkillSaveRepository().updateVampireSkill(vampire.name, 201, 77);
+
+    rows = defaultSkillSaveRepository().loadVampireSkills(vampire.name);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(77, rows[0].delay);
+    EXPECT_EQ(20, rows[0].castingTime);
+    EXPECT_EQ(1700000030, rows[0].nextTime);
+}
+
+TEST_F(SkillSaveMySQL, OustersInsertLandsSkillLevelDespiteItsTrailingPositionInTheInsert) {
+    // The ousters INSERT names SkillLevel after NextTime — the column and
+    // value lists agree, so the level must land in SkillLevel and not in
+    // the neighbouring NextTime.
+    PlayerFixture ousters = PlayerFixtures::midLevelOusters();
+    ousters.persist();
+
+    defaultSkillSaveRepository().insertOustersSkill(ousters.name, oustersSkill(301, 4, 10, 20, 1700000040));
+
+    std::vector<OustersSkillRow> rows = defaultSkillSaveRepository().loadOustersSkills(ousters.name);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(301, rows[0].skillType);
+    EXPECT_EQ(4, rows[0].skillLevel);
+    EXPECT_EQ(10, rows[0].delay);
+    EXPECT_EQ(20, rows[0].castingTime);
+    EXPECT_EQ(1700000040, rows[0].nextTime);
+}
+
+TEST_F(SkillSaveMySQL, OustersUpdateWritesLevelAndDelayOnly) {
+    PlayerFixture ousters = PlayerFixtures::highLevelOusters();
+    ousters.persist();
+    defaultSkillSaveRepository().insertOustersSkill(ousters.name, oustersSkill(301, 4, 10, 20, 1700000040));
+
+    defaultSkillSaveRepository().updateOustersSkill(ousters.name, 301, 6, 66);
+
+    std::vector<OustersSkillRow> rows = defaultSkillSaveRepository().loadOustersSkills(ousters.name);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(6, rows[0].skillLevel);
+    EXPECT_EQ(66, rows[0].delay);
+    EXPECT_EQ(20, rows[0].castingTime);
+    EXPECT_EQ(1700000040, rows[0].nextTime);
+}
+
+TEST_F(SkillSaveMySQL, OustersDeleteRemovesOnlyThatTypeForThatOwner) {
+    PlayerFixture ousters = PlayerFixtures::lowLevelOusters();
+    PlayerFixture other = PlayerFixtures::midLevelOusters();
+    ousters.persist();
+    other.persist();
+    defaultSkillSaveRepository().insertOustersSkill(ousters.name, oustersSkill(301, 1, 0, 0, 0));
+    defaultSkillSaveRepository().insertOustersSkill(ousters.name, oustersSkill(301, 2, 0, 0, 0)); // duplicate
+    defaultSkillSaveRepository().insertOustersSkill(ousters.name, oustersSkill(302, 1, 0, 0, 0));
+    defaultSkillSaveRepository().insertOustersSkill(other.name, oustersSkill(301, 1, 0, 0, 0));
+
+    defaultSkillSaveRepository().deleteOustersSkill(ousters.name, 301);
+
+    std::vector<OustersSkillRow> rows = defaultSkillSaveRepository().loadOustersSkills(ousters.name);
+    ASSERT_EQ(1u, rows.size()); // both 301 rows went, the keyless table has no way to pick one
+    EXPECT_EQ(302, rows[0].skillType);
+    EXPECT_EQ(1u, defaultSkillSaveRepository().loadOustersSkills(other.name).size());
+}
+
+TEST_F(SkillSaveMySQL, WritesAgainstMissingRowsAreSilentNoOps) {
+    PlayerFixture ghost = PlayerFixtures::highLevelVampire(); // never persisted
+
+    defaultSkillSaveRepository().updateSlayerSkill(ghost.name, 101, 1, 1, 1);
+    defaultSkillSaveRepository().updateVampireSkill(ghost.name, 201, 1);
+    defaultSkillSaveRepository().updateOustersSkill(ghost.name, 301, 1, 1);
+    defaultSkillSaveRepository().deleteOustersSkill(ghost.name, 301);
+
+    EXPECT_TRUE(defaultSkillSaveRepository().loadSlayerSkills(ghost.name).empty());
+    EXPECT_TRUE(defaultSkillSaveRepository().loadVampireSkills(ghost.name).empty());
+    EXPECT_TRUE(defaultSkillSaveRepository().loadOustersSkills(ghost.name).empty());
 }
 
 // --- BloodBibleSignObject against real MySQL ------------------------------

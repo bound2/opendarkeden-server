@@ -38,7 +38,7 @@ check_ratchet R1 "global singleton externs" 351 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
-check_ratchet R2 "gameserver-root files with inline SQL" 101 "$R2"
+check_ratchet R2 "gameserver-root files with inline SQL" 98 "$R2"
 
 # --- R3: files with inline SQL outside database/ and repository/ -----------
 # gameserver/repository/ joined the exclusion 2026-09-01 (baseline 317→314:
@@ -51,7 +51,7 @@ check_ratchet R2 "gameserver-root files with inline SQL" 101 "$R2"
 # theoneserver tree. (Trailing slash: only the directory is excluded.)
 R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' |
     grep -v 'server/gameserver/repository/' | wc -l)
-check_ratchet R3 "files with inline SQL outside database/, repository/" 314 "$R3"
+check_ratchet R3 "files with inline SQL outside database/, repository/" 308 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------
 R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)
