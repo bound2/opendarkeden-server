@@ -121,6 +121,7 @@ add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLGoodsRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLItemRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLNicknameRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLPlayRecordRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLEffectSaveRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLFlagSetRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLGameInfoRepository.cpp

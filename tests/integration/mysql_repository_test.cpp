@@ -44,6 +44,7 @@
 #include "repository/ItemRepository.h"
 #include "repository/MessageRepository.h"
 #include "repository/NicknameRepository.h"
+#include "repository/PlayRecordRepository.h"
 #include "repository/QuestItemRepository.h"
 #include "repository/RankBonusRepository.h"
 #include "repository/RegenZoneRepository.h"
@@ -2654,6 +2655,79 @@ TEST_F(ContentInfoMySQL, DirectiveSetsAndVariablesAreReadAndTheVariableSaved) {
     repository.saveVariable(9, 31000);
     EXPECT_EQ("9", queryScalar("SELECT attr1 FROM AttrInfo WHERE attrID=31000"));
     EXPECT_EQ("6", queryScalar("SELECT attr2 FROM AttrInfo WHERE attrID=31000"));
+}
+
+// --- the play-record cluster against real MySQL -----------------------------
+// Saved quest states, the head-count log and the minigame score board. All
+// three tables are unseeded or log-only; the tests use 'it-' owners.
+
+class PlayRecordMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM GQuestSave WHERE OwnerID LIKE 'it-%'");
+        execSQL("DELETE FROM HeadCount WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM MiniGameScores WHERE Name LIKE 'it-%'");
+    }
+};
+
+TEST_F(PlayRecordMySQL, SavedQuestsAreReplacedLoadedPerOwnerAndDeleted) {
+    PlayRecordRepository& repository = defaultPlayRecordRepository();
+    repository.replaceSavedQuest(31000, "it-quester", 3);
+    repository.replaceSavedQuest(31001, "it-quester", 4);
+    repository.replaceSavedQuest(31000, "it-other", 1);
+
+    std::vector<SavedQuestRow> rows = repository.loadSavedQuests("it-quester");
+    ASSERT_EQ(2u, rows.size());
+    bool seen31000 = false;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].questID == 31000) {
+            seen31000 = true;
+            EXPECT_EQ(3, rows[r].status);
+        }
+        EXPECT_TRUE(rows[r].secondsSinceSave >= 0 && rows[r].secondsSinceSave <= 5);
+    }
+    EXPECT_TRUE(seen31000);
+
+    // REPLACE on the (QuestID, OwnerID) key rewrites in place.
+    repository.replaceSavedQuest(31000, "it-quester", 5);
+    EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM GQuestSave WHERE OwnerID='it-quester'"));
+    EXPECT_EQ("5", queryScalar("SELECT Status FROM GQuestSave WHERE OwnerID='it-quester' AND QuestID=31000"));
+
+    repository.deleteSavedQuest("it-quester", 31000);
+    rows = repository.loadSavedQuests("it-quester");
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(31001, rows[0].questID);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM GQuestSave WHERE OwnerID='it-other'"));
+}
+
+TEST_F(PlayRecordMySQL, HeadCountRowsCarryTheLevelsCountAndAServerSideTime) {
+    defaultPlayRecordRepository().insertHeadCount("it-head", 30, 35, 7);
+
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM HeadCount WHERE Name='it-head'"));
+    EXPECT_EQ("30", queryScalar("SELECT FirstLevel FROM HeadCount WHERE Name='it-head'"));
+    EXPECT_EQ("35", queryScalar("SELECT LastLevel FROM HeadCount WHERE Name='it-head'"));
+    EXPECT_EQ("7", queryScalar("SELECT HeadCount FROM HeadCount WHERE Name='it-head'"));
+    EXPECT_NE("2003-01-01 00:00:00", queryScalar("SELECT Time FROM HeadCount WHERE Name='it-head'"));
+}
+
+TEST_F(PlayRecordMySQL, MiniGameScoreReadReportsTheRowOrNone) {
+    PlayRecordRepository& repository = defaultPlayRecordRepository();
+    std::string name;
+    int score = -1;
+
+    EXPECT_FALSE(repository.loadMiniGameScore(120, 5, name, score));
+
+    execSQL("INSERT INTO MiniGameScores (Name, Type, Level, Score) VALUES ('it-scorer', 120, 5, 999)");
+    ASSERT_TRUE(repository.loadMiniGameScore(120, 5, name, score));
+    EXPECT_EQ("it-scorer", name);
+    EXPECT_EQ(999, score);
+    EXPECT_FALSE(repository.loadMiniGameScore(120, 6, name, score)); // other level
 }
 
 } // namespace

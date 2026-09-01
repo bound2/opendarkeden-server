@@ -2,7 +2,6 @@
 
 #include <cstdio>
 
-#include "DB.h"
 #include "EffectEventQuestReset.h"
 #include "GCGQuestStatusInfo.h"
 #include "GCGQuestStatusModify.h"
@@ -20,53 +19,43 @@
 #include "PlayerCreature.h"
 #include "SXml.h"
 #include "Timeval.h"
+#include "repository/PlayRecordRepository.h"
 
 void GQuestManager::load()
 
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    vector<SavedQuestRow> rows = defaultPlayRecordRepository().loadSavedQuests(m_pOwner->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT QuestID, Status, unix_timestamp(now()) - unix_timestamp(Time) FROM GQuestSave WHERE OwnerID='%s'",
-            m_pOwner->getName().c_str());
+    for (size_t r = 0; r < rows.size(); r++) {
+        WORD qID = rows[r].questID;
+        BYTE sta = rows[r].status;
 
-        while (pResult->next()) {
-            WORD qID = pResult->getInt(1);
-            BYTE sta = pResult->getInt(2);
+        if (sta != QuestStatusInfo::COMPLETE && sta != QuestStatusInfo::FAIL && sta != QuestStatusInfo::CAN_REPLAY) {
+            filelog("GQuestError.log", "저장된 퀘스트의 status가 잘못되었습니다 : [%s]:%d/%d",
+                    m_pOwner->getName().c_str(), qID, sta);
+        } else {
+            if (sta == QuestStatusInfo::CAN_REPLAY)
+                continue;
 
-            if (sta != QuestStatusInfo::COMPLETE && sta != QuestStatusInfo::FAIL &&
-                sta != QuestStatusInfo::CAN_REPLAY) {
-                filelog("GQuestError.log", "저장된 퀘스트의 status가 잘못되었습니다 : [%s]:%d/%d",
-                        m_pOwner->getName().c_str(), qID, sta);
-            } else {
-                if (sta == QuestStatusInfo::CAN_REPLAY)
-                    continue;
-
-                m_QuestStatuses[qID] = new GQuestStatus(m_pOwner, qID);
-                m_QuestStatuses[qID]->setStatus(sta);
-            }
-
-            if ((qID == 1001 || qID == 2001 || qID == 3001) && sta == QuestStatusInfo::COMPLETE) {
-                cout << "complete.." << endl;
-                EffectEventQuestReset* pEffect = new EffectEventQuestReset(m_pOwner, 1);
-                int lastSec = pResult->getInt(3);
-                if (lastSec > EVENT_QUEST_TIME_LIMIT)
-                    lastSec = EVENT_QUEST_TIME_LIMIT;
-                cout << "지난 시간 lastSec : " << lastSec << endl;
-                pEffect->setDeadline((EVENT_QUEST_TIME_LIMIT - lastSec) * 10);
-                cout << "데드라인 : " << (Turn_t)((EVENT_QUEST_TIME_LIMIT - lastSec) * 10) << endl;
-                pEffect->setNextTime(((EVENT_QUEST_TIME_LIMIT - lastSec) % BROADCASTING_DELAY) * 10);
-                m_pOwner->addEffect(pEffect);
-            }
+            m_QuestStatuses[qID] = new GQuestStatus(m_pOwner, qID);
+            m_QuestStatuses[qID]->setStatus(sta);
         }
 
-        SAFE_DELETE(pStmt);
+        if ((qID == 1001 || qID == 2001 || qID == 3001) && sta == QuestStatusInfo::COMPLETE) {
+            cout << "complete.." << endl;
+            EffectEventQuestReset* pEffect = new EffectEventQuestReset(m_pOwner, 1);
+            int lastSec = rows[r].secondsSinceSave;
+            if (lastSec > EVENT_QUEST_TIME_LIMIT)
+                lastSec = EVENT_QUEST_TIME_LIMIT;
+            cout << "지난 시간 lastSec : " << lastSec << endl;
+            pEffect->setDeadline((EVENT_QUEST_TIME_LIMIT - lastSec) * 10);
+            cout << "데드라인 : " << (Turn_t)((EVENT_QUEST_TIME_LIMIT - lastSec) * 10) << endl;
+            pEffect->setNextTime(((EVENT_QUEST_TIME_LIMIT - lastSec) % BROADCASTING_DELAY) * 10);
+            m_pOwner->addEffect(pEffect);
+        }
     }
-    END_DB(pStmt);
 
     __END_CATCH
 }
@@ -700,14 +689,5 @@ void GQuestManager::eraseQuest(DWORD qID) {
     if (itr != m_QuestStatuses.end())
         m_QuestStatuses.erase(itr);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("DELETE FROM GQuestSave WHERE OwnerID='%s' AND QuestID='%u'", m_pOwner->getName().c_str(),
-                            qID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt);
+    defaultPlayRecordRepository().deleteSavedQuest(m_pOwner->getName(), qID);
 }

@@ -547,6 +547,7 @@ set(GAMESERVER_MAIN_SOURCES
     GDRLairAbstractStates.cpp
     NicknameBook.cpp
     repository/MySQLNicknameRepository.cpp
+    repository/MySQLPlayRecordRepository.cpp
     repository/MySQLBalanceInfoRepository.cpp
     repository/MySQLBloodBibleSignRepository.cpp
     repository/MySQLBulletinBoardRepository.cpp

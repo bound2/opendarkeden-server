@@ -1,11 +1,11 @@
 #include "GQuestStatus.h"
 
-#include "DB.h"
 #include "EffectEventQuestReset.h"
 #include "GCGQuestStatusModify.h"
 #include "GQuestInfo.h"
 #include "Player.h"
 #include "PlayerCreature.h"
+#include "repository/PlayRecordRepository.h"
 
 GQuestStatus::~GQuestStatus() {
     list<MissionInfo*>::iterator itr = m_Missions.begin();
@@ -370,17 +370,7 @@ void GQuestStatus::cleanUpMissions() {
 void GQuestStatus::save() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("REPLACE INTO GQuestSave (QuestID, OwnerID, Time, Status) VALUES "
-                            "(%u, '%s', now(), %u)",
-                            m_QuestID, m_pOwner->getName().c_str(), m_Status);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt);
+    defaultPlayRecordRepository().replaceSavedQuest(m_QuestID, m_pOwner->getName(), m_Status);
 
     __END_CATCH
 }
