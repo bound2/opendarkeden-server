@@ -3,19 +3,16 @@
 
 #include <string>
 
+#include "CharacterRace.h"
 #include "Types.h"
 
 // Persistence seam for the stash columns (task 3.2). There is no stash
 // table: StashNum/StashGold are columns ON the three race tables
 // (Slayer/Vampire/Ousters), written outside the normal character save by
 // the immediate-persist stash operations. isOusters selects which second
-// table is written — see the quirk notes on the MySQL implementation.
-//
-// Which race table one character's row lives in. The WRITES fan out
-// (Slayer always, plus the race's own table); the integrity-check READ
-// targets only the character's own table.
-enum StashRace { STASH_RACE_SLAYER = 0, STASH_RACE_VAMPIRE = 1, STASH_RACE_OUSTERS = 2 };
-
+// table is written — the WRITES fan out (Slayer always, plus the race's
+// own table) while the integrity-check READ targets only the character's
+// own table; see the quirk notes on the MySQL implementation.
 class StashRepository {
 public:
     virtual ~StashRepository() {}
@@ -31,7 +28,7 @@ public:
     // handlers before they call the writes above). Returns false when the
     // table has no row for the name; on true, gold carries the column as
     // the driver's getInt returned it.
-    virtual bool loadStashGold(const std::string& ownerName, StashRace race, int& gold) = 0;
+    virtual bool loadStashGold(const std::string& ownerName, CharacterRace race, int& gold) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in

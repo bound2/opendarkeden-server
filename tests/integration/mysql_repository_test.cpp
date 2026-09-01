@@ -31,6 +31,8 @@
 #include "PlayerFixtures.h"
 #include "Thread.h"
 #include "repository/BloodBibleSignRepository.h"
+#include "repository/CharacterRepository.h"
+#include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
 #include "repository/NicknameRepository.h"
 #include "repository/RankBonusRepository.h"
@@ -120,9 +122,9 @@ TEST_F(StashMySQL, NonOustersSaveWritesSlayerAndVampireTables) {
     defaultStashRepository().saveStashGold(slayer.name, false, 1234);
 
     int gold = -1;
-    ASSERT_TRUE(defaultStashRepository().loadStashGold(slayer.name, STASH_RACE_SLAYER, gold));
+    ASSERT_TRUE(defaultStashRepository().loadStashGold(slayer.name, CHARACTER_RACE_SLAYER, gold));
     EXPECT_EQ(1234, gold);
-    ASSERT_TRUE(defaultStashRepository().loadStashGold(slayer.name, STASH_RACE_VAMPIRE, gold));
+    ASSERT_TRUE(defaultStashRepository().loadStashGold(slayer.name, CHARACTER_RACE_VAMPIRE, gold));
     EXPECT_EQ(1234, gold);
 }
 
@@ -144,7 +146,7 @@ TEST_F(StashMySQL, SaveAgainstMissingRowsIsASilentNoOp) {
     defaultStashRepository().saveStashGold(ghost.name, false, 500);
 
     int gold = -1;
-    EXPECT_FALSE(defaultStashRepository().loadStashGold(ghost.name, STASH_RACE_VAMPIRE, gold));
+    EXPECT_FALSE(defaultStashRepository().loadStashGold(ghost.name, CHARACTER_RACE_VAMPIRE, gold));
 }
 
 TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
@@ -159,8 +161,240 @@ TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
     defaultStashRepository().saveStashGold(vampire.name, false, 4000000000u);
 
     int gold = -1;
-    ASSERT_TRUE(defaultStashRepository().loadStashGold(vampire.name, STASH_RACE_VAMPIRE, gold));
+    ASSERT_TRUE(defaultStashRepository().loadStashGold(vampire.name, CHARACTER_RACE_VAMPIRE, gold));
     EXPECT_EQ(0, gold);
+}
+
+// --- carried gold against real MySQL --------------------------------------
+
+class GoldMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        PlayerFixtures::removeAll();
+    }
+};
+
+TEST_F(GoldMySQL, IncreaseAndDecreaseAreRelativeOnTheRowBalance) {
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    vampire.persist(); // Vampire.Gold column default is 0
+
+    defaultGoldRepository().increaseGold(vampire.name, CHARACTER_RACE_VAMPIRE, 500);
+    defaultGoldRepository().decreaseGold(vampire.name, CHARACTER_RACE_VAMPIRE, 200);
+
+    int gold = -1;
+    ASSERT_TRUE(defaultGoldRepository().loadGold(vampire.name, CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(300, gold);
+}
+
+TEST_F(GoldMySQL, OperationsTargetOnlyTheOwnRaceTableAndSlayerRowsStartAt2000) {
+    // Unlike the stash writes, gold has NO Slayer fan-out — and the
+    // Slayer table's Gold column DEFAULTS to 2000 while Vampire/Ousters
+    // default to 0, so a fresh slayer's twin Vampire row sits at 0.
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+
+    defaultGoldRepository().increaseGold(slayer.name, CHARACTER_RACE_SLAYER, 500);
+
+    int gold = -1;
+    ASSERT_TRUE(defaultGoldRepository().loadGold(slayer.name, CHARACTER_RACE_SLAYER, gold));
+    EXPECT_EQ(2500, gold);
+    ASSERT_TRUE(defaultGoldRepository().loadGold(slayer.name, CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(0, gold);
+}
+
+TEST_F(GoldMySQL, DecreaseBelowTheRowBalanceRaisesOutOfRangeAndLeavesTheRowUntouched) {
+    // The caller clamps the delta against its IN-MEMORY balance; when the
+    // row holds less (integrity drift), Gold - delta on the UNSIGNED
+    // column raises ER_DATA_OUT_OF_RANGE (1690) — same failure shape as
+    // taking a Num=0 goods row — and the row keeps its balance.
+    PlayerFixture ousters = PlayerFixtures::lowLevelOusters();
+    ousters.persist();
+    defaultGoldRepository().increaseGold(ousters.name, CHARACTER_RACE_OUSTERS, 10);
+
+    EXPECT_ANY_THROW(defaultGoldRepository().decreaseGold(ousters.name, CHARACTER_RACE_OUSTERS, 50));
+
+    int gold = -1;
+    ASSERT_TRUE(defaultGoldRepository().loadGold(ousters.name, CHARACTER_RACE_OUSTERS, gold));
+    EXPECT_EQ(10, gold);
+}
+
+TEST_F(GoldMySQL, OperationsAgainstMissingRowsAreSilentNoOps) {
+    PlayerFixture ghost = PlayerFixtures::highLevelSlayer(); // never persisted
+
+    defaultGoldRepository().increaseGold(ghost.name, CHARACTER_RACE_SLAYER, 500);
+    defaultGoldRepository().decreaseGold(ghost.name, CHARACTER_RACE_SLAYER, 500);
+
+    int gold = -1;
+    EXPECT_FALSE(defaultGoldRepository().loadGold(ghost.name, CHARACTER_RACE_SLAYER, gold));
+}
+
+// --- character-row saves against real MySQL -------------------------------
+// CharacterRepository is a write-only seam, so it has NO fake tier: these
+// tests are its whole safety net (maintainer's call — integration over
+// fakes for a project this thinly tested).
+
+class CharacterMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        PlayerFixtures::removeAll();
+    }
+};
+
+TEST_F(CharacterMySQL, SlayerVitalsLandInTheSlayerRow) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+
+    SlayerVitalsRecord record;
+    record.currentHP = 111;
+    record.maxHP = 222;
+    record.currentMP = 33;
+    record.maxMP = 44;
+    record.zoneID = 21;
+    record.x = 100;
+    record.y = 200;
+    defaultCharacterRepository().saveSlayerVitals(slayer.name, record);
+
+    EXPECT_EQ("111", queryScalar("SELECT CurrentHP FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("44", queryScalar("SELECT MP FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("21", queryScalar("SELECT ZoneID FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("200", queryScalar("SELECT YCoord FROM Slayer WHERE Name='" + slayer.name + "'"));
+}
+
+TEST_F(CharacterMySQL, VampireVitalsCarrySilverDamageInsteadOfMP) {
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    vampire.persist();
+
+    VampireVitalsRecord record;
+    record.currentHP = 150;
+    record.maxHP = 300;
+    record.silverDamage = 12;
+    record.zoneID = 23;
+    record.x = 50;
+    record.y = 60;
+    defaultCharacterRepository().saveVampireVitals(vampire.name, record);
+
+    EXPECT_EQ("150", queryScalar("SELECT CurrentHP FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("12", queryScalar("SELECT SilverDamage FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("23", queryScalar("SELECT ZoneID FROM Vampire WHERE Name='" + vampire.name + "'"));
+}
+
+TEST_F(CharacterMySQL, OustersVitalsLandInTheOustersRow) {
+    PlayerFixture ousters = PlayerFixtures::lowLevelOusters();
+    ousters.persist();
+
+    OustersVitalsRecord record;
+    record.currentHP = 90;
+    record.maxHP = 120;
+    record.currentMP = 70;
+    record.maxMP = 80;
+    record.zoneID = 51;
+    record.x = 10;
+    record.y = 20;
+    defaultCharacterRepository().saveOustersVitals(ousters.name, record);
+
+    EXPECT_EQ("90", queryScalar("SELECT CurrentHP FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("80", queryScalar("SELECT MP FROM Ousters WHERE Name='" + ousters.name + "'"));
+    EXPECT_EQ("51", queryScalar("SELECT ZoneID FROM Ousters WHERE Name='" + ousters.name + "'"));
+}
+
+TEST_F(CharacterMySQL, SlayerExpsTailLandsInFull) {
+    PlayerFixture slayer = PlayerFixtures::highLevelSlayer();
+    slayer.persist();
+
+    SlayerExpsRecord record;
+    record.strGoalExp = 1001;
+    record.dexGoalExp = 1002;
+    record.intGoalExp = 1003;
+    record.bladeGoalExp = 2001;
+    record.swordGoalExp = 2002;
+    record.gunGoalExp = 2003;
+    record.enchantGoalExp = 2004;
+    record.healGoalExp = 2005;
+    record.etcGoalExp = 2006;
+    record.alignment = -50;
+    record.fame = 777;
+    record.rank = 9;
+    record.rankGoalExp = 3001;
+    record.advancementClass = 4;
+    record.advancementGoalExp = 4001;
+    record.advancedSTR = 11;
+    record.advancedDEX = 12;
+    record.advancedINT = 13;
+    record.advancedAttrBonus = 14;
+    defaultCharacterRepository().saveSlayerExps(slayer.name, record);
+
+    EXPECT_EQ("1001", queryScalar("SELECT STRGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("2006", queryScalar("SELECT ETCGoalExp FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("777", queryScalar("SELECT Fame FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("9", queryScalar("SELECT `Rank` FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("14", queryScalar("SELECT Bonus FROM Slayer WHERE Name='" + slayer.name + "'"));
+}
+
+TEST_F(CharacterMySQL, VampireExpsSkipSilverDamageWhenZero) {
+    // The original composed an optional ",SilverDamage = %d" fragment: a
+    // zero value leaves the column UNTOUCHED — this save cannot reset a
+    // vampire's silver damage to zero.
+    PlayerFixture vampire = PlayerFixtures::highLevelVampire();
+    vampire.persist();
+    execSQL("UPDATE Vampire SET SilverDamage = 7 WHERE Name='" + vampire.name + "'");
+
+    VampireExpsRecord record;
+    record.alignment = 10;
+    record.fame = 55;
+    record.goalExp = 900;
+    record.silverDamage = 0;
+    record.rank = 3;
+    record.rankGoalExp = 800;
+    record.advancementClass = 1;
+    record.advancementGoalExp = 700;
+    defaultCharacterRepository().saveVampireExps(vampire.name, record);
+    EXPECT_EQ("7", queryScalar("SELECT SilverDamage FROM Vampire WHERE Name='" + vampire.name + "'"));
+    EXPECT_EQ("55", queryScalar("SELECT Fame FROM Vampire WHERE Name='" + vampire.name + "'"));
+
+    record.silverDamage = 5;
+    defaultCharacterRepository().saveVampireExps(vampire.name, record);
+    EXPECT_EQ("5", queryScalar("SELECT SilverDamage FROM Vampire WHERE Name='" + vampire.name + "'"));
+}
+
+TEST_F(CharacterMySQL, OustersExpsAlwaysWriteSilverDamage) {
+    // Unlike the vampire's conditional fragment, the ousters save writes
+    // SilverDamage unconditionally — zero included.
+    PlayerFixture ousters = PlayerFixtures::midLevelOusters();
+    ousters.persist();
+    execSQL("UPDATE Ousters SET SilverDamage = 7 WHERE Name='" + ousters.name + "'");
+
+    OustersExpsRecord record;
+    record.alignment = 10;
+    record.fame = 55;
+    record.goalExp = 900;
+    record.silverDamage = 0;
+    record.rank = 3;
+    record.rankGoalExp = 800;
+    record.advancementClass = 1;
+    record.advancementGoalExp = 700;
+    defaultCharacterRepository().saveOustersExps(ousters.name, record);
+
+    EXPECT_EQ("0", queryScalar("SELECT SilverDamage FROM Ousters WHERE Name='" + ousters.name + "'"));
+}
+
+TEST_F(CharacterMySQL, TinysaveAppliesTheFragmentToTheOwnTableOnly) {
+    PlayerFixture slayer = PlayerFixtures::lowLevelSlayer();
+    slayer.persist(); // Slayer + twin Vampire row
+
+    defaultCharacterRepository().tinysave(slayer.name, CHARACTER_RACE_SLAYER, "StashNum=9");
+
+    EXPECT_EQ("9", queryScalar("SELECT StashNum FROM Slayer WHERE Name='" + slayer.name + "'"));
+    EXPECT_EQ("0", queryScalar("SELECT StashNum FROM Vampire WHERE Name='" + slayer.name + "'"));
+}
+
+TEST_F(CharacterMySQL, ResetSlayerRewardZeroesTheColumn) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+    execSQL("UPDATE Slayer SET Reward = 5 WHERE Name='" + slayer.name + "'");
+
+    defaultCharacterRepository().resetSlayerReward(slayer.name);
+
+    EXPECT_EQ("0", queryScalar("SELECT Reward FROM Slayer WHERE Name='" + slayer.name + "'"));
 }
 
 // --- BloodBibleSignObject against real MySQL ------------------------------

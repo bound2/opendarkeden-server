@@ -73,8 +73,8 @@ public:
         END_DB(pStmt)
     }
 
-    bool loadStashGold(const string& ownerName, StashRace race, int& gold) {
-        const char* table = race == STASH_RACE_SLAYER ? "Slayer" : race == STASH_RACE_VAMPIRE ? "Vampire" : "Ousters";
+    bool loadStashGold(const string& ownerName, CharacterRace race, int& gold) {
+        const char* table = characterRaceTable(race);
         bool found = false;
         Statement* pStmt = NULL;
 

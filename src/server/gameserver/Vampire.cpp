@@ -26,6 +26,8 @@
 #include "Stash.h"
 #include "TradeManager.h"
 #include "VampEXPInfo.h"
+#include "repository/CharacterRepository.h"
+#include "repository/GoldRepository.h"
 #include "repository/StashRepository.h"
 // #include "RankEXPInfo.h"
 #include <stdio.h>
@@ -796,66 +798,27 @@ void Vampire::save() const
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    Statement* pStmt;
-
-    //--------------------------------------------------------------------------------
-    // 뱀파이어 정보를 저장한다.
-    //--------------------------------------------------------------------------------
-    BEGIN_DB {
-        StringStream sql;
-        sql << "UPDATE Vampire SET"
-            //<< " BatColor = " << (int)m_BatColor
-            //<< ", SkinColor = " << (int)m_SkinColor
-            //<< ", STR = " << (int)m_STR[ATTR_MAX]
-            //<< ", DEX = " << (int)m_DEX[ATTR_MAX]
-            //<< ", INTE = " << (int)m_INT[ATTR_MAX]
-            << " CurrentHP = " << (int)m_HP[ATTR_CURRENT] << ", HP = " << (int)m_HP[ATTR_MAX] << ", SilverDamage = "
-            << (int)m_SilverDamage
-            //<< ", Fame = " << (int)m_Fame
-            //<< ", Exp = " << (int)m_Exp
-            //<< ", ExpOffset = " << (int)m_ExpOffset
-            //<< ", Rank = " << (int)m_Rank
-            //<< ", RankExp = " << (int)m_RankExp
-            //<< ", Level = " << (int)m_Level
-            //<< ", Bonus = " << (int)m_Bonus
-            //<< ", Gold = " << (int)m_Gold
-            << ", ZoneID = " << (int)getZoneID() << ", XCoord = " << (int)m_X << ", YCoord = "
-            << (int)m_Y
-            //<< ", Sight = " << (int)m_Sight
-            //			<< ", F5 = " << (int)m_HotKey[0]
-            //			<< ", F6 = " << (int)m_HotKey[1]
-            //			<< ", F7 = " << (int)m_HotKey[2]
-            //			<< ", F8 = " << (int)m_HotKey[3]
-            //			<< ", F9 = " << (int)m_HotKey[4]
-            //			<< ", F10 = " << (int)m_HotKey[5]
-            //			<< ", F11 = " << (int)m_HotKey[6]
-            //			<< ", F12 = " << (int)m_HotKey[7]
-            << " WHERE Name = '" << m_Name << "'";
-        //<< ", InMagics = '" << ??? << "'"
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQueryString(sql.toString());
-
-        // Assert(pStmt->getAffectedRowCount() != 1);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    // Save the vampire information. Affected rows may be 0 when nothing
+    // changed and must not be checked.
+    VampireVitalsRecord record;
+    record.currentHP = (int)m_HP[ATTR_CURRENT];
+    record.maxHP = (int)m_HP[ATTR_MAX];
+    record.silverDamage = (int)m_SilverDamage;
+    record.zoneID = (int)getZoneID();
+    record.x = (int)m_X;
+    record.y = (int)m_Y;
+    defaultCharacterRepository().saveVampireVitals(m_Name, record);
 
     /*
-    //----------------------------------------------------------------------
-    // 아이템을 세이브한다.
-    //----------------------------------------------------------------------
     //--------------------------------------------------
-    // 인벤토리의 아이템들을 세이브 한다.
+    // Save the inventory's items.
     //--------------------------------------------------
     m_pInventory->save(m_Name);
     */
 
 
     //--------------------------------------------------
-    // 이펙트를 세이브 한다.
+    // Save the effects.
     //--------------------------------------------------
     m_pEffectManager->save(m_Name);
 
@@ -871,14 +834,7 @@ void Vampire::tinysave(const string& field) // by sigi. 2002.5.15
     const {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Vampire SET %s WHERE Name='%s'", field.c_str(), m_Name.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultCharacterRepository().tinysave(m_Name, CHARACTER_RACE_VAMPIRE, field);
 
     __END_CATCH
 }
@@ -2245,22 +2201,14 @@ void Vampire::increaseGoldEx(Gold_t gold)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // MAX_MONEY 를 넘어가는 걸 막는다
+    // Prevent going over MAX_MONEY
     // 2003.1.8  by bezz.
     if (m_Gold + gold > MAX_MONEY)
         gold = MAX_MONEY - m_Gold;
 
     setGold(m_Gold + gold);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Vampire SET Gold=Gold+%u WHERE NAME='%s'", gold, m_Name.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
+    defaultGoldRepository().increaseGold(m_Name, CHARACTER_RACE_VAMPIRE, gold);
 
     __END_DEBUG
     __END_CATCH
@@ -2272,21 +2220,14 @@ void Vampire::decreaseGoldEx(Gold_t gold)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // 0 미만이 되는 걸 막는다. 0 미만이 되면 underflow 되서 난리가 난다.
+    // Prevent going below 0. Below 0 it underflows and causes chaos.
     // 2003.1.8  by bezz.
     if (m_Gold < gold)
         gold = m_Gold;
 
     setGold(m_Gold - gold);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Vampire SET Gold=Gold-%u WHERE NAME='%s'", gold, m_Name.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultGoldRepository().decreaseGold(m_Name, CHARACTER_RACE_VAMPIRE, gold);
 
     __END_DEBUG
     __END_CATCH
@@ -2295,22 +2236,11 @@ void Vampire::decreaseGoldEx(Gold_t gold)
 bool Vampire::checkGoldIntegrity() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    bool ret = false;
+    int gold = 0;
+    if (!defaultGoldRepository().loadGold(m_Name, CHARACTER_RACE_VAMPIRE, gold))
+        return false;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT Gold FROM Vampire WHERE NAME='%s'", m_Name.c_str());
-
-        if (pResult->next()) {
-            ret = pResult->getInt(1) == m_Gold;
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-    return ret;
+    return gold == m_Gold;
 
     __END_CATCH
 }
@@ -2319,7 +2249,7 @@ bool Vampire::checkStashGoldIntegrity() {
     __BEGIN_TRY
 
     int gold = 0;
-    if (!defaultStashRepository().loadStashGold(m_Name, STASH_RACE_VAMPIRE, gold))
+    if (!defaultStashRepository().loadStashGold(m_Name, CHARACTER_RACE_VAMPIRE, gold))
         return false;
 
     return gold == m_StashGold;
@@ -2672,24 +2602,16 @@ void Vampire::saveExps(void) const
     sql << " WHERE Name = '" << m_Name << "'";
     */
 
-    Statement* pStmt = NULL;
-
-    char silverDam[40];
-    if (m_SilverDamage != 0) {
-        sprintf(silverDam, ",SilverDamage = %d", m_SilverDamage);
-    } else
-        silverDam[0] = '\0';
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Vampire SET Alignment=%d, Fame=%d, GoalExp=%lu%s, `Rank`=%d, RankGoalExp=%lu, "
-                            "AdvancementClass=%u, AdvancementGoalExp=%d WHERE Name='%s'",
-                            m_Alignment, m_Fame, m_GoalExp, silverDam, getRank(), getRankGoalExp(),
-                            getAdvancementClassLevel(), getAdvancementClassGoalExp(), m_Name.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    VampireExpsRecord record;
+    record.alignment = m_Alignment;
+    record.fame = m_Fame;
+    record.goalExp = m_GoalExp;
+    record.silverDamage = m_SilverDamage;
+    record.rank = getRank();
+    record.rankGoalExp = getRankGoalExp();
+    record.advancementClass = getAdvancementClassLevel();
+    record.advancementGoalExp = getAdvancementClassGoalExp();
+    defaultCharacterRepository().saveVampireExps(m_Name, record);
 
     __END_CATCH
 }

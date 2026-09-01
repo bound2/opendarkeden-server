@@ -788,6 +788,35 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > contract (fake-tier +18, integration tier 14 tests incl. the pilot's
   > NicknameBook nID-ascending order, which its fake had also
   > mis-documented).
+  > **Gold + character-row round (2026-09-01)**: `GoldRepository` — the
+  > carried-gold column on the three race tables, from
+  > `increaseGoldEx`/`decreaseGoldEx`/`checkGoldIntegrity` in
+  > Slayer/Vampire/Ousters.cpp. The writes are RELATIVE
+  > (`Gold = Gold ± %u`, database-side arithmetic) and target ONLY the
+  > character's own table (no Slayer fan-out, unlike stash); the gameplay
+  > clamps (MAX_MONEY up, zero down) stay in the creature against its
+  > in-memory balance, so a decrease can still hit
+  > ER_DATA_OUT_OF_RANGE (1690) when the ROW holds less than memory says
+  > (integrity drift) — pinned by the integration tier, with the row
+  > verified untouched. **`CharacterRepository`** takes the rest of the
+  > race files' non-load writes: the `save()` vitals/position UPDATEs
+  > (per-race records; Slayer keeps printf spacing, Vampire/Ousters keep
+  > their StringStream spacing, byte-for-byte; Vampire has no MP columns
+  > and carries SilverDamage instead), the `saveExps()` tails (Vampire's
+  > conditional `,SilverDamage = %d` fragment preserved — a zero value
+  > leaves the column untouched, while Ousters always writes it; the
+  > DWORD-vs-%lu varargs mismatch rides unchanged through same-typed
+  > record fields), `tinysave` (caller-composed raw SET fragments —
+  > quarantined, not yet retired; Slayer's WHERE uses uppercase NAME),
+  > and the load-flow `resetSlayerReward`. CharacterRepository is
+  > write-only and has NO fake tier — its 8 integration tests are the
+  > whole net, by the maintainer's integration-over-fakes call. The
+  > shared race enum moved to `repository/CharacterRace.h`
+  > (`CharacterRace`, née StashRace). Ratchets unchanged: the race files
+  > keep exactly their `load()` SELECT + skill-save load (the 53+
+  > positional-column transplant is the NEXT round); Slayer's dead
+  > `getIP` UserIPInfo block and Vampire's dead reward block are
+  > comments, not debt.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

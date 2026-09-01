@@ -30,7 +30,7 @@ public:
     };
 
     // Test seeding: the character's row in one race table.
-    void addRow(StashRace race, const std::string& ownerName) {
+    void addRow(CharacterRace race, const std::string& ownerName) {
         Row row;
         row.race = race;
         row.ownerName = ownerName;
@@ -47,7 +47,7 @@ public:
         record(ownerName, isOusters, "StashGold", (int)gold);
     }
 
-    bool loadStashGold(const std::string& ownerName, StashRace race, int& gold) {
+    bool loadStashGold(const std::string& ownerName, CharacterRace race, int& gold) {
         for (Rows::const_iterator itr = m_Rows.begin(); itr != m_Rows.end(); ++itr) {
             if (itr->race == race && itr->ownerName == ownerName) {
                 gold = itr->stashGold;
@@ -63,20 +63,16 @@ public:
 
 private:
     struct Row {
-        StashRace race;
+        CharacterRace race;
         std::string ownerName;
         int stashNum;
         int stashGold;
     };
     typedef std::vector<Row> Rows;
 
-    static const char* tableName(StashRace race) {
-        return race == STASH_RACE_SLAYER ? "Slayer" : race == STASH_RACE_VAMPIRE ? "Vampire" : "Ousters";
-    }
-
-    void apply(StashRace race, const std::string& ownerName, const std::string& column, int value) {
+    void apply(CharacterRace race, const std::string& ownerName, const std::string& column, int value) {
         Write write;
-        write.table = tableName(race);
+        write.table = characterRaceTable(race);
         write.ownerName = ownerName;
         write.column = column;
         write.value = value;
@@ -96,8 +92,8 @@ private:
     }
 
     void record(const std::string& ownerName, bool isOusters, const std::string& column, int value) {
-        apply(STASH_RACE_SLAYER, ownerName, column, value);
-        apply(isOusters ? STASH_RACE_OUSTERS : STASH_RACE_VAMPIRE, ownerName, column, value);
+        apply(CHARACTER_RACE_SLAYER, ownerName, column, value);
+        apply(isOusters ? CHARACTER_RACE_OUSTERS : CHARACTER_RACE_VAMPIRE, ownerName, column, value);
     }
 
     Rows m_Rows;
