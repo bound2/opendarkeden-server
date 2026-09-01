@@ -1208,18 +1208,18 @@ void AirShield(const SkillInput& input, SkillOutput& output) {
 }
 
 void BulletOfLight(const SkillInput& input, SkillOutput& output) {
-    /*	switch( input.Gun )
+    /*	switch( input.IClass )
         {
-            case GunClass::SMG:
+            case Item::ITEM_CLASS_SMG:
                 output.Damage = 2 + ( input.SkillLevel / 10 );
                 break;
-            case GunClass::SG:
+            case Item::ITEM_CLASS_SG:
                 output.Damage = 3 + ( input.SkillLevel / 8 );
                 break;
-            case GunClass::AR:
+            case Item::ITEM_CLASS_AR:
                 output.Damage = 4 + ( input.SkillLevel / 6 );
                 break;
-            case GunClass::SR:
+            case Item::ITEM_CLASS_SR:
                 output.Damage = 5 + ( input.SkillLevel / 5 );
                 break;
             default:

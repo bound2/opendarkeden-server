@@ -34,6 +34,10 @@
 #   C1  a core file may not include MySQL, Lua, or socket-transport
 #       headers. Persistence belongs behind repository interfaces
 #       (task 3.2), transport belongs to the apps.
+#   D1  a de-core file (src/domain/) may quote-include only domain/
+#       headers: de-core is freestanding by definition (task 3.3), and
+#       until this rule existed that was enforced only indirectly, by
+#       formula_tests linking nothing else.
 #
 # Existing violations of C1 live in tests/arch/baseline.txt and may
 # only shrink (the ratchet pattern): a NEW violation fails the build,
@@ -141,6 +145,24 @@ for my $file (sort keys %kernel) {
         }
     }
     close $cm;
+}
+
+# D1 over src/domain: quote-includes must stay inside domain/.
+{
+    if (opendir(my $dd, 'src/domain')) {
+        for my $entry (sort readdir($dd)) {
+            next unless $entry =~ /\.(h|cpp)$/;
+            my $path = "src/domain/$entry";
+            for my $inc (quoted_includes($path)) {
+                # Allowed forms: "domain/X.h" (the consumer-facing path)
+                # or a bare same-directory sibling that actually exists.
+                next if $inc =~ m{^domain/[^/]+$} && -f "src/$inc";
+                next if $inc !~ m{/} && -f "src/domain/$inc";
+                push @violations, "D1 $path includes non-domain \"$inc\"";
+            }
+        }
+        closedir $dd;
+    }
 }
 
 # C1 over the core dirs.

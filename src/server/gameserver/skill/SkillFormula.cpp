@@ -359,9 +359,12 @@
 // Thin adapters (docs/RESTRUCTURING.md task 3.3): every computeOutput body
 // moved verbatim to de-core (src/domain/SkillOutputFormulas.cpp); each
 // member function here converts SkillInput, delegates, and copies the
-// result back. Every caller passes a freshly zero-initialized SkillOutput
-// (verified across all call sites), so copying all six fields back is
-// identical to the original partial assignments.
+// result back. All 393 compiled call sites pass a freshly zero-initialized
+// SkillOutput (and no formula body reads an output field before writing
+// it), so copying all six fields back is identical to the original
+// partial assignments. The single known reuse of an output object is in
+// the never-built legacy gameserver/test/ dir; keep the fresh-output
+// pattern when adding callers.
 //////////////////////////////////////////////////////////////////////////////
 
 namespace {
@@ -381,6 +384,14 @@ decore::skillformula::GunClass toGunClass(Item::ItemClass IClass) {
     }
 }
 
+// This name-to-name mapping is the one piece of the extraction no test can
+// see (formula_tests deliberately links only de-core): a transposed pair
+// here compiles, links, and passes every suite while corrupting the game
+// balance. It was hand-verified against both structs in the 3.3
+// adversarial review — re-verify by eye on any edit. Note it also reads
+// every field unconditionally (master read IClass in only 4 bodies), which
+// is safe because all four SkillInput constructors assign every field and
+// no compiled caller default-constructs a SkillInput.
 decore::skillformula::SkillInput toFormulaInput(const SkillInput& input) {
     decore::skillformula::SkillInput in;
     in.SkillLevel = input.SkillLevel;

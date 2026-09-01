@@ -432,11 +432,13 @@ TEST(HallucinationRatio, AttrGapClampedIntoPerRaceBand) {
 
 //////////////////////////////////////////////////////////////////////////////
 // Per-skill computeOutput formulas (src/domain/SkillOutputFormulas.cpp,
-// adapters: skill/SkillFormula.cpp). 304 formulas moved verbatim; this
-// suite pins every special-cased one (gun-class branches, grade switches,
-// party boosts, the HeadShot fallthrough) plus a spread of representative
-// shapes: clamps, negative outputs, Delay=Duration couplings, the
-// boost-after-Delay ordering quirk, and the empty formulas.
+// adapters: skill/SkillFormula.cpp). 293 formulas moved verbatim (11
+// dice-roll ones stayed in the adapter); this suite pins every gun-class
+// branch (MultiShot, HeadShot, MoleShot), every grade switch including
+// the unset-grade default, and the HeadShot fallthrough, plus a spread
+// of representative shapes: party boosts, clamps, negative outputs,
+// Delay=Duration couplings, the boost-after-Delay ordering quirk, and
+// the empty formulas.
 //////////////////////////////////////////////////////////////////////////////
 
 using SFIn = decore::skillformula::SkillInput;
@@ -506,6 +508,33 @@ TEST(SkillOutputFormula, MultiShotBranchesPerGunClass) {
     decore::skillformula::MultiShot(in, out);
     EXPECT_EQ(0, out.Damage); // no branch taken — damage stays zero
     EXPECT_EQ(-10, out.ToHit);
+}
+
+TEST(SkillOutputFormula, MoleShotBranchesPerGunClass) {
+    SFIn in = sfin();
+    in.SkillLevel = 50;
+    SFOut out;
+    in.Gun = GunClass::SG;
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(8, out.Damage); // 3 + 50/10
+    EXPECT_EQ(-10, out.ToHit);
+    EXPECT_EQ(2, out.Delay);
+    in.Gun = GunClass::AR;
+    out = SFOut();
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(2, out.Damage); // 1 + 50/30
+    in.Gun = GunClass::SMG;
+    out = SFOut();
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(2, out.Damage); // shares the AR branch
+    in.Gun = GunClass::SR;
+    out = SFOut();
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(1, out.Damage); // 50/50
+    in.Gun = GunClass::Other;
+    out = SFOut();
+    decore::skillformula::MoleShot(in, out);
+    EXPECT_EQ(0, out.Damage); // no branch taken
 }
 
 TEST(SkillOutputFormula, HeadShotCaseFallthroughIsTheBalance) {
@@ -609,10 +638,26 @@ TEST(SkillOutputFormula, GradeSwitchesReadDomainGrade) {
     EXPECT_EQ(310, out.Duration); // (10 + 20/2)*10 = 200, then *155/100
     EXPECT_EQ(60, out.Delay);     // (6 - 20/33)*10
 
-    in.DomainGrade = -1; // unset: the default case zeroes Range
+    // Unset grade (-1): the default case zeroes Range in all three grade
+    // switches while the other fields still compute.
+    in = sfin();
+    in.SkillLevel = 50;
     out = SFOut();
     decore::skillformula::ContinualLight(in, out);
     EXPECT_EQ(0, out.Range);
+    in = sfin();
+    in.SkillLevel = 40;
+    out = SFOut();
+    decore::skillformula::Purify(in, out);
+    EXPECT_EQ(0, out.Range);
+    EXPECT_EQ(14, out.Damage);
+    in = sfin();
+    in.SkillLevel = 20;
+    in.PartySize = 3;
+    out = SFOut();
+    decore::skillformula::DetectInvisibility(in, out);
+    EXPECT_EQ(0, out.Range);
+    EXPECT_EQ(310, out.Duration);
 }
 
 TEST(SkillOutputFormula, ExpansionDelayEqualsDuration) {

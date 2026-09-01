@@ -59,9 +59,10 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5984 "$R5"
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
 # that moves math out must tighten the number here. The doc's other god
-# files join when their own extractions start. Baselines measured
-# 2026-08-31, post-3.3-extraction (the doc's 08-29 numbers predate the
-# clang-format-18 pass and are superseded).
+# files join when their own extractions start. R6a-c baselines measured
+# 2026-08-31 post-3.3-extraction; R6d added 2026-09-01 with the
+# SkillFormula.cpp computeOutput extraction (the doc's 08-29 numbers
+# predate the clang-format-18 pass and are superseded).
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
 check_ratchet R6a "SkillUtil.cpp lines" 6745 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
@@ -69,7 +70,7 @@ check_ratchet R6b "InitAllStat.cpp lines" 4949 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
 check_ratchet R6c "HitRoll.cpp lines" 774 "$R6c"
 R6d=$(wc -l < src/server/gameserver/skill/SkillFormula.cpp 2>/dev/null || echo missing)
-check_ratchet R6d "SkillFormula.cpp lines" 809 "$R6d"
+check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
 
 # --- Generated factory list is fresh ---------------------------------------
 # The generator only writes to $OUT, so point it at a scratch copy of the

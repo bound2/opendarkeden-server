@@ -73,7 +73,7 @@ predated that pass); only the rows `ratchets.sh` names are enforced so far.
 | `src/server/gameserver/InitAllStat.cpp` | 4,949 (enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,905 |
 | `src/server/gameserver/Slayer.cpp` | 4,375 |
-| `src/server/gameserver/skill/SkillFormula.cpp` | 809 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
+| `src/server/gameserver/skill/SkillFormula.cpp` | 820 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
 | `src/server/gameserver/skill/HitRoll.cpp` | 774 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 
 Once Phase 1's test harness exists, encode R1–R5 as **ratchet tests**: the
@@ -747,7 +747,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   `SkillFormula`/`SkillUtil` math and stat calculations (`InitAllStat.cpp`)
   into pure functions in `de-core`. These are the highest-value tests in the
   game — they encode balance — and the cheapest to write.
-  > **Status:** in progress (2026-08-31) — the `de-core` STATIC target
+  > **Status:** in progress (the `InitAllStat.cpp` bodies remain;
+  > updated 2026-09-01) — the `de-core` STATIC target
   > exists (`src/domain/`, freestanding by construction) with its first
   > content: all of `AbilityBalance.cpp` (HP/MP/to-hit/defense/protection/
   > damage/attack-speed/critical/steal per race) plus `computeFinalDamage`,
@@ -771,7 +772,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > SkillInput/SkillOutput structs with identical field names/enum values
   > so the diff is a pure move; comments carried along, legacy encoding
   > included); the member functions are now one-line delegation macros
-  > (SkillFormula.cpp 3,081→809, joins R6 as R6d). The 11 formulas that
+  > (SkillFormula.cpp 3,081→820, joins R6 as R6d). The 11 formulas that
   > roll dice inline (`Random()`/`rand()` — CriticalGround, MeteorStrike,
   > DuplicateSelf, the four axe-throw skills, Cannonade, SelfDestruction,
   > BloodCurse, VoodooRing) keep their original bodies in the adapter
@@ -783,17 +784,26 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > throw, on the same invocations); the `Item::ItemClass` comparisons
   > become a `GunClass` enum the adapter maps (four gun classes + Other);
   > `HeadShot`'s `Assert(false)` on a non-gun class fires in the adapter
-  > before delegation (equivalent: every caller passes a freshly zeroed
-  > SkillOutput — verified across all 402 call sites — so the copy-back of
-  > all six fields is also identical to the original partial assignments).
-  > `formula_tests` pins every special-cased formula (gun branches, grade
-  > switches, party boosts, the no-break HeadShot fallthrough where every
-  > in-range Range cascades to the case-1 damage, Revealer's
-  > Delay-before-boost ordering quirk) plus a representative spread
-  > (clamps, negative outputs, Delay=Duration couplings, empty formulas).
+  > before delegation (equivalent: all 393 compiled call sites pass a
+  > freshly zeroed SkillOutput, and no formula body reads an output field
+  > before writing it, so the copy-back of all six fields is identical to
+  > the original partial assignments; the one output-reusing caller sits
+  > in the never-built legacy `gameserver/test/` dir).
+  > `formula_tests` pins every gun-class branch (MultiShot, HeadShot,
+  > MoleShot), every grade switch including the unset-grade default, and
+  > the no-break HeadShot fallthrough where every in-range Range cascades
+  > to the case-1 damage, plus a representative spread (party boosts,
+  > Revealer's Delay-before-boost ordering quirk, clamps, negative
+  > outputs, Delay=Duration couplings, empty formulas). The adapter's
+  > field mapping itself is the one surface no suite can see (the tests
+  > deliberately link only de-core) — hand-verified in the adversarial
+  > review, flagged as such in the code. Both reviewers (2x xhigh,
+  > 2026-09-01) returned SHIP; their byte-level audit found 286 of the
+  > 293 moved bodies byte-identical and the other 7 differing only by
+  > the documented substitutions.
   > Next: the `InitAllStat.cpp` bodies.
   - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
-    `InitAllStat.cpp` / `HitRoll.cpp`.
+    `InitAllStat.cpp` / `HitRoll.cpp` / `SkillFormula.cpp`.
 
 - [ ] **3.4 Codify thread ownership.** Document (in CLAUDE.md) which state is
   owned by which thread: zone-group state mutated only on its
