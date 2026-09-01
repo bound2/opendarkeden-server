@@ -20,7 +20,11 @@
 // different STR coefficients than vampireMaxHP/oustersMaxHP below, and
 // src/Core/Utility.h declares a Chebyshev getDistance(int,int,int,int)
 // alongside SkillUtil's Euclidean one (which delegates to tileDistance
-// here). Folding them in is a balance decision, not a refactor.
+// here). Near-twin inside de-core itself: skillformula's WildWolf
+// computeOutput independently encodes the same DEX/8 + STR/30 core as
+// wolfDamageBonus below — both pinned, but the coefficient pair exists
+// twice. Folding any of these together is a balance decision, not a
+// refactor.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __DECORE_FORMULAS_H__
@@ -180,6 +184,104 @@ int backStabRatio(int intStat, int dexStat);
 // Hallucination: attacker attr sum vs. target attr sum, clamped into the
 // per-race [minRatio, maxRatio] band the adapter selects.
 int hallucinationRatio(int attackerAttrSum, int targetAttrSum, int minRatio, int maxRatio);
+
+//////////////////////////////////////////////////////////////////////////////
+// initAllStat bonus formulas (adapters: InitAllStat.cpp). The adapters
+// keep every gate on live state (equipped item class, canUse() on the
+// skill slot, effect flags, isRealWearing) and every member write
+// including the per-race stat caps; only the bonus arithmetic lives
+// here. grade parameters are the SkillGrade value (0 apprentice ..
+// 4 grand master) as an int, same convention as skillformula's
+// DomainGrade.
+//////////////////////////////////////////////////////////////////////////////
+
+// Concealment (guns only): int-divided stat scaled by a float level
+// factor; the divide-then-scale truncation is the shipped math.
+int concealmentDefenseBonus(int dex, int effectLevel);
+int concealmentProtectionBonus(int str, int effectLevel);
+
+// Will of Iron / Fabulous Soul passive: 15% of max HP via a double
+// multiply, truncated.
+int willOfIronHPBonus(int maxHP);
+
+struct LivenessBonus {
+    int hpPercent;
+    int defenseBonus;
+};
+// Liveness passive (gun domain). The normal table jumps hpPercent to 50
+// from domain level 125 regardless of grade; the China-server table has
+// different steps and no level override — the #ifdef __CHINA_SERVER__
+// selection stays in the adapter.
+LivenessBonus livenessBonus(int grade, int domainLevel);
+LivenessBonus livenessBonusChina(int grade);
+
+// Sniping mode (SR): percent = STR/20 * expLevel / 20 of current damage,
+// DEX/10 * expLevel / 20 of current to-hit — evaluated left to right:
+// the stat division truncates first, the final /20 only after the
+// multiply. Shipped operator order, preserved.
+int snipingDamageBonus(int curDamage, int str, int expLevel);
+int snipingToHitBonus(int curToHit, int dex, int expLevel);
+
+// Weapon-domain passives (slayer).
+int swordMasteryDamageBonus(int domainLevel);
+int concentrationToHitBonus(int domainLevel);
+int evasionDefenseBonus(int domainLevel);
+int shieldMasteryProtectionBonus(int domainLevel);
+
+// Vampire transform damage bonuses (same value for min and max damage).
+int wolfDamageBonus(int dex, int str);
+int werwolfDamageBonus(int dex, int str);
+
+// Vampire Extreme effect (caps included — they are the formula).
+int extremeDamageBonus(int str);
+int extremeToHitBonus(int str, int dex);
+
+// Intimate Grail ratios. All three races share the 10 + level/10 ratio,
+// but the SIGN of application stays at the call sites: the slayer applies
+// it (and the 6.6-divisor HP ratio) as a blessing (+=), vampire and
+// ousters as a penalty (-=).
+int intimateGrailRatio(int skillLevel);
+int intimateGrailHPRatio(int skillLevel);
+
+// Slayer gun-domain flat damage bonus while holding a gun.
+int gunDomainDamageBonus(int gunDomainLevel);
+
+// Vampire Nail Mastery: same const + (level - const)/divisor family as
+// the slayer passives, negative below level 32 (truncated toward zero
+// like evasion).
+int nailMasteryDamageBonus(int level);
+
+// Vampire basic-DEX HP-regen ladder: seven thresholds, 0 at DEX <= 50.
+int vampireDexHPRegenBonus(int dexBasic);
+
+// Ousters soul-stone passive points (adapter gates on
+// satisfySkillRequire and stores into m_PassiveSkillMap; the original
+// (uint) store of the double is value-identical to the int return for
+// the reachable non-negative range).
+int fireOfSoulStonePoint(int str, int dex);
+int iceOfSoulStonePoint(int dex);
+int sandOfSoulStonePoint(int str, int dex);
+int blockHeadPoint(int dex);
+int blessFirePoint(int str, int dex);
+int sandCrossPoint(int str, int dex);
+
+// Blood Bible sign-open ladders, one per race — the fame thresholds have
+// drifted between races and slayer has a second ladder for HEAL/ENCHANT
+// domains, which is exactly why they are pinned here. fame is Fame_t
+// (DWORD) — unsigned comparison semantics preserved. The adapters keep
+// the pay-status openNumLimit, the __TEST_SERVER__ fame*10, and the
+// canApplyBloodBibleSign() gate (0 when closed).
+int slayerBloodBibleSignOpenNum(unsigned int fame, int openNumLimit, bool healOrEnchantDomain);
+int vampireBloodBibleSignOpenNum(unsigned int fame, int openNumLimit);
+int oustersBloodBibleSignOpenNum(unsigned int fame, int openNumLimit);
+
+// Ousters Summon Sylph flat bonuses, floored at 5.
+int summonSylphProtectionBonus(int level);
+int summonSylphResistBonus(int level);
+
+// Ousters Hide Sight passive (chakram): two level bands, with a 10%
+// bump exactly at exp level 30, truncated.
+int hideSightToHitBonus(int expLevel);
 
 } // namespace decore
 
