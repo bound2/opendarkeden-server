@@ -54,8 +54,8 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 98 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 308 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files) |
+| R2 | Files with inline SQL in gameserver root | 85 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 308 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -917,7 +917,49 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > cleansed file, which decouples only the slot files: the race files
   > still reach DB.h transitively through ConcreteItem.h. Korean
   > comments on the re-indented lines were translated.
-  > Remaining SQL under gameserver/: the long tail (R2 = 98 files).
+  > **Effect / flag / address-book / quest-item round (2026-09-01,
+  > stacked on the character-load round)**: four more seams, thirteen
+  > files cleansed (R2 98→85, R3 308→295). **`EffectSaveRepository`**
+  > encloses the eight persisted-effect tables — the create()/destroy()/
+  > save() overrides and the *Loader::load() of EffectAftermath,
+  > EffectKillAftermath, EffectMute, EffectCanEnterGDRLair (DEADLINE
+  > tables: an absolute expiry plus a never-read YearTime), the three
+  > force scrolls (REMAIN tables: the turns left at save time, so
+  > logged-out time does not count) and EffectEnemyErase (a deadline
+  > table with an EnemyName). The eight classes never agreed on SQL
+  > spacing, so the format strings are per-table data, verbatim
+  > (EffectMute's "YearTime=%ld", the force scrolls' "SELECt" typo and
+  > "(OwnerID, RemainTime )", CanEnterGDRLair's "VALUES ("); the Turn_t
+  > year time / remain turn still ride %ld/%lu (register-passed, the
+  > documented latent-bug family, preserved). Structural quirks pinned
+  > against the real server: seven tables are keyless and accumulate a
+  > duplicate row on a second create(), EffectKillAftermath alone has
+  > OwnerID as PRIMARY KEY and raises ER_DUP_ENTRY; EnemyErase's DELETE
+  > keys on (OwnerID, EnemyName) but its UPDATE on OwnerID alone, so
+  > saving one enemy-erase effect rewrites EVERY EnemyErase row of the
+  > owner. The transplant was again scripted (the eight files share one
+  > shape; the script anchors on it and dies on any deviation), the
+  > loaders keep every gate and per-race branch and now iterate a
+  > vector instead of a live result. **`FlagSetRepository`** (the
+  > character's 24 flag bits as a '0'/'1' text; the StringStream-built
+  > INSERT/UPDATE/DELETE became parameterized format strings with the
+  > same bytes, the INSERT's two trailing spaces included; OwnerID is
+  > the PK — insert() refuses a second row, the load-path fallback is
+  > the INSERT IGNORE of an empty text, both pinned),
+  > **`SMSAddressRepository`** (the phone book; (eID, OwnerID) PK
+  > pinned; a datetime Time column nothing on the server touches) and
+  > **`QuestItemRepository`** (GQuestItemObject, one row per item
+  > instance — removeOne's LIMIT 1 is load-bearing and pinned; encloses
+  > GQuestInventory AND the two GQuestGive*Element inserts; the
+  > original load/removeOne leaked their Statement on success, fixed
+  > knowingly). No fake tier for any of the four (integration over
+  > fakes); +11 integration tests. The per-character purges
+  > (CreatureUtil.cpp, CLDeletePCHandler) still DELETE from all of
+  > these tables inline, as before. Remaining SQL under gameserver/:
+  > the long tail (R2 = 85 files) — biggest remaining clusters are
+  > CreatureUtil.cpp's 128-statement character deletion, the guild
+  > trio (Guild/GuildManager/GuildUnion, 65 statements) and the
+  > read-only info loaders.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

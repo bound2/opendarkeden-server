@@ -1,7 +1,6 @@
 #include "GQuestGiveEventQuestItemElement.h"
 
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "GCSystemMessage.h"
 #include "GQuestInventory.h"
 #include "Ousters.h"
@@ -9,6 +8,7 @@
 #include "PlayerCreature.h"
 #include "Slayer.h"
 #include "Vampire.h"
+#include "repository/QuestItemRepository.h"
 #include "skill/SkillUtil.h"
 
 Exp_t ExpRewardTable[3][25] = {
@@ -64,15 +64,7 @@ GQuestElement::ResultType GQuestGiveEventQuestItemElement::checkCondition(Player
         inventory.getItems().push_back(base);
         pPC->getPlayer()->sendPacket(inventory.getInventoryPacket());
 
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO GQuestItemObject(ItemType, OwnerID) VALUES (%u, '%s')", base,
-                                pPC->getName().c_str());
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultQuestItemRepository().insert(pPC->getName(), base);
     }
 
     giveLotto(pPC, m_Type, m_Grade + 1);

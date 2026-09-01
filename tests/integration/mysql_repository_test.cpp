@@ -32,10 +32,14 @@
 #include "Thread.h"
 #include "repository/BloodBibleSignRepository.h"
 #include "repository/CharacterRepository.h"
+#include "repository/EffectSaveRepository.h"
+#include "repository/FlagSetRepository.h"
 #include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
 #include "repository/NicknameRepository.h"
+#include "repository/QuestItemRepository.h"
 #include "repository/RankBonusRepository.h"
+#include "repository/SMSAddressRepository.h"
 #include "repository/SkillSaveRepository.h"
 #include "repository/StashRepository.h"
 
@@ -909,6 +913,333 @@ TEST_F(SkillSaveMySQL, WritesAgainstMissingRowsAreSilentNoOps) {
     EXPECT_TRUE(defaultSkillSaveRepository().loadSlayerSkills(ghost.name).empty());
     EXPECT_TRUE(defaultSkillSaveRepository().loadVampireSkills(ghost.name).empty());
     EXPECT_TRUE(defaultSkillSaveRepository().loadOustersSkills(ghost.name).empty());
+}
+
+// --- the persisted-effect tables against real MySQL -----------------------
+// EffectSaveRepository has no fake tier; the format strings are per-table
+// data, so every table gets exercised, and the two structural quirks —
+// the one keyed table among eight keyless ones, and EnemyErase's
+// owner-wide UPDATE — are pinned against the real server.
+
+const char* const DEADLINE_TABLE_NAMES[DEADLINE_EFFECT_TABLE_MAX] = {"EffectAftermath", "EffectKillAftermath",
+                                                                     "EffectMute", "CanEnterGDRLair"};
+const char* const REMAIN_TABLE_NAMES[REMAIN_EFFECT_TABLE_MAX] = {"EffectSafeForceScroll", "EffectBehemothForceScroll",
+                                                                 "EffectCarnelianForceScroll"};
+
+class EffectSaveMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        PlayerFixtures::removeAll();
+        for (int t = 0; t < DEADLINE_EFFECT_TABLE_MAX; t++)
+            execSQL(std::string("DELETE FROM ") + DEADLINE_TABLE_NAMES[t] + " WHERE OwnerID IN " +
+                    PlayerFixtures::nameList());
+        for (int t = 0; t < REMAIN_EFFECT_TABLE_MAX; t++)
+            execSQL(std::string("DELETE FROM ") + REMAIN_TABLE_NAMES[t] + " WHERE OwnerID IN " +
+                    PlayerFixtures::nameList());
+        execSQL(std::string("DELETE FROM EnemyErase WHERE OwnerID IN ") + PlayerFixtures::nameList());
+    }
+
+    static std::string yearTimeOf(const char* table, const std::string& owner) {
+        return queryScalar(std::string("SELECT YearTime FROM ") + table + " WHERE OwnerID='" + owner + "'");
+    }
+};
+
+TEST_F(EffectSaveMySQL, EveryDeadlineTableRoundTripsInsertUpdateLoadDelete) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+
+    for (int t = 0; t < DEADLINE_EFFECT_TABLE_MAX; t++) {
+        DeadlineEffectTable table = (DeadlineEffectTable)t;
+        SCOPED_TRACE(DEADLINE_TABLE_NAMES[t]);
+
+        repository.insertDeadline(table, slayer.name, 1111, 1700000001);
+        std::vector<DWORD> dayTimes = repository.loadDeadlines(table, slayer.name);
+        ASSERT_EQ(1u, dayTimes.size());
+        EXPECT_EQ(1700000001u, dayTimes[0]);
+        EXPECT_EQ("1111", yearTimeOf(DEADLINE_TABLE_NAMES[t], slayer.name));
+
+        repository.updateDeadline(table, slayer.name, 2222, 1700000002);
+        dayTimes = repository.loadDeadlines(table, slayer.name);
+        ASSERT_EQ(1u, dayTimes.size());
+        EXPECT_EQ(1700000002u, dayTimes[0]);
+        EXPECT_EQ("2222", yearTimeOf(DEADLINE_TABLE_NAMES[t], slayer.name));
+
+        repository.deleteDeadline(table, slayer.name);
+        EXPECT_TRUE(repository.loadDeadlines(table, slayer.name).empty());
+    }
+}
+
+TEST_F(EffectSaveMySQL, KeylessTablesAccumulateDuplicatesButKillAftermathRefusesThem) {
+    // Seven of the eight tables have only an OwnerID index; a second
+    // create() for the same owner just adds a row (and the loader then
+    // attaches the effect twice). EffectKillAftermath is the one with
+    // OwnerID as PRIMARY KEY: its second insert raises ER_DUP_ENTRY.
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    vampire.persist();
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+
+    repository.insertDeadline(EFFECT_TABLE_AFTERMATH, vampire.name, 1, 1700000001);
+    repository.insertDeadline(EFFECT_TABLE_AFTERMATH, vampire.name, 1, 1700000002);
+    EXPECT_EQ(2u, repository.loadDeadlines(EFFECT_TABLE_AFTERMATH, vampire.name).size());
+
+    repository.insertDeadline(EFFECT_TABLE_KILL_AFTERMATH, vampire.name, 1, 1700000001);
+    EXPECT_ANY_THROW(repository.insertDeadline(EFFECT_TABLE_KILL_AFTERMATH, vampire.name, 1, 1700000002));
+    std::vector<DWORD> dayTimes = repository.loadDeadlines(EFFECT_TABLE_KILL_AFTERMATH, vampire.name);
+    ASSERT_EQ(1u, dayTimes.size());
+    EXPECT_EQ(1700000001u, dayTimes[0]);
+}
+
+TEST_F(EffectSaveMySQL, EveryRemainTableRoundTripsInsertUpdateLoadDelete) {
+    PlayerFixture ousters = PlayerFixtures::midLevelOusters();
+    ousters.persist();
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+
+    for (int t = 0; t < REMAIN_EFFECT_TABLE_MAX; t++) {
+        RemainEffectTable table = (RemainEffectTable)t;
+        SCOPED_TRACE(REMAIN_TABLE_NAMES[t]);
+        DWORD remainTurn = 0;
+
+        EXPECT_FALSE(repository.loadRemain(table, ousters.name, remainTurn));
+
+        repository.insertRemain(table, ousters.name, 500);
+        ASSERT_TRUE(repository.loadRemain(table, ousters.name, remainTurn));
+        EXPECT_EQ(500u, remainTurn);
+
+        repository.updateRemain(table, ousters.name, 600);
+        ASSERT_TRUE(repository.loadRemain(table, ousters.name, remainTurn));
+        EXPECT_EQ(600u, remainTurn);
+
+        repository.deleteRemain(table, ousters.name);
+        EXPECT_FALSE(repository.loadRemain(table, ousters.name, remainTurn));
+    }
+}
+
+TEST_F(EffectSaveMySQL, EnemyEraseDeletesByEnemyButUpdatesEveryRowOfTheOwner) {
+    // One row per enemy. The DELETE keys on (OwnerID, EnemyName); the
+    // UPDATE keys on OwnerID alone, so saving one enemy-erase effect
+    // rewrites every EnemyErase row the owner has to that enemy.
+    PlayerFixture slayer = PlayerFixtures::highLevelSlayer();
+    slayer.persist();
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+
+    repository.insertEnemyErase(slayer.name, 1, 1700000001, "foeone");
+    repository.insertEnemyErase(slayer.name, 2, 1700000002, "foetwo");
+
+    std::vector<EnemyEraseRow> rows = repository.loadEnemyErases(slayer.name);
+    ASSERT_EQ(2u, rows.size());
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].enemyName == "foeone")
+            EXPECT_EQ(1700000001u, rows[r].dayTime);
+        else if (rows[r].enemyName == "foetwo")
+            EXPECT_EQ(1700000002u, rows[r].dayTime);
+        else
+            ADD_FAILURE() << "unexpected enemy " << rows[r].enemyName;
+    }
+
+    repository.updateEnemyErase(slayer.name, 3, 1700000003, "foeone");
+    rows = repository.loadEnemyErases(slayer.name);
+    ASSERT_EQ(2u, rows.size());
+    EXPECT_EQ("foeone", rows[0].enemyName);
+    EXPECT_EQ("foeone", rows[1].enemyName);
+    EXPECT_EQ(1700000003u, rows[0].dayTime);
+    EXPECT_EQ(1700000003u, rows[1].dayTime);
+
+    repository.deleteEnemyErase(slayer.name, "foeone");
+    EXPECT_TRUE(repository.loadEnemyErases(slayer.name).empty());
+}
+
+TEST_F(EffectSaveMySQL, WritesAgainstMissingRowsAreSilentNoOps) {
+    PlayerFixture ghost = PlayerFixtures::lowLevelVampire(); // never persisted
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+
+    repository.updateDeadline(EFFECT_TABLE_MUTE, ghost.name, 1, 1);
+    repository.deleteDeadline(EFFECT_TABLE_MUTE, ghost.name);
+    repository.updateRemain(EFFECT_TABLE_CARNELIAN_FORCE_SCROLL, ghost.name, 1);
+    repository.deleteRemain(EFFECT_TABLE_CARNELIAN_FORCE_SCROLL, ghost.name);
+    repository.updateEnemyErase(ghost.name, 1, 1, "nobody");
+    repository.deleteEnemyErase(ghost.name, "nobody");
+
+    DWORD remainTurn = 0;
+    EXPECT_TRUE(repository.loadDeadlines(EFFECT_TABLE_MUTE, ghost.name).empty());
+    EXPECT_FALSE(repository.loadRemain(EFFECT_TABLE_CARNELIAN_FORCE_SCROLL, ghost.name, remainTurn));
+    EXPECT_TRUE(repository.loadEnemyErases(ghost.name).empty());
+}
+
+// --- FlagSet against real MySQL -------------------------------------------
+
+class FlagSetMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        PlayerFixtures::removeAll();
+        execSQL(std::string("DELETE FROM FlagSet WHERE OwnerID IN ") + PlayerFixtures::nameList());
+    }
+};
+
+TEST_F(FlagSetMySQL, InsertLoadUpdateRemoveRoundTrip) {
+    PlayerFixture slayer = PlayerFixtures::lowLevelSlayer();
+    slayer.persist();
+    FlagSetRepository& repository = defaultFlagSetRepository();
+    std::string text;
+
+    EXPECT_FALSE(repository.load(slayer.name, text));
+
+    repository.insert(slayer.name, "101010101010101010101010");
+    ASSERT_TRUE(repository.load(slayer.name, text));
+    EXPECT_EQ("101010101010101010101010", text);
+
+    repository.update(slayer.name, "000000000000000000000001");
+    ASSERT_TRUE(repository.load(slayer.name, text));
+    EXPECT_EQ("000000000000000000000001", text);
+
+    repository.remove(slayer.name);
+    EXPECT_FALSE(repository.load(slayer.name, text));
+}
+
+TEST_F(FlagSetMySQL, PrimaryKeyRefusesASecondInsertWhileInsertEmptyIfMissingIsANoOp) {
+    PlayerFixture vampire = PlayerFixtures::lowLevelVampire();
+    PlayerFixture ghost = PlayerFixtures::highLevelVampire();
+    vampire.persist();
+    FlagSetRepository& repository = defaultFlagSetRepository();
+    std::string text;
+
+    repository.insert(vampire.name, "111100000000000000000000");
+    EXPECT_ANY_THROW(repository.insert(vampire.name, "000000000000000000000000"));
+    repository.insertEmptyIfMissing(vampire.name); // INSERT IGNORE: keeps the row that is there
+    ASSERT_TRUE(repository.load(vampire.name, text));
+    EXPECT_EQ("111100000000000000000000", text);
+
+    repository.insertEmptyIfMissing(ghost.name); // no row yet: an empty one appears
+    ASSERT_TRUE(repository.load(ghost.name, text));
+    EXPECT_EQ("", text);
+}
+
+// --- SMSAddressBook against real MySQL ------------------------------------
+
+class SMSAddressMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        PlayerFixtures::removeAll();
+        execSQL(std::string("DELETE FROM SMSAddressBook WHERE OwnerID IN ") + PlayerFixtures::nameList());
+    }
+
+    static const SMSAddressRow* find(const std::vector<SMSAddressRow>& rows, int eID) {
+        for (size_t r = 0; r < rows.size(); r++)
+            if (rows[r].eID == eID)
+                return &rows[r];
+        return NULL;
+    }
+};
+
+TEST_F(SMSAddressMySQL, InsertLoadRemoveRoundTripScopedToTheOwner) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    PlayerFixture other = PlayerFixtures::midLevelOusters();
+    slayer.persist();
+    other.persist();
+    SMSAddressRepository& repository = defaultSMSAddressRepository();
+
+    repository.insert(slayer.name, 1, "friendone", "Custom One", "01011112222");
+    repository.insert(slayer.name, 2, "friendtwo", "Custom Two", "01033334444");
+    repository.insert(other.name, 1, "someone", "Elsewhere", "01055556666");
+
+    std::vector<SMSAddressRow> rows = repository.load(slayer.name);
+    ASSERT_EQ(2u, rows.size());
+    const SMSAddressRow* one = find(rows, 1);
+    ASSERT_TRUE(one != NULL);
+    EXPECT_EQ("friendone", one->characterName);
+    EXPECT_EQ("Custom One", one->customName);
+    EXPECT_EQ("01011112222", one->number);
+    const SMSAddressRow* two = find(rows, 2);
+    ASSERT_TRUE(two != NULL);
+    EXPECT_EQ("friendtwo", two->characterName);
+    EXPECT_EQ("Custom Two", two->customName);
+    EXPECT_EQ("01033334444", two->number);
+
+    repository.remove(slayer.name, 1);
+    rows = repository.load(slayer.name);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(2, rows[0].eID);
+    EXPECT_EQ(1u, repository.load(other.name).size());
+}
+
+TEST_F(SMSAddressMySQL, CompositePrimaryKeyRefusesARepeatedIdForTheSameOwnerOnly) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    PlayerFixture other = PlayerFixtures::midLevelOusters();
+    slayer.persist();
+    other.persist();
+    SMSAddressRepository& repository = defaultSMSAddressRepository();
+
+    repository.insert(slayer.name, 5, "a", "b", "c");
+    EXPECT_ANY_THROW(repository.insert(slayer.name, 5, "d", "e", "f"));
+    repository.insert(other.name, 5, "g", "h", "i"); // same id, other owner: fine
+
+    EXPECT_EQ(1u, repository.load(slayer.name).size());
+    EXPECT_EQ(1u, repository.load(other.name).size());
+}
+
+// --- GQuestItemObject against real MySQL ----------------------------------
+
+class QuestItemMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        PlayerFixtures::removeAll();
+        execSQL(std::string("DELETE FROM GQuestItemObject WHERE OwnerID IN ") + PlayerFixtures::nameList());
+    }
+
+    static int count(const std::vector<int>& itemTypes, int itemType) {
+        int n = 0;
+        for (size_t i = 0; i < itemTypes.size(); i++)
+            if (itemTypes[i] == itemType)
+                n++;
+        return n;
+    }
+};
+
+TEST_F(QuestItemMySQL, RemoveOneTakesASingleInstanceAndLeavesTheRest) {
+    // One row per item instance; the LIMIT 1 on the DELETE is what keeps
+    // the second copy of a duplicated item.
+    PlayerFixture ousters = PlayerFixtures::lowLevelOusters();
+    ousters.persist();
+    QuestItemRepository& repository = defaultQuestItemRepository();
+
+    repository.insert(ousters.name, 7);
+    repository.insert(ousters.name, 7);
+    repository.insert(ousters.name, 9);
+
+    std::vector<int> itemTypes = repository.loadItemTypes(ousters.name);
+    ASSERT_EQ(3u, itemTypes.size());
+    EXPECT_EQ(2, count(itemTypes, 7));
+    EXPECT_EQ(1, count(itemTypes, 9));
+
+    repository.removeOne(ousters.name, 7);
+    itemTypes = repository.loadItemTypes(ousters.name);
+    ASSERT_EQ(2u, itemTypes.size());
+    EXPECT_EQ(1, count(itemTypes, 7));
+    EXPECT_EQ(1, count(itemTypes, 9));
+
+    repository.removeOne(ousters.name, 7);
+    repository.removeOne(ousters.name, 7); // none left: silent no-op
+    itemTypes = repository.loadItemTypes(ousters.name);
+    ASSERT_EQ(1u, itemTypes.size());
+    EXPECT_EQ(9, itemTypes[0]);
+}
+
+TEST_F(QuestItemMySQL, RowsAreScopedToTheOwner) {
+    PlayerFixture slayer = PlayerFixtures::lowLevelSlayer();
+    PlayerFixture vampire = PlayerFixtures::lowLevelVampire();
+    slayer.persist();
+    vampire.persist();
+    QuestItemRepository& repository = defaultQuestItemRepository();
+
+    repository.insert(slayer.name, 4);
+    repository.insert(vampire.name, 5);
+
+    std::vector<int> itemTypes = repository.loadItemTypes(slayer.name);
+    ASSERT_EQ(1u, itemTypes.size());
+    EXPECT_EQ(4, itemTypes[0]);
+    itemTypes = repository.loadItemTypes(vampire.name);
+    ASSERT_EQ(1u, itemTypes.size());
+    EXPECT_EQ(5, itemTypes[0]);
 }
 
 // --- BloodBibleSignObject against real MySQL ------------------------------

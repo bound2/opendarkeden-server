@@ -7,10 +7,10 @@
 #include "EffectAftermath.h"
 
 #include "Creature.h"
-#include "DB.h"
 #include "GamePlayer.h"
 #include "Slayer.h"
 #include "Vampire.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -109,35 +109,11 @@ void EffectAftermath::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        /*
-        StringStream sql;
-        sql << "INSERT INTO EffectAftermath "
-            << "(OwnerID , YearTime, DayTime) VALUES("
-            << "'" << ownerID           << "', "
-            << " " << currentYearTime   << " , "
-            << " " << m_Deadline.tv_sec << "   "
-            << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        // StringStream제거. by sigi. 2002.5.8
-        pStmt->executeQuery("INSERT INTO EffectAftermath (OwnerID , YearTime, DayTime) VALUES('%s', %ld, %ld)",
-                            ownerID.c_str(), currentYearTime, m_Deadline.tv_sec);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertDeadline(EFFECT_TABLE_AFTERMATH, ownerID, currentYearTime, m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -149,23 +125,7 @@ void EffectAftermath::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-        sql << "DELETE FROM EffectAftermath WHERE OwnerID = '" << ownerID << "'";
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        // StringStream제거. by sigi. 2002.5.8
-        pStmt->executeQuery("DELETE FROM EffectAftermath WHERE OwnerID = '%s'", ownerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteDeadline(EFFECT_TABLE_AFTERMATH, ownerID);
 
     __END_CATCH
 }
@@ -177,31 +137,11 @@ void EffectAftermath::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE EffectAftermath SET "
-            << "YearTime = " << currentYearTime
-            << ",DayTime = " << m_Deadline.tv_sec
-            << " WHERE OwnerID = '" << ownerID << "'";
-        */
-
-        // StringStream제거. by sigi. 2002.5.8
-        pStmt->executeQuery("UPDATE EffectAftermath SET YearTime = %ld, DayTime = %ld WHERE OwnerID = '%s'",
-                            currentYearTime, m_Deadline.tv_sec, ownerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateDeadline(EFFECT_TABLE_AFTERMATH, ownerID, currentYearTime, m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -232,55 +172,32 @@ void EffectAftermathLoader::load(Creature* pCreature)
         return;
     }
 
-    Statement* pStmt = NULL;
+    vector<DWORD> dayTimes = defaultEffectSaveRepository().loadDeadlines(EFFECT_TABLE_AFTERMATH, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < dayTimes.size(); r++) {
+        int DayTime = dayTimes[r];
 
-        /*
-        StringStream sql;
+        Timeval currentTime;
+        getCurrentTime(currentTime);
 
-        sql << "SELECT DayTime FROM EffectAftermath"
-            << " WHERE OwnerID = '" << pCreature->getName()
-            << "'";
+        EffectAftermath* pEffectAftermath = new EffectAftermath(pCreature);
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+        if (currentTime.tv_sec < DayTime) {
+            pEffectAftermath->setDeadline((DayTime - currentTime.tv_sec) * 10);
 
-        // StringStream제거. by sigi. 2002.5.8
-        Result* pResult = pStmt->executeQuery("SELECT DayTime FROM EffectAftermath WHERE OwnerID = '%s'",
-                                              pCreature->getName().c_str());
+            pCreature->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
 
-        while (pResult->next()) {
-            uint i = 0;
+            EffectManager* pEffectManager = pCreature->getEffectManager();
+            pEffectManager->addEffect(pEffectAftermath);
+        } else {
+            pEffectAftermath->setDeadline(0);
 
-            int DayTime = pResult->getDWORD(++i);
+            pCreature->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
 
-            Timeval currentTime;
-            getCurrentTime(currentTime);
-
-            EffectAftermath* pEffectAftermath = new EffectAftermath(pCreature);
-
-            if (currentTime.tv_sec < DayTime) {
-                pEffectAftermath->setDeadline((DayTime - currentTime.tv_sec) * 10);
-
-                pCreature->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
-
-                EffectManager* pEffectManager = pCreature->getEffectManager();
-                pEffectManager->addEffect(pEffectAftermath);
-            } else {
-                pEffectAftermath->setDeadline(0);
-
-                pCreature->setFlag(Effect::EFFECT_CLASS_AFTERMATH);
-
-                EffectManager* pEffectManager = pCreature->getEffectManager();
-                pEffectManager->addEffect(pEffectAftermath);
-            }
+            EffectManager* pEffectManager = pCreature->getEffectManager();
+            pEffectManager->addEffect(pEffectAftermath);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

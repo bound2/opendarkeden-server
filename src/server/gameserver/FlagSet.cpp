@@ -7,8 +7,9 @@
 #include "FlagSet.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "StringStream.h"
+#include "Utility.h"
+#include "repository/FlagSetRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -44,20 +45,7 @@ void FlagSet::create(const string& owner)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-        sql << "INSERT INTO FlagSet (" << "OwnerID, FlagData" << ") VALUES (" << "'" << owner << "', " << "'"
-            << toString() << "'  " << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultFlagSetRepository().insert(owner, toString());
 
     __END_CATCH
 }
@@ -67,39 +55,27 @@ void FlagSet::load(const string& owner)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    string text;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT FlagData FROM FlagSet WHERE OwnerID = '%s'", owner.c_str());
+    if (!defaultFlagSetRepository().load(owner, text)) {
+        StringStream msg;
+        msg << "FlagSet::load() " << "There is no flag data which owner is " << "[" << owner << "]";
 
-        if (pResult->getRowCount() == 0) {
-            StringStream msg;
-            msg << "FlagSet::load() " << "There is no flag data which owner is " << "[" << owner << "]";
+        filelog("flagSetError.txt", "%s", msg.toString().c_str());
 
-            filelog("flagSetError.txt", "%s", msg.toString().c_str());
+        // No flag set yet: store a default one so the character can play.
+        defaultFlagSetRepository().insertEmptyIfMissing(owner);
 
-            // flagSet이 없는 경우에는 일단 default로 넣어서 동작하게 한다.
-            pStmt->executeQuery("INSERT IGNORE INTO FlagSet (OwnerID, FlagData) VALUES ('%s','')", owner.c_str());
-
-            // cerr << msg.toString() << endl;
-            // throw (msg.toString());
-        } else {
-            pResult->next();
-
-            string text = pResult->getString(1);
-
-            for (uint i = 0; i < text.size() && i < FLAG_SIZE_MAX; i++) {
-                if (text[i] == '0')
-                    turnOff(i);
-                else
-                    turnOn(i);
-            }
+        // cerr << msg.toString() << endl;
+        // throw (msg.toString());
+    } else {
+        for (uint i = 0; i < text.size() && i < FLAG_SIZE_MAX; i++) {
+            if (text[i] == '0')
+                turnOff(i);
+            else
+                turnOn(i);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -109,19 +85,7 @@ void FlagSet::save(const string& owner)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        StringStream sql;
-        sql << "UPDATE FlagSet SET FlagData='" << toString() << "' WHERE OwnerID='" << owner << "'";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultFlagSetRepository().update(owner, toString());
 
     __END_CATCH
 }
@@ -131,17 +95,7 @@ void FlagSet::destroy(const string& owner)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        StringStream sql;
-        sql << "DELETE FROM FlagSet WHERE OwnerID = '" << owner << "'";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQueryString(sql.toString());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultFlagSetRepository().remove(owner);
 
     __END_CATCH
 }
