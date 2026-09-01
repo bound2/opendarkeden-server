@@ -9,9 +9,11 @@ namespace {
 //    save's "GuildID=%d" unspaced list vs the sweeper writes'
 //    "OwnerRace = %d" spaced ones; the SweeperOwnerInfo UPDATE's %ld
 //    for an int OwnerRace (the 4-byte-through-8-byte conversion family
-//    documented in MySQLCharacterRepository.cpp — register-passed here,
-//    so GCC's sign-extension of the int keeps it benign) and %d for a
-//    uint SweeperType; the master-lair SELECT that names 25 columns.
+//    documented in MySQLCharacterRepository.cpp; the ABI leaves the high
+//    half of a register-passed int undefined, so "benign" is codegen,
+//    not contract — the value is 0..3 and the literal is the original's,
+//    so behaviour is unchanged either way) and %d for a uint
+//    SweeperType; the master-lair SELECT that names 25 columns.
 //  - CastleInfoManager::tinysave applies a caller-composed SET fragment
 //    verbatim — the same quarantine as CharacterRepository::tinysave;
 //    the fragment is raw SQL text built by the castle handlers.
@@ -19,7 +21,8 @@ namespace {
 //    an empty table yields (see MySQLBalanceInfoRepository.cpp); both
 //    SweeperBonusManager entry points re-run it before their rows read,
 //    as the originals did.
-//  - LevelWarHistory is keyless; its INSERT writes the "Old" sweeper
+//  - LevelWarHistory has no primary or unique key (two non-unique
+//    indexes only); its INSERT writes the "Old" sweeper
 //    columns at war start and the UPDATE fills the "new" ones at war
 //    end, keyed on (Level, LevelWarID) — a start time formatted as text
 //    by the caller. A restart between the two leaves a half row.

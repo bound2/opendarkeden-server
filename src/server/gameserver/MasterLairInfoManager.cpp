@@ -246,7 +246,7 @@ void MasterLairInfoManager::load()
             pMasterLairInfo->setMasterY(row.masterY);
             pMasterLairInfo->setMasterDir(row.masterDir);
             pMasterLairInfo->setMaxPassPlayer(row.maxPassPlayer);
-            // pMasterLairInfo->setMaxSummonMonster( ... );
+            // pMasterLairInfo->setMaxSummonMonster( pResult->getInt(++i) );
             pMasterLairInfo->setSummonX(row.summonX);
             pMasterLairInfo->setSummonY(row.summonY);
             pMasterLairInfo->setFirstRegenDelay(row.firstRegenDelay);
@@ -332,7 +332,7 @@ void MasterLairInfoManager::reload()
             pMasterLairInfo->setMasterY(row.masterY);
             pMasterLairInfo->setMasterDir(row.masterDir);
             pMasterLairInfo->setMaxPassPlayer(row.maxPassPlayer);
-            // pMasterLairInfo->setMaxSummonMonster( ... );
+            // pMasterLairInfo->setMaxSummonMonster( pResult->getInt(++i) );
             pMasterLairInfo->setSummonX(row.summonX);
             pMasterLairInfo->setSummonY(row.summonY);
             pMasterLairInfo->setFirstRegenDelay(row.firstRegenDelay);

@@ -157,7 +157,8 @@ public:
     // --- shrines ----------------------------------------------------------
     virtual std::vector<ShrineRow> loadShrines() = 0;
     virtual std::vector<ShrineOwnerRow> loadShrineOwners() = 0;
-    // ShrineSet::saveOwner — the two ints the original cast at the call.
+    // ShrineSet::saveBloodBibleOwner — the two ints the original cast at
+    // the call.
     virtual void saveShrineOwner(int ownerRace, int shrineID) = 0;
 
     // --- castles ----------------------------------------------------------
@@ -183,7 +184,9 @@ public:
     virtual std::vector<SweeperOwnerRow> loadSweeperOwners(ZoneID_t zoneID) = 0;
     // LevelWarManager's two-column read of the same table.
     virtual std::vector<SweeperBonusOwnerRow> loadSweeperOwnerRaces(ZoneID_t zoneID) = 0;
-    // SweeperSetManager::saveSweeperOwner — the parameters as declared there.
+    // SweeperSetManager::saveSweeperOwner declares (uint itemType, int
+    // safeType, int ownerRace); the seam takes the same three types in the
+    // order the UPDATE streams them.
     virtual void saveSweeperOwner(int ownerRace, int safeType, uint itemType) = 0;
 
     // --- level-war history ----------------------------------------------------
