@@ -10,7 +10,9 @@
 // the monsters (MonsterInfo), the skill balance (SkillBalance), the NPCs
 // of a zone (NPC), the NPC dialogue scripts (Script), the monster-AI
 // directive sets (DirectiveSet) and the tunable variables (AttrInfo —
-// also written when a GM sets one). Rows are typed to the driver getter
+// also written back by VariableManager::setVariable on every call: the
+// GM `opset` path and the defaults set at init()/load()). Rows are typed
+// to the driver getter
 // the inline code called (getInt → int, getBYTE → BYTE, getString →
 // std::string); the one write's parameters to the expressions the caller
 // streamed.

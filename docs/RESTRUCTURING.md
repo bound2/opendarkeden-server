@@ -1275,31 +1275,46 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `RequireSkill`/`Condition` backticks, Domain/MagicDomain through
   > getBYTE), NPC (by zone, or by zone and race), Script (ORDER BY
   > ScriptID — the one ordered load here), DirectiveSet (MAX probe,
-  > rows) and AttrInfo (MAX probe, rows, and the GM-driven attr1 UPDATE).
+  > rows) and AttrInfo (MAX probe, rows, and the attr1 UPDATE
+  > VariableManager::setVariable fires on every call — the GM `opset`
+  > path, and the defaults written at init()/load()).
   > `ZoneInfoRepository` gains `loadMaxZoneGroupID` for EffectShutDown's
-  > two MAX(ZoneGroupID) probes (ConnectionInfoManager's and
-  > CGSayHandler's stay inline). Two literals change bytes: the
+  > two MAX(ZoneGroupID) probes (three stay inline: ConnectionInfoManager's
+  > one and CGSayHandler's two). Two literals change bytes: the
   > backslash-continued MonsterInfo and SkillBalance SELECTs drop their
   > leaked indentation tabs for single spaces — the same whitespace-run
   > collapse the character-load round made, and the only byte change.
   > Kept: the reload SELECT's double space before "FROM" (a StringStream
   > joined "NormalRegen " to " FROM MonsterInfo"). Disclosures: the MAX
-  > probes' dead `getRowCount() == 0` guards (MonsterInfo, SkillBalance,
-  > DirectiveSet's `throw(const char*)`, AttrInfo) now fire on an empty
-  > table where the originals atoi(NULL)'d; EffectShutDown had no guard
-  > at all and now throws a new Error("Critical Error : ZoneGroupInfo
-  > table is empty.") where it crashed; MonsterInfoManager::reload ran a
-  > MAX(MType) probe whose result it never read — dropped; the row
-  > structs read every column of every row where three inline loops
-  > read the tail columns only inside a branch (NPCManager behind
-  > `getCreature(Name) == NULL`, reload behind `getMonsterInfo() !=
-  > NULL`, SkillBalance's last six behind the Ousters-domain check) —
-  > harmless, the seam reads NULL text as "" and the tail int columns
-  > are NOT NULL; four dead comment blocks that mentioned executeQuery
-  > are deleted (MonsterInfo::load's older StringStream SELECT and its
-  > GROUP BY treasure loader, SkillInfo's SkillInfo-table probe,
-  > ScriptManager's per-owner SELECT) because R2's grep is textual;
-  > NPCManager's commented-out cout went with its block; Korean comments
+  > probes' dead guards — `getRowCount() == 0` in MonsterInfo,
+  > SkillBalance and DirectiveSet (whose `throw(const char*)` also
+  > leaked the Statement on that dead path; the seam frees first), `<= 0`
+  > in VariableManager — now fire on an empty table where the originals
+  > atoi(NULL)'d; VariableManager's second `<= 0` guard, on the AttrInfo
+  > rows, was live and is kept as `rows.empty()`, now unreachable behind
+  > the probe's false; EffectShutDown had no guard at all and now throws
+  > a new Error("Critical Error : ZoneGroupInfo table is empty.") where
+  > it crashed; MonsterInfoManager::reload ran a MAX(MType) probe whose
+  > result it never read — dropped; the row structs read every column of
+  > every row where three inline loops read the tail columns only inside
+  > a branch (NPCManager behind `getCreature(Name) == NULL`, reload
+  > behind `getMonsterInfo() != NULL`, SkillBalance's last six behind the
+  > Ousters-domain check) — NPC's columns and SkillBalance's last six are
+  > NOT NULL and NULL text reads as "", but 21 of the 32 columns reload
+  > reads are nullable ints (Level, STR, DEX, INTE, BSize, Align, AOrder,
+  > Moral, Delay, ADelay, Sight, AIType DEFAULT NULL; nine more nullable
+  > with a default) and Result::getInt is atoi(getField()): load()
+  > already reads every one of them unconditionally for every row, so a
+  > NULL in MonsterInfo crashes the boot before reload could see it, and
+  > the newly reachable case is a row inserted after boot with a NULL for
+  > a MType not yet loaded (the shipped seed has no NULL there); four
+  > dead comment blocks that mentioned executeQuery are deleted
+  > (MonsterInfo::load's older StringStream SELECT and its GROUP BY
+  > treasure loader, SkillInfo's SkillInfo-table probe, ScriptManager's
+  > per-owner SELECT) because R2's grep is textual, along with
+  > NPCManager's commented-out cout and `// StringStream sql;` and
+  > MonsterInfo's commented-out setMonsterSummonInfo marker (the row
+  > structs' comments carry that column-set difference); Korean comments
   > inside the replaced blocks are translated (MonsterInfo, SkillInfo,
   > NPCManager, Directive), the thrown Korean Error strings and the
   > NPC.log format stay. Not enclosed: EventMonsterNameManager.cpp and

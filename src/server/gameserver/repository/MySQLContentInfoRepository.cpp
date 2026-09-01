@@ -24,7 +24,12 @@ namespace {
 //    bytes either way.
 //  - Domain and MagicDomain come back through getBYTE, as before; the
 //    other integers through getInt, text through getString ("" for NULL
-//    — MonsterInfo's text columns and Script's are nullable).
+//    — MonsterInfo's text columns and Script's are nullable). getInt is
+//    atoi(getField()) and crashes on a NULL: 21 of MonsterInfo's integer
+//    columns are nullable, and the loaders read them unconditionally —
+//    load() always did for every row; reload now does too where the
+//    inline loop skipped rows of an unknown MType. The shipped seed has
+//    no NULL in MonsterInfo.
 class MySQLContentInfoRepository : public ContentInfoRepository {
 public:
     bool loadMaxMonsterType(int& maxType) {
