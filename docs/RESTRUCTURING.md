@@ -456,7 +456,7 @@ target graph is the first enforcement (a kernel target cannot see core/app
 headers); an include-graph test is the ArchUnit analog for what target
 visibility can't express.
 
-- [ ] **2.1 Define the target layering in CMake.**
+- [x] **2.1 Define the target layering in CMake.**
   - `de-kernel`: packet data classes, socket streams, `Types.h`, encrypt
     utilities, `Packet`/`PacketFactory` base. **No** MySQL, Lua, Zone/Creature
     headers, or server-type `#ifdef`s.
@@ -466,27 +466,31 @@ visibility can't express.
     adapters, network transport, handler wiring, composition root.
   Initially the split is aspirational for existing files; new code must land
   in the right target from day one.
-  > **Status:** in progress — `de-kernel` is a real CMake target
+  > **Status:** done (2026-09-01) — all three targets exist and the apps
+  > link them: `de-kernel` (below) is the one wire archive every server
+  > links; `de-core` (`src/domain/`, created by 3.3) is linked by the
+  > gameserver and grows as extractions land; the per-app targets remain
+  > the composition roots. The file sort for legacy code continues under
+  > Phase 3 ratchets; layering is enforced by the 2.2 test + the kernel
+  > target's pinned include path.
+  > History: `de-kernel` became a real CMake target
   > (2026-08-31): a STATIC library whose membership is
   > `tests/arch/kernel_files.txt` (grown from the 57-file seed past a
   > thousand files with 2.4's packet directions and the non-packet
   > utilities — the 2.4 status tracks the exact count; Datagram/
-  > SerialDatagram cpps stay header-only members — their bodies call
-  > `PacketFactoryManager`, which K2 bars from the kernel forever, so
-  > compiling them would give the archive permanently unresolvable
-  > externals) and whose only include dir is `src/Core` (pinned as the
+  > SerialDatagram cpps were header-only members until the link flip
+  > split their factory-calling receive paths into Core's
+  > `DatagramFactoryRead.cpp`, letting the rest of the framing compile
+  > in the kernel) and whose only include dir is `src/Core` (pinned as the
   > target's own INCLUDE_DIRECTORIES — the top-level directory include
   > path would otherwise leak `src/server` and MySQL in) — a kernel
   > source reaching for an app header fails to compile. Built in every
-  > configuration;
-  > nothing links it yet (apps still get the objects through `Core`,
-  > which deliberately keeps its gameserver include leak until 2.3/2.4).
+  > configuration; at first nothing linked it (apps got the objects
+  > through `Core`, which kept its gameserver include leak until
+  > 2.3/2.4) — resolved by the 2.4 link flip.
   > Getting the seed macro-free removed four dead `__GAME_CLIENT__`
   > branches from `Types.h`/`CreatureTypes.h`/`Packet.h` (the macro is
   > never defined in this repo; wire tests prove no layout change).
-  > Remaining: `de-core` target (needs 2.3's handler extraction before
-  > any domain file can compile against kernel+interfaces only), then
-  > flipping apps to link the split targets.
   - Owner: CMake `PRIVATE` include dirs on each target; membership file
     shared with the 2.2 test.
 
@@ -578,10 +582,34 @@ visibility can't express.
   - Owner: R4 ratchet test + include-graph test (a kernel packet including a
     Zone header fails).
 
-- [ ] **2.4 Move packet sources into the kernel target.** Once a direction's
+- [x] **2.4 Move packet sources into the kernel target.** Once a direction's
   handlers are out (2.3), move those packet files under the `de-kernel`
   target. `Core`'s non-packet utilities get sorted kernel-vs-app as touched.
-  > **Status:** in progress (2026-08-31) —
+  > **Status:** done (2026-09-01) — the link flip landed: every kernel
+  > .cpp is compiled exactly once, in `de-kernel`, and all three apps
+  > plus the tests link that archive. `Core` shrank to the three files
+  > the kernel cannot own (`SXml`, `TimeChecker`, and the new
+  > `DatagramFactoryRead.cpp` — the first real link of the kernel
+  > archive exposed that the GL/LG datagram packets call `Datagram`
+  > string read/write whose bodies sat app-side, so the two
+  > factory-calling receive paths were split out of `Datagram.cpp`/
+  > `SerialDatagram.cpp`, whose remaining pure framing joined the
+  > kernel; their already-mojibake `throw Error` strings were translated
+  > to English in the move)
+  > and links `de-kernel` PUBLIC, so consumers are unchanged; the
+  > per-server packet libraries shrank to the three per-server `#if`
+  > files (`PacketFactoryManager`/`PacketIDSet`/`PacketValidator`), and
+  > the ~520-line hand-kept per-direction source lists are deleted —
+  > membership lives in `tests/arch/kernel_files.txt` alone, which
+  > `gen_factory_list.sh` (and thus the ratchet freshness check) now
+  > reads instead of the CMake lists (regenerated `.inc` differs only in
+  > its header comment: same 465 factories, proving the repoint is
+  > faithful). The flip is behavior-preserving by construction: K1 means
+  > kernel compiles see the same headers the per-server compiles saw, and
+  > K2 — extended to ban `__COMBAT__` too, since a macro-conditional in a
+  > kernel file would now silently compile as "off" for everyone — means
+  > no kernel object ever depended on the per-server defines.
+  > Steps that got here:
   > 1. The 271 no-op GC/LC handler files are **deleted** (2.3's
   >    classification proved the server never runs them; the client repo
   >    keeps its own copies), their dangling declarations stripped from
@@ -652,9 +680,6 @@ visibility can't express.
   >    nothing Core compiles needs a gameserver header, so the PUBLIC
   >    `src/server/gameserver[/item]` exports on `Core` and the private
   >    gameserver dirs on all four packet libraries are removed.
-  > Remaining: apps link `de-kernel` instead of getting these objects
-  > through `Core` (the kernel target exists and compiles standalone,
-  > but the executables still link the monolithic `Core`).
   - Owner: CMake target membership + include-graph test.
 
 **Phase exit criteria:** `de-kernel` builds standalone with no MySQL/Lua/Zone

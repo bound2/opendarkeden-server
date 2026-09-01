@@ -619,6 +619,9 @@ target_link_libraries(gameserver PRIVATE
     CTF
     GameServerCBilling
     de-core
+    # The wire archive itself (task 2.4) — also reached transitively through
+    # Core/GameServerPackets, named here so the layering is visible.
+    de-kernel
     ${MYSQL_LIBRARY}
     ${LUA51_LIBRARIES}
     Threads::Threads

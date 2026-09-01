@@ -77,8 +77,12 @@ check_ratchet R6c "HitRoll.cpp lines" 774 "$R6c"
 INC=tests/generated/AllPacketFactories.inc
 scratch_dir=$(mktemp -d)
 trap 'rm -rf "$scratch_dir"' EXIT
-mkdir -p "$scratch_dir/tests/generated" "$scratch_dir/tests/tools" "$scratch_dir/src"
+mkdir -p "$scratch_dir/tests/generated" "$scratch_dir/tests/tools" \
+         "$scratch_dir/tests/arch" "$scratch_dir/src"
 cp -r src/Core "$scratch_dir/src/" 2>/dev/null
+# The generator reads the kernel membership list (the compiled packet set
+# since the 2.4 flip), not the CMake source lists it used to parse.
+cp tests/arch/kernel_files.txt "$scratch_dir/tests/arch/"
 cp tests/tools/gen_factory_list.sh "$scratch_dir/tests/tools/"
 if (cd "$scratch_dir" && bash tests/tools/gen_factory_list.sh > /dev/null 2>&1) &&
    diff -q "$INC" "$scratch_dir/$INC" > /dev/null 2>&1; then

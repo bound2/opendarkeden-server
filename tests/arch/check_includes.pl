@@ -22,7 +22,10 @@
 #       so the whole closure stays kernel.
 #   K2  a kernel file may not mention a server-type macro
 #       (__GAME_SERVER__ / __LOGIN_SERVER__ / __SHARED_SERVER__ /
-#       __GAME_CLIENT__): kernel code has one meaning, not four.
+#       __GAME_CLIENT__) nor __COMBAT__: kernel code has one meaning,
+#       not four — and since the 2.4 flip every app links the ONE
+#       macro-free de-kernel compile, so a macro-conditional in a
+#       kernel file would silently compile as "off" everywhere.
 #   C1  a core file may not include MySQL, Lua, or socket-transport
 #       headers. Persistence belongs behind repository interfaces
 #       (task 3.2), transport belongs to the apps.
@@ -95,7 +98,7 @@ for my $file (sort keys %kernel) {
     }
     open(my $fh, '<', $file) or die "$file: $!";
     while (<$fh>) {
-        if (/__(GAME_SERVER|LOGIN_SERVER|SHARED_SERVER|GAME_CLIENT)__/) {
+        if (/__(GAME_SERVER|LOGIN_SERVER|SHARED_SERVER|GAME_CLIENT|COMBAT)__/) {
             push @violations, "K2 $file mentions a server-type macro";
             last;
         }

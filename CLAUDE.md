@@ -98,10 +98,13 @@ Needs the image once: `docker build -f Dockerfile.dev -t darkeden-dev .`
   Re-record deliberately with `UPDATE_GOLDENS=1 ./bin/wire_tests`.
 - Ratchet numbers only go down. When one drops, tighten the baseline in
   `tests/ratchet/ratchets.sh` AND `docs/RESTRUCTURING.md` in the same commit.
-- The `TestPackets` library compiles the whole packet set with NO server-type
-  macro (note: not the client's config, which defines __GAME_CLIENT__=1) —
-  handlers must keep their server logic behind
-  `#ifdef __GAME_SERVER__` (etc.) so the wire layer stays buildable alone.
+- The whole packet set is compiled once, macro-free, in the `de-kernel`
+  library (task 2.4) — the same archive the deployed servers and the tests
+  link; membership is `tests/arch/kernel_files.txt`. `TestPackets` is only
+  the define-free factory/validator trio on top of it. Kernel files may not
+  mention server-type macros or `__COMBAT__` (K2), so the wire layer stays
+  buildable — and identical — alone. (Note: this is not the client's
+  config, which defines __GAME_CLIENT__=1.)
 - `docs/RESTRUCTURING.md` is the living restructuring plan; update task
   `> **Status:**` lines in the same commit as the work.
 

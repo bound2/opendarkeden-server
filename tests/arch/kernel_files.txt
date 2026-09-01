@@ -65,13 +65,17 @@ src/Core/PacketFactory.h
 src/Core/PacketDispatcher.h
 src/Core/PacketDispatcher.cpp
 #
-# Datagram framing (headers only: Datagram.cpp/SerialDatagram.cpp call
-# into PacketFactoryManager, which still owns the whole packet set)
+# Datagram framing. The factory-backed receive paths
+# (read(DatagramPacket*&) and the SerialDatagram twin) live in Core's
+# DatagramFactoryRead.cpp — they call into PacketFactoryManager, which
+# stays outside the kernel; the rest of the framing is kernel.
 src/Core/Datagram.h
+src/Core/Datagram.cpp
 src/Core/DatagramPacket.h
 src/Core/DatagramSocket.h
 src/Core/DatagramSocket.cpp
 src/Core/SerialDatagram.h
+src/Core/SerialDatagram.cpp
 src/Core/SerialDatagramPacket.h
 #
 # Packet classes and info classes (task 2.4). Membership is empirical:
