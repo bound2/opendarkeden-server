@@ -560,6 +560,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLGoldRepository.cpp
     repository/MySQLGoodsRepository.cpp
     repository/MySQLGuildRepository.cpp
+    repository/MySQLItemObjectRepository.cpp
     repository/MySQLItemRepository.cpp
     repository/MySQLEffectSaveRepository.cpp
     repository/MySQLFlagSetRepository.cpp

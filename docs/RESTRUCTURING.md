@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 220 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 211 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -1621,6 +1621,66 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > counted before and after two inserts at 31005/31007, the maximum
   > pinned against the table's own MAX; the dump's rows sit at ItemID ≤
   > 8).
+  > **Gear item classes (2026-09-02, stacked on the ItemIDRegistry
+  > round; item milestone round 2)**: the nine slayer gear classes with
+  > a Grade column — Ring, Bracelet, Necklace, Coat, Trouser, Shoes,
+  > Glove, Helm, Shield — R3 220→211 (R2/R5 unchanged). Each class runs
+  > the same six statements: the create INSERT (a StringStream chain
+  > through executeQueryString), the tinysave "SET %s", the save
+  > UPDATE, the info manager's MAX(ItemType) and 18-column SELECT, the
+  > creature loader's owner SELECT (12 columns, Storage IN(0, 1, 2, 3,
+  > 4, 9)) and the zone loader's zone SELECT (a StringStream chain, 11
+  > columns — it never named Grade). The literals differ per class only
+  > in the table name and in copy-paste whitespace ("Y,OptionType" in
+  > Necklace / Trouser / Shoes, "ReqAbility,ItemLevel" in Bracelet,
+  > ",  " before Coat's Grade value, "EnchantLevel = %d" in Glove), so a
+  > new **`ItemObjectRepository`** has one method set — insertGear /
+  > tinysaveGear / updateGear / loadMaxGearType / loadGearInfos /
+  > loadGearOfOwner / loadGearInZone — and a `GearTable` enum that
+  > selects the class's own seven literals from a spec table in the
+  > MySQL impl, byte-for-byte quirks included. The two StringStream
+  > chains are format strings there: every streamed expression maps to
+  > the conversion StringStream used for its type (DWORD/WORD through
+  > "%u" — uint/ushort overloads —, int through "%d", text as is), so
+  > the bytes on the wire are the same; the tinysave and save literals
+  > keep their "%ld" for the DWORD ids exactly as written, and every
+  > write parameter is typed to what the caller streamed (Coat, Trouser,
+  > Glove and Helm still pass `(int)getGrade()`, the others `getGrade()`
+  > — Grade_t is int either way). Rows are typed to the getters: the
+  > owner load's getDWORD ids / getBYTE x,y / getInt rest, the zone
+  > load's all-getInt, the info load's getInt/getString. The nine files
+  > were converted by one script (scratchpad-only; the resulting text is
+  > what is reviewed), each pattern required to match exactly once per
+  > file. Disclosures: the commented-out StringStream blocks inside
+  > save() and the creature loader — dead since the parameterized
+  > rewrite, each mentioning executeQueryString — are gone with the
+  > blocks they sat in (R3's grep is textual); `Statement* pStmt`
+  > declared uninitialised while END_DB deletes it (create / save /
+  > info / both loaders; Trouser's zone loader was the one initialised)
+  > — gone with the statements, the seam initialises; the info
+  > manager's MAX and SELECT shared one Statement, the seam uses one
+  > per call; the loaders now read the whole result before placing the
+  > first item where the originals interleaved (mysql_store_result had
+  > buffered the rows already), so an item-placement throw — the
+  > loaders' UnsupportedError for a Monster/NPC owner, the default-case
+  > Error — no longer leaks the Statement (the creature loader's
+  > `SAFE_DELETE(pStmt); // by sigi` before that throw is gone with it);
+  > END_DB's DBError.log lines now name the repository method rather
+  > than the class. The third loader overload, load(StorageID_t,
+  > Inventory*), keeps its empty `BEGIN_DB {} END_DB(pStmt)` stub (no
+  > SQL; not touched) and so the DB.h include stays. Not enclosed: the
+  > other 81 item classes (their own rounds — the survey in
+  > scratchpad/item_survey.pl groups 44 of them into exactly this
+  > shape, the rest add destroy / saveBullet / savePetInfo /
+  > hasPartnerItem / setNewMotorcycle statements or lack the zone
+  > loader), and ItemInfoManager.cpp. No fake tier; +2 integration
+  > tests (every one of the nine tables: two rows inserted through the
+  > class's own INSERT literal, the owner load scoped to Storage
+  > IN(...) and the zone load to Storage 5 / the zone id, the full
+  > UPDATE read back, the tinysave field write; every Info table's MAX
+  > against the table and its rows counted and pinned by Name /
+  > NextItemType / DowngradeRatio). Ids from 31000 up, cleaned in
+  > SetUp/TearDown.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

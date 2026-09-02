@@ -42,6 +42,7 @@
 #include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
 #include "repository/GuildRepository.h"
+#include "repository/ItemObjectRepository.h"
 #include "repository/ItemRepository.h"
 #include "repository/MessageRepository.h"
 #include "repository/NicknameRepository.h"
@@ -2391,6 +2392,126 @@ TEST_F(ItemMySQL, ItemRowCountAndHighestIdAreReadFromTheNamedObjectTable) {
     DWORD highest = repository.loadMaxItemID("PotionObject");
     EXPECT_EQ(queryScalar("SELECT MAX(ItemID) FROM PotionObject"), std::to_string(highest));
     EXPECT_EQ(31007u, highest);
+}
+
+// --- the gear item classes' object and info tables ---------------------------
+// Ring, Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield share
+// one method set; the table (and its literal quirks) is picked by GearTable.
+
+namespace {
+struct GearTableName {
+    GearTable table;
+    const char* name;
+};
+const GearTableName kGearTables[] = {
+    {GEAR_RING, "RingObject"},   {GEAR_BRACELET, "BraceletObject"}, {GEAR_NECKLACE, "NecklaceObject"},
+    {GEAR_COAT, "CoatObject"},   {GEAR_TROUSER, "TrouserObject"},   {GEAR_SHOES, "ShoesObject"},
+    {GEAR_GLOVE, "GloveObject"}, {GEAR_HELM, "HelmObject"},         {GEAR_SHIELD, "ShieldObject"},
+};
+const GearTableName kGearInfoTables[] = {
+    {GEAR_RING, "RingInfo"},   {GEAR_BRACELET, "BraceletInfo"}, {GEAR_NECKLACE, "NecklaceInfo"},
+    {GEAR_COAT, "CoatInfo"},   {GEAR_TROUSER, "TrouserInfo"},   {GEAR_SHOES, "ShoesInfo"},
+    {GEAR_GLOVE, "GloveInfo"}, {GEAR_HELM, "HelmInfo"},         {GEAR_SHIELD, "ShieldInfo"},
+};
+} // namespace
+
+class ItemObjectMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        for (size_t i = 0; i < sizeof(kGearTables) / sizeof(kGearTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kGearTables[i].name + " WHERE ItemID >= 31000");
+    }
+};
+
+TEST_F(ItemObjectMySQL, GearRowsRoundTripThroughEveryTablesOwnLiterals) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    for (size_t i = 0; i < sizeof(kGearTables) / sizeof(kGearTables[0]); i++) {
+        const GearTable table = kGearTables[i].table;
+        const std::string name = kGearTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+
+        // Storage 1 is in the owner load's IN(0, 1, 2, 3, 4, 9); 5 (STORAGE_ZONE) is not.
+        repository.insertGear(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, "opt", 10, 6, 1);
+        repository.insertGear(table, 31100 + i, 78, 3, "", 5, 31000, 7, 8, "", 9, 6, 0);
+        EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM " + name + " WHERE ItemID >= 31000")) << name;
+        EXPECT_EQ("it-owner", queryScalar("SELECT OwnerID" + where + std::to_string(31000 + i))) << name;
+        EXPECT_EQ("1", queryScalar("SELECT ItemFlag" + where + std::to_string(31000 + i))) << name;
+
+        std::vector<GearObjectRow> owned = repository.loadGearOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name;
+        EXPECT_EQ(31000 + i, owned[0].itemID);
+        EXPECT_EQ(77u, owned[0].objectID);
+        EXPECT_EQ(3u, owned[0].itemType);
+        EXPECT_EQ(1, owned[0].storage);
+        EXPECT_EQ(5u, owned[0].storageID);
+        EXPECT_EQ(2, owned[0].x);
+        EXPECT_EQ(4, owned[0].y);
+        EXPECT_EQ("opt", owned[0].optionField);
+        EXPECT_EQ(10, owned[0].durability);
+        EXPECT_EQ(6, owned[0].grade);
+        EXPECT_EQ(0, owned[0].enchantLevel); // the INSERT names no EnchantLevel: the column default
+        EXPECT_EQ(1, owned[0].createType);
+
+        std::vector<GearZoneObjectRow> inZone = repository.loadGearInZone(table, 5, 31000);
+        ASSERT_EQ(1u, inZone.size()) << name;
+        EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
+        EXPECT_EQ(78, inZone[0].objectID);
+        EXPECT_EQ(5, inZone[0].storage);
+        EXPECT_EQ(31000, inZone[0].storageID);
+        EXPECT_EQ(7, inZone[0].x);
+        EXPECT_EQ(8, inZone[0].y);
+        EXPECT_EQ(9, inZone[0].durability);
+        EXPECT_TRUE(repository.loadGearInZone(table, 5, 31001).empty()) << name;
+
+        repository.updateGear(table, 79, 4, "it-owner", 2, 6, 3, 5, "opt2", 11, 7, 2, 31000 + i);
+        owned = repository.loadGearOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name;
+        EXPECT_EQ(79u, owned[0].objectID);
+        EXPECT_EQ(4u, owned[0].itemType);
+        EXPECT_EQ(2, owned[0].storage);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ(3, owned[0].x);
+        EXPECT_EQ(5, owned[0].y);
+        EXPECT_EQ("opt2", owned[0].optionField);
+        EXPECT_EQ(11, owned[0].durability);
+        EXPECT_EQ(7, owned[0].grade);
+        EXPECT_EQ(2, owned[0].enchantLevel);
+
+        repository.tinysaveGear(table, "Durability=3", 31000 + i);
+        EXPECT_EQ("3", queryScalar("SELECT Durability" + where + std::to_string(31000 + i))) << name;
+    }
+}
+
+TEST_F(ItemObjectMySQL, GearInfoTablesLoadWithTheirHighestType) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    for (size_t i = 0; i < sizeof(kGearInfoTables) / sizeof(kGearInfoTables[0]); i++) {
+        const GearTable table = kGearInfoTables[i].table;
+        const std::string name = kGearInfoTables[i].name;
+
+        int maxType = repository.loadMaxGearType(table);
+        EXPECT_GT(maxType, 0) << name;
+        EXPECT_EQ(queryScalar("SELECT MAX(ItemType) FROM " + name), std::to_string(maxType)) << name;
+
+        std::vector<GearInfoRow> infos = repository.loadGearInfos(table);
+        ASSERT_FALSE(infos.empty()) << name;
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + name).c_str()), (int)infos.size()) << name;
+        std::string id = std::to_string(infos[0].itemType);
+        EXPECT_EQ(infos[0].name, queryScalar("SELECT Name FROM " + name + " WHERE ItemType=" + id)) << name;
+        EXPECT_EQ(std::to_string(infos[0].nextItemType),
+                  queryScalar("SELECT NextItemType FROM " + name + " WHERE ItemType=" + id))
+            << name;
+        EXPECT_EQ(std::to_string(infos[0].downgradeRatio),
+                  queryScalar("SELECT DowngradeRatio FROM " + name + " WHERE ItemType=" + id))
+            << name;
+    }
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {

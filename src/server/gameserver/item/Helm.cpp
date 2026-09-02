@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 HelmInfoManager* g_pHelmInfoManager = NULL;
@@ -58,8 +59,6 @@ void Helm::create(const string& ownerID, Storage storage, StorageID_t storageID,
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -71,25 +70,12 @@ void Helm::create(const string& ownerID, Storage storage, StorageID_t storageID,
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO HelmObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", " << (int)getGrade() << ", "
-            << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertGear(GEAR_HELM, m_ItemID, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                             storageID, (int)x, (int)y, optionField, getDurability(), (int)getGrade(),
+                                             (int)m_CreateType);
 
     __END_CATCH
 }
@@ -103,16 +89,7 @@ void Helm::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE HelmObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_HELM, field, m_ItemID);
 
     __END_CATCH
 }
@@ -125,41 +102,12 @@ void Helm::save(const string& ownerID, Storage storage, StorageID_t storageID, B
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE HelmObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery("UPDATE HelmObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, "
-                            "X=%d, Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
-                            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            optionField.c_str(), getDurability(), (int)getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateGear(GEAR_HELM, m_ObjectID, getItemType(), ownerID, (int)storage, storageID,
+                                             (int)x, (int)y, optionField, getDurability(), (int)getGrade(),
+                                             (int)getEnchantLevel(), m_ItemID);
 
     __END_CATCH
 }
@@ -271,57 +219,39 @@ void HelmInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_HELM);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM HelmInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GearInfoRow> rows = defaultItemObjectRepository().loadGearInfos(GEAR_HELM);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        HelmInfo* pHelmInfo = new HelmInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pHelmInfo->setItemType(rows[r].itemType);
+        pHelmInfo->setName(rows[r].name);
+        pHelmInfo->setEName(rows[r].ename);
+        pHelmInfo->setPrice(rows[r].price);
+        pHelmInfo->setVolumeType(rows[r].volume);
+        pHelmInfo->setWeight(rows[r].weight);
+        pHelmInfo->setRatio(rows[r].ratio);
+        pHelmInfo->setDurability(rows[r].durability);
+        pHelmInfo->setDefenseBonus(rows[r].defense);
+        pHelmInfo->setProtectionBonus(rows[r].protection);
+        pHelmInfo->setReqAbility(rows[r].reqAbility);
+        pHelmInfo->setItemLevel(rows[r].itemLevel);
+        pHelmInfo->setDefaultOptions(rows[r].defaultOption);
+        pHelmInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pHelmInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pHelmInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pHelmInfo->setNextItemType(rows[r].nextItemType);
+        pHelmInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult =
-            pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, "
-                                "Protection, ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-                                "NextOptionRatio, NextItemType, DowngradeRatio FROM HelmInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            HelmInfo* pHelmInfo = new HelmInfo();
-
-            pHelmInfo->setItemType(pResult->getInt(++i));
-            pHelmInfo->setName(pResult->getString(++i));
-            pHelmInfo->setEName(pResult->getString(++i));
-            pHelmInfo->setPrice(pResult->getInt(++i));
-            pHelmInfo->setVolumeType(pResult->getInt(++i));
-            pHelmInfo->setWeight(pResult->getInt(++i));
-            pHelmInfo->setRatio(pResult->getInt(++i));
-            pHelmInfo->setDurability(pResult->getInt(++i));
-            pHelmInfo->setDefenseBonus(pResult->getInt(++i));
-            pHelmInfo->setProtectionBonus(pResult->getInt(++i));
-            pHelmInfo->setReqAbility(pResult->getString(++i));
-            pHelmInfo->setItemLevel(pResult->getInt(++i));
-            pHelmInfo->setDefaultOptions(pResult->getString(++i));
-            pHelmInfo->setUpgradeRatio(pResult->getInt(++i));
-            pHelmInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pHelmInfo->setNextOptionRatio(pResult->getInt(++i));
-            pHelmInfo->setNextItemType(pResult->getInt(++i));
-            pHelmInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pHelmInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pHelmInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -337,146 +267,117 @@ void HelmLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<GearObjectRow> rows = defaultItemObjectRepository().loadGearOfOwner(GEAR_HELM, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            Helm* pHelm = new Helm();
 
-        /*
-        StringStream sql;
+            pHelm->setItemID(rows[r].itemID);
+            pHelm->setObjectID(rows[r].objectID);
+            pHelm->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, "
-            << " OptionType, Durability, EnchantLevel FROM HelmObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            if (g_pHelmInfoManager->getItemInfo(pHelm->getItemType())->isUnique())
+                pHelm->setUnique();
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
-            "ItemFlag FROM HelmObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pHelm->setOptionType(optionTypes);
 
+            pHelm->setDurability(rows[r].durability);
+            pHelm->setGrade(rows[r].grade);
+            pHelm->setEnchantLevel(rows[r].enchantLevel);
+            pHelm->setCreateType((Item::CreateType)rows[r].createType);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                Helm* pHelm = new Helm();
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                pHelm->setItemID(pResult->getDWORD(++i));
-                pHelm->setObjectID(pResult->getDWORD(++i));
-                pHelm->setItemType(pResult->getDWORD(++i));
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                if (g_pHelmInfoManager->getItemInfo(pHelm->getItemType())->isUnique())
-                    pHelm->setUnique();
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pHelm)) {
+                    pInventory->addItemEx(x, y, pHelm);
+                } else {
+                    processItemBugEx(pCreature, pHelm);
+                }
+                break;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pHelm->setOptionType(optionTypes);
-
-                pHelm->setDurability(pResult->getInt(++i));
-                pHelm->setGrade(pResult->getInt(++i));
-                pHelm->setEnchantLevel(pResult->getInt(++i));
-                pHelm->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pHelm)) {
-                        pInventory->addItemEx(x, y, pHelm);
+                    if (!pSlayer->isWear((Slayer::WearPart)x)) {
+                        pSlayer->wearItem((Slayer::WearPart)x, pHelm);
                     } else {
                         processItemBugEx(pCreature, pHelm);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        if (!pSlayer->isWear((Slayer::WearPart)x)) {
-                            pSlayer->wearItem((Slayer::WearPart)x, pHelm);
-                        } else {
-                            processItemBugEx(pCreature, pHelm);
-                        }
-                    } else if (pCreature->isVampire()) {
-                        processItemBugEx(pCreature, pHelm);
-                    }
-                    break;
-
-                case STORAGE_BELT:
+                } else if (pCreature->isVampire()) {
                     processItemBugEx(pCreature, pHelm);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pHelm);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pHelm);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pHelm);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pHelm);
-                    } else
-                        pStash->insert(x, y, pHelm);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pHelm);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pHelm);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pHelm);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pHelm);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pHelm);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pHelm);
+                } else
+                    pStash->insert(x, y, pHelm);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pHelm);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -492,62 +393,46 @@ void HelmLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<GearZoneObjectRow> rows =
+        defaultItemObjectRepository().loadGearInZone(GEAR_HELM, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        Helm* pHelm = new Helm();
 
-        StringStream sql;
+        pHelm->setItemID(rows[r].itemID);
+        pHelm->setObjectID(rows[r].objectID);
+        pHelm->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " OptionType, Durability, EnchantLevel, ItemFlag FROM HelmObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        string optionField = rows[r].optionField;
+        list<OptionType_t> optionTypes;
+        setOptionTypeFromField(optionTypes, optionField);
+        pHelm->setOptionType(optionTypes);
 
-        while (pResult->next()) {
-            uint i = 0;
-
-            Helm* pHelm = new Helm();
-
-            pHelm->setItemID(pResult->getInt(++i));
-            pHelm->setObjectID(pResult->getInt(++i));
-            pHelm->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            string optionField = pResult->getString(++i);
-            list<OptionType_t> optionTypes;
-            setOptionTypeFromField(optionTypes, optionField);
-            pHelm->setOptionType(optionTypes);
-
-            pHelm->setDurability(pResult->getInt(++i));
-            pHelm->setEnchantLevel(pResult->getInt(++i));
-            pHelm->setCreateType((Item::CreateType)pResult->getInt(++i));
+        pHelm->setDurability(rows[r].durability);
+        pHelm->setEnchantLevel(rows[r].enchantLevel);
+        pHelm->setCreateType((Item::CreateType)rows[r].createType);
 
 
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pHelm);
-            } break;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pHelm);
+        } break;
 
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
