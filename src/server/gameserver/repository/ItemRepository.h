@@ -99,7 +99,7 @@ public:
     virtual bool deleteItemRow(const std::string& tableName, ItemID_t itemID) = 0;
     // GlobalItemPositionLoader::load — false when the item has no row.
     virtual bool loadItemPosition(const std::string& tableName, ItemID_t itemID, ItemPositionRow& row) = 0;
-    // Every item class's initItemIDRegistry (item/ItemIDRegistry.cpp): the
+    // The 87 item classes' initItemIDRegistry (item/ItemIDRegistry.cpp): the
     // row count, then — only for a non-empty table — the highest ItemID.
     // Both through getDWORD as before: a bigint ItemID above 32 bits is
     // truncated exactly as it always was.

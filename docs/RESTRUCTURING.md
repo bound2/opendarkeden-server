@@ -57,7 +57,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
 | R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 220 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 expansions — each method still has its try block) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 867 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` (867 since the never-compiled `SlotInfo.cpp`'s stale specs left with the file, 2.4 review) |
 
@@ -1585,34 +1585,42 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > **ItemIDRegistry (2026-09-02, stacked on the guild round; the first
   > step of the item milestone)**: item/ItemIDRegistry.cpp — R2
   > unchanged (item/ is not the gameserver root), R3 221→220, R5
-  > 5,980→5,899 textually. The file held every item class's
-  > `initItemIDRegistry`: 81 hand-expanded copies of one body plus six
-  > uses of a `%s` macro — 3,143 lines for two statements, "SELECT
-  > COUNT(*) from <table>" and, only for a non-empty table, "SELECT
-  > MAX(ItemID) FROM <table>". `ItemRepository` gains
+  > 5,980→5,899 textually. The file held the 87 item classes'
+  > `initItemIDRegistry` (EventBall and SubInventory declare one and
+  > neither define nor call it): 81 hand-expanded copies of one body
+  > plus six uses of a `%s` macro — 3,143 lines for two statements,
+  > "SELECT COUNT(*) from <table>" and, only for a non-empty table,
+  > "SELECT MAX(ItemID) FROM <table>". `ItemRepository` gains
   > `countItemRows(table)` / `loadMaxItemID(table)` (table-name-as-data
-  > like `deleteItemRow`; the lower-case "from" and the upper-case "FROM"
-  > are the originals'; getDWORD both, so a bigint ItemID above 32 bits
-  > truncates as it always did), and the file collapses to one helper
-  > (the count-then-MAX sequence, the successor/base rounding, the boot
-  > cout) plus 87 one-line macro uses in the original definition order,
-  > each naming its table and its cout label verbatim — the class name
-  > for most, the table name for the six old macro uses and for Relic /
-  > VampireWeapon / VampireAmulet, "GiftBox" for EventGiftBox and
-  > "CoupleRing" for VampireCoupleRing. Each class method keeps its own
-  > `__BEGIN_TRY` / `__END_CATCH` (the macro expands them), so the stack
-  > annotation still names the class; R5's drop is the grep counting one
-  > `#define` line where it counted 82 expansions. Disclosures:
-  > HolyWater's and BombMaterial's copies ran the same literals through
-  > executeQueryString — the seam's `%s` route yields the same bytes;
-  > Potion's two commented-out "DIST_DARKEDEN" connection lines are
-  > gone; the `DB.h` include is gone with the SQL; the Korean header
-  > comment is translated. Not enclosed: the 90 item classes' own
-  > create / tinysave / save / loader / info SQL (the rest of the item
-  > milestone), and `ItemInfoManager.cpp`, which calls these methods.
-  > No fake tier; +1 integration test (PotionObject counted before and
-  > after two inserts at 31005/31007, the maximum pinned against the
-  > table's own MAX; the dump's rows sit at ItemID ≤ 8).
+  > like `deleteItemRow`; the lower-case "from" and the upper-case
+  > "FROM" are the originals'; getDWORD both, so a bigint ItemID above
+  > 32 bits truncates as it always did), and the file collapses to one
+  > helper (the count-then-MAX sequence, the successor/base rounding,
+  > the boot cout) plus 87 one-line macro uses in the original
+  > definition order, each naming its table and its cout label verbatim
+  > — the class name for most, the table name for the six old macro uses
+  > and for Relic / VampireWeapon / VampireAmulet, "GiftBox" for
+  > EventGiftBox and "CoupleRing" for VampireCoupleRing. Each class
+  > method keeps its own `__BEGIN_TRY` / `__END_CATCH` (the macro
+  > expands them), so the stack annotation still names the class; R5's
+  > drop is the grep counting one `#define` line where it counted 82
+  > matched lines — 81 expansions plus the old macro's own. Disclosures:
+  > END_DB's DBError.log line (and the const char* it throws) now names
+  > the repository method rather than the class — and the class name was
+  > the only thing there that identified the failing table, so a
+  > boot-time failure now needs the Stmt line executeQuery prints to
+  > cout; HolyWater's and BombMaterial's copies ran the same literals
+  > through executeQueryString — the seam's `%s` route yields the same
+  > bytes; Potion's two commented-out "DIST_DARKEDEN" connection lines
+  > are gone; the `DB.h` include is gone with the SQL; the Korean header
+  > comment is translated. Not enclosed: the 89 files under item/ that
+  > still carry SQL — the 87 registry classes' own create / tinysave /
+  > save / loader / info statements plus EventBall and SubInventory (the
+  > rest of the item milestone). `ItemInfoManager.cpp` holds the 87
+  > calls and no SQL. No fake tier; +1 integration test (PotionObject
+  > counted before and after two inserts at 31005/31007, the maximum
+  > pinned against the table's own MAX; the dump's rows sit at ItemID ≤
+  > 8).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

@@ -2,8 +2,9 @@
 // Filename    : ItemIDRegistry.cpp
 // Written by  : excel96
 // Description :
-// The initItemIDRegistry member function of every item class, pulled out of
-// the item implementation files and implemented here.
+// The initItemIDRegistry member function of the 87 item classes that have
+// one, pulled out of the item implementation files and implemented here.
+// (EventBall and SubInventory declare it and neither define nor call it.)
 //////////////////////////////////////////////////////////////////////////////
 
 #include "AR.h"
@@ -98,10 +99,10 @@
 
 namespace {
 
-// The body every item class's initItemIDRegistry shares: the class's
-// registry starts at the highest ItemID already in its object table (0 for
-// an empty table), rounded up to the next ItemIDSuccessor multiple plus the
-// ItemIDBase. `label` is what the boot log prints — the class name for
+// The body every initItemIDRegistry shares: the class's registry starts at
+// the highest ItemID already in its object table (an empty table assigns
+// nothing and leaves the static's zero), rounded up to the next
+// ItemIDSuccessor multiple plus the ItemIDBase. `label` is what the boot log prints — the class name for
 // most classes, the table name or a shortened name for a few, carried over
 // verbatim from the hand-expanded originals.
 void initItemIDRegistryFromTable(Mutex& mutex, ItemID_t& registry, const char* table, const char* label) {
