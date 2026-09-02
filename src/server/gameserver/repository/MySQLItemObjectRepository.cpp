@@ -854,7 +854,7 @@ void requireTinysaveShape(GearTable table, bool withBullet, const char* method) 
     }
 }
 
-// The eight columns every Info shape starts with, read in SELECT order.
+// The eight columns every Info shape but the basic one starts with, read in SELECT order.
 template <class Row> void readInfoHead(Result* pResult, uint& i, Row& row) {
     row.itemType = pResult->getInt(++i);
     row.name = pResult->getString(++i);

@@ -8,7 +8,6 @@
 
 #include "Belt.h"
 #include "DB.h"
-#include "repository/ItemObjectRepository.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -17,6 +16,7 @@
 #include "Stash.h"
 #include "Utility.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 EventTreeInfoManager* g_pEventTreeInfoManager = NULL;
 
@@ -61,7 +61,8 @@ void EventTree::create(const string& ownerID, Storage storage, StorageID_t stora
         m_ItemID = itemID;
     }
 
-    defaultItemObjectRepository().insertNumItem(GEAR_EVENT_TREE, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y, (int)m_Num, (int)m_CreateType);
+    defaultItemObjectRepository().insertNumItem(GEAR_EVENT_TREE, m_ItemID, m_ObjectID, m_ItemType, ownerID,
+                                                (int)storage, storageID, (int)x, (int)y, (int)m_Num, (int)m_CreateType);
 
     __END_CATCH
 }
@@ -84,7 +85,8 @@ void EventTree::save(const string& ownerID, Storage storage, StorageID_t storage
 {
     __BEGIN_TRY
 
-    defaultItemObjectRepository().updateNumItem(GEAR_EVENT_TREE, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y, (int)m_Num, m_ItemID);
+    defaultItemObjectRepository().updateNumItem(GEAR_EVENT_TREE, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                storageID, (int)x, (int)y, (int)m_Num, m_ItemID);
 
     __END_CATCH
 }
@@ -189,105 +191,104 @@ void EventTreeLoader::load(Creature* pCreature)
 
     for (size_t r = 0; r < rows.size(); r++) {
         try {
+            EventTree* pEventTree = new EventTree();
 
-                EventTree* pEventTree = new EventTree();
+            pEventTree->setItemID(rows[r].itemID);
+            pEventTree->setObjectID(rows[r].objectID);
+            pEventTree->setItemType(rows[r].itemType);
 
-                pEventTree->setItemID(rows[r].itemID);
-                pEventTree->setObjectID(rows[r].objectID);
-                pEventTree->setItemType(rows[r].itemType);
+            if (pEventTree->getItemType() > 12)
+                pEventTree->setQuestItem();
 
-                if (pEventTree->getItemType() > 12)
-                    pEventTree->setQuestItem();
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-                Storage storage = (Storage)rows[r].storage;
-                StorageID_t storageID = rows[r].storageID;
-                BYTE x = rows[r].x;
-                BYTE y = rows[r].y;
+            pEventTree->setNum(rows[r].num);
+            pEventTree->setCreateType((Item::CreateType)rows[r].createType);
 
-                pEventTree->setNum(rows[r].num);
-                pEventTree->setCreateType((Item::CreateType)rows[r].createType);
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Ousters* pOusters = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            Item* pItem = NULL;
+            Stash* pStash = NULL;
+            Belt* pBelt = NULL;
+            Inventory* pBeltInventory = NULL;
 
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Ousters* pOusters = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                Item* pItem = NULL;
-                Stash* pStash = NULL;
-                Belt* pBelt = NULL;
-                Inventory* pBeltInventory = NULL;
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else if (pCreature->isOusters()) {
+                pOusters = dynamic_cast<Ousters*>(pCreature);
+                pInventory = pOusters->getInventory();
+                pStash = pOusters->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else if (pCreature->isOusters()) {
-                    pOusters = dynamic_cast<Ousters*>(pCreature);
-                    pInventory = pOusters->getInventory();
-                    pStash = pOusters->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pEventTree)) {
-                        pInventory->addItemEx(x, y, pEventTree);
-                    } else {
-                        processItemBugEx(pCreature, pEventTree);
-                    }
-                    break;
-
-                case STORAGE_GEAR:
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pEventTree)) {
+                    pInventory->addItemEx(x, y, pEventTree);
+                } else {
                     processItemBugEx(pCreature, pEventTree);
-                    break;
-
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pEventTree);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pEventTree);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pEventTree);
-                    else if (pCreature->isOusters())
-                        pOusters->addItemToExtraInventorySlot(pEventTree);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pEventTree);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pEventTree);
-                    } else
-                        pStash->insert(x, y, pEventTree);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pEventTree);
-                    break;
-
-                default:
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_GEAR:
+                processItemBugEx(pCreature, pEventTree);
+                break;
+
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pEventTree);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pEventTree);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pEventTree);
+                else if (pCreature->isOusters())
+                    pOusters->addItemToExtraInventorySlot(pEventTree);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pEventTree);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pEventTree);
+                } else
+                    pStash->insert(x, y, pEventTree);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pEventTree);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
+
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
 
     __END_CATCH
@@ -304,35 +305,34 @@ void EventTreeLoader::load(Zone* pZone)
         defaultItemObjectRepository().loadNumItemInZone(GEAR_EVENT_TREE, (int)STORAGE_ZONE, pZone->getZoneID());
 
     for (size_t r = 0; r < rows.size(); r++) {
+        EventTree* pEventTree = new EventTree();
 
-            EventTree* pEventTree = new EventTree();
+        pEventTree->setItemID(rows[r].itemID);
+        pEventTree->setObjectID(rows[r].objectID);
+        pEventTree->setItemType(rows[r].itemType);
 
-            pEventTree->setItemID(rows[r].itemID);
-            pEventTree->setObjectID(rows[r].objectID);
-            pEventTree->setItemType(rows[r].itemType);
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-            Storage storage = (Storage)rows[r].storage;
-            StorageID_t storageID = rows[r].storageID;
-            BYTE x = rows[r].x;
-            BYTE y = rows[r].y;
+        pEventTree->setNum(rows[r].num);
+        pEventTree->setCreateType((Item::CreateType)rows[r].createType);
 
-            pEventTree->setNum(rows[r].num);
-            pEventTree->setCreateType((Item::CreateType)rows[r].createType);
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pEventTree);
+        } break;
 
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pEventTree);
-            } break;
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
+        }
     }
 
     __END_CATCH

@@ -2843,6 +2843,12 @@ TEST_F(ItemObjectMySQL, NumItemRowsRoundTripThroughTheirNineColumns) {
         EXPECT_EQ(atoi(queryScalar("SELECT ifnull(MAX(ItemType),0) FROM " + info).c_str()),
                   repository.loadMaxGearType(table))
             << info;
+
+        // Every basic Info literal runs: the four GEAR_INFO_BASIC tables through the loop.
+        if (table == GEAR_EVENT_ITEM || table == GEAR_EVENT_TREE || table == GEAR_LUCKY_BAG || table == GEAR_MOON_CARD)
+            EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()),
+                      (int)repository.loadBasicInfos(table).size())
+                << info;
     }
 
     // The object-shape guard, both ways.
@@ -2852,6 +2858,7 @@ TEST_F(ItemObjectMySQL, NumItemRowsRoundTripThroughTheirNineColumns) {
     EXPECT_THROW(repository.updateNumItem(GEAR_AR, 1, 1, "it-owner", 1, 1, 1, 1, 1, 31000), Error);
     EXPECT_THROW(repository.loadNumItemOfOwner(GEAR_SWORD, "it-owner"), Error);
     EXPECT_THROW(repository.loadNumItemInZone(GEAR_SG, 5, 31000), Error);
+    EXPECT_THROW(repository.insertGear(GEAR_EVENT_ITEM, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1), Error);
 
     // The six Info shapes: each pinned by COUNT(*) and, when the table is seeded, its
     // class-specific column; each refuses a table of another shape.
@@ -2888,8 +2895,8 @@ TEST_F(ItemObjectMySQL, NumItemRowsRoundTripThroughTheirNineColumns) {
             EXPECT_EQ(std::to_string(rows[0].functionValue),
                       queryScalar("SELECT FunctionValue FROM DyePotionInfo WHERE ItemType=" +
                                   std::to_string(rows[0].basic.itemType)));
-        EXPECT_FALSE(repository.loadFunctionValueInfos(GEAR_EVENT_STAR).size() !=
-                     (size_t)atoi(queryScalar("SELECT COUNT(*) FROM EventStarInfo").c_str()));
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM EventStarInfo").c_str()),
+                  (int)repository.loadFunctionValueInfos(GEAR_EVENT_STAR).size());
         EXPECT_THROW(repository.loadFunctionValueInfos(GEAR_EFFECT_ITEM), Error);
     }
     {

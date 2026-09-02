@@ -8,7 +8,6 @@
 
 #include "Belt.h"
 #include "DB.h"
-#include "repository/ItemObjectRepository.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -18,6 +17,7 @@
 #include "Stash.h"
 #include "Utility.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 EventItemInfoManager* g_pEventItemInfoManager = NULL;
 
@@ -62,7 +62,8 @@ void EventItem::create(const string& ownerID, Storage storage, StorageID_t stora
         m_ItemID = itemID;
     }
 
-    defaultItemObjectRepository().insertNumItem(GEAR_EVENT_ITEM, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y, (int)m_Num, (int)m_CreateType);
+    defaultItemObjectRepository().insertNumItem(GEAR_EVENT_ITEM, m_ItemID, m_ObjectID, m_ItemType, ownerID,
+                                                (int)storage, storageID, (int)x, (int)y, (int)m_Num, (int)m_CreateType);
 
     __END_CATCH
 }
@@ -85,7 +86,8 @@ void EventItem::save(const string& ownerID, Storage storage, StorageID_t storage
 {
     __BEGIN_TRY
 
-    defaultItemObjectRepository().updateNumItem(GEAR_EVENT_ITEM, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y, (int)m_Num, m_ItemID);
+    defaultItemObjectRepository().updateNumItem(GEAR_EVENT_ITEM, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                storageID, (int)x, (int)y, (int)m_Num, m_ItemID);
 
     __END_CATCH
 }
@@ -192,116 +194,115 @@ void EventItemLoader::load(Creature* pCreature)
 
     for (size_t r = 0; r < rows.size(); r++) {
         try {
+            EventItem* pEventItem = new EventItem();
+            pEventItem->setQuestItem();
 
-                EventItem* pEventItem = new EventItem();
-                pEventItem->setQuestItem();
+            pEventItem->setItemID(rows[r].itemID);
+            pEventItem->setObjectID(rows[r].objectID);
+            pEventItem->setItemType(rows[r].itemType);
 
-                pEventItem->setItemID(rows[r].itemID);
-                pEventItem->setObjectID(rows[r].objectID);
-                pEventItem->setItemType(rows[r].itemType);
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-                Storage storage = (Storage)rows[r].storage;
-                StorageID_t storageID = rows[r].storageID;
-                BYTE x = rows[r].x;
-                BYTE y = rows[r].y;
+            pEventItem->setNum(rows[r].num);
+            pEventItem->setCreateType((Item::CreateType)rows[r].createType);
 
-                pEventItem->setNum(rows[r].num);
-                pEventItem->setCreateType((Item::CreateType)rows[r].createType);
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Ousters* pOusters = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            Item* pItem = NULL;
+            Stash* pStash = NULL;
+            Belt* pBelt = NULL;
+            Inventory* pBeltInventory = NULL;
 
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Ousters* pOusters = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                Item* pItem = NULL;
-                Stash* pStash = NULL;
-                Belt* pBelt = NULL;
-                Inventory* pBeltInventory = NULL;
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else if (pCreature->isOusters()) {
+                pOusters = dynamic_cast<Ousters*>(pCreature);
+                pInventory = pOusters->getInventory();
+                pStash = pOusters->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else if (pCreature->isOusters()) {
-                    pOusters = dynamic_cast<Ousters*>(pCreature);
-                    pInventory = pOusters->getInventory();
-                    pStash = pOusters->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
+            PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
 
-                PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-
-                if (pEventItem->getItemType() == 27) {
-                    // 깃발은 나오면 안 된다. -_-
-                    processItemBug(pCreature, pEventItem);
-                } else
-                    switch (storage) {
-                    case STORAGE_INVENTORY:
-                        if (pInventory->canAddingEx(x, y, pEventItem)) {
-                            pInventory->addItemEx(x, y, pEventItem);
-                            if (pEventItem->getItemType() == 30)
-                                pPC->setBaseLuck(10);
-                        } else {
-                            processItemBugEx(pCreature, pEventItem);
-                        }
-                        break;
-
-                    case STORAGE_GEAR:
-                        processItemBugEx(pCreature, pEventItem);
-                        break;
-
-                    case STORAGE_BELT:
-                        processItemBugEx(pCreature, pEventItem);
-                        break;
-
-                    case STORAGE_EXTRASLOT:
-                        if (pCreature->isSlayer())
-                            pSlayer->addItemToExtraInventorySlot(pEventItem);
-                        else if (pCreature->isVampire())
-                            pVampire->addItemToExtraInventorySlot(pEventItem);
-                        else if (pCreature->isOusters())
-                            pOusters->addItemToExtraInventorySlot(pEventItem);
+            if (pEventItem->getItemType() == 27) {
+                // 깃발은 나오면 안 된다. -_-
+                processItemBug(pCreature, pEventItem);
+            } else
+                switch (storage) {
+                case STORAGE_INVENTORY:
+                    if (pInventory->canAddingEx(x, y, pEventItem)) {
+                        pInventory->addItemEx(x, y, pEventItem);
                         if (pEventItem->getItemType() == 30)
                             pPC->setBaseLuck(10);
-                        break;
-
-                    case STORAGE_MOTORCYCLE:
+                    } else {
                         processItemBugEx(pCreature, pEventItem);
-                        break;
-
-                    case STORAGE_STASH:
-                        if (pStash->isExist(x, y)) {
-                            processItemBugEx(pCreature, pEventItem);
-                        } else {
-                            pStash->insert(x, y, pEventItem);
-                            if (pEventItem->getItemType() == 30)
-                                pPC->setBaseLuck(10);
-                        }
-                        break;
-
-                    case STORAGE_GARBAGE:
-                        processItemBug(pCreature, pEventItem);
-                        break;
-
-                    default:
-                        throw Error("invalid storage or OwnerID must be NULL");
                     }
+                    break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
-            }
+                case STORAGE_GEAR:
+                    processItemBugEx(pCreature, pEventItem);
+                    break;
+
+                case STORAGE_BELT:
+                    processItemBugEx(pCreature, pEventItem);
+                    break;
+
+                case STORAGE_EXTRASLOT:
+                    if (pCreature->isSlayer())
+                        pSlayer->addItemToExtraInventorySlot(pEventItem);
+                    else if (pCreature->isVampire())
+                        pVampire->addItemToExtraInventorySlot(pEventItem);
+                    else if (pCreature->isOusters())
+                        pOusters->addItemToExtraInventorySlot(pEventItem);
+                    if (pEventItem->getItemType() == 30)
+                        pPC->setBaseLuck(10);
+                    break;
+
+                case STORAGE_MOTORCYCLE:
+                    processItemBugEx(pCreature, pEventItem);
+                    break;
+
+                case STORAGE_STASH:
+                    if (pStash->isExist(x, y)) {
+                        processItemBugEx(pCreature, pEventItem);
+                    } else {
+                        pStash->insert(x, y, pEventItem);
+                        if (pEventItem->getItemType() == 30)
+                            pPC->setBaseLuck(10);
+                    }
+                    break;
+
+                case STORAGE_GARBAGE:
+                    processItemBug(pCreature, pEventItem);
+                    break;
+
+                default:
+                    throw Error("invalid storage or OwnerID must be NULL");
+                }
+
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
 
     __END_CATCH
@@ -318,35 +319,34 @@ void EventItemLoader::load(Zone* pZone)
         defaultItemObjectRepository().loadNumItemInZone(GEAR_EVENT_ITEM, (int)STORAGE_ZONE, pZone->getZoneID());
 
     for (size_t r = 0; r < rows.size(); r++) {
+        EventItem* pEventItem = new EventItem();
 
-            EventItem* pEventItem = new EventItem();
+        pEventItem->setItemID(rows[r].itemID);
+        pEventItem->setObjectID(rows[r].objectID);
+        pEventItem->setItemType(rows[r].itemType);
 
-            pEventItem->setItemID(rows[r].itemID);
-            pEventItem->setObjectID(rows[r].objectID);
-            pEventItem->setItemType(rows[r].itemType);
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-            Storage storage = (Storage)rows[r].storage;
-            StorageID_t storageID = rows[r].storageID;
-            BYTE x = rows[r].x;
-            BYTE y = rows[r].y;
+        pEventItem->setNum(rows[r].num);
+        pEventItem->setCreateType((Item::CreateType)rows[r].createType);
 
-            pEventItem->setNum(rows[r].num);
-            pEventItem->setCreateType((Item::CreateType)rows[r].createType);
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pEventItem);
+        } break;
 
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pEventItem);
-            } break;
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
+        }
     }
 
     __END_CATCH
