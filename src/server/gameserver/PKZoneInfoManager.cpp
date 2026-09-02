@@ -1,9 +1,9 @@
 #include "PKZoneInfoManager.h"
 
-#include "DB.h"
 #include "StringStream.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/ZoneInfoRepository.h"
 
 PKZoneInfoManager* g_pPKZoneInfoManager = NULL;
 
@@ -28,32 +28,20 @@ void PKZoneInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    vector<PKZoneRow> rows = defaultZoneInfoRepository().loadPKZones();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT ZoneID, Race, EnterX, EnterY, ResurrectX, ResurrectY, PCLimit FROM PKZoneInfo");
+    for (size_t r = 0; r < rows.size(); r++) {
+        ZoneID_t zoneID = rows[r].zoneID;
+        int race = rows[r].race;
+        ZoneCoord_t X = rows[r].enterX;
+        ZoneCoord_t Y = rows[r].enterY;
+        ZoneCoord_t rX = rows[r].resurrectX;
+        ZoneCoord_t rY = rows[r].resurrectY;
+        int pcLimit = rows[r].pcLimit;
 
-        // UPDATE인 경우는 Result* 대신에.. pStmt->getAffectedRowCount()
-
-        while (pResult->next()) {
-            int count = 0;
-            ZoneID_t zoneID = pResult->getInt(++count);
-            int race = pResult->getInt(++count);
-            ZoneCoord_t X = pResult->getInt(++count);
-            ZoneCoord_t Y = pResult->getInt(++count);
-            ZoneCoord_t rX = pResult->getInt(++count);
-            ZoneCoord_t rY = pResult->getInt(++count);
-            int pcLimit = pResult->getInt(++count);
-
-            PKZoneInfo* pPKZoneInfo = new PKZoneInfo(zoneID, X, Y, rX, rY, race, pcLimit);
-            addPKZoneInfo(pPKZoneInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        PKZoneInfo* pPKZoneInfo = new PKZoneInfo(zoneID, X, Y, rX, rY, race, pcLimit);
+        addPKZoneInfo(pPKZoneInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

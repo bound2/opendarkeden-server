@@ -11,9 +11,9 @@
 #include "SkillDomainInfoManager.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "Exception.h"
 #include "StringStream.h"
+#include "repository/BalanceInfoRepository.h"
 
 DomainInfo::DomainInfo()
 
@@ -87,52 +87,36 @@ void SkillDomainInfoManager::init()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        for (int i = 0; i < SKILL_DOMAIN_MAX; i++) {
-            pResult = pStmt->executeQuery("SELECT MAX(Level) FROM SkillDomainInfo WHERE DomainType = %d", i);
-
-            if (!pResult->next()) {
-                SAFE_DELETE(pStmt);
-                cerr << "There is no data in DomainInfo Table" << endl;
-                throw Error("There is no data in DomainInfo Table");
-            }
-
-            //			pResult->next();
-
-            int Count = pResult->getInt(1) + 1;
-
-            Assert(Count > 0);
-            Assert(Count <= 151);
-
-            m_DomainInfoLists[i] = new DomainInfo*[Count];
-
-            for (int j = 0; j < Count; j++)
-                m_DomainInfoLists[i][j] = NULL;
-
-            pResult = pStmt->executeQuery(
-                "Select DomainType, Level, GoalExp, AccumExp, BestItemType from SkillDomainInfo WHERE DomainType = %d",
-                i);
-
-            while (pResult->next()) {
-                DomainInfo* pDomainInfo = new DomainInfo();
-                int i = 0;
-
-                pDomainInfo->setType(pResult->getInt(++i));
-                pDomainInfo->setLevel(pResult->getInt(++i));
-                pDomainInfo->setGoalExp(pResult->getInt(++i));
-                pDomainInfo->setAccumExp(pResult->getInt(++i));
-                pDomainInfo->setBestItemType(pResult->getInt(++i));
-                addDomainInfo(pDomainInfo);
-            }
+    for (int i = 0; i < SKILL_DOMAIN_MAX; i++) {
+        int maxLevel = 0;
+        if (!defaultBalanceInfoRepository().loadMaxDomainLevel(i, maxLevel)) {
+            cerr << "There is no data in DomainInfo Table" << endl;
+            throw Error("There is no data in DomainInfo Table");
         }
 
-        SAFE_DELETE(pStmt);
+        int Count = maxLevel + 1;
+
+        Assert(Count > 0);
+        Assert(Count <= 151);
+
+        m_DomainInfoLists[i] = new DomainInfo*[Count];
+
+        for (int j = 0; j < Count; j++)
+            m_DomainInfoLists[i][j] = NULL;
+
+        vector<DomainLevelRow> rows = defaultBalanceInfoRepository().loadDomainLevels(i);
+
+        for (size_t r = 0; r < rows.size(); r++) {
+            DomainInfo* pDomainInfo = new DomainInfo();
+
+            pDomainInfo->setType(rows[r].domainType);
+            pDomainInfo->setLevel(rows[r].level);
+            pDomainInfo->setGoalExp(rows[r].goalExp);
+            pDomainInfo->setAccumExp(rows[r].accumExp);
+            pDomainInfo->setBestItemType(rows[r].bestItemType);
+            addDomainInfo(pDomainInfo);
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

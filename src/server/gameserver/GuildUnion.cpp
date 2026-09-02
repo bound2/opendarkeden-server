@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-#include "DB.h"
 #include "GCModifyInformation.h"
 #include "GGCommand.h"
 #include "GameServer.h"
@@ -14,6 +13,7 @@
 #include "PacketUtil.h"
 #include "Player.h"
 #include "VariableManager.h"
+#include "repository/GuildRepository.h"
 GuildUnion::~GuildUnion() {
     // cout << "GuildUnion : DELETE!!!" << endl;
 }
@@ -34,14 +34,7 @@ bool GuildUnion::addGuild(GuildID_t gID) {
 
     m_Guilds.push_back(gID);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("INSERT INTO GuildUnionMember (UnionID, OwnerGuildID) VALUES (%u, %u)", m_UnionID, gID);
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt);
+    defaultGuildRepository().insertUnionMember(m_UnionID, gID);
 
     return true;
 }
@@ -56,18 +49,9 @@ bool GuildUnion::removeGuild(GuildID_t gID) {
 
     m_Guilds.erase(itr);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("DELETE FROM GuildUnionMember WHERE UnionID = %u and OwnerGuildID = %u", m_UnionID, gID);
-        if (pStmt->getAffectedRowCount() < 1) {
-            filelog("GuildUnion.log", "[%u:%u] 탈퇴하려는데 해당 레코드가 없습니다.", m_UnionID, gID);
-        }
-
-        SAFE_DELETE(pStmt);
+    if (!defaultGuildRepository().deleteUnionMember(m_UnionID, gID)) {
+        filelog("GuildUnion.log", "[%u:%u] 탈퇴하려는데 해당 레코드가 없습니다.", m_UnionID, gID);
     }
-    END_DB(pStmt);
 
     return true;
 }
@@ -75,24 +59,15 @@ bool GuildUnion::removeGuild(GuildID_t gID) {
 void GuildUnion::create() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    GuildRepository& repository = defaultGuildRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("INSERT INTO GuildUnionInfo (MasterGuildID) VALUES (%u)", m_MasterGuildID);
+    m_UnionID = repository.insertUnion(m_MasterGuildID);
 
-        m_UnionID = pStmt->getInsertID();
+    list<GuildID_t>::iterator itr = m_Guilds.begin();
 
-        list<GuildID_t>::iterator itr = m_Guilds.begin();
-
-        for (; itr != m_Guilds.end(); ++itr) {
-            pStmt->executeQuery("INSERT INTO GuildUnionMember (UnionID, OwnerGuildID) VALUES (%u, %u)", m_UnionID,
-                                (*itr));
-        }
-
-        SAFE_DELETE(pStmt);
+    for (; itr != m_Guilds.end(); ++itr) {
+        repository.insertUnionMember(m_UnionID, (*itr));
     }
-    END_DB(pStmt);
 
     __END_CATCH
 }
@@ -100,14 +75,7 @@ void GuildUnion::create() {
 void GuildUnion::destroy() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("DELETE FROM GuildUnionInfo WHERE UnionID = %u", m_UnionID);
-        pStmt->executeQuery("DELETE FROM GuildUnionMember WHERE UnionID = %u", m_UnionID);
-    }
-    END_DB(pStmt);
+    defaultGuildRepository().deleteUnion(m_UnionID);
 
     __END_CATCH
 }
@@ -241,30 +209,27 @@ bool GuildUnionManager::addGuild(uint uID, GuildID_t gID) {
 bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
     __BEGIN_TRY
 
-    // 내가 길드연합장인데..내가 탈퇴한다면..
-    // 내가 속한 길드연합을 깨보자..
+    // If this guild is the union master and is leaving,
+    // break up the union it belongs to.
 
     GuildUnion* pUnion = m_GuildUnionMap[gID];
-    // 내가 마스터인 연합이 있다면 -> 내 연합에 소속된 모든 길드를 out시키고 내 연합을 깨버린다.
+    // A union this guild masters: throw every member guild out and destroy it.
     if (pUnion != NULL) {
-        uint uID = pUnion->getUnionID(); // 연합ID
-        Statement* pStmt = NULL;
+        uint uID = pUnion->getUnionID(); // the union id
 
-        BEGIN_DB {
-            Result* pResult = NULL;
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pResult = pStmt->executeQuery("SELECT OwnerGuildID FROM GuildUnionMember WHERE UnionID = %u", uID);
+        vector<int> memberGuilds = defaultGuildRepository().loadUnionMemberGuilds(uID);
 
-            // 아무것도 없다면 이상한거다..
-            if (pResult->getRowCount() == 0) {
-                SAFE_DELETE(pStmt);
-                return false;
-            }
+        // No members at all would be strange.
+        if (memberGuilds.empty()) {
+            return false;
+        }
 
+        {
             string unionMasterID = g_pGuildManager->getGuild(gID)->getMaster();
-            // 각각의 모든 길드들을 연합에서 탈퇴시킨다.	// 모두 지워지면 연합도 알아서 깨진다.
-            while (pResult->next()) {
-                if (pUnion->removeGuild(pResult->getInt(1))) {
+            // Remove every guild from the union; once they are all gone the
+            // union dissolves itself.
+            for (size_t m = 0; m < memberGuilds.size(); m++) {
+                if (pUnion->removeGuild(memberGuilds[m])) {
                     m_GuildUnionMap[gID] = NULL;
                     if (pUnion->m_Guilds.empty()) {
                         list<GuildUnion*>::iterator itr =
@@ -278,10 +243,10 @@ bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
                             SAFE_DELETE(pUnion);
                         } //
                     } // isEmpty
-                    sendGCOtherModifyInfoGuildUnionByGuildID(pResult->getInt(1));
+                    sendGCOtherModifyInfoGuildUnionByGuildID(memberGuilds[m]);
                 } // if
-            } // while
-            // 모든 길드를 다 제거한다. 마지막에 남은 길드까지 깨끗히 청소하고 나면
+            } // for
+            // Every guild is removed; the last one cleaned up as well.
 
             Creature* pTargetCreature = NULL;
             __ENTER_CRITICAL_SECTION((*g_pPCFinder))
@@ -294,57 +259,38 @@ bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
             }
             __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
 
-            // 연합마스터 바뀐정보를 보내줘보자..
+            // Tell everyone the union master changed.
             sendGCOtherModifyInfoGuildUnionByGuildID(gID);
 
             sendRefreshCommand();
         }
-        END_DB(pStmt);
-    } else // 내가 마스터인 연합이 없다면, 내가 어느연합의 멤버인지를 찾는다. 어느연합의 멤버인지 찾아서 연합에서 제외
+    } else // Not a union master: find which union the guild belongs to and take it out.
     {
-        Statement* pStmt = NULL;
-        Statement* pStmt2 = NULL;
-
         string unionMasterID = "";
         string guildMasterID = "";
         GuildID_t unionMasterGuildID = 0;
 
-        BEGIN_DB {
-            Result* pResult = NULL;
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pResult =
-                pStmt->executeQuery("SELECT UnionID, OwnerGuildID FROM GuildUnionMember WHERE OwnerGuildID = %u", gID);
+        int unionID = 0;
+        int ownerGuildID = 0;
 
-            // 어디에도 소속되지 않았다면 그냥 나간다.
-            if (pResult->getRowCount() == 0) {
-                SAFE_DELETE(pStmt);
-                return false;
+        // Not in any union: just leave.
+        if (!defaultGuildRepository().loadUnionOfGuild(gID, unionID, ownerGuildID)) {
+            return false;
+        }
+
+        {
+            // In a union: find its master guild.
+            int masterGuildID = 0;
+            if (defaultGuildRepository().loadUnionMaster(unionID, masterGuildID)) {
+                unionMasterGuildID = masterGuildID;
+                unionMasterID = g_pGuildManager->getGuild(unionMasterGuildID)->getMaster();
             }
-
-            // 어딘가에 속해있다면..
-            pResult->next();
-
-            BEGIN_DB {
-                Result* pResult2 = NULL;
-                pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pResult2 = pStmt->executeQuery("SELECT MasterGuildID FROM GuildUnionInfo WHERE UnionID = %u",
-                                               pResult->getInt(1));
-
-                // 마스터길드의 ID를 찾으면..
-                if (pResult2->getRowCount() != 0) {
-                    pResult->next();
-
-                    unionMasterGuildID = pResult2->getInt(1);
-                    unionMasterID = g_pGuildManager->getGuild(unionMasterGuildID)->getMaster();
-                }
-            }
-            END_DB(pStmt2);
 
             guildMasterID = g_pGuildManager->getGuild(gID)->getMaster();
 
-            if (removeGuild(pResult->getInt(1), pResult->getInt(2))) {
-                Creature* pTargetCreature = NULL;  // 해당길드의 장
-                Creature* pTargetCreature2 = NULL; // 연합길드의 장
+            if (removeGuild(unionID, ownerGuildID)) {
+                Creature* pTargetCreature = NULL;  // the guild's master
+                Creature* pTargetCreature2 = NULL; // the union guild's master
 
                 __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
@@ -364,16 +310,15 @@ bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
                 __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
 
 
-                // 길드마스터 바뀐정보를 보내줘보자..
+                // Send the changed guild-master information.
                 sendGCOtherModifyInfoGuildUnionByGuildID(gID);
-                // 특정길드가 깨져서 연합에서 remove되었다면 연합마스터에게도 알려야 하겠다.
+                // A guild removed from the union because it broke up: the union master must hear of it too.
                 sendGCOtherModifyInfoGuildUnionByGuildID(unionMasterGuildID);
 
-                // 길드를 제거 하였으니..다른 서버에도 알려줘야 하겠다.
+                // The guild is removed: tell the other servers too.
                 sendRefreshCommand();
             }
         }
-        END_DB(pStmt);
     }
 
     __END_CATCH
@@ -438,41 +383,27 @@ void GuildUnionManager::reload() {
 void GuildUnionManager::load() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Statement* pStmt2 = NULL;
+    GuildRepository& repository = defaultGuildRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT UnionID, MasterGuildID FROM GuildUnionInfo");
+    vector<UnionRow> unions = repository.loadUnions();
 
-        while (pResult->next()) {
-            uint uID = pResult->getInt(1);
-            GuildID_t gID = pResult->getInt(2);
+    for (size_t u = 0; u < unions.size(); u++) {
+        uint uID = unions[u].unionID;
+        GuildID_t gID = unions[u].masterGuildID;
 
-            GuildUnion* pUnion = new GuildUnion(gID);
-            pUnion->setUnionID(uID);
+        GuildUnion* pUnion = new GuildUnion(gID);
+        pUnion->setUnionID(uID);
 
-            BEGIN_DB {
-                pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                Result* pResult2 =
-                    pStmt2->executeQuery("SELECT OwnerGuildID FROM GuildUnionMember WHERE UnionID = %u", uID);
+        vector<int> memberGuilds = repository.loadUnionMemberGuilds(uID);
 
-                while (pResult2->next()) {
-                    GuildID_t gID2 = pResult2->getInt(1);
-                    pUnion->m_Guilds.push_back(gID2);
-                    //					pUnion->addGuild( gID2 );
-                }
-
-                SAFE_DELETE(pStmt2);
-            }
-            END_DB(pStmt2)
-
-            addGuildUnion(pUnion);
+        for (size_t m = 0; m < memberGuilds.size(); m++) {
+            GuildID_t gID2 = memberGuilds[m];
+            pUnion->m_Guilds.push_back(gID2);
+            //					pUnion->addGuild( gID2 );
         }
 
-        SAFE_DELETE(pStmt);
+        addGuildUnion(pUnion);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -507,43 +438,20 @@ uint GuildUnionOfferManager::offerJoin(GuildID_t gID, GuildID_t masterGID) {
         return ALREADY_OFFER_SOMETHING;
     }
 
-    Statement* pStmt = NULL;
+    GuildRepository& repository = defaultGuildRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // 과거 10일 이내에서 강제 탈퇴한 이력이 있는지 본다
-        Result* pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildUnionOffer WHERE OfferType='ESCAPE' and "
-                                              "OwnerGuildID='%u' and OfferTime >= now() - interval 10 day",
-                                              gID);
-
-        pResult->next();
-
-        // 이력이 있으면 패뻐린다.
-        if (pResult->getInt(1) > 0) {
-            SAFE_DELETE(pStmt);
-            return YOU_HAVE_PENALTY;
-        }
-
-
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildUnionMember WHERE UnionID='%u'", pUnion->getUnionID());
-        pResult->next();
-
-        if (pResult->getInt(1) >= g_pVariableManager->getVariable(GUILD_UNION_MAX)) {
-            SAFE_DELETE(pStmt);
-            return NOT_ENOUGH_SLOT;
-        }
-
-        // 10일이 넘은 데이타는 지워버린다.
-        pStmt->executeQuery(
-            "DELETE FROM GuildUnionOffer WHERE OwnerGuildID='%u' and OfferTime < now() - interval 10 day", gID);
-        pStmt->executeQuery(
-            "INSERT INTO GuildUnionOffer (UnionID, OfferType, OwnerGuildID, OfferTime) VALUES (%u, 'JOIN', %u, now())",
-            pUnion->getUnionID(), gID);
-
-        SAFE_DELETE(pStmt);
+    // Was the guild forced out of a union in the last ten days? Then it is penalised.
+    if (repository.countRecentEscapes(gID) > 0) {
+        return YOU_HAVE_PENALTY;
     }
-    END_DB(pStmt)
+
+    if (repository.countUnionMembers(pUnion->getUnionID()) >= g_pVariableManager->getVariable(GUILD_UNION_MAX)) {
+        return NOT_ENOUGH_SLOT;
+    }
+
+    // Drop offers older than ten days.
+    repository.deleteStaleOffers(gID);
+    repository.insertJoinOffer(pUnion->getUnionID(), gID);
 
     return OK;
 
@@ -565,17 +473,7 @@ uint GuildUnionOfferManager::offerQuit(GuildID_t gID) {
         return ALREADY_OFFER_SOMETHING;
     }
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery(
-            "INSERT INTO GuildUnionOffer (UnionID, OfferType, OwnerGuildID, OfferTime) VALUES (%u, 'QUIT', %u, now())",
-            pUnion->getUnionID(), gID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultGuildRepository().insertQuitOffer(pUnion->getUnionID(), gID);
 
     return OK;
 
@@ -583,62 +481,35 @@ uint GuildUnionOfferManager::offerQuit(GuildID_t gID) {
 }
 
 bool GuildUnionOfferManager::makeOfferList(uint uID, GCUnionOfferList& offerList) {
-    Statement* pStmt = NULL;
-    Statement* pStmt2 = NULL;
+    GuildRepository& repository = defaultGuildRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT OfferType+0, OwnerGuildID, DATE_FORMAT(Offertime,'%%y%%m%%d') "
-                                              "FROM GuildUnionOffer WHERE UnionID=%u",
-                                              uID);
+    vector<UnionOfferRow> offers = repository.loadOffers(uID);
 
+    if (offers.empty()) {
+        return false;
+    }
 
-        // cout << "연합길드 : " << uID << ", GuildUnionOffer return row : " << pResult->getRowCount() << endl;
+    for (size_t o = 0; o < offers.size(); o++) {
+        SingleGuildUnionOffer* offer = new SingleGuildUnionOffer;
 
-        if (pResult->getRowCount() == 0) {
+        offer->setGuildType(offers[o].offerType);
+        offer->setGuildID(offers[o].ownerGuildID);
+
+        DWORD dwDate = offers[o].date;
+        offer->setDate(dwDate * 100);
+
+        string guildName;
+        string guildMaster;
+        if (!repository.loadGuildNameAndMaster(offers[o].ownerGuildID, guildName, guildMaster)) {
+            delete offer;
             return false;
         }
 
-        while (pResult->next()) {
-            SingleGuildUnionOffer* offer = new SingleGuildUnionOffer;
+        offer->setGuildName(guildName);
+        offer->setGuildMaster(guildMaster);
 
-            offer->setGuildType(pResult->getInt(1));
-            offer->setGuildID(pResult->getInt(2));
-
-            DWORD dwDate = pResult->getInt(3);
-            offer->setDate(dwDate * 100);
-
-            // cout << "Date : " << (DWORD)offer->getDate() << endl;
-
-            // cout << "TYPE : " << (int)pResult->getInt(1) << endl;
-
-            pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult2 =
-                pStmt2->executeQuery("SELECT GuildName, Master FROM GuildInfo WHERE GuildID=%u", pResult->getInt(2));
-
-            if (pResult2->getRowCount() == 0) {
-                delete offer;
-                return false;
-            }
-
-            pResult2->next();
-
-            offer->setGuildName(pResult2->getString(1));
-            offer->setGuildMaster(pResult2->getString(2));
-
-            offerList.addUnionOfferList(offer);
-
-            /*cout << "GuildID : " << offer->getGuildID()
-                << ", GuildType : " <<  (int)offer->getGuildType()
-                << ", GuildName : " <<  offer->getGuildName()
-                << ", GuildMaster : " <<  offer->getGuildMaster()
-                << endl;
-             */
-        }
-
-        SAFE_DELETE(pStmt);
+        offerList.addUnionOfferList(offer);
     }
-    END_DB(pStmt)
 
     // cout << "make offerlist success!" << endl;
     return true;
@@ -647,45 +518,30 @@ bool GuildUnionOfferManager::makeOfferList(uint uID, GCUnionOfferList& offerList
 uint GuildUnionOfferManager::acceptJoin(GuildID_t gID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Statement* pStmt2 = NULL;
+    GuildRepository& repository = defaultGuildRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT UnionID FROM GuildUnionOffer WHERE OfferType='JOIN' AND OwnerGuildID=%u", gID);
+    int unionID = 0;
+    if (!repository.loadJoinOfferUnion(gID, unionID))
+        return NO_TARGET_UNION;
 
-        if (pResult->getRowCount() == 0)
-            return NO_TARGET_UNION;
+    clearOffer(gID);
 
-        if (pResult->next()) {
-            clearOffer(gID);
-
-            GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
-            if (pUnion != NULL) {
-                return ALREADY_IN_UNION;
-            }
-
-            uint uID = pResult->getInt(1);
-            pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
-            if (pUnion == NULL) {
-                return NO_TARGET_UNION;
-            }
-
-            Result* pResult2 = pStmt2->executeQuery("SELECT COUNT(*) FROM GuildUnionMember WHERE UnionID='%u'", uID);
-            pResult2->next();
-
-            if (pResult2->getInt(1) >= g_pVariableManager->getVariable(GUILD_UNION_MAX)) {
-                SAFE_DELETE(pStmt2);
-                return NOT_ENOUGH_SLOT;
-            }
-
-
-            GuildUnionManager::Instance().addGuild(uID, gID);
-        }
+    GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
+    if (pUnion != NULL) {
+        return ALREADY_IN_UNION;
     }
-    END_DB(pStmt);
+
+    uint uID = unionID;
+    pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
+    if (pUnion == NULL) {
+        return NO_TARGET_UNION;
+    }
+
+    if (repository.countUnionMembers(uID) >= g_pVariableManager->getVariable(GUILD_UNION_MAX)) {
+        return NOT_ENOUGH_SLOT;
+    }
+
+    GuildUnionManager::Instance().addGuild(uID, gID);
 
     return OK;
 
@@ -695,35 +551,27 @@ uint GuildUnionOfferManager::acceptJoin(GuildID_t gID) {
 uint GuildUnionOfferManager::acceptQuit(GuildID_t gID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    int unionID = 0;
+    if (defaultGuildRepository().loadQuitOfferUnion(gID, unionID)) {
+        clearOffer(gID);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT UnionID FROM GuildUnionOffer WHERE OfferType='QUIT' AND OwnerGuildID=%u", gID);
-
-        if (pResult->next()) {
-            clearOffer(gID);
-
-            GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
-            if (pUnion == NULL) {
-                return NOT_IN_UNION;
-            }
-
-            uint uID = pResult->getInt(1);
-            if (uID != pUnion->getUnionID()) {
-                return NOT_YOUR_UNION;
-            }
-
-            pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
-            if (pUnion == NULL) {
-                return NO_TARGET_UNION;
-            }
-
-            GuildUnionManager::Instance().removeGuild(uID, gID);
+        GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
+        if (pUnion == NULL) {
+            return NOT_IN_UNION;
         }
+
+        uint uID = unionID;
+        if (uID != pUnion->getUnionID()) {
+            return NOT_YOUR_UNION;
+        }
+
+        pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
+        if (pUnion == NULL) {
+            return NO_TARGET_UNION;
+        }
+
+        GuildUnionManager::Instance().removeGuild(uID, gID);
     }
-    END_DB(pStmt);
 
     return OK;
 
@@ -733,29 +581,21 @@ uint GuildUnionOfferManager::acceptQuit(GuildID_t gID) {
 uint GuildUnionOfferManager::denyJoin(GuildID_t gID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    int unionID = 0;
+    if (defaultGuildRepository().loadJoinOfferUnion(gID, unionID)) {
+        clearOffer(gID);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT UnionID FROM GuildUnionOffer WHERE OfferType='JOIN' AND OwnerGuildID=%u", gID);
+        GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
+        if (pUnion != NULL) {
+            return ALREADY_IN_UNION;
+        }
 
-        if (pResult->next()) {
-            clearOffer(gID);
-
-            GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
-            if (pUnion != NULL) {
-                return ALREADY_IN_UNION;
-            }
-
-            uint uID = pResult->getInt(1);
-            pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
-            if (pUnion == NULL) {
-                return NO_TARGET_UNION;
-            }
+        uint uID = unionID;
+        pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
+        if (pUnion == NULL) {
+            return NO_TARGET_UNION;
         }
     }
-    END_DB(pStmt);
 
     return OK;
 
@@ -765,33 +605,25 @@ uint GuildUnionOfferManager::denyJoin(GuildID_t gID) {
 uint GuildUnionOfferManager::denyQuit(GuildID_t gID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    int unionID = 0;
+    if (defaultGuildRepository().loadQuitOfferUnion(gID, unionID)) {
+        clearOffer(gID);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT UnionID FROM GuildUnionOffer WHERE OfferType='QUIT' AND OwnerGuildID=%u", gID);
+        GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
+        if (pUnion == NULL) {
+            return NOT_IN_UNION;
+        }
 
-        if (pResult->next()) {
-            clearOffer(gID);
+        uint uID = unionID;
+        if (uID != pUnion->getUnionID()) {
+            return NOT_YOUR_UNION;
+        }
 
-            GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(gID);
-            if (pUnion == NULL) {
-                return NOT_IN_UNION;
-            }
-
-            uint uID = pResult->getInt(1);
-            if (uID != pUnion->getUnionID()) {
-                return NOT_YOUR_UNION;
-            }
-
-            pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
-            if (pUnion == NULL) {
-                return NO_TARGET_UNION;
-            }
+        pUnion = GuildUnionManager::Instance().getGuildUnionByUnionID(uID);
+        if (pUnion == NULL) {
+            return NO_TARGET_UNION;
         }
     }
-    END_DB(pStmt);
 
     return OK;
 
@@ -801,13 +633,7 @@ uint GuildUnionOfferManager::denyQuit(GuildID_t gID) {
 void GuildUnionOfferManager::clearOffer(GuildID_t gID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("DELETE FROM GuildUnionOffer WHERE OwnerGuildID=%u", gID);
-    }
-    END_DB(pStmt)
+    defaultGuildRepository().deleteOffers(gID);
 
     __END_CATCH
 }
@@ -815,19 +641,9 @@ void GuildUnionOfferManager::clearOffer(GuildID_t gID) {
 bool GuildUnionOfferManager::hasOffer(GuildID_t gID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT count(*) FROM GuildUnionOffer WHERE OwnerGuildID=%u", gID);
-        if (pResult->next()) {
-            if (pResult->getInt(1) > 0) {
-                SAFE_DELETE(pStmt);
-                return true;
-            }
-        }
+    if (defaultGuildRepository().countOffers(gID) > 0) {
+        return true;
     }
-    END_DB(pStmt)
 
     return false;
 

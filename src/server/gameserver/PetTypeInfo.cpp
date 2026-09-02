@@ -1,7 +1,7 @@
 
 #include "PetTypeInfo.h"
 
-#include "DB.h"
+#include "repository/GameInfoRepository.h"
 
 MonsterType_t PetTypeInfo::getPetCreatureType(PetLevel_t petLevel) const {
     if (petLevel < 10)
@@ -23,37 +23,28 @@ void PetTypeInfoManager::clear() {
 void PetTypeInfoManager::load() {
     clear();
 
-    Statement* pStmt;
+    int maxPetType = 0;
+    if (!defaultGameInfoRepository().loadMaxPetType(maxPetType))
+        throw Error("PetTypeInfo has no rows.");
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT MAX(PetType) FROM PetTypeInfo");
+    PetType_t MaxPetType = maxPetType;
 
-        if (!pResult->next())
-            throw Error("PetTypeInfo 가 없습니다.");
+    m_PetTypeInfos.reserve(MaxPetType + 1);
 
-        PetType_t MaxPetType = pResult->getInt(1);
+    vector<PetTypeRow> rows = defaultGameInfoRepository().loadPetTypes();
 
-        m_PetTypeInfos.reserve(MaxPetType + 1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        PetTypeInfo* pPetTypeInfo = new PetTypeInfo(rows[r].petType);
+        pPetTypeInfo->m_OriginalMonsterType = rows[r].originalMonsterType;
+        pPetTypeInfo->m_PetCreatureType[0] = rows[r].creatureType[0];
+        pPetTypeInfo->m_PetCreatureType[1] = rows[r].creatureType[1];
+        pPetTypeInfo->m_PetCreatureType[2] = rows[r].creatureType[2];
+        pPetTypeInfo->m_PetCreatureType[3] = rows[r].creatureType[3];
+        pPetTypeInfo->m_PetCreatureType[4] = rows[r].creatureType[4];
+        pPetTypeInfo->m_FoodType = rows[r].foodType;
 
-        pResult = pStmt->executeQuery("SELECT PetType, OriginalMonsterType, CreatureType1, CreatureType2, "
-                                      "CreatureType3, CreatureType4, CreatureType5, FoodType "
-                                      "FROM PetTypeInfo");
-
-        while (pResult->next()) {
-            PetTypeInfo* pPetTypeInfo = new PetTypeInfo(pResult->getInt(1));
-            pPetTypeInfo->m_OriginalMonsterType = pResult->getInt(2);
-            pPetTypeInfo->m_PetCreatureType[0] = pResult->getInt(3);
-            pPetTypeInfo->m_PetCreatureType[1] = pResult->getInt(4);
-            pPetTypeInfo->m_PetCreatureType[2] = pResult->getInt(5);
-            pPetTypeInfo->m_PetCreatureType[3] = pResult->getInt(6);
-            pPetTypeInfo->m_PetCreatureType[4] = pResult->getInt(7);
-            pPetTypeInfo->m_FoodType = pResult->getInt(8);
-
-            addPetTypeInfo(pPetTypeInfo);
-        }
+        addPetTypeInfo(pPetTypeInfo);
     }
-    END_DB(pStmt)
 }
 
 void PetTypeInfoManager::addPetTypeInfo(PetTypeInfo* pPetTypeInfo) {

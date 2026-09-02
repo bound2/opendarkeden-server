@@ -1,10 +1,10 @@
 #include "GQuestGiveQuestItemElement.h"
 
-#include "DB.h"
 #include "GCSystemMessage.h"
 #include "GQuestInventory.h"
 #include "Player.h"
 #include "PlayerCreature.h"
+#include "repository/QuestItemRepository.h"
 
 GQuestElement::ResultType GQuestGiveQuestItemElement::checkCondition(PlayerCreature* pPC) const {
     GQuestInventory& inventory = pPC->getGQuestManager()->getGQuestInventory();
@@ -16,14 +16,7 @@ GQuestElement::ResultType GQuestGiveQuestItemElement::checkCondition(PlayerCreat
     pPC->getPlayer()->sendPacket(&gcSM);
 
     if (m_bSave) {
-        Statement* pStmt = NULL;
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO GQuestItemObject(ItemType, OwnerID) VALUES (%u, '%s')", m_ItemType,
-                                pPC->getName().c_str());
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultQuestItemRepository().insert(pPC->getName(), m_ItemType);
     }
 
     return OK;

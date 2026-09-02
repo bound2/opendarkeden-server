@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 NecklaceInfoManager* g_pNecklaceInfoManager = NULL;
@@ -59,8 +60,6 @@ void Necklace::create(const string& ownerID, Storage storage, StorageID_t storag
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -72,25 +71,12 @@ void Necklace::create(const string& ownerID, Storage storage, StorageID_t storag
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO NecklaceObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", " << getGrade() << ", "
-            << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertGear(GEAR_NECKLACE, m_ItemID, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                             storageID, (int)x, (int)y, optionField, getDurability(), getGrade(),
+                                             (int)m_CreateType);
 
     __END_CATCH
 }
@@ -104,16 +90,7 @@ void Necklace::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE NecklaceObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_NECKLACE, field, m_ItemID);
 
     __END_CATCH
 }
@@ -126,42 +103,12 @@ void Necklace::save(const string& ownerID, Storage storage, StorageID_t storageI
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE NecklaceObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery(
-            "UPDATE NecklaceObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-            "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
-            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, optionField.c_str(),
-            getDurability(), getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateGear(GEAR_NECKLACE, m_ObjectID, getItemType(), ownerID, (int)storage, storageID,
+                                             (int)x, (int)y, optionField, getDurability(), getGrade(),
+                                             (int)getEnchantLevel(), m_ItemID);
 
     __END_CATCH
 }
@@ -273,57 +220,39 @@ void NecklaceInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_NECKLACE);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM NecklaceInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GearInfoRow> rows = defaultItemObjectRepository().loadGearInfos(GEAR_NECKLACE);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        NecklaceInfo* pNecklaceInfo = new NecklaceInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pNecklaceInfo->setItemType(rows[r].itemType);
+        pNecklaceInfo->setName(rows[r].name);
+        pNecklaceInfo->setEName(rows[r].ename);
+        pNecklaceInfo->setPrice(rows[r].price);
+        pNecklaceInfo->setVolumeType(rows[r].volume);
+        pNecklaceInfo->setWeight(rows[r].weight);
+        pNecklaceInfo->setRatio(rows[r].ratio);
+        pNecklaceInfo->setDurability(rows[r].durability);
+        pNecklaceInfo->setDefenseBonus(rows[r].defense);
+        pNecklaceInfo->setProtectionBonus(rows[r].protection);
+        pNecklaceInfo->setReqAbility(rows[r].reqAbility);
+        pNecklaceInfo->setItemLevel(rows[r].itemLevel);
+        pNecklaceInfo->setDefaultOptions(rows[r].defaultOption);
+        pNecklaceInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pNecklaceInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pNecklaceInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pNecklaceInfo->setNextItemType(rows[r].nextItemType);
+        pNecklaceInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult =
-            pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, "
-                                "Protection, ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-                                "NextOptionRatio, NextItemType, DowngradeRatio FROM NecklaceInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            NecklaceInfo* pNecklaceInfo = new NecklaceInfo();
-
-            pNecklaceInfo->setItemType(pResult->getInt(++i));
-            pNecklaceInfo->setName(pResult->getString(++i));
-            pNecklaceInfo->setEName(pResult->getString(++i));
-            pNecklaceInfo->setPrice(pResult->getInt(++i));
-            pNecklaceInfo->setVolumeType(pResult->getInt(++i));
-            pNecklaceInfo->setWeight(pResult->getInt(++i));
-            pNecklaceInfo->setRatio(pResult->getInt(++i));
-            pNecklaceInfo->setDurability(pResult->getInt(++i));
-            pNecklaceInfo->setDefenseBonus(pResult->getInt(++i));
-            pNecklaceInfo->setProtectionBonus(pResult->getInt(++i));
-            pNecklaceInfo->setReqAbility(pResult->getString(++i));
-            pNecklaceInfo->setItemLevel(pResult->getInt(++i));
-            pNecklaceInfo->setDefaultOptions(pResult->getString(++i));
-            pNecklaceInfo->setUpgradeRatio(pResult->getInt(++i));
-            pNecklaceInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pNecklaceInfo->setNextOptionRatio(pResult->getInt(++i));
-            pNecklaceInfo->setNextItemType(pResult->getInt(++i));
-            pNecklaceInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pNecklaceInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pNecklaceInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -339,146 +268,117 @@ void NecklaceLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<GearObjectRow> rows = defaultItemObjectRepository().loadGearOfOwner(GEAR_NECKLACE, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            Necklace* pNecklace = new Necklace();
 
-        /*
-        StringStream sql;
+            pNecklace->setItemID(rows[r].itemID);
+            pNecklace->setObjectID(rows[r].objectID);
+            pNecklace->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << "OptionType, Durability, EnchantLevel FROM NecklaceObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            if (g_pNecklaceInfoManager->getItemInfo(pNecklace->getItemType())->isUnique())
+                pNecklace->setUnique();
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Durability, Grade, EnchantLevel, "
-            "ItemFlag FROM NecklaceObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pNecklace->setOptionType(optionTypes);
 
+            pNecklace->setDurability(rows[r].durability);
+            pNecklace->setGrade(rows[r].grade);
+            pNecklace->setEnchantLevel(rows[r].enchantLevel);
+            pNecklace->setCreateType((Item::CreateType)rows[r].createType);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                Necklace* pNecklace = new Necklace();
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                pNecklace->setItemID(pResult->getDWORD(++i));
-                pNecklace->setObjectID(pResult->getDWORD(++i));
-                pNecklace->setItemType(pResult->getDWORD(++i));
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                if (g_pNecklaceInfoManager->getItemInfo(pNecklace->getItemType())->isUnique())
-                    pNecklace->setUnique();
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pNecklace)) {
+                    pInventory->addItemEx(x, y, pNecklace);
+                } else {
+                    processItemBugEx(pCreature, pNecklace);
+                }
+                break;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pNecklace->setOptionType(optionTypes);
-
-                pNecklace->setDurability(pResult->getInt(++i));
-                pNecklace->setGrade(pResult->getInt(++i));
-                pNecklace->setEnchantLevel(pResult->getInt(++i));
-                pNecklace->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pNecklace)) {
-                        pInventory->addItemEx(x, y, pNecklace);
+                    if (!pSlayer->isWear((Slayer::WearPart)x)) {
+                        pSlayer->wearItem((Slayer::WearPart)x, pNecklace);
                     } else {
                         processItemBugEx(pCreature, pNecklace);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        if (!pSlayer->isWear((Slayer::WearPart)x)) {
-                            pSlayer->wearItem((Slayer::WearPart)x, pNecklace);
-                        } else {
-                            processItemBugEx(pCreature, pNecklace);
-                        }
-                    } else if (pCreature->isVampire()) {
-                        processItemBugEx(pCreature, pNecklace);
-                    }
-                    break;
-
-                case STORAGE_BELT:
+                } else if (pCreature->isVampire()) {
                     processItemBugEx(pCreature, pNecklace);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pNecklace);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pNecklace);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pNecklace);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pNecklace);
-                    } else
-                        pStash->insert(x, y, pNecklace);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pNecklace);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pNecklace);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pNecklace);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pNecklace);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pNecklace);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pNecklace);
+                } else
+                    pStash->insert(x, y, pNecklace);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pNecklace);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -494,61 +394,45 @@ void NecklaceLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<GearZoneObjectRow> rows =
+        defaultItemObjectRepository().loadGearInZone(GEAR_NECKLACE, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        Necklace* pNecklace = new Necklace();
 
-        StringStream sql;
+        pNecklace->setItemID(rows[r].itemID);
+        pNecklace->setObjectID(rows[r].objectID);
+        pNecklace->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " OptionType, Durability, EnchantLevel, ItemFlag FROM NecklaceObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        string optionField = rows[r].optionField;
+        list<OptionType_t> optionTypes;
+        setOptionTypeFromField(optionTypes, optionField);
+        pNecklace->setOptionType(optionTypes);
 
-        while (pResult->next()) {
-            uint i = 0;
+        pNecklace->setDurability(rows[r].durability);
+        pNecklace->setEnchantLevel(rows[r].enchantLevel);
+        pNecklace->setCreateType((Item::CreateType)rows[r].createType);
 
-            Necklace* pNecklace = new Necklace();
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pNecklace);
+        } break;
 
-            pNecklace->setItemID(pResult->getInt(++i));
-            pNecklace->setObjectID(pResult->getInt(++i));
-            pNecklace->setItemType(pResult->getInt(++i));
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            string optionField = pResult->getString(++i);
-            list<OptionType_t> optionTypes;
-            setOptionTypeFromField(optionTypes, optionField);
-            pNecklace->setOptionType(optionTypes);
-
-            pNecklace->setDurability(pResult->getInt(++i));
-            pNecklace->setEnchantLevel(pResult->getInt(++i));
-            pNecklace->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pNecklace);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

@@ -8,7 +8,6 @@
 
 #include "AbilityBalance.h"
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "EffectLoaderManager.h"
 #include "FlagSet.h"
 #include "GamePlayer.h"
@@ -28,6 +27,7 @@
 #include "TradeManager.h"
 #include "repository/CharacterRepository.h"
 #include "repository/GoldRepository.h"
+#include "repository/SkillSaveRepository.h"
 #include "repository/StashRepository.h"
 // #include "RankEXPInfo.h"
 #include <stdio.h>
@@ -465,125 +465,103 @@ bool Ousters::load()
     if (!PlayerCreature::load())
         return false;
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    OustersLoadRecord record;
+    if (!defaultCharacterRepository().loadOusters(m_Name, record))
+        return false;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT Name, AdvancementClass, AdvancementGoalExp, Sex,MasterEffectColor,\
-			STR, DEX, INTE, HP, CurrentHP, MP, CurrentMP, Fame, \
-			GoalExp, Level, Bonus, SkillBonus, Gold, GuildID, \
-			ZoneID, XCoord, YCoord, Sight, Alignment,\
-			StashGold, StashNum, Competence, CompetenceShape, ResurrectZone, SilverDamage, SMSCharge,\
-			`Rank`, RankGoalExp, HairColor FROM Ousters WHERE Name = '%s' AND Active = 'ACTIVE'",
-                                      m_Name.c_str());
+    setName(record.name);
 
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            return false;
-        }
+    Level_t advLevel = record.advancementClass;
+    Exp_t advGoalExp = record.advancementGoalExp;
 
-        pResult->next();
+    m_pAdvancementClass =
+        new AdvancementClass(advLevel, advGoalExp, AdvancementClassExpTable::s_AdvancementClassExpTable);
+    if (getAdvancementClassLevel() > 0)
+        m_bAdvanced = true;
 
-        uint i = 0;
+    setSex(record.sex);
+    setMasterEffectColor(record.masterEffectColor);
 
-        setName(pResult->getString(++i));
+    m_STR[ATTR_BASIC] = record.str;
+    m_STR[ATTR_CURRENT] = m_STR[ATTR_BASIC];
+    m_STR[ATTR_MAX] = m_STR[ATTR_BASIC];
 
-        Level_t advLevel = pResult->getInt(++i);
-        Exp_t advGoalExp = pResult->getInt(++i);
+    m_DEX[ATTR_BASIC] = record.dex;
+    m_DEX[ATTR_CURRENT] = m_DEX[ATTR_BASIC];
+    m_DEX[ATTR_MAX] = m_DEX[ATTR_BASIC];
 
-        m_pAdvancementClass =
-            new AdvancementClass(advLevel, advGoalExp, AdvancementClassExpTable::s_AdvancementClassExpTable);
-        if (getAdvancementClassLevel() > 0)
-            m_bAdvanced = true;
+    m_INT[ATTR_BASIC] = record.inte;
+    m_INT[ATTR_CURRENT] = m_INT[ATTR_BASIC];
+    m_INT[ATTR_MAX] = m_INT[ATTR_BASIC];
 
-        setSex(pResult->getString(++i));
-        setMasterEffectColor(pResult->getInt(++i));
+    setHP(record.maxHP, ATTR_MAX);
+    setHP(getHP(ATTR_MAX), ATTR_BASIC);
+    setHP(record.currentHP, ATTR_CURRENT);
 
-        m_STR[ATTR_BASIC] = pResult->getInt(++i);
-        m_STR[ATTR_CURRENT] = m_STR[ATTR_BASIC];
-        m_STR[ATTR_MAX] = m_STR[ATTR_BASIC];
+    setMP(record.maxMP, ATTR_MAX);
+    setMP(getMP(ATTR_MAX), ATTR_BASIC);
+    setMP(record.currentMP, ATTR_CURRENT);
 
-        m_DEX[ATTR_BASIC] = pResult->getInt(++i);
-        m_DEX[ATTR_CURRENT] = m_DEX[ATTR_BASIC];
-        m_DEX[ATTR_MAX] = m_DEX[ATTR_BASIC];
+    setFame(record.fame);
 
-        m_INT[ATTR_BASIC] = pResult->getInt(++i);
-        m_INT[ATTR_CURRENT] = m_INT[ATTR_BASIC];
-        m_INT[ATTR_MAX] = m_INT[ATTR_BASIC];
+    //		setExp(pResult->getInt(++i));
+    setGoalExp(record.goalExp);
+    //		setExpOffset(pResult->getInt(++i));
+    setLevel(record.level);
+    setBonus(record.bonus);
+    setSkillBonus(record.skillBonus);
 
-        setHP(pResult->getInt(++i), ATTR_MAX);
-        setHP(getHP(ATTR_MAX), ATTR_BASIC);
-        setHP(pResult->getInt(++i), ATTR_CURRENT);
+    setGold(record.gold);
+    setGuildID(record.guildID);
 
-        setMP(pResult->getInt(++i), ATTR_MAX);
-        setMP(getMP(ATTR_MAX), ATTR_BASIC);
-        setMP(pResult->getInt(++i), ATTR_CURRENT);
+    ZoneID_t zoneID = record.zoneID;
+    setX(record.x);
+    setY(record.y);
 
-        setFame(pResult->getInt(++i));
+    setSight(record.sight);
 
-        //		setExp(pResult->getInt(++i));
-        setGoalExp(pResult->getInt(++i));
-        //		setExpOffset(pResult->getInt(++i));
-        setLevel(pResult->getInt(++i));
-        setBonus(pResult->getInt(++i));
-        setSkillBonus(pResult->getInt(++i));
+    setAlignment(record.alignment);
 
-        setGold(pResult->getInt(++i));
-        setGuildID(pResult->getInt(++i));
+    setStashGold(record.stashGold);
+    setStashNum(record.stashNum);
 
-        ZoneID_t zoneID = pResult->getInt(++i);
-        setX(pResult->getInt(++i));
-        setY(pResult->getInt(++i));
+    m_Competence = record.competence;
 
-        setSight(pResult->getInt(++i));
+    if (m_Competence >= 4)
+        m_Competence = 3;
 
-        setAlignment(pResult->getInt(++i));
+    m_CompetenceShape = record.competenceShape;
 
-        setStashGold(pResult->getInt(++i));
-        setStashNum(pResult->getBYTE(++i));
+    setResurrectZoneID(record.resurrectZone);
+    setSilverDamage(record.silverDamage);
 
-        m_Competence = pResult->getBYTE(++i);
+    setSMSCharge(record.smsCharge);
 
-        if (m_Competence >= 4)
-            m_Competence = 3;
+    Rank_t CurRank = record.rank;
+    RankExp_t RankGoalExp = record.rankGoalExp;
 
-        m_CompetenceShape = pResult->getBYTE(++i);
+    m_pRank = new Rank(CurRank, RankGoalExp, RankExpTable::s_RankExpTables[RANK_TYPE_OUSTERS]);
 
-        setResurrectZoneID(pResult->getInt(++i));
-        setSilverDamage(pResult->getInt(++i));
+    //		setRank( pResult->getInt(++i) );
+    //		setRankExp( pResult->getInt(++i) );
+    //		setRankGoalExp( pResult->getInt(++i) );
 
-        setSMSCharge(pResult->getInt(++i));
+    setHairColor(record.hairColor);
 
-        Rank_t CurRank = pResult->getInt(++i);
-        RankExp_t RankGoalExp = pResult->getInt(++i);
+    // 2002.7.15 by sigi
+    int maxHP = m_STR[ATTR_CURRENT] * 2 + m_INT[ATTR_CURRENT] + m_DEX[ATTR_CURRENT] + m_Level;
+    maxHP = min((int)maxHP, OUSTERS_MAX_HP);
+    setHP(maxHP, ATTR_MAX);
 
-        m_pRank = new Rank(CurRank, RankGoalExp, RankExpTable::s_RankExpTables[RANK_TYPE_OUSTERS]);
-
-        //		setRank( pResult->getInt(++i) );
-        //		setRankExp( pResult->getInt(++i) );
-        //		setRankGoalExp( pResult->getInt(++i) );
-
-        setHairColor(pResult->getInt(++i));
-
-        // 2002.7.15 by sigi
-        int maxHP = m_STR[ATTR_CURRENT] * 2 + m_INT[ATTR_CURRENT] + m_DEX[ATTR_CURRENT] + m_Level;
-        maxHP = min((int)maxHP, OUSTERS_MAX_HP);
-        setHP(maxHP, ATTR_MAX);
-
-        try {
-            setZoneID(zoneID);
-        } catch (Error& e) {
-            ZONE_COORD ResurrectCoord;
-            g_pResurrectLocationManager->getOustersPosition(1311, ResurrectCoord);
-            setZoneID(ResurrectCoord.id);
-            setX(ResurrectCoord.x);
-            setY(ResurrectCoord.y);
-        }
-
-        SAFE_DELETE(pStmt);
+    try {
+        setZoneID(zoneID);
+    } catch (Error& e) {
+        ZONE_COORD ResurrectCoord;
+        g_pResurrectLocationManager->getOustersPosition(1311, ResurrectCoord);
+        setZoneID(ResurrectCoord.id);
+        setX(ResurrectCoord.x);
+        setY(ResurrectCoord.y);
     }
-    END_DB(pStmt)
 
     //----------------------------------------------------------------------
     //----------------------------------------------------------------------
@@ -597,33 +575,24 @@ bool Ousters::load()
 
     //----------------------------------------------------------------------
     //----------------------------------------------------------------------
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery(
-            "SELECT SkillType, SkillLevel, Delay, CastingTime, NextTime FROM OustersSkillSave WHERE OwnerID = '%s'",
-            m_Name.c_str());
+    vector<OustersSkillRow> skillRows = defaultSkillSaveRepository().loadOustersSkills(m_Name);
+    for (size_t r = 0; r < skillRows.size(); r++) {
+        const OustersSkillRow& row = skillRows[r];
+        SkillType_t SkillType = row.skillType;
 
-        while (pResult->next()) {
-            int i = 0;
-            SkillType_t SkillType = pResult->getInt(++i);
+        if (hasSkill(SkillType) == NULL) {
+            OustersSkillSlot* pOustersSkillSlot = new OustersSkillSlot();
 
-            if (hasSkill(SkillType) == NULL) {
-                OustersSkillSlot* pOustersSkillSlot = new OustersSkillSlot();
+            pOustersSkillSlot->setName(m_Name);
+            pOustersSkillSlot->setSkillType(SkillType);
+            pOustersSkillSlot->setExpLevel(row.skillLevel);
+            pOustersSkillSlot->setInterval(row.delay);
+            pOustersSkillSlot->setCastingTime(row.castingTime);
+            pOustersSkillSlot->setRunTime();
 
-                pOustersSkillSlot->setName(m_Name);
-                pOustersSkillSlot->setSkillType(SkillType);
-                pOustersSkillSlot->setExpLevel(pResult->getInt(++i));
-                pOustersSkillSlot->setInterval(pResult->getInt(++i));
-                pOustersSkillSlot->setCastingTime(pResult->getInt(++i));
-                pOustersSkillSlot->setRunTime();
-
-                addSkill(pOustersSkillSlot);
-            }
+            addSkill(pOustersSkillSlot);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     //----------------------------------------------------------------------
     //----------------------------------------------------------------------

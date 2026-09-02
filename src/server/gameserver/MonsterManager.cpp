@@ -16,7 +16,6 @@
 #include "CastleInfoManager.h"
 #include "Creature.h"
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "DynamicZone.h"
 #include "DynamicZoneGateOfAlter.h"
 #include "EffectPacketSend.h"
@@ -53,6 +52,7 @@
 #include "WarSystem.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/ZoneInfoRepository.h"
 #include "skill/EffectHarpoonBomb.h"
 #include "skill/SummonGroundElemental.h"
 
@@ -125,8 +125,6 @@ void MonsterManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
     string text, eventText;
 
     m_RICE_CAKE_PROB_RATIO[0] = 100;
@@ -152,32 +150,19 @@ void MonsterManager::load()
         bReload = true;
     }
 
-    BEGIN_DB {
-        // DynamicZone À» À§ÇÑ Ã³¸®
-        ZoneID_t zoneID = m_pZone->getZoneID();
-        if (m_pZone->isDynamicZone()) {
-            DynamicZone* pDynamicZone = m_pZone->getDynamicZone();
-            Assert(pDynamicZone != NULL);
+    // A dynamic zone loads its template zone's monster lists.
+    ZoneID_t zoneID = m_pZone->getZoneID();
+    if (m_pZone->isDynamicZone()) {
+        DynamicZone* pDynamicZone = m_pZone->getDynamicZone();
+        Assert(pDynamicZone != NULL);
 
-            zoneID = pDynamicZone->getTemplateZoneID();
-        }
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MonsterList, EventMonsterList from ZoneInfo WHERE ZoneID=%d", zoneID);
-
-        if (pResult->getRowCount() <= 0) {
-            SAFE_DELETE(pStmt);
-            //			throw Error("MonsterManager::load() : Á¸ÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.");
-            return;
-        }
-
-        pResult->next();
-        text = pResult->getString(1);
-        eventText = pResult->getString(2);
-
-        SAFE_DELETE(pStmt);
+        zoneID = pDynamicZone->getTemplateZoneID();
     }
-    END_DB(pStmt)
+
+    if (!defaultZoneInfoRepository().loadMonsterLists(zoneID, text, eventText)) {
+        // the zone has no row
+        return;
+    }
 
 
     parseMonsterList(text, bReload);

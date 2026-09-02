@@ -9,12 +9,12 @@
 #include "ThreadManager.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "LogClient.h"
 #include "Properties.h"
 #include "ThreadPool.h"
 #include "ZoneGroupManager.h"
 #include "ZoneGroupThread.h"
+#include "repository/ZoneInfoRepository.h"
 
 
 //--------------------------------------------------------------------------------
@@ -66,23 +66,14 @@ void ThreadManager::init()
 {
     __BEGIN_TRY
 
-    // 존 쓰레드를 등록한다.
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    // Register one thread per zone group.
+    vector<int> zoneGroupIDs = defaultZoneInfoRepository().loadZoneGroupIDs(false);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT ZoneGroupID FROM ZoneGroupInfo");
-
-        while (pResult->next()) {
-            ZoneGroupID_t zoneGroupID = pResult->getInt(1);
-            ZoneGroupThread* pZoneGroupThread = new ZoneGroupThread(g_pZoneGroupManager->getZoneGroup(zoneGroupID));
-            m_pZoneGroupThreadPool->addThread(pZoneGroupThread);
-        }
-
-        SAFE_DELETE(pStmt);
+    for (size_t i = 0; i < zoneGroupIDs.size(); i++) {
+        ZoneGroupID_t zoneGroupID = zoneGroupIDs[i];
+        ZoneGroupThread* pZoneGroupThread = new ZoneGroupThread(g_pZoneGroupManager->getZoneGroup(zoneGroupID));
+        m_pZoneGroupThreadPool->addThread(pZoneGroupThread);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

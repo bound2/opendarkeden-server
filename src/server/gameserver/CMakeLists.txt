@@ -547,12 +547,31 @@ set(GAMESERVER_MAIN_SOURCES
     GDRLairAbstractStates.cpp
     NicknameBook.cpp
     repository/MySQLNicknameRepository.cpp
+    repository/MySQLPlayRecordRepository.cpp
+    repository/MySQLBalanceInfoRepository.cpp
     repository/MySQLBloodBibleSignRepository.cpp
+    repository/MySQLBulletinBoardRepository.cpp
+    repository/MySQLComebackEventRepository.cpp
+    repository/MySQLContentInfoRepository.cpp
+    repository/MySQLMessageRepository.cpp
+    repository/MySQLRegenZoneRepository.cpp
+    repository/MySQLZoneInfoRepository.cpp
     repository/MySQLCharacterRepository.cpp
     repository/MySQLGoldRepository.cpp
     repository/MySQLGoodsRepository.cpp
+    repository/MySQLGuildRepository.cpp
+    repository/MySQLItemObjectRepository.cpp
+    repository/MySQLItemRepository.cpp
+    repository/MySQLEffectSaveRepository.cpp
+    repository/MySQLFlagSetRepository.cpp
+    repository/MySQLGameInfoRepository.cpp
+    repository/MySQLQuestItemRepository.cpp
     repository/MySQLRankBonusRepository.cpp
+    repository/MySQLSMSAddressRepository.cpp
+    repository/MySQLSessionRepository.cpp
+    repository/MySQLSkillSaveRepository.cpp
     repository/MySQLStashRepository.cpp
+    repository/MySQLWarInfoRepository.cpp
     LevelNickInfoManager.cpp
     SiegeManager.cpp
     BroadcastFilter.cpp

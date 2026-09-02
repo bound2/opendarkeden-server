@@ -6,9 +6,9 @@
 
 #include "ZoneInfoManager.h"
 
-#include "DB.h"
 #include "SystemAvailabilitiesManager.h"
 #include "ZoneUtil.h"
+#include "repository/ZoneInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // constructor
@@ -66,89 +66,77 @@ void ZoneInfoManager::load()
 
     bool bReload = !m_ZoneInfos.empty();
 
-    Statement* pStmt = NULL;
+    vector<ZoneInfoRow> rows = defaultZoneInfoRepository().loadZoneInfos();
 
-    BEGIN_DB {
-        // create statement
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        const ZoneInfoRow& row = rows[r];
 
-        Result* pResult = pStmt->executeQuery("SELECT ZoneID, ZoneGroupID, Type, Level, AccessMode, OwnerID, "
-                                              "PayPlayZone, PremiumZone, PKZone, NoPortalZone, HolyLand, Available, "
-                                              "OpenLevel, SMPFilename, SSIFilename, FullName, ShortName FROM ZoneInfo");
+        ZoneID_t zoneID = row.zoneID;
 
-        while (pResult->next()) {
-            uint i = 0;
+        //			cout << "load ZoneInfo = " << zoneID << endl;
 
-            ZoneID_t zoneID = pResult->getInt(++i);
+        ZoneInfo* pZoneInfo = NULL;
+        bool bExistInfo = false;
 
-            //			cout << "load ZoneInfo = " << zoneID << endl;
+        if (bReload) {
+            unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = m_ZoneInfos.find(zoneID);
 
-            ZoneInfo* pZoneInfo = NULL;
-            bool bExistInfo = false;
-
-            if (bReload) {
-                unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = m_ZoneInfos.find(zoneID);
-
-                if (itr != m_ZoneInfos.end()) {
-                    pZoneInfo = itr->second;
-                    bExistInfo = true;
-                } else {
-                    pZoneInfo = new ZoneInfo();
-                }
+            if (itr != m_ZoneInfos.end()) {
+                pZoneInfo = itr->second;
+                bExistInfo = true;
             } else {
                 pZoneInfo = new ZoneInfo();
             }
-            // cout << "new OK" << endl;
+        } else {
+            pZoneInfo = new ZoneInfo();
+        }
+        // cout << "new OK" << endl;
 
-            // if (zoneID!=31 && zoneID!=21)
-            {
-                pZoneInfo->setZoneID(zoneID);
-                pZoneInfo->setZoneGroupID(pResult->getInt(++i));
-                pZoneInfo->setZoneType(pResult->getString(++i));
-                pZoneInfo->setZoneLevel(pResult->getInt(++i));
-                pZoneInfo->setZoneAccessMode(pResult->getString(++i));
-                pZoneInfo->setZoneOwnerID(pResult->getString(++i));
-                pZoneInfo->setPayPlay(pResult->getInt(++i) != 0);
-                pZoneInfo->setPremiumZone(pResult->getInt(++i) != 0);
-                pZoneInfo->setPKZone(pResult->getInt(++i) != 0);
-                pZoneInfo->setNoPortalZone(pResult->getInt(++i) != 0);
-                pZoneInfo->setHolyLand(pResult->getInt(++i) != 0);
-                pZoneInfo->setAvailable(pResult->getInt(++i) != 0);
-                pZoneInfo->setOpenLevel(pResult->getInt(++i));
-                pZoneInfo->setSMPFilename(pResult->getString(++i));
-                pZoneInfo->setSSIFilename(pResult->getString(++i));
-                pZoneInfo->setFullName(pResult->getString(++i));
-                pZoneInfo->setShortName(pResult->getString(++i));
+        // if (zoneID!=31 && zoneID!=21)
+        {
+            pZoneInfo->setZoneID(zoneID);
+            pZoneInfo->setZoneGroupID(row.zoneGroupID);
+            pZoneInfo->setZoneType(row.type);
+            pZoneInfo->setZoneLevel(row.level);
+            pZoneInfo->setZoneAccessMode(row.accessMode);
+            pZoneInfo->setZoneOwnerID(row.ownerID);
+            pZoneInfo->setPayPlay(row.payPlayZone != 0);
+            pZoneInfo->setPremiumZone(row.premiumZone != 0);
+            pZoneInfo->setPKZone(row.pkZone != 0);
+            pZoneInfo->setNoPortalZone(row.noPortalZone != 0);
+            pZoneInfo->setHolyLand(row.holyLand != 0);
+            pZoneInfo->setAvailable(row.available != 0);
+            pZoneInfo->setOpenLevel(row.openLevel);
+            pZoneInfo->setSMPFilename(row.smpFilename);
+            pZoneInfo->setSSIFilename(row.ssiFilename);
+            pZoneInfo->setFullName(row.fullName);
+            pZoneInfo->setShortName(row.shortName);
 
-                pZoneInfo->setAvailable(pZoneInfo->isAvailable() &&
-                                        pZoneInfo->getOpenLevel() <
-                                            SystemAvailabilitiesManager::getInstance()->getZoneOpenDegree());
+            pZoneInfo->setAvailable(pZoneInfo->isAvailable() &&
+                                    pZoneInfo->getOpenLevel() <
+                                        SystemAvailabilitiesManager::getInstance()->getZoneOpenDegree());
 
-                if (!bExistInfo) {
-                    addZoneInfo(pZoneInfo);
-                }
-
-                /*
-                if (zoneID==22)
-                {
-                    testMaxMemory();
-                }
-                */
-
-                // cout << "load ZoneInfo = " << zoneID << endl;
-                // cout << "ZoneInfo = " << pZoneInfo->toString().c_str() << endl << endl;
+            if (!bExistInfo) {
+                addZoneInfo(pZoneInfo);
             }
+
             /*
-            else
+            if (zoneID==22)
             {
-                cout << "skip load ZoneID = " << i << endl << endl;
+                testMaxMemory();
             }
             */
-        }
 
-        SAFE_DELETE(pStmt);
+            // cout << "load ZoneInfo = " << zoneID << endl;
+            // cout << "ZoneInfo = " << pZoneInfo->toString().c_str() << endl << endl;
+        }
+        /*
+        else
+        {
+            cout << "skip load ZoneID = " << i << endl << endl;
+        }
+        */
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

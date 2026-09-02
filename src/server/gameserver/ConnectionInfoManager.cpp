@@ -9,7 +9,6 @@
 #include <stdio.h>
 
 #include "Assert.h"
-#include "DB.h"
 #include "GMServerInfo.h"
 #include "LogDef.h"
 #include "LoginServerManager.h"
@@ -18,6 +17,8 @@
 #include "ZoneGroup.h"
 #include "ZoneGroupManager.h"
 #include "ZonePlayerManager.h"
+#include "repository/SessionRepository.h"
+#include "repository/ZoneInfoRepository.h"
 
 // global variable definition
 ConnectionInfoManager* g_pConnectionInfoManager = NULL;
@@ -204,25 +205,17 @@ void ConnectionInfoManager::heartbeat()
             }
         }
 
-        // 사용자 숫자 정보를 알린다.
-        Statement* pStmt = NULL;
-        Result* pResult = NULL;
-
+        // Report the user count.
         static int GroupCount = 0;
 
-        BEGIN_DB {
-            if (GroupCount == 0) {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pResult = pStmt->executeQuery("SELECT MAX(ZoneGroupID) FROM ZoneGroupInfo");
-
-                pResult->next();
-
-                GroupCount = pResult->getInt(1) + 1;
-
-                SAFE_DELETE(pStmt);
+        if (GroupCount == 0) {
+            int maxZoneGroupID = 0;
+            if (!defaultZoneInfoRepository().loadMaxZoneGroupID(maxZoneGroupID)) {
+                throw Error("Critical Error : ZoneGroupInfo table is empty.");
             }
+
+            GroupCount = maxZoneGroupID + 1;
         }
-        END_DB(pStmt)
 
         GMServerInfo gmServerInfo;
 
@@ -255,23 +248,10 @@ void ConnectionInfoManager::heartbeat()
             m_UpdateUserStatusTime.tv_sec = currentTime.tv_sec + 30;
 
             if (g_pConfig->getPropertyInt("IsNetMarble") == 1) {
-                pStmt = NULL;
-                BEGIN_DB {
-                    pStmt = g_pDatabaseManager->getUserInfoConnection()->createStatement();
-
-                    pStmt->executeQuery("UPDATE UserStatus SET CurrentUser=%d WHERE WorldID=%d AND ServerID=%d", numPC,
-                                        worldID, serverID);
-
-                    // 없다면 추가해야지
-                    if (pStmt->getAffectedRowCount() == 0) {
-                        pStmt->executeQuery(
-                            "INSERT IGNORE INTO UserStatus (WorldID, ServerID, CurrentUser) Values (%d, %d, %d)",
-                            worldID, serverID, numPC);
-                    }
-
-                    SAFE_DELETE(pStmt);
+                if (!defaultSessionRepository().updateUserStatus(numPC, worldID, serverID)) {
+                    // No row yet: add one.
+                    defaultSessionRepository().insertUserStatus(worldID, serverID, numPC);
                 }
-                END_DB(pStmt)
             }
         }
 

@@ -6,7 +6,7 @@
 
 #include "OustersSkillSlot.h"
 
-#include "DB.h"
+#include "repository/SkillSaveRepository.h"
 
 OustersSkillSlot::OustersSkillSlot() throw() {
     __BEGIN_TRY
@@ -41,18 +41,13 @@ void OustersSkillSlot::create(const string& OwnerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("INSERT INTO OustersSkillSave (OwnerID, SkillType, Delay, CastingTime, NextTime, "
-                            "SkillLevel) VALUES ( '%s', %d, %d, %d, %d, %d )",
-                            OwnerID.c_str(), m_SkillType, m_Interval, m_CastingTime, m_runTime.tv_sec, m_ExpLevel);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    OustersSkillRecord record;
+    record.skillType = m_SkillType;
+    record.skillLevel = m_ExpLevel;
+    record.delay = m_Interval;
+    record.castingTime = m_CastingTime;
+    record.nextTime = m_runTime.tv_sec;
+    defaultSkillSaveRepository().insertOustersSkill(OwnerID, record);
 
     __END_CATCH
 }
@@ -62,17 +57,7 @@ void OustersSkillSlot::save(const string& OwnerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE OustersSkillSave SET SkillLevel=%d, Delay=%d WHERE OwnerID='%s' AND SkillType=%d",
-                            m_ExpLevel, m_Interval, OwnerID.c_str(), m_SkillType);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSkillSaveRepository().updateOustersSkill(OwnerID, m_SkillType, m_ExpLevel, m_Interval);
 
     __END_CATCH
 }
@@ -82,17 +67,7 @@ void OustersSkillSlot::destroy(const string& OwnerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("DELETE FROM OustersSkillSave WHERE OwnerID='%s' AND SkillType=%u", OwnerID.c_str(),
-                            m_SkillType);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSkillSaveRepository().deleteOustersSkill(OwnerID, m_SkillType);
 
     __END_CATCH
 }

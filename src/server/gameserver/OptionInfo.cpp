@@ -7,8 +7,8 @@
 #include "OptionInfo.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "StringStream.h"
+#include "repository/GameInfoRepository.h"
 // #include <algo.h>
 
 #include "Ousters.h"
@@ -538,141 +538,121 @@ void OptionInfoManager::load()
 
     release();
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
     try {
-        BEGIN_DB {
-            StringStream sql;
-            sql << "SELECT OptionType, Name, HName, Nickname, " << "Class, PlusPoint, PriceMultiplier, "
-                << "ReqAbility, Color, Ratio, OptionLevel, GambleLevel, "
-                << "PreviousOptionType, UpgradeOptionType, UpgradeRatio, UpgradeSecondRatio, "
-                << "UpgradeCrashPercent, NextOptionRatio, Grade " << "FROM OptionInfo";
+        vector<OptionInfoRow> options = defaultGameInfoRepository().loadOptionInfos();
 
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pResult = pStmt->executeQueryString(sql.toString());
+        if (options.empty()) {
+            throw Error("There is no data in OptionInfo Table");
+        }
 
-            if (pResult->getRowCount() == 0) {
-                SAFE_DELETE(pStmt);
-                throw Error("There is no data in OptionInfo Table");
-            }
+        for (size_t r = 0; r < options.size(); r++) {
+            const OptionInfoRow& row = options[r];
+            OptionInfo* pInfo = new OptionInfo;
 
-            while (pResult->next()) {
-                OptionInfo* pInfo = new OptionInfo;
-                int i = 0;
+            pInfo->setType(row.optionType);
+            pInfo->setName(row.name);
+            pInfo->setHName(row.hName);
+            pInfo->setNickname(row.nickname);
+            pInfo->setClass((OptionClass)row.optionClass);
+            pInfo->setPlusPoint(row.plusPoint);
+            pInfo->setPriceMultiplier(row.priceMultiplier);
+            pInfo->setReqAbility(row.reqAbility);
+            pInfo->setColor(row.color);
+            pInfo->setRatio(row.ratio);
+            pInfo->setLevel(row.optionLevel);
+            pInfo->setGambleLevel(row.gambleLevel);
+            pInfo->setPreviousType(row.previousOptionType);
+            pInfo->setUpgradeType(row.upgradeOptionType);
+            pInfo->setUpgradeRatio(row.upgradeRatio);
+            pInfo->setUpgradeSecondRatio(row.upgradeSecondRatio);
+            pInfo->setUpgradeCrashPercent(row.upgradeCrashPercent);
+            pInfo->setNextOptionRatio(row.nextOptionRatio);
+            pInfo->setGrade(row.grade);
 
-                pInfo->setType(pResult->getInt(++i));
-                pInfo->setName(pResult->getString(++i));
-                pInfo->setHName(pResult->getString(++i));
-                pInfo->setNickname(pResult->getString(++i));
-                pInfo->setClass((OptionClass)pResult->getInt(++i));
-                pInfo->setPlusPoint(pResult->getInt(++i));
-                pInfo->setPriceMultiplier(pResult->getInt(++i));
-                pInfo->setReqAbility(pResult->getString(++i));
-                pInfo->setColor(pResult->getInt(++i));
-                pInfo->setRatio(pResult->getInt(++i));
-                pInfo->setLevel(pResult->getInt(++i));
-                pInfo->setGambleLevel(pResult->getInt(++i));
-                pInfo->setPreviousType(pResult->getInt(++i));
-                pInfo->setUpgradeType(pResult->getInt(++i));
-                pInfo->setUpgradeRatio(pResult->getInt(++i));
-                pInfo->setUpgradeSecondRatio(pResult->getInt(++i));
-                pInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-                pInfo->setNextOptionRatio(pResult->getInt(++i));
-                pInfo->setGrade(pResult->getInt(++i));
+            addOptionInfo(pInfo);
 
-                addOptionInfo(pInfo);
+            // 옵션 클래스에 따라서 알맞은 OptionInfoSet에다가
+            // level, type을 집어넣어준다.
+            uint OClass = pInfo->getClass();
+            uint level = pInfo->getLevel();
+            OptionType_t type = pInfo->getType();
+            Ratio_t gambleRatio = pInfo->getRatio();
 
-                // 옵션 클래스에 따라서 알맞은 OptionInfoSet에다가
-                // level, type을 집어넣어준다.
-                uint OClass = pInfo->getClass();
-                uint level = pInfo->getLevel();
-                OptionType_t type = pInfo->getType();
-                Ratio_t gambleRatio = pInfo->getRatio();
+            m_OptionInfoSet[OClass].addOptionType(level, type);
 
-                m_OptionInfoSet[OClass].addOptionType(level, type);
+            // gamble을 위한 option정보 설정
+            for (int ic = 0; ic < Item::ITEM_CLASS_MAX; ic++) {
+                // itemClass에 붙을 수 있는 option인 경우
+                // m_GambleOptions에 추가해둔다.
+                if (gambleRatio > 0 && isPossibleOptionClass((Item::ItemClass)ic, (OptionClass)OClass)) {
+                    uint gambleLevel = pInfo->getGambleLevel();
 
-                // gamble을 위한 option정보 설정
-                for (int ic = 0; ic < Item::ITEM_CLASS_MAX; ic++) {
-                    // itemClass에 붙을 수 있는 option인 경우
-                    // m_GambleOptions에 추가해둔다.
-                    if (gambleRatio > 0 && isPossibleOptionClass((Item::ItemClass)ic, (OptionClass)OClass)) {
-                        uint gambleLevel = pInfo->getGambleLevel();
-
-                        // level까지 추가해둔다.
-                        for (uint l = gambleLevel; l <= GAMBLE_OPTION_LEVEL_MAX; l++) {
-                            m_GambleOptions[ic][l].push_back(type);
-                        }
+                    // level까지 추가해둔다.
+                    for (uint l = gambleLevel; l <= GAMBLE_OPTION_LEVEL_MAX; l++) {
+                        m_GambleOptions[ic][l].push_back(type);
                     }
                 }
             }
-
-            pResult = pStmt->executeQuery(
-                "SELECT OptionClassType, Name, HName, Level, TotalGrade, OptionGroup FROM OptionClassInfo");
-
-            if (pResult->getRowCount() == 0) {
-                SAFE_DELETE(pStmt);
-                throw Error("There is no data in OptionClassInfo Table");
-            }
-
-            while (pResult->next()) {
-                OptionClassInfo* pInfo = new OptionClassInfo((OptionClass)pResult->getInt(1));
-                pInfo->setName(pResult->getString(2));
-                pInfo->setHName(pResult->getString(3));
-                pInfo->setLevel(pResult->getInt(4));
-                pInfo->setTotalGrade(pResult->getInt(5));
-                pInfo->setOptionGroup((OptionGroup)pResult->getInt(6));
-
-                addOptionClassInfo(pInfo);
-            }
-
-            pResult = pStmt->executeQuery(
-                "SELECT Level, TotalGrade, Grade, RatioWhenFail, RatioWhenSuccess FROM RareEnchantInfo");
-
-            if (pResult->getRowCount() == 0) {
-                SAFE_DELETE(pStmt);
-                throw Error("There is no data in RareEnchantInfo Table");
-            }
-
-            while (pResult->next()) {
-                int level = pResult->getInt(1);
-                int total = pResult->getInt(2);
-
-                int key = level * 10 + total;
-
-                unordered_map<int, RareOptionUpgradeInfo*>::iterator itr = m_RareEnchantInfo.find(key);
-
-                if (itr == m_RareEnchantInfo.end()) {
-                    RareOptionUpgradeInfo* pInfo = new RareOptionUpgradeInfo(level, total);
-                    m_RareEnchantInfo[key] = pInfo;
-                }
-
-                int grade = pResult->getInt(3);
-
-                m_RareEnchantInfo[key]->setRatio(grade, false, pResult->getInt(4));
-                m_RareEnchantInfo[key]->setRatio(grade, true, pResult->getInt(5));
-            }
-
-
-            pResult = pStmt->executeQuery("SELECT OptionType, Ratio FROM PetEnchantOptionRatioInfo");
-
-            while (pResult->next()) {
-                OptionType_t optionType = pResult->getInt(1);
-                int ratio = pResult->getInt(2);
-
-                ratio = ratio + getTotalPetEnchantOption();
-                setTotalPetEnchantOption(ratio);
-
-                PetEnchantOption* pPetEnchantOption = new PetEnchantOption();
-                pPetEnchantOption->setOptionType(optionType);
-                pPetEnchantOption->setRatio(ratio);
-
-                addPetEnchantOption(pPetEnchantOption);
-            }
-
-            SAFE_DELETE(pStmt);
         }
-        END_DB(pStmt)
+
+        vector<OptionClassInfoRow> classes = defaultGameInfoRepository().loadOptionClassInfos();
+
+        if (classes.empty()) {
+            throw Error("There is no data in OptionClassInfo Table");
+        }
+
+        for (size_t r = 0; r < classes.size(); r++) {
+            OptionClassInfo* pInfo = new OptionClassInfo((OptionClass)classes[r].optionClassType);
+            pInfo->setName(classes[r].name);
+            pInfo->setHName(classes[r].hName);
+            pInfo->setLevel(classes[r].level);
+            pInfo->setTotalGrade(classes[r].totalGrade);
+            pInfo->setOptionGroup((OptionGroup)classes[r].optionGroup);
+
+            addOptionClassInfo(pInfo);
+        }
+
+        vector<RareEnchantRow> enchants = defaultGameInfoRepository().loadRareEnchantInfos();
+
+        if (enchants.empty()) {
+            throw Error("There is no data in RareEnchantInfo Table");
+        }
+
+        for (size_t r = 0; r < enchants.size(); r++) {
+            int level = enchants[r].level;
+            int total = enchants[r].totalGrade;
+
+            int key = level * 10 + total;
+
+            unordered_map<int, RareOptionUpgradeInfo*>::iterator itr = m_RareEnchantInfo.find(key);
+
+            if (itr == m_RareEnchantInfo.end()) {
+                RareOptionUpgradeInfo* pInfo = new RareOptionUpgradeInfo(level, total);
+                m_RareEnchantInfo[key] = pInfo;
+            }
+
+            int grade = enchants[r].grade;
+
+            m_RareEnchantInfo[key]->setRatio(grade, false, enchants[r].ratioWhenFail);
+            m_RareEnchantInfo[key]->setRatio(grade, true, enchants[r].ratioWhenSuccess);
+        }
+
+
+        vector<PetEnchantOptionRatioRow> petRatios = defaultGameInfoRepository().loadPetEnchantOptionRatios();
+
+        for (size_t r = 0; r < petRatios.size(); r++) {
+            OptionType_t optionType = petRatios[r].optionType;
+            int ratio = petRatios[r].ratio;
+
+            ratio = ratio + getTotalPetEnchantOption();
+            setTotalPetEnchantOption(ratio);
+
+            PetEnchantOption* pPetEnchantOption = new PetEnchantOption();
+            pPetEnchantOption->setOptionType(optionType);
+            pPetEnchantOption->setRatio(ratio);
+
+            addPetEnchantOption(pPetEnchantOption);
+        }
 
 
         // gamble option별로 totalRatio를 구해둔다.

@@ -12,8 +12,8 @@
 #include <string.h>
 
 #include "Assert.h"
-#include "DB.h"
 #include "StringStream.h"
+#include "repository/ContentInfoRepository.h"
 #include "skill/Skill.h"
 
 // 상수들...
@@ -238,54 +238,44 @@ void DirectiveSetManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    ContentInfoRepository& repository = defaultContentInfoRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    // The number of sets.
+    int maxID = 0;
+    if (!repository.loadMaxDirectiveSetID(maxID))
+        throw("DirectiveSetManager::load() : 테이블에 없습니다.");
 
-        // 셋의 숫자를 읽어온다.
-        pResult = pStmt->executeQuery("SELECT MAX(ID) FROM DirectiveSet");
+    m_nSetCount = maxID + 1;
 
-        if (pResult->getRowCount() == 0)
-            throw("DirectiveSetManager::load() : 테이블에 없습니다.");
-
-        pResult->next();
-        m_nSetCount = pResult->getInt(1) + 1;
-
-        // 읽어들인 숫자만큼 메모리를 할당하고...
-        if (m_ppSet == NULL) {
-            m_ppSet = new DirectiveSet*[m_nSetCount];
-            Assert(m_ppSet != NULL);
-            for (uint i = 0; i < m_nSetCount; i++) {
-                m_ppSet[i] = NULL;
-            }
+    // Allocate that many slots...
+    if (m_ppSet == NULL) {
+        m_ppSet = new DirectiveSet*[m_nSetCount];
+        Assert(m_ppSet != NULL);
+        for (uint i = 0; i < m_nSetCount; i++) {
+            m_ppSet[i] = NULL;
         }
-
-        // 각각의 directive를 읽어들인다.
-        pResult = pStmt->executeQuery("SELECT ID, Name, Content, DeadContent FROM DirectiveSet");
-
-        while (pResult->next()) {
-            uint index = pResult->getInt(1);
-            string name = pResult->getString(2);
-            string text = pResult->getString(3);
-            string deadtext = pResult->getString(4);
-
-            printf("ID[%d] Directive Loading Begin >> ", index);
-
-            ////////////////
-            /// filelog("Directive.txt", "===============================================");
-            // filelog("Directive.txt", "Name:%s", name.c_str());
-            ////////////////
-
-            createDirectiveSet(index, name, text, deadtext);
-
-            printf("Loading End\n");
-        }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
+
+    // ...and read each directive set.
+    vector<DirectiveSetRow> rows = repository.loadDirectiveSets();
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        uint index = rows[r].id;
+        string name = rows[r].name;
+        string text = rows[r].content;
+        string deadtext = rows[r].deadContent;
+
+        printf("ID[%d] Directive Loading Begin >> ", index);
+
+        ////////////////
+        /// filelog("Directive.txt", "===============================================");
+        // filelog("Directive.txt", "Name:%s", name.c_str());
+        ////////////////
+
+        createDirectiveSet(index, name, text, deadtext);
+
+        printf("Loading End\n");
+    }
 
     __END_CATCH
 }

@@ -15,7 +15,6 @@
 
 #include <unordered_map>
 
-#include "DB.h"
 #include "GamePlayer.h"
 #include "IncomingPlayerManager.h"
 #include "LogClient.h"
@@ -26,6 +25,7 @@
 #include "ZoneGroup.h"
 #include "ZoneInfoManager.h"
 #include "ZonePlayerManager.h"
+#include "repository/ZoneInfoRepository.h"
 
 //--------------------------------------------------------------------------------
 // constructor
@@ -83,149 +83,56 @@ void ZoneGroupManager::load()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
     list<ZoneGroupID_t> ZoneGroupIDList;
 
-    // 먼저 존 그룹 아이디들을 읽는다.
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT ZoneGroupID FROM ZoneGroupInfo ORDER BY ZoneGroupID");
-
-        while (pResult->next()) {
-            ZoneGroupID_t ID = pResult->getInt(1);
-            ZoneGroupIDList.push_back(ID);
-        }
-
-        SAFE_DELETE(pStmt);
+    // Read the zone group ids first.
+    vector<int> zoneGroupIDs = defaultZoneInfoRepository().loadZoneGroupIDs(true);
+    for (size_t g = 0; g < zoneGroupIDs.size(); g++) {
+        ZoneGroupID_t ID = zoneGroupIDs[g];
+        ZoneGroupIDList.push_back(ID);
     }
-    END_DB(pStmt)
 
 
     list<ZoneGroupID_t>::iterator itr = ZoneGroupIDList.begin();
     for (; itr != ZoneGroupIDList.end(); itr++) {
         ZoneGroupID_t ID = (*itr);
 
-        // 해당하는 ID의 존 그룹을 생성하고, 매니저에다 더한다.
+        // Create the zone group for this id and add it to the manager.
         ZoneGroup* pZoneGroup = new ZoneGroup(ID);
         ZonePlayerManager* pZonePlayerManager = new ZonePlayerManager();
         pZonePlayerManager->setZGID(ID);
         pZoneGroup->setZonePlayerManager(pZonePlayerManager);
         addZoneGroup(pZoneGroup);
 
-        // 이 존 그룹에 속하는 존의 정보를 읽어들이고, 초기화해야 한다.
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // Result* pResult = pStmt->executeQuery("SELECT ZoneID FROM ZoneInfo WHERE ZoneGroupID = %d", ID);
-            Result* pResult =
-                pStmt->executeQuery("SELECT ZoneID FROM ZoneInfo WHERE ZoneGroupID = %d ORDER BY ZoneID", (int)ID);
+        // Read and initialize the zones that belong to this group.
+        vector<int> zoneIDs = defaultZoneInfoRepository().loadZoneIDsOfGroup((int)ID, true);
 
-            while (pResult->next()) {
-                ZoneID_t zoneID = pResult->getInt(1);
+        for (size_t z = 0; z < zoneIDs.size(); z++) {
+            ZoneID_t zoneID = zoneIDs[z];
 
-                // 존 객체를 생성, 초기화한 후, 존그룹에 추가한다.
-                Zone* pZone = new Zone(zoneID);
-                Assert(pZone != NULL);
+            // Create and initialize the zone object, then add it to the group.
+            Zone* pZone = new Zone(zoneID);
+            Assert(pZone != NULL);
 
-                pZone->setZoneGroup(pZoneGroup);
+            pZone->setZoneGroup(pZoneGroup);
 
-                pZoneGroup->addZone(pZone);
+            pZoneGroup->addZone(pZone);
 
-                //--------------------------------------------------------------------------------
-                // 순서에 유의할 것.
-                // 내부에서 NPC 를 로딩하게 되는데.. AtFirst-SetPosition 컨디션-액션을 수행할때
-                // ZoneGroupManager 에 접근하게 된다. 따라서, 먼저 ZGM에 추가한 후 초기화를 해야 한다.
-                //--------------------------------------------------------------------------------
+            //--------------------------------------------------------------------------------
+            // Mind the order: init() loads the NPCs, and the AtFirst-SetPosition
+            // condition/action reaches the ZoneGroupManager while it runs, so the
+            // zone must be added to the manager BEFORE it is initialized.
+            //--------------------------------------------------------------------------------
 
-                printf("\n@@@@@@@@@@@@@@@ [%d]th ZONE INITIALIZATION START @@@@@@@@@@@@@@@\n", zoneID);
+            printf("\n@@@@@@@@@@@@@@@ [%d]th ZONE INITIALIZATION START @@@@@@@@@@@@@@@\n", zoneID);
 
-                pZone->init();
+            pZone->init();
 
-                printf("\n@@@@@@@@@@@@@@@ [%d]th ZONE INITIALIZATION SUCCESS @@@@@@@@@@@@@@@\n", zoneID);
-            }
-
-            SAFE_DELETE(pStmt);
+            printf("\n@@@@@@@@@@@@@@@ [%d]th ZONE INITIALIZATION SUCCESS @@@@@@@@@@@@@@@\n", zoneID);
         }
-        END_DB(pStmt)
     }
 
     ZoneGroupIDList.clear();
-
-    /*
-
-
-    Statement* pStmt1 = NULL;
-
-    try
-    {
-        pStmt1 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // ZoneGroupID 를 읽어온다.
-        //Result* pResult1 = pStmt1->executeQuery("SELECT ZoneGroupID FROM ZoneGroupInfo ORDER BY ZoneGroupID");
-        Result* pResult1 = pStmt1->executeQuery("SELECT ZoneGroupID FROM ZoneGroupInfo");
-
-        while (pResult1->next())
-        {
-            ZoneGroupID_t zoneGroupID = pResult1->getInt(1);
-
-            // ZoneGroup 객체와 ZonePlayerManager 객체를 생성한다.
-            ZoneGroup* pZoneGroup = new ZoneGroup(zoneGroupID);
-            ZonePlayerManager* pZonePlayerManager = new ZonePlayerManager();
-            pZoneGroup->setZonePlayerManager(pZonePlayerManager);
-
-            // 존그룹을 존그룹매니저에 추가한다.
-            addZoneGroup(pZoneGroup);
-
-            // 특정 ZoneGroupID 를 가진 존 정보를 읽어온다.
-            Statement* pStmt2 = NULL;
-
-            BEGIN_DB
-            {
-                pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                Result* pResult2 = pStmt2->executeQuery("SELECT ZoneID FROM ZoneInfo WHERE ZoneGroupID = %d",
-    zoneGroupID);
-
-                while (pResult2->next())
-                {
-                    __BEGIN_DEBUG
-
-                    ZoneID_t zoneID = pResult2->getInt(1);
-
-                    // 존 객체를 생성, 초기화한 후, 존그룹에 추가한다.
-                    Zone* pZone = new Zone (zoneID);
-                    Assert(pZone != NULL);
-
-                    pZone->setZoneGroup(pZoneGroup);
-
-                    pZoneGroup->addZone(pZone);
-
-                    //--------------------------------------------------------------------------------
-                    // 순서에 유의할 것.
-                    // 내부에서 NPC 를 로딩하게 되는데.. AtFirst-SetPosition 컨디션-액션을 수행할때
-                    // ZoneGroupManager 에 접근하게 된다. 따라서, 먼저 ZGM에 추가한 후 초기화를 해야 한다.
-                    //--------------------------------------------------------------------------------
-
-                    printf("\n@@@@@@@@@@@@@@@ [%d]th ZONE INITIALIZATION START @@@@@@@@@@@@@@@\n", zoneID);
-
-                    pZone->init();
-
-                    printf("\n@@@@@@@@@@@@@@@ [%d]th ZONE INITIALIZATION SUCCESS @@@@@@@@@@@@@@@\n", zoneID);
-
-                    __END_DEBUG
-                }
-
-                SAFE_DELETE(pStmt2);
-            }
-            END_DB(pStmt2)
-        }
-
-        SAFE_DELETE(pStmt1);
-    }
-    catch (SQLQueryException & sqe)
-    {
-        SAFE_DELETE(pStmt1);
-        throw Error(sqe.toString());
-    }
-    */
 
     __END_DEBUG
     __END_CATCH
@@ -601,55 +508,40 @@ bool ZoneGroupManager::makeDefaultLoadInfo(LOAD_INFOS& loadInfos)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
     list<ZoneGroupID_t> ZoneGroupIDList;
 
-    // 먼저 존 그룹 아이디들을 읽는다.
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT ZoneGroupID FROM ZoneGroupInfo");
-
-        while (pResult->next()) {
-            ZoneGroupID_t ID = pResult->getInt(1);
-            ZoneGroupIDList.push_back(ID);
-        }
-
-        SAFE_DELETE(pStmt);
+    // Read the zone group ids first.
+    vector<int> zoneGroupIDs = defaultZoneInfoRepository().loadZoneGroupIDs(false);
+    for (size_t g = 0; g < zoneGroupIDs.size(); g++) {
+        ZoneGroupID_t ID = zoneGroupIDs[g];
+        ZoneGroupIDList.push_back(ID);
     }
-    END_DB(pStmt)
 
 
     list<ZoneGroupID_t>::iterator itr = ZoneGroupIDList.begin();
     for (; itr != ZoneGroupIDList.end(); itr++) {
         ZoneGroupID_t ID = *itr;
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // Result* pResult = pStmt->executeQuery("SELECT ZoneID FROM ZoneInfo WHERE ZoneGroupID = %d", ID);
-            Result* pResult = pStmt->executeQuery("SELECT ZoneID FROM ZoneInfo WHERE ZoneGroupID = %d", ID);
+        vector<int> zoneIDs = defaultZoneInfoRepository().loadZoneIDsOfGroup(ID, false);
 
-            while (pResult->next()) {
-                ZoneID_t zoneID = pResult->getInt(1);
+        for (size_t z = 0; z < zoneIDs.size(); z++) {
+            ZoneID_t zoneID = zoneIDs[z];
 
-                LoadInfo* pInfo = new LoadInfo;
-                pInfo->id = zoneID;
+            LoadInfo* pInfo = new LoadInfo;
+            pInfo->id = zoneID;
 
-                try {
-                    pInfo->oldGroupID = g_pZoneInfoManager->getZoneInfo(zoneID)->getZoneGroupID();
-                } catch (NoSuchElementException&) {
-                    filelog("makeDefaultLoadInfoError.txt", "NoSuch ZoneInfo : %d", zoneID);
-                    pInfo->oldGroupID = ID; // 그냥 넘어가게 한다.
-                }
-
-                pInfo->groupID = ID;
-                pInfo->load = 0; // 의미없다.
-
-                loadInfos[zoneID] = pInfo;
+            try {
+                pInfo->oldGroupID = g_pZoneInfoManager->getZoneInfo(zoneID)->getZoneGroupID();
+            } catch (NoSuchElementException&) {
+                filelog("makeDefaultLoadInfoError.txt", "NoSuch ZoneInfo : %d", zoneID);
+                pInfo->oldGroupID = ID; // just let it through
             }
 
-            SAFE_DELETE(pStmt);
+            pInfo->groupID = ID;
+            pInfo->load = 0; // meaningless here
+
+            loadInfos[zoneID] = pInfo;
         }
-        END_DB(pStmt)
     }
 
     ZoneGroupIDList.clear();

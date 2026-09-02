@@ -6,7 +6,7 @@
 
 #include "SkillSlot.h"
 
-#include "DB.h"
+#include "repository/SkillSaveRepository.h"
 
 SkillSlot::SkillSlot() throw() {
     __BEGIN_TRY
@@ -52,36 +52,14 @@ void SkillSlot::create(const string& OwnerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "INSERT INTO SkillSave "
-            << "(OwnerID , SkillType , SkillLevel , SkillExp , Delay , CastingTime , NextTime)"
-            << " VALUES ('" << OwnerID
-            <<"' , " << (int)m_SkillType
-            << " , " << (int)m_ExpLevel
-            << " , " << (int)m_Exp
-            << " , " << (int)m_Interval
-            << " , " << (int)m_CastingTime
-            << " , " << (int)m_runTime.tv_sec
-            << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("INSERT INTO SkillSave (OwnerID , SkillType , SkillLevel , SkillExp , Delay , CastingTime "
-                            ", NextTime) VALUES ( '%s', %d, %d, %d, %d, %d, %d )",
-                            OwnerID.c_str(), m_SkillType, m_ExpLevel, m_Exp, m_Interval, m_CastingTime,
-                            m_runTime.tv_sec);
-
-        SAFE_DELETE(pStmt); // by sigi
-    }
-    END_DB(pStmt)
+    SlayerSkillRecord record;
+    record.skillType = m_SkillType;
+    record.skillLevel = m_ExpLevel;
+    record.skillExp = m_Exp;
+    record.delay = m_Interval;
+    record.castingTime = m_CastingTime;
+    record.nextTime = m_runTime.tv_sec;
+    defaultSkillSaveRepository().insertSlayerSkill(OwnerID, record);
 
     __END_CATCH
 }
@@ -91,32 +69,7 @@ void SkillSlot::save(const string& OwnerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE SkillSave SET "
-            << "SkillLevel= " << (int)m_ExpLevel
-            << ",SkillExp = " << (int)m_Exp
-            << ",Delay = " << (int)m_Interval
-            << " WHERE OwnerID = '" << OwnerID
-            << "' AND SkillType = " << (int)m_SkillType;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery(
-            "UPDATE SkillSave SET SkillLevel=%d, SkillExp=%d, Delay=%d WHERE OwnerID='%s' AND SkillType=%d", m_ExpLevel,
-            m_Exp, m_Interval, OwnerID.c_str(), m_SkillType);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSkillSaveRepository().updateSlayerSkill(OwnerID, m_SkillType, m_ExpLevel, m_Exp, m_Interval);
 
     __END_CATCH
 }
@@ -126,31 +79,7 @@ void SkillSlot::save()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE SkillSave SET "
-            << "SkillLevel= " << (int)m_ExpLevel
-            << ",SkillExp = " << (int)m_Exp
-            << ",Delay = " << (int)m_Interval
-            << " WHERE OwnerID = '" << m_Name
-            << "' AND SkillType = " << (int)m_SkillType;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery(
-            "UPDATE SkillSave SET SkillLevel=%d, SkillExp=%d, Delay=%d WHERE OwnerID='%s' AND SkillType=%d", m_ExpLevel,
-            m_Exp, m_Interval, m_Name.c_str(), m_SkillType);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSkillSaveRepository().updateSlayerSkill(m_Name, m_SkillType, m_ExpLevel, m_Exp, m_Interval);
 
     __END_CATCH
 }

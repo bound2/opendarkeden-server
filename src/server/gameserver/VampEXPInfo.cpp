@@ -7,7 +7,7 @@
 #include "VampEXPInfo.h"
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/BalanceInfoRepository.h"
 // #include <algo.h>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,48 +87,35 @@ void VampEXPInfoManager::load()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL; // by sigi
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Level) FROM VampEXPBalanceInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in VampEXPInfo Table");
-        }
-
-        // 전체 갯수를 세팅한다.
-        pResult->next();
-        m_VampEXPCount = pResult->getInt(1) + 1;
-
-        Assert(m_VampEXPCount > 0);
-
-        m_VampEXPInfoList = new VampEXPInfo*[m_VampEXPCount];
-
-        Assert(m_VampEXPInfoList != NULL);
-
-        // 배열을 초기화
-        for (uint i = 0; i < m_VampEXPCount; i++)
-            m_VampEXPInfoList[i] = NULL;
-
-        pResult = pStmt->executeQuery("Select Level, GoalExp, AccumExp from VampEXPBalanceInfo");
-
-        while (pResult->next()) {
-            VampEXPInfo* pVampEXPInfo = new VampEXPInfo();
-            int i = 0;
-
-            pVampEXPInfo->setLevel(pResult->getInt(++i));
-            pVampEXPInfo->setGoalExp(pResult->getInt(++i));
-            pVampEXPInfo->setAccumExp(pResult->getInt(++i));
-
-            addVampEXPInfo(pVampEXPInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxLevel = 0;
+    if (!defaultBalanceInfoRepository().loadMaxLevel(LEVEL_EXP_TABLE_VAMP_EXP, maxLevel)) {
+        throw Error("There is no data in VampEXPInfo Table");
     }
-    END_DB(pStmt)
+
+    // Size the table from the highest level.
+    m_VampEXPCount = maxLevel + 1;
+
+    Assert(m_VampEXPCount > 0);
+
+    m_VampEXPInfoList = new VampEXPInfo*[m_VampEXPCount];
+
+    Assert(m_VampEXPInfoList != NULL);
+
+    // Clear the array.
+    for (uint i = 0; i < m_VampEXPCount; i++)
+        m_VampEXPInfoList[i] = NULL;
+
+    vector<LevelExpRow> rows = defaultBalanceInfoRepository().loadLevels(LEVEL_EXP_TABLE_VAMP_EXP);
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        VampEXPInfo* pVampEXPInfo = new VampEXPInfo();
+
+        pVampEXPInfo->setLevel(rows[r].level);
+        pVampEXPInfo->setGoalExp(rows[r].goalExp);
+        pVampEXPInfo->setAccumExp(rows[r].accumExp);
+
+        addVampEXPInfo(pVampEXPInfo);
+    }
 
     __END_DEBUG
     __END_CATCH

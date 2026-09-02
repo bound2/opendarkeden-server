@@ -7,11 +7,11 @@
 #include "EffectKillAftermath.h"
 
 #include "Creature.h"
-#include "DB.h"
 #include "GamePlayer.h"
 #include "Ousters.h"
 #include "Slayer.h"
 #include "Vampire.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -110,23 +110,12 @@ void EffectKillAftermath::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        // StringStream제거. by sigi. 2002.5.8
-        pStmt->executeQuery("INSERT INTO EffectKillAftermath (OwnerID , YearTime, DayTime) VALUES('%s', %ld, %ld)",
-                            ownerID.c_str(), currentYearTime, m_Deadline.tv_sec);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertDeadline(EFFECT_TABLE_KILL_AFTERMATH, ownerID, currentYearTime,
+                                                 m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -138,23 +127,7 @@ void EffectKillAftermath::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-        sql << "DELETE FROM EffectKillAftermath WHERE OwnerID = '" << ownerID << "'";
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        // StringStream제거. by sigi. 2002.5.8
-        pStmt->executeQuery("DELETE FROM EffectKillAftermath WHERE OwnerID = '%s'", ownerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteDeadline(EFFECT_TABLE_KILL_AFTERMATH, ownerID);
 
     __END_CATCH
 }
@@ -166,31 +139,12 @@ void EffectKillAftermath::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE EffectKillAftermath SET "
-            << "YearTime = " << currentYearTime
-            << ",DayTime = " << m_Deadline.tv_sec
-            << " WHERE OwnerID = '" << ownerID << "'";
-        */
-
-        // StringStream제거. by sigi. 2002.5.8
-        pStmt->executeQuery("UPDATE EffectKillAftermath SET YearTime = %ld, DayTime = %ld WHERE OwnerID = '%s'",
-                            currentYearTime, m_Deadline.tv_sec, ownerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateDeadline(EFFECT_TABLE_KILL_AFTERMATH, ownerID, currentYearTime,
+                                                 m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -221,113 +175,87 @@ void EffectKillAftermathLoader::load(Creature* pCreature)
         return;
     }
 
-    Statement* pStmt = NULL;
+    vector<DWORD> dayTimes =
+        defaultEffectSaveRepository().loadDeadlines(EFFECT_TABLE_KILL_AFTERMATH, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < dayTimes.size(); r++) {
+        if (pCreature->isSlayer()) {
+            int DayTime = dayTimes[r];
 
-        /*
-        StringStream sql;
+            Timeval currentTime;
+            getCurrentTime(currentTime);
 
-        sql << "SELECT DayTime FROM EffectKillAftermath"
-            << " WHERE OwnerID = '" << pCreature->getName()
-            << "'";
+            EffectKillAftermath* pEffectKillAftermath = new EffectKillAftermath(pCreature);
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            if (currentTime.tv_sec < DayTime) {
+                pEffectKillAftermath->setDeadline((DayTime - currentTime.tv_sec) * 10);
 
-        // StringStream제거. by sigi. 2002.5.8
-        Result* pResult = pStmt->executeQuery("SELECT DayTime FROM EffectKillAftermath WHERE OwnerID = '%s'",
-                                              pCreature->getName().c_str());
+                Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pSlayer->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
 
-        while (pResult->next()) {
-            if (pCreature->isSlayer()) {
-                uint i = 0;
+                EffectManager* pEffectManager = pSlayer->getEffectManager();
+                pEffectManager->addEffect(pEffectKillAftermath);
+            } else {
+                pEffectKillAftermath->setDeadline(0);
 
-                int DayTime = pResult->getDWORD(++i);
+                Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pSlayer->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
 
-                Timeval currentTime;
-                getCurrentTime(currentTime);
+                EffectManager* pEffectManager = pSlayer->getEffectManager();
+                pEffectManager->addEffect(pEffectKillAftermath);
+            }
+        } else if (pCreature->isVampire()) {
+            int DayTime = dayTimes[r];
 
-                EffectKillAftermath* pEffectKillAftermath = new EffectKillAftermath(pCreature);
+            Timeval currentTime;
+            getCurrentTime(currentTime);
 
-                if (currentTime.tv_sec < DayTime) {
-                    pEffectKillAftermath->setDeadline((DayTime - currentTime.tv_sec) * 10);
+            EffectKillAftermath* pEffectKillAftermath = new EffectKillAftermath(pCreature);
 
-                    Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pSlayer->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
+            if (currentTime.tv_sec < DayTime) {
+                pEffectKillAftermath->setDeadline((DayTime - currentTime.tv_sec) * 10);
 
-                    EffectManager* pEffectManager = pSlayer->getEffectManager();
-                    pEffectManager->addEffect(pEffectKillAftermath);
-                } else {
-                    pEffectKillAftermath->setDeadline(0);
+                Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
+                pVampire->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
 
-                    Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pSlayer->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
+                EffectManager* pEffectManager = pVampire->getEffectManager();
+                pEffectManager->addEffect(pEffectKillAftermath);
+            } else {
+                pEffectKillAftermath->setDeadline(0);
 
-                    EffectManager* pEffectManager = pSlayer->getEffectManager();
-                    pEffectManager->addEffect(pEffectKillAftermath);
-                }
-            } else if (pCreature->isVampire()) {
-                uint i = 0;
+                Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
+                pVampire->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
 
-                int DayTime = pResult->getDWORD(++i);
+                EffectManager* pEffectManager = pVampire->getEffectManager();
+                pEffectManager->addEffect(pEffectKillAftermath);
+            }
+        } else if (pCreature->isOusters()) {
+            int DayTime = dayTimes[r];
 
-                Timeval currentTime;
-                getCurrentTime(currentTime);
+            Timeval currentTime;
+            getCurrentTime(currentTime);
 
-                EffectKillAftermath* pEffectKillAftermath = new EffectKillAftermath(pCreature);
+            EffectKillAftermath* pEffectKillAftermath = new EffectKillAftermath(pCreature);
 
-                if (currentTime.tv_sec < DayTime) {
-                    pEffectKillAftermath->setDeadline((DayTime - currentTime.tv_sec) * 10);
+            if (currentTime.tv_sec < DayTime) {
+                pEffectKillAftermath->setDeadline((DayTime - currentTime.tv_sec) * 10);
 
-                    Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pVampire->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
+                Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
+                pOusters->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
 
-                    EffectManager* pEffectManager = pVampire->getEffectManager();
-                    pEffectManager->addEffect(pEffectKillAftermath);
-                } else {
-                    pEffectKillAftermath->setDeadline(0);
+                EffectManager* pEffectManager = pOusters->getEffectManager();
+                pEffectManager->addEffect(pEffectKillAftermath);
+            } else {
+                pEffectKillAftermath->setDeadline(0);
 
-                    Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pVampire->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
+                Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
+                pOusters->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
 
-                    EffectManager* pEffectManager = pVampire->getEffectManager();
-                    pEffectManager->addEffect(pEffectKillAftermath);
-                }
-            } else if (pCreature->isOusters()) {
-                uint i = 0;
-
-                int DayTime = pResult->getDWORD(++i);
-
-                Timeval currentTime;
-                getCurrentTime(currentTime);
-
-                EffectKillAftermath* pEffectKillAftermath = new EffectKillAftermath(pCreature);
-
-                if (currentTime.tv_sec < DayTime) {
-                    pEffectKillAftermath->setDeadline((DayTime - currentTime.tv_sec) * 10);
-
-                    Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
-                    pOusters->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
-
-                    EffectManager* pEffectManager = pOusters->getEffectManager();
-                    pEffectManager->addEffect(pEffectKillAftermath);
-                } else {
-                    pEffectKillAftermath->setDeadline(0);
-
-                    Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
-                    pOusters->setFlag(Effect::EFFECT_CLASS_KILL_AFTERMATH);
-
-                    EffectManager* pEffectManager = pOusters->getEffectManager();
-                    pEffectManager->addEffect(pEffectKillAftermath);
-                }
+                EffectManager* pEffectManager = pOusters->getEffectManager();
+                pEffectManager->addEffect(pEffectKillAftermath);
             }
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

@@ -13,7 +13,6 @@
 #include <functional>
 #include <iterator>
 
-#include "DB.h"
 #include "EffectDetectInvisibility.h"
 #include "EffectObservingEye.h"
 #include "MonsterInfoTypes.h"
@@ -22,6 +21,7 @@
 #include "SXml.h"
 #include "StringStream.h"
 #include "Treasure.h"
+#include "repository/ContentInfoRepository.h"
 
 int DefaultClanID[CLAN_MAX] = {
     0, // CLAN_NONE,							// 어디에도 속하지 않는 애덜.. 0
@@ -551,248 +551,150 @@ void MonsterInfoManager::load()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    ContentInfoRepository& repository = defaultContentInfoRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQueryString("SELECT MAX(MType) FROM MonsterInfo");
-
-        // MonsterInfo 테이블에서 최대 MonsterType 값을 가져온다.
-        // 이 값은 MonsterInfoManager의 내부 MonsterInfo* 배열의 크기가 된다.
-        if (pResult->getRowCount() == 0) {
-            // 테이블이 없다면 당연히 에러다...
-            SAFE_DELETE(pStmt);
-            throw Error("MonsterInfo table is empty.. insert any row.");
-        }
-
-        // 클라이언트에서는 슬레이어-뱀파이어-몬스터-NPC 를 구분하지 않고,
-        // 단지 캐릭터로서 인덱싱을 하기 때문에, 도량이 넓은 우리가 이해해서
-        // 맞춰줘야 하겠다. -_-; 실제 맥스보다 4를 더해서 배열을 생성한다.
-        // 0:Male Slayer, 1:Female Slayer, 2:Male Vampire, 3:Female Vampire
-        pResult->next();
-        m_MaxMonsterType = pResult->getInt(1) + 4 + 1;
-        m_MonsterInfos = new MonsterInfo*[m_MaxMonsterType];
-
-        for (uint i = 0; i < m_MaxMonsterType; i++)
-            m_MonsterInfos[i] = NULL;
-
-        // MonsterInfo 테이블로부터 몬스터 정보를 읽어서 MonsterInfo 객체에 저장, add 한다.
-        // RegenInvisible, RegenBat,
-        /*
-        StringStream sql;
-        sql << "SELECT MType, SType, HName, EName, "
-            << "Level, STR, DEX, INTE, BSize, Exp, "
-            << "MColor, SColor, Align, AOrder, "
-            << "Moral, Delay, ADelay, Sight, MeleeRange, MissileRange, "
-            << "RegenPortal, RegenInvisible, RegenBat, "
-            << "MMode, AIType, Enhance "
-            << "FROM MonsterInfo";
-        */
-
-        // pResult = pStmt->executeQueryString(sql.toString());
-
-        pResult = pStmt->executeQuery("SELECT MType, SType, HName, EName,\
-				Level, STR, DEX, INTE, BSize, Exp,\
-				MColor, SColor, Align, AOrder,\
-				Moral, Delay, ADelay, Sight, MeleeRange, MissileRange,\
-				RegenPortal, RegenInvisible, RegenBat,\
-				MMode, AIType, Enhance, UnburrowChance,\
-				Master, ClanType, DefaultEffects, Chief, NormalRegen, HasTreasure, MonsterClass, SkullType\
-				FROM MonsterInfo");
-
-        while (pResult->next()) {
-            int i = 0;
-
-            MonsterInfo* pMonsterInfo = new MonsterInfo();
-
-            pMonsterInfo->setMonsterType(pResult->getInt(++i));
-            pMonsterInfo->setSpriteType(pResult->getInt(++i));
-            pMonsterInfo->setHName(pResult->getString(++i));
-            pMonsterInfo->setEName(pResult->getString(++i));
-            pMonsterInfo->setLevel(pResult->getInt(++i));
-            pMonsterInfo->setSTR(pResult->getInt(++i));
-            pMonsterInfo->setDEX(pResult->getInt(++i));
-            pMonsterInfo->setINT(pResult->getInt(++i));
-            pMonsterInfo->setBodySize(pResult->getInt(++i));
-            pMonsterInfo->setExp(pResult->getInt(++i));
-            pMonsterInfo->setMainColor(pResult->getInt(++i));
-            pMonsterInfo->setSubColor(pResult->getInt(++i));
-            pMonsterInfo->setAlignment((MAlignment)pResult->getInt(++i));
-            pMonsterInfo->setAttackOrder((AttackOrder)pResult->getInt(++i));
-            pMonsterInfo->setMoral(pResult->getInt(++i));
-            pMonsterInfo->setDelay(pResult->getInt(++i));
-            pMonsterInfo->setAttackDelay(pResult->getInt(++i));
-            pMonsterInfo->setSight(pResult->getInt(++i));
-            pMonsterInfo->setMeleeRange(pResult->getInt(++i));
-            pMonsterInfo->setMissileRange(pResult->getInt(++i));
-
-            int nPortal = pResult->getInt(++i);
-            int nInvisible = pResult->getInt(++i);
-            int nBat = pResult->getInt(++i);
-
-            pMonsterInfo->setRegenType(REGENTYPE_PORTAL, nPortal);
-            pMonsterInfo->setRegenType(REGENTYPE_INVISIBLE, nInvisible);
-            pMonsterInfo->setRegenType(REGENTYPE_BAT, nBat);
-
-            pMonsterInfo->setMoveMode(pResult->getString(++i));
-            pMonsterInfo->setAIType(pResult->getInt(++i));
-            pMonsterInfo->parseEnhanceAttr(pResult->getString(++i));
-            pMonsterInfo->setUnburrowChance(pResult->getInt(++i));
-            pMonsterInfo->setMaster(pResult->getInt(++i) != 0);
-            pMonsterInfo->setClanType(pResult->getInt(++i));
-            // pMonsterInfo->setMonsterSummonInfo(pResult->getString(++i));
-            pMonsterInfo->setDefaultEffects(pResult->getString(++i));
-            pMonsterInfo->setChief(pResult->getInt(++i) != 0);
-            pMonsterInfo->setNormalRegen(pResult->getInt(++i) != 0);
-            pMonsterInfo->setHasTreasure(pResult->getInt(++i) != 0);
-            pMonsterInfo->setMonsterClass(pResult->getInt(++i));
-            pMonsterInfo->setSkullType(pResult->getInt(++i));
-
-            addMonsterInfo(pMonsterInfo->getMonsterType(), pMonsterInfo);
-        }
-
-        // MonsterSummonInfo는 따로 설정한다.
-        // 일단 몬스터 정보가 load된 상태여야 하기 때문이다. (이름 비교 때문에)
-        pResult = pStmt->executeQuery("SELECT MType, MonsterSummonInfo FROM MonsterInfo");
-
-        while (pResult->next()) {
-            int i = 0;
-
-            MonsterInfo* pMonsterInfo = m_MonsterInfos[pResult->getInt(++i)];
-            Assert(pMonsterInfo != NULL);
-
-            pMonsterInfo->setMonsterSummonInfo(pResult->getString(++i));
-        }
-
-
-        clearTreasures();
-
-        for (uint i = 0; i < m_MaxMonsterType; i++) {
-            MonsterInfo* pInfo = m_MonsterInfos[i];
-            if (pInfo != NULL) {
-                if (pInfo->hasTreasure()) {
-                    string slayer_filename;
-                    string vampire_filename;
-                    string ousters_filename;
-
-                    if (pInfo->getMonsterClass() == 0) {
-                        slayer_filename =
-                            g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getEName() + ".slayer.bin";
-                        vampire_filename =
-                            g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getEName() + ".vampire.bin";
-                        ousters_filename =
-                            g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getEName() + ".ousters.bin";
-                    } else {
-                        char buffer[10];
-                        sprintf(buffer, "Class%d", pInfo->getMonsterClass());
-                        slayer_filename = g_pConfig->getProperty("HomePath") + "/data/" + buffer + ".slayer.bin";
-                        vampire_filename = g_pConfig->getProperty("HomePath") + "/data/" + buffer + ".vampire.bin";
-                        ousters_filename = g_pConfig->getProperty("HomePath") + "/data/" + buffer + ".ousters.bin";
-                    }
-
-                    TreasureList* pSlayerTreasureList = m_SlayerTreasureLists.getTreasure(slayer_filename);
-                    TreasureList* pVampireTreasureList = m_VampireTreasureLists.getTreasure(vampire_filename);
-                    TreasureList* pOustersTreasureList = m_OustersTreasureLists.getTreasure(ousters_filename);
-
-                    if (pSlayerTreasureList == NULL) {
-                        printf("Load - slayer_filename:%s\n", slayer_filename.c_str());
-                        pSlayerTreasureList = m_SlayerTreasureLists.loadTreasure(slayer_filename);
-                        Assert(pSlayerTreasureList != NULL);
-                    }
-
-                    if (pVampireTreasureList == NULL) {
-                        printf("Load - vampire_filename:%s\n", vampire_filename.c_str());
-                        pVampireTreasureList = m_VampireTreasureLists.loadTreasure(vampire_filename);
-                        Assert(pVampireTreasureList != NULL);
-                    }
-
-                    if (pOustersTreasureList == NULL) {
-                        printf("Load - ousters_filename:%s\n", ousters_filename.c_str());
-                        pOustersTreasureList = m_OustersTreasureLists.loadTreasure(ousters_filename);
-                        Assert(pOustersTreasureList != NULL);
-                    }
-
-                    pInfo->setSlayerTreasureList(pSlayerTreasureList);
-                    pInfo->setVampireTreasureList(pVampireTreasureList);
-                    pInfo->setOustersTreasureList(pOustersTreasureList);
-
-                    // verify
-                    // cout << "MonsterType:" << pInfo->getMonsterType()
-                    //	<< ",MonsterName:" << pInfo->getEName()
-                    //	<< ",SlayerTreasure:" << pInfo->getSlayerTreasureList()->getTreasures().size()
-                    //	<< ",VampireTreasure:" << pInfo->getVampireTreasureList()->getTreasures().size()
-                    //	<< endl;
-                } else {
-                    cout << "[NoTreasureFile] " << pInfo->getEName().c_str() << endl;
-                }
-            }
-        }
-
-        /*
-
-        pResult = pStmt->executeQuery("SELECT SType, SlayerTreasure, VampireTreasure, HName FROM MonsterInfo GROUP BY
-        SType");
-
-        while (pResult->next())
-        {
-            int    SType            = 0;
-            string slayer_treasure  = "";
-            string vampire_treasure = "";
-            string hname            = "";
-
-            //slayer_treasure.reserve(100000);
-            //vampire_treasure.reserve(50000);
-
-            SType            = pResult->getInt(1);
-            slayer_treasure  = pResult->getString(2);
-            vampire_treasure = pResult->getString(3);
-            hname            = pResult->getString(4);
-
-            TreasureList* pSlayerTreasureList = new TreasureList;
-            TreasureList* pVampireTreasureList = new TreasureList;
-
-            const vector<MonsterType_t>& MTypeVector = getMonsterTypeBySprite(SType);
-            for (uint i=0; i<MTypeVector.size(); i++)
-            {
-                int MType = MTypeVector[i];
-
-                MonsterInfo* pMonsterInfo = (MonsterInfo*)getMonsterInfo(MType);
-
-                if (i == 0)
-                {
-                    pMonsterInfo->setSlayerTreasureList(pSlayerTreasureList);
-                    pMonsterInfo->setVampireTreasureList(pVampireTreasureList);
-                    pMonsterInfo->parseSlayerTreasureString(slayer_treasure);
-                    pMonsterInfo->parseVampireTreasureString(vampire_treasure);
-
-                    // 파일에다 쓴다.
-                    //saveTreasure((string)(hname + ".slayer"), pSlayerTreasureList);
-                    //saveTreasure((string)(hname + ".vampire"), pVampireTreasureList);
-                }
-                else
-                {
-                    pMonsterInfo->setSlayerTreasureList(pSlayerTreasureList);
-                    pMonsterInfo->setVampireTreasureList(pVampireTreasureList);
-                }
-
-                // 검증한다.
-                cout << "MonsterType:" << pMonsterInfo->getMonsterType()
-                    << ",MonsterName:" << pMonsterInfo->getEName()
-                    << ",SlayerTreasure:" << pMonsterInfo->getSlayerTreasureList()->getTreasures().size()
-                    << ",VampireTreasure:" << pMonsterInfo->getVampireTreasureList()->getTreasures().size()
-                    << endl;
-            }
-
-            slayer_treasure.clear();
-            vampire_treasure.clear();
-        }
-
-        */
-
-        SAFE_DELETE(pStmt);
+    // MAX(MType) sizes MonsterInfoManager's MonsterInfo* array; an
+    // empty table is an error.
+    int maxMonsterType = 0;
+    if (!repository.loadMaxMonsterType(maxMonsterType)) {
+        throw Error("MonsterInfo table is empty.. insert any row.");
     }
-    END_DB(pStmt)
+
+    // The client indexes slayers, vampires, monsters and NPCs as one
+    // character range, so the array is 4 larger than the real max:
+    // 0:Male Slayer, 1:Female Slayer, 2:Male Vampire, 3:Female Vampire
+    m_MaxMonsterType = maxMonsterType + 4 + 1;
+    m_MonsterInfos = new MonsterInfo*[m_MaxMonsterType];
+
+    for (uint i = 0; i < m_MaxMonsterType; i++)
+        m_MonsterInfos[i] = NULL;
+
+    // Read every monster row into a MonsterInfo and add it.
+    vector<MonsterInfoRow> rows = repository.loadMonsterInfos();
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        const MonsterInfoRow& row = rows[r];
+
+        MonsterInfo* pMonsterInfo = new MonsterInfo();
+
+        pMonsterInfo->setMonsterType(row.monsterType);
+        pMonsterInfo->setSpriteType(row.spriteType);
+        pMonsterInfo->setHName(row.hName);
+        pMonsterInfo->setEName(row.eName);
+        pMonsterInfo->setLevel(row.level);
+        pMonsterInfo->setSTR(row.str);
+        pMonsterInfo->setDEX(row.dex);
+        pMonsterInfo->setINT(row.inte);
+        pMonsterInfo->setBodySize(row.bodySize);
+        pMonsterInfo->setExp(row.exp);
+        pMonsterInfo->setMainColor(row.mainColor);
+        pMonsterInfo->setSubColor(row.subColor);
+        pMonsterInfo->setAlignment((MAlignment)row.alignment);
+        pMonsterInfo->setAttackOrder((AttackOrder)row.attackOrder);
+        pMonsterInfo->setMoral(row.moral);
+        pMonsterInfo->setDelay(row.delay);
+        pMonsterInfo->setAttackDelay(row.attackDelay);
+        pMonsterInfo->setSight(row.sight);
+        pMonsterInfo->setMeleeRange(row.meleeRange);
+        pMonsterInfo->setMissileRange(row.missileRange);
+
+        int nPortal = row.regenPortal;
+        int nInvisible = row.regenInvisible;
+        int nBat = row.regenBat;
+
+        pMonsterInfo->setRegenType(REGENTYPE_PORTAL, nPortal);
+        pMonsterInfo->setRegenType(REGENTYPE_INVISIBLE, nInvisible);
+        pMonsterInfo->setRegenType(REGENTYPE_BAT, nBat);
+
+        pMonsterInfo->setMoveMode(row.moveMode);
+        pMonsterInfo->setAIType(row.aiType);
+        pMonsterInfo->parseEnhanceAttr(row.enhance);
+        pMonsterInfo->setUnburrowChance(row.unburrowChance);
+        pMonsterInfo->setMaster(row.master != 0);
+        pMonsterInfo->setClanType(row.clanType);
+        pMonsterInfo->setDefaultEffects(row.defaultEffects);
+        pMonsterInfo->setChief(row.chief != 0);
+        pMonsterInfo->setNormalRegen(row.normalRegen != 0);
+        pMonsterInfo->setHasTreasure(row.hasTreasure != 0);
+        pMonsterInfo->setMonsterClass(row.monsterClass);
+        pMonsterInfo->setSkullType(row.skullType);
+
+        addMonsterInfo(pMonsterInfo->getMonsterType(), pMonsterInfo);
+    }
+
+    // MonsterSummonInfo is set in a second pass: it compares names, so
+    // every monster must already be loaded.
+    vector<MonsterSummonRow> summons = repository.loadMonsterSummonInfos();
+
+    for (size_t s = 0; s < summons.size(); s++) {
+        MonsterInfo* pMonsterInfo = m_MonsterInfos[summons[s].monsterType];
+        Assert(pMonsterInfo != NULL);
+
+        pMonsterInfo->setMonsterSummonInfo(summons[s].summonInfo);
+    }
+
+
+    clearTreasures();
+
+    for (uint i = 0; i < m_MaxMonsterType; i++) {
+        MonsterInfo* pInfo = m_MonsterInfos[i];
+        if (pInfo != NULL) {
+            if (pInfo->hasTreasure()) {
+                string slayer_filename;
+                string vampire_filename;
+                string ousters_filename;
+
+                if (pInfo->getMonsterClass() == 0) {
+                    slayer_filename = g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getEName() + ".slayer.bin";
+                    vampire_filename =
+                        g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getEName() + ".vampire.bin";
+                    ousters_filename =
+                        g_pConfig->getProperty("HomePath") + "/data/" + pInfo->getEName() + ".ousters.bin";
+                } else {
+                    char buffer[10];
+                    sprintf(buffer, "Class%d", pInfo->getMonsterClass());
+                    slayer_filename = g_pConfig->getProperty("HomePath") + "/data/" + buffer + ".slayer.bin";
+                    vampire_filename = g_pConfig->getProperty("HomePath") + "/data/" + buffer + ".vampire.bin";
+                    ousters_filename = g_pConfig->getProperty("HomePath") + "/data/" + buffer + ".ousters.bin";
+                }
+
+                TreasureList* pSlayerTreasureList = m_SlayerTreasureLists.getTreasure(slayer_filename);
+                TreasureList* pVampireTreasureList = m_VampireTreasureLists.getTreasure(vampire_filename);
+                TreasureList* pOustersTreasureList = m_OustersTreasureLists.getTreasure(ousters_filename);
+
+                if (pSlayerTreasureList == NULL) {
+                    printf("Load - slayer_filename:%s\n", slayer_filename.c_str());
+                    pSlayerTreasureList = m_SlayerTreasureLists.loadTreasure(slayer_filename);
+                    Assert(pSlayerTreasureList != NULL);
+                }
+
+                if (pVampireTreasureList == NULL) {
+                    printf("Load - vampire_filename:%s\n", vampire_filename.c_str());
+                    pVampireTreasureList = m_VampireTreasureLists.loadTreasure(vampire_filename);
+                    Assert(pVampireTreasureList != NULL);
+                }
+
+                if (pOustersTreasureList == NULL) {
+                    printf("Load - ousters_filename:%s\n", ousters_filename.c_str());
+                    pOustersTreasureList = m_OustersTreasureLists.loadTreasure(ousters_filename);
+                    Assert(pOustersTreasureList != NULL);
+                }
+
+                pInfo->setSlayerTreasureList(pSlayerTreasureList);
+                pInfo->setVampireTreasureList(pVampireTreasureList);
+                pInfo->setOustersTreasureList(pOustersTreasureList);
+
+                // verify
+                // cout << "MonsterType:" << pInfo->getMonsterType()
+                //	<< ",MonsterName:" << pInfo->getEName()
+                //	<< ",SlayerTreasure:" << pInfo->getSlayerTreasureList()->getTreasures().size()
+                //	<< ",VampireTreasure:" << pInfo->getVampireTreasureList()->getTreasures().size()
+                //	<< endl;
+            } else {
+                cout << "[NoTreasureFile] " << pInfo->getEName().c_str() << endl;
+            }
+        }
+    }
 
     unordered_map<int, vector<SpriteType_t>>::iterator itr = m_MonsterClassMap.begin();
     unordered_map<int, vector<SpriteType_t>>::iterator endItr = m_MonsterClassMap.end();
@@ -816,84 +718,70 @@ void MonsterInfoManager::reload(MonsterType_t monsterType)
 
     bool bLoadAll = (monsterType == 0);
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    ContentInfoRepository& repository = defaultContentInfoRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(MType) FROM MonsterInfo");
+    // Every row unless one MonsterType was asked for.
+    vector<MonsterReloadRow> rows =
+        bLoadAll ? repository.loadMonsterInfosForReload() : repository.loadMonsterInfoForReload(monsterType);
 
-        StringStream sql;
-        sql << "SELECT MType, SType, HName, EName, Level, STR, DEX, INTE, BSize, Exp, MColor, SColor, Align, AOrder, "
-               "Moral, Delay, ADelay, Sight, MeleeRange, MissileRange, RegenPortal, RegenInvisible, RegenBat, MMode, "
-               "AIType, Enhance, UnburrowChance, Master, ClanType, MonsterSummonInfo, DefaultEffects, NormalRegen "
-            << " FROM MonsterInfo";
+    for (size_t r = 0; r < rows.size(); r++) {
+        const MonsterReloadRow& row = rows[r];
 
-        // 전부 다 loading하는게 아니라면 특정 MonsterType을 설정한다.
-        if (!bLoadAll) {
-            sql << " WHERE MType=" << monsterType;
+        int MType = row.monsterType;
+
+        MonsterInfo* pMonsterInfo = (MonsterInfo*)getMonsterInfo(MType);
+
+        if (pMonsterInfo != NULL) {
+            pMonsterInfo->setSpriteType(row.spriteType);
+            pMonsterInfo->setHName(row.hName);
+            pMonsterInfo->setEName(row.eName);
+            pMonsterInfo->setLevel(row.level);
+            pMonsterInfo->setSTR(row.str);
+            pMonsterInfo->setDEX(row.dex);
+            pMonsterInfo->setINT(row.inte);
+            pMonsterInfo->setBodySize(row.bodySize);
+            pMonsterInfo->setExp(row.exp);
+            pMonsterInfo->setMainColor(row.mainColor);
+            pMonsterInfo->setSubColor(row.subColor);
+            pMonsterInfo->setAlignment((MAlignment)row.alignment);
+            pMonsterInfo->setAttackOrder((AttackOrder)row.attackOrder);
+            pMonsterInfo->setMoral(row.moral);
+            pMonsterInfo->setDelay(row.delay);
+            pMonsterInfo->setAttackDelay(row.attackDelay);
+            pMonsterInfo->setSight(row.sight);
+            pMonsterInfo->setMeleeRange(row.meleeRange);
+            pMonsterInfo->setMissileRange(row.missileRange);
+
+            int nPortal = row.regenPortal;
+            int nInvisible = row.regenInvisible;
+            int nBat = row.regenBat;
+
+            pMonsterInfo->setRegenType(REGENTYPE_PORTAL, nPortal);
+            pMonsterInfo->setRegenType(REGENTYPE_INVISIBLE, nInvisible);
+            pMonsterInfo->setRegenType(REGENTYPE_BAT, nBat);
+
+            pMonsterInfo->setMoveMode(row.moveMode);
+            pMonsterInfo->setAIType(row.aiType);
+            pMonsterInfo->parseEnhanceAttr(row.enhance);
+            pMonsterInfo->setUnburrowChance(row.unburrowChance);
+            pMonsterInfo->setMaster(row.master != 0);
+            pMonsterInfo->setClanType(row.clanType);
+            pMonsterInfo->setMonsterSummonInfo(row.monsterSummonInfo);
+            pMonsterInfo->setDefaultEffects(row.defaultEffects);
+            pMonsterInfo->setNormalRegen(row.normalRegen != 0);
         }
+    }
 
-        pResult = pStmt->executeQueryString(sql.toString());
+    int startType = 0;
+    int endType = m_MaxMonsterType;
 
-        while (pResult->next()) {
-            int i = 0;
+    // 전부 다 loading하는게 아니라면 특정 MonsterType을 설정한다.
+    if (!bLoadAll) {
+        startType = monsterType;
+        endType = monsterType + 1;
+    }
 
-            int MType = pResult->getInt(++i);
-
-            MonsterInfo* pMonsterInfo = (MonsterInfo*)getMonsterInfo(MType);
-
-            if (pMonsterInfo != NULL) {
-                pMonsterInfo->setSpriteType(pResult->getInt(++i));
-                pMonsterInfo->setHName(pResult->getString(++i));
-                pMonsterInfo->setEName(pResult->getString(++i));
-                pMonsterInfo->setLevel(pResult->getInt(++i));
-                pMonsterInfo->setSTR(pResult->getInt(++i));
-                pMonsterInfo->setDEX(pResult->getInt(++i));
-                pMonsterInfo->setINT(pResult->getInt(++i));
-                pMonsterInfo->setBodySize(pResult->getInt(++i));
-                pMonsterInfo->setExp(pResult->getInt(++i));
-                pMonsterInfo->setMainColor(pResult->getInt(++i));
-                pMonsterInfo->setSubColor(pResult->getInt(++i));
-                pMonsterInfo->setAlignment((MAlignment)pResult->getInt(++i));
-                pMonsterInfo->setAttackOrder((AttackOrder)pResult->getInt(++i));
-                pMonsterInfo->setMoral(pResult->getInt(++i));
-                pMonsterInfo->setDelay(pResult->getInt(++i));
-                pMonsterInfo->setAttackDelay(pResult->getInt(++i));
-                pMonsterInfo->setSight(pResult->getInt(++i));
-                pMonsterInfo->setMeleeRange(pResult->getInt(++i));
-                pMonsterInfo->setMissileRange(pResult->getInt(++i));
-
-                int nPortal = pResult->getInt(++i);
-                int nInvisible = pResult->getInt(++i);
-                int nBat = pResult->getInt(++i);
-
-                pMonsterInfo->setRegenType(REGENTYPE_PORTAL, nPortal);
-                pMonsterInfo->setRegenType(REGENTYPE_INVISIBLE, nInvisible);
-                pMonsterInfo->setRegenType(REGENTYPE_BAT, nBat);
-
-                pMonsterInfo->setMoveMode(pResult->getString(++i));
-                pMonsterInfo->setAIType(pResult->getInt(++i));
-                pMonsterInfo->parseEnhanceAttr(pResult->getString(++i));
-                pMonsterInfo->setUnburrowChance(pResult->getInt(++i));
-                pMonsterInfo->setMaster(pResult->getInt(++i) != 0);
-                pMonsterInfo->setClanType(pResult->getInt(++i));
-                pMonsterInfo->setMonsterSummonInfo(pResult->getString(++i));
-                pMonsterInfo->setDefaultEffects(pResult->getString(++i));
-                pMonsterInfo->setNormalRegen(pResult->getInt(++i) != 0);
-            }
-        }
-
-        int startType = 0;
-        int endType = m_MaxMonsterType;
-
-        // 전부 다 loading하는게 아니라면 특정 MonsterType을 설정한다.
-        if (!bLoadAll) {
-            startType = monsterType;
-            endType = monsterType + 1;
-        }
-
-        /*		clearTreasures();
+    /*		clearTreasures();
 
                 for (int i=startType; i<endType; i++)
                 {
@@ -949,9 +837,6 @@ void MonsterInfoManager::reload(MonsterType_t monsterType)
                     }
                 }
         */
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
 
     __END_DEBUG
     __END_CATCH

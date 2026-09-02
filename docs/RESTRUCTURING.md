@@ -54,10 +54,10 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 101 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 314 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining) |
+| R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 203 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,984 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 867 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` (867 since the never-compiled `SlotInfo.cpp`'s stale specs left with the file, 2.4 review) |
 
@@ -843,6 +843,899 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > SGAddGuildMemberOKHandler inline, and the sharedserver's
   > GSQuitGuildHandler from another process — named in
   > GoldRepository.h, to be extracted with their own flows.
+  > **Character-load round (2026-09-01)**: the race files' login-time
+  > `load()` SELECTs moved into `CharacterRepository` as
+  > `loadSlayer/loadVampire/loadOusters` returning per-race load
+  > records (54/33/34 columns, in SELECT order). The transplant was
+  > mechanical — a script mapped every positional `pResult->getX(++i)`
+  > read, in order, to a record field and left comment lines alone, so
+  > the diff is checkable rather than transcribed; every record field is
+  > typed to the driver getter the inline code used (int/BYTE/string), so
+  > each narrowing the race class performed at its setter still happens
+  > there on the same value. Quirks quarantined in the impl: the column
+  > lists are the positional contract and are verbatim (the only byte
+  > change is the whitespace the backslash-continued literals had
+  > leaked into the SQL — a space plus indentation tabs — each run now
+  > a single space); `Active = 'ACTIVE'` filters
+  > an INACTIVE (deleted-in-handover) row into "no row"; the vampire/
+  > ousters Competence pair is read through getBYTE where the slayer
+  > uses getInt (tinyint columns, so nothing is lost); the SLAYER loader
+  > overrides the Sight it just applied (to 13 — vampire/ousters apply
+  > theirs as loaded), and the Slayer/Vampire Reward column is selected
+  > and surfaced but consumed by nothing (the reward flow is dead in
+  > both races that have the column; Ousters never selected it). The
+  > setters now run OUTSIDE the `BEGIN_DB`/`END_DB` try — inert, since
+  > none of them can raise the SQLQueryException that catch handles —
+  > and the Statement is freed BEFORE the setters run, so a setter
+  > throwing (setSex's InvalidProtocolException, the skill loop's
+  > Assert) no longer leaks it; the one real delta is that a mid-read
+  > driver exception now applies nothing instead of the columns read so
+  > far (unreachable with a fixed column count). **`SkillSaveRepository`**
+  > is new and encloses the three learned-skill tables on the compiled
+  > gameserver side: the loads from the race files AND the
+  > insert/update/delete from `SkillSlot`/`VampireSkillSlot`/
+  > `OustersSkillSlot` (the per-character purges in CreatureUtil.cpp and
+  > the loginserver's CLDeletePCHandler stay inline with their
+  > multi-table deletion flow; the unbuilt `Vampire_backup.cpp` still
+  > carries the old VampireSkillSave SELECT and is one of R2's counted
+  > files). Two record
+  > families on purpose — driver-typed `*Row` for loads, member-typed
+  > `*Record` for writes — so the varargs bytes reaching the format
+  > strings are unchanged (incl. the stack-passed time_t NextTime
+  > through `%d` — the low 32 bits, whole until 2038 — and the DWORD
+  > exp/delay through `%d`; the WORD type/level members promote to int
+  > exactly; preserved not fixed). The
+  > tables are keyless: duplicates store, an UPDATE/DELETE hits every
+  > row of the type. Row order of the ORDER-BY-less loads was checked
+  > against the real server BEFORE being written down — and the server
+  > falsified the first draft's "SkillType ascending via the secondary
+  > index" claim: on the tier's near-empty table the uncovered SELECT
+  > comes back in INSERTION order (a scan in hidden-row-id order), and a
+  > production-sized table may take the index and reorder. Pinned as
+  > observed and documented as the optimizer's choice, not a contract;
+  > the vampire/ousters loaders keep the first row of a duplicated type,
+  > so which duplicate wins is plan-dependent — the order test asserts
+  > the multiset as the contract and records the 5.7 tier's insertion
+  > order separately as an observation. No fake tier for either seam,
+  > by the standing integration-over-fakes call; +13 integration tests
+  > (every load column asserted with a sentinel unique within the test
+  > — its SELECT position for the numeric columns, the negated position
+  > for the signed ones, distinct enum/varchar values for the three text
+  > columns — so a transposed pair fails; every skill-save write
+  > asserted for both the columns it writes and the ones it must leave
+  > alone). Slayer.cpp, Vampire.cpp and Ousters.cpp no longer execute
+  > any SQL (R2 101→98; Vampire.cpp's saveExps still carries a
+  > pre-existing commented-out StringStream UPDATE with no
+  > `executeQuery` token), and neither do the three slot files (R3
+  > 314→308). Because both ratchets grep textually, the dead
+  > commented-out blocks that still spelled `executeQuery` were deleted
+  > rather than edited: both races' `if (reward != 0)` reward flows
+  > (already proven dead in the previous round), Slayer::getIP's
+  > UserIPInfo lookup, and the `/* StringStream ... executeQueryString
+  > */` blocks inside the slot files' replaced DB blocks (load-bearing
+  > for R3) — git history keeps them. The `#include "DB.h"` left each
+  > cleansed file, which decouples only the slot files: the race files
+  > still reach DB.h transitively through ConcreteItem.h. Korean
+  > comments on the re-indented lines were translated.
+  > **Effect / flag / address-book / quest-item round (2026-09-01,
+  > stacked on the character-load round)**: four more seams, thirteen
+  > files cleansed (R2 98→85, R3 308→295). **`EffectSaveRepository`**
+  > encloses the eight persisted-effect tables — the create()/destroy()/
+  > save() overrides and the *Loader::load() of EffectAftermath,
+  > EffectKillAftermath, EffectMute, EffectCanEnterGDRLair (DEADLINE
+  > tables: an absolute expiry plus a never-read YearTime), the three
+  > force scrolls (REMAIN tables: the turns left at save time, so
+  > logged-out time does not count) and EffectEnemyErase (a deadline
+  > table with an EnemyName). The eight classes never agreed on SQL
+  > spacing, so the format strings are per-table data, verbatim
+  > (EffectMute's "YearTime=%ld", the force scrolls' "SELECt" typo and
+  > "(OwnerID, RemainTime )", CanEnterGDRLair's "VALUES ("); the Turn_t
+  > year time / remain turn still ride %ld/%lu (register-passed, the
+  > documented latent-bug family, preserved). Structural quirks pinned
+  > against the real server: seven tables are keyless and accumulate a
+  > duplicate row on a second create(), EffectKillAftermath alone has
+  > OwnerID as PRIMARY KEY and raises ER_DUP_ENTRY; EnemyErase's DELETE
+  > keys on (OwnerID, EnemyName) but its UPDATE on OwnerID alone, so
+  > saving one enemy-erase effect rewrites EVERY EnemyErase row of the
+  > owner. The transplant was again scripted (the eight files share one
+  > shape; the script anchors on it and dies on any deviation), the
+  > loaders keep every gate and per-race branch and now iterate a
+  > vector instead of a live result. **`FlagSetRepository`** (the
+  > character's 24 flag bits as a '0'/'1' text; the StringStream-built
+  > INSERT/UPDATE/DELETE became parameterized format strings with the
+  > same bytes, the INSERT's two trailing spaces included; OwnerID is
+  > the PK — insert() refuses a second row, the load-path fallback is
+  > the INSERT IGNORE of an empty text, both pinned),
+  > **`SMSAddressRepository`** (the phone book; (eID, OwnerID) PK
+  > pinned; a datetime Time column nothing on the server touches) and
+  > **`QuestItemRepository`** (GQuestItemObject, one row per item
+  > instance — removeOne's LIMIT 1 is load-bearing and pinned; encloses
+  > GQuestInventory AND the two GQuestGive*Element inserts; the
+  > original load/removeOne leaked their Statement on success, fixed
+  > knowingly). No fake tier for any of the four (integration over
+  > fakes); +11 integration tests. The per-character purges
+  > (CreatureUtil.cpp, CLDeletePCHandler) still DELETE inline from
+  > FIVE of the eleven tables — EffectAftermath, EffectMute, EnemyErase,
+  > FlagSet, GQuestItemObject; nothing purges EffectKillAftermath,
+  > CanEnterGDRLair, the three force scrolls or SMSAddressBook, whose
+  > rows outlive the character and are inherited by a name-reuser (the
+  > adversarial round caught the first draft claiming "all of these
+  > tables", and a fabricated "negative remain turn clamps to the
+  > column maximum" quirk: Timeval's timediff returns the absolute
+  > difference and a DWORD cannot exceed the column, so the real quirk
+  > is that a scroll saved past its deadline would store the elapsed
+  > time as remaining — unreached, now documented as such).
+  > **Zone milestone (2026-09-01, stacked on the effect round)**: every
+  > SQL statement the ten zone-layer files ran — against the zone
+  > config tables, Messages, Event200501, BulletinBoardObject and
+  > RegenZonePosition — is behind a seam; ten files cleansed (R2 85→75,
+  > R3 295→285). Zone-named neighbours on OTHER tables (ZoneGroupThread's
+  > PCRoomDBInfo read, the PKZone/EventZone/LevelWarZone info loaders)
+  > are not in this round. **`ZoneInfoRepository`** is the
+  > read-only zone CONFIGURATION seam: the group list (with and without
+  > ORDER BY — two statements, kept as two, the caller choosing;
+  > ZoneGroupManager::load, makeDefaultLoadInfo, ThreadManager::init),
+  > the zones of a group (same pair), the 17-column ZoneInfo row
+  > (ZoneInfoManager; the SELECT's SMPFilename/SSIFilename spelling
+  > differs from the schema's SmpFileName — case-insensitive, kept), the
+  > per-zone resurrect positions (ResurrectLocationManager, its "table
+  > does not exist" throw on an empty result kept), the ZoneTriggers
+  > rectangles (Zone::loadTriggeredPortal), the EffectPKZoneRegen
+  > rectangles and the per-zone/per-race WayPointInfo points
+  > (Zone::loadEffect) and every way point (WayPointManager).
+  > **`MessageRepository`** — the keyless Messages queue the zone drains
+  > on entry (load, delete; the pay-zone eviction INSERT in the
+  > `__PAY_SYSTEM_ZONE__` branch of ZonePlayerManager, which no build
+  > config compiles — converted by hand, not compile-checked).
+  > **`ComebackEventRepository`** — the three Event200501 zero-date
+  > predicates on the dist connection (Zone.cpp ran them on one
+  > never-freed statement; three calls now, each freeing its own).
+  > **`BulletinBoardRepository`** — the notice corpses: the column-less
+  > `VALUES (0, ...)` INSERT that leans on the table's column order and
+  > the auto-increment, returning the affected count the caller logs;
+  > the per-zone load; the expired-row DELETE that used a second, never-
+  > freed statement (fixed knowingly). **`RegenZoneRepository`** — the
+  > race-war towers (load and reload issued the identical SELECT and
+  > neither freed its statement; fixed knowingly). Two dead blocks that
+  > still spelled `executeQuery` were deleted rather than edited:
+  > ZoneGroupManager's `/* */` copy of load() and ZoneInfo::load's
+  > commented-out body (the live function is `Assert(false)`). No fake
+  > tier; +9 integration tests, seeded config rows kept clear of the
+  > shipped data by using ids from 31000 up. Not enclosed: the
+  > loginserver/sharedserver's own ZoneGroupInfo/ZoneInfo reads, the
+  > MAX(ZoneGroupID) probes (ConnectionInfoManager, EffectShutDown,
+  > CGSayHandler), the Messages users in the guild handlers
+  > (CGQuitUnion*, CGAcceptUnion, CGDenyUnion, CGExpelGuild INSERT; the
+  > SG*GuildOK handlers SELECT+DELETE — they drain, never insert) and
+  > the sharedserver's GS*Guild* inserts, CGGetEventItemHandler/
+  > CLLoginHandler's event stamps, and two dead files R3 still counts
+  > (`src/server/ZoneUtil.cpp`, an unbuilt byte-identical sibling of the
+  > old bulletin-board code, never-freed statement included, and
+  > `src/server/theoneserver/ThreadManager.cpp`, plus the sharedserver's
+  > two-race variant of the resurrect SELECT in its own
+  > ResurrectLocationManager.cpp) — each its own extraction. Two fixes
+  > the round made without saying so, named by the fidelity review:
+  > RegenZoneManager declared its `Statement* pStmt` uninitialised while
+  > END_DB deletes it (a throwing createStatement would have deleted an
+  > indeterminate pointer — the seam initialises), and
+  > ResurrectLocationManager's "table does not exist" throw used to
+  > escape BEGIN_DB with the statement still allocated. The
+  > bulletin-board insert returns the affected count as the driver's
+  > uint. The adversarial round also caught the R2/R3 baseline
+  > COLUMNS of the ratchet table lagging their prose since the effect
+  > round (the prose said 295/285 while the column still read 308) —
+  > fixed here; the number in the column is the contract.
+  > **Balance / game-info loaders (2026-09-01, stacked on the Zone
+  > round)**: fourteen read-only loader files cleansed (R2 75→61,
+  > R3 285→271), two seams. Ten of their sixteen managers run at boot;
+  > SIX are dead — ObjectManager has the STR/DEX/INT balance,
+  > SkillParent, RankEXP and FameLimit managers' construction and load
+  > commented out, and their surviving getter call sites sit inside
+  > comment blocks (Slayer.cpp, skill/SkillUtil.cpp) — so those
+  > extractions are for the ratchet, not for a running server.
+  > **`BalanceInfoRepository`** — the level/exp
+  > ladders: STR/DEX/INT, VampEXP, OustersEXP (per-table statement
+  > pairs kept as data: mixed-case "Select ... from", the trailing
+  > space after the three attribute table names, SkillPointBonus only
+  > for ousters), RankEXPInfo per RankType, SkillDomainInfo per
+  > DomainType, FameLimitInfo per DomainType, and the pet ladders
+  > (PetExpInfo, PetAttrBalanceInfo, PetAttrInfo).
+  > **`GameInfoRepository`** — SkillTreeInfo (keyless; the loader relies
+  > on same-type rows arriving adjacent — the optimizer's choice, not a
+  > contract), RankBonusInfo (`Rank` backticks, MySQL-8-load-bearing),
+  > PetTypeInfo, GameServerGroupInfo (the +2 array sizing stays at the
+  > caller), BloodBibleBonusInfo, and the four monster-name lists
+  > (FirstNameInfo/MiddleNameInfo/LastNameInfo with the 'BASIC'/'EVENT'
+  > filter inline in the literal — four statements, kept as four).
+  > **One knowing behavior change, disclosed and pinned:** the eleven
+  > level-indexed loaders (all but PetExpInfo, PetAttrInfo and
+  > MonsterNameManager, which read their tables whole) size an array
+  > from a `SELECT MAX(...)` probe and guarded the "empty table" case
+  > with `getRowCount()==0` or `!next()` ON THAT PROBE — guards that
+  > can never fire, because MySQL answers MAX() over nothing with ONE
+  > row holding NULL; the inline code then called `getInt(1)`, i.e.
+  > `atoi(NULL)`, and an empty table crashed the boot instead of raising
+  > the intended "There is no data" Error. The seams' `loadMax*` return
+  > false on the NULL, so the callers' throws fire as written. Pinned
+  > by the tier through a RankType/DomainType no ladder has.
+  > MonsterNameManager's four `getRowCount()==0` guards are on real row
+  > queries, DO fire on an empty list, and are kept as `size()==0`. (The
+  > first draft said "every loader" — the claims audit counted.) Other
+  > disclosures: GameServerGroupInfoManager's hand-written try turned a
+  > SQLQueryException into an Error and swallowed other Throwables with
+  > a cout — the SQL failure now takes every repository's path
+  > (DBError.log + thrown const char*), the Throwable arm is kept;
+  > FameLimitInfoManager is never constructed and its table is absent
+  > from the shipped schema (dead, extracted for the ratchet, the tier
+  > pins that its first query throws); EventMonsterNameManager.cpp is
+  > an unbuilt OLDER VARIANT of MonsterNameManager (a second definition
+  > of `MonsterNameManager::init` with three unfiltered `SELECT *`
+  > lists) and stays as is (still one of R2's counted files). **The
+  > fidelity review caught what the first draft missed: THREE of the
+  > fourteen files — AttrBalanceInfo.cpp, RankEXPInfo.cpp and
+  > FameLimitInfo.cpp — are in no CMakeLists (they still `#include
+  > <algo.h>`, an SGI header that no longer exists), so those
+  > conversions, including the three STR/DEX/INT blocks, are text-only
+  > and no compiler has seen them; the other eleven are built and
+  > linked.** Also disclosed on review: PetTypeInfo's original declared
+  > its Statement uninitialised and never freed it on success (one leak
+  > per boot; END_DB would have deleted an indeterminate pointer on a
+  > SQL failure), PetAttrInfo's was uninitialised too, and
+  > MonsterNameManager/GameServerGroupInfoManager leaked theirs on
+  > their throw paths — the seams initialise and free; two Korean
+  > message strings were translated (PetTypeInfo's throw text,
+  > PetAttrInfo's cout), an observable-output delta CLAUDE.md sanctions;
+  > the two per-domain loaders (SkillDomainInfoManager, FameLimitInfo)
+  > now create a Statement per query instead of one for the loop —
+  > same queries, same order, boot-time only; and the attribute
+  > ladders' bigint AccumExp EXCEEDS int range in the shipped data
+  > (2431521747, 3344798380) — read through atoi as before, lossless
+  > through the int→DWORD round trip below 2^32, the first draft's
+  > "stays within range" retracted. No fake tier; +7 integration tests
+  > asserting the SHAPE of the shipped data (a maximum exists, rows
+  > stay within it, no list empty — what the boot requires). One field
+  > the seam reads that the inline code never fetched: PetAttrBalanceInfo's
+  > AddAttr (column 3) rides along in the row; the caller still uses
+  > AccumAttr (column 4) exactly as before. Not enclosed: the
+  > loginserver's CLCreatePCHandler single-row reads of the ladders,
+  > the loginserver/sharedserver GameServerGroupInfo loads, and the
+  > loginserver's UserInfoManager — a byte-level clone of the
+  > GameServerGroupInfo MAX-probe-plus-rows pattern, same never-firing
+  > guard, same +2.
+  > **Config loaders (2026-09-01, stacked on the balance round)**:
+  > seventeen more read-only boot-time loaders cleansed (R2 61→44, R3
+  > 271→254) by extending the two existing seams rather than adding a
+  > third. `ZoneInfoRepository` gains the zone-shaped config reads:
+  > ZoneEffectInfo rectangles by zone and effect (EffectOnBridge; of
+  > the nine skill/Effect*.cpp that name the same table, six live
+  > loaders — AcidSwamp, ContinualBloodyWall, GreenPoison, IceField,
+  > Prominence, YellowPoison — use this exact 7-column literal and are
+  > the method's next callers, EffectDarkness reads a 4-column `%u`
+  > variant that needs its own method, and EffectBloodyWall /
+  > EffectGrayDarkness only mention it inside commented-out loaders —
+  > two of R2's textually counted files), ZoneInfo's
+  > MonsterList/EventMonsterList texts for a zone (MonsterManager,
+  > dynamic zones reading their template's), and the PKZoneInfo /
+  > EventZoneInfo / LevelWarZoneInfo tables. `GameInfoRepository` gains
+  > WeatherInfo, GSStringPool, ShopTemplate, NicknameIndex's 'LEVEL'
+  > rows, ItemMineInfo, ItemGradeRatioInfo, GoodsListInfo (on the dist
+  > connection, "Limited+0" enum ordinal, "Kind<>'SET'" filter — as
+  > GoodsInfoManager read it), DefaultOptionSetInfo, DarkLightInfo (its
+  > " , "-spaced column list kept), CastleSkillInfo (mixed-case
+  > "Select ... from"), CastleShrineInfo and LogUserInfo. Every row
+  > field is the driver getter's type; the callers keep their narrowings
+  > and their Asserts on the shipped shape (WeatherInfo's 12 rows,
+  > ItemGradeRatioInfo's 10, DarkLightInfo's month/hour/minute ranges).
+  > Not converted: `gameserver/GameWorldInfoManager.cpp` is an unbuilt
+  > stale fork — no CMake target lists it, there is no sibling header,
+  > and the live WorldInfo loader is `src/server/GameWorldInfoManager.cpp`
+  > in ServerCore (reached from ObjectManager), which cannot include a
+  > gameserver repository header and keeps its `executeQueryString`
+  > read and hand-written SQLQueryException→Error / Throwable→cout try.
+  > The review caught a first cut that had converted the fork, added a
+  > caller-less `loadWorlds()` and claimed eighteen; both are reverted
+  > and R2 keeps counting the fork. Disclosures: seven of the originals
+  > never freed their Statement on the success path (StringPool,
+  > LevelWarZoneInfoManager, ItemMineInfo, EventZoneInfo,
+  > DefaultOptionSetInfo, CastleShrineInfoManager, EffectOnBridge — that
+  > one once per zone at boot) and three more (WeatherInfo,
+  > ItemGradeManager, DarkLightInfo) Asserted on the row shape before
+  > freeing it, so a failed Assert leaked — the seams free before
+  > returning, fixed knowingly; LevelNickInfoManager declared its
+  > `Statement* pStmt` uninitialised while END_DB deletes it (the
+  > RegenZoneManager quirk again) — the seam initialises it;
+  > SystemAvailabilitiesManager's SELECT sits under
+  > `__CHINA_SERVER__`/`__THAILAND_SERVER__` (uncompiled) and stays. No
+  > fake tier; +5 integration tests (fixed row counts, non-empty lists,
+  > the dist-connection goods read against inserted 'SET' and 'FOREVER'
+  > rows — the shipped seed has neither, so without them the filter and
+  > the ordinal's upper bound would pass unexercised — and the two
+  > per-zone reads against inserted rows). Remaining SQL under
+  > gameserver/: the long tail (R2 = 44 files) — biggest remaining
+  > clusters are CreatureUtil.cpp's 128-statement character deletion
+  > and the guild trio (Guild/GuildManager/GuildUnion, 65 statements).
+  > **Race-war cluster (2026-09-02, stacked on the config round)**: the
+  > seven war files (ShrineInfoManager, CastleInfoManager,
+  > SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager,
+  > MasterLairInfoManager) move to a new `WarInfoRepository` — the first
+  > seam in this stack that mixes boot-time reads with runtime writes:
+  > ShrineInfo (load, owner reload, owner save), CastleInfo (load by
+  > ServerID, the six-column state save, and `tinysave`'s caller-composed
+  > SET fragment — the same raw-SQL quarantine as
+  > CharacterRepository::tinysave), SweeperBonusInfo (MAX probe as a
+  > bool, rows, owners by level, owner save), SweeperSetInfo and
+  > SweeperOwnerInfo (both per zone; LevelWarManager's two-column read
+  > of the owners has its own method; the owner UPDATE keys on
+  > SweeperType alone, the table's PK), LevelWarHistory (no primary or
+  > unique key; INSERT
+  > of the "Old" sweeper columns at war start, UPDATE of the "new" ones
+  > at war end keyed on Level + a caller-formatted start time) and
+  > MasterLairInfo's 25-column row. R2 44→37, R3 254→247. Every literal
+  > byte-for-byte, including the SweeperOwnerInfo UPDATE's `%ld` for an
+  > int OwnerRace and `%d` for a uint SweeperType, and the castle save's
+  > unspaced `GuildID=%d` list against the sweeper writes' spaced ones.
+  > Disclosures: LevelWarManager's two recorders and SweeperSet's load
+  > (both of its Statements) never freed on the success path — the seam
+  > does, fixed knowingly; ShrineInfoManager::saveBloodBibleOwner opened
+  > a BEGIN_DB block and created a Statement it never used around a loop
+  > whose body already went through the seam — the block is gone, the
+  > loop stays; SweeperSet's commented-out first-generation loader
+  > (owner-per-set, "보관대" names) is deleted rather than carried;
+  > SweeperBonusManager's two "There is no data" throws now fire on the
+  > MAX probe's false where the originals' `getRowCount() == 0` guard
+  > never could (one NULL row — the original atoi(NULL)'d and crashed on
+  > an empty table, the seam fails the boot with the intended Error);
+  > the row structs read every column of every row where four inline
+  > loops read the tail columns only inside a branch (MasterLairInfo's
+  > 24 non-key columns behind `getMasterLairInfo() != NULL` in reload
+  > and behind `isAvailable()` in the Thailand/China build of load,
+  > SweeperBonusInfo's OwnerRace behind the type lookup,
+  > SweeperOwnerInfo's SweeperSafeType behind `Assert(race < 4)`) —
+  > harmless against the schema, where every int column is NOT NULL;
+  > the Korean comments inside MasterLairInfoManager's load/reload (five
+  > lines) and one in ShrineInfoManager::load are translated, seven
+  > others in MasterLairInfoManager stay, and its thrown Error strings
+  > are untouched. Not enclosed:
+  > war/RaceWar.cpp's ShrineInfo owner reads and the gameserver /
+  > sharedserver GuildManager castle counts and lists. No fake tier; +7
+  > integration tests (seeded reads non-empty and the MAX probe against
+  > the table, shrine-owner save scoped to one shrine, castles scoped to
+  > the server with save and `tinysave` keyed on server+zone, sweeper
+  > bonus owners by level and save by type, sweeper sets/owners scoped
+  > to the zone with the PK-only owner save, level-war history insert
+  > then update filling only that war's "new" columns, and a 25-column
+  > master-lair row read back). Remaining SQL under gameserver/: R2 = 37
+  > files.
+  > **Item cluster (2026-09-02, stacked on the race-war round)**: seven
+  > item files (ItemUtil, UniqueItemManager, TimeLimitItemManager,
+  > EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo) — R2
+  > 37→30, R3 247→240. A new `ItemRepository` takes the bookkeeping
+  > tables: the ItemTraceLog / MoneyTraceLog inserts (SQL-side now()),
+  > the EventQuestRewardSchedule decrement (bWinPrize; true when a row
+  > changed), the ResurrectItemCount / CardCount / LuckyBagCount /
+  > GiftBoxCount / EventItemCount increments, UniqueItemInfo (list, the
+  > per-item limit/current read as a bool, +1 / −1), TimeLimitItems
+  > (load by owner and status, insert, and the status update reporting
+  > whether a row changed — one literal that served two callers), and
+  > the two per-class item-object operations that take the table NAME
+  > as data (Item::destroy's DELETE, GlobalItemPositionLoader's position
+  > read; the caller still picks the name from ItemObjectTableName[]).
+  > `GameInfoRepository` gains OptionInfoManager's four loads (OptionInfo
+  > 19 columns, OptionClassInfo, RareEnchantInfo,
+  > PetEnchantOptionRatioInfo); OptionInfo's SELECT was assembled from
+  > StringStream pieces and run through executeQueryString — the joined
+  > bytes are the literal — and its three `getRowCount() == 0` "There is
+  > no data" throws (plain SELECTs, so they could fire) become
+  > `rows.empty()` checks at the caller, same Error, same outer
+  > catch/rethrow. Every literal byte-for-byte, including
+  > TimeLimitItems' lower-case from/where/and and the varargs mismatches
+  > kept as they were: an ItemID_t (DWORD) through "%lu" in the delete
+  > and "%d" in the position read, bWinPrize's two DWORDs through "%d".
+  > Disclosures: UniqueItemManager::isPossibleCreate returned from inside
+  > its BEGIN_DB block on the found path and so never freed its
+  > Statement, and four loaders (UniqueItemManager::init,
+  > OptionInfoManager::load, TimeLimitItemManager::load,
+  > GlobalItemPositionLoader::load) did their row processing inside the
+  > block that owned the Statement, so any non-SQL Throwable from that
+  > processing leaked it — the seam frees before the caller processes,
+  > fixed knowingly; OptionInfo's four queries shared one Statement where
+  > the seam uses one per call, and its SELECT now runs through
+  > executeQuery's 2048-byte format buffer instead of executeQueryString
+  > (the literal is ~250 bytes); remainTraceLogNew's
+  > commented-out ItemTrace2Log block (dead since it was written) is
+  > deleted because R2's grep is textual; the Korean comments inside the
+  > replaced blocks (UniqueItemManager, Item) went with them or are
+  > translated, the rest of those files' comments stay. Not enclosed: the
+  > item-object tables' own create/save/load SQL in gameserver/item/ (90
+  > files, R3 territory); the two remaining raw TimeLimitItems deletes,
+  > CreatureUtil.cpp's (the character-deletion flow) and the
+  > loginserver's CLDeletePCHandler.cpp's; and MoonCardUtil.cpp's copy of
+  > the CardCount UPDATE (in no build target). No fake tier; +7 integration tests
+  > (trace logs with their enum texts and a server-side time;
+  > unique-item numbers read and counted per class+type, the no-row
+  > false, and the UNSIGNED decrement at 0 erroring (ER 1690) with the
+  > row untouched; time-limited items by owner+status with the
+  > owner+class+id status update; the four keyed counters touching only
+  > their row and the keyless ResurrectItemCount touching every row (a
+  > second row is inserted — the seed has one, so before+1 == after
+  > alone would not tell the two apart); the event-quest reward taken
+  > once per Count and only when due; the PotionObject position read and
+  > delete by table name; OptionInfo read in SELECT order and the other
+  > three option tables non-empty). Remaining SQL under gameserver/: R2 =
+  > 30 files.
+  > **Content-info cluster (2026-09-02, stacked on the item round)**:
+  > seven more files (MonsterInfo, SkillInfo, NPCManager, ScriptManager,
+  > Directive, VariableManager, EffectShutDown) — R2 30→23, R3 240→233.
+  > A new `ContentInfoRepository` takes the content tables the server
+  > loads at boot: MonsterInfo (MAX probe as a bool, the 35-column load,
+  > the second-pass MonsterSummonInfo read, and reload's own 32-column
+  > SELECT in both shapes — every row, or the one row the caller's
+  > StringStream used to append " WHERE MType=<n>" for), SkillBalance
+  > (MAX probe, the 26-column mixed-case "Select ... from" with its
+  > `RequireSkill`/`Condition` backticks, Domain/MagicDomain through
+  > getBYTE), NPC (by zone, or by zone and race), Script (ORDER BY
+  > ScriptID — the one ordered load here), DirectiveSet (MAX probe,
+  > rows) and AttrInfo (MAX probe, rows, and the attr1 UPDATE
+  > VariableManager::setVariable fires on every call — the GM `opset`
+  > path, and the defaults written at init()/load()).
+  > `ZoneInfoRepository` gains `loadMaxZoneGroupID` for EffectShutDown's
+  > two MAX(ZoneGroupID) probes (three stay inline: ConnectionInfoManager's
+  > one and CGSayHandler's two). Two literals change bytes: the
+  > backslash-continued MonsterInfo and SkillBalance SELECTs drop their
+  > leaked indentation tabs for single spaces — the same whitespace-run
+  > collapse the character-load round made, and the only byte change.
+  > Kept: the reload SELECT's double space before "FROM" (a StringStream
+  > joined "NormalRegen " to " FROM MonsterInfo"). Disclosures: the MAX
+  > probes' dead guards — `getRowCount() == 0` in MonsterInfo,
+  > SkillBalance and DirectiveSet (whose `throw(const char*)` also
+  > leaked the Statement on that dead path; the seam frees first), `<= 0`
+  > in VariableManager — now fire on an empty table where the originals
+  > atoi(NULL)'d; VariableManager's second `<= 0` guard, on the AttrInfo
+  > rows, was live and is kept as `rows.empty()`, now unreachable behind
+  > the probe's false; EffectShutDown had no guard at all and now throws
+  > a new Error("Critical Error : ZoneGroupInfo table is empty.") where
+  > it crashed; MonsterInfoManager::reload ran a MAX(MType) probe whose
+  > result it never read — dropped; the row structs read every column of
+  > every row where three inline loops read the tail columns only inside
+  > a branch (NPCManager behind `getCreature(Name) == NULL`, reload
+  > behind `getMonsterInfo() != NULL`, SkillBalance's last six behind the
+  > Ousters-domain check) — NPC's columns and SkillBalance's last six are
+  > NOT NULL and NULL text reads as "", but 21 of the 32 columns reload
+  > reads are nullable ints (Level, STR, DEX, INTE, BSize, Align, AOrder,
+  > Moral, Delay, ADelay, Sight, AIType DEFAULT NULL; nine more nullable
+  > with a default) and Result::getInt is atoi(getField()): load()
+  > already reads every one of them unconditionally for every row, so a
+  > NULL in MonsterInfo crashes the boot before reload could see it, and
+  > the newly reachable case is a row inserted after boot with a NULL for
+  > a MType not yet loaded (the shipped seed has no NULL there); four
+  > dead comment blocks that mentioned executeQuery are deleted
+  > (MonsterInfo::load's older StringStream SELECT and its GROUP BY
+  > treasure loader, SkillInfo's SkillInfo-table probe, ScriptManager's
+  > per-owner SELECT) because R2's grep is textual, along with
+  > NPCManager's commented-out cout and `// StringStream sql;` and
+  > MonsterInfo's commented-out setMonsterSummonInfo marker (the row
+  > structs' comments carry that column-set difference); Korean comments
+  > inside the replaced blocks are translated (MonsterInfo, SkillInfo,
+  > NPCManager, Directive), the thrown Korean Error strings and the
+  > NPC.log format stay. Not enclosed: EventMonsterNameManager.cpp and
+  > GameServerInfoManager.cpp (in no build target) and the
+  > MAX(ZoneGroupID) probes named above. No fake tier; +6 integration
+  > tests (seeded reads non-empty with every MAX probe checked against
+  > its table; a 35-column monster row read back and reload's one-row
+  > and every-row shapes; a 26-column skill row incl. the BYTE domains;
+  > NPCs scoped to zone and race; scripts ordered by ScriptID; a
+  > directive set and a variable inserted, read and the variable saved).
+  > Remaining SQL under gameserver/: R2 = 23 files — CreatureUtil.cpp
+  > (128), the guild trio (65), EventShutdown (18), GamePlayer (11) and
+  > a tail of ≤6.
+  > **Play-record cluster (2026-09-02, stacked on the content-info
+  > round)**: four files (GQuestManager, GQuestStatus, EventHeadCount,
+  > PacketUtil) — R2 23→19, R3 233→229. A new `PlayRecordRepository`
+  > takes a player's saved quest states (GQuestSave: the login load with
+  > its SQL-side save age `unix_timestamp(now()) - unix_timestamp(Time)`,
+  > the REPLACE on every status change, and the DELETE whose numeric key
+  > is quoted — `QuestID='%u'`), the half-hourly HeadCount insert, and
+  > the minigame score read (`LIMIT 1` with no ORDER BY — whichever row
+  > the optimizer hands back, not a top score; false when none). Every
+  > literal byte-for-byte; the DWORD quest id, BYTE status, BYTE levels
+  > and uint count stream through "%u" as before. Disclosures:
+  > EventHeadCount::activate never freed its Statement (at most once per
+  > player every half hour, for the level bands it counts) — the seam
+  > does, fixed knowingly; GQuestManager::load did its row processing
+  > (new GQuestStatus, addEffect, filelog) inside the block that owned
+  > the Statement, so any non-SQL Throwable from it leaked the Statement
+  > — the seam frees before the caller loops; GQuestManager's loop read
+  > the save-age column only for the three event quests (1001/2001/3001)
+  > in COMPLETE state — the row reads it for every save (harmless: Time
+  > is NOT NULL, so the unix_timestamp subtraction is never NULL);
+  > PacketUtil's commented-out second score read (the player's own) and
+  > its Korean note on getAffectedRowCount are deleted because R2's grep
+  > is textual. **Deferred with a reason**: TradeManager's TradeLog INSERT
+  > concatenates a trade summary of unbounded length (every traded
+  > item's toString) and runs it through executeQueryString; the
+  > repository convention is parameterized executeQuery, whose 2048-byte
+  > vsnprintf buffer throws on longer statements — converting it would
+  > turn a large trade's log into a new failure after the gold has
+  > already moved. It waits for an uncapped parameterized path in the
+  > DB layer. (CGBuyStoreItemHandler's TradeLog INSERT is a different
+  > case: already parameterized, one item's toString — it stays inline
+  > only because it is a handler-directory file.) Not enclosed: the
+  > character-deletion sweeps of GQuestSave (CreatureUtil.cpp, the
+  > loginserver's CLDeletePCHandler.cpp) and CGSubmitScoreHandler's
+  > MiniGameScores UPDATE; CGSayHandler's and
+  > mission/MiniGameQuestStatus.cpp's MiniGameScores reads are
+  > commented out (the latter calls sendGCMiniGameScores, now a caller
+  > of the seam). No fake tier; +3 integration tests
+  > (saved quests replaced, loaded per owner with a sane save age,
+  > re-replaced in place and deleted; the head-count row with its
+  > server-side time; the score read's found/none paths). Remaining SQL
+  > under gameserver/: R2 = 19 files.
+  > **Session cluster (2026-09-02, stacked on the play-record round)**:
+  > five files (GamePlayer, IncomingPlayerManager, ZoneGroupThread,
+  > EventMorph, ConnectionInfoManager) — R2 19→14, R3 229→224. A new
+  > `SessionRepository` takes the session-END bookkeeping: GuildMember's
+  > LogOn = 0 (GamePlayer's three races and EventMorph's slayer→vampire
+  > morph — the four sites in these files — shared one literal, one
+  > method; a fifth, built copy in skill/Restore.cpp stays inline, see
+  > below), the account row on the dist connection (LogOn='LOGOFF' +
+  > LastLogoutDate=now() for a row still in 'GAME'; the boot-time sweep
+  > that lists this server's 'GAME' accounts, clears their
+  > PCRoomUserInfo rows and flips them to LOGOFF; the SpecialEventCount
+  > read through getDWORD and its "%d" write of the uint member), the
+  > PC-room lotto row (SELECT / UPDATE / positional INSERT with the
+  > AUTO_INCREMENT 0 and the first Amount 1), UserIPInfo's two deletes,
+  > and the NetMarble user count on the USERINFO connection (UPDATE,
+  > then INSERT IGNORE when no row changed). ConnectionInfoManager's
+  > MAX(ZoneGroupID) goes through
+  > `ZoneInfoRepository::loadMaxZoneGroupID` (CGSayHandler's two probes
+  > are the last inline ones). Every literal byte-for-byte — the sweep's
+  > lower-case "from", "LogOn='GAME'" against "LogOn = 'LOGOFF'", the
+  > UserStatus INSERT's "Values". The tier gains the USERINFO database
+  > (initdb/USERINFO.sql mounted next to DARKEDEN.sql;
+  > `DatabaseManager::setUserInfoConnection` added for processes that
+  > never run init()). Disclosures: GamePlayer's three GuildMember
+  > blocks, EventMorph's and giveLotto never freed their Statement on
+  > the success path, and IncomingPlayerManager's sweep leaked its
+  > second Statement on the error path — the seam frees, fixed
+  > knowingly; giveLotto's SELECT and its UPDATE/INSERT shared one
+  > Statement and the sweep's per-player PCRoomUserInfo deletes reused
+  > one — the seam uses one per call; loadSpecialEventCount's
+  > `getRowCount() != 0` became `next()` (equivalent under
+  > mysql_store_result); the `#if __PAY_SYSTEM_*` block in the session
+  > end used to sit inside the BEGIN_DB block that converted its
+  > SQLQueryException and now sits between two repository calls (dead in
+  > every shipped build: all three macros are commented out in
+  > PaySystem.h); the empty `if (getAffectedRowCount() == 0) {}` after
+  > the LOGOFF update is gone; loadSpecialEventCount's `throw(const
+  > char*)` now follows a bool (its unreachable `return;` is gone);
+  > ConnectionInfoManager had no guard on its MAX probe and now throws
+  > Error("Critical Error : ZoneGroupInfo table is empty.") where it
+  > crashed; the gameserver's `addLogoutPlayerData` — its only call
+  > commented out, the live copy in the loginserver's LoginPlayer.cpp —
+  > is deleted rather than extracted, and with it the only
+  > USERINFO.LogoutPlayerData write on this side; the dead PCRoomDBInfo
+  > comment blocks in IncomingPlayerManager and ZoneGroupThread (the
+  > latter's only mention of executeQuery) and IncomingPlayerManager's
+  > commented-out duplicate UserIPInfo delete are deleted because R2's
+  > grep is textual; the mojibake comments inside the replaced
+  > session-end, event-count and lotto blocks are replaced by English
+  > ones (the three GuildMember blocks keep theirs; EventMorph's Korean
+  > comment is translated and IncomingPlayerManager's two are merged
+  > into one English one), the GuildMissing.log format strings stay;
+  > `DatabaseManager::setUserInfoConnection` frees a previously set
+  > connection (init() is the only other assigning writer);
+  > USERINFO.UserStatus has no primary or unique key, so its INSERT
+  > IGNORE ignores nothing (faithful). Not enclosed: skill/Restore.cpp's
+  > GuildMember LogOn = 0 write (built; the same unfreed Statement); the
+  > session START side — CGConnectHandler's Player LogOn='GAME' and
+  > GuildMember LogOn = 1 writes, CGPortCheckHandler's UserIPInfo
+  > upsert, CGRequestIPHandler's and CGSayHandler's UserIPInfo reads
+  > (handler/, R3); CGSayHandler's and billing/CommonBillingPacket.cpp's
+  > Player LogOn / LastLogoutDate reads; src/server/PaySystem.cpp's
+  > PCRoomUserInfo statements (ServerCore, every caller under the
+  > disabled __PAY_SYSTEM_* macros); the loginserver's
+  > LoginPlayerManager sweep and addLogoutPlayerData; and the unbuilt
+  > src/server/IncomingPlayerManager.cpp fork that still carries the
+  > whole sweep. No fake tier; +5 integration tests (the guild flag
+  > scoped to one member; session end flipping only a 'GAME' row with a
+  > server-side logout time and the boot sweep listing, clearing and
+  > flipping only this server's accounts; the event counter read/saved
+  > and false for an unknown account; the lotto row inserted with its
+  > positional columns, read and counted; UserStatus update→false /
+  > insert / update→true on USERINFO, plus the CurrentUser tinyint's
+  > clamp at 127 pinned as observed). Remaining SQL under gameserver/:
+  > R2 = 14 files — CreatureUtil.cpp (128, the character-deletion flow),
+  > the guild trio (65), EventShutdown (18), TradeManager (deferred
+  > above), SMSServiceThread (a thread that is never started),
+  > SomethingGrowingUp.h, SystemAvailabilitiesManager (under two ORed
+  > undefined macros) and five files no build target compiles
+  > (Vampire_backup, GameServerInfoManager, EventMonsterNameManager,
+  > GameWorldInfoManager, MoonCardUtil).
+  > **ExpTable template (2026-09-02, stacked on the session round)**:
+  > the one header R2 counted, SomethingGrowingUp.h — R2 14→13, R3
+  > unchanged (it counts .cpp files). `ExpTable<...>::load` formatted
+  > "SELECT %s, %s, %s FROM %s %s" from its subclasses' column and table
+  > names (RankExpTable's "where RankType=<n>" condition, or "" — which
+  > leaves the original's trailing space) into a heap buffer and handed
+  > that string to executeQuery as a FORMAT — a second printf pass that
+  > was harmless only because every '%' had already been expanded.
+  > `BalanceInfoRepository::loadExpTable` takes the five identifiers as
+  > data and formats once; the bytes on the wire are the same (the
+  > template is 28 bytes and its five "%s" expand to nothing, so the
+  > output is 18 + pieces against a buffer of 28 + pieces — nine bytes
+  > of headroom for every input — and the original snprintf never
+  > truncated). Its callers are the three ExpTable subclasses
+  > (AdvancementClassExpTable, RankExpTable, SlayerAttrExpTable's
+  > STR/DEX/INT tables). Disclosures: the original declared `Statement*
+  > pStmt` uninitialised while END_DB deletes it (the RegenZoneManager
+  > quirk again), and freed its `new char[]` query buffer with
+  > SAFE_DELETE (delete, not delete[]) — both gone with the buffer; the
+  > seam initialises its Statement; the original leaked that buffer on
+  > every throwing path (END_DB rethrew before the trailing SAFE_DELETE,
+  > and an AssertionError bypassed END_DB altogether, taking the
+  > Statement with it), and the level Asserts now fire after the
+  > statement is closed rather than mid-cursor (the partial fill of
+  > m_Records is the same). STRBalanceInfo.AccumExp exceeds INT_MAX in
+  > its top rows and truncates through getInt as it always did. No fake
+  > tier; +1 integration test (RankEXPInfo with and without the
+  > condition against COUNT(*) and per-level GoalExp,
+  > AdvancementClassEXPInfo and STRBalanceInfo non-empty). Remaining SQL
+  > under gameserver/: R2 = 13 files — CreatureUtil.cpp (128, the
+  > character-deletion flow), the guild trio (65), TradeManager
+  > (deferred above), and eight files whose SQL never runs:
+  > EventShutdown (its two blocks sit in the `#else` of `#if
+  > !defined(__THAILAND_SERVER__) && !defined(__CHINA_SERVER__)`) and
+  > SystemAvailabilitiesManager (under the same two macros, which no
+  > build file defines — ItemUtil.cpp's TU-local `#define
+  > __THAILAND_SERVER__` reaches neither), SMSServiceThread (a thread
+  > GameServer.cpp never starts, and its own connection), and the five
+  > no build target compiles (Vampire_backup, GameServerInfoManager,
+  > EventMonsterNameManager, GameWorldInfoManager, MoonCardUtil).
+  > **Guild cluster (2026-09-02, stacked on the ExpTable round)**: the
+  > last live cluster in the gameserver root — Guild.cpp,
+  > GuildManager.cpp and GuildUnion.cpp — R2 13→10, R3 224→221, R5
+  > 5,984→5,980 (the four __BEGIN_TRY macros inside the deleted dead
+  > blocks). A new `GuildRepository` takes GuildMember (exists / insert
+  > and re-join in the plain and waiting variants / load / save / delete
+  > / the rank-plus-ExpireDate write behind expire() and leave() / intro
+  > read and write / the boot-time Rank IN (0,1,2,3) list), GuildInfo
+  > (insert with the corrected intro / load / save without the intro /
+  > delete together with the guild's GuildUnionMember rows / the
+  > GuildState IN (%d, %d) list / the name-and-master lookup the offer
+  > list makes), the guild-scoped war reads (castle count and lookup,
+  > the five-slot WarScheduleInfo count in WAIT/START, the
+  > ReinforceRegisterInfo join, the two Status='START' counts), the
+  > unions (insert returning the AUTO_INCREMENT id, member insert /
+  > delete-reporting-a-hit / union delete, the two loads, the
+  > guild→union and union→master lookups, the quoted-key member count)
+  > and the union offers (the ten-day ESCAPE penalty count, the
+  > stale-offer delete, JOIN and QUIT inserts, the OfferType+0 /
+  > DATE_FORMAT list, the per-type UnionID lookups, delete and count).
+  > Every literal byte-for-byte: the `Rank` backticks, the spaced
+  > "GuildMember( ... ) VALUES ( ... )" against the unspaced union
+  > inserts, the quoted numeric keys, the lower-case "and", "count(*)"
+  > against "COUNT(*)", the doubled %% in the DATE_FORMAT literal; the
+  > WORD guild ids and BYTE rank/type/race/state stream through "%d" or
+  > "%u" exactly where they did. Dead code deleted: the gameserver's
+  > SQL-bearing `#ifdef __SHARED_SERVER__` blocks, which no build
+  > compiles (the sharedserver builds its own Guild.cpp /
+  > GuildManager.cpp; nine SQL-free blocks and Guild.h's declarations
+  > remain) — Guild::saveIntro / tinysave / saveCount,
+  > GuildManager::init's whole body (the MaxGuildID and per-race
+  > MaxZoneID probes and the trailing load() call), and deleteGuild's DB
+  > purge — and hasWarSchedule's `#else` branch for the
+  > __OLD_GUILD_WAR__ macro that Types.h comments out. Disclosures:
+  > Statements that leaked and now do not — GuildUnion::destroy and
+  > clearOffer; removeMasterGuild's two branches on their success paths
+  > (the early returns freed; END_DB frees only on the exception path)
+  > and the inner pStmt2; makeOfferList's pStmt2 on every loop iteration
+  > and on the early return; acceptJoin's early returns; acceptQuit,
+  > denyJoin and denyQuit on every path; hasOffer's false path — the
+  > seam frees, fixed knowingly; GuildUnionManager::removeMasterGuild's
+  > non-master branch ran its GuildUnionInfo lookup through the OUTER
+  > statement (`pStmt`, not the `pStmt2` it had just created), which
+  > freed the outer result it then kept reading (`pResult->next()`,
+  > `pResult->getInt(1)`, `pResult->getInt(2)`) — a use-after-free:
+  > Statement::executeQuery deletes its previous Result first, so
+  > `pResult->getInt(2)` then read a one-column Result and threw
+  > OutOfBoundException (after a ResultBug.log line), or freed memory —
+  > removeGuild was never reached, and a non-master guild leaving a
+  > union never completed. The seam reads the guild's UnionID and
+  > OwnerGuildID before the master lookup, so that path works for the
+  > first time (a knowing fix; the stray second `pResult->next()` is
+  > gone with it); GuildManager::load read RequestDateTime only for
+  > waiting members — the row reads it for every member (a nullable
+  > datetime; getString gives "" for NULL); Korean comments inside the
+  > replaced blocks are translated (the review found seven more in
+  > removeMasterGuild's rewritten hunks; the fix commit translates
+  > them), the GuildUnion.log format string and the comments outside the
+  > replaced blocks stay; END_DB's DBError.log lines now name the
+  > repository method rather than the caller; the boot-time member and
+  > guild lists come back as row vectors where the originals streamed
+  > the cursor (mysql_store_result had already buffered the rows). Not
+  > enclosed: the sharedserver's own Guild.cpp / GuildManager.cpp
+  > copies; the built duplicates of the union literals in handler/ —
+  > CGDenyUnionHandler's and CGExpelGuildHandler's backticked count(*) /
+  > DELETE GuildUnionInfo pair, CGQuitUnionAcceptHandler's and
+  > CGQuitUnionHandler's unbackticked pair, and CGQuitUnionHandler's
+  > ESCAPE offer INSERT (the write behind countRecentEscapes); the
+  > GuildMember SQL in CGConnectHandler, CGJoinGuildHandler,
+  > CGRegistGuildHandler, CGTryJoinGuildHandler,
+  > quest/ActionShowGuildDialog.cpp and skill/Restore.cpp; war/'s
+  > WarScheduleInfo reads and writes (War.cpp, WarScheduler.cpp) and
+  > SiegeWar.cpp's ReinforceRegisterInfo statements; CGSayHandler's GM
+  > commands (which touch the race tables, not the guild ones); and the
+  > SG*Guild* handlers that mutate guild rows from the
+  > SharedServerManager thread (SGAddGuildMemberOK, SGDeleteGuildOK,
+  > SGModifyGuildMemberOK, SGModifyGuildOK). No fake tier; +5
+  > integration tests (members created, re-joined in both variants,
+  > saved, expired, intro round-tripped, the rank 0..3 list, deleted;
+  > guilds created, loaded, saved without touching the intro, listed by
+  > state, name/master looked up, deleted with their union rows; the
+  > castle and war counts scoped to the guild and to WAIT/START; a union
+  > created with its AUTO_INCREMENT id, members read, the guild→union
+  > and union→master lookups, member delete reporting a hit then a miss,
+  > union delete; offers inserted, read by type with the enum ordinal
+  > and today's yymmdd, the ten-day ESCAPE penalty, stale offers aged
+  > out, cleared). Remaining SQL under gameserver/: R2 = 10 files —
+  > CreatureUtil.cpp (the character-deletion flow), TradeManager
+  > (deferred above), and eight files whose SQL never runs
+  > (EventShutdown, SystemAvailabilitiesManager, SMSServiceThread, and
+  > the five in no build target).
+  > **ItemIDRegistry (2026-09-02, stacked on the guild round; the first
+  > step of the item milestone)**: item/ItemIDRegistry.cpp — R2
+  > unchanged (item/ is not the gameserver root), R3 221→220, R5
+  > 5,980→5,899 textually. The file held the 87 item classes'
+  > `initItemIDRegistry` (EventBall and SubInventory declare one and
+  > neither define nor call it): 81 hand-expanded copies of one body
+  > plus six uses of a `%s` macro — 3,143 lines for two statements,
+  > "SELECT COUNT(*) from <table>" and, only for a non-empty table,
+  > "SELECT MAX(ItemID) FROM <table>". `ItemRepository` gains
+  > `countItemRows(table)` / `loadMaxItemID(table)` (table-name-as-data
+  > like `deleteItemRow`; the lower-case "from" and the upper-case
+  > "FROM" are the originals'; getDWORD both, so a bigint ItemID above
+  > 32 bits truncates as it always did), and the file collapses to one
+  > helper (the count-then-MAX sequence, the successor/base rounding,
+  > the boot cout) plus 87 one-line macro uses in the original
+  > definition order, each naming its table and its cout label verbatim
+  > — the class name for most, the table name for the six old macro uses
+  > and for Relic / VampireWeapon / VampireAmulet, "GiftBox" for
+  > EventGiftBox and "CoupleRing" for VampireCoupleRing. Each class
+  > method keeps its own `__BEGIN_TRY` / `__END_CATCH` (the macro
+  > expands them), so the stack annotation still names the class; R5's
+  > drop is the grep counting one `#define` line where it counted 82
+  > matched lines — 81 expansions plus the old macro's own. Disclosures:
+  > END_DB's DBError.log line (and the const char* it throws) now names
+  > the repository method rather than the class — and the class name was
+  > the only thing there that identified the failing table, so a
+  > boot-time failure now needs the Stmt line executeQuery prints to
+  > cout; HolyWater's and BombMaterial's copies ran the same literals
+  > through executeQueryString — the seam's `%s` route yields the same
+  > bytes; Potion's two commented-out "DIST_DARKEDEN" connection lines
+  > are gone; the `DB.h` include is gone with the SQL; the Korean header
+  > comment is translated. Not enclosed: the 89 files under item/ that
+  > still carry SQL — the 87 registry classes' own create / tinysave /
+  > save / loader / info statements plus EventBall and SubInventory (the
+  > rest of the item milestone). `ItemInfoManager.cpp` holds the 87
+  > calls and no SQL. No fake tier; +1 integration test (PotionObject
+  > counted before and after two inserts at 31005/31007, the maximum
+  > pinned against the table's own MAX; the dump's rows sit at ItemID ≤
+  > 8).
+  > **Gear item classes (2026-09-02, stacked on the ItemIDRegistry
+  > round; item milestone round 2)**: the nine slayer gear classes with
+  > a Grade column — Ring, Bracelet, Necklace, Coat, Trouser, Shoes,
+  > Glove, Helm, Shield — R3 220→211 (R2/R5 unchanged). Each class runs
+  > the same seven statements: the create INSERT (a StringStream chain
+  > through executeQueryString), the tinysave "SET %s", the save UPDATE,
+  > the info manager's MAX(ItemType) and its 18-column SELECT, the
+  > creature loader's owner SELECT (12 columns, Storage IN(0, 1, 2, 3,
+  > 4, 9)) and the zone loader's zone SELECT (a StringStream chain, 11
+  > columns — it never named Grade). The literals differ per class only
+  > in the table name and in copy-paste whitespace ("Y,OptionType" in
+  > Necklace / Trouser / Shoes, "ReqAbility,ItemLevel" in Bracelet, ", 
+  > " before Coat's Grade value, "EnchantLevel = %d" in Glove), so a new
+  > **`ItemObjectRepository`** has one method set — insertGear /
+  > tinysaveGear / updateGear / loadMaxGearType / loadGearInfos /
+  > loadGearOfOwner / loadGearInZone — and a `GearTable` enum that
+  > selects the class's own seven literals from a spec table in the
+  > MySQL impl, byte-for-byte quirks included. The two StringStream
+  > chains are format strings there: every streamed expression maps to
+  > the conversion StringStream used for its type (DWORD/WORD through
+  > "%u" — uint/ushort overloads —, int through "%d", text as is), so
+  > the bytes on the wire are the same; the tinysave and save literals
+  > keep their "%ld" for the DWORD ids exactly as written, and every
+  > write parameter is typed to what the caller streamed (Coat, Trouser,
+  > Glove and Helm still pass `(int)getGrade()`, the others `getGrade()`
+  > — Grade_t is int either way). Rows are typed to the getters: the
+  > owner load's getDWORD ids / getBYTE x,y / getInt rest, the zone
+  > load's getInt for every numeric column, the info load's
+  > getInt/getString. The nine files were converted by one script
+  > (scratchpad-only; the resulting text is what is reviewed), each
+  > pattern required to match exactly once per file. Disclosures: the
+  > commented-out StringStream blocks inside save() and the creature
+  > loader — dead since the parameterized rewrite, each mentioning
+  > executeQueryString — are gone with the blocks they sat in (R3's grep
+  > is textual); `Statement* pStmt` declared uninitialised while END_DB
+  > deletes it (create / save / info / both loaders; Trouser's zone
+  > loader was the one initialised) — gone with the statements, the seam
+  > initialises (the SQL-free third-loader stub keeps its own); the info
+  > manager's MAX and SELECT shared one Statement, the seam uses one per
+  > call; the loaders now read the whole result before placing the first
+  > item where the originals interleaved (mysql_store_result had
+  > buffered the rows already), so an item-placement throw no longer
+  > leaks the Statement — the creature loader's UnsupportedError for a
+  > Monster/NPC owner and the zone loader's for stash/corpse storage
+  > did, and so did the zone loader's default-case Error; the creature
+  > loader's default case freed first (`SAFE_DELETE(pStmt); // by sigi`,
+  > gone with it); the create INSERT and the zone SELECT,
+  > StringStream-built and run through the uncapped executeQueryString,
+  > now go through executeQuery's 2048-byte format buffer — 188 and 161
+  > bytes of format plus a varchar(10) owner and a varchar(30) option
+  > field, so unreachable, but a new failure mode (Error("more buffer
+  > size needed...")) all the same; END_DB's DBError.log lines now name
+  > the repository method rather than the class. The third loader
+  > overload, load(StorageID_t, Inventory*), keeps its empty `BEGIN_DB
+  > {} END_DB(pStmt)` stub (no SQL; not touched) and so the DB.h include
+  > stays. Not enclosed: the other 80 item files with SQL (their own
+  > rounds: by live statement count 59 run these same seven with their
+  > own column sets, 13 add destroy / saveBullet / hasPartnerItem /
+  > setNewMotorcycle, PetItem adds savePetInfo, and seven —
+  > CarryingReceiver, Dermis, Fascia, Mitten, Persona, ShoulderArmor,
+  > WarItem — have an empty zone loader). ItemInfoManager.cpp holds only
+  > the registry calls, no SQL. No fake tier; +2 integration tests
+  > (every one of the nine tables: two rows of one owner inserted
+  > through the class's own INSERT literal, the owner load returning
+  > only the one in Storage IN(...) and the zone load only the one in
+  > Storage 5 / the zone id, the full UPDATE read back, the tinysave
+  > field write; every Info table's MAX against the table, its rows
+  > counted, and the first row pinned by Name / NextItemType /
+  > DowngradeRatio). Ids from 31000 up, cleaned in SetUp/TearDown.
+  > **Vampire/ousters gear (2026-09-02, stacked on the gear round; item
+  > milestone round 3)**: eight more classes of exactly the gear shape —
+  > VampireRing, VampireBracelet, VampireNecklace, OustersRing,
+  > OustersCoat, OustersCirclet, OustersPendent, OustersBoots — R3
+  > 211→203 (R2/R5 unchanged). Same seven statements, same twelve /
+  > eleven / eighteen columns, same getters and streamed expressions
+  > (checked per class by a script against the pre-conversion text — the
+  > script stays outside the repo; its output is what was reviewed — not
+  > by eye: the previous round's function diff printed only the
+  > neighbourhood of the first difference, which would have let two
+  > impostors through — VampireCoat's Info SELECT has sixteen columns
+  > and OustersStone's twenty, and both were converted and reverted
+  > before this commit; VampireEarring guards an
+  > `ifnull(MAX(ItemType),0)` — all three wait for a round that carries
+  > their own Info rows). `GearTable` gains eight enumerators, the spec
+  > table eight rows generated from the classes' original text (the nine
+  > existing rows regenerate byte-identical; their label comments gained
+  > the enumerator name), and the same transformer converted the eight
+  > call sites, each pattern required to match exactly once. Literal
+  > quirks kept: "Y,OptionType" in VampireRing's and VampireNecklace's
+  > owner SELECT, the Ousters loaders' `Ousters* pOusters` placement
+  > branches and the vampire loaders' wear-slot branches stay with the
+  > classes untouched. Disclosures: the same as the gear round — the
+  > seam initialises its Statement where the originals declared `pStmt`
+  > uninitialised (in create / save / info / both loaders in all eight;
+  > tinysave's `= NULL` is the family norm and Trouser's zone-loader one
+  > has no counterpart here), one Statement per info statement, the
+  > loaders read the whole result before placing the first item (an
+  > item-placement throw no longer leaks the Statement; the creature
+  > loader's `SAFE_DELETE(pStmt); // by sigi` inside the default case is
+  > gone with the statement), END_DB's DBError.log lines name the
+  > repository method, the create INSERT and the zone SELECT now pass
+  > through executeQuery's 2048-byte format buffer (195–199 and 168–172
+  > bytes of format plus a varchar(10) owner and a varchar(30) option
+  > field — unreachable, but the new failure mode all the same), the
+  > commented-out StringStream blocks in save() and the creature loader
+  > are gone with their blocks, the third loader's empty `BEGIN_DB {}
+  > END_DB(pStmt)` stub and the DB.h include stay. (The header counts
+  > families of the seam; these paragraphs count item-milestone rounds,
+  > ItemIDRegistry being round 1.) No new tests: the two ItemObjectMySQL
+  > tests iterate a table array and now cover seventeen tables (two rows
+  > through each class's own INSERT literal, the owner and zone loads,
+  > the UPDATE read back, the tinysave field write; every Info table's
+  > MAX and rows). Not enclosed: the other 72 item files with SQL;
+  > ItemInfoManager.cpp holds only the registry calls. The spec table's
+  > static_assert now reads GEAR_OUSTERS_BOOTS + 1.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

@@ -7,7 +7,7 @@
 #include "RankBonusInfo.h"
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/GameInfoRepository.h"
 // #include <algo.h>
 
 //////////////////////////////////////////////////////////////////////////////
@@ -89,47 +89,33 @@ void RankBonusInfoManager::load()
 
     clear();
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Type) FROM RankBonusInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in RankBonusInfo Table");
-        }
-
-        pResult->next();
-
-        m_Count = pResult->getInt(1) + 1;
-
-        Assert(m_Count > 0);
-
-        m_RankBonusInfoList = new RankBonusInfo*[m_Count];
-
-        for (uint i = 0; i < m_Count; i++)
-            m_RankBonusInfoList[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT Type, Name, `Rank`, Point, Race FROM RankBonusInfo");
-
-        while (pResult->next()) {
-            RankBonusInfo* pRankBonusInfo = new RankBonusInfo();
-            int i = 0;
-
-            pRankBonusInfo->setType(pResult->getInt(++i));
-            pRankBonusInfo->setName(pResult->getString(++i));
-            pRankBonusInfo->setRank(pResult->getInt(++i));
-            pRankBonusInfo->setPoint(pResult->getInt(++i));
-            pRankBonusInfo->setRace(pResult->getInt(++i));
-
-            addRankBonusInfo(pRankBonusInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxType = 0;
+    if (!defaultGameInfoRepository().loadMaxRankBonusType(maxType)) {
+        throw Error("There is no data in RankBonusInfo Table");
     }
-    END_DB(pStmt)
+
+    m_Count = maxType + 1;
+
+    Assert(m_Count > 0);
+
+    m_RankBonusInfoList = new RankBonusInfo*[m_Count];
+
+    for (uint i = 0; i < m_Count; i++)
+        m_RankBonusInfoList[i] = NULL;
+
+    vector<RankBonusInfoRow> rows = defaultGameInfoRepository().loadRankBonusInfos();
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        RankBonusInfo* pRankBonusInfo = new RankBonusInfo();
+
+        pRankBonusInfo->setType(rows[r].type);
+        pRankBonusInfo->setName(rows[r].name);
+        pRankBonusInfo->setRank(rows[r].rank);
+        pRankBonusInfo->setPoint(rows[r].point);
+        pRankBonusInfo->setRace(rows[r].race);
+
+        addRankBonusInfo(pRankBonusInfo);
+    }
 
     __END_DEBUG
     __END_CATCH

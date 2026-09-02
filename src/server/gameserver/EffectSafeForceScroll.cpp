@@ -6,11 +6,11 @@
 
 #include "EffectSafeForceScroll.h"
 
-#include "DB.h"
 #include "GCRemoveEffect.h"
 #include "PlayerCreature.h"
 #include "Timeval.h"
 #include "Zone.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -98,23 +98,13 @@ void EffectSafeForceScroll::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    Timeval currentTime;
+    getCurrentTime(currentTime);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    Timeval remainTime = timediff(m_Deadline, currentTime);
+    Turn_t remainTurn = remainTime.tv_sec * 10 + remainTime.tv_usec / 100000;
 
-        Timeval currentTime;
-        getCurrentTime(currentTime);
-
-        Timeval remainTime = timediff(m_Deadline, currentTime);
-        Turn_t remainTurn = remainTime.tv_sec * 10 + remainTime.tv_usec / 100000;
-
-        pStmt->executeQuery("INSERT INTO EffectSafeForceScroll (OwnerID, RemainTime ) VALUES('%s',%lu)",
-                            ownerID.c_str(), remainTurn);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertRemain(EFFECT_TABLE_SAFE_FORCE_SCROLL, ownerID, remainTurn);
 
     __END_CATCH
 }
@@ -126,16 +116,7 @@ void EffectSafeForceScroll::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("DELETE FROM EffectSafeForceScroll WHERE OwnerID = '%s'", ownerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteRemain(EFFECT_TABLE_SAFE_FORCE_SCROLL, ownerID);
 
     __END_CATCH
 }
@@ -147,23 +128,13 @@ void EffectSafeForceScroll::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    Timeval currentTime;
+    getCurrentTime(currentTime);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    Timeval remainTime = timediff(m_Deadline, currentTime);
+    Turn_t remainTurn = remainTime.tv_sec * 10 + remainTime.tv_usec / 100000;
 
-        Timeval currentTime;
-        getCurrentTime(currentTime);
-
-        Timeval remainTime = timediff(m_Deadline, currentTime);
-        Turn_t remainTurn = remainTime.tv_sec * 10 + remainTime.tv_usec / 100000;
-
-        pStmt->executeQuery("UPDATE EffectSafeForceScroll SET RemainTime = %lu WHERE OwnerID = '%s'", remainTurn,
-                            ownerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateRemain(EFFECT_TABLE_SAFE_FORCE_SCROLL, ownerID, remainTurn);
 
     __END_CATCH
 }
@@ -189,30 +160,21 @@ void EffectSafeForceScrollLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
+    DWORD storedRemainTurn = 0;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    if (defaultEffectSaveRepository().loadRemain(EFFECT_TABLE_SAFE_FORCE_SCROLL, pCreature->getName(),
+                                                 storedRemainTurn)) {
+        Turn_t remainTurn = storedRemainTurn;
 
-        Result* pResult = pStmt->executeQuery("SELECt RemainTime FROM EffectSafeForceScroll WHERE OwnerID = '%s'",
-                                              pCreature->getName().c_str());
+        Timeval currentTime;
+        getCurrentTime(currentTime);
 
-        if (pResult->next()) {
-            Turn_t remainTurn = pResult->getDWORD(1);
+        EffectSafeForceScroll* pEffect = new EffectSafeForceScroll(pCreature);
 
-            Timeval currentTime;
-            getCurrentTime(currentTime);
-
-            EffectSafeForceScroll* pEffect = new EffectSafeForceScroll(pCreature);
-
-            pEffect->setDeadline(remainTurn);
-            pCreature->addEffect(pEffect);
-            pCreature->setFlag(pEffect->getEffectClass());
-        }
-
-        SAFE_DELETE(pStmt);
+        pEffect->setDeadline(remainTurn);
+        pCreature->addEffect(pEffect);
+        pCreature->setFlag(pEffect->getEffectClass());
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

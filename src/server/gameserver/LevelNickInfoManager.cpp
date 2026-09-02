@@ -1,7 +1,7 @@
 #include "LevelNickInfoManager.h"
 
 #include "Creature.h"
-#include "DB.h"
+#include "repository/GameInfoRepository.h"
 
 void LevelNickInfoManager::clear() {
     unordered_map<Level_t, vector<LevelNickInfo*>>::iterator itr = m_LevelNickInfoMap.begin();
@@ -21,26 +21,17 @@ void LevelNickInfoManager::clear() {
 
 void LevelNickInfoManager::load() {
     clear();
-    Statement* pStmt;
+    vector<LevelNickRow> rows = defaultGameInfoRepository().loadLevelNicks();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT NickIndex, Race, Level10 FROM NicknameIndex WHERE NickType='LEVEL'");
+    for (size_t r = 0; r < rows.size(); r++) {
+        DWORD index = rows[r].nickIndex;
+        Race_t race = rows[r].race;
+        Level_t level10 = rows[r].level10;
 
-        while (pResult->next()) {
-            DWORD index = pResult->getInt(1);
-            Race_t race = pResult->getInt(2);
-            Level_t level10 = pResult->getInt(3);
+        LevelNickInfo* pInfo = new LevelNickInfo(race, level10, index);
 
-            LevelNickInfo* pInfo = new LevelNickInfo(race, level10, index);
-
-            m_LevelNickInfoMap[level10].push_back(pInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        m_LevelNickInfoMap[level10].push_back(pInfo);
     }
-    END_DB(pStmt)
 }
 
 bool LevelNickInfo::isFitRace(Creature* pCreature) const {

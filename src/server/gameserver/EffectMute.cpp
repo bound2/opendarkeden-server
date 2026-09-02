@@ -7,7 +7,6 @@
 #include "EffectMute.h"
 
 #include "Creature.h"
-#include "DB.h"
 #include "EventMorph.h"
 #include "EventRegeneration.h"
 #include "GCChangeDarkLight.h"
@@ -21,6 +20,7 @@
 #include "PCManager.h"
 #include "Slayer.h"
 #include "Vampire.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -108,23 +108,11 @@ void EffectMute::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        pStmt->executeQuery("INSERT INTO EffectMute (OwnerID , YearTime, DayTime) VALUES('%s', %ld, %ld)",
-                            ownerID.c_str(), currentYearTime, m_Deadline.tv_sec);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertDeadline(EFFECT_TABLE_MUTE, ownerID, currentYearTime, m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -137,21 +125,7 @@ void EffectMute::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-        sql << "DELETE FROM EffectMute WHERE OwnerID = '" << ownerID << "'";
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("DELETE FROM EffectMute WHERE OwnerID = '%s'", ownerID.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteDeadline(EFFECT_TABLE_MUTE, ownerID);
 
     __END_CATCH
 }
@@ -164,32 +138,11 @@ void EffectMute::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE EffectMute SET "
-            << "YearTime = " << currentYearTime
-            << ",DayTime = " << m_Deadline.tv_sec
-            << ", Level = " <<(int)m_Level
-            << " WHERE OwnerID = '" << ownerID << "'";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("UPDATE EffectMute SET YearTime=%ld, DayTime=%ld WHERE OwnerID='%s'", currentYearTime,
-                            m_Deadline.tv_sec, ownerID.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateDeadline(EFFECT_TABLE_MUTE, ownerID, currentYearTime, m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -218,37 +171,25 @@ void EffectMuteLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
+    vector<DWORD> dayTimes = defaultEffectSaveRepository().loadDeadlines(EFFECT_TABLE_MUTE, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < dayTimes.size(); r++) {
+        int DayTime = dayTimes[r];
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT DayTime FROM EffectMute WHERE OwnerID='%s'", pCreature->getName().c_str());
+        Timeval currentTime;
+        getCurrentTime(currentTime);
 
-        while (pResult->next()) {
-            uint i = 0;
+        EffectMute* pEffectMute = new EffectMute(pCreature);
 
-            int DayTime = pResult->getDWORD(++i);
+        if (currentTime.tv_sec < DayTime) {
+            pEffectMute->setDeadline((DayTime - currentTime.tv_sec) * 10);
 
-            Timeval currentTime;
-            getCurrentTime(currentTime);
-
-            EffectMute* pEffectMute = new EffectMute(pCreature);
-
-            if (currentTime.tv_sec < DayTime) {
-                pEffectMute->setDeadline((DayTime - currentTime.tv_sec) * 10);
-
-                pCreature->addEffect(pEffectMute);
-                pCreature->setFlag(Effect::EFFECT_CLASS_MUTE);
-            } else {
-                pEffectMute->destroy(pCreature->getName());
-            }
+            pCreature->addEffect(pEffectMute);
+            pCreature->setFlag(Effect::EFFECT_CLASS_MUTE);
+        } else {
+            pEffectMute->destroy(pCreature->getName());
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

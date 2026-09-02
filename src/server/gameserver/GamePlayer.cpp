@@ -13,7 +13,6 @@
 #include "BillingPlayerManager.h"
 #include "CGConnect.h"
 #include "Creature.h"
-#include "DB.h"
 #include "EventKick.h"
 #include "GCKickMessage.h"
 #include "GCSystemMessage.h"
@@ -40,6 +39,7 @@
 #include "VariableManager.h"
 #include "Zone.h"
 #include "chinabilling/CBillingInfo.h"
+#include "repository/SessionRepository.h"
 #ifdef __CONNECT_CBILLING_SYSTEM__
 #include "chinabilling/CBillingPlayerManager.h"
 #endif
@@ -71,8 +71,6 @@ static int SpeedCheckDelay = 60; // Ê±¼äÐ£Ñé¼ä¸ô60ÃëÒ»´Î
 
 const int PCRoomLottoSec = 3600;    // 3600 ÃÊ. 1½Ã°£
 const int PCRoomLottoMaxAmount = 3; // ÇÑ¹ø¿¡ ½×ÀÏ ¼ö ÀÖ´Â ÃÖ´ë º¹±Ç¼ö
-// CLLoginHandler.cpp¿¡ ÀÖ´Â ÇÔ¼ö´Ù.
-void addLogoutPlayerData(Player* pPlayer);
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -197,7 +195,6 @@ GamePlayer::~GamePlayer() {
             g_pCBillingPlayerManager->sendLogout(this);
 #endif
 
-            Statement* pStmt = NULL;
 
             // ±æµå ÇöÀç Á¢¼Ó ¸â¹ö ¸®½ºÆ®¿¡¼­ »èÁ¦ÇÑ´Ù.
             if (m_pCreature->isSlayer()) {
@@ -215,12 +212,7 @@ GamePlayer::~GamePlayer() {
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
                         // µðºñ¿¡ ¾÷µ¥ÀÌÆ® ÇÑ´Ù.
-                        BEGIN_DB {
-                            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                            pStmt->executeQuery("UPDATE GuildMember SET LogOn = 0 WHERE Name = '%s'",
-                                                pSlayer->getName().c_str());
-                        }
-                        END_DB(pStmt)
+                        defaultSessionRepository().markGuildMemberLoggedOff(pSlayer->getName());
                     } else
                         filelog("GuildMissing.log", "[NoSuchGuild] GuildID : %d, Name : %s\n",
                                 (int)pSlayer->getGuildID(), pSlayer->getName().c_str());
@@ -240,12 +232,7 @@ GamePlayer::~GamePlayer() {
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
                         // µðºñ¿¡ ¾÷µ¥ÀÌÆ® ÇÑ´Ù.
-                        BEGIN_DB {
-                            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                            pStmt->executeQuery("UPDATE GuildMember SET LogOn = 0 WHERE Name = '%s'",
-                                                pVampire->getName().c_str());
-                        }
-                        END_DB(pStmt)
+                        defaultSessionRepository().markGuildMemberLoggedOff(pVampire->getName());
                     } else
                         filelog("GuildMissing.log", "[NoSuchGuild] GuildID : %d, Name : %s\n",
                                 (int)pVampire->getGuildID(), pVampire->getName().c_str());
@@ -265,12 +252,7 @@ GamePlayer::~GamePlayer() {
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
                         // µðºñ¿¡ ¾÷µ¥ÀÌÆ® ÇÑ´Ù.
-                        BEGIN_DB {
-                            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                            pStmt->executeQuery("UPDATE GuildMember SET LogOn = 0 WHERE Name = '%s'",
-                                                pOusters->getName().c_str());
-                        }
-                        END_DB(pStmt)
+                        defaultSessionRepository().markGuildMemberLoggedOff(pOusters->getName());
                     } else
                         filelog("GuildMissing.log", "[NoSuchGuild] GuildID : %d, Name : %s\n",
                                 (int)pOusters->getGuildID(), pOusters->getName().c_str());
@@ -729,48 +711,18 @@ void GamePlayer::disconnect(bool bDisconnected) {
     // ¾ÆÀÌµð°¡ ¼³Á¤µÇ¾ú´Ù´Â ¶æÀº, ·Î±×ÀÎÀÌ ÀÌ·ç¾îÁ³´Ù´Â ¶æÀÌ´Ù.
     //--------------------------------------------------------------------------------
     if (m_ID != "") {
-        Statement* pStmt1 = NULL;
-        Statement* pStmt2 = NULL;
+        // Only a session still in GAME flips to LOGOFF. by sigi. 2002.5.15
+        defaultSessionRepository().markPlayerLoggedOff(m_ID);
 
-        BEGIN_DB {
-            //            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // ·Î±×¿ÀÇÁ·Î º¯°æÇÑ´Ù.
-            // pStmt1 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt1 = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-            // LogOnÀÌ GAME»óÅÂÀÎ °æ¿ì¸¸ LOGOFF·Î ¹Ù²Û´Ù. by sigi. 2002.5.15
-            pStmt1->executeQuery(
-                "UPDATE Player SET LogOn='LOGOFF', LastLogoutDate=now() WHERE PlayerID = '%s' AND LogOn='GAME'",
-                m_ID.c_str());
-
-            // LogoutPlayerData ¿¡ Ãß°¡ÇÑ´Ù.
-            //	addLogoutPlayerData(this);
-
-            if (pStmt1->getAffectedRowCount() == 0) {
-                // ÀÌ¹Ì LOGOFF°Å³ª
-                // LOGON»óÅÂÀÎ°¡?
-                // ÀÌ·² ¼ö ÀÖÀ»±î? -_-;
-            }
-
-            // ºô¸µ by sigi. 2002.5.31
+        // Billing. by sigi. 2002.5.31
 #if defined(__PAY_SYSTEM_LOGIN__) || defined(__PAY_SYSTEM_ZONE__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-            if (isPayPlaying() || isPremiumPlay()) {
-                logoutPayPlay(m_ID);
-            }
+        if (isPayPlaying() || isPremiumPlay()) {
+            logoutPayPlay(m_ID);
+        }
 #endif
 
-
-            SAFE_DELETE(pStmt1);
-        }
-        END_DB(pStmt1)
-        BEGIN_DB {
-            // IP Á¤º¸¸¦ »èÁ¦ÇØ ÁØ´Ù.
-            pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt2->executeQuery("DELETE FROM UserIPInfo WHERE Name = '%s'", CreatureName.c_str());
-
-            SAFE_DELETE(pStmt2);
-        }
-        END_DB(pStmt2)
+        // Delete the IP record.
+        defaultSessionRepository().deleteUserIP(CreatureName);
     }
 
     // login¼­¹ö·Î °¡¶ó°í client¿¡°Ô º¸³½´Ù.
@@ -1314,27 +1266,11 @@ bool GamePlayer::verifySpeed(Packet* pPacket) {
 void GamePlayer::loadSpecialEventCount(void) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        //		pStmt   = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-        pResult = pStmt->executeQuery("SELECT SpecialEventCount FROM Player WHERE PlayerID='%s'", m_ID.c_str());
-
-        if (pResult->getRowCount() != 0) {
-            pResult->next();
-            m_SpecialEventCount = pResult->getDWORD(1);
-        } else {
-            SAFE_DELETE(pStmt);
-            throw("GamePlayer::loadSpecialEventCount() : unable to dispatch data");
-            return;
-        }
-
-        SAFE_DELETE(pStmt);
+    DWORD count = 0;
+    if (!defaultSessionRepository().loadSpecialEventCount(m_ID, count)) {
+        throw("GamePlayer::loadSpecialEventCount() : unable to dispatch data");
     }
-    END_DB(pStmt);
+    m_SpecialEventCount = count;
 
     __END_CATCH
 }
@@ -1342,17 +1278,7 @@ void GamePlayer::loadSpecialEventCount(void) {
 void GamePlayer::saveSpecialEventCount(void) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-        //		pStmt = g_pDatabaseManager->getConnection( (int)Thread::self() )->createStatement();
-
-        pStmt->executeQuery("UPDATE Player SET SpecialEventCount=%d WHERE PlayerID='%s'", m_SpecialEventCount,
-                            m_ID.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt);
+    defaultSessionRepository().saveSpecialEventCount(m_SpecialEventCount, m_ID);
 
     __END_CATCH
 }
@@ -1549,40 +1475,6 @@ bool GamePlayer::isPayPlaying() const {
 #endif
 }
 
-//////////////////////////////////////////////////////////////////////////////
-//
-// add LogoutPlayerdata
-//
-// Á¢¼ÓÀÚ Åë°è¸¦ À§ÇØ¼­
-// UserInfo DBÀÇ LogoutPlayerData¿¡ LogoutÇÑ »ç¿ëÀÚ¸¦ Ãß°¡ÇÑ´Ù.
-//
-//////////////////////////////////////////////////////////////////////////////
-void addLogoutPlayerData(Player* pPlayer) {
-    Statement* pStmt = NULL;
-
-    pStmt = g_pDatabaseManager->getUserInfoConnection()->createStatement();
-
-    // À¯Àú Åë°è °ü·Ã Á¤º¸¸¦ ÀÔ·ÂÇÑ´Ù.
-    BEGIN_DB {
-        string ID = pPlayer->getID();
-        string ip = pPlayer->getSocket()->getHost();
-
-        // ¸ÕÀú ÇöÀç ½Ã°£À» ¾ò¾î³½´Ù.
-        int year, month, day, hour, minute, second;
-        getCurrentTimeEx(year, month, day, hour, minute, second);
-        string currentDT = VSDateTime::currentDateTime().toDateTime();
-
-        StringStream sql;
-        sql << "INSERT INTO USERINFO.LogoutPlayerData (PlayerID,IP,Date,Time) VALUES ('" << ID << "','" << ip << "','"
-            << currentDT.substr(0, 10).c_str() << "','" << currentDT.substr(11).c_str() << "')";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-}
-
 void GamePlayer::setPCRoomLottoStartTime() {
     if (!g_pVariableManager->isPCRoomLottoEvent())
         return;
@@ -1633,50 +1525,37 @@ void GamePlayer::giveLotto() {
     if (m_pCreature == NULL)
         return;
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    static uint DimensionID = g_pConfig->getPropertyInt("Dimension");
+    static uint WorldID = g_pConfig->getPropertyInt("WorldID");
+    string PlayerID = getID();
+    string Name = m_pCreature->getName();
+    Race_t Race = m_pCreature->getRace();
+    int Amount = 0;
 
-    BEGIN_DB {
-        static uint DimensionID = g_pConfig->getPropertyInt("Dimension");
-        static uint WorldID = g_pConfig->getPropertyInt("WorldID");
-        string PlayerID = getID();
-        string Name = m_pCreature->getName();
-        Race_t Race = m_pCreature->getRace();
-        int Amount = 0;
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-        pResult = pStmt->executeQuery("SELECT Amount FROM PCRoomLottoObject WHERE PlayerID = '%s' AND Name = '%s' AND "
-                                      "DimensionID = %u AND WorldID = %u",
-                                      PlayerID.c_str(), Name.c_str(), DimensionID, WorldID);
+    SessionRepository& repository = defaultSessionRepository();
 
-        if (pResult->next()) {
-            Amount = pResult->getInt(1);
-
-            if (Amount < PCRoomLottoMaxAmount) {
-                pStmt->executeQuery("UPDATE PCRoomLottoObject SET Amount = %d WHERE PlayerID = '%s' AND Name = '%s' "
-                                    "AND DimensionID = %u AND WorldID = %u",
-                                    Amount + 1, PlayerID.c_str(), Name.c_str(), DimensionID, WorldID);
-            }
-        } else {
-            // º¹±ÇÀÌ ¾ø¾ú´Ù. »õ·Î ³Ö¾îÁØ´Ù.
-            pStmt->executeQuery("INSERT INTO PCRoomLottoObject VALUES ( 0, %u, '%s', %u, %u, '%s', %u, 1 )", m_PCRoomID,
-                                PlayerID.c_str(), DimensionID, WorldID, Name.c_str(), Race);
-        }
-
+    if (repository.loadPCRoomLottoAmount(PlayerID, Name, DimensionID, WorldID, Amount)) {
         if (Amount < PCRoomLottoMaxAmount) {
-            char msg[100];
-            sprintf(msg, g_pStringPool->c_str(STRID_GIVE_LOTTO), Amount + 1);
+            repository.updatePCRoomLottoAmount(Amount + 1, PlayerID, Name, DimensionID, WorldID);
+        }
+    } else {
+        // No lotto row yet: insert one.
+        repository.insertPCRoomLotto(m_PCRoomID, PlayerID, DimensionID, WorldID, Name, Race);
+    }
 
-            GCSystemMessage gcMsg;
-            gcMsg.setMessage(msg);
+    if (Amount < PCRoomLottoMaxAmount) {
+        char msg[100];
+        sprintf(msg, g_pStringPool->c_str(STRID_GIVE_LOTTO), Amount + 1);
+
+        GCSystemMessage gcMsg;
+        gcMsg.setMessage(msg);
+        sendPacket(&gcMsg);
+
+        if (Amount >= PCRoomLottoMaxAmount - 1) {
+            gcMsg.setMessage(g_pStringPool->getString(STRID_CANNOT_GIVE_LOTTO));
             sendPacket(&gcMsg);
-
-            if (Amount >= PCRoomLottoMaxAmount - 1) {
-                gcMsg.setMessage(g_pStringPool->getString(STRID_CANNOT_GIVE_LOTTO));
-                sendPacket(&gcMsg);
-            }
         }
     }
-    END_DB(pStmt)
 }
 
 bool GamePlayer::startPacketLog(uint sec) {

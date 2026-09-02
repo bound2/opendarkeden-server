@@ -9,7 +9,7 @@
 #include <algo.h>
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/BalanceInfoRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variable initialization
@@ -92,50 +92,35 @@ void RankEXPInfoManager::load(RankType rankType)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL; // by sigi
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Level) FROM RankEXPInfo WHERE RankType=%d", (int)rankType);
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in RankEXPInfo Table");
-        }
-
-        // 전체 갯수를 세팅한다.
-        pResult->next();
-        m_RankEXPCount = pResult->getInt(1) + 1;
-
-        Assert(m_RankEXPCount > 0);
-
-        m_RankEXPInfoList = new RankEXPInfo*[m_RankEXPCount];
-        Assert(m_RankEXPInfoList != NULL);
-
-        // 배열을 초기화
-        for (uint i = 0; i < m_RankEXPCount; i++)
-            m_RankEXPInfoList[i] = NULL;
-
-        // 데이터를 집어넣는다.
-        pResult =
-            pStmt->executeQuery("Select Level, GoalExp, AccumExp from RankEXPInfo WHERE RankType=%d", (int)rankType);
-        while (pResult->next()) {
-            RankEXPInfo* pRankEXPInfo = new RankEXPInfo();
-            Assert(pRankEXPInfo != NULL);
-
-            int i = 0;
-
-            pRankEXPInfo->setLevel(pResult->getInt(++i));
-            pRankEXPInfo->setGoalExp(pResult->getInt(++i));
-            pRankEXPInfo->setAccumExp(pResult->getInt(++i));
-
-            addRankEXPInfo(pRankEXPInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxLevel = 0;
+    if (!defaultBalanceInfoRepository().loadMaxRankLevel((int)rankType, maxLevel)) {
+        throw Error("There is no data in RankEXPInfo Table");
     }
-    END_DB(pStmt)
+
+    // Size the table from the highest level.
+    m_RankEXPCount = maxLevel + 1;
+
+    Assert(m_RankEXPCount > 0);
+
+    m_RankEXPInfoList = new RankEXPInfo*[m_RankEXPCount];
+    Assert(m_RankEXPInfoList != NULL);
+
+    // Clear the array.
+    for (uint i = 0; i < m_RankEXPCount; i++)
+        m_RankEXPInfoList[i] = NULL;
+
+    // Fill in the rows.
+    vector<LevelExpRow> rows = defaultBalanceInfoRepository().loadRankLevels((int)rankType);
+    for (size_t r = 0; r < rows.size(); r++) {
+        RankEXPInfo* pRankEXPInfo = new RankEXPInfo();
+        Assert(pRankEXPInfo != NULL);
+
+        pRankEXPInfo->setLevel(rows[r].level);
+        pRankEXPInfo->setGoalExp(rows[r].goalExp);
+        pRankEXPInfo->setAccumExp(rows[r].accumExp);
+
+        addRankEXPInfo(pRankEXPInfo);
+    }
 
     __END_CATCH
 }

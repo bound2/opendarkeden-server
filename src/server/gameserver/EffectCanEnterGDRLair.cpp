@@ -7,7 +7,6 @@
 #include "EffectCanEnterGDRLair.h"
 
 #include "Creature.h"
-#include "DB.h"
 #include "GCModifyInformation.h"
 #include "GCRemoveEffect.h"
 #include "Monster.h"
@@ -15,6 +14,7 @@
 #include "Player.h"
 #include "Slayer.h"
 #include "Vampire.h"
+#include "repository/EffectSaveRepository.h"
 
 EffectCanEnterGDRLair::EffectCanEnterGDRLair(Creature* pCreature)
 
@@ -80,35 +80,12 @@ void EffectCanEnterGDRLair::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        /*
-        StringStream sql;
-        sql << "INSERT INTO CanEnterGDRLair "
-            << "(OwnerID , YearTime, DayTime, EnemyName)"
-            << " VALUES ('" << ownerID
-            << "' , " << currentYearTime
-            << " , " << m_Deadline.tv_sec
-            << " , '" << m_EnemyName
-            << "')";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        // StringStream제거. by sigi. 2002.5.8
-        pStmt->executeQuery("INSERT INTO CanEnterGDRLair (OwnerID , YearTime, DayTime) VALUES ('%s', %ld, %ld)",
-                            ownerID.c_str(), currentYearTime, m_Deadline.tv_sec);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertDeadline(EFFECT_TABLE_CAN_ENTER_GDR_LAIR, ownerID, currentYearTime,
+                                                 m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -118,17 +95,7 @@ void EffectCanEnterGDRLair::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // StringStream제거. by sigi. 2002.5.8
-        pStmt->executeQuery("DELETE FROM CanEnterGDRLair WHERE OwnerID = '%s'", ownerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteDeadline(EFFECT_TABLE_CAN_ENTER_GDR_LAIR, ownerID);
 
     __END_CATCH
 }
@@ -138,21 +105,12 @@ void EffectCanEnterGDRLair::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        pStmt->executeQuery("UPDATE CanEnterGDRLair SET YearTime = %ld, DayTime = %ld WHERE OwnerID = '%s'",
-                            currentYearTime, m_Deadline.tv_sec, ownerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateDeadline(EFFECT_TABLE_CAN_ENTER_GDR_LAIR, ownerID, currentYearTime,
+                                                 m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -177,50 +135,28 @@ void EffectCanEnterGDRLairLoader::load(Creature* pCreature)
         return;
     }
 
-    Statement* pStmt;
+    vector<DWORD> dayTimes =
+        defaultEffectSaveRepository().loadDeadlines(EFFECT_TABLE_CAN_ENTER_GDR_LAIR, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < dayTimes.size(); r++) {
+        int DayTime = dayTimes[r];
 
-        /*
-        StringStream sql;
+        Timeval currentTime;
+        getCurrentTime(currentTime);
 
-        sql << "SELECT DayTime, EnemyName FROM CanEnterGDRLair"
-            << " WHERE OwnerID = '" << pCreature->getName()
-            << "'";
+        EffectCanEnterGDRLair* pEffectCanEnterGDRLair = new EffectCanEnterGDRLair(pCreature);
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+        EffectManager* pEffectManager = pCreature->getEffectManager();
 
-        // StringStream제거. by sigi. 2002.5.8
-        Result* pResult = pStmt->executeQuery("SELECT DayTime FROM CanEnterGDRLair WHERE OwnerID = '%s'",
-                                              pCreature->getName().c_str());
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            int DayTime = pResult->getDWORD(++i);
-
-            Timeval currentTime;
-            getCurrentTime(currentTime);
-
-            EffectCanEnterGDRLair* pEffectCanEnterGDRLair = new EffectCanEnterGDRLair(pCreature);
-
-            EffectManager* pEffectManager = pCreature->getEffectManager();
-
-            if (currentTime.tv_sec < DayTime) {
-                pEffectCanEnterGDRLair->setDeadline((DayTime - currentTime.tv_sec) * 10);
-            } else {
-                pEffectCanEnterGDRLair->setDeadline(100);
-            }
-
-            pEffectManager->addEffect(pEffectCanEnterGDRLair);
-            pCreature->setFlag(pEffectCanEnterGDRLair->getEffectClass());
+        if (currentTime.tv_sec < DayTime) {
+            pEffectCanEnterGDRLair->setDeadline((DayTime - currentTime.tv_sec) * 10);
+        } else {
+            pEffectCanEnterGDRLair->setDeadline(100);
         }
 
-        SAFE_DELETE(pStmt);
+        pEffectManager->addEffect(pEffectCanEnterGDRLair);
+        pCreature->setFlag(pEffectCanEnterGDRLair->getEffectClass());
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

@@ -81,13 +81,13 @@
 #include <list>
 
 #include "Assert.h"
-#include "DB.h"
 #include "DynamicZone.h"
 #include "GuildManager.h"
 #include "GuildUnion.h"
 #include "LogClient.h"
 #include "PCFinder.h"
 #include "Store.h"
+#include "repository/PlayRecordRepository.h"
 
 void sendGCOtherModifyInfoGuildUnionByGuildID(uint gID)
 
@@ -1169,30 +1169,11 @@ void sendGCMiniGameScores(PlayerCreature* pPC, BYTE gameType, BYTE Level) {
     gcMGS.setGameType((GameType)gameType);
     gcMGS.setLevel(Level);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT Name, Score FROM MiniGameScores WHERE Type=%u AND Level=%u LIMIT 1", gameType, Level);
-
-        // UPDATE인 경우는 Result* 대신에.. pStmt->getAffectedRowCount()
-        if (pResult->next()) {
-            gcMGS.addScore(pResult->getString(1), pResult->getInt(2));
-        }
-
-        /*		pResult = pStmt->executeQuery(
-                        "SELECT Score FROM MiniGameScores WHERE Type=%u AND Level=%u AND Name='%s' LIMIT 1",
-                            gameType, Level, pPC->getName().c_str() );
-
-                if (pResult->next())
-                {
-                    gcMGS.addScore( pPC->getName(), pResult->getInt(1) );
-                }*/
-
-        SAFE_DELETE(pStmt);
+    string name;
+    int score = 0;
+    if (defaultPlayRecordRepository().loadMiniGameScore(gameType, Level, name, score)) {
+        gcMGS.addScore(name, score);
     }
-    END_DB(pStmt)
 
     pPC->getPlayer()->sendPacket(&gcMGS);
 }

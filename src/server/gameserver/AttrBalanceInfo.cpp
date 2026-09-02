@@ -9,7 +9,7 @@
 #include <algo.h>
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/BalanceInfoRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // Global Variable initialization
@@ -92,49 +92,35 @@ void STRBalanceInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL; // by sigi
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Level) FROM STRBalanceInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in STRBalanceInfo Table");
-        }
-
-        // 전체 갯수를 세팅한다.
-        pResult->next();
-        m_STRBalanceCount = pResult->getInt(1) + 1;
-
-        Assert(m_STRBalanceCount > 0);
-
-        m_STRBalanceInfoList = new STRBalanceInfo*[m_STRBalanceCount];
-        Assert(m_STRBalanceInfoList != NULL);
-
-        // 배열을 초기화
-        for (uint i = 0; i < m_STRBalanceCount; i++)
-            m_STRBalanceInfoList[i] = NULL;
-
-        // 데이터를 집어넣는다.
-        pResult = pStmt->executeQuery("Select Level, GoalExp, AccumExp from STRBalanceInfo ");
-        while (pResult->next()) {
-            STRBalanceInfo* pSTRBalanceInfo = new STRBalanceInfo();
-            Assert(pSTRBalanceInfo != NULL);
-
-            int i = 0;
-
-            pSTRBalanceInfo->setLevel(pResult->getInt(++i));
-            pSTRBalanceInfo->setGoalExp(pResult->getInt(++i));
-            pSTRBalanceInfo->setAccumExp(pResult->getInt(++i));
-
-            addSTRBalanceInfo(pSTRBalanceInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxLevel = 0;
+    if (!defaultBalanceInfoRepository().loadMaxLevel(LEVEL_EXP_TABLE_STR, maxLevel)) {
+        throw Error("There is no data in STRBalanceInfo Table");
     }
-    END_DB(pStmt)
+
+    // Size the table from the highest level.
+    m_STRBalanceCount = maxLevel + 1;
+
+    Assert(m_STRBalanceCount > 0);
+
+    m_STRBalanceInfoList = new STRBalanceInfo*[m_STRBalanceCount];
+    Assert(m_STRBalanceInfoList != NULL);
+
+    // Clear the array.
+    for (uint i = 0; i < m_STRBalanceCount; i++)
+        m_STRBalanceInfoList[i] = NULL;
+
+    // Fill in the rows.
+    vector<LevelExpRow> rows = defaultBalanceInfoRepository().loadLevels(LEVEL_EXP_TABLE_STR);
+    for (size_t r = 0; r < rows.size(); r++) {
+        STRBalanceInfo* pSTRBalanceInfo = new STRBalanceInfo();
+        Assert(pSTRBalanceInfo != NULL);
+
+        pSTRBalanceInfo->setLevel(rows[r].level);
+        pSTRBalanceInfo->setGoalExp(rows[r].goalExp);
+        pSTRBalanceInfo->setAccumExp(rows[r].accumExp);
+
+        addSTRBalanceInfo(pSTRBalanceInfo);
+    }
 
     __END_CATCH
 }
@@ -265,49 +251,35 @@ void DEXBalanceInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL; // by sigi
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Level) FROM DEXBalanceInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in DEXBalanceInfo Table");
-        }
-
-        // 전체 갯수를 세팅한다.
-        pResult->next();
-        m_DEXBalanceCount = pResult->getInt(1) + 1;
-
-        Assert(m_DEXBalanceCount > 0);
-
-        m_DEXBalanceInfoList = new DEXBalanceInfo*[m_DEXBalanceCount];
-        Assert(m_DEXBalanceInfoList != NULL);
-
-        // 배열을 초기화
-        for (uint i = 0; i < m_DEXBalanceCount; i++)
-            m_DEXBalanceInfoList[i] = NULL;
-
-        // 데이터를 집어넣는다.
-        pResult = pStmt->executeQuery("Select Level, GoalExp, AccumExp from DEXBalanceInfo ");
-        while (pResult->next()) {
-            DEXBalanceInfo* pDEXBalanceInfo = new DEXBalanceInfo();
-            Assert(pDEXBalanceInfo != NULL);
-
-            int i = 0;
-
-            pDEXBalanceInfo->setLevel(pResult->getInt(++i));
-            pDEXBalanceInfo->setGoalExp(pResult->getInt(++i));
-            pDEXBalanceInfo->setAccumExp(pResult->getInt(++i));
-
-            addDEXBalanceInfo(pDEXBalanceInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxLevel = 0;
+    if (!defaultBalanceInfoRepository().loadMaxLevel(LEVEL_EXP_TABLE_DEX, maxLevel)) {
+        throw Error("There is no data in DEXBalanceInfo Table");
     }
-    END_DB(pStmt)
+
+    // Size the table from the highest level.
+    m_DEXBalanceCount = maxLevel + 1;
+
+    Assert(m_DEXBalanceCount > 0);
+
+    m_DEXBalanceInfoList = new DEXBalanceInfo*[m_DEXBalanceCount];
+    Assert(m_DEXBalanceInfoList != NULL);
+
+    // Clear the array.
+    for (uint i = 0; i < m_DEXBalanceCount; i++)
+        m_DEXBalanceInfoList[i] = NULL;
+
+    // Fill in the rows.
+    vector<LevelExpRow> rows = defaultBalanceInfoRepository().loadLevels(LEVEL_EXP_TABLE_DEX);
+    for (size_t r = 0; r < rows.size(); r++) {
+        DEXBalanceInfo* pDEXBalanceInfo = new DEXBalanceInfo();
+        Assert(pDEXBalanceInfo != NULL);
+
+        pDEXBalanceInfo->setLevel(rows[r].level);
+        pDEXBalanceInfo->setGoalExp(rows[r].goalExp);
+        pDEXBalanceInfo->setAccumExp(rows[r].accumExp);
+
+        addDEXBalanceInfo(pDEXBalanceInfo);
+    }
 
     __END_CATCH
 }
@@ -438,50 +410,36 @@ void INTBalanceInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL; // by sigi
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Level) FROM INTBalanceInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in INTBalanceInfo Table");
-        }
-
-        // 전체 갯수를 세팅한다.
-        pResult->next();
-        m_INTBalanceCount = pResult->getInt(1) + 1;
-
-        Assert(m_INTBalanceCount > 0);
-
-        m_INTBalanceInfoList = new INTBalanceInfo*[m_INTBalanceCount];
-
-        Assert(m_INTBalanceInfoList != NULL);
-
-        // 배열을 초기화
-        for (uint i = 0; i < m_INTBalanceCount; i++)
-            m_INTBalanceInfoList[i] = NULL;
-
-        // 데이터를 집어넣는다.
-        pResult = pStmt->executeQuery("Select Level, GoalExp, AccumExp from INTBalanceInfo ");
-        while (pResult->next()) {
-            INTBalanceInfo* pINTBalanceInfo = new INTBalanceInfo();
-            Assert(pINTBalanceInfo != NULL);
-
-            int i = 0;
-
-            pINTBalanceInfo->setLevel(pResult->getInt(++i));
-            pINTBalanceInfo->setGoalExp(pResult->getInt(++i));
-            pINTBalanceInfo->setAccumExp(pResult->getInt(++i));
-
-            addINTBalanceInfo(pINTBalanceInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxLevel = 0;
+    if (!defaultBalanceInfoRepository().loadMaxLevel(LEVEL_EXP_TABLE_INT, maxLevel)) {
+        throw Error("There is no data in INTBalanceInfo Table");
     }
-    END_DB(pStmt)
+
+    // Size the table from the highest level.
+    m_INTBalanceCount = maxLevel + 1;
+
+    Assert(m_INTBalanceCount > 0);
+
+    m_INTBalanceInfoList = new INTBalanceInfo*[m_INTBalanceCount];
+
+    Assert(m_INTBalanceInfoList != NULL);
+
+    // Clear the array.
+    for (uint i = 0; i < m_INTBalanceCount; i++)
+        m_INTBalanceInfoList[i] = NULL;
+
+    // Fill in the rows.
+    vector<LevelExpRow> rows = defaultBalanceInfoRepository().loadLevels(LEVEL_EXP_TABLE_INT);
+    for (size_t r = 0; r < rows.size(); r++) {
+        INTBalanceInfo* pINTBalanceInfo = new INTBalanceInfo();
+        Assert(pINTBalanceInfo != NULL);
+
+        pINTBalanceInfo->setLevel(rows[r].level);
+        pINTBalanceInfo->setGoalExp(rows[r].goalExp);
+        pINTBalanceInfo->setAccumExp(rows[r].accumExp);
+
+        addINTBalanceInfo(pINTBalanceInfo);
+    }
 
     __END_CATCH
 }

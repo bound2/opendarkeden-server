@@ -7,8 +7,8 @@
 #include "BloodBibleBonusManager.h"
 
 #include "BloodBibleBonus.h"
-#include "DB.h"
 #include "GCHolyLandBonusInfo.h"
+#include "repository/GameInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class BloodBibleBonusManager member methods
@@ -67,41 +67,27 @@ void BloodBibleBonusManager::load()
 
     clear();
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(Type) FROM BloodBibleBonusInfo");
-
-        if (pResult->getRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("There is no data in BloodBibleBonusInfo Table");
-        }
-
-        pResult->next();
-
-        m_Count = pResult->getInt(1) + 1;
-
-        Assert(m_Count > 0);
-
-        pResult = pStmt->executeQuery("SELECT Type, Name, OptionList FROM BloodBibleBonusInfo");
-
-        while (pResult->next()) {
-            BloodBibleBonus* pBloodBibleBonus = new BloodBibleBonus();
-            int i = 0;
-
-            pBloodBibleBonus->setType(pResult->getInt(++i));
-            pBloodBibleBonus->setName(pResult->getString(++i));
-            pBloodBibleBonus->setOptionTypeList(pResult->getString(++i));
-            pBloodBibleBonus->setRace(0);
-
-            addBloodBibleBonus(pBloodBibleBonus);
-        }
-
-        SAFE_DELETE(pStmt);
+    int maxType = 0;
+    if (!defaultGameInfoRepository().loadMaxBloodBibleBonusType(maxType)) {
+        throw Error("There is no data in BloodBibleBonusInfo Table");
     }
-    END_DB(pStmt)
+
+    m_Count = maxType + 1;
+
+    Assert(m_Count > 0);
+
+    vector<BloodBibleBonusRow> rows = defaultGameInfoRepository().loadBloodBibleBonuses();
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        BloodBibleBonus* pBloodBibleBonus = new BloodBibleBonus();
+
+        pBloodBibleBonus->setType(rows[r].type);
+        pBloodBibleBonus->setName(rows[r].name);
+        pBloodBibleBonus->setOptionTypeList(rows[r].optionList);
+        pBloodBibleBonus->setRace(0);
+
+        addBloodBibleBonus(pBloodBibleBonus);
+    }
 
     __END_DEBUG
     __END_CATCH

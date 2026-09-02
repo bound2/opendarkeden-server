@@ -30,7 +30,6 @@
 #include "billing/BillingInfo.h"
 // #include "UserGateway.h"
 #include "BroadcastFilter.h"
-#include "DB.h"
 #include "DefaultOptionSetInfo.h"
 #include "GCKickMessage.h"
 #include "GCSystemMessage.h"
@@ -39,6 +38,7 @@
 #include "VariableManager.h"
 #include "ZoneGroup.h"
 #include "chinabilling/CBillingInfo.h"
+#include "repository/MessageRepository.h"
 
 #ifdef __THAILAND_SERVER__
 
@@ -664,26 +664,16 @@ void ZonePlayerManager::processCommands() {
                                 // 클라이언트에 유료 사용이 끝났다는 메시지를 출력하도록한다.
                                 // 일단 무료존으로 이동하게 되므로 지금 보내줘서는 소용이 없다.
                                 // 새로운 존에 들어가서 메시지를 받도록 한다.
-                                Statement* pStmt = NULL;
+                                uint strID = STRID_END_PAY_PLAY;
 
-                                BEGIN_DB {
-                                    uint strID = STRID_END_PAY_PLAY;
+                                // The message for a move to a free zone because a family plan ended.
+                                if (pTempPlayer->isFamilyFreePassEnd())
+                                    strID = STRID_FAMILY_FREE_PLAY_END;
 
-                                    // 패밀리 요금제 해제로 인한 무료존 이동시 메시지
-                                    if (pTempPlayer->isFamilyFreePassEnd())
-                                        strID = STRID_FAMILY_FREE_PLAY_END;
+                                defaultMessageRepository().insertMessage(pPC->getName(), g_pStringPool->c_str(strID));
 
-                                    pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                                    pStmt->executeQuery(
-                                        "INSERT INTO Messages ( Receiver, Message ) VALUES ( '%s', '%s')",
-                                        pPC->getName().c_str(), g_pStringPool->c_str(strID));
-
-                                    if (pCreature->isFlag(Effect::EFFECT_CLASS_LOGIN_GUILD_MESSAGE))
-                                        pCreature->removeFlag(Effect::EFFECT_CLASS_LOGIN_GUILD_MESSAGE);
-
-                                    SAFE_DELETE(pStmt);
-                                }
-                                END_DB(pStmt)
+                                if (pCreature->isFlag(Effect::EFFECT_CLASS_LOGIN_GUILD_MESSAGE))
+                                    pCreature->removeFlag(Effect::EFFECT_CLASS_LOGIN_GUILD_MESSAGE);
 
                                 // 무료존으로 옮긴다.
                                 if (g_pResurrectLocationManager->getRaceDefaultPosition(pPC->getRace(), zoneCoord)) {

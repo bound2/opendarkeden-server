@@ -8,10 +8,10 @@
 #include "WayPoint.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "Tile.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/ZoneInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class WayPoint member methods
@@ -68,39 +68,30 @@ void WayPointManager::load(void)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<WayPointRow> rows = defaultZoneInfoRepository().loadAllWayPoints();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT ZoneID, X, Y, Race FROM WayPointInfo");
+    for (size_t r = 0; r < rows.size(); r++) {
+        ZoneID_t ZID = rows[r].zoneID;
+        ZoneCoord_t ZX = rows[r].x;
+        ZoneCoord_t ZY = rows[r].y;
+        Race_t Race = rows[r].race;
 
-        while (pResult->next()) {
-            ZoneID_t ZID = pResult->getInt(1);
-            ZoneCoord_t ZX = pResult->getInt(2);
-            ZoneCoord_t ZY = pResult->getInt(3);
-            Race_t Race = pResult->getInt(4);
+        WayPoint* pWayPoint = new WayPoint;
+        Assert(pWayPoint != NULL);
+        pWayPoint->setZoneCoord(ZID, ZX, ZY);
+        pWayPoint->setRace(Race);
 
-            WayPoint* pWayPoint = new WayPoint;
-            Assert(pWayPoint != NULL);
-            pWayPoint->setZoneCoord(ZID, ZX, ZY);
-            pWayPoint->setRace(Race);
+        addWayPoint(pWayPoint);
 
-            addWayPoint(pWayPoint);
+        // Ousters way points must block the tile.
+        if (Race == RACE_OUSTERS) {
+            Zone* pZone = getZoneByZoneID(ZID);
+            Tile& rTile = pZone->getTile(ZX, ZY);
 
-            // 아우스터즈 웨이포인트는 블럭해줘야 된다.
-            if (Race == RACE_OUSTERS) {
-                Zone* pZone = getZoneByZoneID(ZID);
-                Tile& rTile = pZone->getTile(ZX, ZY);
-
-                rTile.setBlocked(Creature::MOVE_MODE_WALKING);
-                rTile.setBlocked(Creature::MOVE_MODE_BURROWING);
-            }
+            rTile.setBlocked(Creature::MOVE_MODE_WALKING);
+            rTile.setBlocked(Creature::MOVE_MODE_BURROWING);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt);
 
     __END_CATCH
 }

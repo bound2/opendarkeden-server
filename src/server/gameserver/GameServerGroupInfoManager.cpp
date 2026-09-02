@@ -9,11 +9,8 @@
 // include files
 #include "GameServerGroupInfoManager.h"
 
-#include "database/Connection.h"
-#include "database/DB.h"
-#include "database/DatabaseManager.h"
-#include "database/Result.h"
-#include "database/Statement.h"
+#include "repository/GameInfoRepository.h"
+
 
 //----------------------------------------------------------------------
 // constructor
@@ -88,50 +85,34 @@ void GameServerGroupInfoManager::load()
 
     clear();
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT MAX(WorldID) FROM GameServerGroupInfo");
-
-        if (pResult->getRowCount() == 0) {
-            throw Error("GameServerGroupInfo TABLE does not exist!");
-        }
-
-        pResult->next();
-        m_MaxWorldID = pResult->getInt(1) + 2;
-
-        SAFE_DELETE(pStmt);
+    int maxWorldID = 0;
+    if (!defaultGameInfoRepository().loadMaxWorldID(maxWorldID)) {
+        throw Error("GameServerGroupInfo TABLE does not exist!");
     }
-    END_DB(pStmt)
+
+    m_MaxWorldID = maxWorldID + 2;
 
     m_GameServerGroupInfos = new HashMapGameServerGroupInfo[m_MaxWorldID];
 
+    // The rows query used to sit in a hand-written try that turned a
+    // SQLQueryException into an Error and swallowed any other Throwable
+    // with a cout. The seam now converts a SQL failure the way every
+    // repository does (DBError.log + a thrown const char*, see DB.h's
+    // END_DB), so only the Throwable arm is left to keep: a failure in
+    // addGameServerGroupInfo is still printed and swallowed.
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT WorldID, GroupID, GroupName, Stat FROM GameServerGroupInfo");
+        vector<GameServerGroupRow> rows = defaultGameInfoRepository().loadGameServerGroups();
 
-        while (pResult->next()) {
+        for (size_t r = 0; r < rows.size(); r++) {
             GameServerGroupInfo* pGameServerGroupInfo = new GameServerGroupInfo();
-            WorldID_t WorldID = pResult->getInt(1);
+            WorldID_t WorldID = rows[r].worldID;
             pGameServerGroupInfo->setWorldID(WorldID);
-            pGameServerGroupInfo->setGroupID(pResult->getInt(2));
-            pGameServerGroupInfo->setGroupName(pResult->getString(3));
-            pGameServerGroupInfo->setStat(pResult->getInt(4));
+            pGameServerGroupInfo->setGroupID(rows[r].groupID);
+            pGameServerGroupInfo->setGroupName(rows[r].groupName);
+            pGameServerGroupInfo->setStat(rows[r].stat);
             addGameServerGroupInfo(pGameServerGroupInfo, WorldID);
         }
-
-        // 필살 삭제!
-        SAFE_DELETE(pStmt);
-
-    } catch (SQLQueryException& sqe) {
-        // 필살 삭제!
-        SAFE_DELETE(pStmt);
-
-        throw Error(sqe.toString());
-
     } catch (Throwable& t) {
-        SAFE_DELETE(pStmt);
         cout << t.toString() << endl;
     }
 

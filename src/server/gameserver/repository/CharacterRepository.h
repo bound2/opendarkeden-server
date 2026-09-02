@@ -6,15 +6,163 @@
 #include "CharacterRace.h"
 #include "Types.h"
 
-// Persistence seam for the character row's non-load writes (task 3.2):
-// the periodic vitals/position save, the exp/fame/rank tail save, and
-// the caller-composed tinysave fragments. The race tables carry
-// different columns, so the records are per-race; each field mirrors the
-// ORIGINAL EXPRESSION's type — the member/getter type, or int where the
-// inline SQL applied an explicit (int) cast — so the varargs bytes
-// reaching the format strings are unchanged. The load() SELECTs stay
-// inline in the race classes for now — they are the next extraction
-// round.
+// Persistence seam for the character row (task 3.2): the load() SELECT
+// each race class runs at login, the periodic vitals/position save, the
+// exp/fame/rank tail save, and the caller-composed tinysave fragments.
+// The race tables carry different columns, so the records are per-race;
+// each field mirrors the ORIGINAL EXPRESSION's type. For the writes that
+// is the member/getter type, or int where the inline SQL applied an
+// explicit (int) cast — so the varargs bytes reaching the format strings
+// are unchanged. For the loads it is the driver getter the inline code
+// called on that column — int for getInt, BYTE for getBYTE, std::string
+// for getString — so every narrowing the race class performed when it
+// handed the value to a setter still happens THERE, on the same value,
+// and the record adds no conversion of its own.
+
+// Slayer load(): the 54 columns of the Slayer row, in SELECT order.
+// Every column the SELECT names is surfaced, including the ones the
+// loader then overrides or ignores: sight (overridden to 13 right after
+// it is applied) and reward (the reward flow that consumed it is dead —
+// the column is selected, never acted on). phone is the raw varchar(7);
+// the loader atoi()s it, as it always did.
+struct SlayerLoadRecord {
+    std::string name;
+    int advancementClass;
+    int advancementGoalExp;
+    int competence;
+    int competenceShape;
+    std::string sex;
+    int masterEffectColor;
+    std::string hairStyle;
+    int hairColor;
+    int skinColor;
+    std::string phone;
+    int str;
+    int strGoalExp;
+    int dex;
+    int dexGoalExp;
+    int inte;
+    int intGoalExp;
+    int advancedSTR;
+    int advancedDEX;
+    int advancedINT;
+    int bonus;
+    int rank;
+    int rankGoalExp;
+    int currentHP;
+    int maxHP;
+    int currentMP;
+    int maxMP;
+    int fame;
+    int gold;
+    int guildID;
+    int bladeLevel;
+    int bladeGoalExp;
+    int swordLevel;
+    int swordGoalExp;
+    int gunLevel;
+    int gunGoalExp;
+    int enchantLevel;
+    int enchantGoalExp;
+    int healLevel;
+    int healGoalExp;
+    int etcLevel;
+    int etcGoalExp;
+    int zoneID;
+    int x;
+    int y;
+    int sight;
+    int gunBonusExp;
+    int rifleBonusExp;
+    int alignment;
+    int stashGold;
+    BYTE stashNum;
+    int resurrectZone;
+    int reward;
+    int smsCharge;
+};
+
+// Vampire load(): the 33 columns of the Vampire row, in SELECT order.
+// stashNum, competence and competenceShape were read through getBYTE
+// (the slayer reads Competence through getInt); the columns are tinyint
+// unsigned, so the narrower getter loses nothing — the type is kept so
+// the loader's ">= 4 → 3" clamp compares what it always compared.
+// reward: dead flow, as for the slayer. No MP columns; SilverDamage
+// instead.
+struct VampireLoadRecord {
+    std::string name;
+    int advancementClass;
+    int advancementGoalExp;
+    std::string sex;
+    int masterEffectColor;
+    int batColor;
+    int skinColor;
+    int str;
+    int dex;
+    int inte;
+    int maxHP;
+    int currentHP;
+    int fame;
+    int goalExp;
+    int level;
+    int bonus;
+    int gold;
+    int guildID;
+    int zoneID;
+    int x;
+    int y;
+    int sight;
+    int alignment;
+    int stashGold;
+    BYTE stashNum;
+    BYTE competence;
+    BYTE competenceShape;
+    int resurrectZone;
+    int silverDamage;
+    int reward;
+    int smsCharge;
+    int rank;
+    int rankGoalExp;
+};
+
+// Ousters load(): the 34 columns of the Ousters row, in SELECT order —
+// the vampire's shape plus MP, SkillBonus and HairColor, minus Reward.
+struct OustersLoadRecord {
+    std::string name;
+    int advancementClass;
+    int advancementGoalExp;
+    std::string sex;
+    int masterEffectColor;
+    int str;
+    int dex;
+    int inte;
+    int maxHP;
+    int currentHP;
+    int maxMP;
+    int currentMP;
+    int fame;
+    int goalExp;
+    int level;
+    int bonus;
+    int skillBonus;
+    int gold;
+    int guildID;
+    int zoneID;
+    int x;
+    int y;
+    int sight;
+    int alignment;
+    int stashGold;
+    BYTE stashNum;
+    BYTE competence;
+    BYTE competenceShape;
+    int resurrectZone;
+    int silverDamage;
+    int smsCharge;
+    int rank;
+    int rankGoalExp;
+    int hairColor;
+};
 
 // Slayer save(): CurrentHP/HP/CurrentMP/MP/ZoneID/XCoord/YCoord.
 struct SlayerVitalsRecord {
@@ -100,6 +248,15 @@ struct OustersExpsRecord {
 class CharacterRepository {
 public:
     virtual ~CharacterRepository() {}
+
+    // The login-time load: the character's ACTIVE row from its own race
+    // table. Returns false when there is none (the name has no row, or
+    // the row is INACTIVE — the login server may have deleted the
+    // character while it was handed over); on true, record carries
+    // every selected column.
+    virtual bool loadSlayer(const std::string& ownerName, SlayerLoadRecord& record) = 0;
+    virtual bool loadVampire(const std::string& ownerName, VampireLoadRecord& record) = 0;
+    virtual bool loadOusters(const std::string& ownerName, OustersLoadRecord& record) = 0;
 
     // The periodic save() row update — vitals and position.
     virtual void saveSlayerVitals(const std::string& ownerName, const SlayerVitalsRecord& record) = 0;

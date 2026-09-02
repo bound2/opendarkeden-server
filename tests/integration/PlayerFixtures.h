@@ -44,7 +44,9 @@ inline std::string queryScalar(const std::string& sql) {
 // is what gives the stash writes their Slayer-unconditional quirk.
 // "Level" lands where each race keeps it: Vampire/Ousters have a Level
 // column; slayers level per skill domain, so the profile level goes to
-// SwordLevel.
+// SwordLevel. Active is set explicitly like creation does: the Slayer
+// column defaults to 'ACTIVE' but the Vampire/Ousters ones default to
+// NULL, and the character loads filter on Active = 'ACTIVE'.
 struct PlayerFixture {
     std::string name; // fits every OwnerID/Name column (varchar(10))
     CharacterRace race;
@@ -53,19 +55,20 @@ struct PlayerFixture {
     void persist() const {
         char sql[160];
         if (race == CHARACTER_RACE_SLAYER) {
-            sprintf(sql, "INSERT INTO Slayer (Name, SwordLevel) VALUES ('%s', %d)", name.c_str(), level);
+            sprintf(sql, "INSERT INTO Slayer (Name, Active, SwordLevel) VALUES ('%s', 'ACTIVE', %d)", name.c_str(),
+                    level);
             execSQL(sql);
-            sprintf(sql, "INSERT INTO Vampire (Name) VALUES ('%s')", name.c_str());
+            sprintf(sql, "INSERT INTO Vampire (Name, Active) VALUES ('%s', 'ACTIVE')", name.c_str());
             execSQL(sql);
         } else if (race == CHARACTER_RACE_VAMPIRE) {
-            sprintf(sql, "INSERT INTO Slayer (Name) VALUES ('%s')", name.c_str());
+            sprintf(sql, "INSERT INTO Slayer (Name, Active) VALUES ('%s', 'ACTIVE')", name.c_str());
             execSQL(sql);
-            sprintf(sql, "INSERT INTO Vampire (Name, Level) VALUES ('%s', %d)", name.c_str(), level);
+            sprintf(sql, "INSERT INTO Vampire (Name, Active, Level) VALUES ('%s', 'ACTIVE', %d)", name.c_str(), level);
             execSQL(sql);
         } else {
-            sprintf(sql, "INSERT INTO Slayer (Name) VALUES ('%s')", name.c_str());
+            sprintf(sql, "INSERT INTO Slayer (Name, Active) VALUES ('%s', 'ACTIVE')", name.c_str());
             execSQL(sql);
-            sprintf(sql, "INSERT INTO Ousters (Name, Level) VALUES ('%s', %d)", name.c_str(), level);
+            sprintf(sql, "INSERT INTO Ousters (Name, Active, Level) VALUES ('%s', 'ACTIVE', %d)", name.c_str(), level);
             execSQL(sql);
         }
     }
@@ -106,14 +109,19 @@ struct PlayerFixtures {
         return make("itousthi", CHARACTER_RACE_OUSTERS, 150);
     }
 
+    // Every profile name as a SQL IN-list, for the per-table cleanups
+    // the suites run in SetUp against their own OwnerID-keyed tables.
+    static const char* nameList() {
+        return "('itslaylo', 'itslaymid', 'itslayhi', 'itvamplo', 'itvampmid', 'itvamphi', "
+               "'itoustlo', 'itoustmid', 'itousthi')";
+    }
+
     // Wipe every profile's rows — cheap enough to run in every SetUp so a
     // failed earlier run never leaks state into the next.
     static void removeAll() {
-        const char* names = "('itslaylo', 'itslaymid', 'itslayhi', 'itvamplo', 'itvampmid', 'itvamphi', "
-                            "'itoustlo', 'itoustmid', 'itousthi')";
-        execSQL(std::string("DELETE FROM Slayer WHERE Name IN ") + names);
-        execSQL(std::string("DELETE FROM Vampire WHERE Name IN ") + names);
-        execSQL(std::string("DELETE FROM Ousters WHERE Name IN ") + names);
+        execSQL(std::string("DELETE FROM Slayer WHERE Name IN ") + nameList());
+        execSQL(std::string("DELETE FROM Vampire WHERE Name IN ") + nameList());
+        execSQL(std::string("DELETE FROM Ousters WHERE Name IN ") + nameList());
     }
 
 private:

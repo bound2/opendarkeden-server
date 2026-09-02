@@ -6,11 +6,11 @@
 
 #include "ItemMineInfo.h"
 
-#include "DB.h"
 #include "ItemFactoryManager.h"
 #include "ItemUtil.h"
 #include "Treasure.h"
 #include "Utility.h"
+#include "repository/GameInfoRepository.h"
 
 ItemMineInfo::ItemMineInfo()
     : m_ID(0){__BEGIN_TRY __END_CATCH}
@@ -63,34 +63,26 @@ void ItemMineInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    vector<ItemMineRow> rows = defaultGameInfoRepository().loadItemMines();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT ID, ItemClass, ItemType, ItemOption FROM ItemMineInfo");
+    for (size_t r = 0; r < rows.size(); r++) {
+        ItemMineInfo* pItemMineInfo = new ItemMineInfo();
 
-        while (pResult->next()) {
-            uint i = 0;
+        int id = rows[r].id;
+        string itemClass = rows[r].itemClass;
+        int itemType = rows[r].itemType;
+        string itemOptions = rows[r].itemOption;
 
-            ItemMineInfo* pItemMineInfo = new ItemMineInfo();
+        list<OptionType_t> oList;
+        makeOptionList(itemOptions, oList);
 
-            int id = pResult->getInt(++i);
-            string itemClass = pResult->getString(++i);
-            int itemType = pResult->getInt(++i);
-            string itemOptions = pResult->getString(++i);
+        pItemMineInfo->setID(id);
+        pItemMineInfo->setItemClass(TreasureItemClass::getItemClassFromString(itemClass));
+        pItemMineInfo->setItemType(itemType);
+        pItemMineInfo->setItemOptions(oList);
 
-            list<OptionType_t> oList;
-            makeOptionList(itemOptions, oList);
-
-            pItemMineInfo->setID(id);
-            pItemMineInfo->setItemClass(TreasureItemClass::getItemClassFromString(itemClass));
-            pItemMineInfo->setItemType(itemType);
-            pItemMineInfo->setItemOptions(oList);
-
-            addItemMineInfo(pItemMineInfo);
-        }
+        addItemMineInfo(pItemMineInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
