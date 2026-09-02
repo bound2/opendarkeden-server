@@ -1,16 +1,17 @@
 // MySQL-backed ItemObjectRepository (task 3.2, the item milestone). One
-// method set for the gear classes; the table — and the class's exact
-// literal, copy-paste whitespace and all — comes from the spec row the
-// GearTable enum indexes. The two StringStream chains of the originals
-// (the create INSERT and the zone SELECT) are format strings here; every
-// streamed expression maps to the conversion StringStream used for its
-// type (DWORD/WORD "%u", int "%d", text as is), so the bytes on the wire
-// are the same. The tinysave and save literals keep their "%ld" for the
-// DWORD ids exactly as written. The spec row also records which Info
-// shape the class's Info SELECT has; each info loader checks it, so a
-// call with the wrong loader fails loudly instead of misreading the columns
-// silently. GEAR_INFO_UNSET is the enum's zero, so a spec row that forgets
-// its kind is refused by every loader rather than read as standard.
+// method set per object shape; the table — and the class's exact literal,
+// copy-paste whitespace and all — comes from the spec row the GearTable
+// enum indexes. The two StringStream chains of the originals (the create
+// INSERT and the zone SELECT) are format strings here; every streamed
+// expression maps to the conversion StringStream used for its type
+// (DWORD/WORD "%u", int "%d", text as is), so the bytes on the wire are
+// the same. The tinysave and save literals keep their "%ld" for the DWORD
+// ids exactly as written. The spec row also records which object shape
+// and which Info shape the class's tables have; every loader checks them,
+// so a call with the wrong loader fails loudly instead of misreading the
+// columns silently. GEAR_INFO_UNSET and GEAR_OBJECT_UNSET are their enums'
+// zeros, so a spec row that forgets a kind is refused by every method
+// rather than read as the standard shape.
 
 #include <string>
 #include <vector>
@@ -23,14 +24,15 @@ using namespace std;
 namespace {
 
 struct GearSpec {
-    const char* insert;    // <Class>::create
-    const char* tinysave;  // <Class>::tinysave
-    const char* update;    // <Class>::save
-    const char* maxType;   // <Class>InfoManager::load, first statement
-    const char* infos;     // <Class>InfoManager::load, second statement
-    const char* ofOwner;   // <Class>Loader::load(Creature*)
-    const char* inZone;    // <Class>Loader::load(Zone*)
-    GearInfoKind infoKind; // which load*Infos reads `infos`
+    const char* insert;        // <Class>::create
+    const char* tinysave;      // <Class>::tinysave
+    const char* update;        // <Class>::save
+    const char* maxType;       // <Class>InfoManager::load, first statement
+    const char* infos;         // <Class>InfoManager::load, second statement
+    const char* ofOwner;       // <Class>Loader::load(Creature*)
+    const char* inZone;        // <Class>Loader::load(Zone*)
+    GearInfoKind infoKind;     // which load*Infos reads `infos`
+    GearObjectKind objectKind; // which update / load*OfOwner / load*InZone fit the object table
 };
 
 // Indexed by GearTable; the order is the enum's.
@@ -51,6 +53,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM RingObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // Bracelet (GEAR_BRACELET)
     {
@@ -68,6 +71,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM BraceletObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // Necklace (GEAR_NECKLACE)
     {
@@ -85,6 +89,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM NecklaceObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // Coat (GEAR_COAT)
     {
@@ -102,6 +107,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM CoatObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // Trouser (GEAR_TROUSER)
     {
@@ -119,6 +125,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM TrouserObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // Shoes (GEAR_SHOES)
     {
@@ -136,6 +143,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM ShoesObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // Glove (GEAR_GLOVE)
     {
@@ -153,6 +161,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM GloveObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // Helm (GEAR_HELM)
     {
@@ -170,6 +179,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM HelmObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // Shield (GEAR_SHIELD)
     {
@@ -187,6 +197,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM ShieldObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // VampireRing (GEAR_VAMPIRE_RING)
     {
@@ -204,6 +215,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireRingObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // VampireBracelet (GEAR_VAMPIRE_BRACELET)
     {
@@ -221,6 +233,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireBraceletObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // VampireNecklace (GEAR_VAMPIRE_NECKLACE)
     {
@@ -238,6 +251,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireNecklaceObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // OustersRing (GEAR_OUSTERS_RING)
     {
@@ -255,6 +269,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersRingObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // OustersCoat (GEAR_OUSTERS_COAT)
     {
@@ -272,6 +287,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersCoatObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // OustersCirclet (GEAR_OUSTERS_CIRCLET)
     {
@@ -289,6 +305,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersCircletObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // OustersPendent (GEAR_OUSTERS_PENDENT)
     {
@@ -306,6 +323,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersPendentObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // OustersBoots (GEAR_OUSTERS_BOOTS)
     {
@@ -323,6 +341,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersBootsObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // VampireCoat (GEAR_VAMPIRE_COAT)
     {
@@ -339,6 +358,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireCoatObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_NO_RATIO,
+        GEAR_OBJECT,
     },
     // OustersStone (GEAR_OUSTERS_STONE)
     {
@@ -356,6 +376,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersStoneObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_ELEMENTAL,
+        GEAR_OBJECT,
     },
     // VampireEarring (GEAR_VAMPIRE_EARRING)
     {
@@ -373,6 +394,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireEarringObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
     },
     // VampireWeapon (GEAR_VAMPIRE_WEAPON)
     {
@@ -391,6 +413,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireWeaponObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_WEAPON,
+        GEAR_OBJECT,
     },
     // OustersChakram (GEAR_OUSTERS_CHAKRAM)
     {
@@ -409,6 +432,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersChakramObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_WEAPON,
+        GEAR_OBJECT,
     },
     // OustersWristlet (GEAR_OUSTERS_WRISTLET)
     {
@@ -427,10 +451,84 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersWristletObject WHERE Storage = %d AND StorageID = %u",
         GEAR_INFO_WEAPON_ELEMENTAL,
+        GEAR_OBJECT,
+    },
+    // Sword (GEAR_SWORD)
+    {
+        "INSERT INTO SwordObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE SwordObject SET %s WHERE ItemID=%ld",
+        "UPDATE SwordObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM SwordInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, MaxSilver, "
+        "Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
+        "NextOptionRatio, NextItemType, DowngradeRatio FROM SwordInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Durability, EnchantLevel, Silver, "
+        "Grade, ItemFlag FROM SwordObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, Silver, "
+        "ItemFlag FROM SwordObject WHERE Storage = %d AND StorageID = %u",
+        GEAR_INFO_SILVER_WEAPON,
+        SILVER_WEAPON_OBJECT,
+    },
+    // Blade (GEAR_BLADE)
+    {
+        "INSERT INTO BladeObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE BladeObject SET %s WHERE ItemID=%ld",
+        "UPDATE BladeObject SET ObjectID=%ld, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM BladeInfo",
+        "SELECT "
+        "ItemType,Name,EName,Price,Volume,Weight,Ratio,Durability,minDamage,maxDamage,MaxSilver,Speed,ReqAbility,"
+        "ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, "
+        "DowngradeRatio FROM BladeInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, Silver, "
+        "Grade, ItemFlag FROM BladeObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, Silver, "
+        "ItemFlag FROM BladeObject WHERE Storage = %d AND StorageID = %u",
+        GEAR_INFO_SILVER_WEAPON,
+        SILVER_WEAPON_OBJECT,
+    },
+    // Cross (GEAR_CROSS)
+    {
+        "INSERT INTO CrossObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE CrossObject SET %s WHERE ItemID=%ld",
+        "UPDATE CrossObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%d, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM CrossInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, MPBonus, "
+        "MaxSilver, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
+        "NextOptionRatio, NextItemType, DowngradeRatio FROM CrossInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, Silver, "
+        "Grade, ItemFlag FROM CrossObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, Silver, "
+        "ItemFlag FROM CrossObject WHERE Storage = %d AND StorageID = %u",
+        GEAR_INFO_SILVER_WEAPON_MP,
+        SILVER_WEAPON_OBJECT,
+    },
+    // Mace (GEAR_MACE)
+    {
+        "INSERT INTO MaceObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE MaceObject SET %s WHERE ItemID=%ld",
+        "UPDATE MaceObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM MaceInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, MPBonus, "
+        "MaxSilver, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
+        "NextOptionRatio, NextItemType, DowngradeRatio FROM MaceInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, Silver, "
+        "Grade, ItemFlag FROM MaceObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, Silver, "
+        "ItemFlag FROM MaceObject WHERE Storage = %d AND StorageID = %u",
+        GEAR_INFO_SILVER_WEAPON_MP,
+        SILVER_WEAPON_OBJECT,
     },
 };
 
-static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_OUSTERS_WRISTLET + 1, "kGear must cover every GearTable");
+static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_MACE + 1, "kGear must cover every GearTable");
 
 const GearSpec& spec(GearTable table) {
     return kGear[table];
@@ -439,6 +537,12 @@ const GearSpec& spec(GearTable table) {
 void requireInfoKind(GearTable table, GearInfoKind kind, const char* loader) {
     if (spec(table).infoKind != kind) {
         throw Error(string("ItemObjectRepository: ") + loader + " called for a table with another Info shape");
+    }
+}
+
+void requireObjectKind(GearTable table, GearObjectKind kind, const char* method) {
+    if (spec(table).objectKind != kind) {
+        throw Error(string("ItemObjectRepository: ") + method + " called for a table with another object shape");
     }
 }
 
@@ -484,6 +588,20 @@ void readWeaponInfoTail(Result* pResult, uint& i, WeaponInfoRow& row) {
     row.downgradeRatio = pResult->getInt(++i);
 }
 
+// The ten columns after MaxSilver in the silver-weapon Info shapes.
+template <class Row> void readSilverWeaponInfoTail(Result* pResult, uint& i, Row& row) {
+    row.speed = pResult->getInt(++i);
+    row.reqAbility = pResult->getString(++i);
+    row.itemLevel = pResult->getInt(++i);
+    row.criticalBonus = pResult->getInt(++i);
+    row.defaultOption = pResult->getString(++i);
+    row.upgradeRatio = pResult->getInt(++i);
+    row.upgradeCrashPercent = pResult->getInt(++i);
+    row.nextOptionRatio = pResult->getInt(++i);
+    row.nextItemType = pResult->getInt(++i);
+    row.downgradeRatio = pResult->getInt(++i);
+}
+
 class MySQLItemObjectRepository : public ItemObjectRepository {
 public:
     void insertGear(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
@@ -514,12 +632,28 @@ public:
     void updateGear(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID, int storage,
                     StorageID_t storageID, int x, int y, const string& optionField, Durability_t durability, int grade,
                     int enchantLevel, ItemID_t itemID) {
+        requireObjectKind(table, GEAR_OBJECT, "updateGear");
         Statement* pStmt = NULL;
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(spec(table).update, objectID, itemType, ownerID.c_str(), storage, storageID, x, y,
                                 optionField.c_str(), durability, grade, enchantLevel, itemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateSilverWeapon(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
+                            int storage, StorageID_t storageID, int x, int y, const string& optionField,
+                            Durability_t durability, int enchantLevel, int silver, int grade, ItemID_t itemID) {
+        requireObjectKind(table, SILVER_WEAPON_OBJECT, "updateSilverWeapon");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).update, objectID, itemType, ownerID.c_str(), storage, storageID, x, y,
+                                optionField.c_str(), durability, enchantLevel, silver, grade, itemID);
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
@@ -672,7 +806,63 @@ public:
         return rows;
     }
 
+    vector<SilverWeaponInfoRow> loadSilverWeaponInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_SILVER_WEAPON, "loadSilverWeaponInfos");
+        vector<SilverWeaponInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                SilverWeaponInfoRow row;
+                readInfoHead(pResult, i, row);
+                row.minDamage = pResult->getInt(++i);
+                row.maxDamage = pResult->getInt(++i);
+                row.maxSilver = pResult->getInt(++i);
+                readSilverWeaponInfoTail(pResult, i, row);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<SilverWeaponMPInfoRow> loadSilverWeaponMPInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_SILVER_WEAPON_MP, "loadSilverWeaponMPInfos");
+        vector<SilverWeaponMPInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                SilverWeaponMPInfoRow row;
+                readInfoHead(pResult, i, row);
+                row.minDamage = pResult->getInt(++i);
+                row.maxDamage = pResult->getInt(++i);
+                row.mpBonus = pResult->getInt(++i);
+                row.maxSilver = pResult->getInt(++i);
+                readSilverWeaponInfoTail(pResult, i, row);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
     vector<GearObjectRow> loadGearOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, GEAR_OBJECT, "loadGearOfOwner");
         vector<GearObjectRow> rows;
         Statement* pStmt = NULL;
 
@@ -706,6 +896,7 @@ public:
     }
 
     vector<GearZoneObjectRow> loadGearInZone(GearTable table, int storage, ZoneID_t zoneID) {
+        requireObjectKind(table, GEAR_OBJECT, "loadGearInZone");
         vector<GearZoneObjectRow> rows;
         Statement* pStmt = NULL;
 
@@ -726,6 +917,75 @@ public:
                 row.optionField = pResult->getString(++i);
                 row.durability = pResult->getInt(++i);
                 row.enchantLevel = pResult->getInt(++i);
+                row.createType = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<SilverWeaponObjectRow> loadSilverWeaponOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, SILVER_WEAPON_OBJECT, "loadSilverWeaponOfOwner");
+        vector<SilverWeaponObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).ofOwner, ownerName.c_str());
+
+            while (pResult->next()) {
+                uint i = 0;
+                SilverWeaponObjectRow row;
+                row.itemID = pResult->getDWORD(++i);
+                row.objectID = pResult->getDWORD(++i);
+                row.itemType = pResult->getDWORD(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getDWORD(++i);
+                row.x = pResult->getBYTE(++i);
+                row.y = pResult->getBYTE(++i);
+                row.optionField = pResult->getString(++i);
+                row.durability = pResult->getInt(++i);
+                row.enchantLevel = pResult->getInt(++i);
+                row.silver = pResult->getInt(++i);
+                row.grade = pResult->getInt(++i);
+                row.createType = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<SilverWeaponZoneObjectRow> loadSilverWeaponInZone(GearTable table, int storage, ZoneID_t zoneID) {
+        requireObjectKind(table, SILVER_WEAPON_OBJECT, "loadSilverWeaponInZone");
+        vector<SilverWeaponZoneObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).inZone, storage, zoneID);
+
+            while (pResult->next()) {
+                uint i = 0;
+                SilverWeaponZoneObjectRow row;
+                row.itemID = pResult->getInt(++i);
+                row.objectID = pResult->getInt(++i);
+                row.itemType = pResult->getInt(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getInt(++i);
+                row.x = pResult->getInt(++i);
+                row.y = pResult->getInt(++i);
+                row.optionField = pResult->getString(++i);
+                row.durability = pResult->getInt(++i);
+                row.enchantLevel = pResult->getInt(++i);
+                row.silver = pResult->getInt(++i);
                 row.createType = pResult->getInt(++i);
                 rows.push_back(row);
             }

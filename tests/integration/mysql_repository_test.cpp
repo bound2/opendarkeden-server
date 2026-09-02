@@ -2449,6 +2449,12 @@ const GearTableName kGearInfoTables[] = {
     {GEAR_OUSTERS_BOOTS, "OustersBootsInfo"},
     {GEAR_VAMPIRE_EARRING, "VampireEarringInfo"},
 };
+const GearTableName kSilverTables[] = {
+    {GEAR_SWORD, "SwordObject"},
+    {GEAR_BLADE, "BladeObject"},
+    {GEAR_CROSS, "CrossObject"},
+    {GEAR_MACE, "MaceObject"},
+};
 } // namespace
 
 class ItemObjectMySQL : public ::testing::Test {
@@ -2462,6 +2468,8 @@ protected:
     static void clean() {
         for (size_t i = 0; i < sizeof(kGearTables) / sizeof(kGearTables[0]); i++)
             execSQL(std::string("DELETE FROM ") + kGearTables[i].name + " WHERE ItemID >= 31000");
+        for (size_t i = 0; i < sizeof(kSilverTables) / sizeof(kSilverTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kSilverTables[i].name + " WHERE ItemID >= 31000");
     }
 };
 
@@ -2607,6 +2615,71 @@ TEST_F(ItemObjectMySQL, GearInfoVariantsLoadTheirOwnColumnsAndRefuseTheWrongLoad
     EXPECT_THROW(repository.loadGearInfos(GEAR_VAMPIRE_COAT), Error);
     EXPECT_THROW(repository.loadGearInfosNoRatio(GEAR_RING), Error);
     EXPECT_THROW(repository.loadWeaponInfos(GEAR_OUSTERS_WRISTLET), Error);
+}
+
+TEST_F(ItemObjectMySQL, SilverWeaponRowsRoundTripWithTheirSilverColumn) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    for (size_t i = 0; i < sizeof(kSilverTables) / sizeof(kSilverTables[0]); i++) {
+        const GearTable table = kSilverTables[i].table;
+        const std::string name = kSilverTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+
+        // Gear's INSERT (no Silver column: the table default), then the weapon UPDATE writes it.
+        repository.insertGear(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, "opt", 10, 6, 1);
+        repository.insertGear(table, 31100 + i, 78, 3, "it-owner", 5, 31000, 7, 8, "", 9, 6, 0);
+        repository.updateSilverWeapon(table, 79, 4, "it-owner", 1, 6, 3, 5, "opt2", 11, 2, 250, 7, 31000 + i);
+        EXPECT_EQ("250", queryScalar("SELECT Silver" + where + std::to_string(31000 + i))) << name;
+
+        std::vector<SilverWeaponObjectRow> owned = repository.loadSilverWeaponOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name;
+        EXPECT_EQ(31000 + i, owned[0].itemID);
+        EXPECT_EQ(79u, owned[0].objectID);
+        EXPECT_EQ(4u, owned[0].itemType);
+        EXPECT_EQ(1, owned[0].storage);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ(3, owned[0].x);
+        EXPECT_EQ(5, owned[0].y);
+        EXPECT_EQ("opt2", owned[0].optionField);
+        EXPECT_EQ(11, owned[0].durability);
+        EXPECT_EQ(2, owned[0].enchantLevel);
+        EXPECT_EQ(250, owned[0].silver);
+        EXPECT_EQ(7, owned[0].grade);
+        EXPECT_EQ(1, owned[0].createType);
+
+        std::vector<SilverWeaponZoneObjectRow> inZone = repository.loadSilverWeaponInZone(table, 5, 31000);
+        ASSERT_EQ(1u, inZone.size()) << name;
+        EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
+        EXPECT_EQ(0, inZone[0].silver); // the INSERT never names Silver
+        EXPECT_EQ(9, inZone[0].durability);
+
+        repository.tinysaveGear(table, "Silver=3", 31000 + i);
+        EXPECT_EQ("3", queryScalar("SELECT Silver" + where + std::to_string(31000 + i))) << name;
+    }
+
+    // The object-shape guard, both ways.
+    EXPECT_THROW(repository.loadGearOfOwner(GEAR_SWORD, "it-owner"), Error);
+    EXPECT_THROW(repository.updateGear(GEAR_MACE, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1, 31000), Error);
+    EXPECT_THROW(repository.loadSilverWeaponInZone(GEAR_RING, 5, 31000), Error);
+
+    // The Info shapes: MaxSilver after maxDamage, and Cross / Mace's MPBonus before it.
+    std::vector<SilverWeaponInfoRow> swords = repository.loadSilverWeaponInfos(GEAR_SWORD);
+    ASSERT_FALSE(swords.empty());
+    EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM SwordInfo").c_str()), (int)swords.size());
+    std::string id = std::to_string(swords[0].itemType);
+    EXPECT_EQ(std::to_string(swords[0].maxSilver), queryScalar("SELECT MaxSilver FROM SwordInfo WHERE ItemType=" + id));
+    EXPECT_EQ(std::to_string(swords[0].speed), queryScalar("SELECT Speed FROM SwordInfo WHERE ItemType=" + id));
+    EXPECT_FALSE(repository.loadSilverWeaponInfos(GEAR_BLADE).empty());
+    std::vector<SilverWeaponMPInfoRow> maces = repository.loadSilverWeaponMPInfos(GEAR_MACE);
+    ASSERT_FALSE(maces.empty());
+    EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM MaceInfo").c_str()), (int)maces.size());
+    id = std::to_string(maces[0].itemType);
+    EXPECT_EQ(std::to_string(maces[0].mpBonus), queryScalar("SELECT MPBonus FROM MaceInfo WHERE ItemType=" + id));
+    EXPECT_EQ(std::to_string(maces[0].downgradeRatio),
+              queryScalar("SELECT DowngradeRatio FROM MaceInfo WHERE ItemType=" + id));
+    EXPECT_FALSE(repository.loadSilverWeaponMPInfos(GEAR_CROSS).empty());
+    EXPECT_THROW(repository.loadSilverWeaponInfos(GEAR_CROSS), Error);
+    EXPECT_THROW(repository.loadWeaponInfos(GEAR_SWORD), Error);
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {
