@@ -2455,6 +2455,12 @@ const GearTableName kSilverTables[] = {
     {GEAR_CROSS, "CrossObject"},
     {GEAR_MACE, "MaceObject"},
 };
+const GearTableName kGunTables[] = {
+    {GEAR_AR, "ARObject"},
+    {GEAR_SG, "SGObject"},
+    {GEAR_SMG, "SMGObject"},
+    {GEAR_SR, "SRObject"},
+};
 } // namespace
 
 class ItemObjectMySQL : public ::testing::Test {
@@ -2470,6 +2476,8 @@ protected:
             execSQL(std::string("DELETE FROM ") + kGearTables[i].name + " WHERE ItemID >= 31000");
         for (size_t i = 0; i < sizeof(kSilverTables) / sizeof(kSilverTables[0]); i++)
             execSQL(std::string("DELETE FROM ") + kSilverTables[i].name + " WHERE ItemID >= 31000");
+        for (size_t i = 0; i < sizeof(kGunTables) / sizeof(kGunTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kGunTables[i].name + " WHERE ItemID >= 31000");
     }
 };
 
@@ -2686,6 +2694,92 @@ TEST_F(ItemObjectMySQL, SilverWeaponRowsRoundTripWithTheirSilverColumn) {
     EXPECT_FALSE(repository.loadSilverWeaponMPInfos(GEAR_CROSS).empty());
     EXPECT_THROW(repository.loadSilverWeaponInfos(GEAR_CROSS), Error);
     EXPECT_THROW(repository.loadWeaponInfos(GEAR_SWORD), Error);
+}
+
+TEST_F(ItemObjectMySQL, GunRowsRoundTripWithBulletCountAndSilverInEachTablesOrder) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    for (size_t i = 0; i < sizeof(kGunTables) / sizeof(kGunTables[0]); i++) {
+        const GearTable table = kGunTables[i].table;
+        const std::string name = kGunTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+        const std::string id = std::to_string(31000 + i);
+
+        // The gun INSERT writes BulletCount (Silver stays at the table default);
+        // the UPDATE writes both; saveBullet writes BulletCount alone.
+        repository.insertGun(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, "opt", 10, 12, 6, 1);
+        repository.insertGun(table, 31100 + i, 78, 3, "it-owner", 5, 31000, 7, 8, "", 9, 30, 6, 0);
+        EXPECT_EQ("12", queryScalar("SELECT BulletCount" + where + id)) << name;
+        repository.updateGun(table, 79, 4, "it-owner", 1, 6, 3, 5, "opt2", 11, 2, 20, 250, 7, 31000 + i);
+        EXPECT_EQ("20", queryScalar("SELECT BulletCount" + where + id)) << name;
+        EXPECT_EQ("250", queryScalar("SELECT Silver" + where + id)) << name;
+        repository.saveGunBullet(table, 19, 31000 + i);
+        EXPECT_EQ("19", queryScalar("SELECT BulletCount" + where + id)) << name;
+
+        // Each column lands in its own field whichever order the table's SELECT names
+        // EnchantLevel, BulletCount and Silver (AR's differs from the other three).
+        std::vector<GunObjectRow> owned = repository.loadGunOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name;
+        EXPECT_EQ(31000 + i, owned[0].itemID);
+        EXPECT_EQ(79u, owned[0].objectID);
+        EXPECT_EQ(4u, owned[0].itemType);
+        EXPECT_EQ(1, owned[0].storage);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ(3, owned[0].x);
+        EXPECT_EQ(5, owned[0].y);
+        EXPECT_EQ("opt2", owned[0].optionField);
+        EXPECT_EQ(11, owned[0].durability);
+        EXPECT_EQ(2, owned[0].enchantLevel) << name;
+        EXPECT_EQ(19, owned[0].bulletCount) << name;
+        EXPECT_EQ(250, owned[0].silver) << name;
+        EXPECT_EQ(7, owned[0].grade);
+        EXPECT_EQ(1, owned[0].createType);
+
+        std::vector<GunZoneObjectRow> inZone = repository.loadGunInZone(table, 5, 31000);
+        ASSERT_EQ(1u, inZone.size()) << name;
+        EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
+        EXPECT_EQ(9, inZone[0].durability);
+        EXPECT_EQ(0, inZone[0].enchantLevel) << name;
+        EXPECT_EQ(30, inZone[0].bulletCount) << name;
+        EXPECT_EQ(0, inZone[0].silver) << name; // the INSERT never names Silver
+
+        // The Info shape: ToHitBonus and `Range` after maxDamage.
+        const std::string info = name.substr(0, name.size() - 6) + "Info";
+        std::vector<GunInfoRow> infos = repository.loadGunInfos(table);
+        ASSERT_FALSE(infos.empty()) << info;
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)infos.size()) << info;
+        const std::string type = std::to_string(infos[0].itemType);
+        EXPECT_EQ(std::to_string(infos[0].toHitBonus),
+                  queryScalar("SELECT ToHitBonus FROM " + info + " WHERE ItemType=" + type));
+        EXPECT_EQ(std::to_string(infos[0].range),
+                  queryScalar("SELECT `Range` FROM " + info + " WHERE ItemType=" + type));
+        EXPECT_EQ(std::to_string(infos[0].downgradeRatio),
+                  queryScalar("SELECT DowngradeRatio FROM " + info + " WHERE ItemType=" + type));
+    }
+
+    // tinysave: SG, SMG and SR's literal carries a BulletCount; AR's is gear's.
+    // Each method refuses the tables whose literal takes the other argument list.
+    repository.tinysaveGun(GEAR_SG, "Silver=3", 5, 31001);
+    EXPECT_EQ("3", queryScalar("SELECT Silver FROM SGObject WHERE ItemID=31001"));
+    EXPECT_EQ("5", queryScalar("SELECT BulletCount FROM SGObject WHERE ItemID=31001"));
+    repository.tinysaveGear(GEAR_AR, "Silver=3", 31000);
+    EXPECT_EQ("3", queryScalar("SELECT Silver FROM ARObject WHERE ItemID=31000"));
+    EXPECT_EQ("19", queryScalar("SELECT BulletCount FROM ARObject WHERE ItemID=31000"));
+    EXPECT_THROW(repository.tinysaveGun(GEAR_AR, "Silver=3", 5, 31000), Error);
+    EXPECT_THROW(repository.tinysaveGear(GEAR_SMG, "Silver=3", 31002), Error);
+    EXPECT_THROW(repository.tinysaveGun(GEAR_SWORD, "Silver=3", 5, 31000), Error);
+
+    // The object-shape guard, both ways.
+    EXPECT_THROW(repository.loadGearOfOwner(GEAR_AR, "it-owner"), Error);
+    EXPECT_THROW(repository.loadSilverWeaponOfOwner(GEAR_SMG, "it-owner"), Error);
+    EXPECT_THROW(repository.insertGun(GEAR_RING, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.updateGun(GEAR_SWORD, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1, 1, 1, 31000), Error);
+    EXPECT_THROW(repository.saveGunBullet(GEAR_RING, 1, 31000), Error);
+    EXPECT_THROW(repository.loadGunInZone(GEAR_MACE, 5, 31000), Error);
+
+    // The Info guard, both ways.
+    EXPECT_THROW(repository.loadGunInfos(GEAR_SWORD), Error);
+    EXPECT_THROW(repository.loadWeaponInfos(GEAR_SG), Error);
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {

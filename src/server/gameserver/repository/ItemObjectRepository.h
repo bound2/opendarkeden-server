@@ -16,7 +16,7 @@
 // Info SELECT comes in a handful of column shapes (GearInfoKind). So a family
 // shares one method set and selects its table — and its exact literal —
 // through an enum; the MySQL impl keeps every class's seven literals
-// byte-for-byte.
+// byte-for-byte (the guns' eight: they add a saveBullet UPDATE).
 //
 // The first family: the nine slayer gear classes with a Grade column: Ring,
 // Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second
@@ -41,6 +41,16 @@
 // columns (weapon plus MaxSilver after maxDamage), Cross's and Mace's 22 (an
 // MPBonus before MaxSilver). The spec records the object shape too, and the
 // update / load methods refuse a table of the other shape.
+// The fifth family, the four guns: AR, SG, SMG, SR — a BulletCount column in
+// the INSERT (before Grade), in the UPDATE (between EnchantLevel and Silver)
+// and in both loads (owner: 14 columns, zone: 13), plus an eighth statement,
+// the saveBullet UPDATE. SG, SMG and SR are one shape (GUN_OBJECT: their
+// tinysave writes BulletCount too, and the loads name EnchantLevel,
+// BulletCount, Silver); AR is another (AR_GUN_OBJECT: gear's tinysave, and
+// the loads name BulletCount, Silver, EnchantLevel). The loaders read each
+// column at its table's ordinal into the field it names. Their Info SELECT
+// has 22 columns: the weapon shape with ToHitBonus and `Range` after
+// maxDamage.
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -52,7 +62,7 @@
 // (DWORD/WORD through "%u", int through "%d"), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 62 item files with SQL (later rounds) and the
+// Not enclosed: the other 58 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -83,7 +93,11 @@ enum GearTable {
     GEAR_SWORD,
     GEAR_BLADE,
     GEAR_CROSS,
-    GEAR_MACE
+    GEAR_MACE,
+    GEAR_AR,
+    GEAR_SG,
+    GEAR_SMG,
+    GEAR_SR
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
@@ -95,15 +109,19 @@ enum GearInfoKind {
     GEAR_INFO_WEAPON,           // loadWeaponInfos (VampireWeapon, OustersChakram)
     GEAR_INFO_WEAPON_ELEMENTAL, // loadWeaponInfosElemental (OustersWristlet)
     GEAR_INFO_SILVER_WEAPON,    // loadSilverWeaponInfos (Sword, Blade)
-    GEAR_INFO_SILVER_WEAPON_MP  // loadSilverWeaponMPInfos (Cross, Mace)
+    GEAR_INFO_SILVER_WEAPON_MP, // loadSilverWeaponMPInfos (Cross, Mace)
+    GEAR_INFO_GUN               // loadGunInfos (AR, SG, SMG, SR)
 };
 
 // The object-table shapes; which update / owner-load / zone-load a table takes.
 enum GearObjectKind {
     GEAR_OBJECT_UNSET = 0, // a spec row that forgot its kind: every shape-checked method refuses it
-                           // (insertGear, tinysaveGear and loadMaxGearType never consult the kind)
+                           // (insertGear and loadMaxGearType never consult the kind; tinysaveGear
+                           // checks it only to refuse the GUN_OBJECT tables)
     GEAR_OBJECT,           // updateGear, loadGearOfOwner, loadGearInZone
-    SILVER_WEAPON_OBJECT   // updateSilverWeapon, loadSilverWeaponOfOwner, loadSilverWeaponInZone
+    SILVER_WEAPON_OBJECT,  // updateSilverWeapon, loadSilverWeaponOfOwner, loadSilverWeaponInZone
+    GUN_OBJECT,   // SG, SMG, SR: insertGun, tinysaveGun, updateGun, saveGunBullet, loadGunOfOwner, loadGunInZone
+    AR_GUN_OBJECT // AR: the same, but tinysaveGear, and the loads name BulletCount, Silver, EnchantLevel
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -302,6 +320,70 @@ struct SilverWeaponMPInfoRow {
     int downgradeRatio;
 };
 
+// The guns' owner SELECT: gear's twelve columns plus BulletCount and Silver
+// (14). SG, SMG and SR name them EnchantLevel, BulletCount, Silver; AR names
+// BulletCount, Silver, EnchantLevel — the loader reads in the table's order,
+// so each value lands in the field its column names.
+struct GunObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    std::string optionField;
+    int durability;
+    int enchantLevel;
+    int bulletCount;
+    int silver;
+    int grade;
+    int createType; // ItemFlag
+};
+
+// The guns' zone SELECT: gear's eleven columns plus BulletCount and Silver (13, no Grade), same two orders.
+struct GunZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    std::string optionField;
+    int durability;
+    int enchantLevel;
+    int bulletCount;
+    int silver;
+    int createType; // ItemFlag
+};
+
+// ARInfo / SGInfo / SMGInfo / SRInfo: the weapon shape with ToHitBonus and `Range` after maxDamage (22 columns).
+struct GunInfoRow {
+    int itemType;
+    std::string name;
+    std::string ename;
+    int price;
+    int volume;
+    int weight;
+    int ratio;
+    int durability;
+    int minDamage;
+    int maxDamage;
+    int toHitBonus;
+    int range;
+    int speed;
+    std::string reqAbility;
+    int itemLevel;
+    int criticalBonus;
+    std::string defaultOption;
+    int upgradeRatio;
+    int upgradeCrashPercent;
+    int nextOptionRatio;
+    int nextItemType;
+    int downgradeRatio;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
@@ -311,6 +393,7 @@ public:
                             const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                             const std::string& optionField, Durability_t durability, int grade, int createType) = 0;
     // <Class>::tinysave — "SET %s": the caller's field text is the statement.
+    // Refuses the GUN_OBJECT tables, whose tinysave literal takes a BulletCount too.
     virtual void tinysaveGear(GearTable table, const char* field, ItemID_t itemID) = 0;
     // <Class>::save.
     virtual void updateGear(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
@@ -329,6 +412,7 @@ public:
     virtual std::vector<WeaponInfoElementalRow> loadWeaponInfosElemental(GearTable table) = 0;
     virtual std::vector<SilverWeaponInfoRow> loadSilverWeaponInfos(GearTable table) = 0;
     virtual std::vector<SilverWeaponMPInfoRow> loadSilverWeaponMPInfos(GearTable table) = 0;
+    virtual std::vector<GunInfoRow> loadGunInfos(GearTable table) = 0;
 
     // <Class>Loader::load(Creature*) — the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
@@ -345,6 +429,25 @@ public:
                                                                        const std::string& ownerName) = 0;
     virtual std::vector<SilverWeaponZoneObjectRow> loadSilverWeaponInZone(GearTable table, int storage,
                                                                           ZoneID_t zoneID) = 0;
+
+    // The guns (see GearObjectKind; every method takes both gun shapes unless
+    // noted): <Class>::create with BulletCount before Grade; SG / SMG / SR's
+    // tinysave "SET %s, BulletCount=%d" (GUN_OBJECT only; AR's is gear's);
+    // <Class>::save with EnchantLevel, BulletCount, Silver, Grade in that order;
+    // <Class>::saveBullet (the caller passed its BYTE BulletCount uncast); and
+    // the two loads with their BulletCount and Silver columns.
+    virtual void insertGun(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                           const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                           const std::string& optionField, Durability_t durability, int bulletCount, int grade,
+                           int createType) = 0;
+    virtual void tinysaveGun(GearTable table, const char* field, int bulletCount, ItemID_t itemID) = 0;
+    virtual void updateGun(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                           int storage, StorageID_t storageID, int x, int y, const std::string& optionField,
+                           Durability_t durability, int enchantLevel, int bulletCount, int silver, int grade,
+                           ItemID_t itemID) = 0;
+    virtual void saveGunBullet(GearTable table, BYTE bulletCount, ItemID_t itemID) = 0;
+    virtual std::vector<GunObjectRow> loadGunOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<GunZoneObjectRow> loadGunInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in MySQLItemObjectRepository.cpp.
