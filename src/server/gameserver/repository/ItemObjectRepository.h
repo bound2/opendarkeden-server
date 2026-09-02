@@ -17,7 +17,11 @@
 // the MySQL impl keeps every class's seven literals byte-for-byte.
 //
 // The first family: the nine slayer gear classes with a Grade column: Ring,
-// Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield.
+// Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second family:
+// the eight vampire and ousters gear classes of the same shape: VampireRing,
+// VampireBracelet, VampireNecklace, OustersRing, OustersCoat, OustersCirclet,
+// OustersPendent, OustersBoots. (VampireCoat's Info SELECT has 16 columns,
+// OustersStone's 20, VampireEarring guards an ifnull(MAX) — later rounds.)
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -29,7 +33,7 @@
 // (DWORD/WORD through "%u", int through "%d"), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 80 item files with SQL (later rounds) and the
+// Not enclosed: the other 72 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -42,7 +46,15 @@ enum GearTable {
     GEAR_SHOES,
     GEAR_GLOVE,
     GEAR_HELM,
-    GEAR_SHIELD
+    GEAR_SHIELD,
+    GEAR_VAMPIRE_RING,
+    GEAR_VAMPIRE_BRACELET,
+    GEAR_VAMPIRE_NECKLACE,
+    GEAR_OUSTERS_RING,
+    GEAR_OUSTERS_COAT,
+    GEAR_OUSTERS_CIRCLET,
+    GEAR_OUSTERS_PENDENT,
+    GEAR_OUSTERS_BOOTS
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.

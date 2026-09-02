@@ -2395,8 +2395,9 @@ TEST_F(ItemMySQL, ItemRowCountAndHighestIdAreReadFromTheNamedObjectTable) {
 }
 
 // --- the gear item classes' object and info tables ---------------------------
-// Ring, Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield share
-// one method set; the table (and its literal quirks) is picked by GearTable.
+// Ring, Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield and the
+// eight vampire/ousters gear classes share one method set; the table (and its
+// literal quirks) is picked by GearTable.
 
 namespace {
 struct GearTableName {
@@ -2404,14 +2405,42 @@ struct GearTableName {
     const char* name;
 };
 const GearTableName kGearTables[] = {
-    {GEAR_RING, "RingObject"},   {GEAR_BRACELET, "BraceletObject"}, {GEAR_NECKLACE, "NecklaceObject"},
-    {GEAR_COAT, "CoatObject"},   {GEAR_TROUSER, "TrouserObject"},   {GEAR_SHOES, "ShoesObject"},
-    {GEAR_GLOVE, "GloveObject"}, {GEAR_HELM, "HelmObject"},         {GEAR_SHIELD, "ShieldObject"},
+    {GEAR_RING, "RingObject"},
+    {GEAR_BRACELET, "BraceletObject"},
+    {GEAR_NECKLACE, "NecklaceObject"},
+    {GEAR_COAT, "CoatObject"},
+    {GEAR_TROUSER, "TrouserObject"},
+    {GEAR_SHOES, "ShoesObject"},
+    {GEAR_GLOVE, "GloveObject"},
+    {GEAR_HELM, "HelmObject"},
+    {GEAR_SHIELD, "ShieldObject"},
+    {GEAR_VAMPIRE_RING, "VampireRingObject"},
+    {GEAR_VAMPIRE_BRACELET, "VampireBraceletObject"},
+    {GEAR_VAMPIRE_NECKLACE, "VampireNecklaceObject"},
+    {GEAR_OUSTERS_RING, "OustersRingObject"},
+    {GEAR_OUSTERS_COAT, "OustersCoatObject"},
+    {GEAR_OUSTERS_CIRCLET, "OustersCircletObject"},
+    {GEAR_OUSTERS_PENDENT, "OustersPendentObject"},
+    {GEAR_OUSTERS_BOOTS, "OustersBootsObject"},
 };
 const GearTableName kGearInfoTables[] = {
-    {GEAR_RING, "RingInfo"},   {GEAR_BRACELET, "BraceletInfo"}, {GEAR_NECKLACE, "NecklaceInfo"},
-    {GEAR_COAT, "CoatInfo"},   {GEAR_TROUSER, "TrouserInfo"},   {GEAR_SHOES, "ShoesInfo"},
-    {GEAR_GLOVE, "GloveInfo"}, {GEAR_HELM, "HelmInfo"},         {GEAR_SHIELD, "ShieldInfo"},
+    {GEAR_RING, "RingInfo"},
+    {GEAR_BRACELET, "BraceletInfo"},
+    {GEAR_NECKLACE, "NecklaceInfo"},
+    {GEAR_COAT, "CoatInfo"},
+    {GEAR_TROUSER, "TrouserInfo"},
+    {GEAR_SHOES, "ShoesInfo"},
+    {GEAR_GLOVE, "GloveInfo"},
+    {GEAR_HELM, "HelmInfo"},
+    {GEAR_SHIELD, "ShieldInfo"},
+    {GEAR_VAMPIRE_RING, "VampireRingInfo"},
+    {GEAR_VAMPIRE_BRACELET, "VampireBraceletInfo"},
+    {GEAR_VAMPIRE_NECKLACE, "VampireNecklaceInfo"},
+    {GEAR_OUSTERS_RING, "OustersRingInfo"},
+    {GEAR_OUSTERS_COAT, "OustersCoatInfo"},
+    {GEAR_OUSTERS_CIRCLET, "OustersCircletInfo"},
+    {GEAR_OUSTERS_PENDENT, "OustersPendentInfo"},
+    {GEAR_OUSTERS_BOOTS, "OustersBootsInfo"},
 };
 } // namespace
 

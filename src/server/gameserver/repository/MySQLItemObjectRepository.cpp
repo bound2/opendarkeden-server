@@ -1,12 +1,12 @@
 // MySQL-backed ItemObjectRepository (task 3.2, the item milestone). One
-// method set for the gear classes; the table — and the
-// class's exact literal, copy-paste whitespace and all — comes from the
-// spec row the GearTable enum indexes. The two StringStream chains of the
-// originals (the create INSERT and the zone SELECT) are format strings
-// here; every streamed expression maps to the conversion StringStream used
-// for its type (DWORD/WORD "%u", int "%d", text as is), so the bytes on the
-// wire are the same. The tinysave and save literals keep their "%ld" for
-// the DWORD ids exactly as written.
+// method set for the gear classes; the table — and the class's exact
+// literal, copy-paste whitespace and all — comes from the spec row the
+// GearTable enum indexes. The two StringStream chains of the originals
+// (the create INSERT and the zone SELECT) are format strings here; every
+// streamed expression maps to the conversion StringStream used for its
+// type (DWORD/WORD "%u", int "%d", text as is), so the bytes on the wire
+// are the same. The tinysave and save literals keep their "%ld" for the
+// DWORD ids exactly as written.
 
 #include <string>
 #include <vector>
@@ -30,7 +30,7 @@ struct GearSpec {
 
 // Indexed by GearTable; the order is the enum's.
 const GearSpec kGear[] = {
-    // Ring
+    // Ring (GEAR_RING)
     {
         "INSERT INTO RingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
@@ -46,7 +46,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM RingObject WHERE Storage = %d AND StorageID = %u",
     },
-    // Bracelet
+    // Bracelet (GEAR_BRACELET)
     {
         "INSERT INTO BraceletObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
@@ -62,7 +62,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM BraceletObject WHERE Storage = %d AND StorageID = %u",
     },
-    // Necklace
+    // Necklace (GEAR_NECKLACE)
     {
         "INSERT INTO NecklaceObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
@@ -78,7 +78,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM NecklaceObject WHERE Storage = %d AND StorageID = %u",
     },
-    // Coat
+    // Coat (GEAR_COAT)
     {
         "INSERT INTO CoatObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u,  %d, %d)",
@@ -94,7 +94,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM CoatObject WHERE Storage = %d AND StorageID = %u",
     },
-    // Trouser
+    // Trouser (GEAR_TROUSER)
     {
         "INSERT INTO TrouserObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
@@ -110,7 +110,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM TrouserObject WHERE Storage = %d AND StorageID = %u",
     },
-    // Shoes
+    // Shoes (GEAR_SHOES)
     {
         "INSERT INTO ShoesObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
@@ -126,7 +126,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM ShoesObject WHERE Storage = %d AND StorageID = %u",
     },
-    // Glove
+    // Glove (GEAR_GLOVE)
     {
         "INSERT INTO GloveObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
@@ -142,7 +142,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM GloveObject WHERE Storage = %d AND StorageID = %u",
     },
-    // Helm
+    // Helm (GEAR_HELM)
     {
         "INSERT INTO HelmObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
@@ -158,7 +158,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM HelmObject WHERE Storage = %d AND StorageID = %u",
     },
-    // Shield
+    // Shield (GEAR_SHIELD)
     {
         "INSERT INTO ShieldObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
@@ -174,9 +174,137 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM ShieldObject WHERE Storage = %d AND StorageID = %u",
     },
+    // VampireRing (GEAR_VAMPIRE_RING)
+    {
+        "INSERT INTO VampireRingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE VampireRingObject SET %s WHERE ItemID=%ld",
+        "UPDATE VampireRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM VampireRingInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM VampireRingInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM VampireRingObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
+        "FROM VampireRingObject WHERE Storage = %d AND StorageID = %u",
+    },
+    // VampireBracelet (GEAR_VAMPIRE_BRACELET)
+    {
+        "INSERT INTO VampireBraceletObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
+        "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE VampireBraceletObject SET %s WHERE ItemID=%ld",
+        "UPDATE VampireBraceletObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM VampireBraceletInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM VampireBraceletInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM VampireBraceletObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
+        "FROM VampireBraceletObject WHERE Storage = %d AND StorageID = %u",
+    },
+    // VampireNecklace (GEAR_VAMPIRE_NECKLACE)
+    {
+        "INSERT INTO VampireNecklaceObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
+        "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE VampireNecklaceObject SET %s WHERE ItemID=%ld",
+        "UPDATE VampireNecklaceObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM VampireNecklaceInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM VampireNecklaceInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM VampireNecklaceObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
+        "FROM VampireNecklaceObject WHERE Storage = %d AND StorageID = %u",
+    },
+    // OustersRing (GEAR_OUSTERS_RING)
+    {
+        "INSERT INTO OustersRingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE OustersRingObject SET %s WHERE ItemID=%ld",
+        "UPDATE OustersRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM OustersRingInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM OustersRingInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM OustersRingObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
+        "FROM OustersRingObject WHERE Storage = %d AND StorageID = %u",
+    },
+    // OustersCoat (GEAR_OUSTERS_COAT)
+    {
+        "INSERT INTO OustersCoatObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE OustersCoatObject SET %s WHERE ItemID=%ld",
+        "UPDATE OustersCoatObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM OustersCoatInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM OustersCoatInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM OustersCoatObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
+        "FROM OustersCoatObject WHERE Storage = %d AND StorageID = %u",
+    },
+    // OustersCirclet (GEAR_OUSTERS_CIRCLET)
+    {
+        "INSERT INTO OustersCircletObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
+        "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE OustersCircletObject SET %s WHERE ItemID=%ld",
+        "UPDATE OustersCircletObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM OustersCircletInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM OustersCircletInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM OustersCircletObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
+        "FROM OustersCircletObject WHERE Storage = %d AND StorageID = %u",
+    },
+    // OustersPendent (GEAR_OUSTERS_PENDENT)
+    {
+        "INSERT INTO OustersPendentObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
+        "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE OustersPendentObject SET %s WHERE ItemID=%ld",
+        "UPDATE OustersPendentObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM OustersPendentInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM OustersPendentInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM OustersPendentObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
+        "FROM OustersPendentObject WHERE Storage = %d AND StorageID = %u",
+    },
+    // OustersBoots (GEAR_OUSTERS_BOOTS)
+    {
+        "INSERT INTO OustersBootsObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE OustersBootsObject SET %s WHERE ItemID=%ld",
+        "UPDATE OustersBootsObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM OustersBootsInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM OustersBootsInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM OustersBootsObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
+        "FROM OustersBootsObject WHERE Storage = %d AND StorageID = %u",
+    },
 };
 
-static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_SHIELD + 1, "kGear must cover every GearTable");
+static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_OUSTERS_BOOTS + 1, "kGear must cover every GearTable");
 
 const GearSpec& spec(GearTable table) {
     return kGear[table];
