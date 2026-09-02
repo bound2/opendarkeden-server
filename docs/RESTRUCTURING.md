@@ -1987,7 +1987,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > seeded Info table, and for the four basic-shape tables
   > loadBasicInfos against COUNT(*) so every Info literal runs; the
   > object guard both ways and insertGear refusing a Num table (its
-  > twelve varargs against the Num INSERT's eleven: the guard the guns
+  > twelve varargs against the Num INSERT's ten: the guard the guns
   > round's review fix added refuses these tables too); and the six Info
   > shapes each pinned by COUNT(*) and a class-specific column (Ratio,
   > `Function`, ResurrectType, FunctionValue, TimeSec, FunctionGrade)
@@ -2000,12 +2000,14 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > **Num-only items (2026-09-02, on master after the #54 merge; item
   > milestone round 8)**: ETC, Serum, VampireETC, Water — R3 179→175
   > (R2/R5 unchanged). One object shape, `NUM_ONLY_OBJECT`: the Num +
-  > ItemFlag shape without ItemFlag — eight columns in the INSERT (all
-  > four stream m_ItemType and (int)m_Num), in the UPDATE (ObjectID,
-  > ItemType, OwnerID, Storage, StorageID, X, Y, Num, then the ItemID)
-  > and in both loads (owner: getDWORD ids, getInt Storage, getDWORD
+  > ItemFlag INSERT and loads without their ItemFlag column, the UPDATE
+  > unchanged — nine columns in the INSERT (all four stream m_ItemType
+  > and (int)m_Num), eight in the UPDATE (ObjectID, ItemType, OwnerID,
+  > Storage, StorageID, X, Y, Num, then the ItemID in the WHERE) and
+  > eight in both loads (owner: getDWORD ids, getInt Storage, getDWORD
   > StorageID, getBYTE X, Y and Num; zone: everything but Num through
-  > getInt); no create type anywhere; tinysave is gear's.
+  > getInt); no create type anywhere (ETCObject's table still has an
+  > ItemFlag column, left at its default); tinysave is gear's.
   > insertNumOnlyItem / updateNumOnlyItem / loadNumOnlyItemOfOwner /
   > loadNumOnlyItemInZone behind `NumOnlyObjectRow` /
   > `NumOnlyZoneObjectRow`. Two Info shapes: the basic seven (ETC,
@@ -2023,7 +2025,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > but is left out: initdb/DARKEDEN.sql has no EventBallObject or
   > EventBallInfo table and ItemInfoManager.cpp does not register the
   > class, so its literals could not run in the integration test.
-  > Literal quirks kept: "(ItemID, ObjectID" (two spaces) in all four
+  > Literal quirks kept: "(ItemID,  ObjectID" (two spaces) in all four
   > INSERTs; ETC's INSERT is "VALUES(" and ends ", %d,%d)" (no space
   > before Num) and its save UPDATE has "Num=%d  WHERE" (two spaces);
   > Serum's, VampireETC's and Water's INSERT is "VALUES
@@ -2041,31 +2043,35 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > the four create INSERTs and zone SELECTs now pass through
   > executeQuery's 2048-byte format buffer (133–138 and 117–124 bytes of
   > format plus a varchar(10) owner: unreachable); the commented-out
-  > StringStream blocks in save() and the owner loader (all four; ETC's
-  > owner-loader block named seven columns, no Num, against the live
-  > literal's eight) gone with their blocks; the DB.h include kept; the
-  > header's "48 item files" count is 44; the header's insertGear
-  > comment carried its "Refuses tables…" line three times since the #53
-  > fix — once now, naming the Num and Num-only argument counts too.
-  > This commit also carries the #54 claims-audit text fixes its merge
-  > missed (the Num paragraph above split from the guns paragraph, its
-  > extra-loader-lines enumeration and live-literal scope, the header's
-  > Num getBYTE note). +1 integration test: for each of the four tables,
-  > two rows of one owner through the class's INSERT (Num and Y read
-  > back by SQL), the UPDATE writing Num, the owner load's eight columns
-  > read back, the zone load's X and Num and empty for another
-  > StorageID, tinysave writing Num, MAX(ItemType) against the seeded
-  > Info table; the object guard both ways (the gear INSERT and the Num
-  > + ItemFlag methods refusing these tables; these methods refusing
-  > gear, silver, gun and Num tables); the basic shape pinned by
-  > COUNT(*) and Ratio for ETC and Water, the string shape by COUNT(*)
-  > and the varchar column for Serum and VampireETC, each guard refusing
-  > another shape. Not enclosed: the other 44 item files with SQL — next
-  > the seven Num-only items with a parameterized create (HolyWater,
-  > Magazine, Skull, Pupa, Larva, ComposMei, Potion: verbatim INSERT
-  > literals but their own argument spellings, Skull's zone Num through
-  > getDWORD, five more Info shapes), then MixingItem and PetFood;
-  > ItemInfoManager.cpp holds only the registry calls.
+  > StringStream blocks in save() and the owner loader (all four; both
+  > of ETC's blocks omitted Num — the owner-loader block named seven
+  > columns against the live literal's eight, the save block seven SET
+  > columns against the live UPDATE's eight) gone with their blocks; the
+  > DB.h include kept; the header's "48 item files" count is 44; the
+  > header's insertGear comment shipped its "Refuses tables…" line twice
+  > in the #53 fix and three times from #54 — once now, naming the Num
+  > and Num-only INSERTs' ten and nine varargs beside the guns'
+  > thirteen. This commit also carries the #54 claims-audit text fixes
+  > its merge missed (the Num paragraph above split from the guns
+  > paragraph, its extra-loader-lines enumeration and live-literal
+  > scope, its test sentence — the four basic Info literals and the
+  > insertGear guard that the #54 fix commit added without a docs line —
+  > and the header's Num getBYTE note). +1 integration test: for each of
+  > the four tables, two rows of one owner through the class's INSERT
+  > (Num and Y read back by SQL), the UPDATE writing Num, the owner
+  > load's eight columns read back, the zone load's X and Num and empty
+  > for another StorageID, tinysave writing Num, MAX(ItemType) against
+  > the seeded Info table; the object guard both ways (the gear INSERT
+  > and owner load and the Num + ItemFlag methods refusing these tables;
+  > these methods refusing gear, silver, gun and Num tables); the basic
+  > shape pinned by COUNT(*) and Ratio for ETC and Water, the string
+  > shape by COUNT(*) and the varchar column for Serum and VampireETC,
+  > each guard refusing another shape. Not enclosed: the other 44 item
+  > files with SQL — next the seven Num-only items with a parameterized
+  > create (HolyWater, Magazine, Skull, Pupa, Larva, ComposMei, Potion:
+  > verbatim INSERT literals but their own argument spellings, Skull's
+  > zone Num through getDWORD, five more Info shapes), then MixingItem
+  > and PetFood; ItemInfoManager.cpp holds only the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

@@ -61,8 +61,10 @@
 // `Function`; ResurrectType; FunctionFlag, FunctionValue; EffectClass,
 // TimeSec; `Function`, FunctionGrade.
 // The seventh family, four "Num-only" items: ETC, Serum, VampireETC, Water —
-// the sixth family's shape without ItemFlag: eight columns in the INSERT, the
-// UPDATE and both loads, no create type anywhere; tinysave is gear's. Their
+// the sixth family's INSERT and loads without their ItemFlag column, its
+// UPDATE unchanged: nine columns in the INSERT, eight in the UPDATE and eight
+// in both loads; no create type anywhere (ETCObject's table still has an
+// ItemFlag column, left at its default); tinysave is gear's. Their
 // Info SELECT is the basic shape alone (ETC, Water) or with one varchar
 // column after Ratio (Serum's SerumEffect, fed to parseEffect; VampireETC's
 // ReqAbility).
@@ -71,8 +73,9 @@
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
 // through getBYTE and the rest through getInt; the zone load read every
 // numeric column through getInt (and the INSERT-built zone SELECT names no
-// Grade column — it never did; the Num family reads Num through getBYTE in
-// both loads, see the sixth family). The info load is getInt/getString per
+// Grade column — it never did; the Num and Num-only families read Num through
+// getBYTE in both loads, see the sixth and seventh families). The info load is
+// getInt/getString per
 // column. Write parameters are typed to what each caller streamed, so the
 // varargs bytes are unchanged: the create INSERT was a StringStream chain
 // (DWORD/WORD through "%u", int through "%d"; AR's was already a
@@ -142,7 +145,7 @@ enum GearInfoKind {
     GEAR_INFO_SILVER_WEAPON,        // loadSilverWeaponInfos (Sword, Blade)
     GEAR_INFO_SILVER_WEAPON_MP,     // loadSilverWeaponMPInfos (Cross, Mace)
     GEAR_INFO_GUN,                  // loadGunInfos (AR, SG, SMG, SR)
-    GEAR_INFO_BASIC,                // loadBasicInfos (EventItem, EventTree, LuckyBag, MoonCard)
+    GEAR_INFO_BASIC,                // loadBasicInfos (EventItem, EventTree, LuckyBag, MoonCard, ETC, Water)
     GEAR_INFO_BASIC_FUNCTION,       // loadFunctionInfos (EventETC)
     GEAR_INFO_BASIC_RESURRECT,      // loadResurrectInfos (ResurrectItem)
     GEAR_INFO_BASIC_FUNCTION_VALUE, // loadFunctionValueInfos (DyePotion, EventStar)
@@ -534,7 +537,7 @@ public:
 
     // <Class>::create — the INSERT with the ItemFlag column fed the create type.
     // Refuses tables whose INSERT takes other arguments (the guns' thirteen, the
-    // Num + ItemFlag items' eleven, the Num-only items' ten).
+    // Num + ItemFlag items' ten, the Num-only items' nine).
     virtual void insertGear(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                             const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                             const std::string& optionField, Durability_t durability, int grade, int createType) = 0;
