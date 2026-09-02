@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "repository/ItemObjectRepository.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -49,8 +50,6 @@ void DyePotion::create(const string& ownerID, Storage storage, StorageID_t stora
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -62,21 +61,7 @@ void DyePotion::create(const string& ownerID, Storage storage, StorageID_t stora
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "INSERT INTO DyePotionObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) VALUES(" << m_ItemID
-            << ", " << m_ObjectID << ", " << getItemType() << ", '" << ownerID << "', " << (int)storage << ", "
-            << storageID << ", " << (int)x << ", " << (int)y << ", " << (int)getNum() << ", " << (int)m_CreateType
-            << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertNumItem(GEAR_DYE_POTION, m_ItemID, m_ObjectID, getItemType(), ownerID, (int)storage, storageID, (int)x, (int)y, (int)getNum(), (int)m_CreateType);
 
     __END_CATCH
 }
@@ -89,16 +74,7 @@ void DyePotion::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE DyePotionObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_DYE_POTION, field, m_ItemID);
 
     __END_CATCH
 }
@@ -108,20 +84,7 @@ void DyePotion::save(const string& ownerID, Storage storage, StorageID_t storage
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE DyePotionObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Num=%d WHERE ItemID=%ld",
-                            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            (int)getNum(), m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateNumItem(GEAR_DYE_POTION, m_ObjectID, getItemType(), ownerID, (int)storage, storageID, (int)x, (int)y, (int)getNum(), m_ItemID);
 
     __END_CATCH
 }
@@ -187,46 +150,30 @@ void DyePotionInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_DYE_POTION);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM DyePotionInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<FunctionValueInfoRow> rows = defaultItemObjectRepository().loadFunctionValueInfos(GEAR_DYE_POTION);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        DyePotionInfo* pDyePotionInfo = new DyePotionInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pDyePotionInfo->setItemType(rows[r].basic.itemType);
+        pDyePotionInfo->setName(rows[r].basic.name);
+        pDyePotionInfo->setEName(rows[r].basic.ename);
+        pDyePotionInfo->setPrice(rows[r].basic.price);
+        pDyePotionInfo->setVolumeType(rows[r].basic.volume);
+        pDyePotionInfo->setWeight(rows[r].basic.weight);
+        pDyePotionInfo->setRatio(rows[r].basic.ratio);
+        pDyePotionInfo->setFunctionFlag(rows[r].functionFlag);
+        pDyePotionInfo->setFunctionValue(rows[r].functionValue);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, FunctionFlag, "
-                                      "FunctionValue FROM DyePotionInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            DyePotionInfo* pDyePotionInfo = new DyePotionInfo();
-
-            pDyePotionInfo->setItemType(pResult->getInt(++i));
-            pDyePotionInfo->setName(pResult->getString(++i));
-            pDyePotionInfo->setEName(pResult->getString(++i));
-            pDyePotionInfo->setPrice(pResult->getInt(++i));
-            pDyePotionInfo->setVolumeType(pResult->getInt(++i));
-            pDyePotionInfo->setWeight(pResult->getInt(++i));
-            pDyePotionInfo->setRatio(pResult->getInt(++i));
-            pDyePotionInfo->setFunctionFlag(pResult->getInt(++i));
-            pDyePotionInfo->setFunctionValue(pResult->getInt(++i));
-
-            addItemInfo(pDyePotionInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pDyePotionInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -242,33 +189,24 @@ void DyePotionLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
+    vector<NumObjectRow> rows = defaultItemObjectRepository().loadNumItemOfOwner(GEAR_DYE_POTION, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        Result* pResult =
-            pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM "
-                                "DyePotionObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                pCreature->getName().c_str());
-
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
 
                 DyePotion* pDyePotion = new DyePotion();
 
-                pDyePotion->setItemID(pResult->getDWORD(++i));
-                pDyePotion->setObjectID(pResult->getDWORD(++i));
-                pDyePotion->setItemType(pResult->getDWORD(++i));
+                pDyePotion->setItemID(rows[r].itemID);
+                pDyePotion->setObjectID(rows[r].objectID);
+                pDyePotion->setItemType(rows[r].itemType);
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+                Storage storage = (Storage)rows[r].storage;
+                StorageID_t storageID = rows[r].storageID;
+                BYTE x = rows[r].x;
+                BYTE y = rows[r].y;
 
-                pDyePotion->setNum(pResult->getBYTE(++i));
-                pDyePotion->setCreateType((Item::CreateType)pResult->getInt(++i));
+                pDyePotion->setNum(rows[r].num);
+                pDyePotion->setCreateType((Item::CreateType)rows[r].createType);
 
                 Inventory* pInventory = NULL;
                 Slayer* pSlayer = NULL;
@@ -342,7 +280,6 @@ void DyePotionLoader::load(Creature* pCreature)
                     break;
 
                 default:
-                    SAFE_DELETE(pStmt); // by sigi
                     throw Error("invalid storage or OwnerID must be NULL");
                 }
 
@@ -352,11 +289,7 @@ void DyePotionLoader::load(Creature* pCreature)
             } catch (Throwable& t) {
                 filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
             }
-        }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -368,34 +301,24 @@ void DyePotionLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<NumZoneObjectRow> rows =
+        defaultItemObjectRepository().loadNumItemInZone(GEAR_DYE_POTION, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM DyePotionObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
-
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-
-        while (pResult->next()) {
-            uint i = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
 
             DyePotion* pDyePotion = new DyePotion();
 
-            pDyePotion->setItemID(pResult->getInt(++i));
-            pDyePotion->setObjectID(pResult->getInt(++i));
-            pDyePotion->setItemType(pResult->getInt(++i));
+            pDyePotion->setItemID(rows[r].itemID);
+            pDyePotion->setObjectID(rows[r].objectID);
+            pDyePotion->setItemType(rows[r].itemType);
 
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-            pDyePotion->setNum(pResult->getBYTE(++i));
-            pDyePotion->setCreateType((Item::CreateType)pResult->getInt(++i));
+            pDyePotion->setNum(rows[r].num);
+            pDyePotion->setCreateType((Item::CreateType)rows[r].createType);
 
             switch (storage) {
             case STORAGE_ZONE: {
@@ -411,11 +334,7 @@ void DyePotionLoader::load(Zone* pZone)
             default:
                 throw Error("Storage must be STORAGE_ZONE");
             }
-        }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

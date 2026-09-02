@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "repository/ItemObjectRepository.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -49,8 +50,6 @@ void EventStar::create(const string& ownerID, Storage storage, StorageID_t stora
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -62,20 +61,7 @@ void EventStar::create(const string& ownerID, Storage storage, StorageID_t stora
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "INSERT INTO EventStarObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) VALUES(" << m_ItemID
-            << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', " << (int)storage << ", "
-            << storageID << ", " << (int)x << ", " << (int)y << ", " << (int)m_Num << ", " << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertNumItem(GEAR_EVENT_STAR, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y, (int)m_Num, (int)m_CreateType);
 
     __END_CATCH
 }
@@ -88,16 +74,7 @@ void EventStar::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE EventStarObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_EVENT_STAR, field, m_ItemID);
 
     __END_CATCH
 }
@@ -107,37 +84,7 @@ void EventStar::save(const string& ownerID, Storage storage, StorageID_t storage
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        /*
-        StringStream sql;
-
-        sql << "UPDATE EventStarObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",Num = " <<(int)m_Num
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE EventStarObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Num=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            (int)m_Num, m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateNumItem(GEAR_EVENT_STAR, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y, (int)m_Num, m_ItemID);
 
     __END_CATCH
 }
@@ -202,46 +149,30 @@ void EventStarInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_EVENT_STAR);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM EventStarInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<FunctionValueInfoRow> rows = defaultItemObjectRepository().loadFunctionValueInfos(GEAR_EVENT_STAR);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        EventStarInfo* pEventStarInfo = new EventStarInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pEventStarInfo->setItemType(rows[r].basic.itemType);
+        pEventStarInfo->setName(rows[r].basic.name);
+        pEventStarInfo->setEName(rows[r].basic.ename);
+        pEventStarInfo->setPrice(rows[r].basic.price);
+        pEventStarInfo->setVolumeType(rows[r].basic.volume);
+        pEventStarInfo->setWeight(rows[r].basic.weight);
+        pEventStarInfo->setRatio(rows[r].basic.ratio);
+        pEventStarInfo->setFunctionFlag(rows[r].functionFlag);
+        pEventStarInfo->setFunctionValue(rows[r].functionValue);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, FunctionFlag, "
-                                      "FunctionValue FROM EventStarInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            EventStarInfo* pEventStarInfo = new EventStarInfo();
-
-            pEventStarInfo->setItemType(pResult->getInt(++i));
-            pEventStarInfo->setName(pResult->getString(++i));
-            pEventStarInfo->setEName(pResult->getString(++i));
-            pEventStarInfo->setPrice(pResult->getInt(++i));
-            pEventStarInfo->setVolumeType(pResult->getInt(++i));
-            pEventStarInfo->setWeight(pResult->getInt(++i));
-            pEventStarInfo->setRatio(pResult->getInt(++i));
-            pEventStarInfo->setFunctionFlag(pResult->getInt(++i));
-            pEventStarInfo->setFunctionValue(pResult->getInt(++i));
-
-            addItemInfo(pEventStarInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pEventStarInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -257,46 +188,24 @@ void EventStarLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
+    vector<NumObjectRow> rows = defaultItemObjectRepository().loadNumItemOfOwner(GEAR_EVENT_STAR, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM EventStarObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
-
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
-
-        Result* pResult =
-            pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM "
-                                "EventStarObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                pCreature->getName().c_str());
-
-
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
 
                 EventStar* pEventStar = new EventStar();
 
-                pEventStar->setItemID(pResult->getDWORD(++i));
-                pEventStar->setObjectID(pResult->getDWORD(++i));
-                pEventStar->setItemType(pResult->getDWORD(++i));
+                pEventStar->setItemID(rows[r].itemID);
+                pEventStar->setObjectID(rows[r].objectID);
+                pEventStar->setItemType(rows[r].itemType);
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+                Storage storage = (Storage)rows[r].storage;
+                StorageID_t storageID = rows[r].storageID;
+                BYTE x = rows[r].x;
+                BYTE y = rows[r].y;
 
-                pEventStar->setNum(pResult->getBYTE(++i));
-                pEventStar->setCreateType((Item::CreateType)pResult->getInt(++i));
+                pEventStar->setNum(rows[r].num);
+                pEventStar->setCreateType((Item::CreateType)rows[r].createType);
 
                 Inventory* pInventory = NULL;
                 Slayer* pSlayer = NULL;
@@ -370,7 +279,6 @@ void EventStarLoader::load(Creature* pCreature)
                     break;
 
                 default:
-                    SAFE_DELETE(pStmt); // by sigi
                     throw Error("invalid storage or OwnerID must be NULL");
                 }
 
@@ -380,11 +288,7 @@ void EventStarLoader::load(Creature* pCreature)
             } catch (Throwable& t) {
                 filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
             }
-        }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -396,34 +300,24 @@ void EventStarLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<NumZoneObjectRow> rows =
+        defaultItemObjectRepository().loadNumItemInZone(GEAR_EVENT_STAR, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventStarObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
-
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-
-        while (pResult->next()) {
-            uint i = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
 
             EventStar* pEventStar = new EventStar();
 
-            pEventStar->setItemID(pResult->getInt(++i));
-            pEventStar->setObjectID(pResult->getInt(++i));
-            pEventStar->setItemType(pResult->getInt(++i));
+            pEventStar->setItemID(rows[r].itemID);
+            pEventStar->setObjectID(rows[r].objectID);
+            pEventStar->setItemType(rows[r].itemType);
 
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-            pEventStar->setNum(pResult->getBYTE(++i));
-            pEventStar->setCreateType((Item::CreateType)pResult->getInt(++i));
+            pEventStar->setNum(rows[r].num);
+            pEventStar->setCreateType((Item::CreateType)rows[r].createType);
 
             switch (storage) {
             case STORAGE_ZONE: {
@@ -439,11 +333,7 @@ void EventStarLoader::load(Zone* pZone)
             default:
                 throw Error("Storage must be STORAGE_ZONE");
             }
-        }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

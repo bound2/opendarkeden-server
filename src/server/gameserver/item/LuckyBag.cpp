@@ -8,6 +8,7 @@
 
 #include "Belt.h"
 #include "DB.h"
+#include "repository/ItemObjectRepository.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "Motorcycle.h"
@@ -49,8 +50,6 @@ void LuckyBag::create(const string& ownerID, Storage storage, StorageID_t storag
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -62,20 +61,7 @@ void LuckyBag::create(const string& ownerID, Storage storage, StorageID_t storag
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "INSERT INTO LuckyBagObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) VALUES(" << m_ItemID
-            << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', " << (int)storage << ", "
-            << storageID << ", " << (int)x << ", " << (int)y << ", " << (int)m_Num << ", " << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertNumItem(GEAR_LUCKY_BAG, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y, (int)m_Num, (int)m_CreateType);
 
     __END_CATCH
 }
@@ -88,16 +74,7 @@ void LuckyBag::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE LuckyBagObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_LUCKY_BAG, field, m_ItemID);
 
     __END_CATCH
 }
@@ -107,37 +84,7 @@ void LuckyBag::save(const string& ownerID, Storage storage, StorageID_t storageI
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        /*
-        StringStream sql;
-
-        sql << "UPDATE LuckyBagObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",Num = " <<(int)m_Num
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE LuckyBagObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Num=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            (int)m_Num, m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateNumItem(GEAR_LUCKY_BAG, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y, (int)m_Num, m_ItemID);
 
     __END_CATCH
 }
@@ -201,43 +148,28 @@ void LuckyBagInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_LUCKY_BAG);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM LuckyBagInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<BasicInfoRow> rows = defaultItemObjectRepository().loadBasicInfos(GEAR_LUCKY_BAG);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        LuckyBagInfo* pLuckyBagInfo = new LuckyBagInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pLuckyBagInfo->setItemType(rows[r].itemType);
+        pLuckyBagInfo->setName(rows[r].name);
+        pLuckyBagInfo->setEName(rows[r].ename);
+        pLuckyBagInfo->setPrice(rows[r].price);
+        pLuckyBagInfo->setVolumeType(rows[r].volume);
+        pLuckyBagInfo->setWeight(rows[r].weight);
+        pLuckyBagInfo->setRatio(rows[r].ratio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM LuckyBagInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            LuckyBagInfo* pLuckyBagInfo = new LuckyBagInfo();
-
-            pLuckyBagInfo->setItemType(pResult->getInt(++i));
-            pLuckyBagInfo->setName(pResult->getString(++i));
-            pLuckyBagInfo->setEName(pResult->getString(++i));
-            pLuckyBagInfo->setPrice(pResult->getInt(++i));
-            pLuckyBagInfo->setVolumeType(pResult->getInt(++i));
-            pLuckyBagInfo->setWeight(pResult->getInt(++i));
-            pLuckyBagInfo->setRatio(pResult->getInt(++i));
-
-            addItemInfo(pLuckyBagInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pLuckyBagInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -253,46 +185,24 @@ void LuckyBagLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
+    vector<NumObjectRow> rows = defaultItemObjectRepository().loadNumItemOfOwner(GEAR_LUCKY_BAG, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM LuckyBagObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
-
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
-
-        Result* pResult =
-            pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM "
-                                "LuckyBagObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                pCreature->getName().c_str());
-
-
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
 
                 LuckyBag* pLuckyBag = new LuckyBag();
 
-                pLuckyBag->setItemID(pResult->getDWORD(++i));
-                pLuckyBag->setObjectID(pResult->getDWORD(++i));
-                pLuckyBag->setItemType(pResult->getDWORD(++i));
+                pLuckyBag->setItemID(rows[r].itemID);
+                pLuckyBag->setObjectID(rows[r].objectID);
+                pLuckyBag->setItemType(rows[r].itemType);
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+                Storage storage = (Storage)rows[r].storage;
+                StorageID_t storageID = rows[r].storageID;
+                BYTE x = rows[r].x;
+                BYTE y = rows[r].y;
 
-                pLuckyBag->setNum(pResult->getBYTE(++i));
-                pLuckyBag->setCreateType((Item::CreateType)pResult->getInt(++i));
+                pLuckyBag->setNum(rows[r].num);
+                pLuckyBag->setCreateType((Item::CreateType)rows[r].createType);
 
                 Inventory* pInventory = NULL;
                 Slayer* pSlayer = NULL;
@@ -366,7 +276,6 @@ void LuckyBagLoader::load(Creature* pCreature)
                     break;
 
                 default:
-                    SAFE_DELETE(pStmt); // by sigi
                     throw Error("invalid storage or OwnerID must be NULL");
                 }
 
@@ -376,11 +285,7 @@ void LuckyBagLoader::load(Creature* pCreature)
             } catch (Throwable& t) {
                 filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
             }
-        }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -392,34 +297,24 @@ void LuckyBagLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<NumZoneObjectRow> rows =
+        defaultItemObjectRepository().loadNumItemInZone(GEAR_LUCKY_BAG, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM LuckyBagObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
-
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-
-        while (pResult->next()) {
-            uint i = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
 
             LuckyBag* pLuckyBag = new LuckyBag();
 
-            pLuckyBag->setItemID(pResult->getInt(++i));
-            pLuckyBag->setObjectID(pResult->getInt(++i));
-            pLuckyBag->setItemType(pResult->getInt(++i));
+            pLuckyBag->setItemID(rows[r].itemID);
+            pLuckyBag->setObjectID(rows[r].objectID);
+            pLuckyBag->setItemType(rows[r].itemType);
 
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-            pLuckyBag->setNum(pResult->getBYTE(++i));
-            pLuckyBag->setCreateType((Item::CreateType)pResult->getInt(++i));
+            pLuckyBag->setNum(rows[r].num);
+            pLuckyBag->setCreateType((Item::CreateType)rows[r].createType);
 
             switch (storage) {
             case STORAGE_ZONE: {
@@ -435,11 +330,7 @@ void LuckyBagLoader::load(Zone* pZone)
             default:
                 throw Error("Storage must be STORAGE_ZONE");
             }
-        }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

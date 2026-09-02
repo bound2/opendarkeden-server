@@ -51,6 +51,15 @@
 // column at its table's ordinal into the field it names. Their Info SELECT
 // has 22 columns: the weapon shape with ToHitBonus and `Range` after
 // maxDamage.
+// The sixth family, ten "Num + ItemFlag" items: EventItem, EventTree, LuckyBag,
+// MoonCard, EventETC, ResurrectItem, DyePotion, EventStar, EffectItem,
+// PetEnchantItem — no OptionType, Durability, Grade or EnchantLevel anywhere;
+// a Num column (a BYTE, cast (int) into the INSERT and UPDATE, read through
+// getBYTE in both loads) and ItemFlag. Owner and zone SELECT: nine columns.
+// Their Info SELECT is the seven-column basic shape (the head without
+// Durability) alone or with one or two class-specific columns after Ratio:
+// `Function`; ResurrectType; FunctionFlag, FunctionValue; EffectClass,
+// TimeSec; `Function`, FunctionGrade.
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -63,7 +72,7 @@
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 58 item files with SQL (later rounds) and the
+// Not enclosed: the other 48 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -98,20 +107,36 @@ enum GearTable {
     GEAR_AR,
     GEAR_SG,
     GEAR_SMG,
-    GEAR_SR
+    GEAR_SR,
+    GEAR_EVENT_ITEM,
+    GEAR_EVENT_TREE,
+    GEAR_LUCKY_BAG,
+    GEAR_MOON_CARD,
+    GEAR_EVENT_ETC,
+    GEAR_RESURRECT_ITEM,
+    GEAR_DYE_POTION,
+    GEAR_EVENT_STAR,
+    GEAR_EFFECT_ITEM,
+    GEAR_PET_ENCHANT_ITEM
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
 enum GearInfoKind {
-    GEAR_INFO_UNSET = 0,        // a spec row that forgot its kind: every loader refuses it
-    GEAR_INFO_STANDARD,         // loadGearInfos
-    GEAR_INFO_NO_RATIO,         // loadGearInfosNoRatio (VampireCoat)
-    GEAR_INFO_ELEMENTAL,        // loadGearInfosElemental (OustersStone)
-    GEAR_INFO_WEAPON,           // loadWeaponInfos (VampireWeapon, OustersChakram)
-    GEAR_INFO_WEAPON_ELEMENTAL, // loadWeaponInfosElemental (OustersWristlet)
-    GEAR_INFO_SILVER_WEAPON,    // loadSilverWeaponInfos (Sword, Blade)
-    GEAR_INFO_SILVER_WEAPON_MP, // loadSilverWeaponMPInfos (Cross, Mace)
-    GEAR_INFO_GUN               // loadGunInfos (AR, SG, SMG, SR)
+    GEAR_INFO_UNSET = 0,            // a spec row that forgot its kind: every loader refuses it
+    GEAR_INFO_STANDARD,             // loadGearInfos
+    GEAR_INFO_NO_RATIO,             // loadGearInfosNoRatio (VampireCoat)
+    GEAR_INFO_ELEMENTAL,            // loadGearInfosElemental (OustersStone)
+    GEAR_INFO_WEAPON,               // loadWeaponInfos (VampireWeapon, OustersChakram)
+    GEAR_INFO_WEAPON_ELEMENTAL,     // loadWeaponInfosElemental (OustersWristlet)
+    GEAR_INFO_SILVER_WEAPON,        // loadSilverWeaponInfos (Sword, Blade)
+    GEAR_INFO_SILVER_WEAPON_MP,     // loadSilverWeaponMPInfos (Cross, Mace)
+    GEAR_INFO_GUN,                  // loadGunInfos (AR, SG, SMG, SR)
+    GEAR_INFO_BASIC,                // loadBasicInfos (EventItem, EventTree, LuckyBag, MoonCard)
+    GEAR_INFO_BASIC_FUNCTION,       // loadFunctionInfos (EventETC)
+    GEAR_INFO_BASIC_RESURRECT,      // loadResurrectInfos (ResurrectItem)
+    GEAR_INFO_BASIC_FUNCTION_VALUE, // loadFunctionValueInfos (DyePotion, EventStar)
+    GEAR_INFO_BASIC_EFFECT,         // loadEffectInfos (EffectItem)
+    GEAR_INFO_BASIC_FUNCTION_GRADE  // loadFunctionGradeInfos (PetEnchantItem)
 };
 
 // The object-table shapes; which update / owner-load / zone-load a table takes.
@@ -122,8 +147,9 @@ enum GearObjectKind {
                            // gear's and the silver weapons', whose INSERT takes its twelve varargs)
     GEAR_OBJECT,           // updateGear, loadGearOfOwner, loadGearInZone
     SILVER_WEAPON_OBJECT,  // updateSilverWeapon, loadSilverWeaponOfOwner, loadSilverWeaponInZone
-    GUN_OBJECT,   // SG, SMG, SR: insertGun, tinysaveGun, updateGun, saveGunBullet, loadGunOfOwner, loadGunInZone
-    AR_GUN_OBJECT // AR: the same, but tinysaveGear, and the loads name BulletCount, Silver, EnchantLevel
+    GUN_OBJECT,    // SG, SMG, SR: insertGun, tinysaveGun, updateGun, saveGunBullet, loadGunOfOwner, loadGunInZone
+    AR_GUN_OBJECT, // AR: the same, but tinysaveGear, and the loads name BulletCount, Silver, EnchantLevel
+    NUM_OBJECT // the Num + ItemFlag items: insertNumItem, tinysaveGear, updateNumItem, loadNumItemOfOwner, loadNumItemInZone
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -386,11 +412,84 @@ struct GunInfoRow {
     int downgradeRatio;
 };
 
+// The Num + ItemFlag items' owner SELECT: nine columns — the ids (getDWORD),
+// Storage (getInt), StorageID (getDWORD), X, Y and Num (getBYTE), ItemFlag (getInt).
+struct NumObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    BYTE num;
+    int createType; // ItemFlag
+};
+
+// Their zone SELECT: the same nine columns, everything but Num through getInt.
+struct NumZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    BYTE num;
+    int createType; // ItemFlag
+};
+
+// The basic Info shape: seven columns, the head without Durability
+// (EventItemInfo, EventTreeInfo, LuckyBagInfo, MoonCardInfo).
+struct BasicInfoRow {
+    int itemType;
+    std::string name;
+    std::string ename;
+    int price;
+    int volume;
+    int weight;
+    int ratio;
+};
+
+// EventETCInfo: basic plus `Function`.
+struct FunctionInfoRow {
+    BasicInfoRow basic;
+    int function;
+};
+
+// ResurrectItemInfo: basic plus ResurrectType.
+struct ResurrectInfoRow {
+    BasicInfoRow basic;
+    int resurrectType;
+};
+
+// DyePotionInfo, EventStarInfo: basic plus FunctionFlag, FunctionValue.
+struct FunctionValueInfoRow {
+    BasicInfoRow basic;
+    int functionFlag;
+    int functionValue;
+};
+
+// EffectItemInfo: basic plus EffectClass, TimeSec (TimeSec feeds setDuration).
+struct EffectInfoRow {
+    BasicInfoRow basic;
+    int effectClass;
+    int timeSec;
+};
+
+// PetEnchantItemInfo: basic plus `Function`, FunctionGrade.
+struct FunctionGradeInfoRow {
+    BasicInfoRow basic;
+    int function;
+    int functionGrade;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
 
     // <Class>::create — the INSERT with the ItemFlag column fed the create type.
+    // Refuses tables whose INSERT takes other arguments (the guns' thirteen).
     // Refuses tables whose INSERT takes other arguments (the guns' thirteen).
     // Refuses tables whose INSERT takes other arguments (the guns' thirteen).
     virtual void insertGear(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
@@ -417,6 +516,12 @@ public:
     virtual std::vector<SilverWeaponInfoRow> loadSilverWeaponInfos(GearTable table) = 0;
     virtual std::vector<SilverWeaponMPInfoRow> loadSilverWeaponMPInfos(GearTable table) = 0;
     virtual std::vector<GunInfoRow> loadGunInfos(GearTable table) = 0;
+    virtual std::vector<BasicInfoRow> loadBasicInfos(GearTable table) = 0;
+    virtual std::vector<FunctionInfoRow> loadFunctionInfos(GearTable table) = 0;
+    virtual std::vector<ResurrectInfoRow> loadResurrectInfos(GearTable table) = 0;
+    virtual std::vector<FunctionValueInfoRow> loadFunctionValueInfos(GearTable table) = 0;
+    virtual std::vector<EffectInfoRow> loadEffectInfos(GearTable table) = 0;
+    virtual std::vector<FunctionGradeInfoRow> loadFunctionGradeInfos(GearTable table) = 0;
 
     // <Class>Loader::load(Creature*) — the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
@@ -452,6 +557,17 @@ public:
     virtual void saveGunBullet(GearTable table, BYTE bulletCount, ItemID_t itemID) = 0;
     virtual std::vector<GunObjectRow> loadGunOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<GunZoneObjectRow> loadGunInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+
+    // The Num + ItemFlag items (see GearObjectKind): <Class>::create and save
+    // with Num (the callers cast their BYTE (int)) and no OptionType, Durability,
+    // Grade or EnchantLevel; tinysave is gear's; the two loads read Num as a BYTE.
+    virtual void insertNumItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                               const std::string& ownerID, int storage, StorageID_t storageID, int x, int y, int num,
+                               int createType) = 0;
+    virtual void updateNumItem(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                               int storage, StorageID_t storageID, int x, int y, int num, ItemID_t itemID) = 0;
+    virtual std::vector<NumObjectRow> loadNumItemOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<NumZoneObjectRow> loadNumItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in MySQLItemObjectRepository.cpp.

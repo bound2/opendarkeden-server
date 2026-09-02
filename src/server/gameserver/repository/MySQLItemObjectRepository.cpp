@@ -634,9 +634,179 @@ const GearSpec kGear[] = {
         GEAR_INFO_GUN,
         GUN_OBJECT,
     },
+    // EventItem (GEAR_EVENT_ITEM)
+    {
+        "INSERT INTO EventItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE EventItemObject SET %s WHERE ItemID=%ld",
+        "UPDATE EventItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM EventItemInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM EventItemInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventItemObject WHERE OwnerID "
+        "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventItemObject WHERE Storage "
+        "= %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC,
+        NUM_OBJECT,
+    },
+    // EventTree (GEAR_EVENT_TREE)
+    {
+        "INSERT INTO EventTreeObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE EventTreeObject SET %s WHERE ItemID=%ld",
+        "UPDATE EventTreeObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM EventTreeInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM EventTreeInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventTreeObject WHERE OwnerID "
+        "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventTreeObject WHERE Storage "
+        "= %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC,
+        NUM_OBJECT,
+    },
+    // LuckyBag (GEAR_LUCKY_BAG)
+    {
+        "INSERT INTO LuckyBagObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE LuckyBagObject SET %s WHERE ItemID=%ld",
+        "UPDATE LuckyBagObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM LuckyBagInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM LuckyBagInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM LuckyBagObject WHERE OwnerID "
+        "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM LuckyBagObject WHERE Storage "
+        "= %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC,
+        NUM_OBJECT,
+    },
+    // MoonCard (GEAR_MOON_CARD)
+    {
+        "INSERT INTO MoonCardObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE MoonCardObject SET %s WHERE ItemID=%ld",
+        "UPDATE MoonCardObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM MoonCardInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM MoonCardInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM MoonCardObject WHERE OwnerID "
+        "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM MoonCardObject WHERE Storage "
+        "= %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC,
+        NUM_OBJECT,
+    },
+    // EventETC (GEAR_EVENT_ETC)
+    {
+        "INSERT INTO EventETCObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE EventETCObject SET %s WHERE ItemID=%ld",
+        "UPDATE EventETCObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM EventETCInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, `Function` FROM EventETCInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventETCObject WHERE OwnerID "
+        "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventETCObject WHERE Storage "
+        "= %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC_FUNCTION,
+        NUM_OBJECT,
+    },
+    // ResurrectItem (GEAR_RESURRECT_ITEM)
+    {
+        "INSERT INTO ResurrectItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
+        "ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE ResurrectItemObject SET %s WHERE ItemID=%ld",
+        "UPDATE ResurrectItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM ResurrectItemInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, ResurrectType FROM ResurrectItemInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM ResurrectItemObject WHERE "
+        "OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM ResurrectItemObject WHERE "
+        "Storage = %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC_RESURRECT,
+        NUM_OBJECT,
+    },
+    // DyePotion (GEAR_DYE_POTION)
+    {
+        "INSERT INTO DyePotionObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE DyePotionObject SET %s WHERE ItemID=%ld",
+        "UPDATE DyePotionObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM DyePotionInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, FunctionFlag, FunctionValue FROM DyePotionInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM DyePotionObject WHERE OwnerID "
+        "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM DyePotionObject WHERE Storage "
+        "= %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC_FUNCTION_VALUE,
+        NUM_OBJECT,
+    },
+    // EventStar (GEAR_EVENT_STAR)
+    {
+        "INSERT INTO EventStarObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE EventStarObject SET %s WHERE ItemID=%ld",
+        "UPDATE EventStarObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM EventStarInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, FunctionFlag, FunctionValue FROM EventStarInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventStarObject WHERE OwnerID "
+        "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventStarObject WHERE Storage "
+        "= %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC_FUNCTION_VALUE,
+        NUM_OBJECT,
+    },
+    // EffectItem (GEAR_EFFECT_ITEM)
+    {
+        "INSERT INTO EffectItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE EffectItemObject SET %s WHERE ItemID=%ld",
+        "UPDATE EffectItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM EffectItemInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, EffectClass, TimeSec FROM EffectItemInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EffectItemObject WHERE "
+        "OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EffectItemObject WHERE "
+        "Storage = %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC_EFFECT,
+        NUM_OBJECT,
+    },
+    // PetEnchantItem (GEAR_PET_ENCHANT_ITEM)
+    {
+        "INSERT INTO PetEnchantItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
+        "ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
+        "UPDATE PetEnchantItemObject SET %s WHERE ItemID=%ld",
+        "UPDATE PetEnchantItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM PetEnchantItemInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, `Function`, FunctionGrade FROM PetEnchantItemInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM PetEnchantItemObject WHERE "
+        "OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM PetEnchantItemObject WHERE "
+        "Storage = %d AND StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC_FUNCTION_GRADE,
+        NUM_OBJECT,
+    },
 };
 
-static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_SR + 1, "kGear must cover every GearTable");
+static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_PET_ENCHANT_ITEM + 1, "kGear must cover every GearTable");
 
 const GearSpec& spec(GearTable table) {
     return kGear[table];
@@ -743,6 +913,17 @@ void readGunInfoTail(Result* pResult, uint& i, GunInfoRow& row) {
     row.nextOptionRatio = pResult->getInt(++i);
     row.nextItemType = pResult->getInt(++i);
     row.downgradeRatio = pResult->getInt(++i);
+}
+
+// The seven columns of the basic Info shape (the head without Durability).
+void readBasicInfo(Result* pResult, uint& i, BasicInfoRow& row) {
+    row.itemType = pResult->getInt(++i);
+    row.name = pResult->getString(++i);
+    row.ename = pResult->getString(++i);
+    row.price = pResult->getInt(++i);
+    row.volume = pResult->getInt(++i);
+    row.weight = pResult->getInt(++i);
+    row.ratio = pResult->getInt(++i);
 }
 
 // The ten columns after MaxSilver in the silver-weapon Info shapes.
@@ -1169,6 +1350,244 @@ public:
                 row.optionField = pResult->getString(++i);
                 row.durability = pResult->getInt(++i);
                 readGunTail(table, pResult, i, row);
+                row.createType = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // The Num + ItemFlag items: no OptionType, Durability, Grade or EnchantLevel.
+    void insertNumItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                       const string& ownerID, int storage, StorageID_t storageID, int x, int y, int num,
+                       int createType) {
+        requireObjectKind(table, NUM_OBJECT, "insertNumItem");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).insert, itemID, objectID, itemType, ownerID.c_str(), storage, storageID, x,
+                                y, num, createType);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateNumItem(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID, int storage,
+                       StorageID_t storageID, int x, int y, int num, ItemID_t itemID) {
+        requireObjectKind(table, NUM_OBJECT, "updateNumItem");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).update, objectID, itemType, ownerID.c_str(), storage, storageID, x, y, num,
+                                itemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    vector<BasicInfoRow> loadBasicInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_BASIC, "loadBasicInfos");
+        vector<BasicInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                BasicInfoRow row;
+                readBasicInfo(pResult, i, row);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<FunctionInfoRow> loadFunctionInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_BASIC_FUNCTION, "loadFunctionInfos");
+        vector<FunctionInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                FunctionInfoRow row;
+                readBasicInfo(pResult, i, row.basic);
+                row.function = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<ResurrectInfoRow> loadResurrectInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_BASIC_RESURRECT, "loadResurrectInfos");
+        vector<ResurrectInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                ResurrectInfoRow row;
+                readBasicInfo(pResult, i, row.basic);
+                row.resurrectType = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<FunctionValueInfoRow> loadFunctionValueInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_BASIC_FUNCTION_VALUE, "loadFunctionValueInfos");
+        vector<FunctionValueInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                FunctionValueInfoRow row;
+                readBasicInfo(pResult, i, row.basic);
+                row.functionFlag = pResult->getInt(++i);
+                row.functionValue = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<EffectInfoRow> loadEffectInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_BASIC_EFFECT, "loadEffectInfos");
+        vector<EffectInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                EffectInfoRow row;
+                readBasicInfo(pResult, i, row.basic);
+                row.effectClass = pResult->getInt(++i);
+                row.timeSec = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<FunctionGradeInfoRow> loadFunctionGradeInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_BASIC_FUNCTION_GRADE, "loadFunctionGradeInfos");
+        vector<FunctionGradeInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                FunctionGradeInfoRow row;
+                readBasicInfo(pResult, i, row.basic);
+                row.function = pResult->getInt(++i);
+                row.functionGrade = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<NumObjectRow> loadNumItemOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, NUM_OBJECT, "loadNumItemOfOwner");
+        vector<NumObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).ofOwner, ownerName.c_str());
+
+            while (pResult->next()) {
+                uint i = 0;
+                NumObjectRow row;
+                row.itemID = pResult->getDWORD(++i);
+                row.objectID = pResult->getDWORD(++i);
+                row.itemType = pResult->getDWORD(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getDWORD(++i);
+                row.x = pResult->getBYTE(++i);
+                row.y = pResult->getBYTE(++i);
+                row.num = pResult->getBYTE(++i);
+                row.createType = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<NumZoneObjectRow> loadNumItemInZone(GearTable table, int storage, ZoneID_t zoneID) {
+        requireObjectKind(table, NUM_OBJECT, "loadNumItemInZone");
+        vector<NumZoneObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).inZone, storage, zoneID);
+
+            while (pResult->next()) {
+                uint i = 0;
+                NumZoneObjectRow row;
+                row.itemID = pResult->getInt(++i);
+                row.objectID = pResult->getInt(++i);
+                row.itemType = pResult->getInt(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getInt(++i);
+                row.x = pResult->getInt(++i);
+                row.y = pResult->getInt(++i);
+                row.num = pResult->getBYTE(++i);
                 row.createType = pResult->getInt(++i);
                 rows.push_back(row);
             }

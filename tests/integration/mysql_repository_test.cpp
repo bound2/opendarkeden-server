@@ -2461,6 +2461,13 @@ const GearTableName kGunTables[] = {
     {GEAR_SMG, "SMGObject"},
     {GEAR_SR, "SRObject"},
 };
+const GearTableName kNumTables[] = {
+    {GEAR_EVENT_ITEM, "EventItemObject"},   {GEAR_EVENT_TREE, "EventTreeObject"},
+    {GEAR_LUCKY_BAG, "LuckyBagObject"},     {GEAR_MOON_CARD, "MoonCardObject"},
+    {GEAR_EVENT_ETC, "EventETCObject"},     {GEAR_RESURRECT_ITEM, "ResurrectItemObject"},
+    {GEAR_DYE_POTION, "DyePotionObject"},   {GEAR_EVENT_STAR, "EventStarObject"},
+    {GEAR_EFFECT_ITEM, "EffectItemObject"}, {GEAR_PET_ENCHANT_ITEM, "PetEnchantItemObject"},
+};
 } // namespace
 
 class ItemObjectMySQL : public ::testing::Test {
@@ -2478,6 +2485,8 @@ protected:
             execSQL(std::string("DELETE FROM ") + kSilverTables[i].name + " WHERE ItemID >= 31000");
         for (size_t i = 0; i < sizeof(kGunTables) / sizeof(kGunTables[0]); i++)
             execSQL(std::string("DELETE FROM ") + kGunTables[i].name + " WHERE ItemID >= 31000");
+        for (size_t i = 0; i < sizeof(kNumTables) / sizeof(kNumTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kNumTables[i].name + " WHERE ItemID >= 31000");
     }
 };
 
@@ -2788,6 +2797,121 @@ TEST_F(ItemObjectMySQL, GunRowsRoundTripWithBulletCountAndSilverInEachTablesOrde
     // The Info guard, both ways.
     EXPECT_THROW(repository.loadGunInfos(GEAR_SWORD), Error);
     EXPECT_THROW(repository.loadWeaponInfos(GEAR_SG), Error);
+}
+
+TEST_F(ItemObjectMySQL, NumItemRowsRoundTripThroughTheirNineColumns) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    for (size_t i = 0; i < sizeof(kNumTables) / sizeof(kNumTables[0]); i++) {
+        const GearTable table = kNumTables[i].table;
+        const std::string name = kNumTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+        const std::string id = std::to_string(31000 + i);
+
+        repository.insertNumItem(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, 12, 1);
+        repository.insertNumItem(table, 31100 + i, 78, 3, "it-owner", 5, 31000, 7, 8, 30, 0);
+        EXPECT_EQ("12", queryScalar("SELECT Num" + where + id)) << name;
+        EXPECT_EQ("1", queryScalar("SELECT ItemFlag" + where + id)) << name;
+        repository.updateNumItem(table, 79, 4, "it-owner", 1, 6, 3, 5, 20, 31000 + i);
+        EXPECT_EQ("20", queryScalar("SELECT Num" + where + id)) << name;
+        EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + id)) << name;
+
+        std::vector<NumObjectRow> owned = repository.loadNumItemOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name;
+        EXPECT_EQ(31000 + i, owned[0].itemID);
+        EXPECT_EQ(79u, owned[0].objectID);
+        EXPECT_EQ(4u, owned[0].itemType);
+        EXPECT_EQ(1, owned[0].storage);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ(3, owned[0].x);
+        EXPECT_EQ(5, owned[0].y);
+        EXPECT_EQ(20, owned[0].num) << name;
+        EXPECT_EQ(1, owned[0].createType);
+
+        std::vector<NumZoneObjectRow> inZone = repository.loadNumItemInZone(table, 5, 31000);
+        ASSERT_EQ(1u, inZone.size()) << name;
+        EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
+        EXPECT_EQ(30, inZone[0].num) << name;
+        EXPECT_EQ(0, inZone[0].createType);
+        EXPECT_TRUE(repository.loadNumItemInZone(table, 5, 31001).empty()) << name;
+
+        repository.tinysaveGear(table, "Num=9", 31000 + i);
+        EXPECT_EQ("9", queryScalar("SELECT Num" + where + id)) << name;
+
+        // The MAX(ItemType) literal of each Info table (some of these tables are seeded, some not).
+        const std::string info = name.substr(0, name.size() - 6) + "Info";
+        EXPECT_EQ(atoi(queryScalar("SELECT ifnull(MAX(ItemType),0) FROM " + info).c_str()),
+                  repository.loadMaxGearType(table))
+            << info;
+    }
+
+    // The object-shape guard, both ways.
+    EXPECT_THROW(repository.loadGearOfOwner(GEAR_EVENT_ITEM, "it-owner"), Error);
+    EXPECT_THROW(repository.loadGunInZone(GEAR_MOON_CARD, 5, 31000), Error);
+    EXPECT_THROW(repository.insertNumItem(GEAR_RING, 31900, 1, 1, "it-owner", 1, 1, 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.updateNumItem(GEAR_AR, 1, 1, "it-owner", 1, 1, 1, 1, 1, 31000), Error);
+    EXPECT_THROW(repository.loadNumItemOfOwner(GEAR_SWORD, "it-owner"), Error);
+    EXPECT_THROW(repository.loadNumItemInZone(GEAR_SG, 5, 31000), Error);
+
+    // The six Info shapes: each pinned by COUNT(*) and, when the table is seeded, its
+    // class-specific column; each refuses a table of another shape.
+    {
+        std::vector<BasicInfoRow> rows = repository.loadBasicInfos(GEAR_EVENT_ITEM);
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM EventItemInfo").c_str()), (int)rows.size());
+        if (!rows.empty())
+            EXPECT_EQ(std::to_string(rows[0].ratio), queryScalar("SELECT Ratio FROM EventItemInfo WHERE ItemType=" +
+                                                                 std::to_string(rows[0].itemType)));
+        EXPECT_THROW(repository.loadBasicInfos(GEAR_EVENT_ETC), Error);
+    }
+    {
+        std::vector<FunctionInfoRow> rows = repository.loadFunctionInfos(GEAR_EVENT_ETC);
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM EventETCInfo").c_str()), (int)rows.size());
+        if (!rows.empty())
+            EXPECT_EQ(std::to_string(rows[0].function),
+                      queryScalar("SELECT `Function` FROM EventETCInfo WHERE ItemType=" +
+                                  std::to_string(rows[0].basic.itemType)));
+        EXPECT_THROW(repository.loadFunctionInfos(GEAR_PET_ENCHANT_ITEM), Error);
+    }
+    {
+        std::vector<ResurrectInfoRow> rows = repository.loadResurrectInfos(GEAR_RESURRECT_ITEM);
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM ResurrectItemInfo").c_str()), (int)rows.size());
+        if (!rows.empty())
+            EXPECT_EQ(std::to_string(rows[0].resurrectType),
+                      queryScalar("SELECT ResurrectType FROM ResurrectItemInfo WHERE ItemType=" +
+                                  std::to_string(rows[0].basic.itemType)));
+        EXPECT_THROW(repository.loadResurrectInfos(GEAR_EVENT_ITEM), Error);
+    }
+    {
+        std::vector<FunctionValueInfoRow> rows = repository.loadFunctionValueInfos(GEAR_DYE_POTION);
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM DyePotionInfo").c_str()), (int)rows.size());
+        if (!rows.empty())
+            EXPECT_EQ(std::to_string(rows[0].functionValue),
+                      queryScalar("SELECT FunctionValue FROM DyePotionInfo WHERE ItemType=" +
+                                  std::to_string(rows[0].basic.itemType)));
+        EXPECT_FALSE(repository.loadFunctionValueInfos(GEAR_EVENT_STAR).size() !=
+                     (size_t)atoi(queryScalar("SELECT COUNT(*) FROM EventStarInfo").c_str()));
+        EXPECT_THROW(repository.loadFunctionValueInfos(GEAR_EFFECT_ITEM), Error);
+    }
+    {
+        std::vector<EffectInfoRow> rows = repository.loadEffectInfos(GEAR_EFFECT_ITEM);
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM EffectItemInfo").c_str()), (int)rows.size());
+        if (!rows.empty())
+            EXPECT_EQ(std::to_string(rows[0].timeSec),
+                      queryScalar("SELECT TimeSec FROM EffectItemInfo WHERE ItemType=" +
+                                  std::to_string(rows[0].basic.itemType)));
+        EXPECT_THROW(repository.loadEffectInfos(GEAR_DYE_POTION), Error);
+    }
+    {
+        std::vector<FunctionGradeInfoRow> rows = repository.loadFunctionGradeInfos(GEAR_PET_ENCHANT_ITEM);
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM PetEnchantItemInfo").c_str()), (int)rows.size());
+        if (!rows.empty())
+            EXPECT_EQ(std::to_string(rows[0].functionGrade),
+                      queryScalar("SELECT FunctionGrade FROM PetEnchantItemInfo WHERE ItemType=" +
+                                  std::to_string(rows[0].basic.itemType)));
+        EXPECT_THROW(repository.loadFunctionGradeInfos(GEAR_EVENT_ETC), Error);
+    }
+    EXPECT_THROW(repository.loadGunInfos(GEAR_EVENT_ITEM), Error);
+    EXPECT_THROW(repository.loadGearInfos(GEAR_LUCKY_BAG), Error);
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {
