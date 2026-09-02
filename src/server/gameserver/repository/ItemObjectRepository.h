@@ -16,7 +16,8 @@
 // Info SELECT comes in a handful of column shapes (GearInfoKind). So a family
 // shares one method set and selects its table — and its exact literal —
 // through an enum; the MySQL impl keeps every class's seven literals
-// byte-for-byte (the guns' eight: they add a saveBullet UPDATE).
+// byte-for-byte (the guns' eight: they add a saveBullet UPDATE; four Num-only
+// items' nine: they override destroy() with a DELETE).
 //
 // The first family: the nine slayer gear classes with a Grade column: Ring,
 // Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second
@@ -68,6 +69,14 @@
 // Info SELECT is the basic shape alone (ETC, Water) or with one varchar
 // column after Ratio (Serum's SerumEffect, fed to parseEffect; VampireETC's
 // ReqAbility).
+// The eighth family, six more Num-only items whose create was already a
+// parameterized statement (verbatim): HolyWater, Magazine, Pupa, Larva,
+// ComposMei, Potion — the same object shape. Four of them (Pupa, Larva,
+// ComposMei, Potion) override destroy() with a DELETE naming the table as a
+// %s: a ninth literal, destroyItemObject. Their Info SELECT adds to the basic
+// head: minDamage, maxDamage (HolyWater); ItemLevel, MaxBullets,
+// MaxSilverBullets, Vivid, GunType-1 (Magazine); Effect, fed to parseEffect
+// (Pupa, Larva, ComposMei — the string shape); ItemLevel, Effect (Potion).
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -82,7 +91,7 @@
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 44 item files with SQL (later rounds) and the
+// Not enclosed: the other 38 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -131,7 +140,13 @@ enum GearTable {
     GEAR_ETC,
     GEAR_SERUM,
     GEAR_VAMPIRE_ETC,
-    GEAR_WATER
+    GEAR_WATER,
+    GEAR_HOLY_WATER,
+    GEAR_MAGAZINE,
+    GEAR_PUPA,
+    GEAR_LARVA,
+    GEAR_COMPOS_MEI,
+    GEAR_POTION
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
@@ -151,7 +166,10 @@ enum GearInfoKind {
     GEAR_INFO_BASIC_FUNCTION_VALUE, // loadFunctionValueInfos (DyePotion, EventStar)
     GEAR_INFO_BASIC_EFFECT,         // loadEffectInfos (EffectItem)
     GEAR_INFO_BASIC_FUNCTION_GRADE, // loadFunctionGradeInfos (PetEnchantItem)
-    GEAR_INFO_BASIC_STRING          // loadStringInfos (Serum, VampireETC)
+    GEAR_INFO_BASIC_STRING,         // loadStringInfos (Serum, VampireETC, Pupa, Larva, ComposMei)
+    GEAR_INFO_BASIC_DAMAGE,         // loadDamageInfos (HolyWater)
+    GEAR_INFO_MAGAZINE,             // loadMagazineInfos (Magazine)
+    GEAR_INFO_BASIC_LEVEL_STRING    // loadLevelStringInfos (Potion)
 };
 
 // The object-table shapes; which update / owner-load / zone-load a table takes.
@@ -165,7 +183,7 @@ enum GearObjectKind {
     GUN_OBJECT,    // SG, SMG, SR: insertGun, tinysaveGun, updateGun, saveGunBullet, loadGunOfOwner, loadGunInZone
     AR_GUN_OBJECT, // AR: the same, but tinysaveGear, and the loads name BulletCount, Silver, EnchantLevel
     NUM_OBJECT, // the Num + ItemFlag items: insertNumItem, tinysaveGear, updateNumItem, loadNumItemOfOwner, loadNumItemInZone
-    NUM_ONLY_OBJECT // the Num-only items: insertNumOnlyItem, tinysaveGear, updateNumOnlyItem, loadNumOnlyItemOfOwner, loadNumOnlyItemInZone
+    NUM_ONLY_OBJECT // the Num-only items: insertNumOnlyItem, tinysaveGear, updateNumOnlyItem, loadNumOnlyItemOfOwner, loadNumOnlyItemInZone, destroyItemObject (Pupa, Larva, ComposMei, Potion)
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -531,6 +549,31 @@ struct NumOnlyZoneObjectRow {
     BYTE num;
 };
 
+// HolyWaterInfo: basic plus minDamage, maxDamage.
+struct DamageInfoRow {
+    BasicInfoRow basic;
+    int minDamage;
+    int maxDamage;
+};
+
+// MagazineInfo: basic plus ItemLevel, MaxBullets, MaxSilverBullets, Vivid, GunType-1
+// (the caller keeps its `!= 0` on Vivid and its (MagazineInfo::GunType) cast).
+struct MagazineInfoRow {
+    BasicInfoRow basic;
+    int itemLevel;
+    int maxBullets;
+    int maxSilverBullets;
+    int vivid;
+    int gunType;
+};
+
+// PotionInfo: basic plus ItemLevel and the Effect varchar (fed to parseEffect).
+struct LevelStringInfoRow {
+    BasicInfoRow basic;
+    int itemLevel;
+    std::string value;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
@@ -569,6 +612,9 @@ public:
     virtual std::vector<EffectInfoRow> loadEffectInfos(GearTable table) = 0;
     virtual std::vector<FunctionGradeInfoRow> loadFunctionGradeInfos(GearTable table) = 0;
     virtual std::vector<StringInfoRow> loadStringInfos(GearTable table) = 0;
+    virtual std::vector<DamageInfoRow> loadDamageInfos(GearTable table) = 0;
+    virtual std::vector<MagazineInfoRow> loadMagazineInfos(GearTable table) = 0;
+    virtual std::vector<LevelStringInfoRow> loadLevelStringInfos(GearTable table) = 0;
 
     // <Class>Loader::load(Creature*) — the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
@@ -626,6 +672,10 @@ public:
                                    int num, ItemID_t itemID) = 0;
     virtual std::vector<NumOnlyObjectRow> loadNumOnlyItemOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<NumOnlyZoneObjectRow> loadNumOnlyItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+    // <Class>::destroy of Pupa, Larva, ComposMei and Potion — "DELETE FROM %s" with the
+    // class's object table name; false when no row went, true otherwise (also after
+    // a caught DB error, as the original fell through). Refuses tables without the literal.
+    virtual bool destroyItemObject(GearTable table, const std::string& objectTableName, ItemID_t itemID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in MySQLItemObjectRepository.cpp.

@@ -2469,10 +2469,10 @@ const GearTableName kNumTables[] = {
     {GEAR_EFFECT_ITEM, "EffectItemObject"}, {GEAR_PET_ENCHANT_ITEM, "PetEnchantItemObject"},
 };
 const GearTableName kNumOnlyTables[] = {
-    {GEAR_ETC, "ETCObject"},
-    {GEAR_SERUM, "SerumObject"},
-    {GEAR_VAMPIRE_ETC, "VampireETCObject"},
-    {GEAR_WATER, "WaterObject"},
+    {GEAR_ETC, "ETCObject"},       {GEAR_SERUM, "SerumObject"},          {GEAR_VAMPIRE_ETC, "VampireETCObject"},
+    {GEAR_WATER, "WaterObject"},   {GEAR_HOLY_WATER, "HolyWaterObject"}, {GEAR_MAGAZINE, "MagazineObject"},
+    {GEAR_PUPA, "PupaObject"},     {GEAR_LARVA, "LarvaObject"},          {GEAR_COMPOS_MEI, "ComposMeiObject"},
+    {GEAR_POTION, "PotionObject"},
 };
 } // namespace
 
@@ -2967,7 +2967,7 @@ TEST_F(ItemObjectMySQL, NumOnlyItemRowsRoundTripThroughTheirEightColumns) {
         repository.tinysaveGear(table, "Num=9", 31000 + i);
         EXPECT_EQ("9", queryScalar("SELECT Num" + where + id)) << name;
 
-        // The MAX(ItemType) literal of each Info table (all four are seeded).
+        // The MAX(ItemType) literal of each Info table (all ten are seeded).
         const std::string info = name.substr(0, name.size() - 6) + "Info";
         EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM " + info).c_str()), repository.loadMaxGearType(table))
             << info;
@@ -3012,6 +3012,64 @@ TEST_F(ItemObjectMySQL, NumOnlyItemRowsRoundTripThroughTheirEightColumns) {
                                                 std::to_string(vampire[0].basic.itemType)));
         EXPECT_THROW(repository.loadStringInfos(GEAR_ETC), Error);
         EXPECT_THROW(repository.loadStringInfos(GEAR_EVENT_ETC), Error);
+    }
+
+    // The four classes with their own destroy(): the DELETE reports whether a row
+    // went; a table without the literal is refused.
+    {
+        repository.insertNumOnlyItem(GEAR_PUPA, 31200, 1, 1, "it-owner", 1, 1, 1, 1, 1);
+        EXPECT_TRUE(repository.destroyItemObject(GEAR_PUPA, "PupaObject", 31200));
+        EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM PupaObject WHERE ItemID=31200"));
+        EXPECT_FALSE(repository.destroyItemObject(GEAR_PUPA, "PupaObject", 31200));
+        EXPECT_FALSE(repository.destroyItemObject(GEAR_LARVA, "LarvaObject", 31200));
+        EXPECT_FALSE(repository.destroyItemObject(GEAR_COMPOS_MEI, "ComposMeiObject", 31200));
+        EXPECT_FALSE(repository.destroyItemObject(GEAR_POTION, "PotionObject", 31200));
+        EXPECT_THROW(repository.destroyItemObject(GEAR_HOLY_WATER, "HolyWaterObject", 31200), Error);
+        EXPECT_THROW(repository.destroyItemObject(GEAR_RING, "RingObject", 31200), Error);
+    }
+
+    // The Info shapes of the parameterized-create six, each pinned by COUNT(*) and
+    // a class-specific column; each guard refusing another shape.
+    {
+        std::vector<DamageInfoRow> rows = repository.loadDamageInfos(GEAR_HOLY_WATER);
+        ASSERT_FALSE(rows.empty());
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM HolyWaterInfo").c_str()), (int)rows.size());
+        EXPECT_EQ(std::to_string(rows[0].maxDamage), queryScalar("SELECT maxDamage FROM HolyWaterInfo WHERE ItemType=" +
+                                                                 std::to_string(rows[0].basic.itemType)));
+        EXPECT_THROW(repository.loadDamageInfos(GEAR_MAGAZINE), Error);
+    }
+    {
+        std::vector<MagazineInfoRow> rows = repository.loadMagazineInfos(GEAR_MAGAZINE);
+        ASSERT_FALSE(rows.empty());
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM MagazineInfo").c_str()), (int)rows.size());
+        const std::string type = std::to_string(rows[0].basic.itemType);
+        EXPECT_EQ(std::to_string(rows[0].maxBullets),
+                  queryScalar("SELECT MaxBullets FROM MagazineInfo WHERE ItemType=" + type));
+        EXPECT_EQ(std::to_string(rows[0].gunType),
+                  queryScalar("SELECT GunType-1 FROM MagazineInfo WHERE ItemType=" + type));
+        EXPECT_THROW(repository.loadMagazineInfos(GEAR_POTION), Error);
+    }
+    {
+        const GearTableName effectTables[] = {
+            {GEAR_PUPA, "PupaInfo"}, {GEAR_LARVA, "LarvaInfo"}, {GEAR_COMPOS_MEI, "ComposMeiInfo"}};
+        for (size_t i = 0; i < sizeof(effectTables) / sizeof(effectTables[0]); i++) {
+            const std::string info = effectTables[i].name;
+            std::vector<StringInfoRow> rows = repository.loadStringInfos(effectTables[i].table);
+            ASSERT_FALSE(rows.empty()) << info;
+            EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)rows.size()) << info;
+            EXPECT_EQ(rows[0].value, queryScalar("SELECT Effect FROM " + info +
+                                                 " WHERE ItemType=" + std::to_string(rows[0].basic.itemType)))
+                << info;
+        }
+        std::vector<LevelStringInfoRow> potion = repository.loadLevelStringInfos(GEAR_POTION);
+        ASSERT_FALSE(potion.empty());
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM PotionInfo").c_str()), (int)potion.size());
+        const std::string type = std::to_string(potion[0].basic.itemType);
+        EXPECT_EQ(std::to_string(potion[0].itemLevel),
+                  queryScalar("SELECT ItemLevel FROM PotionInfo WHERE ItemType=" + type));
+        EXPECT_EQ(potion[0].value, queryScalar("SELECT Effect FROM PotionInfo WHERE ItemType=" + type));
+        EXPECT_THROW(repository.loadLevelStringInfos(GEAR_PUPA), Error);
+        EXPECT_THROW(repository.loadStringInfos(GEAR_POTION), Error);
     }
 }
 
