@@ -15,6 +15,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 SGInfoManager* g_pSGInfoManager = NULL;
@@ -67,8 +68,6 @@ void SG::create(const string& ownerID, Storage storage, StorageID_t storageID, B
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -80,25 +79,12 @@ void SG::create(const string& ownerID, Storage storage, StorageID_t storageID, B
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO SGObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, BulletCount, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", "
-            << m_ObjectID << ", " << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID
-            << ", " << (int)x << ", " << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", "
-            << (int)getBulletCount() << ", " << (int)getGrade() << ", " << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertGun(GEAR_SG, m_ItemID, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                            storageID, (int)x, (int)y, optionField, getDurability(),
+                                            (int)getBulletCount(), (int)getGrade(), (int)m_CreateType);
 
     __END_CATCH
 }
@@ -112,17 +98,7 @@ void SG::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE SGObject SET %s, BulletCount=%d WHERE ItemID=%ld", field, (int)getBulletCount(),
-                            m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGun(GEAR_SG, field, (int)getBulletCount(), m_ItemID);
 
     __END_CATCH
 }
@@ -135,44 +111,12 @@ void SG::save(const string& ownerID, Storage storage, StorageID_t storageID, BYT
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE SGObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << ",BulletCount = " <<(int)m_BulletCount
-            << ",Silver = " <<(int)m_Silver
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery(
-            "UPDATE SGObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-            "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
-            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, optionField.c_str(),
-            getDurability(), (int)getEnchantLevel(), (int)getBulletCount(), (int)getSilver(), (int)getGrade(),
-            m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateGun(GEAR_SG, m_ObjectID, getItemType(), ownerID, (int)storage, storageID,
+                                            (int)x, (int)y, optionField, getDurability(), (int)getEnchantLevel(),
+                                            (int)getBulletCount(), (int)getSilver(), (int)getGrade(), m_ItemID);
 
     __END_CATCH
 }
@@ -183,16 +127,7 @@ void SG::save(const string& ownerID, Storage storage, StorageID_t storageID, BYT
 void SG::saveBullet() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE SGObject SET BulletCount = %d WHERE ItemID = %d", getBulletCount(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().saveGunBullet(GEAR_SG, getBulletCount(), m_ItemID);
 
     __END_CATCH
 }
@@ -353,61 +288,43 @@ void SGInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_SG);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM SGInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GunInfoRow> rows = defaultItemObjectRepository().loadGunInfos(GEAR_SG);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        SGInfo* pSGInfo = new SGInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pSGInfo->setItemType(rows[r].itemType);
+        pSGInfo->setName(rows[r].name);
+        pSGInfo->setEName(rows[r].ename);
+        pSGInfo->setPrice(rows[r].price);
+        pSGInfo->setVolumeType(rows[r].volume);
+        pSGInfo->setWeight(rows[r].weight);
+        pSGInfo->setRatio(rows[r].ratio);
+        pSGInfo->setDurability(rows[r].durability);
+        pSGInfo->setMinDamage(rows[r].minDamage);
+        pSGInfo->setMaxDamage(rows[r].maxDamage);
+        pSGInfo->setToHitBonus(rows[r].toHitBonus);
+        pSGInfo->setRange(rows[r].range);
+        pSGInfo->setSpeed(rows[r].speed);
+        pSGInfo->setReqAbility(rows[r].reqAbility);
+        pSGInfo->setItemLevel(rows[r].itemLevel);
+        pSGInfo->setCriticalBonus(rows[r].criticalBonus);
+        pSGInfo->setDefaultOptions(rows[r].defaultOption);
+        pSGInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pSGInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pSGInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pSGInfo->setNextItemType(rows[r].nextItemType);
+        pSGInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery(
-            "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, ToHitBonus, "
-            "`Range`, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-            "NextOptionRatio, NextItemType, DowngradeRatio FROM SGInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            SGInfo* pSGInfo = new SGInfo();
-
-            pSGInfo->setItemType(pResult->getInt(++i));
-            pSGInfo->setName(pResult->getString(++i));
-            pSGInfo->setEName(pResult->getString(++i));
-            pSGInfo->setPrice(pResult->getInt(++i));
-            pSGInfo->setVolumeType(pResult->getInt(++i));
-            pSGInfo->setWeight(pResult->getInt(++i));
-            pSGInfo->setRatio(pResult->getInt(++i));
-            pSGInfo->setDurability(pResult->getInt(++i));
-            pSGInfo->setMinDamage(pResult->getInt(++i));
-            pSGInfo->setMaxDamage(pResult->getInt(++i));
-            pSGInfo->setToHitBonus(pResult->getInt(++i));
-            pSGInfo->setRange(pResult->getInt(++i));
-            pSGInfo->setSpeed(pResult->getInt(++i));
-            pSGInfo->setReqAbility(pResult->getString(++i));
-            pSGInfo->setItemLevel(pResult->getInt(++i));
-            pSGInfo->setCriticalBonus(pResult->getInt(++i));
-            pSGInfo->setDefaultOptions(pResult->getString(++i));
-            pSGInfo->setUpgradeRatio(pResult->getInt(++i));
-            pSGInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pSGInfo->setNextOptionRatio(pResult->getInt(++i));
-            pSGInfo->setNextItemType(pResult->getInt(++i));
-            pSGInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pSGInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pSGInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -423,147 +340,118 @@ void SGLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<GunObjectRow> rows = defaultItemObjectRepository().loadGunOfOwner(GEAR_SG, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            SG* pSG = new SG();
 
-        /*
-        StringStream sql;
+            pSG->setItemID(rows[r].itemID);
+            pSG->setObjectID(rows[r].objectID);
+            pSG->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << "OptionType, Durability, EnchantLevel, BulletCount, Silver FROM SGObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            if (g_pSGInfoManager->getItemInfo(pSG->getItemType())->isUnique())
+                pSG->setUnique();
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Durability, EnchantLevel, "
-            "BulletCount, Silver, Grade, ItemFlag FROM SGObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pSG->setOptionType(optionTypes);
 
+            pSG->setDurability(rows[r].durability);
+            pSG->setEnchantLevel(rows[r].enchantLevel);
+            pSG->setBulletCount(rows[r].bulletCount);
+            pSG->setSilver(rows[r].silver);
+            pSG->setGrade(rows[r].grade);
+            pSG->setCreateType((Item::CreateType)rows[r].createType);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                SG* pSG = new SG();
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                pSG->setItemID(pResult->getDWORD(++i));
-                pSG->setObjectID(pResult->getDWORD(++i));
-                pSG->setItemType(pResult->getDWORD(++i));
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                if (g_pSGInfoManager->getItemInfo(pSG->getItemType())->isUnique())
-                    pSG->setUnique();
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pSG)) {
+                    pInventory->addItemEx(x, y, pSG);
+                } else {
+                    processItemBugEx(pCreature, pSG);
+                }
+                break;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pSG->setOptionType(optionTypes);
-
-                pSG->setDurability(pResult->getInt(++i));
-                pSG->setEnchantLevel(pResult->getInt(++i));
-                pSG->setBulletCount(pResult->getInt(++i));
-                pSG->setSilver(pResult->getInt(++i));
-                pSG->setGrade(pResult->getInt(++i));
-                pSG->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pSG)) {
-                        pInventory->addItemEx(x, y, pSG);
+                    if (!pSlayer->isWear((Slayer::WearPart)x)) {
+                        pSlayer->wearItem((Slayer::WearPart)x, pSG);
                     } else {
                         processItemBugEx(pCreature, pSG);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        if (!pSlayer->isWear((Slayer::WearPart)x)) {
-                            pSlayer->wearItem((Slayer::WearPart)x, pSG);
-                        } else {
-                            processItemBugEx(pCreature, pSG);
-                        }
-                    } else if (pCreature->isVampire()) {
-                        processItemBugEx(pCreature, pSG);
-                    }
-                    break;
-
-                case STORAGE_BELT:
+                } else if (pCreature->isVampire()) {
                     processItemBugEx(pCreature, pSG);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pSG);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pSG);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pSG);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pSG);
-                    } else
-                        pStash->insert(x, y, pSG);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pSG);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
-            }
-        }
+                break;
 
-        SAFE_DELETE(pStmt);
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pSG);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pSG);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pSG);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pSG);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pSG);
+                } else
+                    pStash->insert(x, y, pSG);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pSG);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
+            }
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -579,63 +467,47 @@ void SGLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<GunZoneObjectRow> rows =
+        defaultItemObjectRepository().loadGunInZone(GEAR_SG, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        SG* pSG = new SG();
 
-        StringStream sql;
+        pSG->setItemID(rows[r].itemID);
+        pSG->setObjectID(rows[r].objectID);
+        pSG->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " OptionType, Durability, EnchantLevel, BulletCount, Silver, ItemFlag FROM SGObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        string optionField = rows[r].optionField;
+        list<OptionType_t> optionTypes;
+        setOptionTypeFromField(optionTypes, optionField);
+        pSG->setOptionType(optionTypes);
 
-        while (pResult->next()) {
-            uint i = 0;
+        pSG->setDurability(rows[r].durability);
+        pSG->setEnchantLevel(rows[r].enchantLevel);
+        pSG->setBulletCount(rows[r].bulletCount);
+        pSG->setSilver(rows[r].silver);
+        pSG->setCreateType((Item::CreateType)rows[r].createType);
 
-            SG* pSG = new SG();
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pSG);
+        } break;
 
-            pSG->setItemID(pResult->getInt(++i));
-            pSG->setObjectID(pResult->getInt(++i));
-            pSG->setItemType(pResult->getInt(++i));
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            string optionField = pResult->getString(++i);
-            list<OptionType_t> optionTypes;
-            setOptionTypeFromField(optionTypes, optionField);
-            pSG->setOptionType(optionTypes);
-
-            pSG->setDurability(pResult->getInt(++i));
-            pSG->setEnchantLevel(pResult->getInt(++i));
-            pSG->setBulletCount(pResult->getInt(++i));
-            pSG->setSilver(pResult->getInt(++i));
-            pSG->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pSG);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

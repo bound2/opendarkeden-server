@@ -16,6 +16,7 @@
 #include "Stash.h"
 #include "Utility.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 MoonCardInfoManager* g_pMoonCardInfoManager = NULL;
 
@@ -49,8 +50,6 @@ void MoonCard::create(const string& ownerID, Storage storage, StorageID_t storag
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -62,20 +61,8 @@ void MoonCard::create(const string& ownerID, Storage storage, StorageID_t storag
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "INSERT INTO MoonCardObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) VALUES(" << m_ItemID
-            << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', " << (int)storage << ", "
-            << storageID << ", " << (int)x << ", " << (int)y << ", " << (int)m_Num << ", " << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertNumItem(GEAR_MOON_CARD, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                storageID, (int)x, (int)y, (int)m_Num, (int)m_CreateType);
 
     __END_CATCH
 }
@@ -88,16 +75,7 @@ void MoonCard::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE MoonCardObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_MOON_CARD, field, m_ItemID);
 
     __END_CATCH
 }
@@ -107,37 +85,8 @@ void MoonCard::save(const string& ownerID, Storage storage, StorageID_t storageI
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        /*
-        StringStream sql;
-
-        sql << "UPDATE MoonCardObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",Num = " <<(int)m_Num
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE MoonCardObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Num=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            (int)m_Num, m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateNumItem(GEAR_MOON_CARD, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                storageID, (int)x, (int)y, (int)m_Num, m_ItemID);
 
     __END_CATCH
 }
@@ -201,43 +150,28 @@ void MoonCardInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_MOON_CARD);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM MoonCardInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<BasicInfoRow> rows = defaultItemObjectRepository().loadBasicInfos(GEAR_MOON_CARD);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        MoonCardInfo* pMoonCardInfo = new MoonCardInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pMoonCardInfo->setItemType(rows[r].itemType);
+        pMoonCardInfo->setName(rows[r].name);
+        pMoonCardInfo->setEName(rows[r].ename);
+        pMoonCardInfo->setPrice(rows[r].price);
+        pMoonCardInfo->setVolumeType(rows[r].volume);
+        pMoonCardInfo->setWeight(rows[r].weight);
+        pMoonCardInfo->setRatio(rows[r].ratio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM MoonCardInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            MoonCardInfo* pMoonCardInfo = new MoonCardInfo();
-
-            pMoonCardInfo->setItemType(pResult->getInt(++i));
-            pMoonCardInfo->setName(pResult->getString(++i));
-            pMoonCardInfo->setEName(pResult->getString(++i));
-            pMoonCardInfo->setPrice(pResult->getInt(++i));
-            pMoonCardInfo->setVolumeType(pResult->getInt(++i));
-            pMoonCardInfo->setWeight(pResult->getInt(++i));
-            pMoonCardInfo->setRatio(pResult->getInt(++i));
-
-            addItemInfo(pMoonCardInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pMoonCardInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -253,134 +187,106 @@ void MoonCardLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
+    vector<NumObjectRow> rows = defaultItemObjectRepository().loadNumItemOfOwner(GEAR_MOON_CARD, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            MoonCard* pMoonCard = new MoonCard();
 
-        /*
-        StringStream sql;
+            pMoonCard->setItemID(rows[r].itemID);
+            pMoonCard->setObjectID(rows[r].objectID);
+            pMoonCard->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM MoonCardObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            pMoonCard->setNum(rows[r].num);
+            pMoonCard->setCreateType((Item::CreateType)rows[r].createType);
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM "
-                                "MoonCardObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                pCreature->getName().c_str());
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Ousters* pOusters = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            Item* pItem = NULL;
+            Stash* pStash = NULL;
+            Belt* pBelt = NULL;
+            Inventory* pBeltInventory = NULL;
 
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else if (pCreature->isOusters()) {
+                pOusters = dynamic_cast<Ousters*>(pCreature);
+                pInventory = pOusters->getInventory();
+                pStash = pOusters->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                MoonCard* pMoonCard = new MoonCard();
-
-                pMoonCard->setItemID(pResult->getDWORD(++i));
-                pMoonCard->setObjectID(pResult->getDWORD(++i));
-                pMoonCard->setItemType(pResult->getDWORD(++i));
-
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                pMoonCard->setNum(pResult->getBYTE(++i));
-                pMoonCard->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Ousters* pOusters = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                Item* pItem = NULL;
-                Stash* pStash = NULL;
-                Belt* pBelt = NULL;
-                Inventory* pBeltInventory = NULL;
-
-                if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else if (pCreature->isOusters()) {
-                    pOusters = dynamic_cast<Ousters*>(pCreature);
-                    pInventory = pOusters->getInventory();
-                    pStash = pOusters->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pMoonCard)) {
-                        pInventory->addItemEx(x, y, pMoonCard);
-                    } else {
-                        processItemBugEx(pCreature, pMoonCard);
-                    }
-                    break;
-
-                case STORAGE_GEAR:
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pMoonCard)) {
+                    pInventory->addItemEx(x, y, pMoonCard);
+                } else {
                     processItemBugEx(pCreature, pMoonCard);
-                    break;
-
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pMoonCard);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pMoonCard);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pMoonCard);
-                    else if (pCreature->isOusters())
-                        pOusters->addItemToExtraInventorySlot(pMoonCard);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pMoonCard);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pMoonCard);
-                    } else
-                        pStash->insert(x, y, pMoonCard);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pMoonCard);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_GEAR:
+                processItemBugEx(pCreature, pMoonCard);
+                break;
+
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pMoonCard);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pMoonCard);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pMoonCard);
+                else if (pCreature->isOusters())
+                    pOusters->addItemToExtraInventorySlot(pMoonCard);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pMoonCard);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pMoonCard);
+                } else
+                    pStash->insert(x, y, pMoonCard);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pMoonCard);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -392,54 +298,39 @@ void MoonCardLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<NumZoneObjectRow> rows =
+        defaultItemObjectRepository().loadNumItemInZone(GEAR_MOON_CARD, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        MoonCard* pMoonCard = new MoonCard();
 
-        StringStream sql;
+        pMoonCard->setItemID(rows[r].itemID);
+        pMoonCard->setObjectID(rows[r].objectID);
+        pMoonCard->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM MoonCardObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        pMoonCard->setNum(rows[r].num);
+        pMoonCard->setCreateType((Item::CreateType)rows[r].createType);
 
-        while (pResult->next()) {
-            uint i = 0;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pMoonCard);
+        } break;
 
-            MoonCard* pMoonCard = new MoonCard();
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            pMoonCard->setItemID(pResult->getInt(++i));
-            pMoonCard->setObjectID(pResult->getInt(++i));
-            pMoonCard->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            pMoonCard->setNum(pResult->getBYTE(++i));
-            pMoonCard->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pMoonCard);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

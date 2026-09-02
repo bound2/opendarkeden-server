@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 ARInfoManager* g_pARInfoManager = NULL;
@@ -66,8 +67,6 @@ void AR::create(const string& ownerID, Storage storage, StorageID_t storageID, B
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -79,39 +78,12 @@ void AR::create(const string& ownerID, Storage storage, StorageID_t storageID, B
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        /*
-        StringStream sql;
-
-        sql << "INSERT INTO ARObject "
-            << "(ItemID, ObjectID, ItemType, OwnerID ,"
-            << " Storage, StorageID ,"
-            << " X, Y, OptionType ,"
-            << " Durability, BulletCount) VALUES("
-            << m_ItemID << ", "
-            << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            <<(int)storage << ", " << storageID << ", "
-            <<(int)x << ", " <<(int)y << ", " <<(int)m_OptionType << ", "
-            << m_Durability << ", " <<(int)m_BulletCount << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        // StringStream 없애기. by sigi. 2002.5.13
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery("INSERT INTO ARObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, "
-                            "OptionType, Durability, BulletCount, Grade, ItemFlag) VALUES(%ld, %ld, %d, '%s', %d, %ld, "
-                            "%d, %d, '%s', %d, %d, %d, %d)",
-                            m_ItemID, m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x,
-                            (int)y, optionField.c_str(), getDurability(), (int)getBulletCount(), (int)getGrade(),
-                            (int)m_CreateType);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertGun(GEAR_AR, m_ItemID, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                            storageID, (int)x, (int)y, optionField, getDurability(),
+                                            (int)getBulletCount(), (int)getGrade(), (int)m_CreateType);
 
     __END_CATCH
 }
@@ -125,16 +97,7 @@ void AR::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE ARObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_AR, field, m_ItemID);
 
     __END_CATCH
 }
@@ -147,44 +110,12 @@ void AR::save(const string& ownerID, Storage storage, StorageID_t storageID, BYT
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE ARObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << ",BulletCount = " <<(int)m_BulletCount
-            << ",Silver = " <<(int)m_Silver
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery(
-            "UPDATE ARObject SET ObjectID = %ld, ItemType = %d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-            "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
-            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, optionField.c_str(),
-            getDurability(), (int)getEnchantLevel(), (int)getBulletCount(), (int)getSilver(), (int)getGrade(),
-            m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateGun(GEAR_AR, m_ObjectID, getItemType(), ownerID, (int)storage, storageID,
+                                            (int)x, (int)y, optionField, getDurability(), (int)getEnchantLevel(),
+                                            (int)getBulletCount(), (int)getSilver(), (int)getGrade(), m_ItemID);
 
     __END_CATCH
 }
@@ -195,16 +126,7 @@ void AR::save(const string& ownerID, Storage storage, StorageID_t storageID, BYT
 void AR::saveBullet() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE ARObject SET BulletCount = %d WHERE ItemID = %d", getBulletCount(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().saveGunBullet(GEAR_AR, getBulletCount(), m_ItemID);
 
     __END_CATCH
 }
@@ -363,61 +285,43 @@ void ARInfoManager::load()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_AR);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM ARInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GunInfoRow> rows = defaultItemObjectRepository().loadGunInfos(GEAR_AR);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        ARInfo* pARInfo = new ARInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pARInfo->setItemType(rows[r].itemType);
+        pARInfo->setName(rows[r].name);
+        pARInfo->setEName(rows[r].ename);
+        pARInfo->setPrice(rows[r].price);
+        pARInfo->setVolumeType(rows[r].volume);
+        pARInfo->setWeight(rows[r].weight);
+        pARInfo->setRatio(rows[r].ratio);
+        pARInfo->setDurability(rows[r].durability);
+        pARInfo->setMinDamage(rows[r].minDamage);
+        pARInfo->setMaxDamage(rows[r].maxDamage);
+        pARInfo->setToHitBonus(rows[r].toHitBonus);
+        pARInfo->setRange(rows[r].range);
+        pARInfo->setSpeed(rows[r].speed);
+        pARInfo->setReqAbility(rows[r].reqAbility);
+        pARInfo->setItemLevel(rows[r].itemLevel);
+        pARInfo->setCriticalBonus(rows[r].criticalBonus);
+        pARInfo->setDefaultOptions(rows[r].defaultOption);
+        pARInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pARInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pARInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pARInfo->setNextItemType(rows[r].nextItemType);
+        pARInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery(
-            "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, ToHitBonus, "
-            "`Range`, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-            "NextOptionRatio, NextItemType, DowngradeRatio FROM ARInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            ARInfo* pARInfo = new ARInfo();
-
-            pARInfo->setItemType(pResult->getInt(++i));
-            pARInfo->setName(pResult->getString(++i));
-            pARInfo->setEName(pResult->getString(++i));
-            pARInfo->setPrice(pResult->getInt(++i));
-            pARInfo->setVolumeType(pResult->getInt(++i));
-            pARInfo->setWeight(pResult->getInt(++i));
-            pARInfo->setRatio(pResult->getInt(++i));
-            pARInfo->setDurability(pResult->getInt(++i));
-            pARInfo->setMinDamage(pResult->getInt(++i));
-            pARInfo->setMaxDamage(pResult->getInt(++i));
-            pARInfo->setToHitBonus(pResult->getInt(++i));
-            pARInfo->setRange(pResult->getInt(++i));
-            pARInfo->setSpeed(pResult->getInt(++i));
-            pARInfo->setReqAbility(pResult->getString(++i));
-            pARInfo->setItemLevel(pResult->getInt(++i));
-            pARInfo->setCriticalBonus(pResult->getInt(++i));
-            pARInfo->setDefaultOptions(pResult->getString(++i));
-            pARInfo->setUpgradeRatio(pResult->getInt(++i));
-            pARInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pARInfo->setNextOptionRatio(pResult->getInt(++i));
-            pARInfo->setNextItemType(pResult->getInt(++i));
-            pARInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pARInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pARInfo);
     }
-    END_DB(pStmt)
 
     __END_DEBUG
     __END_CATCH
@@ -434,145 +338,118 @@ void ARLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<GunObjectRow> rows = defaultItemObjectRepository().loadGunOfOwner(GEAR_AR, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            AR* pAR = new AR();
 
-        /*
-        StringStream sql;
+            pAR->setItemID(rows[r].itemID);
+            pAR->setObjectID(rows[r].objectID);
+            pAR->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, BulletCount,
-        Silver, EnchantLevel FROM ARObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR       << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            if (g_pARInfoManager->getItemInfo(pAR->getItemType())->isUnique())
+                pAR->setUnique();
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, BulletCount, Silver, "
-            "EnchantLevel, Grade, ItemFlag FROM ARObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pAR->setOptionType(optionTypes);
 
-                AR* pAR = new AR();
+            pAR->setDurability(rows[r].durability);
+            pAR->setBulletCount(rows[r].bulletCount);
+            pAR->setSilver(rows[r].silver);
+            pAR->setEnchantLevel(rows[r].enchantLevel);
+            pAR->setGrade(rows[r].grade);
+            pAR->setCreateType((Item::CreateType)rows[r].createType);
 
-                pAR->setItemID(pResult->getDWORD(++i));
-                pAR->setObjectID(pResult->getDWORD(++i));
-                pAR->setItemType(pResult->getDWORD(++i));
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                if (g_pARInfoManager->getItemInfo(pAR->getItemType())->isUnique())
-                    pAR->setUnique();
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pAR->setOptionType(optionTypes);
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pAR)) {
+                    pInventory->addItemEx(x, y, pAR);
+                } else {
+                    processItemBugEx(pCreature, pAR);
+                }
+                break;
 
-                pAR->setDurability(pResult->getInt(++i));
-                pAR->setBulletCount(pResult->getInt(++i));
-                pAR->setSilver(pResult->getInt(++i));
-                pAR->setEnchantLevel(pResult->getInt(++i));
-                pAR->setGrade(pResult->getInt(++i));
-                pAR->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pAR)) {
-                        pInventory->addItemEx(x, y, pAR);
+                    if (!pSlayer->isWear((Slayer::WearPart)x)) {
+                        pSlayer->wearItem((Slayer::WearPart)x, pAR);
                     } else {
                         processItemBugEx(pCreature, pAR);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        if (!pSlayer->isWear((Slayer::WearPart)x)) {
-                            pSlayer->wearItem((Slayer::WearPart)x, pAR);
-                        } else {
-                            processItemBugEx(pCreature, pAR);
-                        }
-                    } else if (pCreature->isVampire()) {
-                        processItemBugEx(pCreature, pAR);
-                    }
-                    break;
-
-                case STORAGE_BELT:
+                } else if (pCreature->isVampire()) {
                     processItemBugEx(pCreature, pAR);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pAR);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pAR);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pAR);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pAR);
-                    } else
-                        pStash->insert(x, y, pAR);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pAR);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
-            }
-        }
+                break;
 
-        SAFE_DELETE(pStmt);
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pAR);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pAR);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pAR);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pAR);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pAR);
+                } else
+                    pStash->insert(x, y, pAR);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pAR);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
+            }
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -588,65 +465,47 @@ void ARLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<GunZoneObjectRow> rows =
+        defaultItemObjectRepository().loadGunInZone(GEAR_AR, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        AR* pAR = new AR();
 
-        StringStream sql;
+        pAR->setItemID(rows[r].itemID);
+        pAR->setObjectID(rows[r].objectID);
+        pAR->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, BulletCount, "
-               "Silver, EnchantLevel, ItemFlag FROM ARObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        string optionField = rows[r].optionField;
+        list<OptionType_t> optionTypes;
+        setOptionTypeFromField(optionTypes, optionField);
+        pAR->setOptionType(optionTypes);
 
-        while (pResult->next()) {
-            uint i = 0;
+        pAR->setDurability(rows[r].durability);
+        pAR->setBulletCount(rows[r].bulletCount);
+        pAR->setSilver(rows[r].silver);
+        pAR->setEnchantLevel(rows[r].enchantLevel);
+        pAR->setCreateType((Item::CreateType)rows[r].createType);
 
-            AR* pAR = new AR();
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pAR);
+        } break;
 
-            pAR->setItemID(pResult->getInt(++i));
-            pAR->setObjectID(pResult->getInt(++i));
-            pAR->setItemType(pResult->getInt(++i));
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            string optionField = pResult->getString(++i);
-            list<OptionType_t> optionTypes;
-            setOptionTypeFromField(optionTypes, optionField);
-            pAR->setOptionType(optionTypes);
-
-            pAR->setDurability(pResult->getInt(++i));
-            pAR->setBulletCount(pResult->getInt(++i));
-            pAR->setSilver(pResult->getInt(++i));
-            pAR->setEnchantLevel(pResult->getInt(++i));
-            pAR->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pAR);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                SAFE_DELETE(pStmt); // by sigi
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                SAFE_DELETE(pStmt); // by sigi
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
