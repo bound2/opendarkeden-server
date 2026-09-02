@@ -2480,6 +2480,16 @@ const GearTableName kNumZoneVariantTables[] = {
     {GEAR_BOMB_MATERIAL, "BombMaterialObject"},
     {GEAR_MINE, "MineObject"},
 };
+const GearTableName kFlagTables[] = {
+    {GEAR_QUEST_ITEM, "QuestItemObject"},
+    {GEAR_SMSITEM, "SMSItemObject"},
+    {GEAR_SUB_INVENTORY, "SubInventoryObject"},
+    {GEAR_TRAP_ITEM, "TrapItemObject"},
+};
+const GearTableName kPlainTables[] = {
+    {GEAR_EVENT_GIFT_BOX, "EventGiftBoxObject"},
+    {GEAR_LEARNING_ITEM, "LearningItemObject"},
+};
 } // namespace
 
 class ItemObjectMySQL : public ::testing::Test {
@@ -2503,6 +2513,10 @@ protected:
             execSQL(std::string("DELETE FROM ") + kNumOnlyTables[i].name + " WHERE ItemID >= 31000");
         for (size_t i = 0; i < sizeof(kNumZoneVariantTables) / sizeof(kNumZoneVariantTables[0]); i++)
             execSQL(std::string("DELETE FROM ") + kNumZoneVariantTables[i].name + " WHERE ItemID >= 31000");
+        for (size_t i = 0; i < sizeof(kFlagTables) / sizeof(kFlagTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kFlagTables[i].name + " WHERE ItemID >= 31000");
+        for (size_t i = 0; i < sizeof(kPlainTables) / sizeof(kPlainTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kPlainTables[i].name + " WHERE ItemID >= 31000");
     }
 };
 
@@ -3168,6 +3182,133 @@ TEST_F(ItemObjectMySQL, SkullAndBombTablesShareTheNumOnlyWritesButHaveTheirOwnZo
                                                                  std::to_string(material[0].itemType)));
         EXPECT_THROW(repository.loadDamageInfos(GEAR_BOMB_MATERIAL), Error);
         EXPECT_THROW(repository.loadBasicInfos(GEAR_MINE), Error);
+    }
+}
+
+TEST_F(ItemObjectMySQL, FlagAndPlainItemRowsRoundTripThroughTheirColumns) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    for (size_t i = 0; i < sizeof(kFlagTables) / sizeof(kFlagTables[0]); i++) {
+        const GearTable table = kFlagTables[i].table;
+        const std::string name = kFlagTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+        const std::string id = std::to_string(31000 + i);
+
+        repository.insertFlagItem(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, 1);
+        repository.insertFlagItem(table, 31100 + i, 78, 3, "it-owner", 5, 31000, 7, 8, 0);
+        EXPECT_EQ("1", queryScalar("SELECT ItemFlag" + where + id)) << name;
+        EXPECT_EQ("4", queryScalar("SELECT Y" + where + id)) << name;
+        repository.updatePlainItem(table, 79, 4, "it-owner", 1, 6, 3, 5, 31000 + i);
+        EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + id)) << name;
+        EXPECT_EQ("1", queryScalar("SELECT ItemFlag" + where + id)) << name; // the UPDATE writes no ItemFlag
+
+        std::vector<FlagObjectRow> owned = repository.loadFlagItemOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name;
+        EXPECT_EQ(31000 + i, owned[0].itemID);
+        EXPECT_EQ(79u, owned[0].objectID);
+        EXPECT_EQ(4u, owned[0].itemType);
+        EXPECT_EQ(1, owned[0].storage);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ(3, owned[0].x);
+        EXPECT_EQ(5, owned[0].y);
+        EXPECT_EQ(1, owned[0].createType);
+
+        std::vector<FlagZoneObjectRow> inZone = repository.loadFlagItemInZone(table, 5, 31000);
+        ASSERT_EQ(1u, inZone.size()) << name;
+        EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
+        EXPECT_EQ(8, inZone[0].y);
+        EXPECT_EQ(0, inZone[0].createType);
+        EXPECT_TRUE(repository.loadFlagItemInZone(table, 5, 31001).empty()) << name;
+
+        repository.tinysaveGear(table, "X=9", 31000 + i);
+        EXPECT_EQ("9", queryScalar("SELECT X" + where + id)) << name;
+
+        const std::string info = name.substr(0, name.size() - 6) + "Info";
+        EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM " + info).c_str()), repository.loadMaxGearType(table))
+            << info;
+    }
+
+    for (size_t i = 0; i < sizeof(kPlainTables) / sizeof(kPlainTables[0]); i++) {
+        const GearTable table = kPlainTables[i].table;
+        const std::string name = kPlainTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+        const std::string id = std::to_string(31000 + i);
+
+        repository.insertPlainItem(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4);
+        repository.insertPlainItem(table, 31100 + i, 78, 3, "it-owner", 5, 31000, 7, 8);
+        EXPECT_EQ("4", queryScalar("SELECT Y" + where + id)) << name;
+        if (table != GEAR_LEARNING_ITEM) { // LearningItem's UPDATE literal says Storage=%s (kept as it was)
+            repository.updatePlainItem(table, 79, 4, "it-owner", 1, 6, 3, 5, 31000 + i);
+            EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + id)) << name;
+        }
+
+        std::vector<PlainObjectRow> owned = repository.loadPlainItemOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name;
+        EXPECT_EQ(31000 + i, owned[0].itemID);
+        EXPECT_EQ(1, owned[0].storage);
+        EXPECT_EQ(table == GEAR_LEARNING_ITEM ? 2 : 3, owned[0].x) << name; // the UPDATE moved the others
+
+        std::vector<PlainZoneObjectRow> inZone = repository.loadPlainItemInZone(table, 5, 31000);
+        ASSERT_EQ(1u, inZone.size()) << name;
+        EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
+        EXPECT_EQ(7, inZone[0].x);
+        EXPECT_TRUE(repository.loadPlainItemInZone(table, 5, 31001).empty()) << name;
+
+        repository.tinysaveGear(table, "X=9", 31000 + i);
+        EXPECT_EQ("9", queryScalar("SELECT X" + where + id)) << name;
+
+        const std::string info = name.substr(0, name.size() - 6) + "Info";
+        EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM " + info).c_str()), repository.loadMaxGearType(table))
+            << info;
+    }
+
+    // The object-shape guards, both ways.
+    EXPECT_THROW(repository.insertFlagItem(GEAR_EVENT_GIFT_BOX, 31900, 1, 1, "it-owner", 1, 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.insertPlainItem(GEAR_QUEST_ITEM, 31900, 1, 1, "it-owner", 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.updatePlainItem(GEAR_ETC, 1, 1, "it-owner", 1, 1, 1, 1, 31000), Error);
+    EXPECT_THROW(repository.loadFlagItemOfOwner(GEAR_LEARNING_ITEM, "it-owner"), Error);
+    EXPECT_THROW(repository.loadPlainItemInZone(GEAR_TRAP_ITEM, 5, 31000), Error);
+    EXPECT_THROW(repository.loadNumItemOfOwner(GEAR_SMSITEM, "it-owner"), Error);
+    EXPECT_THROW(repository.loadNumOnlyItemInZone(GEAR_EVENT_GIFT_BOX, 5, 31000), Error);
+    EXPECT_THROW(repository.insertGear(GEAR_SUB_INVENTORY, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1), Error);
+
+    // The two Info shapes, each pinned by COUNT(*) and its class-specific column(s).
+    {
+        const GearTableName intTables[] = {{GEAR_QUEST_ITEM, "QuestItemInfo"},
+                                           {GEAR_SMSITEM, "SMSItemInfo"},
+                                           {GEAR_LEARNING_ITEM, "LearningItemInfo"}};
+        const char* const intColumns[] = {"BonusRatio", "Charge", "SkillType"};
+        for (size_t i = 0; i < sizeof(intTables) / sizeof(intTables[0]); i++) {
+            const std::string info = intTables[i].name;
+            std::vector<IntInfoRow> rows = repository.loadIntInfos(intTables[i].table);
+            ASSERT_FALSE(rows.empty()) << info;
+            EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)rows.size()) << info;
+            EXPECT_EQ(std::to_string(rows[0].value),
+                      queryScalar(std::string("SELECT ") + intColumns[i] + " FROM " + info +
+                                  " WHERE ItemType=" + std::to_string(rows[0].basic.itemType)))
+                << info;
+        }
+        EXPECT_THROW(repository.loadIntInfos(GEAR_TRAP_ITEM), Error);
+    }
+    {
+        const GearTableName pairTables[] = {{GEAR_SUB_INVENTORY, "SubInventoryInfo"}, {GEAR_TRAP_ITEM, "TrapItemInfo"}};
+        const char* const pairFirst[] = {"Width", "`Function`"};
+        const char* const pairSecond[] = {"Height", "Parameter"};
+        for (size_t i = 0; i < sizeof(pairTables) / sizeof(pairTables[0]); i++) {
+            const std::string info = pairTables[i].name;
+            std::vector<IntPairInfoRow> rows = repository.loadIntPairInfos(pairTables[i].table);
+            ASSERT_FALSE(rows.empty()) << info;
+            EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)rows.size()) << info;
+            const std::string type = " FROM " + info + " WHERE ItemType=" + std::to_string(rows[0].basic.itemType);
+            EXPECT_EQ(std::to_string(rows[0].first), queryScalar(std::string("SELECT ") + pairFirst[i] + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].second), queryScalar(std::string("SELECT ") + pairSecond[i] + type))
+                << info;
+        }
+        EXPECT_THROW(repository.loadIntPairInfos(GEAR_QUEST_ITEM), Error);
+        std::vector<BasicInfoRow> box = repository.loadBasicInfos(GEAR_EVENT_GIFT_BOX);
+        ASSERT_FALSE(box.empty());
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM EventGiftBoxInfo").c_str()), (int)box.size());
+        EXPECT_THROW(repository.loadBasicInfos(GEAR_SMSITEM), Error);
     }
 }
 
