@@ -2652,6 +2652,12 @@ TEST_F(ItemObjectMySQL, SilverWeaponRowsRoundTripWithTheirSilverColumn) {
         EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
         EXPECT_EQ(0, inZone[0].silver); // the INSERT never names Silver
         EXPECT_EQ(9, inZone[0].durability);
+        EXPECT_TRUE(repository.loadSilverWeaponInZone(table, 5, 31001).empty()) << name;
+
+        // The MAX(ItemType) literal of each seeded Info table.
+        const std::string info = name.substr(0, name.size() - 6) + "Info";
+        EXPECT_EQ(queryScalar("SELECT MAX(ItemType) FROM " + info), std::to_string(repository.loadMaxGearType(table)))
+            << info;
 
         repository.tinysaveGear(table, "Silver=3", 31000 + i);
         EXPECT_EQ("3", queryScalar("SELECT Silver" + where + std::to_string(31000 + i))) << name;

@@ -1790,43 +1790,56 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > with SQL; ItemInfoManager.cpp holds only the registry calls.
   > **Silver weapons (2026-09-02, stacked on the Info-shapes round; item
   > milestone round 5)**: Sword, Blade, Cross, Mace — R3 197→193 (R2/R5
-  > unchanged). Gear's INSERT, but a Silver column in the UPDATE (after
-  > EnchantLevel, before Grade: the arguments run getDurability(),
-  > (int)getEnchantLevel(), (int)getSilver(), (int)getGrade()) and in
-  > both loads (owner: 13 columns, getters getDWORD ids / getBYTE x,y /
-  > getInt rest with Silver between EnchantLevel and Grade; zone: 12,
-  > all getInt, no Grade), so `ItemObjectRepository` gains a second
-  > object shape — `GearObjectKind`, `SilverWeaponObjectRow` /
+  > unchanged). Gear's INSERT, but a Silver column in the UPDATE and in
+  > both loads — and the tail reorders rather than merely grows: the
+  > UPDATE's and the owner SELECT's tail is EnchantLevel, Silver, Grade
+  > where gear's is Grade, EnchantLevel, so Grade's ordinal moves too
+  > (the save arguments run getDurability(), (int)getEnchantLevel(),
+  > (int)getSilver(), (int)getGrade(); the owner load: 13 columns,
+  > getters getDWORD ids / getBYTE x,y / getInt rest with Silver between
+  > EnchantLevel and Grade); the zone SELECT is gear's plus Silver (12
+  > columns, every numeric column through getInt, OptionType getString,
+  > no Grade). So `ItemObjectRepository` gains a second object shape —
+  > `GearObjectKind`, `SilverWeaponObjectRow` /
   > `SilverWeaponZoneObjectRow`, `updateSilverWeapon` /
   > `loadSilverWeaponOfOwner` / `loadSilverWeaponInZone` — and two more
   > Info shapes: SwordInfo / BladeInfo's 21 columns (the weapon shape
-  > with MaxSilver after maxDamage; Blade's first thirteen names
+  > with MaxSilver after maxDamage; Blade's first fourteen names
   > unspaced) and CrossInfo / MaceInfo's 22 (an MPBonus before
   > MaxSilver) behind `SilverWeaponInfoRow` / `SilverWeaponMPInfoRow`.
   > The spec row now records the object shape as well as the Info shape,
   > and the update and load methods refuse a table of the other shape,
   > like the info loaders do (GEAR_OBJECT_UNSET is the object enum's
-  > zero and is refused by every method, the same fail-closed guard the
-  > Info kinds got in the previous round's review fix). insertGear,
-  > tinysaveGear and loadMaxGearType are shared: their literals have
-  > gear's columns. The transformer gained the object shape: it checks
-  > the original's save() argument list against the shape's expected
-  > list before rewriting (Cross and Mace cast getGrade() in create; all
-  > four in save). Literal quirks kept: "Y,OptionType" in all four owner
-  > SELECTs, Blade's unspaced Info columns, Cross's "StorageID=%d" (the
+  > zero and every shape-checked method refuses it — insertGear,
+  > tinysaveGear and loadMaxGearType never consult it — the same
+  > fail-closed guard the Info kinds got in the previous round's review
+  > fix); the spec table's `static_assert` now reads GEAR_MACE + 1.
+  > insertGear, tinysaveGear and loadMaxGearType are shared: their
+  > literals have gear's columns. The transformer (outside the repo; its
+  > output is what was reviewed) gained the object shape: it checks the
+  > original's save() argument list against the shape's expected list
+  > before rewriting (Cross and Mace cast getGrade() in create; all four
+  > in save). Literal quirks kept: "Y,OptionType" in Sword's owner
+  > SELECT (the other three are spaced), Blade's unspaced Info columns
+  > and its "OwnerID= '%s'" in the UPDATE, Cross's "StorageID=%d" (the
   > other three "%ld") in the UPDATE. Disclosures: the same as the gear
-  > round — the seam initialises its Statement (Blade's, Cross's and
-  > Mace's save() had `= NULL`; the SQL-free third-loader stub keeps its
-  > own), one Statement per info statement, whole-result reads before
-  > placement (an item-placement throw no longer leaks the Statement),
-  > DBError.log names the repository method, the create INSERT and the
-  > zone SELECT now pass through executeQuery's 2048-byte format buffer
-  > (unreachable for these literals), the commented-out StringStream
-  > blocks gone with their blocks, the DB.h include kept. +1 integration
-  > test: for each of the four tables, two rows of one owner through the
-  > class's INSERT, the weapon UPDATE writing Silver, the owner load's
-  > thirteen columns read back, the zone load's Silver at the column
-  > default, the tinysave field write, the object-shape guard both ways,
+  > round — the seam initialises its Statement where the originals
+  > declared pStmt uninitialised (create / save / info / both loaders in
+  > all four, except Blade's save(), which had `= NULL`; tinysave's `=
+  > NULL` is the family norm here too; the SQL-free third-loader stub
+  > keeps its uninitialised pStmt), one Statement per info statement,
+  > whole-result reads before placement (an item-placement throw no
+  > longer leaks the Statement), DBError.log names the repository
+  > method, the create INSERT and the zone SELECT now pass through
+  > executeQuery's 2048-byte format buffer (189 and 170 bytes of format
+  > — Mace's 188 and 169 — plus a varchar(10) owner and the option-list
+  > text: unreachable), the commented-out StringStream blocks gone with
+  > their blocks, the DB.h include kept. +1 integration test: for each
+  > of the four tables, two rows of one owner through the class's
+  > INSERT, the weapon UPDATE writing Silver, the owner load's thirteen
+  > columns read back, the zone load's Silver at the column default and
+  > empty for another StorageID, MAX(ItemType) against the seeded Info
+  > table, the tinysave field write, the object-shape guard both ways,
   > and the two Info shapes pinned by COUNT(*) and MaxSilver / Speed /
   > MPBonus / DowngradeRatio with the guard refusing the other weapon
   > loaders. Not enclosed: the other 62 item files with SQL — next the

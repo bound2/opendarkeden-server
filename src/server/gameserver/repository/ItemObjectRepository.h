@@ -52,7 +52,7 @@
 // (DWORD/WORD through "%u", int through "%d"), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 66 item files with SQL (later rounds) and the
+// Not enclosed: the other 62 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -100,7 +100,8 @@ enum GearInfoKind {
 
 // The object-table shapes; which update / owner-load / zone-load a table takes.
 enum GearObjectKind {
-    GEAR_OBJECT_UNSET = 0, // a spec row that forgot its kind: every method refuses it
+    GEAR_OBJECT_UNSET = 0, // a spec row that forgot its kind: every shape-checked method refuses it
+                           // (insertGear, tinysaveGear and loadMaxGearType never consult the kind)
     GEAR_OBJECT,           // updateGear, loadGearOfOwner, loadGearInZone
     SILVER_WEAPON_OBJECT   // updateSilverWeapon, loadSilverWeaponOfOwner, loadSilverWeaponInZone
 };
