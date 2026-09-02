@@ -2377,6 +2377,22 @@ TEST_F(ItemMySQL, ItemRowPositionReadAndDeleteWorkOnTheNamedObjectTable) {
     EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM PotionObject WHERE ItemID=31000"));
 }
 
+TEST_F(ItemMySQL, ItemRowCountAndHighestIdAreReadFromTheNamedObjectTable) {
+    ItemRepository& repository = defaultItemRepository();
+    int before = atoi(queryScalar("SELECT COUNT(*) FROM PotionObject").c_str());
+    EXPECT_EQ(before, (int)repository.countItemRows("PotionObject"));
+
+    execSQL("INSERT INTO PotionObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) "
+            "VALUES (31005, 77, 2, 'it-owner', 1, 5, 3, 4, 1), (31007, 78, 2, 'it-owner', 1, 5, 4, 4, 1)");
+    EXPECT_EQ(before + 2, (int)repository.countItemRows("PotionObject"));
+
+    // The dump's own rows (if any) sit below the test ids, so the two inserts
+    // decide the maximum; the scalar read pins the seam against the table.
+    DWORD highest = repository.loadMaxItemID("PotionObject");
+    EXPECT_EQ(queryScalar("SELECT MAX(ItemID) FROM PotionObject"), std::to_string(highest));
+    EXPECT_EQ(31007u, highest);
+}
+
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {
     GameInfoRepository& repository = defaultGameInfoRepository();
 

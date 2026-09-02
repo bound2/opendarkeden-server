@@ -331,6 +331,41 @@ public:
 
         return found;
     }
+
+    // The lower-case "from" and the upper-case "FROM" are the originals'.
+    DWORD countItemRows(const string& tableName) {
+        DWORD count = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT COUNT(*) from %s", tableName.c_str());
+            pResult->next();
+            count = pResult->getDWORD(1);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return count;
+    }
+
+    // MAX() over an empty table is one NULL row; the callers only ask after
+    // countItemRows() said the table is non-empty, as the originals did.
+    DWORD loadMaxItemID(const string& tableName) {
+        DWORD maxItemID = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT MAX(ItemID) FROM %s", tableName.c_str());
+            pResult->next();
+            maxItemID = pResult->getDWORD(1);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return maxItemID;
+    }
 };
 
 } // namespace
