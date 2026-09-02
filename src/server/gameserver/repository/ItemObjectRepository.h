@@ -20,8 +20,16 @@
 // Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second family:
 // the eight vampire and ousters gear classes of the same shape: VampireRing,
 // VampireBracelet, VampireNecklace, OustersRing, OustersCoat, OustersCirclet,
-// OustersPendent, OustersBoots. (VampireCoat's Info SELECT has 16 columns,
-// OustersStone's 20, VampireEarring guards an ifnull(MAX) — later rounds.)
+// OustersPendent, OustersBoots. The third family: six classes whose object
+// statements
+// are gear's but whose Info SELECT is not: VampireCoat (16 columns, no
+// UpgradeRatio / DowngradeRatio), OustersStone (20: gear plus ElementalType,
+// Elemental), VampireEarring (gear's 18 behind an ifnull(MAX(ItemType),0)),
+// VampireWeapon and OustersChakram (20 weapon columns: minDamage, maxDamage,
+// Speed, CriticalBonus in place of Defense, Protection), OustersWristlet (22:
+// weapon plus ElementalType, Elemental). Each Info shape has its own row and
+// loader; the MySQL impl records the shape per table and refuses a loader
+// of another shape, so a mismatch throws instead of reading past the row.
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -33,7 +41,7 @@
 // (DWORD/WORD through "%u", int through "%d"), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 72 item files with SQL (later rounds) and the
+// Not enclosed: the other 66 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -54,7 +62,22 @@ enum GearTable {
     GEAR_OUSTERS_COAT,
     GEAR_OUSTERS_CIRCLET,
     GEAR_OUSTERS_PENDENT,
-    GEAR_OUSTERS_BOOTS
+    GEAR_OUSTERS_BOOTS,
+    GEAR_VAMPIRE_COAT,
+    GEAR_OUSTERS_STONE,
+    GEAR_VAMPIRE_EARRING,
+    GEAR_VAMPIRE_WEAPON,
+    GEAR_OUSTERS_CHAKRAM,
+    GEAR_OUSTERS_WRISTLET
+};
+
+// The Info SELECT shapes; which loader a table's <Class>Info rows come from.
+enum GearInfoKind {
+    GEAR_INFO_STANDARD,   // loadGearInfos
+    GEAR_INFO_NO_RATIO,   // loadGearInfosNoRatio (VampireCoat)
+    GEAR_INFO_ELEMENTAL,  // loadGearInfosElemental (OustersStone)
+    WEAPON_INFO,          // loadWeaponInfos (VampireWeapon, OustersChakram)
+    WEAPON_INFO_ELEMENTAL // loadWeaponInfosElemental (OustersWristlet)
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -110,6 +133,64 @@ struct GearInfoRow {
     int downgradeRatio;
 };
 
+// VampireCoatInfo: the standard shape without UpgradeRatio and DowngradeRatio.
+struct GearInfoNoRatioRow {
+    int itemType;
+    std::string name;
+    std::string ename;
+    int price;
+    int volume;
+    int weight;
+    int ratio;
+    int durability;
+    int defense;
+    int protection;
+    std::string reqAbility;
+    int itemLevel;
+    std::string defaultOption;
+    int upgradeCrashPercent;
+    int nextOptionRatio;
+    int nextItemType;
+};
+
+// OustersStoneInfo: the standard shape plus ElementalType, Elemental.
+struct GearInfoElementalRow {
+    GearInfoRow gear;
+    int elementalType;
+    int elemental;
+};
+
+// VampireWeaponInfo / OustersChakramInfo: the twenty weapon columns in SELECT order.
+struct WeaponInfoRow {
+    int itemType;
+    std::string name;
+    std::string ename;
+    int price;
+    int volume;
+    int weight;
+    int ratio;
+    int durability;
+    int minDamage;
+    int maxDamage;
+    int speed;
+    std::string reqAbility;
+    int itemLevel;
+    int criticalBonus;
+    std::string defaultOption;
+    int upgradeRatio;
+    int upgradeCrashPercent;
+    int nextOptionRatio;
+    int nextItemType;
+    int downgradeRatio;
+};
+
+// OustersWristletInfo: the weapon shape plus ElementalType, Elemental.
+struct WeaponInfoElementalRow {
+    WeaponInfoRow weapon;
+    int elementalType;
+    int elemental;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
@@ -126,9 +207,15 @@ public:
                             Durability_t durability, int grade, int enchantLevel, ItemID_t itemID) = 0;
 
     // <Class>InfoManager::load — MAX(ItemType) (getInt, as before: an empty
-    // Info table is one NULL row and atoi(NULL) crashed there too), then the rows.
+    // Info table is one NULL row and atoi(NULL) crashed there too; VampireEarring's
+    // literal is ifnull(MAX(ItemType),0), so it reads 0 instead), then the rows.
     virtual int loadMaxGearType(GearTable table) = 0;
     virtual std::vector<GearInfoRow> loadGearInfos(GearTable table) = 0;
+    // The other Info shapes (see GearInfoKind); each refuses a table of another shape.
+    virtual std::vector<GearInfoNoRatioRow> loadGearInfosNoRatio(GearTable table) = 0;
+    virtual std::vector<GearInfoElementalRow> loadGearInfosElemental(GearTable table) = 0;
+    virtual std::vector<WeaponInfoRow> loadWeaponInfos(GearTable table) = 0;
+    virtual std::vector<WeaponInfoElementalRow> loadWeaponInfosElemental(GearTable table) = 0;
 
     // <Class>Loader::load(Creature*) — the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
