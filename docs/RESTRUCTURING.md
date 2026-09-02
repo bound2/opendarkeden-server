@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 203 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 197 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -1736,6 +1736,47 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > MAX and rows). Not enclosed: the other 72 item files with SQL;
   > ItemInfoManager.cpp holds only the registry calls. The spec table's
   > static_assert now reads GEAR_OUSTERS_BOOTS + 1.
+  > **Gear with its own Info shapes (2026-09-02, stacked on the
+  > vampire/ousters gear round; item milestone round 4)**: six classes
+  > whose object statements are gear's but whose Info SELECT is not —
+  > VampireCoat (16 columns: no UpgradeRatio / DowngradeRatio),
+  > OustersStone (20: gear plus ElementalType, Elemental),
+  > VampireEarring (gear's 18 behind `ifnull(MAX(ItemType),0)` and an
+  > `if (next()) … else m_InfoCount = 0` guard), VampireWeapon and
+  > OustersChakram (20 weapon columns: minDamage, maxDamage, Speed,
+  > CriticalBonus where gear has Defense, Protection; the first thirteen
+  > column names unspaced) and OustersWristlet (22: weapon plus
+  > ElementalType, Elemental) — R3 203→197 (R2/R5 unchanged).
+  > `ItemObjectRepository` gains a `GearInfoKind` and four Info rows and
+  > loaders (`GearInfoNoRatioRow` / `loadGearInfosNoRatio`,
+  > `GearInfoElementalRow` / `loadGearInfosElemental`, `WeaponInfoRow` /
+  > `loadWeaponInfos`, `WeaponInfoElementalRow` /
+  > `loadWeaponInfosElemental`); the spec row records each table's shape
+  > and every info loader refuses a table of another shape with an
+  > `Error`, so a mismatch throws instead of reading past the row —
+  > exactly the mistake the previous round's shape check caught. The
+  > spec table's `static_assert` (the gear round's review fix) now reads
+  > GEAR_OUSTERS_WRISTLET + 1. The transformer feeds each class's
+  > setters from its own row (it checks the original's setter sequence
+  > against the plan before rewriting) and tolerates the `Statement*
+  > pStmt = NULL` the three weapon classes' save() used. Literal quirks
+  > kept per class: "Y,OptionType" in VampireEarring's owner SELECT, the
+  > unspaced weapon column names, VampireEarring's ifnull literal.
+  > Disclosures: VampireEarring's else branch (`m_InfoCount = 0` when
+  > the MAX row is absent) is gone — ifnull makes that row always
+  > present, so the branch was unreachable; the standard loader's
+  > `next(); getInt(1)` reads the same 0 for an empty table; the rest as
+  > in the gear round (the seam initialises its Statement, one Statement
+  > per info statement, whole-result reads before placement, DBError.log
+  > names the repository method, the commented-out StringStream blocks
+  > gone with their blocks, the third loader stub and DB.h kept). No new
+  > object tests: the two ItemObjectMySQL loops now cover 23 object
+  > tables and 18 standard Info tables; +1 test for the four variant
+  > loaders (each pinned by COUNT(*) and a column the shape adds —
+  > NextItemType, Elemental, minDamage / CriticalBonus, maxDamage /
+  > ElementalType), VampireEarring's MAX, and the shape guard throwing
+  > for three mismatched calls. Not enclosed: the other 66 item files
+  > with SQL; ItemInfoManager.cpp holds only the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

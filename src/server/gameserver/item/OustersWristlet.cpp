@@ -16,6 +16,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 OustersWristletInfoManager* g_pOustersWristletInfoManager = NULL;
@@ -60,8 +61,6 @@ void OustersWristlet::create(const string& ownerID, Storage storage, StorageID_t
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -73,25 +72,12 @@ void OustersWristlet::create(const string& ownerID, Storage storage, StorageID_t
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO OustersWristletObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", " << getGrade() << ", "
-            << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertGear(GEAR_OUSTERS_WRISTLET, m_ItemID, m_ObjectID, getItemType(), ownerID,
+                                             (int)storage, storageID, (int)x, (int)y, optionField, getDurability(),
+                                             getGrade(), (int)m_CreateType);
 
     __END_CATCH
 }
@@ -104,16 +90,7 @@ void OustersWristlet::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE OustersWristletObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_OUSTERS_WRISTLET, field, m_ItemID);
 
     __END_CATCH
 }
@@ -126,42 +103,12 @@ void OustersWristlet::save(const string& ownerID, Storage storage, StorageID_t s
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE OustersWristletObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery(
-            "UPDATE OustersWristletObject SET ObjectID=%ld, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%ld, "
-            "X=%d, Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
-            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, optionField.c_str(),
-            getDurability(), getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateGear(GEAR_OUSTERS_WRISTLET, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                             storageID, (int)x, (int)y, optionField, getDurability(), getGrade(),
+                                             (int)getEnchantLevel(), m_ItemID);
 
     __END_CATCH
 }
@@ -313,67 +260,43 @@ void OustersWristletInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_OUSTERS_WRISTLET);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM OustersWristletInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<WeaponInfoElementalRow> rows = defaultItemObjectRepository().loadWeaponInfosElemental(GEAR_OUSTERS_WRISTLET);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        OustersWristletInfo* pOustersWristletInfo = new OustersWristletInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pOustersWristletInfo->setItemType(rows[r].weapon.itemType);
+        pOustersWristletInfo->setName(rows[r].weapon.name);
+        pOustersWristletInfo->setEName(rows[r].weapon.ename);
+        pOustersWristletInfo->setPrice(rows[r].weapon.price);
+        pOustersWristletInfo->setVolumeType(rows[r].weapon.volume);
+        pOustersWristletInfo->setWeight(rows[r].weapon.weight);
+        pOustersWristletInfo->setRatio(rows[r].weapon.ratio);
+        pOustersWristletInfo->setDurability(rows[r].weapon.durability);
+        pOustersWristletInfo->setMinDamage(rows[r].weapon.minDamage);
+        pOustersWristletInfo->setMaxDamage(rows[r].weapon.maxDamage);
+        pOustersWristletInfo->setSpeed(rows[r].weapon.speed);
+        pOustersWristletInfo->setReqAbility(rows[r].weapon.reqAbility);
+        pOustersWristletInfo->setItemLevel(rows[r].weapon.itemLevel);
+        pOustersWristletInfo->setCriticalBonus(rows[r].weapon.criticalBonus);
+        pOustersWristletInfo->setDefaultOptions(rows[r].weapon.defaultOption);
+        pOustersWristletInfo->setUpgradeRatio(rows[r].weapon.upgradeRatio);
+        pOustersWristletInfo->setUpgradeCrashPercent(rows[r].weapon.upgradeCrashPercent);
+        pOustersWristletInfo->setNextOptionRatio(rows[r].weapon.nextOptionRatio);
+        pOustersWristletInfo->setNextItemType(rows[r].weapon.nextItemType);
+        pOustersWristletInfo->setDowngradeRatio(rows[r].weapon.downgradeRatio);
+        pOustersWristletInfo->setElementalType((ElementalType)rows[r].elementalType);
+        pOustersWristletInfo->setElemental((Elemental_t)rows[r].elemental);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery(
-            "SELECT "
-            "ItemType,Name,EName,Price,Volume,Weight,Ratio,Durability,minDamage,maxDamage,Speed,ReqAbility,ItemLevel, "
-            "CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, "
-            "DowngradeRatio, ElementalType, Elemental FROM OustersWristletInfo"
-            //"SELECT
-            // ItemType,Name,EName,Price,Volume,Weight,Ratio,Durability,minDamage,maxDamage,Speed,ReqAbility,ItemLevel,
-            // CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType,
-            // DowngradeRatio FROM OustersWristletInfo"
-        );
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            OustersWristletInfo* pOustersWristletInfo = new OustersWristletInfo();
-
-            pOustersWristletInfo->setItemType(pResult->getInt(++i));
-            pOustersWristletInfo->setName(pResult->getString(++i));
-            pOustersWristletInfo->setEName(pResult->getString(++i));
-            pOustersWristletInfo->setPrice(pResult->getInt(++i));
-            pOustersWristletInfo->setVolumeType(pResult->getInt(++i));
-            pOustersWristletInfo->setWeight(pResult->getInt(++i));
-            pOustersWristletInfo->setRatio(pResult->getInt(++i));
-            pOustersWristletInfo->setDurability(pResult->getInt(++i));
-            pOustersWristletInfo->setMinDamage(pResult->getInt(++i));
-            pOustersWristletInfo->setMaxDamage(pResult->getInt(++i));
-            pOustersWristletInfo->setSpeed(pResult->getInt(++i));
-            pOustersWristletInfo->setReqAbility(pResult->getString(++i));
-            pOustersWristletInfo->setItemLevel(pResult->getInt(++i));
-            pOustersWristletInfo->setCriticalBonus(pResult->getInt(++i));
-            pOustersWristletInfo->setDefaultOptions(pResult->getString(++i));
-            pOustersWristletInfo->setUpgradeRatio(pResult->getInt(++i));
-            pOustersWristletInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pOustersWristletInfo->setNextOptionRatio(pResult->getInt(++i));
-            pOustersWristletInfo->setNextItemType(pResult->getInt(++i));
-            pOustersWristletInfo->setDowngradeRatio(pResult->getInt(++i));
-            pOustersWristletInfo->setElementalType((ElementalType)pResult->getInt(++i));
-            pOustersWristletInfo->setElemental((Elemental_t)pResult->getInt(++i));
-
-            addItemInfo(pOustersWristletInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pOustersWristletInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -389,154 +312,126 @@ void OustersWristletLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<GearObjectRow> rows =
+        defaultItemObjectRepository().loadGearOfOwner(GEAR_OUSTERS_WRISTLET, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            OustersWristlet* pOustersWristlet = new OustersWristlet();
 
-        /*
-        StringStream sql;
+            pOustersWristlet->setItemID(rows[r].itemID);
+            pOustersWristlet->setObjectID(rows[r].objectID);
+            pOustersWristlet->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, "
-            << " OptionType, Durability, EnchantLevel FROM OustersWristletObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            if (g_pOustersWristletInfoManager->getItemInfo(pOustersWristlet->getItemType())->isUnique())
+                pOustersWristlet->setUnique();
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade,EnchantLevel, "
-            "ItemFlag FROM OustersWristletObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pOustersWristlet->setOptionType(optionTypes);
 
+            pOustersWristlet->setDurability(rows[r].durability);
+            pOustersWristlet->setGrade(rows[r].grade);
+            pOustersWristlet->setEnchantLevel(rows[r].enchantLevel);
+            pOustersWristlet->setCreateType((Item::CreateType)rows[r].createType);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Ousters* pOusters = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                OustersWristlet* pOustersWristlet = new OustersWristlet();
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                pOustersWristlet->setItemID(pResult->getDWORD(++i));
-                pOustersWristlet->setObjectID(pResult->getDWORD(++i));
-                pOustersWristlet->setItemType(pResult->getDWORD(++i));
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else if (pCreature->isOusters()) {
+                pOusters = dynamic_cast<Ousters*>(pCreature);
+                pInventory = pOusters->getInventory();
+                pStash = pOusters->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                if (g_pOustersWristletInfoManager->getItemInfo(pOustersWristlet->getItemType())->isUnique())
-                    pOustersWristlet->setUnique();
-
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pOustersWristlet->setOptionType(optionTypes);
-
-                pOustersWristlet->setDurability(pResult->getInt(++i));
-                pOustersWristlet->setGrade(pResult->getInt(++i));
-                pOustersWristlet->setEnchantLevel(pResult->getInt(++i));
-                pOustersWristlet->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Ousters* pOusters = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
-                if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else if (pCreature->isOusters()) {
-                    pOusters = dynamic_cast<Ousters*>(pCreature);
-                    pInventory = pOusters->getInventory();
-                    pStash = pOusters->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pOustersWristlet)) {
-                        pInventory->addItemEx(x, y, pOustersWristlet);
-                    } else {
-                        processItemBugEx(pCreature, pOustersWristlet);
-                    }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer() || pCreature->isVampire()) {
-                        processItemBugEx(pCreature, pOustersWristlet);
-                    } else if (pCreature->isOusters()) {
-                        if (!pOusters->isWear((Ousters::WearPart)x)) {
-                            pOusters->wearItem((Ousters::WearPart)x, pOustersWristlet);
-                        } else {
-                            processItemBugEx(pCreature, pOustersWristlet);
-                        }
-                    }
-                    break;
-
-                case STORAGE_BELT:
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pOustersWristlet)) {
+                    pInventory->addItemEx(x, y, pOustersWristlet);
+                } else {
                     processItemBugEx(pCreature, pOustersWristlet);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pOustersWristlet);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pOustersWristlet);
-                    else if (pCreature->isOusters())
-                        pOusters->addItemToExtraInventorySlot(pOustersWristlet);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pOustersWristlet);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pOustersWristlet);
-                    } else {
-                        pStash->insert(x, y, pOustersWristlet);
-                    }
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pOustersWristlet);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_GEAR:
+                if (pCreature->isSlayer() || pCreature->isVampire()) {
+                    processItemBugEx(pCreature, pOustersWristlet);
+                } else if (pCreature->isOusters()) {
+                    if (!pOusters->isWear((Ousters::WearPart)x)) {
+                        pOusters->wearItem((Ousters::WearPart)x, pOustersWristlet);
+                    } else {
+                        processItemBugEx(pCreature, pOustersWristlet);
+                    }
+                }
+                break;
+
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pOustersWristlet);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pOustersWristlet);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pOustersWristlet);
+                else if (pCreature->isOusters())
+                    pOusters->addItemToExtraInventorySlot(pOustersWristlet);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pOustersWristlet);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pOustersWristlet);
+                } else {
+                    pStash->insert(x, y, pOustersWristlet);
+                }
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pOustersWristlet);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -552,61 +447,45 @@ void OustersWristletLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<GearZoneObjectRow> rows =
+        defaultItemObjectRepository().loadGearInZone(GEAR_OUSTERS_WRISTLET, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        OustersWristlet* pOustersWristlet = new OustersWristlet();
 
-        StringStream sql;
+        pOustersWristlet->setItemID(rows[r].itemID);
+        pOustersWristlet->setObjectID(rows[r].objectID);
+        pOustersWristlet->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " OptionType, Durability, EnchantLevel, ItemFlag FROM OustersWristletObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        string optionField = rows[r].optionField;
+        list<OptionType_t> optionTypes;
+        setOptionTypeFromField(optionTypes, optionField);
+        pOustersWristlet->setOptionType(optionTypes);
 
-        while (pResult->next()) {
-            uint i = 0;
+        pOustersWristlet->setDurability(rows[r].durability);
+        pOustersWristlet->setEnchantLevel(rows[r].enchantLevel);
+        pOustersWristlet->setCreateType((Item::CreateType)rows[r].createType);
 
-            OustersWristlet* pOustersWristlet = new OustersWristlet();
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pOustersWristlet);
+        } break;
 
-            pOustersWristlet->setItemID(pResult->getInt(++i));
-            pOustersWristlet->setObjectID(pResult->getInt(++i));
-            pOustersWristlet->setItemType(pResult->getInt(++i));
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            string optionField = pResult->getString(++i);
-            list<OptionType_t> optionTypes;
-            setOptionTypeFromField(optionTypes, optionField);
-            pOustersWristlet->setOptionType(optionTypes);
-
-            pOustersWristlet->setDurability(pResult->getInt(++i));
-            pOustersWristlet->setEnchantLevel(pResult->getInt(++i));
-            pOustersWristlet->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pOustersWristlet);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

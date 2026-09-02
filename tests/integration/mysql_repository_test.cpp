@@ -2422,6 +2422,12 @@ const GearTableName kGearTables[] = {
     {GEAR_OUSTERS_CIRCLET, "OustersCircletObject"},
     {GEAR_OUSTERS_PENDENT, "OustersPendentObject"},
     {GEAR_OUSTERS_BOOTS, "OustersBootsObject"},
+    {GEAR_VAMPIRE_COAT, "VampireCoatObject"},
+    {GEAR_OUSTERS_STONE, "OustersStoneObject"},
+    {GEAR_VAMPIRE_EARRING, "VampireEarringObject"},
+    {GEAR_VAMPIRE_WEAPON, "VampireWeaponObject"},
+    {GEAR_OUSTERS_CHAKRAM, "OustersChakramObject"},
+    {GEAR_OUSTERS_WRISTLET, "OustersWristletObject"},
 };
 const GearTableName kGearInfoTables[] = {
     {GEAR_RING, "RingInfo"},
@@ -2441,6 +2447,7 @@ const GearTableName kGearInfoTables[] = {
     {GEAR_OUSTERS_CIRCLET, "OustersCircletInfo"},
     {GEAR_OUSTERS_PENDENT, "OustersPendentInfo"},
     {GEAR_OUSTERS_BOOTS, "OustersBootsInfo"},
+    {GEAR_VAMPIRE_EARRING, "VampireEarringInfo"},
 };
 } // namespace
 
@@ -2543,6 +2550,61 @@ TEST_F(ItemObjectMySQL, GearInfoTablesLoadWithTheirHighestType) {
                   queryScalar("SELECT DowngradeRatio FROM " + name + " WHERE ItemType=" + id))
             << name;
     }
+}
+
+TEST_F(ItemObjectMySQL, GearInfoVariantsLoadTheirOwnColumnsAndRefuseTheWrongLoader) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    std::vector<GearInfoNoRatioRow> coats = repository.loadGearInfosNoRatio(GEAR_VAMPIRE_COAT);
+    ASSERT_FALSE(coats.empty());
+    EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM VampireCoatInfo").c_str()), (int)coats.size());
+    std::string id = std::to_string(coats[0].itemType);
+    EXPECT_EQ(coats[0].name, queryScalar("SELECT Name FROM VampireCoatInfo WHERE ItemType=" + id));
+    EXPECT_EQ(std::to_string(coats[0].nextItemType),
+              queryScalar("SELECT NextItemType FROM VampireCoatInfo WHERE ItemType=" + id));
+
+    std::vector<GearInfoElementalRow> stones = repository.loadGearInfosElemental(GEAR_OUSTERS_STONE);
+    ASSERT_FALSE(stones.empty());
+    EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM OustersStoneInfo").c_str()), (int)stones.size());
+    id = std::to_string(stones[0].gear.itemType);
+    EXPECT_EQ(std::to_string(stones[0].gear.downgradeRatio),
+              queryScalar("SELECT DowngradeRatio FROM OustersStoneInfo WHERE ItemType=" + id));
+    EXPECT_EQ(std::to_string(stones[0].elemental),
+              queryScalar("SELECT Elemental FROM OustersStoneInfo WHERE ItemType=" + id));
+
+    const GearTable weaponTables[] = {GEAR_VAMPIRE_WEAPON, GEAR_OUSTERS_CHAKRAM};
+    const char* weaponNames[] = {"VampireWeaponInfo", "OustersChakramInfo"};
+    for (int w = 0; w < 2; w++) {
+        std::vector<WeaponInfoRow> weapons = repository.loadWeaponInfos(weaponTables[w]);
+        const std::string name = weaponNames[w];
+        ASSERT_FALSE(weapons.empty()) << name;
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + name).c_str()), (int)weapons.size()) << name;
+        id = std::to_string(weapons[0].itemType);
+        EXPECT_EQ(std::to_string(weapons[0].minDamage),
+                  queryScalar("SELECT minDamage FROM " + name + " WHERE ItemType=" + id))
+            << name;
+        EXPECT_EQ(std::to_string(weapons[0].criticalBonus),
+                  queryScalar("SELECT CriticalBonus FROM " + name + " WHERE ItemType=" + id))
+            << name;
+    }
+
+    std::vector<WeaponInfoElementalRow> wristlets = repository.loadWeaponInfosElemental(GEAR_OUSTERS_WRISTLET);
+    ASSERT_FALSE(wristlets.empty());
+    EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM OustersWristletInfo").c_str()), (int)wristlets.size());
+    id = std::to_string(wristlets[0].weapon.itemType);
+    EXPECT_EQ(std::to_string(wristlets[0].weapon.maxDamage),
+              queryScalar("SELECT maxDamage FROM OustersWristletInfo WHERE ItemType=" + id));
+    EXPECT_EQ(std::to_string(wristlets[0].elementalType),
+              queryScalar("SELECT ElementalType FROM OustersWristletInfo WHERE ItemType=" + id));
+
+    // VampireEarring's MAX literal is ifnull(MAX(ItemType),0); the standard loader reads it.
+    EXPECT_EQ(queryScalar("SELECT MAX(ItemType) FROM VampireEarringInfo"),
+              std::to_string(repository.loadMaxGearType(GEAR_VAMPIRE_EARRING)));
+
+    // The shape guard: a loader refuses a table of another Info shape.
+    EXPECT_THROW(repository.loadGearInfos(GEAR_VAMPIRE_COAT), Error);
+    EXPECT_THROW(repository.loadGearInfosNoRatio(GEAR_RING), Error);
+    EXPECT_THROW(repository.loadWeaponInfos(GEAR_OUSTERS_WRISTLET), Error);
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {
