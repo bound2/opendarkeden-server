@@ -11,25 +11,29 @@
 // table and runs the same seven statements against them — the create
 // INSERT, the tinysave "SET %s", the save UPDATE, the info manager's
 // MAX(ItemType) and its column SELECT, the creature loader's owner SELECT
-// and the zone loader's zone SELECT. The literals differ per class only in the table
-// name and in copy-paste whitespace quirks, so a family shares one method
-// set and selects its table — and its exact literal — through an enum;
-// the MySQL impl keeps every class's seven literals byte-for-byte.
+// and the zone loader's zone SELECT. The object statements' literals differ
+// per class only in the table name and in copy-paste whitespace quirks; the
+// Info SELECT comes in a handful of column shapes (GearInfoKind). So a family
+// shares one method set and selects its table — and its exact literal —
+// through an enum; the MySQL impl keeps every class's seven literals
+// byte-for-byte.
 //
 // The first family: the nine slayer gear classes with a Grade column: Ring,
-// Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second family:
-// the eight vampire and ousters gear classes of the same shape: VampireRing,
-// VampireBracelet, VampireNecklace, OustersRing, OustersCoat, OustersCirclet,
-// OustersPendent, OustersBoots. The third family: six classes whose object
-// statements
-// are gear's but whose Info SELECT is not: VampireCoat (16 columns, no
-// UpgradeRatio / DowngradeRatio), OustersStone (20: gear plus ElementalType,
-// Elemental), VampireEarring (gear's 18 behind an ifnull(MAX(ItemType),0)),
-// VampireWeapon and OustersChakram (20 weapon columns: minDamage, maxDamage,
-// Speed, CriticalBonus in place of Defense, Protection), OustersWristlet (22:
-// weapon plus ElementalType, Elemental). Each Info shape has its own row and
-// loader; the MySQL impl records the shape per table and refuses a loader
-// of another shape, so a mismatch throws instead of reading past the row.
+// Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second
+// family: the eight vampire and ousters gear classes of the same shape:
+// VampireRing, VampireBracelet, VampireNecklace, OustersRing, OustersCoat,
+// OustersCirclet, OustersPendent, OustersBoots. The third family: six classes
+// whose object statements are gear's but whose Info SELECT is not: VampireCoat
+// (16 columns, no UpgradeRatio / DowngradeRatio), OustersStone (20: gear plus
+// ElementalType, Elemental), VampireEarring (gear's 18 behind an
+// ifnull(MAX(ItemType),0)), VampireWeapon and OustersChakram (20 weapon
+// columns: minDamage, maxDamage, Speed, CriticalBonus in place of Defense,
+// Protection), OustersWristlet (22: weapon plus ElementalType, Elemental).
+// Each Info shape has its own row and loader; the MySQL impl records the
+// shape per table and refuses a loader of another shape, so a mismatch
+// throws instead of misreading the columns silently (a longer row would
+// drop its extra columns; a shorter one would throw getField's
+// OutOfBoundException with no hint which table).
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -73,11 +77,12 @@ enum GearTable {
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
 enum GearInfoKind {
-    GEAR_INFO_STANDARD,   // loadGearInfos
-    GEAR_INFO_NO_RATIO,   // loadGearInfosNoRatio (VampireCoat)
-    GEAR_INFO_ELEMENTAL,  // loadGearInfosElemental (OustersStone)
-    WEAPON_INFO,          // loadWeaponInfos (VampireWeapon, OustersChakram)
-    WEAPON_INFO_ELEMENTAL // loadWeaponInfosElemental (OustersWristlet)
+    GEAR_INFO_UNSET = 0,       // a spec row that forgot its kind: every loader refuses it
+    GEAR_INFO_STANDARD,        // loadGearInfos
+    GEAR_INFO_NO_RATIO,        // loadGearInfosNoRatio (VampireCoat)
+    GEAR_INFO_ELEMENTAL,       // loadGearInfosElemental (OustersStone)
+    GEAR_INFO_WEAPON,          // loadWeaponInfos (VampireWeapon, OustersChakram)
+    GEAR_INFO_WEAPON_ELEMENTAL // loadWeaponInfosElemental (OustersWristlet)
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.

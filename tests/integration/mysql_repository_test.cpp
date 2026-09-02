@@ -2395,9 +2395,9 @@ TEST_F(ItemMySQL, ItemRowCountAndHighestIdAreReadFromTheNamedObjectTable) {
 }
 
 // --- the gear item classes' object and info tables ---------------------------
-// Ring, Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield and the
-// eight vampire/ousters gear classes share one method set; the table (and its
-// literal quirks) is picked by GearTable.
+// The gear families (slayer, vampire and ousters gear, and the six with their
+// own Info shapes) share one method set; the table (and its literal quirks) is
+// picked by GearTable.
 
 namespace {
 struct GearTableName {
@@ -2597,7 +2597,9 @@ TEST_F(ItemObjectMySQL, GearInfoVariantsLoadTheirOwnColumnsAndRefuseTheWrongLoad
     EXPECT_EQ(std::to_string(wristlets[0].elementalType),
               queryScalar("SELECT ElementalType FROM OustersWristletInfo WHERE ItemType=" + id));
 
-    // VampireEarring's MAX literal is ifnull(MAX(ItemType),0); the standard loader reads it.
+    // VampireEarring's MAX literal is ifnull(MAX(ItemType),0); the shared loader's
+    // next(); getInt(1) reads it like any other (the seeded table is not empty, so
+    // the ifnull never fires here).
     EXPECT_EQ(queryScalar("SELECT MAX(ItemType) FROM VampireEarringInfo"),
               std::to_string(repository.loadMaxGearType(GEAR_VAMPIRE_EARRING)));
 

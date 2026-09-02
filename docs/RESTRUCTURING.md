@@ -1753,26 +1753,37 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `loadWeaponInfos`, `WeaponInfoElementalRow` /
   > `loadWeaponInfosElemental`); the spec row records each table's shape
   > and every info loader refuses a table of another shape with an
-  > `Error`, so a mismatch throws instead of reading past the row —
-  > exactly the mistake the previous round's shape check caught. The
-  > spec table's `static_assert` (the gear round's review fix) now reads
-  > GEAR_OUSTERS_WRISTLET + 1. The transformer feeds each class's
-  > setters from its own row (it checks the original's setter sequence
-  > against the plan before rewriting) and tolerates the `Statement*
-  > pStmt = NULL` the three weapon classes' save() used. Literal quirks
-  > kept per class: "Y,OptionType" in VampireEarring's owner SELECT, the
-  > unspaced weapon column names, VampireEarring's ifnull literal.
-  > Disclosures: VampireEarring's else branch (`m_InfoCount = 0` when
-  > the MAX row is absent) is gone — ifnull makes that row always
-  > present, so the branch was unreachable; the standard loader's
-  > `next(); getInt(1)` reads the same 0 for an empty table; the rest as
-  > in the gear round (the seam initialises its Statement, one Statement
-  > per info statement, whole-result reads before placement, DBError.log
-  > names the repository method, the commented-out StringStream blocks
-  > gone with their blocks, the third loader stub and DB.h kept). No new
-  > object tests: the two ItemObjectMySQL loops now cover 23 object
-  > tables and 18 standard Info tables; +1 test for the four variant
-  > loaders (each pinned by COUNT(*) and a column the shape adds —
+  > `Error`, so a mismatch throws instead of misreading the columns
+  > silently (a longer row would drop its extra columns; a shorter one
+  > would throw getField's OutOfBoundException with no hint which table)
+  > — exactly the mistake the previous round's shape check caught.
+  > GEAR_INFO_UNSET is the enum's zero, so a spec row that forgets its
+  > kind is refused by every loader (the gear round's review asked for
+  > the guard to fail closed); the kinds are named GEAR_INFO_*
+  > throughout. The spec table's `static_assert` (the gear round's
+  > review fix) now reads GEAR_OUSTERS_WRISTLET + 1. The transformer
+  > feeds each class's setters from its own row (it checks the
+  > original's setter sequence against the plan before rewriting) and
+  > tolerates the `Statement* pStmt = NULL` the three weapon classes'
+  > save() used. Literal quirks kept per class: "Y,OptionType" in
+  > VampireEarring's owner SELECT, "Grade,EnchantLevel" in
+  > OustersWristlet's, "OwnerID= '%s'" in the three weapon classes'
+  > UPDATE, the unspaced weapon column names, VampireEarring's ifnull
+  > literal. Disclosures: VampireEarring's else branch (`m_InfoCount =
+  > 0` when the MAX row is absent) is gone — an aggregate without GROUP
+  > BY always yields one row, ifnull only turns its NULL into 0, so the
+  > branch was unreachable; the shared loader's `next(); getInt(1)`
+  > reads the same 0 for an empty table; OustersStone's and
+  > OustersWristlet's commented-out alternate Info SELECTs, which sat
+  > inside the executeQuery argument list, are gone with the statement;
+  > the rest as in the gear round (the seam initialises its Statement,
+  > one Statement per info statement, whole-result reads before
+  > placement, DBError.log names the repository method, the
+  > commented-out StringStream blocks gone with their blocks, the third
+  > loader stub and DB.h kept). No new object tests: the two
+  > ItemObjectMySQL loops now cover 23 object tables and 18 standard
+  > Info tables; +1 test for the four variant loaders (each pinned by
+  > COUNT(*) and a column whose ordinal the shape moves or adds —
   > NextItemType, Elemental, minDamage / CriticalBonus, maxDamage /
   > ElementalType), VampireEarring's MAX, and the shape guard throwing
   > for three mismatched calls. Not enclosed: the other 66 item files

@@ -8,7 +8,9 @@
 // are the same. The tinysave and save literals keep their "%ld" for the
 // DWORD ids exactly as written. The spec row also records which Info
 // shape the class's Info SELECT has; each info loader checks it, so a
-// call with the wrong loader fails loudly instead of reading past the row.
+// call with the wrong loader fails loudly instead of misreading the columns
+// silently. GEAR_INFO_UNSET is the enum's zero, so a spec row that forgets
+// its kind is refused by every loader rather than read as standard.
 
 #include <string>
 #include <vector>
@@ -388,7 +390,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM VampireWeaponObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireWeaponObject WHERE Storage = %d AND StorageID = %u",
-        WEAPON_INFO,
+        GEAR_INFO_WEAPON,
     },
     // OustersChakram (GEAR_OUSTERS_CHAKRAM)
     {
@@ -406,7 +408,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM OustersChakramObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersChakramObject WHERE Storage = %d AND StorageID = %u",
-        WEAPON_INFO,
+        GEAR_INFO_WEAPON,
     },
     // OustersWristlet (GEAR_OUSTERS_WRISTLET)
     {
@@ -424,7 +426,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM OustersWristletObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersWristletObject WHERE Storage = %d AND StorageID = %u",
-        WEAPON_INFO_ELEMENTAL,
+        GEAR_INFO_WEAPON_ELEMENTAL,
     },
 };
 
@@ -621,7 +623,7 @@ public:
     }
 
     vector<WeaponInfoRow> loadWeaponInfos(GearTable table) {
-        requireInfoKind(table, WEAPON_INFO, "loadWeaponInfos");
+        requireInfoKind(table, GEAR_INFO_WEAPON, "loadWeaponInfos");
         vector<WeaponInfoRow> rows;
         Statement* pStmt = NULL;
 
@@ -645,7 +647,7 @@ public:
     }
 
     vector<WeaponInfoElementalRow> loadWeaponInfosElemental(GearTable table) {
-        requireInfoKind(table, WEAPON_INFO_ELEMENTAL, "loadWeaponInfosElemental");
+        requireInfoKind(table, GEAR_INFO_WEAPON_ELEMENTAL, "loadWeaponInfosElemental");
         vector<WeaponInfoElementalRow> rows;
         Statement* pStmt = NULL;
 
