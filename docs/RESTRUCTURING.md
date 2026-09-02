@@ -1669,7 +1669,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > loader's default case freed first (`SAFE_DELETE(pStmt); // by sigi`,
   > gone with it); the create INSERT and the zone SELECT,
   > StringStream-built and run through the uncapped executeQueryString,
-  > now go through executeQuery's 2048-byte format buffer — 188 and 152
+  > now go through executeQuery's 2048-byte format buffer — 188 and 161
   > bytes of format plus a varchar(10) owner and a varchar(30) option
   > field, so unreachable, but a new failure mode (Error("more buffer
   > size needed...")) all the same; END_DB's DBError.log lines now name
@@ -1696,35 +1696,46 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > OustersCoat, OustersCirclet, OustersPendent, OustersBoots — R3
   > 211→203 (R2/R5 unchanged). Same seven statements, same twelve /
   > eleven / eighteen columns, same getters and streamed expressions
-  > (checked per class by scratchpad/gear_family_check.pl against the
-  > pre-conversion text, not by eye: the previous round's 160-character
-  > diff window would have let two impostors through — VampireCoat's
-  > Info SELECT has sixteen columns and OustersStone's twenty, and both
-  > were converted and reverted before this commit; VampireEarring
-  > guards an `ifnull(MAX(ItemType),0)` — all three wait for a round
-  > that carries their own Info rows). `GearTable` gains eight
-  > enumerators, the spec table eight rows generated from the classes'
-  > original text (the nine existing rows regenerate byte-identical),
-  > and the same transformer converted the eight call sites, each
-  > pattern required to match exactly once. Literal quirks kept:
-  > "Y,OptionType" in VampireRing's and VampireNecklace's owner SELECT,
-  > the Ousters loaders' `Ousters* pOusters` placement branches and the
-  > vampire loaders' wear-slot branches stay with the classes untouched.
-  > Disclosures: the same as the gear round — the seam initialises its
-  > Statement where the originals declared `pStmt` uninitialised
-  > (Trouser-style `= NULL` in none of the eight), one Statement per
-  > info statement, the loaders read the whole result before placing the
-  > first item (an item-placement throw no longer leaks the Statement),
-  > END_DB's DBError.log lines name the repository method, the
+  > (checked per class by a script against the pre-conversion text — the
+  > script stays outside the repo; its output is what was reviewed — not
+  > by eye: the previous round's function diff printed only the
+  > neighbourhood of the first difference, which would have let two
+  > impostors through — VampireCoat's Info SELECT has sixteen columns
+  > and OustersStone's twenty, and both were converted and reverted
+  > before this commit; VampireEarring guards an
+  > `ifnull(MAX(ItemType),0)` — all three wait for a round that carries
+  > their own Info rows). `GearTable` gains eight enumerators, the spec
+  > table eight rows generated from the classes' original text (the nine
+  > existing rows regenerate byte-identical; their label comments gained
+  > the enumerator name), and the same transformer converted the eight
+  > call sites, each pattern required to match exactly once. Literal
+  > quirks kept: "Y,OptionType" in VampireRing's and VampireNecklace's
+  > owner SELECT, the Ousters loaders' `Ousters* pOusters` placement
+  > branches and the vampire loaders' wear-slot branches stay with the
+  > classes untouched. Disclosures: the same as the gear round — the
+  > seam initialises its Statement where the originals declared `pStmt`
+  > uninitialised (in create / save / info / both loaders in all eight;
+  > tinysave's `= NULL` is the family norm and Trouser's zone-loader one
+  > has no counterpart here), one Statement per info statement, the
+  > loaders read the whole result before placing the first item (an
+  > item-placement throw no longer leaks the Statement; the creature
+  > loader's `SAFE_DELETE(pStmt); // by sigi` inside the default case is
+  > gone with the statement), END_DB's DBError.log lines name the
+  > repository method, the create INSERT and the zone SELECT now pass
+  > through executeQuery's 2048-byte format buffer (195–199 and 168–172
+  > bytes of format plus a varchar(10) owner and a varchar(30) option
+  > field — unreachable, but the new failure mode all the same), the
   > commented-out StringStream blocks in save() and the creature loader
   > are gone with their blocks, the third loader's empty `BEGIN_DB {}
-  > END_DB(pStmt)` stub and the DB.h include stay. No new tests: the two
-  > ItemObjectMySQL tests iterate a table array and now cover seventeen
-  > tables (two rows through each class's own INSERT literal, the owner
-  > and zone loads, the UPDATE read back, the tinysave field write;
-  > every Info table's MAX and rows). Not enclosed: the other 72 item
-  > files with SQL; ItemInfoManager.cpp holds only the registry calls.
-  > The spec table's static_assert now reads GEAR_OUSTERS_BOOTS + 1.
+  > END_DB(pStmt)` stub and the DB.h include stay. (The header counts
+  > families of the seam; these paragraphs count item-milestone rounds,
+  > ItemIDRegistry being round 1.) No new tests: the two ItemObjectMySQL
+  > tests iterate a table array and now cover seventeen tables (two rows
+  > through each class's own INSERT literal, the owner and zone loads,
+  > the UPDATE read back, the tinysave field write; every Info table's
+  > MAX and rows). Not enclosed: the other 72 item files with SQL;
+  > ItemInfoManager.cpp holds only the registry calls. The spec table's
+  > static_assert now reads GEAR_OUSTERS_BOOTS + 1.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
