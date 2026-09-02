@@ -2474,6 +2474,12 @@ const GearTableName kNumOnlyTables[] = {
     {GEAR_PUPA, "PupaObject"},     {GEAR_LARVA, "LarvaObject"},          {GEAR_COMPOS_MEI, "ComposMeiObject"},
     {GEAR_POTION, "PotionObject"},
 };
+const GearTableName kNumZoneVariantTables[] = {
+    {GEAR_SKULL, "SkullObject"},
+    {GEAR_BOMB, "BombObject"},
+    {GEAR_BOMB_MATERIAL, "BombMaterialObject"},
+    {GEAR_MINE, "MineObject"},
+};
 } // namespace
 
 class ItemObjectMySQL : public ::testing::Test {
@@ -2495,6 +2501,8 @@ protected:
             execSQL(std::string("DELETE FROM ") + kNumTables[i].name + " WHERE ItemID >= 31000");
         for (size_t i = 0; i < sizeof(kNumOnlyTables) / sizeof(kNumOnlyTables[0]); i++)
             execSQL(std::string("DELETE FROM ") + kNumOnlyTables[i].name + " WHERE ItemID >= 31000");
+        for (size_t i = 0; i < sizeof(kNumZoneVariantTables) / sizeof(kNumZoneVariantTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kNumZoneVariantTables[i].name + " WHERE ItemID >= 31000");
     }
 };
 
@@ -3070,6 +3078,96 @@ TEST_F(ItemObjectMySQL, NumOnlyItemRowsRoundTripThroughTheirEightColumns) {
         EXPECT_EQ(potion[0].value, queryScalar("SELECT Effect FROM PotionInfo WHERE ItemType=" + type));
         EXPECT_THROW(repository.loadLevelStringInfos(GEAR_PUPA), Error);
         EXPECT_THROW(repository.loadStringInfos(GEAR_POTION), Error);
+    }
+}
+
+TEST_F(ItemObjectMySQL, SkullAndBombTablesShareTheNumOnlyWritesButHaveTheirOwnZoneLoads) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    for (size_t i = 0; i < sizeof(kNumZoneVariantTables) / sizeof(kNumZoneVariantTables[0]); i++) {
+        const GearTable table = kNumZoneVariantTables[i].table;
+        const std::string name = kNumZoneVariantTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+        const std::string id = std::to_string(31000 + i);
+
+        repository.insertNumOnlyItem(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, 12);
+        repository.insertNumOnlyItem(table, 31100 + i, 78, 3, "it-owner", 5, 31000, 7, 8, 30);
+        EXPECT_EQ("12", queryScalar("SELECT Num" + where + id)) << name;
+        repository.updateNumOnlyItem(table, 79, 4, "it-owner", 1, 6, 3, 5, 20, 31000 + i);
+        EXPECT_EQ("20", queryScalar("SELECT Num" + where + id)) << name;
+        EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + id)) << name;
+
+        std::vector<NumOnlyObjectRow> owned = repository.loadNumOnlyItemOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name;
+        EXPECT_EQ(31000 + i, owned[0].itemID);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ(20, owned[0].num) << name;
+
+        repository.tinysaveGear(table, "Num=9", 31000 + i);
+        EXPECT_EQ("9", queryScalar("SELECT Num" + where + id)) << name;
+
+        // The zone load is the variant's own; the Num-only one refuses these tables.
+        EXPECT_THROW(repository.loadNumOnlyItemInZone(table, 5, 31000), Error);
+        if (table == GEAR_SKULL) {
+            std::vector<SkullZoneObjectRow> inZone = repository.loadSkullInZone(table, 5, 31000);
+            ASSERT_EQ(1u, inZone.size()) << name;
+            EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
+            EXPECT_EQ(7, inZone[0].x);
+            EXPECT_EQ(30u, inZone[0].num);
+            EXPECT_TRUE(repository.loadSkullInZone(table, 5, 31001).empty());
+            EXPECT_THROW(repository.loadBombInZone(table, 5, 31000), Error);
+        } else {
+            std::vector<BombZoneObjectRow> inZone = repository.loadBombInZone(table, 5, 31000);
+            ASSERT_EQ(1u, inZone.size()) << name;
+            EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
+            EXPECT_EQ(78, inZone[0].objectID);
+            EXPECT_EQ(8, inZone[0].y);
+            EXPECT_TRUE(repository.loadBombInZone(table, 5, 31001).empty()) << name;
+            EXPECT_THROW(repository.loadSkullInZone(table, 5, 31000), Error) << name;
+        }
+
+        const std::string info = name.substr(0, name.size() - 6) + "Info";
+        EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM " + info).c_str()), repository.loadMaxGearType(table))
+            << info;
+    }
+
+    // The Num-only writes and owner load refuse the other shapes; the variant zone
+    // loads refuse a plain Num-only table.
+    EXPECT_THROW(repository.insertNumOnlyItem(GEAR_EVENT_ITEM, 31900, 1, 1, "it-owner", 1, 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.loadSkullInZone(GEAR_ETC, 5, 31000), Error);
+    EXPECT_THROW(repository.loadBombInZone(GEAR_WATER, 5, 31000), Error);
+    EXPECT_THROW(repository.loadGearInZone(GEAR_BOMB, 5, 31000), Error);
+
+    // Skull's Info shape (basic plus ItemLevel), Bomb's and Mine's damage shape,
+    // BombMaterial's basic one; each guard refusing another shape.
+    {
+        std::vector<LevelInfoRow> rows = repository.loadLevelInfos(GEAR_SKULL);
+        ASSERT_FALSE(rows.empty());
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM SkullInfo").c_str()), (int)rows.size());
+        EXPECT_EQ(std::to_string(rows[0].itemLevel), queryScalar("SELECT ItemLevel FROM SkullInfo WHERE ItemType=" +
+                                                                 std::to_string(rows[0].basic.itemType)));
+        EXPECT_THROW(repository.loadLevelInfos(GEAR_POTION), Error);
+        EXPECT_THROW(repository.loadLevelStringInfos(GEAR_SKULL), Error);
+    }
+    {
+        const GearTableName damageTables[] = {{GEAR_BOMB, "BombInfo"}, {GEAR_MINE, "MineInfo"}};
+        for (size_t i = 0; i < sizeof(damageTables) / sizeof(damageTables[0]); i++) {
+            const std::string info = damageTables[i].name;
+            std::vector<DamageInfoRow> rows = repository.loadDamageInfos(damageTables[i].table);
+            ASSERT_FALSE(rows.empty()) << info;
+            EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)rows.size()) << info;
+            EXPECT_EQ(std::to_string(rows[0].maxDamage),
+                      queryScalar("SELECT maxDamage FROM " + info +
+                                  " WHERE ItemType=" + std::to_string(rows[0].basic.itemType)))
+                << info;
+        }
+        std::vector<BasicInfoRow> material = repository.loadBasicInfos(GEAR_BOMB_MATERIAL);
+        ASSERT_FALSE(material.empty());
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM BombMaterialInfo").c_str()), (int)material.size());
+        EXPECT_EQ(std::to_string(material[0].ratio), queryScalar("SELECT Ratio FROM BombMaterialInfo WHERE ItemType=" +
+                                                                 std::to_string(material[0].itemType)));
+        EXPECT_THROW(repository.loadDamageInfos(GEAR_BOMB_MATERIAL), Error);
+        EXPECT_THROW(repository.loadBasicInfos(GEAR_MINE), Error);
     }
 }
 

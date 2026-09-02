@@ -1028,9 +1028,81 @@ const GearSpec kGear[] = {
         GEAR_INFO_BASIC_LEVEL_STRING,
         NUM_ONLY_OBJECT,
     },
+    // Skull (GEAR_SKULL)
+    {
+        "INSERT INTO SkullObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES (%ld, "
+        "%ld, %d, '%s', %d, %ld, %d, %d, %d)",
+        "UPDATE SkullObject SET %s WHERE ItemID=%ld",
+        "UPDATE SkullObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM SkullInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, ItemLevel FROM SkullInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM SkullObject WHERE OwnerID = '%s' AND "
+        "Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM SkullObject WHERE Storage = %d AND "
+        "StorageID = %u",
+        NULL,
+        NULL,
+        GEAR_INFO_BASIC_LEVEL,
+        SKULL_OBJECT,
+    },
+    // Bomb (GEAR_BOMB)
+    {
+        "INSERT INTO BombObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, %u, "
+        "%u, '%s', %d, %u, %d, %d,%d)",
+        "UPDATE BombObject SET %s WHERE ItemID=%ld",
+        "UPDATE BombObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM BombInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, minDamage, maxDamage FROM BombInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM BombObject WHERE OwnerID = '%s' AND "
+        "Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM BombObject WHERE Storage = %d AND StorageID "
+        "= %u",
+        NULL,
+        NULL,
+        GEAR_INFO_BASIC_DAMAGE,
+        BOMB_OBJECT,
+    },
+    // BombMaterial (GEAR_BOMB_MATERIAL)
+    {
+        "INSERT INTO BombMaterialObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES "
+        "(%u, %u, %u, '%s', %d, %u, %d, %d,%d)",
+        "UPDATE BombMaterialObject SET %s WHERE ItemID=%ld",
+        "UPDATE BombMaterialObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM BombMaterialInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM BombMaterialInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM BombMaterialObject WHERE OwnerID = '%s' "
+        "AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM BombMaterialObject WHERE Storage = %d AND "
+        "StorageID = %u",
+        NULL,
+        NULL,
+        GEAR_INFO_BASIC,
+        BOMB_OBJECT,
+    },
+    // Mine (GEAR_MINE)
+    {
+        "INSERT INTO MineObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, %u, "
+        "%u, '%s', %d, %u, %d, %d,%d)",
+        "UPDATE MineObject SET %s WHERE ItemID=%ld",
+        "UPDATE MineObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM MineInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, minDamage, maxDamage FROM MineInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM MineObject WHERE OwnerID = '%s' AND "
+        "Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM MineObject WHERE Storage = %d AND StorageID "
+        "= %u",
+        NULL,
+        NULL,
+        GEAR_INFO_BASIC_DAMAGE,
+        BOMB_OBJECT,
+    },
 };
 
-static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_POTION + 1, "kGear must cover every GearTable");
+static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_MINE + 1, "kGear must cover every GearTable");
 
 const GearSpec& spec(GearTable table) {
     return kGear[table];
@@ -1075,6 +1147,16 @@ void requireTinysaveShape(GearTable table, bool withBullet, const char* method) 
     if ((spec(table).objectKind == GUN_OBJECT) != withBullet) {
         throw Error(string("ItemObjectRepository: ") + method + " called for a table whose tinysave takes " +
                     (withBullet ? "no BulletCount" : "a BulletCount"));
+    }
+}
+
+// The Num-only INSERT, UPDATE and owner load serve the three Num-only zone
+// variants; only the zone loads differ (Skull reads Num through getDWORD; the
+// Bomb tables' zone SELECT has no Num column), so each zone load checks its own kind.
+void requireNumOnlyObject(GearTable table, const char* method) {
+    GearObjectKind kind = spec(table).objectKind;
+    if (kind != NUM_ONLY_OBJECT && kind != SKULL_OBJECT && kind != BOMB_OBJECT) {
+        throw Error(string("ItemObjectRepository: ") + method + " called for a table that is not a Num-only item");
     }
 }
 
@@ -1827,7 +1909,7 @@ public:
     // columns in the INSERT, the UPDATE and both loads; no create type anywhere.
     void insertNumOnlyItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                            const string& ownerID, int storage, StorageID_t storageID, int x, int y, int num) {
-        requireObjectKind(table, NUM_ONLY_OBJECT, "insertNumOnlyItem");
+        requireNumOnlyObject(table, "insertNumOnlyItem");
         Statement* pStmt = NULL;
 
         BEGIN_DB {
@@ -1841,7 +1923,7 @@ public:
 
     void updateNumOnlyItem(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
                            int storage, StorageID_t storageID, int x, int y, int num, ItemID_t itemID) {
-        requireObjectKind(table, NUM_ONLY_OBJECT, "updateNumOnlyItem");
+        requireNumOnlyObject(table, "updateNumOnlyItem");
         Statement* pStmt = NULL;
 
         BEGIN_DB {
@@ -1976,8 +2058,93 @@ public:
         return rows;
     }
 
+    vector<LevelInfoRow> loadLevelInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_BASIC_LEVEL, "loadLevelInfos");
+        vector<LevelInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                LevelInfoRow row;
+                readBasicInfo(pResult, i, row.basic);
+                row.itemLevel = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // Skull's zone load: the Num-only columns, Num through getDWORD.
+    vector<SkullZoneObjectRow> loadSkullInZone(GearTable table, int storage, ZoneID_t zoneID) {
+        requireObjectKind(table, SKULL_OBJECT, "loadSkullInZone");
+        vector<SkullZoneObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).inZone, storage, zoneID);
+
+            while (pResult->next()) {
+                uint i = 0;
+                SkullZoneObjectRow row;
+                row.itemID = pResult->getInt(++i);
+                row.objectID = pResult->getInt(++i);
+                row.itemType = pResult->getInt(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getInt(++i);
+                row.x = pResult->getInt(++i);
+                row.y = pResult->getInt(++i);
+                row.num = pResult->getDWORD(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // Bomb, BombMaterial, Mine: their zone SELECT names no Num column (seven).
+    vector<BombZoneObjectRow> loadBombInZone(GearTable table, int storage, ZoneID_t zoneID) {
+        requireObjectKind(table, BOMB_OBJECT, "loadBombInZone");
+        vector<BombZoneObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).inZone, storage, zoneID);
+
+            while (pResult->next()) {
+                uint i = 0;
+                BombZoneObjectRow row;
+                row.itemID = pResult->getInt(++i);
+                row.objectID = pResult->getInt(++i);
+                row.itemType = pResult->getInt(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getInt(++i);
+                row.x = pResult->getInt(++i);
+                row.y = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
     vector<NumOnlyObjectRow> loadNumOnlyItemOfOwner(GearTable table, const string& ownerName) {
-        requireObjectKind(table, NUM_ONLY_OBJECT, "loadNumOnlyItemOfOwner");
+        requireNumOnlyObject(table, "loadNumOnlyItemOfOwner");
         vector<NumOnlyObjectRow> rows;
         Statement* pStmt = NULL;
 
