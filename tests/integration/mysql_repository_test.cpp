@@ -2437,9 +2437,11 @@ TEST_F(ItemObjectMySQL, GearRowsRoundTripThroughEveryTablesOwnLiterals) {
         const std::string name = kGearTables[i].name;
         const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
 
-        // Storage 1 is in the owner load's IN(0, 1, 2, 3, 4, 9); 5 (STORAGE_ZONE) is not.
+        // Both rows belong to it-owner; Storage 1 is in the owner load's
+        // IN(0, 1, 2, 3, 4, 9) and 5 (STORAGE_ZONE) is not, so the owner load's
+        // single row pins the Storage clause, not the owner.
         repository.insertGear(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, "opt", 10, 6, 1);
-        repository.insertGear(table, 31100 + i, 78, 3, "", 5, 31000, 7, 8, "", 9, 6, 0);
+        repository.insertGear(table, 31100 + i, 78, 3, "it-owner", 5, 31000, 7, 8, "", 9, 6, 0);
         EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM " + name + " WHERE ItemID >= 31000")) << name;
         EXPECT_EQ("it-owner", queryScalar("SELECT OwnerID" + where + std::to_string(31000 + i))) << name;
         EXPECT_EQ("1", queryScalar("SELECT ItemFlag" + where + std::to_string(31000 + i))) << name;

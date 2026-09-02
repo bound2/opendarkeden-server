@@ -1,5 +1,5 @@
-// MySQL-backed ItemObjectRepository (task 3.2, the item milestone, round 1).
-// One method set for the nine slayer gear classes; the table — and the
+// MySQL-backed ItemObjectRepository (task 3.2, the item milestone). One
+// method set for the gear classes; the table — and the
 // class's exact literal, copy-paste whitespace and all — comes from the
 // spec row the GearTable enum indexes. The two StringStream chains of the
 // originals (the create INSERT and the zone SELECT) are format strings
@@ -175,6 +175,8 @@ const GearSpec kGear[] = {
         "FROM ShieldObject WHERE Storage = %d AND StorageID = %u",
     },
 };
+
+static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_SHIELD + 1, "kGear must cover every GearTable");
 
 const GearSpec& spec(GearTable table) {
     return kGear[table];

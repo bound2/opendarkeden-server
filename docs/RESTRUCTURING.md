@@ -1625,16 +1625,16 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > round; item milestone round 2)**: the nine slayer gear classes with
   > a Grade column — Ring, Bracelet, Necklace, Coat, Trouser, Shoes,
   > Glove, Helm, Shield — R3 220→211 (R2/R5 unchanged). Each class runs
-  > the same six statements: the create INSERT (a StringStream chain
-  > through executeQueryString), the tinysave "SET %s", the save
-  > UPDATE, the info manager's MAX(ItemType) and 18-column SELECT, the
+  > the same seven statements: the create INSERT (a StringStream chain
+  > through executeQueryString), the tinysave "SET %s", the save UPDATE,
+  > the info manager's MAX(ItemType) and its 18-column SELECT, the
   > creature loader's owner SELECT (12 columns, Storage IN(0, 1, 2, 3,
   > 4, 9)) and the zone loader's zone SELECT (a StringStream chain, 11
   > columns — it never named Grade). The literals differ per class only
   > in the table name and in copy-paste whitespace ("Y,OptionType" in
-  > Necklace / Trouser / Shoes, "ReqAbility,ItemLevel" in Bracelet,
-  > ",  " before Coat's Grade value, "EnchantLevel = %d" in Glove), so a
-  > new **`ItemObjectRepository`** has one method set — insertGear /
+  > Necklace / Trouser / Shoes, "ReqAbility,ItemLevel" in Bracelet, ", 
+  > " before Coat's Grade value, "EnchantLevel = %d" in Glove), so a new
+  > **`ItemObjectRepository`** has one method set — insertGear /
   > tinysaveGear / updateGear / loadMaxGearType / loadGearInfos /
   > loadGearOfOwner / loadGearInZone — and a `GearTable` enum that
   > selects the class's own seven literals from a spec table in the
@@ -1648,39 +1648,48 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > Glove and Helm still pass `(int)getGrade()`, the others `getGrade()`
   > — Grade_t is int either way). Rows are typed to the getters: the
   > owner load's getDWORD ids / getBYTE x,y / getInt rest, the zone
-  > load's all-getInt, the info load's getInt/getString. The nine files
-  > were converted by one script (scratchpad-only; the resulting text is
-  > what is reviewed), each pattern required to match exactly once per
-  > file. Disclosures: the commented-out StringStream blocks inside
-  > save() and the creature loader — dead since the parameterized
-  > rewrite, each mentioning executeQueryString — are gone with the
-  > blocks they sat in (R3's grep is textual); `Statement* pStmt`
-  > declared uninitialised while END_DB deletes it (create / save /
-  > info / both loaders; Trouser's zone loader was the one initialised)
-  > — gone with the statements, the seam initialises; the info
-  > manager's MAX and SELECT shared one Statement, the seam uses one
-  > per call; the loaders now read the whole result before placing the
-  > first item where the originals interleaved (mysql_store_result had
-  > buffered the rows already), so an item-placement throw — the
-  > loaders' UnsupportedError for a Monster/NPC owner, the default-case
-  > Error — no longer leaks the Statement (the creature loader's
-  > `SAFE_DELETE(pStmt); // by sigi` before that throw is gone with it);
-  > END_DB's DBError.log lines now name the repository method rather
-  > than the class. The third loader overload, load(StorageID_t,
-  > Inventory*), keeps its empty `BEGIN_DB {} END_DB(pStmt)` stub (no
-  > SQL; not touched) and so the DB.h include stays. Not enclosed: the
-  > other 81 item classes (their own rounds — the survey in
-  > scratchpad/item_survey.pl groups 44 of them into exactly this
-  > shape, the rest add destroy / saveBullet / savePetInfo /
-  > hasPartnerItem / setNewMotorcycle statements or lack the zone
-  > loader), and ItemInfoManager.cpp. No fake tier; +2 integration
-  > tests (every one of the nine tables: two rows inserted through the
-  > class's own INSERT literal, the owner load scoped to Storage
-  > IN(...) and the zone load to Storage 5 / the zone id, the full
-  > UPDATE read back, the tinysave field write; every Info table's MAX
-  > against the table and its rows counted and pinned by Name /
-  > NextItemType / DowngradeRatio). Ids from 31000 up, cleaned in
-  > SetUp/TearDown.
+  > load's getInt for every numeric column, the info load's
+  > getInt/getString. The nine files were converted by one script
+  > (scratchpad-only; the resulting text is what is reviewed), each
+  > pattern required to match exactly once per file. Disclosures: the
+  > commented-out StringStream blocks inside save() and the creature
+  > loader — dead since the parameterized rewrite, each mentioning
+  > executeQueryString — are gone with the blocks they sat in (R3's grep
+  > is textual); `Statement* pStmt` declared uninitialised while END_DB
+  > deletes it (create / save / info / both loaders; Trouser's zone
+  > loader was the one initialised) — gone with the statements, the seam
+  > initialises (the SQL-free third-loader stub keeps its own); the info
+  > manager's MAX and SELECT shared one Statement, the seam uses one per
+  > call; the loaders now read the whole result before placing the first
+  > item where the originals interleaved (mysql_store_result had
+  > buffered the rows already), so an item-placement throw no longer
+  > leaks the Statement — the creature loader's UnsupportedError for a
+  > Monster/NPC owner and the zone loader's for stash/corpse storage
+  > did, and so did the zone loader's default-case Error; the creature
+  > loader's default case freed first (`SAFE_DELETE(pStmt); // by sigi`,
+  > gone with it); the create INSERT and the zone SELECT,
+  > StringStream-built and run through the uncapped executeQueryString,
+  > now go through executeQuery's 2048-byte format buffer — 188 and 152
+  > bytes of format plus a varchar(10) owner and a varchar(30) option
+  > field, so unreachable, but a new failure mode (Error("more buffer
+  > size needed...")) all the same; END_DB's DBError.log lines now name
+  > the repository method rather than the class. The third loader
+  > overload, load(StorageID_t, Inventory*), keeps its empty `BEGIN_DB
+  > {} END_DB(pStmt)` stub (no SQL; not touched) and so the DB.h include
+  > stays. Not enclosed: the other 80 item files with SQL (their own
+  > rounds: by live statement count 59 run these same seven with their
+  > own column sets, 13 add destroy / saveBullet / hasPartnerItem /
+  > setNewMotorcycle, PetItem adds savePetInfo, and seven —
+  > CarryingReceiver, Dermis, Fascia, Mitten, Persona, ShoulderArmor,
+  > WarItem — have an empty zone loader). ItemInfoManager.cpp holds only
+  > the registry calls, no SQL. No fake tier; +2 integration tests
+  > (every one of the nine tables: two rows of one owner inserted
+  > through the class's own INSERT literal, the owner load returning
+  > only the one in Storage IN(...) and the zone load only the one in
+  > Storage 5 / the zone id, the full UPDATE read back, the tinysave
+  > field write; every Info table's MAX against the table, its rows
+  > counted, and the first row pinned by Name / NextItemType /
+  > DowngradeRatio). Ids from 31000 up, cleaned in SetUp/TearDown.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

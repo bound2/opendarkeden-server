@@ -8,15 +8,15 @@
 
 // Persistence seam for the per-class item-object tables (task 3.2, the item
 // milestone): each item class owns an <Class>Object table and a <Class>Info
-// table and runs the same six statements against them — the create INSERT,
-// the tinysave "SET %s", the save UPDATE, the info manager's MAX(ItemType)
-// and column SELECT, the creature loader's owner SELECT and the zone
-// loader's zone SELECT. The literals differ per class only in the table
+// table and runs the same seven statements against them — the create
+// INSERT, the tinysave "SET %s", the save UPDATE, the info manager's
+// MAX(ItemType) and its column SELECT, the creature loader's owner SELECT
+// and the zone loader's zone SELECT. The literals differ per class only in the table
 // name and in copy-paste whitespace quirks, so a family shares one method
 // set and selects its table — and its exact literal — through an enum;
 // the MySQL impl keeps every class's seven literals byte-for-byte.
 //
-// Round 1, the nine slayer gear classes with a Grade column: Ring,
+// The first family: the nine slayer gear classes with a Grade column: Ring,
 // Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield.
 //
 // Reads are typed to the driver getter the inline code called: the owner
@@ -29,8 +29,9 @@
 // (DWORD/WORD through "%u", int through "%d"), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 81 item classes (later rounds), the loaders'
-// storage-placement logic (stays with the class), and ItemInfoManager.cpp.
+// Not enclosed: the other 80 item files with SQL (later rounds) and the
+// loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
+// holds only the registry calls, no SQL.
 
 enum GearTable {
     GEAR_RING,
