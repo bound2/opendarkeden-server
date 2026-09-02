@@ -59,7 +59,8 @@
 // Grade column — it never did). The info load is getInt/getString per
 // column. Write parameters are typed to what each caller streamed, so the
 // varargs bytes are unchanged: the create INSERT was a StringStream chain
-// (DWORD/WORD through "%u", int through "%d"), the save UPDATE and tinysave
+// (DWORD/WORD through "%u", int through "%d"; AR's was already a
+// parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
 // Not enclosed: the other 58 item files with SQL (later rounds) and the
@@ -116,8 +117,9 @@ enum GearInfoKind {
 // The object-table shapes; which update / owner-load / zone-load a table takes.
 enum GearObjectKind {
     GEAR_OBJECT_UNSET = 0, // a spec row that forgot its kind: every shape-checked method refuses it
-                           // (insertGear and loadMaxGearType never consult the kind; tinysaveGear
-                           // checks it only to refuse the GUN_OBJECT tables)
+                           // (loadMaxGearType never consults the kind; tinysaveGear checks it only
+                           // to refuse the GUN_OBJECT tables; insertGear refuses every shape but
+                           // gear's and the silver weapons', whose INSERT takes its twelve varargs)
     GEAR_OBJECT,           // updateGear, loadGearOfOwner, loadGearInZone
     SILVER_WEAPON_OBJECT,  // updateSilverWeapon, loadSilverWeaponOfOwner, loadSilverWeaponInZone
     GUN_OBJECT,   // SG, SMG, SR: insertGun, tinysaveGun, updateGun, saveGunBullet, loadGunOfOwner, loadGunInZone
@@ -389,6 +391,8 @@ public:
     virtual ~ItemObjectRepository() {}
 
     // <Class>::create — the INSERT with the ItemFlag column fed the create type.
+    // Refuses tables whose INSERT takes other arguments (the guns' thirteen).
+    // Refuses tables whose INSERT takes other arguments (the guns' thirteen).
     virtual void insertGear(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                             const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                             const std::string& optionField, Durability_t durability, int grade, int createType) = 0;

@@ -2755,16 +2755,24 @@ TEST_F(ItemObjectMySQL, GunRowsRoundTripWithBulletCountAndSilverInEachTablesOrde
                   queryScalar("SELECT `Range` FROM " + info + " WHERE ItemType=" + type));
         EXPECT_EQ(std::to_string(infos[0].downgradeRatio),
                   queryScalar("SELECT DowngradeRatio FROM " + info + " WHERE ItemType=" + type));
+        EXPECT_EQ(queryScalar("SELECT MAX(ItemType) FROM " + info), std::to_string(repository.loadMaxGearType(table)))
+            << info;
+
+        // tinysave: SG, SMG and SR's literal carries a BulletCount; AR's is gear's.
+        if (table == GEAR_AR) {
+            repository.tinysaveGear(table, "Silver=3", 31000 + i);
+            EXPECT_EQ("19", queryScalar("SELECT BulletCount" + where + id)) << name;
+        } else {
+            repository.tinysaveGun(table, "Silver=3", 5, 31000 + i);
+            EXPECT_EQ("5", queryScalar("SELECT BulletCount" + where + id)) << name;
+        }
+        EXPECT_EQ("3", queryScalar("SELECT Silver" + where + id)) << name;
     }
 
-    // tinysave: SG, SMG and SR's literal carries a BulletCount; AR's is gear's.
-    // Each method refuses the tables whose literal takes the other argument list.
-    repository.tinysaveGun(GEAR_SG, "Silver=3", 5, 31001);
-    EXPECT_EQ("3", queryScalar("SELECT Silver FROM SGObject WHERE ItemID=31001"));
-    EXPECT_EQ("5", queryScalar("SELECT BulletCount FROM SGObject WHERE ItemID=31001"));
-    repository.tinysaveGear(GEAR_AR, "Silver=3", 31000);
-    EXPECT_EQ("3", queryScalar("SELECT Silver FROM ARObject WHERE ItemID=31000"));
-    EXPECT_EQ("19", queryScalar("SELECT BulletCount FROM ARObject WHERE ItemID=31000"));
+    // Each tinysave method refuses the tables whose literal takes the other argument list;
+    // insertGear's twelve varargs refuse the guns' thirteen-argument INSERT.
+    EXPECT_THROW(repository.insertGear(GEAR_AR, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1), Error);
+    EXPECT_THROW(repository.insertGear(GEAR_SR, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1), Error);
     EXPECT_THROW(repository.tinysaveGun(GEAR_AR, "Silver=3", 5, 31000), Error);
     EXPECT_THROW(repository.tinysaveGear(GEAR_SMG, "Silver=3", 31002), Error);
     EXPECT_THROW(repository.tinysaveGun(GEAR_SWORD, "Silver=3", 5, 31000), Error);

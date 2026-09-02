@@ -1852,17 +1852,18 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > getDurability(), (int)getEnchantLevel(), (int)getBulletCount(),
   > (int)getSilver(), (int)getGrade(), so Grade's ordinal moves as it
   > did for the silver weapons) and in both loads (owner: 14 columns,
-  > getDWORD ids / getBYTE x,y / getInt rest; zone: 13, every numeric
-  > column through getInt, OptionType getString, no Grade), plus an
-  > eighth statement, the saveBullet UPDATE ("SET BulletCount = %d WHERE
-  > ItemID = %d", SMG's "%ld"; the caller passes its BYTE
-  > getBulletCount() uncast and m_ItemID; it has no live caller —
-  > Slayer.cpp's call is commented out). SG, SMG and SR are one shape
-  > and AR another: SG / SMG / SR's tinysave is "SET %s, BulletCount=%d"
-  > with (field, (int)getBulletCount(), m_ItemID) and their loads name
-  > EnchantLevel, BulletCount, Silver; AR's tinysave is gear's, its
-  > loads name BulletCount, Silver, EnchantLevel, and its create was
-  > already a parameterized executeQuery ("%ld" ids, verbatim). So
+  > getDWORD ItemID / ObjectID / ItemType / StorageID, getBYTE x,y,
+  > getInt rest; zone: 13, every numeric column through getInt,
+  > OptionType getString, no Grade), plus an eighth statement, the
+  > saveBullet UPDATE ("SET BulletCount = %d WHERE ItemID = %d", SMG's
+  > "%ld"; the caller passes its BYTE getBulletCount() uncast and
+  > m_ItemID; it has no live caller — Slayer.cpp's call is commented
+  > out). SG, SMG and SR are one shape and AR another: SG / SMG / SR's
+  > tinysave is "SET %s, BulletCount=%d" with (field,
+  > (int)getBulletCount(), m_ItemID) and their loads name EnchantLevel,
+  > BulletCount, Silver; AR's tinysave is gear's, its loads name
+  > BulletCount, Silver, EnchantLevel, and its create was already a
+  > parameterized executeQuery ("%ld" ids, verbatim). So
   > `ItemObjectRepository` gains `GUN_OBJECT` and `AR_GUN_OBJECT`,
   > `GunObjectRow` / `GunZoneObjectRow` / `GunInfoRow`, and insertGun /
   > tinysaveGun / updateGun / saveGunBullet / loadGunInfos /
@@ -1870,19 +1871,23 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > table's ordinal into the field it names (the two orders are the only
   > load difference, so one row serves both shapes). The spec row gains
   > an eighth literal (saveBullet; NULL outside the guns) and the
-  > `static_assert` now reads GEAR_SR + 1. Guards: the gun methods take
-  > both gun shapes and refuse every other table; tinysaveGear now
-  > refuses the GUN_OBJECT tables (their literal takes a BulletCount)
-  > and tinysaveGun refuses everything else — either literal fed the
-  > other's arguments would format the wrong varargs; insertGear and
-  > loadMaxGearType still never consult the object kind. Info: one
-  > shape, GEAR_INFO_GUN — 22 columns, the weapon shape with ToHitBonus
-  > and `Range` (backticked: a reserved word) after maxDamage — behind
-  > loadGunInfos. The transformer (outside the repo; its output is what
-  > was reviewed) gained the gun shape: it checks the live create block
-  > (chain or parameterized), the tinysave, save and saveBullet argument
-  > lists against the shape's expected lists before rewriting, and
-  > tolerates ARInfoManager::load's __BEGIN_DEBUG. Literal quirks kept:
+  > `static_assert` now reads GEAR_SR + 1. Guards: the gun methods
+  > except tinysaveGun take both gun shapes and refuse every other
+  > table; tinysaveGear now refuses the GUN_OBJECT tables (their literal
+  > takes a BulletCount) and tinysaveGun refuses everything else —
+  > either literal fed the other's arguments would format the wrong
+  > varargs; insertGear, whose twelve varargs fit gear's and the silver
+  > weapons' INSERT literals, refuses every other shape (the gun INSERTs
+  > take thirteen; before this round every INSERT literal took twelve,
+  > so the guard is new with the hazard); loadMaxGearType alone never
+  > consults the object kind. Info: one shape, GEAR_INFO_GUN — 22
+  > columns, the weapon shape with ToHitBonus and `Range` (backticked: a
+  > reserved word) after maxDamage — behind loadGunInfos. The
+  > transformer (outside the repo; its output is what was reviewed)
+  > gained the gun shape: it checks the live create block (chain or
+  > parameterized), the tinysave, save and saveBullet argument lists
+  > against the shape's expected lists before rewriting, and tolerates
+  > ARInfoManager::load's __BEGIN_DEBUG. Literal quirks kept:
   > "Y,OptionType" in SG's, SMG's and SR's owner SELECTs and in SMG's
   > and SR's zone SELECT, "(ItemID,  ObjectID" and "StorageID ," in the
   > three INSERT chains, SR's ",  %d" before ItemFlag, AR's "ObjectID =
@@ -1893,27 +1898,35 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > saveBullet had `= NULL`); the SQL-free third-loader stub keeps its
   > uninitialised pStmt; one Statement per info statement; whole-result
   > reads before placement (an item-placement throw no longer leaks the
-  > Statement in SG, SMG and SR; AR's zone loader deleted it before its
-  > two throws, and those two `SAFE_DELETE(pStmt); // by sigi` lines are
-  > gone, as is the creature loaders' one in all four); DBError.log
-  > names the repository method; the three StringStream create INSERTs
-  > and all four zone SELECTs now pass through executeQuery's 2048-byte
-  > format buffer (203–204 and 179–180 bytes of format plus a
-  > varchar(10) owner and the option-list text: unreachable); the
-  > commented-out StringStream blocks (AR's create and save, with the
-  > "remove StringStream. by sigi. 2002.5.13" note) gone with their
-  > blocks; the DB.h include kept; the header's "62 item files" count is
-  > 58. +1 integration test: for each of the four tables, two rows of
-  > one owner through the class's INSERT, the UPDATE writing BulletCount
-  > and Silver, saveBullet writing BulletCount alone, the owner load's
-  > fourteen columns read back with each value in its own field
-  > whichever order the table names them, the zone load's BulletCount
-  > from the INSERT and Silver at the column default, and the Info shape
-  > pinned by COUNT(*) and ToHitBonus / `Range` / DowngradeRatio; then
-  > SG's BulletCount-carrying tinysave and AR's gear tinysave each
-  > writing and each method refusing the other's tables, the object
-  > guard both ways and the Info guard both ways. Not enclosed: the
-  > other 58 item files with SQL; ItemInfoManager.cpp holds only the
+  > Statement: in the zone loaders of SG, SMG and SR, and in the
+  > creature loaders of all four, whose rethrown Error escaped END_DB's
+  > SQLQueryException-only catch; AR's zone loader was the one site that
+  > already deleted before its two throws, and those two
+  > `SAFE_DELETE(pStmt); // by sigi` lines are gone, as is the creature
+  > loaders' one in all four, which covered only the default case);
+  > DBError.log names the repository method; the three StringStream
+  > create INSERTs and all four zone SELECTs now pass through
+  > executeQuery's 2048-byte format buffer (203–204 bytes of format plus
+  > a varchar(10) owner and the option-list text for the INSERTs,
+  > 179–180 plus a storage and a zone id for the zone SELECTs:
+  > unreachable); the nine commented-out StringStream blocks (AR's
+  > create, save and creature loader; save and creature loader in each
+  > of SG, SMG and SR) gone with their blocks, AR's create one with its
+  > `// StringStream 없애기. by sigi. 2002.5.13` ("get rid of
+  > StringStream") note; the DB.h include kept; the header's "62 item
+  > files" count is 58. +1 integration test: for each of the four
+  > tables, two rows of one owner through the class's INSERT, the UPDATE
+  > writing BulletCount and Silver, saveBullet writing BulletCount
+  > alone, the owner load's fourteen columns read back with each value
+  > in its own field whichever order the table names them, the zone
+  > load's BulletCount from the INSERT and Silver at the column default,
+  > the Info shape pinned by COUNT(*) and ToHitBonus / `Range` /
+  > DowngradeRatio, MAX(ItemType) against the seeded Info table, and the
+  > class's own tinysave literal writing (SG's, SMG's and SR's
+  > BulletCount-carrying one, AR's gear one); then each tinysave method
+  > refusing the other's tables, insertGear refusing the gun tables, the
+  > object guard both ways and the Info guard both ways. Not enclosed:
+  > the other 58 item files with SQL; ItemInfoManager.cpp holds only the
   > registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs

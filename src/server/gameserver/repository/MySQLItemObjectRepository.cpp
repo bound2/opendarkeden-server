@@ -13,7 +13,9 @@
 // have; every loader checks them, so a call with the wrong loader fails
 // loudly instead of misreading the columns silently. GEAR_INFO_UNSET and
 // GEAR_OBJECT_UNSET are their enums' zeros, so a spec row that forgets a
-// kind is refused by every method rather than read as the standard shape.
+// kind is refused by every shape-checked method rather than read as the
+// standard shape (tinysaveGear consults the kind only to refuse the
+// GUN_OBJECT tables; loadMaxGearType never consults it).
 
 #include <string>
 #include <vector>
@@ -661,6 +663,17 @@ void requireGunObject(GearTable table, const char* method) {
     }
 }
 
+// insertGear's twelve varargs fit gear's and the silver weapons' INSERT
+// literals; every other shape's INSERT takes a different count, so insertGear
+// refuses those tables (the gun INSERTs take thirteen).
+void requireGearInsert(GearTable table, const char* method) {
+    GearObjectKind kind = spec(table).objectKind;
+    if (kind != GEAR_OBJECT && kind != SILVER_WEAPON_OBJECT) {
+        throw Error(string("ItemObjectRepository: ") + method +
+                    " called for a table whose INSERT takes other arguments");
+    }
+}
+
 // tinysaveGear's literal takes (field, itemID); the GUN_OBJECT tables' takes
 // (field, bulletCount, itemID). Either literal fed the other's arguments would
 // format the wrong varargs, so each method refuses the other's tables.
@@ -751,6 +764,7 @@ public:
     void insertGear(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
                     int storage, StorageID_t storageID, int x, int y, const string& optionField,
                     Durability_t durability, int grade, int createType) {
+        requireGearInsert(table, "insertGear");
         Statement* pStmt = NULL;
 
         BEGIN_DB {
