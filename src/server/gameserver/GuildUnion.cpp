@@ -209,11 +209,11 @@ bool GuildUnionManager::addGuild(uint uID, GuildID_t gID) {
 bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
     __BEGIN_TRY
 
-    // 내가 길드연합장인데..내가 탈퇴한다면..
-    // 내가 속한 길드연합을 깨보자..
+    // If this guild is the union master and is leaving,
+    // break up the union it belongs to.
 
     GuildUnion* pUnion = m_GuildUnionMap[gID];
-    // 내가 마스터인 연합이 있다면 -> 내 연합에 소속된 모든 길드를 out시키고 내 연합을 깨버린다.
+    // A union this guild masters: throw every member guild out and destroy it.
     if (pUnion != NULL) {
         uint uID = pUnion->getUnionID(); // the union id
 
@@ -289,8 +289,8 @@ bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
             guildMasterID = g_pGuildManager->getGuild(gID)->getMaster();
 
             if (removeGuild(unionID, ownerGuildID)) {
-                Creature* pTargetCreature = NULL;  // 해당길드의 장
-                Creature* pTargetCreature2 = NULL; // 연합길드의 장
+                Creature* pTargetCreature = NULL;  // the guild's master
+                Creature* pTargetCreature2 = NULL; // the union guild's master
 
                 __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
@@ -310,9 +310,9 @@ bool GuildUnionManager::removeMasterGuild(GuildID_t gID) {
                 __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
 
 
-                // 길드마스터 바뀐정보를 보내줘보자..
+                // Send the changed guild-master information.
                 sendGCOtherModifyInfoGuildUnionByGuildID(gID);
-                // 특정길드가 깨져서 연합에서 remove되었다면 연합마스터에게도 알려야 하겠다.
+                // A guild removed from the union because it broke up: the union master must hear of it too.
                 sendGCOtherModifyInfoGuildUnionByGuildID(unionMasterGuildID);
 
                 // The guild is removed: tell the other servers too.

@@ -1492,68 +1492,96 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > no build target compiles (Vampire_backup, GameServerInfoManager,
   > EventMonsterNameManager, GameWorldInfoManager, MoonCardUtil).
   > **Guild cluster (2026-09-02, stacked on the ExpTable round)**: the
-  > last live cluster in the gameserver root — Guild.cpp, GuildManager.cpp
-  > and GuildUnion.cpp — R2 13→10, R3 224→221, R5 5,984→5,980 (the four
-  > __BEGIN_TRY macros inside the deleted dead blocks). A new `GuildRepository`
-  > takes GuildMember (exists / insert and re-join in the plain and
-  > waiting variants / load / save / delete / the rank-plus-ExpireDate
-  > write behind expire() and leave() / intro read and write / the
-  > boot-time Rank IN (0,1,2,3) list), GuildInfo (insert with the
-  > corrected intro / load / save without the intro / delete together
-  > with the guild's GuildUnionMember rows / the GuildState IN (%d, %d)
-  > list / the name-and-master lookup the offer list makes), the
-  > guild-scoped war reads (castle count and lookup, the five-slot
-  > WarScheduleInfo count in WAIT/START, the ReinforceRegisterInfo join,
-  > the two Status='START' counts), the unions (insert returning the
-  > AUTO_INCREMENT id, member insert / delete-reporting-a-hit / union
-  > delete, the two loads, the guild→union and union→master lookups, the
-  > quoted-key member count) and the union offers (the ten-day ESCAPE
-  > penalty count, the stale-offer delete, JOIN and QUIT inserts, the
-  > OfferType+0 / DATE_FORMAT list, the per-type UnionID lookups, delete
-  > and count). Every literal byte-for-byte: the `Rank` backticks, the
-  > spaced "GuildMember( ... ) VALUES ( ... )" against the unspaced union
+  > last live cluster in the gameserver root — Guild.cpp,
+  > GuildManager.cpp and GuildUnion.cpp — R2 13→10, R3 224→221, R5
+  > 5,984→5,980 (the four __BEGIN_TRY macros inside the deleted dead
+  > blocks). A new `GuildRepository` takes GuildMember (exists / insert
+  > and re-join in the plain and waiting variants / load / save / delete
+  > / the rank-plus-ExpireDate write behind expire() and leave() / intro
+  > read and write / the boot-time Rank IN (0,1,2,3) list), GuildInfo
+  > (insert with the corrected intro / load / save without the intro /
+  > delete together with the guild's GuildUnionMember rows / the
+  > GuildState IN (%d, %d) list / the name-and-master lookup the offer
+  > list makes), the guild-scoped war reads (castle count and lookup,
+  > the five-slot WarScheduleInfo count in WAIT/START, the
+  > ReinforceRegisterInfo join, the two Status='START' counts), the
+  > unions (insert returning the AUTO_INCREMENT id, member insert /
+  > delete-reporting-a-hit / union delete, the two loads, the
+  > guild→union and union→master lookups, the quoted-key member count)
+  > and the union offers (the ten-day ESCAPE penalty count, the
+  > stale-offer delete, JOIN and QUIT inserts, the OfferType+0 /
+  > DATE_FORMAT list, the per-type UnionID lookups, delete and count).
+  > Every literal byte-for-byte: the `Rank` backticks, the spaced
+  > "GuildMember( ... ) VALUES ( ... )" against the unspaced union
   > inserts, the quoted numeric keys, the lower-case "and", "count(*)"
   > against "COUNT(*)", the doubled %% in the DATE_FORMAT literal; the
   > WORD guild ids and BYTE rank/type/race/state stream through "%d" or
   > "%u" exactly where they did. Dead code deleted: the gameserver's
-  > `#ifdef __SHARED_SERVER__` blocks that no build compiles (the
-  > sharedserver builds its own Guild.cpp / GuildManager.cpp) —
-  > Guild::saveIntro / tinysave / saveCount, GuildManager::init's whole
-  > body (the MaxGuildID and per-race MaxZoneID probes), and
-  > deleteGuild's DB purge — and hasWarSchedule's `#else` branch for the
+  > SQL-bearing `#ifdef __SHARED_SERVER__` blocks, which no build
+  > compiles (the sharedserver builds its own Guild.cpp /
+  > GuildManager.cpp; nine SQL-free blocks and Guild.h's declarations
+  > remain) — Guild::saveIntro / tinysave / saveCount,
+  > GuildManager::init's whole body (the MaxGuildID and per-race
+  > MaxZoneID probes and the trailing load() call), and deleteGuild's DB
+  > purge — and hasWarSchedule's `#else` branch for the
   > __OLD_GUILD_WAR__ macro that Types.h comments out. Disclosures:
-  > GuildUnion::destroy, clearOffer, and the early-return paths of
-  > removeMasterGuild, makeOfferList, acceptJoin and hasOffer's false path
-  > never freed their Statements — the seam does, fixed knowingly;
-  > GuildUnionManager::removeMasterGuild's non-master branch ran its
-  > GuildUnionInfo lookup through the OUTER statement (`pStmt`, not the
-  > `pStmt2` it had just created), which freed the outer result it then
-  > kept reading (`pResult->next()`, `pResult->getInt(1)`,
-  > `pResult->getInt(2)`) — a use-after-free; the seam reads the guild's
-  > UnionID and OwnerGuildID before the master lookup, so the values that
-  > were intended are the ones used (knowing fix of undefined behaviour;
-  > the stray second `pResult->next()` is gone with it); GuildManager::load
-  > read RequestDateTime only for waiting members — the row reads it for
-  > every member (a nullable datetime; getString gives "" for NULL);
-  > Korean comments inside the replaced blocks are translated, the
-  > GuildUnion.log format string stays. Not enclosed: the sharedserver's
-  > own Guild.cpp / GuildManager.cpp copies, the war scheduler's
-  > WarScheduleInfo writes (war/), CGSayHandler's GM guild commands, and
-  > the SG*Guild* handlers that mutate guild rows from the
-  > SharedServerManager thread. No fake tier; +5 integration tests
-  > (members created, re-joined in both variants, saved, expired, intro
-  > round-tripped, the rank 0..3 list, deleted; guilds created, loaded,
-  > saved without touching the intro, listed by state, name/master looked
-  > up, deleted with their union rows; the castle and war counts scoped to
-  > the guild and to WAIT/START/START; a union created with its
-  > AUTO_INCREMENT id, members read, the guild→union and union→master
-  > lookups, member delete reporting a hit then a miss, union delete;
-  > offers inserted, read by type with the enum ordinal and today's
-  > yymmdd, the ten-day ESCAPE penalty, stale offers aged out, cleared).
-  > Remaining SQL under gameserver/: R2 = 10 files — CreatureUtil.cpp (the
-  > character-deletion flow), TradeManager (deferred above), and eight
-  > files whose SQL never runs (EventShutdown, SystemAvailabilitiesManager,
-  > SMSServiceThread, and the five in no build target).
+  > Statements that leaked and now do not — GuildUnion::destroy and
+  > clearOffer; removeMasterGuild's two branches on their success paths
+  > (the early returns freed; END_DB frees only on the exception path)
+  > and the inner pStmt2; makeOfferList's pStmt2 on every loop iteration
+  > and on the early return; acceptJoin's early returns; acceptQuit,
+  > denyJoin and denyQuit on every path; hasOffer's false path — the
+  > seam frees, fixed knowingly; GuildUnionManager::removeMasterGuild's
+  > non-master branch ran its GuildUnionInfo lookup through the OUTER
+  > statement (`pStmt`, not the `pStmt2` it had just created), which
+  > freed the outer result it then kept reading (`pResult->next()`,
+  > `pResult->getInt(1)`, `pResult->getInt(2)`) — a use-after-free:
+  > Statement::executeQuery deletes its previous Result first, so
+  > `pResult->getInt(2)` then read a one-column Result and threw
+  > OutOfBoundException (after a ResultBug.log line), or freed memory —
+  > removeGuild was never reached, and a non-master guild leaving a
+  > union never completed. The seam reads the guild's UnionID and
+  > OwnerGuildID before the master lookup, so that path works for the
+  > first time (a knowing fix; the stray second `pResult->next()` is
+  > gone with it); GuildManager::load read RequestDateTime only for
+  > waiting members — the row reads it for every member (a nullable
+  > datetime; getString gives "" for NULL); Korean comments inside the
+  > replaced blocks are translated (the review found seven more in
+  > removeMasterGuild's rewritten hunks; the fix commit translates
+  > them), the GuildUnion.log format string and the comments outside the
+  > replaced blocks stay; END_DB's DBError.log lines now name the
+  > repository method rather than the caller; the boot-time member and
+  > guild lists come back as row vectors where the originals streamed
+  > the cursor (mysql_store_result had already buffered the rows). Not
+  > enclosed: the sharedserver's own Guild.cpp / GuildManager.cpp
+  > copies; the built duplicates of the union literals in handler/ —
+  > CGDenyUnionHandler's and CGExpelGuildHandler's backticked count(*) /
+  > DELETE GuildUnionInfo pair, CGQuitUnionAcceptHandler's and
+  > CGQuitUnionHandler's unbackticked pair, and CGQuitUnionHandler's
+  > ESCAPE offer INSERT (the write behind countRecentEscapes); the
+  > GuildMember SQL in CGConnectHandler, CGJoinGuildHandler,
+  > CGRegistGuildHandler, CGTryJoinGuildHandler,
+  > quest/ActionShowGuildDialog.cpp and skill/Restore.cpp; war/'s
+  > WarScheduleInfo reads and writes (War.cpp, WarScheduler.cpp) and
+  > SiegeWar.cpp's ReinforceRegisterInfo statements; CGSayHandler's GM
+  > commands (which touch the race tables, not the guild ones); and the
+  > SG*Guild* handlers that mutate guild rows from the
+  > SharedServerManager thread (SGAddGuildMemberOK, SGDeleteGuildOK,
+  > SGModifyGuildMemberOK, SGModifyGuildOK). No fake tier; +5
+  > integration tests (members created, re-joined in both variants,
+  > saved, expired, intro round-tripped, the rank 0..3 list, deleted;
+  > guilds created, loaded, saved without touching the intro, listed by
+  > state, name/master looked up, deleted with their union rows; the
+  > castle and war counts scoped to the guild and to WAIT/START; a union
+  > created with its AUTO_INCREMENT id, members read, the guild→union
+  > and union→master lookups, member delete reporting a hit then a miss,
+  > union delete; offers inserted, read by type with the enum ordinal
+  > and today's yymmdd, the ten-day ESCAPE penalty, stale offers aged
+  > out, cleared). Remaining SQL under gameserver/: R2 = 10 files —
+  > CreatureUtil.cpp (the character-deletion flow), TradeManager
+  > (deferred above), and eight files whose SQL never runs
+  > (EventShutdown, SystemAvailabilitiesManager, SMSServiceThread, and
+  > the five in no build target).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

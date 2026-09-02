@@ -2935,10 +2935,11 @@ TEST_F(GuildMySQL, MemberRowsAreCreatedRejoinedSavedExpiredAndDeleted) {
     EXPECT_EQ(0, row.logOn);
     EXPECT_FALSE(repository.loadMember("it-none", row));
 
-    // Re-joining rewrites the row and clears the expiry.
+    // Expiring sets the rank and the expiry date.
     repository.setMemberRankAndExpireDate(5, "1260901", "it-m1");
     EXPECT_EQ("5", queryScalar("SELECT `Rank` FROM GuildMember WHERE Name='it-m1'"));
     EXPECT_EQ("1260901", queryScalar("SELECT ExpireDate FROM GuildMember WHERE Name='it-m1'"));
+    // Re-joining rewrites the row and clears the expiry.
     repository.rejoinWaitingMember(31001, 1, "2026-01-02 03:04:05", "it-m1");
     EXPECT_EQ("31001", queryScalar("SELECT GuildID FROM GuildMember WHERE Name='it-m1'"));
     EXPECT_EQ("1", queryScalar("SELECT `Rank` FROM GuildMember WHERE Name='it-m1'"));
@@ -3076,8 +3077,11 @@ TEST_F(GuildMySQL, CastleAndWarReadsAreScopedToTheGuild) {
     EXPECT_EQ(31000, serverID);
     EXPECT_EQ(31000, zoneID);
     EXPECT_FALSE(repository.loadCastleOfGuild(31001, serverID, zoneID));
+    EXPECT_EQ(31000, serverID); // a miss leaves the out-params alone (hasActiveWar relies on it)
+    EXPECT_EQ(31000, zoneID);
 
-    // Any of the five attacker slots counts, but only WAIT/START wars.
+    // Two of the five attacker slots are seeded (AttackGuildID, AttackGuildID3);
+    // either counts, but only WAIT/START wars.
     EXPECT_EQ(1, repository.countWarSchedulesOfAttacker(31000));
     EXPECT_EQ(1, repository.countWarSchedulesOfAttacker(31002));
     EXPECT_EQ(0, repository.countWarSchedulesOfAttacker(31003));
