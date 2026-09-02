@@ -804,9 +804,77 @@ const GearSpec kGear[] = {
         GEAR_INFO_BASIC_FUNCTION_GRADE,
         NUM_OBJECT,
     },
+    // ETC (GEAR_ETC)
+    {
+        "INSERT INTO ETCObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, %u, "
+        "%u, '%s', %d, %u, %d, %d,%d)",
+        "UPDATE ETCObject SET %s WHERE ItemID=%ld",
+        "UPDATE ETCObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d  "
+        "WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM ETCInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM ETCInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM ETCObject WHERE OwnerID = '%s' AND "
+        "Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM ETCObject WHERE Storage = %d AND "
+        "StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC,
+        NUM_ONLY_OBJECT,
+    },
+    // Serum (GEAR_SERUM)
+    {
+        "INSERT INTO SerumObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES "
+        "(%u,%u,%u,'%s',%d, %u, %d,%d,%d)",
+        "UPDATE SerumObject SET %s WHERE ItemID=%ld",
+        "UPDATE SerumObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM SerumInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, SerumEffect FROM SerumInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM SerumObject WHERE OwnerID = '%s' AND "
+        "Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM SerumObject WHERE Storage = %d AND "
+        "StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC_STRING,
+        NUM_ONLY_OBJECT,
+    },
+    // VampireETC (GEAR_VAMPIRE_ETC)
+    {
+        "INSERT INTO VampireETCObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES "
+        "(%u,%u,%u,'%s',%d, %u, %d,%d,%d)",
+        "UPDATE VampireETCObject SET %s WHERE ItemID=%ld",
+        "UPDATE VampireETCObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM VampireETCInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, ReqAbility FROM VampireETCInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM VampireETCObject WHERE OwnerID = '%s' "
+        "AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM VampireETCObject WHERE Storage = %d AND "
+        "StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC_STRING,
+        NUM_ONLY_OBJECT,
+    },
+    // Water (GEAR_WATER)
+    {
+        "INSERT INTO WaterObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES "
+        "(%u,%u,%u,'%s',%d, %u, %d,%d,%d)",
+        "UPDATE WaterObject SET %s WHERE ItemID=%ld",
+        "UPDATE WaterObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM WaterInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM WaterInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM WaterObject WHERE OwnerID = '%s' AND "
+        "Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM WaterObject WHERE Storage = %d AND "
+        "StorageID = %u",
+        NULL,
+        GEAR_INFO_BASIC,
+        NUM_ONLY_OBJECT,
+    },
 };
 
-static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_PET_ENCHANT_ITEM + 1, "kGear must cover every GearTable");
+static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_WATER + 1, "kGear must cover every GearTable");
 
 const GearSpec& spec(GearTable table) {
     return kGear[table];
@@ -1589,6 +1657,120 @@ public:
                 row.y = pResult->getInt(++i);
                 row.num = pResult->getBYTE(++i);
                 row.createType = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // The Num-only items: the Num + ItemFlag shape without ItemFlag — eight
+    // columns in the INSERT, the UPDATE and both loads; no create type anywhere.
+    void insertNumOnlyItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                           const string& ownerID, int storage, StorageID_t storageID, int x, int y, int num) {
+        requireObjectKind(table, NUM_ONLY_OBJECT, "insertNumOnlyItem");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).insert, itemID, objectID, itemType, ownerID.c_str(), storage, storageID, x,
+                                y, num);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateNumOnlyItem(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
+                           int storage, StorageID_t storageID, int x, int y, int num, ItemID_t itemID) {
+        requireObjectKind(table, NUM_ONLY_OBJECT, "updateNumOnlyItem");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).update, objectID, itemType, ownerID.c_str(), storage, storageID, x, y, num,
+                                itemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    vector<StringInfoRow> loadStringInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_BASIC_STRING, "loadStringInfos");
+        vector<StringInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                StringInfoRow row;
+                readBasicInfo(pResult, i, row.basic);
+                row.value = pResult->getString(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<NumOnlyObjectRow> loadNumOnlyItemOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, NUM_ONLY_OBJECT, "loadNumOnlyItemOfOwner");
+        vector<NumOnlyObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).ofOwner, ownerName.c_str());
+
+            while (pResult->next()) {
+                uint i = 0;
+                NumOnlyObjectRow row;
+                row.itemID = pResult->getDWORD(++i);
+                row.objectID = pResult->getDWORD(++i);
+                row.itemType = pResult->getDWORD(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getDWORD(++i);
+                row.x = pResult->getBYTE(++i);
+                row.y = pResult->getBYTE(++i);
+                row.num = pResult->getBYTE(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<NumOnlyZoneObjectRow> loadNumOnlyItemInZone(GearTable table, int storage, ZoneID_t zoneID) {
+        requireObjectKind(table, NUM_ONLY_OBJECT, "loadNumOnlyItemInZone");
+        vector<NumOnlyZoneObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).inZone, storage, zoneID);
+
+            while (pResult->next()) {
+                uint i = 0;
+                NumOnlyZoneObjectRow row;
+                row.itemID = pResult->getInt(++i);
+                row.objectID = pResult->getInt(++i);
+                row.itemType = pResult->getInt(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getInt(++i);
+                row.x = pResult->getInt(++i);
+                row.y = pResult->getInt(++i);
+                row.num = pResult->getBYTE(++i);
                 rows.push_back(row);
             }
 

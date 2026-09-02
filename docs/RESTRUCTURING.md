@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 179 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 175 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -1927,26 +1927,27 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > refusing the other's tables, insertGear refusing the gun tables, the
   > object guard both ways and the Info guard both ways. Not enclosed:
   > the other 58 item files with SQL; ItemInfoManager.cpp holds only the
-  > registry calls. **Num + ItemFlag items (2026-09-02, stacked on the
-  > guns round; item milestone round 7)**: EventItem, EventTree,
-  > LuckyBag, MoonCard, EventETC, ResurrectItem, DyePotion, EventStar,
-  > EffectItem, PetEnchantItem — R3 189→179 (R2/R5 unchanged). One
-  > object shape, `NUM_OBJECT`: no OptionType, Durability, Grade or
-  > EnchantLevel anywhere; a Num column (ItemNum_t is a BYTE; the create
-  > chain and the save arguments cast it (int) — eight classes stream
-  > m_ItemType and (int)m_Num, DyePotion and EffectItem getItemType()
-  > and (int)getNum(), and the seam calls keep each class's own
-  > expression) and ItemFlag. Owner SELECT: nine columns, getDWORD ids,
-  > getInt Storage, getDWORD StorageID, getBYTE X, Y and Num, getInt
-  > ItemFlag; zone SELECT: the same nine, everything but Num through
-  > getInt (Num stays getBYTE); tinysave is gear's; insertNumItem /
-  > updateNumItem / loadNumItemOfOwner / loadNumItemInZone behind
-  > `NumObjectRow` / `NumZoneObjectRow`. Six Info shapes on a
-  > seven-column basic head (the standard head without Durability):
-  > `BasicInfoRow` alone (EventItem, EventTree, LuckyBag, MoonCard) and
-  > with `Function` (EventETC), ResurrectType (ResurrectItem),
-  > FunctionFlag / FunctionValue (DyePotion, EventStar), EffectClass /
-  > TimeSec (EffectItem — TimeSec feeds setDuration) or `Function` /
+  > registry calls.
+  > **Num + ItemFlag items (2026-09-02, stacked on the guns round; item
+  > milestone round 7)**: EventItem, EventTree, LuckyBag, MoonCard,
+  > EventETC, ResurrectItem, DyePotion, EventStar, EffectItem,
+  > PetEnchantItem — R3 189→179 (R2/R5 unchanged). One object shape,
+  > `NUM_OBJECT`: no OptionType, Durability, Grade or EnchantLevel
+  > anywhere; a Num column (ItemNum_t is a BYTE; the create chain and
+  > the save arguments cast it (int) — eight classes stream m_ItemType
+  > and (int)m_Num, DyePotion and EffectItem getItemType() and
+  > (int)getNum(), and the seam calls keep each class's own expression)
+  > and ItemFlag. Owner SELECT: nine columns, getDWORD ids, getInt
+  > Storage, getDWORD StorageID, getBYTE X, Y and Num, getInt ItemFlag;
+  > zone SELECT: the same nine, everything but Num through getInt (Num
+  > stays getBYTE); tinysave is gear's; insertNumItem / updateNumItem /
+  > loadNumItemOfOwner / loadNumItemInZone behind `NumObjectRow` /
+  > `NumZoneObjectRow`. Six Info shapes on a seven-column basic head
+  > (the standard head without Durability): `BasicInfoRow` alone
+  > (EventItem, EventTree, LuckyBag, MoonCard) and with `Function`
+  > (EventETC), ResurrectType (ResurrectItem), FunctionFlag /
+  > FunctionValue (DyePotion, EventStar), EffectClass / TimeSec
+  > (EffectItem — TimeSec feeds setDuration) or `Function` /
   > FunctionGrade (PetEnchantItem) behind loadBasicInfos /
   > loadFunctionInfos / loadResurrectInfos / loadFunctionValueInfos /
   > loadEffectInfos / loadFunctionGradeInfos, each refusing another
@@ -1958,10 +1959,13 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > plan, keeps the originals' casts ((ResurrectItemInfo::ResurrectType)
   > on setResurrectType, (Effect::EffectClass) on setEffectClass), and
   > leaves the loaders' extra lines alone (EventItem's and EventTree's
-  > setQuestItem(), EventItem's type-27 placement branch). Literal
-  > quirks kept: the double space in "(ItemID,  ObjectID" in all ten
-  > INSERT chains; nothing else differs between the ten beyond the table
-  > names and the Info columns. Disclosures: the seam initialises its
+  > setQuestItem() — EventTree's behind its getItemType() > 12 guard —
+  > EventItem's type-27 branch and its three type-30 setBaseLuck lines,
+  > EventETC's belt / armsband placement path). Literal quirks kept: the
+  > double space in "(ItemID,  ObjectID" in all ten INSERT chains;
+  > nothing else differs between the ten live literals beyond the table
+  > names and the Info columns (PetEnchantItem's two deleted comment
+  > blocks did omit Num). Disclosures: the seam initialises its
   > Statement where the originals declared pStmt uninitialised — the
   > zone loader in all ten (create, tinysave, save, info and the owner
   > loader had `= NULL` throughout; the SQL-free third-loader stub keeps
@@ -1980,7 +1984,11 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > and ItemFlag read back by SQL), the UPDATE writing Num, the owner
   > load's nine columns read back, the zone load's Num and empty for
   > another StorageID, tinysave writing Num, MAX(ItemType) against the
-  > seeded Info table; the object guard both ways; and the six Info
+  > seeded Info table, and for the four basic-shape tables
+  > loadBasicInfos against COUNT(*) so every Info literal runs; the
+  > object guard both ways and insertGear refusing a Num table (its
+  > twelve varargs against the Num INSERT's eleven: the guard the guns
+  > round's review fix added refuses these tables too); and the six Info
   > shapes each pinned by COUNT(*) and a class-specific column (Ratio,
   > `Function`, ResurrectType, FunctionValue, TimeSec, FunctionGrade)
   > with the guard refusing another shape. Not enclosed: the other 48
@@ -1989,6 +1997,75 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > Ratio and a 10-column one) and the "Num" family without ItemFlag
   > (Bomb, ETC, Serum, Water and eleven more); ItemInfoManager.cpp holds
   > only the registry calls.
+  > **Num-only items (2026-09-02, on master after the #54 merge; item
+  > milestone round 8)**: ETC, Serum, VampireETC, Water — R3 179→175
+  > (R2/R5 unchanged). One object shape, `NUM_ONLY_OBJECT`: the Num +
+  > ItemFlag shape without ItemFlag — eight columns in the INSERT (all
+  > four stream m_ItemType and (int)m_Num), in the UPDATE (ObjectID,
+  > ItemType, OwnerID, Storage, StorageID, X, Y, Num, then the ItemID)
+  > and in both loads (owner: getDWORD ids, getInt Storage, getDWORD
+  > StorageID, getBYTE X, Y and Num; zone: everything but Num through
+  > getInt); no create type anywhere; tinysave is gear's.
+  > insertNumOnlyItem / updateNumOnlyItem / loadNumOnlyItemOfOwner /
+  > loadNumOnlyItemInZone behind `NumOnlyObjectRow` /
+  > `NumOnlyZoneObjectRow`. Two Info shapes: the basic seven (ETC,
+  > Water, through the existing loadBasicInfos) and basic plus one
+  > varchar column after Ratio (Serum's SerumEffect, which the original
+  > fed to SerumInfo::parseEffect; VampireETC's ReqAbility, to
+  > setReqAbility) behind `StringInfoRow` / loadStringInfos
+  > (`GEAR_INFO_BASIC_STRING`), each refusing another shape. The
+  > `static_assert` now reads GEAR_WATER + 1. The transformer (outside
+  > the repo; its output is what was reviewed) gained the shape: the
+  > create chain's and save()'s expression lists are checked against it
+  > verbatim, the Info setter sequence against the kind's plan
+  > (parseEffect counted as a setter), and the loader line lists are the
+  > Num family's without the ItemFlag line. EventBall has the same shape
+  > but is left out: initdb/DARKEDEN.sql has no EventBallObject or
+  > EventBallInfo table and ItemInfoManager.cpp does not register the
+  > class, so its literals could not run in the integration test.
+  > Literal quirks kept: "(ItemID, ObjectID" (two spaces) in all four
+  > INSERTs; ETC's INSERT is "VALUES(" and ends ", %d,%d)" (no space
+  > before Num) and its save UPDATE has "Num=%d  WHERE" (two spaces);
+  > Serum's, VampireETC's and Water's INSERT is "VALUES
+  > (%u,%u,%u,'%s',%d, %u, %d,%d,%d)"; nothing else differs between the
+  > four live literals beyond the table names and the Info columns.
+  > Disclosures: the seam initialises its Statement where the originals
+  > declared pStmt uninitialised — create, the info load and both
+  > loaders in all four, and save in Serum, VampireETC and Water (ETC's
+  > save had `= NULL`, as tinysave did in all four; the SQL-free
+  > third-loader stub keeps its uninitialised pStmt); one Statement per
+  > info statement; whole-result reads before placement (an
+  > item-placement throw no longer leaks the Statement; the creature
+  > loaders' `SAFE_DELETE(pStmt); // by sigi` before the default-case
+  > throw is gone in all four); DBError.log names the repository method;
+  > the four create INSERTs and zone SELECTs now pass through
+  > executeQuery's 2048-byte format buffer (133–138 and 117–124 bytes of
+  > format plus a varchar(10) owner: unreachable); the commented-out
+  > StringStream blocks in save() and the owner loader (all four; ETC's
+  > owner-loader block named seven columns, no Num, against the live
+  > literal's eight) gone with their blocks; the DB.h include kept; the
+  > header's "48 item files" count is 44; the header's insertGear
+  > comment carried its "Refuses tables…" line three times since the #53
+  > fix — once now, naming the Num and Num-only argument counts too.
+  > This commit also carries the #54 claims-audit text fixes its merge
+  > missed (the Num paragraph above split from the guns paragraph, its
+  > extra-loader-lines enumeration and live-literal scope, the header's
+  > Num getBYTE note). +1 integration test: for each of the four tables,
+  > two rows of one owner through the class's INSERT (Num and Y read
+  > back by SQL), the UPDATE writing Num, the owner load's eight columns
+  > read back, the zone load's X and Num and empty for another
+  > StorageID, tinysave writing Num, MAX(ItemType) against the seeded
+  > Info table; the object guard both ways (the gear INSERT and the Num
+  > + ItemFlag methods refusing these tables; these methods refusing
+  > gear, silver, gun and Num tables); the basic shape pinned by
+  > COUNT(*) and Ratio for ETC and Water, the string shape by COUNT(*)
+  > and the varchar column for Serum and VampireETC, each guard refusing
+  > another shape. Not enclosed: the other 44 item files with SQL — next
+  > the seven Num-only items with a parameterized create (HolyWater,
+  > Magazine, Skull, Pupa, Larva, ComposMei, Potion: verbatim INSERT
+  > literals but their own argument spellings, Skull's zone Num through
+  > getDWORD, five more Info shapes), then MixingItem and PetFood;
+  > ItemInfoManager.cpp holds only the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
