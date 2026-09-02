@@ -5,7 +5,6 @@
 #include "CastleInfoManager.h"
 #include "CastleSymbol.h"
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "EffectShrineGuard.h"
 #include "EffectShrineHoly.h"
 #include "EffectShrineShield.h"
@@ -31,6 +30,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneItemPosition.h"
 #include "ZoneUtil.h"
+#include "repository/GameInfoRepository.h"
 
 string CastleShrineSet::toString() const
 
@@ -76,46 +76,35 @@ void CastleShrineInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<CastleShrineRow> rows = defaultGameInfoRepository().loadCastleShrines();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        CastleShrineSet* pShrineSet = new CastleShrineSet();
 
-        pResult = pStmt->executeQuery("SELECT ID, Name, ItemType, GuardZoneID, GuardX, GuardY, GuardMType, HolyZoneID, "
-                                      "HolyX, HolyY, HolyMType FROM CastleShrineInfo");
+        pShrineSet->m_ShrineID = rows[r].id;
+        pShrineSet->m_GuardShrine.setName(rows[r].name);
+        pShrineSet->m_HolyShrine.setName(pShrineSet->m_GuardShrine.getName());
+        pShrineSet->m_ItemType = rows[r].itemType;
+        pShrineSet->m_GuardShrine.setZoneID(rows[r].guardZoneID);
+        pShrineSet->m_GuardShrine.setX(rows[r].guardX);
+        pShrineSet->m_GuardShrine.setY(rows[r].guardY);
+        pShrineSet->m_GuardShrine.setMonsterType(rows[r].guardMonsterType);
+        pShrineSet->m_HolyShrine.setZoneID(rows[r].holyZoneID);
+        pShrineSet->m_HolyShrine.setX(rows[r].holyX);
+        pShrineSet->m_HolyShrine.setY(rows[r].holyY);
+        pShrineSet->m_HolyShrine.setMonsterType(rows[r].holyMonsterType);
 
-        while (pResult->next()) {
-            int i = 0;
+        pShrineSet->m_GuardShrine.setShrineType(ShrineInfo::SHRINE_GUARD);
+        pShrineSet->m_HolyShrine.setShrineType(ShrineInfo::SHRINE_HOLY);
 
-            CastleShrineSet* pShrineSet = new CastleShrineSet();
-
-            pShrineSet->m_ShrineID = pResult->getInt(++i);
-            pShrineSet->m_GuardShrine.setName(pResult->getString(++i));
-            pShrineSet->m_HolyShrine.setName(pShrineSet->m_GuardShrine.getName());
-            pShrineSet->m_ItemType = pResult->getInt(++i);
-            pShrineSet->m_GuardShrine.setZoneID(pResult->getInt(++i));
-            pShrineSet->m_GuardShrine.setX(pResult->getInt(++i));
-            pShrineSet->m_GuardShrine.setY(pResult->getInt(++i));
-            pShrineSet->m_GuardShrine.setMonsterType(pResult->getInt(++i));
-            pShrineSet->m_HolyShrine.setZoneID(pResult->getInt(++i));
-            pShrineSet->m_HolyShrine.setX(pResult->getInt(++i));
-            pShrineSet->m_HolyShrine.setY(pResult->getInt(++i));
-            pShrineSet->m_HolyShrine.setMonsterType(pResult->getInt(++i));
-
-            pShrineSet->m_GuardShrine.setShrineType(ShrineInfo::SHRINE_GUARD);
-            pShrineSet->m_HolyShrine.setShrineType(ShrineInfo::SHRINE_HOLY);
-
-            // ItemType과 Shrine ID는 같아야 한다. 같지 않을 경우 DB설정 오류로 로딩과정에서 막는다.
-            if (pShrineSet->m_ItemType != pShrineSet->m_ShrineID) {
-                cout << "ShrineID 와 ItemType이 맞지 않습니다. DB설정을 점검하세요." << endl;
-                Assert(false);
-            }
-
-            addShrineSet(pShrineSet);
+        // ItemType and the shrine ID must match; a mismatch is a DB configuration error and stops the load.
+        if (pShrineSet->m_ItemType != pShrineSet->m_ShrineID) {
+            cout << "ShrineID 와 ItemType이 맞지 않습니다. DB설정을 점검하세요." << endl;
+            Assert(false);
         }
+
+        addShrineSet(pShrineSet);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

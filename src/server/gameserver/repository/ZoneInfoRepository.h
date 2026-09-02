@@ -10,15 +10,19 @@
 // milestone): ZoneGroupInfo, ZoneInfo, ZoneTriggers, EffectPKZoneRegen
 // and WayPointInfo — the data the gameserver reads while it bootstraps
 // its zone groups, zones, threads and per-zone effects, and never
-// writes. Every row field is typed to the driver getter the inline code
+// writes. The config round added ZoneEffectInfo (one zone, one effect
+// class), ZoneInfo's MonsterList/EventMonsterList texts, and the
+// PKZoneInfo / EventZoneInfo / LevelWarZoneInfo tables.
+// Every row field is typed to the driver getter the inline code
 // called on that column (getInt → int, getString → std::string), so
 // each narrowing a caller performed when it stored the value still
 // happens there, on the same value.
 //
 // The loginserver and sharedserver read ZoneGroupInfo/ZoneInfo with
 // their own inline SELECTs (their own extraction), and the
-// MAX(ZoneGroupID) probes in ConnectionInfoManager, EffectShutDown and
-// CGSayHandler are not enclosed here either.
+// MAX(ZoneGroupID) probes in ConnectionInfoManager and CGSayHandler are
+// not enclosed here either (EffectShutDown's two went through
+// loadMaxZoneGroupID in the info round).
 
 // ZoneInfoManager::load — the 17 columns of a ZoneInfo row, in SELECT
 // order. The SELECT spells three columns differently from the schema
@@ -83,9 +87,76 @@ struct WayPointRow {
     int race;
 };
 
+// ZoneEffectInfo's row: a rectangle plus the three effect values (the
+// bridge loader reads the rectangle only; other effects read the values).
+struct ZoneEffectRow {
+    int left;
+    int top;
+    int right;
+    int bottom;
+    int value1;
+    int value2;
+    int value3;
+};
+
+// PKZoneInfo's row (PKZoneInfoManager).
+struct PKZoneRow {
+    int zoneID;
+    int race;
+    int enterX;
+    int enterY;
+    int resurrectX;
+    int resurrectY;
+    int pcLimit;
+};
+
+// EventZoneInfo's row (EventZoneInfoManager).
+struct EventZoneRow {
+    int eventID;
+    int zoneID;
+    int enterX;
+    int enterY;
+    int resurrectX;
+    int resurrectY;
+    int pcLimit;
+};
+
+// LevelWarZoneInfo's row (LevelWarZoneInfoManager).
+struct LevelWarZoneRow {
+    int id;
+    int zoneID;
+    int sweeperTypeMin;
+    int sweeperTypeMax;
+    int slayerMin;
+    int slayerMax;
+    int vampireMin;
+    int vampireMax;
+    int oustersMin;
+    int oustersMax;
+    std::string zoneIDList;
+};
+
 class ZoneInfoRepository {
 public:
     virtual ~ZoneInfoRepository() {}
+
+    // ZoneEffectInfo rectangles of one effect class in a zone
+    // (EffectOnBridgeLoader). Of the nine skill/Effect*.cpp that name the
+    // same table, six live loaders (AcidSwamp, ContinualBloodyWall,
+    // GreenPoison, IceField, Prominence, YellowPoison) use this exact
+    // 7-column literal and are this method's next callers; EffectDarkness
+    // reads a 4-column "%u" variant that needs its own method; BloodyWall
+    // and GrayDarkness only mention it inside commented-out loaders.
+    virtual std::vector<ZoneEffectRow> loadZoneEffectRects(ZoneID_t zoneID, int effectID) = 0;
+
+    // ZoneInfo's MonsterList / EventMonsterList texts for a zone
+    // (MonsterManager::load). Returns false when the zone has no row.
+    virtual bool loadMonsterLists(ZoneID_t zoneID, std::string& monsterList, std::string& eventMonsterList) = 0;
+
+    // The whole PKZoneInfo / EventZoneInfo / LevelWarZoneInfo tables.
+    virtual std::vector<PKZoneRow> loadPKZones() = 0;
+    virtual std::vector<EventZoneRow> loadEventZones() = 0;
+    virtual std::vector<LevelWarZoneRow> loadLevelWarZones() = 0;
 
     // ZoneGroupInfo.ZoneGroupID for every group. ZoneGroupManager::load
     // asks for them ORDER BY ZoneGroupID; makeDefaultLoadInfo and
@@ -113,6 +184,10 @@ public:
 
     // Every WayPointInfo row (WayPointManager::load).
     virtual std::vector<WayPointRow> loadAllWayPoints() = 0;
+
+    // MAX(ZoneGroupID) — the group count EffectShutDown iterates; false on
+    // an empty table (one NULL row, which the inline code atoi(NULL)'d).
+    virtual bool loadMaxZoneGroupID(int& maxZoneGroupID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in

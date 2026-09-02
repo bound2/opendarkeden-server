@@ -4,7 +4,7 @@
 
 #include "StringPool.h"
 
-#include "DB.h"
+#include "repository/GameInfoRepository.h"
 
 StringPool::StringPool()
 
@@ -39,23 +39,14 @@ void StringPool::load()
 
     clear();
 
-    Statement* pStmt = NULL;
+    vector<StringPoolRow> rows = defaultGameInfoRepository().loadStrings();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        uint strID = rows[r].id;
+        string str = rows[r].text;
 
-        Result* pResult = pStmt->executeQuery("SELECT ID, String FROM GSStringPool");
-
-        while (pResult->next()) {
-            int i = 0;
-
-            uint strID = pResult->getInt(++i);
-            string str = pResult->getString(++i);
-
-            addString(strID, str);
-        }
+        addString(strID, str);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

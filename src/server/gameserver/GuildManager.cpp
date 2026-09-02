@@ -6,10 +6,10 @@
 
 #include "GuildManager.h"
 
-#include "DB.h"
 #include "Guild.h"
 #include "Properties.h"
 #include "StringStream.h"
+#include "repository/GuildRepository.h"
 
 #ifdef __GAME_SERVER__
 #include "CastleInfoManager.h"
@@ -76,86 +76,10 @@ GuildManager::~GuildManager()
 void GuildManager::init()
 
 {
-#ifdef __SHARED_SERVER__
-
-    __BEGIN_TRY
-
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    BEGIN_DB {
-        // 길드 ID는 최대값을 정해놓고, 새로운 길드가 생기면 최대값에다
-        // 1을 더해서 할당하는 방식으로 운영된다. 그러므로 길드 매니저가
-        // 초기화될 때, 현재 존재하는 길드 ID의 최대값을 읽어들여둔다.
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo");
-
-        // 테이블에 데이타가 하나도 없다면, 일단 맥스 아이디는 1로 세팅해준다.
-        pResult->next();
-
-        if (pResult->getInt(1) == 0) {
-            Guild::setMaxGuildID(g_pConfig->getPropertyInt("Dimension") * 10000 +
-                                 g_pConfig->getPropertyInt("WorldID") * 3000 + 100);
-        } else {
-            // get & set MaxGuildID
-            pResult = pStmt->executeQuery("SELECT MAX(GuildID) FROM GuildInfo");
-            pResult->next();
-            Guild::setMaxGuildID(pResult->getInt(1));
-        }
-
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo WHERE GuildRace = %d", Guild::GUILD_RACE_SLAYER);
-        pResult->next();
-
-        if (pResult->getInt(1) == 0) {
-            Guild::setMaxSlayerZoneID(Guild::getMaxSlayerZoneID() + 1);
-        } else {
-            // get & set MaxSlayerZoneID
-            pResult = pStmt->executeQuery("SELECT MAX(GuildZoneID) FROM GuildInfo WHERE GuildRace = %d",
-                                          Guild::GUILD_RACE_SLAYER);
-            pResult->next();
-            Guild::setMaxSlayerZoneID(max(pResult->getInt(1), Guild::getMaxSlayerZoneID() + 1));
-        }
-
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo WHERE GuildRace = %d", Guild::GUILD_RACE_VAMPIRE);
-        pResult->next();
-
-        if (pResult->getInt(1) == 0) {
-            Guild::setMaxVampireZoneID(Guild::getMaxVampireZoneID() + 1);
-        } else {
-            // get & set MaxVampireZoneID
-            pResult = pStmt->executeQuery("SELECT MAX(GuildZoneID) FROM GuildInfo WHERE GuildRace = %d",
-                                          Guild::GUILD_RACE_VAMPIRE);
-            pResult->next();
-            Guild::setMaxVampireZoneID(max(pResult->getInt(1), Guild::getMaxVampireZoneID() + 1));
-        }
-
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo WHERE GuildRace = %d", Guild::GUILD_RACE_OUSTERS);
-        pResult->next();
-
-        if (pResult->getInt(1) == 0) {
-            Guild::setMaxOustersZoneID(Guild::getMaxOustersZoneID() + 1);
-        } else {
-            // get & set MaxOustersZoneID
-            pResult = pStmt->executeQuery("SELECT MAX(GuildZoneID) FROM GuildInfo WHERE GuildRace = %d",
-                                          Guild::GUILD_RACE_OUSTERS);
-            pResult->next();
-            Guild::setMaxOustersZoneID(max(pResult->getInt(1), Guild::getMaxOustersZoneID() + 1));
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    load();
-
-    __END_CATCH
-
-#endif
+    // The body (the MaxGuildID / per-race MaxZoneID probes, then load())
+    // lived here under __SHARED_SERVER__, which no build of this file
+    // defines: the sharedserver compiles its own GuildManager.cpp. Gone
+    // with its SQL; the gameserver's GuildManager::init() was always empty.
 }
 
 
@@ -164,35 +88,32 @@ void GuildManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    BEGIN_DB {
-        // 길드 정보를 DB로 부터 읽어온다.
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT GuildID, GuildName, GuildType, GuildRace, GuildState, ServerGroupID, "
-                                      "GuildZoneID, Master, Date, Intro FROM GuildInfo WHERE GuildState IN ( %d, %d )",
-                                      Guild::GUILD_STATE_WAIT, Guild::GUILD_STATE_ACTIVE);
+    GuildRepository& repository = defaultGuildRepository();
 
-        while (pResult->next()) {
-            GuildState_t state = pResult->getInt(5);
+    {
+        // Read the guilds from the DB.
+        vector<GuildListRow> guilds = repository.loadGuildsInStates(Guild::GUILD_STATE_WAIT, Guild::GUILD_STATE_ACTIVE);
 
-            // 현재 월드의 등록 대기중인 길드와 활동 중인 길드만 추가한다.
+        for (size_t g = 0; g < guilds.size(); g++) {
+            const GuildListRow& row = guilds[g];
+            GuildState_t state = row.state;
+
+            // Only guilds waiting for registration or active in this world are added.
             if (state == Guild::GUILD_STATE_WAIT || state == Guild::GUILD_STATE_ACTIVE) {
                 Guild* pGuild = new Guild();
 
-                pGuild->setID(pResult->getInt(1));
-                pGuild->setName(pResult->getString(2));
-                pGuild->setType(pResult->getInt(3));
-                pGuild->setRace(pResult->getInt(4));
+                pGuild->setID(row.id);
+                pGuild->setName(row.name);
+                pGuild->setType(row.type);
+                pGuild->setRace(row.race);
                 pGuild->setState(state);
-                pGuild->setServerGroupID(pResult->getInt(6));
-                pGuild->setZoneID(pResult->getInt(7));
-                pGuild->setMaster(pResult->getString(8));
-                pGuild->setDate(pResult->getString(9));
-                pGuild->setIntro(pResult->getString(10));
+                pGuild->setServerGroupID(row.serverGroupID);
+                pGuild->setZoneID(row.zoneID);
+                pGuild->setMaster(row.master);
+                pGuild->setDate(row.date);
+                pGuild->setIntro(row.intro);
 
                 addGuild_NOBLOCKED(pGuild);
                 /*
@@ -249,31 +170,27 @@ void GuildManager::load()
             }
         }
 
-        // 길드 멤버 정보를 DB로 부터 읽어온다.
-        pResult = pStmt->executeQuery(
-            "SELECT GuildID, Name, `Rank`, RequestDateTime, LogOn FROM GuildMember WHERE `Rank` IN ( 0, 1, 2, 3 )");
+        // Read the guild members from the DB.
+        vector<GuildMemberListRow> members = repository.loadActiveMembers();
 
-        while (pResult->next()) {
+        for (size_t m = 0; m < members.size(); m++) {
             GuildMember* pMember = new GuildMember();
 
-            pMember->setGuildID(pResult->getInt(1));
-            pMember->setName(pResult->getString(2));
-            pMember->setRank(pResult->getInt(3));
+            pMember->setGuildID(members[m].guildID);
+            pMember->setName(members[m].name);
+            pMember->setRank(members[m].rank);
 
             if (pMember->getRank() == GuildMember::GUILDMEMBER_RANK_WAIT)
-                pMember->setRequestDateTime(pResult->getString(4));
+                pMember->setRequestDateTime(members[m].requestDateTime);
 
-            pMember->setLogOn(pResult->getInt(5));
+            pMember->setLogOn(members[m].logOn);
 
             Guild* pGuild = getGuild_NOBLOCKED(pMember->getGuildID());
 
             if (pGuild != NULL)
                 pGuild->addMember(pMember);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -367,27 +284,9 @@ void GuildManager::deleteGuild(GuildID_t id) {
 
     m_Guilds.erase(itr);
 
-#ifdef __SHARED_SERVER__
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // DB에서 GuildInfo를 지운다.
-        pStmt->executeQuery("DELETE FROM GuildInfo WHERE GuildID=%d", id);
-
-        // GuildMember를 다 지운다.
-        pStmt->executeQuery("DELETE FROM GuildMember WHERE GuildID=%d", id);
-
-        // GuildUnionMember 에서 길드를 지운다
-        pStmt->executeQuery("DELETE FROM GuildUnionMember WHERE OwnerGuildID=%d", id);
-
-        pStmt->executeQuery("UPDATE WarScheduleInfo SET Status='CANCEL' WHERE AttackGuildID=%d", id);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-#endif
+    // The sharedserver-only DB purge of the guild's rows lived here under
+    // __SHARED_SERVER__, which no build of this file defines. Gone with its
+    // SQL.
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -632,23 +531,9 @@ bool GuildManager::hasCastle(GuildID_t guildID)
 
 #ifdef __GAME_SERVER__
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT count(*) FROM CastleInfo WHERE GuildID = %d", (int)guildID);
-
-        if (pResult->next()) {
-            int count = pResult->getInt(1);
-
-            if (count > 0) {
-                bHasCastle = true;
-            }
-        }
-
-        SAFE_DELETE(pStmt);
+    if (defaultGuildRepository().countCastlesOfGuild((int)guildID) > 0) {
+        bHasCastle = true;
     }
-    END_DB(pStmt)
 
 #endif
 
@@ -667,23 +552,14 @@ bool GuildManager::hasCastle(GuildID_t guildID, ServerID_t& serverID, ZoneID_t& 
 
 #ifdef __GAME_SERVER__
 
-    Statement* pStmt = NULL;
+    int castleServerID = 0;
+    int castleZoneID = 0;
+    if (defaultGuildRepository().loadCastleOfGuild((int)guildID, castleServerID, castleZoneID)) {
+        serverID = castleServerID;
+        zoneID = castleZoneID;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT ServerID, ZoneID FROM CastleInfo WHERE GuildID = %d", (int)guildID);
-
-        if (pResult->next()) {
-            serverID = pResult->getInt(1);
-            zoneID = pResult->getInt(2);
-
-            bHasCastle = true;
-        }
-
-        SAFE_DELETE(pStmt);
+        bHasCastle = true;
     }
-    END_DB(pStmt)
 
 #endif
 
@@ -702,48 +578,16 @@ bool GuildManager::hasWarSchedule(GuildID_t guildID)
 
 #ifdef __GAME_SERVER__
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-#ifndef __OLD_GUILD_WAR__
-        Result* pResult =
-            pStmt->executeQuery("SELECT count(*) FROM WarScheduleInfo WHERE "
-                                "(AttackGuildID = %d OR AttackGuildID2 = %d OR AttackGuildID3 = %d OR AttackGuildID4 = "
-                                "%d OR AttackGuildID5 = %d) AND Status in ('WAIT', 'START')",
-                                (int)guildID, (int)guildID, (int)guildID, (int)guildID, (int)guildID);
-#else
-        Result* pResult = pStmt->executeQuery(
-            "SELECT count(*) FROM WarScheduleInfo WHERE AttackGuildID = %d AND Status<>'END'", (int)guildID);
-#endif
-
-        if (pResult->next()) {
-            int count = pResult->getInt(1);
-
-            if (count > 0) {
-                bHasWarSchedule = true;
-            }
-        }
-
-#ifndef __OLD_GUILD_WAR__
-        pResult = pStmt->executeQuery(
-            "SELECT count(*) FROM ReinforceRegisterInfo, WarScheduleInfo WHERE ReinforceRegisterInfo.WarID = "
-            "WarScheduleInfo.WarID AND WarScheduleInfo.Status in ('WAIT', 'START') AND "
-            "ReinforceRegisterInfo.ReinforceGuildID = %d AND ReinforceRegisterInfo.Status<>'DENY'",
-            (int)guildID);
-
-        if (pResult->next()) {
-            int count = pResult->getInt(1);
-
-            if (count > 0) {
-                bHasWarSchedule = true;
-            }
-        }
-#endif
-
-        SAFE_DELETE(pStmt);
+    // The __OLD_GUILD_WAR__ single-slot variant that lived here is gone: the
+    // macro is commented out in Types.h and defined nowhere, so only the
+    // five-slot read ever compiled.
+    if (defaultGuildRepository().countWarSchedulesOfAttacker((int)guildID) > 0) {
+        bHasWarSchedule = true;
     }
-    END_DB(pStmt)
+
+    if (defaultGuildRepository().countReinforceRegistrations((int)guildID) > 0) {
+        bHasWarSchedule = true;
+    }
 
 #endif
 
@@ -765,46 +609,15 @@ bool GuildManager::hasActiveWar(GuildID_t guildID)
     ZoneID_t zoneID;
 
     if (hasCastle(guildID, serverID, zoneID)) {
-        // 성을 소유하고 있다면 그 성을 상대로 하는 길드 전쟁이 있는지 확인한다.
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery(
-                "SELECT count(*) FROM WarScheduleInfo WHERE ServerID = %u AND ZoneID = %u AND Status = 'START'",
-                serverID, zoneID);
-
-            if (pResult->next()) {
-                int count = pResult->getInt(1);
-
-                if (count > 0) {
-                    bHasActiveWar = true;
-                }
-            }
-
-            SAFE_DELETE(pStmt);
+        // The guild owns a castle: is a guild war against that castle running?
+        if (defaultGuildRepository().countStartedWarsAtCastle(serverID, zoneID) > 0) {
+            bHasActiveWar = true;
         }
-        END_DB(pStmt)
     } else {
-        // 성을 소유하고 있지 않다면 그 길드가 어떤 성을 상대로 하는 길드 전쟁이 있는지 확인한다.
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery(
-                "SELECT count(*) FROM WarScheduleInfo WHERE AttackGuildID = %d AND Status = 'START'", (int)guildID);
-
-            if (pResult->next()) {
-                int count = pResult->getInt(1);
-
-                if (count > 0) {
-                    bHasActiveWar = true;
-                }
-            }
-
-            SAFE_DELETE(pStmt);
+        // No castle: is the guild attacking some castle in a running war?
+        if (defaultGuildRepository().countStartedWarsOfAttacker((int)guildID) > 0) {
+            bHasActiveWar = true;
         }
-        END_DB(pStmt)
     }
 
 #endif

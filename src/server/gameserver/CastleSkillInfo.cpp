@@ -7,8 +7,8 @@
 #include "CastleSkillInfo.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "Skill.h"
+#include "repository/GameInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class CastleSkillInfo member methods
@@ -71,28 +71,16 @@ void CastleSkillInfoManager::load()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<CastleSkillRow> rows = defaultGameInfoRepository().loadCastleSkills();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        CastleSkillInfo* pCastleSkillInfo = new CastleSkillInfo();
 
-        pResult = pStmt->executeQuery("Select SkillType, ZoneID from CastleSkillInfo");
+        pCastleSkillInfo->setSkillType(rows[r].skillType);
+        pCastleSkillInfo->setZoneID(rows[r].zoneID);
 
-        while (pResult->next()) {
-            int count = 0;
-
-            CastleSkillInfo* pCastleSkillInfo = new CastleSkillInfo();
-
-            pCastleSkillInfo->setSkillType(pResult->getInt(++count));
-            pCastleSkillInfo->setZoneID(pResult->getInt(++count));
-
-            addCastleSkillInfo(pCastleSkillInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addCastleSkillInfo(pCastleSkillInfo);
     }
-    END_DB(pStmt)
 
     __END_DEBUG
     __END_CATCH

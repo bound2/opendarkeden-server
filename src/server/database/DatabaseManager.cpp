@@ -43,6 +43,11 @@ DatabaseManager::~DatabaseManager() {
     SAFE_DELETE(m_pUserInfoConnection);
 }
 
+void DatabaseManager::setUserInfoConnection(Connection* pConnection) {
+    SAFE_DELETE(m_pUserInfoConnection);
+    m_pUserInfoConnection = pConnection;
+}
+
 void DatabaseManager::init() {
     __BEGIN_TRY
 

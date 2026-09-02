@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 VampireRingInfoManager* g_pVampireRingInfoManager = NULL;
@@ -58,8 +59,6 @@ void VampireRing::create(const string& ownerID, Storage storage, StorageID_t sto
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -71,25 +70,12 @@ void VampireRing::create(const string& ownerID, Storage storage, StorageID_t sto
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO VampireRingObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", " << getGrade() << ", "
-            << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertGear(GEAR_VAMPIRE_RING, m_ItemID, m_ObjectID, getItemType(), ownerID,
+                                             (int)storage, storageID, (int)x, (int)y, optionField, getDurability(),
+                                             getGrade(), (int)m_CreateType);
 
     __END_CATCH
 }
@@ -103,16 +89,7 @@ void VampireRing::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE VampireRingObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_VAMPIRE_RING, field, m_ItemID);
 
     __END_CATCH
 }
@@ -125,41 +102,12 @@ void VampireRing::save(const string& ownerID, Storage storage, StorageID_t stora
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE VampireRingObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << getItemType()
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)getOptionTypeList()
-            << ",Durability = " << getDurability()
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery(
-            "UPDATE VampireRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-            "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
-            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, optionField.c_str(),
-            getDurability(), getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateGear(GEAR_VAMPIRE_RING, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                             storageID, (int)x, (int)y, optionField, getDurability(), getGrade(),
+                                             (int)getEnchantLevel(), m_ItemID);
 
     __END_CATCH
 }
@@ -271,57 +219,39 @@ void VampireRingInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_VAMPIRE_RING);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM VampireRingInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GearInfoRow> rows = defaultItemObjectRepository().loadGearInfos(GEAR_VAMPIRE_RING);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        VampireRingInfo* pVampireRingInfo = new VampireRingInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pVampireRingInfo->setItemType(rows[r].itemType);
+        pVampireRingInfo->setName(rows[r].name);
+        pVampireRingInfo->setEName(rows[r].ename);
+        pVampireRingInfo->setPrice(rows[r].price);
+        pVampireRingInfo->setVolumeType(rows[r].volume);
+        pVampireRingInfo->setWeight(rows[r].weight);
+        pVampireRingInfo->setRatio(rows[r].ratio);
+        pVampireRingInfo->setDurability(rows[r].durability);
+        pVampireRingInfo->setDefenseBonus(rows[r].defense);
+        pVampireRingInfo->setProtectionBonus(rows[r].protection);
+        pVampireRingInfo->setReqAbility(rows[r].reqAbility);
+        pVampireRingInfo->setItemLevel(rows[r].itemLevel);
+        pVampireRingInfo->setDefaultOptions(rows[r].defaultOption);
+        pVampireRingInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pVampireRingInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pVampireRingInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pVampireRingInfo->setNextItemType(rows[r].nextItemType);
+        pVampireRingInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult =
-            pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, "
-                                "Protection, ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-                                "NextOptionRatio, NextItemType, DowngradeRatio FROM VampireRingInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            VampireRingInfo* pVampireRingInfo = new VampireRingInfo();
-
-            pVampireRingInfo->setItemType(pResult->getInt(++i));
-            pVampireRingInfo->setName(pResult->getString(++i));
-            pVampireRingInfo->setEName(pResult->getString(++i));
-            pVampireRingInfo->setPrice(pResult->getInt(++i));
-            pVampireRingInfo->setVolumeType(pResult->getInt(++i));
-            pVampireRingInfo->setWeight(pResult->getInt(++i));
-            pVampireRingInfo->setRatio(pResult->getInt(++i));
-            pVampireRingInfo->setDurability(pResult->getInt(++i));
-            pVampireRingInfo->setDefenseBonus(pResult->getInt(++i));
-            pVampireRingInfo->setProtectionBonus(pResult->getInt(++i));
-            pVampireRingInfo->setReqAbility(pResult->getString(++i));
-            pVampireRingInfo->setItemLevel(pResult->getInt(++i));
-            pVampireRingInfo->setDefaultOptions(pResult->getString(++i));
-            pVampireRingInfo->setUpgradeRatio(pResult->getInt(++i));
-            pVampireRingInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pVampireRingInfo->setNextOptionRatio(pResult->getInt(++i));
-            pVampireRingInfo->setNextItemType(pResult->getInt(++i));
-            pVampireRingInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pVampireRingInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pVampireRingInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -337,145 +267,116 @@ void VampireRingLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<GearObjectRow> rows = defaultItemObjectRepository().loadGearOfOwner(GEAR_VAMPIRE_RING, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            VampireRing* pVampireRing = new VampireRing();
 
-        /*
-        StringStream sql;
+            pVampireRing->setItemID(rows[r].itemID);
+            pVampireRing->setObjectID(rows[r].objectID);
+            pVampireRing->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << "OptionType, Durability, EnchantLevel FROM VampireRingObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            if (g_pVampireRingInfoManager->getItemInfo(pVampireRing->getItemType())->isUnique())
+                pVampireRing->setUnique();
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Durability, Grade, EnchantLevel, "
-            "ItemFlag FROM VampireRingObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pVampireRing->setOptionType(optionTypes);
 
+            pVampireRing->setDurability(rows[r].durability);
+            pVampireRing->setGrade(rows[r].grade);
+            pVampireRing->setEnchantLevel(rows[r].enchantLevel);
+            pVampireRing->setCreateType((Item::CreateType)rows[r].createType);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                VampireRing* pVampireRing = new VampireRing();
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                pVampireRing->setItemID(pResult->getDWORD(++i));
-                pVampireRing->setObjectID(pResult->getDWORD(++i));
-                pVampireRing->setItemType(pResult->getDWORD(++i));
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                if (g_pVampireRingInfoManager->getItemInfo(pVampireRing->getItemType())->isUnique())
-                    pVampireRing->setUnique();
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pVampireRing)) {
+                    pInventory->addItemEx(x, y, pVampireRing);
+                } else {
+                    processItemBugEx(pCreature, pVampireRing);
+                }
+                break;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pVampireRing->setOptionType(optionTypes);
-
-                pVampireRing->setDurability(pResult->getInt(++i));
-                pVampireRing->setGrade(pResult->getInt(++i));
-                pVampireRing->setEnchantLevel(pResult->getInt(++i));
-                pVampireRing->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
+                    processItemBugEx(pCreature, pVampireRing);
                 } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pVampireRing)) {
-                        pInventory->addItemEx(x, y, pVampireRing);
+                    if (!pVampire->isWear((Vampire::WearPart)x)) {
+                        pVampire->wearItem((Vampire::WearPart)x, pVampireRing);
                     } else {
                         processItemBugEx(pCreature, pVampireRing);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        processItemBugEx(pCreature, pVampireRing);
-                    } else if (pCreature->isVampire()) {
-                        if (!pVampire->isWear((Vampire::WearPart)x)) {
-                            pVampire->wearItem((Vampire::WearPart)x, pVampireRing);
-                        } else {
-                            processItemBugEx(pCreature, pVampireRing);
-                        }
-                    }
-                    break;
-
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pVampireRing);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pVampireRing);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pVampireRing);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pVampireRing);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pVampireRing);
-                    } else
-                        pStash->insert(x, y, pVampireRing);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pVampireRing);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
-            }
-        }
+                break;
 
-        SAFE_DELETE(pStmt);
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pVampireRing);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pVampireRing);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pVampireRing);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pVampireRing);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pVampireRing);
+                } else
+                    pStash->insert(x, y, pVampireRing);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pVampireRing);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
+            }
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -491,61 +392,45 @@ void VampireRingLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<GearZoneObjectRow> rows =
+        defaultItemObjectRepository().loadGearInZone(GEAR_VAMPIRE_RING, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        VampireRing* pVampireRing = new VampireRing();
 
-        StringStream sql;
+        pVampireRing->setItemID(rows[r].itemID);
+        pVampireRing->setObjectID(rows[r].objectID);
+        pVampireRing->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " OptionType, Durability, EnchantLevel, ItemFlag FROM VampireRingObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        string optionField = rows[r].optionField;
+        list<OptionType_t> optionTypes;
+        setOptionTypeFromField(optionTypes, optionField);
+        pVampireRing->setOptionType(optionTypes);
 
-        while (pResult->next()) {
-            uint i = 0;
+        pVampireRing->setDurability(rows[r].durability);
+        pVampireRing->setEnchantLevel(rows[r].enchantLevel);
+        pVampireRing->setCreateType((Item::CreateType)rows[r].createType);
 
-            VampireRing* pVampireRing = new VampireRing();
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pVampireRing);
+        } break;
 
-            pVampireRing->setItemID(pResult->getInt(++i));
-            pVampireRing->setObjectID(pResult->getInt(++i));
-            pVampireRing->setItemType(pResult->getInt(++i));
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            string optionField = pResult->getString(++i);
-            list<OptionType_t> optionTypes;
-            setOptionTypeFromField(optionTypes, optionField);
-            pVampireRing->setOptionType(optionTypes);
-
-            pVampireRing->setDurability(pResult->getInt(++i));
-            pVampireRing->setEnchantLevel(pResult->getInt(++i));
-            pVampireRing->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pVampireRing);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

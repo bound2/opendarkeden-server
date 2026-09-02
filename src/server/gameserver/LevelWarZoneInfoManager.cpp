@@ -1,10 +1,10 @@
 #include "LevelWarZoneInfoManager.h"
 
-#include "DB.h"
 #include "Ousters.h"
 #include "Slayer.h"
 #include "Vampire.h"
 #include "ZoneUtil.h"
+#include "repository/ZoneInfoRepository.h"
 
 LevelWarZoneInfo::LevelWarZoneInfo() {}
 
@@ -134,42 +134,30 @@ void LevelWarZoneInfoManager::load()
     m_LevelWarZoneInfos.clear();
     clearLevelWarZoneIDs();
 
-    Statement* pStmt = NULL;
+    vector<LevelWarZoneRow> rows = defaultZoneInfoRepository().loadLevelWarZones();
 
-    BEGIN_DB {
-        // create statement
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        LevelWarZoneInfo* pLevelWarZoneInfo = new LevelWarZoneInfo();
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT ID, ZoneID, SweeperTypeMin, SweeperTypeMax, SlayerMin, SlayerMax, VampireMin, "
-                                "VampireMax, OustersMin, OustersMax, ZoneIDList FROM LevelWarZoneInfo");
+        pLevelWarZoneInfo->setGrade(rows[r].id);
+        pLevelWarZoneInfo->setZoneID(rows[r].zoneID);
 
-        while (pResult->next()) {
-            uint i = 0;
+        pLevelWarZoneInfo->setMinSweeperBonusType(rows[r].sweeperTypeMin);
+        pLevelWarZoneInfo->setMaxSweeperBonusType(rows[r].sweeperTypeMax);
 
-            LevelWarZoneInfo* pLevelWarZoneInfo = new LevelWarZoneInfo();
+        pLevelWarZoneInfo->setMinSlayerSum(rows[r].slayerMin);
+        pLevelWarZoneInfo->setMaxSlayerSum(rows[r].slayerMax);
 
-            pLevelWarZoneInfo->setGrade(pResult->getInt(++i));
-            pLevelWarZoneInfo->setZoneID(pResult->getInt(++i));
+        pLevelWarZoneInfo->setMinVampireLevel(rows[r].vampireMin);
+        pLevelWarZoneInfo->setMaxVampireLevel(rows[r].vampireMax);
 
-            pLevelWarZoneInfo->setMinSweeperBonusType(pResult->getInt(++i));
-            pLevelWarZoneInfo->setMaxSweeperBonusType(pResult->getInt(++i));
+        pLevelWarZoneInfo->setMinOustersLevel(rows[r].oustersMin);
+        pLevelWarZoneInfo->setMaxOustersLevel(rows[r].oustersMax);
 
-            pLevelWarZoneInfo->setMinSlayerSum(pResult->getInt(++i));
-            pLevelWarZoneInfo->setMaxSlayerSum(pResult->getInt(++i));
+        pLevelWarZoneInfo->setZoneIDList(rows[r].zoneIDList);
 
-            pLevelWarZoneInfo->setMinVampireLevel(pResult->getInt(++i));
-            pLevelWarZoneInfo->setMaxVampireLevel(pResult->getInt(++i));
-
-            pLevelWarZoneInfo->setMinOustersLevel(pResult->getInt(++i));
-            pLevelWarZoneInfo->setMaxOustersLevel(pResult->getInt(++i));
-
-            pLevelWarZoneInfo->setZoneIDList(pResult->getString(++i));
-
-            addLevelWarZoneInfo(pLevelWarZoneInfo);
-        }
+        addLevelWarZoneInfo(pLevelWarZoneInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

@@ -2,9 +2,9 @@
 
 #include <stdlib.h>
 
-#include "DB.h"
 #include "Properties.h"
 #include "SystemAvailabilitiesManager.h"
+#include "repository/ContentInfoRepository.h"
 
 extern void strlwr(char* str);
 
@@ -284,42 +284,31 @@ void VariableManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    ContentInfoRepository& repository = defaultContentInfoRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(attrID) FROM AttrInfo");
-
-        if (pResult->getRowCount() <= 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("VariableManager::load(): attrID MAX값을 구할 수 없습니다.");
-        }
-
-        pResult->next();
-        int maxAttr = pResult->getInt(1);
-        m_Variables.clear();
-        m_Variables.resize(max((maxAttr + 1), (int)VARIABLE_MAX));
-
-        pResult = pStmt->executeQuery("SELECT attrID, attr1, attr2 FROM AttrInfo");
-
-        if (pResult->getRowCount() <= 0) {
-            SAFE_DELETE(pStmt);
-            throw Error("VariableManager::load(): 값이 하나도 존재하지 않습니다");
-        }
-
-        while (pResult->next()) {
-            VariableType attrID = (VariableType)pResult->getInt(1);
-            int attr1 = pResult->getInt(2);
-            // int    			attr2  = pResult->getInt(3);
-
-
-            setVariable(attrID, attr1);
-            cout << toString(attrID).c_str() << endl;
-        }
-        SAFE_DELETE(pStmt);
+    int maxAttr = 0;
+    if (!repository.loadMaxAttrID(maxAttr)) {
+        throw Error("VariableManager::load(): attrID MAX값을 구할 수 없습니다.");
     }
-    END_DB(pStmt);
+
+    m_Variables.clear();
+    m_Variables.resize(max((maxAttr + 1), (int)VARIABLE_MAX));
+
+    vector<VariableRow> rows = repository.loadVariables();
+
+    if (rows.empty()) {
+        throw Error("VariableManager::load(): 값이 하나도 존재하지 않습니다");
+    }
+
+    for (size_t r = 0; r < rows.size(); r++) {
+        VariableType attrID = (VariableType)rows[r].attrID;
+        int attr1 = rows[r].attr1;
+        // int    			attr2  = rows[r].attr2;
+
+
+        setVariable(attrID, attr1);
+        cout << toString(attrID).c_str() << endl;
+    }
 
     __END_CATCH
 }
@@ -364,16 +353,7 @@ void VariableManager::setVariable(VariableType vt, int value) {
 
         m_Variables[vt] = value;
 
-        Statement* pStmt = NULL;
-        // Result*    pResult = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("UPDATE AttrInfo SET attr1=%d WHERE attrID=%d", value, (int)vt);
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultContentInfoRepository().saveVariable(value, (int)vt);
 
     } catch (Throwable& t) {
         filelog("variableManagerError.log", "%s", t.toString().c_str());

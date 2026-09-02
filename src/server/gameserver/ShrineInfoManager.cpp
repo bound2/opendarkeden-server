@@ -7,7 +7,6 @@
 #include "CastleInfoManager.h"
 #include "ClientManager.h"
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "EffectHasRelic.h"
 #include "EffectShrineGuard.h"
 #include "EffectShrineHoly.h"
@@ -36,6 +35,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneItemPosition.h"
 #include "ZoneUtil.h"
+#include "repository/WarInfoRepository.h"
 
 bool AddBible[] = {
     true,  // SHRINE_ARMEGA,      // 0
@@ -226,71 +226,58 @@ void ShrineInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<ShrineRow> rows = defaultWarInfoRepository().loadShrines();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        const ShrineRow& row = rows[r];
 
-        pResult = pStmt->executeQuery(
-            "SELECT ID, Name, ItemType, SlayerGuardZoneID, SlayerGuardX, SlayerGuardY, SlayerGuardMType, "
-            "VampireGuardZoneID, VampireGuardX, VampireGuardY, VampireGuardMType, OustersGuardZoneID, OustersGuardX, "
-            "OustersGuardY, OustersGuardMType, HolyZoneID, HolyX, HolyY, HolyMType, OwnerRace FROM ShrineInfo");
+        ShrineSet* pShrineSet = new ShrineSet();
 
-        while (pResult->next()) {
-            int i = 0;
+        ShrineInfo& SlayerGuardShrine = pShrineSet->getSlayerGuardShrine();
+        ShrineInfo& VampireGuardShrine = pShrineSet->getVampireGuardShrine();
+        ShrineInfo& OustersGuardShrine = pShrineSet->getOustersGuardShrine();
+        ShrineInfo& HolyShrine = pShrineSet->getHolyShrine();
 
-            ShrineSet* pShrineSet = new ShrineSet();
+        pShrineSet->setShrineID(row.id);
 
-            ShrineInfo& SlayerGuardShrine = pShrineSet->getSlayerGuardShrine();
-            ShrineInfo& VampireGuardShrine = pShrineSet->getVampireGuardShrine();
-            ShrineInfo& OustersGuardShrine = pShrineSet->getOustersGuardShrine();
-            ShrineInfo& HolyShrine = pShrineSet->getHolyShrine();
+        SlayerGuardShrine.setName(row.name);
+        VampireGuardShrine.setName(SlayerGuardShrine.getName());
+        OustersGuardShrine.setName(SlayerGuardShrine.getName());
+        HolyShrine.setName(SlayerGuardShrine.getName());
 
-            pShrineSet->setShrineID(pResult->getInt(++i));
+        pShrineSet->setBloodBibleItemType(row.itemType);
+        SlayerGuardShrine.setZoneID(row.slayerGuardZoneID);
+        SlayerGuardShrine.setX(row.slayerGuardX);
+        SlayerGuardShrine.setY(row.slayerGuardY);
+        SlayerGuardShrine.setMonsterType(row.slayerGuardMonsterType);
+        VampireGuardShrine.setZoneID(row.vampireGuardZoneID);
+        VampireGuardShrine.setX(row.vampireGuardX);
+        VampireGuardShrine.setY(row.vampireGuardY);
+        VampireGuardShrine.setMonsterType(row.vampireGuardMonsterType);
+        OustersGuardShrine.setZoneID(row.oustersGuardZoneID);
+        OustersGuardShrine.setX(row.oustersGuardX);
+        OustersGuardShrine.setY(row.oustersGuardY);
+        OustersGuardShrine.setMonsterType(row.oustersGuardMonsterType);
+        HolyShrine.setZoneID(row.holyZoneID);
+        HolyShrine.setX(row.holyX);
+        HolyShrine.setY(row.holyY);
+        HolyShrine.setMonsterType(row.holyMonsterType);
 
-            SlayerGuardShrine.setName(pResult->getString(++i));
-            VampireGuardShrine.setName(SlayerGuardShrine.getName());
-            OustersGuardShrine.setName(SlayerGuardShrine.getName());
-            HolyShrine.setName(SlayerGuardShrine.getName());
+        pShrineSet->setOwnerRace((Race_t)row.ownerRace);
 
-            pShrineSet->setBloodBibleItemType(pResult->getInt(++i));
-            SlayerGuardShrine.setZoneID(pResult->getInt(++i));
-            SlayerGuardShrine.setX(pResult->getInt(++i));
-            SlayerGuardShrine.setY(pResult->getInt(++i));
-            SlayerGuardShrine.setMonsterType(pResult->getInt(++i));
-            VampireGuardShrine.setZoneID(pResult->getInt(++i));
-            VampireGuardShrine.setX(pResult->getInt(++i));
-            VampireGuardShrine.setY(pResult->getInt(++i));
-            VampireGuardShrine.setMonsterType(pResult->getInt(++i));
-            OustersGuardShrine.setZoneID(pResult->getInt(++i));
-            OustersGuardShrine.setX(pResult->getInt(++i));
-            OustersGuardShrine.setY(pResult->getInt(++i));
-            OustersGuardShrine.setMonsterType(pResult->getInt(++i));
-            HolyShrine.setZoneID(pResult->getInt(++i));
-            HolyShrine.setX(pResult->getInt(++i));
-            HolyShrine.setY(pResult->getInt(++i));
-            HolyShrine.setMonsterType(pResult->getInt(++i));
+        SlayerGuardShrine.setShrineType(ShrineInfo::SHRINE_GUARD);
+        VampireGuardShrine.setShrineType(ShrineInfo::SHRINE_GUARD);
+        OustersGuardShrine.setShrineType(ShrineInfo::SHRINE_GUARD);
+        HolyShrine.setShrineType(ShrineInfo::SHRINE_HOLY);
 
-            pShrineSet->setOwnerRace((Race_t)pResult->getInt(++i));
-
-            SlayerGuardShrine.setShrineType(ShrineInfo::SHRINE_GUARD);
-            VampireGuardShrine.setShrineType(ShrineInfo::SHRINE_GUARD);
-            OustersGuardShrine.setShrineType(ShrineInfo::SHRINE_GUARD);
-            HolyShrine.setShrineType(ShrineInfo::SHRINE_HOLY);
-
-            // ItemType과 Shrine ID는 같아야 한다. 같지 않을 경우 DB설정 오류로 로딩과정에서 막는다.
-            if (pShrineSet->getBloodBibleItemType() != pShrineSet->getShrineID()) {
-                cout << "ShrineID 와 ItemType이 맞지 않습니다. DB설정을 점검하세요." << endl;
-                Assert(false);
-            }
-
-            addShrineSet(pShrineSet);
+        // ItemType and the shrine ID must match; a mismatch is a DB configuration error and stops the load.
+        if (pShrineSet->getBloodBibleItemType() != pShrineSet->getShrineID()) {
+            cout << "ShrineID 와 ItemType이 맞지 않습니다. DB설정을 점검하세요." << endl;
+            Assert(false);
         }
 
-        SAFE_DELETE(pStmt);
+        addShrineSet(pShrineSet);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -301,35 +288,23 @@ void ShrineInfoManager::reloadOwner()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
     bool bOwnerChanged = false;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    vector<ShrineOwnerRow> owners = defaultWarInfoRepository().loadShrineOwners();
 
-        pResult = pStmt->executeQuery("SELECT ID, OwnerRace FROM ShrineInfo");
+    for (size_t r = 0; r < owners.size(); r++) {
+        ShrineID_t shrineID = owners[r].id;
+        Race_t OwnerRace = (Race_t)owners[r].ownerRace;
 
-        while (pResult->next()) {
-            int i = 0;
+        ShrineSet* pShrineSet = getShrineSet(shrineID);
 
-            ShrineID_t shrineID = pResult->getInt(++i);
-            Race_t OwnerRace = (Race_t)pResult->getInt(++i);
+        if (pShrineSet->getOwnerRace() != OwnerRace) {
+            pShrineSet->setOwnerRace(OwnerRace);
+            returnBloodBible(shrineID);
 
-            ShrineSet* pShrineSet = getShrineSet(shrineID);
-
-            if (pShrineSet->getOwnerRace() != OwnerRace) {
-                pShrineSet->setOwnerRace(OwnerRace);
-                returnBloodBible(shrineID);
-
-                bOwnerChanged = true;
-            }
+            bOwnerChanged = true;
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     if (bOwnerChanged) {
         EventRefreshHolyLandPlayer* pEvent = new EventRefreshHolyLandPlayer(NULL);
@@ -1115,22 +1090,16 @@ bool ShrineInfoManager::saveBloodBibleOwner()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    // The original wrapped this loop in a BEGIN_DB block that created a
+    // Statement it never used; each ShrineSet does its own write through
+    // the repository.
+    HashMapShrineSetConstItor itr = m_ShrineSets.begin();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (; itr != m_ShrineSets.end(); itr++) {
+        ShrineSet* pShrineSet = itr->second;
 
-        HashMapShrineSetConstItor itr = m_ShrineSets.begin();
-
-        for (; itr != m_ShrineSets.end(); itr++) {
-            ShrineSet* pShrineSet = itr->second;
-
-            pShrineSet->saveBloodBibleOwner();
-        }
-
-        SAFE_DELETE(pStmt);
+        pShrineSet->saveBloodBibleOwner();
     }
-    END_DB(pStmt)
 
     return true;
 
@@ -1142,16 +1111,7 @@ bool ShrineSet::saveBloodBibleOwner()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE ShrineInfo SET OwnerRace=%d WHERE ID=%d", (int)getOwnerRace(), (int)getShrineID());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().saveShrineOwner((int)getOwnerRace(), (int)getShrineID());
 
     return true;
 

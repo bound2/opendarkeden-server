@@ -7,10 +7,10 @@
 #include "GoodsInfoManager.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "ItemFactoryManager.h"
 #include "ItemInfoManager.h"
 #include "ItemUtil.h"
+#include "repository/GameInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class GoodsInfo member methods
@@ -84,38 +84,27 @@ void GoodsInfoManager::load()
 
     clear();
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<GoodsInfoRow> rows = defaultGameInfoRepository().loadGoods();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-        pResult = pStmt->executeQuery("SELECT GoodsID, Name, ItemClass, ItemType, Grade, OptionType, Num, Limited+0, "
-                                      "Hour FROM GoodsListInfo WHERE Kind<>'SET'");
+    for (size_t r = 0; r < rows.size(); r++) {
+        GoodsInfo* pGoodsInfo = new GoodsInfo();
 
-        while (pResult->next()) {
-            GoodsInfo* pGoodsInfo = new GoodsInfo();
-            int i = 0;
+        pGoodsInfo->setID(rows[r].goodsID);
+        pGoodsInfo->setName(rows[r].name);
+        pGoodsInfo->setItemClass((Item::ItemClass)(rows[r].itemClass));
+        pGoodsInfo->setItemType(rows[r].itemType);
+        pGoodsInfo->setGrade(rows[r].grade);
+        string optionField = rows[r].optionType;
+        pGoodsInfo->setNum(rows[r].num);
+        pGoodsInfo->setTimeLimit(rows[r].limited == 1); // enum( 'LIMITED'(1), 'UNLIMITED'(2) )
+        pGoodsInfo->setHour(rows[r].hour);
 
-            pGoodsInfo->setID(pResult->getInt(++i));
-            pGoodsInfo->setName(pResult->getString(++i));
-            pGoodsInfo->setItemClass((Item::ItemClass)(pResult->getInt(++i)));
-            pGoodsInfo->setItemType(pResult->getInt(++i));
-            pGoodsInfo->setGrade(pResult->getInt(++i));
-            string optionField = pResult->getString(++i);
-            pGoodsInfo->setNum(pResult->getInt(++i));
-            pGoodsInfo->setTimeLimit(pResult->getInt(++i) == 1); // enum( 'LIMITED'(1), 'UNLIMITED'(2) )
-            pGoodsInfo->setHour(pResult->getInt(++i));
+        list<OptionType_t> optionTypes;
+        setOptionTypeFromField(optionTypes, optionField);
+        pGoodsInfo->setOptionTypeList(optionTypes);
 
-            list<OptionType_t> optionTypes;
-            setOptionTypeFromField(optionTypes, optionField);
-            pGoodsInfo->setOptionTypeList(optionTypes);
-
-            addGoodsInfo(pGoodsInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addGoodsInfo(pGoodsInfo);
     }
-    END_DB(pStmt)
 
     __END_DEBUG
     __END_CATCH

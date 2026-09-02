@@ -6,9 +6,9 @@
 
 #include "UniqueItemManager.h"
 
-#include "DB.h"
 #include "Item.h"
 #include "ItemInfoManager.h"
+#include "repository/ItemRepository.h"
 
 
 UniqueItemManager* g_pUniqueItemManager = NULL;
@@ -22,28 +22,18 @@ void UniqueItemManager::init()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
+    // Read the current rows and mark each (itemClass, itemType) unique.
+    vector<UniqueItemRow> rows = defaultItemRepository().loadUniqueItems();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        Item::ItemClass itemClass = (Item::ItemClass)rows[r].itemClass;
+        int itemType = rows[r].itemType;
 
-        // DB에서 현재의 값을 읽어온다.
-        Result* pResult = pStmt->executeQuery("SELECT ItemClass, ItemType FROM UniqueItemInfo");
+        ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, itemType);
+        Assert(pItemInfo != NULL);
 
-        // 지정된 itemClas, itemType을 Unique Item으로 설정한다.
-        while (pResult->next()) {
-            Item::ItemClass itemClass = (Item::ItemClass)pResult->getInt(1);
-            int itemType = pResult->getInt(2);
-
-            ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(itemClass, itemType);
-            Assert(pItemInfo != NULL);
-
-            pItemInfo->setUnique();
-        }
-
-        SAFE_DELETE(pStmt);
+        pItemInfo->setUnique();
     }
-    END_DB(pStmt);
 
     __END_CATCH
     __END_DEBUG
@@ -58,26 +48,14 @@ bool UniqueItemManager::isPossibleCreate(Item::ItemClass itemClass, ItemType_t i
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
+    // Read the current numbers; an item without a row falls through to the
+    // false below, as before.
+    int limitNumber = 0;
+    int currentNumber = 0;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // DB에서 현재의 값을 읽어온다.
-        Result* pResult = pStmt->executeQuery(
-            "SELECT LimitNumber, CurrentNumber FROM UniqueItemInfo WHERE ItemClass=%d AND ItemType=%d", (int)itemClass,
-            (int)itemType);
-
-        if (pResult->next()) {
-            int limitNumber = pResult->getInt(1);
-            int currentNumber = pResult->getInt(2);
-
-            return limitNumber == 0 || currentNumber < limitNumber;
-        }
-
-        SAFE_DELETE(pStmt);
+    if (defaultItemRepository().loadUniqueItemNumbers((int)itemClass, (int)itemType, limitNumber, currentNumber)) {
+        return limitNumber == 0 || currentNumber < limitNumber;
     }
-    END_DB(pStmt);
 
     __END_CATCH
     __END_DEBUG
@@ -96,19 +74,7 @@ void UniqueItemManager::createItem(Item::ItemClass itemClass, ItemType_t itemTyp
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // DB에서 현재의 값을 읽어온다.
-        pStmt->executeQuery(
-            "UPDATE UniqueItemInfo SET CurrentNumber=CurrentNumber+1 WHERE ItemClass=%d AND ItemType=%d",
-            (int)itemClass, (int)itemType);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt);
+    defaultItemRepository().incrementUniqueItemCount((int)itemClass, (int)itemType);
 
     __END_CATCH
     __END_DEBUG
@@ -125,19 +91,7 @@ void UniqueItemManager::deleteItem(Item::ItemClass itemClass, ItemType_t itemTyp
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // DB에서 현재의 값을 읽어온다.
-        pStmt->executeQuery(
-            "UPDATE UniqueItemInfo SET CurrentNumber=CurrentNumber-1 WHERE ItemClass=%d AND ItemType=%d",
-            (int)itemClass, (int)itemType);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt);
+    defaultItemRepository().decrementUniqueItemCount((int)itemClass, (int)itemType);
 
     __END_CATCH
     __END_DEBUG

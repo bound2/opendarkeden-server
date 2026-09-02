@@ -7,12 +7,12 @@
 #include "EventHeadCount.h"
 
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "GamePlayer.h"
 #include "Ousters.h"
 #include "Slayer.h"
 #include "Vampire.h"
 #include "Zone.h"
+#include "repository/PlayRecordRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class EventHeadCount member methods
@@ -60,15 +60,7 @@ void EventHeadCount::activate()
         return;
     }
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery(
-            "INSERT INTO HeadCount (Name, Time, FirstLevel, LastLevel, HeadCount) VALUES ('%s', now(), %u, %u, %u)",
-            pPC->getName().c_str(), m_LastLevel, level, m_Count);
-    }
-    END_DB(pStmt);
+    defaultPlayRecordRepository().insertHeadCount(pPC->getName(), m_LastLevel, level, m_Count);
 
     setDeadline(18000);
     m_LastLevel = level;

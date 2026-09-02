@@ -213,6 +213,150 @@ public:
         return rows;
     }
 
+    vector<ZoneEffectRow> loadZoneEffectRects(ZoneID_t zoneID, int effectID) {
+        vector<ZoneEffectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT LeftX, TopY, RightX, BottomY, Value1, Value2, Value3 FROM ZoneEffectInfo "
+                                    "WHERE ZoneID = %d AND EffectID = %d",
+                                    zoneID, effectID);
+
+            while (pResult->next()) {
+                int count = 0;
+                ZoneEffectRow row;
+                row.left = pResult->getInt(++count);
+                row.top = pResult->getInt(++count);
+                row.right = pResult->getInt(++count);
+                row.bottom = pResult->getInt(++count);
+                row.value1 = pResult->getInt(++count);
+                row.value2 = pResult->getInt(++count);
+                row.value3 = pResult->getInt(++count);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    bool loadMonsterLists(ZoneID_t zoneID, string& monsterList, string& eventMonsterList) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT MonsterList, EventMonsterList from ZoneInfo WHERE ZoneID=%d", zoneID);
+
+            if (pResult->next()) {
+                monsterList = pResult->getString(1);
+                eventMonsterList = pResult->getString(2);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    vector<PKZoneRow> loadPKZones() {
+        vector<PKZoneRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT ZoneID, Race, EnterX, EnterY, ResurrectX, ResurrectY, PCLimit FROM PKZoneInfo");
+
+            while (pResult->next()) {
+                int count = 0;
+                PKZoneRow row;
+                row.zoneID = pResult->getInt(++count);
+                row.race = pResult->getInt(++count);
+                row.enterX = pResult->getInt(++count);
+                row.enterY = pResult->getInt(++count);
+                row.resurrectX = pResult->getInt(++count);
+                row.resurrectY = pResult->getInt(++count);
+                row.pcLimit = pResult->getInt(++count);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<EventZoneRow> loadEventZones() {
+        vector<EventZoneRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT EventID, ZoneID, EnterX, EnterY, ResurrectX, ResurrectY, PCLimit FROM EventZoneInfo");
+
+            while (pResult->next()) {
+                EventZoneRow row;
+                row.eventID = pResult->getInt(1);
+                row.zoneID = pResult->getInt(2);
+                row.enterX = pResult->getInt(3);
+                row.enterY = pResult->getInt(4);
+                row.resurrectX = pResult->getInt(5);
+                row.resurrectY = pResult->getInt(6);
+                row.pcLimit = pResult->getInt(7);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<LevelWarZoneRow> loadLevelWarZones() {
+        vector<LevelWarZoneRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT ID, ZoneID, SweeperTypeMin, SweeperTypeMax, SlayerMin, SlayerMax, VampireMin, "
+                "VampireMax, OustersMin, OustersMax, ZoneIDList FROM LevelWarZoneInfo");
+
+            while (pResult->next()) {
+                uint i = 0;
+                LevelWarZoneRow row;
+                row.id = pResult->getInt(++i);
+                row.zoneID = pResult->getInt(++i);
+                row.sweeperTypeMin = pResult->getInt(++i);
+                row.sweeperTypeMax = pResult->getInt(++i);
+                row.slayerMin = pResult->getInt(++i);
+                row.slayerMax = pResult->getInt(++i);
+                row.vampireMin = pResult->getInt(++i);
+                row.vampireMax = pResult->getInt(++i);
+                row.oustersMin = pResult->getInt(++i);
+                row.oustersMax = pResult->getInt(++i);
+                row.zoneIDList = pResult->getString(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
     vector<WayPointRow> loadAllWayPoints() {
         vector<WayPointRow> rows;
         Statement* pStmt = NULL;
@@ -235,6 +379,29 @@ public:
         END_DB(pStmt)
 
         return rows;
+    }
+
+    bool loadMaxZoneGroupID(int& maxZoneGroupID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT MAX(ZoneGroupID) FROM ZoneGroupInfo");
+
+            if (pResult->next()) {
+                const char* field = pResult->getField(1);
+                if (field != NULL) {
+                    maxZoneGroupID = atoi(field);
+                    found = true;
+                }
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
     }
 };
 

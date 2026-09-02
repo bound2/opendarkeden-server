@@ -207,6 +207,321 @@ public:
         return rows;
     }
 
+    // --- the config tables the second round added -------------------------
+    // Byte-for-byte the originals again: DarkLightInfo's " , "-spaced
+    // column list, CastleSkillInfo's mixed-case "Select ... from",
+    // GoodsListInfo's "Limited+0" (the enum ordinal) and "Kind<>'SET'"
+    // filter, NicknameIndex's inline 'LEVEL' filter. GoodsListInfo is
+    // read on the dist connection, as GoodsInfoManager did (the same
+    // DARKEDEN schema — see MySQLGoodsRepository.cpp).
+
+    vector<WeatherRow> loadWeather() {
+        vector<WeatherRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT Month, Clear, Rainy, Snowy FROM WeatherInfo");
+
+            while (pResult->next()) {
+                WeatherRow row;
+                row.month = pResult->getInt(1);
+                row.clear = pResult->getInt(2);
+                row.rainy = pResult->getInt(3);
+                row.snowy = pResult->getInt(4);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<StringPoolRow> loadStrings() {
+        vector<StringPoolRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT ID, String FROM GSStringPool");
+
+            while (pResult->next()) {
+                int i = 0;
+                StringPoolRow row;
+                row.id = pResult->getInt(++i);
+                row.text = pResult->getString(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<ShopTemplateRow> loadShopTemplates() {
+        vector<ShopTemplateRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT ID, ShopType, ItemClass, MinItemType, MaxItemType, MinOptionLevel, "
+                                    "MaxOptionLevel FROM ShopTemplate");
+
+            while (pResult->next()) {
+                ShopTemplateRow row;
+                row.id = pResult->getInt(1);
+                row.shopType = pResult->getInt(2);
+                row.itemClass = pResult->getInt(3);
+                row.minItemType = pResult->getInt(4);
+                row.maxItemType = pResult->getInt(5);
+                row.minOptionLevel = pResult->getInt(6);
+                row.maxOptionLevel = pResult->getInt(7);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<LevelNickRow> loadLevelNicks() {
+        vector<LevelNickRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT NickIndex, Race, Level10 FROM NicknameIndex WHERE NickType='LEVEL'");
+
+            while (pResult->next()) {
+                LevelNickRow row;
+                row.nickIndex = pResult->getInt(1);
+                row.race = pResult->getInt(2);
+                row.level10 = pResult->getInt(3);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<ItemMineRow> loadItemMines() {
+        vector<ItemMineRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT ID, ItemClass, ItemType, ItemOption FROM ItemMineInfo");
+
+            while (pResult->next()) {
+                uint i = 0;
+                ItemMineRow row;
+                row.id = pResult->getInt(++i);
+                row.itemClass = pResult->getString(++i);
+                row.itemType = pResult->getInt(++i);
+                row.itemOption = pResult->getString(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<ItemGradeRatioRow> loadItemGradeRatios() {
+        vector<ItemGradeRatioRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT Grade, Ratio, GambleRatio, BeadRatio FROM ItemGradeRatioInfo");
+
+            while (pResult->next()) {
+                ItemGradeRatioRow row;
+                row.grade = pResult->getInt(1);
+                row.ratio = pResult->getInt(2);
+                row.gambleRatio = pResult->getInt(3);
+                row.beadRatio = pResult->getInt(4);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<GoodsInfoRow> loadGoods() {
+        vector<GoodsInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT GoodsID, Name, ItemClass, ItemType, Grade, OptionType, Num, Limited+0, "
+                                    "Hour FROM GoodsListInfo WHERE Kind<>'SET'");
+
+            while (pResult->next()) {
+                int i = 0;
+                GoodsInfoRow row;
+                row.goodsID = pResult->getInt(++i);
+                row.name = pResult->getString(++i);
+                row.itemClass = pResult->getInt(++i);
+                row.itemType = pResult->getInt(++i);
+                row.grade = pResult->getInt(++i);
+                row.optionType = pResult->getString(++i);
+                row.num = pResult->getInt(++i);
+                row.limited = pResult->getInt(++i);
+                row.hour = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<DefaultOptionSetRow> loadDefaultOptionSets() {
+        vector<DefaultOptionSetRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT Type, OptionList FROM DefaultOptionSetInfo");
+
+            while (pResult->next()) {
+                uint i = 0;
+                DefaultOptionSetRow row;
+                row.type = pResult->getInt(++i);
+                row.optionList = pResult->getString(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<DarkLightRow> loadDarkLight() {
+        vector<DarkLightRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT Month , Hour , Minute , DarkLevel , LightLevel FROM DarkLightInfo");
+
+            while (pResult->next()) {
+                uint i = 0;
+                DarkLightRow row;
+                row.month = pResult->getInt(++i);
+                row.hour = pResult->getInt(++i);
+                row.minute = pResult->getInt(++i);
+                row.darkLevel = pResult->getInt(++i);
+                row.lightLevel = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<CastleSkillRow> loadCastleSkills() {
+        vector<CastleSkillRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("Select SkillType, ZoneID from CastleSkillInfo");
+
+            while (pResult->next()) {
+                int count = 0;
+                CastleSkillRow row;
+                row.skillType = pResult->getInt(++count);
+                row.zoneID = pResult->getInt(++count);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<CastleShrineRow> loadCastleShrines() {
+        vector<CastleShrineRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT ID, Name, ItemType, GuardZoneID, GuardX, GuardY, GuardMType, HolyZoneID, "
+                                    "HolyX, HolyY, HolyMType FROM CastleShrineInfo");
+
+            while (pResult->next()) {
+                int i = 0;
+                CastleShrineRow row;
+                row.id = pResult->getInt(++i);
+                row.name = pResult->getString(++i);
+                row.itemType = pResult->getInt(++i);
+                row.guardZoneID = pResult->getInt(++i);
+                row.guardX = pResult->getInt(++i);
+                row.guardY = pResult->getInt(++i);
+                row.guardMonsterType = pResult->getInt(++i);
+                row.holyZoneID = pResult->getInt(++i);
+                row.holyX = pResult->getInt(++i);
+                row.holyY = pResult->getInt(++i);
+                row.holyMonsterType = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<string> loadLogUserNames() {
+        vector<string> names;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT Name FROM LogUserInfo");
+
+            while (pResult->next())
+                names.push_back(pResult->getString(1));
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return names;
+    }
+
     vector<string> loadMonsterNames(MonsterNameList list) {
         vector<string> names;
         Statement* pStmt = NULL;
@@ -223,6 +538,125 @@ public:
         END_DB(pStmt)
 
         return names;
+    }
+
+    vector<OptionInfoRow> loadOptionInfos() {
+        vector<OptionInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT OptionType, Name, HName, Nickname, Class, PlusPoint, PriceMultiplier, ReqAbility, Color, "
+                "Ratio, "
+                "OptionLevel, GambleLevel, PreviousOptionType, UpgradeOptionType, UpgradeRatio, UpgradeSecondRatio, "
+                "UpgradeCrashPercent, NextOptionRatio, Grade FROM OptionInfo");
+
+            while (pResult->next()) {
+                int i = 0;
+                OptionInfoRow row;
+                row.optionType = pResult->getInt(++i);
+                row.name = pResult->getString(++i);
+                row.hName = pResult->getString(++i);
+                row.nickname = pResult->getString(++i);
+                row.optionClass = pResult->getInt(++i);
+                row.plusPoint = pResult->getInt(++i);
+                row.priceMultiplier = pResult->getInt(++i);
+                row.reqAbility = pResult->getString(++i);
+                row.color = pResult->getInt(++i);
+                row.ratio = pResult->getInt(++i);
+                row.optionLevel = pResult->getInt(++i);
+                row.gambleLevel = pResult->getInt(++i);
+                row.previousOptionType = pResult->getInt(++i);
+                row.upgradeOptionType = pResult->getInt(++i);
+                row.upgradeRatio = pResult->getInt(++i);
+                row.upgradeSecondRatio = pResult->getInt(++i);
+                row.upgradeCrashPercent = pResult->getInt(++i);
+                row.nextOptionRatio = pResult->getInt(++i);
+                row.grade = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<OptionClassInfoRow> loadOptionClassInfos() {
+        vector<OptionClassInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT OptionClassType, Name, HName, Level, TotalGrade, OptionGroup FROM OptionClassInfo");
+
+            while (pResult->next()) {
+                OptionClassInfoRow row;
+                row.optionClassType = pResult->getInt(1);
+                row.name = pResult->getString(2);
+                row.hName = pResult->getString(3);
+                row.level = pResult->getInt(4);
+                row.totalGrade = pResult->getInt(5);
+                row.optionGroup = pResult->getInt(6);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<RareEnchantRow> loadRareEnchantInfos() {
+        vector<RareEnchantRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT Level, TotalGrade, Grade, RatioWhenFail, RatioWhenSuccess FROM RareEnchantInfo");
+
+            while (pResult->next()) {
+                RareEnchantRow row;
+                row.level = pResult->getInt(1);
+                row.totalGrade = pResult->getInt(2);
+                row.grade = pResult->getInt(3);
+                row.ratioWhenFail = pResult->getInt(4);
+                row.ratioWhenSuccess = pResult->getInt(5);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<PetEnchantOptionRatioRow> loadPetEnchantOptionRatios() {
+        vector<PetEnchantOptionRatioRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT OptionType, Ratio FROM PetEnchantOptionRatioInfo");
+
+            while (pResult->next()) {
+                PetEnchantOptionRatioRow row;
+                row.optionType = pResult->getInt(1);
+                row.ratio = pResult->getInt(2);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
     }
 };
 

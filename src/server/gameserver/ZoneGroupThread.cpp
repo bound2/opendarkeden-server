@@ -83,35 +83,6 @@ void ZoneGroupThread::run()
     cout << " TID Number = " << (int)(long)Thread::self() << endl;
     cout << "******************************************************" << endl;
 
-    /*
-    // Login DB 의 PCRoomDBInfo Table 읽어서 Connection 만들기
-    Statement * pStmt = NULL;
-    pStmt = pDistConnection->createStatement();
-    Result * pResult = NULL;
-
-    pResult = pStmt->executeQuery("SELECT ID, Host, DB, User, Password FROM PCRoomDBInfo");
-
-    if (pResult->next())
-    {
-        WorldID_t ID = pResult->getInt(1);
-        string host = pResult->getString(2);
-        string db = pResult->getString(3);
-        string user = pResult->getString(4);
-        string password = pResult->getString(5);
-
-        cout << "Connection: "
-             << "  ID=" << (int)ID
-             << ", HOST=" << host.c_str()
-             << ", DB=" << db.c_str()
-             << ", User=" << user.c_str() << endl;
-
-        Connection * pConnection = new Connection(host, db, user, password);
-        Assert(pConnection!=NULL);
-
-        g_pDatabaseManager->addPCRoomConnection((int)(Thread::self()) , pConnection );
-    }
-    */
-
     Timeval NextTime;
     getCurrentTime(NextTime);
     Timeval currentTime;

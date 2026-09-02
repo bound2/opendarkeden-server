@@ -7,9 +7,9 @@
 #include "ScriptManager.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "Properties.h"
 #include "SXml.h"
+#include "repository/ContentInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // load from database with NPC ID
@@ -19,103 +19,93 @@ void ScriptManager::load(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    // Every script, whatever the owner: the query never used ownerID.
+    vector<ScriptRow> rows = defaultContentInfoRepository().loadScripts();
+    //		XMLTree* pTree = new XMLTree("Scripts");
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        // pResult = pStmt->executeQuery("SELECT ScriptID, Subject, Content FROM Script WHERE OwnerID='%s'",
-        // ownerID.c_str());
-        pResult = pStmt->executeQuery("SELECT ScriptID, OwnerID, Subject, Content FROM Script ORDER BY ScriptID");
-        //		XMLTree* pTree = new XMLTree("Scripts");
+    for (size_t r = 0; r < rows.size(); r++) {
+        ScriptID_t scriptID = rows[r].scriptID;
+        string owner = rows[r].ownerID;
+        string subject = rows[r].subject;
+        string content = rows[r].content;
+        Script* pScript = new Script;
+        XMLTree* pChild = new XMLTree("Script");
 
-        while (pResult->next()) {
-            ScriptID_t scriptID = pResult->getInt(1);
-            string owner = pResult->getString(2);
-            string subject = pResult->getString(3);
-            string content = pResult->getString(4);
-            Script* pScript = new Script;
-            XMLTree* pChild = new XMLTree("Script");
+        pScript->setScriptID(scriptID);
+        pChild->AddAttribute("ScriptID", scriptID);
+        //			pChild->AddAttribute("Owner", owner);
 
-            pScript->setScriptID(scriptID);
-            pChild->AddAttribute("ScriptID", scriptID);
-            //			pChild->AddAttribute("Owner", owner);
+        if (m_XMLS[owner] == NULL)
+            m_XMLS[owner] = new XMLTree("Scripts");
 
-            if (m_XMLS[owner] == NULL)
-                m_XMLS[owner] = new XMLTree("Scripts");
+        string seperator = "**";
+        size_t start = 0;
+        size_t end = 0;
+        string msg;
 
-            string seperator = "**";
-            size_t start = 0;
-            size_t end = 0;
-            string msg;
+        ////////////////////////////////////////////////////////////
+        // subject를 파싱한다.
+        ////////////////////////////////////////////////////////////
+        start = 0;
+        end = 0;
 
-            ////////////////////////////////////////////////////////////
-            // subject를 파싱한다.
-            ////////////////////////////////////////////////////////////
-            start = 0;
-            end = 0;
+        while (end < subject.size()) {
+            start = end;
+            end = subject.find(seperator, start);
 
-            while (end < subject.size()) {
-                start = end;
-                end = subject.find(seperator, start);
+            if (end == string::npos)
+                end = subject.size();
+            end++;
 
-                if (end == string::npos)
-                    end = subject.size();
-                end++;
+            msg = trim(subject.substr(start, end - start - 1));
 
-                msg = trim(subject.substr(start, end - start - 1));
+            pScript->addSubject(msg);
 
-                pScript->addSubject(msg);
+            XMLTree* pSubject = new XMLTree("Subject");
+            pSubject->SetText(msg);
+            pChild->AddChild(pSubject);
 
-                XMLTree* pSubject = new XMLTree("Subject");
-                pSubject->SetText(msg);
-                pChild->AddChild(pSubject);
-
-                // cout << "SUBJECT:" << msg << endl;
-            }
-
-            ////////////////////////////////////////////////////////////
-            // content를 파싱한다.
-            ////////////////////////////////////////////////////////////
-            start = 0;
-            end = 0;
-            uint answerid = 0;
-
-            while (end < content.size()) {
-                start = end;
-                end = content.find(seperator, start);
-
-                if (end == string::npos)
-                    end = content.size();
-                end++;
-
-                msg = trim(content.substr(start, end - start - 1));
-
-                pScript->addContent(msg);
-
-                end++;
-
-                XMLTree* pContent = new XMLTree("Content");
-                pContent->SetText(msg);
-                pContent->AddAttribute("AuintnswerID", ++answerid);
-                pChild->AddChild(pContent);
-
-                // cout << "CONTENT:" << msg << endl;
-            }
-
-            setScript(scriptID, pScript);
-            m_XMLS[owner]->AddChild(pChild);
-            Assert(m_ScriptXMLs[scriptID] == NULL);
-            m_ScriptXMLs[scriptID] = pChild;
-            //			pTree->AddChild(pChild);
+            // cout << "SUBJECT:" << msg << endl;
         }
 
-        //		pTree->SaveToFile( (g_pConfig->getProperty("HomePath") + "/data/Script.xml").c_str() );
-        //		SAFE_DELETE( pTree );
+        ////////////////////////////////////////////////////////////
+        // content를 파싱한다.
+        ////////////////////////////////////////////////////////////
+        start = 0;
+        end = 0;
+        uint answerid = 0;
 
-        SAFE_DELETE(pStmt);
+        while (end < content.size()) {
+            start = end;
+            end = content.find(seperator, start);
+
+            if (end == string::npos)
+                end = content.size();
+            end++;
+
+            msg = trim(content.substr(start, end - start - 1));
+
+            pScript->addContent(msg);
+
+            end++;
+
+            XMLTree* pContent = new XMLTree("Content");
+            pContent->SetText(msg);
+            pContent->AddAttribute("AuintnswerID", ++answerid);
+            pChild->AddChild(pContent);
+
+            // cout << "CONTENT:" << msg << endl;
+        }
+
+        setScript(scriptID, pScript);
+        m_XMLS[owner]->AddChild(pChild);
+        Assert(m_ScriptXMLs[scriptID] == NULL);
+        m_ScriptXMLs[scriptID] = pChild;
+        //			pTree->AddChild(pChild);
     }
-    END_DB(pStmt)
+
+    //		pTree->SaveToFile( (g_pConfig->getProperty("HomePath") + "/data/Script.xml").c_str() );
+    //		SAFE_DELETE( pTree );
 
     __END_CATCH
 }

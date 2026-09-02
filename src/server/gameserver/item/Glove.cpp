@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 GloveInfoManager* g_pGloveInfoManager = NULL;
@@ -58,8 +59,6 @@ void Glove::create(const string& ownerID, Storage storage, StorageID_t storageID
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -71,24 +70,12 @@ void Glove::create(const string& ownerID, Storage storage, StorageID_t storageID
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO GloveObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", " << (int)getGrade() << ", "
-            << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertGear(GEAR_GLOVE, m_ItemID, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                             storageID, (int)x, (int)y, optionField, getDurability(), (int)getGrade(),
+                                             (int)m_CreateType);
 
     __END_CATCH
 }
@@ -102,16 +89,7 @@ void Glove::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE GloveObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_GLOVE, field, m_ItemID);
 
     __END_CATCH
 }
@@ -124,41 +102,12 @@ void Glove::save(const string& ownerID, Storage storage, StorageID_t storageID, 
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE GloveObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery(
-            "UPDATE GloveObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-            "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel = %d WHERE ItemID=%ld",
-            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, optionField.c_str(),
-            getDurability(), (int)getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateGear(GEAR_GLOVE, m_ObjectID, getItemType(), ownerID, (int)storage, storageID,
+                                             (int)x, (int)y, optionField, getDurability(), (int)getGrade(),
+                                             (int)getEnchantLevel(), m_ItemID);
 
     __END_CATCH
 }
@@ -270,57 +219,39 @@ void GloveInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_GLOVE);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM GloveInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GearInfoRow> rows = defaultItemObjectRepository().loadGearInfos(GEAR_GLOVE);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        GloveInfo* pGloveInfo = new GloveInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pGloveInfo->setItemType(rows[r].itemType);
+        pGloveInfo->setName(rows[r].name);
+        pGloveInfo->setEName(rows[r].ename);
+        pGloveInfo->setPrice(rows[r].price);
+        pGloveInfo->setVolumeType(rows[r].volume);
+        pGloveInfo->setWeight(rows[r].weight);
+        pGloveInfo->setRatio(rows[r].ratio);
+        pGloveInfo->setDurability(rows[r].durability);
+        pGloveInfo->setDefenseBonus(rows[r].defense);
+        pGloveInfo->setProtectionBonus(rows[r].protection);
+        pGloveInfo->setReqAbility(rows[r].reqAbility);
+        pGloveInfo->setItemLevel(rows[r].itemLevel);
+        pGloveInfo->setDefaultOptions(rows[r].defaultOption);
+        pGloveInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pGloveInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pGloveInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pGloveInfo->setNextItemType(rows[r].nextItemType);
+        pGloveInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult =
-            pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, "
-                                "Protection, ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-                                "NextOptionRatio, NextItemType, DowngradeRatio FROM GloveInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            GloveInfo* pGloveInfo = new GloveInfo();
-
-            pGloveInfo->setItemType(pResult->getInt(++i));
-            pGloveInfo->setName(pResult->getString(++i));
-            pGloveInfo->setEName(pResult->getString(++i));
-            pGloveInfo->setPrice(pResult->getInt(++i));
-            pGloveInfo->setVolumeType(pResult->getInt(++i));
-            pGloveInfo->setWeight(pResult->getInt(++i));
-            pGloveInfo->setRatio(pResult->getInt(++i));
-            pGloveInfo->setDurability(pResult->getInt(++i));
-            pGloveInfo->setDefenseBonus(pResult->getInt(++i));
-            pGloveInfo->setProtectionBonus(pResult->getInt(++i));
-            pGloveInfo->setReqAbility(pResult->getString(++i));
-            pGloveInfo->setItemLevel(pResult->getInt(++i));
-            pGloveInfo->setDefaultOptions(pResult->getString(++i));
-            pGloveInfo->setUpgradeRatio(pResult->getInt(++i));
-            pGloveInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pGloveInfo->setNextOptionRatio(pResult->getInt(++i));
-            pGloveInfo->setNextItemType(pResult->getInt(++i));
-            pGloveInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pGloveInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pGloveInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -336,146 +267,117 @@ void GloveLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<GearObjectRow> rows = defaultItemObjectRepository().loadGearOfOwner(GEAR_GLOVE, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            Glove* pGlove = new Glove();
 
-        /*
-        StringStream sql;
+            pGlove->setItemID(rows[r].itemID);
+            pGlove->setObjectID(rows[r].objectID);
+            pGlove->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " OptionType, Durability, EnchantLevel FROM GloveObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            if (g_pGloveInfoManager->getItemInfo(pGlove->getItemType())->isUnique())
+                pGlove->setUnique();
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
-            "ItemFlag FROM GloveObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pGlove->setOptionType(optionTypes);
 
+            pGlove->setDurability(rows[r].durability);
+            pGlove->setGrade(rows[r].grade);
+            pGlove->setEnchantLevel(rows[r].enchantLevel);
+            pGlove->setCreateType((Item::CreateType)rows[r].createType);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                Glove* pGlove = new Glove();
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                pGlove->setItemID(pResult->getDWORD(++i));
-                pGlove->setObjectID(pResult->getDWORD(++i));
-                pGlove->setItemType(pResult->getDWORD(++i));
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                if (g_pGloveInfoManager->getItemInfo(pGlove->getItemType())->isUnique())
-                    pGlove->setUnique();
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pGlove)) {
+                    pInventory->addItemEx(x, y, pGlove);
+                } else {
+                    processItemBugEx(pCreature, pGlove);
+                }
+                break;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pGlove->setOptionType(optionTypes);
-
-                pGlove->setDurability(pResult->getInt(++i));
-                pGlove->setGrade(pResult->getInt(++i));
-                pGlove->setEnchantLevel(pResult->getInt(++i));
-                pGlove->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pGlove)) {
-                        pInventory->addItemEx(x, y, pGlove);
+                    if (!pSlayer->isWear((Slayer::WearPart)x)) {
+                        pSlayer->wearItem((Slayer::WearPart)x, pGlove);
                     } else {
                         processItemBugEx(pCreature, pGlove);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        if (!pSlayer->isWear((Slayer::WearPart)x)) {
-                            pSlayer->wearItem((Slayer::WearPart)x, pGlove);
-                        } else {
-                            processItemBugEx(pCreature, pGlove);
-                        }
-                    } else if (pCreature->isVampire()) {
-                        processItemBugEx(pCreature, pGlove);
-                    }
-                    break;
-
-                case STORAGE_BELT:
+                } else if (pCreature->isVampire()) {
                     processItemBugEx(pCreature, pGlove);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pGlove);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pGlove);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pGlove);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pGlove);
-                    } else
-                        pStash->insert(x, y, pGlove);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pGlove);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pGlove);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pGlove);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pGlove);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pGlove);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pGlove);
+                } else
+                    pStash->insert(x, y, pGlove);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pGlove);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -491,61 +393,45 @@ void GloveLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<GearZoneObjectRow> rows =
+        defaultItemObjectRepository().loadGearInZone(GEAR_GLOVE, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        Glove* pGlove = new Glove();
 
-        StringStream sql;
+        pGlove->setItemID(rows[r].itemID);
+        pGlove->setObjectID(rows[r].objectID);
+        pGlove->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " OptionType, Durability, EnchantLevel, ItemFlag FROM GloveObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        string optionField = rows[r].optionField;
+        list<OptionType_t> optionTypes;
+        setOptionTypeFromField(optionTypes, optionField);
+        pGlove->setOptionType(optionTypes);
 
-        while (pResult->next()) {
-            uint i = 0;
+        pGlove->setDurability(rows[r].durability);
+        pGlove->setEnchantLevel(rows[r].enchantLevel);
+        pGlove->setCreateType((Item::CreateType)rows[r].createType);
 
-            Glove* pGlove = new Glove();
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pGlove);
+        } break;
 
-            pGlove->setItemID(pResult->getInt(++i));
-            pGlove->setObjectID(pResult->getInt(++i));
-            pGlove->setItemType(pResult->getInt(++i));
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            string optionField = pResult->getString(++i);
-            list<OptionType_t> optionTypes;
-            setOptionTypeFromField(optionTypes, optionField);
-            pGlove->setOptionType(optionTypes);
-
-            pGlove->setDurability(pResult->getInt(++i));
-            pGlove->setEnchantLevel(pResult->getInt(++i));
-            pGlove->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pGlove);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

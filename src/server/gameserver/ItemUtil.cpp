@@ -18,7 +18,6 @@
 #include <fstream>
 
 #include "Corpse.h"
-#include "DB.h"
 #include "GCCreateItem.h"
 #include "GoodsInfoManager.h"
 #include "Inventory.h"
@@ -52,6 +51,7 @@
 #include "item/SMG.h"
 #include "item/SR.h"
 #include "item/SlayerPortalItem.h"
+#include "repository/ItemRepository.h"
 
 #if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
 
@@ -2638,23 +2638,16 @@ void remainTraceLog(Item* pItem, const string& preOwner, const string& owner, It
 
     Assert(pItem != NULL);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        string optionName = getOptionTypeToString(pItem->getOptionTypeList());
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("INSERT INTO ItemTraceLog (ItemID, ItemClass, ItemType, OptionType, PreOwnerID, OwnerID, "
-                            "LogType, DetailType, Time) VALUES ( %u,'%s',%u,'%s','%s','%s','%s','%s',now() )",
-                            pItem->getItemID(), ItemClass2ShortString[(int)(pItem->getItemClass())].c_str(),
-                            pItem->getItemType(), optionName.c_str(), preOwner.c_str(), owner.c_str(),
-                            ItemTraceLogType2String[(int)logType].c_str(),
-                            ItemTraceLogDetailType2String[(int)detailType].c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    ItemTraceRecord record;
+    record.itemID = pItem->getItemID();
+    record.itemClass = ItemClass2ShortString[(int)(pItem->getItemClass())];
+    record.itemType = pItem->getItemType();
+    record.optionName = getOptionTypeToString(pItem->getOptionTypeList());
+    record.preOwner = preOwner;
+    record.owner = owner;
+    record.logType = ItemTraceLogType2String[(int)logType];
+    record.detailType = ItemTraceLogDetailType2String[(int)detailType];
+    defaultItemRepository().insertItemTraceLog(record);
 
     __END_CATCH
 }
@@ -2667,33 +2660,8 @@ void remainTraceLogNew(Item* pItem, const string& owner, ITLType logType, ITLDTy
 
     Assert(pItem != NULL);
 
-    /*	Statement* pStmt = NULL;
-
-        BEGIN_DB
-        {
-            string optionName = getOptionTypeToString(pItem->getOptionTypeList());
-
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            pStmt->executeQuery(
-                    "INSERT INTO ItemTrace2Log (ItemID, ItemClass, ItemType, OptionType, OwnerID, ActionType,
-       DetailType, Zone, X, Y ,Time) VALUES ( %u,'%s',%u,'%s','%s','%s','%s','%s','%d','%d','%d',now() )",
-                    pItem->getItemID(),
-                    ItemClass2ShortString[ (int)(pItem->getItemClass()) ].c_str(),
-                    pItem->getItemType(),
-                    optionName.c_str(),
-                    owner.c_str(),
-                    ITLType2String[ (int)logType ].c_str(),
-                    ITLDType2String[ (int)detailType ].c_str(),
-                    zid,
-                    x,
-                    y
-                    );
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-    */
+    // The ItemTrace2Log INSERT that lived here was commented out long ago;
+    // the dead block is gone so it no longer reads as inline SQL.
     __END_CATCH
 }
 
@@ -2703,19 +2671,8 @@ void remainMoneyTraceLog(const string& preOwner, const string& owner, ItemTraceL
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("INSERT INTO MoneyTraceLog (PreOwnerID, OwnerID, LogType, DetailType, Amount, Time) VALUES "
-                            "( '%s','%s','%s','%s', %d, now() )",
-                            preOwner.c_str(), owner.c_str(), ItemTraceLogType2String[(int)logType].c_str(),
-                            ItemTraceLogDetailType2String[(int)detailType].c_str(), amount);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemRepository().insertMoneyTraceLog(preOwner, owner, ItemTraceLogType2String[(int)logType],
+                                                ItemTraceLogDetailType2String[(int)detailType], amount);
 
     __END_CATCH
 }
@@ -2792,21 +2749,9 @@ Item* createItemByGoodsID(DWORD goodsID) {
 
 bool bWinPrize(DWORD rewardID, DWORD questLevel) {
     bool Lotto = false;
-    Statement* pStmt = NULL;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE EventQuestRewardSchedule SET Count = Count - 1 WHERE Count > 0 AND RewardID = %d "
-                            "AND QuestLevel = %d AND Time < now() LIMIT 1",
-                            rewardID, questLevel);
-
-        if (pStmt->getAffectedRowCount() > 0)
-            Lotto = true;
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    if (defaultItemRepository().takeEventQuestReward(rewardID, questLevel))
+        Lotto = true;
 
     return Lotto;
 }
@@ -2826,16 +2771,7 @@ void deleteFlagEffect(Corpse* pFlagPole, Item* pFlag) {
 
 void countResurrectItem() {
     __BEGIN_TRY
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE ResurrectItemCount SET Count=Count+1");
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemRepository().incrementResurrectItemCount();
     __END_CATCH
 }
 

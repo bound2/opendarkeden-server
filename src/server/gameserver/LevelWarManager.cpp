@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 #include "CGSay.h"
-#include "DB.h"
 #include "GCNoticeEvent.h"
 #include "GCSweeperBonusInfo.h"
 #include "GCSystemMessage.h"
@@ -17,6 +16,7 @@
 #include "SweeperBonusManager.h"
 #include "VariableManager.h"
 #include "ZoneGroupManager.h"
+#include "repository/WarInfoRepository.h"
 
 // 전쟁 하는 날짜
 int LevelWarTime[4][3] = {
@@ -98,39 +98,29 @@ void LevelWarManager::startWar() {
 }
 
 void LevelWarManager::recordLevelWarStart() {
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<SweeperBonusOwnerRow> owners = defaultWarInfoRepository().loadSweeperOwnerRaces(m_pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT SweeperType, OwnerRace FROM SweeperOwnerInfo WHERE ZoneID = %d",
-                                      m_pZone->getZoneID());
+    string slayerOld;
+    string vampireOld;
+    string oustersOld;
+    string defaultOld;
 
-        string slayerOld;
-        string vampireOld;
-        string oustersOld;
-        string defaultOld;
+    for (size_t r = 0; r < owners.size(); r++) {
+        uint id = owners[r].type;
+        uint ownerRace = owners[r].ownerRace;
 
-        while (pResult->next()) {
-            uint id = pResult->getInt(1);
-            uint ownerRace = pResult->getInt(2);
-
-            if (ownerRace == 0)
-                slayerOld = slayerOld + itos(id) + "|";
-            else if (ownerRace == 1)
-                vampireOld = vampireOld + itos(id) + "|";
-            else if (ownerRace == 2)
-                oustersOld = oustersOld + itos(id) + "|";
-            else
-                defaultOld = defaultOld + itos(id) + "|";
-        }
-
-        pStmt->executeQuery("INSERT INTO LevelWarHistory (Level, LevelWarID, SlayerOldSweeper, VampireOldSweeper, "
-                            "OustersOldSweeper, DefaultOldSweeper) VALUES (%d, '%s', '%s', '%s', '%s', '%s')",
-                            m_Level, getLevelWarStartTime().toStringforWeb().c_str(), slayerOld.c_str(),
-                            vampireOld.c_str(), oustersOld.c_str(), defaultOld.c_str());
+        if (ownerRace == 0)
+            slayerOld = slayerOld + itos(id) + "|";
+        else if (ownerRace == 1)
+            vampireOld = vampireOld + itos(id) + "|";
+        else if (ownerRace == 2)
+            oustersOld = oustersOld + itos(id) + "|";
+        else
+            defaultOld = defaultOld + itos(id) + "|";
     }
-    END_DB(pStmt)
+
+    defaultWarInfoRepository().insertLevelWarHistory(m_Level, getLevelWarStartTime().toStringforWeb(), slayerOld,
+                                                     vampireOld, oustersOld, defaultOld);
 }
 
 void LevelWarManager::manualStart() {
@@ -171,39 +161,29 @@ void LevelWarManager::endWar() {
 }
 
 void LevelWarManager::recordLevelWarEnd() {
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<SweeperBonusOwnerRow> owners = defaultWarInfoRepository().loadSweeperOwnerRaces(m_pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT SweeperType, OwnerRace FROM SweeperOwnerInfo WHERE ZoneID = %d",
-                                      m_pZone->getZoneID());
+    string slayerNew;
+    string vampireNew;
+    string oustersNew;
+    string defaultNew;
 
-        string slayerNew;
-        string vampireNew;
-        string oustersNew;
-        string defaultNew;
+    for (size_t r = 0; r < owners.size(); r++) {
+        uint id = owners[r].type;
+        uint ownerRace = owners[r].ownerRace;
 
-        while (pResult->next()) {
-            uint id = pResult->getInt(1);
-            uint ownerRace = pResult->getInt(2);
-
-            if (ownerRace == 0)
-                slayerNew = slayerNew + itos(id) + "|";
-            else if (ownerRace == 1)
-                vampireNew = vampireNew + itos(id) + "|";
-            else if (ownerRace == 2)
-                oustersNew = oustersNew + itos(id) + "|";
-            else
-                defaultNew = defaultNew + itos(id) + "|";
-        }
-
-        pStmt->executeQuery("UPDATE LevelWarHistory SET SlayerSweeper = '%s', VampireSweeper = '%s', OustersSweeper = "
-                            "'%s', DefaultSweeper = '%s' WHERE Level = %d AND LevelWarID = '%s'",
-                            slayerNew.c_str(), vampireNew.c_str(), oustersNew.c_str(), defaultNew.c_str(), m_Level,
-                            getLevelWarStartTime().toStringforWeb().c_str());
+        if (ownerRace == 0)
+            slayerNew = slayerNew + itos(id) + "|";
+        else if (ownerRace == 1)
+            vampireNew = vampireNew + itos(id) + "|";
+        else if (ownerRace == 2)
+            oustersNew = oustersNew + itos(id) + "|";
+        else
+            defaultNew = defaultNew + itos(id) + "|";
     }
-    END_DB(pStmt)
+
+    defaultWarInfoRepository().updateLevelWarHistory(slayerNew, vampireNew, oustersNew, defaultNew, m_Level,
+                                                     getLevelWarStartTime().toStringforWeb());
 
     // script 돌리기 ㅡ.,ㅡ system 함수를 쓰게 될 줄이야 !_!
     char cmd[100];

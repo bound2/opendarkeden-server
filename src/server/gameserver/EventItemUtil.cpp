@@ -3,7 +3,6 @@
 
 #include <list>
 
-#include "DB.h"
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "Monster.h"
@@ -11,6 +10,7 @@
 #include "Slayer.h"
 #include "Vampire.h"
 #include "VariableManager.h"
+#include "repository/ItemRepository.h"
 
 MoonCard getCardKind(PlayerCreature* pPC, Monster* pMonster) {
     int UserLevel, MonsterLevel = pMonster->getLevel();
@@ -80,16 +80,7 @@ Item* getCardItem(MoonCard card) {
 
     if (putInDB) {
         filelog("MoonCard.log", "아이템이 나왔습니다. : %d", (int)card);
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            pStmt->executeQuery("UPDATE CardCount SET CARDCOUNT = CARDCOUNT + 1 WHERE CARDKIND = %d", (int)card - 1);
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultItemRepository().incrementCardCount((int)card - 1);
     }
 
     return ret;
@@ -164,17 +155,7 @@ Item* getLuckyBagItem(LuckyBag luckybag) {
 
     if (putInDB) {
         filelog("LuckyBag.log", "아이템이 나왔습니다. : %d", (int)luckybag);
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            pStmt->executeQuery("UPDATE LuckyBagCount SET BAGCOUNT = BAGCOUNT + 1 WHERE BAGKIND = %d",
-                                (int)luckybag - 1);
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultItemRepository().incrementLuckyBagCount((int)luckybag - 1);
     }
 
     return ret;
@@ -250,16 +231,7 @@ Item* getGiftBoxItem(GiftBox giftbox) {
 
     if (putInDB) {
         filelog("GiftBox.log", "아이템이 나왔습니다. : %d", (int)giftbox + 1);
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            pStmt->executeQuery("UPDATE GiftBoxCount SET BOXCOUNT = BOXCOUNT + 1 WHERE BOXKIND = %d", (int)giftbox + 1);
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultItemRepository().incrementGiftBoxCount((int)giftbox + 1);
     }
 
     return ret;
@@ -339,15 +311,5 @@ void logEventItemCount(Item* pEventItem)
     if (pEventItem == NULL)
         return;
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE EventItemCount SET Count = Count + 1 WHERE ItemClass=%u AND ItemType=%u",
-                            (uint)pEventItem->getItemClass(), (uint)pEventItem->getItemType());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemRepository().incrementEventItemCount((uint)pEventItem->getItemClass(), (uint)pEventItem->getItemType());
 }

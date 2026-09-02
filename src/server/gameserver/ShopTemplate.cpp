@@ -6,7 +6,7 @@
 
 #include "ShopTemplate.h"
 
-#include "DB.h"
+#include "repository/GameInfoRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // global varible initialization
@@ -94,31 +94,21 @@ void ShopTemplateManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<ShopTemplateRow> rows = defaultGameInfoRepository().loadShopTemplates();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT ID, ShopType, ItemClass, MinItemType, MaxItemType, MinOptionLevel, "
-                                      "MaxOptionLevel FROM ShopTemplate");
+    for (size_t r = 0; r < rows.size(); r++) {
+        ShopTemplate* pTemplate = new ShopTemplate();
 
-        while (pResult->next()) {
-            ShopTemplate* pTemplate = new ShopTemplate();
+        pTemplate->setID(rows[r].id);
+        pTemplate->setShopType(rows[r].shopType);
+        pTemplate->setItemClass(rows[r].itemClass);
+        pTemplate->setMinItemType(rows[r].minItemType);
+        pTemplate->setMaxItemType(rows[r].maxItemType);
+        pTemplate->setMinOptionLevel(rows[r].minOptionLevel);
+        pTemplate->setMaxOptionLevel(rows[r].maxOptionLevel);
 
-            pTemplate->setID(pResult->getInt(1));
-            pTemplate->setShopType(pResult->getInt(2));
-            pTemplate->setItemClass(pResult->getInt(3));
-            pTemplate->setMinItemType(pResult->getInt(4));
-            pTemplate->setMaxItemType(pResult->getInt(5));
-            pTemplate->setMinOptionLevel(pResult->getInt(6));
-            pTemplate->setMaxOptionLevel(pResult->getInt(7));
-
-            setTemplate(pTemplate->getID(), pTemplate);
-        }
-
-        SAFE_DELETE(pStmt);
+        setTemplate(pTemplate->getID(), pTemplate);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
