@@ -23,6 +23,8 @@
 #include "PlayerCreature.h"
 #include "StringPool.h"
 #include "SystemAvailabilitiesManager.h"
+#include "repository/GuildRepository.h"
+#include "repository/MessageRepository.h"
 #endif // __GAME_SERVER__
 
 //////////////////////////////////////////////////////////////////////////////
@@ -97,26 +99,16 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
         // cout << "연합에서 길드를 추방시킨다. 통보받을 유저는 : " << TargetGuildMaster.c_str() << endl;
 
 
-        Statement* pStmt = NULL;
+        GuildRepository& guilds = defaultGuildRepository();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO `Messages` (`Receiver`, `Message`) values ('%s','%s')",
-                                TargetGuildMaster.c_str(), g_pStringPool->c_str(377));
+        defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
+                                                     g_pStringPool->c_str(377));
 
-            Result* pResult = pStmt->executeQuery("SELECT count(*) FROM `GuildUnionMember` WHERE `UnionID`='%u'",
-                                                  pUnion->getUnionID());
-            pResult->next();
-
-            if (pResult->getInt(1) == 0) {
-                // cout << "추방하고 나서..멤버가 하나도 남지 않으면 연합정보를 없애버린다." << endl;
-                pStmt->executeQuery("DELETE FROM `GuildUnionInfo` WHERE `UnionID`='%u'", pUnion->getUnionID());
-                GuildUnionManager::Instance().reload();
-            }
-
-            SAFE_DELETE(pStmt);
+        if (guilds.countUnionMembers(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
+            // cout << "추방하고 나서..멤버가 하나도 남지 않으면 연합정보를 없애버린다." << endl;
+            guilds.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
+            GuildUnionManager::Instance().reload();
         }
-        END_DB(pStmt)
 
         Creature* pCreature = NULL;
         pCreature = pGamePlayer->getCreature();
