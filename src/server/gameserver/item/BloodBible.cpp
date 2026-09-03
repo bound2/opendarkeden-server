@@ -16,6 +16,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 BloodBibleInfoManager* g_pBloodBibleInfoManager = NULL;
@@ -59,8 +60,6 @@ void BloodBible::create(const string& ownerID, Storage storage, StorageID_t stor
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -72,22 +71,10 @@ void BloodBible::create(const string& ownerID, Storage storage, StorageID_t stor
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "INSERT INTO BloodBibleObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, Durability)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '"
-            << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", "
-            << m_Durability << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        filelog("WarLog.txt", "%s", sql.toString().c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    const string sql =
+        defaultItemObjectRepository().insertWarItem(GEAR_BLOOD_BIBLE, m_ItemID, m_ObjectID, m_ItemType, ownerID,
+                                                    (int)storage, storageID, (int)x, (int)y, m_Durability);
+    filelog("WarLog.txt", "%s", sql.c_str());
 
     __END_CATCH
 }
@@ -101,19 +88,11 @@ void BloodBible::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
     char query[255];
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        sprintf(query, "UPDATE BloodBibleObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-        pStmt->executeQuery(query);
-        filelog("WarLog.txt", "%s", query);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    sprintf(query, "UPDATE BloodBibleObject SET %s WHERE ItemID=%ld", field, m_ItemID);
+    defaultItemObjectRepository().tinysaveGear(GEAR_BLOOD_BIBLE, field, m_ItemID);
+    filelog("WarLog.txt", "%s", query);
 
     __END_CATCH
 }
@@ -126,38 +105,9 @@ void BloodBible::save(const string& ownerID, Storage storage, StorageID_t storag
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE BloodBibleObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("UPDATE BloodBibleObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Durability=%d, EnchantLevel=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            m_Durability, (int)getEnchantLevel(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateWarItem(GEAR_BLOOD_BIBLE, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                storageID, (int)x, (int)y, m_Durability, (int)getEnchantLevel(),
+                                                m_ItemID);
 
     __END_CATCH
 }
@@ -268,49 +218,33 @@ void BloodBibleInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_BLOOD_BIBLE);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM BloodBibleInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<WarInfoRow> rows = defaultItemObjectRepository().loadWarInfos(GEAR_BLOOD_BIBLE);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        BloodBibleInfo* pBloodBibleInfo = new BloodBibleInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pBloodBibleInfo->setItemType(rows[r].itemType);
+        pBloodBibleInfo->setName(rows[r].name);
+        pBloodBibleInfo->setEName(rows[r].ename);
+        pBloodBibleInfo->setPrice(rows[r].price);
+        pBloodBibleInfo->setVolumeType(rows[r].volume);
+        pBloodBibleInfo->setWeight(rows[r].weight);
+        pBloodBibleInfo->setRatio(rows[r].ratio);
+        pBloodBibleInfo->setDurability(rows[r].durability);
+        pBloodBibleInfo->setDefenseBonus(rows[r].defense);
+        pBloodBibleInfo->setProtectionBonus(rows[r].protection);
+        pBloodBibleInfo->setReqAbility(rows[r].reqAbility);
+        pBloodBibleInfo->setItemLevel(rows[r].itemLevel);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, "
-                                      "Defense, Protection, ReqAbility, ItemLevel FROM BloodBibleInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            BloodBibleInfo* pBloodBibleInfo = new BloodBibleInfo();
-
-            pBloodBibleInfo->setItemType(pResult->getInt(++i));
-            pBloodBibleInfo->setName(pResult->getString(++i));
-            pBloodBibleInfo->setEName(pResult->getString(++i));
-            pBloodBibleInfo->setPrice(pResult->getInt(++i));
-            pBloodBibleInfo->setVolumeType(pResult->getInt(++i));
-            pBloodBibleInfo->setWeight(pResult->getInt(++i));
-            pBloodBibleInfo->setRatio(pResult->getInt(++i));
-            pBloodBibleInfo->setDurability(pResult->getInt(++i));
-            pBloodBibleInfo->setDefenseBonus(pResult->getInt(++i));
-            pBloodBibleInfo->setProtectionBonus(pResult->getInt(++i));
-            pBloodBibleInfo->setReqAbility(pResult->getString(++i));
-            pBloodBibleInfo->setItemLevel(pResult->getInt(++i));
-
-            addItemInfo(pBloodBibleInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pBloodBibleInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -326,147 +260,10 @@ void BloodBibleLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, "
-            << " OptionType, Durability, EnchantLevel FROM BloodBibleObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
-
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
-
-        // BloodBible load할게 있다는것은..
-        // 현재로서는 이전에 서버다운이 되었다는 의미이다.
-        // 그래서, 지운다. by sigi
-        pStmt->executeQuery("DELETE FROM BloodBibleObject WHERE OwnerID = '%s'", pCreature->getName().c_str());
-
-        /*
-        Result* pResult = pStmt->executeQuery( "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType,
-        Durability, EnchantLevel FROM BloodBibleObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                pCreature->getName().c_str() );
-
-
-        while (pResult->next())
-        {
-            uint i = 0;
-
-            BloodBible* pBloodBible = new BloodBible();
-
-            pBloodBible->setItemID(pResult->getDWORD(++i));
-            pBloodBible->setObjectID(pResult->getDWORD(++i));
-            pBloodBible->setItemType(pResult->getDWORD(++i));
-
-            Storage storage =(Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getDWORD(++i);
-            BYTE x = pResult->getBYTE(++i);
-            BYTE y = pResult->getBYTE(++i);
-
-            pBloodBible->setOptionType(pResult->getInt(++i));
-            pBloodBible->setDurability(pResult->getInt(++i));
-            pBloodBible->setEnchantLevel(pResult->getInt(++i));
-
-            Inventory*  pInventory      = NULL;
-            Slayer*     pSlayer         = NULL;
-            Vampire*    pVampire        = NULL;
-            Motorcycle* pMotorcycle     = NULL;
-            Inventory*  pMotorInventory = NULL;
-            //Item*       pItem           = NULL;
-            Stash*      pStash          = NULL;
-            //Belt*       pBelt           = NULL;
-            //Inventory*  pBeltInventory  = NULL;
-
-            if (pCreature->isSlayer())
-            {
-                pSlayer     = dynamic_cast<Slayer*>(pCreature);
-                pInventory  = pSlayer->getInventory();
-                pStash      = pSlayer->getStash();
-                pMotorcycle = pSlayer->getMotorcycle();
-
-                if (pMotorcycle) pMotorInventory = pMotorcycle->getInventory();
-            }
-            else if (pCreature->isVampire())
-            {
-                pVampire   = dynamic_cast<Vampire*>(pCreature);
-                pInventory = pVampire->getInventory();
-                pStash     = pVampire->getStash();
-            }
-            else throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-            switch(storage)
-            {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pBloodBible))
-                    {
-                        pInventory->addItemEx(x, y, pBloodBible);
-                    }
-                    else
-                    {
-                        processItemBugEx(pCreature, pBloodBible);
-                    }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer())
-                    {
-                        if (!pSlayer->isWear((Slayer::WearPart)x))
-                        {
-                            pSlayer->wearItem((Slayer::WearPart)x, pBloodBible);
-                        }
-                        else
-                        {
-                            processItemBugEx(pCreature, pBloodBible);
-                        }
-                    }
-                    else if (pCreature->isVampire())
-                    {
-                        processItemBugEx(pCreature, pBloodBible);
-                    }
-                    break;
-
-                case STORAGE_BELT :
-                    processItemBugEx(pCreature, pBloodBible);
-                    break;
-
-                case STORAGE_EXTRASLOT :
-                    if (pCreature->isSlayer())       pSlayer->addItemToExtraInventorySlot(pBloodBible);
-                    else if (pCreature->isVampire()) pVampire->addItemToExtraInventorySlot(pBloodBible);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pBloodBible);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y))
-                    {
-                        processItemBugEx(pCreature, pBloodBible);
-                    }
-                    else pStash->insert(x, y, pBloodBible);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pBloodBible);
-                    break;
-
-                default :
-                    SAFE_DELETE(pStmt);	// by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
-            }
-        }
-        */
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    // BloodBible load할게 있다는것은..
+    // 현재로서는 이전에 서버다운이 되었다는 의미이다.
+    // 그래서, 지운다. by sigi
+    defaultItemObjectRepository().deleteWarItemsOfOwner(GEAR_BLOOD_BIBLE, pCreature->getName());
 
     __END_CATCH
 }
@@ -482,55 +279,39 @@ void BloodBibleLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<WarItemZoneObjectRow> rows =
+        defaultItemObjectRepository().loadWarItemInZone(GEAR_BLOOD_BIBLE, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        BloodBible* pBloodBible = new BloodBible();
 
-        StringStream sql;
+        pBloodBible->setItemID(rows[r].itemID);
+        pBloodBible->setObjectID(rows[r].objectID);
+        pBloodBible->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " Durability, EnchantLevel FROM BloodBibleObject" << " WHERE Storage = " << (int)STORAGE_ZONE
-            << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        pBloodBible->setDurability(rows[r].durability);
+        pBloodBible->setEnchantLevel(rows[r].enchantLevel);
 
-        while (pResult->next()) {
-            uint i = 0;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pBloodBible);
+        } break;
 
-            BloodBible* pBloodBible = new BloodBible();
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            pBloodBible->setItemID(pResult->getInt(++i));
-            pBloodBible->setObjectID(pResult->getInt(++i));
-            pBloodBible->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            pBloodBible->setDurability(pResult->getInt(++i));
-            pBloodBible->setEnchantLevel(pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pBloodBible);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

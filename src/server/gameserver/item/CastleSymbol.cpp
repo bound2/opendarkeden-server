@@ -16,6 +16,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 CastleSymbolInfoManager* g_pCastleSymbolInfoManager = NULL;
@@ -60,8 +61,6 @@ void CastleSymbol::create(const string& ownerID, Storage storage, StorageID_t st
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -73,22 +72,10 @@ void CastleSymbol::create(const string& ownerID, Storage storage, StorageID_t st
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "INSERT INTO CastleSymbolObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, Durability )" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '"
-            << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", "
-            << m_Durability << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        filelog("WarLog.txt", "%s", sql.toString().c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    const string sql =
+        defaultItemObjectRepository().insertWarItem(GEAR_CASTLE_SYMBOL, m_ItemID, m_ObjectID, m_ItemType, ownerID,
+                                                    (int)storage, storageID, (int)x, (int)y, m_Durability);
+    filelog("WarLog.txt", "%s", sql.c_str());
 
     __END_CATCH
 }
@@ -102,19 +89,11 @@ void CastleSymbol::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
     char query[255];
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        sprintf(query, "UPDATE CastleSymbolObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-        pStmt->executeQuery(query);
-        filelog("WarLog.txt", "%s", query);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    sprintf(query, "UPDATE CastleSymbolObject SET %s WHERE ItemID=%ld", field, m_ItemID);
+    defaultItemObjectRepository().tinysaveGear(GEAR_CASTLE_SYMBOL, field, m_ItemID);
+    filelog("WarLog.txt", "%s", query);
 
     __END_CATCH
 }
@@ -127,38 +106,8 @@ void CastleSymbol::save(const string& ownerID, Storage storage, StorageID_t stor
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE CastleSymbolObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("UPDATE CastleSymbolObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Durability=%d, EnchantLevel=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            m_Durability, (int)m_EnchantLevel, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateWarItem(GEAR_CASTLE_SYMBOL, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                storageID, (int)x, (int)y, m_Durability, (int)m_EnchantLevel, m_ItemID);
 
     __END_CATCH
 }
@@ -269,49 +218,33 @@ void CastleSymbolInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_CASTLE_SYMBOL);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM CastleSymbolInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<WarInfoRow> rows = defaultItemObjectRepository().loadWarInfos(GEAR_CASTLE_SYMBOL);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        CastleSymbolInfo* pCastleSymbolInfo = new CastleSymbolInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pCastleSymbolInfo->setItemType(rows[r].itemType);
+        pCastleSymbolInfo->setName(rows[r].name);
+        pCastleSymbolInfo->setEName(rows[r].ename);
+        pCastleSymbolInfo->setPrice(rows[r].price);
+        pCastleSymbolInfo->setVolumeType(rows[r].volume);
+        pCastleSymbolInfo->setWeight(rows[r].weight);
+        pCastleSymbolInfo->setRatio(rows[r].ratio);
+        pCastleSymbolInfo->setDurability(rows[r].durability);
+        pCastleSymbolInfo->setDefenseBonus(rows[r].defense);
+        pCastleSymbolInfo->setProtectionBonus(rows[r].protection);
+        pCastleSymbolInfo->setReqAbility(rows[r].reqAbility);
+        pCastleSymbolInfo->setItemLevel(rows[r].itemLevel);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, "
-                                      "Defense, Protection, ReqAbility, ItemLevel FROM CastleSymbolInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            CastleSymbolInfo* pCastleSymbolInfo = new CastleSymbolInfo();
-
-            pCastleSymbolInfo->setItemType(pResult->getInt(++i));
-            pCastleSymbolInfo->setName(pResult->getString(++i));
-            pCastleSymbolInfo->setEName(pResult->getString(++i));
-            pCastleSymbolInfo->setPrice(pResult->getInt(++i));
-            pCastleSymbolInfo->setVolumeType(pResult->getInt(++i));
-            pCastleSymbolInfo->setWeight(pResult->getInt(++i));
-            pCastleSymbolInfo->setRatio(pResult->getInt(++i));
-            pCastleSymbolInfo->setDurability(pResult->getInt(++i));
-            pCastleSymbolInfo->setDefenseBonus(pResult->getInt(++i));
-            pCastleSymbolInfo->setProtectionBonus(pResult->getInt(++i));
-            pCastleSymbolInfo->setReqAbility(pResult->getString(++i));
-            pCastleSymbolInfo->setItemLevel(pResult->getInt(++i));
-
-            addItemInfo(pCastleSymbolInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pCastleSymbolInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -327,147 +260,10 @@ void CastleSymbolLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, "
-            << " OptionType, Durability, EnchantLevel FROM CastleSymbolObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
-
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
-
-        // CastleSymbol load할게 있다는것은..
-        // 현재로서는 이전에 서버다운이 되었다는 의미이다.
-        // 그래서, 지운다. by sigi
-        pStmt->executeQuery("DELETE FROM CastleSymbolObject WHERE OwnerID = '%s'", pCreature->getName().c_str());
-
-        /*
-        Result* pResult = pStmt->executeQuery( "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType,
-        Durability, EnchantLevel FROM CastleSymbolObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                pCreature->getName().c_str() );
-
-
-        while (pResult->next())
-        {
-            uint i = 0;
-
-            CastleSymbol* pCastleSymbol = new CastleSymbol();
-
-            pCastleSymbol->setItemID(pResult->getDWORD(++i));
-            pCastleSymbol->setObjectID(pResult->getDWORD(++i));
-            pCastleSymbol->setItemType(pResult->getDWORD(++i));
-
-            Storage storage =(Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getDWORD(++i);
-            BYTE x = pResult->getBYTE(++i);
-            BYTE y = pResult->getBYTE(++i);
-
-            pCastleSymbol->setOptionType(pResult->getInt(++i));
-            pCastleSymbol->setDurability(pResult->getInt(++i));
-            pCastleSymbol->setEnchantLevel(pResult->getInt(++i));
-
-            Inventory*  pInventory      = NULL;
-            Slayer*     pSlayer         = NULL;
-            Vampire*    pVampire        = NULL;
-            Motorcycle* pMotorcycle     = NULL;
-            Inventory*  pMotorInventory = NULL;
-            //Item*       pItem           = NULL;
-            Stash*      pStash          = NULL;
-            //Belt*       pBelt           = NULL;
-            //Inventory*  pBeltInventory  = NULL;
-
-            if (pCreature->isSlayer())
-            {
-                pSlayer     = dynamic_cast<Slayer*>(pCreature);
-                pInventory  = pSlayer->getInventory();
-                pStash      = pSlayer->getStash();
-                pMotorcycle = pSlayer->getMotorcycle();
-
-                if (pMotorcycle) pMotorInventory = pMotorcycle->getInventory();
-            }
-            else if (pCreature->isVampire())
-            {
-                pVampire   = dynamic_cast<Vampire*>(pCreature);
-                pInventory = pVampire->getInventory();
-                pStash     = pVampire->getStash();
-            }
-            else throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-            switch(storage)
-            {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pCastleSymbol))
-                    {
-                        pInventory->addItemEx(x, y, pCastleSymbol);
-                    }
-                    else
-                    {
-                        processItemBugEx(pCreature, pCastleSymbol);
-                    }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer())
-                    {
-                        if (!pSlayer->isWear((Slayer::WearPart)x))
-                        {
-                            pSlayer->wearItem((Slayer::WearPart)x, pCastleSymbol);
-                        }
-                        else
-                        {
-                            processItemBugEx(pCreature, pCastleSymbol);
-                        }
-                    }
-                    else if (pCreature->isVampire())
-                    {
-                        processItemBugEx(pCreature, pCastleSymbol);
-                    }
-                    break;
-
-                case STORAGE_BELT :
-                    processItemBugEx(pCreature, pCastleSymbol);
-                    break;
-
-                case STORAGE_EXTRASLOT :
-                    if (pCreature->isSlayer())       pSlayer->addItemToExtraInventorySlot(pCastleSymbol);
-                    else if (pCreature->isVampire()) pVampire->addItemToExtraInventorySlot(pCastleSymbol);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pCastleSymbol);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y))
-                    {
-                        processItemBugEx(pCreature, pCastleSymbol);
-                    }
-                    else pStash->insert(x, y, pCastleSymbol);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pCastleSymbol);
-                    break;
-
-                default :
-                    SAFE_DELETE(pStmt);	// by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
-            }
-        }
-        */
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    // CastleSymbol load할게 있다는것은..
+    // 현재로서는 이전에 서버다운이 되었다는 의미이다.
+    // 그래서, 지운다. by sigi
+    defaultItemObjectRepository().deleteWarItemsOfOwner(GEAR_CASTLE_SYMBOL, pCreature->getName());
 
     __END_CATCH
 }
@@ -483,55 +279,39 @@ void CastleSymbolLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<WarItemZoneObjectRow> rows =
+        defaultItemObjectRepository().loadWarItemInZone(GEAR_CASTLE_SYMBOL, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        CastleSymbol* pCastleSymbol = new CastleSymbol();
 
-        StringStream sql;
+        pCastleSymbol->setItemID(rows[r].itemID);
+        pCastleSymbol->setObjectID(rows[r].objectID);
+        pCastleSymbol->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " Durability, EnchantLevel FROM CastleSymbolObject" << " WHERE Storage = " << (int)STORAGE_ZONE
-            << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        pCastleSymbol->setDurability(rows[r].durability);
+        pCastleSymbol->setEnchantLevel(rows[r].enchantLevel);
 
-        while (pResult->next()) {
-            uint i = 0;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pCastleSymbol);
+        } break;
 
-            CastleSymbol* pCastleSymbol = new CastleSymbol();
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            pCastleSymbol->setItemID(pResult->getInt(++i));
-            pCastleSymbol->setObjectID(pResult->getInt(++i));
-            pCastleSymbol->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            pCastleSymbol->setDurability(pResult->getInt(++i));
-            pCastleSymbol->setEnchantLevel(pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pCastleSymbol);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
