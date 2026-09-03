@@ -163,10 +163,19 @@
 // eight; and gear's eleven-column zone SELECT, so loadGearInZone serves it while
 // loadGearOfOwner still refuses it; Info the six-column head alone,
 // GEAR_INFO_HEAD); and WarItem, a plain object (PLAIN_OBJECT, the basic Info
-// shape) whose two Loader::load overloads are SQL-free stubs — its spec row
+// shape) whose three Loader::load overloads are all SQL-free stubs — its spec
+// row
 // carries neither an owner nor a zone literal, and both plain loads refuse it;
 // its create logs the statement it ran to WarLog.txt, so it takes
 // insertPlainItemLogged, which hands the text back.
+// The seventeenth family, PetItem alone (PET_ITEM_OBJECT): its create and its
+// save each run one of two statements — without the pet's own columns when the
+// item carries no PetInfo, with the twelve of them when it does — and
+// savePetInfo writes those columns alone, so the spec row carries three more
+// literals (insertWithInfo, updateWithInfo, savePetInfo, NULL for every other
+// table). Its owner SELECT names twenty-one columns and admits Storage 13
+// besides the usual list; its zone SELECT is the ItemFlag-only eight, so
+// loadFlagItemInZone serves it; Info is the basic seven.
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -181,7 +190,8 @@
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 2 item files with SQL (later rounds) and the
+// Not enclosed: EventBall, the one item file with SQL left (it has no tables
+// and is not registered), and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -272,7 +282,8 @@ enum GearTable {
     GEAR_RELIC,
     GEAR_MOTORCYCLE,
     GEAR_CODE_SHEET,
-    GEAR_WAR_ITEM
+    GEAR_WAR_ITEM,
+    GEAR_PET_ITEM
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
@@ -288,7 +299,7 @@ enum GearInfoKind {
     GEAR_INFO_SILVER_WEAPON_MP, // loadSilverWeaponMPInfos (Cross, Mace)
     GEAR_INFO_GUN,              // loadGunInfos (AR, SG, SMG, SR)
     GEAR_INFO_BASIC,            // loadBasicInfos (EventItem, EventTree, LuckyBag, MoonCard, ETC, Water, BombMaterial,
-                                // EventGiftBox, Money, CoupleRing, VampireCoupleRing, WarItem)
+                                // EventGiftBox, Money, CoupleRing, VampireCoupleRing, WarItem, PetItem)
     GEAR_INFO_BASIC_FUNCTION,   // loadFunctionInfos (EventETC)
     GEAR_INFO_BASIC_RESURRECT,  // loadResurrectInfos (ResurrectItem)
     GEAR_INFO_BASIC_FUNCTION_VALUE, // loadFunctionValueInfos (DyePotion, EventStar)
@@ -342,7 +353,8 @@ enum GearObjectKind {
     OPTION_GRADE_OBJECT, // Dermis, Fascia, CarryingReceiver: insertOptionGradeItem, tinysaveGear, updateAmulet, loadOptionGradeOfOwner (no zone load)
     WAR_ITEM_OBJECT, // BloodBible, CastleSymbol, Sweeper, Relic: insertWarItem, tinysaveGear, updateWarItem, deleteWarItemsOfOwner (in place of an owner load), loadWarItemInZone
     MOTORCYCLE_OBJECT, // Motorcycle: insertMotorcycle, tinysaveGear, updateMotorcycle, loadMotorcycleOfOwner, loadMotorcycleInZone
-    CODE_SHEET_OBJECT // CodeSheet: insertCodeSheet, tinysaveGear, updateCodeSheet, loadCodeSheetOfOwner, loadGearInZone (its zone SELECT is gear's)
+    CODE_SHEET_OBJECT, // CodeSheet: insertCodeSheet, tinysaveGear, updateCodeSheet, loadCodeSheetOfOwner, loadGearInZone (its zone SELECT is gear's)
+    PET_ITEM_OBJECT // PetItem: insertPetItem or insertPetItemWithInfo, tinysaveGear, updatePetItem or updatePetItemWithInfo, savePetItemInfo, loadPetItemOfOwner, loadFlagItemInZone (its zone SELECT is the ItemFlag-only eight)
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -1159,6 +1171,32 @@ struct DurabilityInfoRow {
     int durability;
 };
 
+// PetItem's owner SELECT: the eight ItemFlag-only columns and the pet's thirteen
+// (eleven read through getInt, LastFeedTime and Nickname as text).
+struct PetItemObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    int createType; // ItemFlag
+    int petCreatureType;
+    int petLevel;
+    int petExp;
+    int petHP;
+    int petAttr;
+    int petAttrLevel;
+    int petOption;
+    int foodType;
+    int canGamble;
+    int canCutHead;
+    int canAttack;
+    std::string lastFeedTime;
+    std::string nickname;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
@@ -1299,6 +1337,7 @@ public:
     virtual void updatePlainItem(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
                                  int storage, StorageID_t storageID, int x, int y, ItemID_t itemID) = 0;
     virtual std::vector<FlagObjectRow> loadFlagItemOfOwner(GearTable table, const std::string& ownerName) = 0;
+    // Serves PetFood and PetItem too: their zone SELECTs name the same eight columns.
     virtual std::vector<FlagZoneObjectRow> loadFlagItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
     // insertPlainItemLogged returns the statement it ran: WarItem's create logs it to
     // WarLog.txt, as its own create logged the string it had built. The other plain
@@ -1400,6 +1439,31 @@ public:
     virtual std::vector<CoreZapObjectRow> loadCoreZapOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<CoreZapZoneObjectRow> loadCoreZapInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
     virtual std::vector<OptionGradeObjectRow> loadOptionGradeOfOwner(GearTable table, const std::string& ownerName) = 0;
+    // PetItem (see GearObjectKind): create and save each run one of two statements,
+    // and savePetInfo writes the pet columns alone. Every argument keeps the type the
+    // caller passed — the ids and PetExp unsigned, the byte- and word-wide pet fields
+    // promoted to int, as they were — so the varargs bytes are unchanged.
+    virtual void insertPetItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                               const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                               int createType) = 0;
+    virtual void insertPetItemWithInfo(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                       const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                       int createType, int petCreatureType, int petLevel, DWORD petExp, int petHP,
+                                       int petAttr, int petAttrLevel, int petOption, int foodType, int canGamble,
+                                       int canCutHead, int canAttack, const std::string& lastFeedTime) = 0;
+    virtual void updatePetItem(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                               int storage, StorageID_t storageID, int x, int y, ItemID_t itemID) = 0;
+    virtual void updatePetItemWithInfo(GearTable table, ObjectID_t objectID, ItemType_t itemType,
+                                       const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                       int petCreatureType, int petLevel, int petAttr, int petAttrLevel, DWORD petExp,
+                                       int petHP, int foodType, int canGamble, int canCutHead, int canAttack,
+                                       const std::string& lastFeedTime, const std::string& nickname,
+                                       ItemID_t itemID) = 0;
+    virtual void savePetItemInfo(GearTable table, int petCreatureType, int petLevel, int petAttr, int petAttrLevel,
+                                 DWORD petExp, int petHP, int foodType, int canGamble, int canCutHead, int canAttack,
+                                 const std::string& lastFeedTime, const std::string& nickname, ItemID_t itemID) = 0;
+    virtual std::vector<PetItemObjectRow> loadPetItemOfOwner(GearTable table, const std::string& ownerName) = 0;
+
     // Motorcycle (see GearObjectKind): the gear INSERT and UPDATE without Grade and
     // ItemFlag, an owner load of nine columns and a zone load of eight.
     virtual void insertMotorcycle(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,

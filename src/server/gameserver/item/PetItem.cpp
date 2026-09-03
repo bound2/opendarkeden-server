@@ -21,6 +21,7 @@
 #include "Stash.h"
 #include "Utility.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 string getDBString(const string& str);
 
@@ -57,8 +58,6 @@ void PetItem::create(const string& ownerID, Storage storage, StorageID_t storage
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -70,41 +69,17 @@ void PetItem::create(const string& ownerID, Storage storage, StorageID_t storage
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*		StringStream sql;
-
-                sql << "INSERT INTO PetItemObject "
-                    << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag) VALUES("
-                    << m_ItemID << ", "
-                    << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-                    <<(int)storage << ", " << storageID << ", " <<(int)x << ", " <<(int)y << ", "
-                    << (int)m_CreateType << ")";
-
-                pStmt->executeQueryString(sql.toString());*/
-
-        if (m_pPetInfo == NULL) {
-            pStmt->executeQuery(
-                "INSERT INTO PetItemObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag) "
-                "VALUES (%lu, %u, %u, '%s', %u, %u, %u, %u, %u)",
-                m_ItemID, m_ObjectID, m_ItemType, ownerID.c_str(), storage, storageID, x, y, m_CreateType);
-        } else {
-            pStmt->executeQuery(
-                "INSERT INTO PetItemObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag, "
-                "PetCreatureType, PetLevel, PetExp, PetHP, PetAttr, PetAttrLevel, PetOption, FoodType, "
-                "CanGamble, CanCutHead, CanAttack, LastFeedTime) "
-                "VALUES (%lu, %u, %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s')",
-                m_ItemID, m_ObjectID, m_ItemType, ownerID.c_str(), storage, storageID, x, y, m_CreateType,
-                m_pPetInfo->getPetCreatureType(), m_pPetInfo->getPetLevel(), m_pPetInfo->getPetExp(),
-                m_pPetInfo->getPetHP(), m_pPetInfo->getPetAttr(), m_pPetInfo->getPetAttrLevel(),
-                m_pPetInfo->getPetOption(), m_pPetInfo->getFoodType(), m_pPetInfo->canGamble(),
-                m_pPetInfo->canCutHead(), m_pPetInfo->canAttack(), m_pPetInfo->getLastFeedTime().toDateTime().c_str());
-        }
-
-        SAFE_DELETE(pStmt);
+    if (m_pPetInfo == NULL) {
+        defaultItemObjectRepository().insertPetItem(GEAR_PET_ITEM, m_ItemID, m_ObjectID, m_ItemType, ownerID, storage,
+                                                    storageID, x, y, m_CreateType);
+    } else {
+        defaultItemObjectRepository().insertPetItemWithInfo(
+            GEAR_PET_ITEM, m_ItemID, m_ObjectID, m_ItemType, ownerID, storage, storageID, x, y, m_CreateType,
+            m_pPetInfo->getPetCreatureType(), m_pPetInfo->getPetLevel(), m_pPetInfo->getPetExp(),
+            m_pPetInfo->getPetHP(), m_pPetInfo->getPetAttr(), m_pPetInfo->getPetAttrLevel(), m_pPetInfo->getPetOption(),
+            m_pPetInfo->getFoodType(), m_pPetInfo->canGamble(), m_pPetInfo->canCutHead(), m_pPetInfo->canAttack(),
+            m_pPetInfo->getLastFeedTime().toDateTime());
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -117,16 +92,7 @@ void PetItem::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE PetItemObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_PET_ITEM, field, m_ItemID);
 
     __END_CATCH
 }
@@ -136,35 +102,17 @@ void PetItem::save(const string& ownerID, Storage storage, StorageID_t storageID
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        if (m_pPetInfo == NULL) {
-            pStmt->executeQuery("UPDATE PetItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                                "StorageID=%ld, X=%d, Y=%d WHERE ItemID=%ld",
-                                m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                                m_ItemID);
-        } else {
-            pStmt->executeQuery(
-                "UPDATE PetItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-                "Y=%d, "
-                "PetCreatureType=%u, PetLevel=%u, PetAttr=%u, PetAttrLevel=%u, PetExp=%u, PetHP=%u, FoodType=%u, "
-                "CanGamble=%u, CanCutHead=%u, CanAttack=%u, LastFeedTime='%s', Nickname='%s' "
-                "WHERE ItemID=%ld",
-                m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                m_pPetInfo->getPetCreatureType(), m_pPetInfo->getPetLevel(), m_pPetInfo->getPetAttr(),
-                m_pPetInfo->getPetAttrLevel(), m_pPetInfo->getPetExp(), m_pPetInfo->getPetHP(),
-                m_pPetInfo->getFoodType(), m_pPetInfo->canGamble(), m_pPetInfo->canCutHead(), m_pPetInfo->canAttack(),
-                m_pPetInfo->getLastFeedTime().toDateTime().c_str(), getDBString(m_pPetInfo->getNickname()).c_str(),
-                m_ItemID);
-        }
-
-
-        SAFE_DELETE(pStmt);
+    if (m_pPetInfo == NULL) {
+        defaultItemObjectRepository().updatePetItem(GEAR_PET_ITEM, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                    storageID, (int)x, (int)y, m_ItemID);
+    } else {
+        defaultItemObjectRepository().updatePetItemWithInfo(
+            GEAR_PET_ITEM, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y,
+            m_pPetInfo->getPetCreatureType(), m_pPetInfo->getPetLevel(), m_pPetInfo->getPetAttr(),
+            m_pPetInfo->getPetAttrLevel(), m_pPetInfo->getPetExp(), m_pPetInfo->getPetHP(), m_pPetInfo->getFoodType(),
+            m_pPetInfo->canGamble(), m_pPetInfo->canCutHead(), m_pPetInfo->canAttack(),
+            m_pPetInfo->getLastFeedTime().toDateTime(), getDBString(m_pPetInfo->getNickname()), m_ItemID);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -172,28 +120,13 @@ void PetItem::save(const string& ownerID, Storage storage, StorageID_t storageID
 void PetItem::savePetInfo() const {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        if (m_pPetInfo != NULL) {
-            pStmt->executeQuery(
-                "UPDATE PetItemObject SET "
-                "PetCreatureType=%u, PetLevel=%u, PetAttr=%u, PetAttrLevel=%u, PetExp=%u, PetHP=%u, FoodType=%u, "
-                "CanGamble=%u, CanCutHead=%u, CanAttack=%u, LastFeedTime='%s', Nickname='%s' "
-                "WHERE ItemID=%ld",
-                m_pPetInfo->getPetCreatureType(), m_pPetInfo->getPetLevel(), m_pPetInfo->getPetAttr(),
-                m_pPetInfo->getPetAttrLevel(), m_pPetInfo->getPetExp(), m_pPetInfo->getPetHP(),
-                m_pPetInfo->getFoodType(), m_pPetInfo->canGamble(), m_pPetInfo->canCutHead(), m_pPetInfo->canAttack(),
-                m_pPetInfo->getLastFeedTime().toDateTime().c_str(), getDBString(m_pPetInfo->getNickname()).c_str(),
-                m_ItemID);
-        }
-
-
-        SAFE_DELETE(pStmt);
+    if (m_pPetInfo != NULL) {
+        defaultItemObjectRepository().savePetItemInfo(
+            GEAR_PET_ITEM, m_pPetInfo->getPetCreatureType(), m_pPetInfo->getPetLevel(), m_pPetInfo->getPetAttr(),
+            m_pPetInfo->getPetAttrLevel(), m_pPetInfo->getPetExp(), m_pPetInfo->getPetHP(), m_pPetInfo->getFoodType(),
+            m_pPetInfo->canGamble(), m_pPetInfo->canCutHead(), m_pPetInfo->canAttack(),
+            m_pPetInfo->getLastFeedTime().toDateTime(), getDBString(m_pPetInfo->getNickname()), m_ItemID);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -322,43 +255,28 @@ void PetItemInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_PET_ITEM);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM PetItemInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<BasicInfoRow> rows = defaultItemObjectRepository().loadBasicInfos(GEAR_PET_ITEM);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        PetItemInfo* pPetItemInfo = new PetItemInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pPetItemInfo->setItemType(rows[r].itemType);
+        pPetItemInfo->setName(rows[r].name);
+        pPetItemInfo->setEName(rows[r].ename);
+        pPetItemInfo->setPrice(rows[r].price);
+        pPetItemInfo->setVolumeType(rows[r].volume);
+        pPetItemInfo->setWeight(rows[r].weight);
+        pPetItemInfo->setRatio(rows[r].ratio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM PetItemInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            PetItemInfo* pPetItemInfo = new PetItemInfo();
-
-            pPetItemInfo->setItemType(pResult->getInt(++i));
-            pPetItemInfo->setName(pResult->getString(++i));
-            pPetItemInfo->setEName(pResult->getString(++i));
-            pPetItemInfo->setPrice(pResult->getInt(++i));
-            pPetItemInfo->setVolumeType(pResult->getInt(++i));
-            pPetItemInfo->setWeight(pResult->getInt(++i));
-            pPetItemInfo->setRatio(pResult->getInt(++i));
-
-            addItemInfo(pPetItemInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pPetItemInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -374,191 +292,163 @@ void PetItemLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
+    vector<PetItemObjectRow> rows =
+        defaultItemObjectRepository().loadPetItemOfOwner(GEAR_PET_ITEM, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            PetItem* pPetItem = new PetItem();
 
-        /*
-        StringStream sql;
+            pPetItem->setItemID(rows[r].itemID);
+            pPetItem->setObjectID(rows[r].objectID);
+            pPetItem->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM PetItemObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            pPetItem->setCreateType((Item::CreateType)rows[r].createType);
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag, "
-                                "PetCreatureType, PetLevel, PetExp, PetHP, PetAttr, PetAttrLevel, PetOption, FoodType, "
-                                "CanGamble, CanCutHead, CanAttack, LastFeedTime, Nickname "
-                                "FROM PetItemObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9, 13)",
-                                pCreature->getName().c_str());
+            PetInfo* pPetInfo = new PetInfo;
+            pPetInfo->setPetType(pPetItem->getItemType());
+            pPetInfo->setPetCreatureType(rows[r].petCreatureType);
+            pPetInfo->setPetLevel(rows[r].petLevel);
+            pPetInfo->setPetExp(rows[r].petExp);
+            pPetInfo->setPetHP(rows[r].petHP);
+            pPetInfo->setPetAttr(rows[r].petAttr);
+            pPetInfo->setPetAttrLevel(rows[r].petAttrLevel);
+            pPetInfo->setPetOption(rows[r].petOption);
+            pPetInfo->setFoodType(rows[r].foodType);
+            pPetInfo->setGamble(rows[r].canGamble);
+            pPetInfo->setCutHead(rows[r].canCutHead);
+            pPetInfo->setAttack(rows[r].canAttack);
+            pPetInfo->setFeedTime(VSDateTime(rows[r].lastFeedTime));
+            pPetInfo->setNickname(rows[r].nickname);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            // 양방향 링크
+            pPetItem->setPetInfo(pPetInfo);
+            pPetInfo->setPetItem(pPetItem);
 
-                PetItem* pPetItem = new PetItem();
+            uint ratio = 100;
 
-                pPetItem->setItemID(pResult->getDWORD(++i));
-                pPetItem->setObjectID(pResult->getDWORD(++i));
-                pPetItem->setItemType(pResult->getDWORD(++i));
-
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                pPetItem->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-                PetInfo* pPetInfo = new PetInfo;
-                pPetInfo->setPetType(pPetItem->getItemType());
-                pPetInfo->setPetCreatureType(pResult->getInt(++i));
-                pPetInfo->setPetLevel(pResult->getInt(++i));
-                pPetInfo->setPetExp(pResult->getInt(++i));
-                pPetInfo->setPetHP(pResult->getInt(++i));
-                pPetInfo->setPetAttr(pResult->getInt(++i));
-                pPetInfo->setPetAttrLevel(pResult->getInt(++i));
-                pPetInfo->setPetOption(pResult->getInt(++i));
-                pPetInfo->setFoodType(pResult->getInt(++i));
-                pPetInfo->setGamble(pResult->getInt(++i));
-                pPetInfo->setCutHead(pResult->getInt(++i));
-                pPetInfo->setAttack(pResult->getInt(++i));
-                pPetInfo->setFeedTime(VSDateTime(pResult->getString(++i)));
-                pPetInfo->setNickname(pResult->getString(++i));
-
-                // 양방향 링크
-                pPetItem->setPetInfo(pPetInfo);
-                pPetInfo->setPetItem(pPetItem);
-
-                uint ratio = 100;
-
-                if (storage == STORAGE_PET_STASH) {
-                    ratio /= 2;
-                    pPetInfo->setFeedTurn(2);
-                } else {
-                    //					refreshHP( pPetInfo );
-                    pPetInfo->setFeedTurn(1);
-                }
-
-                if (pPetInfo->getPetLevel() == 50)
-                    ratio /= 10;
-                refreshHP(pPetInfo, ratio);
-
-                PetTypeInfo* pPetTypeInfo = PetTypeInfoManager::getInstance()->getPetTypeInfo(pPetInfo->getPetType());
-                if (pPetTypeInfo != NULL) {
-                    pPetInfo->setPetCreatureType(pPetTypeInfo->getPetCreatureType(pPetInfo->getPetLevel()));
-                }
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Ousters* pOusters = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                Item* pItem = NULL;
-                Stash* pStash = NULL;
-                Belt* pBelt = NULL;
-                Inventory* pBeltInventory = NULL;
-
-                if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else if (pCreature->isOusters()) {
-                    pOusters = dynamic_cast<Ousters*>(pCreature);
-                    pInventory = pOusters->getInventory();
-                    pStash = pOusters->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-                Assert(pPC != NULL);
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pPetItem)) {
-                        pInventory->addItemEx(x, y, pPetItem);
-                        pPetItem->whenPCTake(pPC);
-                    } else {
-                        processItemBugEx(pCreature, pPetItem);
-                    }
-                    break;
-
-                case STORAGE_GEAR:
-                    processItemBugEx(pCreature, pPetItem);
-                    break;
-
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pPetItem);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pPetItem);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pPetItem);
-                    else if (pCreature->isOusters())
-                        pOusters->addItemToExtraInventorySlot(pPetItem);
-
-                    pPetItem->whenPCTake(pPC);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pPetItem);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pPetItem);
-                    } else {
-                        pStash->insert(x, y, pPetItem);
-                        pPetItem->whenPCTake(pPC);
-                    }
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pPetItem);
-                    break;
-
-
-                case STORAGE_PET_STASH:
-                    /* 펫을 불러다가 pCreature에 넣어야 되나?...*/
-                    if (pPC->getPetStashItem(storageID) == NULL) {
-                        pPC->addPetStashItem(storageID, pPetItem);
-                        pPetItem->whenPCTake(pPC);
-                    } else
-                        processItemBug(pCreature, pPetItem);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
-                }
-
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            if (storage == STORAGE_PET_STASH) {
+                ratio /= 2;
+                pPetInfo->setFeedTurn(2);
+            } else {
+                //					refreshHP( pPetInfo );
+                pPetInfo->setFeedTurn(1);
             }
-        }
 
-        SAFE_DELETE(pStmt);
+            if (pPetInfo->getPetLevel() == 50)
+                ratio /= 10;
+            refreshHP(pPetInfo, ratio);
+
+            PetTypeInfo* pPetTypeInfo = PetTypeInfoManager::getInstance()->getPetTypeInfo(pPetInfo->getPetType());
+            if (pPetTypeInfo != NULL) {
+                pPetInfo->setPetCreatureType(pPetTypeInfo->getPetCreatureType(pPetInfo->getPetLevel()));
+            }
+
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Ousters* pOusters = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            Item* pItem = NULL;
+            Stash* pStash = NULL;
+            Belt* pBelt = NULL;
+            Inventory* pBeltInventory = NULL;
+
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
+
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else if (pCreature->isOusters()) {
+                pOusters = dynamic_cast<Ousters*>(pCreature);
+                pInventory = pOusters->getInventory();
+                pStash = pOusters->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
+
+            PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
+            Assert(pPC != NULL);
+
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pPetItem)) {
+                    pInventory->addItemEx(x, y, pPetItem);
+                    pPetItem->whenPCTake(pPC);
+                } else {
+                    processItemBugEx(pCreature, pPetItem);
+                }
+                break;
+
+            case STORAGE_GEAR:
+                processItemBugEx(pCreature, pPetItem);
+                break;
+
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pPetItem);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pPetItem);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pPetItem);
+                else if (pCreature->isOusters())
+                    pOusters->addItemToExtraInventorySlot(pPetItem);
+
+                pPetItem->whenPCTake(pPC);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pPetItem);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pPetItem);
+                } else {
+                    pStash->insert(x, y, pPetItem);
+                    pPetItem->whenPCTake(pPC);
+                }
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pPetItem);
+                break;
+
+
+            case STORAGE_PET_STASH:
+                /* 펫을 불러다가 pCreature에 넣어야 되나?...*/
+                if (pPC->getPetStashItem(storageID) == NULL) {
+                    pPC->addPetStashItem(storageID, pPetItem);
+                    pPetItem->whenPCTake(pPC);
+                } else
+                    processItemBug(pCreature, pPetItem);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
+            }
+
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -570,53 +460,38 @@ void PetItemLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<FlagZoneObjectRow> rows =
+        defaultItemObjectRepository().loadFlagItemInZone(GEAR_PET_ITEM, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        PetItem* pPetItem = new PetItem();
 
-        StringStream sql;
+        pPetItem->setItemID(rows[r].itemID);
+        pPetItem->setObjectID(rows[r].objectID);
+        pPetItem->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag FROM PetItemObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        pPetItem->setCreateType((Item::CreateType)rows[r].createType);
 
-        while (pResult->next()) {
-            uint i = 0;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pPetItem);
+        } break;
 
-            PetItem* pPetItem = new PetItem();
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            pPetItem->setItemID(pResult->getInt(++i));
-            pPetItem->setObjectID(pResult->getInt(++i));
-            pPetItem->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            pPetItem->setCreateType((Item::CreateType)pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pPetItem);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
