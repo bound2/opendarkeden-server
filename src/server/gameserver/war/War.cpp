@@ -24,6 +24,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
+#include "repository/WarInfoRepository.h"
 
 //--------------------------------------------------------------------------------
 // static members
@@ -57,33 +58,18 @@ void War::initWarIDRegistry()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
     m_WarIDRegistry = 0;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    BEGIN_DB {
-        // pStmt = g_pDatabaseManager->getConnection("DIST_DARKEDEN")->createStatement();
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pCountResult = pStmt->executeQueryString("SELECT COUNT(*) from WarScheduleInfo");
-        pCountResult->next();
-        int count = pCountResult->getDWORD(1);
-        SAFE_DELETE(pStmt);
+    WarInfoRepository& repository = defaultWarInfoRepository();
 
-        if (count != 0) {
-            // pStmt = g_pDatabaseManager->getConnection("DIST_DARKEDEN")->createStatement();
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQueryString("SELECT MAX(WarID) FROM WarScheduleInfo");
-            pResult->next();
-            m_WarIDRegistry = pResult->getDWORD(1);
-            SAFE_DELETE(pStmt);
-        }
+    if (repository.countWarSchedules() != 0)
+        m_WarIDRegistry = repository.loadMaxWarID();
 
-        static WarID_t WarIDBase = g_pConfig->getPropertyInt("ServerID");
-        static WarID_t WarIDSuccessor = g_pConfig->getPropertyInt("ServerCount");
-        m_WarIDRegistry += (WarIDSuccessor - (m_WarIDRegistry % WarIDSuccessor)) + WarIDBase;
-    }
-    END_DB(pStmt)
+    static WarID_t WarIDBase = g_pConfig->getPropertyInt("ServerID");
+    static WarID_t WarIDSuccessor = g_pConfig->getPropertyInt("ServerCount");
+    m_WarIDRegistry += (WarIDSuccessor - (m_WarIDRegistry % WarIDSuccessor)) + WarIDBase;
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 

@@ -2095,6 +2095,7 @@ protected:
         execSQL("DELETE FROM RaceWarHistory WHERE RaceWarID LIKE 'it-%'");
         execSQL("DELETE FROM RaceWarPCLimit WHERE ID >= 31000");
         execSQL("DELETE FROM ReinforceRegisterInfo WHERE WarID >= 31000");
+        execSQL("DELETE FROM WarScheduleInfo WHERE WarID >= 31000");
     }
 };
 
@@ -2408,6 +2409,69 @@ TEST_F(WarInfoMySQL, ReinforceRegistrationsAreScopedToTheWarAndServerThroughThei
     EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=31000 AND ServerID=7"));
     EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=31000 AND ServerID=8"));
     EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=31001 AND ServerID=7"));
+}
+
+
+TEST_F(WarInfoMySQL, WarScheduleWritesReportWhetherARowChangedAndTheProbesSeeThem) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    const int before = repository.countWarSchedules();
+
+    // The create path is an INSERT IGNORE against a table whose PRIMARY KEY is
+    // WarID, so the first write lands and the second is dropped — and the
+    // caller learns which from the affected-row count.
+    EXPECT_TRUE(repository.insertWarSchedule(31000, 7, 21, "GUILD", 101, 500, "2026-09-03 10:00:00", "WAIT"));
+    EXPECT_FALSE(repository.insertWarSchedule(31000, 8, 22, "GUILD", 102, 600, "2026-09-03 11:00:00", "START"));
+
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("7", queryScalar("SELECT ServerID FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("21", queryScalar("SELECT ZoneID FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("GUILD", queryScalar("SELECT WarType FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("101", queryScalar("SELECT AttackGuildID FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("500", queryScalar("SELECT WarFee FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("2026-09-03 10:00:00", queryScalar("SELECT StartTime FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("WAIT", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31000"));
+    // The INSERT names no AttackerCount, so the column keeps its default of 1.
+    EXPECT_EQ("1", queryScalar("SELECT AttackerCount FROM WarScheduleInfo WHERE WarID=31000"));
+
+    // The save path is a REPLACE, so it overwrites the same key and fills the
+    // five challenger columns.
+    EXPECT_TRUE(repository.replaceWarSchedule(31000, 9, 23, "GUILD", 3, 201, 202, 203, 0, 0, 700, "2026-09-03 12:00:00",
+                                              "START"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("9", queryScalar("SELECT ServerID FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("3", queryScalar("SELECT AttackerCount FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("203", queryScalar("SELECT AttackGuildID3 FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("START", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31000"));
+
+    // The probes count and maximise over the whole table.
+    EXPECT_EQ(before + 1, repository.countWarSchedules());
+    EXPECT_GE(repository.loadMaxWarID(), 31000u);
+
+    repository.insertWarSchedule(31001, 9, 23, "GUILD", 301, 800, "2026-09-03 13:00:00", "WAIT");
+    EXPECT_EQ(before + 2, repository.countWarSchedules());
+    EXPECT_GE(repository.loadMaxWarID(), 31001u);
+}
+
+TEST_F(WarInfoMySQL, WarScheduleTinysaveAppliesTheFragmentToOneWarAndServer) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    repository.insertWarSchedule(31000, 7, 21, "GUILD", 101, 500, "2026-09-03 10:00:00", "WAIT");
+    repository.insertWarSchedule(31001, 8, 21, "GUILD", 102, 500, "2026-09-03 10:00:00", "WAIT");
+
+    repository.tinysaveWarSchedule("Status='END'", 31000, 7);
+
+    EXPECT_EQ("END", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("WAIT", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31001"));
+
+    // A fragment can set several columns, and a mismatched server id is a
+    // silent no-op — the statement carries no affected-row check.
+    repository.tinysaveWarSchedule("Status='CANCEL', WarFee=999", 31000, 7);
+    EXPECT_EQ("CANCEL", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("999", queryScalar("SELECT WarFee FROM WarScheduleInfo WHERE WarID=31000"));
+
+    repository.tinysaveWarSchedule("WarFee=1", 31000, 99);
+    EXPECT_EQ("999", queryScalar("SELECT WarFee FROM WarScheduleInfo WHERE WarID=31000"));
 }
 
 TEST_F(WarInfoMySQL, MasterLairRowsCarryAllTwentyFiveColumns) {
