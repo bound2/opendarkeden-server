@@ -140,6 +140,18 @@
 // ten SET columns (eleven varargs), but an owner load of eleven columns, gear's
 // without Durability, and an Info SELECT of seventeen, gear's without
 // Durability too (GEAR_INFO_NO_DURABILITY); the gear loads refuse them on shape.
+// The fifteenth family, the four war items: BloodBible, CastleSymbol, Sweeper
+// and Relic (WAR_ITEM_OBJECT). Their INSERT names nine columns — the ids,
+// OwnerID, Storage, StorageID, X, Y and Durability last, no OptionType, Grade
+// or ItemFlag — their UPDATE nine (Durability and EnchantLevel among them) and
+// their zone SELECT nine, read entirely through getInt. Their creature loader
+// holds no SELECT at all: it deletes the owner's rows (a thirteenth spec slot,
+// deleteByOwner) because a row still standing there means the server went down.
+// Info: twelve columns, the head plus Defense, Protection, ReqAbility and
+// ItemLevel with no upgrade tail (GEAR_INFO_WAR), and Relic's seventeen — those
+// twelve plus RelicType, ZoneID, XCoord, YCoord, MonsterType, the last four of
+// which its InfoManager assigns to the info's members rather than through
+// setters (GEAR_INFO_RELIC).
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -154,7 +166,7 @@
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 9 item files with SQL (later rounds) and the
+// Not enclosed: the other 5 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -238,7 +250,11 @@ enum GearTable {
     GEAR_PERSONA,
     GEAR_DERMIS,
     GEAR_FASCIA,
-    GEAR_CARRYING_RECEIVER
+    GEAR_CARRYING_RECEIVER,
+    GEAR_BLOOD_BIBLE,
+    GEAR_CASTLE_SYMBOL,
+    GEAR_SWEEPER,
+    GEAR_RELIC
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
@@ -272,7 +288,9 @@ enum GearInfoKind {
     GEAR_INFO_SUMMON_ITEM,          // loadSummonItemInfos (OustersSummonItem)
     GEAR_INFO_POCKET,               // loadPocketInfos (OustersArmsband: PocketCount, ItemLevel through getInt)
     GEAR_INFO_POCKET_BYTE,          // loadPocketInfos (Belt: PocketCount, ItemLevel through getBYTE)
-    GEAR_INFO_NO_DURABILITY         // loadGearInfosNoDurability (Dermis, Fascia, CarryingReceiver)
+    GEAR_INFO_NO_DURABILITY,        // loadGearInfosNoDurability (Dermis, Fascia, CarryingReceiver)
+    GEAR_INFO_WAR,                  // loadWarInfos (BloodBible, CastleSymbol, Sweeper)
+    GEAR_INFO_RELIC                 // loadRelicInfos (Relic)
 };
 
 // The object-table shapes; which update / owner-load / zone-load a table takes.
@@ -301,7 +319,8 @@ enum GearObjectKind {
     VAMPIRE_PORTAL_OBJECT, // VampirePortalItem: insertVampirePortal, tinysaveGear, updateVampirePortal, loadVampirePortalOfOwner, loadVampirePortalInZone
     AMULET_OBJECT, // VampireAmulet: insertOptionGradeItem, tinysaveGear, updateAmulet, loadGearOfOwner, loadGearInZone
     CORE_ZAP_OBJECT, // CoreZap: insertOptionGradeItem, tinysaveGear, updateCoreZap, loadCoreZapOfOwner, loadCoreZapInZone
-    OPTION_GRADE_OBJECT // Dermis, Fascia, CarryingReceiver: insertOptionGradeItem, tinysaveGear, updateAmulet, loadOptionGradeOfOwner (no zone load)
+    OPTION_GRADE_OBJECT, // Dermis, Fascia, CarryingReceiver: insertOptionGradeItem, tinysaveGear, updateAmulet, loadOptionGradeOfOwner (no zone load)
+    WAR_ITEM_OBJECT // BloodBible, CastleSymbol, Sweeper, Relic: insertWarItem, tinysaveGear, updateWarItem, deleteWarItemsOfOwner (in place of an owner load), loadWarItemInZone
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -1027,6 +1046,47 @@ struct GearInfoNoDurabilityRow {
     int downgradeRatio;
 };
 
+// The war items' zone SELECT: nine columns, every one through getInt.
+struct WarItemZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    int durability;
+    int enchantLevel;
+};
+
+// BloodBibleInfo / CastleSymbolInfo / SweeperInfo: the eight head columns and
+// Defense, Protection, ReqAbility, ItemLevel — twelve, with no upgrade tail.
+struct WarInfoRow {
+    int itemType;
+    std::string name;
+    std::string ename;
+    int price;
+    int volume;
+    int weight;
+    int ratio;
+    int durability;
+    int defense;
+    int protection;
+    std::string reqAbility;
+    int itemLevel;
+};
+
+// RelicInfo: those twelve plus RelicType and the four the InfoManager assigns
+// to the info's own members (zoneID, x, y, monsterType).
+struct RelicInfoRow {
+    WarInfoRow war;
+    std::string relicType;
+    int zoneID;
+    int x;
+    int y;
+    int monsterType;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
@@ -1054,6 +1114,8 @@ public:
     // The other Info shapes (see GearInfoKind); each refuses a table of another shape.
     virtual std::vector<GearInfoNoRatioRow> loadGearInfosNoRatio(GearTable table) = 0;
     virtual std::vector<GearInfoNoDurabilityRow> loadGearInfosNoDurability(GearTable table) = 0;
+    virtual std::vector<WarInfoRow> loadWarInfos(GearTable table) = 0;
+    virtual std::vector<RelicInfoRow> loadRelicInfos(GearTable table) = 0;
     virtual std::vector<GearInfoElementalRow> loadGearInfosElemental(GearTable table) = 0;
     virtual std::vector<WeaponInfoRow> loadWeaponInfos(GearTable table) = 0;
     virtual std::vector<WeaponInfoElementalRow> loadWeaponInfosElemental(GearTable table) = 0;
@@ -1255,6 +1317,20 @@ public:
     virtual std::vector<CoreZapObjectRow> loadCoreZapOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<CoreZapZoneObjectRow> loadCoreZapInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
     virtual std::vector<OptionGradeObjectRow> loadOptionGradeOfOwner(GearTable table, const std::string& ownerName) = 0;
+    // The war items (see GearObjectKind): a nine-column INSERT with Durability last
+    // and no OptionType, Grade or ItemFlag, a nine-column UPDATE, the DELETE their
+    // creature loader runs in place of an owner SELECT, and a nine-column zone load.
+    // insertWarItem returns the statement it ran: BloodBible, CastleSymbol and
+    // Sweeper log it to WarLog.txt, as their create logged the string it had built.
+    virtual std::string insertWarItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                      const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                      Durability_t durability) = 0;
+    virtual void updateWarItem(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                               int storage, StorageID_t storageID, int x, int y, Durability_t durability,
+                               int enchantLevel, ItemID_t itemID) = 0;
+    virtual void deleteWarItemsOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<WarItemZoneObjectRow> loadWarItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+
     // Belt::destroy and OustersArmsband::destroy — "DELETE FROM <Class>Object WHERE ItemID =
     // %ld"; false when no row went, true otherwise. Refuses tables without the literal.
     virtual bool destroyGearObject(GearTable table, ItemID_t itemID) = 0;

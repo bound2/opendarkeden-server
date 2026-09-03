@@ -2517,6 +2517,13 @@ const GearTableName kOptionGradeTables[] = {
     {GEAR_FASCIA, "FasciaObject"},
     {GEAR_CARRYING_RECEIVER, "CarryingReceiverObject"},
 };
+// The war items: no owner SELECT at all - their creature loader deletes the owner's rows.
+const GearTableName kWarTables[] = {
+    {GEAR_BLOOD_BIBLE, "BloodBibleObject"},
+    {GEAR_CASTLE_SYMBOL, "CastleSymbolObject"},
+    {GEAR_SWEEPER, "SweeperObject"},
+    {GEAR_RELIC, "RelicObject"},
+};
 } // namespace
 
 class ItemObjectMySQL : public ::testing::Test {
@@ -2561,6 +2568,8 @@ protected:
             execSQL(std::string("DELETE FROM ") + kOneLoaderGearTables[i].name + " WHERE ItemID >= 31000");
         for (size_t i = 0; i < sizeof(kOptionGradeTables) / sizeof(kOptionGradeTables[0]); i++)
             execSQL(std::string("DELETE FROM ") + kOptionGradeTables[i].name + " WHERE ItemID >= 31000");
+        for (size_t i = 0; i < sizeof(kWarTables) / sizeof(kWarTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kWarTables[i].name + " WHERE ItemID >= 31000");
     }
 };
 
@@ -4054,6 +4063,98 @@ TEST_F(ItemObjectMySQL, OneLoaderGearAndOptionGradeRowsRoundTripAndTheZoneLoadRe
     // The tables that do carry a zone literal still load: the guard is the literal, not the shape.
     EXPECT_NO_THROW(repository.loadGearInZone(GEAR_RING, 5, 31000));
     EXPECT_NO_THROW(repository.loadGearInZone(GEAR_VAMPIRE_AMULET, 5, 31000));
+}
+
+TEST_F(ItemObjectMySQL, WarItemRowsRoundTripAndTheirCreatureLoaderDeletesTheOwnersRows) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    for (size_t i = 0; i < sizeof(kWarTables) / sizeof(kWarTables[0]); i++) {
+        const GearTable table = kWarTables[i].table;
+        const std::string name = kWarTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+        const std::string id = std::to_string(31000 + i);
+        const std::string zoneId = std::to_string(31100 + i);
+
+        // The owner's row, and a zone row belonging to somebody else. The seam returns
+        // the statement it ran - the text BloodBible, CastleSymbol and Sweeper log.
+        const std::string sql = repository.insertWarItem(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, 10);
+        EXPECT_EQ("INSERT INTO " + name + " (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, " +
+                      (table == GEAR_CASTLE_SYMBOL ? "Durability )" : "Durability)") + " VALUES(" + id +
+                      ", 77, 3, 'it-owner', 1, 5, 2, 4, 10)",
+                  sql)
+            << name;
+        repository.insertWarItem(table, 31100 + i, 78, 3, "it-other", 5, 31000, 7, 8, 20);
+        EXPECT_EQ("10", queryScalar("SELECT Durability" + where + id)) << name;
+        EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + id)) << name;
+        EXPECT_EQ("0", queryScalar("SELECT EnchantLevel" + where + id)) << name; // the INSERT names none
+
+        repository.updateWarItem(table, 79, 4, "it-owner", 1, 6, 3, 5, 11, 7, 31000 + i);
+        EXPECT_EQ("11", queryScalar("SELECT Durability" + where + id)) << name;
+        EXPECT_EQ("7", queryScalar("SELECT EnchantLevel" + where + id)) << name;
+        EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + id)) << name;
+
+        repository.tinysaveGear(table, "X=9", 31000 + i);
+        EXPECT_EQ("9", queryScalar("SELECT X" + where + id)) << name;
+
+        std::vector<WarItemZoneObjectRow> inZone = repository.loadWarItemInZone(table, 5, 31000);
+        ASSERT_EQ(1u, inZone.size()) << name;
+        EXPECT_EQ((int)(31100 + i), inZone[0].itemID);
+        EXPECT_EQ(78, inZone[0].objectID);
+        EXPECT_EQ(3, inZone[0].itemType);
+        EXPECT_EQ(5, inZone[0].storage);
+        EXPECT_EQ(31000, inZone[0].storageID);
+        EXPECT_EQ(7, inZone[0].x);
+        EXPECT_EQ(8, inZone[0].y);
+        EXPECT_EQ(20, inZone[0].durability);
+        EXPECT_EQ(0, inZone[0].enchantLevel);
+        EXPECT_TRUE(repository.loadWarItemInZone(table, 5, 31001).empty()) << name;
+
+        // What the creature loader does in place of a SELECT: the owner's rows go, nobody else's.
+        repository.deleteWarItemsOfOwner(table, "it-owner");
+        EXPECT_EQ("0", queryScalar("SELECT COUNT(*)" + where + id)) << name;
+        EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where + zoneId)) << name;
+
+        const std::string info = name.substr(0, name.size() - 6) + "Info";
+        EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM " + info).c_str()), repository.loadMaxGearType(table))
+            << info;
+        if (table == GEAR_RELIC) {
+            std::vector<RelicInfoRow> rows = repository.loadRelicInfos(table);
+            ASSERT_FALSE(rows.empty()) << info;
+            EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)rows.size()) << info;
+            const std::string type = " FROM " + info + " WHERE ItemType=" + std::to_string(rows[0].war.itemType);
+            EXPECT_EQ(std::to_string(rows[0].war.durability), queryScalar("SELECT Durability" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].war.itemLevel), queryScalar("SELECT ItemLevel" + type)) << info;
+            EXPECT_EQ(rows[0].relicType, queryScalar("SELECT RelicType" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].zoneID), queryScalar("SELECT ZoneID" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].x), queryScalar("SELECT XCoord" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].y), queryScalar("SELECT YCoord" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].monsterType), queryScalar("SELECT MonsterType" + type)) << info;
+            EXPECT_THROW(repository.loadWarInfos(table), Error) << info;
+        } else {
+            std::vector<WarInfoRow> rows = repository.loadWarInfos(table);
+            ASSERT_FALSE(rows.empty()) << info;
+            EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)rows.size()) << info;
+            const std::string type = " FROM " + info + " WHERE ItemType=" + std::to_string(rows[0].itemType);
+            EXPECT_EQ(rows[0].name, queryScalar("SELECT Name" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].durability), queryScalar("SELECT Durability" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].protection), queryScalar("SELECT Protection" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].itemLevel), queryScalar("SELECT ItemLevel" + type)) << info;
+            EXPECT_THROW(repository.loadRelicInfos(table), Error) << info;
+        }
+        EXPECT_THROW(repository.loadGearInfos(table), Error) << info;
+    }
+
+    // The object-shape and Info guards, both ways.
+    EXPECT_THROW(repository.insertGear(GEAR_BLOOD_BIBLE, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1), Error);
+    EXPECT_THROW(repository.insertWarItem(GEAR_RING, 31900, 1, 1, "it-owner", 1, 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.updateWarItem(GEAR_RING, 1, 1, "it-owner", 1, 1, 1, 1, 1, 1, 31000), Error);
+    EXPECT_THROW(repository.updateGear(GEAR_SWEEPER, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1, 31000), Error);
+    EXPECT_THROW(repository.loadWarItemInZone(GEAR_RING, 5, 31000), Error);
+    EXPECT_THROW(repository.deleteWarItemsOfOwner(GEAR_RING, "it-owner"), Error);
+    EXPECT_THROW(repository.loadGearOfOwner(GEAR_RELIC, "it-owner"), Error);
+    EXPECT_THROW(repository.loadWarInfos(GEAR_RING), Error);
+    EXPECT_THROW(repository.loadRelicInfos(GEAR_RING), Error);
+    EXPECT_THROW(repository.destroyGearObject(GEAR_BLOOD_BIBLE, 31000), Error);
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {
