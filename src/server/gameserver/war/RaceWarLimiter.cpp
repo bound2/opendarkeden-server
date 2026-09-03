@@ -9,6 +9,7 @@
 #include "Slayer.h"
 #include "VSDateTime.h"
 #include "Vampire.h"
+#include "repository/WarInfoRepository.h"
 
 //--------------------------------------------------------------------------------
 //
@@ -31,30 +32,14 @@ void PCWarLimiter::load()
 
     clear();
 
-    Statement* pStmt = NULL;
+    vector<RaceWarLimitRow> limits = defaultWarInfoRepository().loadRaceWarLimits(getTableName(), (int)getRace());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT ID, MinLevel, MaxLevel, LimitNum, CurrentNum FROM %s WHERE Race=%d",
-                                getTableName().c_str(), (int)getRace());
+    for (size_t r = 0; r < limits.size(); r++) {
+        LevelLimitInfo lli(limits[r].id, limits[r].minLevel, limits[r].maxLevel, limits[r].limitNum);
+        lli.setCurrent(limits[r].currentNum);
 
-        while (pResult->next()) {
-            int ID = pResult->getInt(1);
-            int MinLevel = pResult->getInt(2);
-            int MaxLevel = pResult->getInt(3);
-            int Limit = pResult->getInt(4);
-            int Current = pResult->getInt(5);
-
-            LevelLimitInfo lli(ID, MinLevel, MaxLevel, Limit);
-            lli.setCurrent(Current);
-
-            addLimitInfo(lli);
-        }
-
-        SAFE_DELETE(pStmt);
+        addLimitInfo(lli);
     }
-    END_DB(pStmt)
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -80,15 +65,7 @@ void PCWarLimiter::clearCurrent()
     }
 
     // DB에도 0으로 바꿔준다.
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE %s SET CurrentNum=0", getTableName().c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().clearRaceWarCurrentNums(getTableName());
 
     __END_CATCH
 }
@@ -105,16 +82,7 @@ void PCWarLimiter::saveCurrent(const LevelLimitInfo* pLI) const
 
     Assert(pLI != NULL);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE %s SET CurrentNum=%d WHERE ID=%d", getTableName().c_str(), pLI->getCurrent(),
-                            pLI->getID());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().saveRaceWarCurrentNum(getTableName(), pLI->getCurrent(), pLI->getID());
 
     __END_CATCH
 }
@@ -430,8 +398,6 @@ void RaceWarLimiter::clearPCList()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     VSDateTime current = VSDateTime::currentDateTime();
     char filename[128];
     sprintf(filename, "RaceWarPCList%s.txt", current.toString().c_str());
@@ -439,25 +405,21 @@ void RaceWarLimiter::clearPCList()
 
     int num[3] = {0, 0, 0};
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    WarInfoRepository& repository = defaultWarInfoRepository();
 
-        Result* pResult = pStmt->executeQueryString("SELECT Name, Race FROM RaceWarPCList");
+    vector<RaceWarPCListRow> entries = repository.loadRaceWarPCList();
 
-        while (pResult->next()) {
-            string Name = pResult->getString(1);
-            int Race = pResult->getInt(1);
+    for (size_t r = 0; r < entries.size(); r++) {
+        const string& Name = entries[r].name;
+        // Column 1 of the SELECT, which is Name — see WarInfoRepository.h.
+        int Race = entries[r].race;
 
-            file << "[" << Race << "] " << Name << endl;
+        file << "[" << Race << "] " << Name << endl;
 
-            num[Race]++;
-        }
-
-        pStmt->executeQueryString("DELETE FROM RaceWarPCList");
-
-        SAFE_DELETE(pStmt);
+        num[Race]++;
     }
-    END_DB(pStmt)
+
+    repository.deleteRaceWarPCList();
 
     file << "NumSlayer = " << num[0] << endl;
     file << "NumVampire = " << num[1] << endl;
@@ -477,16 +439,7 @@ void RaceWarLimiter::addPCList(PlayerCreature* pPC)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("INSERT IGNORE INTO RaceWarPCList (Name, Race) VALUES ('%s', %d)", pPC->getName().c_str(),
-                            (int)pPC->getRace());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().insertRaceWarPCListEntry(pPC->getName(), (int)pPC->getRace());
 
 
     __END_CATCH
@@ -500,24 +453,9 @@ bool RaceWarLimiter::isInPCList(PlayerCreature* pPC)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    int count = defaultWarInfoRepository().countRaceWarPCListEntries(pPC->getName());
 
-    bool bExist = false;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT count(*) FROM RaceWarPCList WHERE Name='%s'", pPC->getName().c_str());
-
-        if (pResult->next()) {
-            int count = pResult->getInt(1);
-
-            bExist = count > 0;
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    bool bExist = count > 0;
 
     return bExist;
 
@@ -532,16 +470,7 @@ void RaceWarLimiter::removePCList(PlayerCreature* pPC)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("DELETE FROM RaceWarPCList WHERE Name='%s'", pPC->getName().c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().deleteRaceWarPCListEntry(pPC->getName());
 
 
     __END_CATCH

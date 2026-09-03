@@ -658,6 +658,135 @@ public:
         END_DB(pStmt)
     }
 
+    vector<RaceWarLimitRow> loadRaceWarLimits(const string& tableName, int race) {
+        vector<RaceWarLimitRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT ID, MinLevel, MaxLevel, LimitNum, CurrentNum FROM %s WHERE Race=%d", tableName.c_str(), race);
+
+            while (pResult->next()) {
+                RaceWarLimitRow row;
+                row.id = pResult->getInt(1);
+                row.minLevel = pResult->getInt(2);
+                row.maxLevel = pResult->getInt(3);
+                row.limitNum = pResult->getInt(4);
+                row.currentNum = pResult->getInt(5);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    void clearRaceWarCurrentNums(const string& tableName) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE %s SET CurrentNum=0", tableName.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void saveRaceWarCurrentNum(const string& tableName, int currentNum, int id) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE %s SET CurrentNum=%d WHERE ID=%d", tableName.c_str(), currentNum, id);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    vector<RaceWarPCListRow> loadRaceWarPCList() {
+        vector<RaceWarPCListRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQueryString("SELECT Name, Race FROM RaceWarPCList");
+
+            while (pResult->next()) {
+                RaceWarPCListRow row;
+                row.name = pResult->getString(1);
+                // Column 1, not 2 — the inline loop's own indexing. See
+                // WarInfoRepository.h.
+                row.race = pResult->getInt(1);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    void deleteRaceWarPCList() {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQueryString("DELETE FROM RaceWarPCList");
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void insertRaceWarPCListEntry(const string& name, int race) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT IGNORE INTO RaceWarPCList (Name, Race) VALUES ('%s', %d)", name.c_str(), race);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    int countRaceWarPCListEntries(const string& name) {
+        int count = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT count(*) FROM RaceWarPCList WHERE Name='%s'", name.c_str());
+
+            if (pResult->next()) {
+                count = pResult->getInt(1);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return count;
+    }
+
+    void deleteRaceWarPCListEntry(const string& name) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("DELETE FROM RaceWarPCList WHERE Name='%s'", name.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     int countWaitingReinforceRegistrations(WarID_t warID, int serverID) {
         int count = 0;
         Statement* pStmt = NULL;
