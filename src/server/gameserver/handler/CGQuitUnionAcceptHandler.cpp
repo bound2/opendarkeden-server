@@ -99,7 +99,7 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(375));
 
         // 탈퇴수락한뒤에 나 혼자 남아있다면?
-        if (guilds.countUnionMembers(UNION_SQL_PLAIN, pUnion->getUnionID()) == 0) {
+        if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, pUnion->getUnionID()) == 0) {
             // cout << "연합탈퇴가 수락된후..남아있는 멤버가 없으면..연합장이면 안되니까..지워버린다" << endl;
             guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, pUnion->getUnionID());
             GuildUnionManager::Instance().reload();

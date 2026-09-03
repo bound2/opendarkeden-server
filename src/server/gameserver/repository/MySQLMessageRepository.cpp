@@ -5,10 +5,12 @@ namespace {
 
 // MySQL implementation of the queued-message seam. The legacy quirks
 // are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The SQL is byte-for-byte the Zone.cpp / ZonePlayerManager.cpp
-//    originals, the INSERT's "( Receiver, Message ) VALUES ( '%s', '%s')"
-//    spacing included (the guild handlers spell theirs differently —
-//    they keep their own literals).
+//  - The SQL is byte-for-byte the original at each call site.
+//    insertMessage() carries Zone.cpp / ZonePlayerManager.cpp's
+//    spelling, the "( Receiver, Message ) VALUES ( '%s', '%s')" spacing
+//    included; insertUnionNotice() carries the union handlers' three
+//    other spellings of the same INSERT, one spec row each. See
+//    MessageRepository.h for why they are kept apart.
 //  - Keyless table: a receiver can hold any number of rows, and the
 //    DELETE takes them all.
 //  - Zone::addPC ran the SELECT and the DELETE on ONE statement

@@ -1564,6 +1564,11 @@ TEST_F(MessageMySQL, TheThreeUnionNoticeSpellingsAreOneStatementWithThreeTexts) 
     slayer.persist();
     MessageRepository& repository = defaultMessageRepository();
 
+    // NOTE: this test proves the three spellings are EQUIVALENT. It cannot
+    // prove the mapping is right — swap two enumerators and every
+    // assertion below still passes, because MySQL cannot tell the
+    // spellings apart. That mapping is held by review.
+    //
     // The union handlers wrote this INSERT three ways — backticked or not,
     // with or without a space before the VALUES list. MySQL ignores both
     // differences, so all three land the same shape of row; the seam keeps
@@ -1581,7 +1586,10 @@ TEST_F(MessageMySQL, TheThreeUnionNoticeSpellingsAreOneStatementWithThreeTexts) 
     EXPECT_EQ("1", queryScalar("SELECT COUNT(*) " + where + "'quoted'"));
 
     // None of the three names Sender, so it defaults to '' — as
-    // insertMessage's own row does.
+    // insertMessage's own row does. Asserted for all three, since "the
+    // same shape of row" is the claim.
+    EXPECT_EQ("", queryScalar("SELECT Sender " + where + "'plain'"));
+    EXPECT_EQ("", queryScalar("SELECT Sender " + where + "'quoted spaced'"));
     EXPECT_EQ("", queryScalar("SELECT Sender " + where + "'quoted'"));
 
     // And they drain through the same reader the zone already uses.
@@ -5867,12 +5875,13 @@ TEST_F(GuildMySQL, UnionMemberCountsAgreeAcrossSpellingsAndTheInfoDeleteSparesTh
     // Three spellings of one count: COUNT(*) (the seam's own), and the
     // handlers' lowercase count(*) plain and backticked.
     EXPECT_EQ(2, repository.countUnionMembers(unionID));
-    EXPECT_EQ(2, repository.countUnionMembers(UNION_SQL_PLAIN, unionID));
-    EXPECT_EQ(2, repository.countUnionMembers(UNION_SQL_QUOTED, unionID));
+    EXPECT_EQ(2, repository.countUnionMembersSpelled(UNION_SQL_PLAIN, unionID));
+    EXPECT_EQ(2, repository.countUnionMembersSpelled(UNION_SQL_QUOTED, unionID));
 
     // deleteUnionInfoOnly drops the GuildUnionInfo row and NOTHING else.
     // This is the whole reason it is not deleteUnion(), which also clears
     // the union's GuildUnionMember rows.
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(unionID)));
     repository.deleteUnionInfoOnly(UNION_SQL_PLAIN, unionID);
     EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(unionID)));
     EXPECT_EQ(2, repository.countUnionMembers(unionID));
@@ -5880,6 +5889,7 @@ TEST_F(GuildMySQL, UnionMemberCountsAgreeAcrossSpellingsAndTheInfoDeleteSparesTh
     // The backticked spelling does the same to a second union.
     const uint second = repository.insertUnion(31003);
     repository.insertUnionMember(second, 31003);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(second)));
     repository.deleteUnionInfoOnly(UNION_SQL_QUOTED, second);
     EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(second)));
     EXPECT_EQ(1, repository.countUnionMembers(second));

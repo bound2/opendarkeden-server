@@ -584,7 +584,6 @@ public:
         return countOf("SELECT COUNT(*) FROM GuildUnionMember WHERE UnionID='%u'", unionID);
     }
 
-    // --- union offers ---------------------------------------------------------------
     int countRecentEscapes(GuildID_t guildID) {
         return countOf("SELECT COUNT(*) FROM GuildUnionOffer WHERE OfferType='ESCAPE' and "
                        "OwnerGuildID='%u' and OfferTime >= now() - interval 10 day",
@@ -604,7 +603,7 @@ public:
         END_DB(pStmt)
     }
 
-    int countUnionMembers(UnionStatementSpelling spelling, uint unionID) {
+    int countUnionMembersSpelled(UnionStatementSpelling spelling, uint unionID) {
         // Byte-for-byte what each handler wrote; see GuildRepository.h.
         static const char* const COUNT_SQL[UNION_SQL_SPELLING_MAX] = {
             "SELECT count(*) FROM GuildUnionMember WHERE UnionID='%u'",
@@ -631,6 +630,7 @@ public:
         END_DB(pStmt)
     }
 
+    // --- union offers ---------------------------------------------------------------
     void insertEscapeOffer(uint unionID, GuildID_t guildID) {
         Statement* pStmt = NULL;
 

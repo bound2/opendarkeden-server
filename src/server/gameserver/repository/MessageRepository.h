@@ -20,12 +20,30 @@
 //
 // A note on the spellings below. The union handlers write the same
 // INSERT three different ways, and none of the three is the one
-// insertMessage() already carries. Backticks around an identifier and
-// the space before a VALUES list are inert to MySQL, so all four are
-// the same statement — but task 3.2 moves statements without rewriting
-// them, so the spelling is a parameter here rather than something
-// normalised away. Collapsing them is a one-line follow-up whenever
-// that is wanted.
+// insertMessage() already carries: they differ by backticks, by the
+// space before the VALUES list, and (against insertMessage) by the
+// spaces inside the column list and by VALUES against values.
+//
+// For THESE identifiers all four parse to the same statement — none of
+// Messages, Receiver or Message is reserved, so the backticks are
+// redundant, and MySQL's tokenizer does not care about the spacing or
+// the keyword case. That is narrower than "inert": backticks are load
+// bearing elsewhere in this tree (see MySQLGuildRepository.cpp on
+// `Rank`, reserved on MySQL 8), the spelling reaches SHOW PROCESSLIST,
+// the general and slow logs and the driver's own error output
+// verbatim, MySQL 5.7's query cache keys on the exact bytes, and the
+// longer spelling leaves nine fewer bytes of the 2048 that
+// Statement::executeQuery will format into.
+//
+// Task 3.2 moves statements without rewriting them, so the spelling is
+// a parameter here rather than something normalised away. Collapsing
+// them later is a small change — the parameter, six call sites across
+// five files, and a test — whenever that is wanted. Note what keeping
+// them costs: because the variants are
+// indistinguishable to MySQL, no test can tell a swapped enumerator
+// from a correct one. The mapping from call site to spelling is held
+// by review, not by the suite.
+
 // Which of the union handlers' three spellings to write.
 enum UnionNoticeSpelling {
     // CGQuitUnionHandler, CGQuitUnionAcceptHandler, CGQuitUnionDenyHandler.

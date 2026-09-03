@@ -100,7 +100,7 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
                                                      g_pStringPool->c_str(374));
 
         // 거부한뒤에 나 혼자 남아있다면?
-        if (guilds.countUnionMembers(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
+        if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
             // cout << "가입을 거부했는데..내가 계속 연합장이면 안되니까..지워버린다" << endl;
             guilds.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
 

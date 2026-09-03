@@ -3277,9 +3277,21 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > block and are now above it, unused afterwards either way; every
   > caller called next() on the count without checking it, which a COUNT
   > always satisfies; and DBError.log and the const char* END_DB
-  > rethrows now name the repository method. Tests: three added (one to
-  > MessageMySQL, two to GuildMySQL); ctest 5/5, 148/148 integration
-  > tests, build exit 0.
+  > rethrows now name the repository method. Two things the review
+  > turned up that are pre-existing and stay that way:
+  > GuildUnionOffer's PRIMARY KEY is OwnerGuildID alone, so a guild
+  > that already holds a JOIN or QUIT row makes the plain ESCAPE
+  > INSERT fail on duplicate key and throw out of CGQuitUnionHandler
+  > BEFORE its GCModifyInformation packets and sendModifyUnionInfo
+  > run (reachable as QUIT_NORMAL then QUIT_QUICK; the new test only
+  > covers the empty-table path), and that handler still feeds the
+  > CLIENT-supplied pPacket->getGuildID() to the offer where every
+  > other statement uses pPlayerCreature->getGuildID(). One
+  > undisclosed improvement, noted for honesty: hoisting the
+  > escapeGuild* locals above the block also removes a Statement leak
+  > on the path where getGuildName() throws something END_DB does not
+  > catch. Tests: three added (one to MessageMySQL, two to
+  > GuildMySQL); ctest 5/5, 148/148 integration tests, build exit 0.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes
   > before PetItem — R3 136→133 (R1/R2/R5 unchanged). Motorcycle

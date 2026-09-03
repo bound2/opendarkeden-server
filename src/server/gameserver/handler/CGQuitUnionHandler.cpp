@@ -114,7 +114,7 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
             guilds.insertEscapeOffer(tempUnionID, pPacket->getGuildID());
 
             // 연합맴버가 있는지 보자..없으면?
-            if (guilds.countUnionMembers(UNION_SQL_PLAIN, tempUnionID) == 0) {
+            if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
                 // cout << "강제적으로 탈퇴를 한다..연합에 멤버가 없으므로 연합을..지워버린다 : unionid " <<
                 // (int)tempUnionID << endl;
                 guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);

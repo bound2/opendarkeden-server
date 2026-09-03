@@ -21,16 +21,21 @@
 // Not enclosed: the sharedserver's own Guild.cpp / GuildManager.cpp (a
 // separate copy with its own SQL, WarScheduleInfo statements included),
 // CGSayHandler's GM guild commands, and the SG*Guild* handlers that
-// mutate guild rows from the SharedServerManager thread. The five
-// guild-union handlers are no longer among them. war/'s own
+// mutate guild rows from the SharedServerManager thread. war/'s own
 // WarScheduleInfo writes are no longer among them — WarInfoRepository
-// took the last of them with the war-scheduler round.
+// took the last of them with the war-scheduler round. The five
+// guild-union handlers were never on this list; their statements are
+// enclosed as of this round.
 
 // Which spelling of the union handlers' two shared statements to write.
 // CGDenyUnionHandler backticks every identifier where the two quit
 // handlers do not; the bytes differ and task 3.2 moves statements
-// without rewriting them, so the caller says which it used. The two are
-// the same statement to MySQL.
+// without rewriting them, so the caller says which it used. The two
+// parse to the same statement for these identifiers — neither
+// GuildUnionMember, GuildUnionInfo nor UnionID is reserved — and the
+// case of count() is not significant either. Collapsing the two later
+// is a small change, the same one MessageRepository.h describes for
+// its three.
 enum UnionStatementSpelling {
     // CGQuitUnionHandler, CGQuitUnionAcceptHandler.
     UNION_SQL_PLAIN,
@@ -173,10 +178,21 @@ public:
     // "WHERE UnionID='%u'" — the quoted numeric key, kept.
     virtual int countUnionMembers(uint unionID) = 0;
     // The union handlers' own copy of that count, spelled with a
-    // lowercase count() rather than COUNT(). Every caller calls next()
-    // without checking it, which a COUNT always satisfies, and compares
-    // the result against 0 to decide whether the union is now empty.
-    virtual int countUnionMembers(UnionStatementSpelling spelling, uint unionID) = 0;
+    // lowercase count() rather than COUNT(). Deliberately NOT an overload
+    // of countUnionMembers: an unscoped enumerator converts to uint, so
+    // a one-argument call with a spelling would compile and silently
+    // count union 0.
+    //
+    // Each caller USED to call next() without checking it, which a COUNT
+    // always satisfies, and still compares the result against 0 to decide
+    // whether the union is now empty; the next() lives in countOf now.
+    // Note the direction of failure that implies: the
+    // inline code threw out of the handler if the row were ever missing
+    // (getField logs to ResultBug.log and raises Error on a NULL row),
+    // where this returns 0 and the caller reads that as "empty" and
+    // DELETEs the union. Unreachable for a COUNT on a live connection,
+    // but it is the first destructive statement this helper gates.
+    virtual int countUnionMembersSpelled(UnionStatementSpelling spelling, uint unionID) = 0;
     // DELETE FROM GuildUnionInfo alone. NOT deleteUnion(), which also
     // clears the union's GuildUnionMember rows: these callers drop the
     // info row only, having just found the member table empty.
