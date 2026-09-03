@@ -3171,11 +3171,15 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > tests, build exit 0.
   > **The war scheduler (2026-09-03, stacked on the race-war limiter
   > round)**: war/WarScheduler.cpp — R3 108→107 (R1/R2/R5 unchanged),
-  > and the first round in this task that FIXES a bug instead of
-  > preserving one. Three statements join WarInfoRepository: load()'s
-  > per-zone WAIT/START schedule read, its inner ACCEPT-registration
-  > read (scoped to a war id with no server id, which is why
-  > loadWaitingReinforceGuild could not be reused) and
+  > and the first round in this task to fix a BEHAVIOURAL bug. (Earlier
+  > rounds fixed things too, knowingly and disclosed — Statement leaks,
+  > uninitialised pStmt declarations — but all of them resource bugs,
+  > never a wrong answer.) Three statements join WarInfoRepository:
+  > load()'s per-zone WAIT/START schedule read, its inner
+  > ACCEPT-registration read (which differs from
+  > loadWaitingReinforceGuild twice over: no server id AND
+  > Status='ACCEPT' rather than 'WAIT', so neither could stand in for
+  > the other) and
   > cancelGuildSchedules' UPDATE. All four literals are byte-identical —
   > both __OLD_GUILD_WAR__ arms of the SELECT are carried over, and the
   > cancel UPDATE keeps the four tabs a backslash-continued source line
@@ -3187,22 +3191,56 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > running, so from the second iteration the outer loop walked the
   > one-column ReinforceGuildID result instead of the schedule result.
   > With 0 or 1 ACCEPT rows (the normal case) next() returned false and
-  > the scheduler silently loaded ONLY THE FIRST war of the zone; with 2
+  > the scheduler silently loaded ONLY THE FIRST GUILD war of the zone
+  > (a leading RACE row continue-d before the inner query ran, so it
+  > did not tear the iteration); with 2
   > or more, getInt(1) read a guild id as a war id and getString(2)
   > threw OutOfBoundException, which END_DB does not catch (it takes
   > only SQLQueryException) and __END_CATCH rethrows — out of load(),
   > leaking pStmt on the way. Returning a vector decouples the two
   > reads, so every scheduled war now loads. This could not be preserved
   > through a seam without deliberately reproducing a torn iteration,
-  > which is why it got its own round. Smaller notes: the loader reads
-  > all ten columns of every row, where the old loop skipped columns
-  > 3-10 of a RACE row by continue-ing early — the caller still skips
-  > RACE rows, just after the read; and the load's WHERE has no WarType
-  > clause while the cancel's does. war/ now has no file with live
-  > inline SQL at all. Tests: three added to WarInfoMySQL, the first of
-  > them pinning the fix (three wars in one zone, inserted out of order,
-  > all three returned in StartTime order). ctest 5/5, 145/145
-  > integration tests, build exit 0.
+  > which is why it got its own round. A CONSEQUENCE OF THE FIX worth
+  > naming: WarScheduler::canAddWar gates registration on
+  > getSize() < MaxWarSchedule (10), and load() never consults it. While
+  > load() could seat at most one war per zone that gate was effectively
+  > unreachable from loaded state; now a zone whose WarScheduleInfo has
+  > accumulated ten or more WAIT/START guild rows — which it could
+  > precisely because the in-memory count was wrong — will refuse new
+  > registrations through quest/ActionWarRegistration. Two more
+  > consequences for whoever deploys this: the FIRST RESTART after it
+  > ships will start every stale WAIT/START war of a zone, not just one
+  > — both StartTimes are in the past, so both clamp to now and
+  > Zone::heartbeat pops one schedule per tick, putting two SiegeWars in
+  > the same zone within two ticks. It unwinds safely (WarSystem's end
+  > path finds by zone id and erases one entry, so both ends succeed) and
+  > the same overlap is already reachable at runtime, but it is new on
+  > the restart path. And the pre-existing unbounded
+  > `for (j = 0; j < challengerNum; ++j)` over a five-element
+  > challengerGuildID array — AttackerCount being int(10) unsigned — is
+  > now reached by every row rather than only the first. Registration
+  > caps the count at 5, so only a hand-edited row trips it; byte-identical
+  > either way, but its exposure grew. Smaller notes: the
+  > loader reads all ten columns of every row (five under
+  > __OLD_GUILD_WAR__), where the old loop skipped columns 3-10 of a RACE
+  > row by continue-ing early — the caller still skips RACE rows, just
+  > after the read; the reinforce read now takes a Statement per war
+  > where the old code reused one (that reuse being the bug), on the boot
+  > path only; the load's WHERE has no WarType clause while the cancel's
+  > does; and DBError.log and the const char* END_DB rethrows now name the
+  > repository method. Unchanged but worth recording while we are here:
+  > END_DB rethrows a bare const char*, which catch (Throwable&) does not
+  > match, so a SQLQueryException still escapes load() with m_Mutex held
+  > — exactly as before. The OutOfBoundException above did NOT deadlock,
+  > __LEAVE_CRITICAL_SECTION catching Throwable& and unlocking.
+  > war/ now has no file with live inline SQL at all.
+  > Tests: three added to WarInfoMySQL. Note what they do and do not
+  > cover — they pin the QUERY the fix depends on (three wars in one
+  > zone, inserted out of StartTime order, all three returned in order),
+  > not the caller's loop: the old SELECT returned all three rows too,
+  > and it was the loop that dropped two. Nothing in tests/ drives
+  > WarScheduler::load, so a reintroduced torn iteration would still go
+  > green. ctest 5/5, 145/145 integration tests, build exit 0.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes
   > before PetItem — R3 136→133 (R1/R2/R5 unchanged). Motorcycle

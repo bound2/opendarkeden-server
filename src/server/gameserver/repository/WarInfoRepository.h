@@ -21,9 +21,11 @@
 // parameters are typed to the member/getter each caller streamed, so
 // the varargs bytes reaching the format strings are unchanged.
 //
-// Other users of these tables keep their own inline SQL: the guild
-// managers (gameserver and sharedserver) count and list castles by
-// guild; GuildRepository::countReinforceRegistrations joins
+// Other users of these tables keep their own inline SQL: the
+// sharedserver's own guild manager counts and lists castles by guild
+// (the gameserver's has had none since the guild round) and carries
+// WarScheduleInfo statements of its own;
+// GuildRepository::countReinforceRegistrations joins
 // ReinforceRegisterInfo to WarScheduleInfo for a guild-wide count, a
 // different statement from the war-scoped ones here.
 // war/WarScheduler.cpp's own three statements — the per-zone load,
@@ -96,7 +98,8 @@ struct CastleStateRecord {
     int taxBalance;
 };
 
-// WarScheduler::load's row, in SELECT order. The macro mirrors
+// WarScheduler::load's row, in SELECT order — ten columns in the live
+// arm, five under __OLD_GUILD_WAR__. The macro mirrors
 // war/WarScheduler.cpp, whose loop reads these columns positionally: the
 // live build leaves __OLD_GUILD_WAR__ undefined (it is commented out in
 // Core/Types.h), so the ten-column form is the one that compiles.
@@ -361,9 +364,10 @@ public:
     // and zoneID the (int) the caller cast; both still render through "%u".
     virtual std::vector<WarScheduleRow> loadWarSchedules(int serverID, int zoneID) = 0;
     // WarScheduler::load's inner read: the first ACCEPT registration of a
-    // war id, with NO server id — a different statement from
-    // loadWaitingReinforceGuild. false when there is none, and the caller
-    // then leaves the war's reinforce guild alone.
+    // war id, with NO server id. It differs from loadWaitingReinforceGuild
+    // twice over — that missing server id AND Status='ACCEPT' rather than
+    // 'WAIT' — so neither could stand in for the other. false when there
+    // is none, and the caller then leaves the war's reinforce guild alone.
     virtual bool loadAcceptedReinforceGuild(WarID_t warID, int& guildID) = 0;
     // WarScheduler::cancelGuildSchedules. The literal keeps the four tabs a
     // backslash-continued source line spliced in after the zone id, and the

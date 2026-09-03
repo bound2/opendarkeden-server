@@ -509,6 +509,8 @@ public:
                                 "\t\t\t\tAND WarType='GUILD' AND (Status='WAIT' OR Status='START')",
                                 serverID, zoneID);
 
+            // pStmt->getAffectedRowCount()
+
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
