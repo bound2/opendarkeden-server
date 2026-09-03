@@ -130,6 +130,16 @@
 // Protection (Belt read it and ItemLevel through getBYTE, the armsband through
 // getInt: two kinds, one row, one loader) and whose destroy() is a DELETE by
 // ItemID (destroyGearObject).
+// The fourteenth family, six classes whose <Class>Loader::load(Zone*) holds no
+// SQL at all: their spec rows carry no zone literal. Mitten, ShoulderArmor and
+// Persona are gear objects (Mitten's and ShoulderArmor's Info is gear's 18
+// columns, Persona's is VampireCoat's 16), so loadGearInZone would reach their
+// rows on shape alone: it checks the literal too and refuses them rather than
+// formatting a NULL. Dermis, Fascia and CarryingReceiver are
+// OPTION_GRADE_OBJECT — VampireAmulet's eleven-column INSERT and its UPDATE's
+// ten SET columns (eleven varargs), but an owner load of eleven columns, gear's
+// without Durability, and an Info SELECT of seventeen, gear's without
+// Durability too (GEAR_INFO_NO_DURABILITY); the gear loads refuse them on shape.
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -144,7 +154,7 @@
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 15 item files with SQL (later rounds) and the
+// Not enclosed: the other 9 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -222,14 +232,21 @@ enum GearTable {
     GEAR_VAMPIRE_AMULET,
     GEAR_CORE_ZAP,
     GEAR_BELT,
-    GEAR_OUSTERS_ARMSBAND
+    GEAR_OUSTERS_ARMSBAND,
+    GEAR_MITTEN,
+    GEAR_SHOULDER_ARMOR,
+    GEAR_PERSONA,
+    GEAR_DERMIS,
+    GEAR_FASCIA,
+    GEAR_CARRYING_RECEIVER
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
 enum GearInfoKind {
     GEAR_INFO_UNSET = 0,        // a spec row that forgot its kind: every loader refuses it
-    GEAR_INFO_STANDARD,         // loadGearInfos (the gear classes, VampireEarring, VampireAmulet)
-    GEAR_INFO_NO_RATIO,         // loadGearInfosNoRatio (VampireCoat)
+    GEAR_INFO_STANDARD,         // loadGearInfos (the gear classes, VampireEarring, VampireAmulet, Mitten,
+                                // ShoulderArmor)
+    GEAR_INFO_NO_RATIO,         // loadGearInfosNoRatio (VampireCoat, Persona)
     GEAR_INFO_ELEMENTAL,        // loadGearInfosElemental (OustersStone)
     GEAR_INFO_WEAPON,           // loadWeaponInfos (VampireWeapon, OustersChakram)
     GEAR_INFO_WEAPON_ELEMENTAL, // loadWeaponInfosElemental (OustersWristlet)
@@ -254,7 +271,8 @@ enum GearInfoKind {
     GEAR_INFO_MIXING_ITEM,          // loadMixingItemInfos (MixingItem)
     GEAR_INFO_SUMMON_ITEM,          // loadSummonItemInfos (OustersSummonItem)
     GEAR_INFO_POCKET,               // loadPocketInfos (OustersArmsband: PocketCount, ItemLevel through getInt)
-    GEAR_INFO_POCKET_BYTE           // loadPocketInfos (Belt: PocketCount, ItemLevel through getBYTE)
+    GEAR_INFO_POCKET_BYTE,          // loadPocketInfos (Belt: PocketCount, ItemLevel through getBYTE)
+    GEAR_INFO_NO_DURABILITY         // loadGearInfosNoDurability (Dermis, Fascia, CarryingReceiver)
 };
 
 // The object-table shapes; which update / owner-load / zone-load a table takes.
@@ -263,7 +281,8 @@ enum GearObjectKind {
                            // (loadMaxGearType never consults the kind; tinysaveGear checks it only
                            // to refuse the GUN_OBJECT tables; insertGear refuses every shape but
                            // gear's and the silver weapons', whose INSERT takes its twelve varargs)
-    GEAR_OBJECT,           // updateGear, loadGearOfOwner, loadGearInZone
+    GEAR_OBJECT,           // updateGear, loadGearOfOwner, loadGearInZone (Mitten, ShoulderArmor and Persona
+                           // have no zone literal: loadGearInZone refuses them)
     SILVER_WEAPON_OBJECT,  // updateSilverWeapon, loadSilverWeaponOfOwner, loadSilverWeaponInZone
     GUN_OBJECT,    // SG, SMG, SR: insertGun, tinysaveGun, updateGun, saveGunBullet, loadGunOfOwner, loadGunInZone
     AR_GUN_OBJECT, // AR: the same, but tinysaveGear, and the loads name BulletCount, Silver, EnchantLevel
@@ -280,8 +299,9 @@ enum GearObjectKind {
     MONEY_OBJECT,  // Money: insertMoney, tinysaveMoney, updateMoney, loadMoneyOfOwner, loadMoneyInZone
     COUPLE_RING_OBJECT, // CoupleRing, VampireCoupleRing: insertCoupleRing, tinysaveGear, updateCoupleRing, loadCoupleRingOfOwner, loadPlainItemInZone, loadCoupleRingPartnerCount
     VAMPIRE_PORTAL_OBJECT, // VampirePortalItem: insertVampirePortal, tinysaveGear, updateVampirePortal, loadVampirePortalOfOwner, loadVampirePortalInZone
-    AMULET_OBJECT,  // VampireAmulet: insertOptionGradeItem, tinysaveGear, updateAmulet, loadGearOfOwner, loadGearInZone
-    CORE_ZAP_OBJECT // CoreZap: insertOptionGradeItem, tinysaveGear, updateCoreZap, loadCoreZapOfOwner, loadCoreZapInZone
+    AMULET_OBJECT, // VampireAmulet: insertOptionGradeItem, tinysaveGear, updateAmulet, loadGearOfOwner, loadGearInZone
+    CORE_ZAP_OBJECT, // CoreZap: insertOptionGradeItem, tinysaveGear, updateCoreZap, loadCoreZapOfOwner, loadCoreZapInZone
+    OPTION_GRADE_OBJECT // Dermis, Fascia, CarryingReceiver: insertOptionGradeItem, tinysaveGear, updateAmulet, loadOptionGradeOfOwner (no zone load)
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -969,6 +989,44 @@ struct CoreZapZoneObjectRow {
     int createType; // ItemFlag
 };
 
+// Dermis, Fascia and CarryingReceiver's owner SELECT: gear's twelve columns
+// without Durability, through gear's getters.
+struct OptionGradeObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    std::string optionField;
+    int grade;
+    int enchantLevel;
+    int createType; // ItemFlag
+};
+
+// DermisInfo / FasciaInfo / CarryingReceiverInfo: the standard shape without
+// Durability (seventeen columns).
+struct GearInfoNoDurabilityRow {
+    int itemType;
+    std::string name;
+    std::string ename;
+    int price;
+    int volume;
+    int weight;
+    int ratio;
+    int defense;
+    int protection;
+    std::string reqAbility;
+    int itemLevel;
+    std::string defaultOption;
+    int upgradeRatio;
+    int upgradeCrashPercent;
+    int nextOptionRatio;
+    int nextItemType;
+    int downgradeRatio;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
@@ -995,6 +1053,7 @@ public:
     virtual std::vector<GearInfoRow> loadGearInfos(GearTable table) = 0;
     // The other Info shapes (see GearInfoKind); each refuses a table of another shape.
     virtual std::vector<GearInfoNoRatioRow> loadGearInfosNoRatio(GearTable table) = 0;
+    virtual std::vector<GearInfoNoDurabilityRow> loadGearInfosNoDurability(GearTable table) = 0;
     virtual std::vector<GearInfoElementalRow> loadGearInfosElemental(GearTable table) = 0;
     virtual std::vector<WeaponInfoRow> loadWeaponInfos(GearTable table) = 0;
     virtual std::vector<WeaponInfoElementalRow> loadWeaponInfosElemental(GearTable table) = 0;
@@ -1023,6 +1082,8 @@ public:
     // Both gear loads serve the AMULET_OBJECT table too: its SELECTs are gear's.
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
     // <Class>Loader::load(Zone*) — `storage` is what the caller streamed ((int)STORAGE_ZONE).
+    // Refuses the gear tables that carry no zone literal because their zone loader
+    // holds no SQL (Mitten, ShoulderArmor, Persona); other shapes it refuses anyway.
     virtual std::vector<GearZoneObjectRow> loadGearInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
     // The silver weapons (see GearObjectKind): <Class>::save with EnchantLevel,
@@ -1177,9 +1238,11 @@ public:
     virtual std::vector<VampirePortalObjectRow> loadVampirePortalInZone(GearTable table, int storage,
                                                                         ZoneID_t zoneID) = 0;
 
-    // VampireAmulet and CoreZap (see GearObjectKind): the gear INSERT without
-    // Durability, VampireAmulet's UPDATE with Grade and EnchantLevel, CoreZap's with
-    // Grade alone and its two loads.
+    // VampireAmulet, CoreZap, Dermis, Fascia and CarryingReceiver (see
+    // GearObjectKind): the gear INSERT without Durability, VampireAmulet's UPDATE
+    // with Grade and EnchantLevel — Dermis's, Fascia's and CarryingReceiver's too —
+    // CoreZap's with Grade alone and its two loads, and the owner load the three
+    // OPTION_GRADE_OBJECT tables share.
     virtual void insertOptionGradeItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                        const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                                        const std::string& optionField, int grade, int createType) = 0;
@@ -1191,6 +1254,7 @@ public:
                                int grade, ItemID_t itemID) = 0;
     virtual std::vector<CoreZapObjectRow> loadCoreZapOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<CoreZapZoneObjectRow> loadCoreZapInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+    virtual std::vector<OptionGradeObjectRow> loadOptionGradeOfOwner(GearTable table, const std::string& ownerName) = 0;
     // Belt::destroy and OustersArmsband::destroy — "DELETE FROM <Class>Object WHERE ItemID =
     // %ld"; false when no row went, true otherwise. Refuses tables without the literal.
     virtual bool destroyGearObject(GearTable table, ItemID_t itemID) = 0;

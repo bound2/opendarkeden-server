@@ -2506,6 +2506,17 @@ const GearTableName kPocketTables[] = {
     {GEAR_BELT, "BeltObject"},
     {GEAR_OUSTERS_ARMSBAND, "OustersArmsbandObject"},
 };
+// Gear objects whose Loader::load(Zone*) holds no SQL: no zone literal, no zone load.
+const GearTableName kOneLoaderGearTables[] = {
+    {GEAR_MITTEN, "MittenObject"},
+    {GEAR_SHOULDER_ARMOR, "ShoulderArmorObject"},
+    {GEAR_PERSONA, "PersonaObject"},
+};
+const GearTableName kOptionGradeTables[] = {
+    {GEAR_DERMIS, "DermisObject"},
+    {GEAR_FASCIA, "FasciaObject"},
+    {GEAR_CARRYING_RECEIVER, "CarryingReceiverObject"},
+};
 } // namespace
 
 class ItemObjectMySQL : public ::testing::Test {
@@ -2546,6 +2557,10 @@ protected:
         execSQL("DELETE FROM CoreZapObject WHERE ItemID >= 31000");
         for (size_t i = 0; i < sizeof(kPocketTables) / sizeof(kPocketTables[0]); i++)
             execSQL(std::string("DELETE FROM ") + kPocketTables[i].name + " WHERE ItemID >= 31000");
+        for (size_t i = 0; i < sizeof(kOneLoaderGearTables) / sizeof(kOneLoaderGearTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kOneLoaderGearTables[i].name + " WHERE ItemID >= 31000");
+        for (size_t i = 0; i < sizeof(kOptionGradeTables) / sizeof(kOptionGradeTables[0]); i++)
+            execSQL(std::string("DELETE FROM ") + kOptionGradeTables[i].name + " WHERE ItemID >= 31000");
     }
 };
 
@@ -3909,6 +3924,136 @@ TEST_F(ItemObjectMySQL, AmuletCoreZapAndPocketRowsRoundTripThroughTheirColumns) 
     EXPECT_THROW(repository.loadIntInfos(GEAR_VAMPIRE_AMULET), Error);
     EXPECT_THROW(repository.loadSilverWeaponOfOwner(GEAR_VAMPIRE_AMULET, "it-owner"), Error);
     EXPECT_THROW(repository.loadNumItemOfOwner(GEAR_CORE_ZAP, "it-owner"), Error);
+}
+
+TEST_F(ItemObjectMySQL, OneLoaderGearAndOptionGradeRowsRoundTripAndTheZoneLoadRefusesThem) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    // Mitten, ShoulderArmor and Persona: gear's six statements, no zone literal.
+    for (size_t i = 0; i < sizeof(kOneLoaderGearTables) / sizeof(kOneLoaderGearTables[0]); i++) {
+        const GearTable table = kOneLoaderGearTables[i].table;
+        const std::string name = kOneLoaderGearTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+        const std::string id = std::to_string(31000 + i);
+
+        repository.insertGear(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, "1,2", 10, 3, 1);
+        // Storage 5 is outside the owner load's IN(0, 1, 2, 3, 4, 9) list, and no zone load can read it.
+        repository.insertGear(table, 31100 + i, 78, 3, "it-owner", 5, 31000, 7, 8, "", 20, 2, 0);
+        EXPECT_EQ("10", queryScalar("SELECT Durability" + where + id)) << name;
+        EXPECT_EQ("1", queryScalar("SELECT ItemFlag" + where + id)) << name;
+        repository.updateGear(table, 79, 4, "it-owner", 1, 6, 3, 5, "2,3", 11, 4, 7, 31000 + i);
+        EXPECT_EQ("11", queryScalar("SELECT Durability" + where + id)) << name;
+        EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + id)) << name;
+
+        std::vector<GearObjectRow> owned = repository.loadGearOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name;
+        EXPECT_EQ(31000 + i, owned[0].itemID);
+        EXPECT_EQ(79u, owned[0].objectID);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ("2,3", owned[0].optionField);
+        EXPECT_EQ(11, owned[0].durability);
+        EXPECT_EQ(4, owned[0].grade);
+        EXPECT_EQ(7, owned[0].enchantLevel);
+        EXPECT_EQ(1, owned[0].createType);
+
+        // The spec row carries no zone literal: the zone load refuses the table.
+        EXPECT_THROW(repository.loadGearInZone(table, 5, 31000), Error) << name;
+
+        repository.tinysaveGear(table, "X=9", 31000 + i);
+        EXPECT_EQ("9", queryScalar("SELECT X" + where + id)) << name;
+
+        const std::string info = name.substr(0, name.size() - 6) + "Info";
+        EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM " + info).c_str()), repository.loadMaxGearType(table))
+            << info;
+        if (table == GEAR_PERSONA) { // VampireCoat's Info shape: no UpgradeRatio, no DowngradeRatio
+            std::vector<GearInfoNoRatioRow> rows = repository.loadGearInfosNoRatio(table);
+            ASSERT_FALSE(rows.empty()) << info;
+            EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)rows.size()) << info;
+            const std::string type = " FROM " + info + " WHERE ItemType=" + std::to_string(rows[0].itemType);
+            EXPECT_EQ(std::to_string(rows[0].durability), queryScalar("SELECT Durability" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].nextItemType), queryScalar("SELECT NextItemType" + type)) << info;
+            EXPECT_THROW(repository.loadGearInfos(table), Error) << info;
+        } else {
+            std::vector<GearInfoRow> rows = repository.loadGearInfos(table);
+            ASSERT_FALSE(rows.empty()) << info;
+            EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)rows.size()) << info;
+            const std::string type = " FROM " + info + " WHERE ItemType=" + std::to_string(rows[0].itemType);
+            EXPECT_EQ(std::to_string(rows[0].durability), queryScalar("SELECT Durability" + type)) << info;
+            EXPECT_EQ(std::to_string(rows[0].downgradeRatio), queryScalar("SELECT DowngradeRatio" + type)) << info;
+            EXPECT_THROW(repository.loadGearInfosNoRatio(table), Error) << info;
+        }
+        EXPECT_THROW(repository.loadGearInfosNoDurability(table), Error) << info;
+    }
+
+    // Dermis, Fascia and CarryingReceiver: the amulet INSERT and UPDATE, an owner
+    // load of eleven columns and an Info SELECT of seventeen — both without Durability.
+    for (size_t i = 0; i < sizeof(kOptionGradeTables) / sizeof(kOptionGradeTables[0]); i++) {
+        const GearTable table = kOptionGradeTables[i].table;
+        const std::string name = kOptionGradeTables[i].name;
+        const std::string where = std::string(" FROM ") + name + " WHERE ItemID=";
+        const std::string id = std::to_string(31000 + i);
+
+        repository.insertOptionGradeItem(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, "1,2", 3, 1);
+        repository.insertOptionGradeItem(table, 31100 + i, 78, 3, "it-owner", 5, 31000, 7, 8, "", 2, 0);
+        EXPECT_EQ("1,2", queryScalar("SELECT OptionType" + where + id)) << name;
+        EXPECT_EQ("3", queryScalar("SELECT Grade" + where + id)) << name;
+        EXPECT_EQ("1", queryScalar("SELECT ItemFlag" + where + id)) << name;
+        EXPECT_EQ("0", queryScalar("SELECT Durability" + where + id)) << name; // the INSERT names none
+        repository.updateAmulet(table, 79, 4, "it-owner", 1, 6, 3, 5, "2,3", 4, 7, 31000 + i);
+        EXPECT_EQ("4", queryScalar("SELECT Grade" + where + id)) << name;
+        EXPECT_EQ("7", queryScalar("SELECT EnchantLevel" + where + id)) << name;
+        EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + id)) << name;
+        EXPECT_EQ("0", queryScalar("SELECT Durability" + where + id)) << name; // nor does the UPDATE
+
+        std::vector<OptionGradeObjectRow> owned = repository.loadOptionGradeOfOwner(table, "it-owner");
+        ASSERT_EQ(1u, owned.size()) << name; // the Storage 5 row is outside the IN list
+        EXPECT_EQ(31000 + i, owned[0].itemID);
+        EXPECT_EQ(79u, owned[0].objectID);
+        EXPECT_EQ(4u, owned[0].itemType);
+        EXPECT_EQ(1, owned[0].storage);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ(3, owned[0].x);
+        EXPECT_EQ(5, owned[0].y);
+        EXPECT_EQ("2,3", owned[0].optionField);
+        EXPECT_EQ(4, owned[0].grade);
+        EXPECT_EQ(7, owned[0].enchantLevel);
+        EXPECT_EQ(1, owned[0].createType);
+
+        repository.tinysaveGear(table, "X=9", 31000 + i);
+        EXPECT_EQ("9", queryScalar("SELECT X" + where + id)) << name;
+
+        const std::string info = name.substr(0, name.size() - 6) + "Info";
+        EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM " + info).c_str()), repository.loadMaxGearType(table))
+            << info;
+        std::vector<GearInfoNoDurabilityRow> rows = repository.loadGearInfosNoDurability(table);
+        ASSERT_FALSE(rows.empty()) << info;
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM " + info).c_str()), (int)rows.size()) << info;
+        const std::string type = " FROM " + info + " WHERE ItemType=" + std::to_string(rows[0].itemType);
+        EXPECT_EQ(rows[0].name, queryScalar("SELECT Name" + type)) << info;
+        EXPECT_EQ(std::to_string(rows[0].ratio), queryScalar("SELECT Ratio" + type)) << info;
+        EXPECT_EQ(std::to_string(rows[0].defense), queryScalar("SELECT Defense" + type)) << info;
+        EXPECT_EQ(std::to_string(rows[0].upgradeRatio), queryScalar("SELECT UpgradeRatio" + type)) << info;
+        EXPECT_EQ(std::to_string(rows[0].downgradeRatio), queryScalar("SELECT DowngradeRatio" + type)) << info;
+        EXPECT_THROW(repository.loadGearInfos(table), Error) << info;
+    }
+
+    // The object-shape and Info guards, both ways.
+    EXPECT_THROW(repository.insertGear(GEAR_DERMIS, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1), Error);
+    EXPECT_THROW(repository.insertOptionGradeItem(GEAR_MITTEN, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1), Error);
+    EXPECT_THROW(repository.updateGear(GEAR_FASCIA, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 1, 31000), Error);
+    EXPECT_THROW(repository.updateAmulet(GEAR_SHOULDER_ARMOR, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 1, 31000), Error);
+    EXPECT_THROW(repository.updateCoreZap(GEAR_DERMIS, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 31000), Error);
+    EXPECT_THROW(repository.loadGearOfOwner(GEAR_CARRYING_RECEIVER, "it-owner"), Error);
+    EXPECT_THROW(repository.loadOptionGradeOfOwner(GEAR_PERSONA, "it-owner"), Error);
+    EXPECT_THROW(repository.loadOptionGradeOfOwner(GEAR_VAMPIRE_AMULET, "it-owner"), Error);
+    EXPECT_THROW(repository.loadGearInfosNoDurability(GEAR_RING), Error);
+    EXPECT_THROW(repository.loadGearInfosNoDurability(GEAR_VAMPIRE_COAT), Error);
+    EXPECT_THROW(repository.destroyGearObject(GEAR_MITTEN, 31000), Error);
+    EXPECT_THROW(repository.loadNumItemOfOwner(GEAR_DERMIS, "it-owner"), Error);
+    EXPECT_THROW(repository.loadSilverWeaponOfOwner(GEAR_MITTEN, "it-owner"), Error);
+    // The tables that do carry a zone literal still load: the guard is the literal, not the shape.
+    EXPECT_NO_THROW(repository.loadGearInZone(GEAR_RING, 5, 31000));
+    EXPECT_NO_THROW(repository.loadGearInZone(GEAR_VAMPIRE_AMULET, 5, 31000));
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {

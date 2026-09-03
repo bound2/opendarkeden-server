@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 146 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 140 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -2625,6 +2625,101 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > SELECT), Motorcycle, BloodBible, CarryingReceiver, CastleSymbol,
   > CodeSheet, Dermis, Fascia, Mitten, Persona, Relic, ShoulderArmor,
   > Sweeper, WarItem and EventBall (no tables, not registered);
+  > ItemInfoManager.cpp holds only the registry calls.
+  > **Mitten, ShoulderArmor, Persona, Dermis, Fascia and
+  > CarryingReceiver (2026-09-03, stacked on the VampireAmulet / CoreZap
+  > / pocket round; item milestone round 15)**: the six classes whose
+  > `<Class>Loader::load(Zone*)` is an empty `__BEGIN_TRY` /
+  > `__END_CATCH` stub — six statements each, no zone SELECT, so their
+  > spec rows carry no zone literal (the seventh slot NULL) and a new
+  > guard, requireZoneLiteral, makes loadGearInZone refuse such a table
+  > instead of formatting a NULL. R3 146→140 (R1/R2/R5 unchanged).
+  > Mitten, ShoulderArmor and Persona are `GEAR_OBJECT` like Ring:
+  > gear's twelve-column INSERT, gear's twelve arguments to updateGear
+  > and gear's twelve columns in the owner load, so the gear methods
+  > that serve Ring — insertGear, tinysaveGear, updateGear and
+  > loadGearOfOwner — take them as they stand, while destroyGearObject
+  > refuses them exactly as it refuses Ring, neither carrying a
+  > destroy-by-id literal; Info is gear's eighteen columns (Mitten,
+  > ShoulderArmor) or the sixteen VampireCoat reads (Persona —
+  > `GEAR_INFO_NO_RATIO`). Dermis, Fascia and CarryingReceiver are
+  > `OPTION_GRADE_OBJECT`: VampireAmulet's INSERT (eleven columns, no
+  > Durability) through insertOptionGradeItem, whose guard now takes the
+  > new kind, and updateAmulet's eleven arguments over its ten SET
+  > columns; their owner load names eleven columns, gear's without
+  > Durability, through gear's getters (ItemID, ObjectID, ItemType
+  > getDWORD, Storage getInt, StorageID getDWORD, X, Y getBYTE,
+  > OptionType getString, Grade, EnchantLevel, ItemFlag getInt —
+  > `OptionGradeObjectRow` / loadOptionGradeOfOwner), and their Info
+  > SELECT is gear's eighteen columns without Durability, seventeen
+  > (`GearInfoNoDurabilityRow` / loadGearInfosNoDurability, read as the
+  > basic seven plus gear's ten — readBasicInfo and readGearInfoTail
+  > became templates to serve the new row beside their own). The
+  > `static_assert` now reads GEAR_CARRYING_RECEIVER + 1. Literal quirks
+  > kept: "(ItemID,  ObjectID" (two spaces after the first comma),
+  > "StorageID , X, Y" (a space before that comma) and " VALUES(" in all
+  > six creates; "Storage IN(0, 1, 2, 3, 4, 9)" (no space before the
+  > parenthesis) in all six owner SELECTs, Dermis's naming "X,
+  > Y,OptionType" where the other five leave a space; "SET %s WHERE
+  > ItemID=%ld" in the six tinysaves. Normalised pairwise with the class
+  > name replaced, the six rows collapse to two INSERT shapes (with and
+  > without Durability), one tinysave, two UPDATEs, one MAX(ItemType),
+  > three Info SELECTs (18 / 16 / 17 columns) and three owner SELECTs
+  > (twelve columns; eleven; Dermis's eleven with the missing space) —
+  > no other literal differs among them, and the rows' two enum slots
+  > record exactly those shapes. The generator (outside the repo; its
+  > output is what was reviewed) reproduces the base impl byte for byte
+  > after clang-format when run against the base's 74-class list, so
+  > this round's edits to it add code and change nothing already
+  > generated. Disclosures: the seam initialises its Statement where the
+  > originals declared pStmt uninitialised (create, save, the info load
+  > and the owner loader in all six; their tinysave already used `=
+  > NULL`); one Statement per info statement, where the original ran
+  > MAX(ItemType) and the column SELECT on one; whole-result reads
+  > before placement (an item-placement throw no longer leaks the
+  > Statement; the owner loaders' `SAFE_DELETE(pStmt); // by sigi`
+  > before the default-case throw is gone in all six); DBError.log names
+  > the repository method; the six create INSERTs now pass through
+  > executeQuery's 2048-byte format buffer (174-197 bytes of format plus
+  > a varchar(10) owner and a varchar(10) OptionType) where
+  > executeQueryString was uncapped — on overflow executeQuery throws
+  > Error, which END_DB (a catch of SQLQueryException) does not catch
+  > and which leaks the Statement, but reaching it would need an
+  > optionField of some 1,700 bytes against a varchar(10) column; the
+  > SQL-free zone stubs and the third loader, load(StorageID_t,
+  > Inventory*), are untouched; the DB.h include stays; the header's "15
+  > item files" count is 9. The six item files' diffs are 322-362 lines
+  > each, all extraction: every hunk sits in a function that held SQL,
+  > plus the include — the base files were already clang-format-18 clean
+  > (formatting a copy of each changed nothing). +1 integration test:
+  > per gear table — two rows through insertGear (Durability and
+  > ItemFlag read back by SQL), updateGear (Durability, ObjectID), the
+  > owner load (one row: the Storage 5 row is outside the IN list) with
+  > its itemID, objectID, storageID, optionField, durability, grade,
+  > enchantLevel and createType, loadGearInZone throwing for want of a
+  > zone literal, tinysaveGear, MAX(ItemType) and the Info loader by
+  > COUNT(*) plus two columns (loadGearInfosNoRatio for Persona with
+  > loadGearInfos refused, loadGearInfos for the other two with
+  > loadGearInfosNoRatio refused, loadGearInfosNoDurability refused for
+  > all three); per option-grade table — two rows through
+  > insertOptionGradeItem (OptionType, Grade, ItemFlag and the untouched
+  > Durability default read back), updateAmulet (Grade, EnchantLevel,
+  > ObjectID; Durability still untouched), the owner load's eleven
+  > fields, tinysaveGear, MAX(ItemType), loadGearInfosNoDurability by
+  > COUNT(*) and name / ratio / defense / upgradeRatio / downgradeRatio
+  > with loadGearInfos refused; and the guards both ways (insertGear
+  > refusing Dermis, insertOptionGradeItem refusing Mitten, updateGear
+  > refusing Fascia, updateAmulet refusing ShoulderArmor, updateCoreZap
+  > refusing Dermis, loadGearOfOwner refusing CarryingReceiver,
+  > loadOptionGradeOfOwner refusing Persona and VampireAmulet,
+  > loadGearInfosNoDurability refusing Ring and VampireCoat,
+  > destroyGearObject refusing Mitten, loadNumItemOfOwner refusing
+  > Dermis, loadSilverWeaponOfOwner refusing Mitten — and loadGearInZone
+  > still loading for Ring and VampireAmulet, since the new guard is the
+  > literal, not the shape). Not enclosed: the other 9 item files with
+  > SQL — PetItem (a twenty-one-column owner SELECT), Motorcycle,
+  > BloodBible, CastleSymbol, CodeSheet, Relic, Sweeper and WarItem, and
+  > EventBall, which has no tables and is not registered;
   > ItemInfoManager.cpp holds only the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs

@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 CarryingReceiverInfoManager* g_pCarryingReceiverInfoManager = NULL;
@@ -52,8 +53,6 @@ void CarryingReceiver::create(const string& ownerID, Storage storage, StorageID_
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -65,24 +64,12 @@ void CarryingReceiver::create(const string& ownerID, Storage storage, StorageID_
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO CarryingReceiverObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << getGrade() << ", " << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertOptionGradeItem(GEAR_CARRYING_RECEIVER, m_ItemID, m_ObjectID, getItemType(),
+                                                        ownerID, (int)storage, storageID, (int)x, (int)y, optionField,
+                                                        getGrade(), (int)m_CreateType);
 
     __END_CATCH
 }
@@ -96,16 +83,7 @@ void CarryingReceiver::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE CarryingReceiverObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_CARRYING_RECEIVER, field, m_ItemID);
 
     __END_CATCH
 }
@@ -118,21 +96,12 @@ void CarryingReceiver::save(const string& ownerID, Storage storage, StorageID_t 
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery("UPDATE CarryingReceiverObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
-                            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            optionField.c_str(), getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateAmulet(GEAR_CARRYING_RECEIVER, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                               storageID, (int)x, (int)y, optionField, getGrade(),
+                                               (int)getEnchantLevel(), m_ItemID);
 
     __END_CATCH
 }
@@ -178,56 +147,39 @@ void CarryingReceiverInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_CARRYING_RECEIVER);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM CarryingReceiverInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GearInfoNoDurabilityRow> rows =
+        defaultItemObjectRepository().loadGearInfosNoDurability(GEAR_CARRYING_RECEIVER);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        CarryingReceiverInfo* pCarryingReceiverInfo = new CarryingReceiverInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pCarryingReceiverInfo->setItemType(rows[r].itemType);
+        pCarryingReceiverInfo->setName(rows[r].name);
+        pCarryingReceiverInfo->setEName(rows[r].ename);
+        pCarryingReceiverInfo->setPrice(rows[r].price);
+        pCarryingReceiverInfo->setVolumeType(rows[r].volume);
+        pCarryingReceiverInfo->setWeight(rows[r].weight);
+        pCarryingReceiverInfo->setRatio(rows[r].ratio);
+        pCarryingReceiverInfo->setDefenseBonus(rows[r].defense);
+        pCarryingReceiverInfo->setProtectionBonus(rows[r].protection);
+        pCarryingReceiverInfo->setReqAbility(rows[r].reqAbility);
+        pCarryingReceiverInfo->setItemLevel(rows[r].itemLevel);
+        pCarryingReceiverInfo->setDefaultOptions(rows[r].defaultOption);
+        pCarryingReceiverInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pCarryingReceiverInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pCarryingReceiverInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pCarryingReceiverInfo->setNextItemType(rows[r].nextItemType);
+        pCarryingReceiverInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult =
-            pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Defense, Protection, "
-                                "ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-                                "NextOptionRatio, NextItemType, DowngradeRatio FROM CarryingReceiverInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            CarryingReceiverInfo* pCarryingReceiverInfo = new CarryingReceiverInfo();
-
-            pCarryingReceiverInfo->setItemType(pResult->getInt(++i));
-            pCarryingReceiverInfo->setName(pResult->getString(++i));
-            pCarryingReceiverInfo->setEName(pResult->getString(++i));
-            pCarryingReceiverInfo->setPrice(pResult->getInt(++i));
-            pCarryingReceiverInfo->setVolumeType(pResult->getInt(++i));
-            pCarryingReceiverInfo->setWeight(pResult->getInt(++i));
-            pCarryingReceiverInfo->setRatio(pResult->getInt(++i));
-            pCarryingReceiverInfo->setDefenseBonus(pResult->getInt(++i));
-            pCarryingReceiverInfo->setProtectionBonus(pResult->getInt(++i));
-            pCarryingReceiverInfo->setReqAbility(pResult->getString(++i));
-            pCarryingReceiverInfo->setItemLevel(pResult->getInt(++i));
-            pCarryingReceiverInfo->setDefaultOptions(pResult->getString(++i));
-            pCarryingReceiverInfo->setUpgradeRatio(pResult->getInt(++i));
-            pCarryingReceiverInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pCarryingReceiverInfo->setNextOptionRatio(pResult->getInt(++i));
-            pCarryingReceiverInfo->setNextItemType(pResult->getInt(++i));
-            pCarryingReceiverInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pCarryingReceiverInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pCarryingReceiverInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -243,131 +195,116 @@ void CarryingReceiverLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<OptionGradeObjectRow> rows =
+        defaultItemObjectRepository().loadOptionGradeOfOwner(GEAR_CARRYING_RECEIVER, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            CarryingReceiver* pCarryingReceiver = new CarryingReceiver();
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Grade, EnchantLevel, ItemFlag "
-            "FROM CarryingReceiverObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            pCarryingReceiver->setItemID(rows[r].itemID);
+            pCarryingReceiver->setObjectID(rows[r].objectID);
+            pCarryingReceiver->setItemType(rows[r].itemType);
 
+            if (g_pCarryingReceiverInfoManager->getItemInfo(pCarryingReceiver->getItemType())->isUnique())
+                pCarryingReceiver->setUnique();
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-                CarryingReceiver* pCarryingReceiver = new CarryingReceiver();
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pCarryingReceiver->setOptionType(optionTypes);
 
-                pCarryingReceiver->setItemID(pResult->getDWORD(++i));
-                pCarryingReceiver->setObjectID(pResult->getDWORD(++i));
-                pCarryingReceiver->setItemType(pResult->getDWORD(++i));
+            pCarryingReceiver->setGrade(rows[r].grade);
+            pCarryingReceiver->setEnchantLevel(rows[r].enchantLevel);
+            pCarryingReceiver->setCreateType((Item::CreateType)rows[r].createType);
 
-                if (g_pCarryingReceiverInfoManager->getItemInfo(pCarryingReceiver->getItemType())->isUnique())
-                    pCarryingReceiver->setUnique();
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pCarryingReceiver->setOptionType(optionTypes);
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                pCarryingReceiver->setGrade(pResult->getInt(++i));
-                pCarryingReceiver->setEnchantLevel(pResult->getInt(++i));
-                pCarryingReceiver->setCreateType((Item::CreateType)pResult->getInt(++i));
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pCarryingReceiver)) {
+                    pInventory->addItemEx(x, y, pCarryingReceiver);
+                } else {
+                    processItemBugEx(pCreature, pCarryingReceiver);
+                }
+                break;
 
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pCarryingReceiver)) {
-                        pInventory->addItemEx(x, y, pCarryingReceiver);
+                    if (!pSlayer->isWear((Slayer::WearPart)x)) {
+                        pSlayer->wearItem((Slayer::WearPart)x, pCarryingReceiver);
                     } else {
                         processItemBugEx(pCreature, pCarryingReceiver);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        if (!pSlayer->isWear((Slayer::WearPart)x)) {
-                            pSlayer->wearItem((Slayer::WearPart)x, pCarryingReceiver);
-                        } else {
-                            processItemBugEx(pCreature, pCarryingReceiver);
-                        }
-                    } else if (pCreature->isVampire()) {
-                        processItemBugEx(pCreature, pCarryingReceiver);
-                    }
-                    break;
-
-                case STORAGE_BELT:
+                } else if (pCreature->isVampire()) {
                     processItemBugEx(pCreature, pCarryingReceiver);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pCarryingReceiver);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pCarryingReceiver);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pCarryingReceiver);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pCarryingReceiver);
-                    } else
-                        pStash->insert(x, y, pCarryingReceiver);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pCarryingReceiver);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
-            }
-        }
+                break;
 
-        SAFE_DELETE(pStmt);
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pCarryingReceiver);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pCarryingReceiver);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pCarryingReceiver);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pCarryingReceiver);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pCarryingReceiver);
+                } else
+                    pStash->insert(x, y, pCarryingReceiver);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pCarryingReceiver);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
+            }
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

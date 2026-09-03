@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 ShoulderArmorInfoManager* g_pShoulderArmorInfoManager = NULL;
@@ -54,8 +55,6 @@ void ShoulderArmor::create(const string& ownerID, Storage storage, StorageID_t s
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -67,24 +66,12 @@ void ShoulderArmor::create(const string& ownerID, Storage storage, StorageID_t s
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO ShoulderArmorObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", " << (int)getGrade() << ", "
-            << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertGear(GEAR_SHOULDER_ARMOR, m_ItemID, m_ObjectID, getItemType(), ownerID,
+                                             (int)storage, storageID, (int)x, (int)y, optionField, getDurability(),
+                                             (int)getGrade(), (int)m_CreateType);
 
     __END_CATCH
 }
@@ -98,16 +85,7 @@ void ShoulderArmor::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE ShoulderArmorObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_SHOULDER_ARMOR, field, m_ItemID);
 
     __END_CATCH
 }
@@ -120,23 +98,12 @@ void ShoulderArmor::save(const string& ownerID, Storage storage, StorageID_t sto
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery(
-            "UPDATE ShoulderArmorObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-            "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
-            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, optionField.c_str(),
-            getDurability(), (int)getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateGear(GEAR_SHOULDER_ARMOR, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                             storageID, (int)x, (int)y, optionField, getDurability(), (int)getGrade(),
+                                             (int)getEnchantLevel(), m_ItemID);
 
     __END_CATCH
 }
@@ -183,57 +150,39 @@ void ShoulderArmorInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_SHOULDER_ARMOR);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM ShoulderArmorInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GearInfoRow> rows = defaultItemObjectRepository().loadGearInfos(GEAR_SHOULDER_ARMOR);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        ShoulderArmorInfo* pShoulderArmorInfo = new ShoulderArmorInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pShoulderArmorInfo->setItemType(rows[r].itemType);
+        pShoulderArmorInfo->setName(rows[r].name);
+        pShoulderArmorInfo->setEName(rows[r].ename);
+        pShoulderArmorInfo->setPrice(rows[r].price);
+        pShoulderArmorInfo->setVolumeType(rows[r].volume);
+        pShoulderArmorInfo->setWeight(rows[r].weight);
+        pShoulderArmorInfo->setRatio(rows[r].ratio);
+        pShoulderArmorInfo->setDurability(rows[r].durability);
+        pShoulderArmorInfo->setDefenseBonus(rows[r].defense);
+        pShoulderArmorInfo->setProtectionBonus(rows[r].protection);
+        pShoulderArmorInfo->setReqAbility(rows[r].reqAbility);
+        pShoulderArmorInfo->setItemLevel(rows[r].itemLevel);
+        pShoulderArmorInfo->setDefaultOptions(rows[r].defaultOption);
+        pShoulderArmorInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pShoulderArmorInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pShoulderArmorInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pShoulderArmorInfo->setNextItemType(rows[r].nextItemType);
+        pShoulderArmorInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult =
-            pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, "
-                                "Protection, ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-                                "NextOptionRatio, NextItemType, DowngradeRatio FROM ShoulderArmorInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            ShoulderArmorInfo* pShoulderArmorInfo = new ShoulderArmorInfo();
-
-            pShoulderArmorInfo->setItemType(pResult->getInt(++i));
-            pShoulderArmorInfo->setName(pResult->getString(++i));
-            pShoulderArmorInfo->setEName(pResult->getString(++i));
-            pShoulderArmorInfo->setPrice(pResult->getInt(++i));
-            pShoulderArmorInfo->setVolumeType(pResult->getInt(++i));
-            pShoulderArmorInfo->setWeight(pResult->getInt(++i));
-            pShoulderArmorInfo->setRatio(pResult->getInt(++i));
-            pShoulderArmorInfo->setDurability(pResult->getInt(++i));
-            pShoulderArmorInfo->setDefenseBonus(pResult->getInt(++i));
-            pShoulderArmorInfo->setProtectionBonus(pResult->getInt(++i));
-            pShoulderArmorInfo->setReqAbility(pResult->getString(++i));
-            pShoulderArmorInfo->setItemLevel(pResult->getInt(++i));
-            pShoulderArmorInfo->setDefaultOptions(pResult->getString(++i));
-            pShoulderArmorInfo->setUpgradeRatio(pResult->getInt(++i));
-            pShoulderArmorInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pShoulderArmorInfo->setNextOptionRatio(pResult->getInt(++i));
-            pShoulderArmorInfo->setNextItemType(pResult->getInt(++i));
-            pShoulderArmorInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pShoulderArmorInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pShoulderArmorInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -249,133 +198,118 @@ void ShoulderArmorLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<GearObjectRow> rows =
+        defaultItemObjectRepository().loadGearOfOwner(GEAR_SHOULDER_ARMOR, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            ShoulderArmor* pShoulderArmor = new ShoulderArmor();
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
-            "ItemFlag FROM ShoulderArmorObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            pShoulderArmor->setItemID(rows[r].itemID);
+            pShoulderArmor->setObjectID(rows[r].objectID);
+            pShoulderArmor->setItemType(rows[r].itemType);
 
+            if (g_pShoulderArmorInfoManager->getItemInfo(pShoulderArmor->getItemType())->isUnique())
+                pShoulderArmor->setUnique();
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-                ShoulderArmor* pShoulderArmor = new ShoulderArmor();
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pShoulderArmor->setOptionType(optionTypes);
 
-                pShoulderArmor->setItemID(pResult->getDWORD(++i));
-                pShoulderArmor->setObjectID(pResult->getDWORD(++i));
-                pShoulderArmor->setItemType(pResult->getDWORD(++i));
+            pShoulderArmor->setDurability(rows[r].durability);
+            pShoulderArmor->setGrade(rows[r].grade);
+            pShoulderArmor->setEnchantLevel(rows[r].enchantLevel);
+            pShoulderArmor->setCreateType((Item::CreateType)rows[r].createType);
 
-                if (g_pShoulderArmorInfoManager->getItemInfo(pShoulderArmor->getItemType())->isUnique())
-                    pShoulderArmor->setUnique();
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pShoulderArmor->setOptionType(optionTypes);
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                pShoulderArmor->setDurability(pResult->getInt(++i));
-                pShoulderArmor->setGrade(pResult->getInt(++i));
-                pShoulderArmor->setEnchantLevel(pResult->getInt(++i));
-                pShoulderArmor->setCreateType((Item::CreateType)pResult->getInt(++i));
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pShoulderArmor)) {
+                    pInventory->addItemEx(x, y, pShoulderArmor);
+                } else {
+                    processItemBugEx(pCreature, pShoulderArmor);
+                }
+                break;
 
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pShoulderArmor)) {
-                        pInventory->addItemEx(x, y, pShoulderArmor);
+                    if (!pSlayer->isWear((Slayer::WearPart)x)) {
+                        pSlayer->wearItem((Slayer::WearPart)x, pShoulderArmor);
                     } else {
                         processItemBugEx(pCreature, pShoulderArmor);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        if (!pSlayer->isWear((Slayer::WearPart)x)) {
-                            pSlayer->wearItem((Slayer::WearPart)x, pShoulderArmor);
-                        } else {
-                            processItemBugEx(pCreature, pShoulderArmor);
-                        }
-                    } else if (pCreature->isVampire()) {
-                        processItemBugEx(pCreature, pShoulderArmor);
-                    }
-                    break;
-
-                case STORAGE_BELT:
+                } else if (pCreature->isVampire()) {
                     processItemBugEx(pCreature, pShoulderArmor);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pShoulderArmor);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pShoulderArmor);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pShoulderArmor);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pShoulderArmor);
-                    } else
-                        pStash->insert(x, y, pShoulderArmor);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pShoulderArmor);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pShoulderArmor);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pShoulderArmor);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pShoulderArmor);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pShoulderArmor);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pShoulderArmor);
+                } else
+                    pStash->insert(x, y, pShoulderArmor);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pShoulderArmor);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
