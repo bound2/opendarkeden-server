@@ -27,6 +27,8 @@
 #include "RelicUtil.h"
 #include "SharedServerManager.h"
 #include "TradeManager.h"
+#include "repository/EffectSaveRepository.h"
+#include "repository/SessionRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // 슬레이어 오브젝트 핸들러
@@ -104,15 +106,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             Vampire* pVampire = dynamic_cast<Vampire*>(pFromCreature);
 
             // DB에서 혹시 남아있을 지 모르는 흡혈 정보를 삭제해준다.
-            Statement* pStmt = NULL;
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                StringStream sql;
-                sql << "DELETE FROM EffectBloodDrain WHERE OwnerID = '" + pFromCreature->getName() + "'";
-                pStmt->executeQueryString(sql.toString());
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
+            defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, pFromCreature->getName());
 
             pNewSlayer->setName(pFromCreature->getName());
 
@@ -153,14 +147,8 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
                     g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
-                    Statement* pStmt = NULL;
                     // 디비에 업데이트 한다.
-                    BEGIN_DB {
-                        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                        pStmt->executeQuery("UPDATE GuildMember SET LogOn = 0 WHERE Name = '%s'",
-                                            pVampire->getName().c_str());
-                    }
-                    END_DB(pStmt)
+                    defaultSessionRepository().markGuildMemberLoggedOff(pVampire->getName());
                 } else
                     filelog("GuildMissing.log", "[NoSuchGuild] GuildID : %d, Name : %s\n", (int)pVampire->getGuildID(),
                             pVampire->getName().c_str());
@@ -442,15 +430,7 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             Vampire* pVampire = dynamic_cast<Vampire*>(pFromCreature);
 
             // DB에서 혹시 남아있을 지 모르는 흡혈 정보를 삭제해준다.
-            Statement* pStmt = NULL;
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                StringStream sql;
-                sql << "DELETE FROM EffectBloodDrain WHERE OwnerID = '" + pFromCreature->getName() + "'";
-                pStmt->executeQueryString(sql.toString());
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
+            defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, pFromCreature->getName());
 
             pNewSlayer->setName(pFromCreature->getName());
             pNewSlayer->setPlayer(pFromCreature->getPlayer());

@@ -20,6 +20,7 @@
 #include "PCManager.h"
 #include "Slayer.h"
 #include "Vampire.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -154,38 +155,12 @@ void EffectBloodDrain::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        /*
-        StringStream sql;
-
-        sql << "INSERT INTO EffectBloodDrain "
-            << "(OwnerID , YearTime, DayTime, Level)"
-            << " VALUES('" << ownerID
-            << "' , " << currentYearTime
-            << " , " << m_Deadline.tv_sec
-            << " , " <<(int)m_Level
-            << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery(
-            "INSERT INTO EffectBloodDrain (OwnerID , YearTime, DayTime, Level) VALUES('%s', %ld, %ld, %d)",
-            ownerID.c_str(), currentYearTime, m_Deadline.tv_sec, (int)m_Level);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, ownerID, currentYearTime,
+                                                       m_Deadline.tv_sec, (int)m_Level, 0);
 
     __END_CATCH
 }
@@ -198,21 +173,7 @@ void EffectBloodDrain::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-        sql << "DELETE FROM EffectBloodDrain WHERE OwnerID = '" << ownerID << "'";
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("DELETE FROM EffectBloodDrain WHERE OwnerID = '%s'", ownerID.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, ownerID);
 
     __END_CATCH
 }
@@ -225,32 +186,12 @@ void EffectBloodDrain::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE EffectBloodDrain SET "
-            << "YearTime = " << currentYearTime
-            << ",DayTime = " << m_Deadline.tv_sec
-            << ", Level = " <<(int)m_Level
-            << " WHERE OwnerID = '" << ownerID << "'";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("UPDATE EffectBloodDrain SET YearTime=%ld, DayTime=%ld, Level=%d WHERE OwnerID='%s'",
-                            currentYearTime, m_Deadline.tv_sec, m_Level, ownerID.c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, ownerID, currentYearTime,
+                                                       m_Deadline.tv_sec, m_Level, 0);
 
     __END_CATCH
 }
@@ -281,53 +222,32 @@ void EffectBloodDrainLoader::load(Creature* pCreature)
     if (!pCreature->isSlayer() && !pCreature->isOusters())
         return;
 
-    Statement* pStmt = NULL;
+    vector<CreatureEffectRow> rows =
+        defaultEffectSaveRepository().loadCreatureEffects(CREATURE_EFFECT_BLOOD_DRAIN, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        int DayTime = rows[r].dayTime;
 
-        /*
-        StringStream sql;
+        Timeval currentTime;
+        getCurrentTime(currentTime);
 
-        sql << "SELECT DayTime, Level FROM EffectBloodDrain"
-            << " WHERE OwnerID = '" << pCreature->getName()
-            << "'";
+        EffectBloodDrain* pEffectBloodDrain = new EffectBloodDrain(pCreature);
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+        if (currentTime.tv_sec + 600 < DayTime) {
+            pEffectBloodDrain->setDeadline((DayTime - currentTime.tv_sec) * 10);
+            pEffectBloodDrain->setLevel(rows[r].level);
 
-        Result* pResult = pStmt->executeQuery("SELECT DayTime, Level FROM EffectBloodDrain WHERE OwnerID='%s'",
-                                              pCreature->getName().c_str());
+            pCreature->addEffect(pEffectBloodDrain);
+            pCreature->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
+        } else {
+            // pEffectBloodDrain->setDeadline(6000);
+            pEffectBloodDrain->setDeadline(6000);
+            pEffectBloodDrain->setLevel(rows[r].level);
 
-        while (pResult->next()) {
-            uint i = 0;
-
-            int DayTime = pResult->getDWORD(++i);
-
-            Timeval currentTime;
-            getCurrentTime(currentTime);
-
-            EffectBloodDrain* pEffectBloodDrain = new EffectBloodDrain(pCreature);
-
-            if (currentTime.tv_sec + 600 < DayTime) {
-                pEffectBloodDrain->setDeadline((DayTime - currentTime.tv_sec) * 10);
-                pEffectBloodDrain->setLevel(pResult->getBYTE(++i));
-
-                pCreature->addEffect(pEffectBloodDrain);
-                pCreature->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
-            } else {
-                // pEffectBloodDrain->setDeadline(6000);
-                pEffectBloodDrain->setDeadline(6000);
-                pEffectBloodDrain->setLevel(pResult->getBYTE(++i));
-
-                pCreature->addEffect(pEffectBloodDrain);
-                pCreature->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
-            }
+            pCreature->addEffect(pEffectBloodDrain);
+            pCreature->setFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

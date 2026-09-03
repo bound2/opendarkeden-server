@@ -13,6 +13,7 @@
 #include "GCRemoveEffect.h"
 #include "Player.h"
 #include "Slayer.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -144,29 +145,16 @@ void EffectYellowPoisonToCreature::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     Timeval currentTime;
 
     getCurrentTime(currentTime);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    Turn_t currentYearTime;
+    getCurrentYearTime(currentYearTime);
 
-        StringStream sql;
-
-        Turn_t currentYearTime;
-        getCurrentYearTime(currentYearTime);
-
-        sql << "INSERT INTO EffectYellowPoisonToCreature" << "(OwnerID , YearTime, DayTime, Level, OldSight)"
-            << " VALUES('" << ownerID << "' , " << currentYearTime << "," << m_Deadline.tv_sec << "," << (int)m_Level
-            << "," << (int)m_OldSight << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        delete pStmt;
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertCreatureEffect(CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE, ownerID,
+                                                       currentYearTime, m_Deadline.tv_sec, (int)m_Level,
+                                                       (int)m_OldSight);
 
     __END_CATCH
 }
@@ -179,20 +167,7 @@ void EffectYellowPoisonToCreature::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "DELETE FROM EffectYellowPoisonToCreature WHERE OwnerID = '" << ownerID << "'";
-
-        pStmt->executeQueryString(sql.toString());
-
-        delete pStmt;
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE, ownerID);
 
     __END_CATCH
 }
@@ -205,25 +180,12 @@ void EffectYellowPoisonToCreature::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
+    getCurrentYearTime(currentYearTime);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        Turn_t currentYearTime;
-        getCurrentYearTime(currentYearTime);
-
-        sql << "UPDATE EffectYellowPoisonToCreature SET " << "YearTime = " << currentYearTime
-            << ", DayTime = " << m_Deadline.tv_sec << ", Level = " << (int)m_Level << ", OldSight = " << (int)m_OldSight
-            << " WHERE OwnerID = '" << ownerID << "'";
-
-        pStmt->executeQueryString(sql.toString());
-
-        delete pStmt;
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateCreatureEffect(CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE, ownerID,
+                                                       currentYearTime, m_Deadline.tv_sec, (int)m_Level,
+                                                       (int)m_OldSight);
 
     __END_CATCH
 }
@@ -256,55 +218,40 @@ void EffectYellowPoisonToCreatureLoader::load(Creature* pCreature)
     }
 
 
-    Statement* pStmt;
+    vector<CreatureEffectRow> rows = defaultEffectSaveRepository().loadCreatureEffects(
+        CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (pCreature->isSlayer() || pCreature->isOusters()) {
+            Turn_t YearTime = rows[r].yearTime;
+            int DayTime = rows[r].dayTime;
 
-        StringStream sql;
+            Turn_t currentYearTime;
 
-        sql << "SELECT YearTime, DayTime, Level, OldSight FROM EffectYellowPoisonToCreature" << " WHERE OwnerID = '"
-            << pCreature->getName() << "'";
+            Timeval currentTime;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+            getCurrentYearTime(currentYearTime);
 
-        while (pResult->next()) {
-            if (pCreature->isSlayer() || pCreature->isOusters()) {
-                uint i = 0;
+            getCurrentTime(currentTime);
 
-                Turn_t YearTime = pResult->getDWORD(++i);
-                int DayTime = pResult->getDWORD(++i);
+            int leftTime = ((YearTime - currentYearTime) * 24 * 60 * 60 + (DayTime - currentTime.tv_sec)) * 10;
+            EffectYellowPoisonToCreature* pEffect = new EffectYellowPoisonToCreature(pCreature);
 
-                Turn_t currentYearTime;
-
-                Timeval currentTime;
-
-                getCurrentYearTime(currentYearTime);
-
-                getCurrentTime(currentTime);
-
-                int leftTime = ((YearTime - currentYearTime) * 24 * 60 * 60 + (DayTime - currentTime.tv_sec)) * 10;
-                EffectYellowPoisonToCreature* pEffect = new EffectYellowPoisonToCreature(pCreature);
-
-                if (leftTime > 0) {
-                    pEffect->setDeadline(leftTime);
-                } else {
-                    pEffect->setDeadline(10);
-                    // pEffect->destroy(pCreature->getName());
-                    // delete pEffect;
-                }
-
-                pEffect->setLevel(pResult->getInt(++i));
-
-                pEffect->setOldSight(13);
-                pCreature->setFlag(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE);
-                pCreature->addEffect(pEffect);
+            if (leftTime > 0) {
+                pEffect->setDeadline(leftTime);
+            } else {
+                pEffect->setDeadline(10);
+                // pEffect->destroy(pCreature->getName());
+                // delete pEffect;
             }
-        }
 
-        delete pStmt;
+            pEffect->setLevel(rows[r].level);
+
+            pEffect->setOldSight(13);
+            pCreature->setFlag(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE);
+            pCreature->addEffect(pEffect);
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

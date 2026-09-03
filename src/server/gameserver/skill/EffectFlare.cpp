@@ -16,6 +16,7 @@
 #include "MonsterInfo.h"
 #include "Player.h"
 #include "Vampire.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -165,28 +166,15 @@ void EffectFlare::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     Timeval currentTime;
 
     getCurrentTime(currentTime);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    Turn_t currentYearTime;
+    getCurrentYearTime(currentYearTime);
 
-        StringStream sql;
-
-        Turn_t currentYearTime;
-        getCurrentYearTime(currentYearTime);
-
-        sql << "INSERT INTO EffectFlare" << "(OwnerID , YearTime, DayTime, OldSight)" << " VALUES('" << ownerID
-            << "' , " << currentYearTime << " , " << m_Deadline.tv_sec << "," << (int)m_OldSight << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertCreatureEffect(CREATURE_EFFECT_FLARE, ownerID, currentYearTime,
+                                                       m_Deadline.tv_sec, 0, (int)m_OldSight);
 
     __END_CATCH
 }
@@ -199,20 +187,7 @@ void EffectFlare::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "DELETE FROM EffectFlare WHERE OwnerID = '" << ownerID << "'";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_FLARE, ownerID);
 
     __END_CATCH
 }
@@ -225,24 +200,11 @@ void EffectFlare::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
+    getCurrentYearTime(currentYearTime);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        Turn_t currentYearTime;
-        getCurrentYearTime(currentYearTime);
-
-        sql << "UPDATE EffectFlare SET " << "YearTime = " << currentYearTime << ", DayTime = " << m_Deadline.tv_sec
-            << ", OldSight = " << (int)m_OldSight << " WHERE OwnerID = '" << ownerID << "'";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateCreatureEffect(CREATURE_EFFECT_FLARE, ownerID, currentYearTime,
+                                                       m_Deadline.tv_sec, 0, (int)m_OldSight);
 
     __END_CATCH
 }
@@ -270,53 +232,38 @@ void EffectFlareLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
+    vector<CreatureEffectRow> rows =
+        defaultEffectSaveRepository().loadCreatureEffects(CREATURE_EFFECT_FLARE, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (pCreature->isVampire()) {
+            Turn_t YearTime = rows[r].yearTime;
+            int DayTime = rows[r].dayTime;
 
-        StringStream sql;
+            Turn_t currentYearTime;
 
-        sql << "SELECT YearTime, DayTime, OldSight FROM EffectFlare" << " WHERE OwnerID = '" << pCreature->getName()
-            << "'";
+            Timeval currentTime;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+            getCurrentYearTime(currentYearTime);
 
-        while (pResult->next()) {
-            if (pCreature->isVampire()) {
-                uint i = 0;
+            getCurrentTime(currentTime);
 
-                Turn_t YearTime = pResult->getDWORD(++i);
-                int DayTime = pResult->getDWORD(++i);
+            int leftTime = ((YearTime - currentYearTime) * 24 * 60 * 60 + (DayTime - currentTime.tv_sec)) * 10;
+            EffectFlare* pEffect = new EffectFlare(pCreature);
 
-                Turn_t currentYearTime;
-
-                Timeval currentTime;
-
-                getCurrentYearTime(currentYearTime);
-
-                getCurrentTime(currentTime);
-
-                int leftTime = ((YearTime - currentYearTime) * 24 * 60 * 60 + (DayTime - currentTime.tv_sec)) * 10;
-                EffectFlare* pEffect = new EffectFlare(pCreature);
-
-                if (leftTime > 0) {
-                    pEffect->setDeadline(leftTime);
-                } else {
-                    pEffect->setDeadline(10);
-                    // pEffect->destroy(pCreature->getName());
-                    // SAFE_DELETE(pEffect);
-                }
-
-                pEffect->setOldSight(13);
-                pCreature->setFlag(Effect::EFFECT_CLASS_FLARE);
-                pCreature->addEffect(pEffect);
+            if (leftTime > 0) {
+                pEffect->setDeadline(leftTime);
+            } else {
+                pEffect->setDeadline(10);
+                // pEffect->destroy(pCreature->getName());
+                // SAFE_DELETE(pEffect);
             }
-        }
 
-        SAFE_DELETE(pStmt);
+            pEffect->setOldSight(13);
+            pCreature->setFlag(Effect::EFFECT_CLASS_FLARE);
+            pCreature->addEffect(pEffect);
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
