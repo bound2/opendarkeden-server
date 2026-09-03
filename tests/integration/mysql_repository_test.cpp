@@ -1558,6 +1558,37 @@ protected:
     }
 };
 
+
+TEST_F(MessageMySQL, TheThreeUnionNoticeSpellingsAreOneStatementWithThreeTexts) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+    MessageRepository& repository = defaultMessageRepository();
+
+    // The union handlers wrote this INSERT three ways — backticked or not,
+    // with or without a space before the VALUES list. MySQL ignores both
+    // differences, so all three land the same shape of row; the seam keeps
+    // them apart because task 3.2 preserves bytes, not because they behave
+    // differently. This test is what says so.
+    repository.insertUnionNotice(UNION_NOTICE_PLAIN, slayer.name, "plain");
+    repository.insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, slayer.name, "quoted spaced");
+    repository.insertUnionNotice(UNION_NOTICE_QUOTED, slayer.name, "quoted");
+
+    EXPECT_EQ(3u, repository.loadMessages(slayer.name).size());
+
+    const std::string where = "FROM Messages WHERE Receiver='" + slayer.name + "' AND Message=";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) " + where + "'plain'"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) " + where + "'quoted spaced'"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) " + where + "'quoted'"));
+
+    // None of the three names Sender, so it defaults to '' — as
+    // insertMessage's own row does.
+    EXPECT_EQ("", queryScalar("SELECT Sender " + where + "'quoted'"));
+
+    // And they drain through the same reader the zone already uses.
+    repository.deleteMessages(slayer.name);
+    EXPECT_TRUE(repository.loadMessages(slayer.name).empty());
+}
+
 TEST_F(MessageMySQL, InsertLoadAndDeleteAreScopedToTheReceiver) {
     PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
     PlayerFixture other = PlayerFixtures::midLevelOusters();
@@ -5823,6 +5854,64 @@ TEST_F(GuildMySQL, CastleAndWarReadsAreScopedToTheGuild) {
     EXPECT_EQ(0, repository.countStartedWarsAtCastle(31000, 31001));
     EXPECT_EQ(1, repository.countStartedWarsOfAttacker(31002));
     EXPECT_EQ(0, repository.countStartedWarsOfAttacker(31000)); // its war is WAIT
+}
+
+
+TEST_F(GuildMySQL, UnionMemberCountsAgreeAcrossSpellingsAndTheInfoDeleteSparesTheMembers) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    const uint unionID = repository.insertUnion(31001);
+    repository.insertUnionMember(unionID, 31001);
+    repository.insertUnionMember(unionID, 31002);
+
+    // Three spellings of one count: COUNT(*) (the seam's own), and the
+    // handlers' lowercase count(*) plain and backticked.
+    EXPECT_EQ(2, repository.countUnionMembers(unionID));
+    EXPECT_EQ(2, repository.countUnionMembers(UNION_SQL_PLAIN, unionID));
+    EXPECT_EQ(2, repository.countUnionMembers(UNION_SQL_QUOTED, unionID));
+
+    // deleteUnionInfoOnly drops the GuildUnionInfo row and NOTHING else.
+    // This is the whole reason it is not deleteUnion(), which also clears
+    // the union's GuildUnionMember rows.
+    repository.deleteUnionInfoOnly(UNION_SQL_PLAIN, unionID);
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(unionID)));
+    EXPECT_EQ(2, repository.countUnionMembers(unionID));
+
+    // The backticked spelling does the same to a second union.
+    const uint second = repository.insertUnion(31003);
+    repository.insertUnionMember(second, 31003);
+    repository.deleteUnionInfoOnly(UNION_SQL_QUOTED, second);
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM GuildUnionInfo WHERE UnionID=" + std::to_string(second)));
+    EXPECT_EQ(1, repository.countUnionMembers(second));
+
+    // For contrast: deleteUnion takes the member rows too.
+    repository.deleteUnion(second);
+    EXPECT_EQ(0, repository.countUnionMembers(second));
+}
+
+TEST_F(GuildMySQL, TheEscapeOfferIsAPositionalRowThatTheTenDayCountFinds) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    const uint unionID = repository.insertUnion(31001);
+    EXPECT_EQ(0, repository.countRecentEscapes(31002));
+
+    // Written positionally — no column list — so the row depends on
+    // GuildUnionOffer's column order (UnionID, OfferType, OwnerGuildID,
+    // OfferTime), unlike insertJoinOffer / insertQuitOffer beside it.
+    repository.insertEscapeOffer(unionID, 31002);
+
+    const std::string where = "FROM GuildUnionOffer WHERE OwnerGuildID=31002";
+    EXPECT_EQ(std::to_string(unionID), queryScalar("SELECT UnionID " + where));
+    EXPECT_EQ("ESCAPE", queryScalar("SELECT OfferType " + where));
+
+    // OfferTime is now(), so the ten-day window the join penalty uses sees
+    // it; the column's own default is a 2004 date, which would not.
+    EXPECT_EQ(1, repository.countRecentEscapes(31002));
+    EXPECT_EQ(1, repository.countOffers(31002));
+
+    // It is an ordinary offer row, so the seam's own sweeper clears it.
+    repository.deleteOffers(31002);
+    EXPECT_EQ(0, repository.countOffers(31002));
 }
 
 TEST_F(GuildMySQL, UnionsAreCreatedWithAnAutoIncrementIdAndTheirMembersReadAndRemoved) {

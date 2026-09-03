@@ -19,6 +19,7 @@
 #include "PlayerCreature.h"
 #include "StringPool.h"
 #include "SystemAvailabilitiesManager.h"
+#include "repository/MessageRepository.h"
 #endif // __GAME_SERVER__
 
 //////////////////////////////////////////////////////////////////////////////
@@ -87,15 +88,7 @@ void CGQuitUnionDenyHandler::execute(CGQuitUnionDeny* pPacket, Player* pPlayer)
     // cout << "탈퇴가 거부되었다. 통보받을 유저는 : " << TargetGuildMaster.c_str() << endl;
 
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("INSERT INTO Messages (Receiver, Message) values('%s','%s')", TargetGuildMaster.c_str(),
-                            g_pStringPool->c_str(376));
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultMessageRepository().insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(376));
 
 #endif // __GAME_SERVER__
 

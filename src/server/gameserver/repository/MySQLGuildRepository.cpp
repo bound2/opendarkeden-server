@@ -604,6 +604,45 @@ public:
         END_DB(pStmt)
     }
 
+    int countUnionMembers(UnionStatementSpelling spelling, uint unionID) {
+        // Byte-for-byte what each handler wrote; see GuildRepository.h.
+        static const char* const COUNT_SQL[UNION_SQL_SPELLING_MAX] = {
+            "SELECT count(*) FROM GuildUnionMember WHERE UnionID='%u'",
+            "SELECT count(*) FROM `GuildUnionMember` WHERE `UnionID`='%u'",
+        };
+
+        return countOf(COUNT_SQL[spelling], unionID);
+    }
+
+    void deleteUnionInfoOnly(UnionStatementSpelling spelling, uint unionID) {
+        static const char* const DELETE_SQL[UNION_SQL_SPELLING_MAX] = {
+            "DELETE FROM GuildUnionInfo WHERE UnionID='%u'",
+            "DELETE FROM `GuildUnionInfo` WHERE `UnionID`='%u'",
+        };
+
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(DELETE_SQL[spelling], unionID);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void insertEscapeOffer(uint unionID, GuildID_t guildID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO GuildUnionOffer values('%u','ESCAPE','%u',now())", unionID, guildID);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     void insertJoinOffer(uint unionID, GuildID_t guildID) {
         Statement* pStmt = NULL;
 

@@ -48,6 +48,26 @@ public:
         END_DB(pStmt)
     }
 
+    void insertUnionNotice(UnionNoticeSpelling spelling, const string& receiver, const string& message) {
+        // Byte-for-byte what each handler wrote. See MessageRepository.h for
+        // why the three are kept apart.
+        static const char* const NOTICE_SQL[UNION_NOTICE_SPELLING_MAX] = {
+            "INSERT INTO Messages (Receiver, Message) values('%s','%s')",
+            "INSERT INTO `Messages` (`Receiver`, `Message`) values ('%s','%s')",
+            "INSERT INTO `Messages` (`Receiver`, `Message`) values('%s','%s')",
+        };
+
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(NOTICE_SQL[spelling], receiver.c_str(), message.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     void insertMessage(const string& receiver, const string& message) {
         Statement* pStmt = NULL;
 

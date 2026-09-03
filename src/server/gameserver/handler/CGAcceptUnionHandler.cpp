@@ -26,6 +26,7 @@
 #include "Zone.h"
 #include "ZoneGroupManager.h"
 #include "ZoneUtil.h"
+#include "repository/MessageRepository.h"
 
 #endif // __GAME_SERVER__
 
@@ -97,15 +98,7 @@ void CGAcceptUnionHandler::execute(CGAcceptUnion* pPacket, Player* pPlayer)
         // cout << "가입이 수락되었다. 통보받을 유저는 : " << TargetGuildMaster.c_str() << endl;
 
 
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO `Messages` (`Receiver`, `Message`) values('%s','%s')",
-                                TargetGuildMaster.c_str(), g_pStringPool->c_str(373));
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED, TargetGuildMaster, g_pStringPool->c_str(373));
 
 
         // 연합마스터가 된 아한테 연합아이디와 UNION_MASTER를 보내줘야 하고..

@@ -21,9 +21,23 @@
 // Not enclosed: the sharedserver's own Guild.cpp / GuildManager.cpp (a
 // separate copy with its own SQL, WarScheduleInfo statements included),
 // CGSayHandler's GM guild commands, and the SG*Guild* handlers that
-// mutate guild rows from the SharedServerManager thread. war/'s own
+// mutate guild rows from the SharedServerManager thread. The five
+// guild-union handlers are no longer among them. war/'s own
 // WarScheduleInfo writes are no longer among them — WarInfoRepository
 // took the last of them with the war-scheduler round.
+
+// Which spelling of the union handlers' two shared statements to write.
+// CGDenyUnionHandler backticks every identifier where the two quit
+// handlers do not; the bytes differ and task 3.2 moves statements
+// without rewriting them, so the caller says which it used. The two are
+// the same statement to MySQL.
+enum UnionStatementSpelling {
+    // CGQuitUnionHandler, CGQuitUnionAcceptHandler.
+    UNION_SQL_PLAIN,
+    // CGDenyUnionHandler.
+    UNION_SQL_QUOTED,
+    UNION_SQL_SPELLING_MAX
+};
 
 // GuildMember::load — the four columns it reads back.
 struct GuildMemberRow {
@@ -158,6 +172,15 @@ public:
     virtual bool loadUnionMaster(int unionID, int& masterGuildID) = 0;
     // "WHERE UnionID='%u'" — the quoted numeric key, kept.
     virtual int countUnionMembers(uint unionID) = 0;
+    // The union handlers' own copy of that count, spelled with a
+    // lowercase count() rather than COUNT(). Every caller calls next()
+    // without checking it, which a COUNT always satisfies, and compares
+    // the result against 0 to decide whether the union is now empty.
+    virtual int countUnionMembers(UnionStatementSpelling spelling, uint unionID) = 0;
+    // DELETE FROM GuildUnionInfo alone. NOT deleteUnion(), which also
+    // clears the union's GuildUnionMember rows: these callers drop the
+    // info row only, having just found the member table empty.
+    virtual void deleteUnionInfoOnly(UnionStatementSpelling spelling, uint unionID) = 0;
 
     // --- union offers (GuildUnionOffer) ---------------------------------------------
     // ESCAPE offers of the last ten days (the join penalty).
@@ -165,6 +188,11 @@ public:
     virtual void deleteStaleOffers(GuildID_t guildID) = 0;
     virtual void insertJoinOffer(uint unionID, GuildID_t guildID) = 0;
     virtual void insertQuitOffer(uint unionID, GuildID_t guildID) = 0;
+    // CGQuitUnionHandler's ESCAPE offer, the row countRecentEscapes
+    // later counts. Written POSITIONALLY, unlike the two above — it
+    // names no columns and so depends on GuildUnionOffer's column
+    // order. Kept as it was.
+    virtual void insertEscapeOffer(uint unionID, GuildID_t guildID) = 0;
     virtual std::vector<UnionOfferRow> loadOffers(uint unionID) = 0;
     virtual bool loadJoinOfferUnion(GuildID_t guildID, int& unionID) = 0;
     virtual bool loadQuitOfferUnion(GuildID_t guildID, int& unionID) = 0;
