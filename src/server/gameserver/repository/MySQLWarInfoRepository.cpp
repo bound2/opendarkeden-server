@@ -46,6 +46,15 @@ namespace {
 //    name — it keys the lookup on Thread::self() and falls back to the
 //    default connection — so the two spellings selected the same
 //    socket; the seam writes "DARKEDEN" like its neighbours.
+//  - WarSchedule's INSERT IGNORE and REPLACE were written with a
+//    backslash-continued source line, which splices the next line's four
+//    leading TABS into the literal right before "VALUES". They are kept:
+//    the seam writes them as an explicit "\t\t\t\t" so clang-format
+//    cannot reflow them away, and the bytes MySQL receives are the same.
+//  - War::initWarIDRegistry called next() on both probes without
+//    checking it and read column 1 through getDWORD. Kept: a COUNT(*)
+//    always answers with one row, and the MAX probe runs only after the
+//    count came back non-zero, so neither read can meet an empty result.
 //  - Names and fragments are interpolated raw, as before.
 class MySQLWarInfoRepository : public WarInfoRepository {
 public:
@@ -473,6 +482,98 @@ public:
         END_DB(pStmt)
 
         return rows;
+    }
+
+    int countWarSchedules() {
+        int count = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT COUNT(*) from WarScheduleInfo");
+            pResult->next();
+            count = pResult->getDWORD(1);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return count;
+    }
+
+    DWORD loadMaxWarID() {
+        DWORD maxWarID = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT MAX(WarID) FROM WarScheduleInfo");
+            pResult->next();
+            maxWarID = pResult->getDWORD(1);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return maxWarID;
+    }
+
+    bool insertWarSchedule(int warID, int serverID, int zoneID, const string& warType, int attackGuildID, int warFee,
+                           const string& startTime, const string& status) {
+        bool changed = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT IGNORE INTO WarScheduleInfo ( WarID, ServerID, ZoneID, WarType, "
+                                "AttackGuildID, WarFee, StartTime, Status ) "
+                                "\t\t\t\tVALUES ( %u, %u, %u, '%s', %u, %u, '%s', '%s' )",
+                                warID, serverID, zoneID, warType.c_str(), attackGuildID, warFee, startTime.c_str(),
+                                status.c_str());
+
+            changed = pStmt->getAffectedRowCount() > 0;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return changed;
+    }
+
+    bool replaceWarSchedule(int warID, int serverID, int zoneID, const string& warType, int attackerCount,
+                            int attackGuildID, int attackGuildID2, int attackGuildID3, int attackGuildID4,
+                            int attackGuildID5, int warFee, const string& startTime, const string& status) {
+        bool changed = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("REPLACE INTO WarScheduleInfo ( WarID, ServerID, ZoneID, WarType, AttackerCount, "
+                                "AttackGuildID, AttackGuildID2, AttackGuildID3, AttackGuildID4, AttackGuildID5, "
+                                "WarFee, StartTime, Status ) "
+                                "\t\t\t\tVALUES ( %u, %u, %u, '%s', %u, %u, %u, %u, %u, %u, %u, '%s', '%s' )",
+                                warID, serverID, zoneID, warType.c_str(), attackerCount, attackGuildID, attackGuildID2,
+                                attackGuildID3, attackGuildID4, attackGuildID5, warFee, startTime.c_str(),
+                                status.c_str());
+
+            changed = pStmt->getAffectedRowCount() > 0;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return changed;
+    }
+
+    void tinysaveWarSchedule(const string& fieldFragment, WarID_t warID, int serverID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE WarScheduleInfo SET %s WHERE WarID = %d AND ServerID = %d",
+                                fieldFragment.c_str(), warID, serverID);
+        }
+        END_DB(pStmt)
+
+        SAFE_DELETE(pStmt);
     }
 
     void insertGuildWarHistory(int warID, const string& guildWarID, int serverID, const string& castleName,
