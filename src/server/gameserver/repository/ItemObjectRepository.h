@@ -16,7 +16,8 @@
 // Info SELECT comes in a handful of column shapes (GearInfoKind). So a family
 // shares one method set and selects its table — and its exact literal —
 // through an enum; the MySQL impl keeps every class's seven literals
-// byte-for-byte (the guns' eight: they add a saveBullet UPDATE).
+// byte-for-byte (the guns' eight: they add a saveBullet UPDATE; four Num-only
+// items' nine: they override destroy() with a DELETE).
 //
 // The first family: the nine slayer gear classes with a Grade column: Ring,
 // Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second
@@ -60,19 +61,50 @@
 // Durability) alone or with one or two class-specific columns after Ratio:
 // `Function`; ResurrectType; FunctionFlag, FunctionValue; EffectClass,
 // TimeSec; `Function`, FunctionGrade.
+// The seventh family, four "Num-only" items: ETC, Serum, VampireETC, Water —
+// the sixth family's INSERT and loads without their ItemFlag column, its
+// UPDATE unchanged: nine columns in the INSERT, eight in the UPDATE and eight
+// in both loads; no create type anywhere (ETCObject's table still has an
+// ItemFlag column, left at its default); tinysave is gear's. Their
+// Info SELECT is the basic shape alone (ETC, Water) or with one varchar
+// column after Ratio (Serum's SerumEffect, fed to parseEffect; VampireETC's
+// ReqAbility).
+// The eighth family, six more Num-only items whose create was already a
+// parameterized statement (verbatim): HolyWater, Magazine, Pupa, Larva,
+// ComposMei, Potion — the same object shape. Four of them (Pupa, Larva,
+// ComposMei, Potion) override destroy() with a DELETE naming the table as a
+// %s: a ninth literal, destroyItemObject. Their Info SELECT adds to the basic
+// head: minDamage, maxDamage (HolyWater); ItemLevel, MaxBullets,
+// MaxSilverBullets, Vivid, GunType-1 (Magazine); Effect, fed to parseEffect
+// (Pupa, Larva, ComposMei — the string shape); ItemLevel, Effect (Potion).
+// The ninth family, four Num-only items whose zone SELECT differs: Skull reads
+// Num through getDWORD (SKULL_OBJECT); Bomb, BombMaterial and Mine name no Num
+// column in it at all (BOMB_OBJECT, seven columns). Their INSERT, UPDATE,
+// tinysave and owner load are the Num-only ones (Skull's create was already
+// parameterized; the other three stream). Info: basic plus ItemLevel (Skull);
+// minDamage, maxDamage (Bomb, Mine); basic alone (BombMaterial).
+// The tenth family: four "ItemFlag-only" items — QuestItem, SMSItem, SubInventory,
+// TrapItem (FLAG_OBJECT: ids, Storage, StorageID, X, Y and ItemFlag; the UPDATE
+// writes no ItemFlag) — and two "plain" ones without even that column,
+// EventGiftBox and LearningItem (PLAIN_OBJECT: seven columns everywhere); both
+// share the seven-argument UPDATE. Info: basic plus one int column (BonusRatio,
+// Charge, SkillType) or two (Width, Height; `Function`, Parameter), each fed to
+// the class's own setters; EventGiftBox is basic alone.
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
 // through getBYTE and the rest through getInt; the zone load read every
 // numeric column through getInt (and the INSERT-built zone SELECT names no
-// Grade column — it never did). The info load is getInt/getString per
+// Grade column — it never did; the Num and Num-only families read Num through
+// getBYTE in both loads, see the sixth and seventh families). The info load is
+// getInt/getString per
 // column. Write parameters are typed to what each caller streamed, so the
 // varargs bytes are unchanged: the create INSERT was a StringStream chain
 // (DWORD/WORD through "%u", int through "%d"; AR's was already a
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 48 item files with SQL (later rounds) and the
+// Not enclosed: the other 28 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -117,7 +149,27 @@ enum GearTable {
     GEAR_DYE_POTION,
     GEAR_EVENT_STAR,
     GEAR_EFFECT_ITEM,
-    GEAR_PET_ENCHANT_ITEM
+    GEAR_PET_ENCHANT_ITEM,
+    GEAR_ETC,
+    GEAR_SERUM,
+    GEAR_VAMPIRE_ETC,
+    GEAR_WATER,
+    GEAR_HOLY_WATER,
+    GEAR_MAGAZINE,
+    GEAR_PUPA,
+    GEAR_LARVA,
+    GEAR_COMPOS_MEI,
+    GEAR_POTION,
+    GEAR_SKULL,
+    GEAR_BOMB,
+    GEAR_BOMB_MATERIAL,
+    GEAR_MINE,
+    GEAR_QUEST_ITEM,
+    GEAR_SMSITEM,
+    GEAR_SUB_INVENTORY,
+    GEAR_TRAP_ITEM,
+    GEAR_EVENT_GIFT_BOX,
+    GEAR_LEARNING_ITEM
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
@@ -131,12 +183,19 @@ enum GearInfoKind {
     GEAR_INFO_SILVER_WEAPON,        // loadSilverWeaponInfos (Sword, Blade)
     GEAR_INFO_SILVER_WEAPON_MP,     // loadSilverWeaponMPInfos (Cross, Mace)
     GEAR_INFO_GUN,                  // loadGunInfos (AR, SG, SMG, SR)
-    GEAR_INFO_BASIC,                // loadBasicInfos (EventItem, EventTree, LuckyBag, MoonCard)
+    GEAR_INFO_BASIC,                // loadBasicInfos (EventItem, EventTree, LuckyBag, MoonCard, ETC, Water)
     GEAR_INFO_BASIC_FUNCTION,       // loadFunctionInfos (EventETC)
     GEAR_INFO_BASIC_RESURRECT,      // loadResurrectInfos (ResurrectItem)
     GEAR_INFO_BASIC_FUNCTION_VALUE, // loadFunctionValueInfos (DyePotion, EventStar)
     GEAR_INFO_BASIC_EFFECT,         // loadEffectInfos (EffectItem)
-    GEAR_INFO_BASIC_FUNCTION_GRADE  // loadFunctionGradeInfos (PetEnchantItem)
+    GEAR_INFO_BASIC_FUNCTION_GRADE, // loadFunctionGradeInfos (PetEnchantItem)
+    GEAR_INFO_BASIC_STRING,         // loadStringInfos (Serum, VampireETC, Pupa, Larva, ComposMei)
+    GEAR_INFO_BASIC_DAMAGE,         // loadDamageInfos (HolyWater)
+    GEAR_INFO_MAGAZINE,             // loadMagazineInfos (Magazine)
+    GEAR_INFO_BASIC_LEVEL_STRING,   // loadLevelStringInfos (Potion)
+    GEAR_INFO_BASIC_LEVEL,          // loadLevelInfos (Skull)
+    GEAR_INFO_BASIC_INT,            // loadIntInfos (QuestItem, SMSItem, LearningItem)
+    GEAR_INFO_BASIC_INT_PAIR        // loadIntPairInfos (SubInventory, TrapItem)
 };
 
 // The object-table shapes; which update / owner-load / zone-load a table takes.
@@ -149,7 +208,12 @@ enum GearObjectKind {
     SILVER_WEAPON_OBJECT,  // updateSilverWeapon, loadSilverWeaponOfOwner, loadSilverWeaponInZone
     GUN_OBJECT,    // SG, SMG, SR: insertGun, tinysaveGun, updateGun, saveGunBullet, loadGunOfOwner, loadGunInZone
     AR_GUN_OBJECT, // AR: the same, but tinysaveGear, and the loads name BulletCount, Silver, EnchantLevel
-    NUM_OBJECT // the Num + ItemFlag items: insertNumItem, tinysaveGear, updateNumItem, loadNumItemOfOwner, loadNumItemInZone
+    NUM_OBJECT, // the Num + ItemFlag items: insertNumItem, tinysaveGear, updateNumItem, loadNumItemOfOwner, loadNumItemInZone
+    NUM_ONLY_OBJECT, // the Num-only items: insertNumOnlyItem, tinysaveGear, updateNumOnlyItem, loadNumOnlyItemOfOwner, loadNumOnlyItemInZone, destroyItemObject (Pupa, Larva, ComposMei, Potion)
+    SKULL_OBJECT, // Skull: the Num-only INSERT, tinysave, UPDATE and owner load, but loadSkullInZone (Num through getDWORD)
+    BOMB_OBJECT, // Bomb, BombMaterial, Mine: the same, but loadBombInZone (no Num column in the zone SELECT)
+    FLAG_OBJECT, // the ItemFlag-only items: insertFlagItem, tinysaveGear, updatePlainItem, loadFlagItemOfOwner, loadFlagItemInZone
+    PLAIN_OBJECT // the plain items: insertPlainItem, tinysaveGear, updatePlainItem, loadPlainItemOfOwner, loadPlainItemInZone
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -484,14 +548,158 @@ struct FunctionGradeInfoRow {
     int functionGrade;
 };
 
+// SerumInfo, VampireETCInfo: basic plus one varchar column (SerumEffect, ReqAbility).
+struct StringInfoRow {
+    BasicInfoRow basic;
+    std::string value;
+};
+
+// The Num-only items' owner SELECT: the Num + ItemFlag columns without ItemFlag
+// (eight) — the ids (getDWORD), Storage (getInt), StorageID (getDWORD), X, Y and Num (getBYTE).
+struct NumOnlyObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    BYTE num;
+};
+
+// Their zone SELECT: the same eight columns, everything but Num through getInt.
+struct NumOnlyZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    BYTE num;
+};
+
+// HolyWaterInfo: basic plus minDamage, maxDamage.
+struct DamageInfoRow {
+    BasicInfoRow basic;
+    int minDamage;
+    int maxDamage;
+};
+
+// MagazineInfo: basic plus ItemLevel, MaxBullets, MaxSilverBullets, Vivid, GunType-1
+// (the caller keeps its `!= 0` on Vivid and its (MagazineInfo::GunType) cast).
+struct MagazineInfoRow {
+    BasicInfoRow basic;
+    int itemLevel;
+    int maxBullets;
+    int maxSilverBullets;
+    int vivid;
+    int gunType;
+};
+
+// PotionInfo: basic plus ItemLevel and the Effect varchar (fed to parseEffect).
+struct LevelStringInfoRow {
+    BasicInfoRow basic;
+    int itemLevel;
+    std::string value;
+};
+
+// SkullInfo: basic plus ItemLevel.
+struct LevelInfoRow {
+    BasicInfoRow basic;
+    int itemLevel;
+};
+
+// Skull's zone SELECT: the Num-only eight, Num through getDWORD.
+struct SkullZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    DWORD num;
+};
+
+// Bomb, BombMaterial, Mine: their zone SELECT names no Num column (seven, all getInt).
+struct BombZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+};
+
+// QuestItemInfo (BonusRatio), SMSItemInfo (Charge), LearningItemInfo (SkillType): basic plus one int.
+struct IntInfoRow {
+    BasicInfoRow basic;
+    int value;
+};
+
+// SubInventoryInfo (Width, Height), TrapItemInfo (`Function`, Parameter): basic plus two ints in SELECT order.
+struct IntPairInfoRow {
+    BasicInfoRow basic;
+    int first;
+    int second;
+};
+
+// The ItemFlag-only items' owner SELECT: the ids (getDWORD), Storage (getInt),
+// StorageID (getDWORD), X, Y (getBYTE), ItemFlag (getInt).
+struct FlagObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    int createType; // ItemFlag
+};
+
+// Their zone SELECT: the same eight columns through getInt.
+struct FlagZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    int createType; // ItemFlag
+};
+
+// The plain items' owner SELECT: the ItemFlag-only columns without ItemFlag (seven).
+struct PlainObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+};
+
+// Their zone SELECT: the same seven columns through getInt.
+struct PlainZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
 
     // <Class>::create — the INSERT with the ItemFlag column fed the create type.
-    // Refuses tables whose INSERT takes other arguments (the guns' thirteen).
-    // Refuses tables whose INSERT takes other arguments (the guns' thirteen).
-    // Refuses tables whose INSERT takes other arguments (the guns' thirteen).
+    // Refuses tables whose INSERT takes other arguments (the guns' thirteen, the
+    // Num + ItemFlag items' ten, the Num-only items' nine).
     virtual void insertGear(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                             const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                             const std::string& optionField, Durability_t durability, int grade, int createType) = 0;
@@ -522,6 +730,13 @@ public:
     virtual std::vector<FunctionValueInfoRow> loadFunctionValueInfos(GearTable table) = 0;
     virtual std::vector<EffectInfoRow> loadEffectInfos(GearTable table) = 0;
     virtual std::vector<FunctionGradeInfoRow> loadFunctionGradeInfos(GearTable table) = 0;
+    virtual std::vector<StringInfoRow> loadStringInfos(GearTable table) = 0;
+    virtual std::vector<DamageInfoRow> loadDamageInfos(GearTable table) = 0;
+    virtual std::vector<MagazineInfoRow> loadMagazineInfos(GearTable table) = 0;
+    virtual std::vector<LevelStringInfoRow> loadLevelStringInfos(GearTable table) = 0;
+    virtual std::vector<LevelInfoRow> loadLevelInfos(GearTable table) = 0;
+    virtual std::vector<IntInfoRow> loadIntInfos(GearTable table) = 0;
+    virtual std::vector<IntPairInfoRow> loadIntPairInfos(GearTable table) = 0;
 
     // <Class>Loader::load(Creature*) — the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
@@ -568,6 +783,41 @@ public:
                                int storage, StorageID_t storageID, int x, int y, int num, ItemID_t itemID) = 0;
     virtual std::vector<NumObjectRow> loadNumItemOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<NumZoneObjectRow> loadNumItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+
+    // The Num-only items (see GearObjectKind): the Num + ItemFlag methods without
+    // the create type; tinysave is gear's; the two loads read Num as a BYTE. The
+    // INSERT, UPDATE and owner load serve the SKULL_OBJECT and BOMB_OBJECT tables
+    // too; each zone load takes exactly its own kind.
+    virtual void insertNumOnlyItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                   const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                   int num) = 0;
+    virtual void updateNumOnlyItem(GearTable table, ObjectID_t objectID, ItemType_t itemType,
+                                   const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                   int num, ItemID_t itemID) = 0;
+    virtual std::vector<NumOnlyObjectRow> loadNumOnlyItemOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<NumOnlyZoneObjectRow> loadNumOnlyItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+    // <Class>::destroy of Pupa, Larva, ComposMei and Potion — "DELETE FROM %s" with the
+    // class's object table name; false when no row went, true otherwise (also after
+    // a caught DB error, as the original fell through). Refuses tables without the literal.
+    virtual bool destroyItemObject(GearTable table, const std::string& objectTableName, ItemID_t itemID) = 0;
+    // Skull's zone load (Num through getDWORD) and the Bomb tables' (no Num column).
+    virtual std::vector<SkullZoneObjectRow> loadSkullInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+    virtual std::vector<BombZoneObjectRow> loadBombInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+
+    // The ItemFlag-only and plain items (see GearObjectKind): <Class>::create with
+    // or without the ItemFlag column, one seven-argument UPDATE for both, tinysave
+    // gear's, and each shape's two loads.
+    virtual void insertFlagItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                int createType) = 0;
+    virtual void insertPlainItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                 const std::string& ownerID, int storage, StorageID_t storageID, int x, int y) = 0;
+    virtual void updatePlainItem(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                                 int storage, StorageID_t storageID, int x, int y, ItemID_t itemID) = 0;
+    virtual std::vector<FlagObjectRow> loadFlagItemOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<FlagZoneObjectRow> loadFlagItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+    virtual std::vector<PlainObjectRow> loadPlainItemOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<PlainZoneObjectRow> loadPlainItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in MySQLItemObjectRepository.cpp.

@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 HolyWaterInfoManager* g_pHolyWaterInfoManager = NULL;
@@ -52,8 +53,6 @@ void HolyWater::create(const string& ownerID, Storage storage, StorageID_t stora
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -65,29 +64,8 @@ void HolyWater::create(const string& ownerID, Storage storage, StorageID_t stora
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        /*
-        StringStream sql;
-        sql << "INSERT INTO HolyWaterObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES ("
-            << m_ItemID << "," << m_ObjectID << ","
-            << m_ItemType << ",'" << ownerID << "',"
-            << (int)storage << ", " << storageID << ", "
-            << (int)x << "," << (int)y << "," << (int)m_Num
-            << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("INSERT INTO HolyWaterObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, "
-                            "Y, Num) VALUES (%ld, %ld, %d, '%s', %d, %ld, %d, %d, %d)",
-                            m_ItemID, m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            (int)m_Num);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertNumOnlyItem(GEAR_HOLY_WATER, m_ItemID, m_ObjectID, m_ItemType, ownerID,
+                                                    (int)storage, storageID, (int)x, (int)y, (int)m_Num);
 
     __END_CATCH
 }
@@ -101,16 +79,7 @@ void HolyWater::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE HolyWaterObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_HOLY_WATER, field, m_ItemID);
 
     __END_CATCH
 }
@@ -123,37 +92,8 @@ void HolyWater::save(const string& ownerID, Storage storage, StorageID_t storage
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE HolyWaterObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",Num = " << (int)m_Num
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("UPDATE HolyWaterObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld ,X=%d, Y=%d, Num=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            (int)m_Num, m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateNumOnlyItem(GEAR_HOLY_WATER, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                    storageID, (int)x, (int)y, (int)m_Num, m_ItemID);
 
     __END_CATCH
 }
@@ -256,46 +196,30 @@ void HolyWaterInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_HOLY_WATER);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM HolyWaterInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<DamageInfoRow> rows = defaultItemObjectRepository().loadDamageInfos(GEAR_HOLY_WATER);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        HolyWaterInfo* pHolyWaterInfo = new HolyWaterInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pHolyWaterInfo->setItemType(rows[r].basic.itemType);
+        pHolyWaterInfo->setName(rows[r].basic.name);
+        pHolyWaterInfo->setEName(rows[r].basic.ename);
+        pHolyWaterInfo->setPrice(rows[r].basic.price);
+        pHolyWaterInfo->setVolumeType(rows[r].basic.volume);
+        pHolyWaterInfo->setWeight(rows[r].basic.weight);
+        pHolyWaterInfo->setRatio(rows[r].basic.ratio);
+        pHolyWaterInfo->setMinDamage(rows[r].minDamage);
+        pHolyWaterInfo->setMaxDamage(rows[r].maxDamage);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery(
-            "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, minDamage, maxDamage FROM HolyWaterInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            HolyWaterInfo* pHolyWaterInfo = new HolyWaterInfo();
-
-            pHolyWaterInfo->setItemType(pResult->getInt(++i));
-            pHolyWaterInfo->setName(pResult->getString(++i));
-            pHolyWaterInfo->setEName(pResult->getString(++i));
-            pHolyWaterInfo->setPrice(pResult->getInt(++i));
-            pHolyWaterInfo->setVolumeType(pResult->getInt(++i));
-            pHolyWaterInfo->setWeight(pResult->getInt(++i));
-            pHolyWaterInfo->setRatio(pResult->getInt(++i));
-            pHolyWaterInfo->setMinDamage(pResult->getInt(++i));
-            pHolyWaterInfo->setMaxDamage(pResult->getInt(++i));
-
-            addItemInfo(pHolyWaterInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pHolyWaterInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -311,125 +235,99 @@ void HolyWaterLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<NumOnlyObjectRow> rows =
+        defaultItemObjectRepository().loadNumOnlyItemOfOwner(GEAR_HOLY_WATER, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            HolyWater* pHolyWater = new HolyWater();
 
-        /*
-        StringStream sql;
+            pHolyWater->setItemID(rows[r].itemID);
+            pHolyWater->setObjectID(rows[r].objectID);
+            pHolyWater->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM HolyWaterObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            pHolyWater->setNum(rows[r].num);
 
-        Result* pResult = pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM "
-                                              "HolyWaterObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                              pCreature->getName().c_str());
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                HolyWater* pHolyWater = new HolyWater();
-
-                pHolyWater->setItemID(pResult->getDWORD(++i));
-                pHolyWater->setObjectID(pResult->getDWORD(++i));
-                pHolyWater->setItemType(pResult->getDWORD(++i));
-
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                pHolyWater->setNum(pResult->getBYTE(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
-                if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pHolyWater)) {
-                        pInventory->addItemEx(x, y, pHolyWater);
-                    } else {
-                        processItemBugEx(pCreature, pHolyWater);
-                    }
-                    break;
-
-                case STORAGE_GEAR:
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pHolyWater)) {
+                    pInventory->addItemEx(x, y, pHolyWater);
+                } else {
                     processItemBugEx(pCreature, pHolyWater);
-                    break;
-
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pHolyWater);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pHolyWater);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pHolyWater);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pHolyWater);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pHolyWater);
-                    } else
-                        pStash->insert(x, y, pHolyWater);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pHolyWater);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_GEAR:
+                processItemBugEx(pCreature, pHolyWater);
+                break;
+
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pHolyWater);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pHolyWater);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pHolyWater);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pHolyWater);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pHolyWater);
+                } else
+                    pStash->insert(x, y, pHolyWater);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pHolyWater);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -445,53 +343,38 @@ void HolyWaterLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<NumOnlyZoneObjectRow> rows =
+        defaultItemObjectRepository().loadNumOnlyItemInZone(GEAR_HOLY_WATER, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        HolyWater* pHolyWater = new HolyWater();
 
-        StringStream sql;
+        pHolyWater->setItemID(rows[r].itemID);
+        pHolyWater->setObjectID(rows[r].objectID);
+        pHolyWater->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM HolyWaterObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        pHolyWater->setNum(rows[r].num);
 
-        while (pResult->next()) {
-            uint i = 0;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pHolyWater);
+        } break;
 
-            HolyWater* pHolyWater = new HolyWater();
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            pHolyWater->setItemID(pResult->getInt(++i));
-            pHolyWater->setObjectID(pResult->getInt(++i));
-            pHolyWater->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            pHolyWater->setNum(pResult->getBYTE(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pHolyWater);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

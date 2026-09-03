@@ -18,6 +18,7 @@
 #include "Utility.h"
 #include "Vampire.h"
 #include "ZoneGroupManager.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 ComposMeiInfoManager* g_pComposMeiInfoManager = NULL;
@@ -57,8 +58,6 @@ void ComposMei::create(const string& ownerID, Storage storage, StorageID_t stora
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -70,32 +69,8 @@ void ComposMei::create(const string& ownerID, Storage storage, StorageID_t stora
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        // pStmt = g_pDatabaseManager->getConnection("DIST_DARKEDEN")->createStatement();
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "INSERT INTO ComposMeiObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES("
-            << m_ItemID << ", "
-            << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            <<(int)storage << ", " << storageID << ", " <<(int)x << ", " <<(int)y << ", "
-            << (int)m_Num << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        // StringStream제거. by sigi. 2002.5.13
-        pStmt->executeQuery("INSERT INTO ComposMeiObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, "
-                            "Y, Num) VALUES(%ld, %ld, %d, '%s', %d, %ld, %d, %d, %d)",
-                            m_ItemID, m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, x, y,
-                            (int)getNum());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertNumOnlyItem(GEAR_COMPOS_MEI, m_ItemID, m_ObjectID, getItemType(), ownerID,
+                                                    (int)storage, storageID, x, y, (int)getNum());
 
     __END_CATCH
 }
@@ -108,21 +83,8 @@ bool ComposMei::destroy()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("DELETE FROM %s WHERE ItemID = %ld", getObjectTableName().c_str(), m_ItemID);
-
-        if (pStmt->getAffectedRowCount() == 0) {
-            SAFE_DELETE(pStmt);
-            return false;
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    if (!defaultItemObjectRepository().destroyItemObject(GEAR_COMPOS_MEI, getObjectTableName(), m_ItemID))
+        return false;
 
     __END_CATCH
 
@@ -138,16 +100,7 @@ void ComposMei::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE ComposMeiObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_COMPOS_MEI, field, m_ItemID);
 
     __END_CATCH
 }
@@ -160,20 +113,8 @@ void ComposMei::save(const string& ownerID, Storage storage, StorageID_t storage
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE ComposMeiObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Num=%d WHERE ItemID=%ld",
-                            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            (int)getNum(), m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateNumOnlyItem(GEAR_COMPOS_MEI, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                                    storageID, (int)x, (int)y, (int)getNum(), m_ItemID);
 
     __END_CATCH
 }
@@ -399,45 +340,29 @@ void ComposMeiInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_COMPOS_MEI);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM ComposMeiInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<StringInfoRow> rows = defaultItemObjectRepository().loadStringInfos(GEAR_COMPOS_MEI);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        ComposMeiInfo* pComposMeiInfo = new ComposMeiInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pComposMeiInfo->setItemType(rows[r].basic.itemType);
+        pComposMeiInfo->setName(rows[r].basic.name);
+        pComposMeiInfo->setEName(rows[r].basic.ename);
+        pComposMeiInfo->setPrice(rows[r].basic.price);
+        pComposMeiInfo->setVolumeType(rows[r].basic.volume);
+        pComposMeiInfo->setWeight(rows[r].basic.weight);
+        pComposMeiInfo->setRatio(rows[r].basic.ratio);
+        pComposMeiInfo->parseEffect(rows[r].value);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery(
-            "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Effect FROM ComposMeiInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            ComposMeiInfo* pComposMeiInfo = new ComposMeiInfo();
-
-            pComposMeiInfo->setItemType(pResult->getInt(++i));
-            pComposMeiInfo->setName(pResult->getString(++i));
-            pComposMeiInfo->setEName(pResult->getString(++i));
-            pComposMeiInfo->setPrice(pResult->getInt(++i));
-            pComposMeiInfo->setVolumeType(pResult->getInt(++i));
-            pComposMeiInfo->setWeight(pResult->getInt(++i));
-            pComposMeiInfo->setRatio(pResult->getInt(++i));
-            pComposMeiInfo->parseEffect(pResult->getString(++i));
-
-            addItemInfo(pComposMeiInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pComposMeiInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -453,161 +378,148 @@ void ComposMeiLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<NumOnlyObjectRow> rows =
+        defaultItemObjectRepository().loadNumOnlyItemOfOwner(GEAR_COMPOS_MEI, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            ComposMei* pComposMei = new ComposMei();
 
-        Result* pResult = pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM "
-                                              "ComposMeiObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                              pCreature->getName().c_str());
+            pComposMei->setItemID(rows[r].itemID);
+            pComposMei->setObjectID(rows[r].objectID);
+            pComposMei->setItemType(rows[r].itemType);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-                ComposMei* pComposMei = new ComposMei();
+            pComposMei->setNum(rows[r].num);
 
-                pComposMei->setItemID(pResult->getDWORD(++i));
-                pComposMei->setObjectID(pResult->getDWORD(++i));
-                pComposMei->setItemType(pResult->getDWORD(++i));
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Ousters* pOusters = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            Item* pItem = NULL;
+            Stash* pStash = NULL;
+            Belt* pBelt = NULL;
+            Inventory* pBeltInventory = NULL;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+            OustersArmsband* pOustersArmsband = NULL;
+            Inventory* pArmsbandInventory = NULL;
 
-                pComposMei->setNum(pResult->getBYTE(++i));
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Ousters* pOusters = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                Item* pItem = NULL;
-                Stash* pStash = NULL;
-                Belt* pBelt = NULL;
-                Inventory* pBeltInventory = NULL;
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else if (pCreature->isOusters()) {
+                pOusters = dynamic_cast<Ousters*>(pCreature);
+                pInventory = pOusters->getInventory();
+                pStash = pOusters->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                OustersArmsband* pOustersArmsband = NULL;
-                Inventory* pArmsbandInventory = NULL;
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pComposMei)) {
+                    pInventory->addItemEx(x, y, pComposMei);
+                } else {
+                    processItemBugEx(pCreature, pComposMei);
+                }
+                break;
 
+            case STORAGE_GEAR:
+                processItemBugEx(pCreature, pComposMei);
+                break;
+
+            case STORAGE_BELT:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else if (pCreature->isOusters()) {
-                    pOusters = dynamic_cast<Ousters*>(pCreature);
-                    pInventory = pOusters->getInventory();
-                    pStash = pOusters->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pComposMei)) {
-                        pInventory->addItemEx(x, y, pComposMei);
+                    pItem = pSlayer->findBeltIID(storageID);
+                    if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_BELT) {
+                        pBelt = dynamic_cast<Belt*>(pItem);
+                        pBeltInventory = pBelt->getInventory();
+                        if (pBeltInventory->canAddingEx(x, 0, pComposMei)) {
+                            pBeltInventory->addItem(x, 0, pComposMei);
+                        } else {
+                            processItemBugEx(pCreature, pComposMei);
+                        }
                     } else {
                         processItemBugEx(pCreature, pComposMei);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    processItemBugEx(pCreature, pComposMei);
-                    break;
-
-                case STORAGE_BELT:
-                    if (pCreature->isSlayer()) {
-                        pItem = pSlayer->findBeltIID(storageID);
-                        if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_BELT) {
-                            pBelt = dynamic_cast<Belt*>(pItem);
-                            pBeltInventory = pBelt->getInventory();
-                            if (pBeltInventory->canAddingEx(x, 0, pComposMei)) {
-                                pBeltInventory->addItem(x, 0, pComposMei);
-                            } else {
-                                processItemBugEx(pCreature, pComposMei);
-                            }
+                } else if (pCreature->isVampire()) {
+                    pItem = pVampire->findBeltIID(storageID);
+                    if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_BELT) {
+                        pBelt = dynamic_cast<Belt*>(pItem);
+                        pBeltInventory = pBelt->getInventory();
+                        if (pBeltInventory->canAddingEx(x, 0, pComposMei)) {
+                            pBeltInventory->addItemEx(x, 0, pComposMei);
                         } else {
                             processItemBugEx(pCreature, pComposMei);
                         }
-                    } else if (pCreature->isVampire()) {
-                        pItem = pVampire->findBeltIID(storageID);
-                        if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_BELT) {
-                            pBelt = dynamic_cast<Belt*>(pItem);
-                            pBeltInventory = pBelt->getInventory();
-                            if (pBeltInventory->canAddingEx(x, 0, pComposMei)) {
-                                pBeltInventory->addItemEx(x, 0, pComposMei);
-                            } else {
-                                processItemBugEx(pCreature, pComposMei);
-                            }
-                        } else {
-                            processItemBugEx(pCreature, pComposMei);
-                        }
-                    } else if (pCreature->isOusters()) {
-                        pItem = findItemIID(pOusters, storageID, Item::ITEM_CLASS_OUSTERS_ARMSBAND);
-                        if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_ARMSBAND) {
-                            pOustersArmsband = dynamic_cast<OustersArmsband*>(pItem);
-                            pArmsbandInventory = pOustersArmsband->getInventory();
-                            if (pArmsbandInventory->canAddingEx(x, 0, pComposMei)) {
-                                pArmsbandInventory->addItemEx(x, 0, pComposMei);
-                            } else {
-                                processItemBugEx(pCreature, pComposMei);
-                            }
-                        } else {
-                            processItemBugEx(pCreature, pComposMei);
-                        }
-                    }
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pComposMei);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pComposMei);
-                    else if (pCreature->isOusters())
-                        pOusters->addItemToExtraInventorySlot(pComposMei);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pComposMei);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
+                    } else {
                         processItemBugEx(pCreature, pComposMei);
-                    } else
-                        pStash->insert(x, y, pComposMei);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pComposMei);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
+                    }
+                } else if (pCreature->isOusters()) {
+                    pItem = findItemIID(pOusters, storageID, Item::ITEM_CLASS_OUSTERS_ARMSBAND);
+                    if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_ARMSBAND) {
+                        pOustersArmsband = dynamic_cast<OustersArmsband*>(pItem);
+                        pArmsbandInventory = pOustersArmsband->getInventory();
+                        if (pArmsbandInventory->canAddingEx(x, 0, pComposMei)) {
+                            pArmsbandInventory->addItemEx(x, 0, pComposMei);
+                        } else {
+                            processItemBugEx(pCreature, pComposMei);
+                        }
+                    } else {
+                        processItemBugEx(pCreature, pComposMei);
+                    }
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pComposMei);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pComposMei);
+                else if (pCreature->isOusters())
+                    pOusters->addItemToExtraInventorySlot(pComposMei);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pComposMei);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pComposMei);
+                } else
+                    pStash->insert(x, y, pComposMei);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pComposMei);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -623,53 +535,38 @@ void ComposMeiLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<NumOnlyZoneObjectRow> rows =
+        defaultItemObjectRepository().loadNumOnlyItemInZone(GEAR_COMPOS_MEI, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        ComposMei* pComposMei = new ComposMei();
 
-        StringStream sql;
+        pComposMei->setItemID(rows[r].itemID);
+        pComposMei->setObjectID(rows[r].objectID);
+        pComposMei->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM ComposMeiObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        pComposMei->setNum(rows[r].num);
 
-        while (pResult->next()) {
-            uint i = 0;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pComposMei);
+        } break;
 
-            ComposMei* pComposMei = new ComposMei();
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            pComposMei->setItemID(pResult->getInt(++i));
-            pComposMei->setObjectID(pResult->getInt(++i));
-            pComposMei->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            pComposMei->setNum(pResult->getBYTE(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pComposMei);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
