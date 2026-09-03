@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 PersonaInfoManager* g_pPersonaInfoManager = NULL;
@@ -54,8 +55,6 @@ void Persona::create(const string& ownerID, Storage storage, StorageID_t storage
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -67,25 +66,12 @@ void Persona::create(const string& ownerID, Storage storage, StorageID_t storage
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO PersonaObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << getDurability() << ", " << getGrade() << ", "
-            << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertGear(GEAR_PERSONA, m_ItemID, m_ObjectID, getItemType(), ownerID, (int)storage,
+                                             storageID, (int)x, (int)y, optionField, getDurability(), getGrade(),
+                                             (int)m_CreateType);
 
     __END_CATCH
 }
@@ -99,16 +85,7 @@ void Persona::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE PersonaObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_PERSONA, field, m_ItemID);
 
     __END_CATCH
 }
@@ -121,22 +98,12 @@ void Persona::save(const string& ownerID, Storage storage, StorageID_t storageID
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery(
-            "UPDATE PersonaObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-            "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
-            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, optionField.c_str(),
-            getDurability(), getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateGear(GEAR_PERSONA, m_ObjectID, getItemType(), ownerID, (int)storage, storageID,
+                                             (int)x, (int)y, optionField, getDurability(), getGrade(),
+                                             (int)getEnchantLevel(), m_ItemID);
 
     __END_CATCH
 }
@@ -182,54 +149,37 @@ void PersonaInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_PERSONA);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM PersonaInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GearInfoNoRatioRow> rows = defaultItemObjectRepository().loadGearInfosNoRatio(GEAR_PERSONA);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        PersonaInfo* pPersonaInfo = new PersonaInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pPersonaInfo->setItemType(rows[r].itemType);
+        pPersonaInfo->setName(rows[r].name);
+        pPersonaInfo->setEName(rows[r].ename);
+        pPersonaInfo->setPrice(rows[r].price);
+        pPersonaInfo->setVolumeType(rows[r].volume);
+        pPersonaInfo->setWeight(rows[r].weight);
+        pPersonaInfo->setRatio(rows[r].ratio);
+        pPersonaInfo->setDurability(rows[r].durability);
+        pPersonaInfo->setDefenseBonus(rows[r].defense);
+        pPersonaInfo->setProtectionBonus(rows[r].protection);
+        pPersonaInfo->setReqAbility(rows[r].reqAbility);
+        pPersonaInfo->setItemLevel(rows[r].itemLevel);
+        pPersonaInfo->setDefaultOptions(rows[r].defaultOption);
+        pPersonaInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pPersonaInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pPersonaInfo->setNextItemType(rows[r].nextItemType);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery(
-            "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
-            "ItemLevel, DefaultOption, UpgradeCrashPercent, NextOptionRatio, NextItemType FROM PersonaInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            PersonaInfo* pPersonaInfo = new PersonaInfo();
-
-            pPersonaInfo->setItemType(pResult->getInt(++i));
-            pPersonaInfo->setName(pResult->getString(++i));
-            pPersonaInfo->setEName(pResult->getString(++i));
-            pPersonaInfo->setPrice(pResult->getInt(++i));
-            pPersonaInfo->setVolumeType(pResult->getInt(++i));
-            pPersonaInfo->setWeight(pResult->getInt(++i));
-            pPersonaInfo->setRatio(pResult->getInt(++i));
-            pPersonaInfo->setDurability(pResult->getInt(++i));
-            pPersonaInfo->setDefenseBonus(pResult->getInt(++i));
-            pPersonaInfo->setProtectionBonus(pResult->getInt(++i));
-            pPersonaInfo->setReqAbility(pResult->getString(++i));
-            pPersonaInfo->setItemLevel(pResult->getInt(++i));
-            pPersonaInfo->setDefaultOptions(pResult->getString(++i));
-            pPersonaInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pPersonaInfo->setNextOptionRatio(pResult->getInt(++i));
-            pPersonaInfo->setNextItemType(pResult->getInt(++i));
-
-            addItemInfo(pPersonaInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pPersonaInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -245,130 +195,114 @@ void PersonaLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<GearObjectRow> rows = defaultItemObjectRepository().loadGearOfOwner(GEAR_PERSONA, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            Persona* pPersona = new Persona();
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
-            "ItemFlag FROM PersonaObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            pPersona->setItemID(rows[r].itemID);
+            pPersona->setObjectID(rows[r].objectID);
+            pPersona->setItemType(rows[r].itemType);
 
+            if (g_pPersonaInfoManager->getItemInfo(pPersona->getItemType())->isUnique())
+                pPersona->setUnique();
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
-
-                Persona* pPersona = new Persona();
-
-                pPersona->setItemID(pResult->getDWORD(++i));
-                pPersona->setObjectID(pResult->getDWORD(++i));
-                pPersona->setItemType(pResult->getDWORD(++i));
-
-                if (g_pPersonaInfoManager->getItemInfo(pPersona->getItemType())->isUnique())
-                    pPersona->setUnique();
-
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
 
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pPersona->setOptionType(optionTypes);
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pPersona->setOptionType(optionTypes);
 
-                pPersona->setDurability(pResult->getInt(++i));
-                pPersona->setGrade(pResult->getInt(++i));
-                pPersona->setEnchantLevel(pResult->getInt(++i));
-                pPersona->setCreateType((Item::CreateType)pResult->getInt(++i));
+            pPersona->setDurability(rows[r].durability);
+            pPersona->setGrade(rows[r].grade);
+            pPersona->setEnchantLevel(rows[r].enchantLevel);
+            pPersona->setCreateType((Item::CreateType)rows[r].createType);
 
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                Stash* pStash = NULL;
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            Stash* pStash = NULL;
 
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
+
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
+
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pPersona)) {
+                    pInventory->addItemEx(x, y, pPersona);
+                } else {
+                    processItemBugEx(pCreature, pPersona);
+                }
+                break;
+
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
+                    processItemBugEx(pCreature, pPersona);
                 } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pPersona)) {
-                        pInventory->addItemEx(x, y, pPersona);
+                    if (!pVampire->isWear((Vampire::WearPart)x)) {
+                        pVampire->wearItem((Vampire::WearPart)x, pPersona);
                     } else {
                         processItemBugEx(pCreature, pPersona);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        processItemBugEx(pCreature, pPersona);
-                    } else if (pCreature->isVampire()) {
-                        if (!pVampire->isWear((Vampire::WearPart)x)) {
-                            pVampire->wearItem((Vampire::WearPart)x, pPersona);
-                        } else {
-                            processItemBugEx(pCreature, pPersona);
-                        }
-                    }
-                    break;
-
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pPersona);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pPersona);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pPersona);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pPersona);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pPersona);
-                    } else
-                        pStash->insert(x, y, pPersona);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pPersona);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
-            }
-        }
+                break;
 
-        SAFE_DELETE(pStmt);
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pPersona);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pPersona);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pPersona);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pPersona);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pPersona);
+                } else
+                    pStash->insert(x, y, pPersona);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pPersona);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
+            }
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

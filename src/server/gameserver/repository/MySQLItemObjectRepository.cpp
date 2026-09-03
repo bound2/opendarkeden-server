@@ -12,7 +12,9 @@
 // a ninth, their destroy() DELETE, Key a tenth, setNewMotorcycle's Target
 // UPDATE, the couple rings an eleventh, hasPartnerItem's count(*) SELECT, and
 // Belt and OustersArmsband a twelfth, their destroy() DELETE by ItemID (NULL
-// for every other table). The spec row also
+// for every other table). Six tables carry no zone literal at all — their
+// <Class>Loader::load(Zone*) holds no SQL — and the gear zone load refuses
+// them rather than formatting a NULL. The spec row also
 // records which object shape and which Info shape the class's tables
 // have; every loader checks them, so a call with the wrong loader fails
 // loudly instead of misreading the columns silently. GEAR_INFO_UNSET and
@@ -38,7 +40,7 @@ struct GearSpec {
     const char* maxType;      // <Class>InfoManager::load, first statement
     const char* infos;        // <Class>InfoManager::load, second statement
     const char* ofOwner;      // <Class>Loader::load(Creature*)
-    const char* inZone;       // <Class>Loader::load(Zone*)
+    const char* inZone;       // <Class>Loader::load(Zone*) — NULL when that loader holds no SQL
     const char* saveBullet;   // <Class>::saveBullet — the guns only; NULL for the other tables
     const char* destroy;      // <Class>::destroy — Pupa, Larva, ComposMei, Potion only; NULL for the other tables
     const char* saveTarget;   // Key::setNewMotorcycle — Key only; NULL for the other tables
@@ -1678,9 +1680,140 @@ const GearSpec kGear[] = {
         GEAR_INFO_POCKET,
         GEAR_OBJECT,
     },
+    // Mitten (GEAR_MITTEN)
+    {
+        "INSERT INTO MittenObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE MittenObject SET %s WHERE ItemID=%ld",
+        "UPDATE MittenObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM MittenInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM MittenInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM MittenObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
+    },
+    // ShoulderArmor (GEAR_SHOULDER_ARMOR)
+    {
+        "INSERT INTO ShoulderArmorObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE ShoulderArmorObject SET %s WHERE ItemID=%ld",
+        "UPDATE ShoulderArmorObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM ShoulderArmorInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
+        "FROM ShoulderArmorInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM ShoulderArmorObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_STANDARD,
+        GEAR_OBJECT,
+    },
+    // Persona (GEAR_PERSONA)
+    {
+        "INSERT INTO PersonaObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
+        "UPDATE PersonaObject SET %s WHERE ItemID=%ld",
+        "UPDATE PersonaObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM PersonaInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
+        "ItemLevel, DefaultOption, UpgradeCrashPercent, NextOptionRatio, NextItemType FROM PersonaInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, Grade, EnchantLevel, "
+        "ItemFlag FROM PersonaObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_NO_RATIO,
+        GEAR_OBJECT,
+    },
+    // Dermis (GEAR_DERMIS)
+    {
+        "INSERT INTO DermisObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, Grade, "
+        "ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %d, %d)",
+        "UPDATE DermisObject SET %s WHERE ItemID=%ld",
+        "UPDATE DermisObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM DermisInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Defense, Protection, ReqAbility, ItemLevel, "
+        "DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio FROM "
+        "DermisInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Grade, EnchantLevel, ItemFlag FROM "
+        "DermisObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_NO_DURABILITY,
+        OPTION_GRADE_OBJECT,
+    },
+    // Fascia (GEAR_FASCIA)
+    {
+        "INSERT INTO FasciaObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, Grade, "
+        "ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %d, %d)",
+        "UPDATE FasciaObject SET %s WHERE ItemID=%ld",
+        "UPDATE FasciaObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM FasciaInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Defense, Protection, ReqAbility, ItemLevel, "
+        "DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio FROM "
+        "FasciaInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Grade, EnchantLevel, ItemFlag FROM "
+        "FasciaObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_NO_DURABILITY,
+        OPTION_GRADE_OBJECT,
+    },
+    // CarryingReceiver (GEAR_CARRYING_RECEIVER)
+    {
+        "INSERT INTO CarryingReceiverObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
+        "OptionType, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %d, %d)",
+        "UPDATE CarryingReceiverObject SET %s WHERE ItemID=%ld",
+        "UPDATE CarryingReceiverObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM CarryingReceiverInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Defense, Protection, ReqAbility, ItemLevel, "
+        "DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio FROM "
+        "CarryingReceiverInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Grade, EnchantLevel, ItemFlag FROM "
+        "CarryingReceiverObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_NO_DURABILITY,
+        OPTION_GRADE_OBJECT,
+    },
 };
 
-static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_OUSTERS_ARMSBAND + 1, "kGear must cover every GearTable");
+static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_CARRYING_RECEIVER + 1, "kGear must cover every GearTable");
 
 const GearSpec& spec(GearTable table) {
     return kGear[table];
@@ -1769,13 +1902,32 @@ void requireGearLoad(GearTable table, const char* method) {
     }
 }
 
-// VampireAmulet and CoreZap stream the same eleven-column INSERT (OptionType and
-// Grade, no Durability); their UPDATEs and loads differ.
+// VampireAmulet, CoreZap, Dermis, Fascia and CarryingReceiver stream the same
+// eleven-column INSERT (OptionType and Grade, no Durability); their UPDATEs and
+// loads differ.
 void requireOptionGradeInsert(GearTable table, const char* method) {
     GearObjectKind kind = spec(table).objectKind;
-    if (kind != AMULET_OBJECT && kind != CORE_ZAP_OBJECT) {
+    if (kind != AMULET_OBJECT && kind != CORE_ZAP_OBJECT && kind != OPTION_GRADE_OBJECT) {
         throw Error(string("ItemObjectRepository: ") + method +
                     " called for a table whose INSERT takes other arguments");
+    }
+}
+
+// VampireAmulet's UPDATE — Grade and EnchantLevel, no Durability — is Dermis's,
+// Fascia's and CarryingReceiver's too, so updateAmulet serves OPTION_GRADE_OBJECT.
+void requireAmuletUpdate(GearTable table, const char* method) {
+    GearObjectKind kind = spec(table).objectKind;
+    if (kind != AMULET_OBJECT && kind != OPTION_GRADE_OBJECT) {
+        throw Error(string("ItemObjectRepository: ") + method + " called for a table with another object shape");
+    }
+}
+
+// Mitten, ShoulderArmor and Persona are gear objects whose Loader::load(Zone*)
+// holds no SQL: their spec rows carry no zone literal, so the gear zone load
+// refuses them instead of formatting a NULL.
+void requireZoneLiteral(GearTable table, const char* method) {
+    if (spec(table).inZone == NULL) {
+        throw Error(string("ItemObjectRepository: ") + method + " called for a table without a zone literal");
     }
 }
 
@@ -1801,7 +1953,7 @@ template <class Row> void readInfoHead(Result* pResult, uint& i, Row& row) {
 }
 
 // The ten columns after the head in the standard gear Info shape.
-void readGearInfoTail(Result* pResult, uint& i, GearInfoRow& row) {
+template <class Row> void readGearInfoTail(Result* pResult, uint& i, Row& row) {
     row.defense = pResult->getInt(++i);
     row.protection = pResult->getInt(++i);
     row.reqAbility = pResult->getString(++i);
@@ -1850,7 +2002,7 @@ void readGunInfoTail(Result* pResult, uint& i, GunInfoRow& row) {
 }
 
 // The seven columns of the basic Info shape (the head without Durability).
-void readBasicInfo(Result* pResult, uint& i, BasicInfoRow& row) {
+template <class Row> void readBasicInfo(Result* pResult, uint& i, Row& row) {
     row.itemType = pResult->getInt(++i);
     row.name = pResult->getString(++i);
     row.ename = pResult->getString(++i);
@@ -3717,7 +3869,7 @@ public:
     void updateAmulet(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID, int storage,
                       StorageID_t storageID, int x, int y, const string& optionField, int grade, int enchantLevel,
                       ItemID_t itemID) {
-        requireObjectKind(table, AMULET_OBJECT, "updateAmulet");
+        requireAmuletUpdate(table, "updateAmulet");
         Statement* pStmt = NULL;
 
         BEGIN_DB {
@@ -3869,6 +4021,68 @@ public:
         return rows;
     }
 
+    // Dermis, Fascia and CarryingReceiver (OPTION_GRADE_OBJECT): VampireAmulet's
+    // eleven-column INSERT and its UPDATE, but an owner load of eleven columns —
+    // gear's without Durability — and no zone load at all.
+    vector<OptionGradeObjectRow> loadOptionGradeOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, OPTION_GRADE_OBJECT, "loadOptionGradeOfOwner");
+        vector<OptionGradeObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).ofOwner, ownerName.c_str());
+
+            while (pResult->next()) {
+                uint i = 0;
+                OptionGradeObjectRow row;
+                row.itemID = pResult->getDWORD(++i);
+                row.objectID = pResult->getDWORD(++i);
+                row.itemType = pResult->getDWORD(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getDWORD(++i);
+                row.x = pResult->getBYTE(++i);
+                row.y = pResult->getBYTE(++i);
+                row.optionField = pResult->getString(++i);
+                row.grade = pResult->getInt(++i);
+                row.enchantLevel = pResult->getInt(++i);
+                row.createType = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // DermisInfo, FasciaInfo and CarryingReceiverInfo: the standard gear Info shape
+    // without Durability — the basic seven columns and gear's ten.
+    vector<GearInfoNoDurabilityRow> loadGearInfosNoDurability(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_NO_DURABILITY, "loadGearInfosNoDurability");
+        vector<GearInfoNoDurabilityRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                GearInfoNoDurabilityRow row;
+                readBasicInfo(pResult, i, row);
+                readGearInfoTail(pResult, i, row);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
     vector<GearObjectRow> loadGearOfOwner(GearTable table, const string& ownerName) {
         requireGearLoad(table, "loadGearOfOwner");
         vector<GearObjectRow> rows;
@@ -3905,6 +4119,7 @@ public:
 
     vector<GearZoneObjectRow> loadGearInZone(GearTable table, int storage, ZoneID_t zoneID) {
         requireGearLoad(table, "loadGearInZone");
+        requireZoneLiteral(table, "loadGearInZone");
         vector<GearZoneObjectRow> rows;
         Statement* pStmt = NULL;
 

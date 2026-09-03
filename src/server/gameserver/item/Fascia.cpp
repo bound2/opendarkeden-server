@@ -15,6 +15,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 FasciaInfoManager* g_pFasciaInfoManager = NULL;
@@ -52,8 +53,6 @@ void Fascia::create(const string& ownerID, Storage storage, StorageID_t storageI
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -65,24 +64,12 @@ void Fascia::create(const string& ownerID, Storage storage, StorageID_t storageI
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO FasciaObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << (int)getGrade() << ", " << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertOptionGradeItem(GEAR_FASCIA, m_ItemID, m_ObjectID, getItemType(), ownerID,
+                                                        (int)storage, storageID, (int)x, (int)y, optionField,
+                                                        (int)getGrade(), (int)m_CreateType);
 
     __END_CATCH
 }
@@ -96,16 +83,7 @@ void Fascia::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE FasciaObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_FASCIA, field, m_ItemID);
 
     __END_CATCH
 }
@@ -118,21 +96,12 @@ void Fascia::save(const string& ownerID, Storage storage, StorageID_t storageID,
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery("UPDATE FasciaObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
-                            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            optionField.c_str(), getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateAmulet(GEAR_FASCIA, m_ObjectID, getItemType(), ownerID, (int)storage, storageID,
+                                               (int)x, (int)y, optionField, getGrade(), (int)getEnchantLevel(),
+                                               m_ItemID);
 
     __END_CATCH
 }
@@ -177,56 +146,38 @@ void FasciaInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_FASCIA);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM FasciaInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GearInfoNoDurabilityRow> rows = defaultItemObjectRepository().loadGearInfosNoDurability(GEAR_FASCIA);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        FasciaInfo* pFasciaInfo = new FasciaInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pFasciaInfo->setItemType(rows[r].itemType);
+        pFasciaInfo->setName(rows[r].name);
+        pFasciaInfo->setEName(rows[r].ename);
+        pFasciaInfo->setPrice(rows[r].price);
+        pFasciaInfo->setVolumeType(rows[r].volume);
+        pFasciaInfo->setWeight(rows[r].weight);
+        pFasciaInfo->setRatio(rows[r].ratio);
+        pFasciaInfo->setDefenseBonus(rows[r].defense);
+        pFasciaInfo->setProtectionBonus(rows[r].protection);
+        pFasciaInfo->setReqAbility(rows[r].reqAbility);
+        pFasciaInfo->setItemLevel(rows[r].itemLevel);
+        pFasciaInfo->setDefaultOptions(rows[r].defaultOption);
+        pFasciaInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pFasciaInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pFasciaInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pFasciaInfo->setNextItemType(rows[r].nextItemType);
+        pFasciaInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult =
-            pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Defense, Protection, "
-                                "ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-                                "NextOptionRatio, NextItemType, DowngradeRatio FROM FasciaInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            FasciaInfo* pFasciaInfo = new FasciaInfo();
-
-            pFasciaInfo->setItemType(pResult->getInt(++i));
-            pFasciaInfo->setName(pResult->getString(++i));
-            pFasciaInfo->setEName(pResult->getString(++i));
-            pFasciaInfo->setPrice(pResult->getInt(++i));
-            pFasciaInfo->setVolumeType(pResult->getInt(++i));
-            pFasciaInfo->setWeight(pResult->getInt(++i));
-            pFasciaInfo->setRatio(pResult->getInt(++i));
-            pFasciaInfo->setDefenseBonus(pResult->getInt(++i));
-            pFasciaInfo->setProtectionBonus(pResult->getInt(++i));
-            pFasciaInfo->setReqAbility(pResult->getString(++i));
-            pFasciaInfo->setItemLevel(pResult->getInt(++i));
-            pFasciaInfo->setDefaultOptions(pResult->getString(++i));
-            pFasciaInfo->setUpgradeRatio(pResult->getInt(++i));
-            pFasciaInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pFasciaInfo->setNextOptionRatio(pResult->getInt(++i));
-            pFasciaInfo->setNextItemType(pResult->getInt(++i));
-            pFasciaInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pFasciaInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pFasciaInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -242,134 +193,120 @@ void FasciaLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<OptionGradeObjectRow> rows =
+        defaultItemObjectRepository().loadOptionGradeOfOwner(GEAR_FASCIA, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            Fascia* pFascia = new Fascia();
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Grade, EnchantLevel, ItemFlag "
-            "FROM FasciaObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            pFascia->setItemID(rows[r].itemID);
+            pFascia->setObjectID(rows[r].objectID);
+            pFascia->setItemType(rows[r].itemType);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            if (g_pFasciaInfoManager->getItemInfo(pFascia->getItemType())->isUnique())
+                pFascia->setUnique();
 
-                Fascia* pFascia = new Fascia();
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-                pFascia->setItemID(pResult->getDWORD(++i));
-                pFascia->setObjectID(pResult->getDWORD(++i));
-                pFascia->setItemType(pResult->getDWORD(++i));
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pFascia->setOptionType(optionTypes);
 
-                if (g_pFasciaInfoManager->getItemInfo(pFascia->getItemType())->isUnique())
-                    pFascia->setUnique();
+            pFascia->setGrade(rows[r].grade);
+            pFascia->setEnchantLevel(rows[r].enchantLevel);
+            pFascia->setCreateType((Item::CreateType)rows[r].createType);
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Ousters* pOusters = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            Stash* pStash = NULL;
 
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pFascia->setOptionType(optionTypes);
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                pFascia->setGrade(pResult->getInt(++i));
-                pFascia->setEnchantLevel(pResult->getInt(++i));
-                pFascia->setCreateType((Item::CreateType)pResult->getInt(++i));
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else if (pCreature->isOusters()) {
+                pOusters = dynamic_cast<Ousters*>(pCreature);
+                pInventory = pOusters->getInventory();
+                pStash = pOusters->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Ousters* pOusters = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                Stash* pStash = NULL;
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pFascia)) {
+                    pInventory->addItemEx(x, y, pFascia);
+                } else {
+                    processItemBugEx(pCreature, pFascia);
+                }
+                break;
 
-                if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
+            case STORAGE_GEAR:
+                if (pCreature->isSlayer() || pCreature->isVampire()) {
+                    processItemBugEx(pCreature, pFascia);
                 } else if (pCreature->isOusters()) {
-                    pOusters = dynamic_cast<Ousters*>(pCreature);
-                    pInventory = pOusters->getInventory();
-                    pStash = pOusters->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pFascia)) {
-                        pInventory->addItemEx(x, y, pFascia);
+                    if (!pOusters->isWear((Ousters::WearPart)x)) {
+                        pOusters->wearItem((Ousters::WearPart)x, pFascia);
                     } else {
                         processItemBugEx(pCreature, pFascia);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer() || pCreature->isVampire()) {
-                        processItemBugEx(pCreature, pFascia);
-                    } else if (pCreature->isOusters()) {
-                        if (!pOusters->isWear((Ousters::WearPart)x)) {
-                            pOusters->wearItem((Ousters::WearPart)x, pFascia);
-                        } else {
-                            processItemBugEx(pCreature, pFascia);
-                        }
-                    }
-                    break;
-
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pFascia);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pFascia);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pFascia);
-                    else if (pCreature->isOusters())
-                        pOusters->addItemToExtraInventorySlot(pFascia);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pFascia);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pFascia);
-                    } else
-                        pStash->insert(x, y, pFascia);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pFascia);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
-            }
-        }
+                break;
 
-        SAFE_DELETE(pStmt);
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pFascia);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pFascia);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pFascia);
+                else if (pCreature->isOusters())
+                    pOusters->addItemToExtraInventorySlot(pFascia);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pFascia);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pFascia);
+                } else
+                    pStash->insert(x, y, pFascia);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pFascia);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
+            }
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
