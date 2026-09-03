@@ -19,8 +19,9 @@
 // byte-for-byte (the guns' eight: they add a saveBullet UPDATE; four Num-only
 // items' eight: they override destroy() with a DELETE; Key's eight:
 // setNewMotorcycle writes the new motorcycle's id into Target; the couple
-// rings' eight: hasPartnerItem counts the partner ring's row — each extra
-// statement has its own spec slot, NULL for the classes without it).
+// rings' eight: hasPartnerItem counts the partner ring's row; Belt's and
+// OustersArmsband's eight: destroy() deletes by ItemID — each extra statement
+// has its own spec slot, NULL for the classes without it).
 //
 // The first family: the nine slayer gear classes with a Grade column: Ring,
 // Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second
@@ -119,6 +120,16 @@
 // SELECT and so throws on its first row, as it always did). Info: the basic shape
 // (Money, the couple rings) and the Potion shape (VampirePortalItem: MaxCharge,
 // ReqAbility).
+// The thirteenth family: VampireAmulet (AMULET_OBJECT: gear's two loads over an
+// INSERT and an UPDATE that name no Durability — eleven columns and ten SET columns —
+// with the standard Info shape); CoreZap (CORE_ZAP_OBJECT: the same INSERT, an
+// UPDATE with Grade alone, loads naming OptionType, Grade, ItemFlag (owner) and
+// OptionType, ItemFlag (zone); Info basic plus OptionClass); and Belt and
+// OustersArmsband — gear objects (GEAR_OBJECT; Belt's create was already a
+// parameterized statement, verbatim) whose Info adds PocketCount after
+// Protection (Belt read it and ItemLevel through getBYTE, the armsband through
+// getInt: two kinds, one row, one loader) and whose destroy() is a DELETE by
+// ItemID (destroyGearObject).
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -133,7 +144,7 @@
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 19 item files with SQL (later rounds) and the
+// Not enclosed: the other 15 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -207,13 +218,17 @@ enum GearTable {
     GEAR_MONEY,
     GEAR_COUPLE_RING,
     GEAR_VAMPIRE_COUPLE_RING,
-    GEAR_VAMPIRE_PORTAL_ITEM
+    GEAR_VAMPIRE_PORTAL_ITEM,
+    GEAR_VAMPIRE_AMULET,
+    GEAR_CORE_ZAP,
+    GEAR_BELT,
+    GEAR_OUSTERS_ARMSBAND
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
 enum GearInfoKind {
     GEAR_INFO_UNSET = 0,        // a spec row that forgot its kind: every loader refuses it
-    GEAR_INFO_STANDARD,         // loadGearInfos
+    GEAR_INFO_STANDARD,         // loadGearInfos (the gear classes, VampireEarring, VampireAmulet)
     GEAR_INFO_NO_RATIO,         // loadGearInfosNoRatio (VampireCoat)
     GEAR_INFO_ELEMENTAL,        // loadGearInfosElemental (OustersStone)
     GEAR_INFO_WEAPON,           // loadWeaponInfos (VampireWeapon, OustersChakram)
@@ -233,11 +248,13 @@ enum GearInfoKind {
     GEAR_INFO_MAGAZINE,             // loadMagazineInfos (Magazine)
     GEAR_INFO_BASIC_LEVEL_STRING,   // loadLevelStringInfos (Potion, SlayerPortalItem, VampirePortalItem)
     GEAR_INFO_BASIC_LEVEL,          // loadLevelInfos (Skull)
-    GEAR_INFO_BASIC_INT,            // loadIntInfos (QuestItem, SMSItem, LearningItem)
+    GEAR_INFO_BASIC_INT,            // loadIntInfos (QuestItem, SMSItem, LearningItem, CoreZap)
     GEAR_INFO_BASIC_INT_PAIR,       // loadIntPairInfos (SubInventory, TrapItem, Key)
     GEAR_INFO_BASIC_INT_TRIPLE,     // loadIntTripleInfos (PetFood)
     GEAR_INFO_MIXING_ITEM,          // loadMixingItemInfos (MixingItem)
-    GEAR_INFO_SUMMON_ITEM           // loadSummonItemInfos (OustersSummonItem)
+    GEAR_INFO_SUMMON_ITEM,          // loadSummonItemInfos (OustersSummonItem)
+    GEAR_INFO_POCKET,               // loadPocketInfos (OustersArmsband: PocketCount, ItemLevel through getInt)
+    GEAR_INFO_POCKET_BYTE           // loadPocketInfos (Belt: PocketCount, ItemLevel through getBYTE)
 };
 
 // The object-table shapes; which update / owner-load / zone-load a table takes.
@@ -262,7 +279,9 @@ enum GearObjectKind {
     CHARGE_OBJECT, // OustersSummonItem, SlayerPortalItem: insertChargeItem, tinysaveGear, updateChargeItem, loadChargeItemOfOwner, loadChargeItemInZone
     MONEY_OBJECT,  // Money: insertMoney, tinysaveMoney, updateMoney, loadMoneyOfOwner, loadMoneyInZone
     COUPLE_RING_OBJECT, // CoupleRing, VampireCoupleRing: insertCoupleRing, tinysaveGear, updateCoupleRing, loadCoupleRingOfOwner, loadPlainItemInZone, loadCoupleRingPartnerCount
-    VAMPIRE_PORTAL_OBJECT // VampirePortalItem: insertVampirePortal, tinysaveGear, updateVampirePortal, loadVampirePortalOfOwner, loadVampirePortalInZone
+    VAMPIRE_PORTAL_OBJECT, // VampirePortalItem: insertVampirePortal, tinysaveGear, updateVampirePortal, loadVampirePortalOfOwner, loadVampirePortalInZone
+    AMULET_OBJECT,  // VampireAmulet: insertOptionGradeItem, tinysaveGear, updateAmulet, loadGearOfOwner, loadGearInZone
+    CORE_ZAP_OBJECT // CoreZap: insertOptionGradeItem, tinysaveGear, updateCoreZap, loadCoreZapOfOwner, loadCoreZapInZone
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -898,6 +917,58 @@ struct VampirePortalObjectRow {
     WORD targetY;
 };
 
+// BeltInfo / OustersArmsbandInfo: the standard shape with PocketCount after Protection
+// (nineteen columns); pocketCount and itemLevel hold what getBYTE (Belt) or getInt
+// (OustersArmsband) returned.
+struct PocketInfoRow {
+    int itemType;
+    std::string name;
+    std::string ename;
+    int price;
+    int volume;
+    int weight;
+    int ratio;
+    int durability;
+    int defense;
+    int protection;
+    int pocketCount;
+    std::string reqAbility;
+    int itemLevel;
+    std::string defaultOption;
+    int upgradeRatio;
+    int upgradeCrashPercent;
+    int nextOptionRatio;
+    int nextItemType;
+    int downgradeRatio;
+};
+
+// CoreZap's owner SELECT: the plain columns plus OptionType (getString), Grade and ItemFlag (getInt).
+struct CoreZapObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    std::string optionField;
+    int grade;
+    int createType; // ItemFlag
+};
+
+// CoreZap's zone SELECT: the plain columns through getInt plus OptionType and ItemFlag (no Grade).
+struct CoreZapZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    std::string optionField;
+    int createType; // ItemFlag
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
@@ -946,8 +1017,10 @@ public:
     virtual std::vector<IntTripleInfoRow> loadIntTripleInfos(GearTable table) = 0;
     virtual std::vector<MixingItemInfoRow> loadMixingItemInfos(GearTable table) = 0;
     virtual std::vector<SummonItemInfoRow> loadSummonItemInfos(GearTable table) = 0;
+    virtual std::vector<PocketInfoRow> loadPocketInfos(GearTable table) = 0; // both pocket kinds
 
     // <Class>Loader::load(Creature*) — the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
+    // Both gear loads serve the AMULET_OBJECT table too: its SELECTs are gear's.
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
     // <Class>Loader::load(Zone*) — `storage` is what the caller streamed ((int)STORAGE_ZONE).
     virtual std::vector<GearZoneObjectRow> loadGearInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
@@ -1103,6 +1176,24 @@ public:
                                                                          const std::string& ownerName) = 0;
     virtual std::vector<VampirePortalObjectRow> loadVampirePortalInZone(GearTable table, int storage,
                                                                         ZoneID_t zoneID) = 0;
+
+    // VampireAmulet and CoreZap (see GearObjectKind): the gear INSERT without
+    // Durability, VampireAmulet's UPDATE with Grade and EnchantLevel, CoreZap's with
+    // Grade alone and its two loads.
+    virtual void insertOptionGradeItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                       const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                       const std::string& optionField, int grade, int createType) = 0;
+    virtual void updateAmulet(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                              int storage, StorageID_t storageID, int x, int y, const std::string& optionField,
+                              int grade, int enchantLevel, ItemID_t itemID) = 0;
+    virtual void updateCoreZap(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                               int storage, StorageID_t storageID, int x, int y, const std::string& optionField,
+                               int grade, ItemID_t itemID) = 0;
+    virtual std::vector<CoreZapObjectRow> loadCoreZapOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<CoreZapZoneObjectRow> loadCoreZapInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+    // Belt::destroy and OustersArmsband::destroy — "DELETE FROM <Class>Object WHERE ItemID =
+    // %ld"; false when no row went, true otherwise. Refuses tables without the literal.
+    virtual bool destroyGearObject(GearTable table, ItemID_t itemID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in MySQLItemObjectRepository.cpp.
