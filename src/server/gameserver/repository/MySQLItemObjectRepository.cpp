@@ -3828,8 +3828,8 @@ public:
         return deleted;
     }
 
-    // BeltInfo and OustersArmsbandInfo: gear's eighteen columns with PocketCount
-    // after Protection. Belt read PocketCount and ItemLevel through getBYTE
+    // BeltInfo and OustersArmsbandInfo: gear's eighteen columns plus PocketCount
+    // after Protection (nineteen). Belt read PocketCount and ItemLevel through getBYTE
     // (GEAR_INFO_POCKET_BYTE), the armsband through getInt (GEAR_INFO_POCKET); each
     // value lands in the row's int as its getter returned it.
     vector<PocketInfoRow> loadPocketInfos(GearTable table) {

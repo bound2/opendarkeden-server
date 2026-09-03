@@ -2517,15 +2517,16 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > round 14)**: VampireAmulet (`AMULET_OBJECT`), CoreZap
   > (`CORE_ZAP_OBJECT`), Belt and OustersArmsband (`GEAR_OBJECT`) — R3
   > 150→146 (R2/R5 unchanged). VampireAmulet and CoreZap stream the gear
-  > INSERT without Durability — eleven columns, optionField.c_str(),
-  > getGrade(), (int)m_CreateType — through one insertOptionGradeItem
-  > (requireOptionGradeInsert); VampireAmulet's UPDATE writes Grade and
-  > EnchantLevel (updateAmulet, ten arguments) and its two loads are
-  > gear's twelve and eleven columns through gear's getters, so
-  > loadGearOfOwner and loadGearInZone serve AMULET_OBJECT too
-  > (requireGearLoad) while insertGear and updateGear keep refusing it;
-  > CoreZap's UPDATE writes Grade alone (updateCoreZap, nine arguments)
-  > and its loads name OptionType, Grade, ItemFlag (owner: ids getDWORD,
+  > INSERT without Durability — eleven columns, whose streamed tail was
+  > optionField.c_str(), getGrade(), (int)m_CreateType — through one
+  > insertOptionGradeItem (requireOptionGradeInsert); VampireAmulet's
+  > UPDATE writes Grade and EnchantLevel (updateAmulet, ten SET columns
+  > and eleven arguments) and its two loads are gear's twelve and eleven
+  > columns through gear's getters, so loadGearOfOwner and
+  > loadGearInZone serve AMULET_OBJECT too (requireGearLoad) while
+  > insertGear and updateGear keep refusing it; CoreZap's UPDATE writes
+  > Grade alone (updateCoreZap, nine SET columns and ten arguments) and
+  > its loads name OptionType, Grade, ItemFlag (owner: ids getDWORD,
   > Storage getInt, StorageID getDWORD, X, Y getBYTE, OptionType
   > getString, Grade and ItemFlag getInt — `CoreZapObjectRow` /
   > loadCoreZapOfOwner) and OptionType, ItemFlag (zone, the rest getInt
@@ -2539,60 +2540,67 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > NULL elsewhere, behind destroyGearObject, false when no row went and
   > true otherwise as the original's getAffectedRowCount() branch; the
   > class's pocket-item destroy loop precedes the call as before, and
-  > the function still falls off its end without a return after a
-  > successful delete (kept). Their save() saved the pocket items inside
-  > the DB block after the UPDATE; the loop now follows the seam call —
-  > the nested saves convert their own SQL errors, so nothing that
-  > END_DB would have caught ever reached it (same behaviour). Info:
-  > VampireAmulet is the standard shape; CoreZap basic plus OptionClass
-  > (the int shape, the caller keeping its (OptionClass) cast); Belt and
-  > OustersArmsband gear's eighteen columns with PocketCount after
-  > Protection — one `PocketInfoRow`, one loadPocketInfos, two kinds,
-  > because Belt read PocketCount and ItemLevel through getBYTE
-  > (`GEAR_INFO_POCKET_BYTE`) and the armsband through getInt
-  > (`GEAR_INFO_POCKET`); the loader picks the getter by kind and each
-  > value lands in the row's int as its getter returned it. The
-  > `static_assert` now reads GEAR_OUSTERS_ARMSBAND + 1. The transformer
-  > (outside the repo; its output is what was reviewed) gained the two
-  > shapes, a cast on the basic-plus-int setter, a parameterized gear
-  > create, the pocket-item loop after save()'s seam call, and the
-  > destroy-by-ItemID block; the loaders' isUnique / setUnique lines
-  > (all four) and the pocket Inventory lines (Belt, OustersArmsband)
-  > stay between setItemType and the storage reads. Literal quirks kept:
-  > "(ItemID,  ObjectID, …, StorageID , X, Y, …)" (two spaces after the
-  > first comma, a space before the comma after StorageID) and "
-  > VALUES(" in VampireAmulet, CoreZap and OustersArmsband; Belt's
-  > "(ItemID,  ObjectID" and its UPDATE's "OwnerID= '%s'" (a space after
-  > the equals sign) and owner SELECT's "Storage IN (0, 1, 2, 3, 4, 9)"
-  > (a space before the parenthesis); VampireAmulet's owner SELECT's "X,
-  > Y,OptionType" (no space); OustersArmsband's Info SELECT's
-  > "PocketCount,ReqAbility"; the DELETEs' "ItemID = %ld" (spaces around
-  > the equals sign); nothing else differs between the four classes'
-  > live literals beyond the table names and the column sets described.
-  > Disclosures: the seam initialises its Statement where the originals
-  > declared pStmt uninitialised — every DB function of all four but
-  > tinysave (create, save, the info load and both loaders; destroy too
-  > in Belt and OustersArmsband); the SQL-free third-loader stub keeps
-  > its uninitialised pStmt in all four; one Statement per info
-  > statement; whole-result reads before placement (an item-placement
-  > throw no longer leaks the Statement; the creature loaders'
-  > `SAFE_DELETE(pStmt); // by sigi` before the default-case throw is
-  > gone in all four; the `SAFE_DELETE(pStmt)` before destroy()'s
-  > `return false` is gone with the block); DBError.log names the
-  > repository method; the four create INSERTs and zone SELECTs now pass
-  > through executeQuery's 2048-byte format buffer (175–199 bytes of
-  > format plus a varchar(10) owner and a varchar(10) OptionType text
-  > for the INSERTs — Belt's went through it already; 138–172 for the
-  > zone SELECTs; the 41- and 52-byte DELETEs: unreachable); the
-  > commented-out StringStream blocks in save() and the owner loader
-  > (all four) and the commented-out earlier chain in Belt's create are
-  > gone with their blocks; the DB.h include stays; the header's "19
-  > item files" count is 15; readInfoHead's comment names the pocket
-  > shapes among those it serves. The four item files' diffs are 428–508
-  > lines each, all extraction: every hunk sits in a function that held
-  > SQL, plus the include — no reformat hunks (clang-format 18 changed
-  > nothing else in them). +1 integration test: VampireAmulet — two rows
-  > through insertOptionGradeItem (OptionType, Grade and the untouched
+  > the trailing `return true` stays where it was — only the `return
+  > false` moved, from inside the DB block to the seam's bool. Their
+  > save() saved the pocket items inside the DB block after the UPDATE;
+  > the loop now follows the seam call — the nested saves convert their
+  > own SQL errors, so nothing that END_DB would have caught ever
+  > reached it (same behaviour); the loop leaving the block also means a
+  > throw from it no longer leaks the class's own Statement, which the
+  > seam has already released. Info: VampireAmulet is the standard
+  > shape; CoreZap basic plus OptionClass (the int shape, the caller
+  > keeping its (OptionClass) cast); Belt and OustersArmsband gear's
+  > eighteen columns plus PocketCount after Protection, nineteen — one
+  > `PocketInfoRow`, one loadPocketInfos, two kinds, because Belt read
+  > PocketCount and ItemLevel through getBYTE (`GEAR_INFO_POCKET_BYTE`)
+  > and the armsband through getInt (`GEAR_INFO_POCKET`); the loader
+  > picks the getter by kind and each value lands in the row's int as
+  > its getter returned it. The `static_assert` now reads
+  > GEAR_OUSTERS_ARMSBAND + 1. The transformer (outside the repo; its
+  > output is what was reviewed) gained the two shapes, a cast on the
+  > basic-plus-int setter, a parameterized gear create, the pocket-item
+  > loop after save()'s seam call, and the destroy-by-ItemID block; the
+  > loaders' isUnique / setUnique lines (all four) and the pocket
+  > Inventory lines (Belt, OustersArmsband) stay between setItemType and
+  > the storage reads. Literal quirks kept: " VALUES(" and
+  > "(ItemID,  ObjectID" (two spaces after the first comma) in all four,
+  > and "StorageID , X, Y" (a space before that comma) in VampireAmulet,
+  > CoreZap and OustersArmsband but not Belt; Belt's UPDATE's "OwnerID=
+  > '%s'" (a space after the equals sign) and owner SELECT's "Storage IN
+  > (0, 1, 2, 3, 4, 9)" (a space before the parenthesis);
+  > VampireAmulet's owner SELECT's "X, Y,OptionType" (no space);
+  > OustersArmsband's Info SELECT's "PocketCount,ReqAbility"; the
+  > DELETEs' "ItemID = %ld" (spaces around the equals sign); beyond the
+  > table names, the column sets described and Belt's verbatim create
+  > specifiers quoted above (%ld and %d where the three streamed creates
+  > render %u), nothing else differs between the four classes' live
+  > literals. Disclosures: the seam initialises its Statement where the
+  > originals declared pStmt uninitialised — every DB function of all
+  > four but tinysave (create, save, the info load and both loaders;
+  > destroy too in Belt and OustersArmsband); the SQL-free third-loader
+  > stub keeps its uninitialised pStmt in all four; one Statement per
+  > info statement; whole-result reads before placement (an
+  > item-placement throw no longer leaks the Statement; the creature
+  > loaders' `SAFE_DELETE(pStmt); // by sigi` before the default-case
+  > throw is gone in all four; the `SAFE_DELETE(pStmt)` before
+  > destroy()'s `return false` is gone with the block); DBError.log
+  > names the repository method; three of the four create INSERTs and
+  > all four zone SELECTs now pass through executeQuery's 2048-byte
+  > format buffer, Belt's create having gone through it already (175–199
+  > bytes of format plus a varchar(10) owner and a varchar(10)
+  > OptionType text for the INSERTs; 138–172 for the zone SELECTs; 41
+  > and 52 for the DELETEs) — the cap is unreachable for all of them,
+  > and on overflow executeQuery throws Error, which END_DB, a catch of
+  > SQLQueryException, does not catch; the commented-out StringStream
+  > blocks in save() and the owner loader (all four) and the
+  > commented-out earlier chain in Belt's create are gone with their
+  > blocks; the DB.h include stays; the header's "19 item files" count
+  > is 15; readInfoHead's comment names the pocket shapes among those it
+  > serves. The four item files' diffs are 428–508 lines each, all
+  > extraction: every hunk sits in a function that held SQL, plus the
+  > include — no reformat hunks (clang-format 18 changed nothing else in
+  > them). +1 integration test: VampireAmulet — two rows through
+  > insertOptionGradeItem (OptionType, Grade and the untouched
   > Durability default read back by SQL), updateAmulet (Grade,
   > EnchantLevel; Durability still untouched), gear's owner load
   > (durability 0, grade, enchantLevel, createType), gear's zone load
@@ -2604,15 +2612,16 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > loads, tinysave, destroyGearObject (true, the zone row gone, false
   > the second time, the other row untouched), MAX, loadPocketInfos by
   > COUNT(*) and PocketCount / ItemLevel / DowngradeRatio, loadGearInfos
-  > refusing the table; the guards both ways (insertGear and updateGear
-  > refusing the amulet and CoreZap, insertOptionGradeItem refusing
-  > Belt, updateAmulet and updateCoreZap refusing each other's tables
-  > and Belt's, the gear loads refusing CoreZap, the CoreZap loads
-  > refusing the amulet and Belt, destroyGearObject refusing Ring and
-  > the amulet, destroyItemObject refusing Belt, loadPocketInfos
-  > refusing Ring and the amulet, loadIntInfos refusing the amulet, the
-  > silver and Num loads refusing these). Not enclosed: the other 15
-  > item files with SQL — next PetItem (a twenty-one-column owner
+  > refusing the table; the guards both ways (insertGear refusing the
+  > amulet and CoreZap and updateGear the amulet, insertOptionGradeItem
+  > refusing Belt, updateAmulet refusing CoreZap's table and Belt's and
+  > updateCoreZap the amulet's, both gear loads refusing CoreZap,
+  > loadCoreZapOfOwner refusing the amulet and loadCoreZapInZone Belt,
+  > destroyGearObject refusing Ring and the amulet, destroyItemObject
+  > refusing Belt, loadPocketInfos refusing Ring and the amulet,
+  > loadIntInfos refusing the amulet, loadSilverWeaponOfOwner refusing
+  > the amulet and loadNumItemOfOwner CoreZap). Not enclosed: the other
+  > 15 item files with SQL — next PetItem (a twenty-one-column owner
   > SELECT), Motorcycle, BloodBible, CarryingReceiver, CastleSymbol,
   > CodeSheet, Dermis, Fascia, Mitten, Persona, Relic, ShoulderArmor,
   > Sweeper, WarItem and EventBall (no tables, not registered);

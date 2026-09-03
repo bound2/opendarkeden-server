@@ -121,7 +121,7 @@
 // (Money, the couple rings) and the Potion shape (VampirePortalItem: MaxCharge,
 // ReqAbility).
 // The thirteenth family: VampireAmulet (AMULET_OBJECT: gear's two loads over an
-// INSERT and an UPDATE that name no Durability — eleven and ten arguments —
+// INSERT and an UPDATE that name no Durability — eleven columns and ten SET columns —
 // with the standard Info shape); CoreZap (CORE_ZAP_OBJECT: the same INSERT, an
 // UPDATE with Grade alone, loads naming OptionType, Grade, ItemFlag (owner) and
 // OptionType, ItemFlag (zone); Info basic plus OptionClass); and Belt and
