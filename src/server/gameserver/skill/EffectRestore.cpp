@@ -10,6 +10,7 @@
 #include "Monster.h"
 #include "Slayer.h"
 #include "Vampire.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -96,25 +97,11 @@ void EffectRestore::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-        StringStream sql;
-
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        sql << "INSERT INTO EffectRestore " << "(OwnerID, YearTime, DayTime)" << " VALUES('" << ownerID << "' , "
-            << currentYearTime << " , " << m_Deadline.tv_sec << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertDeadline(EFFECT_TABLE_RESTORE, ownerID, currentYearTime, m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -127,18 +114,7 @@ void EffectRestore::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-        sql << "DELETE FROM EffectRestore WHERE OwnerID = '" << ownerID << "'";
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteDeadline(EFFECT_TABLE_RESTORE, ownerID);
 
     __END_CATCH
 }
@@ -151,25 +127,11 @@ void EffectRestore::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    Turn_t currentYearTime;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    getCurrentYearTime(currentYearTime);
 
-        StringStream sql;
-
-        Turn_t currentYearTime;
-
-        getCurrentYearTime(currentYearTime);
-
-        sql << "UPDATE EffectRestore SET " << "YearTime = " << currentYearTime << ",DayTime = " << m_Deadline.tv_sec
-            << " WHERE OwnerID = '" << ownerID << "'";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateDeadline(EFFECT_TABLE_RESTORE, ownerID, currentYearTime, m_Deadline.tv_sec);
 
     __END_CATCH
 }
@@ -198,45 +160,32 @@ void EffectRestoreLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
+    vector<DWORD> dayTimes = defaultEffectSaveRepository().loadDeadlines(EFFECT_TABLE_RESTORE, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < dayTimes.size(); r++) {
+        if (pCreature->isSlayer()) {
+            Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
 
-        StringStream sql;
-        sql << "SELECT DayTime FROM EffectRestore" << " WHERE OwnerID = '" << pCreature->getName() << "'";
+            int DayTime = dayTimes[r];
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+            Timeval currentTime;
+            getCurrentTime(currentTime);
 
-        while (pResult->next()) {
-            if (pCreature->isSlayer()) {
-                Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
+            EffectRestore* pEffectRestore = new EffectRestore(pCreature);
 
-                uint i = 0;
-                int DayTime = pResult->getDWORD(++i);
+            if (currentTime.tv_sec < DayTime) {
+                pEffectRestore->setDeadline((DayTime - currentTime.tv_sec) * 10);
 
-                Timeval currentTime;
-                getCurrentTime(currentTime);
+                pSlayer->addEffect(pEffectRestore);
+                pSlayer->setFlag(Effect::EFFECT_CLASS_RESTORE);
+            } else {
+                pEffectRestore->setDeadline(6000);
 
-                EffectRestore* pEffectRestore = new EffectRestore(pCreature);
-
-                if (currentTime.tv_sec < DayTime) {
-                    pEffectRestore->setDeadline((DayTime - currentTime.tv_sec) * 10);
-
-                    pSlayer->addEffect(pEffectRestore);
-                    pSlayer->setFlag(Effect::EFFECT_CLASS_RESTORE);
-                } else {
-                    pEffectRestore->setDeadline(6000);
-
-                    pSlayer->addEffect(pEffectRestore);
-                    pSlayer->setFlag(Effect::EFFECT_CLASS_RESTORE);
-                }
+                pSlayer->addEffect(pEffectRestore);
+                pSlayer->setFlag(Effect::EFFECT_CLASS_RESTORE);
             }
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

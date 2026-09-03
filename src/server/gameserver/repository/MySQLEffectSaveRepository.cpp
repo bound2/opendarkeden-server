@@ -6,7 +6,7 @@ namespace {
 // MySQL implementation of the persisted-effect seam. The legacy quirks
 // are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
 //  - Every statement is byte-for-byte what its Effect*.cpp emitted, and
-//    the eight classes did NOT agree on spacing, so the format strings
+//    the thirteen classes did NOT agree on spacing, so the format strings
 //    are per-table data rather than one template: "VALUES('%s', ..." vs
 //    the "VALUES ('%s', ..." of CanEnterGDRLair and EnemyErase;
 //    EffectMute's "YearTime=%ld" and "OwnerID='%s'" where the others
@@ -16,12 +16,17 @@ namespace {
 //  - The varargs conversions are the originals': the Turn_t (DWORD)
 //    year time and remain turn through %ld/%lu — the 4-byte-through-
 //    8-byte-conversion latent bug documented in
-//    MySQLCharacterRepository.cpp; every call in this seam has at most
-//    four varargs, so they are all register-passed and GCC's
-//    zero-extension keeps it benign — and the time_t DayTime through
-//    %ld, which is exact. Preserved, not fixed. A DWORD can never print
-//    more than 4294967295 this way, which is exactly the int(10)
-//    unsigned columns' maximum: no value from this seam is ever clamped.
+//    MySQLCharacterRepository.cpp; a member call spends the first two
+//    register slots on this and the format string, leaving four for
+//    varargs, and every DWORD in this seam lands in one of those, so
+//    GCC's zero-extension keeps it benign. Only
+//    EffectYellowPoisonToCreature passes a fifth vararg, on the stack,
+//    and it is the int OldSight through %d on the INSERT and the char*
+//    owner name through %s on the UPDATE — both exact at their own
+//    width. The time_t DayTime goes through %ld, which is exact.
+//    Preserved, not fixed. A DWORD can never print more than 4294967295
+//    this way, which is exactly the int(10) unsigned columns' maximum:
+//    no value from this seam is ever clamped.
 //  - The remain turn the force scrolls store is computed from
 //    timediff(m_Deadline, now), and Timeval.cpp's timediff returns the
 //    ABSOLUTE difference. A scroll saved after its deadline has passed
@@ -43,6 +48,15 @@ namespace {
 //    choice (see MySQLSkillSaveRepository.cpp), not a contract.
 //  - An UPDATE/DELETE with no matching row is a silent no-op; owner and
 //    enemy names are interpolated raw. As before.
+//  - EffectRestore and the four per-creature tables built their
+//    statements with StringStream and ran them through the uncapped
+//    executeQueryString; here they are format strings through
+//    executeQuery, whose 2048-byte buffer throws an Error past the cap.
+//    OwnerID is a varchar(10) and the widest of these statements renders
+//    under 200 bytes, so the cap is unreachable — the same reasoning
+//    the earlier rounds recorded. EffectBloodDrain was already
+//    parameterized (its StringStream copies sit commented out beside the
+//    live calls) and keeps the overload it had.
 struct DeadlineSpec {
     const char* insert;
     const char* remove;
@@ -71,6 +85,12 @@ const DeadlineSpec DEADLINE_SPECS[DEADLINE_EFFECT_TABLE_MAX] = {
      "DELETE FROM CanEnterGDRLair WHERE OwnerID = '%s'",
      "UPDATE CanEnterGDRLair SET YearTime = %ld, DayTime = %ld WHERE OwnerID = '%s'",
      "SELECT DayTime FROM CanEnterGDRLair WHERE OwnerID = '%s'"},
+    // EFFECT_TABLE_RESTORE: the same three columns, spaced its own way
+    // (" VALUES('%s' , " and "YearTime = %ld,DayTime").
+    {"INSERT INTO EffectRestore (OwnerID, YearTime, DayTime) VALUES('%s' , %ld , %ld)",
+     "DELETE FROM EffectRestore WHERE OwnerID = '%s'",
+     "UPDATE EffectRestore SET YearTime = %ld,DayTime = %ld WHERE OwnerID = '%s'",
+     "SELECT DayTime FROM EffectRestore WHERE OwnerID = '%s'"},
 };
 
 const DeadlineSpec REMAIN_SPECS[REMAIN_EFFECT_TABLE_MAX] = {
@@ -89,6 +109,56 @@ const DeadlineSpec REMAIN_SPECS[REMAIN_EFFECT_TABLE_MAX] = {
      "DELETE FROM EffectCarnelianForceScroll WHERE OwnerID = '%s'",
      "UPDATE EffectCarnelianForceScroll SET RemainTime = %lu WHERE OwnerID = '%s'",
      "SELECt RemainTime FROM EffectCarnelianForceScroll WHERE OwnerID = '%s'"},
+};
+
+
+// The per-creature tables. shape says which varargs the writes pass and
+// which columns the read fetches; the four literals below are their
+// classes' own, spacing quirks included.
+enum CreatureEffectShape {
+    SHAPE_LEVEL,      // EffectBloodDrain: (DayTime, Level), Level via getBYTE
+    SHAPE_OLD_SIGHT,  // EffectFlare, EffectLight: (YearTime, DayTime, OldSight)
+    SHAPE_LEVEL_SIGHT // EffectYellowPoisonToCreature: all four, Level via getInt
+};
+
+struct CreatureEffectSpec {
+    const char* insert;
+    const char* remove;
+    const char* update;
+    const char* select;
+    CreatureEffectShape shape;
+};
+
+const CreatureEffectSpec CREATURE_EFFECT_SPECS[CREATURE_EFFECT_TABLE_MAX] = {
+    // CREATURE_EFFECT_BLOOD_DRAIN: the only one of the four already
+    // parameterized in its class, so these four literals are copied from
+    // its live executeQuery calls rather than rebuilt from a StringStream.
+    {"INSERT INTO EffectBloodDrain (OwnerID , YearTime, DayTime, Level) VALUES('%s', %ld, %ld, %d)",
+     "DELETE FROM EffectBloodDrain WHERE OwnerID = '%s'",
+     "UPDATE EffectBloodDrain SET YearTime=%ld, DayTime=%ld, Level=%d WHERE OwnerID='%s'",
+     "SELECT DayTime, Level FROM EffectBloodDrain WHERE OwnerID='%s'", SHAPE_LEVEL},
+    // CREATURE_EFFECT_FLARE
+    {"INSERT INTO EffectFlare(OwnerID , YearTime, DayTime, OldSight) VALUES('%s' , %ld , %ld,%d)",
+     "DELETE FROM EffectFlare WHERE OwnerID = '%s'",
+     "UPDATE EffectFlare SET YearTime = %ld, DayTime = %ld, OldSight = %d WHERE OwnerID = '%s'",
+     "SELECT YearTime, DayTime, OldSight FROM EffectFlare WHERE OwnerID = '%s'", SHAPE_OLD_SIGHT},
+    // CREATURE_EFFECT_LIGHT: EffectFlare's four statements with the table
+    // name swapped — the two classes' StringStream chains are identical
+    // token for token.
+    {"INSERT INTO EffectLight(OwnerID , YearTime, DayTime, OldSight) VALUES('%s' , %ld , %ld,%d)",
+     "DELETE FROM EffectLight WHERE OwnerID = '%s'",
+     "UPDATE EffectLight SET YearTime = %ld, DayTime = %ld, OldSight = %d WHERE OwnerID = '%s'",
+     "SELECT YearTime, DayTime, OldSight FROM EffectLight WHERE OwnerID = '%s'", SHAPE_OLD_SIGHT},
+    // CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE: note the INSERT's single
+    // " , " after the owner and bare "," between the three numbers, where
+    // EffectFlare's spaces both separators.
+    {"INSERT INTO EffectYellowPoisonToCreature(OwnerID , YearTime, DayTime, Level, OldSight) VALUES('%s' , "
+     "%ld,%ld,%d,%d)",
+     "DELETE FROM EffectYellowPoisonToCreature WHERE OwnerID = '%s'",
+     "UPDATE EffectYellowPoisonToCreature SET YearTime = %ld, DayTime = %ld, Level = %d, OldSight = %d WHERE "
+     "OwnerID = '%s'",
+     "SELECT YearTime, DayTime, Level, OldSight FROM EffectYellowPoisonToCreature WHERE OwnerID = '%s'",
+     SHAPE_LEVEL_SIGHT},
 };
 
 class MySQLEffectSaveRepository : public EffectSaveRepository {
@@ -250,6 +320,106 @@ public:
                 EnemyEraseRow row;
                 row.dayTime = pResult->getDWORD(1);
                 row.enemyName = pResult->getString(2);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    void insertCreatureEffect(CreatureEffectTable table, const string& ownerName, Turn_t yearTime, time_t dayTime,
+                              int level, int oldSight) {
+        const CreatureEffectSpec& spec = CREATURE_EFFECT_SPECS[table];
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            switch (spec.shape) {
+            case SHAPE_LEVEL:
+                pStmt->executeQuery(spec.insert, ownerName.c_str(), yearTime, dayTime, level);
+                break;
+            case SHAPE_OLD_SIGHT:
+                pStmt->executeQuery(spec.insert, ownerName.c_str(), yearTime, dayTime, oldSight);
+                break;
+            case SHAPE_LEVEL_SIGHT:
+                pStmt->executeQuery(spec.insert, ownerName.c_str(), yearTime, dayTime, level, oldSight);
+                break;
+            }
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void deleteCreatureEffect(CreatureEffectTable table, const string& ownerName) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(CREATURE_EFFECT_SPECS[table].remove, ownerName.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateCreatureEffect(CreatureEffectTable table, const string& ownerName, Turn_t yearTime, time_t dayTime,
+                              int level, int oldSight) {
+        const CreatureEffectSpec& spec = CREATURE_EFFECT_SPECS[table];
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            switch (spec.shape) {
+            case SHAPE_LEVEL:
+                pStmt->executeQuery(spec.update, yearTime, dayTime, level, ownerName.c_str());
+                break;
+            case SHAPE_OLD_SIGHT:
+                pStmt->executeQuery(spec.update, yearTime, dayTime, oldSight, ownerName.c_str());
+                break;
+            case SHAPE_LEVEL_SIGHT:
+                pStmt->executeQuery(spec.update, yearTime, dayTime, level, oldSight, ownerName.c_str());
+                break;
+            }
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    vector<CreatureEffectRow> loadCreatureEffects(CreatureEffectTable table, const string& ownerName) {
+        const CreatureEffectSpec& spec = CREATURE_EFFECT_SPECS[table];
+        vector<CreatureEffectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec.select, ownerName.c_str());
+
+            while (pResult->next()) {
+                CreatureEffectRow row;
+                row.yearTime = 0;
+                row.dayTime = 0;
+                row.level = 0;
+
+                switch (spec.shape) {
+                case SHAPE_LEVEL:
+                    row.dayTime = pResult->getDWORD(1);
+                    row.level = pResult->getBYTE(2);
+                    break;
+                case SHAPE_OLD_SIGHT:
+                    row.yearTime = pResult->getDWORD(1);
+                    row.dayTime = pResult->getDWORD(2);
+                    // OldSight is column 3 and no loader ever read it.
+                    break;
+                case SHAPE_LEVEL_SIGHT:
+                    row.yearTime = pResult->getDWORD(1);
+                    row.dayTime = pResult->getDWORD(2);
+                    row.level = pResult->getInt(3);
+                    // OldSight is column 4 and its loader never read it.
+                    break;
+                }
+
                 rows.push_back(row);
             }
 

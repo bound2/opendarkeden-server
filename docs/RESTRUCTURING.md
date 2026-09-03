@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 120 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 113 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers; 120→113 on 2026-09-03: the five per-creature effect saves, EffectRestore and the two Restore skills — skill/ now holds no live inline SQL at all) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -2988,6 +2988,62 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > EffectBloodDrain rows and touch GuildMember.LogOn; EffectBloodyWall
   > and EffectGrayDarkness keep only commented-out loaders, so R3 still
   > counts them.
+  > **The per-creature effect saves (2026-09-03, stacked on the
+  > zone-effect round)**: the five skill/Effect*.cpp classes that own a
+  > table, plus the two Restore skills — R3 120→113 (R1/R2/R5
+  > unchanged), and with them skill/ stops holding live inline SQL
+  > entirely: the only two files the grep still finds there,
+  > EffectBloodyWall and EffectGrayDarkness, carry nothing but
+  > commented-out loaders. No new repository: EffectSaveRepository
+  > already served eight one-table-per-effect saves in three shapes, and
+  > this round adds the fourth shape, plus a fifth table to the first.
+  > EffectRestore turns out to BE a deadline table — (OwnerID, YearTime,
+  > DayTime), a loader that reads DayTime alone — so it becomes a fifth
+  > DeadlineEffectTable enumerator whose four literals differ from the
+  > other four only in spacing ("VALUES('%s' , " and "YearTime =
+  > %ld,DayTime"). EffectBloodDrain, EffectFlare, EffectLight and
+  > EffectYellowPoisonToCreature carry their own columns on top of that
+  > core and get a fourth family, CreatureEffectTable, with a per-table
+  > shape driving both the varargs and the read: Level via getBYTE for
+  > EffectBloodDrain, OldSight for the two sight effects, both for
+  > EffectYellowPoisonToCreature with Level via getInt. Disclosures:
+  > OldSight is named by three of the four SELECTs and read by NONE of
+  > their loaders, which hard-code the restored sight to 13 — the column
+  > stays in the statements byte for byte and `CreatureEffectRow` does
+  > not carry it, since fetching it would be a driver call the originals
+  > never made. EffectRestore and the four per-creature classes built
+  > their statements with StringStream and ran them through the uncapped
+  > executeQueryString; they are format strings through the 2048-byte
+  > executeQuery now, and OwnerID is a varchar(10), so the cap is
+  > unreachable. EffectBloodDrain was already parameterized and keeps
+  > its overload; its commented-out StringStream twins go with the
+  > blocks that held them, which is what drops the file out of R3.
+  > EffectYellowPoisonToCreature is the first caller in this seam to
+  > pass five varargs: four fit the registers a member call leaves, and
+  > the fifth is an int OldSight through "%d" on the INSERT and a char*
+  > owner name through "%s" on the UPDATE, both exact. The three
+  > create()s that filled a Timeval before opening their DB block keep
+  > the call, dead local and all. One leak closed: skill/Restore.cpp's
+  > GuildMember LogOn = 0 write freed nothing on its success path, and
+  > it now goes through SessionRepository::markGuildMemberLoggedOff —
+  > whose header had listed that very site as not enclosed. Two smaller
+  > shape fixes come with the move, neither a leak:
+  > EffectYellowPoisonToCreature's four blocks freed their Statement
+  > with a bare "delete pStmt" where the seam uses SAFE_DELETE, and
+  > thirteen of the twenty-five blocks declared "Statement* pStmt;"
+  > uninitialised, which END_DB would have deleted had createStatement()
+  > itself thrown; every seam method starts from NULL. Restore.cpp and
+  > Restore2.cpp keep two EffectBloodDrain purges each, whose
+  > string-built DELETE is the same literal EffectBloodDrain::destroy
+  > emitted, so all four call deleteCreatureEffect. Not touched:
+  > src/server/Restore.cpp and src/server/Restore2.cpp, the unbuilt
+  > ServerCore forks that carry copies of the same blocks (R3 keeps
+  > counting them). Tests: DEADLINE_TABLE_NAMES grows to five so the
+  > existing round-trip sweep covers EffectRestore, and a new
+  > CreatureEffectMySQL suite (five tests) pins the per-table column
+  > lists, the written-and-never-read OldSight, EffectFlare's unnamed
+  > Level column, the keyless duplicate, each table's own Level getter
+  > and the no-op writes; ctest 5/5, 133/133, build exit 0.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes
   > before PetItem — R3 136→133 (R1/R2/R5 unchanged). Motorcycle

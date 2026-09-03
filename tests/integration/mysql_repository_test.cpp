@@ -933,11 +933,13 @@ TEST_F(SkillSaveMySQL, WritesAgainstMissingRowsAreSilentNoOps) {
 // --- the persisted-effect tables against real MySQL -----------------------
 // EffectSaveRepository has no fake tier; the format strings are per-table
 // data, so every table gets exercised, and the two structural quirks —
-// the one keyed table among eight keyless ones, and EnemyErase's
+// the one keyed table among twelve keyless ones, and EnemyErase's
 // owner-wide UPDATE — are pinned against the real server.
 
 const char* const DEADLINE_TABLE_NAMES[DEADLINE_EFFECT_TABLE_MAX] = {"EffectAftermath", "EffectKillAftermath",
-                                                                     "EffectMute", "CanEnterGDRLair"};
+                                                                     "EffectMute", "CanEnterGDRLair", "EffectRestore"};
+const char* const CREATURE_EFFECT_TABLE_NAMES[CREATURE_EFFECT_TABLE_MAX] = {
+    "EffectBloodDrain", "EffectFlare", "EffectLight", "EffectYellowPoisonToCreature"};
 const char* const REMAIN_TABLE_NAMES[REMAIN_EFFECT_TABLE_MAX] = {"EffectSafeForceScroll", "EffectBehemothForceScroll",
                                                                  "EffectCarnelianForceScroll"};
 
@@ -986,7 +988,7 @@ TEST_F(EffectSaveMySQL, EveryDeadlineTableRoundTripsInsertUpdateLoadDelete) {
 }
 
 TEST_F(EffectSaveMySQL, KeylessTablesAccumulateDuplicatesButKillAftermathRefusesThem) {
-    // Seven of the eight tables have only an OwnerID index; a second
+    // Twelve of the thirteen tables have only an OwnerID index; a second
     // create() for the same owner just adds a row (and the loader then
     // attaches the effect twice). EffectKillAftermath is the one with
     // OwnerID as PRIMARY KEY: its second insert raises ER_DUP_ENTRY.
@@ -1062,6 +1064,137 @@ TEST_F(EffectSaveMySQL, EnemyEraseDeletesByEnemyButUpdatesEveryRowOfTheOwner) {
 
     repository.deleteEnemyErase(slayer.name, "foeone");
     EXPECT_TRUE(repository.loadEnemyErases(slayer.name).empty());
+}
+
+// --- the per-creature effect tables against real MySQL ---------------------
+// The deadline core plus each table's own columns. What is pinned here: the
+// per-table column lists (a field the SELECT does not name comes back 0
+// while the INSERT still writes the column), the keyless duplicate, and the
+// OldSight column that three of the four write and none of them read.
+
+class CreatureEffectMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        PlayerFixtures::removeAll();
+        for (int t = 0; t < CREATURE_EFFECT_TABLE_MAX; t++)
+            execSQL(std::string("DELETE FROM ") + CREATURE_EFFECT_TABLE_NAMES[t] + " WHERE OwnerID IN " +
+                    PlayerFixtures::nameList());
+    }
+
+    static std::string columnOf(const char* table, const char* column, const std::string& owner) {
+        return queryScalar(std::string("SELECT ") + column + " FROM " + table + " WHERE OwnerID='" + owner + "'");
+    }
+};
+
+TEST_F(CreatureEffectMySQL, EveryTableRoundTripsInsertUpdateLoadDelete) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+
+    for (int t = 0; t < CREATURE_EFFECT_TABLE_MAX; t++) {
+        CreatureEffectTable table = (CreatureEffectTable)t;
+        const char* name = CREATURE_EFFECT_TABLE_NAMES[t];
+        SCOPED_TRACE(name);
+        // EffectBloodDrain's SELECT names (DayTime, Level); the other three
+        // name YearTime, and only EffectYellowPoisonToCreature also names Level.
+        const bool selectsYearTime = table != CREATURE_EFFECT_BLOOD_DRAIN;
+        const bool selectsLevel =
+            table == CREATURE_EFFECT_BLOOD_DRAIN || table == CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE;
+
+        repository.insertCreatureEffect(table, slayer.name, 1111, 1700000001, 7, 9);
+        std::vector<CreatureEffectRow> rows = repository.loadCreatureEffects(table, slayer.name);
+        ASSERT_EQ(1u, rows.size());
+        EXPECT_EQ(1700000001u, rows[0].dayTime);
+        EXPECT_EQ(selectsYearTime ? 1111u : 0u, rows[0].yearTime);
+        EXPECT_EQ(selectsLevel ? 7 : 0, rows[0].level);
+        // Every INSERT writes YearTime, including the one whose SELECT
+        // leaves it behind.
+        EXPECT_EQ("1111", columnOf(name, "YearTime", slayer.name));
+
+        repository.updateCreatureEffect(table, slayer.name, 2222, 1700000002, 8, 10);
+        rows = repository.loadCreatureEffects(table, slayer.name);
+        ASSERT_EQ(1u, rows.size());
+        EXPECT_EQ(1700000002u, rows[0].dayTime);
+        EXPECT_EQ(selectsYearTime ? 2222u : 0u, rows[0].yearTime);
+        EXPECT_EQ(selectsLevel ? 8 : 0, rows[0].level);
+        EXPECT_EQ("2222", columnOf(name, "YearTime", slayer.name));
+
+        repository.deleteCreatureEffect(table, slayer.name);
+        EXPECT_TRUE(repository.loadCreatureEffects(table, slayer.name).empty());
+    }
+}
+
+TEST_F(CreatureEffectMySQL, OldSightIsWrittenByThreeTablesAndReadBackByNone) {
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    vampire.persist();
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+
+    repository.insertCreatureEffect(CREATURE_EFFECT_FLARE, vampire.name, 1, 1700000001, 0, 21);
+    repository.insertCreatureEffect(CREATURE_EFFECT_LIGHT, vampire.name, 1, 1700000001, 0, 22);
+    repository.insertCreatureEffect(CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE, vampire.name, 1, 1700000001, 5, 23);
+
+    // The column is written, and the SELECTs still name it.
+    EXPECT_EQ("21", columnOf("EffectFlare", "OldSight", vampire.name));
+    EXPECT_EQ("22", columnOf("EffectLight", "OldSight", vampire.name));
+    EXPECT_EQ("23", columnOf("EffectYellowPoisonToCreature", "OldSight", vampire.name));
+
+    // EffectFlare's table has a Level column its INSERT does not name, so the
+    // row keeps the column default while the load reports 0 as well.
+    EXPECT_EQ("0", columnOf("EffectFlare", "Level", vampire.name));
+    std::vector<CreatureEffectRow> flare = repository.loadCreatureEffects(CREATURE_EFFECT_FLARE, vampire.name);
+    ASSERT_EQ(1u, flare.size());
+    EXPECT_EQ(0, flare[0].level);
+}
+
+TEST_F(CreatureEffectMySQL, EveryTableIsKeylessSoASecondInsertLeavesTwoRows) {
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    slayer.persist();
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+
+    for (int t = 0; t < CREATURE_EFFECT_TABLE_MAX; t++) {
+        CreatureEffectTable table = (CreatureEffectTable)t;
+        SCOPED_TRACE(CREATURE_EFFECT_TABLE_NAMES[t]);
+
+        repository.insertCreatureEffect(table, slayer.name, 1, 1700000001, 1, 1);
+        repository.insertCreatureEffect(table, slayer.name, 1, 1700000002, 2, 2);
+        EXPECT_EQ(2u, repository.loadCreatureEffects(table, slayer.name).size());
+
+        // The DELETE is keyed on OwnerID alone, so it takes both.
+        repository.deleteCreatureEffect(table, slayer.name);
+        EXPECT_TRUE(repository.loadCreatureEffects(table, slayer.name).empty());
+    }
+}
+
+TEST_F(CreatureEffectMySQL, LevelComesBackThroughEachTablesOwnGetter) {
+    PlayerFixture ousters = PlayerFixtures::midLevelOusters();
+    ousters.persist();
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+
+    // EffectYellowPoisonToCreature.Level is int(10) unsigned and its loader
+    // read it with getInt, so a value past a byte survives the round trip.
+    repository.insertCreatureEffect(CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE, ousters.name, 1, 1700000001, 300, 0);
+    std::vector<CreatureEffectRow> rows =
+        repository.loadCreatureEffects(CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE, ousters.name);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(300, rows[0].level);
+
+    // EffectBloodDrain.Level is tinyint(3) unsigned, so the column caps the
+    // value at 255 before its getBYTE ever sees it: the two getters cannot
+    // actually disagree, and the seam keeps each table's own anyway.
+    repository.insertCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, ousters.name, 1, 1700000001, 300, 0);
+    EXPECT_EQ("255", columnOf("EffectBloodDrain", "Level", ousters.name));
+    rows = repository.loadCreatureEffects(CREATURE_EFFECT_BLOOD_DRAIN, ousters.name);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(255, rows[0].level);
+}
+
+TEST_F(CreatureEffectMySQL, WritesAgainstMissingRowsAreSilentNoOps) {
+    PlayerFixture ghost = PlayerFixtures::midLevelSlayer();
+
+    EffectSaveRepository& repository = defaultEffectSaveRepository();
+    repository.updateCreatureEffect(CREATURE_EFFECT_LIGHT, ghost.name, 1, 1, 1, 1);
+    repository.deleteCreatureEffect(CREATURE_EFFECT_LIGHT, ghost.name);
+    EXPECT_TRUE(repository.loadCreatureEffects(CREATURE_EFFECT_LIGHT, ghost.name).empty());
 }
 
 TEST_F(EffectSaveMySQL, WritesAgainstMissingRowsAreSilentNoOps) {
