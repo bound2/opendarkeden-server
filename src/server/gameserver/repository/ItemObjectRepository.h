@@ -113,7 +113,7 @@
 // columns plus OptionType and Name as text and PartnerItemID through getDWORD in
 // the owner load, the UPDATE writing Name and PartnerItemID but no OptionType,
 // the zone SELECT the plain seven — loadPlainItemInZone serves it — and an
-// eleventh literal, hasPartnerItem's count(*)); VampirePortalItem
+// eleventh spec slot, hasPartnerItem's count(*)); VampirePortalItem
 // (VAMPIRE_PORTAL_OBJECT: the charge columns plus TargetZID, TargetX, TargetY
 // through getWORD; its zone load reads those eleven getters over an eight-column
 // SELECT and so throws on its first row, as it always did). Info: the basic shape

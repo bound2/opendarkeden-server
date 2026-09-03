@@ -2474,41 +2474,44 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > create INSERTs and zone SELECTs now pass through executeQuery's
   > 2048-byte format buffer (151–190 bytes of format plus a varchar(10)
   > owner — and, for the couple rings, a varchar(30) OptionType and a
-  > varchar(10) Name — for the INSERTs; 119–134 for the zone SELECTs;
-  > Money's 54-byte tinysave plus the caller's field text; the 87- and
-  > 94-byte partner counts: unreachable); the commented-out StringStream
-  > blocks in save() and the owner loader (all four), Money's
-  > commented-out earlier create chain and the couple rings' "// UPDATE인
-  > 경우는 …" comment above the count branch are gone with their blocks
-  > (CoupleRing's "// 위험!" stays; VampireCoupleRing never had it); the
-  > DB.h include stays; the header's "23 item files" count is 19. The
-  > four item files' diffs are 370–455 lines each, all extraction: every
-  > hunk sits in a function that held SQL, plus the include — no
-  > reformat hunks (clang-format 18 changed nothing else in them). +1
-  > integration test: Money — Amount and Num through the INSERT and the
-  > UPDATE (read back by SQL), the owner load's nine columns, the zone
-  > load's Amount and empty for another StorageID, tinysaveMoney writing
-  > X and Amount, tinysaveGear refusing the table, MAX(ItemType); each
-  > couple ring — OptionType, Name and PartnerItemID through the INSERT,
-  > the UPDATE changing Name and PartnerItemID and leaving OptionType
-  > alone, the owner load's ten columns, the plain zone load, the
-  > partner count (1 for the storage-1 ring, 0 for the zone ring and for
-  > an unknown id, true in all three cases), tinysave, MAX; the portal —
-  > Charge and the three targets through the INSERT, the UPDATE and the
-  > owner load, loadVampirePortalInZone throwing OutOfBoundException
-  > with a zone row present and empty without one, tinysave, MAX; the
-  > object guards both ways (the Money, couple-ring and portal methods
-  > refusing each other's tables and the earlier shapes', tinysaveMoney
-  > refusing a couple ring and a gun, tinysaveGun refusing Money, the
-  > plain, charge, Num-only and gear methods refusing these); the basic
-  > Info shape pinned by COUNT(*) and Ratio for the three basic tables,
-  > the Potion shape by COUNT(*) and MaxCharge / ReqAbility for the
-  > portal, each guard refusing another shape. Not enclosed: the other
-  > 19 item files with SQL — next the OptionType + Grade ones
-  > (VampireAmulet, CoreZap) and those with Durability too (Belt,
-  > OustersArmsband), then PetItem (a twenty-one-column owner SELECT),
-  > Motorcycle and the rest; ItemInfoManager.cpp holds only the registry
-  > calls.
+  > varchar(10) Name — for the INSERTs; 119–134 for the zone SELECTs:
+  > unreachable; Money's 54-byte tinysave plus the caller's field text
+  > and the 87- and 94-byte partner counts went through it already);
+  > hasPartnerItem's two Asserts on the count now run outside the DB
+  > block, so a firing Assert no longer leaks the Statement; the
+  > commented-out StringStream blocks in save() and the owner loader
+  > (all four), Money's commented-out earlier create chain and the
+  > couple rings' "// UPDATE인 경우는 …" comment above the count branch are
+  > gone with their blocks (CoupleRing's "// 위험!" stays;
+  > VampireCoupleRing never had it); the DB.h include stays; the
+  > header's "23 item files" count is 19. The four item files' diffs are
+  > 370–455 lines each, all extraction: every hunk sits in a function
+  > that held SQL, plus the include — no reformat hunks (clang-format 18
+  > changed nothing else in them). +1 integration test: Money — Amount
+  > and Num through the INSERT and the UPDATE (read back by SQL), the
+  > owner load's nine columns, the zone load's Amount and empty for
+  > another StorageID, tinysaveMoney writing X and Amount, tinysaveGear
+  > refusing the table, MAX(ItemType); each couple ring — OptionType,
+  > Name and PartnerItemID through the INSERT, the UPDATE changing Name
+  > and PartnerItemID and leaving OptionType alone, the owner load's ten
+  > columns, the plain zone load, the partner count (1 for the storage-1
+  > ring, 0 for the zone ring and for an unknown id, true in all three
+  > cases), tinysave, MAX; the portal — Charge and TargetY read back
+  > after the INSERT, Charge and TargetZID after the UPDATE, all four
+  > through the owner load, loadVampirePortalInZone throwing
+  > OutOfBoundException with a zone row present and empty without one,
+  > tinysave, MAX; the object guards both ways (the Money, couple-ring
+  > and portal methods refusing each other's tables and the earlier
+  > shapes', tinysaveMoney refusing a couple ring and a gun, tinysaveGun
+  > refusing Money, the plain, charge, Num-only and gear methods
+  > refusing these); the basic Info shape pinned by COUNT(*) and Ratio
+  > for the three basic tables, the Potion shape by COUNT(*) and
+  > MaxCharge / ReqAbility for the portal, each guard refusing another
+  > shape. Not enclosed: the other 19 item files with SQL — next the
+  > OptionType + Grade ones (VampireAmulet, CoreZap) and those with
+  > Durability too (Belt, OustersArmsband), then PetItem (a
+  > twenty-one-column owner SELECT), Motorcycle and the rest;
+  > ItemInfoManager.cpp holds only the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
