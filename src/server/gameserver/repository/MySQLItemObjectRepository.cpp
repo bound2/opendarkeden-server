@@ -14,9 +14,10 @@
 // Belt and OustersArmsband a twelfth, their destroy() DELETE by ItemID, and the
 // four war items a thirteenth, the DELETE their creature loader runs in place of
 // an owner SELECT (NULL for every other table). Six tables carry no zone literal at all — their
-// <Class>Loader::load(Zone*) holds no SQL — and the gear zone load, which the
-// three of them that are GEAR_OBJECT would otherwise pass, checks the literal
-// and refuses them rather than formatting a NULL. The spec row also
+// <Class>Loader::load(Zone*) holds no SQL (WarItem's creature loader holds none
+// either, so it has no owner literal) — and the gear zone load, which the three
+// of them that are GEAR_OBJECT would otherwise pass, checks the literal and
+// refuses them rather than formatting a NULL. The spec row also
 // records which object shape and which Info shape the class's tables
 // have; every loader checks them, so a call with the wrong loader fails
 // loudly instead of misreading the columns silently. GEAR_INFO_UNSET and
@@ -1986,9 +1987,73 @@ const GearSpec kGear[] = {
         GEAR_INFO_RELIC,
         WAR_ITEM_OBJECT,
     },
+    // Motorcycle (GEAR_MOTORCYCLE)
+    {
+        "INSERT INTO MotorcycleObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
+        "Durability) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u)",
+        "UPDATE MotorcycleObject SET %s WHERE ItemID=%ld",
+        "UPDATE MotorcycleObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM MotorcycleInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability FROM MotorcycleInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability FROM MotorcycleObject "
+        "WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Durability FROM MotorcycleObject WHERE Storage = "
+        "%d AND StorageID = %u",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_DURABILITY,
+        MOTORCYCLE_OBJECT,
+    },
+    // CodeSheet (GEAR_CODE_SHEET)
+    {
+        "INSERT INTO CodeSheetObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s')",
+        "UPDATE CodeSheetObject SET %s WHERE ItemID=%ld",
+        "UPDATE CodeSheetObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "OptionType='%s' WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM CodeSheetInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight FROM CodeSheetInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType FROM CodeSheetObject WHERE OwnerID = "
+        "'%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
+        "FROM CodeSheetObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_HEAD,
+        CODE_SHEET_OBJECT,
+    },
+    // WarItem (GEAR_WAR_ITEM)
+    {
+        "INSERT INTO WarItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y) VALUES(%u, %u, "
+        "%u, '%s', %d, %u, %d, %d)",
+        "UPDATE WarItemObject SET %s WHERE ItemID=%ld",
+        "UPDATE WarItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d WHERE "
+        "ItemID=%ld",
+        "SELECT MAX(ItemType) FROM WarItemInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM WarItemInfo",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_BASIC,
+        PLAIN_OBJECT,
+    },
 };
 
-static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_RELIC + 1, "kGear must cover every GearTable");
+static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_WAR_ITEM + 1, "kGear must cover every GearTable");
 
 const GearSpec& spec(GearTable table) {
     return kGear[table];
@@ -2069,7 +2134,8 @@ void requireFlagZone(GearTable table, const char* method) {
 }
 
 // VampireAmulet's two loads read gear's twelve and eleven columns; only its
-// INSERT and UPDATE lack Durability, so the gear loads serve AMULET_OBJECT too.
+// INSERT and UPDATE lack Durability, so the gear owner load serves AMULET_OBJECT
+// too (the zone load has its own guard since CodeSheet joined it).
 void requireGearLoad(GearTable table, const char* method) {
     GearObjectKind kind = spec(table).objectKind;
     if (kind != GEAR_OBJECT && kind != AMULET_OBJECT) {
@@ -2097,10 +2163,29 @@ void requireAmuletUpdate(GearTable table, const char* method) {
     }
 }
 
+// WarItem is a plain object whose two Loader::load overloads are SQL-free stubs:
+// its spec row carries no owner literal, so the plain owner load refuses it.
+void requireOwnerLiteral(GearTable table, const char* method) {
+    if (spec(table).ofOwner == NULL) {
+        throw Error(string("ItemObjectRepository: ") + method + " called for a table without an owner literal");
+    }
+}
+
+// CodeSheet's zone SELECT is gear's eleven columns, so loadGearInZone serves it;
+// its owner SELECT is not gear's, so loadGearOfOwner (requireGearLoad) still refuses it.
+void requireGearZoneLoad(GearTable table, const char* method) {
+    GearObjectKind kind = spec(table).objectKind;
+    if (kind != GEAR_OBJECT && kind != AMULET_OBJECT && kind != CODE_SHEET_OBJECT) {
+        throw Error(string("ItemObjectRepository: ") + method + " called for a table with another zone shape");
+    }
+}
+
 // Mitten, ShoulderArmor and Persona are gear objects whose Loader::load(Zone*)
 // holds no SQL: their spec rows carry no zone literal, so the gear zone load
 // refuses them instead of formatting a NULL. (The three OPTION_GRADE_OBJECT
-// tables carry none either, but requireGearLoad already refuses them on shape.)
+// tables carry none either, but requireGearZoneLoad already refuses them on
+// shape; WarItem carries neither literal, and loadPlainItemOfOwner and
+// loadPlainItemInZone call requireOwnerLiteral and this guard for it.)
 void requireZoneLiteral(GearTable table, const char* method) {
     if (spec(table).inZone == NULL) {
         throw Error(string("ItemObjectRepository: ") + method + " called for a table without a zone literal");
@@ -3362,6 +3447,7 @@ public:
 
     vector<PlainObjectRow> loadPlainItemOfOwner(GearTable table, const string& ownerName) {
         requireObjectKind(table, PLAIN_OBJECT, "loadPlainItemOfOwner");
+        requireOwnerLiteral(table, "loadPlainItemOfOwner");
         vector<PlainObjectRow> rows;
         Statement* pStmt = NULL;
 
@@ -3391,6 +3477,7 @@ public:
 
     vector<PlainZoneObjectRow> loadPlainItemInZone(GearTable table, int storage, ZoneID_t zoneID) {
         requirePlainZone(table, "loadPlainItemInZone");
+        requireZoneLiteral(table, "loadPlainItemInZone");
         vector<PlainZoneObjectRow> rows;
         Statement* pStmt = NULL;
 
@@ -4433,6 +4520,231 @@ public:
         return rows;
     }
 
+    // WarItem's create logged the statement it ran to WarLog.txt, as the war items'
+    // does, so it needs the text back: this formats the plain INSERT into a string and
+    // runs it through executeQueryString, the path the original took. The other plain
+    // tables (EventGiftBox, LearningItem) use insertPlainItem and ignore no return.
+    string insertPlainItemLogged(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                 const string& ownerID, int storage, StorageID_t storageID, int x, int y) {
+        requireObjectKind(table, PLAIN_OBJECT, "insertPlainItemLogged");
+        const string sql =
+            formatStatement(spec(table).insert, itemID, objectID, itemType, ownerID.c_str(), storage, storageID, x, y);
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQueryString(sql);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return sql;
+    }
+
+    // Motorcycle (MOTORCYCLE_OBJECT): the gear INSERT without Grade and ItemFlag (ten
+    // columns), an UPDATE of nine SET columns, an owner load of nine columns through
+    // gear's getters and a zone load of eight — no OptionType there — every one getInt.
+    void insertMotorcycle(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                          const string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                          const string& optionField, Durability_t durability) {
+        requireObjectKind(table, MOTORCYCLE_OBJECT, "insertMotorcycle");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).insert, itemID, objectID, itemType, ownerID.c_str(), storage, storageID, x,
+                                y, optionField.c_str(), durability);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateMotorcycle(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID, int storage,
+                          StorageID_t storageID, int x, int y, const string& optionField, Durability_t durability,
+                          ItemID_t itemID) {
+        requireObjectKind(table, MOTORCYCLE_OBJECT, "updateMotorcycle");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).update, objectID, itemType, ownerID.c_str(), storage, storageID, x, y,
+                                optionField.c_str(), durability, itemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    vector<MotorcycleObjectRow> loadMotorcycleOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, MOTORCYCLE_OBJECT, "loadMotorcycleOfOwner");
+        vector<MotorcycleObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).ofOwner, ownerName.c_str());
+
+            while (pResult->next()) {
+                uint i = 0;
+                MotorcycleObjectRow row;
+                row.itemID = pResult->getDWORD(++i);
+                row.objectID = pResult->getDWORD(++i);
+                row.itemType = pResult->getDWORD(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getDWORD(++i);
+                row.x = pResult->getBYTE(++i);
+                row.y = pResult->getBYTE(++i);
+                row.optionField = pResult->getString(++i);
+                row.durability = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<MotorcycleZoneObjectRow> loadMotorcycleInZone(GearTable table, int storage, ZoneID_t zoneID) {
+        requireObjectKind(table, MOTORCYCLE_OBJECT, "loadMotorcycleInZone");
+        vector<MotorcycleZoneObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).inZone, storage, zoneID);
+
+            while (pResult->next()) {
+                uint i = 0;
+                MotorcycleZoneObjectRow row;
+                row.itemID = pResult->getInt(++i);
+                row.objectID = pResult->getInt(++i);
+                row.itemType = pResult->getInt(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getInt(++i);
+                row.x = pResult->getInt(++i);
+                row.y = pResult->getInt(++i);
+                row.durability = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // CodeSheet (CODE_SHEET_OBJECT): the plain INSERT plus OptionType (nine columns),
+    // an UPDATE of eight SET columns, an owner load of eight — the plain columns plus
+    // OptionType — and gear's eleven-column zone load, which loadGearInZone serves.
+    void insertCodeSheet(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                         const string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                         const string& optionField) {
+        requireObjectKind(table, CODE_SHEET_OBJECT, "insertCodeSheet");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).insert, itemID, objectID, itemType, ownerID.c_str(), storage, storageID, x,
+                                y, optionField.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateCodeSheet(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID, int storage,
+                         StorageID_t storageID, int x, int y, const string& optionField, ItemID_t itemID) {
+        requireObjectKind(table, CODE_SHEET_OBJECT, "updateCodeSheet");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).update, objectID, itemType, ownerID.c_str(), storage, storageID, x, y,
+                                optionField.c_str(), itemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    vector<CodeSheetObjectRow> loadCodeSheetOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, CODE_SHEET_OBJECT, "loadCodeSheetOfOwner");
+        vector<CodeSheetObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).ofOwner, ownerName.c_str());
+
+            while (pResult->next()) {
+                uint i = 0;
+                CodeSheetObjectRow row;
+                row.itemID = pResult->getDWORD(++i);
+                row.objectID = pResult->getDWORD(++i);
+                row.itemType = pResult->getDWORD(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getDWORD(++i);
+                row.x = pResult->getBYTE(++i);
+                row.y = pResult->getBYTE(++i);
+                row.optionField = pResult->getString(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // MotorcycleInfo: the eight head columns alone.
+    vector<DurabilityInfoRow> loadDurabilityInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_DURABILITY, "loadDurabilityInfos");
+        vector<DurabilityInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                DurabilityInfoRow row;
+                readInfoHead(pResult, i, row);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // CodeSheetInfo: the six-column head alone (no Ratio, no Durability).
+    vector<HeadInfoRow> loadHeadInfos(GearTable table) {
+        requireInfoKind(table, GEAR_INFO_HEAD, "loadHeadInfos");
+        vector<HeadInfoRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).infos);
+
+            while (pResult->next()) {
+                uint i = 0;
+                HeadInfoRow row;
+                readSixColumnInfoHead(pResult, i, row);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
     vector<GearObjectRow> loadGearOfOwner(GearTable table, const string& ownerName) {
         requireGearLoad(table, "loadGearOfOwner");
         vector<GearObjectRow> rows;
@@ -4468,7 +4780,7 @@ public:
     }
 
     vector<GearZoneObjectRow> loadGearInZone(GearTable table, int storage, ZoneID_t zoneID) {
-        requireGearLoad(table, "loadGearInZone");
+        requireGearZoneLoad(table, "loadGearInZone");
         requireZoneLiteral(table, "loadGearInZone");
         vector<GearZoneObjectRow> rows;
         Statement* pStmt = NULL;

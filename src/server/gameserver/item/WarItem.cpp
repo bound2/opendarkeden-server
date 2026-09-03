@@ -10,6 +10,7 @@
 
 #include "DB.h"
 #include "ItemInfoManager.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 WarItemInfoManager* g_pWarItemInfoManager = NULL;
@@ -47,8 +48,6 @@ void WarItem::create(const string& ownerID, Storage storage, StorageID_t storage
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -60,21 +59,9 @@ void WarItem::create(const string& ownerID, Storage storage, StorageID_t storage
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "INSERT INTO WarItemObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ," << " X, Y)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ")";
-
-        pStmt->executeQueryString(sql.toString());
-        filelog("WarLog.txt", "%s", sql.toString().c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    const string sql = defaultItemObjectRepository().insertPlainItemLogged(
+        GEAR_WAR_ITEM, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y);
+    filelog("WarLog.txt", "%s", sql.c_str());
 
     __END_CATCH
 }
@@ -88,19 +75,11 @@ void WarItem::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
     char query[255];
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        sprintf(query, "UPDATE WarItemObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-        pStmt->executeQuery(query);
-        filelog("WarLog.txt", "%s", query);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    sprintf(query, "UPDATE WarItemObject SET %s WHERE ItemID=%ld", field, m_ItemID);
+    defaultItemObjectRepository().tinysaveGear(GEAR_WAR_ITEM, field, m_ItemID);
+    filelog("WarLog.txt", "%s", query);
 
     __END_CATCH
 }
@@ -113,18 +92,8 @@ void WarItem::save(const string& ownerID, Storage storage, StorageID_t storageID
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE WarItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updatePlainItem(GEAR_WAR_ITEM, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                  storageID, (int)x, (int)y, m_ItemID);
 
     __END_CATCH
 }
@@ -210,43 +179,28 @@ void WarItemInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_WAR_ITEM);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM WarItemInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<BasicInfoRow> rows = defaultItemObjectRepository().loadBasicInfos(GEAR_WAR_ITEM);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        WarItemInfo* pWarItemInfo = new WarItemInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pWarItemInfo->setItemType(rows[r].itemType);
+        pWarItemInfo->setName(rows[r].name);
+        pWarItemInfo->setEName(rows[r].ename);
+        pWarItemInfo->setPrice(rows[r].price);
+        pWarItemInfo->setVolumeType(rows[r].volume);
+        pWarItemInfo->setWeight(rows[r].weight);
+        pWarItemInfo->setRatio(rows[r].ratio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM WarItemInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            WarItemInfo* pWarItemInfo = new WarItemInfo();
-
-            pWarItemInfo->setItemType(pResult->getInt(++i));
-            pWarItemInfo->setName(pResult->getString(++i));
-            pWarItemInfo->setEName(pResult->getString(++i));
-            pWarItemInfo->setPrice(pResult->getInt(++i));
-            pWarItemInfo->setVolumeType(pResult->getInt(++i));
-            pWarItemInfo->setWeight(pResult->getInt(++i));
-            pWarItemInfo->setRatio(pResult->getInt(++i));
-
-            addItemInfo(pWarItemInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pWarItemInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
