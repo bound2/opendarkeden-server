@@ -43,7 +43,8 @@ struct GearSpec {
     const char* update;       // <Class>::save
     const char* maxType;      // <Class>InfoManager::load, first statement
     const char* infos;        // <Class>InfoManager::load, second statement
-    const char* ofOwner;      // <Class>Loader::load(Creature*)
+    const char* ofOwner;      // <Class>Loader::load(Creature*) — NULL for the war items, whose
+                              // creature loader deletes the owner's rows instead (deleteByOwner)
     const char* inZone;       // <Class>Loader::load(Zone*) — NULL when that loader holds no SQL
     const char* saveBullet;   // <Class>::saveBullet — the guns only; NULL for the other tables
     const char* destroy;      // <Class>::destroy — Pupa, Larva, ComposMei, Potion only; NULL for the other tables
@@ -2128,8 +2129,9 @@ template <class Row> void readInfoHead(Result* pResult, uint& i, Row& row) {
 }
 
 // The war items' create built its statement with a StringStream and ran it
-// through executeQueryString, uncapped, then logged the text. Formatting it here
-// keeps both: vsnprintf sizes the buffer first, so nothing truncates.
+// through executeQueryString, uncapped; three of the four then logged the text
+// (Relic's did not). Formatting it here keeps both paths: vsnprintf sizes the
+// buffer first, so nothing truncates.
 string formatStatement(const char* format, ...) {
     va_list args;
     va_start(args, format);
@@ -2147,8 +2149,9 @@ string formatStatement(const char* format, ...) {
     return statement;
 }
 
-// The four columns after the head in the war Info shape (BloodBibleInfo,
-// CastleSymbolInfo, SweeperInfo, and the first twelve of RelicInfo).
+// The twelve columns of the war Info shape: the eight-column head and Defense,
+// Protection, ReqAbility, ItemLevel (BloodBibleInfo, CastleSymbolInfo,
+// SweeperInfo, and the first twelve of RelicInfo).
 template <class Row> void readWarInfo(Result* pResult, uint& i, Row& row) {
     readInfoHead(pResult, i, row);
     row.defense = pResult->getInt(++i);

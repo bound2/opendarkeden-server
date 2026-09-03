@@ -8,10 +8,12 @@
 
 // Persistence seam for the per-class item-object tables (task 3.2, the item
 // milestone): each item class owns an <Class>Object table and a <Class>Info
-// table and runs the same seven statements against them — the create
-// INSERT, the tinysave "SET %s", the save UPDATE, the info manager's
-// MAX(ItemType) and its column SELECT, the creature loader's owner SELECT
-// and the zone loader's zone SELECT. The object statements' literals differ
+// table and runs up to seven statements against them — the create INSERT,
+// the tinysave "SET %s", the save UPDATE, the info manager's MAX(ItemType)
+// and its column SELECT, the creature loader's owner SELECT and the zone
+// loader's zone SELECT (some classes have fewer: a loader that holds no SQL
+// leaves its slot NULL, and the four war items' creature loader deletes the
+// owner's rows instead of selecting them). The object statements' literals differ
 // per class only in the table name and in copy-paste whitespace quirks; the
 // Info SELECT comes in a handful of column shapes (GearInfoKind). So a family
 // shares one method set and selects its table — and its exact literal —

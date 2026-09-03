@@ -2765,39 +2765,49 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > byte for byte after clang-format when run against its 80-class list,
   > measured with the generator as of this commit. Disclosures: the
   > three sprintf tinysaves keep their char[255] buffer and their WarLog
-  > line, the buffer now only the log's — the seam formats the same
-  > literal itself through executeQuery's 2048-byte vsnprintf, where the
-  > original executed the 255-byte sprintf's result (which for a longer
-  > field overflowed that stack buffer); the four zone SELECTs pass
-  > through that format buffer too (140-147 bytes of format plus a
-  > ZoneID) where executeQueryString was uncapped — on overflow
+  > line, and the sprintf still runs on every call (before the seam's
+  > statement now, where the original ran it after createStatement) —
+  > but what reaches the DB changes: the original passed that buffer to
+  > executeQuery as the format string, so a '%' surviving from `field`
+  > was rescanned as a conversion against an empty argument list, while
+  > the seam formats gear's literal with `field` as a %s argument, so it
+  > is data; a statement of 255-2048 bytes now goes out in full where
+  > the smashed 255-byte buffer went before, and above 2048 executeQuery
+  > truncates at the cap and throws Error where the original threw
+  > nothing (every tinysave call site passes a short "column=value"
+  > text, so none of it is reachable today); the four zone SELECTs pass
+  > through that format buffer too (140-147 bytes of format, their
+  > arguments two integers) where executeQueryString was uncapped — at
+  > exactly 2048 bytes vsnprintf truncates silently and beyond it
   > executeQuery throws Error, which END_DB (a catch of
-  > SQLQueryException) does not catch and which leaks the Statement,
-  > though a zone SELECT's arguments are two integers; the create path
-  > still goes through executeQueryString. The seam initialises its
-  > Statement where the originals declared pStmt uninitialised (create,
-  > save, the info load and both loaders; their tinysave already used `=
-  > NULL`), and the SQL-free third loader keeps its uninitialised pStmt;
-  > one Statement per info statement; whole-result reads before
-  > placement in the zone loader (a Tile placement throw no longer leaks
-  > the Statement); DBError.log names the repository method; the two
-  > commented-out blocks in the creature loader (the StringStream
-  > SELECT, and the parameterized one whose row loop holds the
-  > `SAFE_DELETE(pStmt); // by sigi` line) and the commented-out
-  > StringStream chain in save() are gone with their blocks; the DB.h
-  > include stays; the header's "9 item files" count is 5. The four item
-  > files' diffs are 335-354 lines each, all extraction: every hunk sits
-  > in a function that held SQL, plus the include — the base files were
-  > already clang-format-18 clean (formatting a copy of each changed
-  > nothing). +1 integration test: per table, two rows through
-  > insertWarItem (the owner's and another owner's zone row) with the
-  > returned statement compared byte for byte against the expected text,
-  > including CastleSymbol's "Durability )", and Durability, ObjectID
-  > and the untouched EnchantLevel read back by SQL; updateWarItem
-  > (Durability, EnchantLevel, ObjectID); tinysaveGear;
-  > loadWarItemInZone's nine fields and empty for another StorageID;
-  > deleteWarItemsOfOwner leaving the other owner's row alone;
-  > MAX(ItemType); the Info loader by COUNT(*) plus columns
+  > SQLQueryException) does not catch and which leaks the Statement; the
+  > create path still goes through executeQueryString. The seam
+  > initialises its Statement where the originals declared pStmt
+  > uninitialised (create, save, the info load and both loaders; their
+  > tinysave already used `= NULL`), and the SQL-free third loader keeps
+  > its uninitialised pStmt; one Statement per info statement;
+  > whole-result reads before placement in the zone loader (a Tile
+  > placement throw no longer leaks the Statement), and the same move
+  > means RelicInfoManager's setRelicType, which throws
+  > InvalidProtocolException on an unknown RelicType, can no longer leak
+  > the Statement it used to throw past; DBError.log names the
+  > repository method; the two commented-out blocks in the creature
+  > loader (the StringStream SELECT, and the parameterized one whose row
+  > loop holds the `SAFE_DELETE(pStmt);` line a tab and `// by sigi`
+  > follow) and the commented-out StringStream chain in save() are gone
+  > with their blocks; the DB.h include stays; the header's "9 item
+  > files" count is 5. The four item files' diffs are 335-354 lines
+  > each, all extraction: every hunk sits in a function that held SQL,
+  > plus the include — the base files were already clang-format-18 clean
+  > (formatting a copy of each changed nothing). +1 integration test:
+  > per table, two rows through insertWarItem (the owner's and another
+  > owner's zone row) with the returned statement compared byte for byte
+  > against the expected text, including CastleSymbol's "Durability )",
+  > and Durability, ObjectID and the untouched EnchantLevel read back by
+  > SQL; updateWarItem (Durability, EnchantLevel, ObjectID);
+  > tinysaveGear; loadWarItemInZone's nine fields and empty for another
+  > StorageID; deleteWarItemsOfOwner leaving the other owner's row
+  > alone; MAX(ItemType); the Info loader by COUNT(*) plus columns
   > (loadRelicInfos for Relic with loadWarInfos refused, loadWarInfos
   > for the other three with loadRelicInfos refused, loadGearInfos
   > refused for all four); and the guards both ways (insertGear refusing
