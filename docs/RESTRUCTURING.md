@@ -2274,20 +2274,21 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > (`CHARGE_OBJECT`) — R3 159→154 (R2/R5 unchanged). Three object
   > shapes. MixingItem and PetFood stream the Num + ItemFlag INSERT (ten
   > columns; (int)m_Num, (int)m_CreateType) and take its UPDATE
-  > (MixingItem (int)m_Num; PetFood its BYTE m_Num uncast, promoted to
-  > int by the varargs call exactly as the seam's int is, against a
-  > `Num=%u` literal where MixingItem's says `Num=%d`), so insertNumItem
-  > and updateNumItem now serve these two kinds too (requireNumObject);
-  > the NUM_OBJECT loads do not: both classes read Num through getInt —
-  > owner: the ids getDWORD, Storage getInt, StorageID getDWORD, X and Y
-  > getBYTE, Num and ItemFlag getInt (`NumIntObjectRow` /
-  > loadNumIntItemOfOwner); MixingItem's zone SELECT names the same nine
-  > columns, all getInt (`NumIntZoneObjectRow` / loadNumIntItemInZone);
-  > PetFood's names no Num at all — the ItemFlag-only zone shape, so
-  > loadFlagItemInZone serves PET_FOOD_OBJECT too (requireFlagZone). Key
-  > has a Target column (an ItemID_t) in place of Num and ItemFlag: nine
-  > INSERT columns (m_Target streamed, "%u"), the UPDATE's `Target=%d`
-  > fed the DWORD as before, Target through getDWORD in both loads
+  > (MixingItem (int)m_Num; PetFood its BYTE m_Num uncast — widened to
+  > the seam's int parameter, the same bytes the varargs promotion
+  > produced — against a `Num=%u` literal where MixingItem's says
+  > `Num=%d`), so insertNumItem and updateNumItem now serve these two
+  > kinds too (requireNumObject); the NUM_OBJECT loads do not: both
+  > classes read Num through getInt — owner: the ids getDWORD, Storage
+  > getInt, StorageID getDWORD, X and Y getBYTE, Num and ItemFlag getInt
+  > (`NumIntObjectRow` / loadNumIntItemOfOwner); MixingItem's zone
+  > SELECT names the same nine columns, all getInt
+  > (`NumIntZoneObjectRow` / loadNumIntItemInZone); PetFood's names no
+  > Num at all — the ItemFlag-only zone shape, so loadFlagItemInZone
+  > serves PET_FOOD_OBJECT too (requireFlagZone). Key has a Target
+  > column (an ItemID_t) in place of Num and ItemFlag: nine INSERT
+  > columns (m_Target streamed, "%u"), the UPDATE's `Target=%d` fed the
+  > DWORD as before, Target through getDWORD in both loads
   > (`KeyObjectRow` / `KeyZoneObjectRow`; insertKey / updateKey /
   > loadKeyOfOwner / loadKeyInZone) — and a tenth literal,
   > Key::setNewMotorcycle's "UPDATE KeyObject SET Target=%lu WHERE
@@ -2314,13 +2315,14 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > loadSummonItemInfos / `GEAR_INFO_SUMMON_ITEM` — the head plus
   > MaxCharge, Effect (fed to setEffectID); SlayerPortalItem joins the
   > Potion shape (`LevelStringInfoRow`: basic plus an int and a varchar
-  > — MaxCharge in `itemLevel`, ReqAbility in `value`; the same column
-  > types, so the same loader, per the one-loader-per-shape rule). The
-  > `static_assert` now reads GEAR_SLAYER_PORTAL_ITEM + 1. The
-  > transformer (outside the repo; its output is what was reviewed)
-  > gained the four object shapes with their loader lines (the charge
-  > classes' locals-first loaders as a separate line set), the three
-  > Info plans plus per-class setter maps for the triple and the
+  > — MaxCharge in `itemLevel`, ReqAbility in `value`; the same getters
+  > — getInt, getString — so the same loader, per the
+  > one-loader-per-shape rule; the column types differ, tinyint unsigned
+  > against int). The `static_assert` now reads GEAR_SLAYER_PORTAL_ITEM
+  > + 1. The transformer (outside the repo; its output is what was
+  > reviewed) gained the four object shapes with their loader lines (the
+  > charge classes' locals-first loaders as a separate line set), the
+  > three Info plans plus per-class setter maps for the triple and the
   > level-string shapes, the optional `Result* pResult = NULL;` line
   > under the Statement (the two charge classes declare it in the info
   > load and both loaders), and the setNewMotorcycle block. Literal
@@ -2330,8 +2332,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > VALUES (" (no space after most commas, one before VALUES's
   > parenthesis, single-comma value separators); PetFood's `Num=%u`;
   > Key's `Target=%d` in save beside `%lu` for both ids in
-  > setNewMotorcycle; nothing else differs between the five classes'
-  > live literals beyond the table names and the Info columns.
+  > setNewMotorcycle (a latent bug kept: KeyObject.Target is int(10)
+  > unsigned, so an id at or above 2^31 written whole by
+  > setNewMotorcycle's %lu is clamped to 0 by the next save under the
+  > non-strict sql_mode; the test's ids sit below 2^31); nothing else
+  > differs between the five classes' live literals beyond the table
+  > names, the object columns named above and the Info columns.
   > Disclosures: the seam initialises its Statement where the originals
   > declared pStmt uninitialised — the zone loader in MixingItem and
   > PetFood; create, save, the info load and both loaders in Key (Key
@@ -2344,12 +2350,17 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `SAFE_DELETE(pStmt); // by sigi` before the default-case throw is
   > gone in all five); DBError.log names the repository method; the five
   > create INSERTs and zone SELECTs now pass through executeQuery's
-  > 2048-byte format buffer (138–157 and 120–134 bytes of format plus a
-  > varchar(10) owner: unreachable; Key's Target UPDATE, 48 bytes, too);
-  > the commented-out StringStream blocks in save() and the owner loader
-  > (all five) and Key's commented-out alternative Info SELECT line
-  > (inside the executeQuery parentheses) gone with their blocks; the
-  > DB.h include kept; the header's "28 item files" count is 23. +1
+  > 2048-byte format buffer (138–157 bytes of format plus a varchar(10)
+  > owner for the INSERTs, 120–134 for the zone SELECTs, 48 for Key's
+  > Target UPDATE: unreachable); the commented-out StringStream blocks
+  > in save() and the owner loader (all five) and Key's commented-out
+  > alternative Info SELECT line (inside the executeQuery parentheses)
+  > gone with their blocks; the DB.h include kept; the header's "28 item
+  > files" count is 23; the impl's readInfoHead comment, which called
+  > its eight columns the start of "every Info shape but the basic one",
+  > now names the shapes it serves (the two new head shapes start with
+  > six), and the six-column reader is readSixColumnInfoHead (it was
+  > readHeadInfo, a transposition of the eight-column reader's name). +1
   > integration test: for MixingItem and PetFood two rows through
   > insertNumItem (Num and ItemFlag read back by SQL), updateNumItem
   > (Num changed, ItemFlag untouched), the owner load's nine columns,
@@ -2357,25 +2368,27 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > loadFlagItemInZone (each refusing the other's table), empty for
   > another StorageID, tinysave, MAX(ItemType); for Key, Target through
   > the INSERT, the UPDATE and both loads (2000000001–3), saveKeyTarget
-  > leaving ObjectID alone, tinysave, MAX; for the two charge tables
-  > Charge through the INSERT, the UPDATE and both loads (the zone row's
-  > StorageID, X, Y, Charge), tinysave, MAX; the object guards both ways
-  > (the NUM_OBJECT loads refusing the getInt tables and those loads
-  > refusing a NUM_OBJECT table, the Num writes refusing Key and a
-  > charge table, the Key and charge methods refusing each other's
-  > tables and the getInt ones, saveKeyTarget refusing a Num table, the
-  > flag, plain and gear methods refusing these); the Info shapes pinned
-  > by COUNT(*) and Name / Target-1 / Type-1 / OustersLevel
-  > (MixingItem), Target / PetHP / TameRatio (PetFood), OptionType /
-  > TargetType (Key), MaxCharge / Effect (OustersSummonItem), MaxCharge
-  > / ReqAbility (SlayerPortalItem), each guard refusing another shape.
-  > Not enclosed: the other 23 item files with SQL — next Money (Amount
-  > and Num), CoupleRing and VampireCoupleRing (OptionType, Name,
-  > PartnerItemID), VampirePortalItem (Charge plus TargetZID, TargetX,
-  > TargetY — its zone loader reads eleven getters over an eight-column
-  > SELECT, a latent OutOfBoundException to keep and disclose), then the
-  > OptionType + Grade ones (Belt, OustersArmsband, VampireAmulet,
-  > CoreZap); ItemInfoManager.cpp holds only the registry calls.
+  > (2000000004) leaving ObjectID alone, tinysave, MAX; for the two
+  > charge tables Charge through the INSERT, the UPDATE and both loads
+  > (the zone row's StorageID, X, Y, Charge), tinysave, MAX; the object
+  > guards both ways (the NUM_OBJECT loads refusing the getInt tables
+  > and those loads refusing a NUM_OBJECT table, the Num writes refusing
+  > Key and a charge table, the Key and charge methods refusing each
+  > other's tables and the getInt ones, saveKeyTarget refusing
+  > MixingItem's table, the flag, plain and gear methods refusing
+  > these); the Info shapes pinned by COUNT(*) and Name / Target-1 /
+  > Type-1 / OustersLevel (MixingItem), Target / PetHP / TameRatio
+  > (PetFood), OptionType / TargetType (Key), MaxCharge / Effect
+  > (OustersSummonItem), MaxCharge / ReqAbility (SlayerPortalItem), each
+  > guard refusing another shape. Not enclosed: the other 23 item files
+  > with SQL — next Money (Amount and Num), CoupleRing and
+  > VampireCoupleRing (OptionType, Name, PartnerItemID),
+  > VampirePortalItem (Charge plus TargetZID, TargetX, TargetY — its
+  > zone loader reads eleven getters over an eight-column SELECT, a
+  > latent OutOfBoundException to keep and disclose), then the
+  > OptionType + Grade ones (VampireAmulet, CoreZap) and those with
+  > Durability too (Belt, OustersArmsband); ItemInfoManager.cpp holds
+  > only the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

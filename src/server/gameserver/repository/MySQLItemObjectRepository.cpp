@@ -1445,7 +1445,8 @@ void requireFlagZone(GearTable table, const char* method) {
     }
 }
 
-// The eight columns every Info shape but the basic one starts with, read in SELECT order.
+// The eight columns the standard, weapon, silver-weapon and gun Info shapes start with, read in
+// SELECT order (the basic shapes stop before Durability; the head shapes before Ratio too).
 template <class Row> void readInfoHead(Result* pResult, uint& i, Row& row) {
     row.itemType = pResult->getInt(++i);
     row.name = pResult->getString(++i);
@@ -1519,7 +1520,7 @@ void readBasicInfo(Result* pResult, uint& i, BasicInfoRow& row) {
 
 // The six columns every Info SELECT starts with: the basic shape without Ratio
 // (MixingItemInfo, OustersSummonItemInfo).
-void readHeadInfo(Result* pResult, uint& i, HeadInfoRow& row) {
+void readSixColumnInfoHead(Result* pResult, uint& i, HeadInfoRow& row) {
     row.itemType = pResult->getInt(++i);
     row.name = pResult->getString(++i);
     row.ename = pResult->getString(++i);
@@ -2989,7 +2990,7 @@ public:
             while (pResult->next()) {
                 uint i = 0;
                 MixingItemInfoRow row;
-                readHeadInfo(pResult, i, row.head);
+                readSixColumnInfoHead(pResult, i, row.head);
                 row.target = pResult->getInt(++i);
                 row.type = pResult->getInt(++i);
                 row.slayerLevel = pResult->getInt(++i);
@@ -3043,7 +3044,7 @@ public:
             while (pResult->next()) {
                 uint i = 0;
                 SummonItemInfoRow row;
-                readHeadInfo(pResult, i, row.head);
+                readSixColumnInfoHead(pResult, i, row.head);
                 row.maxCharge = pResult->getInt(++i);
                 row.effectID = pResult->getInt(++i);
                 rows.push_back(row);

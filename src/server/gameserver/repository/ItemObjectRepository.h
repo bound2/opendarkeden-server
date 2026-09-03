@@ -17,8 +17,9 @@
 // shares one method set and selects its table — and its exact literal —
 // through an enum; the MySQL impl keeps every class's seven literals
 // byte-for-byte (the guns' eight: they add a saveBullet UPDATE; four Num-only
-// items' nine: they override destroy() with a DELETE; Key's ten: setNewMotorcycle
-// writes the new motorcycle's id into Target).
+// items' eight: they override destroy() with a DELETE; Key's eight:
+// setNewMotorcycle writes the new motorcycle's id into Target — each extra
+// statement has its own spec slot, NULL for the classes without it).
 //
 // The first family: the nine slayer gear classes with a Grade column: Ring,
 // Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second
