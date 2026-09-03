@@ -4251,7 +4251,11 @@ TEST_F(ItemObjectMySQL, MotorcycleCodeSheetAndWarItemRowsRoundTripThroughTheirCo
     // WarItem: the plain statements, but no loader holds SQL - so neither load serves it.
     {
         const std::string where = " FROM WarItemObject WHERE ItemID=";
-        repository.insertPlainItem(GEAR_WAR_ITEM, 31000, 77, 3, "it-owner", 1, 5, 2, 4);
+        // The seam returns the statement it ran; WarItem's create logs it to WarLog.txt.
+        const std::string sql = repository.insertPlainItemLogged(GEAR_WAR_ITEM, 31000, 77, 3, "it-owner", 1, 5, 2, 4);
+        EXPECT_EQ("INSERT INTO WarItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y) "
+                  "VALUES(31000, 77, 3, 'it-owner', 1, 5, 2, 4)",
+                  sql);
         EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + "31000"));
         EXPECT_EQ("0", queryScalar("SELECT ItemFlag" + where + "31000")); // the INSERT names none
         repository.updatePlainItem(GEAR_WAR_ITEM, 79, 4, "it-owner", 1, 6, 3, 5, 31000);
@@ -4273,6 +4277,7 @@ TEST_F(ItemObjectMySQL, MotorcycleCodeSheetAndWarItemRowsRoundTripThroughTheirCo
 
     // The object-shape and Info guards, both ways.
     EXPECT_THROW(repository.insertPlainItem(GEAR_MOTORCYCLE, 31900, 1, 1, "it-owner", 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.insertPlainItemLogged(GEAR_MOTORCYCLE, 31900, 1, 1, "it-owner", 1, 1, 1, 1), Error);
     EXPECT_THROW(repository.insertMotorcycle(GEAR_RING, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1), Error);
     EXPECT_THROW(repository.insertCodeSheet(GEAR_WAR_ITEM, 31900, 1, 1, "it-owner", 1, 1, 1, 1, ""), Error);
     EXPECT_THROW(repository.updateMotorcycle(GEAR_CODE_SHEET, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 31000), Error);

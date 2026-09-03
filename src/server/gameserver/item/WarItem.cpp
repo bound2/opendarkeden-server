@@ -59,8 +59,9 @@ void WarItem::create(const string& ownerID, Storage storage, StorageID_t storage
         m_ItemID = itemID;
     }
 
-    defaultItemObjectRepository().insertPlainItem(GEAR_WAR_ITEM, m_ItemID, m_ObjectID, m_ItemType, ownerID,
-                                                  (int)storage, storageID, (int)x, (int)y);
+    const string sql = defaultItemObjectRepository().insertPlainItemLogged(
+        GEAR_WAR_ITEM, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID, (int)x, (int)y);
+    filelog("WarLog.txt", "%s", sql.c_str());
 
     __END_CATCH
 }

@@ -164,7 +164,9 @@
 // loadGearOfOwner still refuses it; Info the six-column head alone,
 // GEAR_INFO_HEAD); and WarItem, a plain object (PLAIN_OBJECT, the basic Info
 // shape) whose two Loader::load overloads are SQL-free stubs — its spec row
-// carries neither an owner nor a zone literal, and both plain loads refuse it.
+// carries neither an owner nor a zone literal, and both plain loads refuse it;
+// its create logs the statement it ran to WarLog.txt, so it takes
+// insertPlainItemLogged, which hands the text back.
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -1298,7 +1300,13 @@ public:
                                  int storage, StorageID_t storageID, int x, int y, ItemID_t itemID) = 0;
     virtual std::vector<FlagObjectRow> loadFlagItemOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<FlagZoneObjectRow> loadFlagItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
-    // Both plain loads refuse a table without the literal (WarItem, whose two
+    // insertPlainItemLogged returns the statement it ran: WarItem's create logs it to
+    // WarLog.txt, as its own create logged the string it had built. The other plain
+    // tables use insertPlainItem.
+    virtual std::string insertPlainItemLogged(GearTable table, ItemID_t itemID, ObjectID_t objectID,
+                                              ItemType_t itemType, const std::string& ownerID, int storage,
+                                              StorageID_t storageID, int x, int y) = 0;
+    // Both plain loads refuse a table without the literal (WarItem, whose three
     // Loader::load overloads hold no SQL).
     virtual std::vector<PlainObjectRow> loadPlainItemOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<PlainZoneObjectRow> loadPlainItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;

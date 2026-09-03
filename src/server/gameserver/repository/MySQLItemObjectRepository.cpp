@@ -14,9 +14,10 @@
 // Belt and OustersArmsband a twelfth, their destroy() DELETE by ItemID, and the
 // four war items a thirteenth, the DELETE their creature loader runs in place of
 // an owner SELECT (NULL for every other table). Six tables carry no zone literal at all — their
-// <Class>Loader::load(Zone*) holds no SQL — and the gear zone load, which the
-// three of them that are GEAR_OBJECT would otherwise pass, checks the literal
-// and refuses them rather than formatting a NULL. The spec row also
+// <Class>Loader::load(Zone*) holds no SQL (WarItem's creature loader holds none
+// either, so it has no owner literal) — and the gear zone load, which the three
+// of them that are GEAR_OBJECT would otherwise pass, checks the literal and
+// refuses them rather than formatting a NULL. The spec row also
 // records which object shape and which Info shape the class's tables
 // have; every loader checks them, so a call with the wrong loader fails
 // loudly instead of misreading the columns silently. GEAR_INFO_UNSET and
@@ -2133,7 +2134,8 @@ void requireFlagZone(GearTable table, const char* method) {
 }
 
 // VampireAmulet's two loads read gear's twelve and eleven columns; only its
-// INSERT and UPDATE lack Durability, so the gear loads serve AMULET_OBJECT too.
+// INSERT and UPDATE lack Durability, so the gear owner load serves AMULET_OBJECT
+// too (the zone load has its own guard since CodeSheet joined it).
 void requireGearLoad(GearTable table, const char* method) {
     GearObjectKind kind = spec(table).objectKind;
     if (kind != GEAR_OBJECT && kind != AMULET_OBJECT) {
@@ -2181,7 +2183,9 @@ void requireGearZoneLoad(GearTable table, const char* method) {
 // Mitten, ShoulderArmor and Persona are gear objects whose Loader::load(Zone*)
 // holds no SQL: their spec rows carry no zone literal, so the gear zone load
 // refuses them instead of formatting a NULL. (The three OPTION_GRADE_OBJECT
-// tables carry none either, but requireGearLoad already refuses them on shape.)
+// tables carry none either, but requireGearZoneLoad already refuses them on
+// shape; WarItem carries neither literal, and loadPlainItemOfOwner and
+// loadPlainItemInZone call requireOwnerLiteral and this guard for it.)
 void requireZoneLiteral(GearTable table, const char* method) {
     if (spec(table).inZone == NULL) {
         throw Error(string("ItemObjectRepository: ") + method + " called for a table without a zone literal");
@@ -4514,6 +4518,27 @@ public:
         END_DB(pStmt)
 
         return rows;
+    }
+
+    // WarItem's create logged the statement it ran to WarLog.txt, as the war items'
+    // does, so it needs the text back: this formats the plain INSERT into a string and
+    // runs it through executeQueryString, the path the original took. The other plain
+    // tables (EventGiftBox, LearningItem) use insertPlainItem and ignore no return.
+    string insertPlainItemLogged(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                 const string& ownerID, int storage, StorageID_t storageID, int x, int y) {
+        requireObjectKind(table, PLAIN_OBJECT, "insertPlainItemLogged");
+        const string sql =
+            formatStatement(spec(table).insert, itemID, objectID, itemType, ownerID.c_str(), storage, storageID, x, y);
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQueryString(sql);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return sql;
     }
 
     // Motorcycle (MOTORCYCLE_OBJECT): the gear INSERT without Grade and ItemFlag (ten

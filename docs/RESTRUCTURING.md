@@ -2771,24 +2771,25 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > executeQuery as the format string, so a '%' surviving from `field`
   > was rescanned as a conversion against an empty argument list, while
   > the seam formats gear's literal with `field` as a %s argument, so it
-  > is data; a statement of 255-2048 bytes now goes out in full where
-  > the smashed 255-byte buffer went before, and above 2048 executeQuery
-  > truncates at the cap and throws Error where the original threw
-  > nothing (every tinysave call site passes a short "column=value"
-  > text, so none of it is reachable today); the four zone SELECTs pass
-  > through that format buffer too (140-147 bytes of format, their
-  > arguments two integers) where executeQueryString was uncapped — at
-  > exactly 2048 bytes vsnprintf truncates silently and beyond it
-  > executeQuery throws Error, which END_DB (a catch of
-  > SQLQueryException) does not catch and which leaks the Statement; the
-  > create path still goes through executeQueryString. The seam
-  > initialises its Statement where the originals declared pStmt
-  > uninitialised (create, save, the info load and both loaders; their
-  > tinysave already used `= NULL`), and the SQL-free third loader keeps
-  > its uninitialised pStmt; one Statement per info statement;
-  > whole-result reads before placement in the zone loader (a Tile
-  > placement throw no longer leaks the Statement), and the same move
-  > means RelicInfoManager's setRelicType, which throws
+  > is data; the sprintf still overflows the 255-byte buffer for a
+  > longer field, as it did, and the statement still goes out in full,
+  > and above 2048 bytes both paths hit executeQuery's own cap and throw
+  > the same Error, since the original's executeQuery(query) bound to
+  > the same varargs overload — so the only real change is the rescan,
+  > and every tinysave call site passes a short "column=value" text
+  > anyway; the four zone SELECTs pass through that format buffer too
+  > (140-147 bytes of format, their arguments two integers) where
+  > executeQueryString was uncapped — at exactly 2048 bytes vsnprintf
+  > truncates silently and beyond it executeQuery throws Error, which
+  > END_DB (a catch of SQLQueryException) does not catch and which leaks
+  > the Statement; the create path still goes through
+  > executeQueryString. The seam initialises its Statement where the
+  > originals declared pStmt uninitialised (create, save, the info load
+  > and both loaders; their tinysave already used `= NULL`), and the
+  > SQL-free third loader keeps its uninitialised pStmt; one Statement
+  > per info statement; whole-result reads before placement in the zone
+  > loader (a Tile placement throw no longer leaks the Statement), and
+  > the same move means RelicInfoManager's setRelicType, which throws
   > InvalidProtocolException on an unknown RelicType, can no longer leak
   > the Statement it used to throw past; DBError.log names the
   > repository method; the two commented-out blocks in the creature
@@ -2841,75 +2842,84 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > six-column head alone (the existing `HeadInfoRow`, a new
   > loadHeadInfos, `GEAR_INFO_HEAD`). WarItem is a plain object
   > (insertPlainItem, updatePlainItem, tinysaveGear, loadBasicInfos)
-  > with no loader at all: both of its Loader::load overloads are
-  > SQL-free stubs, so its spec row carries neither an owner nor a zone
-  > literal and requireOwnerLiteral / requireZoneLiteral make the plain
-  > loads refuse it. The `static_assert` now reads GEAR_WAR_ITEM + 1.
-  > Literal quirks kept: "(ItemID,  ObjectID" (two spaces after the first
-  > comma), "StorageID , X, Y" (a space before that comma) and "
-  > VALUES(" in all three creates; "Storage IN(0, 1, 2, 3, 4, 9)" in the
-  > two owner SELECTs; "Storage = %d AND StorageID = %u" in the two zone
-  > SELECTs; gear's "SET %s WHERE ItemID=%ld" in the three tinysaves.
-  > Beyond that literal and the MAX(ItemType) probe the three share no
-  > statement shape: their INSERTs are ten, nine and eight columns,
-  > their UPDATEs nine, eight and seven SET columns, their Info SELECTs
-  > eight, six and seven. Preserved as it stands: CodeSheet's zone
-  > SELECT names Durability, EnchantLevel and ItemFlag, which initdb's
-  > CodeSheetObject does not have — the statement fails against this
-  > schema, before the seam and through it (END_DB logs to DBError.log
-  > and rethrows); the test pins that it throws. Disclosures: WarItem's
-  > tinysave keeps its char query[255] sprintf and its WarLog.txt line,
-  > but what reaches the DB changes — the original passed that buffer to
-  > executeQuery as the format string, so a '%' surviving from `field`
-  > was rescanned as a conversion against an empty argument list and a
-  > statement over 255 bytes smashed the buffer, while the seam formats
-  > gear's literal with `field` as a %s argument (data) and sends a
-  > 255-2048-byte statement in full; above 2048 bytes executeQuery
-  > truncates at the cap and throws Error, which END_DB (a catch of
-  > SQLQueryException) does not catch and which leaks the Statement,
-  > where the original threw nothing — every tinysave call site passes a
-  > short "column=value" text, so none of it is reachable today. The
-  > three creates and the two streamed zone SELECTs now pass through
-  > that 2048-byte buffer (132-169 bytes of format plus a varchar(10)
-  > owner and, in two of the creates, a varchar(10) or varchar(30)
-  > OptionType; 131 and 166 for the zone SELECTs, whose arguments are
-  > two integers) where executeQueryString was uncapped. The seam
-  > initialises its Statement where the originals declared pStmt
-  > uninitialised (create, save, the info load and, in Motorcycle and
-  > CodeSheet, both loaders; their tinysave already used `= NULL`, and
-  > WarItem declares one in three functions only); WarItem's two
-  > SQL-free loader stubs and all three classes' third loader are
-  > untouched; one Statement per info statement; whole-result reads
-  > before placement in Motorcycle's and CodeSheet's loaders;
-  > CodeSheet's `SAFE_DELETE(pStmt);` line before the default-case throw
-  > (a tab and `// by sigi` follow it) is gone, while Motorcycle's copy
-  > stays inside the commented-out switch in its row loop; DBError.log
-  > names the repository method; the commented-out StringStream chains
-  > in save() and the creature loader are gone with their blocks; the
-  > DB.h include stays; the header's "5 item files" count is 2. The
-  > three item files' diffs are 93-399 lines each, all extraction: every
-  > hunk sits in a function that held SQL, plus the include — the base
-  > files were already clang-format-18 clean. The generator (outside the
-  > repo; its output is what was reviewed) reproduces the previous
-  > round's impl byte for byte after clang-format at its 84-class list,
-  > measured with the generator as of this commit. +1 integration test:
-  > Motorcycle's two rows, update, both loads and Info by COUNT(*) and
-  > three columns; CodeSheet's row, update, owner load, the throwing
-  > zone load and Info by COUNT(*) and two columns; WarItem's row,
-  > update, tinysave, both plain loads refused and its basic Info; and
-  > the guards both ways (insertPlainItem refusing Motorcycle,
-  > insertMotorcycle refusing Ring, insertCodeSheet refusing WarItem,
-  > updateMotorcycle refusing CodeSheet, updateCodeSheet refusing
-  > Motorcycle, loadMotorcycleOfOwner refusing CodeSheet,
-  > loadCodeSheetOfOwner refusing Motorcycle, loadGearOfOwner refusing
-  > CodeSheet, loadGearInZone refusing Motorcycle, loadDurabilityInfos
-  > and loadHeadInfos refusing Ring, loadHeadInfos refusing MixingItem,
+  > with no loader that holds SQL: all three of its Loader::load
+  > overloads are stubs, so its spec row carries neither an owner nor a
+  > zone literal and requireOwnerLiteral / requireZoneLiteral make the
+  > plain loads refuse it; its create logs the statement it ran to
+  > WarLog.txt, so it takes insertPlainItemLogged, which formats the
+  > plain INSERT into a string, runs it through executeQueryString as
+  > the original did and hands the text back. The `static_assert` now
+  > reads GEAR_WAR_ITEM + 1. Literal quirks kept: "(ItemID,  ObjectID"
+  > (two spaces after the first comma), "StorageID , X, Y" (a space
+  > before that comma) and " VALUES(" in all three creates; "Storage
+  > IN(0, 1, 2, 3, 4, 9)" in the two owner SELECTs; "Storage = %d AND
+  > StorageID = %u" in the two zone SELECTs; gear's "SET %s WHERE
+  > ItemID=%ld" in the three tinysaves. Beyond that literal and the
+  > MAX(ItemType) probe the three share no statement shape: their
+  > INSERTs are ten, nine and eight columns, their UPDATEs nine, eight
+  > and seven SET columns, their Info SELECTs eight, six and seven.
+  > Preserved as it stands: CodeSheet's zone SELECT names Durability,
+  > EnchantLevel and ItemFlag, which initdb's CodeSheetObject does not
+  > have — the statement fails against this schema, before the seam and
+  > through it (END_DB logs to DBError.log and rethrows); the test pins
+  > that it throws. Disclosures: WarItem's tinysave keeps its char
+  > query[255] sprintf and its WarLog.txt line, but what reaches the DB
+  > changes — the original passed that buffer to executeQuery as the
+  > format string, so a '%' surviving from `field` was rescanned as a
+  > conversion against an empty argument list and a statement over 255
+  > bytes smashed the buffer, while the seam formats gear's literal with
+  > `field` as a %s argument, so it is data. Nothing else about that
+  > path changes: the sprintf still overflows the 255-byte buffer for a
+  > longer field, the statement still goes out in full, and above 2048
+  > bytes both paths hit executeQuery's own cap and throw the same Error
+  > (which END_DB, a catch of SQLQueryException, does not catch, and
+  > which leaks the Statement), because the original's
+  > executeQuery(query) bound to the same varargs overload. Every
+  > tinysave call site passes a short "column=value" text, so none of it
+  > is reachable today. The three creates and the two streamed zone
+  > SELECTs now pass through that 2048-byte buffer (132-169 bytes of
+  > format plus a varchar(10) owner and, in two of the creates, a
+  > varchar(10) or varchar(30) OptionType; 131 and 166 for the zone
+  > SELECTs, whose arguments are two integers) where executeQueryString
+  > was uncapped. The seam initialises its Statement where the originals
+  > declared pStmt uninitialised (create, save, the info load and, in
+  > Motorcycle and CodeSheet, both loaders; their tinysave already used
+  > `= NULL`, and WarItem's four declarations are three uninitialised
+  > ones and its tinysave's `= NULL`); WarItem's three Loader::load
+  > overloads, all SQL-free stubs, and the other two classes' third
+  > loader are untouched; one Statement per info statement; whole-result
+  > reads before placement in Motorcycle's and CodeSheet's loaders;
+  > CodeSheet's `SAFE_DELETE(pStmt); // by sigi` line before the
+  > default-case throw is gone, while Motorcycle's copy — the one whose
+  > comment follows a tab — stays inside the commented-out switch in its
+  > row loop; DBError.log names the repository method; the commented-out
+  > StringStream chains in save() and the creature loader are gone with
+  > their blocks; the DB.h include stays; the header's "5 item files"
+  > count is 2. The three item files' diffs are 93-399 lines each, all
+  > extraction: every hunk sits in a function that held SQL, plus the
+  > include — the base files were already clang-format-18 clean. The
+  > generator (outside the repo; its output is what was reviewed)
+  > reproduces the previous round's impl byte for byte after
+  > clang-format at its 84-class list, measured with the generator as of
+  > this commit. +1 integration test: Motorcycle's two rows, update,
+  > both loads and Info by COUNT(*) and three columns; CodeSheet's row,
+  > update, owner load, the throwing zone load and Info by COUNT(*) and
+  > two columns; WarItem's row, update, tinysave, both plain loads
+  > refused and its basic Info; and the guards both ways
+  > (insertPlainItem refusing Motorcycle, insertMotorcycle refusing
+  > Ring, insertCodeSheet refusing WarItem, updateMotorcycle refusing
+  > CodeSheet, updateCodeSheet refusing Motorcycle,
+  > loadMotorcycleOfOwner refusing CodeSheet, loadCodeSheetOfOwner
+  > refusing Motorcycle, loadGearOfOwner refusing CodeSheet,
+  > loadGearInZone refusing Motorcycle, loadDurabilityInfos and
+  > loadHeadInfos refusing Ring, loadHeadInfos refusing MixingItem,
   > destroyGearObject refusing Motorcycle, and both plain loads still
   > serving EventGiftBox). ctest 5/5, 123/123, the build relinking
   > libItems.a and the gameserver. Not enclosed: PetItem, whose owner
-  > SELECT names twenty-one columns and whose savePetInfo writes a
-  > second table, and EventBall, which has no tables and is not
-  > registered; ItemInfoManager.cpp holds only the registry calls.
+  > SELECT names twenty-one columns and whose savePetInfo writes the pet
+  > columns of the same table in a third statement, and EventBall, which
+  > has no tables and is not registered; ItemInfoManager.cpp holds only
+  > the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
