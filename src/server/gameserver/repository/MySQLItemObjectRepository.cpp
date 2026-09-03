@@ -9,8 +9,9 @@
 // ids exactly as written; AR's create INSERT was already a parameterized
 // statement and is verbatim. The guns carry an eighth literal, the
 // saveBullet UPDATE, and four Num-only items (Pupa, Larva, ComposMei, Potion)
-// a ninth, their destroy() DELETE, and Key a tenth, setNewMotorcycle's Target
-// UPDATE (NULL for every other table). The spec row also
+// a ninth, their destroy() DELETE, Key a tenth, setNewMotorcycle's Target
+// UPDATE, and the couple rings an eleventh, hasPartnerItem's count(*) SELECT
+// (NULL for every other table). The spec row also
 // records which object shape and which Info shape the class's tables
 // have; every loader checks them, so a call with the wrong loader fails
 // loudly instead of misreading the columns silently. GEAR_INFO_UNSET and
@@ -30,17 +31,18 @@ using namespace std;
 namespace {
 
 struct GearSpec {
-    const char* insert;        // <Class>::create
-    const char* tinysave;      // <Class>::tinysave
-    const char* update;        // <Class>::save
-    const char* maxType;       // <Class>InfoManager::load, first statement
-    const char* infos;         // <Class>InfoManager::load, second statement
-    const char* ofOwner;       // <Class>Loader::load(Creature*)
-    const char* inZone;        // <Class>Loader::load(Zone*)
-    const char* saveBullet;    // <Class>::saveBullet — the guns only; NULL for the other tables
-    const char* destroy;       // <Class>::destroy — Pupa, Larva, ComposMei, Potion only; NULL for the other tables
-    const char* saveTarget;    // Key::setNewMotorcycle — Key only; NULL for the other tables
-    GearInfoKind infoKind;     // which load*Infos reads `infos`
+    const char* insert;       // <Class>::create
+    const char* tinysave;     // <Class>::tinysave
+    const char* update;       // <Class>::save
+    const char* maxType;      // <Class>InfoManager::load, first statement
+    const char* infos;        // <Class>InfoManager::load, second statement
+    const char* ofOwner;      // <Class>Loader::load(Creature*)
+    const char* inZone;       // <Class>Loader::load(Zone*)
+    const char* saveBullet;   // <Class>::saveBullet — the guns only; NULL for the other tables
+    const char* destroy;      // <Class>::destroy — Pupa, Larva, ComposMei, Potion only; NULL for the other tables
+    const char* saveTarget;   // Key::setNewMotorcycle — Key only; NULL for the other tables
+    const char* partnerCount; // <Class>::hasPartnerItem — CoupleRing, VampireCoupleRing only; NULL for the other tables
+    GearInfoKind infoKind;    // which load*Infos reads `infos`
     GearObjectKind objectKind; // which update / load*OfOwner / load*InZone fit the object table
 };
 
@@ -61,6 +63,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM RingObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM RingObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -85,6 +88,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_STANDARD,
         GEAR_OBJECT,
     },
@@ -103,6 +107,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM NecklaceObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM NecklaceObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -127,6 +132,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_STANDARD,
         GEAR_OBJECT,
     },
@@ -145,6 +151,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM TrouserObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM TrouserObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -169,6 +176,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_STANDARD,
         GEAR_OBJECT,
     },
@@ -187,6 +195,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM GloveObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM GloveObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -211,6 +220,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_STANDARD,
         GEAR_OBJECT,
     },
@@ -229,6 +239,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM ShieldObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM ShieldObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -253,6 +264,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_STANDARD,
         GEAR_OBJECT,
     },
@@ -271,6 +283,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM VampireBraceletObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireBraceletObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -295,6 +308,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_STANDARD,
         GEAR_OBJECT,
     },
@@ -313,6 +327,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM OustersRingObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersRingObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -337,6 +352,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_STANDARD,
         GEAR_OBJECT,
     },
@@ -355,6 +371,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM OustersCircletObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersCircletObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -379,6 +396,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_STANDARD,
         GEAR_OBJECT,
     },
@@ -400,6 +418,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_STANDARD,
         GEAR_OBJECT,
     },
@@ -417,6 +436,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM VampireCoatObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireCoatObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -441,6 +461,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_ELEMENTAL,
         GEAR_OBJECT,
     },
@@ -459,6 +480,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM VampireEarringObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM VampireEarringObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -484,6 +506,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_WEAPON,
         GEAR_OBJECT,
     },
@@ -503,6 +526,7 @@ const GearSpec kGear[] = {
         "ItemFlag FROM OustersChakramObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, ItemFlag "
         "FROM OustersChakramObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -528,6 +552,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_WEAPON_ELEMENTAL,
         GEAR_OBJECT,
     },
@@ -546,6 +571,7 @@ const GearSpec kGear[] = {
         "Grade, ItemFlag FROM SwordObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, Silver, "
         "ItemFlag FROM SwordObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -571,6 +597,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_SILVER_WEAPON,
         SILVER_WEAPON_OBJECT,
     },
@@ -589,6 +616,7 @@ const GearSpec kGear[] = {
         "Grade, ItemFlag FROM CrossObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, EnchantLevel, Silver, "
         "ItemFlag FROM CrossObject WHERE Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -613,6 +641,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_SILVER_WEAPON_MP,
         SILVER_WEAPON_OBJECT,
     },
@@ -632,6 +661,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability, BulletCount, Silver, "
         "EnchantLevel, ItemFlag FROM ARObject WHERE Storage = %d AND StorageID = %u",
         "UPDATE ARObject SET BulletCount = %d WHERE ItemID = %d",
+        NULL,
         NULL,
         NULL,
         GEAR_INFO_GUN,
@@ -655,6 +685,7 @@ const GearSpec kGear[] = {
         "UPDATE SGObject SET BulletCount = %d WHERE ItemID = %d",
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_GUN,
         GUN_OBJECT,
     },
@@ -674,6 +705,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Durability, EnchantLevel, "
         "BulletCount, Silver, ItemFlag FROM SMGObject WHERE Storage = %d AND StorageID = %u",
         "UPDATE SMGObject SET BulletCount = %d WHERE ItemID = %ld",
+        NULL,
         NULL,
         NULL,
         GEAR_INFO_GUN,
@@ -697,6 +729,7 @@ const GearSpec kGear[] = {
         "UPDATE SRObject SET BulletCount = %d WHERE ItemID = %d",
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_GUN,
         GUN_OBJECT,
     },
@@ -713,6 +746,7 @@ const GearSpec kGear[] = {
         "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventItemObject WHERE Storage "
         "= %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -735,6 +769,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC,
         NUM_OBJECT,
     },
@@ -751,6 +786,7 @@ const GearSpec kGear[] = {
         "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM LuckyBagObject WHERE Storage "
         "= %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -773,6 +809,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC,
         NUM_OBJECT,
     },
@@ -789,6 +826,7 @@ const GearSpec kGear[] = {
         "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventETCObject WHERE Storage "
         "= %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -811,6 +849,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC_RESURRECT,
         NUM_OBJECT,
     },
@@ -827,6 +866,7 @@ const GearSpec kGear[] = {
         "= '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM DyePotionObject WHERE Storage "
         "= %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -849,6 +889,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC_FUNCTION_VALUE,
         NUM_OBJECT,
     },
@@ -865,6 +906,7 @@ const GearSpec kGear[] = {
         "OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EffectItemObject WHERE "
         "Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -887,6 +929,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC_FUNCTION_GRADE,
         NUM_OBJECT,
     },
@@ -903,6 +946,7 @@ const GearSpec kGear[] = {
         "Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM ETCObject WHERE Storage = %d AND "
         "StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -925,6 +969,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC_STRING,
         NUM_ONLY_OBJECT,
     },
@@ -941,6 +986,7 @@ const GearSpec kGear[] = {
         "AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM VampireETCObject WHERE Storage = %d AND "
         "StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -963,6 +1009,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC,
         NUM_ONLY_OBJECT,
     },
@@ -979,6 +1026,7 @@ const GearSpec kGear[] = {
         "AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM HolyWaterObject WHERE Storage = %d AND "
         "StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -1002,6 +1050,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_MAGAZINE,
         NUM_ONLY_OBJECT,
     },
@@ -1020,6 +1069,7 @@ const GearSpec kGear[] = {
         "StorageID = %u",
         NULL,
         "DELETE FROM %s WHERE ItemID = %ld",
+        NULL,
         NULL,
         GEAR_INFO_BASIC_STRING,
         NUM_ONLY_OBJECT,
@@ -1040,6 +1090,7 @@ const GearSpec kGear[] = {
         NULL,
         "DELETE FROM %s WHERE ItemID = %ld",
         NULL,
+        NULL,
         GEAR_INFO_BASIC_STRING,
         NUM_ONLY_OBJECT,
     },
@@ -1058,6 +1109,7 @@ const GearSpec kGear[] = {
         "StorageID = %u",
         NULL,
         "DELETE FROM %s WHERE ItemID = %ld",
+        NULL,
         NULL,
         GEAR_INFO_BASIC_STRING,
         NUM_ONLY_OBJECT,
@@ -1078,6 +1130,7 @@ const GearSpec kGear[] = {
         NULL,
         "DELETE FROM %s WHERE ItemID = %ld",
         NULL,
+        NULL,
         GEAR_INFO_BASIC_LEVEL_STRING,
         NUM_ONLY_OBJECT,
     },
@@ -1094,6 +1147,7 @@ const GearSpec kGear[] = {
         "Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM SkullObject WHERE Storage = %d AND "
         "StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -1116,6 +1170,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC_DAMAGE,
         BOMB_OBJECT,
     },
@@ -1132,6 +1187,7 @@ const GearSpec kGear[] = {
         "AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM BombMaterialObject WHERE Storage = %d AND "
         "StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -1154,6 +1210,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC_DAMAGE,
         BOMB_OBJECT,
     },
@@ -1170,6 +1227,7 @@ const GearSpec kGear[] = {
         "'%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag FROM QuestItemObject WHERE Storage = %d "
         "AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -1192,6 +1250,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC_INT,
         FLAG_OBJECT,
     },
@@ -1208,6 +1267,7 @@ const GearSpec kGear[] = {
         "'%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag FROM SubInventoryObject WHERE Storage = "
         "%d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -1230,6 +1290,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC_INT_PAIR,
         FLAG_OBJECT,
     },
@@ -1249,6 +1310,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC,
         PLAIN_OBJECT,
     },
@@ -1265,6 +1327,7 @@ const GearSpec kGear[] = {
         "Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM LearningItemObject WHERE Storage = %d AND "
         "StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -1288,6 +1351,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_MIXING_ITEM,
         MIXING_ITEM_OBJECT,
     },
@@ -1304,6 +1368,7 @@ const GearSpec kGear[] = {
         "'%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag FROM PetFoodObject WHERE Storage = %d "
         "AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -1326,6 +1391,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         "UPDATE KeyObject SET Target=%lu WHERE ItemID=%lu",
+        NULL,
         GEAR_INFO_BASIC_INT_PAIR,
         KEY_OBJECT,
     },
@@ -1342,6 +1408,7 @@ const GearSpec kGear[] = {
         "OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Charge FROM OustersSummonItemObject WHERE "
         "Storage = %d AND StorageID = %u",
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -1364,12 +1431,93 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
+        NULL,
         GEAR_INFO_BASIC_LEVEL_STRING,
         CHARGE_OBJECT,
     },
+    // Money (GEAR_MONEY)
+    {
+        "INSERT INTO MoneyObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Amount, Num ) "
+        "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %u, %d)",
+        "UPDATE MoneyObject SET %s, Amount=%ld WHERE ItemID=%ld",
+        "UPDATE MoneyObject SET ObjectID=%ld ,ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Amount=%ld,Num=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM MoneyInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM MoneyInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Amount, Num FROM MoneyObject WHERE OwnerID = "
+        "'%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Amount FROM MoneyObject WHERE Storage = %d AND "
+        "StorageID = %u",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_BASIC,
+        MONEY_OBJECT,
+    },
+    // CoupleRing (GEAR_COUPLE_RING)
+    {
+        "INSERT INTO CoupleRingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, "
+        "Name, PartnerItemID) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', '%s', %u)",
+        "UPDATE CoupleRingObject SET %s WHERE ItemID=%ld",
+        "UPDATE CoupleRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "Name = '%s', PartnerItemID=%ld WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM CoupleRingInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM CoupleRingInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Name, PartnerItemID FROM "
+        "CoupleRingObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM CoupleRingObject WHERE Storage = %d AND "
+        "StorageID = %u",
+        NULL,
+        NULL,
+        NULL,
+        "SELECT count(*) from CoupleRingObject where ItemID=%ld and Storage IN(0, 1, 2, 3, 4, 9)",
+        GEAR_INFO_BASIC,
+        COUPLE_RING_OBJECT,
+    },
+    // VampireCoupleRing (GEAR_VAMPIRE_COUPLE_RING)
+    {
+        "INSERT INTO VampireCoupleRingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, "
+        "OptionType, Name, PartnerItemID) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', '%s', %u)",
+        "UPDATE VampireCoupleRingObject SET %s WHERE ItemID=%ld",
+        "UPDATE VampireCoupleRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, Name='%s', PartnerItemID=%ld WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM VampireCoupleRingInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM VampireCoupleRingInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Name, PartnerItemID FROM "
+        "VampireCoupleRingObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM VampireCoupleRingObject WHERE Storage = %d "
+        "AND StorageID = %u",
+        NULL,
+        NULL,
+        NULL,
+        "SELECT count(*) from VampireCoupleRingObject where ItemID=%ld and Storage IN(0, 1, 2, 3, 4, 9)",
+        GEAR_INFO_BASIC,
+        COUPLE_RING_OBJECT,
+    },
+    // VampirePortalItem (GEAR_VAMPIRE_PORTAL_ITEM)
+    {
+        "INSERT INTO VampirePortalItemObject (ItemID,ObjectID,ItemType,OwnerID, Storage,StorageID,X,Y, "
+        "Charge,TargetZID,TargetX,TargetY) VALUES (%u,%u,%u,'%s',%d,%u,%d,%d,%d,%d,%d,%d)",
+        "UPDATE VampirePortalItemObject SET %s WHERE ItemID=%ld",
+        "UPDATE VampirePortalItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
+        "Y=%d, Charge=%d, TargetZID=%d, TargetX=%d, TargetY=%d WHERE ItemID=%ld",
+        "SELECT MAX(ItemType) FROM VampirePortalItemInfo",
+        "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, MaxCharge, ReqAbility FROM VampirePortalItemInfo",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Charge, TargetZID, TargetX, TargetY FROM "
+        "VampirePortalItemObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Charge FROM VampirePortalItemObject WHERE "
+        "Storage = %d AND StorageID = %u",
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        GEAR_INFO_BASIC_LEVEL_STRING,
+        VAMPIRE_PORTAL_OBJECT,
+    },
 };
 
-static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_SLAYER_PORTAL_ITEM + 1, "kGear must cover every GearTable");
+static_assert(sizeof(kGear) / sizeof(kGear[0]) == GEAR_VAMPIRE_PORTAL_ITEM + 1, "kGear must cover every GearTable");
 
 const GearSpec& spec(GearTable table) {
     return kGear[table];
@@ -1408,12 +1556,16 @@ void requireGearInsert(GearTable table, const char* method) {
 }
 
 // tinysaveGear's literal takes (field, itemID); the GUN_OBJECT tables' takes
-// (field, bulletCount, itemID). Either literal fed the other's arguments would
-// format the wrong varargs, so each method refuses the other's tables.
-void requireTinysaveShape(GearTable table, bool withBullet, const char* method) {
-    if ((spec(table).objectKind == GUN_OBJECT) != withBullet) {
-        throw Error(string("ItemObjectRepository: ") + method + " called for a table whose tinysave takes " +
-                    (withBullet ? "no BulletCount" : "a BulletCount"));
+// (field, bulletCount, itemID) and Money's (field, amount, itemID). A literal
+// fed another's arguments would format the wrong varargs, so each method
+// refuses the others' tables: `extra` names the kind whose extra column the
+// caller supplies, GEAR_OBJECT for none.
+void requireTinysaveShape(GearTable table, GearObjectKind extra, const char* method) {
+    GearObjectKind kind = spec(table).objectKind;
+    GearObjectKind has = (kind == GUN_OBJECT || kind == MONEY_OBJECT) ? kind : GEAR_OBJECT;
+    if (has != extra) {
+        throw Error(string("ItemObjectRepository: ") + method +
+                    " called for a table whose tinysave takes other arguments");
     }
 }
 
@@ -1441,6 +1593,14 @@ void requireNumObject(GearTable table, const char* method) {
 void requireFlagZone(GearTable table, const char* method) {
     GearObjectKind kind = spec(table).objectKind;
     if (kind != FLAG_OBJECT && kind != PET_FOOD_OBJECT) {
+        throw Error(string("ItemObjectRepository: ") + method + " called for a table with another zone shape");
+    }
+}
+
+// The couple rings' zone SELECT names the seven plain columns: the plain zone shape.
+void requirePlainZone(GearTable table, const char* method) {
+    GearObjectKind kind = spec(table).objectKind;
+    if (kind != PLAIN_OBJECT && kind != COUPLE_RING_OBJECT) {
         throw Error(string("ItemObjectRepository: ") + method + " called for a table with another zone shape");
     }
 }
@@ -1561,7 +1721,7 @@ public:
     }
 
     void tinysaveGear(GearTable table, const char* field, ItemID_t itemID) {
-        requireTinysaveShape(table, false, "tinysaveGear");
+        requireTinysaveShape(table, GEAR_OBJECT, "tinysaveGear");
         Statement* pStmt = NULL;
 
         BEGIN_DB {
@@ -1588,7 +1748,7 @@ public:
     }
 
     void tinysaveGun(GearTable table, const char* field, int bulletCount, ItemID_t itemID) {
-        requireTinysaveShape(table, true, "tinysaveGun");
+        requireTinysaveShape(table, GUN_OBJECT, "tinysaveGun");
         Statement* pStmt = NULL;
 
         BEGIN_DB {
@@ -2687,7 +2847,7 @@ public:
     }
 
     vector<PlainZoneObjectRow> loadPlainItemInZone(GearTable table, int storage, ZoneID_t zoneID) {
-        requireObjectKind(table, PLAIN_OBJECT, "loadPlainItemInZone");
+        requirePlainZone(table, "loadPlainItemInZone");
         vector<PlainZoneObjectRow> rows;
         Statement* pStmt = NULL;
 
@@ -3047,6 +3207,302 @@ public:
                 readSixColumnInfoHead(pResult, i, row.head);
                 row.maxCharge = pResult->getInt(++i);
                 row.effectID = pResult->getInt(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // Money: the plain columns plus Amount (a DWORD; "%u" in the INSERT as the chain
+    // streamed it, "%ld" in the UPDATE and tinysave as written) and Num; the loads
+    // read Amount through getDWORD and Num through getBYTE (owner only: the zone
+    // SELECT names no Num). Money's tinysave writes Amount too, so it is its own.
+    void insertMoney(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
+                     int storage, StorageID_t storageID, int x, int y, DWORD amount, int num) {
+        requireObjectKind(table, MONEY_OBJECT, "insertMoney");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).insert, itemID, objectID, itemType, ownerID.c_str(), storage, storageID, x,
+                                y, amount, num);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void tinysaveMoney(GearTable table, const char* field, DWORD amount, ItemID_t itemID) {
+        requireTinysaveShape(table, MONEY_OBJECT, "tinysaveMoney");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).tinysave, field, amount, itemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateMoney(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID, int storage,
+                     StorageID_t storageID, int x, int y, DWORD amount, int num, ItemID_t itemID) {
+        requireObjectKind(table, MONEY_OBJECT, "updateMoney");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).update, objectID, itemType, ownerID.c_str(), storage, storageID, x, y,
+                                amount, num, itemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    vector<MoneyObjectRow> loadMoneyOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, MONEY_OBJECT, "loadMoneyOfOwner");
+        vector<MoneyObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).ofOwner, ownerName.c_str());
+
+            while (pResult->next()) {
+                uint i = 0;
+                MoneyObjectRow row;
+                row.itemID = pResult->getDWORD(++i);
+                row.objectID = pResult->getDWORD(++i);
+                row.itemType = pResult->getDWORD(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getDWORD(++i);
+                row.x = pResult->getBYTE(++i);
+                row.y = pResult->getBYTE(++i);
+                row.amount = pResult->getDWORD(++i);
+                row.num = pResult->getBYTE(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<MoneyZoneObjectRow> loadMoneyInZone(GearTable table, int storage, ZoneID_t zoneID) {
+        requireObjectKind(table, MONEY_OBJECT, "loadMoneyInZone");
+        vector<MoneyZoneObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).inZone, storage, zoneID);
+
+            while (pResult->next()) {
+                uint i = 0;
+                MoneyZoneObjectRow row;
+                row.itemID = pResult->getInt(++i);
+                row.objectID = pResult->getInt(++i);
+                row.itemType = pResult->getInt(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getInt(++i);
+                row.x = pResult->getInt(++i);
+                row.y = pResult->getInt(++i);
+                row.amount = pResult->getDWORD(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // The couple rings: the plain columns plus OptionType and Name (text) and
+    // PartnerItemID (an ItemID_t; "%u" in the INSERT, "%ld" in the UPDATE as
+    // written); the UPDATE writes no OptionType. Their zone SELECT is the plain
+    // shape (loadPlainItemInZone serves it).
+    void insertCoupleRing(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                          const string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                          const string& optionField, const string& name, ItemID_t partnerItemID) {
+        requireObjectKind(table, COUPLE_RING_OBJECT, "insertCoupleRing");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).insert, itemID, objectID, itemType, ownerID.c_str(), storage, storageID, x,
+                                y, optionField.c_str(), name.c_str(), partnerItemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateCoupleRing(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID, int storage,
+                          StorageID_t storageID, int x, int y, const string& name, ItemID_t partnerItemID,
+                          ItemID_t itemID) {
+        requireObjectKind(table, COUPLE_RING_OBJECT, "updateCoupleRing");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).update, objectID, itemType, ownerID.c_str(), storage, storageID, x, y,
+                                name.c_str(), partnerItemID, itemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    vector<CoupleRingObjectRow> loadCoupleRingOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, COUPLE_RING_OBJECT, "loadCoupleRingOfOwner");
+        vector<CoupleRingObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).ofOwner, ownerName.c_str());
+
+            while (pResult->next()) {
+                uint i = 0;
+                CoupleRingObjectRow row;
+                row.itemID = pResult->getDWORD(++i);
+                row.objectID = pResult->getDWORD(++i);
+                row.itemType = pResult->getDWORD(++i);
+                row.storage = pResult->getInt(++i);
+                row.storageID = pResult->getDWORD(++i);
+                row.x = pResult->getBYTE(++i);
+                row.y = pResult->getBYTE(++i);
+                row.optionField = pResult->getString(++i);
+                row.name = pResult->getString(++i);
+                row.partnerItemID = pResult->getDWORD(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // <Class>::hasPartnerItem — the count(*) of the partner ring's row in an
+    // owner's storage ("%ld" fed the DWORD as written). True when a row came back
+    // (count(*) always sends one), false otherwise, as the original's
+    // pResult->next() branch; the count itself goes out through `count`. Refuses
+    // tables without the literal.
+    bool loadCoupleRingPartnerCount(GearTable table, ItemID_t partnerItemID, int& count) {
+        if (spec(table).partnerCount == NULL) {
+            throw Error(
+                "ItemObjectRepository: loadCoupleRingPartnerCount called for a table without a partner-count literal");
+        }
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).partnerCount, partnerItemID);
+
+            if (pResult->next()) {
+                count = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    // VampirePortalItem: the charge columns plus TargetZID, TargetX, TargetY
+    // (getWORD; "%d" for the (int)-cast WORDs as written). The owner load reads
+    // eleven columns; the zone load reads the same eleven getters over its
+    // eight-column SELECT, as the original did, so its first row throws
+    // getField's OutOfBoundException (logged to ResultBug.log) with the Statement
+    // unreleased — the original's behaviour, kept for its own fix.
+    void insertVampirePortal(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                             const string& ownerID, int storage, StorageID_t storageID, int x, int y, int charge,
+                             int targetZoneID, int targetX, int targetY) {
+        requireObjectKind(table, VAMPIRE_PORTAL_OBJECT, "insertVampirePortal");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).insert, itemID, objectID, itemType, ownerID.c_str(), storage, storageID, x,
+                                y, charge, targetZoneID, targetX, targetY);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateVampirePortal(GearTable table, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
+                             int storage, StorageID_t storageID, int x, int y, int charge, int targetZoneID,
+                             int targetX, int targetY, ItemID_t itemID) {
+        requireObjectKind(table, VAMPIRE_PORTAL_OBJECT, "updateVampirePortal");
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(spec(table).update, objectID, itemType, ownerID.c_str(), storage, storageID, x, y,
+                                charge, targetZoneID, targetX, targetY, itemID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void readVampirePortalRow(Result* pResult, uint& i, VampirePortalObjectRow& row) {
+        row.itemID = pResult->getDWORD(++i);
+        row.objectID = pResult->getDWORD(++i);
+        row.itemType = pResult->getDWORD(++i);
+        row.storage = pResult->getInt(++i);
+        row.storageID = pResult->getDWORD(++i);
+        row.x = pResult->getBYTE(++i);
+        row.y = pResult->getBYTE(++i);
+        row.charge = pResult->getInt(++i);
+        row.targetZoneID = pResult->getWORD(++i);
+        row.targetX = pResult->getWORD(++i);
+        row.targetY = pResult->getWORD(++i);
+    }
+
+    vector<VampirePortalObjectRow> loadVampirePortalOfOwner(GearTable table, const string& ownerName) {
+        requireObjectKind(table, VAMPIRE_PORTAL_OBJECT, "loadVampirePortalOfOwner");
+        vector<VampirePortalObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).ofOwner, ownerName.c_str());
+
+            while (pResult->next()) {
+                uint i = 0;
+                VampirePortalObjectRow row;
+                readVampirePortalRow(pResult, i, row);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    vector<VampirePortalObjectRow> loadVampirePortalInZone(GearTable table, int storage, ZoneID_t zoneID) {
+        requireObjectKind(table, VAMPIRE_PORTAL_OBJECT, "loadVampirePortalInZone");
+        vector<VampirePortalObjectRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(spec(table).inZone, storage, zoneID);
+
+            while (pResult->next()) {
+                uint i = 0;
+                VampirePortalObjectRow row;
+                readVampirePortalRow(pResult, i, row); // the ninth getter is past the eight-column SELECT: throws
                 rows.push_back(row);
             }
 

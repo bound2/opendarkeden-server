@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 MoneyInfoManager* g_pMoneyInfoManager = NULL;
@@ -47,8 +48,6 @@ void Money::create(const string& ownerID, Storage storage, StorageID_t storageID
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -60,28 +59,8 @@ void Money::create(const string& ownerID, Storage storage, StorageID_t storageID
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-        /*
-                sql << "INSERT INTO MoneyObject "
-                    << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Amount )"
-                    << " VALUES("
-                    << m_ItemID << ", "
-                    << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', " <<(int)storage << ", " << storageID
-           << ", " <<(int)x << ", " <<(int)y << ", " << m_Amount << ")";
-        */
-        sql << "INSERT INTO MoneyObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Amount, Num )" << " VALUES("
-            << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', " << (int)storage << ", "
-            << storageID << ", " << (int)x << ", " << (int)y << ", " << m_Amount << ", " << (int)m_Num << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertMoney(GEAR_MONEY, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                              storageID, (int)x, (int)y, m_Amount, (int)m_Num);
 
     __END_CATCH
 }
@@ -95,16 +74,7 @@ void Money::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE MoneyObject SET %s, Amount=%ld WHERE ItemID=%ld", field, m_Amount, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveMoney(GEAR_MONEY, field, m_Amount, m_ItemID);
 
     __END_CATCH
 }
@@ -117,36 +87,8 @@ void Money::save(const string& ownerID, Storage storage, StorageID_t storageID, 
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE MoneyObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",Amount = " << m_Amount
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("UPDATE MoneyObject SET ObjectID=%ld ,ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Amount=%ld,Num=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, m_Amount,
-                            (int)m_Num, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateMoney(GEAR_MONEY, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID,
+                                              (int)x, (int)y, m_Amount, (int)m_Num, m_ItemID);
 
     __END_CATCH
 }
@@ -232,43 +174,28 @@ void MoneyInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_MONEY);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM MoneyInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<BasicInfoRow> rows = defaultItemObjectRepository().loadBasicInfos(GEAR_MONEY);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        MoneyInfo* pMoneyInfo = new MoneyInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pMoneyInfo->setItemType(rows[r].itemType);
+        pMoneyInfo->setName(rows[r].name);
+        pMoneyInfo->setEName(rows[r].ename);
+        pMoneyInfo->setPrice(rows[r].price);
+        pMoneyInfo->setVolumeType(rows[r].volume);
+        pMoneyInfo->setWeight(rows[r].weight);
+        pMoneyInfo->setRatio(rows[r].ratio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM MoneyInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            MoneyInfo* pMoneyInfo = new MoneyInfo();
-
-            pMoneyInfo->setItemType(pResult->getInt(++i));
-            pMoneyInfo->setName(pResult->getString(++i));
-            pMoneyInfo->setEName(pResult->getString(++i));
-            pMoneyInfo->setPrice(pResult->getInt(++i));
-            pMoneyInfo->setVolumeType(pResult->getInt(++i));
-            pMoneyInfo->setWeight(pResult->getInt(++i));
-            pMoneyInfo->setRatio(pResult->getInt(++i));
-
-            addItemInfo(pMoneyInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pMoneyInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -284,127 +211,99 @@ void MoneyLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<MoneyObjectRow> rows = defaultItemObjectRepository().loadMoneyOfOwner(GEAR_MONEY, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            Money* pMoney = new Money();
 
-        /*
-        StringStream sql;
+            pMoney->setItemID(rows[r].itemID);
+            pMoney->setObjectID(rows[r].objectID);
+            pMoney->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Amount FROM MoneyObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            pMoney->setAmount(rows[r].amount);
+            pMoney->setNum(rows[r].num);
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Amount, Num FROM "
-                                "MoneyObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                pCreature->getName().c_str());
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                Money* pMoney = new Money();
-
-                pMoney->setItemID(pResult->getDWORD(++i));
-                pMoney->setObjectID(pResult->getDWORD(++i));
-                pMoney->setItemType(pResult->getDWORD(++i));
-
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                pMoney->setAmount(pResult->getDWORD(++i));
-                pMoney->setNum(pResult->getBYTE(++i));
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
-                if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pMoney)) {
-                        pInventory->addItemEx(x, y, pMoney);
-                    } else {
-                        processItemBugEx(pCreature, pMoney);
-                    }
-                    break;
-
-                case STORAGE_GEAR:
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pMoney)) {
+                    pInventory->addItemEx(x, y, pMoney);
+                } else {
                     processItemBugEx(pCreature, pMoney);
-                    break;
-
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pMoney);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pMoney);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pMoney);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pMoney);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pMoney);
-                    } else
-                        pStash->insert(x, y, pMoney);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pMoney);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
+                break;
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            case STORAGE_GEAR:
+                processItemBugEx(pCreature, pMoney);
+                break;
+
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pMoney);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pMoney);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pMoney);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pMoney);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pMoney);
+                } else
+                    pStash->insert(x, y, pMoney);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pMoney);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -420,53 +319,38 @@ void MoneyLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<MoneyZoneObjectRow> rows =
+        defaultItemObjectRepository().loadMoneyInZone(GEAR_MONEY, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        Money* pMoney = new Money();
 
-        StringStream sql;
+        pMoney->setItemID(rows[r].itemID);
+        pMoney->setObjectID(rows[r].objectID);
+        pMoney->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Amount FROM MoneyObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        pMoney->setAmount(rows[r].amount);
 
-        while (pResult->next()) {
-            uint i = 0;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pMoney);
+        } break;
 
-            Money* pMoney = new Money();
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            pMoney->setItemID(pResult->getInt(++i));
-            pMoney->setObjectID(pResult->getInt(++i));
-            pMoney->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            pMoney->setAmount(pResult->getDWORD(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pMoney);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
