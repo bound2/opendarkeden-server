@@ -25,11 +25,10 @@
 // managers (gameserver and sharedserver) count and list castles by
 // guild; GuildRepository::countReinforceRegistrations joins
 // ReinforceRegisterInfo to WarScheduleInfo for a guild-wide count, a
-// different statement from the war-scoped ones here; and
-// war/WarScheduler.cpp reads the ACCEPT registrations of a war id
-// without a server id. war/WarScheduler.cpp also keeps its own
-// WarScheduleInfo statements — the conditional per-zone load and the
-// guild-schedule cancel — which are not the ones enclosed here.
+// different statement from the war-scoped ones here.
+// war/WarScheduler.cpp's own three statements — the per-zone load,
+// the ACCEPT registration read of a war id without a server id, and
+// the guild-schedule cancel — are enclosed here now.
 // war/RaceWar.cpp's two shrine-owner reads are no longer among them
 // — they call loadShrineOwners() now.
 
@@ -95,6 +94,23 @@ struct CastleStateRecord {
     int itemTaxRatio;
     int entranceFee;
     int taxBalance;
+};
+
+// WarScheduler::load's row, in SELECT order. The macro mirrors
+// war/WarScheduler.cpp, whose loop reads these columns positionally: the
+// live build leaves __OLD_GUILD_WAR__ undefined (it is commented out in
+// Core/Types.h), so the ten-column form is the one that compiles.
+struct WarScheduleRow {
+    int warID;
+    std::string warType;
+#ifndef __OLD_GUILD_WAR__
+    int attackerCount;
+    int attackGuildID[5];
+#else
+    int attackGuildID;
+#endif
+    int warFee;
+    std::string startTime;
 };
 
 // RaceWar::recordRaceWarStart's per-race totals: SUM(CurrentNum) over
@@ -339,6 +355,20 @@ public:
     // (raw SQL text, the same quarantine as CastleInfoManager::tinysave).
     // The DWORD war id goes through "%d", as before.
     virtual void tinysaveWarSchedule(const std::string& fieldFragment, WarID_t warID, int serverID) = 0;
+
+    // WarScheduler::load — the WAIT and START schedules of one zone, in
+    // StartTime order. serverID is g_pConfig->getPropertyInt("ServerID")
+    // and zoneID the (int) the caller cast; both still render through "%u".
+    virtual std::vector<WarScheduleRow> loadWarSchedules(int serverID, int zoneID) = 0;
+    // WarScheduler::load's inner read: the first ACCEPT registration of a
+    // war id, with NO server id — a different statement from
+    // loadWaitingReinforceGuild. false when there is none, and the caller
+    // then leaves the war's reinforce guild alone.
+    virtual bool loadAcceptedReinforceGuild(WarID_t warID, int& guildID) = 0;
+    // WarScheduler::cancelGuildSchedules. The literal keeps the four tabs a
+    // backslash-continued source line spliced in after the zone id, and the
+    // zone id still goes through "%d" here where the load uses "%u".
+    virtual void cancelGuildWarSchedules(int serverID, int zoneID) = 0;
 
     // --- master lairs -----------------------------------------------------------
     virtual std::vector<MasterLairRow> loadMasterLairs() = 0;
