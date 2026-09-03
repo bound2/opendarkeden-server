@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 RelicInfoManager* g_pRelicInfoManager = NULL;
@@ -61,8 +62,6 @@ void Relic::create(const string& ownerID, Storage storage, StorageID_t storageID
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -74,21 +73,8 @@ void Relic::create(const string& ownerID, Storage storage, StorageID_t storageID
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        sql << "INSERT INTO RelicObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, Durability)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '"
-            << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", "
-            << m_Durability << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertWarItem(GEAR_RELIC, m_ItemID, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                storageID, (int)x, (int)y, m_Durability);
 
     __END_CATCH
 }
@@ -102,16 +88,7 @@ void Relic::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE RelicObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_RELIC, field, m_ItemID);
 
     __END_CATCH
 }
@@ -124,38 +101,8 @@ void Relic::save(const string& ownerID, Storage storage, StorageID_t storageID, 
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE RelicObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << ",EnchantLevel = " <<(int)m_EnchantLevel
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt->executeQuery("UPDATE RelicObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Durability=%d, EnchantLevel=%d  WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            m_Durability, (int)m_EnchantLevel, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateWarItem(GEAR_RELIC, m_ObjectID, m_ItemType, ownerID, (int)storage, storageID,
+                                                (int)x, (int)y, m_Durability, (int)m_EnchantLevel, m_ItemID);
 
     __END_CATCH
 }
@@ -266,56 +213,38 @@ void RelicInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_RELIC);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM RelicInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<RelicInfoRow> rows = defaultItemObjectRepository().loadRelicInfos(GEAR_RELIC);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        RelicInfo* pRelicInfo = new RelicInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pRelicInfo->setItemType(rows[r].war.itemType);
+        pRelicInfo->setName(rows[r].war.name);
+        pRelicInfo->setEName(rows[r].war.ename);
+        pRelicInfo->setPrice(rows[r].war.price);
+        pRelicInfo->setVolumeType(rows[r].war.volume);
+        pRelicInfo->setWeight(rows[r].war.weight);
+        pRelicInfo->setRatio(rows[r].war.ratio);
+        pRelicInfo->setDurability(rows[r].war.durability);
+        pRelicInfo->setDefenseBonus(rows[r].war.defense);
+        pRelicInfo->setProtectionBonus(rows[r].war.protection);
+        pRelicInfo->setReqAbility(rows[r].war.reqAbility);
+        pRelicInfo->setItemLevel(rows[r].war.itemLevel);
+        pRelicInfo->setRelicType(rows[r].relicType);
+        pRelicInfo->zoneID = rows[r].zoneID;
+        pRelicInfo->x = rows[r].x;
+        pRelicInfo->y = rows[r].y;
+        pRelicInfo->monsterType = rows[r].monsterType;
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery(
-            "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
-            "ItemLevel, RelicType, ZoneID, XCoord, YCoord, MonsterType FROM RelicInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            RelicInfo* pRelicInfo = new RelicInfo();
-
-            pRelicInfo->setItemType(pResult->getInt(++i));
-            pRelicInfo->setName(pResult->getString(++i));
-            pRelicInfo->setEName(pResult->getString(++i));
-            pRelicInfo->setPrice(pResult->getInt(++i));
-            pRelicInfo->setVolumeType(pResult->getInt(++i));
-            pRelicInfo->setWeight(pResult->getInt(++i));
-            pRelicInfo->setRatio(pResult->getInt(++i));
-            pRelicInfo->setDurability(pResult->getInt(++i));
-            pRelicInfo->setDefenseBonus(pResult->getInt(++i));
-            pRelicInfo->setProtectionBonus(pResult->getInt(++i));
-            pRelicInfo->setReqAbility(pResult->getString(++i));
-            pRelicInfo->setItemLevel(pResult->getInt(++i));
-
-            pRelicInfo->setRelicType(pResult->getString(++i));
-            pRelicInfo->zoneID = pResult->getInt(++i);
-            pRelicInfo->x = pResult->getInt(++i);
-            pRelicInfo->y = pResult->getInt(++i);
-            pRelicInfo->monsterType = pResult->getInt(++i);
-
-            addItemInfo(pRelicInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pRelicInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -331,147 +260,10 @@ void RelicLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, "
-            << " OptionType, Durability, EnchantLevel FROM RelicObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
-
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
-
-        // Relic load할게 있다는것은..
-        // 현재로서는 이전에 서버다운이 되었다는 의미이다.
-        // 그래서, 지운다. by sigi
-        pStmt->executeQuery("DELETE FROM RelicObject WHERE OwnerID = '%s'", pCreature->getName().c_str());
-
-        /*
-        Result* pResult = pStmt->executeQuery( "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType,
-        Durability, EnchantLevel FROM RelicObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                pCreature->getName().c_str() );
-
-
-        while (pResult->next())
-        {
-            uint i = 0;
-
-            Relic* pRelic = new Relic();
-
-            pRelic->setItemID(pResult->getDWORD(++i));
-            pRelic->setObjectID(pResult->getDWORD(++i));
-            pRelic->setItemType(pResult->getDWORD(++i));
-
-            Storage storage =(Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getDWORD(++i);
-            BYTE x = pResult->getBYTE(++i);
-            BYTE y = pResult->getBYTE(++i);
-
-            pRelic->setOptionType(pResult->getInt(++i));
-            pRelic->setDurability(pResult->getInt(++i));
-            pRelic->setEnchantLevel(pResult->getInt(++i));
-
-            Inventory*  pInventory      = NULL;
-            Slayer*     pSlayer         = NULL;
-            Vampire*    pVampire        = NULL;
-            Motorcycle* pMotorcycle     = NULL;
-            Inventory*  pMotorInventory = NULL;
-            //Item*       pItem           = NULL;
-            Stash*      pStash          = NULL;
-            //Belt*       pBelt           = NULL;
-            //Inventory*  pBeltInventory  = NULL;
-
-            if (pCreature->isSlayer())
-            {
-                pSlayer     = dynamic_cast<Slayer*>(pCreature);
-                pInventory  = pSlayer->getInventory();
-                pStash      = pSlayer->getStash();
-                pMotorcycle = pSlayer->getMotorcycle();
-
-                if (pMotorcycle) pMotorInventory = pMotorcycle->getInventory();
-            }
-            else if (pCreature->isVampire())
-            {
-                pVampire   = dynamic_cast<Vampire*>(pCreature);
-                pInventory = pVampire->getInventory();
-                pStash     = pVampire->getStash();
-            }
-            else throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-            switch(storage)
-            {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pRelic))
-                    {
-                        pInventory->addItemEx(x, y, pRelic);
-                    }
-                    else
-                    {
-                        processItemBugEx(pCreature, pRelic);
-                    }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer())
-                    {
-                        if (!pSlayer->isWear((Slayer::WearPart)x))
-                        {
-                            pSlayer->wearItem((Slayer::WearPart)x, pRelic);
-                        }
-                        else
-                        {
-                            processItemBugEx(pCreature, pRelic);
-                        }
-                    }
-                    else if (pCreature->isVampire())
-                    {
-                        processItemBugEx(pCreature, pRelic);
-                    }
-                    break;
-
-                case STORAGE_BELT :
-                    processItemBugEx(pCreature, pRelic);
-                    break;
-
-                case STORAGE_EXTRASLOT :
-                    if (pCreature->isSlayer())       pSlayer->addItemToExtraInventorySlot(pRelic);
-                    else if (pCreature->isVampire()) pVampire->addItemToExtraInventorySlot(pRelic);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pRelic);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y))
-                    {
-                        processItemBugEx(pCreature, pRelic);
-                    }
-                    else pStash->insert(x, y, pRelic);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pRelic);
-                    break;
-
-                default :
-                    SAFE_DELETE(pStmt);	// by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
-            }
-        }
-        */
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    // Relic load할게 있다는것은..
+    // 현재로서는 이전에 서버다운이 되었다는 의미이다.
+    // 그래서, 지운다. by sigi
+    defaultItemObjectRepository().deleteWarItemsOfOwner(GEAR_RELIC, pCreature->getName());
 
     __END_CATCH
 }
@@ -487,55 +279,39 @@ void RelicLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<WarItemZoneObjectRow> rows =
+        defaultItemObjectRepository().loadWarItemInZone(GEAR_RELIC, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        Relic* pRelic = new Relic();
 
-        StringStream sql;
+        pRelic->setItemID(rows[r].itemID);
+        pRelic->setObjectID(rows[r].objectID);
+        pRelic->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,"
-            << " Durability, EnchantLevel FROM RelicObject" << " WHERE Storage = " << (int)STORAGE_ZONE
-            << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        pRelic->setDurability(rows[r].durability);
+        pRelic->setEnchantLevel(rows[r].enchantLevel);
 
-        while (pResult->next()) {
-            uint i = 0;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pRelic);
+        } break;
 
-            Relic* pRelic = new Relic();
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            pRelic->setItemID(pResult->getInt(++i));
-            pRelic->setObjectID(pResult->getInt(++i));
-            pRelic->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            pRelic->setDurability(pResult->getInt(++i));
-            pRelic->setEnchantLevel(pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pRelic);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

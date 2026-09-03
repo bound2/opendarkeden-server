@@ -17,6 +17,7 @@
 #include "Party.h"
 #include "Restore.h"
 #include "TradeManager.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // 슬레이어 오브젝트 핸들러
@@ -92,15 +93,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             Vampire* pVampire = dynamic_cast<Vampire*>(pFromCreature);
 
             // DB에서 혹시 남아있을 지 모르는 흡혈 정보를 삭제해준다.
-            Statement* pStmt = NULL;
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                StringStream sql;
-                sql << "DELETE FROM EffectBloodDrain WHERE OwnerID = '" + pFromCreature->getName() + "'";
-                pStmt->executeQueryString(sql.toString());
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
+            defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, pFromCreature->getName());
 
             pNewSlayer->setName(pFromCreature->getName());
 
@@ -349,15 +342,7 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             Vampire* pVampire = dynamic_cast<Vampire*>(pFromCreature);
 
             // DB에서 혹시 남아있을 지 모르는 흡혈 정보를 삭제해준다.
-            Statement* pStmt = NULL;
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                StringStream sql;
-                sql << "DELETE FROM EffectBloodDrain WHERE OwnerID = '" + pFromCreature->getName() + "'";
-                pStmt->executeQueryString(sql.toString());
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
+            defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, pFromCreature->getName());
 
             pNewSlayer->setName(pFromCreature->getName());
             pNewSlayer->setZone(pZone);

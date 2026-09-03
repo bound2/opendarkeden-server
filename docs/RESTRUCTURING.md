@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 159 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 109 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers; 120→113 on 2026-09-03: the five per-creature effect saves, EffectRestore and the two Restore skills — skill/ now holds no live inline SQL at all; 113→111 on 2026-09-03: GuildWar and RaceWar, the two war-history writers — SiegeWar loses its seven live statements too but keeps counting, its two SiegeWarHistory recorders being commented out whole; 111→109 on 2026-09-03: War and WarSchedule, the WarScheduleInfo probes and writes) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -2267,6 +2267,966 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > (Target), OustersSummonItem and SlayerPortalItem (Charge), then the
   > OptionType + Grade ones (Belt, OustersArmsband, VampireAmulet,
   > CoreZap); ItemInfoManager.cpp holds only the registry calls.
+  > **MixingItem, PetFood, Key and the two charge items (2026-09-03, on
+  > master after the #59 merge; item milestone round 12)**: MixingItem
+  > (`MIXING_ITEM_OBJECT`), PetFood (`PET_FOOD_OBJECT`), Key
+  > (`KEY_OBJECT`), OustersSummonItem and SlayerPortalItem
+  > (`CHARGE_OBJECT`) — R3 159→154 (R2/R5 unchanged). Three object
+  > shapes. MixingItem and PetFood stream the Num + ItemFlag INSERT (ten
+  > columns; (int)m_Num, (int)m_CreateType) and take its UPDATE
+  > (MixingItem (int)m_Num; PetFood its BYTE m_Num uncast — widened to
+  > the seam's int parameter, the same bytes the varargs promotion
+  > produced — against a `Num=%u` literal where MixingItem's says
+  > `Num=%d`), so insertNumItem and updateNumItem now serve these two
+  > kinds too (requireNumObject); the NUM_OBJECT loads do not: both
+  > classes read Num through getInt — owner: the ids getDWORD, Storage
+  > getInt, StorageID getDWORD, X and Y getBYTE, Num and ItemFlag getInt
+  > (`NumIntObjectRow` / loadNumIntItemOfOwner); MixingItem's zone
+  > SELECT names the same nine columns, all getInt
+  > (`NumIntZoneObjectRow` / loadNumIntItemInZone); PetFood's names no
+  > Num at all — the ItemFlag-only zone shape, so loadFlagItemInZone
+  > serves PET_FOOD_OBJECT too (requireFlagZone). Key has a Target
+  > column (an ItemID_t) in place of Num and ItemFlag: nine INSERT
+  > columns (m_Target streamed, "%u"), the UPDATE's `Target=%d` fed the
+  > DWORD as before, Target through getDWORD in both loads
+  > (`KeyObjectRow` / `KeyZoneObjectRow`; insertKey / updateKey /
+  > loadKeyOfOwner / loadKeyInZone) — and a tenth literal,
+  > Key::setNewMotorcycle's "UPDATE KeyObject SET Target=%lu WHERE
+  > ItemID=%lu" (targetID, getItemID()): a `saveTarget` spec field, NULL
+  > for every other table, behind saveKeyTarget, which refuses those;
+  > the original assigned that UPDATE's Result to a pResult it never
+  > read. OustersSummonItem and SlayerPortalItem have a Charge column
+  > (an int): nine INSERT columns, `Charge=%d` in the UPDATE, and both
+  > loads read the same getters — the zone loader too reads the ids
+  > through getDWORD and X, Y through getBYTE — so one `ChargeObjectRow`
+  > serves loadChargeItemOfOwner and loadChargeItemInZone
+  > (insertChargeItem / updateChargeItem); their loaders read every
+  > column into a local before constructing the item and keep that shape
+  > (the locals now read rows[r]). Info: `MixingItemInfoRow` /
+  > loadMixingItemInfos / `GEAR_INFO_MIXING_ITEM` — eleven columns
+  > without Ratio, the six-column head (`HeadInfoRow`: ItemType, Name,
+  > EName, Price, Volume, Weight) plus Target-1, Type-1, SlayerLevel,
+  > VampireLevel, OustersLevel (the caller keeps its
+  > (MixingItemInfo::Target) and (MixingItemInfo::Type) casts);
+  > `IntTripleInfoRow` / loadIntTripleInfos /
+  > `GEAR_INFO_BASIC_INT_TRIPLE` — PetFood's basic plus Target, PetHP,
+  > TameRatio (`first` / `second` / `third` in SELECT order); Key joins
+  > the pair shape (OptionType, TargetType); `SummonItemInfoRow` /
+  > loadSummonItemInfos / `GEAR_INFO_SUMMON_ITEM` — the head plus
+  > MaxCharge, Effect (fed to setEffectID); SlayerPortalItem joins the
+  > Potion shape (`LevelStringInfoRow`: basic plus an int and a varchar
+  > — MaxCharge in `itemLevel`, ReqAbility in `value`; the same getters
+  > — getInt, getString — so the same loader, per the
+  > one-loader-per-shape rule; the column types differ, tinyint unsigned
+  > against int). The `static_assert` now reads GEAR_SLAYER_PORTAL_ITEM
+  > + 1. The transformer (outside the repo; its output is what was
+  > reviewed) gained the four object shapes with their loader lines (the
+  > charge classes' locals-first loaders as a separate line set), the
+  > three Info plans plus per-class setter maps for the triple and the
+  > level-string shapes, the optional `Result* pResult = NULL;` line
+  > under the Statement (the two charge classes declare it in the info
+  > load and both loaders), and the setNewMotorcycle block. Literal
+  > quirks kept: "(ItemID,  ObjectID" (two spaces) and "VALUES(" in
+  > MixingItem, PetFood and Key; the charge pair's cramped column list
+  > "(ItemID,ObjectID,ItemType,OwnerID, Storage,StorageID,X,Y, Charge)
+  > VALUES (" (no space after most commas, one before VALUES's
+  > parenthesis, single-comma value separators); PetFood's `Num=%u`;
+  > Key's `Target=%d` in save beside `%lu` for both ids in
+  > setNewMotorcycle (a latent bug kept: KeyObject.Target is int(10)
+  > unsigned, so an id at or above 2^31 written whole by
+  > setNewMotorcycle's %lu is clamped to 0 by the next save under the
+  > non-strict sql_mode; the test's ids sit below 2^31); nothing else
+  > differs between the five classes' live literals beyond the table
+  > names, the object columns named above and the Info columns.
+  > Disclosures: the seam initialises its Statement where the originals
+  > declared pStmt uninitialised — the zone loader in MixingItem and
+  > PetFood; create, save, the info load and both loaders in Key (Key
+  > had `= NULL` only in tinysave and setNewMotorcycle); the two charge
+  > classes had it everywhere; the SQL-free third-loader stub keeps its
+  > uninitialised pStmt in MixingItem, PetFood and Key (the charge
+  > classes' stubs declare none); one Statement per info statement;
+  > whole-result reads before placement (an item-placement throw no
+  > longer leaks the Statement; the creature loaders'
+  > `SAFE_DELETE(pStmt); // by sigi` before the default-case throw is
+  > gone in all five); DBError.log names the repository method; the five
+  > create INSERTs and zone SELECTs now pass through executeQuery's
+  > 2048-byte format buffer (138–157 bytes of format plus a varchar(10)
+  > owner for the INSERTs, 120–134 for the zone SELECTs, 48 for Key's
+  > Target UPDATE: unreachable); the commented-out StringStream blocks
+  > in save() and the owner loader (all five) and Key's commented-out
+  > alternative Info SELECT line (inside the executeQuery parentheses)
+  > gone with their blocks; the DB.h include kept; the header's "28 item
+  > files" count is 23; the impl's readInfoHead comment, which called
+  > its eight columns the start of "every Info shape but the basic one",
+  > now names the shapes it serves (the two new head shapes start with
+  > six), and the six-column reader is readSixColumnInfoHead (it was
+  > readHeadInfo, a transposition of the eight-column reader's name). +1
+  > integration test: for MixingItem and PetFood two rows through
+  > insertNumItem (Num and ItemFlag read back by SQL), updateNumItem
+  > (Num changed, ItemFlag untouched), the owner load's nine columns,
+  > MixingItem's zone load (Num and ItemFlag) against PetFood's through
+  > loadFlagItemInZone (each refusing the other's table), empty for
+  > another StorageID, tinysave, MAX(ItemType); for Key, Target through
+  > the INSERT, the UPDATE and both loads (2000000001–3), saveKeyTarget
+  > (2000000004) leaving ObjectID alone, tinysave, MAX; for the two
+  > charge tables Charge through the INSERT, the UPDATE and both loads
+  > (the zone row's StorageID, X, Y, Charge), tinysave, MAX; the object
+  > guards both ways (the NUM_OBJECT loads refusing the getInt tables
+  > and those loads refusing a NUM_OBJECT table, the Num writes refusing
+  > Key and a charge table, the Key and charge methods refusing each
+  > other's tables and the getInt ones, saveKeyTarget refusing
+  > MixingItem's table, the flag, plain and gear methods refusing
+  > these); the Info shapes pinned by COUNT(*) and Name / Target-1 /
+  > Type-1 / OustersLevel (MixingItem), Target / PetHP / TameRatio
+  > (PetFood), OptionType / TargetType (Key), MaxCharge / Effect
+  > (OustersSummonItem), MaxCharge / ReqAbility (SlayerPortalItem), each
+  > guard refusing another shape. Not enclosed: the other 23 item files
+  > with SQL — next Money (Amount and Num), CoupleRing and
+  > VampireCoupleRing (OptionType, Name, PartnerItemID),
+  > VampirePortalItem (Charge plus TargetZID, TargetX, TargetY — its
+  > zone loader reads eleven getters over an eight-column SELECT, a
+  > latent OutOfBoundException to keep and disclose), then the
+  > OptionType + Grade ones (VampireAmulet, CoreZap) and those with
+  > Durability too (Belt, OustersArmsband); ItemInfoManager.cpp holds
+  > only the registry calls.
+  > **Money, the two couple rings and VampirePortalItem (2026-09-03,
+  > stacked on the MixingItem / Key / charge round; item milestone round
+  > 13)**: Money (`MONEY_OBJECT`), CoupleRing and VampireCoupleRing
+  > (`COUPLE_RING_OBJECT`), VampirePortalItem (`VAMPIRE_PORTAL_OBJECT`)
+  > — R3 154→150 (R2/R5 unchanged). Three object shapes. Money streams
+  > the plain columns plus Amount (a DWORD, "%u") and (int)m_Num into a
+  > ten-column INSERT, takes an UPDATE with Amount and Num (`Amount=%ld`
+  > fed the DWORD as written) and a tinysave of its own — "SET %s,
+  > Amount=%ld" (field, m_Amount, m_ItemID) — so tinysaveMoney joins
+  > tinysaveGun as a second extra-column tinysave and tinysaveGear
+  > refuses MONEY_OBJECT as it refuses GUN_OBJECT (requireTinysaveShape
+  > now names the kind whose extra column the caller supplies); the
+  > owner load reads Amount through getDWORD and Num through getBYTE
+  > (`MoneyObjectRow` / loadMoneyOfOwner), the zone SELECT names no Num
+  > and reads Amount through getDWORD after the plain seven through
+  > getInt (`MoneyZoneObjectRow` / loadMoneyInZone). The couple rings
+  > stream the plain columns plus the quoted OptionType and Name texts
+  > and PartnerItemID (an ItemID_t, "%u") into an eleven-column INSERT
+  > (insertCoupleRing; the `string optionField; setOptionTypeToField(…)`
+  > lines that sat inside BEGIN_DB now precede the call), take an UPDATE
+  > with Name and PartnerItemID but no OptionType (`PartnerItemID=%ld`
+  > as written; updateCoupleRing), read OptionType and Name through
+  > getString and PartnerItemID through getDWORD in the owner load
+  > (`CoupleRingObjectRow` / loadCoupleRingOfOwner), and name the plain
+  > seven in their zone SELECT, so loadPlainItemInZone serves
+  > COUPLE_RING_OBJECT (requirePlainZone; that loader is dead code — a
+  > cout and Assert(false) precede its DB block — and is converted all
+  > the same); their hasPartnerItem — "SELECT count(*) from
+  > <Class>Object where ItemID=%ld and Storage IN(0, 1, 2, 3, 4, 9)"
+  > (getPartnerItemID()) — is the spec table's eleventh slot,
+  > `partnerCount`, NULL for every other table, behind
+  > loadCoupleRingPartnerCount, which returns whether a row came back
+  > (the original's `pResult->next()` branch) and the count through an
+  > out-parameter; the class keeps its Asserts and its `count == 1`
+  > test. The owner loaders' pPC / FLAGSET_IS_COUPLE block between the
+  > statement and the loop stays, on `rows.empty()` where it read
+  > `pResult->getRowCount() == 0` (the same fact: the stored result's
+  > row count). VampirePortalItem streams the charge columns plus
+  > (int)m_ZoneID, (int)m_X, (int)m_Y into a twelve-column INSERT
+  > (insertVampirePortal), takes the matching UPDATE
+  > (updateVampirePortal), and reads Charge through getInt and the three
+  > targets through getWORD (`VampirePortalObjectRow`); its zone SELECT
+  > names eight columns but its loader read all eleven getters, so on
+  > any zone row the ninth threw getField's OutOfBoundException (logged
+  > to ResultBug.log) out of the loader with the Statement unreleased —
+  > END_DB catches SQLQueryException alone — and no item constructed;
+  > loadVampirePortalInZone reads the same eleven getters over the same
+  > eight-column SELECT and does exactly that, kept for its own fix (the
+  > seam's row vector is discarded by the throw). Info: the basic shape
+  > for Money and the couple rings, the Potion shape (MaxCharge in
+  > `itemLevel`, ReqAbility in `value`) for the portal. The
+  > `static_assert` now reads GEAR_VAMPIRE_PORTAL_ITEM + 1. The
+  > transformer (outside the repo; its output is what was reviewed)
+  > gained the three object shapes with their loader lines, Money's
+  > comment-stripped create (its create kept a commented-out earlier
+  > nine-column chain that the chain extractor would otherwise have
+  > matched first), the Amount tinysave, the couple rings' optionField
+  > lines, hasPartnerItem block and pre-loop pPC block, and the portal's
+  > three getWORD lines. Literal quirks kept: Money's "(ItemID,
+  > ObjectID, …, Amount, Num )" (two spaces after the first comma, one
+  > before the closing parenthesis) and " VALUES(", its UPDATE's
+  > "ObjectID=%ld ,ItemType=%d" (a space before the comma) and
+  > "Amount=%ld,Num=%d" (none after it); the couple rings' "(ItemID,
+  > ObjectID" and " VALUES(" with the quoted '%s', '%s' texts,
+  > CoupleRing's UPDATE saying "Name = '%s'" where VampireCoupleRing's
+  > says "Name='%s'", and the lower-case "count(*) from … where" of
+  > hasPartnerItem; VampirePortalItem's cramped
+  > "(ItemID,ObjectID,ItemType,OwnerID, Storage,StorageID,X,Y,
+  > Charge,TargetZID,TargetX,TargetY) VALUES (" with single-comma value
+  > separators; nothing else differs between the four classes' live
+  > literals beyond the table names and the column sets described.
+  > Disclosures: the seam initialises its Statement where the originals
+  > declared pStmt uninitialised — create, save, the info load and both
+  > loaders in Money (tinysave had `= NULL`); create and both loaders in
+  > the couple rings (tinysave, save, hasPartnerItem and the info load
+  > had it); VampirePortalItem had it everywhere; the SQL-free
+  > third-loader stub keeps its uninitialised pStmt in Money and both
+  > couple rings (the portal's declares none); one Statement per info
+  > statement; whole-result reads before placement (an item-placement
+  > throw no longer leaks the Statement; the creature loaders'
+  > `SAFE_DELETE(pStmt); // by sigi` before the default-case throw is
+  > gone in all four); DBError.log names the repository method; the four
+  > create INSERTs and zone SELECTs now pass through executeQuery's
+  > 2048-byte format buffer (151–190 bytes of format plus a varchar(10)
+  > owner — and, for the couple rings, a varchar(30) OptionType and a
+  > varchar(10) Name — for the INSERTs; 119–134 for the zone SELECTs:
+  > unreachable; Money's 54-byte tinysave plus the caller's field text
+  > and the 87- and 94-byte partner counts went through it already);
+  > hasPartnerItem's two Asserts on the count now run outside the DB
+  > block, so a firing Assert no longer leaks the Statement; the
+  > commented-out StringStream blocks in save() and the owner loader
+  > (all four), Money's commented-out earlier create chain and the
+  > couple rings' "// UPDATE인 경우는 …" comment above the count branch are
+  > gone with their blocks (CoupleRing's "// 위험!" stays;
+  > VampireCoupleRing never had it); the DB.h include stays; the
+  > header's "23 item files" count is 19. The four item files' diffs are
+  > 370–455 lines each, all extraction: every hunk sits in a function
+  > that held SQL, plus the include — no reformat hunks (clang-format 18
+  > changed nothing else in them). +1 integration test: Money — Amount
+  > and Num through the INSERT and the UPDATE (read back by SQL), the
+  > owner load's nine columns, the zone load's Amount and empty for
+  > another StorageID, tinysaveMoney writing X and Amount, tinysaveGear
+  > refusing the table, MAX(ItemType); each couple ring — OptionType,
+  > Name and PartnerItemID through the INSERT, the UPDATE changing Name
+  > and PartnerItemID and leaving OptionType alone, the owner load's ten
+  > columns, the plain zone load, the partner count (1 for the storage-1
+  > ring, 0 for the zone ring and for an unknown id, true in all three
+  > cases), tinysave, MAX; the portal — Charge and TargetY read back
+  > after the INSERT, Charge and TargetZID after the UPDATE, all four
+  > through the owner load, loadVampirePortalInZone throwing
+  > OutOfBoundException with a zone row present and empty without one,
+  > tinysave, MAX; the object guards both ways (the Money, couple-ring
+  > and portal methods refusing each other's tables and the earlier
+  > shapes', tinysaveMoney refusing a couple ring and a gun, tinysaveGun
+  > refusing Money, the plain, charge, Num-only and gear methods
+  > refusing these); the basic Info shape pinned by COUNT(*) and Ratio
+  > for the three basic tables, the Potion shape by COUNT(*) and
+  > MaxCharge / ReqAbility for the portal, each guard refusing another
+  > shape. Not enclosed: the other 19 item files with SQL — next the
+  > OptionType + Grade ones (VampireAmulet, CoreZap) and those with
+  > Durability too (Belt, OustersArmsband), then PetItem (a
+  > twenty-one-column owner SELECT), Motorcycle and the rest;
+  > ItemInfoManager.cpp holds only the registry calls.
+  > **VampireAmulet, CoreZap, Belt and OustersArmsband (2026-09-03,
+  > stacked on the Money / couple-ring / portal round; item milestone
+  > round 14)**: VampireAmulet (`AMULET_OBJECT`), CoreZap
+  > (`CORE_ZAP_OBJECT`), Belt and OustersArmsband (`GEAR_OBJECT`) — R3
+  > 150→146 (R2/R5 unchanged). VampireAmulet and CoreZap stream the gear
+  > INSERT without Durability — eleven columns, whose streamed tail was
+  > optionField.c_str(), getGrade(), (int)m_CreateType — through one
+  > insertOptionGradeItem (requireOptionGradeInsert); VampireAmulet's
+  > UPDATE writes Grade and EnchantLevel (updateAmulet, ten SET columns
+  > and eleven arguments) and its two loads are gear's twelve and eleven
+  > columns through gear's getters, so loadGearOfOwner and
+  > loadGearInZone serve AMULET_OBJECT too (requireGearLoad) while
+  > insertGear and updateGear keep refusing it; CoreZap's UPDATE writes
+  > Grade alone (updateCoreZap, nine SET columns and ten arguments) and
+  > its loads name OptionType, Grade, ItemFlag (owner: ids getDWORD,
+  > Storage getInt, StorageID getDWORD, X, Y getBYTE, OptionType
+  > getString, Grade and ItemFlag getInt — `CoreZapObjectRow` /
+  > loadCoreZapOfOwner) and OptionType, ItemFlag (zone, the rest getInt
+  > — `CoreZapZoneObjectRow` / loadCoreZapInZone). Belt and
+  > OustersArmsband are gear objects: gear's seven statements (Belt's
+  > create was already a parameterized executeQuery — its "%ld, %ld, %d,
+  > '%s', %d, %ld, %d, %d, '%s', %d, %d, %d" literal is verbatim, fed
+  > the same twelve arguments insertGear passes; OustersArmsband's
+  > streams) plus a destroy() — "DELETE FROM <Class>Object WHERE ItemID
+  > = %ld" (m_ItemID), the spec table's twelfth slot, `destroyByID`,
+  > NULL elsewhere, behind destroyGearObject, false when no row went and
+  > true otherwise as the original's getAffectedRowCount() branch; the
+  > class's pocket-item destroy loop precedes the call as before, and
+  > the trailing `return true` stays where it was — only the `return
+  > false` moved, from inside the DB block to the seam's bool. Their
+  > save() saved the pocket items inside the DB block after the UPDATE;
+  > the loop now follows the seam call — the nested saves convert their
+  > own SQL errors, so nothing that END_DB would have caught ever
+  > reached it (same behaviour); the loop leaving the block also means a
+  > throw from it no longer leaks the class's own Statement, which the
+  > seam has already released. Info: VampireAmulet is the standard
+  > shape; CoreZap basic plus OptionClass (the int shape, the caller
+  > keeping its (OptionClass) cast); Belt and OustersArmsband gear's
+  > eighteen columns plus PocketCount after Protection, nineteen — one
+  > `PocketInfoRow`, one loadPocketInfos, two kinds, because Belt read
+  > PocketCount and ItemLevel through getBYTE (`GEAR_INFO_POCKET_BYTE`)
+  > and the armsband through getInt (`GEAR_INFO_POCKET`); the loader
+  > picks the getter by kind and each value lands in the row's int as
+  > its getter returned it. The `static_assert` now reads
+  > GEAR_OUSTERS_ARMSBAND + 1. The transformer (outside the repo; its
+  > output is what was reviewed) gained the two shapes, a cast on the
+  > basic-plus-int setter, a parameterized gear create, the pocket-item
+  > loop after save()'s seam call, and the destroy-by-ItemID block; the
+  > loaders' isUnique / setUnique lines (all four) and the pocket
+  > Inventory lines (Belt, OustersArmsband) stay between setItemType and
+  > the storage reads. Literal quirks kept: " VALUES(" and
+  > "(ItemID,  ObjectID" (two spaces after the first comma) in all four,
+  > and "StorageID , X, Y" (a space before that comma) in VampireAmulet,
+  > CoreZap and OustersArmsband but not Belt; Belt's UPDATE's "OwnerID=
+  > '%s'" (a space after the equals sign) and owner SELECT's "Storage IN
+  > (0, 1, 2, 3, 4, 9)" (a space before the parenthesis);
+  > VampireAmulet's owner SELECT's "X, Y,OptionType" (no space);
+  > OustersArmsband's Info SELECT's "PocketCount,ReqAbility"; the
+  > DELETEs' "ItemID = %ld" (spaces around the equals sign); beyond the
+  > table names, the column sets described and Belt's verbatim create
+  > specifiers quoted above (%ld and %d where the three streamed creates
+  > render %u), nothing else differs between the four classes' live
+  > literals. Disclosures: the seam initialises its Statement where the
+  > originals declared pStmt uninitialised — every DB function of all
+  > four but tinysave (create, save, the info load and both loaders;
+  > destroy too in Belt and OustersArmsband); the SQL-free third-loader
+  > stub keeps its uninitialised pStmt in all four; one Statement per
+  > info statement; whole-result reads before placement (an
+  > item-placement throw no longer leaks the Statement; the creature
+  > loaders' `SAFE_DELETE(pStmt); // by sigi` before the default-case
+  > throw is gone in all four; the `SAFE_DELETE(pStmt)` before
+  > destroy()'s `return false` is gone with the block); DBError.log
+  > names the repository method; three of the four create INSERTs and
+  > all four zone SELECTs now pass through executeQuery's 2048-byte
+  > format buffer, Belt's create having gone through it already (175–199
+  > bytes of format plus a varchar(10) owner and a varchar(10)
+  > OptionType text for the INSERTs; 138–172 for the zone SELECTs; 41
+  > and 52 for the DELETEs) — the cap is unreachable for all of them,
+  > and on overflow executeQuery throws Error, which END_DB, a catch of
+  > SQLQueryException, does not catch; the commented-out StringStream
+  > blocks in save() and the owner loader (all four) and the
+  > commented-out earlier chain in Belt's create are gone with their
+  > blocks; the DB.h include stays; the header's "19 item files" count
+  > is 15; readInfoHead's comment names the pocket shapes among those it
+  > serves. The four item files' diffs are 428–508 lines each, all
+  > extraction: every hunk sits in a function that held SQL, plus the
+  > include — no reformat hunks (clang-format 18 changed nothing else in
+  > them). +1 integration test: VampireAmulet — two rows through
+  > insertOptionGradeItem (OptionType, Grade and the untouched
+  > Durability default read back by SQL), updateAmulet (Grade,
+  > EnchantLevel; Durability still untouched), gear's owner load
+  > (durability 0, grade, enchantLevel, createType), gear's zone load
+  > and empty for another StorageID, tinysave, MAX(ItemType),
+  > loadGearInfos by COUNT(*); CoreZap — the same INSERT, updateCoreZap
+  > (Grade, OptionType), the owner load's ten columns, the zone load's
+  > OptionType and ItemFlag, tinysave, MAX, loadIntInfos by COUNT(*) and
+  > OptionClass; each pocket table — insertGear, updateGear, gear's two
+  > loads, tinysave, destroyGearObject (true, the zone row gone, false
+  > the second time, the other row untouched), MAX, loadPocketInfos by
+  > COUNT(*) and PocketCount / ItemLevel / DowngradeRatio, loadGearInfos
+  > refusing the table; the guards both ways (insertGear refusing the
+  > amulet and CoreZap and updateGear the amulet, insertOptionGradeItem
+  > refusing Belt, updateAmulet refusing CoreZap's table and Belt's and
+  > updateCoreZap the amulet's, both gear loads refusing CoreZap,
+  > loadCoreZapOfOwner refusing the amulet and loadCoreZapInZone Belt,
+  > destroyGearObject refusing Ring and the amulet, destroyItemObject
+  > refusing Belt, loadPocketInfos refusing Ring and the amulet,
+  > loadIntInfos refusing the amulet, loadSilverWeaponOfOwner refusing
+  > the amulet and loadNumItemOfOwner CoreZap). Not enclosed: the other
+  > 15 item files with SQL — next PetItem (a twenty-one-column owner
+  > SELECT), Motorcycle, BloodBible, CarryingReceiver, CastleSymbol,
+  > CodeSheet, Dermis, Fascia, Mitten, Persona, Relic, ShoulderArmor,
+  > Sweeper, WarItem and EventBall (no tables, not registered);
+  > ItemInfoManager.cpp holds only the registry calls.
+  > **Mitten, ShoulderArmor, Persona, Dermis, Fascia and
+  > CarryingReceiver (2026-09-03, stacked on the VampireAmulet / CoreZap
+  > / pocket round; item milestone round 15)**: the six classes whose
+  > `<Class>Loader::load(Zone*)` is an empty `__BEGIN_TRY` /
+  > `__END_CATCH` stub — six statements each, no zone SELECT, so their
+  > spec rows carry no zone literal (the seventh slot NULL) and a new
+  > guard, requireZoneLiteral, makes loadGearInZone refuse such a table
+  > instead of formatting a NULL. R3 146→140 (R1/R2/R5 unchanged).
+  > Mitten, ShoulderArmor and Persona are `GEAR_OBJECT` like Ring:
+  > gear's twelve-column INSERT, gear's twelve arguments to updateGear
+  > and gear's twelve columns in the owner load, so the gear methods
+  > that serve Ring — insertGear, tinysaveGear, updateGear and
+  > loadGearOfOwner — take them as they stand, while destroyGearObject
+  > refuses them exactly as it refuses Ring, neither carrying a
+  > destroy-by-id literal; Info is gear's eighteen columns (Mitten,
+  > ShoulderArmor) or the sixteen VampireCoat reads (Persona —
+  > `GEAR_INFO_NO_RATIO`). Dermis, Fascia and CarryingReceiver are
+  > `OPTION_GRADE_OBJECT`: VampireAmulet's INSERT (eleven columns, no
+  > Durability) through insertOptionGradeItem, whose guard now takes the
+  > new kind, and updateAmulet's eleven arguments over its ten SET
+  > columns; their owner load names eleven columns, gear's without
+  > Durability, through gear's getters (ItemID, ObjectID, ItemType
+  > getDWORD, Storage getInt, StorageID getDWORD, X, Y getBYTE,
+  > OptionType getString, Grade, EnchantLevel, ItemFlag getInt —
+  > `OptionGradeObjectRow` / loadOptionGradeOfOwner), and their Info
+  > SELECT is gear's eighteen columns without Durability, seventeen
+  > (`GearInfoNoDurabilityRow` / loadGearInfosNoDurability, read as the
+  > basic seven plus gear's ten — readBasicInfo and readGearInfoTail
+  > became templates to serve the new row beside their own). The
+  > `static_assert` now reads GEAR_CARRYING_RECEIVER + 1. Literal quirks
+  > kept: "(ItemID,  ObjectID" (two spaces after the first comma),
+  > "StorageID , X, Y" (a space before that comma) and " VALUES(" in all
+  > six creates; "Storage IN(0, 1, 2, 3, 4, 9)" (no space before the
+  > parenthesis) in all six owner SELECTs, Dermis's naming "X,
+  > Y,OptionType" where the other five leave a space; "SET %s WHERE
+  > ItemID=%ld" in the six tinysaves. Normalised pairwise with the class
+  > name replaced, the six rows collapse to two INSERT shapes (with and
+  > without Durability), one tinysave, two UPDATEs, one MAX(ItemType),
+  > three Info SELECTs (18 / 16 / 17 columns) and three owner SELECTs
+  > (twelve columns; eleven; Dermis's eleven with the missing space) —
+  > no other literal differs among them, and the rows' two enum slots
+  > record exactly those shapes. The generator (outside the repo; its
+  > output is what was reviewed) reproduces the base impl byte for byte
+  > after clang-format when run against the base's 74-class list, so
+  > this round's edits to it add code and change nothing already
+  > generated. Disclosures: the seam initialises its Statement where the
+  > originals declared pStmt uninitialised (create, save, the info load
+  > and the owner loader in all six; their tinysave already used `=
+  > NULL`); one Statement per info statement, where the original ran
+  > MAX(ItemType) and the column SELECT on one; whole-result reads
+  > before placement (an item-placement throw no longer leaks the
+  > Statement; the owner loaders' `SAFE_DELETE(pStmt); // by sigi`
+  > before the default-case throw is gone in all six); DBError.log names
+  > the repository method; the six create INSERTs now pass through
+  > executeQuery's 2048-byte format buffer (174-197 bytes of format plus
+  > a varchar(10) owner and a varchar(10) OptionType) where
+  > executeQueryString was uncapped — on overflow executeQuery throws
+  > Error, which END_DB (a catch of SQLQueryException) does not catch
+  > and which leaks the Statement, but reaching it would need an
+  > optionField of some 1,700 bytes against a varchar(10) column; the
+  > SQL-free zone stubs and the third loader, load(StorageID_t,
+  > Inventory*), are untouched; the DB.h include stays; the header's "15
+  > item files" count is 9. The six item files' diffs are 322-362 lines
+  > each, all extraction: every hunk sits in a function that held SQL,
+  > plus the include — the base files were already clang-format-18 clean
+  > (formatting a copy of each changed nothing). +1 integration test:
+  > per gear table — two rows through insertGear (Durability and
+  > ItemFlag read back by SQL), updateGear (Durability, ObjectID), the
+  > owner load (one row: the Storage 5 row is outside the IN list) with
+  > its itemID, objectID, storageID, optionField, durability, grade,
+  > enchantLevel and createType, loadGearInZone throwing for want of a
+  > zone literal, tinysaveGear, MAX(ItemType) and the Info loader by
+  > COUNT(*) plus two columns (loadGearInfosNoRatio for Persona with
+  > loadGearInfos refused, loadGearInfos for the other two with
+  > loadGearInfosNoRatio refused, loadGearInfosNoDurability refused for
+  > all three); per option-grade table — two rows through
+  > insertOptionGradeItem (OptionType, Grade, ItemFlag and the untouched
+  > Durability default read back), updateAmulet (Grade, EnchantLevel,
+  > ObjectID; Durability still untouched), the owner load's eleven
+  > fields, tinysaveGear, MAX(ItemType), loadGearInfosNoDurability by
+  > COUNT(*) and name / ratio / defense / upgradeRatio / downgradeRatio
+  > with loadGearInfos refused; and the guards both ways (insertGear
+  > refusing Dermis, insertOptionGradeItem refusing Mitten, updateGear
+  > refusing Fascia, updateAmulet refusing ShoulderArmor, updateCoreZap
+  > refusing Dermis, loadGearOfOwner refusing CarryingReceiver,
+  > loadOptionGradeOfOwner refusing Persona and VampireAmulet,
+  > loadGearInfosNoDurability refusing Ring and VampireCoat,
+  > destroyGearObject refusing Mitten, loadNumItemOfOwner refusing
+  > Dermis, loadSilverWeaponOfOwner refusing Mitten — and loadGearInZone
+  > still loading for Ring and VampireAmulet, since the new guard is the
+  > literal, not the shape). Not enclosed: the other 9 item files with
+  > SQL — PetItem (a twenty-one-column owner SELECT), Motorcycle,
+  > BloodBible, CastleSymbol, CodeSheet, Relic, Sweeper and WarItem, and
+  > EventBall, which has no tables and is not registered;
+  > ItemInfoManager.cpp holds only the registry calls.
+  > **BloodBible, CastleSymbol, Sweeper and Relic (2026-09-03, stacked
+  > on the one-loader round; item milestone round 16)**: the four war
+  > items (`WAR_ITEM_OBJECT`) — R3 140→136 (R1/R2/R5 unchanged). Their
+  > object statements are their own shape: a nine-column INSERT (the
+  > three ids, OwnerID, Storage, StorageID, X, Y and Durability last —
+  > no OptionType, Grade or ItemFlag), a nine-column UPDATE with
+  > Durability and EnchantLevel (updateWarItem, nine SET columns and ten
+  > arguments), gear's tinysave literal, and a nine-column zone SELECT
+  > read entirely through getInt (`WarItemZoneObjectRow` /
+  > loadWarItemInZone). Their creature loader holds no SELECT at all:
+  > its one live statement deletes the owner's rows, because a row still
+  > standing there means the server went down — "DELETE FROM
+  > <Class>Object WHERE OwnerID = '%s'", the spec table's thirteenth
+  > slot, `deleteByOwner`, NULL elsewhere, behind deleteWarItemsOfOwner,
+  > with the Korean comment that explains it above the call.
+  > insertWarItem returns the statement it ran: BloodBible, CastleSymbol
+  > and Sweeper logged the string their create had built to WarLog.txt,
+  > so the seam formats the literal into a std::string (vsnprintf sizes
+  > the buffer first, so nothing truncates), runs it through
+  > executeQueryString — the path the originals took — and hands the
+  > text back for the caller's filelog line; Relic's create does not log
+  > and ignores the return. Info: twelve columns for BloodBible,
+  > CastleSymbol and Sweeper (the eight head columns plus Defense,
+  > Protection, ReqAbility, ItemLevel, no upgrade tail — `WarInfoRow` /
+  > loadWarInfos / `GEAR_INFO_WAR`) and seventeen for Relic (those
+  > twelve plus RelicType, ZoneID, XCoord, YCoord, MonsterType —
+  > `RelicInfoRow` / loadRelicInfos / `GEAR_INFO_RELIC`), whose
+  > InfoManager assigns the last four to the info's own members rather
+  > than through setters; the transformer learned that shape. The
+  > `static_assert` now reads GEAR_RELIC + 1. Literal quirks kept:
+  > "(ItemID,  ObjectID" (two spaces after the first comma), "StorageID ,
+  > X, Y" (a space before that comma) and " VALUES(" in all four
+  > creates, CastleSymbol's closing "Durability )" among them; Relic's
+  > UPDATE's "EnchantLevel=%d  WHERE" (two spaces); the zone SELECTs'
+  > "Storage = %d AND StorageID = %u" and the DELETEs' "OwnerID = '%s'".
+  > Normalised pairwise with the class name replaced, the four rows
+  > collapse to two INSERTs, one tinysave, two UPDATEs, one
+  > MAX(ItemType), two Info SELECTs, one zone SELECT and one DELETE — no
+  > other literal differs among them, and the rows' two enum slots
+  > record exactly those shapes. The generator (outside the repo; its
+  > output is what was reviewed) reproduces the previous round's impl
+  > byte for byte after clang-format when run against its 80-class list,
+  > measured with the generator as of this commit. Disclosures: the
+  > three sprintf tinysaves keep their char[255] buffer and their WarLog
+  > line, and the sprintf still runs on every call (before the seam's
+  > statement now, where the original ran it after createStatement) —
+  > but what reaches the DB changes: the original passed that buffer to
+  > executeQuery as the format string, so a '%' surviving from `field`
+  > was rescanned as a conversion against an empty argument list, while
+  > the seam formats gear's literal with `field` as a %s argument, so it
+  > is data; the sprintf still overflows the 255-byte buffer for a
+  > longer field, as it did, and the statement still goes out in full,
+  > and above 2048 bytes both paths hit executeQuery's own cap and throw
+  > the same Error, since the original's executeQuery(query) bound to
+  > the same varargs overload — so the only real change is the rescan,
+  > and every tinysave call site passes a short "column=value" text
+  > anyway; the four zone SELECTs pass through that format buffer too
+  > (140-147 bytes of format, their arguments two integers) where
+  > executeQueryString was uncapped — at exactly 2048 bytes vsnprintf
+  > truncates silently and beyond it executeQuery throws Error, which
+  > END_DB (a catch of SQLQueryException) does not catch and which leaks
+  > the Statement; the create path still goes through
+  > executeQueryString. The seam initialises its Statement where the
+  > originals declared pStmt uninitialised (create, save, the info load
+  > and both loaders; their tinysave already used `= NULL`), and the
+  > SQL-free third loader keeps its uninitialised pStmt; one Statement
+  > per info statement; whole-result reads before placement in the zone
+  > loader (a Tile placement throw no longer leaks the Statement), and
+  > the same move means RelicInfoManager's setRelicType, which throws
+  > InvalidProtocolException on an unknown RelicType, can no longer leak
+  > the Statement it used to throw past; DBError.log names the
+  > repository method; the two commented-out blocks in the creature
+  > loader (the StringStream SELECT, and the parameterized one whose row
+  > loop holds the `SAFE_DELETE(pStmt);` line a tab and `// by sigi`
+  > follow) and the commented-out StringStream chain in save() are gone
+  > with their blocks; the DB.h include stays; the header's "9 item
+  > files" count is 5. The four item files' diffs are 335-354 lines
+  > each, all extraction: every hunk sits in a function that held SQL,
+  > plus the include — the base files were already clang-format-18 clean
+  > (formatting a copy of each changed nothing). +1 integration test:
+  > per table, two rows through insertWarItem (the owner's and another
+  > owner's zone row) with the returned statement compared byte for byte
+  > against the expected text, including CastleSymbol's "Durability )",
+  > and Durability, ObjectID and the untouched EnchantLevel read back by
+  > SQL; updateWarItem (Durability, EnchantLevel, ObjectID);
+  > tinysaveGear; loadWarItemInZone's nine fields and empty for another
+  > StorageID; deleteWarItemsOfOwner leaving the other owner's row
+  > alone; MAX(ItemType); the Info loader by COUNT(*) plus columns
+  > (loadRelicInfos for Relic with loadWarInfos refused, loadWarInfos
+  > for the other three with loadRelicInfos refused, loadGearInfos
+  > refused for all four); and the guards both ways (insertGear refusing
+  > BloodBible; insertWarItem, updateWarItem, loadWarItemInZone and
+  > deleteWarItemsOfOwner refusing Ring; updateGear refusing Sweeper;
+  > loadGearOfOwner refusing Relic; loadWarInfos and loadRelicInfos
+  > refusing Ring; destroyGearObject refusing BloodBible). Not enclosed:
+  > the other 5 item files with SQL — PetItem (a twenty-one-column owner
+  > SELECT), Motorcycle, CodeSheet and WarItem, and EventBall, which has
+  > no tables and is not registered; ItemInfoManager.cpp holds only the
+  > registry calls.
+  > **PetItem (2026-09-03, stacked on the Motorcycle / CodeSheet /
+  > WarItem round; item milestone round 18, the last)**: PetItem
+  > (`PET_ITEM_OBJECT`) — R3 133→132 (R1/R2/R5 unchanged). No item class
+  > holds inline SQL now; only EventBall is left, and it has no tables
+  > and is not registered. PetItem carries ten literals, three more than
+  > the standard seven: its create runs one of two INSERTs (nine columns
+  > when the item has no PetInfo, twenty-one when it does), its save one
+  > of two UPDATEs (seven SET columns or nineteen) and savePetInfo a
+  > third UPDATE writing the twelve pet columns alone — new spec slots
+  > `insertWithInfo`, `updateWithInfo` and `savePetInfo`, NULL for every
+  > other table, behind insertPetItem / insertPetItemWithInfo,
+  > updatePetItem / updatePetItemWithInfo and savePetItemInfo, with the
+  > callers keeping their `m_pPetInfo == NULL` branch and choosing the
+  > method. Its owner SELECT names twenty-one columns and admits Storage
+  > 13 besides the usual list (`PetItemObjectRow` / loadPetItemOfOwner:
+  > the ids getDWORD, Storage getInt, StorageID getDWORD, X, Y getBYTE,
+  > ItemFlag and the eleven numeric pet columns getInt, LastFeedTime and
+  > Nickname getString); its zone SELECT is the ItemFlag-only eight, so
+  > loadFlagItemInZone serves it (requireFlagZone now takes
+  > `PET_ITEM_OBJECT` beside `FLAG_OBJECT` and `PET_FOOD_OBJECT`);
+  > tinysave and the basic Info shape are the usual ones. Every argument
+  > keeps the type the caller passed: the ids and PetExp unsigned, the
+  > byte- and word-wide pet fields promoted to int, and the pet time and
+  > the nickname as std::string where the originals passed .c_str(). The
+  > `static_assert` now reads GEAR_PET_ITEM + 1. Literal quirks kept:
+  > PetItem's two INSERTs write "(ItemID, ObjectID" with a single space,
+  > as AR's, BombMaterial's and Magazine's do where the rest of the
+  > table has two, and " VALUES (" with a space before the parenthesis,
+  > which only they and Skull's INSERT do; both feed the DWORD ItemID
+  > through "%lu" (the seam passes the same ItemID_t, so the varargs are
+  > what they were); the owner SELECT's "Storage IN(0, 1, 2, 3, 4, 9,
+  > 13)", where every other class's list stops at 9. PetItem's call
+  > sites were converted by a class-specific script rather than the
+  > shared transformer (outside the repo either way; the output is what
+  > was reviewed), because its create and save each hold two statements
+  > and it has a third writer; every pattern in it had to match exactly
+  > once. The generator reproduces the previous round's impl byte for
+  > byte after clang-format at its 87-class list, measured with the
+  > generator as of this commit. Disclosures: the seam initialises its
+  > Statement where the zone loader declared pStmt uninitialised (the
+  > other five DB functions already used `= NULL`), and the SQL-free
+  > third loader keeps its uninitialised pStmt; one Statement per info
+  > statement; create and save chose their branch inside the DB block,
+  > after the Statement was made, and now choose it before the seam call
+  > makes one — the same single Statement per call, created a moment
+  > later; whole-result reads before placement in the creature loader
+  > (an item-placement throw no longer leaks the Statement) and its
+  > `SAFE_DELETE(pStmt);` line before the default-case throw, which a
+  > tab and `// by sigi` follow, is gone; DBError.log names the
+  > repository method; the commented-out StringStream chain in create is
+  > gone with its block; only the zone SELECT newly passes through
+  > executeQuery's 2048-byte format buffer (126 bytes of format, its
+  > arguments two integers) where executeQueryString was uncapped — both
+  > INSERTs, the owner SELECT, both UPDATEs and savePetInfo were
+  > parameterized already, so their 44-330-byte formats went through it
+  > before; the DB.h include stays; the header's "2 item files" line now
+  > names EventBall alone. PetItem.cpp's diff is 539 lines, all
+  > extraction: every hunk sits in a function that held SQL, plus the
+  > include — the base file was already clang-format-18 clean. +1
+  > integration test: the owner's row through insertPetItem and the zone
+  > row through insertPetItemWithInfo with five pet columns read back by
+  > SQL and PetLevel still 0 on the short row; updatePetItem, then
+  > updatePetItemWithInfo (ObjectID, PetCreatureType, PetExp, PetHP,
+  > Nickname, LastFeedTime); savePetItemInfo writing the pet columns
+  > while ObjectID stays; loadPetItemOfOwner's twenty-one fields,
+  > PetOption still 0 because only the long INSERT writes it;
+  > loadFlagItemInZone's eight fields and empty for another StorageID;
+  > tinysaveGear, MAX(ItemType), loadBasicInfos by COUNT(*); and the
+  > guards both ways (the five PetItem writers refusing Ring,
+  > loadPetItemOfOwner refusing QuestItem, insertPlainItem /
+  > loadFlagItemOfOwner / loadGearInZone / destroyGearObject refusing
+  > PetItem, loadFlagItemInZone still serving QuestItem). ctest 5/5,
+  > 124/124, the build exit 0. Not enclosed: EventBall, whose statements
+  > name tables initdb/DARKEDEN.sql does not define and whose class
+  > ItemInfoManager does not register; ItemInfoManager.cpp holds only
+  > the registry calls.
+  > **The quest catalogues (2026-09-03, stacked on the PetItem round;
+  > the first round after the item milestone)**: the five mission/ files
+  > with live SQL behind one new seam, `QuestInfoRepository` +
+  > `MySQLQuestInfoRepository` (defaultQuestInfoRepository()) — R3
+  > 132→127 (R1/R2/R5 unchanged). SimpleQuestInfoManager reads
+  > MonsterKillQuestInfo's nine columns for one NPC
+  > (loadMonsterKillQuestsOfNPC); SimpleQuestRewardManager reads
+  > ItemRewardInfo and SlayerWeaponRewardInfo, whose six columns are
+  > identical, into one `ItemRewardRow`; EventQuestInfoManager reads the
+  > same MonsterKillQuestInfo plus GatherItemQuestInfo, MeetNPCQuestInfo
+  > and MiniGameQuestInfo with EventQuest and QuestLevel appended (four
+  > methods, four rows, each wrapping the non-event shape);
+  > EventQuestAdvance::save runs an UPDATE and, when no row went, an
+  > INSERT IGNORE — updateEventQuestAdvance returns false when nothing
+  > was written and the caller keeps its branch — while
+  > EventQuestAdvanceManager::load reads the owner's rows;
+  > EventQuestLootingManager reads the whole EventQuestLootingInfo
+  > catalogue, whose SELECT computes LootingType-1 in SQL and takes no
+  > arguments, so it stays an executeQueryString. The six columns every
+  > quest-info SELECT starts with are one `QuestHeadRow` read by one
+  > private helper; every numeric column comes back through getInt and
+  > OptionType through getString, the getters the inline code called,
+  > and the callers keep their casts and their flag-to-bool tests.
+  > Literal quirks kept: SimpleQuestInfoManager's "WHERE NPC = '%s'"
+  > (spaces around the equals sign) against the event and reward
+  > managers' "WHERE NPC='%s'"; the two reward SELECTs' identical column
+  > lists against two table names; "INSERT IGNORE INTO
+  > EventQuestAdvance". Disclosures: EventQuestInfoManager's DB block
+  > never deleted its Statement (the file has no SAFE_DELETE at all), so
+  > its four SELECTs leaked one per call — the seam deletes each of the
+  > four it now makes; SimpleQuestRewardManager ran its two SELECTs on
+  > one Statement and save its UPDATE and INSERT on one, and each
+  > statement is its own Statement now (save's second still only when
+  > the UPDATE wrote nothing); whole-result reads before construction,
+  > so a throw from a QuestInfo or RewardInfo constructor no longer
+  > leaks the Statement, and the `cout << "Loading Quest Info : ..."`
+  > lines stay; no statement changes its formatting path (the ten
+  > parameterized ones already went through executeQuery's 2048-byte
+  > buffer, the looting SELECT keeps executeQueryString); DBError.log
+  > names the repository method. The five files' diffs are 37-210 lines,
+  > all extraction. +4 integration tests in a new QuestInfoMySQL suite
+  > (128 total): the four catalogues field by field and empty for
+  > another NPC; the two reward tables including the auto-increment
+  > RewardID read back by SQL; EventQuestAdvance's
+  > false-then-insert-then-true sequence, an INSERT IGNORE over the
+  > primary key changing nothing, and the per-owner load; and a
+  > 'MONSTER' looting row coming back with lootingType 1, the enum's
+  > second label decremented by the SELECT. Not enclosed: the other five
+  > mission/ files — QuestInfoManager, RewardClassInfoManager,
+  > ItemRewardInfo, EventQuestRewardManager and MiniGameQuestStatus —
+  > whose only executeQuery text sits inside commented-out blocks: they
+  > hold no live statement, so R3 keeps counting them until that dead
+  > text goes, which is a separate decision.
+  > **The zone-effect readers (2026-09-03, stacked on the quest
+  > round)**: the seven skill/Effect*.cpp loaders that read
+  > ZoneEffectInfo — R3 127→120 (R1/R2/R5 unchanged). No new repository:
+  > the config round had already put the seven-column statement behind
+  > ZoneInfoRepository::loadZoneEffectRects for EffectOnBridgeLoader and
+  > left a comment naming these six loaders as its next callers, so
+  > EffectAcidSwamp, EffectContinualBloodyWall, EffectGreenPoison,
+  > EffectIceField, EffectProminence and EffectYellowPoison simply
+  > become callers, reading the existing `ZoneEffectRow`;
+  > EffectDarkness's four-column "%u" variant gets the method that
+  > comment promised (loadZoneEffectBounds + `ZoneEffectBoundsRow`, the
+  > literal byte for byte), and its "VSRect rect(...)" line stays
+  > between the load and the loop. The header comment now records that
+  > the seven-column statement's callers are complete and that
+  > BloodyWall and GrayDarkness are not callers, their loaders being
+  > commented out. Disclosures: not one of the seven loaders deleted its
+  > Statement — none of those files contains a SAFE_DELETE at all — so
+  > every call leaked one, and the two seam methods delete theirs: seven
+  > leaks closed. Whole-result reads before the tile painting, so a
+  > throw from getTile or addEffect no longer leaks the Statement.
+  > EffectAcidSwamp's `value1` read is commented out in the original,
+  > which shifts its two live reads one column left (value2 takes
+  > Value1, value3 takes Value2, Value3 is never read); the row hands
+  > over the columns as the SELECT names them and the caller keeps that
+  > shift, with a comment saying so. Neither statement changes its
+  > formatting path: both were parameterized executeQuery calls already.
+  > The seven files' diffs are 49-73 lines, all extraction. The existing
+  > ZoneConfigMySQL.ZoneEffectRectsAreScopedToZoneAndEffect now also
+  > pins the four-column read (the same row without its values, the
+  > other effect's row in that zone, the other zone's row for that
+  > effect, and nothing for an effect with no rows); ctest 5/5, 128/128,
+  > build exit 0. Not enclosed in skill/: EffectBloodDrain, EffectFlare,
+  > EffectLight, EffectRestore and EffectYellowPoisonToCreature, which
+  > own per-creature tables and run four StringStream-built statements
+  > each — the shape EffectSaveRepository already serves for other
+  > effects — and Restore.cpp / Restore2.cpp, which delete
+  > EffectBloodDrain rows and touch GuildMember.LogOn; EffectBloodyWall
+  > and EffectGrayDarkness keep only commented-out loaders, so R3 still
+  > counts them.
+  > **The per-creature effect saves (2026-09-03, stacked on the
+  > zone-effect round)**: the five skill/Effect*.cpp classes that own a
+  > table, plus the two Restore skills — R3 120→113 (R1/R2/R5
+  > unchanged), and with them skill/ stops holding live inline SQL
+  > entirely: the only two files the grep still finds there,
+  > EffectBloodyWall and EffectGrayDarkness, carry nothing but
+  > commented-out loaders. No new repository: EffectSaveRepository
+  > already served eight one-table-per-effect saves in three shapes, and
+  > this round adds the fourth shape, plus a fifth table to the first.
+  > EffectRestore turns out to BE a deadline table — (OwnerID, YearTime,
+  > DayTime), a loader that reads DayTime alone — so it becomes a fifth
+  > DeadlineEffectTable enumerator whose four literals differ from the
+  > other four only in spacing ("VALUES('%s' , " and "YearTime =
+  > %ld,DayTime"). EffectBloodDrain, EffectFlare, EffectLight and
+  > EffectYellowPoisonToCreature carry their own columns on top of that
+  > core and get a fourth family, CreatureEffectTable, with a per-table
+  > shape driving both the varargs and the read: Level via getBYTE for
+  > EffectBloodDrain, OldSight for the two sight effects, both for
+  > EffectYellowPoisonToCreature with Level via getInt. Disclosures:
+  > OldSight is named by three of the four SELECTs and read by NONE of
+  > their loaders, which hard-code the restored sight to 13 — the column
+  > stays in the statements byte for byte and `CreatureEffectRow` does
+  > not carry it, since fetching it would be a driver call the originals
+  > never made. EffectRestore and the four per-creature classes built
+  > their statements with StringStream and ran them through the uncapped
+  > executeQueryString; they are format strings through the 2048-byte
+  > executeQuery now, and OwnerID is a varchar(10), so the cap is
+  > unreachable. EffectBloodDrain was already parameterized and keeps
+  > its overload; its commented-out StringStream twins go with the
+  > blocks that held them, which is what drops the file out of R3.
+  > EffectYellowPoisonToCreature is the first caller in this seam to
+  > pass five varargs: four fit the registers a member call leaves, and
+  > the fifth is an int OldSight through "%d" on the INSERT and a char*
+  > owner name through "%s" on the UPDATE, both exact. The three
+  > create()s that filled a Timeval before opening their DB block keep
+  > the call, dead local and all. One leak closed: skill/Restore.cpp's
+  > GuildMember LogOn = 0 write freed nothing on its success path, and
+  > it now goes through SessionRepository::markGuildMemberLoggedOff —
+  > whose header had listed that very site as not enclosed. Two smaller
+  > shape fixes come with the move, neither a leak:
+  > EffectYellowPoisonToCreature's four blocks freed their Statement
+  > with a bare "delete pStmt" where the seam uses SAFE_DELETE, and
+  > thirteen of the twenty-five blocks declared "Statement* pStmt;"
+  > uninitialised, which END_DB would have deleted had createStatement()
+  > itself thrown; every seam method starts from NULL. Restore.cpp and
+  > Restore2.cpp keep two EffectBloodDrain purges each, whose
+  > string-built DELETE is the same literal EffectBloodDrain::destroy
+  > emitted, so all four call deleteCreatureEffect. Not touched:
+  > src/server/Restore.cpp and src/server/Restore2.cpp, the unbuilt
+  > ServerCore forks that carry copies of the same blocks (R3 keeps
+  > counting them). Tests: DEADLINE_TABLE_NAMES grows to five so the
+  > existing round-trip sweep covers EffectRestore, and a new
+  > CreatureEffectMySQL suite (five tests) pins the per-table column
+  > lists, the written-and-never-read OldSight, EffectFlare's unnamed
+  > Level column, the keyless duplicate, each table's own Level getter
+  > and the no-op writes; ctest 5/5, 133/133, build exit 0.
+  > **The war histories and the reinforcement registry (2026-09-03,
+  > stacked on the per-creature round)**: war/GuildWar.cpp,
+  > war/RaceWar.cpp and war/SiegeWar.cpp — R3 113→111 (R1/R2/R5
+  > unchanged). SiegeWar loses all seven of its live statements but
+  > keeps counting: its recordSiegeWarStart and recordSiegeWarEnd are
+  > commented out whole, and R3 greps the text. No new repository:
+  > WarInfoRepository already owned LevelWarHistory and
+  > loadShrineOwners, and its header had named war/RaceWar.cpp's shrine
+  > re-read as one of the outside users still holding inline SQL — that
+  > note is now the record of a caller. Three statement groups arrive:
+  > GuildWarHistory's start and end, RaceWarHistory's start and end plus
+  > the RaceWarPCLimit totals its start sums, and SiegeWar's six
+  > ReinforceRegisterInfo statements. Disclosures: the two histories
+  > diverge in a way the tests now pin — GuildWarHistory has WarID as
+  > its PRIMARY KEY and its start is an INSERT IGNORE, so a repeat is
+  > dropped, while RaceWarHistory is keyless and its start is a plain
+  > INSERT, so a repeat leaves a second row and the end, keyed on
+  > RaceWarID alone, then rewrites both. Six of SiegeWar's statements
+  > asked for the connection by the name "Darkeden" where every other
+  > site in the tree writes "DARKEDEN";
+  > DatabaseManager::getConnection(const string&) never reads the name
+  > at all — it keys on Thread::self() and falls back to the default
+  > connection — so the two spellings always selected the same socket,
+  > and the seam writes "DARKEDEN" like its neighbours.
+  > SiegeWar::canReinforce guarded each COUNT(*) with an "if
+  > (pResult->next())" that could never fail, so the two counts return
+  > plain ints, the same reasoning BalanceInfoRepository.h records for
+  > its MAX read. RaceWar's two recorders ran two and three statements
+  > on ONE Statement object; each gets its own now, on the same thread
+  > and the same connection. Leaks closed: six. GuildWar's two blocks
+  > and RaceWar's two never freed their Statement at all, and
+  > canReinforce's two early returns —
+  > NPC_RESPONSE_TOO_MANY_GUILD_REGISTERED and
+  > NPC_RESPONSE_REINFORCE_DENYED — returned from inside the BEGIN_DB
+  > block, jumping over its SAFE_DELETE; both now return from outside
+  > the seam call. Still holding inline SQL in war/: War.cpp and
+  > WarSchedule.cpp and WarScheduler.cpp on WarScheduleInfo,
+  > RaceWarLimiter.cpp on RaceWarPCLimit and RaceWarPCList, and
+  > WarScheduler's own ReinforceRegisterInfo read, which scopes on WarID
+  > without a ServerID and so is not one of the statements enclosed
+  > here. Tests: four added to WarInfoMySQL for the two histories'
+  > opposite duplicate behaviour, the per-race totals and the registry's
+  > whole lifecycle (the counts' war/server scoping, the WAIT lookup
+  > that leaves the caller's default alone, accept and deny reporting
+  > whether a row changed, and the DELETE taking exactly one
+  > war-and-server pair); ctest 5/5, 137/137, build exit 0.
+  > **The war-schedule writes (2026-09-03, stacked on the war-history
+  > round)**: war/War.cpp and war/WarSchedule.cpp — R3 111→109 (R1/R2/R5
+  > unchanged). Five more statements join WarInfoRepository: the
+  > COUNT(*) and MAX(WarID) probes War::initWarIDRegistry runs at boot,
+  > and WarSchedule's INSERT IGNORE, REPLACE and tinysave UPDATE. Two of
+  > those five literals were written with a backslash-continued source
+  > line, which splices the next line's four leading TABS into the
+  > string right before "VALUES"; the seam spells the run as an explicit
+  > "\t\t\t\t" so clang-format cannot reflow it away, and a scratchpad
+  > checker (r35_litcheck.pl) splices, concatenates and unescapes both
+  > revisions' literals to prove all five are byte-identical — 165, 258,
+  > 64, 36 and 38 bytes, the lowercase "from" of "SELECT COUNT(*) from
+  > WarScheduleInfo" included. Disclosures: create() and save() both
+  > ended their DB block with an affected-row check that logs to
+  > WarError.log and returns, so the two seam writes report whether a
+  > row actually changed and the callers keep the branch — the INSERT
+  > IGNORE really can report nothing, WarID being the table's PRIMARY
+  > KEY, and the test pins both outcomes. initWarIDRegistry called
+  > next() on each probe without checking it and read column 1 through
+  > getDWORD; kept, because a COUNT(*) always answers with one row and
+  > the MAX runs only after the count came back non-zero. Its two
+  > commented-out "DIST_DARKEDEN" connection lines go with the block
+  > they annotated. tinysave keeps its own commented-out affected-row
+  > check, which now names a pStmt the function no longer has: it
+  > records a check the original had disabled, not a twin of the live
+  > statement, so it stays. Nothing in war/ changes hands beyond those
+  > two files: WarScheduler.cpp keeps its conditional per-zone load, its
+  > ReinforceRegisterInfo read and its guild-schedule cancel, and
+  > RaceWarLimiter.cpp keeps its eight. The scheduler's load wants its
+  > own round — it re-assigns the result pointer of the loop it is
+  > iterating, so extracting it would change what the loop sees, and
+  > that deserves its own disclosure rather than a footnote here. Tests:
+  > two added to WarInfoMySQL for the write pair's affected-row
+  > reporting, the column defaults an INSERT that names no AttackerCount
+  > leaves, the REPLACE overwriting the same key, the probes, and
+  > tinysave's fragment landing on exactly one war and server; ctest
+  > 5/5, 139/139, build exit 0.
+  > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
+  > war-item round; item milestone round 17)**: the last three shapes
+  > before PetItem — R3 136→133 (R1/R2/R5 unchanged). Motorcycle
+  > (`MOTORCYCLE_OBJECT`) streams the gear INSERT without Grade and
+  > ItemFlag (ten columns, the option field built from m_OptionType)
+  > through insertMotorcycle, writes nine SET columns in
+  > updateMotorcycle (ten arguments), reads nine columns in its owner
+  > load through gear's getters (`MotorcycleObjectRow` /
+  > loadMotorcycleOfOwner) and eight in its zone load, every one getInt
+  > with no OptionType among them (`MotorcycleZoneObjectRow` /
+  > loadMotorcycleInZone); Info is the eight head columns alone
+  > (`DurabilityInfoRow` / loadDurabilityInfos /
+  > `GEAR_INFO_DURABILITY`). CodeSheet (`CODE_SHEET_OBJECT`) streams the
+  > plain INSERT plus OptionType (nine columns) and an UPDATE of eight
+  > SET columns; its owner load is the plain seven plus OptionType
+  > (`CodeSheetObjectRow` / loadCodeSheetOfOwner) and its zone SELECT is
+  > gear's eleven columns, so loadGearInZone serves it —
+  > requireGearZoneLoad splits off the zone half of requireGearLoad,
+  > which keeps refusing CodeSheet for the owner load; Info is the
+  > six-column head alone (the existing `HeadInfoRow`, a new
+  > loadHeadInfos, `GEAR_INFO_HEAD`). WarItem is a plain object
+  > (insertPlainItem, updatePlainItem, tinysaveGear, loadBasicInfos)
+  > with no loader that holds SQL: all three of its Loader::load
+  > overloads are stubs, so its spec row carries neither an owner nor a
+  > zone literal and requireOwnerLiteral / requireZoneLiteral make the
+  > plain loads refuse it; its create logs the statement it ran to
+  > WarLog.txt, so it takes insertPlainItemLogged, which formats the
+  > plain INSERT into a string, runs it through executeQueryString as
+  > the original did and hands the text back. The `static_assert` now
+  > reads GEAR_WAR_ITEM + 1. Literal quirks kept: "(ItemID,  ObjectID"
+  > (two spaces after the first comma), "StorageID , X, Y" (a space
+  > before that comma) and " VALUES(" in all three creates; "Storage
+  > IN(0, 1, 2, 3, 4, 9)" in the two owner SELECTs; "Storage = %d AND
+  > StorageID = %u" in the two zone SELECTs; gear's "SET %s WHERE
+  > ItemID=%ld" in the three tinysaves. Beyond that literal and the
+  > MAX(ItemType) probe the three share no statement shape: their
+  > INSERTs are ten, nine and eight columns, their UPDATEs nine, eight
+  > and seven SET columns, their Info SELECTs eight, six and seven.
+  > Preserved as it stands: CodeSheet's zone SELECT names Durability,
+  > EnchantLevel and ItemFlag, which initdb's CodeSheetObject does not
+  > have — the statement fails against this schema, before the seam and
+  > through it (END_DB logs to DBError.log and rethrows); the test pins
+  > that it throws. Disclosures: WarItem's tinysave keeps its char
+  > query[255] sprintf and its WarLog.txt line, but what reaches the DB
+  > changes — the original passed that buffer to executeQuery as the
+  > format string, so a '%' surviving from `field` was rescanned as a
+  > conversion against an empty argument list and a statement over 255
+  > bytes smashed the buffer, while the seam formats gear's literal with
+  > `field` as a %s argument, so it is data. Nothing else about that
+  > path changes: the sprintf still overflows the 255-byte buffer for a
+  > longer field, the statement still goes out in full, and above 2048
+  > bytes both paths hit executeQuery's own cap and throw the same Error
+  > (which END_DB, a catch of SQLQueryException, does not catch, and
+  > which leaks the Statement), because the original's
+  > executeQuery(query) bound to the same varargs overload. Every
+  > tinysave call site passes a short "column=value" text, so none of it
+  > is reachable today. The three creates and the two streamed zone
+  > SELECTs now pass through that 2048-byte buffer (132-169 bytes of
+  > format plus a varchar(10) owner and, in two of the creates, a
+  > varchar(10) or varchar(30) OptionType; 131 and 166 for the zone
+  > SELECTs, whose arguments are two integers) where executeQueryString
+  > was uncapped. The seam initialises its Statement where the originals
+  > declared pStmt uninitialised (create, save, the info load and, in
+  > Motorcycle and CodeSheet, both loaders; their tinysave already used
+  > `= NULL`, and WarItem's four declarations are three uninitialised
+  > ones and its tinysave's `= NULL`); WarItem's three Loader::load
+  > overloads, all SQL-free stubs, and the other two classes' third
+  > loader are untouched; one Statement per info statement; whole-result
+  > reads before placement in Motorcycle's and CodeSheet's loaders;
+  > CodeSheet's `SAFE_DELETE(pStmt); // by sigi` line before the
+  > default-case throw is gone, while Motorcycle's copy — the one whose
+  > comment follows a tab — stays inside the commented-out switch in its
+  > row loop; DBError.log names the repository method; the commented-out
+  > StringStream chains in save() and the creature loader are gone with
+  > their blocks; the DB.h include stays; the header's "5 item files"
+  > count is 2. The three item files' diffs are 93-399 lines each, all
+  > extraction: every hunk sits in a function that held SQL, plus the
+  > include — the base files were already clang-format-18 clean. The
+  > generator (outside the repo; its output is what was reviewed)
+  > reproduces the previous round's impl byte for byte after
+  > clang-format at its 84-class list, measured with the generator as of
+  > this commit. +1 integration test: Motorcycle's two rows, update,
+  > both loads and Info by COUNT(*) and three columns; CodeSheet's row,
+  > update, owner load, the throwing zone load and Info by COUNT(*) and
+  > two columns; WarItem's row, update, tinysave, both plain loads
+  > refused and its basic Info; and the guards both ways
+  > (insertPlainItem refusing Motorcycle, insertMotorcycle refusing
+  > Ring, insertCodeSheet refusing WarItem, updateMotorcycle refusing
+  > CodeSheet, updateCodeSheet refusing Motorcycle,
+  > loadMotorcycleOfOwner refusing CodeSheet, loadCodeSheetOfOwner
+  > refusing Motorcycle, loadGearOfOwner refusing CodeSheet,
+  > loadGearInZone refusing Motorcycle, loadDurabilityInfos and
+  > loadHeadInfos refusing Ring, loadHeadInfos refusing MixingItem,
+  > destroyGearObject refusing Motorcycle, and both plain loads still
+  > serving EventGiftBox). ctest 5/5, 123/123, the build relinking
+  > libItems.a and the gameserver. Not enclosed: PetItem, whose owner
+  > SELECT names twenty-one columns and whose savePetInfo writes the pet
+  > columns of the same table in a third statement, and EventBall, which
+  > has no tables and is not registered; ItemInfoManager.cpp holds only
+  > the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

@@ -19,9 +19,8 @@
 // connection, the rest through the DARKEDEN connection. Write parameters
 // are typed to the members/expressions each caller streamed.
 //
-// Not enclosed: skill/Restore.cpp's GuildMember LogOn = 0 write (the
-// vampire->slayer restore, built and live, the same unfreed Statement);
-// the session START side — CGConnectHandler's Player LogOn='GAME' flip
+// Not enclosed: the session START side — CGConnectHandler's Player
+// LogOn='GAME' flip
 // and GuildMember LogOn = 1 writes, CGPortCheckHandler's UserIPInfo
 // upsert, CGRequestIPHandler's and CGSayHandler's UserIPInfo reads — all
 // handler-directory files (R3); CGSayHandler's and
@@ -37,7 +36,9 @@ public:
     virtual ~SessionRepository() {}
 
     // --- guild roster (DARKEDEN) -------------------------------------------
-    // GuildMember.LogOn = 0 for one character (session end, morph).
+    // GuildMember.LogOn = 0 for one character. Two callers: the session
+    // end, and skill/Restore.cpp's vampire–>slayer morph, whose own copy
+    // of the write never freed its Statement.
     virtual void markGuildMemberLoggedOff(const std::string& name) = 0;
 
     // --- the account row (dist connection) ---------------------------------

@@ -12,6 +12,7 @@
 #include "GCRemoveEffect.h"
 #include "Player.h"
 #include "Slayer.h"
+#include "repository/EffectSaveRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class EffectLight member methods
@@ -114,27 +115,14 @@ void EffectLight::create(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     Timeval currentTime;
     getCurrentTime(currentTime);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    Turn_t currentYearTime;
+    getCurrentYearTime(currentYearTime);
 
-        StringStream sql;
-
-        Turn_t currentYearTime;
-        getCurrentYearTime(currentYearTime);
-
-        sql << "INSERT INTO EffectLight" << "(OwnerID , YearTime, DayTime, OldSight)" << " VALUES('" << ownerID
-            << "' , " << currentYearTime << " , " << m_Deadline.tv_sec << "," << (int)m_OldSight << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().insertCreatureEffect(CREATURE_EFFECT_LIGHT, ownerID, currentYearTime,
+                                                       m_Deadline.tv_sec, 0, (int)m_OldSight);
 
     __END_CATCH
 }
@@ -144,18 +132,7 @@ void EffectLight::destroy(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-        sql << "DELETE FROM EffectLight WHERE OwnerID = '" << ownerID << "'";
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().deleteCreatureEffect(CREATURE_EFFECT_LIGHT, ownerID);
 
     __END_CATCH
 }
@@ -165,24 +142,11 @@ void EffectLight::save(const string& ownerID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    Turn_t currentYearTime;
+    getCurrentYearTime(currentYearTime);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        StringStream sql;
-
-        Turn_t currentYearTime;
-        getCurrentYearTime(currentYearTime);
-
-        sql << "UPDATE EffectLight SET " << "YearTime = " << currentYearTime << ", DayTime = " << m_Deadline.tv_sec
-            << ", OldSight = " << (int)m_OldSight << " WHERE OwnerID = '" << ownerID << "'";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultEffectSaveRepository().updateCreatureEffect(CREATURE_EFFECT_LIGHT, ownerID, currentYearTime,
+                                                       m_Deadline.tv_sec, 0, (int)m_OldSight);
 
     __END_CATCH
 }
@@ -207,49 +171,34 @@ void EffectLightLoader::load(Creature* pCreature)
         return;
     }
 
-    Statement* pStmt = NULL;
+    vector<CreatureEffectRow> rows =
+        defaultEffectSaveRepository().loadCreatureEffects(CREATURE_EFFECT_LIGHT, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (pCreature->isSlayer()) {
+            Turn_t YearTime = rows[r].yearTime;
+            int DayTime = rows[r].dayTime;
 
-        StringStream sql;
+            Turn_t currentYearTime;
 
-        sql << "SELECT YearTime, DayTime, OldSight FROM EffectLight" << " WHERE OwnerID = '" << pCreature->getName()
-            << "'";
+            Timeval currentTime;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+            getCurrentYearTime(currentYearTime);
 
-        while (pResult->next()) {
-            if (pCreature->isSlayer()) {
-                uint i = 0;
+            getCurrentTime(currentTime);
 
-                Turn_t YearTime = pResult->getDWORD(++i);
-                int DayTime = pResult->getDWORD(++i);
-
-                Turn_t currentYearTime;
-
-                Timeval currentTime;
-
-                getCurrentYearTime(currentYearTime);
-
-                getCurrentTime(currentTime);
-
-                int leftTime = ((YearTime - currentYearTime) * 24 * 60 * 60 + (DayTime - currentTime.tv_sec)) * 10;
-                EffectLight* pEffect = new EffectLight(pCreature);
-                if (leftTime > 0) {
-                    pEffect->setDeadline(leftTime);
-                    pCreature->setFlag(Effect::EFFECT_CLASS_LIGHT);
-                    pCreature->addEffect(pEffect);
-                } else {
-                    pEffect->destroy(pCreature->getName());
-                    SAFE_DELETE(pEffect);
-                }
+            int leftTime = ((YearTime - currentYearTime) * 24 * 60 * 60 + (DayTime - currentTime.tv_sec)) * 10;
+            EffectLight* pEffect = new EffectLight(pCreature);
+            if (leftTime > 0) {
+                pEffect->setDeadline(leftTime);
+                pCreature->setFlag(Effect::EFFECT_CLASS_LIGHT);
+                pCreature->addEffect(pEffect);
+            } else {
+                pEffect->destroy(pCreature->getName());
+                SAFE_DELETE(pEffect);
             }
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 ItemID_t SlayerPortalItem::m_ItemIDRegistry = 0;
 Mutex SlayerPortalItem::m_Mutex;
@@ -50,8 +51,6 @@ void SlayerPortalItem::create(const string& ownerID, Storage storage, StorageID_
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -63,18 +62,8 @@ void SlayerPortalItem::create(const string& ownerID, Storage storage, StorageID_
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        StringStream sql;
-        sql << "INSERT INTO SlayerPortalItemObject "
-            << "(ItemID,ObjectID,ItemType,OwnerID, Storage,StorageID,X,Y, Charge) VALUES (" << m_ItemID << ","
-            << m_ObjectID << "," << m_ItemType << ",'" << ownerID << "'," << (int)storage << "," << storageID << ","
-            << (int)x << "," << (int)y << "," << m_Charge << ")";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQueryString(sql.toString());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertChargeItem(GEAR_SLAYER_PORTAL_ITEM, m_ItemID, m_ObjectID, m_ItemType, ownerID,
+                                                   (int)storage, storageID, (int)x, (int)y, m_Charge);
 
     __END_CATCH
 }
@@ -87,16 +76,7 @@ void SlayerPortalItem::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE SlayerPortalItemObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_SLAYER_PORTAL_ITEM, field, m_ItemID);
 
     __END_CATCH
 }
@@ -106,35 +86,8 @@ void SlayerPortalItem::save(const string& ownerID, Storage storage, StorageID_t 
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        /*
-        StringStream sql;
-        sql << "UPDATE SlayerPortalItemObject SET "
-            << "ObjectID   = "  << m_ObjectID
-            << ",ItemType  = "  << m_ItemType
-            << ",OwnerID   = '" << ownerID << "'"
-            << ",Storage   = "  <<(int)storage
-            << ",StorageID = "  << storageID
-            << ",X         = "  <<(int)x
-            << ",Y         = "  <<(int)y
-            << ",Charge    = "  << m_Charge
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE SlayerPortalItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Charge=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y, m_Charge,
-                            m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateChargeItem(GEAR_SLAYER_PORTAL_ITEM, m_ObjectID, m_ItemType, ownerID,
+                                                   (int)storage, storageID, (int)x, (int)y, m_Charge, m_ItemID);
 
     __END_CATCH
 }
@@ -205,45 +158,30 @@ void SlayerPortalItemInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_SLAYER_PORTAL_ITEM);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM SlayerPortalItemInfo");
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        pResult->next();
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        m_InfoCount = pResult->getInt(1);
+    vector<LevelStringInfoRow> rows = defaultItemObjectRepository().loadLevelStringInfos(GEAR_SLAYER_PORTAL_ITEM);
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+    for (size_t r = 0; r < rows.size(); r++) {
+        SlayerPortalItemInfo* pSlayerPortalItemInfo = new SlayerPortalItemInfo();
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
+        pSlayerPortalItemInfo->setItemType(rows[r].basic.itemType);
+        pSlayerPortalItemInfo->setName(rows[r].basic.name);
+        pSlayerPortalItemInfo->setEName(rows[r].basic.ename);
+        pSlayerPortalItemInfo->setPrice(rows[r].basic.price);
+        pSlayerPortalItemInfo->setVolumeType(rows[r].basic.volume);
+        pSlayerPortalItemInfo->setWeight(rows[r].basic.weight);
+        pSlayerPortalItemInfo->setRatio(rows[r].basic.ratio);
+        pSlayerPortalItemInfo->setMaxCharge(rows[r].itemLevel);
+        pSlayerPortalItemInfo->setReqAbility(rows[r].value);
 
-        pResult = pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, MaxCharge, "
-                                      "ReqAbility FROM SlayerPortalItemInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            SlayerPortalItemInfo* pSlayerPortalItemInfo = new SlayerPortalItemInfo();
-            pSlayerPortalItemInfo->setItemType(pResult->getInt(++i));
-            pSlayerPortalItemInfo->setName(pResult->getString(++i));
-            pSlayerPortalItemInfo->setEName(pResult->getString(++i));
-            pSlayerPortalItemInfo->setPrice(pResult->getInt(++i));
-            pSlayerPortalItemInfo->setVolumeType(pResult->getInt(++i));
-            pSlayerPortalItemInfo->setWeight(pResult->getInt(++i));
-            pSlayerPortalItemInfo->setRatio(pResult->getInt(++i));
-            pSlayerPortalItemInfo->setMaxCharge(pResult->getInt(++i));
-            pSlayerPortalItemInfo->setReqAbility(pResult->getString(++i));
-
-            addItemInfo(pSlayerPortalItemInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pSlayerPortalItemInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -274,112 +212,85 @@ void SlayerPortalItemLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<ChargeObjectRow> rows =
+        defaultItemObjectRepository().loadChargeItemOfOwner(GEAR_SLAYER_PORTAL_ITEM, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            ItemID_t itemID = rows[r].itemID;
+            ObjectID_t objectID = rows[r].objectID;
+            ItemType_t itemType = rows[r].itemType;
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
+            int charge = rows[r].charge;
 
-        /*
-        StringStream sql;
+            SlayerPortalItem* pSlayerPortalItem = new SlayerPortalItem();
+            pSlayerPortalItem->setItemID(itemID);
+            pSlayerPortalItem->setObjectID(objectID);
+            pSlayerPortalItem->setItemType(itemType);
+            pSlayerPortalItem->setCharge(charge);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Charge FROM SlayerPortalItemObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            << (int)STORAGE_INVENTORY << "," << (int)STORAGE_GEAR       << "," <<(int)STORAGE_BELT << ","
-            << (int)STORAGE_EXTRASLOT << "," << (int)STORAGE_MOTORCYCLE << "," <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-        pResult = pStmt->executeQueryString(sql.toString());
-        */
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-        pResult = pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Charge FROM "
-                                      "SlayerPortalItemObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                      pCreature->getName().c_str());
+                if (pMotorcycle != NULL)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-
-        while (pResult->next()) {
-            try {
-                uint i = 0;
-
-                ItemID_t itemID = pResult->getDWORD(++i);
-                ObjectID_t objectID = pResult->getDWORD(++i);
-                ItemType_t itemType = pResult->getDWORD(++i);
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-                int charge = pResult->getInt(++i);
-
-                SlayerPortalItem* pSlayerPortalItem = new SlayerPortalItem();
-                pSlayerPortalItem->setItemID(itemID);
-                pSlayerPortalItem->setObjectID(objectID);
-                pSlayerPortalItem->setItemType(itemType);
-                pSlayerPortalItem->setCharge(charge);
-
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
-                if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle != NULL)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                if (storage == STORAGE_INVENTORY) {
-                    if (pInventory->canAddingEx(x, y, pSlayerPortalItem)) {
-                        pInventory->addItemEx(x, y, pSlayerPortalItem);
-                    } else {
-                        processItemBugEx(pCreature, pSlayerPortalItem);
-                    }
-                } else if (storage == STORAGE_GEAR) {
-                    processItemBugEx(pCreature, pSlayerPortalItem);
-                } else if (storage == STORAGE_BELT) {
-                    processItemBugEx(pCreature, pSlayerPortalItem);
-                } else if (storage == STORAGE_EXTRASLOT) {
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pSlayerPortalItem);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pSlayerPortalItem);
-                } else if (storage == STORAGE_MOTORCYCLE) {
-                    processItemBugEx(pCreature, pSlayerPortalItem);
-                } else if (storage == STORAGE_STASH) {
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pSlayerPortalItem);
-                    } else
-                        pStash->insert(x, y, pSlayerPortalItem);
-                } else if (storage == STORAGE_GARBAGE) {
-                    processItemBug(pCreature, pSlayerPortalItem);
+            if (storage == STORAGE_INVENTORY) {
+                if (pInventory->canAddingEx(x, y, pSlayerPortalItem)) {
+                    pInventory->addItemEx(x, y, pSlayerPortalItem);
                 } else {
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
+                    processItemBugEx(pCreature, pSlayerPortalItem);
                 }
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            } else if (storage == STORAGE_GEAR) {
+                processItemBugEx(pCreature, pSlayerPortalItem);
+            } else if (storage == STORAGE_BELT) {
+                processItemBugEx(pCreature, pSlayerPortalItem);
+            } else if (storage == STORAGE_EXTRASLOT) {
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pSlayerPortalItem);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pSlayerPortalItem);
+            } else if (storage == STORAGE_MOTORCYCLE) {
+                processItemBugEx(pCreature, pSlayerPortalItem);
+            } else if (storage == STORAGE_STASH) {
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pSlayerPortalItem);
+                } else
+                    pStash->insert(x, y, pSlayerPortalItem);
+            } else if (storage == STORAGE_GARBAGE) {
+                processItemBug(pCreature, pSlayerPortalItem);
+            } else {
+                throw Error("invalid storage or OwnerID must be NULL");
             }
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -391,47 +302,33 @@ void SlayerPortalItemLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<ChargeObjectRow> rows = defaultItemObjectRepository().loadChargeItemInZone(
+        GEAR_SLAYER_PORTAL_ITEM, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        StringStream sql;
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Charge FROM SlayerPortalItemObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+    for (size_t r = 0; r < rows.size(); r++) {
+        ItemID_t itemID = rows[r].itemID;
+        ObjectID_t objectID = rows[r].objectID;
+        ItemType_t itemType = rows[r].itemType;
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
+        int charge = rows[r].charge;
 
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQueryString(sql.toString());
+        SlayerPortalItem* pSlayerPortalItem = new SlayerPortalItem();
+        pSlayerPortalItem->setItemID(itemID);
+        pSlayerPortalItem->setObjectID(objectID);
+        pSlayerPortalItem->setItemType(itemType);
+        pSlayerPortalItem->setCharge(charge);
 
-        while (pResult->next()) {
-            uint i = 0;
-
-            ItemID_t itemID = pResult->getDWORD(++i);
-            ObjectID_t objectID = pResult->getDWORD(++i);
-            ItemType_t itemType = pResult->getDWORD(++i);
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getDWORD(++i);
-            BYTE x = pResult->getBYTE(++i);
-            BYTE y = pResult->getBYTE(++i);
-            int charge = pResult->getInt(++i);
-
-            SlayerPortalItem* pSlayerPortalItem = new SlayerPortalItem();
-            pSlayerPortalItem->setItemID(itemID);
-            pSlayerPortalItem->setObjectID(objectID);
-            pSlayerPortalItem->setItemType(itemType);
-            pSlayerPortalItem->setCharge(charge);
-
-            if (storage == STORAGE_ZONE) {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pSlayerPortalItem);
-            } else {
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        if (storage == STORAGE_ZONE) {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pSlayerPortalItem);
+        } else {
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

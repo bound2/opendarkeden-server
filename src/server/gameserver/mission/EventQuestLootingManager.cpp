@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "StringStream.h"
 #include "Vampire.h"
+#include "repository/QuestInfoRepository.h"
 
 int g_ratio[5] = {34, 50, 34, 25, 16};
 
@@ -148,41 +149,29 @@ bool EventQuestLootingManager::killed(PlayerCreature* pPC, Monster* pMonster) {
 void EventQuestLootingManager::load() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    vector<EventQuestLootingRow> rows = defaultQuestInfoRepository().loadEventQuestLootingInfos();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQueryString(
-            "SELECT QuestLevel, LootingType-1, LootingZone, LootingMType, LootingIClass, LootingITypeMin, "
-            "LootingITypeMax, Race, MinGrade, MaxGrade FROM EventQuestLootingInfo");
+    for (size_t r = 0; r < rows.size(); r++) {
+        EventQuestLootingInfo* pInfo = new EventQuestLootingInfo;
 
-        while (pResult->next()) {
-            int index = 0;
+        pInfo->m_QuestLevel = rows[r].questLevel;
+        pInfo->m_Type = (EventQuestLootingInfo::TYPE)rows[r].lootingType;
+        pInfo->m_LootingZoneID = (ZoneID_t)rows[r].lootingZone;
+        pInfo->m_LootingMonsterType = (MonsterType_t)rows[r].lootingMType;
+        pInfo->m_LootingItemClass = (Item::ItemClass)rows[r].lootingIClass;
+        pInfo->m_LootingItemTypeMin = (ItemType_t)rows[r].lootingITypeMin;
+        pInfo->m_LootingItemTypeMax = (ItemType_t)rows[r].lootingITypeMax;
+        pInfo->m_Race = (Race_t)rows[r].race;
+        pInfo->m_MinGrade = (QuestGrade_t)rows[r].minGrade;
+        pInfo->m_MaxGrade = (QuestGrade_t)rows[r].maxGrade;
 
-            EventQuestLootingInfo* pInfo = new EventQuestLootingInfo;
+        if (pInfo->m_Type == EventQuestLootingInfo::LOOTING_ZONE)
+            m_ZoneLootingInfo[pInfo->m_LootingZoneID].push_back(pInfo);
+        else if (pInfo->m_Type != EventQuestLootingInfo::LOOTING_NONE)
+            m_MonsterLootingInfo[pInfo->m_LootingMonsterType].push_back(pInfo);
 
-            pInfo->m_QuestLevel = pResult->getInt(++index);
-            pInfo->m_Type = (EventQuestLootingInfo::TYPE)pResult->getInt(++index);
-            pInfo->m_LootingZoneID = (ZoneID_t)pResult->getInt(++index);
-            pInfo->m_LootingMonsterType = (MonsterType_t)pResult->getInt(++index);
-            pInfo->m_LootingItemClass = (Item::ItemClass)pResult->getInt(++index);
-            pInfo->m_LootingItemTypeMin = (ItemType_t)pResult->getInt(++index);
-            pInfo->m_LootingItemTypeMax = (ItemType_t)pResult->getInt(++index);
-            pInfo->m_Race = (Race_t)pResult->getInt(++index);
-            pInfo->m_MinGrade = (QuestGrade_t)pResult->getInt(++index);
-            pInfo->m_MaxGrade = (QuestGrade_t)pResult->getInt(++index);
-
-            if (pInfo->m_Type == EventQuestLootingInfo::LOOTING_ZONE)
-                m_ZoneLootingInfo[pInfo->m_LootingZoneID].push_back(pInfo);
-            else if (pInfo->m_Type != EventQuestLootingInfo::LOOTING_NONE)
-                m_MonsterLootingInfo[pInfo->m_LootingMonsterType].push_back(pInfo);
-
-            //	cout << "Loading : " << pInfo->toString() <<endl;
-        }
-
-        SAFE_DELETE(pStmt);
+        //	cout << "Loading : " << pInfo->toString() <<endl;
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

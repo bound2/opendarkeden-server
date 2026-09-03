@@ -9,16 +9,27 @@
 // Persistence seam for the race-war tables (task 3.2): the shrines and
 // their owning race (ShrineInfo), the castles and their guild/tax state
 // (CastleInfo), the level-war sweeper bonuses (SweeperBonusInfo), the
-// sweeper safes and owners (SweeperSetInfo, SweeperOwnerInfo), the
-// level-war history (LevelWarHistory) and the master lairs
-// (MasterLairInfo). Reads are typed to the driver getter the inline
+// sweeper safes and owners (SweeperSetInfo, SweeperOwnerInfo), the four
+// war histories (LevelWarHistory, GuildWarHistory, RaceWarHistory and
+// the RaceWarPCLimit totals one of them records), the siege-war
+// reinforcement registry (ReinforceRegisterInfo), the scheduled wars
+// (WarScheduleInfo) and the master lairs (MasterLairInfo). Reads are
+// typed to the driver getter the inline
 // code called (getInt → int, getString → std::string); the writes'
 // parameters are typed to the member/getter each caller streamed, so
 // the varargs bytes reaching the format strings are unchanged.
 //
 // Other users of these tables keep their own inline SQL: the guild
 // managers (gameserver and sharedserver) count and list castles by
-// guild, and war/RaceWar.cpp re-reads the shrine owners.
+// guild; GuildRepository::countReinforceRegistrations joins
+// ReinforceRegisterInfo to WarScheduleInfo for a guild-wide count, a
+// different statement from the war-scoped ones here; and
+// war/WarScheduler.cpp reads the ACCEPT registrations of a war id
+// without a server id. war/WarScheduler.cpp also keeps its own
+// WarScheduleInfo statements — the conditional per-zone load and the
+// guild-schedule cancel — which are not the ones enclosed here.
+// war/RaceWar.cpp's two shrine-owner reads are no longer among them
+// — they call loadShrineOwners() now.
 
 // ShrineInfo's row, 20 columns in SELECT order.
 struct ShrineRow {
@@ -82,6 +93,14 @@ struct CastleStateRecord {
     int itemTaxRatio;
     int entranceFee;
     int taxBalance;
+};
+
+// RaceWar::recordRaceWarStart's per-race totals: SUM(CurrentNum) over
+// RaceWarPCLimit, grouped by race. Both columns come back through getInt,
+// as the inline read took them.
+struct RaceCurrentNumRow {
+    int race;
+    int currentNum;
 };
 
 struct SweeperBonusRow {
@@ -196,6 +215,71 @@ public:
     virtual void updateLevelWarHistory(const std::string& slayerNew, const std::string& vampireNew,
                                        const std::string& oustersNew, const std::string& defaultNew, int level,
                                        const std::string& levelWarID) = 0;
+
+
+    // --- guild-war history ------------------------------------------------
+    // GuildWar::recordGuildWarStart / recordGuildWarEnd. Every argument is
+    // the (int) cast or c_str() the caller already applied; the INSERT is an
+    // INSERT IGNORE, so a repeated start for the same WarID is dropped.
+    virtual void insertGuildWarHistory(int warID, const std::string& guildWarID, int serverID,
+                                       const std::string& castleName, int defenseGuildID,
+                                       const std::string& defenseGuildName, int attackGuildID,
+                                       const std::string& attackGuildName) = 0;
+    virtual void updateGuildWarWinner(int winnerGuildID, const std::string& winnerGuildName, int warID) = 0;
+
+    // --- race-war history -------------------------------------------------
+    // The totals RaceWar::recordRaceWarStart sums before writing its row.
+    virtual std::vector<RaceCurrentNumRow> loadRaceWarCurrentNums() = 0;
+    // A plain INSERT, unlike the guild war's IGNORE: a repeated start for
+    // the same RaceWarID adds a second row (the table is keyless).
+    virtual void insertRaceWarHistory(const std::string& raceWarID, uint slayerNum, uint vampireNum, uint oustersNum,
+                                      const std::string& slayerOld, const std::string& vampireOld,
+                                      const std::string& oustersOld) = 0;
+    virtual void updateRaceWarBloodBibles(const std::string& slayerNew, const std::string& vampireNew,
+                                          const std::string& oustersNew, const std::string& raceWarID) = 0;
+
+    // --- siege-war reinforcement registry ----------------------------------
+    // SiegeWar's six statements, all scoped to (WarID, ServerID). serverID is
+    // g_pConfig->getPropertyInt("ServerID"), an int the format strings render
+    // through "%u" as before.
+    // The two counts a COUNT(*) always answers with exactly one row, so the
+    // inline "if (pResult->next())" guards could never fail (the same
+    // reasoning BalanceInfoRepository.h records for its MAX read).
+    virtual int countWaitingReinforceRegistrations(WarID_t warID, int serverID) = 0;
+    virtual int countDeniedReinforceRegistrations(WarID_t warID, int serverID, GuildID_t guildID) = 0;
+    // The first WAIT registration's guild; false when there is none and the
+    // caller keeps its own 0.
+    virtual bool loadWaitingReinforceGuild(WarID_t warID, int serverID, GuildID_t& guildID) = 0;
+    virtual void insertReinforceRegistration(WarID_t warID, int serverID, GuildID_t guildID) = 0;
+    // Both return whether a row actually changed (getAffectedRowCount() > 0).
+    virtual bool acceptReinforceRegistration(WarID_t warID, int serverID, GuildID_t guildID) = 0;
+    virtual bool denyReinforceRegistration(WarID_t warID, int serverID, GuildID_t guildID) = 0;
+    virtual void deleteReinforceRegistrations(WarID_t warID, int serverID) = 0;
+
+    // --- scheduled wars ----------------------------------------------------
+    // War::initWarIDRegistry's two probes. Both call next() without checking
+    // it and read column 1 through getDWORD, as the inline code did: a
+    // COUNT(*) always answers with one row, and the caller only asks for the
+    // MAX after the count came back non-zero, so the NULL an empty table
+    // would yield never reaches getDWORD.
+    virtual int countWarSchedules() = 0;
+    virtual DWORD loadMaxWarID() = 0;
+    // WarSchedule::create and WarSchedule::save. Both report whether a row
+    // actually changed (getAffectedRowCount() > 0); the callers log to
+    // WarError.log and give up when nothing did. Every numeric is the (int)
+    // the caller cast at the call and still renders through "%u"; the two
+    // literals keep the tab run a backslash-continued source line left in
+    // them, before VALUES.
+    virtual bool insertWarSchedule(int warID, int serverID, int zoneID, const std::string& warType, int attackGuildID,
+                                   int warFee, const std::string& startTime, const std::string& status) = 0;
+    virtual bool replaceWarSchedule(int warID, int serverID, int zoneID, const std::string& warType, int attackerCount,
+                                    int attackGuildID, int attackGuildID2, int attackGuildID3, int attackGuildID4,
+                                    int attackGuildID5, int warFee, const std::string& startTime,
+                                    const std::string& status) = 0;
+    // WarSchedule::tinysave — a caller-composed "Column=value" SET fragment
+    // (raw SQL text, the same quarantine as CastleInfoManager::tinysave).
+    // The DWORD war id goes through "%d", as before.
+    virtual void tinysaveWarSchedule(const std::string& fieldFragment, WarID_t warID, int serverID) = 0;
 
     // --- master lairs -----------------------------------------------------------
     virtual std::vector<MasterLairRow> loadMasterLairs() = 0;

@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 DermisInfoManager* g_pDermisInfoManager = NULL;
@@ -51,8 +52,6 @@ void Dermis::create(const string& ownerID, Storage storage, StorageID_t storageI
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -64,24 +63,12 @@ void Dermis::create(const string& ownerID, Storage storage, StorageID_t storageI
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-
-        sql << "INSERT INTO DermisObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Grade, ItemFlag)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", "
-            << getItemType() << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", "
-            << (int)y << ", '" << optionField.c_str() << "', " << getGrade() << ", " << (int)m_CreateType << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertOptionGradeItem(GEAR_DERMIS, m_ItemID, m_ObjectID, getItemType(), ownerID,
+                                                        (int)storage, storageID, (int)x, (int)y, optionField,
+                                                        getGrade(), (int)m_CreateType);
 
     __END_CATCH
 }
@@ -95,16 +82,7 @@ void Dermis::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE DermisObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_DERMIS, field, m_ItemID);
 
     __END_CATCH
 }
@@ -117,21 +95,12 @@ void Dermis::save(const string& ownerID, Storage storage, StorageID_t storageID,
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(getOptionTypeList(), optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        string optionField;
-        setOptionTypeToField(getOptionTypeList(), optionField);
-        pStmt->executeQuery("UPDATE DermisObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
-                            m_ObjectID, getItemType(), ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            optionField.c_str(), getGrade(), (int)getEnchantLevel(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateAmulet(GEAR_DERMIS, m_ObjectID, getItemType(), ownerID, (int)storage, storageID,
+                                               (int)x, (int)y, optionField, getGrade(), (int)getEnchantLevel(),
+                                               m_ItemID);
 
     __END_CATCH
 }
@@ -177,56 +146,38 @@ void DermisInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_DERMIS);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM DermisInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<GearInfoNoDurabilityRow> rows = defaultItemObjectRepository().loadGearInfosNoDurability(GEAR_DERMIS);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        DermisInfo* pDermisInfo = new DermisInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pDermisInfo->setItemType(rows[r].itemType);
+        pDermisInfo->setName(rows[r].name);
+        pDermisInfo->setEName(rows[r].ename);
+        pDermisInfo->setPrice(rows[r].price);
+        pDermisInfo->setVolumeType(rows[r].volume);
+        pDermisInfo->setWeight(rows[r].weight);
+        pDermisInfo->setRatio(rows[r].ratio);
+        pDermisInfo->setDefenseBonus(rows[r].defense);
+        pDermisInfo->setProtectionBonus(rows[r].protection);
+        pDermisInfo->setReqAbility(rows[r].reqAbility);
+        pDermisInfo->setItemLevel(rows[r].itemLevel);
+        pDermisInfo->setDefaultOptions(rows[r].defaultOption);
+        pDermisInfo->setUpgradeRatio(rows[r].upgradeRatio);
+        pDermisInfo->setUpgradeCrashPercent(rows[r].upgradeCrashPercent);
+        pDermisInfo->setNextOptionRatio(rows[r].nextOptionRatio);
+        pDermisInfo->setNextItemType(rows[r].nextItemType);
+        pDermisInfo->setDowngradeRatio(rows[r].downgradeRatio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult =
-            pStmt->executeQuery("SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Defense, Protection, "
-                                "ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
-                                "NextOptionRatio, NextItemType, DowngradeRatio FROM DermisInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            DermisInfo* pDermisInfo = new DermisInfo();
-
-            pDermisInfo->setItemType(pResult->getInt(++i));
-            pDermisInfo->setName(pResult->getString(++i));
-            pDermisInfo->setEName(pResult->getString(++i));
-            pDermisInfo->setPrice(pResult->getInt(++i));
-            pDermisInfo->setVolumeType(pResult->getInt(++i));
-            pDermisInfo->setWeight(pResult->getInt(++i));
-            pDermisInfo->setRatio(pResult->getInt(++i));
-            pDermisInfo->setDefenseBonus(pResult->getInt(++i));
-            pDermisInfo->setProtectionBonus(pResult->getInt(++i));
-            pDermisInfo->setReqAbility(pResult->getString(++i));
-            pDermisInfo->setItemLevel(pResult->getInt(++i));
-            pDermisInfo->setDefaultOptions(pResult->getString(++i));
-            pDermisInfo->setUpgradeRatio(pResult->getInt(++i));
-            pDermisInfo->setUpgradeCrashPercent(pResult->getInt(++i));
-            pDermisInfo->setNextOptionRatio(pResult->getInt(++i));
-            pDermisInfo->setNextItemType(pResult->getInt(++i));
-            pDermisInfo->setDowngradeRatio(pResult->getInt(++i));
-
-            addItemInfo(pDermisInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pDermisInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -242,128 +193,113 @@ void DermisLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<OptionGradeObjectRow> rows =
+        defaultItemObjectRepository().loadOptionGradeOfOwner(GEAR_DERMIS, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            Dermis* pDermis = new Dermis();
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Grade, EnchantLevel, ItemFlag "
-            "FROM DermisObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            pDermis->setItemID(rows[r].itemID);
+            pDermis->setObjectID(rows[r].objectID);
+            pDermis->setItemType(rows[r].itemType);
 
+            if (g_pDermisInfoManager->getItemInfo(pDermis->getItemType())->isUnique())
+                pDermis->setUnique();
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-                Dermis* pDermis = new Dermis();
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pDermis->setOptionType(optionTypes);
 
-                pDermis->setItemID(pResult->getDWORD(++i));
-                pDermis->setObjectID(pResult->getDWORD(++i));
-                pDermis->setItemType(pResult->getDWORD(++i));
+            pDermis->setGrade(rows[r].grade);
+            pDermis->setEnchantLevel(rows[r].enchantLevel);
+            pDermis->setCreateType((Item::CreateType)rows[r].createType);
 
-                if (g_pDermisInfoManager->getItemInfo(pDermis->getItemType())->isUnique())
-                    pDermis->setUnique();
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            Stash* pStash = NULL;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pDermis->setOptionType(optionTypes);
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                pDermis->setGrade(pResult->getInt(++i));
-                pDermis->setEnchantLevel(pResult->getInt(++i));
-                pDermis->setCreateType((Item::CreateType)pResult->getInt(++i));
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pDermis)) {
+                    pInventory->addItemEx(x, y, pDermis);
+                } else {
+                    processItemBugEx(pCreature, pDermis);
+                }
+                break;
 
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                Stash* pStash = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
+                    processItemBugEx(pCreature, pDermis);
                 } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pDermis)) {
-                        pInventory->addItemEx(x, y, pDermis);
+                    if (!pVampire->isWear((Vampire::WearPart)x)) {
+                        pVampire->wearItem((Vampire::WearPart)x, pDermis);
                     } else {
                         processItemBugEx(pCreature, pDermis);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        processItemBugEx(pCreature, pDermis);
-                    } else if (pCreature->isVampire()) {
-                        if (!pVampire->isWear((Vampire::WearPart)x)) {
-                            pVampire->wearItem((Vampire::WearPart)x, pDermis);
-                        } else {
-                            processItemBugEx(pCreature, pDermis);
-                        }
-                    }
-                    break;
-
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pDermis);
-                    break;
-
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pDermis);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pDermis);
-                    break;
-
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pDermis);
-                    break;
-
-                case STORAGE_STASH:
-                    if (pStash->isExist(x, y)) {
-                        processItemBugEx(pCreature, pDermis);
-                    } else
-                        pStash->insert(x, y, pDermis);
-                    break;
-
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pDermis);
-                    break;
-
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
                 }
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
-            }
-        }
+                break;
 
-        SAFE_DELETE(pStmt);
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pDermis);
+                break;
+
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pDermis);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pDermis);
+                break;
+
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pDermis);
+                break;
+
+            case STORAGE_STASH:
+                if (pStash->isExist(x, y)) {
+                    processItemBugEx(pCreature, pDermis);
+                } else
+                    pStash->insert(x, y, pDermis);
+                break;
+
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pDermis);
+                break;
+
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
+            }
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

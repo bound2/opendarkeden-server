@@ -28,6 +28,33 @@ namespace {
 //    by the caller. A restart between the two leaves a half row.
 //  - SweeperOwnerInfo's UPDATE keys on SweeperType alone (the table's
 //    PK); the reads filter by ZoneID.
+//  - The war histories divide the same way LevelWarHistory does: a row
+//    written at war start and filled in at war end. GuildWarHistory's
+//    start is an INSERT IGNORE keyed on its WarID and its end updates
+//    WHERE WarID; RaceWarHistory's start is a PLAIN INSERT and its end
+//    updates WHERE RaceWarID — a start time the caller formatted as
+//    text — so a repeated start leaves a second row there where the
+//    guild war drops it, and the update then rewrites both. Preserved.
+//  - The RaceWarPCLimit totals arrive through getInt on a SUM() column;
+//    the caller assigned them to uints, and still does.
+//  - The reinforcement statements pass the config's int ServerID and a
+//    WORD GuildID through "%u", and the DWORD WarID through "%u" as
+//    well: the originals' conversions, kept.
+//  - SiegeWar's six statements asked for the connection by the name
+//    "Darkeden" where every other site writes "DARKEDEN".
+//    DatabaseManager::getConnection(const string&) never looks at the
+//    name — it keys the lookup on Thread::self() and falls back to the
+//    default connection — so the two spellings selected the same
+//    socket; the seam writes "DARKEDEN" like its neighbours.
+//  - WarSchedule's INSERT IGNORE and REPLACE were written with a
+//    backslash-continued source line, which splices the next line's four
+//    leading TABS into the literal right before "VALUES". They are kept:
+//    the seam writes them as an explicit "\t\t\t\t" so clang-format
+//    cannot reflow them away, and the bytes MySQL receives are the same.
+//  - War::initWarIDRegistry called next() on both probes without
+//    checking it and read column 1 through getDWORD. Kept: a COUNT(*)
+//    always answers with one row, and the MAX probe runs only after the
+//    count came back non-zero, so neither read can meet an empty result.
 //  - Names and fragments are interpolated raw, as before.
 class MySQLWarInfoRepository : public WarInfoRepository {
 public:
@@ -455,6 +482,309 @@ public:
         END_DB(pStmt)
 
         return rows;
+    }
+
+    int countWarSchedules() {
+        int count = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT COUNT(*) from WarScheduleInfo");
+            pResult->next();
+            count = pResult->getDWORD(1);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return count;
+    }
+
+    DWORD loadMaxWarID() {
+        DWORD maxWarID = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT MAX(WarID) FROM WarScheduleInfo");
+            pResult->next();
+            maxWarID = pResult->getDWORD(1);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return maxWarID;
+    }
+
+    bool insertWarSchedule(int warID, int serverID, int zoneID, const string& warType, int attackGuildID, int warFee,
+                           const string& startTime, const string& status) {
+        bool changed = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT IGNORE INTO WarScheduleInfo ( WarID, ServerID, ZoneID, WarType, "
+                                "AttackGuildID, WarFee, StartTime, Status ) "
+                                "\t\t\t\tVALUES ( %u, %u, %u, '%s', %u, %u, '%s', '%s' )",
+                                warID, serverID, zoneID, warType.c_str(), attackGuildID, warFee, startTime.c_str(),
+                                status.c_str());
+
+            changed = pStmt->getAffectedRowCount() > 0;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return changed;
+    }
+
+    bool replaceWarSchedule(int warID, int serverID, int zoneID, const string& warType, int attackerCount,
+                            int attackGuildID, int attackGuildID2, int attackGuildID3, int attackGuildID4,
+                            int attackGuildID5, int warFee, const string& startTime, const string& status) {
+        bool changed = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("REPLACE INTO WarScheduleInfo ( WarID, ServerID, ZoneID, WarType, AttackerCount, "
+                                "AttackGuildID, AttackGuildID2, AttackGuildID3, AttackGuildID4, AttackGuildID5, "
+                                "WarFee, StartTime, Status ) "
+                                "\t\t\t\tVALUES ( %u, %u, %u, '%s', %u, %u, %u, %u, %u, %u, %u, '%s', '%s' )",
+                                warID, serverID, zoneID, warType.c_str(), attackerCount, attackGuildID, attackGuildID2,
+                                attackGuildID3, attackGuildID4, attackGuildID5, warFee, startTime.c_str(),
+                                status.c_str());
+
+            changed = pStmt->getAffectedRowCount() > 0;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return changed;
+    }
+
+    void tinysaveWarSchedule(const string& fieldFragment, WarID_t warID, int serverID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE WarScheduleInfo SET %s WHERE WarID = %d AND ServerID = %d",
+                                fieldFragment.c_str(), warID, serverID);
+        }
+        END_DB(pStmt)
+
+        SAFE_DELETE(pStmt);
+    }
+
+    void insertGuildWarHistory(int warID, const string& guildWarID, int serverID, const string& castleName,
+                               int defenseGuildID, const string& defenseGuildName, int attackGuildID,
+                               const string& attackGuildName) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(
+                "INSERT IGNORE INTO GuildWarHistory (WarID, GuildWarID, ServerID, CastleName, DefenseGuildID, "
+                "DefenseGuildName, AttackGuildID, AttackGuildName) VALUES (%d, '%s', %d, '%s', %d, '%s', %d, '%s')",
+                warID, guildWarID.c_str(), serverID, castleName.c_str(), defenseGuildID, defenseGuildName.c_str(),
+                attackGuildID, attackGuildName.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateGuildWarWinner(int winnerGuildID, const string& winnerGuildName, int warID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(
+                "UPDATE GuildWarHistory SET WinnerGuildID = %d , WinnerGuildName = '%s' WHERE WarID = %d",
+                winnerGuildID, winnerGuildName.c_str(), warID);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    vector<RaceCurrentNumRow> loadRaceWarCurrentNums() {
+        vector<RaceCurrentNumRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT Race, SUM(CurrentNum) FROM RaceWarPCLimit GROUP BY Race");
+
+            while (pResult->next()) {
+                RaceCurrentNumRow row;
+                row.race = pResult->getInt(1);
+                row.currentNum = pResult->getInt(2);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    void insertRaceWarHistory(const string& raceWarID, uint slayerNum, uint vampireNum, uint oustersNum,
+                              const string& slayerOld, const string& vampireOld, const string& oustersOld) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(
+                "INSERT INTO RaceWarHistory (RaceWarID, SlayerNum, VampireNum, OustersNum, SlayerOldBloodBible, "
+                "VampireOldBloodBible, OustersOldBloodBible) VALUES ('%s', %d, %d, %d, '%s', '%s', '%s')",
+                raceWarID.c_str(), slayerNum, vampireNum, oustersNum, slayerOld.c_str(), vampireOld.c_str(),
+                oustersOld.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void updateRaceWarBloodBibles(const string& slayerNew, const string& vampireNew, const string& oustersNew,
+                                  const string& raceWarID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE RaceWarHistory SET SlayerBloodBible = '%s', VampireBloodBible = '%s', "
+                                "OustersBloodBible = '%s' WHERE RaceWarID = '%s'",
+                                slayerNew.c_str(), vampireNew.c_str(), oustersNew.c_str(), raceWarID.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    int countWaitingReinforceRegistrations(WarID_t warID, int serverID) {
+        int count = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u AND Status='WAIT'", warID,
+                serverID);
+
+            if (pResult->next())
+                count = pResult->getInt(1);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return count;
+    }
+
+    int countDeniedReinforceRegistrations(WarID_t warID, int serverID, GuildID_t guildID) {
+        int count = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u AND "
+                                    "ReinforceGuildID=%u AND Status='DENY'",
+                                    warID, serverID, guildID);
+
+            if (pResult->next())
+                count = pResult->getInt(1);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return count;
+    }
+
+    bool loadWaitingReinforceGuild(WarID_t warID, int serverID, GuildID_t& guildID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT ReinforceGuildID FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u AND Status='WAIT'",
+                warID, serverID);
+
+            if (pResult->next()) {
+                guildID = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    void insertReinforceRegistration(WarID_t warID, int serverID, GuildID_t guildID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO ReinforceRegisterInfo (WarID, ServerID, ReinforceGuildID, Status) VALUES "
+                                "(%u, %u, %u, 'WAIT')",
+                                warID, serverID, guildID);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    bool acceptReinforceRegistration(WarID_t warID, int serverID, GuildID_t guildID) {
+        bool ret = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE ReinforceRegisterInfo SET Status='ACCEPT' WHERE WarID=%u AND ServerID=%u AND "
+                                "ReinforceGuildID=%u",
+                                warID, serverID, guildID);
+
+            if (pStmt->getAffectedRowCount() > 0)
+                ret = true;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return ret;
+    }
+
+    bool denyReinforceRegistration(WarID_t warID, int serverID, GuildID_t guildID) {
+        bool ret = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(
+                "UPDATE ReinforceRegisterInfo SET Status='DENY' WHERE WarID=%u AND ServerID=%u AND ReinforceGuildID=%u",
+                warID, serverID, guildID);
+
+            if (pStmt->getAffectedRowCount() > 0)
+                ret = true;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return ret;
+    }
+
+    void deleteReinforceRegistrations(WarID_t warID, int serverID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("DELETE FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u", warID, serverID);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
     }
 };
 
