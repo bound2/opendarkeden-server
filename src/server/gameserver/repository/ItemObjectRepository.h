@@ -18,7 +18,8 @@
 // through an enum; the MySQL impl keeps every class's seven literals
 // byte-for-byte (the guns' eight: they add a saveBullet UPDATE; four Num-only
 // items' eight: they override destroy() with a DELETE; Key's eight:
-// setNewMotorcycle writes the new motorcycle's id into Target — each extra
+// setNewMotorcycle writes the new motorcycle's id into Target; the couple
+// rings' eight: hasPartnerItem counts the partner ring's row — each extra
 // statement has its own spec slot, NULL for the classes without it).
 //
 // The first family: the nine slayer gear classes with a Grade column: Ring,
@@ -105,6 +106,19 @@
 // OustersSummonItemInfo's head plus MaxCharge, Effect (no Ratio);
 // SlayerPortalItemInfo's basic plus MaxCharge and the ReqAbility varchar (the
 // Potion shape, MaxCharge in its int).
+// The twelfth family, three more shapes: Money (MONEY_OBJECT: the plain columns
+// plus Amount — a DWORD, getDWORD in both loads — and Num, getBYTE in the owner
+// load and absent from the zone SELECT; its tinysave writes Amount too, so it is
+// its own); CoupleRing and VampireCoupleRing (COUPLE_RING_OBJECT: the plain
+// columns plus OptionType and Name as text and PartnerItemID through getDWORD in
+// the owner load, the UPDATE writing Name and PartnerItemID but no OptionType,
+// the zone SELECT the plain seven — loadPlainItemInZone serves it — and an
+// eleventh literal, hasPartnerItem's count(*)); VampirePortalItem
+// (VAMPIRE_PORTAL_OBJECT: the charge columns plus TargetZID, TargetX, TargetY
+// through getWORD; its zone load reads those eleven getters over an eight-column
+// SELECT and so throws on its first row, as it always did). Info: the basic shape
+// (Money, the couple rings) and the Potion shape (VampirePortalItem: MaxCharge,
+// ReqAbility).
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -119,7 +133,7 @@
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 23 item files with SQL (later rounds) and the
+// Not enclosed: the other 19 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -189,30 +203,35 @@ enum GearTable {
     GEAR_PET_FOOD,
     GEAR_KEY,
     GEAR_OUSTERS_SUMMON_ITEM,
-    GEAR_SLAYER_PORTAL_ITEM
+    GEAR_SLAYER_PORTAL_ITEM,
+    GEAR_MONEY,
+    GEAR_COUPLE_RING,
+    GEAR_VAMPIRE_COUPLE_RING,
+    GEAR_VAMPIRE_PORTAL_ITEM
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
 enum GearInfoKind {
-    GEAR_INFO_UNSET = 0,            // a spec row that forgot its kind: every loader refuses it
-    GEAR_INFO_STANDARD,             // loadGearInfos
-    GEAR_INFO_NO_RATIO,             // loadGearInfosNoRatio (VampireCoat)
-    GEAR_INFO_ELEMENTAL,            // loadGearInfosElemental (OustersStone)
-    GEAR_INFO_WEAPON,               // loadWeaponInfos (VampireWeapon, OustersChakram)
-    GEAR_INFO_WEAPON_ELEMENTAL,     // loadWeaponInfosElemental (OustersWristlet)
-    GEAR_INFO_SILVER_WEAPON,        // loadSilverWeaponInfos (Sword, Blade)
-    GEAR_INFO_SILVER_WEAPON_MP,     // loadSilverWeaponMPInfos (Cross, Mace)
-    GEAR_INFO_GUN,                  // loadGunInfos (AR, SG, SMG, SR)
-    GEAR_INFO_BASIC,                // loadBasicInfos (EventItem, EventTree, LuckyBag, MoonCard, ETC, Water)
-    GEAR_INFO_BASIC_FUNCTION,       // loadFunctionInfos (EventETC)
-    GEAR_INFO_BASIC_RESURRECT,      // loadResurrectInfos (ResurrectItem)
+    GEAR_INFO_UNSET = 0,        // a spec row that forgot its kind: every loader refuses it
+    GEAR_INFO_STANDARD,         // loadGearInfos
+    GEAR_INFO_NO_RATIO,         // loadGearInfosNoRatio (VampireCoat)
+    GEAR_INFO_ELEMENTAL,        // loadGearInfosElemental (OustersStone)
+    GEAR_INFO_WEAPON,           // loadWeaponInfos (VampireWeapon, OustersChakram)
+    GEAR_INFO_WEAPON_ELEMENTAL, // loadWeaponInfosElemental (OustersWristlet)
+    GEAR_INFO_SILVER_WEAPON,    // loadSilverWeaponInfos (Sword, Blade)
+    GEAR_INFO_SILVER_WEAPON_MP, // loadSilverWeaponMPInfos (Cross, Mace)
+    GEAR_INFO_GUN,              // loadGunInfos (AR, SG, SMG, SR)
+    GEAR_INFO_BASIC,            // loadBasicInfos (EventItem, EventTree, LuckyBag, MoonCard, ETC, Water, BombMaterial,
+                                // EventGiftBox, Money, CoupleRing, VampireCoupleRing)
+    GEAR_INFO_BASIC_FUNCTION,   // loadFunctionInfos (EventETC)
+    GEAR_INFO_BASIC_RESURRECT,  // loadResurrectInfos (ResurrectItem)
     GEAR_INFO_BASIC_FUNCTION_VALUE, // loadFunctionValueInfos (DyePotion, EventStar)
     GEAR_INFO_BASIC_EFFECT,         // loadEffectInfos (EffectItem)
     GEAR_INFO_BASIC_FUNCTION_GRADE, // loadFunctionGradeInfos (PetEnchantItem)
     GEAR_INFO_BASIC_STRING,         // loadStringInfos (Serum, VampireETC, Pupa, Larva, ComposMei)
     GEAR_INFO_BASIC_DAMAGE,         // loadDamageInfos (HolyWater)
     GEAR_INFO_MAGAZINE,             // loadMagazineInfos (Magazine)
-    GEAR_INFO_BASIC_LEVEL_STRING,   // loadLevelStringInfos (Potion, SlayerPortalItem)
+    GEAR_INFO_BASIC_LEVEL_STRING,   // loadLevelStringInfos (Potion, SlayerPortalItem, VampirePortalItem)
     GEAR_INFO_BASIC_LEVEL,          // loadLevelInfos (Skull)
     GEAR_INFO_BASIC_INT,            // loadIntInfos (QuestItem, SMSItem, LearningItem)
     GEAR_INFO_BASIC_INT_PAIR,       // loadIntPairInfos (SubInventory, TrapItem, Key)
@@ -240,7 +259,10 @@ enum GearObjectKind {
     MIXING_ITEM_OBJECT, // MixingItem: insertNumItem, tinysaveGear, updateNumItem, loadNumIntItemOfOwner, loadNumIntItemInZone
     PET_FOOD_OBJECT, // PetFood: the same, but loadFlagItemInZone (no Num column in the zone SELECT)
     KEY_OBJECT,      // Key: insertKey, tinysaveGear, updateKey, loadKeyOfOwner, loadKeyInZone
-    CHARGE_OBJECT // OustersSummonItem, SlayerPortalItem: insertChargeItem, tinysaveGear, updateChargeItem, loadChargeItemOfOwner, loadChargeItemInZone
+    CHARGE_OBJECT, // OustersSummonItem, SlayerPortalItem: insertChargeItem, tinysaveGear, updateChargeItem, loadChargeItemOfOwner, loadChargeItemInZone
+    MONEY_OBJECT,  // Money: insertMoney, tinysaveMoney, updateMoney, loadMoneyOfOwner, loadMoneyInZone
+    COUPLE_RING_OBJECT, // CoupleRing, VampireCoupleRing: insertCoupleRing, tinysaveGear, updateCoupleRing, loadCoupleRingOfOwner, loadPlainItemInZone, loadCoupleRingPartnerCount
+    VAMPIRE_PORTAL_OBJECT // VampirePortalItem: insertVampirePortal, tinysaveGear, updateVampirePortal, loadVampirePortalOfOwner, loadVampirePortalInZone
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -820,6 +842,62 @@ struct ChargeObjectRow {
     int charge;
 };
 
+// Money's owner SELECT: the plain columns plus Amount (getDWORD) and Num (getBYTE).
+struct MoneyObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    DWORD amount;
+    BYTE num;
+};
+
+// Money's zone SELECT: the plain columns through getInt plus Amount (getDWORD); no Num.
+struct MoneyZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    DWORD amount;
+};
+
+// The couple rings' owner SELECT: the plain columns plus OptionType and Name (getString)
+// and PartnerItemID (getDWORD).
+struct CoupleRingObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    std::string optionField;
+    std::string name;
+    DWORD partnerItemID;
+};
+
+// VampirePortalItem's owner SELECT — and what its zone load reads, see
+// loadVampirePortalInZone: the charge columns plus TargetZID, TargetX, TargetY (getWORD).
+struct VampirePortalObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    int charge;
+    WORD targetZoneID;
+    WORD targetX;
+    WORD targetY;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
@@ -831,7 +909,8 @@ public:
                             const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                             const std::string& optionField, Durability_t durability, int grade, int createType) = 0;
     // <Class>::tinysave — "SET %s": the caller's field text is the statement.
-    // Refuses the GUN_OBJECT tables, whose tinysave literal takes a BulletCount too.
+    // Refuses the GUN_OBJECT tables, whose tinysave literal takes a BulletCount too,
+    // and MONEY_OBJECT, whose takes an Amount.
     virtual void tinysaveGear(GearTable table, const char* field, ItemID_t itemID) = 0;
     // <Class>::save.
     virtual void updateGear(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
@@ -939,7 +1018,8 @@ public:
     // The ItemFlag-only and plain items (see GearObjectKind): <Class>::create with
     // or without the ItemFlag column, one seven-argument UPDATE for both, tinysave
     // gear's, and each shape's two loads (loadFlagItemInZone serves the
-    // PET_FOOD_OBJECT table too: its zone SELECT is the flag shape).
+    // PET_FOOD_OBJECT table too: its zone SELECT is the flag shape; loadPlainItemInZone
+    // the COUPLE_RING_OBJECT tables: theirs is the plain shape).
     virtual void insertFlagItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                 const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                                 int createType) = 0;
@@ -980,6 +1060,49 @@ public:
                                   int storage, StorageID_t storageID, int x, int y, int charge, ItemID_t itemID) = 0;
     virtual std::vector<ChargeObjectRow> loadChargeItemOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<ChargeObjectRow> loadChargeItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+
+    // Money (see GearObjectKind): the plain columns plus Amount (a DWORD; the
+    // UPDATE and tinysave feed it to "%ld" as written) and Num; tinysaveMoney is
+    // "SET %s, Amount=%ld".
+    virtual void insertMoney(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                             const std::string& ownerID, int storage, StorageID_t storageID, int x, int y, DWORD amount,
+                             int num) = 0;
+    virtual void tinysaveMoney(GearTable table, const char* field, DWORD amount, ItemID_t itemID) = 0;
+    virtual void updateMoney(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                             int storage, StorageID_t storageID, int x, int y, DWORD amount, int num,
+                             ItemID_t itemID) = 0;
+    virtual std::vector<MoneyObjectRow> loadMoneyOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<MoneyZoneObjectRow> loadMoneyInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+
+    // The couple rings (see GearObjectKind): the plain columns plus OptionType, Name
+    // and PartnerItemID in the INSERT, Name and PartnerItemID in the UPDATE ("%ld"
+    // fed the DWORD as written); the owner load; and hasPartnerItem's count(*) —
+    // true with the count when a row came back, false otherwise. The zone load is
+    // loadPlainItemInZone.
+    virtual void insertCoupleRing(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                  const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                  const std::string& optionField, const std::string& name, ItemID_t partnerItemID) = 0;
+    virtual void updateCoupleRing(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                                  int storage, StorageID_t storageID, int x, int y, const std::string& name,
+                                  ItemID_t partnerItemID, ItemID_t itemID) = 0;
+    virtual std::vector<CoupleRingObjectRow> loadCoupleRingOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual bool loadCoupleRingPartnerCount(GearTable table, ItemID_t partnerItemID, int& count) = 0;
+
+    // VampirePortalItem (see GearObjectKind): the charge columns plus the target
+    // zone and coordinates (the callers cast their WORDs (int)); one row for both
+    // loads. loadVampirePortalInZone reads the row's eleven getters over the
+    // eight-column zone SELECT, as the original loader did: with any row present it
+    // throws OutOfBoundException from the ninth getter.
+    virtual void insertVampirePortal(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                     const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                     int charge, int targetZoneID, int targetX, int targetY) = 0;
+    virtual void updateVampirePortal(GearTable table, ObjectID_t objectID, ItemType_t itemType,
+                                     const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                     int charge, int targetZoneID, int targetX, int targetY, ItemID_t itemID) = 0;
+    virtual std::vector<VampirePortalObjectRow> loadVampirePortalOfOwner(GearTable table,
+                                                                         const std::string& ownerName) = 0;
+    virtual std::vector<VampirePortalObjectRow> loadVampirePortalInZone(GearTable table, int storage,
+                                                                        ZoneID_t zoneID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in MySQLItemObjectRepository.cpp.

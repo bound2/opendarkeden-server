@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 154 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 150 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -2389,6 +2389,126 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > OptionType + Grade ones (VampireAmulet, CoreZap) and those with
   > Durability too (Belt, OustersArmsband); ItemInfoManager.cpp holds
   > only the registry calls.
+  > **Money, the two couple rings and VampirePortalItem (2026-09-03,
+  > stacked on the MixingItem / Key / charge round; item milestone round
+  > 13)**: Money (`MONEY_OBJECT`), CoupleRing and VampireCoupleRing
+  > (`COUPLE_RING_OBJECT`), VampirePortalItem (`VAMPIRE_PORTAL_OBJECT`)
+  > — R3 154→150 (R2/R5 unchanged). Three object shapes. Money streams
+  > the plain columns plus Amount (a DWORD, "%u") and (int)m_Num into a
+  > ten-column INSERT, takes an UPDATE with Amount and Num (`Amount=%ld`
+  > fed the DWORD as written) and a tinysave of its own — "SET %s,
+  > Amount=%ld" (field, m_Amount, m_ItemID) — so tinysaveMoney joins
+  > tinysaveGun as a second extra-column tinysave and tinysaveGear
+  > refuses MONEY_OBJECT as it refuses GUN_OBJECT (requireTinysaveShape
+  > now names the kind whose extra column the caller supplies); the
+  > owner load reads Amount through getDWORD and Num through getBYTE
+  > (`MoneyObjectRow` / loadMoneyOfOwner), the zone SELECT names no Num
+  > and reads Amount through getDWORD after the plain seven through
+  > getInt (`MoneyZoneObjectRow` / loadMoneyInZone). The couple rings
+  > stream the plain columns plus the quoted OptionType and Name texts
+  > and PartnerItemID (an ItemID_t, "%u") into an eleven-column INSERT
+  > (insertCoupleRing; the `string optionField; setOptionTypeToField(…)`
+  > lines that sat inside BEGIN_DB now precede the call), take an UPDATE
+  > with Name and PartnerItemID but no OptionType (`PartnerItemID=%ld`
+  > as written; updateCoupleRing), read OptionType and Name through
+  > getString and PartnerItemID through getDWORD in the owner load
+  > (`CoupleRingObjectRow` / loadCoupleRingOfOwner), and name the plain
+  > seven in their zone SELECT, so loadPlainItemInZone serves
+  > COUPLE_RING_OBJECT (requirePlainZone; that loader is dead code — a
+  > cout and Assert(false) precede its DB block — and is converted all
+  > the same); their hasPartnerItem — "SELECT count(*) from
+  > <Class>Object where ItemID=%ld and Storage IN(0, 1, 2, 3, 4, 9)"
+  > (getPartnerItemID()) — is the spec table's eleventh slot,
+  > `partnerCount`, NULL for every other table, behind
+  > loadCoupleRingPartnerCount, which returns whether a row came back
+  > (the original's `pResult->next()` branch) and the count through an
+  > out-parameter; the class keeps its Asserts and its `count == 1`
+  > test. The owner loaders' pPC / FLAGSET_IS_COUPLE block between the
+  > statement and the loop stays, on `rows.empty()` where it read
+  > `pResult->getRowCount() == 0` (the same fact: the stored result's
+  > row count). VampirePortalItem streams the charge columns plus
+  > (int)m_ZoneID, (int)m_X, (int)m_Y into a twelve-column INSERT
+  > (insertVampirePortal), takes the matching UPDATE
+  > (updateVampirePortal), and reads Charge through getInt and the three
+  > targets through getWORD (`VampirePortalObjectRow`); its zone SELECT
+  > names eight columns but its loader read all eleven getters, so on
+  > any zone row the ninth threw getField's OutOfBoundException (logged
+  > to ResultBug.log) out of the loader with the Statement unreleased —
+  > END_DB catches SQLQueryException alone — and no item constructed;
+  > loadVampirePortalInZone reads the same eleven getters over the same
+  > eight-column SELECT and does exactly that, kept for its own fix (the
+  > seam's row vector is discarded by the throw). Info: the basic shape
+  > for Money and the couple rings, the Potion shape (MaxCharge in
+  > `itemLevel`, ReqAbility in `value`) for the portal. The
+  > `static_assert` now reads GEAR_VAMPIRE_PORTAL_ITEM + 1. The
+  > transformer (outside the repo; its output is what was reviewed)
+  > gained the three object shapes with their loader lines, Money's
+  > comment-stripped create (its create kept a commented-out earlier
+  > nine-column chain that the chain extractor would otherwise have
+  > matched first), the Amount tinysave, the couple rings' optionField
+  > lines, hasPartnerItem block and pre-loop pPC block, and the portal's
+  > three getWORD lines. Literal quirks kept: Money's "(ItemID,
+  > ObjectID, …, Amount, Num )" (two spaces after the first comma, one
+  > before the closing parenthesis) and " VALUES(", its UPDATE's
+  > "ObjectID=%ld ,ItemType=%d" (a space before the comma) and
+  > "Amount=%ld,Num=%d" (none after it); the couple rings' "(ItemID,
+  > ObjectID" and " VALUES(" with the quoted '%s', '%s' texts,
+  > CoupleRing's UPDATE saying "Name = '%s'" where VampireCoupleRing's
+  > says "Name='%s'", and the lower-case "count(*) from … where" of
+  > hasPartnerItem; VampirePortalItem's cramped
+  > "(ItemID,ObjectID,ItemType,OwnerID, Storage,StorageID,X,Y,
+  > Charge,TargetZID,TargetX,TargetY) VALUES (" with single-comma value
+  > separators; nothing else differs between the four classes' live
+  > literals beyond the table names and the column sets described.
+  > Disclosures: the seam initialises its Statement where the originals
+  > declared pStmt uninitialised — create, save, the info load and both
+  > loaders in Money (tinysave had `= NULL`); create and both loaders in
+  > the couple rings (tinysave, save, hasPartnerItem and the info load
+  > had it); VampirePortalItem had it everywhere; the SQL-free
+  > third-loader stub keeps its uninitialised pStmt in Money and both
+  > couple rings (the portal's declares none); one Statement per info
+  > statement; whole-result reads before placement (an item-placement
+  > throw no longer leaks the Statement; the creature loaders'
+  > `SAFE_DELETE(pStmt); // by sigi` before the default-case throw is
+  > gone in all four); DBError.log names the repository method; the four
+  > create INSERTs and zone SELECTs now pass through executeQuery's
+  > 2048-byte format buffer (151–190 bytes of format plus a varchar(10)
+  > owner — and, for the couple rings, a varchar(30) OptionType and a
+  > varchar(10) Name — for the INSERTs; 119–134 for the zone SELECTs;
+  > Money's 54-byte tinysave plus the caller's field text; the 87- and
+  > 94-byte partner counts: unreachable); the commented-out StringStream
+  > blocks in save() and the owner loader (all four), Money's
+  > commented-out earlier create chain and the couple rings' "// UPDATE인
+  > 경우는 …" comment above the count branch are gone with their blocks
+  > (CoupleRing's "// 위험!" stays; VampireCoupleRing never had it); the
+  > DB.h include stays; the header's "23 item files" count is 19. The
+  > four item files' diffs are 370–455 lines each, all extraction: every
+  > hunk sits in a function that held SQL, plus the include — no
+  > reformat hunks (clang-format 18 changed nothing else in them). +1
+  > integration test: Money — Amount and Num through the INSERT and the
+  > UPDATE (read back by SQL), the owner load's nine columns, the zone
+  > load's Amount and empty for another StorageID, tinysaveMoney writing
+  > X and Amount, tinysaveGear refusing the table, MAX(ItemType); each
+  > couple ring — OptionType, Name and PartnerItemID through the INSERT,
+  > the UPDATE changing Name and PartnerItemID and leaving OptionType
+  > alone, the owner load's ten columns, the plain zone load, the
+  > partner count (1 for the storage-1 ring, 0 for the zone ring and for
+  > an unknown id, true in all three cases), tinysave, MAX; the portal —
+  > Charge and the three targets through the INSERT, the UPDATE and the
+  > owner load, loadVampirePortalInZone throwing OutOfBoundException
+  > with a zone row present and empty without one, tinysave, MAX; the
+  > object guards both ways (the Money, couple-ring and portal methods
+  > refusing each other's tables and the earlier shapes', tinysaveMoney
+  > refusing a couple ring and a gun, tinysaveGun refusing Money, the
+  > plain, charge, Num-only and gear methods refusing these); the basic
+  > Info shape pinned by COUNT(*) and Ratio for the three basic tables,
+  > the Potion shape by COUNT(*) and MaxCharge / ReqAbility for the
+  > portal, each guard refusing another shape. Not enclosed: the other
+  > 19 item files with SQL — next the OptionType + Grade ones
+  > (VampireAmulet, CoreZap) and those with Durability too (Belt,
+  > OustersArmsband), then PetItem (a twenty-one-column owner SELECT),
+  > Motorcycle and the rest; ItemInfoManager.cpp holds only the registry
+  > calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

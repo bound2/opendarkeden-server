@@ -19,6 +19,7 @@
 #include "Stash.h"
 #include "Vampire.h"
 #include "couple/CoupleManager.h"
+#include "repository/ItemObjectRepository.h"
 
 VampireCoupleRingInfoManager* g_pVampireCoupleRingInfoManager = NULL;
 
@@ -54,8 +55,6 @@ void VampireCoupleRing::create(const string& ownerID, Storage storage, StorageID
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -67,22 +66,12 @@ void VampireCoupleRing::create(const string& ownerID, Storage storage, StorageID
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        string optionField;
-        setOptionTypeToField(m_OptionType, optionField);
+    string optionField;
+    setOptionTypeToField(m_OptionType, optionField);
 
-        StringStream sql;
-        sql << "INSERT INTO VampireCoupleRingObject "
-            << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, Name, PartnerItemID)"
-            << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType << ", '" << ownerID << "', "
-            << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y << ", '" << optionField.c_str()
-            << "', '" << getName().c_str() << "', " << getPartnerItemID() << ")";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQueryString(sql.toString());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertCoupleRing(GEAR_VAMPIRE_COUPLE_RING, m_ItemID, m_ObjectID, m_ItemType, ownerID,
+                                                   (int)storage, storageID, (int)x, (int)y, optionField, getName(),
+                                                   getPartnerItemID());
 
     __END_CATCH
 }
@@ -95,16 +84,7 @@ void VampireCoupleRing::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE VampireCoupleRingObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_VAMPIRE_COUPLE_RING, field, m_ItemID);
 
     __END_CATCH
 }
@@ -114,35 +94,9 @@ void VampireCoupleRing::save(const string& ownerID, Storage storage, StorageID_t
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        /*
-        StringStream sql;
-
-        sql << "UPDATE VampireCoupleRingObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE VampireCoupleRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, Name='%s', PartnerItemID=%ld WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            getName().c_str(), getPartnerItemID(), m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateCoupleRing(GEAR_VAMPIRE_COUPLE_RING, m_ObjectID, m_ItemType, ownerID,
+                                                   (int)storage, storageID, (int)x, (int)y, getName(),
+                                                   getPartnerItemID(), m_ItemID);
 
     __END_CATCH
 }
@@ -192,31 +146,17 @@ bool VampireCoupleRing::hasPartnerItem()
 
     bool bRet = false;
 
-    Statement* pStmt = NULL;
+    int count = 0;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT count(*) from VampireCoupleRingObject where ItemID=%ld and Storage IN(0, 1, 2, 3, 4, 9)",
-            getPartnerItemID());
+    if (defaultItemObjectRepository().loadCoupleRingPartnerCount(GEAR_VAMPIRE_COUPLE_RING, getPartnerItemID(), count)) {
+        Assert(count >= 0);
+        Assert(count <= 1);
 
-        // UPDATE인 경우는 Result* 대신에.. pStmt->getAffectedRowCount()
-
-        if (pResult->next()) {
-            int count = pResult->getInt(1);
-
-            Assert(count >= 0);
-            Assert(count <= 1);
-
-            if (count == 1)
-                bRet = true;
-        } else {
-            bRet = false;
-        }
-
-        SAFE_DELETE(pStmt);
+        if (count == 1)
+            bRet = true;
+    } else {
+        bRet = false;
     }
-    END_DB(pStmt)
 
     return bRet;
 
@@ -242,44 +182,28 @@ void VampireCoupleRingInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_VAMPIRE_COUPLE_RING);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM VampireCoupleRingInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<BasicInfoRow> rows = defaultItemObjectRepository().loadBasicInfos(GEAR_VAMPIRE_COUPLE_RING);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        VampireCoupleRingInfo* pVampireCoupleRingInfo = new VampireCoupleRingInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pVampireCoupleRingInfo->setItemType(rows[r].itemType);
+        pVampireCoupleRingInfo->setName(rows[r].name);
+        pVampireCoupleRingInfo->setEName(rows[r].ename);
+        pVampireCoupleRingInfo->setPrice(rows[r].price);
+        pVampireCoupleRingInfo->setVolumeType(rows[r].volume);
+        pVampireCoupleRingInfo->setWeight(rows[r].weight);
+        pVampireCoupleRingInfo->setRatio(rows[r].ratio);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery(
-            "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM VampireCoupleRingInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            VampireCoupleRingInfo* pVampireCoupleRingInfo = new VampireCoupleRingInfo();
-
-            pVampireCoupleRingInfo->setItemType(pResult->getInt(++i));
-            pVampireCoupleRingInfo->setName(pResult->getString(++i));
-            pVampireCoupleRingInfo->setEName(pResult->getString(++i));
-            pVampireCoupleRingInfo->setPrice(pResult->getInt(++i));
-            pVampireCoupleRingInfo->setVolumeType(pResult->getInt(++i));
-            pVampireCoupleRingInfo->setWeight(pResult->getInt(++i));
-            pVampireCoupleRingInfo->setRatio(pResult->getInt(++i));
-
-            addItemInfo(pVampireCoupleRingInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pVampireCoupleRingInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -295,172 +219,146 @@ void VampireCoupleRingLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<CoupleRingObjectRow> rows =
+        defaultItemObjectRepository().loadCoupleRingOfOwner(GEAR_VAMPIRE_COUPLE_RING, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
+    if (rows.empty() && pPC->getFlagSet()->isOn(FLAGSET_IS_COUPLE)) {
+        pPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);
+        pPC->getFlagSet()->save(pPC->getName());
 
-        /*
-        StringStream sql;
+        g_pCoupleManager->removeCoupleForce(pPC);
+    }
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM VampireCoupleRingObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            VampireCoupleRing* pVampireCoupleRing = new VampireCoupleRing();
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            pVampireCoupleRing->setItemID(rows[r].itemID);
+            pVampireCoupleRing->setObjectID(rows[r].objectID);
+            pVampireCoupleRing->setItemType(rows[r].itemType);
 
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Name, PartnerItemID FROM "
-            "VampireCoupleRingObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-            pCreature->getName().c_str());
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-        if (pResult->getRowCount() == 0 && pPC->getFlagSet()->isOn(FLAGSET_IS_COUPLE)) {
-            pPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);
-            pPC->getFlagSet()->save(pPC->getName());
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pVampireCoupleRing->setOptionType(optionTypes);
 
-            g_pCoupleManager->removeCoupleForce(pPC);
-        }
+            pVampireCoupleRing->setName(rows[r].name);
+            pVampireCoupleRing->setPartnerItemID(rows[r].partnerItemID);
 
-        while (pResult->next()) {
-            try {
-                uint i = 0;
+            // 파트너 아이템이 없거나 더 이상 커플이 아니면 아이템을 지워준다.
+            PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
+            //				if ( !pVampireCoupleRing->hasPartnerItem() )
+            //				if ( pPC != NULL && !g_pCoupleManager->isCouple( pPC, pVampireCoupleRing->getName() ) )
+            if (pPC != NULL && (!g_pCoupleManager->isCouple(pPC, pVampireCoupleRing->getName()) ||
+                                !pVampireCoupleRing->hasPartnerItem())) {
+                g_pCoupleManager->removeCoupleForce(pPC, pVampireCoupleRing->getName());
+                // pVampireCoupleRing->destroy();
+                char sql[30];
+                sprintf(sql, "Storage = 10");
+                pVampireCoupleRing->tinysave(sql);
+                SAFE_DELETE(pVampireCoupleRing);
 
-                VampireCoupleRing* pVampireCoupleRing = new VampireCoupleRing();
+                // FlagSet 도 날려준다.
+                pPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);
+                pPC->getFlagSet()->save(pPC->getName());
+                continue;
+            }
 
-                pVampireCoupleRing->setItemID(pResult->getDWORD(++i));
-                pVampireCoupleRing->setObjectID(pResult->getDWORD(++i));
-                pVampireCoupleRing->setItemType(pResult->getDWORD(++i));
+            Inventory* pInventory = NULL;
+            Slayer* pSlayer = NULL;
+            Vampire* pVampire = NULL;
+            Motorcycle* pMotorcycle = NULL;
+            Inventory* pMotorInventory = NULL;
+            // Item*       pItem           = NULL;
+            Stash* pStash = NULL;
+            // Belt*       pBelt           = NULL;
+            // Inventory*  pBeltInventory  = NULL;
 
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
+            if (pCreature->isSlayer()) {
+                pSlayer = dynamic_cast<Slayer*>(pCreature);
+                pInventory = pSlayer->getInventory();
+                pStash = pSlayer->getStash();
+                pMotorcycle = pSlayer->getMotorcycle();
 
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pVampireCoupleRing->setOptionType(optionTypes);
+                if (pMotorcycle)
+                    pMotorInventory = pMotorcycle->getInventory();
+            } else if (pCreature->isVampire()) {
+                pVampire = dynamic_cast<Vampire*>(pCreature);
+                pInventory = pVampire->getInventory();
+                pStash = pVampire->getStash();
+            } else
+                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
 
-                pVampireCoupleRing->setName(pResult->getString(++i));
-                pVampireCoupleRing->setPartnerItemID(pResult->getDWORD(++i));
-
-                // 파트너 아이템이 없거나 더 이상 커플이 아니면 아이템을 지워준다.
-                PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-                //				if ( !pVampireCoupleRing->hasPartnerItem() )
-                //				if ( pPC != NULL && !g_pCoupleManager->isCouple( pPC, pVampireCoupleRing->getName() ) )
-                if (pPC != NULL && (!g_pCoupleManager->isCouple(pPC, pVampireCoupleRing->getName()) ||
-                                    !pVampireCoupleRing->hasPartnerItem())) {
-                    g_pCoupleManager->removeCoupleForce(pPC, pVampireCoupleRing->getName());
-                    // pVampireCoupleRing->destroy();
-                    char sql[30];
-                    sprintf(sql, "Storage = 10");
-                    pVampireCoupleRing->tinysave(sql);
-                    SAFE_DELETE(pVampireCoupleRing);
-
-                    // FlagSet 도 날려준다.
-                    pPC->getFlagSet()->turnOff(FLAGSET_IS_COUPLE);
-                    pPC->getFlagSet()->save(pPC->getName());
-                    continue;
+            switch (storage) {
+            case STORAGE_INVENTORY:
+                if (pInventory->canAddingEx(x, y, pVampireCoupleRing)) {
+                    pInventory->addItemEx(x, y, pVampireCoupleRing);
+                } else {
+                    processItemBugEx(pCreature, pVampireCoupleRing);
                 }
+                break;
 
-                Inventory* pInventory = NULL;
-                Slayer* pSlayer = NULL;
-                Vampire* pVampire = NULL;
-                Motorcycle* pMotorcycle = NULL;
-                Inventory* pMotorInventory = NULL;
-                // Item*       pItem           = NULL;
-                Stash* pStash = NULL;
-                // Belt*       pBelt           = NULL;
-                // Inventory*  pBeltInventory  = NULL;
-
+            case STORAGE_GEAR:
                 if (pCreature->isSlayer()) {
-                    pSlayer = dynamic_cast<Slayer*>(pCreature);
-                    pInventory = pSlayer->getInventory();
-                    pStash = pSlayer->getStash();
-                    pMotorcycle = pSlayer->getMotorcycle();
-
-                    if (pMotorcycle)
-                        pMotorInventory = pMotorcycle->getInventory();
-                } else if (pCreature->isVampire()) {
-                    pVampire = dynamic_cast<Vampire*>(pCreature);
-                    pInventory = pVampire->getInventory();
-                    pStash = pVampire->getStash();
-                } else
-                    throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
-
-                switch (storage) {
-                case STORAGE_INVENTORY:
-                    if (pInventory->canAddingEx(x, y, pVampireCoupleRing)) {
-                        pInventory->addItemEx(x, y, pVampireCoupleRing);
+                    if (!pSlayer->isWear((Slayer::WearPart)x)) {
+                        pSlayer->wearItem((Slayer::WearPart)x, pVampireCoupleRing);
                     } else {
                         processItemBugEx(pCreature, pVampireCoupleRing);
                     }
-                    break;
-
-                case STORAGE_GEAR:
-                    if (pCreature->isSlayer()) {
-                        if (!pSlayer->isWear((Slayer::WearPart)x)) {
-                            pSlayer->wearItem((Slayer::WearPart)x, pVampireCoupleRing);
-                        } else {
-                            processItemBugEx(pCreature, pVampireCoupleRing);
-                        }
-                    } else if (pCreature->isVampire()) {
-                        if (!pVampire->isWear((Vampire::WearPart)x)) {
-                            pVampire->wearItem((Vampire::WearPart)x, pVampireCoupleRing);
-                        } else {
-                            processItemBugEx(pCreature, pVampireCoupleRing);
-                        }
+                } else if (pCreature->isVampire()) {
+                    if (!pVampire->isWear((Vampire::WearPart)x)) {
+                        pVampire->wearItem((Vampire::WearPart)x, pVampireCoupleRing);
+                    } else {
+                        processItemBugEx(pCreature, pVampireCoupleRing);
                     }
-                    break;
+                }
+                break;
 
-                case STORAGE_BELT:
-                    processItemBugEx(pCreature, pVampireCoupleRing);
-                    break;
+            case STORAGE_BELT:
+                processItemBugEx(pCreature, pVampireCoupleRing);
+                break;
 
-                case STORAGE_EXTRASLOT:
-                    if (pCreature->isSlayer())
-                        pSlayer->addItemToExtraInventorySlot(pVampireCoupleRing);
-                    else if (pCreature->isVampire())
-                        pVampire->addItemToExtraInventorySlot(pVampireCoupleRing);
-                    break;
+            case STORAGE_EXTRASLOT:
+                if (pCreature->isSlayer())
+                    pSlayer->addItemToExtraInventorySlot(pVampireCoupleRing);
+                else if (pCreature->isVampire())
+                    pVampire->addItemToExtraInventorySlot(pVampireCoupleRing);
+                break;
 
-                case STORAGE_MOTORCYCLE:
-                    processItemBugEx(pCreature, pVampireCoupleRing);
-                    break;
+            case STORAGE_MOTORCYCLE:
+                processItemBugEx(pCreature, pVampireCoupleRing);
+                break;
 
-                case STORAGE_STASH:
-                    processItemBugEx(pCreature, pVampireCoupleRing);
-                    /*		if (pStash->isExist(x, y))
+            case STORAGE_STASH:
+                processItemBugEx(pCreature, pVampireCoupleRing);
+                /*		if (pStash->isExist(x, y))
                             {
                                 processItemBugEx(pCreature, pVampireCoupleRing);
                             }
                             else pStash->insert(x, y, pVampireCoupleRing); */
-                    break;
+                break;
 
-                case STORAGE_GARBAGE:
-                    processItemBug(pCreature, pVampireCoupleRing);
-                    break;
+            case STORAGE_GARBAGE:
+                processItemBug(pCreature, pVampireCoupleRing);
+                break;
 
-                default:
-                    SAFE_DELETE(pStmt); // by sigi
-                    throw Error("invalid storage or OwnerID must be NULL");
-                }
-
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+            default:
+                throw Error("invalid storage or OwnerID must be NULL");
             }
-        }
 
-        SAFE_DELETE(pStmt);
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -475,51 +373,36 @@ void VampireCoupleRingLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<PlainZoneObjectRow> rows = defaultItemObjectRepository().loadPlainItemInZone(
+        GEAR_VAMPIRE_COUPLE_RING, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        VampireCoupleRing* pVampireCoupleRing = new VampireCoupleRing();
 
-        StringStream sql;
+        pVampireCoupleRing->setItemID(rows[r].itemID);
+        pVampireCoupleRing->setObjectID(rows[r].objectID);
+        pVampireCoupleRing->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM VampireCoupleRingObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        switch (storage) {
+        case STORAGE_ZONE: {
+            Tile& pTile = pZone->getTile(x, y);
+            Assert(!pTile.hasItem());
+            pTile.addItem(pVampireCoupleRing);
+        } break;
 
-        while (pResult->next()) {
-            uint i = 0;
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            VampireCoupleRing* pVampireCoupleRing = new VampireCoupleRing();
-
-            pVampireCoupleRing->setItemID(pResult->getInt(++i));
-            pVampireCoupleRing->setObjectID(pResult->getInt(++i));
-            pVampireCoupleRing->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                Tile& pTile = pZone->getTile(x, y);
-                Assert(!pTile.hasItem());
-                pTile.addItem(pVampireCoupleRing);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
