@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 159 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 154 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -2265,6 +2265,115 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > shape. Not enclosed: the other 28 item files with SQL — next
   > MixingItem and PetFood (Num through getInt with ItemFlag), Key
   > (Target), OustersSummonItem and SlayerPortalItem (Charge), then the
+  > OptionType + Grade ones (Belt, OustersArmsband, VampireAmulet,
+  > CoreZap); ItemInfoManager.cpp holds only the registry calls.
+  > **MixingItem, PetFood, Key and the two charge items (2026-09-03, on
+  > master after the #59 merge; item milestone round 12)**: MixingItem
+  > (`MIXING_ITEM_OBJECT`), PetFood (`PET_FOOD_OBJECT`), Key
+  > (`KEY_OBJECT`), OustersSummonItem and SlayerPortalItem
+  > (`CHARGE_OBJECT`) — R3 159→154 (R2/R5 unchanged). Three object
+  > shapes. MixingItem and PetFood stream the Num + ItemFlag INSERT (ten
+  > columns; (int)m_Num, (int)m_CreateType) and take its UPDATE
+  > (MixingItem (int)m_Num; PetFood its BYTE m_Num uncast, promoted to
+  > int by the varargs call exactly as the seam's int is, against a
+  > `Num=%u` literal where MixingItem's says `Num=%d`), so insertNumItem
+  > and updateNumItem now serve these two kinds too (requireNumObject);
+  > the NUM_OBJECT loads do not: both classes read Num through getInt —
+  > owner: the ids getDWORD, Storage getInt, StorageID getDWORD, X and Y
+  > getBYTE, Num and ItemFlag getInt (`NumIntObjectRow` /
+  > loadNumIntItemOfOwner); MixingItem's zone SELECT names the same nine
+  > columns, all getInt (`NumIntZoneObjectRow` / loadNumIntItemInZone);
+  > PetFood's names no Num at all — the ItemFlag-only zone shape, so
+  > loadFlagItemInZone serves PET_FOOD_OBJECT too (requireFlagZone). Key
+  > has a Target column (an ItemID_t) in place of Num and ItemFlag: nine
+  > INSERT columns (m_Target streamed, "%u"), the UPDATE's `Target=%d`
+  > fed the DWORD as before, Target through getDWORD in both loads
+  > (`KeyObjectRow` / `KeyZoneObjectRow`; insertKey / updateKey /
+  > loadKeyOfOwner / loadKeyInZone) — and a tenth literal,
+  > Key::setNewMotorcycle's "UPDATE KeyObject SET Target=%lu WHERE
+  > ItemID=%lu" (targetID, getItemID()): a `saveTarget` spec field, NULL
+  > for every other table, behind saveKeyTarget, which refuses those;
+  > the original assigned that UPDATE's Result to a pResult it never
+  > read. OustersSummonItem and SlayerPortalItem have a Charge column
+  > (an int): nine INSERT columns, `Charge=%d` in the UPDATE, and both
+  > loads read the same getters — the zone loader too reads the ids
+  > through getDWORD and X, Y through getBYTE — so one `ChargeObjectRow`
+  > serves loadChargeItemOfOwner and loadChargeItemInZone
+  > (insertChargeItem / updateChargeItem); their loaders read every
+  > column into a local before constructing the item and keep that shape
+  > (the locals now read rows[r]). Info: `MixingItemInfoRow` /
+  > loadMixingItemInfos / `GEAR_INFO_MIXING_ITEM` — eleven columns
+  > without Ratio, the six-column head (`HeadInfoRow`: ItemType, Name,
+  > EName, Price, Volume, Weight) plus Target-1, Type-1, SlayerLevel,
+  > VampireLevel, OustersLevel (the caller keeps its
+  > (MixingItemInfo::Target) and (MixingItemInfo::Type) casts);
+  > `IntTripleInfoRow` / loadIntTripleInfos /
+  > `GEAR_INFO_BASIC_INT_TRIPLE` — PetFood's basic plus Target, PetHP,
+  > TameRatio (`first` / `second` / `third` in SELECT order); Key joins
+  > the pair shape (OptionType, TargetType); `SummonItemInfoRow` /
+  > loadSummonItemInfos / `GEAR_INFO_SUMMON_ITEM` — the head plus
+  > MaxCharge, Effect (fed to setEffectID); SlayerPortalItem joins the
+  > Potion shape (`LevelStringInfoRow`: basic plus an int and a varchar
+  > — MaxCharge in `itemLevel`, ReqAbility in `value`; the same column
+  > types, so the same loader, per the one-loader-per-shape rule). The
+  > `static_assert` now reads GEAR_SLAYER_PORTAL_ITEM + 1. The
+  > transformer (outside the repo; its output is what was reviewed)
+  > gained the four object shapes with their loader lines (the charge
+  > classes' locals-first loaders as a separate line set), the three
+  > Info plans plus per-class setter maps for the triple and the
+  > level-string shapes, the optional `Result* pResult = NULL;` line
+  > under the Statement (the two charge classes declare it in the info
+  > load and both loaders), and the setNewMotorcycle block. Literal
+  > quirks kept: "(ItemID,  ObjectID" (two spaces) and "VALUES(" in
+  > MixingItem, PetFood and Key; the charge pair's cramped column list
+  > "(ItemID,ObjectID,ItemType,OwnerID, Storage,StorageID,X,Y, Charge)
+  > VALUES (" (no space after most commas, one before VALUES's
+  > parenthesis, single-comma value separators); PetFood's `Num=%u`;
+  > Key's `Target=%d` in save beside `%lu` for both ids in
+  > setNewMotorcycle; nothing else differs between the five classes'
+  > live literals beyond the table names and the Info columns.
+  > Disclosures: the seam initialises its Statement where the originals
+  > declared pStmt uninitialised — the zone loader in MixingItem and
+  > PetFood; create, save, the info load and both loaders in Key (Key
+  > had `= NULL` only in tinysave and setNewMotorcycle); the two charge
+  > classes had it everywhere; the SQL-free third-loader stub keeps its
+  > uninitialised pStmt in MixingItem, PetFood and Key (the charge
+  > classes' stubs declare none); one Statement per info statement;
+  > whole-result reads before placement (an item-placement throw no
+  > longer leaks the Statement; the creature loaders'
+  > `SAFE_DELETE(pStmt); // by sigi` before the default-case throw is
+  > gone in all five); DBError.log names the repository method; the five
+  > create INSERTs and zone SELECTs now pass through executeQuery's
+  > 2048-byte format buffer (138–157 and 120–134 bytes of format plus a
+  > varchar(10) owner: unreachable; Key's Target UPDATE, 48 bytes, too);
+  > the commented-out StringStream blocks in save() and the owner loader
+  > (all five) and Key's commented-out alternative Info SELECT line
+  > (inside the executeQuery parentheses) gone with their blocks; the
+  > DB.h include kept; the header's "28 item files" count is 23. +1
+  > integration test: for MixingItem and PetFood two rows through
+  > insertNumItem (Num and ItemFlag read back by SQL), updateNumItem
+  > (Num changed, ItemFlag untouched), the owner load's nine columns,
+  > MixingItem's zone load (Num and ItemFlag) against PetFood's through
+  > loadFlagItemInZone (each refusing the other's table), empty for
+  > another StorageID, tinysave, MAX(ItemType); for Key, Target through
+  > the INSERT, the UPDATE and both loads (2000000001–3), saveKeyTarget
+  > leaving ObjectID alone, tinysave, MAX; for the two charge tables
+  > Charge through the INSERT, the UPDATE and both loads (the zone row's
+  > StorageID, X, Y, Charge), tinysave, MAX; the object guards both ways
+  > (the NUM_OBJECT loads refusing the getInt tables and those loads
+  > refusing a NUM_OBJECT table, the Num writes refusing Key and a
+  > charge table, the Key and charge methods refusing each other's
+  > tables and the getInt ones, saveKeyTarget refusing a Num table, the
+  > flag, plain and gear methods refusing these); the Info shapes pinned
+  > by COUNT(*) and Name / Target-1 / Type-1 / OustersLevel
+  > (MixingItem), Target / PetHP / TameRatio (PetFood), OptionType /
+  > TargetType (Key), MaxCharge / Effect (OustersSummonItem), MaxCharge
+  > / ReqAbility (SlayerPortalItem), each guard refusing another shape.
+  > Not enclosed: the other 23 item files with SQL — next Money (Amount
+  > and Num), CoupleRing and VampireCoupleRing (OptionType, Name,
+  > PartnerItemID), VampirePortalItem (Charge plus TargetZID, TargetX,
+  > TargetY — its zone loader reads eleven getters over an eight-column
+  > SELECT, a latent OutOfBoundException to keep and disclose), then the
   > OptionType + Grade ones (Belt, OustersArmsband, VampireAmulet,
   > CoreZap); ItemInfoManager.cpp holds only the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory

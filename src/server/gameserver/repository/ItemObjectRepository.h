@@ -17,7 +17,8 @@
 // shares one method set and selects its table — and its exact literal —
 // through an enum; the MySQL impl keeps every class's seven literals
 // byte-for-byte (the guns' eight: they add a saveBullet UPDATE; four Num-only
-// items' nine: they override destroy() with a DELETE).
+// items' nine: they override destroy() with a DELETE; Key's ten: setNewMotorcycle
+// writes the new motorcycle's id into Target).
 //
 // The first family: the nine slayer gear classes with a Grade column: Ring,
 // Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second
@@ -90,6 +91,19 @@
 // share the seven-argument UPDATE. Info: basic plus one int column (BonusRatio,
 // Charge, SkillType) or two (Width, Height; `Function`, Parameter), each fed to
 // the class's own setters; EventGiftBox is basic alone.
+// The eleventh family, three shapes: MixingItem and PetFood take the Num + ItemFlag
+// INSERT and UPDATE but read Num through getInt in their loads (MIXING_ITEM_OBJECT:
+// nine columns in both; PET_FOOD_OBJECT: nine in the owner load, but its zone
+// SELECT names no Num — the ItemFlag-only zone shape); Key has a Target column
+// (an ItemID_t, getDWORD in both loads) in place of Num and ItemFlag (KEY_OBJECT);
+// OustersSummonItem and SlayerPortalItem a Charge column (an int) there, and
+// their zone load reads the same getters as the owner one (CHARGE_OBJECT). Info:
+// MixingItemInfo's eleven columns without Ratio (Target-1, Type-1 and the three
+// race levels after Weight); PetFoodInfo's basic plus three ints (Target, PetHP,
+// TameRatio); KeyInfo's basic plus two (OptionType, TargetType — the pair shape);
+// OustersSummonItemInfo's head plus MaxCharge, Effect (no Ratio);
+// SlayerPortalItemInfo's basic plus MaxCharge and the ReqAbility varchar (the
+// Potion shape, MaxCharge in its int).
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -104,7 +118,7 @@
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
-// Not enclosed: the other 28 item files with SQL (later rounds) and the
+// Not enclosed: the other 23 item files with SQL (later rounds) and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
 // holds only the registry calls, no SQL.
 
@@ -169,7 +183,12 @@ enum GearTable {
     GEAR_SUB_INVENTORY,
     GEAR_TRAP_ITEM,
     GEAR_EVENT_GIFT_BOX,
-    GEAR_LEARNING_ITEM
+    GEAR_LEARNING_ITEM,
+    GEAR_MIXING_ITEM,
+    GEAR_PET_FOOD,
+    GEAR_KEY,
+    GEAR_OUSTERS_SUMMON_ITEM,
+    GEAR_SLAYER_PORTAL_ITEM
 };
 
 // The Info SELECT shapes; which loader a table's <Class>Info rows come from.
@@ -192,10 +211,13 @@ enum GearInfoKind {
     GEAR_INFO_BASIC_STRING,         // loadStringInfos (Serum, VampireETC, Pupa, Larva, ComposMei)
     GEAR_INFO_BASIC_DAMAGE,         // loadDamageInfos (HolyWater)
     GEAR_INFO_MAGAZINE,             // loadMagazineInfos (Magazine)
-    GEAR_INFO_BASIC_LEVEL_STRING,   // loadLevelStringInfos (Potion)
+    GEAR_INFO_BASIC_LEVEL_STRING,   // loadLevelStringInfos (Potion, SlayerPortalItem)
     GEAR_INFO_BASIC_LEVEL,          // loadLevelInfos (Skull)
     GEAR_INFO_BASIC_INT,            // loadIntInfos (QuestItem, SMSItem, LearningItem)
-    GEAR_INFO_BASIC_INT_PAIR        // loadIntPairInfos (SubInventory, TrapItem)
+    GEAR_INFO_BASIC_INT_PAIR,       // loadIntPairInfos (SubInventory, TrapItem, Key)
+    GEAR_INFO_BASIC_INT_TRIPLE,     // loadIntTripleInfos (PetFood)
+    GEAR_INFO_MIXING_ITEM,          // loadMixingItemInfos (MixingItem)
+    GEAR_INFO_SUMMON_ITEM           // loadSummonItemInfos (OustersSummonItem)
 };
 
 // The object-table shapes; which update / owner-load / zone-load a table takes.
@@ -213,7 +235,11 @@ enum GearObjectKind {
     SKULL_OBJECT, // Skull: the Num-only INSERT, tinysave, UPDATE and owner load, but loadSkullInZone (Num through getDWORD)
     BOMB_OBJECT, // Bomb, BombMaterial, Mine: the same, but loadBombInZone (no Num column in the zone SELECT)
     FLAG_OBJECT, // the ItemFlag-only items: insertFlagItem, tinysaveGear, updatePlainItem, loadFlagItemOfOwner, loadFlagItemInZone
-    PLAIN_OBJECT // the plain items: insertPlainItem, tinysaveGear, updatePlainItem, loadPlainItemOfOwner, loadPlainItemInZone
+    PLAIN_OBJECT, // the plain items: insertPlainItem, tinysaveGear, updatePlainItem, loadPlainItemOfOwner, loadPlainItemInZone
+    MIXING_ITEM_OBJECT, // MixingItem: insertNumItem, tinysaveGear, updateNumItem, loadNumIntItemOfOwner, loadNumIntItemInZone
+    PET_FOOD_OBJECT, // PetFood: the same, but loadFlagItemInZone (no Num column in the zone SELECT)
+    KEY_OBJECT,      // Key: insertKey, tinysaveGear, updateKey, loadKeyOfOwner, loadKeyInZone
+    CHARGE_OBJECT // OustersSummonItem, SlayerPortalItem: insertChargeItem, tinysaveGear, updateChargeItem, loadChargeItemOfOwner, loadChargeItemInZone
 };
 
 // <Class>Loader::load(Creature*): the owner SELECT's twelve columns.
@@ -693,6 +719,106 @@ struct PlainZoneObjectRow {
     int y;
 };
 
+// The six columns every Info SELECT starts with (the basic shape without Ratio).
+struct HeadInfoRow {
+    int itemType;
+    std::string name;
+    std::string ename;
+    int price;
+    int volume;
+    int weight;
+};
+
+// MixingItemInfo: the head plus Target-1, Type-1, SlayerLevel, VampireLevel, OustersLevel
+// (the caller keeps its (MixingItemInfo::Target) and (MixingItemInfo::Type) casts).
+struct MixingItemInfoRow {
+    HeadInfoRow head;
+    int target;
+    int type;
+    int slayerLevel;
+    int vampireLevel;
+    int oustersLevel;
+};
+
+// PetFoodInfo (Target, PetHP, TameRatio): basic plus three ints in SELECT order.
+struct IntTripleInfoRow {
+    BasicInfoRow basic;
+    int first;
+    int second;
+    int third;
+};
+
+// OustersSummonItemInfo: the head plus MaxCharge and Effect (fed to setEffectID).
+struct SummonItemInfoRow {
+    HeadInfoRow head;
+    int maxCharge;
+    int effectID;
+};
+
+// MixingItem's and PetFood's owner SELECT: the Num + ItemFlag columns, Num through getInt.
+struct NumIntObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    int num;
+    int createType; // ItemFlag
+};
+
+// MixingItem's zone SELECT: the same nine columns, all through getInt.
+struct NumIntZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    int num;
+    int createType; // ItemFlag
+};
+
+// Key's owner SELECT: the plain columns plus Target (getDWORD).
+struct KeyObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    DWORD target;
+};
+
+// Key's zone SELECT: the plain columns through getInt, Target still through getDWORD.
+struct KeyZoneObjectRow {
+    int itemID;
+    int objectID;
+    int itemType;
+    int storage;
+    int storageID;
+    int x;
+    int y;
+    DWORD target;
+};
+
+// The charge items' owner AND zone SELECT: the plain columns (ids getDWORD, Storage
+// getInt, StorageID getDWORD, X, Y getBYTE) plus Charge (getInt) — both loads read
+// the same getters, so one row serves both.
+struct ChargeObjectRow {
+    DWORD itemID;
+    DWORD objectID;
+    DWORD itemType;
+    int storage;
+    DWORD storageID;
+    BYTE x;
+    BYTE y;
+    int charge;
+};
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
@@ -737,6 +863,9 @@ public:
     virtual std::vector<LevelInfoRow> loadLevelInfos(GearTable table) = 0;
     virtual std::vector<IntInfoRow> loadIntInfos(GearTable table) = 0;
     virtual std::vector<IntPairInfoRow> loadIntPairInfos(GearTable table) = 0;
+    virtual std::vector<IntTripleInfoRow> loadIntTripleInfos(GearTable table) = 0;
+    virtual std::vector<MixingItemInfoRow> loadMixingItemInfos(GearTable table) = 0;
+    virtual std::vector<SummonItemInfoRow> loadSummonItemInfos(GearTable table) = 0;
 
     // <Class>Loader::load(Creature*) — the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
@@ -776,6 +905,8 @@ public:
     // The Num + ItemFlag items (see GearObjectKind): <Class>::create and save
     // with Num (the callers cast their BYTE (int)) and no OptionType, Durability,
     // Grade or EnchantLevel; tinysave is gear's; the two loads read Num as a BYTE.
+    // The INSERT and UPDATE serve the MIXING_ITEM_OBJECT and PET_FOOD_OBJECT tables
+    // too; the two loads take NUM_OBJECT alone.
     virtual void insertNumItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                const std::string& ownerID, int storage, StorageID_t storageID, int x, int y, int num,
                                int createType) = 0;
@@ -806,7 +937,8 @@ public:
 
     // The ItemFlag-only and plain items (see GearObjectKind): <Class>::create with
     // or without the ItemFlag column, one seven-argument UPDATE for both, tinysave
-    // gear's, and each shape's two loads.
+    // gear's, and each shape's two loads (loadFlagItemInZone serves the
+    // PET_FOOD_OBJECT table too: its zone SELECT is the flag shape).
     virtual void insertFlagItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                 const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                                 int createType) = 0;
@@ -818,6 +950,35 @@ public:
     virtual std::vector<FlagZoneObjectRow> loadFlagItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
     virtual std::vector<PlainObjectRow> loadPlainItemOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<PlainZoneObjectRow> loadPlainItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+
+    // MixingItem and PetFood (see GearObjectKind): the Num + ItemFlag writes, but
+    // the loads read Num through getInt; MixingItem's zone load is its own, PetFood's
+    // is loadFlagItemInZone.
+    virtual std::vector<NumIntObjectRow> loadNumIntItemOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<NumIntZoneObjectRow> loadNumIntItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+
+    // Key (see GearObjectKind): the plain columns plus Target — an ItemID_t, "%u" in
+    // the INSERT as the chain streamed it, "%d" in the UPDATE as written.
+    virtual void insertKey(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                           const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                           ItemID_t target) = 0;
+    virtual void updateKey(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                           int storage, StorageID_t storageID, int x, int y, ItemID_t target, ItemID_t itemID) = 0;
+    virtual std::vector<KeyObjectRow> loadKeyOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<KeyZoneObjectRow> loadKeyInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
+    // Key::setNewMotorcycle — "UPDATE KeyObject SET Target=%lu WHERE ItemID=%lu" with the
+    // new motorcycle's id (both DWORDs through "%lu" as written). Refuses other tables.
+    virtual void saveKeyTarget(GearTable table, ItemID_t targetID, ItemID_t itemID) = 0;
+
+    // OustersSummonItem and SlayerPortalItem (see GearObjectKind): the plain columns
+    // plus Charge (an int); one row for both loads.
+    virtual void insertChargeItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
+                                  const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
+                                  int charge) = 0;
+    virtual void updateChargeItem(GearTable table, ObjectID_t objectID, ItemType_t itemType, const std::string& ownerID,
+                                  int storage, StorageID_t storageID, int x, int y, int charge, ItemID_t itemID) = 0;
+    virtual std::vector<ChargeObjectRow> loadChargeItemOfOwner(GearTable table, const std::string& ownerName) = 0;
+    virtual std::vector<ChargeObjectRow> loadChargeItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in MySQLItemObjectRepository.cpp.
