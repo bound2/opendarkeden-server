@@ -213,6 +213,32 @@ public:
         return rows;
     }
 
+    vector<ZoneEffectBoundsRow> loadZoneEffectBounds(ZoneID_t zoneID, int effectID) {
+        vector<ZoneEffectBoundsRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT LeftX, TopY, RightX, BottomY FROM ZoneEffectInfo WHERE ZoneID = %u AND EffectID = %d", zoneID,
+                effectID);
+
+            while (pResult->next()) {
+                ZoneEffectBoundsRow row;
+                row.left = pResult->getInt(1);
+                row.top = pResult->getInt(2);
+                row.right = pResult->getInt(3);
+                row.bottom = pResult->getInt(4);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
     vector<ZoneEffectRow> loadZoneEffectRects(ZoneID_t zoneID, int effectID) {
         vector<ZoneEffectRow> rows;
         Statement* pStmt = NULL;

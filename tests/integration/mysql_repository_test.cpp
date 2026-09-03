@@ -1773,6 +1773,19 @@ TEST_F(ZoneConfigMySQL, ZoneEffectRectsAreScopedToZoneAndEffect) {
     EXPECT_EQ(5, rows[0].value1);
     EXPECT_EQ(6, rows[0].value2);
     EXPECT_EQ(7, rows[0].value3);
+
+    // EffectDarkness's statement reads the same rows without the values.
+    std::vector<ZoneEffectBoundsRow> bounds = defaultZoneInfoRepository().loadZoneEffectBounds(IT_ZONE, 7);
+    ASSERT_EQ(1u, bounds.size());
+    EXPECT_EQ(1, bounds[0].left);
+    EXPECT_EQ(2, bounds[0].top);
+    EXPECT_EQ(3, bounds[0].right);
+    EXPECT_EQ(4, bounds[0].bottom);
+    // Scoped the same way: the other effect's row in this zone, the other zone's
+    // row for this effect, and nothing for an effect with no rows at all.
+    EXPECT_EQ(1u, defaultZoneInfoRepository().loadZoneEffectBounds(IT_ZONE, 8).size());
+    EXPECT_EQ(1u, defaultZoneInfoRepository().loadZoneEffectBounds(IT_ZONE_2, 7).size());
+    EXPECT_TRUE(defaultZoneInfoRepository().loadZoneEffectBounds(IT_ZONE, 9).empty());
 }
 
 TEST_F(ZoneConfigMySQL, MonsterListsComeFromTheZoneRowOrReportNoRow) {

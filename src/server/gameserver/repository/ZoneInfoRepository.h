@@ -99,6 +99,15 @@ struct ZoneEffectRow {
     int value3;
 };
 
+// The same table read without its values: EffectDarkness's loader names four
+// columns and reads them by explicit index.
+struct ZoneEffectBoundsRow {
+    int left;
+    int top;
+    int right;
+    int bottom;
+};
+
 // PKZoneInfo's row (PKZoneInfoManager).
 struct PKZoneRow {
     int zoneID;
@@ -140,14 +149,15 @@ class ZoneInfoRepository {
 public:
     virtual ~ZoneInfoRepository() {}
 
-    // ZoneEffectInfo rectangles of one effect class in a zone
-    // (EffectOnBridgeLoader). Of the nine skill/Effect*.cpp that name the
-    // same table, six live loaders (AcidSwamp, ContinualBloodyWall,
-    // GreenPoison, IceField, Prominence, YellowPoison) use this exact
-    // 7-column literal and are this method's next callers; EffectDarkness
-    // reads a 4-column "%u" variant that needs its own method; BloodyWall
-    // and GrayDarkness only mention it inside commented-out loaders.
+    // ZoneEffectInfo rectangles of one effect class in a zone: the seven-column
+    // literal EffectOnBridgeLoader and six skill loaders share (AcidSwamp,
+    // ContinualBloodyWall, GreenPoison, IceField, Prominence, YellowPoison — all
+    // callers now). BloodyWall and GrayDarkness only mention the table inside
+    // commented-out loaders, so they are not callers.
     virtual std::vector<ZoneEffectRow> loadZoneEffectRects(ZoneID_t zoneID, int effectID) = 0;
+    // EffectDarknessLoader's own statement: the same table, four columns, and a
+    // "%u" for the zone id where the seven-column one has "%d".
+    virtual std::vector<ZoneEffectBoundsRow> loadZoneEffectBounds(ZoneID_t zoneID, int effectID) = 0;
 
     // ZoneInfo's MonsterList / EventMonsterList texts for a zone
     // (MonsterManager::load). Returns false when the zone has no row.

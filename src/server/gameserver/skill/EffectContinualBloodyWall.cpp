@@ -15,6 +15,7 @@
 #include "SkillUtil.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/ZoneInfoRepository.h"
 
 //----------------------------------------------------------------------
 // constructor
@@ -116,38 +117,28 @@ void EffectContinualBloodyWallLoader::load(Zone* pZone)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<ZoneEffectRow> rows = defaultZoneInfoRepository().loadZoneEffectRects(
+        pZone->getZoneID(), (int)Effect::EFFECT_CLASS_CONTINUAL_BLOODY_WALL);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT LeftX, TopY, RightX, BottomY, Value1, Value2, Value3 FROM ZoneEffectInfo "
-                                      "WHERE ZoneID = %d AND EffectID = %d",
-                                      pZone->getZoneID(), (int)Effect::EFFECT_CLASS_CONTINUAL_BLOODY_WALL);
+    for (size_t r = 0; r < rows.size(); r++) {
+        ZoneCoord_t left = rows[r].left;
+        ZoneCoord_t top = rows[r].top;
+        ZoneCoord_t right = rows[r].right;
+        ZoneCoord_t bottom = rows[r].bottom;
+        int value1 = rows[r].value1;
+        int value2 = rows[r].value2;
+        int value3 = rows[r].value3;
 
-        while (pResult->next()) {
-            int count = 0;
+        EffectContinualBloodyWall* pEffect = new EffectContinualBloodyWall(pZone);
+        pEffect->setRect(left, right, top, bottom);
+        pEffect->setTick(value1);
+        pEffect->setDuration(value2);
+        pEffect->setDamage(value3);
 
-            ZoneCoord_t left = pResult->getInt(++count);
-            ZoneCoord_t top = pResult->getInt(++count);
-            ZoneCoord_t right = pResult->getInt(++count);
-            ZoneCoord_t bottom = pResult->getInt(++count);
-            int value1 = pResult->getInt(++count);
-            int value2 = pResult->getInt(++count);
-            int value3 = pResult->getInt(++count);
-
-            EffectContinualBloodyWall* pEffect = new EffectContinualBloodyWall(pZone);
-            pEffect->setRect(left, right, top, bottom);
-            pEffect->setTick(value1);
-            pEffect->setDuration(value2);
-            pEffect->setDamage(value3);
-
-            // 존 및 타일에다가 이펙트를 추가한다.
-            pZone->registerObject(pEffect);
-            pZone->addEffect(pEffect);
-        }
+        // 존 및 타일에다가 이펙트를 추가한다.
+        pZone->registerObject(pEffect);
+        pZone->addEffect(pEffect);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
