@@ -32,6 +32,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
+#include "repository/WarInfoRepository.h"
 
 //--------------------------------------------------------------------------------
 //
@@ -481,52 +482,22 @@ BYTE SiegeWar::canReinforce(GuildID_t gID) {
     if (g_pGuildManager->hasWarSchedule(gID))
         return NPC_RESPONSE_WAR_ALREADY_REGISTERED;
 
-    Statement* pStmt = NULL;
+    WarInfoRepository& repository = defaultWarInfoRepository();
+    const int serverID = g_pConfig->getPropertyInt("ServerID");
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("Darkeden")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u AND Status='WAIT'", getWarID(),
-            g_pConfig->getPropertyInt("ServerID"));
+    if (repository.countWaitingReinforceRegistrations(getWarID(), serverID) > 3)
+        return NPC_RESPONSE_TOO_MANY_GUILD_REGISTERED;
 
-        if (pResult->next()) {
-            if (pResult->getInt(1) > 3)
-                return NPC_RESPONSE_TOO_MANY_GUILD_REGISTERED;
-        }
-
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u AND "
-                                      "ReinforceGuildID=%u AND Status='DENY'",
-                                      getWarID(), g_pConfig->getPropertyInt("ServerID"), gID);
-
-        if (pResult->next()) {
-            if (pResult->getInt(1) > 0)
-                return NPC_RESPONSE_REINFORCE_DENYED;
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    if (repository.countDeniedReinforceRegistrations(getWarID(), serverID, gID) > 0)
+        return NPC_RESPONSE_REINFORCE_DENYED;
 
     return NPC_RESPONSE_WAR_REGISTRATION_OK;
 }
 
 GuildID_t SiegeWar::recentReinforceGuild() {
     GuildID_t ret = 0;
-    Statement* pStmt = NULL;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("Darkeden")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ReinforceGuildID FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u AND Status='WAIT'",
-            getWarID(), g_pConfig->getPropertyInt("ServerID"));
-
-        if (pResult->next()) {
-            ret = pResult->getInt(1);
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().loadWaitingReinforceGuild(getWarID(), g_pConfig->getPropertyInt("ServerID"), ret);
 
     m_RecentReinforceCandidate = ret;
 
@@ -538,72 +509,28 @@ BYTE SiegeWar::registerReinforce(GuildID_t gID) {
     if (ret != NPC_RESPONSE_WAR_REGISTRATION_OK)
         return ret;
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("Darkeden")->createStatement();
-        pStmt->executeQuery("INSERT INTO ReinforceRegisterInfo (WarID, ServerID, ReinforceGuildID, Status) VALUES "
-                            "(%u, %u, %u, 'WAIT')",
-                            getWarID(), g_pConfig->getPropertyInt("ServerID"), gID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().insertReinforceRegistration(getWarID(), g_pConfig->getPropertyInt("ServerID"), gID);
 
     return ret;
 }
 
 bool SiegeWar::acceptReinforce() {
-    bool ret = false;
-    Statement* pStmt = NULL;
+    bool ret = defaultWarInfoRepository().acceptReinforceRegistration(getWarID(), g_pConfig->getPropertyInt("ServerID"),
+                                                                      m_RecentReinforceCandidate);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("Darkeden")->createStatement();
-        pStmt->executeQuery(
-            "UPDATE ReinforceRegisterInfo SET Status='ACCEPT' WHERE WarID=%u AND ServerID=%u AND ReinforceGuildID=%u",
-            getWarID(), g_pConfig->getPropertyInt("ServerID"), m_RecentReinforceCandidate);
-
-        if (pStmt->getAffectedRowCount() > 0)
-            ret = true;
-        if (ret)
-            m_ReinforceGuildID = m_RecentReinforceCandidate;
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    if (ret)
+        m_ReinforceGuildID = m_RecentReinforceCandidate;
 
     return ret;
 }
 
 bool SiegeWar::denyReinforce() {
-    bool ret = false;
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("Darkeden")->createStatement();
-        pStmt->executeQuery(
-            "UPDATE ReinforceRegisterInfo SET Status='DENY' WHERE WarID=%u AND ServerID=%u AND ReinforceGuildID=%u",
-            getWarID(), g_pConfig->getPropertyInt("ServerID"), m_RecentReinforceCandidate);
-
-        if (pStmt->getAffectedRowCount() > 0)
-            ret = true;
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    bool ret = defaultWarInfoRepository().denyReinforceRegistration(getWarID(), g_pConfig->getPropertyInt("ServerID"),
+                                                                    m_RecentReinforceCandidate);
 
     return ret;
 }
 
 void SiegeWar::clearReinforceRegisters() {
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("Darkeden")->createStatement();
-        pStmt->executeQuery("DELETE FROM ReinforceRegisterInfo WHERE WarID=%u AND ServerID=%u", getWarID(),
-                            g_pConfig->getPropertyInt("ServerID"));
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().deleteReinforceRegistrations(getWarID(), g_pConfig->getPropertyInt("ServerID"));
 }

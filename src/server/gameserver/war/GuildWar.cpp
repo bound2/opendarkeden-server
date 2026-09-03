@@ -28,6 +28,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
+#include "repository/WarInfoRepository.h"
 
 //--------------------------------------------------------------------------------
 //
@@ -106,25 +107,17 @@ void GuildWar::recordGuildWarStart()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo(m_CastleZoneID);
 
     // NULL 일리도 없지만 혹시나 하는 맘에 -_-;
     if (pCastleInfo == NULL)
         return;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery(
-            "INSERT IGNORE INTO GuildWarHistory (WarID, GuildWarID, ServerID, CastleName, DefenseGuildID, "
-            "DefenseGuildName, AttackGuildID, AttackGuildName) VALUES (%d, '%s', %d, '%s', %d, '%s', %d, '%s')",
-            (int)getWarID(), getWarStartTime().toStringforWeb().c_str(), g_pConfig->getPropertyInt("ServerID"),
-            pCastleInfo->getName().c_str(), (int)pCastleInfo->getGuildID(),
-            g_pGuildManager->getGuildName(pCastleInfo->getGuildID()).c_str(), getChallangerGuildID(),
-            g_pGuildManager->getGuildName(getChallangerGuildID()).c_str());
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().insertGuildWarHistory(
+        (int)getWarID(), getWarStartTime().toStringforWeb(), g_pConfig->getPropertyInt("ServerID"),
+        pCastleInfo->getName(), (int)pCastleInfo->getGuildID(),
+        g_pGuildManager->getGuildName(pCastleInfo->getGuildID()), getChallangerGuildID(),
+        g_pGuildManager->getGuildName(getChallangerGuildID()));
 
     __END_CATCH
 }
@@ -213,15 +206,8 @@ void GuildWar::recordGuildWarEnd()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE GuildWarHistory SET WinnerGuildID = %d , WinnerGuildName = '%s' WHERE WarID = %d",
-                            (int)m_WinnerGuildID, g_pGuildManager->getGuildName(m_WinnerGuildID).c_str(),
-                            (int)getWarID());
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().updateGuildWarWinner((int)m_WinnerGuildID,
+                                                    g_pGuildManager->getGuildName(m_WinnerGuildID), (int)getWarID());
 
     // script 돌리기 ㅡ.,ㅡ system 함수를 쓰게 될 줄이야 !_!
     char cmd[100];

@@ -12,6 +12,7 @@
 #include "Properties.h"
 #include "WarSystem.h"
 #include "ZoneGroupManager.h"
+#include "repository/WarInfoRepository.h"
 // #include "HolyLandRaceBonus.h"
 #include "CGSay.h"
 #include "CastleInfoManager.h"
@@ -102,54 +103,44 @@ void RaceWar::recordRaceWarStart()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<RaceCurrentNumRow> raceNums = defaultWarInfoRepository().loadRaceWarCurrentNums();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQueryString("SELECT Race, SUM(CurrentNum) FROM RaceWarPCLimit GROUP BY Race");
+    uint slayerSum = 0;
+    uint vampireSum = 0;
+    uint oustersSum = 0;
 
-        uint slayerSum = 0;
-        uint vampireSum = 0;
-        uint oustersSum = 0;
+    string slayerOld;
+    string vampireOld;
+    string oustersOld;
 
-        string slayerOld;
-        string vampireOld;
-        string oustersOld;
+    for (size_t r = 0; r < raceNums.size(); r++) {
+        uint race = raceNums[r].race;
+        uint num = raceNums[r].currentNum;
 
-        while (pResult->next()) {
-            uint race = pResult->getInt(1);
-            uint num = pResult->getInt(2);
-
-            if (race == 0)
-                slayerSum = num;
-            else if (race == 1)
-                vampireSum = num;
-            else if (race == 2)
-                oustersSum = num;
-        }
-
-        pResult = pStmt->executeQueryString("SELECT ID, OwnerRace FROM ShrineInfo");
-
-        while (pResult->next()) {
-            uint id = pResult->getInt(1);
-            uint ownerRace = pResult->getInt(2);
-
-            if (ownerRace == 0)
-                slayerOld = slayerOld + itos(id) + "|";
-            else if (ownerRace == 1)
-                vampireOld = vampireOld + itos(id) + "|";
-            else if (ownerRace == 2)
-                oustersOld = oustersOld + itos(id) + "|";
-        }
-
-        pStmt->executeQuery(
-            "INSERT INTO RaceWarHistory (RaceWarID, SlayerNum, VampireNum, OustersNum, SlayerOldBloodBible, "
-            "VampireOldBloodBible, OustersOldBloodBible) VALUES ('%s', %d, %d, %d, '%s', '%s', '%s')",
-            getWarStartTime().toStringforWeb().c_str(), slayerSum, vampireSum, oustersSum, slayerOld.c_str(),
-            vampireOld.c_str(), oustersOld.c_str());
+        if (race == 0)
+            slayerSum = num;
+        else if (race == 1)
+            vampireSum = num;
+        else if (race == 2)
+            oustersSum = num;
     }
-    END_DB(pStmt)
+
+    vector<ShrineOwnerRow> owners = defaultWarInfoRepository().loadShrineOwners();
+
+    for (size_t r = 0; r < owners.size(); r++) {
+        uint id = owners[r].id;
+        uint ownerRace = owners[r].ownerRace;
+
+        if (ownerRace == 0)
+            slayerOld = slayerOld + itos(id) + "|";
+        else if (ownerRace == 1)
+            vampireOld = vampireOld + itos(id) + "|";
+        else if (ownerRace == 2)
+            oustersOld = oustersOld + itos(id) + "|";
+    }
+
+    defaultWarInfoRepository().insertRaceWarHistory(getWarStartTime().toStringforWeb(), slayerSum, vampireSum,
+                                                    oustersSum, slayerOld, vampireOld, oustersOld);
 
     __END_CATCH
 }
@@ -225,36 +216,26 @@ void RaceWar::recordRaceWarEnd()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<ShrineOwnerRow> owners = defaultWarInfoRepository().loadShrineOwners();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string slayerNew;
+    string vampireNew;
+    string oustersNew;
 
-        pResult = pStmt->executeQueryString("SELECT ID, OwnerRace FROM ShrineInfo");
+    for (size_t r = 0; r < owners.size(); r++) {
+        uint id = owners[r].id;
+        uint ownerRace = owners[r].ownerRace;
 
-        string slayerNew;
-        string vampireNew;
-        string oustersNew;
-
-        while (pResult->next()) {
-            uint id = pResult->getInt(1);
-            uint ownerRace = pResult->getInt(2);
-
-            if (ownerRace == 0)
-                slayerNew = slayerNew + itos(id) + "|";
-            else if (ownerRace == 1)
-                vampireNew = vampireNew + itos(id) + "|";
-            else if (ownerRace == 2)
-                oustersNew = oustersNew + itos(id) + "|";
-        }
-
-        pStmt->executeQuery("UPDATE RaceWarHistory SET SlayerBloodBible = '%s', VampireBloodBible = '%s', "
-                            "OustersBloodBible = '%s' WHERE RaceWarID = '%s'",
-                            slayerNew.c_str(), vampireNew.c_str(), oustersNew.c_str(),
-                            getWarStartTime().toStringforWeb().c_str());
+        if (ownerRace == 0)
+            slayerNew = slayerNew + itos(id) + "|";
+        else if (ownerRace == 1)
+            vampireNew = vampireNew + itos(id) + "|";
+        else if (ownerRace == 2)
+            oustersNew = oustersNew + itos(id) + "|";
     }
-    END_DB(pStmt)
+
+    defaultWarInfoRepository().updateRaceWarBloodBibles(slayerNew, vampireNew, oustersNew,
+                                                        getWarStartTime().toStringforWeb());
 
     // script 돌리기 ㅡ.,ㅡ system 함수를 쓰게 될 줄이야 !_!
     char cmd[100];
