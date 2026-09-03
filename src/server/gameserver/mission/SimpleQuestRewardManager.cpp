@@ -6,63 +6,48 @@
 #include "ItemRewardInfo.h"
 #include "RandomRewardClass.h"
 #include "SlayerWeaponRewardClass.h"
+#include "repository/QuestInfoRepository.h"
 
 void SimpleQuestRewardManager::load(const string& name) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    vector<ItemRewardRow> itemRewards = defaultQuestInfoRepository().loadItemRewardsOfNPC(name);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT RewardClass, RewardID, IClass, IType, OptionType, TimeLimitSec FROM ItemRewardInfo WHERE NPC='%s'",
-            name.c_str());
+    for (size_t r = 0; r < itemRewards.size(); r++) {
+        RewardClass_t rClass = (RewardClass_t)itemRewards[r].rewardClass;
+        RewardID_t rID = (RewardID_t)itemRewards[r].rewardID;
+        Item::ItemClass iClass = (Item::ItemClass)itemRewards[r].itemClass;
+        ItemType_t iType = (ItemType_t)itemRewards[r].itemType;
+        string option = itemRewards[r].optionType;
+        DWORD time = (DWORD)itemRewards[r].timeLimitSec;
 
-        while (pResult->next()) {
-            int index = 0;
-
-            RewardClass_t rClass = (RewardClass_t)pResult->getInt(++index);
-            RewardID_t rID = (RewardID_t)pResult->getInt(++index);
-            Item::ItemClass iClass = (Item::ItemClass)pResult->getInt(++index);
-            ItemType_t iType = (ItemType_t)pResult->getInt(++index);
-            string option = pResult->getString(++index);
-            DWORD time = (DWORD)pResult->getInt(++index);
-
-            if (m_RewardClasses[rClass] == NULL) {
-                m_RewardClasses[rClass] = new RandomRewardClass(rClass);
-                // cout << "NPC : " << name << ", RewardClass : " << (uint)rClass << endl;
-            }
-
-            ItemRewardInfo* pItemRI = new ItemRewardInfo(rID, rClass, iClass, iType, option, time);
-            m_RewardClasses[rClass]->addRewardInfo(pItemRI);
+        if (m_RewardClasses[rClass] == NULL) {
+            m_RewardClasses[rClass] = new RandomRewardClass(rClass);
+            // cout << "NPC : " << name << ", RewardClass : " << (uint)rClass << endl;
         }
 
-        pResult = pStmt->executeQuery("SELECT RewardClass, RewardID, IClass, IType, OptionType, TimeLimitSec FROM "
-                                      "SlayerWeaponRewardInfo WHERE NPC='%s'",
-                                      name.c_str());
-
-        while (pResult->next()) {
-            int index = 0;
-
-            RewardClass_t rClass = (RewardClass_t)pResult->getInt(++index);
-            RewardID_t rID = (RewardID_t)pResult->getInt(++index);
-            Item::ItemClass iClass = (Item::ItemClass)pResult->getInt(++index);
-            ItemType_t iType = (ItemType_t)pResult->getInt(++index);
-            string option = pResult->getString(++index);
-            DWORD time = (DWORD)pResult->getInt(++index);
-
-            if (m_RewardClasses[rClass] == NULL) {
-                m_RewardClasses[rClass] = new SlayerWeaponRewardClass(rClass);
-                // cout << "NPC : " << name << ", RewardClass : " << (uint)rClass << endl;
-            }
-
-            ItemRewardInfo* pItemRI = new ItemRewardInfo(rID, rClass, iClass, iType, option, time);
-            m_RewardClasses[rClass]->addRewardInfo(pItemRI);
-        }
-
-        SAFE_DELETE(pStmt);
+        ItemRewardInfo* pItemRI = new ItemRewardInfo(rID, rClass, iClass, iType, option, time);
+        m_RewardClasses[rClass]->addRewardInfo(pItemRI);
     }
-    END_DB(pStmt)
+
+    vector<ItemRewardRow> weaponRewards = defaultQuestInfoRepository().loadSlayerWeaponRewardsOfNPC(name);
+
+    for (size_t r = 0; r < weaponRewards.size(); r++) {
+        RewardClass_t rClass = (RewardClass_t)weaponRewards[r].rewardClass;
+        RewardID_t rID = (RewardID_t)weaponRewards[r].rewardID;
+        Item::ItemClass iClass = (Item::ItemClass)weaponRewards[r].itemClass;
+        ItemType_t iType = (ItemType_t)weaponRewards[r].itemType;
+        string option = weaponRewards[r].optionType;
+        DWORD time = (DWORD)weaponRewards[r].timeLimitSec;
+
+        if (m_RewardClasses[rClass] == NULL) {
+            m_RewardClasses[rClass] = new SlayerWeaponRewardClass(rClass);
+            // cout << "NPC : " << name << ", RewardClass : " << (uint)rClass << endl;
+        }
+
+        ItemRewardInfo* pItemRI = new ItemRewardInfo(rID, rClass, iClass, iType, option, time);
+        m_RewardClasses[rClass]->addRewardInfo(pItemRI);
+    }
 
     __END_CATCH
 }

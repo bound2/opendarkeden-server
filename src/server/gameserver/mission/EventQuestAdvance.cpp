@@ -5,26 +5,14 @@
 
 #include "DB.h"
 #include "PlayerCreature.h"
+#include "repository/QuestInfoRepository.h"
 
 void EventQuestAdvance::save(const string& name) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE EventQuestAdvance SET Status=%u WHERE OwnerID='%s' AND QuestLevel=%u",
-                            (uint)getStatus(), name.c_str(), (uint)getLevel());
-
-        if (pStmt->getAffectedRowCount() == 0) {
-            pStmt->executeQuery(
-                "INSERT IGNORE INTO EventQuestAdvance (QuestLevel, OwnerID, Status) VALUES (%u, '%s', %u)",
-                (uint)getLevel(), name.c_str(), (uint)getStatus());
-        }
-
-        SAFE_DELETE(pStmt);
+    if (!defaultQuestInfoRepository().updateEventQuestAdvance((uint)getStatus(), name, (uint)getLevel())) {
+        defaultQuestInfoRepository().insertEventQuestAdvance((uint)getLevel(), name, (uint)getStatus());
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -129,23 +117,14 @@ void EventQuestAdvanceManager::load() {
 
     clear();
 
-    Statement* pStmt = NULL;
+    vector<EventQuestAdvanceRow> rows = defaultQuestInfoRepository().loadEventQuestAdvances(m_pOwner->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT QuestLevel, Status FROM EventQuestAdvance WHERE OwnerID='%s'",
-                                              m_pOwner->getName().c_str());
+    for (size_t r = 0; r < rows.size(); r++) {
+        int qLevel = rows[r].questLevel;
+        EventQuestAdvance::Status status = (EventQuestAdvance::Status)rows[r].status;
 
-        while (pResult->next()) {
-            int qLevel = pResult->getInt(1);
-            EventQuestAdvance::Status status = (EventQuestAdvance::Status)pResult->getInt(2);
-
-            m_Advances[qLevel] = new EventQuestAdvance(qLevel, status);
-        }
-
-        SAFE_DELETE(pStmt);
+        m_Advances[qLevel] = new EventQuestAdvance(qLevel, status);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

@@ -565,6 +565,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLEffectSaveRepository.cpp
     repository/MySQLFlagSetRepository.cpp
     repository/MySQLGameInfoRepository.cpp
+    repository/MySQLQuestInfoRepository.cpp
     repository/MySQLQuestItemRepository.cpp
     repository/MySQLRankBonusRepository.cpp
     repository/MySQLSMSAddressRepository.cpp
