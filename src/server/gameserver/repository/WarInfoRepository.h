@@ -9,15 +9,15 @@
 // Persistence seam for the race-war tables (task 3.2): the shrines and
 // their owning race (ShrineInfo), the castles and their guild/tax state
 // (CastleInfo), the level-war sweeper bonuses (SweeperBonusInfo), the
-// sweeper safes and owners (SweeperSetInfo, SweeperOwnerInfo), the four
-// war histories (LevelWarHistory, GuildWarHistory, RaceWarHistory and
-// the RaceWarPCLimit totals one of them records), the per-race entry
-// limits themselves (RaceWarPCLimit) and the participant list
-// (RaceWarPCList), the siege-war
-// reinforcement registry (ReinforceRegisterInfo), the scheduled wars
+// sweeper safes and owners (SweeperSetInfo, SweeperOwnerInfo), the
+// three war histories (LevelWarHistory, GuildWarHistory and
+// RaceWarHistory), the race-war entry limits (RaceWarPCLimit, both
+// the rows themselves and the per-race totals one history records),
+// the participant list (RaceWarPCList), the siege-war reinforcement
+// registry (ReinforceRegisterInfo), the scheduled wars
 // (WarScheduleInfo) and the master lairs (MasterLairInfo). Reads are
-// typed to the driver getter the inline
-// code called (getInt → int, getString → std::string); the writes'
+// typed to the driver getter the inline code called (getInt → int,
+// getString → std::string); the writes'
 // parameters are typed to the member/getter each caller streamed, so
 // the varargs bytes reaching the format strings are unchanged.
 //
@@ -279,11 +279,13 @@ public:
     //
     // WARNING — the row's `race` is what the inline loop actually read:
     // getInt(COLUMN 1), which is Name, not Race. getInt is atoi, so the
-    // value is 0 for any name that does not begin with a digit and the
-    // caller's per-race tally is wrong. The caller indexes a three-element
-    // array with it, so a numeric-leading name is an out-of-bounds write.
-    // Preserved here byte-for-byte rather than quietly corrected: the fix
-    // is a behaviour change and wants its own round.
+    // value is 0 for any name that does not begin with a digit or sign,
+    // and the caller's per-race tally is wrong. The caller indexes a
+    // three-element array with it: a name parsing to 0, 1 or 2 lands in
+    // the wrong bucket, and one parsing to 3 or more — or to a negative,
+    // atoi honouring a leading sign — writes outside the array
+    // altogether. Preserved here byte-for-byte rather than quietly
+    // corrected: the fix is a behaviour change and wants its own round.
     virtual std::vector<RaceWarPCListRow> loadRaceWarPCList() = 0;
     virtual void deleteRaceWarPCList() = 0;
     // RaceWarLimiter::addPCList — an INSERT IGNORE, Name being the table's

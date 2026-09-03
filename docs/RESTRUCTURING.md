@@ -3129,16 +3129,21 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > 5/5, 139/139, build exit 0.
   > **The race-war entry limits and the participant list (2026-09-03,
   > stacked on the war-schedule round)**: war/RaceWarLimiter.cpp — R3
-  > 109→108 (R1/R2/R5 unchanged), and with it the last file in war/ that
-  > still ran live SQL. Eight statements join WarInfoRepository:
+  > 109→108 (R1/R2/R5 unchanged). Eight statements join
+  > WarInfoRepository:
   > PCWarLimiter's three against RaceWarPCLimit (the per-race level
   > bands, the whole-table CurrentNum reset and the per-row save) and
   > RaceWarLimiter's five against RaceWarPCList (read, empty, INSERT
   > IGNORE, COUNT and delete-by-name). All eight literals are
   > byte-identical, the lowercase "count(*)" included, and the two that
-  > were executeQueryString stay executeQueryString. Only SiegeWar.cpp
-  > still answers the R3 grep in war/, and only because its two
-  > SiegeWarHistory recorders are commented out whole. Findings: the
+  > were executeQueryString stay executeQueryString. war/ is NOT
+  > finished by this round (an earlier draft of this paragraph said it
+  > was, wrongly): SiegeWar.cpp answers the R3 grep only because its
+  > two SiegeWarHistory recorders are commented out whole, but
+  > WarScheduler.cpp still runs three live statements — the per-zone
+  > load, its ReinforceRegisterInfo read and the guild-schedule cancel
+  > — which the war-schedule round deliberately deferred and the round
+  > after this one takes. Findings: the
   > getTableName() the first three statements splice through "%s" is
   > polymorphic in form only — all three overrides (Slayer, Vampire,
   > Ousters) return "RaceWarPCLimit" — so the seam takes the table name
@@ -3149,15 +3154,21 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > FIXED, and the reason this round carries a warning in the header:
   > clearPCList's read hands getInt column 1, which is Name, not Race.
   > getInt is atoi, so the race is 0 for any name that does not begin
-  > with a digit — every participant is logged as a Slayer — and the
-  > caller indexes a three-element int array with the result, so a
-  > numeric-leading name is an out-of-bounds stack write. The seam
-  > preserves the read exactly and the test pins both halves (a Race
-  > column of 1 read back as 0, a name of "7abc" read back as 7).
-  > Correcting it is a behaviour change with two plausible fixes — read
-  > column 2, or bound the index — and wants its own round. Tests: three
-  > added to WarInfoMySQL; ctest 5/5, 142/142 integration tests, build
-  > exit 0.
+  > with a digit or sign — every such participant is logged as a Slayer
+  > — and the caller indexes a three-element int array with the result.
+  > A name parsing to 0, 1 or 2 only lands in the wrong bucket; one
+  > parsing to 3 or more, or to a negative (atoi honours a leading
+  > sign), writes outside the array. The seam preserves the read
+  > exactly and the test pins both halves (a Race column of 1 read back
+  > as 0, a name of "7abc" read back as 7), but note the blast radius
+  > is not identical: clearPCList's frame now also holds the
+  > vector the loop is walking, where before it held the driver
+  > pointers. Correcting it is a behaviour change with two plausible
+  > fixes — read column 2, or bound the index — and wants its own
+  > round. As in every round, DBError.log and the const char* END_DB
+  > rethrows now name the repository method rather than the caller.
+  > Tests: three added to WarInfoMySQL; ctest 5/5, 142/142 integration
+  > tests, build exit 0.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes
   > before PetItem — R3 136→133 (R1/R2/R5 unchanged). Motorcycle

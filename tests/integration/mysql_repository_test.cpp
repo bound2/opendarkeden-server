@@ -2435,7 +2435,10 @@ TEST_F(WarInfoMySQL, RaceWarLimitStatementsRunAgainstTheTableNameTheCallerHandsI
     std::vector<RaceWarLimitRow> rows = repository.loadRaceWarLimits("RaceWarPCLimitIT", 1);
     ASSERT_EQ(2u, rows.size());
 
-    // Five columns in SELECT order, every one through getInt.
+    // Five columns in SELECT order, every one through getInt. The SELECT
+    // carries no ORDER BY, so indexing the rows leans on the scan order of
+    // a keyless InnoDB copy being the insertion order — the same
+    // dependence SkillSaveMySQL's load-order test names.
     EXPECT_EQ(31010, rows[0].id);
     EXPECT_EQ(10, rows[0].minLevel);
     EXPECT_EQ(20, rows[0].maxLevel);
@@ -2505,7 +2508,8 @@ TEST_F(WarInfoMySQL, TheParticipantListReadTakesItsRaceFromTheNameColumn) {
     // The Race column holds 1 and 2. The loader reports 0 and 7, because the
     // inline read this seam preserves hands getInt column 1 — Name — and
     // getInt is atoi. The caller then uses that value to index a
-    // three-element array, so the second row is an out-of-bounds write.
+    // three-element array: "itrw1" parses to 0 and merely lands in the
+    // wrong bucket, while "7abc" parses to 7 and writes outside the array.
     // Pinned, not fixed: correcting it is a behaviour change of its own.
     EXPECT_EQ("1", queryScalar("SELECT Race FROM RaceWarPCList WHERE Name='itrw1'"));
     EXPECT_EQ("2", queryScalar("SELECT Race FROM RaceWarPCList WHERE Name='7abc'"));
