@@ -166,6 +166,21 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
                 pPlayer->sendPacket(&gcModifyInformation);
 
                 // 메시지를 보낸다.
+                // NOTE: this runs inside __ENTER_CRITICAL_SECTION, and a SQL
+                // failure here escapes as the const char* END_DB rethrows,
+                // which __LEAVE_CRITICAL_SECTION's catch (Throwable&) does not
+                // match — so g_pPCFinder is not unlocked on that path. It was
+                // unlocked before this seam, when the exception crossed the
+                // boundary as a SQLQueryException and END_DB sat outside.
+                // Unobservable today: nothing up this thread catches a
+                // const char* (SharedServerClient::processCommand takes three
+                // Throwable subclasses, SharedServerManager::run takes
+                // Throwable&, start_routine takes nothing), so the process
+                // terminates before the lock matters — and setGoldEx above
+                // already reaches CharacterRepository::tinysave, which throws
+                // the same const char* from inside this same section. The
+                // general fix belongs in __LEAVE_CRITICAL_SECTION and wants
+                // its own round; see docs/RESTRUCTURING.md.
                 vector<string> queued = messages.loadMessages(pCreature->getName());
 
                 for (size_t m = 0; m < queued.size(); m++) {

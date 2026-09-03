@@ -3303,20 +3303,48 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > MessageRepository::loadMessages and deleteMessages, spacing
   > included. CGExpelGuild's three are exactly the backticked spellings
   > the previous round introduced for CGDenyUnion:
-  > UNION_NOTICE_QUOTED_SPACED, countUnionMembers(UNION_SQL_QUOTED, .)
+  > UNION_NOTICE_QUOTED_SPACED, countUnionMembersSpelled(UNION_SQL_QUOTED,
+  > .)
   > and deleteUnionInfoOnly(UNION_SQL_QUOTED, .). Worth noticing WHY
   > this round was cheap: the previous one paid for it by keeping the
   > spelling variants apart instead of normalising them, so the
   > backticked forms already existed to be reused. Disclosures:
   > SGDeleteGuildOK's single Statement served a LOOP over every guild
   > member, so the drain is now one statement pair per member rather
-  > than one Statement for all of them (boot-path equivalent: the driver
-  > has no transaction management, and the order is unchanged); its
-  > BEGIN_DB also wrapped the member loop, Members.clear(),
-  > deleteGuild() and SAFE_DELETE(pGuild), none of which is SQL —
-  > removing it does not change what a SQL failure skips, because the
-  > throw still leaves from the same point in the sequence, but the
+  > than one Statement for all of them (the order is unchanged, and a
+  > Statement is not a transaction — both versions fetch the same
+  > per-thread Connection, so the grouping cannot change); its BEGIN_DB
+  > also wrapped the member loop, Members.clear(), deleteGuild() and
+  > SAFE_DELETE(pGuild), none of which is SQL, and removing it does not
+  > change what a SQL failure skips. CORRECTION, from both reviews of
+  > this round: an earlier draft said "the throw still leaves from the
+  > same point in the sequence", and that is wrong in a way worth
+  > recording. SGDeleteGuildOK is the only one of the four where
+  > BEGIN_DB was OUTSIDE and __ENTER_CRITICAL_SECTION inside. A
+  > SQLQueryException used to cross __LEAVE_CRITICAL_SECTION as a
+  > Throwable, so its catch matched and g_pPCFinder was UNLOCKED before
+  > END_DB, sitting outside, converted it. Now the repository converts
+  > first, so what crosses that boundary is a const char*, which
+  > catch (Throwable&) does not match: the mutex is not released. The
+  > skip set really is identical; the unwinding is not. It is not
+  > observable, for a reason worth writing down: nothing up this thread
+  > catches a const char* — SharedServerClient::processCommand takes
+  > three Throwable subclasses, SharedServerManager::run takes
+  > Throwable&, start_routine takes nothing — so a SQL failure here
+  > terminates the process before a held lock can matter, before and
+  > after. And the pattern already sat one line earlier in that same
+  > section: setGoldEx reaches CharacterRepository::tinysave, whose
+  > END_DB throws the same const char*. THE GENERAL PROBLEM, which
+  > wants its own round: __LEAVE_CRITICAL_SECTION releases only on
+  > Throwable&, while every repository converts to const char*, so ANY
+  > repository call inside a critical section leaves its mutex held —
+  > masked today only by the terminate. The fix is one line in
+  > src/Core/Exception.h (catch (...) rather than catch (Throwable&)),
+  > but it is a Core macro used everywhere and belongs on its own. The
   > enclosing try is gone and DBError.log names the repository method.
+  > Statement counts rose in three more handlers than the original
+  > disclosure named: CGExpelGuild 1 to 3, and each SGModify handler 1
+  > to 2.
   > getString(1) fed setMessage(const string&) via a temporary before
   > and a vector element now, same bytes. NO NEW TESTS, deliberately:
   > this round adds no repository surface. What it reuses is covered by

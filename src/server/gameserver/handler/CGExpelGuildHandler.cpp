@@ -104,7 +104,7 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
         defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
                                                      g_pStringPool->c_str(377));
 
-        if (guilds.countUnionMembers(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
+        if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
             // cout << "추방하고 나서..멤버가 하나도 남지 않으면 연합정보를 없애버린다." << endl;
             guilds.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
             GuildUnionManager::Instance().reload();
