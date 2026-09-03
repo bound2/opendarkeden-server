@@ -2636,51 +2636,55 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > instead of formatting a NULL. R3 146→140 (R1/R2/R5 unchanged).
   > Mitten, ShoulderArmor and Persona are `GEAR_OBJECT` like Ring:
   > gear's twelve-column INSERT, gear's twelve arguments to updateGear
-  > and gear's twelve columns in the owner load, so insertGear,
-  > tinysaveGear, updateGear and loadGearOfOwner take them as they
-  > stand; Info is gear's eighteen columns (Mitten, ShoulderArmor) or
-  > the sixteen VampireCoat reads (Persona — `GEAR_INFO_NO_RATIO`).
-  > Dermis, Fascia and CarryingReceiver are `OPTION_GRADE_OBJECT`:
-  > VampireAmulet's INSERT (eleven columns, no Durability) through
-  > insertOptionGradeItem, whose guard now takes the new kind, and
-  > updateAmulet's eleven arguments over its ten SET columns; their
-  > owner load names eleven columns, gear's without Durability, through
-  > gear's getters (ItemID, ObjectID, ItemType getDWORD, Storage getInt,
-  > StorageID getDWORD, X, Y getBYTE, OptionType getString, Grade,
-  > EnchantLevel, ItemFlag getInt — `OptionGradeObjectRow` /
-  > loadOptionGradeOfOwner), and their Info SELECT is gear's eighteen
-  > columns without Durability, seventeen (`GearInfoNoDurabilityRow` /
-  > loadGearInfosNoDurability, read as the basic seven plus gear's ten —
-  > readBasicInfo and readGearInfoTail became templates to serve the new
-  > row beside their own). The `static_assert` now reads
-  > GEAR_CARRYING_RECEIVER + 1. Literal quirks kept: "(ItemID,  ObjectID"
-  > (two spaces after the first comma), "StorageID , X, Y" (a space
-  > before that comma) and " VALUES(" in all six creates; "Storage IN(0,
-  > 1, 2, 3, 4, 9)" (no space before the parenthesis) in all six owner
-  > SELECTs, Dermis's naming "X, Y,OptionType" where the other five
-  > leave a space; "SET %s WHERE ItemID=%ld" in the six tinysaves.
-  > Normalised pairwise with the class name replaced, the six rows
-  > collapse to two INSERT shapes (with and without Durability), one
-  > tinysave, two UPDATEs, one MAX(ItemType), three Info SELECTs (18 /
-  > 16 / 17 columns) and three owner SELECTs (twelve columns; eleven;
-  > Dermis's eleven with the missing space) — nothing else differs among
-  > them. The generator (outside the repo; its output is what was
-  > reviewed) reproduces the base impl byte for byte after clang-format
-  > when run against the base's 74-class list, so this round's edits to
-  > it add code and change nothing already generated. Disclosures: the
-  > seam initialises its Statement where the originals declared pStmt
-  > uninitialised (create, save, the info load and the owner loader in
-  > all six; their tinysave already used `= NULL`); one Statement per
-  > info statement, where the original ran MAX(ItemType) and the column
-  > SELECT on one; whole-result reads before placement (an
-  > item-placement throw no longer leaks the Statement; the owner
-  > loaders' `SAFE_DELETE(pStmt); // by sigi` before the default-case
-  > throw is gone in all six); DBError.log names the repository method;
-  > the six create INSERTs now pass through executeQuery's 2048-byte
-  > format buffer (174-197 bytes of format plus a varchar(10) owner and
-  > a varchar(10) OptionType) where executeQueryString was uncapped — on
-  > overflow executeQuery throws Error, which END_DB (a catch of
-  > SQLQueryException) does not catch, but reaching it would need an
+  > and gear's twelve columns in the owner load, so the gear methods
+  > that serve Ring — insertGear, tinysaveGear, updateGear and
+  > loadGearOfOwner — take them as they stand, while destroyGearObject
+  > refuses them exactly as it refuses Ring, neither carrying a
+  > destroy-by-id literal; Info is gear's eighteen columns (Mitten,
+  > ShoulderArmor) or the sixteen VampireCoat reads (Persona —
+  > `GEAR_INFO_NO_RATIO`). Dermis, Fascia and CarryingReceiver are
+  > `OPTION_GRADE_OBJECT`: VampireAmulet's INSERT (eleven columns, no
+  > Durability) through insertOptionGradeItem, whose guard now takes the
+  > new kind, and updateAmulet's eleven arguments over its ten SET
+  > columns; their owner load names eleven columns, gear's without
+  > Durability, through gear's getters (ItemID, ObjectID, ItemType
+  > getDWORD, Storage getInt, StorageID getDWORD, X, Y getBYTE,
+  > OptionType getString, Grade, EnchantLevel, ItemFlag getInt —
+  > `OptionGradeObjectRow` / loadOptionGradeOfOwner), and their Info
+  > SELECT is gear's eighteen columns without Durability, seventeen
+  > (`GearInfoNoDurabilityRow` / loadGearInfosNoDurability, read as the
+  > basic seven plus gear's ten — readBasicInfo and readGearInfoTail
+  > became templates to serve the new row beside their own). The
+  > `static_assert` now reads GEAR_CARRYING_RECEIVER + 1. Literal quirks
+  > kept: "(ItemID,  ObjectID" (two spaces after the first comma),
+  > "StorageID , X, Y" (a space before that comma) and " VALUES(" in all
+  > six creates; "Storage IN(0, 1, 2, 3, 4, 9)" (no space before the
+  > parenthesis) in all six owner SELECTs, Dermis's naming "X,
+  > Y,OptionType" where the other five leave a space; "SET %s WHERE
+  > ItemID=%ld" in the six tinysaves. Normalised pairwise with the class
+  > name replaced, the six rows collapse to two INSERT shapes (with and
+  > without Durability), one tinysave, two UPDATEs, one MAX(ItemType),
+  > three Info SELECTs (18 / 16 / 17 columns) and three owner SELECTs
+  > (twelve columns; eleven; Dermis's eleven with the missing space) —
+  > no other literal differs among them, and the rows' two enum slots
+  > record exactly those shapes. The generator (outside the repo; its
+  > output is what was reviewed) reproduces the base impl byte for byte
+  > after clang-format when run against the base's 74-class list, so
+  > this round's edits to it add code and change nothing already
+  > generated. Disclosures: the seam initialises its Statement where the
+  > originals declared pStmt uninitialised (create, save, the info load
+  > and the owner loader in all six; their tinysave already used `=
+  > NULL`); one Statement per info statement, where the original ran
+  > MAX(ItemType) and the column SELECT on one; whole-result reads
+  > before placement (an item-placement throw no longer leaks the
+  > Statement; the owner loaders' `SAFE_DELETE(pStmt); // by sigi`
+  > before the default-case throw is gone in all six); DBError.log names
+  > the repository method; the six create INSERTs now pass through
+  > executeQuery's 2048-byte format buffer (174-197 bytes of format plus
+  > a varchar(10) owner and a varchar(10) OptionType) where
+  > executeQueryString was uncapped — on overflow executeQuery throws
+  > Error, which END_DB (a catch of SQLQueryException) does not catch
+  > and which leaks the Statement, but reaching it would need an
   > optionField of some 1,700 bytes against a varchar(10) column; the
   > SQL-free zone stubs and the third loader, load(StorageID_t,
   > Inventory*), are untouched; the DB.h include stays; the header's "15
@@ -2714,9 +2718,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > still loading for Ring and VampireAmulet, since the new guard is the
   > literal, not the shape). Not enclosed: the other 9 item files with
   > SQL — PetItem (a twenty-one-column owner SELECT), Motorcycle,
-  > BloodBible, CastleSymbol, CodeSheet, Relic, Sweeper, WarItem and
-  > EventBall (no tables, not registered); ItemInfoManager.cpp holds
-  > only the registry calls.
+  > BloodBible, CastleSymbol, CodeSheet, Relic, Sweeper and WarItem, and
+  > EventBall, which has no tables and is not registered;
+  > ItemInfoManager.cpp holds only the registry calls.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

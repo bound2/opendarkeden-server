@@ -13,8 +13,9 @@
 // UPDATE, the couple rings an eleventh, hasPartnerItem's count(*) SELECT, and
 // Belt and OustersArmsband a twelfth, their destroy() DELETE by ItemID (NULL
 // for every other table). Six tables carry no zone literal at all — their
-// <Class>Loader::load(Zone*) holds no SQL — and the gear zone load refuses
-// them rather than formatting a NULL. The spec row also
+// <Class>Loader::load(Zone*) holds no SQL — and the gear zone load, which the
+// three of them that are GEAR_OBJECT would otherwise pass, checks the literal
+// and refuses them rather than formatting a NULL. The spec row also
 // records which object shape and which Info shape the class's tables
 // have; every loader checks them, so a call with the wrong loader fails
 // loudly instead of misreading the columns silently. GEAR_INFO_UNSET and
@@ -1924,7 +1925,8 @@ void requireAmuletUpdate(GearTable table, const char* method) {
 
 // Mitten, ShoulderArmor and Persona are gear objects whose Loader::load(Zone*)
 // holds no SQL: their spec rows carry no zone literal, so the gear zone load
-// refuses them instead of formatting a NULL.
+// refuses them instead of formatting a NULL. (The three OPTION_GRADE_OBJECT
+// tables carry none either, but requireGearLoad already refuses them on shape.)
 void requireZoneLiteral(GearTable table, const char* method) {
     if (spec(table).inZone == NULL) {
         throw Error(string("ItemObjectRepository: ") + method + " called for a table without a zone literal");
@@ -1952,7 +1954,8 @@ template <class Row> void readInfoHead(Result* pResult, uint& i, Row& row) {
     row.durability = pResult->getInt(++i);
 }
 
-// The ten columns after the head in the standard gear Info shape.
+// The ten columns of the standard gear Info shape after its eight-column head
+// (or, for the no-Durability shape, after readBasicInfo's seven).
 template <class Row> void readGearInfoTail(Result* pResult, uint& i, Row& row) {
     row.defense = pResult->getInt(++i);
     row.protection = pResult->getInt(++i);
@@ -3847,10 +3850,12 @@ public:
         return rows;
     }
 
-    // VampireAmulet (AMULET_OBJECT) and CoreZap (CORE_ZAP_OBJECT): the gear INSERT
-    // without Durability (eleven columns); VampireAmulet's UPDATE writes Grade and
-    // EnchantLevel and its loads are gear's, CoreZap's UPDATE writes Grade alone and
-    // its loads name OptionType, Grade (owner) and OptionType (zone) with ItemFlag.
+    // VampireAmulet (AMULET_OBJECT), CoreZap (CORE_ZAP_OBJECT) and the three
+    // OPTION_GRADE_OBJECT tables: the gear INSERT without Durability (eleven
+    // columns); VampireAmulet's UPDATE writes Grade and EnchantLevel — Dermis's,
+    // Fascia's and CarryingReceiver's too, through the same updateAmulet — and its
+    // loads are gear's, CoreZap's UPDATE writes Grade alone and its loads name
+    // OptionType, Grade (owner) and OptionType (zone) with ItemFlag.
     void insertOptionGradeItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                const string& ownerID, int storage, StorageID_t storageID, int x, int y,
                                const string& optionField, int grade, int createType) {

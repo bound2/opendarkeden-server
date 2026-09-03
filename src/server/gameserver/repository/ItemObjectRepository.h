@@ -131,14 +131,15 @@
 // getInt: two kinds, one row, one loader) and whose destroy() is a DELETE by
 // ItemID (destroyGearObject).
 // The fourteenth family, six classes whose <Class>Loader::load(Zone*) holds no
-// SQL at all: their spec rows carry no zone literal, and the gear zone load
-// refuses such a table instead of formatting a NULL. Mitten, ShoulderArmor and
+// SQL at all: their spec rows carry no zone literal. Mitten, ShoulderArmor and
 // Persona are gear objects (Mitten's and ShoulderArmor's Info is gear's 18
-// columns, Persona's is VampireCoat's 16); Dermis, Fascia and CarryingReceiver
-// are OPTION_GRADE_OBJECT — VampireAmulet's eleven-column INSERT and its
-// ten-argument UPDATE, but an owner load of eleven columns, gear's without
-// Durability, and an Info SELECT of seventeen, gear's without Durability too
-// (GEAR_INFO_NO_DURABILITY).
+// columns, Persona's is VampireCoat's 16), so loadGearInZone would reach their
+// rows on shape alone: it checks the literal too and refuses them rather than
+// formatting a NULL. Dermis, Fascia and CarryingReceiver are
+// OPTION_GRADE_OBJECT — VampireAmulet's eleven-column INSERT and its UPDATE's
+// ten SET columns (eleven varargs), but an owner load of eleven columns, gear's
+// without Durability, and an Info SELECT of seventeen, gear's without
+// Durability too (GEAR_INFO_NO_DURABILITY); the gear loads refuse them on shape.
 //
 // Reads are typed to the driver getter the inline code called: the owner
 // load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
@@ -1081,8 +1082,8 @@ public:
     // Both gear loads serve the AMULET_OBJECT table too: its SELECTs are gear's.
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
     // <Class>Loader::load(Zone*) — `storage` is what the caller streamed ((int)STORAGE_ZONE).
-    // Refuses the gear tables whose zone loader holds no SQL, so carry no zone
-    // literal (Mitten, ShoulderArmor, Persona).
+    // Refuses the gear tables that carry no zone literal because their zone loader
+    // holds no SQL (Mitten, ShoulderArmor, Persona); other shapes it refuses anyway.
     virtual std::vector<GearZoneObjectRow> loadGearInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
     // The silver weapons (see GearObjectKind): <Class>::save with EnchantLevel,
