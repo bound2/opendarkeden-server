@@ -9,8 +9,10 @@
 // Persistence seam for the race-war tables (task 3.2): the shrines and
 // their owning race (ShrineInfo), the castles and their guild/tax state
 // (CastleInfo), the level-war sweeper bonuses (SweeperBonusInfo), the
-// sweeper safes and owners (SweeperSetInfo, SweeperOwnerInfo), the
-// level-war history (LevelWarHistory) and the master lairs
+// sweeper safes and owners (SweeperSetInfo, SweeperOwnerInfo), the four
+// war histories (LevelWarHistory, GuildWarHistory, RaceWarHistory and
+// the RaceWarPCLimit totals one of them records), the siege-war
+// reinforcement registry (ReinforceRegisterInfo) and the master lairs
 // (MasterLairInfo). Reads are typed to the driver getter the inline
 // code called (getInt → int, getString → std::string); the writes'
 // parameters are typed to the member/getter each caller streamed, so
@@ -18,7 +20,12 @@
 //
 // Other users of these tables keep their own inline SQL: the guild
 // managers (gameserver and sharedserver) count and list castles by
-// guild, and war/RaceWar.cpp re-reads the shrine owners.
+// guild; GuildRepository::countReinforceRegistrations joins
+// ReinforceRegisterInfo to WarScheduleInfo for a guild-wide count, a
+// different statement from the war-scoped ones here; and
+// war/WarScheduler.cpp reads the ACCEPT registrations of a war id
+// without a server id. war/RaceWar.cpp's two shrine-owner reads are no
+// longer among them — they call loadShrineOwners() now.
 
 // ShrineInfo's row, 20 columns in SELECT order.
 struct ShrineRow {
@@ -82,6 +89,14 @@ struct CastleStateRecord {
     int itemTaxRatio;
     int entranceFee;
     int taxBalance;
+};
+
+// RaceWar::recordRaceWarStart's per-race totals: SUM(CurrentNum) over
+// RaceWarPCLimit, grouped by race. Both columns come back through getInt,
+// as the inline read took them.
+struct RaceCurrentNumRow {
+    int race;
+    int currentNum;
 };
 
 struct SweeperBonusRow {
@@ -196,6 +211,46 @@ public:
     virtual void updateLevelWarHistory(const std::string& slayerNew, const std::string& vampireNew,
                                        const std::string& oustersNew, const std::string& defaultNew, int level,
                                        const std::string& levelWarID) = 0;
+
+
+    // --- guild-war history ------------------------------------------------
+    // GuildWar::recordGuildWarStart / recordGuildWarEnd. Every argument is
+    // the (int) cast or c_str() the caller already applied; the INSERT is an
+    // INSERT IGNORE, so a repeated start for the same WarID is dropped.
+    virtual void insertGuildWarHistory(int warID, const std::string& guildWarID, int serverID,
+                                       const std::string& castleName, int defenseGuildID,
+                                       const std::string& defenseGuildName, int attackGuildID,
+                                       const std::string& attackGuildName) = 0;
+    virtual void updateGuildWarWinner(int winnerGuildID, const std::string& winnerGuildName, int warID) = 0;
+
+    // --- race-war history -------------------------------------------------
+    // The totals RaceWar::recordRaceWarStart sums before writing its row.
+    virtual std::vector<RaceCurrentNumRow> loadRaceWarCurrentNums() = 0;
+    // A plain INSERT, unlike the guild war's IGNORE: a repeated start for
+    // the same RaceWarID adds a second row (the table is keyless).
+    virtual void insertRaceWarHistory(const std::string& raceWarID, uint slayerNum, uint vampireNum, uint oustersNum,
+                                      const std::string& slayerOld, const std::string& vampireOld,
+                                      const std::string& oustersOld) = 0;
+    virtual void updateRaceWarBloodBibles(const std::string& slayerNew, const std::string& vampireNew,
+                                          const std::string& oustersNew, const std::string& raceWarID) = 0;
+
+    // --- siege-war reinforcement registry ----------------------------------
+    // SiegeWar's six statements, all scoped to (WarID, ServerID). serverID is
+    // g_pConfig->getPropertyInt("ServerID"), an int the format strings render
+    // through "%u" as before.
+    // The two counts a COUNT(*) always answers with exactly one row, so the
+    // inline "if (pResult->next())" guards could never fail (the same
+    // reasoning BalanceInfoRepository.h records for its MAX read).
+    virtual int countWaitingReinforceRegistrations(WarID_t warID, int serverID) = 0;
+    virtual int countDeniedReinforceRegistrations(WarID_t warID, int serverID, GuildID_t guildID) = 0;
+    // The first WAIT registration's guild; false when there is none and the
+    // caller keeps its own 0.
+    virtual bool loadWaitingReinforceGuild(WarID_t warID, int serverID, GuildID_t& guildID) = 0;
+    virtual void insertReinforceRegistration(WarID_t warID, int serverID, GuildID_t guildID) = 0;
+    // Both return whether a row actually changed (getAffectedRowCount() > 0).
+    virtual bool acceptReinforceRegistration(WarID_t warID, int serverID, GuildID_t guildID) = 0;
+    virtual bool denyReinforceRegistration(WarID_t warID, int serverID, GuildID_t guildID) = 0;
+    virtual void deleteReinforceRegistrations(WarID_t warID, int serverID) = 0;
 
     // --- master lairs -----------------------------------------------------------
     virtual std::vector<MasterLairRow> loadMasterLairs() = 0;

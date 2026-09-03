@@ -2091,6 +2091,10 @@ protected:
         execSQL("DELETE FROM SweeperOwnerInfo WHERE SweeperType >= 31000");
         execSQL("DELETE FROM LevelWarHistory WHERE Level >= 31000");
         execSQL("DELETE FROM MasterLairInfo WHERE ZoneID >= 31000");
+        execSQL("DELETE FROM GuildWarHistory WHERE WarID >= 31000");
+        execSQL("DELETE FROM RaceWarHistory WHERE RaceWarID LIKE 'it-%'");
+        execSQL("DELETE FROM RaceWarPCLimit WHERE ID >= 31000");
+        execSQL("DELETE FROM ReinforceRegisterInfo WHERE WarID >= 31000");
     }
 };
 
@@ -2282,6 +2286,128 @@ TEST_F(WarInfoMySQL, LevelWarHistoryInsertThenUpdateFillsOnlyThatWarsNewColumns)
     EXPECT_EQ("1|",
               queryScalar("SELECT SlayerOldSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-a'"));
     EXPECT_EQ("", queryScalar("SELECT SlayerSweeper FROM LevelWarHistory WHERE Level=31000 AND LevelWarID='it-b'"));
+}
+
+
+TEST_F(WarInfoMySQL, GuildWarHistoryStartIgnoresARepeatAndTheEndFillsTheWinner) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    repository.insertGuildWarHistory(31000, "it-gw-a", 7, "it-castle", 11, "it-defense", 12, "it-attack");
+    // WarID is the PRIMARY KEY and the statement is an INSERT IGNORE, so a
+    // second start for the same war is dropped rather than raising.
+    repository.insertGuildWarHistory(31000, "it-gw-b", 8, "it-other", 21, "it-other-d", 22, "it-other-a");
+
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM GuildWarHistory WHERE WarID=31000"));
+    EXPECT_EQ("it-gw-a", queryScalar("SELECT GuildWarID FROM GuildWarHistory WHERE WarID=31000"));
+    EXPECT_EQ("it-castle", queryScalar("SELECT CastleName FROM GuildWarHistory WHERE WarID=31000"));
+    EXPECT_EQ("11", queryScalar("SELECT DefenseGuildID FROM GuildWarHistory WHERE WarID=31000"));
+    EXPECT_EQ("it-attack", queryScalar("SELECT AttackGuildName FROM GuildWarHistory WHERE WarID=31000"));
+    EXPECT_EQ("0", queryScalar("SELECT WinnerGuildID FROM GuildWarHistory WHERE WarID=31000"));
+
+    repository.insertGuildWarHistory(31001, "it-gw-c", 7, "it-castle2", 31, "it-d2", 32, "it-a2");
+    repository.updateGuildWarWinner(12, "it-attack", 31000);
+
+    EXPECT_EQ("12", queryScalar("SELECT WinnerGuildID FROM GuildWarHistory WHERE WarID=31000"));
+    EXPECT_EQ("it-attack", queryScalar("SELECT WinnerGuildName FROM GuildWarHistory WHERE WarID=31000"));
+    EXPECT_EQ("0", queryScalar("SELECT WinnerGuildID FROM GuildWarHistory WHERE WarID=31001"));
+}
+
+TEST_F(WarInfoMySQL, RaceWarHistoryStartDuplicatesAndTheEndRewritesEveryRowOfThatWarID) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    // RaceWarHistory is keyless and the start is a plain INSERT, so a repeat
+    // leaves a second row — where the guild war's INSERT IGNORE drops it.
+    repository.insertRaceWarHistory("it-rw-a", 1, 2, 3, "1|", "2|", "3|");
+    repository.insertRaceWarHistory("it-rw-a", 4, 5, 6, "4|", "5|", "6|");
+    repository.insertRaceWarHistory("it-rw-b", 7, 8, 9, "7|", "8|", "9|");
+
+    EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM RaceWarHistory WHERE RaceWarID='it-rw-a'"));
+    EXPECT_EQ("1", queryScalar("SELECT SlayerNum FROM RaceWarHistory WHERE RaceWarID='it-rw-a' ORDER BY SlayerNum"));
+    EXPECT_EQ("3|", queryScalar("SELECT OustersOldBloodBible FROM RaceWarHistory WHERE RaceWarID='it-rw-a' ORDER BY "
+                                "SlayerNum"));
+
+    // The end keys on RaceWarID alone, so both rows of that war take it.
+    repository.updateRaceWarBloodBibles("a|", "b|", "c|", "it-rw-a");
+
+    EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM RaceWarHistory WHERE RaceWarID='it-rw-a' AND SlayerBloodBible="
+                               "'a|' AND VampireBloodBible='b|' AND OustersBloodBible='c|'"));
+    EXPECT_EQ("", queryScalar("SELECT SlayerBloodBible FROM RaceWarHistory WHERE RaceWarID='it-rw-b'"));
+    // The "Old" columns the start wrote are untouched.
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM RaceWarHistory WHERE RaceWarID='it-rw-a' AND "
+                               "SlayerOldBloodBible='1|'"));
+}
+
+TEST_F(WarInfoMySQL, RaceWarCurrentNumsAreSummedPerRace) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    execSQL("INSERT INTO RaceWarPCLimit (ID, Race, MinLevel, MaxLevel, LimitNum, CurrentNum) VALUES "
+            "(31000, 0, 1, 10, 100, 3)");
+    execSQL("INSERT INTO RaceWarPCLimit (ID, Race, MinLevel, MaxLevel, LimitNum, CurrentNum) VALUES "
+            "(31001, 0, 11, 20, 100, 4)");
+    execSQL("INSERT INTO RaceWarPCLimit (ID, Race, MinLevel, MaxLevel, LimitNum, CurrentNum) VALUES "
+            "(31002, 2, 1, 10, 100, 5)");
+
+    std::vector<RaceCurrentNumRow> rows = repository.loadRaceWarCurrentNums();
+    // The statement has no WHERE, so seeded rows may join these; find ours by
+    // race and check the sums include what we inserted.
+    int slayer = 0;
+    int ousters = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].race == 0)
+            slayer = rows[r].currentNum;
+        else if (rows[r].race == 2)
+            ousters = rows[r].currentNum;
+    }
+    EXPECT_EQ(std::atoi(queryScalar("SELECT SUM(CurrentNum) FROM RaceWarPCLimit WHERE Race=0").c_str()), slayer);
+    EXPECT_EQ(std::atoi(queryScalar("SELECT SUM(CurrentNum) FROM RaceWarPCLimit WHERE Race=2").c_str()), ousters);
+    EXPECT_GE(slayer, 7);
+    EXPECT_GE(ousters, 5);
+}
+
+TEST_F(WarInfoMySQL, ReinforceRegistrationsAreScopedToTheWarAndServerThroughTheirWholeLifecycle) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+    const WarID_t war = 31000;
+    const WarID_t otherWar = 31001;
+    const int server = 7;
+    const int otherServer = 8;
+
+    GuildID_t none = 77;
+    EXPECT_EQ(0, repository.countWaitingReinforceRegistrations(war, server));
+    EXPECT_FALSE(repository.loadWaitingReinforceGuild(war, server, none));
+    EXPECT_EQ(77, none); // untouched when there is no row: the caller keeps its own default
+
+    repository.insertReinforceRegistration(war, server, 101);
+    repository.insertReinforceRegistration(war, server, 102);
+    repository.insertReinforceRegistration(war, otherServer, 103);
+    repository.insertReinforceRegistration(otherWar, server, 104);
+
+    EXPECT_EQ(2, repository.countWaitingReinforceRegistrations(war, server));
+    EXPECT_EQ(1, repository.countWaitingReinforceRegistrations(war, otherServer));
+    EXPECT_EQ(1, repository.countWaitingReinforceRegistrations(otherWar, server));
+
+    GuildID_t waiting = 0;
+    ASSERT_TRUE(repository.loadWaitingReinforceGuild(war, server, waiting));
+    EXPECT_TRUE(waiting == 101 || waiting == 102);
+
+    // Accepting reports whether a row changed, and only that guild's row moves.
+    EXPECT_TRUE(repository.acceptReinforceRegistration(war, server, 101));
+    EXPECT_FALSE(repository.acceptReinforceRegistration(war, server, 999));
+    EXPECT_EQ("ACCEPT", queryScalar("SELECT Status FROM ReinforceRegisterInfo WHERE WarID=31000 AND ServerID=7 AND "
+                                    "ReinforceGuildID=101"));
+    EXPECT_EQ(1, repository.countWaitingReinforceRegistrations(war, server));
+
+    EXPECT_TRUE(repository.denyReinforceRegistration(war, server, 102));
+    EXPECT_FALSE(repository.denyReinforceRegistration(war, server, 999));
+    EXPECT_EQ(1, repository.countDeniedReinforceRegistrations(war, server, 102));
+    EXPECT_EQ(0, repository.countDeniedReinforceRegistrations(war, server, 101));
+    EXPECT_EQ(0, repository.countDeniedReinforceRegistrations(war, otherServer, 102));
+    EXPECT_EQ(0, repository.countWaitingReinforceRegistrations(war, server));
+
+    // The DELETE takes the whole (war, server) pair and nothing else.
+    repository.deleteReinforceRegistrations(war, server);
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=31000 AND ServerID=7"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=31000 AND ServerID=8"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=31001 AND ServerID=7"));
 }
 
 TEST_F(WarInfoMySQL, MasterLairRowsCarryAllTwentyFiveColumns) {
