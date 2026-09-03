@@ -2573,6 +2573,7 @@ protected:
         execSQL("DELETE FROM MotorcycleObject WHERE ItemID >= 31000");
         execSQL("DELETE FROM CodeSheetObject WHERE ItemID >= 31000");
         execSQL("DELETE FROM WarItemObject WHERE ItemID >= 31000");
+        execSQL("DELETE FROM PetItemObject WHERE ItemID >= 31000");
     }
 };
 
@@ -4293,6 +4294,106 @@ TEST_F(ItemObjectMySQL, MotorcycleCodeSheetAndWarItemRowsRoundTripThroughTheirCo
     // The plain loads still serve the tables that do carry their literals.
     EXPECT_NO_THROW(repository.loadPlainItemOfOwner(GEAR_EVENT_GIFT_BOX, "it-owner"));
     EXPECT_NO_THROW(repository.loadPlainItemInZone(GEAR_EVENT_GIFT_BOX, 5, 31000));
+}
+
+TEST_F(ItemObjectMySQL, PetItemRowsRoundTripWithAndWithoutTheirPetColumns) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+    const std::string where = " FROM PetItemObject WHERE ItemID=";
+
+    // The owner's row goes in without a PetInfo; the zone row with one.
+    repository.insertPetItem(GEAR_PET_ITEM, 31000, 77, 3, "it-owner", 1, 5, 2, 4, 1);
+    repository.insertPetItemWithInfo(GEAR_PET_ITEM, 31100, 78, 3, "it-owner", 5, 31000, 7, 8, 0, 12, 13, 1400u, 15, 16,
+                                     17, 18, 19, 1, 0, 1, "2026-09-03 10:11:12");
+    EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + "31000"));
+    EXPECT_EQ("1", queryScalar("SELECT ItemFlag" + where + "31000"));
+    EXPECT_EQ("0", queryScalar("SELECT PetLevel" + where + "31000")); // the short INSERT names no pet column
+    EXPECT_EQ("12", queryScalar("SELECT PetCreatureType" + where + "31100"));
+    EXPECT_EQ("13", queryScalar("SELECT PetLevel" + where + "31100"));
+    EXPECT_EQ("1400", queryScalar("SELECT PetExp" + where + "31100"));
+    EXPECT_EQ("19", queryScalar("SELECT FoodType" + where + "31100"));
+    EXPECT_EQ("2026-09-03 10:11:12", queryScalar("SELECT LastFeedTime" + where + "31100"));
+
+    repository.updatePetItem(GEAR_PET_ITEM, 79, 4, "it-owner", 1, 6, 3, 5, 31000);
+    EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + "31000"));
+    EXPECT_EQ("6", queryScalar("SELECT StorageID" + where + "31000"));
+    EXPECT_EQ("0", queryScalar("SELECT PetLevel" + where + "31000")); // nor does the short UPDATE
+
+    repository.updatePetItemWithInfo(GEAR_PET_ITEM, 80, 4, "it-owner", 1, 6, 3, 5, 22, 23, 24, 25, 2600u, 27, 28, 1, 1,
+                                     0, "2026-09-04 01:02:03", "pet-name", 31000);
+    EXPECT_EQ("80", queryScalar("SELECT ObjectID" + where + "31000"));
+    EXPECT_EQ("22", queryScalar("SELECT PetCreatureType" + where + "31000"));
+    EXPECT_EQ("2600", queryScalar("SELECT PetExp" + where + "31000"));
+    EXPECT_EQ("27", queryScalar("SELECT PetHP" + where + "31000"));
+    EXPECT_EQ("pet-name", queryScalar("SELECT Nickname" + where + "31000"));
+    EXPECT_EQ("2026-09-04 01:02:03", queryScalar("SELECT LastFeedTime" + where + "31000"));
+
+    // savePetInfo writes the pet columns alone.
+    repository.savePetItemInfo(GEAR_PET_ITEM, 32, 33, 34, 35, 3600u, 37, 38, 0, 1, 1, "2026-09-05 04:05:06",
+                               "fed-again", 31000);
+    EXPECT_EQ("80", queryScalar("SELECT ObjectID" + where + "31000")); // untouched
+    EXPECT_EQ("32", queryScalar("SELECT PetCreatureType" + where + "31000"));
+    EXPECT_EQ("3600", queryScalar("SELECT PetExp" + where + "31000"));
+    EXPECT_EQ("fed-again", queryScalar("SELECT Nickname" + where + "31000"));
+
+    std::vector<PetItemObjectRow> owned = repository.loadPetItemOfOwner(GEAR_PET_ITEM, "it-owner");
+    ASSERT_EQ(1u, owned.size()); // the Storage 5 row is outside the owner list
+    EXPECT_EQ(31000u, owned[0].itemID);
+    EXPECT_EQ(80u, owned[0].objectID);
+    EXPECT_EQ(4u, owned[0].itemType);
+    EXPECT_EQ(1, owned[0].storage);
+    EXPECT_EQ(6u, owned[0].storageID);
+    EXPECT_EQ(3, owned[0].x);
+    EXPECT_EQ(5, owned[0].y);
+    EXPECT_EQ(1, owned[0].createType);
+    EXPECT_EQ(32, owned[0].petCreatureType);
+    EXPECT_EQ(33, owned[0].petLevel);
+    EXPECT_EQ(3600, owned[0].petExp);
+    EXPECT_EQ(37, owned[0].petHP);
+    EXPECT_EQ(34, owned[0].petAttr);
+    EXPECT_EQ(35, owned[0].petAttrLevel);
+    EXPECT_EQ(0, owned[0].petOption); // only the long INSERT writes PetOption, and this row
+                                      // came in through the short one
+    EXPECT_EQ(38, owned[0].foodType);
+    EXPECT_EQ(0, owned[0].canGamble);
+    EXPECT_EQ(1, owned[0].canCutHead);
+    EXPECT_EQ(1, owned[0].canAttack);
+    EXPECT_EQ("2026-09-05 04:05:06", owned[0].lastFeedTime);
+    EXPECT_EQ("fed-again", owned[0].nickname);
+
+    // Its zone SELECT is the ItemFlag-only eight.
+    std::vector<FlagZoneObjectRow> inZone = repository.loadFlagItemInZone(GEAR_PET_ITEM, 5, 31000);
+    ASSERT_EQ(1u, inZone.size());
+    EXPECT_EQ(31100, inZone[0].itemID);
+    EXPECT_EQ(78, inZone[0].objectID);
+    EXPECT_EQ(7, inZone[0].x);
+    EXPECT_EQ(0, inZone[0].createType);
+    EXPECT_TRUE(repository.loadFlagItemInZone(GEAR_PET_ITEM, 5, 31001).empty());
+
+    repository.tinysaveGear(GEAR_PET_ITEM, "X=9", 31000);
+    EXPECT_EQ("9", queryScalar("SELECT X" + where + "31000"));
+    EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM PetItemInfo").c_str()),
+              repository.loadMaxGearType(GEAR_PET_ITEM));
+    std::vector<BasicInfoRow> infos = repository.loadBasicInfos(GEAR_PET_ITEM);
+    ASSERT_FALSE(infos.empty());
+    EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM PetItemInfo").c_str()), (int)infos.size());
+
+    // The object-shape guards, both ways.
+    EXPECT_THROW(repository.insertPetItem(GEAR_RING, 31900, 1, 1, "it-owner", 1, 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.insertPetItemWithInfo(GEAR_RING, 31900, 1, 1, "it-owner", 1, 1, 1, 1, 1, 1, 1, 1u, 1, 1, 1,
+                                                  1, 1, 1, 1, 1, ""),
+                 Error);
+    EXPECT_THROW(repository.updatePetItem(GEAR_RING, 1, 1, "it-owner", 1, 1, 1, 1, 31000), Error);
+    EXPECT_THROW(repository.updatePetItemWithInfo(GEAR_RING, 1, 1, "it-owner", 1, 1, 1, 1, 1, 1, 1, 1, 1u, 1, 1, 1, 1,
+                                                  1, "", "", 31000),
+                 Error);
+    EXPECT_THROW(repository.savePetItemInfo(GEAR_RING, 1, 1, 1, 1, 1u, 1, 1, 1, 1, 1, "", "", 31000), Error);
+    EXPECT_THROW(repository.loadPetItemOfOwner(GEAR_QUEST_ITEM, "it-owner"), Error);
+    EXPECT_THROW(repository.insertPlainItem(GEAR_PET_ITEM, 31900, 1, 1, "it-owner", 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.loadFlagItemOfOwner(GEAR_PET_ITEM, "it-owner"), Error);
+    EXPECT_THROW(repository.loadGearInZone(GEAR_PET_ITEM, 5, 31000), Error);
+    EXPECT_THROW(repository.destroyGearObject(GEAR_PET_ITEM, 31000), Error);
+    // The ItemFlag-only zone load still serves the tables it always did.
+    EXPECT_NO_THROW(repository.loadFlagItemInZone(GEAR_QUEST_ITEM, 5, 31000));
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {
