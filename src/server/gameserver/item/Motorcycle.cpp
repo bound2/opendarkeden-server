@@ -14,6 +14,7 @@
 #include "Slayer.h"
 #include "Stash.h"
 #include "Vampire.h"
+#include "repository/ItemObjectRepository.h"
 
 // global variable declaration
 MotorcycleInfoManager* g_pMotorcycleInfoManager = NULL;
@@ -83,8 +84,6 @@ void Motorcycle::create(const string& ownerID, Storage storage, StorageID_t stor
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     if (itemID == 0) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -96,24 +95,11 @@ void Motorcycle::create(const string& ownerID, Storage storage, StorageID_t stor
         m_ItemID = itemID;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    string optionField;
+    setOptionTypeToField(m_OptionType, optionField);
 
-        StringStream sql;
-
-        string optionField;
-        setOptionTypeToField(m_OptionType, optionField);
-
-        sql << "INSERT INTO MotorcycleObject " << "(ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID ,"
-            << " X, Y, OptionType, Durability)" << " VALUES(" << m_ItemID << ", " << m_ObjectID << ", " << m_ItemType
-            << ", '" << ownerID << "', " << (int)storage << ", " << storageID << ", " << (int)x << ", " << (int)y
-            << ", '" << optionField.c_str() << "', " << m_Durability << ")";
-
-        pStmt->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().insertMotorcycle(GEAR_MOTORCYCLE, m_ItemID, m_ObjectID, m_ItemType, ownerID,
+                                                   (int)storage, storageID, (int)x, (int)y, optionField, m_Durability);
 
     __END_CATCH
 }
@@ -127,16 +113,7 @@ void Motorcycle::tinysave(const char* field) const
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE MotorcycleObject SET %s WHERE ItemID=%ld", field, m_ItemID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().tinysaveGear(GEAR_MOTORCYCLE, field, m_ItemID);
 
     __END_CATCH
 }
@@ -149,41 +126,11 @@ void Motorcycle::save(const string& ownerID, Storage storage, StorageID_t storag
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    string optionField;
+    setOptionTypeToField(m_OptionType, optionField);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        /*
-        StringStream sql;
-
-        sql << "UPDATE MotorcycleObject SET "
-            << "ObjectID = " << m_ObjectID
-            << ",ItemType = " << m_ItemType
-            << ",OwnerID = '" << ownerID << "'"
-            << ",Storage = " <<(int)storage
-            << ",StorageID = " << storageID
-            << ",X = " <<(int)x
-            << ",Y = " <<(int)y
-            << ",OptionType = " <<(int)m_OptionType
-            << ",Durability = " << m_Durability
-            << " WHERE ItemID = " << m_ItemID;
-
-        pStmt->executeQueryString(sql.toString());
-        */
-
-        string optionField;
-        setOptionTypeToField(m_OptionType, optionField);
-
-        pStmt->executeQuery("UPDATE MotorcycleObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, "
-                            "StorageID=%ld, X=%d, Y=%d, OptionType='%s', Durability=%d WHERE ItemID=%ld",
-                            m_ObjectID, m_ItemType, ownerID.c_str(), (int)storage, storageID, (int)x, (int)y,
-                            optionField.c_str(), m_Durability, m_ItemID);
-
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultItemObjectRepository().updateMotorcycle(GEAR_MOTORCYCLE, m_ObjectID, m_ItemType, ownerID, (int)storage,
+                                                   storageID, (int)x, (int)y, optionField, m_Durability, m_ItemID);
 
     __END_CATCH
 }
@@ -270,45 +217,29 @@ void MotorcycleInfoManager::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    m_InfoCount = defaultItemObjectRepository().loadMaxGearType(GEAR_MOTORCYCLE);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
 
-        Result* pResult = pStmt->executeQuery("SELECT MAX(ItemType) FROM MotorcycleInfo");
+    for (uint i = 0; i <= m_InfoCount; i++)
+        m_pItemInfos[i] = NULL;
 
-        pResult->next();
+    vector<DurabilityInfoRow> rows = defaultItemObjectRepository().loadDurabilityInfos(GEAR_MOTORCYCLE);
 
-        m_InfoCount = pResult->getInt(1);
+    for (size_t r = 0; r < rows.size(); r++) {
+        MotorcycleInfo* pMotorcycleInfo = new MotorcycleInfo();
 
-        m_pItemInfos = new ItemInfo*[m_InfoCount + 1];
+        pMotorcycleInfo->setItemType(rows[r].itemType);
+        pMotorcycleInfo->setName(rows[r].name);
+        pMotorcycleInfo->setEName(rows[r].ename);
+        pMotorcycleInfo->setPrice(rows[r].price);
+        pMotorcycleInfo->setVolumeType(rows[r].volume);
+        pMotorcycleInfo->setWeight(rows[r].weight);
+        pMotorcycleInfo->setRatio(rows[r].ratio);
+        pMotorcycleInfo->setDurability(rows[r].durability);
 
-        for (uint i = 0; i <= m_InfoCount; i++)
-            m_pItemInfos[i] = NULL;
-
-        pResult = pStmt->executeQuery(
-            "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability FROM MotorcycleInfo");
-
-        while (pResult->next()) {
-            uint i = 0;
-
-            MotorcycleInfo* pMotorcycleInfo = new MotorcycleInfo();
-
-            pMotorcycleInfo->setItemType(pResult->getInt(++i));
-            pMotorcycleInfo->setName(pResult->getString(++i));
-            pMotorcycleInfo->setEName(pResult->getString(++i));
-            pMotorcycleInfo->setPrice(pResult->getInt(++i));
-            pMotorcycleInfo->setVolumeType(pResult->getInt(++i));
-            pMotorcycleInfo->setWeight(pResult->getInt(++i));
-            pMotorcycleInfo->setRatio(pResult->getInt(++i));
-            pMotorcycleInfo->setDurability(pResult->getInt(++i));
-
-            addItemInfo(pMotorcycleInfo);
-        }
-
-        SAFE_DELETE(pStmt);
+        addItemInfo(pMotorcycleInfo);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -324,53 +255,30 @@ void MotorcycleLoader::load(Creature* pCreature)
 
     Assert(pCreature != NULL);
 
-    Statement* pStmt;
+    vector<MotorcycleObjectRow> rows =
+        defaultItemObjectRepository().loadMotorcycleOfOwner(GEAR_MOTORCYCLE, pCreature->getName());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        try {
+            Motorcycle* pMotorcycle = new Motorcycle();
 
-        /*
-        StringStream sql;
+            pMotorcycle->setItemID(rows[r].itemID);
+            pMotorcycle->setObjectID(rows[r].objectID);
+            pMotorcycle->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability FROM
-        MotorcycleObject"
-            << " WHERE OwnerID = '" << pCreature->getName() << "' AND Storage IN("
-            <<(int)STORAGE_INVENTORY << ", " <<(int)STORAGE_GEAR << ", " <<(int)STORAGE_BELT << ", "
-            <<(int)STORAGE_EXTRASLOT << ", " <<(int)STORAGE_MOTORCYCLE << ", " <<(int)STORAGE_STASH << ", "
-            <<(int)STORAGE_GARBAGE << ")";
+            Storage storage = (Storage)rows[r].storage;
+            StorageID_t storageID = rows[r].storageID;
+            BYTE x = rows[r].x;
+            BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
-        */
+            string optionField = rows[r].optionField;
+            list<OptionType_t> optionTypes;
+            setOptionTypeFromField(optionTypes, optionField);
+            pMotorcycle->setOptionType(optionTypes);
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability "
-                                "FROM MotorcycleObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
-                                pCreature->getName().c_str());
+            pMotorcycle->setDurability(rows[r].durability);
 
-
-        while (pResult->next()) {
-            try {
-                uint i = 0;
-
-                Motorcycle* pMotorcycle = new Motorcycle();
-
-                pMotorcycle->setItemID(pResult->getDWORD(++i));
-                pMotorcycle->setObjectID(pResult->getDWORD(++i));
-                pMotorcycle->setItemType(pResult->getDWORD(++i));
-
-                Storage storage = (Storage)pResult->getInt(++i);
-                StorageID_t storageID = pResult->getDWORD(++i);
-                BYTE x = pResult->getBYTE(++i);
-                BYTE y = pResult->getBYTE(++i);
-
-                string optionField = pResult->getString(++i);
-                list<OptionType_t> optionTypes;
-                setOptionTypeFromField(optionTypes, optionField);
-                pMotorcycle->setOptionType(optionTypes);
-
-                pMotorcycle->setDurability(pResult->getInt(++i));
-
-                /*
+            /*
                 switch(storage)
                 {
                     case STORAGE_INVENTORY:
@@ -391,17 +299,13 @@ void MotorcycleLoader::load(Creature* pCreature)
                 }
                 */
 
-            } catch (Error& error) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
-                throw;
-            } catch (Throwable& t) {
-                filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
-            }
+        } catch (Error& error) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
+            throw;
+        } catch (Throwable& t) {
+            filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), t.toString().c_str());
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -417,54 +321,39 @@ void MotorcycleLoader::load(Zone* pZone)
 
     Assert(pZone != NULL);
 
-    Statement* pStmt;
+    vector<MotorcycleZoneObjectRow> rows =
+        defaultItemObjectRepository().loadMotorcycleInZone(GEAR_MOTORCYCLE, (int)STORAGE_ZONE, pZone->getZoneID());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < rows.size(); r++) {
+        Motorcycle* pMotorcycle = new Motorcycle();
 
-        StringStream sql;
+        pMotorcycle->setItemID(rows[r].itemID);
+        pMotorcycle->setObjectID(rows[r].objectID);
+        pMotorcycle->setItemType(rows[r].itemType);
 
-        sql << "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y," << " Durability FROM MotorcycleObject"
-            << " WHERE Storage = " << (int)STORAGE_ZONE << " AND StorageID = " << pZone->getZoneID();
+        Storage storage = (Storage)rows[r].storage;
+        StorageID_t storageID = rows[r].storageID;
+        BYTE x = rows[r].x;
+        BYTE y = rows[r].y;
 
-        Result* pResult = pStmt->executeQueryString(sql.toString());
+        pMotorcycle->setDurability(rows[r].durability);
 
-        while (pResult->next()) {
-            uint i = 0;
+        switch (storage) {
+        case STORAGE_ZONE: {
+            //						Tile & pTile = pZone->getTile(x,y);
+            //						Assert(!pTile.hasItem());
+            pZone->addItem(pMotorcycle, x, y);
+            //						pTile.addItem(pMotorcycle);
+        } break;
 
-            Motorcycle* pMotorcycle = new Motorcycle();
+        case STORAGE_STASH:
+        case STORAGE_CORPSE:
+            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
 
-            pMotorcycle->setItemID(pResult->getInt(++i));
-            pMotorcycle->setObjectID(pResult->getInt(++i));
-            pMotorcycle->setItemType(pResult->getInt(++i));
-
-            Storage storage = (Storage)pResult->getInt(++i);
-            StorageID_t storageID = pResult->getInt(++i);
-            BYTE x = pResult->getInt(++i);
-            BYTE y = pResult->getInt(++i);
-
-            pMotorcycle->setDurability(pResult->getInt(++i));
-
-            switch (storage) {
-            case STORAGE_ZONE: {
-                //						Tile & pTile = pZone->getTile(x,y);
-                //						Assert(!pTile.hasItem());
-                pZone->addItem(pMotorcycle, x, y);
-                //						pTile.addItem(pMotorcycle);
-            } break;
-
-            case STORAGE_STASH:
-            case STORAGE_CORPSE:
-                throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
-
-            default:
-                throw Error("Storage must be STORAGE_ZONE");
-            }
+        default:
+            throw Error("Storage must be STORAGE_ZONE");
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

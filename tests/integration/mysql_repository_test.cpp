@@ -2570,6 +2570,9 @@ protected:
             execSQL(std::string("DELETE FROM ") + kOptionGradeTables[i].name + " WHERE ItemID >= 31000");
         for (size_t i = 0; i < sizeof(kWarTables) / sizeof(kWarTables[0]); i++)
             execSQL(std::string("DELETE FROM ") + kWarTables[i].name + " WHERE ItemID >= 31000");
+        execSQL("DELETE FROM MotorcycleObject WHERE ItemID >= 31000");
+        execSQL("DELETE FROM CodeSheetObject WHERE ItemID >= 31000");
+        execSQL("DELETE FROM WarItemObject WHERE ItemID >= 31000");
     }
 };
 
@@ -4155,6 +4158,136 @@ TEST_F(ItemObjectMySQL, WarItemRowsRoundTripAndTheirCreatureLoaderDeletesTheOwne
     EXPECT_THROW(repository.loadWarInfos(GEAR_RING), Error);
     EXPECT_THROW(repository.loadRelicInfos(GEAR_RING), Error);
     EXPECT_THROW(repository.destroyGearObject(GEAR_BLOOD_BIBLE, 31000), Error);
+}
+
+TEST_F(ItemObjectMySQL, MotorcycleCodeSheetAndWarItemRowsRoundTripThroughTheirColumns) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+
+    // Motorcycle: the gear INSERT without Grade and ItemFlag, its own two loads.
+    {
+        const std::string where = " FROM MotorcycleObject WHERE ItemID=";
+        repository.insertMotorcycle(GEAR_MOTORCYCLE, 31000, 77, 3, "it-owner", 1, 5, 2, 4, "1,2", 10);
+        repository.insertMotorcycle(GEAR_MOTORCYCLE, 31100, 78, 3, "it-owner", 5, 31000, 7, 8, "", 20);
+        EXPECT_EQ("1,2", queryScalar("SELECT OptionType" + where + "31000"));
+        EXPECT_EQ("10", queryScalar("SELECT Durability" + where + "31000"));
+        repository.updateMotorcycle(GEAR_MOTORCYCLE, 79, 4, "it-owner", 1, 6, 3, 5, "2,3", 11, 31000);
+        EXPECT_EQ("2,3", queryScalar("SELECT OptionType" + where + "31000"));
+        EXPECT_EQ("11", queryScalar("SELECT Durability" + where + "31000"));
+        EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + "31000"));
+
+        std::vector<MotorcycleObjectRow> owned = repository.loadMotorcycleOfOwner(GEAR_MOTORCYCLE, "it-owner");
+        ASSERT_EQ(1u, owned.size());
+        EXPECT_EQ(31000u, owned[0].itemID);
+        EXPECT_EQ(79u, owned[0].objectID);
+        EXPECT_EQ(4u, owned[0].itemType);
+        EXPECT_EQ(1, owned[0].storage);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ(3, owned[0].x);
+        EXPECT_EQ(5, owned[0].y);
+        EXPECT_EQ("2,3", owned[0].optionField);
+        EXPECT_EQ(11, owned[0].durability);
+
+        std::vector<MotorcycleZoneObjectRow> inZone = repository.loadMotorcycleInZone(GEAR_MOTORCYCLE, 5, 31000);
+        ASSERT_EQ(1u, inZone.size());
+        EXPECT_EQ(31100, inZone[0].itemID);
+        EXPECT_EQ(78, inZone[0].objectID);
+        EXPECT_EQ(7, inZone[0].x);
+        EXPECT_EQ(20, inZone[0].durability);
+        EXPECT_TRUE(repository.loadMotorcycleInZone(GEAR_MOTORCYCLE, 5, 31001).empty());
+
+        repository.tinysaveGear(GEAR_MOTORCYCLE, "X=9", 31000);
+        EXPECT_EQ("9", queryScalar("SELECT X" + where + "31000"));
+        EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM MotorcycleInfo").c_str()),
+                  repository.loadMaxGearType(GEAR_MOTORCYCLE));
+        std::vector<DurabilityInfoRow> infos = repository.loadDurabilityInfos(GEAR_MOTORCYCLE);
+        ASSERT_FALSE(infos.empty());
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM MotorcycleInfo").c_str()), (int)infos.size());
+        const std::string type = " FROM MotorcycleInfo WHERE ItemType=" + std::to_string(infos[0].itemType);
+        EXPECT_EQ(infos[0].name, queryScalar("SELECT Name" + type));
+        EXPECT_EQ(std::to_string(infos[0].ratio), queryScalar("SELECT Ratio" + type));
+        EXPECT_EQ(std::to_string(infos[0].durability), queryScalar("SELECT Durability" + type));
+        EXPECT_THROW(repository.loadGearInfos(GEAR_MOTORCYCLE), Error);
+    }
+
+    // CodeSheet: the plain INSERT plus OptionType, an owner load of eight columns.
+    {
+        const std::string where = " FROM CodeSheetObject WHERE ItemID=";
+        repository.insertCodeSheet(GEAR_CODE_SHEET, 31000, 77, 3, "it-owner", 1, 5, 2, 4, "1,2");
+        EXPECT_EQ("1,2", queryScalar("SELECT OptionType" + where + "31000"));
+        EXPECT_EQ("5", queryScalar("SELECT StorageID" + where + "31000"));
+        repository.updateCodeSheet(GEAR_CODE_SHEET, 79, 4, "it-owner", 1, 6, 3, 5, "2,3", 31000);
+        EXPECT_EQ("2,3", queryScalar("SELECT OptionType" + where + "31000"));
+        EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + "31000"));
+
+        std::vector<CodeSheetObjectRow> owned = repository.loadCodeSheetOfOwner(GEAR_CODE_SHEET, "it-owner");
+        ASSERT_EQ(1u, owned.size());
+        EXPECT_EQ(31000u, owned[0].itemID);
+        EXPECT_EQ(79u, owned[0].objectID);
+        EXPECT_EQ(4u, owned[0].itemType);
+        EXPECT_EQ(1, owned[0].storage);
+        EXPECT_EQ(6u, owned[0].storageID);
+        EXPECT_EQ(3, owned[0].x);
+        EXPECT_EQ(5, owned[0].y);
+        EXPECT_EQ("2,3", owned[0].optionField);
+
+        // Its zone SELECT names Durability, EnchantLevel and ItemFlag, which
+        // CodeSheetObject does not have: the statement failed against this schema
+        // before the seam and fails the same way through it (END_DB rethrows).
+        EXPECT_ANY_THROW(repository.loadGearInZone(GEAR_CODE_SHEET, 5, 31000));
+
+        repository.tinysaveGear(GEAR_CODE_SHEET, "X=9", 31000);
+        EXPECT_EQ("9", queryScalar("SELECT X" + where + "31000"));
+        EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM CodeSheetInfo").c_str()),
+                  repository.loadMaxGearType(GEAR_CODE_SHEET));
+        std::vector<HeadInfoRow> infos = repository.loadHeadInfos(GEAR_CODE_SHEET);
+        ASSERT_FALSE(infos.empty());
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM CodeSheetInfo").c_str()), (int)infos.size());
+        const std::string type = " FROM CodeSheetInfo WHERE ItemType=" + std::to_string(infos[0].itemType);
+        EXPECT_EQ(infos[0].name, queryScalar("SELECT Name" + type));
+        EXPECT_EQ(std::to_string(infos[0].price), queryScalar("SELECT Price" + type));
+        EXPECT_THROW(repository.loadBasicInfos(GEAR_CODE_SHEET), Error);
+    }
+
+    // WarItem: the plain statements, but no loader holds SQL - so neither load serves it.
+    {
+        const std::string where = " FROM WarItemObject WHERE ItemID=";
+        repository.insertPlainItem(GEAR_WAR_ITEM, 31000, 77, 3, "it-owner", 1, 5, 2, 4);
+        EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + "31000"));
+        EXPECT_EQ("0", queryScalar("SELECT ItemFlag" + where + "31000")); // the INSERT names none
+        repository.updatePlainItem(GEAR_WAR_ITEM, 79, 4, "it-owner", 1, 6, 3, 5, 31000);
+        EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + "31000"));
+        EXPECT_EQ("6", queryScalar("SELECT StorageID" + where + "31000"));
+        repository.tinysaveGear(GEAR_WAR_ITEM, "X=9", 31000);
+        EXPECT_EQ("9", queryScalar("SELECT X" + where + "31000"));
+
+        EXPECT_THROW(repository.loadPlainItemOfOwner(GEAR_WAR_ITEM, "it-owner"), Error);
+        EXPECT_THROW(repository.loadPlainItemInZone(GEAR_WAR_ITEM, 5, 31000), Error);
+
+        EXPECT_EQ(atoi(queryScalar("SELECT MAX(ItemType) FROM WarItemInfo").c_str()),
+                  repository.loadMaxGearType(GEAR_WAR_ITEM));
+        std::vector<BasicInfoRow> infos = repository.loadBasicInfos(GEAR_WAR_ITEM);
+        ASSERT_FALSE(infos.empty());
+        EXPECT_EQ(atoi(queryScalar("SELECT COUNT(*) FROM WarItemInfo").c_str()), (int)infos.size());
+        EXPECT_THROW(repository.loadHeadInfos(GEAR_WAR_ITEM), Error);
+    }
+
+    // The object-shape and Info guards, both ways.
+    EXPECT_THROW(repository.insertPlainItem(GEAR_MOTORCYCLE, 31900, 1, 1, "it-owner", 1, 1, 1, 1), Error);
+    EXPECT_THROW(repository.insertMotorcycle(GEAR_RING, 31900, 1, 1, "it-owner", 1, 1, 1, 1, "", 1), Error);
+    EXPECT_THROW(repository.insertCodeSheet(GEAR_WAR_ITEM, 31900, 1, 1, "it-owner", 1, 1, 1, 1, ""), Error);
+    EXPECT_THROW(repository.updateMotorcycle(GEAR_CODE_SHEET, 1, 1, "it-owner", 1, 1, 1, 1, "", 1, 31000), Error);
+    EXPECT_THROW(repository.updateCodeSheet(GEAR_MOTORCYCLE, 1, 1, "it-owner", 1, 1, 1, 1, "", 31000), Error);
+    EXPECT_THROW(repository.loadMotorcycleOfOwner(GEAR_CODE_SHEET, "it-owner"), Error);
+    EXPECT_THROW(repository.loadCodeSheetOfOwner(GEAR_MOTORCYCLE, "it-owner"), Error);
+    EXPECT_THROW(repository.loadGearOfOwner(GEAR_CODE_SHEET, "it-owner"), Error);
+    EXPECT_THROW(repository.loadGearInZone(GEAR_MOTORCYCLE, 5, 31000), Error);
+    EXPECT_THROW(repository.loadDurabilityInfos(GEAR_RING), Error);
+    EXPECT_THROW(repository.loadHeadInfos(GEAR_RING), Error);
+    EXPECT_THROW(repository.loadHeadInfos(GEAR_MIXING_ITEM), Error);
+    EXPECT_THROW(repository.destroyGearObject(GEAR_MOTORCYCLE, 31000), Error);
+    // The plain loads still serve the tables that do carry their literals.
+    EXPECT_NO_THROW(repository.loadPlainItemOfOwner(GEAR_EVENT_GIFT_BOX, "it-owner"));
+    EXPECT_NO_THROW(repository.loadPlainItemInZone(GEAR_EVENT_GIFT_BOX, 5, 31000));
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {
