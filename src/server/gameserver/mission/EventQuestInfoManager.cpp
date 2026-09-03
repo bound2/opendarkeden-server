@@ -8,128 +8,108 @@
 #include "MonsterKillQuestInfo.h"
 #include "RewardClass.h"
 #include "RewardClassInfoManager.h"
+#include "repository/QuestInfoRepository.h"
 
 void EventQuestInfoManager::load(const string& name) {
     __BEGIN_TRY
 
     clear();
 
-    Statement* pStmt = NULL;
+    vector<EventMonsterKillQuestRow> monsterKills = defaultQuestInfoRepository().loadEventMonsterKillQuestsOfNPC(name);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, TargetSType, "
-                                "IsChief, Goal, EventQuest, QuestLevel FROM MonsterKillQuestInfo WHERE NPC='%s'",
-                                name.c_str());
+    for (size_t r = 0; r < monsterKills.size(); r++) {
+        QuestID_t qID = (QuestID_t)monsterKills[r].quest.head.questID;
+        Race_t race = (Race_t)monsterKills[r].quest.head.race;
+        QuestGrade_t MaxGrade = (QuestGrade_t)monsterKills[r].quest.head.maxGrade;
+        QuestGrade_t MinGrade = (QuestGrade_t)monsterKills[r].quest.head.minGrade;
+        DWORD timeLimit = (DWORD)monsterKills[r].quest.head.timeLimitSec;
+        RewardClass_t rewardClass = (RewardClass_t)monsterKills[r].quest.head.rewardClass;
+        SpriteType_t monsterSType = (SpriteType_t)monsterKills[r].quest.targetSType;
+        bool isChief = (monsterKills[r].quest.isChief == 0) ? false : true;
+        int killCount = (int)monsterKills[r].quest.goal;
+        bool isEventQuest = monsterKills[r].eventQuest != 0;
+        int questLevel = (int)monsterKills[r].questLevel;
 
-        while (pResult->next()) {
-            int index = 0;
-            QuestID_t qID = (QuestID_t)pResult->getInt(++index);
-            Race_t race = (Race_t)pResult->getInt(++index);
-            QuestGrade_t MaxGrade = (QuestGrade_t)pResult->getInt(++index);
-            QuestGrade_t MinGrade = (QuestGrade_t)pResult->getInt(++index);
-            DWORD timeLimit = (DWORD)pResult->getInt(++index);
-            RewardClass_t rewardClass = (RewardClass_t)pResult->getInt(++index);
-            SpriteType_t monsterSType = (SpriteType_t)pResult->getInt(++index);
-            bool isChief = (pResult->getInt(++index) == 0) ? false : true;
-            int killCount = (int)pResult->getInt(++index);
-            bool isEventQuest = pResult->getInt(++index) != 0;
-            int questLevel = (int)pResult->getInt(++index);
+        //			RewardClass* pRC = g_pRewardClassInfoManager->getRewardClass( rewardClass );
+        //			Assert( pRC != NULL );
 
-            //			RewardClass* pRC = g_pRewardClassInfoManager->getRewardClass( rewardClass );
-            //			Assert( pRC != NULL );
+        MonsterKillQuestInfo* pMonsterKillQI = new MonsterKillQuestInfo(qID, race, MaxGrade, MinGrade, timeLimit,
+                                                                        rewardClass, monsterSType, isChief, killCount);
+        pMonsterKillQI->setEventQuest(isEventQuest);
+        pMonsterKillQI->setQuestLevel(questLevel);
+        addQuestInfo(pMonsterKillQI);
 
-            MonsterKillQuestInfo* pMonsterKillQI = new MonsterKillQuestInfo(
-                qID, race, MaxGrade, MinGrade, timeLimit, rewardClass, monsterSType, isChief, killCount);
-            pMonsterKillQI->setEventQuest(isEventQuest);
-            pMonsterKillQI->setQuestLevel(questLevel);
-            addQuestInfo(pMonsterKillQI);
-
-            cout << "Loading Quest Info : " << pMonsterKillQI->toString() << endl;
-        }
-
-        pResult =
-            pStmt->executeQuery("SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, TargetIClass, "
-                                "TargetIType, Goal, EventQuest, QuestLevel FROM GatherItemQuestInfo WHERE NPC='%s'",
-                                name.c_str());
-
-        while (pResult->next()) {
-            int index = 0;
-            QuestID_t qID = (QuestID_t)pResult->getInt(++index);
-            Race_t race = (Race_t)pResult->getInt(++index);
-            QuestGrade_t MaxGrade = (QuestGrade_t)pResult->getInt(++index);
-            QuestGrade_t MinGrade = (QuestGrade_t)pResult->getInt(++index);
-            DWORD timeLimit = (DWORD)pResult->getInt(++index);
-            RewardClass_t rewardClass = (RewardClass_t)pResult->getInt(++index);
-            Item::ItemClass iClass = (Item::ItemClass)pResult->getInt(++index);
-            ItemType_t iType = (ItemType_t)pResult->getInt(++index);
-            int Count = (int)pResult->getInt(++index);
-            bool isEventQuest = pResult->getInt(++index) != 0;
-            int questLevel = (int)pResult->getInt(++index);
-
-            GatherItemQuestInfo* pGatherItemQI =
-                new GatherItemQuestInfo(qID, race, MaxGrade, MinGrade, timeLimit, rewardClass, iClass, iType, Count);
-            pGatherItemQI->setEventQuest(isEventQuest);
-            pGatherItemQI->setQuestLevel(questLevel);
-            addQuestInfo(pGatherItemQI);
-
-            cout << "Loading Quest Info : " << pGatherItemQI->toString() << endl;
-        }
-
-        pResult =
-            pStmt->executeQuery("SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, TargetNPCID, "
-                                "SecondNPCID, EventQuest, QuestLevel FROM MeetNPCQuestInfo WHERE NPC='%s'",
-                                name.c_str());
-
-        while (pResult->next()) {
-            int index = 0;
-            QuestID_t qID = (QuestID_t)pResult->getInt(++index);
-            Race_t race = (Race_t)pResult->getInt(++index);
-            QuestGrade_t MaxGrade = (QuestGrade_t)pResult->getInt(++index);
-            QuestGrade_t MinGrade = (QuestGrade_t)pResult->getInt(++index);
-            DWORD timeLimit = (DWORD)pResult->getInt(++index);
-            RewardClass_t rewardClass = (RewardClass_t)pResult->getInt(++index);
-            NPCID_t npcID = (NPCID_t)pResult->getInt(++index);
-            NPCID_t npcID2 = (NPCID_t)pResult->getInt(++index);
-            bool isEventQuest = pResult->getInt(++index) != 0;
-            int questLevel = (int)pResult->getInt(++index);
-
-            MeetNPCQuestInfo* pMeetNPCQI =
-                new MeetNPCQuestInfo(qID, race, MaxGrade, MinGrade, timeLimit, rewardClass, npcID, npcID2);
-            pMeetNPCQI->setEventQuest(isEventQuest);
-            pMeetNPCQI->setQuestLevel(questLevel);
-            addQuestInfo(pMeetNPCQI);
-
-            cout << "Loading Quest Info : " << pMeetNPCQI->toString() << endl;
-        }
-
-        pResult = pStmt->executeQuery("SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, GameType, "
-                                      "EventQuest, QuestLevel FROM MiniGameQuestInfo WHERE NPC='%s'",
-                                      name.c_str());
-
-        while (pResult->next()) {
-            int index = 0;
-            QuestID_t qID = (QuestID_t)pResult->getInt(++index);
-            Race_t race = (Race_t)pResult->getInt(++index);
-            QuestGrade_t MaxGrade = (QuestGrade_t)pResult->getInt(++index);
-            QuestGrade_t MinGrade = (QuestGrade_t)pResult->getInt(++index);
-            DWORD timeLimit = (DWORD)pResult->getInt(++index);
-            RewardClass_t rewardClass = (RewardClass_t)pResult->getInt(++index);
-            int GameType = (int)pResult->getInt(++index);
-            bool isEventQuest = pResult->getInt(++index) != 0;
-            int questLevel = (int)pResult->getInt(++index);
-
-            MiniGameQuestInfo* pMiniGameQI =
-                new MiniGameQuestInfo(qID, race, MaxGrade, MinGrade, timeLimit, rewardClass, GameType);
-            pMiniGameQI->setEventQuest(isEventQuest);
-            pMiniGameQI->setQuestLevel(questLevel);
-            addQuestInfo(pMiniGameQI);
-
-            cout << "Loading Quest Info : " << pMiniGameQI->toString() << endl;
-        }
+        cout << "Loading Quest Info : " << pMonsterKillQI->toString() << endl;
     }
-    END_DB(pStmt)
+
+    vector<EventGatherItemQuestRow> gatherItems = defaultQuestInfoRepository().loadEventGatherItemQuestsOfNPC(name);
+
+    for (size_t r = 0; r < gatherItems.size(); r++) {
+        QuestID_t qID = (QuestID_t)gatherItems[r].quest.head.questID;
+        Race_t race = (Race_t)gatherItems[r].quest.head.race;
+        QuestGrade_t MaxGrade = (QuestGrade_t)gatherItems[r].quest.head.maxGrade;
+        QuestGrade_t MinGrade = (QuestGrade_t)gatherItems[r].quest.head.minGrade;
+        DWORD timeLimit = (DWORD)gatherItems[r].quest.head.timeLimitSec;
+        RewardClass_t rewardClass = (RewardClass_t)gatherItems[r].quest.head.rewardClass;
+        Item::ItemClass iClass = (Item::ItemClass)gatherItems[r].quest.targetIClass;
+        ItemType_t iType = (ItemType_t)gatherItems[r].quest.targetIType;
+        int Count = (int)gatherItems[r].quest.goal;
+        bool isEventQuest = gatherItems[r].eventQuest != 0;
+        int questLevel = (int)gatherItems[r].questLevel;
+
+        GatherItemQuestInfo* pGatherItemQI =
+            new GatherItemQuestInfo(qID, race, MaxGrade, MinGrade, timeLimit, rewardClass, iClass, iType, Count);
+        pGatherItemQI->setEventQuest(isEventQuest);
+        pGatherItemQI->setQuestLevel(questLevel);
+        addQuestInfo(pGatherItemQI);
+
+        cout << "Loading Quest Info : " << pGatherItemQI->toString() << endl;
+    }
+
+    vector<EventMeetNPCQuestRow> meetNPCs = defaultQuestInfoRepository().loadEventMeetNPCQuestsOfNPC(name);
+
+    for (size_t r = 0; r < meetNPCs.size(); r++) {
+        QuestID_t qID = (QuestID_t)meetNPCs[r].quest.head.questID;
+        Race_t race = (Race_t)meetNPCs[r].quest.head.race;
+        QuestGrade_t MaxGrade = (QuestGrade_t)meetNPCs[r].quest.head.maxGrade;
+        QuestGrade_t MinGrade = (QuestGrade_t)meetNPCs[r].quest.head.minGrade;
+        DWORD timeLimit = (DWORD)meetNPCs[r].quest.head.timeLimitSec;
+        RewardClass_t rewardClass = (RewardClass_t)meetNPCs[r].quest.head.rewardClass;
+        NPCID_t npcID = (NPCID_t)meetNPCs[r].quest.targetNPCID;
+        NPCID_t npcID2 = (NPCID_t)meetNPCs[r].quest.secondNPCID;
+        bool isEventQuest = meetNPCs[r].eventQuest != 0;
+        int questLevel = (int)meetNPCs[r].questLevel;
+
+        MeetNPCQuestInfo* pMeetNPCQI =
+            new MeetNPCQuestInfo(qID, race, MaxGrade, MinGrade, timeLimit, rewardClass, npcID, npcID2);
+        pMeetNPCQI->setEventQuest(isEventQuest);
+        pMeetNPCQI->setQuestLevel(questLevel);
+        addQuestInfo(pMeetNPCQI);
+
+        cout << "Loading Quest Info : " << pMeetNPCQI->toString() << endl;
+    }
+
+    vector<EventMiniGameQuestRow> miniGames = defaultQuestInfoRepository().loadEventMiniGameQuestsOfNPC(name);
+
+    for (size_t r = 0; r < miniGames.size(); r++) {
+        QuestID_t qID = (QuestID_t)miniGames[r].quest.head.questID;
+        Race_t race = (Race_t)miniGames[r].quest.head.race;
+        QuestGrade_t MaxGrade = (QuestGrade_t)miniGames[r].quest.head.maxGrade;
+        QuestGrade_t MinGrade = (QuestGrade_t)miniGames[r].quest.head.minGrade;
+        DWORD timeLimit = (DWORD)miniGames[r].quest.head.timeLimitSec;
+        RewardClass_t rewardClass = (RewardClass_t)miniGames[r].quest.head.rewardClass;
+        int GameType = (int)miniGames[r].quest.gameType;
+        bool isEventQuest = miniGames[r].eventQuest != 0;
+        int questLevel = (int)miniGames[r].questLevel;
+
+        MiniGameQuestInfo* pMiniGameQI =
+            new MiniGameQuestInfo(qID, race, MaxGrade, MinGrade, timeLimit, rewardClass, GameType);
+        pMiniGameQI->setEventQuest(isEventQuest);
+        pMiniGameQI->setQuestLevel(questLevel);
+        addQuestInfo(pMiniGameQI);
+
+        cout << "Loading Quest Info : " << pMiniGameQI->toString() << endl;
+    }
 
     __END_CATCH
 }

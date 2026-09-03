@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 132 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 127 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -2820,6 +2820,59 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > SELECT), Motorcycle, CodeSheet and WarItem, and EventBall, which has
   > no tables and is not registered; ItemInfoManager.cpp holds only the
   > registry calls.
+  > **The quest catalogues (2026-09-03, stacked on the PetItem round;
+  > the first round after the item milestone)**: the five mission/ files
+  > with live SQL behind one new seam, `QuestInfoRepository` +
+  > `MySQLQuestInfoRepository` (defaultQuestInfoRepository()) — R3
+  > 132→127 (R1/R2/R5 unchanged). SimpleQuestInfoManager reads
+  > MonsterKillQuestInfo's nine columns for one NPC
+  > (loadMonsterKillQuestsOfNPC); SimpleQuestRewardManager reads
+  > ItemRewardInfo and SlayerWeaponRewardInfo, whose six columns are
+  > identical, into one `ItemRewardRow`; EventQuestInfoManager reads the
+  > same MonsterKillQuestInfo plus GatherItemQuestInfo, MeetNPCQuestInfo
+  > and MiniGameQuestInfo with EventQuest and QuestLevel appended (four
+  > methods, four rows, each wrapping the non-event shape);
+  > EventQuestAdvance::save runs an UPDATE and, when no row went, an
+  > INSERT IGNORE — updateEventQuestAdvance returns false when nothing
+  > was written and the caller keeps its branch — while
+  > EventQuestAdvanceManager::load reads the owner's rows;
+  > EventQuestLootingManager reads the whole EventQuestLootingInfo
+  > catalogue, whose SELECT computes LootingType-1 in SQL and takes no
+  > arguments, so it stays an executeQueryString. The six columns every
+  > quest-info SELECT starts with are one `QuestHeadRow` read by one
+  > private helper; every numeric column comes back through getInt and
+  > OptionType through getString, the getters the inline code called,
+  > and the callers keep their casts and their flag-to-bool tests.
+  > Literal quirks kept: SimpleQuestInfoManager's "WHERE NPC = '%s'"
+  > (spaces around the equals sign) against the event and reward
+  > managers' "WHERE NPC='%s'"; the two reward SELECTs' identical column
+  > lists against two table names; "INSERT IGNORE INTO
+  > EventQuestAdvance". Disclosures: EventQuestInfoManager's DB block
+  > never deleted its Statement (the file has no SAFE_DELETE at all), so
+  > its four SELECTs leaked one per call — the seam deletes each of the
+  > four it now makes; SimpleQuestRewardManager ran its two SELECTs on
+  > one Statement and save its UPDATE and INSERT on one, and each
+  > statement is its own Statement now (save's second still only when
+  > the UPDATE wrote nothing); whole-result reads before construction,
+  > so a throw from a QuestInfo or RewardInfo constructor no longer
+  > leaks the Statement, and the `cout << "Loading Quest Info : ..."`
+  > lines stay; no statement changes its formatting path (the ten
+  > parameterized ones already went through executeQuery's 2048-byte
+  > buffer, the looting SELECT keeps executeQueryString); DBError.log
+  > names the repository method. The five files' diffs are 37-210 lines,
+  > all extraction. +4 integration tests in a new QuestInfoMySQL suite
+  > (128 total): the four catalogues field by field and empty for
+  > another NPC; the two reward tables including the auto-increment
+  > RewardID read back by SQL; EventQuestAdvance's
+  > false-then-insert-then-true sequence, an INSERT IGNORE over the
+  > primary key changing nothing, and the per-owner load; and a
+  > 'MONSTER' looting row coming back with lootingType 1, the enum's
+  > second label decremented by the SELECT. Not enclosed: the other five
+  > mission/ files — QuestInfoManager, RewardClassInfoManager,
+  > ItemRewardInfo, EventQuestRewardManager and MiniGameQuestStatus —
+  > whose only executeQuery text sits inside commented-out blocks: they
+  > hold no live statement, so R3 keeps counting them until that dead
+  > text goes, which is a separate decision.
   > **PetItem (2026-09-03, stacked on the Motorcycle / CodeSheet /
   > WarItem round; item milestone round 18, the last)**: PetItem
   > (`PET_ITEM_OBJECT`) — R3 133→132 (R1/R2/R5 unchanged). No item class

@@ -47,6 +47,7 @@
 #include "repository/MessageRepository.h"
 #include "repository/NicknameRepository.h"
 #include "repository/PlayRecordRepository.h"
+#include "repository/QuestInfoRepository.h"
 #include "repository/QuestItemRepository.h"
 #include "repository/RankBonusRepository.h"
 #include "repository/RegenZoneRepository.h"
@@ -4394,6 +4395,173 @@ TEST_F(ItemObjectMySQL, PetItemRowsRoundTripWithAndWithoutTheirPetColumns) {
     EXPECT_THROW(repository.destroyGearObject(GEAR_PET_ITEM, 31000), Error);
     // The ItemFlag-only zone load still serves the tables it always did.
     EXPECT_NO_THROW(repository.loadFlagItemInZone(GEAR_QUEST_ITEM, 5, 31000));
+}
+
+// --- the quest catalogues against real MySQL -------------------------------
+// The mission/ managers load these at NPC creation and at login. The tables are
+// seeded; each test writes its own rows (QuestIDs from 31000 up, NPC 'it-npc')
+// and cleans them in SetUp/TearDown.
+
+class QuestInfoMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM MonsterKillQuestInfo WHERE QuestID >= 31000");
+        execSQL("DELETE FROM GatherItemQuestInfo WHERE QuestID >= 31000");
+        execSQL("DELETE FROM MeetNPCQuestInfo WHERE QuestID >= 31000");
+        execSQL("DELETE FROM MiniGameQuestInfo WHERE QuestID >= 31000");
+        execSQL("DELETE FROM ItemRewardInfo WHERE NPC='it-npc'");
+        execSQL("DELETE FROM SlayerWeaponRewardInfo WHERE NPC='it-npc'");
+        execSQL("DELETE FROM EventQuestAdvance WHERE OwnerID='it-owner'");
+        execSQL("DELETE FROM EventQuestLootingInfo WHERE QuestLevel >= 31000");
+    }
+};
+
+TEST_F(QuestInfoMySQL, TheFourCataloguesComeBackPerNPCWithTheirOwnColumns) {
+    QuestInfoRepository& repository = defaultQuestInfoRepository();
+
+    execSQL(
+        "INSERT INTO MonsterKillQuestInfo (QuestID, NPC, TargetSType, IsChief, Goal, TimeLimitSec, Race, MinGrade,"
+        " MaxGrade, RewardClass, EventQuest, QuestLevel) VALUES (31000, 'it-npc', 12, 1, 13, 600, 2, 3, 4, 5, 1, 6)");
+    execSQL("INSERT INTO GatherItemQuestInfo (QuestID, NPC, TargetIClass, TargetIType, Goal, TimeLimitSec, Race,"
+            " MinGrade, MaxGrade, RewardClass, EventQuest, QuestLevel) VALUES (31001, 'it-npc', 7, 8, 9, 700, 1, 2, 3,"
+            " 4, 0, 5)");
+    execSQL("INSERT INTO MeetNPCQuestInfo (QuestID, NPC, TargetNPCID, SecondNPCID, TimeLimitSec, Race, MinGrade,"
+            " MaxGrade, RewardClass, EventQuest, QuestLevel) VALUES (31002, 'it-npc', 21, 22, 800, 0, 1, 2, 3, 1, 4)");
+    execSQL("INSERT INTO MiniGameQuestInfo (QuestID, NPC, GameType, TimeLimitSec, Race, MinGrade, MaxGrade,"
+            " RewardClass, EventQuest, QuestLevel) VALUES (31003, 'it-npc', 31, 900, 2, 5, 6, 7, 1, 8)");
+
+    // SimpleQuestInfoManager's nine columns: the head plus TargetSType, IsChief, Goal.
+    std::vector<MonsterKillQuestRow> simple = repository.loadMonsterKillQuestsOfNPC("it-npc");
+    ASSERT_EQ(1u, simple.size());
+    EXPECT_EQ(31000, simple[0].head.questID);
+    EXPECT_EQ(2, simple[0].head.race);
+    EXPECT_EQ(4, simple[0].head.maxGrade);
+    EXPECT_EQ(3, simple[0].head.minGrade);
+    EXPECT_EQ(600, simple[0].head.timeLimitSec);
+    EXPECT_EQ(5, simple[0].head.rewardClass);
+    EXPECT_EQ(12, simple[0].targetSType);
+    EXPECT_EQ(1, simple[0].isChief);
+    EXPECT_EQ(13, simple[0].goal);
+    EXPECT_TRUE(repository.loadMonsterKillQuestsOfNPC("it-other-npc").empty());
+
+    // EventQuestInfoManager reads the same table plus EventQuest and QuestLevel.
+    std::vector<EventMonsterKillQuestRow> kills = repository.loadEventMonsterKillQuestsOfNPC("it-npc");
+    ASSERT_EQ(1u, kills.size());
+    EXPECT_EQ(31000, kills[0].quest.head.questID);
+    EXPECT_EQ(12, kills[0].quest.targetSType);
+    EXPECT_EQ(13, kills[0].quest.goal);
+    EXPECT_EQ(1, kills[0].eventQuest);
+    EXPECT_EQ(6, kills[0].questLevel);
+
+    std::vector<EventGatherItemQuestRow> gathers = repository.loadEventGatherItemQuestsOfNPC("it-npc");
+    ASSERT_EQ(1u, gathers.size());
+    EXPECT_EQ(31001, gathers[0].quest.head.questID);
+    EXPECT_EQ(700, gathers[0].quest.head.timeLimitSec);
+    EXPECT_EQ(7, gathers[0].quest.targetIClass);
+    EXPECT_EQ(8, gathers[0].quest.targetIType);
+    EXPECT_EQ(9, gathers[0].quest.goal);
+    EXPECT_EQ(0, gathers[0].eventQuest);
+    EXPECT_EQ(5, gathers[0].questLevel);
+
+    std::vector<EventMeetNPCQuestRow> meets = repository.loadEventMeetNPCQuestsOfNPC("it-npc");
+    ASSERT_EQ(1u, meets.size());
+    EXPECT_EQ(31002, meets[0].quest.head.questID);
+    EXPECT_EQ(21, meets[0].quest.targetNPCID);
+    EXPECT_EQ(22, meets[0].quest.secondNPCID);
+    EXPECT_EQ(1, meets[0].eventQuest);
+    EXPECT_EQ(4, meets[0].questLevel);
+
+    std::vector<EventMiniGameQuestRow> games = repository.loadEventMiniGameQuestsOfNPC("it-npc");
+    ASSERT_EQ(1u, games.size());
+    EXPECT_EQ(31003, games[0].quest.head.questID);
+    EXPECT_EQ(7, games[0].quest.head.rewardClass);
+    EXPECT_EQ(31, games[0].quest.gameType);
+    EXPECT_EQ(1, games[0].eventQuest);
+    EXPECT_EQ(8, games[0].questLevel);
+}
+
+TEST_F(QuestInfoMySQL, TheTwoRewardTablesShareTheirSixColumns) {
+    QuestInfoRepository& repository = defaultQuestInfoRepository();
+
+    execSQL("INSERT INTO ItemRewardInfo (RewardClass, NPC, IClass, IType, OptionType, TimeLimitSec) VALUES "
+            "(41, 'it-npc', 3, 4, '1,2', 500)");
+    execSQL("INSERT INTO SlayerWeaponRewardInfo (RewardClass, NPC, IClass, IType, OptionType, TimeLimitSec) VALUES "
+            "(42, 'it-npc', 5, 6, '', 600)");
+
+    std::vector<ItemRewardRow> items = repository.loadItemRewardsOfNPC("it-npc");
+    ASSERT_EQ(1u, items.size());
+    EXPECT_EQ(41, items[0].rewardClass);
+    EXPECT_EQ(atoi(queryScalar("SELECT RewardID FROM ItemRewardInfo WHERE NPC='it-npc'").c_str()), items[0].rewardID);
+    EXPECT_EQ(3, items[0].itemClass);
+    EXPECT_EQ(4, items[0].itemType);
+    EXPECT_EQ("1,2", items[0].optionType);
+    EXPECT_EQ(500, items[0].timeLimitSec);
+
+    std::vector<ItemRewardRow> weapons = repository.loadSlayerWeaponRewardsOfNPC("it-npc");
+    ASSERT_EQ(1u, weapons.size());
+    EXPECT_EQ(42, weapons[0].rewardClass);
+    EXPECT_EQ(5, weapons[0].itemClass);
+    EXPECT_EQ(6, weapons[0].itemType);
+    EXPECT_EQ("", weapons[0].optionType);
+    EXPECT_EQ(600, weapons[0].timeLimitSec);
+
+    EXPECT_TRUE(repository.loadItemRewardsOfNPC("it-other-npc").empty());
+    EXPECT_TRUE(repository.loadSlayerWeaponRewardsOfNPC("it-other-npc").empty());
+}
+
+TEST_F(QuestInfoMySQL, EventQuestAdvanceUpdatesWhenARowExistsAndInsertsWhenItDoesNot) {
+    QuestInfoRepository& repository = defaultQuestInfoRepository();
+
+    // No row yet: the UPDATE reports nothing written, which is what sends the
+    // caller to the INSERT IGNORE.
+    EXPECT_FALSE(repository.updateEventQuestAdvance(2, "it-owner", 3));
+    repository.insertEventQuestAdvance(3, "it-owner", 2);
+    EXPECT_EQ("2", queryScalar("SELECT Status FROM EventQuestAdvance WHERE OwnerID='it-owner' AND QuestLevel=3"));
+
+    // Now it does: the UPDATE writes and reports it.
+    EXPECT_TRUE(repository.updateEventQuestAdvance(4, "it-owner", 3));
+    EXPECT_EQ("4", queryScalar("SELECT Status FROM EventQuestAdvance WHERE OwnerID='it-owner' AND QuestLevel=3"));
+    // INSERT IGNORE over the (OwnerID, QuestLevel) primary key changes nothing.
+    repository.insertEventQuestAdvance(3, "it-owner", 9);
+    EXPECT_EQ("4", queryScalar("SELECT Status FROM EventQuestAdvance WHERE OwnerID='it-owner' AND QuestLevel=3"));
+
+    repository.insertEventQuestAdvance(5, "it-owner", 1);
+    std::vector<EventQuestAdvanceRow> rows = repository.loadEventQuestAdvances("it-owner");
+    ASSERT_EQ(2u, rows.size());
+    EXPECT_TRUE(repository.loadEventQuestAdvances("it-other-owner").empty());
+}
+
+TEST_F(QuestInfoMySQL, LootingInfosCarryTheirTypeMinusOne) {
+    QuestInfoRepository& repository = defaultQuestInfoRepository();
+
+    execSQL("INSERT INTO EventQuestLootingInfo (QuestLevel, LootingType, LootingZone, LootingMType, LootingIClass,"
+            " LootingITypeMin, LootingITypeMax, Race, MinGrade, MaxGrade) VALUES (31000, 'MONSTER', 11, 12, 13, 14,"
+            " 15, 1, 2, 3)");
+
+    std::vector<EventQuestLootingRow> rows = repository.loadEventQuestLootingInfos();
+    bool found = false;
+    for (size_t i = 0; i < rows.size(); i++) {
+        if (rows[i].questLevel != 31000)
+            continue;
+        found = true;
+        // The enum's second label, read as an index and decremented by the SELECT.
+        EXPECT_EQ(1, rows[i].lootingType);
+        EXPECT_EQ(11, rows[i].lootingZone);
+        EXPECT_EQ(12, rows[i].lootingMType);
+        EXPECT_EQ(13, rows[i].lootingIClass);
+        EXPECT_EQ(14, rows[i].lootingITypeMin);
+        EXPECT_EQ(15, rows[i].lootingITypeMax);
+        EXPECT_EQ(1, rows[i].race);
+        EXPECT_EQ(2, rows[i].minGrade);
+        EXPECT_EQ(3, rows[i].maxGrade);
+    }
+    EXPECT_TRUE(found);
 }
 
 TEST(ConfigLoadersMySQL, OptionInfoIsReadInSelectOrderAndTheOtherOptionTablesAreSeeded) {
