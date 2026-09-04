@@ -20,6 +20,7 @@
 #include "SystemAvailabilitiesManager.h"
 #include "Zone.h"
 #include "ZoneUtil.h"
+#include "repository/FlagWarRepository.h"
 
 FlagManager* g_pFlagManager = NULL;
 
@@ -45,29 +46,21 @@ FlagManager::~FlagManager() {}
 
 void FlagManager::init() {
     SYSTEM_RETURN_IF_NOT(SYSTEM_FLAG_WAR);
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<FlagPoleRow> poles = defaultFlagWarRepository().loadFlagPoles();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery(
-            "SELECT ZoneID, CenterX, CenterY, Width, Height, Race-1, MonsterType FROM FlagPolePosition");
+    for (size_t r = 0; r < poles.size(); r++) {
+        ZoneID_t zoneID = (ZoneID_t)poles[r].zoneID;
+        Zone* pZone = getZoneByZoneID(zoneID);
 
-        while (pResult->next()) {
-            ZoneID_t zoneID = (ZoneID_t)pResult->getInt(1);
-            Zone* pZone = getZoneByZoneID(zoneID);
+        ZoneCoord_t left = (ZoneCoord_t)poles[r].centerX;
+        ZoneCoord_t top = (ZoneCoord_t)poles[r].centerY;
+        uint width = (ZoneCoord_t)poles[r].width;
+        uint height = (ZoneCoord_t)poles[r].height;
+        Race_t race = (Race_t)poles[r].race;
+        MonsterType_t type = (MonsterType_t)poles[r].monsterType;
 
-            ZoneCoord_t left = (ZoneCoord_t)pResult->getInt(2);
-            ZoneCoord_t top = (ZoneCoord_t)pResult->getInt(3);
-            uint width = (ZoneCoord_t)pResult->getInt(4);
-            uint height = (ZoneCoord_t)pResult->getInt(5);
-            Race_t race = (Race_t)pResult->getInt(6);
-            MonsterType_t type = (MonsterType_t)pResult->getInt(7);
-
-            addPoleField(pZone, left, top, width, height, race, type);
-        }
+        addPoleField(pZone, left, top, width, height, race, type);
     }
-    END_DB(pStmt)
 }
 
 void FlagManager::addPoleField(Zone* pZone, ZoneCoord_t left, ZoneCoord_t top, uint width, uint height, Race_t race,
@@ -308,14 +301,7 @@ void FlagManager::resetFlagCounts() {
     }
 
     // Reset 할 때 FlagWarStat 테이블을 정리한다
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("DELETE FROM FlagWarStat");
-    }
-    END_DB(pStmt)
+    defaultFlagWarRepository().deleteAllFlagWarStats();
 }
 
 bool FlagManager::isInPoleField(ZONE_COORD zc) {
@@ -333,56 +319,35 @@ bool FlagManager::isInPoleField(ZONE_COORD zc) {
 void FlagManager::recordPutFlag(PlayerCreature* pPC, Item* pItem)
 
 {
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    FlagWarRepository& flagWars = defaultFlagWarRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT Name FROM FlagWarStat WHERE Name = '%s' AND ItemID = %d",
-                                      pPC->getName().c_str(), pItem->getItemID());
-
-        // 있으면 무시 없으면 INSERT
-        if (!pResult->next()) {
-            pResult = pStmt->executeQuery(
-                "INSERT INTO FlagWarStat (PlayerID, Name, Race, ServerID, ItemID) VALUES ('%s','%s',%d,%d,%d)",
-                pPC->getPlayer()->getID().c_str(), pPC->getName().c_str(), (int)pPC->getRace(),
-                g_pConfig->getPropertyInt("ServerID"), pItem->getItemID());
-        }
+    // 있으면 무시 없으면 INSERT
+    if (!flagWars.flagStatExists(pPC->getName(), pItem->getItemID())) {
+        flagWars.insertFlagStat(pPC->getPlayer()->getID(), pPC->getName(), (int)pPC->getRace(),
+                                g_pConfig->getPropertyInt("ServerID"), pItem->getItemID());
     }
-    END_DB(pStmt)
 }
 
 void FlagManager::recordFlagWarHistory()
 
 {
-    Statement* pStmt = NULL;
-    Statement* pStmt2 = NULL;
+    FlagWarRepository& flagWars = defaultFlagWarRepository();
 
-    Result* pResult = NULL;
+    // The tally is read in full before the first history row is written.
+    // The inline version interleaved them, but on a SECOND Statement --
+    // which is what kept its result alive -- and against a different
+    // table, so the two orders see the same rows.
+    vector<FlagWarStatTotalRow> totals = flagWars.loadFlagWarStatTotals();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t r = 0; r < totals.size(); r++) {
+        string playerID = totals[r].playerID;
+        string name = totals[r].name;
+        Race_t race = totals[r].race;
+        int serverID = totals[r].serverID;
+        int num = totals[r].flagNum;
 
-        pResult = pStmt->executeQuery(
-            "SELECT PlayerID, Name, Race, ServerID, count(*) FROM FlagWarStat GROUP BY Name, ServerID");
-
-        while (pResult->next()) {
-            string playerID = pResult->getString(1);
-            string name = pResult->getString(2);
-            Race_t race = pResult->getInt(3);
-            int serverID = pResult->getInt(4);
-            int num = pResult->getInt(5);
-
-            pStmt2->executeQuery("INSERT INTO FlagWarHistory (FlagWarID, PlayerID, Name, Race, ServerID, FlagNum) "
-                                 "VALUES ('%s','%s','%s',%d,%d,%d)",
-                                 m_EndTime.toStringforWeb().c_str(), playerID.c_str(), name.c_str(), (int)race,
-                                 serverID, num);
-        }
-
-        SAFE_DELETE(pStmt2);
+        flagWars.insertFlagWarHistory(m_EndTime.toStringforWeb(), playerID, name, (int)race, serverID, num);
     }
-    END_DB(pStmt)
 }
 
 void FlagManager::broadcastPacket(Packet* pPacket) const {

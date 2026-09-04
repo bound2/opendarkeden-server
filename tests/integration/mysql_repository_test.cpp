@@ -39,6 +39,7 @@
 #include "repository/CoupleRepository.h"
 #include "repository/EffectSaveRepository.h"
 #include "repository/FlagSetRepository.h"
+#include "repository/FlagWarRepository.h"
 #include "repository/GameInfoRepository.h"
 #include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
@@ -184,6 +185,132 @@ TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
     int gold = -1;
     ASSERT_TRUE(defaultStashRepository().loadStashGold(vampire.name, CHARACTER_RACE_VAMPIRE, gold));
     EXPECT_EQ(0, gold);
+}
+
+// --- capture-the-flag against real MySQL -----------------------------------
+
+class FlagWarMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM FlagPolePosition WHERE ZoneID >= 31000");
+        // FlagWarStat has no key to scope by and the seam's own wipe is
+        // unconditional, so the tier owns the whole table for the run.
+        execSQL("DELETE FROM FlagWarStat");
+        execSQL("DELETE FROM FlagWarHistory WHERE FlagWarID LIKE 'it-%'");
+    }
+};
+
+TEST_F(FlagWarMySQL, ThePoleLoadTurnsTheRaceEnumIntoAZeroBasedIndex) {
+    // FlagPolePosition.Race is an ENUM('SLAYER','VAMPIRE','OUSTERS'), and
+    // the statement selects "Race-1". MySQL evaluates arithmetic on an
+    // ENUM against its 1-BASED index, so the "-1" is what makes the
+    // value line up with Race_t. Getting this wrong would shift every
+    // flag pole one race over, which is why it is pinned here rather
+    // than left to the comment.
+    execSQL("INSERT INTO FlagPolePosition (ZoneID, CenterX, CenterY, Width, Height, Race, MonsterType) "
+            "VALUES (31000, 10, 20, 3, 4, 'SLAYER', 77)");
+    execSQL("INSERT INTO FlagPolePosition (ZoneID, CenterX, CenterY, Width, Height, Race, MonsterType) "
+            "VALUES (31001, 11, 21, 5, 6, 'VAMPIRE', 78)");
+    execSQL("INSERT INTO FlagPolePosition (ZoneID, CenterX, CenterY, Width, Height, Race, MonsterType) "
+            "VALUES (31002, 12, 22, 7, 8, 'OUSTERS', 79)");
+
+    std::vector<FlagPoleRow> poles = defaultFlagWarRepository().loadFlagPoles();
+
+    // The table carries the production seed rows too, so pick out ours.
+    int seen = 0;
+    for (size_t r = 0; r < poles.size(); r++) {
+        if (poles[r].zoneID == 31000) {
+            seen++;
+            EXPECT_EQ(10, poles[r].centerX);
+            EXPECT_EQ(20, poles[r].centerY);
+            EXPECT_EQ(3, poles[r].width);
+            EXPECT_EQ(4, poles[r].height);
+            EXPECT_EQ(0, poles[r].race); // SLAYER is enum index 1
+            EXPECT_EQ(77, poles[r].monsterType);
+        }
+        if (poles[r].zoneID == 31001) {
+            seen++;
+            EXPECT_EQ(1, poles[r].race); // VAMPIRE
+        }
+        if (poles[r].zoneID == 31002) {
+            seen++;
+            EXPECT_EQ(2, poles[r].race); // OUSTERS
+        }
+    }
+    EXPECT_EQ(3, seen);
+}
+
+TEST_F(FlagWarMySQL, ThePerFlagTallyIsCheckedBeforeInsertBecauseNothingEnforcesIt) {
+    FlagWarRepository& repository = defaultFlagWarRepository();
+
+    EXPECT_FALSE(repository.flagStatExists("it-carl", 4242));
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 4242);
+    EXPECT_TRUE(repository.flagStatExists("it-carl", 4242));
+
+    // The probe is keyed on BOTH columns: the same player with another
+    // flag, and another player with this flag, are both misses.
+    EXPECT_FALSE(repository.flagStatExists("it-carl", 4243));
+    EXPECT_FALSE(repository.flagStatExists("it-dana", 4242));
+
+    // (Name, ItemID) is an INDEX, not a unique constraint, so the
+    // database would happily take a second identical row. That is
+    // exactly why the caller probes first, and why the probe is part of
+    // the seam rather than a detail of the handler.
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 4242);
+    EXPECT_EQ("2", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ItemID=4242"));
+}
+
+TEST_F(FlagWarMySQL, TheHistoryRollUpIsRefusedByOnlyFullGroupByAndTheWipeTakesEverything) {
+    FlagWarRepository& repository = defaultFlagWarRepository();
+
+    // Two flags for one player on server 7, one on server 8, one for
+    // another player. The GROUP BY is on (Name, ServerID), so the same
+    // name on two servers is two rows.
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 1);
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 2);
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 8, 3);
+    repository.insertFlagStat("it-acc2", "it-dana", 2, 7, 4);
+
+    // THE ROLL-UP CANNOT RUN. The statement groups by (Name, ServerID)
+    // while selecting PlayerID and Race bare, and this project's
+    // required sql_mode KEEPS ONLY_FULL_GROUP_BY (it removes
+    // NO_ZERO_DATE and STRICT_TRANS_TABLES, not this one), so MySQL
+    // refuses it with error 1055 and the read throws. Which means no
+    // flag-war history is recorded on a correctly configured server,
+    // and never has been.
+    //
+    // Task 3.2 moves statements without fixing them, so the throw is
+    // what this tier pins. Anyone who fixes the GROUP BY should expect
+    // this assertion to be the thing that fails.
+    EXPECT_ANY_THROW(repository.loadFlagWarStatTotals());
+
+    // The tally itself is fine, and the roll-up the statement MEANT to
+    // produce is what the history writer takes. Feeding it by hand
+    // covers the writer, which is reachable, without pretending the
+    // reader is.
+    EXPECT_EQ("2", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ServerID=7"));
+    EXPECT_EQ("1", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ServerID=8"));
+    EXPECT_EQ("1", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-dana' AND ServerID=7"));
+
+    repository.insertFlagWarHistory("it-round1", "it-acc1", "it-carl", 1, 7, 2);
+    repository.insertFlagWarHistory("it-round1", "it-acc1", "it-carl", 1, 8, 1);
+    repository.insertFlagWarHistory("it-round1", "it-acc2", "it-dana", 2, 7, 1);
+    EXPECT_EQ("3", queryScalar("SELECT count(*) FROM FlagWarHistory WHERE FlagWarID='it-round1'"));
+    EXPECT_EQ("2", queryScalar("SELECT FlagNum FROM FlagWarHistory "
+                               "WHERE FlagWarID='it-round1' AND Name='it-carl' AND ServerID=7"));
+
+    // The between-rounds wipe is UNCONDITIONAL — no WHERE at all. It
+    // clears every server's tally, not just this one's, and the history
+    // rows it was rolled into survive.
+    repository.deleteAllFlagWarStats();
+    EXPECT_EQ("0", queryScalar("SELECT count(*) FROM FlagWarStat"));
+    EXPECT_EQ("3", queryScalar("SELECT count(*) FROM FlagWarHistory WHERE FlagWarID='it-round1'"));
 }
 
 // --- couple pairings against real MySQL ------------------------------------
