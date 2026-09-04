@@ -18,21 +18,32 @@
 // unchanged (GuildID_t is a WORD, the rank/type/race/state BYTEs, all
 // promoted the same way as before).
 //
-// Not enclosed: the sharedserver's own Guild.cpp / GuildManager.cpp (a
-// separate copy with its own SQL, WarScheduleInfo statements included)
-// and CGSayHandler's GM guild commands.
+// Not enclosed, and this list is meant to be exhaustive for the
+// gameserver:
+//  - the sharedserver's own Guild.cpp / GuildManager.cpp, a separate
+//    copy with its own SQL, WarScheduleInfo statements included;
+//  - quest/ActionShowGuildDialog.cpp, whose two GuildMember probes
+//    include a BYTE-IDENTICAL copy of loadMemberRankExpireDate's
+//    statement (read the same way, followed by the same seven-day
+//    penalty logic) plus a "SELECT GuildID FROM GuildMember WHERE
+//    Name = '%s'" that memberExists cannot serve, because it reads the
+//    id rather than counting rows;
+//  - CGConnectHandler.cpp's three copies of
+//    "UPDATE GuildMember SET LogOn = 1 WHERE Name = '%s'";
+//  - src/server/Restore.cpp's LogOn = 0 counterpart, which is in no
+//    CMakeLists and so is not built, though it still counts in R3.
 //
 // CGRegistGuildHandler, CGJoinGuildHandler and CGTryJoinGuildHandler
-// are no longer on that list: their membership probes and the one
-// GuildMember DELETE among them are the loadMember*/guildNameInUse/
-// deleteMemberSpelled entries below.
-//
-// The gameserver's SG*Guild* handlers are NOT on this list any more.
-// Their Messages drain is enclosed, and the one statement left among
-// them — SGAddGuildMemberOKHandler's — is a character Gold UPDATE
-// against the race table, not a guild row at all. (They still mutate
-// guild state in memory from the SharedServerManager thread; that is a
-// threading matter, recorded in CLAUDE.md, not a SQL one.)
+// came off that list: their membership probes and the one GuildMember
+// DELETE among them are the loadMember*/guildNameInUse/
+// deleteMemberSpelled entries below. CGSayHandler came off it too, and
+// should never have been on it — its GM commands touch the race
+// tables, not the guild ones. So did the SG*Guild* handlers, which now
+// hold no SQL at all: the Messages drain is enclosed and
+// SGAddGuildMemberOK's Gold UPDATE against the race table is
+// GoldRepository::decreaseGoldClamped. (They still mutate guild state
+// in memory from the SharedServerManager thread; that is a threading
+// matter, recorded in CLAUDE.md, not a SQL one.)
 //
 // war/'s own WarScheduleInfo writes are no longer among them —
 // WarInfoRepository took the last of them with the war-scheduler
@@ -172,7 +183,13 @@ public:
     // columns in a different order, so each keeps its own method rather
     // than becoming a spec-table row. Their out-parameter lists differ
     // in arity (2, 3, 1), which makes calling the wrong one a compile
-    // error rather than the silent swap a spelling enum permits.
+    // error rather than the silent swap a spelling enum permits. That
+    // argument covers these three and no more: loadMemberIntro below
+    // has the SAME signature as loadMemberExpireDate, so swapping those
+    // two compiles and returns a different column, and the two int&
+    // out-parameters of the three-column probe are transposable. Both
+    // are held by review and by the integration test's pairwise
+    // distinct sentinels, not by the compiler.
     //
     // All three answer false when the name has no GuildMember row at
     // all. rank comes through getInt (atoi over the field text) and

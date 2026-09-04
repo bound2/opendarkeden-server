@@ -12,7 +12,7 @@ namespace {
 //    the lower-case "and" in the union-member DELETE and the escape-penalty
 //    read, "count(*)" against "COUNT(*)", the five-slot attacker OR, and
 //    the DATE_FORMAT(Offertime,'%%y%%m%%d') read (the doubled %% survives
-//    the format pass as a literal %). The membership probes add three
+//    the format pass as a literal %). The membership probes add four
 //    more: their column ORDER differs per call site (`Rank`, ExpireDate
 //    / GuildID, `Rank`, ExpireDate / GuildID, ExpireDate,`Rank` — note
 //    the missing space in the last), and CGRegistGuildHandler's member

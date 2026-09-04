@@ -5815,9 +5815,11 @@ TEST_F(GuildMySQL, TheThreeMembershipProbesEachReadTheirOwnColumns) {
     EXPECT_EQ("1260901", expireDate);
 
     // CGTryJoinGuildHandler: SELECT GuildID, ExpireDate,`Rank`, of which
-    // only ExpireDate was ever read. Getting the ORDER wrong here would
-    // hand back the GuildID as text, so this is the one probe whose
-    // column order the test can actually catch.
+    // only ExpireDate was ever read. The three seeded values are
+    // pairwise distinct, so a mismatch between a statement's column
+    // order and its read indices shows up in ALL three probes, not just
+    // this one. What no assertion here can catch is a CONSISTENT
+    // rewrite of both, which stays invisible to the database.
     expireDate.clear();
     ASSERT_TRUE(repository.loadMemberExpireDate("it-probe", expireDate));
     EXPECT_EQ("1260901", expireDate);

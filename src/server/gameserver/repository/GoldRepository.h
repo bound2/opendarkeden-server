@@ -41,6 +41,9 @@ public:
     // character who is NOT logged in: the guild was approved while the
     // payer was offline, so there is no in-memory balance to clamp
     // against and the clamp is written into the statement instead —
+    // note that the handler's ONLINE path does not use decreaseGold
+    // either: it clamps in memory and then writes ABSOLUTELY through
+    // setGoldEx's tinysave fragment.
     // SET Gold = IF (fee > Gold, 0, Gold - fee). Two consequences worth
     // naming. It cannot raise the ER_DATA_OUT_OF_RANGE that
     // decreaseGold can, because a row holding less than the fee is
