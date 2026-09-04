@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 98 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers; 120→113 on 2026-09-03: the five per-creature effect saves, EffectRestore and the two Restore skills — skill/ now holds no live inline SQL at all; 113→111 on 2026-09-03: GuildWar and RaceWar, the two war-history writers — SiegeWar loses its seven live statements too but keeps counting, its two SiegeWarHistory recorders being commented out whole; 111→109 on 2026-09-03: War and WarSchedule, the WarScheduleInfo probes and writes; 109→108 on 2026-09-03: RaceWarLimiter, the race-war entry limits and the participant list; 108→107 on 2026-09-03: WarScheduler, the per-zone schedule load and the guild-schedule cancel; 107→102 on 2026-09-03: the five guild-union handlers; 102→98 on 2026-09-03: CGExpelGuild and the three SG guild handlers, all pure reuse) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 94 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers; 120→113 on 2026-09-03: the five per-creature effect saves, EffectRestore and the two Restore skills — skill/ now holds no live inline SQL at all; 113→111 on 2026-09-03: GuildWar and RaceWar, the two war-history writers — SiegeWar loses its seven live statements too but keeps counting, its two SiegeWarHistory recorders being commented out whole; 111→109 on 2026-09-03: War and WarSchedule, the WarScheduleInfo probes and writes; 109→108 on 2026-09-03: RaceWarLimiter, the race-war entry limits and the participant list; 108→107 on 2026-09-03: WarScheduler, the per-zone schedule load and the guild-schedule cancel; 107→102 on 2026-09-03: the five guild-union handlers; 102→98 on 2026-09-03: CGExpelGuild and the three SG guild handlers, all pure reuse; 98→94 on 2026-09-04: the three guild-membership probe handlers and SGAddGuildMemberOK's clamped fee — note that CGJoinGuildHandler leaves this grep only because the commented-out DENY policy inside it, which contained a pStmt->executeQuery call, was rewritten to name the seam method now that pStmt is gone; left verbatim the file would still count and R3 would read 95) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -3351,6 +3351,86 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > MessageMySQL.InsertLoadAndDeleteAreScopedToTheReceiver and the three
   > tests the guild-union round added. ctest 5/5, 148/148 integration
   > tests, build exit 0, clang-format clean.
+  > **The guild-membership probes (2026-09-04, on master once the four
+  > earlier rounds merged)**: CGRegistGuildHandler, CGJoinGuildHandler,
+  > CGTryJoinGuildHandler and SGAddGuildMemberOKHandler — R3 98→94
+  > (R1/R2/R5 unchanged). Six live statements, and unlike the previous
+  > round they are NOT reuse: five of the six are shapes neither seam
+  > held. GuildRepository gains guildNameInUse (CGRegistGuild's
+  > "SELECT GuildID FROM GuildInfo WHERE GuildName = '%s' AND
+  > GuildState IN ( 0, 1 )", row-count only — the selected GuildID was
+  > never read, and 0 and 1 are GUILD_STATE_ACTIVE and GUILD_STATE_WAIT
+  > written as literals), three membership probes and
+  > deleteMemberSpelled; GoldRepository gains decreaseGoldClamped.
+  > THE SHAPE OF THE ROUND: three handlers read the same GuildMember
+  > row through three DIFFERENT column lists — `Rank`, ExpireDate /
+  > GuildID, `Rank`, ExpireDate / GuildID, ExpireDate,`Rank` (no space
+  > after that last comma) — and read them positionally. These are not
+  > spellings of one statement the way the union round's were: the
+  > projections genuinely differ, so each keeps its own method rather
+  > than a spec-table row behind an enum. That is the better outcome
+  > for the reason the union round could not have: the out-parameter
+  > lists have arities 2, 3 and 1, so calling the wrong probe is a
+  > COMPILE ERROR, where a swapped enumerator is silent. The one real
+  > spelling difference — CGRegistGuild's "DELETE FROM GuildMember
+  > WHERE Name='%s'" against Guild::destroy's spaced "Name = '%s'" —
+  > does get the enum treatment (GuildMemberDeleteSpelling), but with
+  > one improvement over the union enums: the SPACED enumerator IS the
+  > literal the seam already carried, so deleteMember() is implemented
+  > as deleteMemberSpelled(GUILD_MEMBER_DELETE_SPACED, .) and each
+  > spelling is still written exactly once. SGAddGuildMemberOK's is a
+  > different table entirely: "UPDATE %s SET Gold = IF (%u > Gold , 0,
+  > Gold - %u ) WHERE Name = '%s'" against the race table, a gold
+  > write whose clamp is IN THE STATEMENT because its payer is
+  > OFFLINE — the guild was approved while they were logged out, so
+  > there is no in-memory balance to clamp against. That makes it
+  > behave differently from decreaseGold at exactly one point: a payer
+  > short of the fee is silently emptied where the relative write
+  > raises ER_DATA_OUT_OF_RANGE on the UNSIGNED column. Two failure
+  > shapes, hence two methods, and the integration test asserts both
+  > sides of the difference. DISCLOSURES. (1) A LEAK CLOSED:
+  > SGAddGuildMemberOK's BEGIN_DB block had NO SAFE_DELETE(pStmt) on
+  > the success path, so every successful fee UPDATE leaked its
+  > Statement; only the exception path (END_DB's delete) freed one.
+  > The repository frees it. (2) THE COMMENT THAT MOVED THE RATCHET,
+  > stated plainly because R3 is a textual grep: CGJoinGuild's
+  > disabled DENY policy sits in a /* */ block that contained a literal
+  > pStmt->executeQuery call. pStmt no longer exists in that function,
+  > so the comment now names the seam method instead. Had it been left
+  > verbatim the file would still match the grep and R3 would read 95,
+  > not 94. (3) Two dead locals in that handler, GuildID_t GuildID and
+  > int Rank, were read from the row and used by nothing but that same
+  > commented-out policy. They survive as int locals filled by the
+  > probe, so the columns are still read; the WORD truncation on
+  > GuildID is gone, but nothing reads the value, and they no longer
+  > draw an unused-variable warning. (4) CGTryJoinGuild's two
+  > commented-out reads named pResult explicitly and now name their
+  > column numbers. (5) Rank and ExpireDate in the two regist/join
+  > handlers are declared above the probe rather than inside the row
+  > branch, and initialised; they are still read only when the probe
+  > returned true. (6) THE CRITICAL SECTION, and this time nothing
+  > changes: the fee UPDATE sits inside __ENTER_CRITICAL_SECTION
+  > ((*g_pPCFinder)) exactly as the previous round's drain did, but
+  > unlike that one its BEGIN_DB/END_DB was ALREADY inside the
+  > section — so a SQL failure already crossed __LEAVE_CRITICAL_SECTION
+  > as a const char* and already left the mutex held. Moving the
+  > conversion into the repository changes neither the type that
+  > crosses nor the lock that is not released. Same project-wide issue
+  > recorded last round, no new instance of it. (7) The table != ""
+  > guard survives as hasRaceTable, since CharacterRace has no "no
+  > table" value and a guild race outside the three must still skip the
+  > write. (8) DBError.log and the const char* END_DB rethrows now name
+  > the repository method. TESTS: four added — three to GuildMySQL (the
+  > three probes against one row and against a missing name, the fresh
+  > row's "" ExpireDate, both delete spellings, and the name probe
+  > seeing states 0 and 1 but not 2 and 3) and one to GoldMySQL (the
+  > clamp paying, the clamp emptying, decreaseGold raising on the same
+  > shortfall, and the missing-row no-op) — plus one domain contract
+  > test for the fake. What the delete test CANNOT do is stated in it:
+  > whitespace around "=" is not in the parsed statement, so a swapped
+  > enumerator passes; that mapping is held by review, as with the
+  > union spellings. ctest 5/5, 152/152 integration tests, build exit 0,
+  > clang-format clean.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes
   > before PetItem — R3 136→133 (R1/R2/R5 unchanged). Motorcycle

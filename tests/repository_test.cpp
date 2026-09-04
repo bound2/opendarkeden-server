@@ -434,6 +434,25 @@ TEST(GoldRepositoryContract, IncreaseAgainstAMissingRowIsASilentNoOp) {
     EXPECT_FALSE(repository.loadGold("Nobody", CHARACTER_RACE_SLAYER, gold));
 }
 
+TEST(GoldRepositoryContract, TheClampedGuildFeeEmptiesARowThatCannotPayInsteadOfThrowing) {
+    FakeGoldRepository repository;
+    repository.addRow(CHARACTER_RACE_VAMPIRE, "payer", 1000);
+
+    repository.decreaseGoldClamped("payer", CHARACTER_RACE_VAMPIRE, 400);
+    int gold = -1;
+    ASSERT_TRUE(repository.loadGold("payer", CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(600, gold);
+
+    // Where decreaseGold would raise, the clamped write empties the row.
+    repository.decreaseGoldClamped("payer", CHARACTER_RACE_VAMPIRE, 5000);
+    ASSERT_TRUE(repository.loadGold("payer", CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(0, gold);
+
+    // Still a silent no-op against a row that is not there.
+    repository.decreaseGoldClamped("ghost", CHARACTER_RACE_SLAYER, 100);
+    EXPECT_FALSE(repository.loadGold("ghost", CHARACTER_RACE_SLAYER, gold));
+}
+
 TEST(GoldRepositoryContract, DecreaseBelowTheRowBalanceThrowsAndLeavesTheRowUntouched) {
     // The caller clamps the delta against its IN-MEMORY balance; when the
     // row holds less (integrity drift), the unsigned subtraction raises

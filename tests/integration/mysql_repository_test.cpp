@@ -238,6 +238,43 @@ TEST_F(GoldMySQL, DecreaseBelowTheRowBalanceRaisesOutOfRangeAndLeavesTheRowUntou
     EXPECT_EQ(10, gold);
 }
 
+TEST_F(GoldMySQL, TheClampedGuildFeeZeroesARowThatCannotPayInsteadOfThrowing) {
+    // SGAddGuildMemberOKHandler charges the guild-registration fee to a
+    // character who is NOT logged in, so there is no in-memory balance to
+    // clamp against and the clamp lives in the statement:
+    // SET Gold = IF (fee > Gold, 0, Gold - fee). That makes it behave
+    // differently from decreaseGold at exactly one point — a payer short
+    // of the fee — and this pins both sides of that difference.
+    PlayerFixture payer = PlayerFixtures::midLevelVampire();
+    payer.persist();
+    defaultGoldRepository().increaseGold(payer.name, CHARACTER_RACE_VAMPIRE, 1000);
+
+    // Enough to pay: an ordinary subtraction.
+    defaultGoldRepository().decreaseGoldClamped(payer.name, CHARACTER_RACE_VAMPIRE, 400);
+    int gold = -1;
+    ASSERT_TRUE(defaultGoldRepository().loadGold(payer.name, CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(600, gold);
+
+    // Short of the fee: emptied, silently. The caller cannot tell this
+    // from a fee that was paid in full, and never could.
+    defaultGoldRepository().decreaseGoldClamped(payer.name, CHARACTER_RACE_VAMPIRE, 5000);
+    ASSERT_TRUE(defaultGoldRepository().loadGold(payer.name, CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(0, gold);
+
+    // The same shortfall through the relative write raises
+    // ER_DATA_OUT_OF_RANGE and leaves the row alone. Two writers of one
+    // column, two failure shapes — which is why they are two methods.
+    defaultGoldRepository().increaseGold(payer.name, CHARACTER_RACE_VAMPIRE, 10);
+    EXPECT_ANY_THROW(defaultGoldRepository().decreaseGold(payer.name, CHARACTER_RACE_VAMPIRE, 5000));
+    ASSERT_TRUE(defaultGoldRepository().loadGold(payer.name, CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(10, gold);
+
+    // A name with no row is a silent no-op, like the other writes.
+    PlayerFixture ghost = PlayerFixtures::highLevelSlayer(); // never persisted
+    defaultGoldRepository().decreaseGoldClamped(ghost.name, CHARACTER_RACE_SLAYER, 100);
+    EXPECT_FALSE(defaultGoldRepository().loadGold(ghost.name, CHARACTER_RACE_SLAYER, gold));
+}
+
 TEST_F(GoldMySQL, OperationsAgainstMissingRowsAreSilentNoOps) {
     PlayerFixture ghost = PlayerFixtures::highLevelSlayer(); // never persisted
 
@@ -5750,6 +5787,116 @@ TEST_F(GuildMySQL, MemberRowsAreCreatedRejoinedSavedExpiredAndDeleted) {
 
     repository.deleteMember("it-m2");
     EXPECT_FALSE(repository.loadMember("it-m2", row));
+}
+
+TEST_F(GuildMySQL, TheThreeMembershipProbesEachReadTheirOwnColumns) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    // One row, read through three different column lists. The handlers
+    // read their columns POSITIONALLY, so what matters is that each
+    // projection hands back the field its own handler used to take.
+    repository.insertMember(31007, "it-probe", 4);
+    repository.setMemberRankAndExpireDate(5, "1260901", "it-probe");
+
+    // CGRegistGuildHandler: SELECT `Rank`, ExpireDate.
+    int rank = -1;
+    std::string expireDate;
+    ASSERT_TRUE(repository.loadMemberRankExpireDate("it-probe", rank, expireDate));
+    EXPECT_EQ(5, rank);
+    EXPECT_EQ("1260901", expireDate);
+
+    // CGJoinGuildHandler: SELECT GuildID, `Rank`, ExpireDate.
+    int guildID = -1;
+    rank = -1;
+    expireDate.clear();
+    ASSERT_TRUE(repository.loadMemberGuildRankExpireDate("it-probe", guildID, rank, expireDate));
+    EXPECT_EQ(31007, guildID);
+    EXPECT_EQ(5, rank);
+    EXPECT_EQ("1260901", expireDate);
+
+    // CGTryJoinGuildHandler: SELECT GuildID, ExpireDate,`Rank`, of which
+    // only ExpireDate was ever read. Getting the ORDER wrong here would
+    // hand back the GuildID as text, so this is the one probe whose
+    // column order the test can actually catch.
+    expireDate.clear();
+    ASSERT_TRUE(repository.loadMemberExpireDate("it-probe", expireDate));
+    EXPECT_EQ("1260901", expireDate);
+
+    // No row at all: false everywhere, which every caller reads as
+    // "belongs to no guild" and lets through.
+    EXPECT_FALSE(repository.loadMemberRankExpireDate("it-none", rank, expireDate));
+    EXPECT_FALSE(repository.loadMemberGuildRankExpireDate("it-none", guildID, rank, expireDate));
+    EXPECT_FALSE(repository.loadMemberExpireDate("it-none", expireDate));
+
+    // A fresh row's ExpireDate is "" and not NULL (varchar(7) NOT NULL
+    // DEFAULT ''), so the size() == 7 test the callers make is false and
+    // no substr runs against a short string.
+    repository.insertMember(31008, "it-fresh", 2);
+    ASSERT_TRUE(repository.loadMemberExpireDate("it-fresh", expireDate));
+    EXPECT_EQ("", expireDate);
+}
+
+TEST_F(GuildMySQL, BothSpellingsOfTheMemberDeleteRemoveTheRow) {
+    GuildRepository& repository = defaultGuildRepository();
+    GuildMemberRow row;
+
+    repository.insertMember(31009, "it-del1", 2);
+    repository.deleteMemberSpelled(GUILD_MEMBER_DELETE_SPACED, "it-del1");
+    EXPECT_FALSE(repository.loadMember("it-del1", row));
+
+    repository.insertMember(31009, "it-del2", 2);
+    repository.deleteMemberSpelled(GUILD_MEMBER_DELETE_UNSPACED, "it-del2");
+    EXPECT_FALSE(repository.loadMember("it-del2", row));
+
+    // deleteMember() IS the spaced spelling, delegating. Worth stating
+    // what this test cannot do: whitespace around "=" is not part of the
+    // parsed statement, so no assertion here can tell the two literals
+    // apart, and a swapped enumerator would pass. The mapping is held by
+    // review; what is pinned is that neither spelling is malformed.
+    repository.insertMember(31009, "it-del3", 2);
+    repository.deleteMember("it-del3");
+    EXPECT_FALSE(repository.loadMember("it-del3", row));
+}
+
+TEST_F(GuildMySQL, TheGuildNameProbeSeesOnlyActiveAndWaitingGuilds) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    GuildRecord record;
+    record.id = 31010;
+    record.name = "it-taken";
+    record.type = 0;
+    record.race = 0;
+    record.state = 0; // GUILD_STATE_ACTIVE, the first of the probe's two
+    record.serverGroupID = 1;
+    record.zoneID = 31010;
+    record.master = "it-master";
+    record.date = "2026-09-04";
+    record.intro = "";
+    repository.insertGuild(record);
+    EXPECT_TRUE(repository.guildNameInUse("it-taken"));
+
+    // State 1 is GUILD_STATE_WAIT: a name is held from the moment the
+    // registration is sent, before the sharedserver approves it.
+    record.id = 31011;
+    record.name = "it-pending";
+    record.state = 1;
+    repository.insertGuild(record);
+    EXPECT_TRUE(repository.guildNameInUse("it-pending"));
+
+    // States 2 and 3 are CANCEL and BROKEN, and release the name.
+    record.id = 31012;
+    record.name = "it-cancelled";
+    record.state = 2;
+    repository.insertGuild(record);
+    EXPECT_FALSE(repository.guildNameInUse("it-cancelled"));
+
+    record.id = 31013;
+    record.name = "it-broken";
+    record.state = 3;
+    repository.insertGuild(record);
+    EXPECT_FALSE(repository.guildNameInUse("it-broken"));
+
+    EXPECT_FALSE(repository.guildNameInUse("it-unknown"));
 }
 
 TEST_F(GuildMySQL, GuildRowsAreCreatedLoadedSavedListedByStateAndDeletedWithTheirUnionRows) {

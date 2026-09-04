@@ -21,7 +21,12 @@ namespace {
 //    call sites always did.
 //  - Every operation targets ONLY the character's own race table (unlike
 //    the stash writes, which fan out to Slayer + the race's own table);
-//    WHERE uses uppercase NAME, byte-for-byte the inline queries.
+//    WHERE uses uppercase NAME in the two relative writes and the
+//    integrity read, and mixed-case Name in the clamped one —
+//    byte-for-byte the inline queries, and identical to MySQL either way.
+//  - decreaseGoldClamped keeps its spacing quirks too: the space after
+//    IF, the one before the comma in "Gold ," and the one before the
+//    closing paren.
 //  - An UPDATE for a name with no row matches zero rows, silently.
 //  - Character names are interpolated raw (no escaping), as the call
 //    sites always did.
@@ -46,6 +51,18 @@ public:
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("UPDATE %s SET Gold=Gold-%u WHERE NAME='%s'", characterRaceTable(race), delta,
                                 ownerName.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void decreaseGoldClamped(const string& ownerName, CharacterRace race, Gold_t fee) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE %s SET Gold = IF (%u > Gold , 0, Gold - %u ) WHERE Name = '%s'",
+                                characterRaceTable(race), fee, fee, ownerName.c_str());
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)

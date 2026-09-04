@@ -16,6 +16,10 @@
 //    unlike stash.
 //  - addRow() seeds a character's row; an UPDATE against a missing row is
 //    a SILENT no-op.
+//  - decreaseGoldClamped() is the guild-fee write, whose clamp is IN
+//    the statement (SET Gold = IF (fee > Gold, 0, Gold - fee)) because
+//    its payer is offline. It therefore does NOT throw where
+//    decreaseGold does: a row short of the fee is zeroed instead.
 //  - decreaseGold() below the row's balance throws: Gold is int(10)
 //    UNSIGNED, and the unsigned subtraction raises ER_DATA_OUT_OF_RANGE
 //    (1690), leaving the row untouched. The real error surfaces as a raw
@@ -53,6 +57,16 @@ public:
                         "FakeGoldRepository: BIGINT UNSIGNED value is out of range in 'Gold - delta'");
                 itr->gold -= (int)delta;
             }
+        }
+    }
+
+    void decreaseGoldClamped(const std::string& ownerName, CharacterRace race, Gold_t fee) {
+        for (Rows::iterator itr = m_Rows.begin(); itr != m_Rows.end(); ++itr) {
+            if (itr->race == race && itr->ownerName == ownerName)
+                // The clamp is the statement's, so a row that cannot pay
+                // is emptied rather than raising — silently, as far as
+                // the caller is concerned.
+                itr->gold = itr->gold < (int)fee ? 0 : itr->gold - (int)fee;
         }
     }
 
