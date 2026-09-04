@@ -47,6 +47,7 @@
 #include "repository/ItemObjectRepository.h"
 #include "repository/ItemRepository.h"
 #include "repository/MessageRepository.h"
+#include "repository/MofusPointRepository.h"
 #include "repository/NicknameRepository.h"
 #include "repository/PlayRecordRepository.h"
 #include "repository/QuestInfoRepository.h"
@@ -335,6 +336,69 @@ TEST_F(FlagWarMySQL, TheHistoryRollUpIsRefusedByOnlyFullGroupByAndTheWipeTakesEv
     repository.deleteAllFlagWarStats();
     EXPECT_EQ("0", queryScalar("SELECT count(*) FROM FlagWarStat"));
     EXPECT_EQ("3", queryScalar("SELECT count(*) FROM FlagWarHistory WHERE FlagWarID='it-round1'"));
+}
+
+// --- mofus power points against real MySQL ---------------------------------
+
+class MofusMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM MofusPowerPoint WHERE OwnerID LIKE 'it-%'");
+        execSQL("DELETE FROM MofusLog WHERE OwnerID LIKE 'it-%'");
+    }
+};
+
+TEST_F(MofusMySQL, TheFirstSaveInsertsAndEveryLaterOneAccumulates) {
+    MofusPointRepository& repository = defaultMofusPointRepository();
+
+    // No row yet: the UPDATE matches nothing, which is exactly how the
+    // caller knows to insert. OwnerID is the PRIMARY KEY, so the insert
+    // can only happen once.
+    int point = -1;
+    EXPECT_FALSE(repository.loadPowerPoint("it-mofus", point));
+    EXPECT_EQ(-1, point); // left alone when there is no row
+
+    EXPECT_FALSE(repository.increasePowerPoint("it-mofus", 30));
+    EXPECT_EQ("0", queryScalar("SELECT count(*) FROM MofusPowerPoint WHERE OwnerID='it-mofus'"));
+
+    repository.insertPowerPoint("it-mofus", 30);
+    ASSERT_TRUE(repository.loadPowerPoint("it-mofus", point));
+    EXPECT_EQ(30, point);
+
+    // Now the UPDATE matches, so the caller does NOT insert again.
+    EXPECT_TRUE(repository.increasePowerPoint("it-mofus", 12));
+    ASSERT_TRUE(repository.loadPowerPoint("it-mofus", point));
+    EXPECT_EQ(42, point);
+
+    // The balance is relative and signed: Point is int(11) SIGNED, so a
+    // negative amount really does subtract and can go below zero. That is
+    // the inline statement's arithmetic, kept.
+    EXPECT_TRUE(repository.increasePowerPoint("it-mofus", -50));
+    ASSERT_TRUE(repository.loadPowerPoint("it-mofus", point));
+    EXPECT_EQ(-8, point);
+}
+
+TEST_F(MofusMySQL, TheAuditRowIsStampedByTheDatabaseAndKeepsEverySave) {
+    MofusPointRepository& repository = defaultMofusPointRepository();
+
+    repository.logPowerPoint("it-mofus", 5, 7);
+    repository.logPowerPoint("it-mofus", 9, 11);
+
+    // MofusLog has no unique key, so every save appends — it is an audit
+    // trail, not a balance.
+    EXPECT_EQ("2", queryScalar("SELECT count(*) FROM MofusLog WHERE OwnerID='it-mofus'"));
+    EXPECT_EQ("7", queryScalar("SELECT SavePoint FROM MofusLog WHERE OwnerID='it-mofus' AND RecvPoint=5"));
+    EXPECT_EQ("11", queryScalar("SELECT SavePoint FROM MofusLog WHERE OwnerID='it-mofus' AND RecvPoint=9"));
+
+    // SaveTime is now(), stamped by the database rather than the caller.
+    EXPECT_EQ(queryScalar("SELECT CURDATE()"),
+              queryScalar("SELECT DATE(SaveTime) FROM MofusLog WHERE OwnerID='it-mofus' AND RecvPoint=5"));
 }
 
 // --- couple pairings against real MySQL ------------------------------------

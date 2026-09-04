@@ -555,6 +555,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLContentInfoRepository.cpp
     repository/MySQLCoupleRepository.cpp
     repository/MySQLFlagWarRepository.cpp
+    repository/MySQLMofusPointRepository.cpp
     repository/MySQLMessageRepository.cpp
     repository/MySQLRegenZoneRepository.cpp
     repository/MySQLZoneInfoRepository.cpp
