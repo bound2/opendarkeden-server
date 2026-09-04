@@ -40,6 +40,7 @@
 #include "repository/EffectSaveRepository.h"
 #include "repository/FlagSetRepository.h"
 #include "repository/FlagWarRepository.h"
+#include "repository/FriendRepository.h"
 #include "repository/GameInfoRepository.h"
 #include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
@@ -186,6 +187,84 @@ TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
     int gold = -1;
     ASSERT_TRUE(defaultStashRepository().loadStashGold(vampire.name, CHARACTER_RACE_VAMPIRE, gold));
     EXPECT_EQ(0, gold);
+}
+
+// --- the friend list against real MySQL ------------------------------------
+
+// Every case here pins a FAILURE, and that is deliberate. FriendList and
+// FriendHistory do not exist: initdb/DARKEDEN.sql defines 374 tables and
+// neither is among them, in that schema or in USERINFO.sql, and the only
+// mention of either name anywhere in the tree is the handler these
+// statements came from. So the friend feature has never worked against
+// the shipped schema, and no success path is reachable to assert.
+//
+// Whoever adds the tables should expect these cases to fail, and should
+// replace them with the round-trip assertions they were always meant to
+// be: insert a mutual pair and read it back, spool a message and drain
+// it, blacklist and check both directions.
+class FriendMySQL : public ::testing::Test {};
+
+TEST_F(FriendMySQL, EveryReadRaisesBecauseTheTableIsNotInTheSchema) {
+    FriendRepository& repository = defaultFriendRepository();
+
+    // Catch the const char* END_DB rethrows rather than using
+    // EXPECT_ANY_THROW: that would pass for any failure at all, and the
+    // claim here is specifically that the statement reaches MySQL and is
+    // refused. (The message cannot be asserted on — END_DB throws
+    // msg.c_str() from a local std::string, so the pointer dangles.)
+    bool refused = false;
+    try {
+        repository.loadFriends("it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "loadFriends succeeded, so FriendList now exists — see this fixture's comment";
+
+    refused = false;
+    try {
+        repository.loadMessages("it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "loadMessages succeeded, so FriendHistory now exists";
+
+    refused = false;
+    try {
+        repository.friendExists("it-friend", "it-other");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "friendExists succeeded, so FriendList now exists";
+}
+
+TEST_F(FriendMySQL, EveryWriteRaisesToo) {
+    FriendRepository& repository = defaultFriendRepository();
+
+    bool refused = false;
+    try {
+        repository.insertFriend("it-friend", "it-other");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "insertFriend succeeded, so FriendList now exists";
+
+    refused = false;
+    try {
+        repository.insertMessage("hello", "it-other", "it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "insertMessage succeeded, so FriendHistory now exists";
+
+    // The deletes fail the same way, which matters because the handler
+    // runs them without checking anything first.
+    refused = false;
+    try {
+        repository.deleteFriend("it-friend", "it-other");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "deleteFriend succeeded, so FriendList now exists";
 }
 
 // --- capture-the-flag against real MySQL -----------------------------------

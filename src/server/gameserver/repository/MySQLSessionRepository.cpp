@@ -114,6 +114,30 @@ public:
         return affected;
     }
 
+    bool loadPlayerLocation(const string& playerID, int& serverGroupID, string& logOn) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            // "USERINFO", not "PLAYER_DB": the name is ignored, and this
+            // is what the call site wrote.
+            pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT CurrentServerGroupID, LogOn FROM Player WHERE PlayerID='%s'",
+                                                  playerID.c_str());
+
+            if (pResult->next()) {
+                serverGroupID = pResult->getInt(1);
+                logOn = pResult->getString(2);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
     void markPlayerLoggedOff(const string& playerID) {
         Statement* pStmt = NULL;
 

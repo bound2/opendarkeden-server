@@ -27,10 +27,7 @@
 // markPlayerLoggedOn and markGuildMemberLoggedOn below.
 //
 // Not enclosed: CGPortCheckHandler's UserIPInfo upsert,
-// CGRequestIPHandler's and CGSayHandler's UserIPInfo reads, and
-// CGWhisperHandler's pair — a Slayer name-to-PlayerID probe and a
-// "SELECT CurrentServerGroupID, LogOn FROM Player" read on the dist
-// connection, which an earlier version of this list missed — all
+// CGRequestIPHandler's and CGSayHandler's UserIPInfo reads — all
 // handler-directory files (R3); CGSayHandler's and
 // billing/CommonBillingPacket.cpp's Player.LogOn / LastLogoutDate reads;
 // src/server/PaySystem.cpp's PCRoomUserInfo statements (ServerCore, every
@@ -91,6 +88,15 @@ public:
     // caller did ask, into an empty if block the session round deleted;
     // "never asked" was the wrong way to put it.)
     virtual bool markPlayerLoggedOn(const std::string& playerID) = 0;
+    // CGWhisperHandler's cross-server lookup: where is this account,
+    // and is it in game? False when the account has no row, leaving
+    // both out-parameters untouched. Note the connection name: that
+    // call site asks getDistConnection for "USERINFO" where every
+    // other Player statement asks for "PLAYER_DB". DatabaseManager
+    // ignores the name and hands back the same per-thread socket, so
+    // the two reach the same schema; the name is kept because it is
+    // what that call site wrote.
+    virtual bool loadPlayerLocation(const std::string& playerID, int& serverGroupID, std::string& logOn) = 0;
     // LogOn='LOGOFF', LastLogoutDate=now() — only for a row still in 'GAME'.
     virtual void markPlayerLoggedOff(const std::string& playerID) = 0;
     // The accounts this world/server group left in 'GAME' (boot-time sweep).

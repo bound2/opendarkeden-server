@@ -262,6 +262,13 @@ public:
     // ProtocolException. Every character has a Slayer row whatever its
     // race, which is why one probe covers all three.
     virtual bool loadSlayerAccount(const std::string& name, std::string& playerID, std::string& race) = 0;
+    // CGWhisperHandler's own name-to-account lookup. NOT the same
+    // statement as loadSlayerAccount: one column instead of two, and
+    // "Name='%s'" unspaced where that one has "Name = '%s'". It also
+    // answers on the FIRST row rather than requiring exactly one,
+    // because that caller only wants an account to look up. Kept apart
+    // because the bytes differ, not because the meaning does.
+    virtual bool loadSlayerPlayerID(const std::string& name, std::string& playerID) = 0;
     virtual bool loadVampire(const std::string& ownerName, VampireLoadRecord& record) = 0;
     virtual bool loadOusters(const std::string& ownerName, OustersLoadRecord& record) = 0;
 

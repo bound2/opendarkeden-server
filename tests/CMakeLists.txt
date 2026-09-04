@@ -122,6 +122,7 @@ add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLCoupleRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLFlagWarRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLMofusPointRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLFriendRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLGuildRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLItemObjectRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLItemRepository.cpp
