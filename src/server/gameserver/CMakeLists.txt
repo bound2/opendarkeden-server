@@ -559,6 +559,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLMessageRepository.cpp
     repository/MySQLMofusPointRepository.cpp
     repository/MySQLRegenZoneRepository.cpp
+    repository/MySQLSystemAvailabilityRepository.cpp
     repository/MySQLZoneInfoRepository.cpp
     repository/MySQLCharacterRepository.cpp
     repository/MySQLGoldRepository.cpp

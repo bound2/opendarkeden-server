@@ -1,34 +1,31 @@
 #include "SystemAvailabilitiesManager.h"
 
 #include "Assert.h"
-#include "DB.h"
+#include "repository/SystemAvailabilityRepository.h"
 
 void SystemAvailabilitiesManager::load() {
     __BEGIN_TRY
 
 #if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__)
-    Statement* pStmt = NULL;
+    vector<SystemAvailabilityRow> rows = defaultSystemAvailabilityRepository().loadAll();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT * FROM SystemAvailabilities");
-
-        while (pResult->next()) {
-            int ID = pResult->getInt(1);
-            bool Avail = pResult->getInt(2) != 0;
+    {
+        for (size_t r = 0; r < rows.size(); r++) {
+            int ID = rows[r].systemKind;
+            bool Avail = rows[r].available != 0;
 
             if (ID == OpenDegreeID) {
-                m_ZoneOpenDegree = pResult->getInt(2);
+                m_ZoneOpenDegree = rows[r].available;
                 continue;
             }
 
             if (ID == SkillLimitID) {
-                m_SkillLevelLimit = pResult->getInt(2);
+                m_SkillLevelLimit = rows[r].available;
                 continue;
             }
 
             if (ID == ItemLevelLimitID) {
-                m_ItemLevelLimit = pResult->getInt(2);
+                m_ItemLevelLimit = rows[r].available;
                 continue;
             }
 
@@ -40,10 +37,7 @@ void SystemAvailabilitiesManager::load() {
             SystemKind kind = (SystemKind)ID;
             setAvailable(kind, Avail);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
 #else
     for (int i = 0; i < SYSTEM_MAX; ++i)
