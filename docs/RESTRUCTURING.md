@@ -3465,8 +3465,11 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > **The couple pairings (2026-09-04, stacked on the guild-membership
   > round)**: couple/CoupleManager.cpp — R3 94→93 (R1/R2/R5 unchanged).
   > Eight statements, one table, one file: a new CoupleRepository takes
-  > every CoupleInfo statement the gameserver runs, and the couple
-  > module is left with no SQL at all. WHAT MAKES THIS ONE DIFFERENT:
+  > every CoupleInfo statement the COUPLE MODULE runs, and couple/ is
+  > left with no SQL at all. (An earlier draft of this sentence said
+  > "the gameserver", which is false and which this same paragraph
+  > refutes further down: CreatureUtil.cpp is a gameserver source and
+  > runs two CoupleInfo DELETEs of its own.) WHAT MAKES THIS ONE DIFFERENT:
   > the columns are chosen by SEX rather than written literally. A
   > pairing is ONE row with one column per sex (MalePartnerName,
   > FemalePartnerName) plus Race and a CoupleDate the database stamps
@@ -3492,23 +3495,32 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > where — but unlike the guild member DELETE they ALSO derive their
   > columns differently and have one caller each, so two methods carry
   > the difference and no spelling enum was needed. DISCLOSURES.
-  > (1) THE OUT-OF-BOUNDS INDEXING IS INHERITED, NOT FIXED: neither
-  > lookup bounds-checks, so a Sex outside {FEMALE, MALE} reads
-  > SEX_FIELD_NAME[2] or, for the counter, [1 - 2] = [-1]. The seam
-  > keeps the arithmetic exactly, adds no clamp, and says so in place;
-  > bounding it is a behaviour change and belongs to its own round.
+  > (1) THE MISSING BOUNDS CHECK IS INHERITED, NOT FIXED: neither
+  > lookup bounds-checks, so a Sex outside {FEMALE, MALE} would read
+  > SEX_FIELD_NAME[2] or, for the counter, [1 - 2] = [-1]. The review
+  > of this round established that no PlayerCreature can hold such a
+  > value — the DB-load path feeds a string to the three race
+  > classes, which accept only Sex2String[MALE]/[FEMALE] and throw
+  > InvalidProtocolException otherwise, and the create packet derives
+  > the sex from one bit — so this is a defensive gap, not the live
+  > hazard an earlier draft called it. The seam keeps the arithmetic
+  > exactly and adds no clamp; bounding it is a behaviour change and
+  > belongs to its own round.
   > (2) The array was a namespace-scope const string[] in a HEADER, so
   > every translation unit including CoupleManager.h built its own two
   > std::strings at static-init time and getFieldName returned a
   > std::string BY VALUE on every call. It is now a
   > const char* const[] in one .cpp returning a pointer. Invisible to
   > the database, but a real change and not a cleanup this round set
-  > out to make. (3) The four probes used to leave a bool false and
+  > out to make. (3) The three count probes used to leave a bool false
+  > and
   > set it only when next() succeeded AND the count was >= 1; the seam
   > returns the count and each caller compares >= 1. A count(*) always
   > yields a row, so next() cannot fail on a live connection; if it
   > ever did, the old code answered false and the new one returns 0,
-  > which compares false. Same answer. (4) getPartnerName leaves its
+  > which compares false. Same answer. (Three, not four:
+  > getPartnerName is the fourth bool-returning function but reads
+  > no count, and is disclosure (4) below.) (4) getPartnerName leaves its
   > out-parameter untouched when there is no row, as before, and a
   > test pins it. (5) CoupleManager.cpp no longer includes DB.h or
   > DatabaseManager.h; Assert and __BEGIN_TRY still reach it through
@@ -3523,20 +3535,34 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > than by sex, and the loginserver copy is a different binary.
   > TESTS: three added to a new CoupleMySQL tier — one row found from
   > either partner's side with the date stamped by the database, the
-  > probes missing a name looked up in the wrong sex's column (which is
-  > what makes the derivation load bearing rather than decorative), and
+  > probes missing a name looked up in the wrong sex's column, and
   > the three deletes differing in what they match. That last test
   > turned up an asymmetry worth recording, which is the inline
   > code's and is kept: all three DELETEs filter on Race, while
-  > NEITHER count probe nor the partner read does. So a character
+  > none of the three count probes nor the partner read does. So a
+  > character
   > paired in two races reads as coupled after removeCouple has
   > removed the pairing of the race they are playing, and
   > getPartnerName hands back whichever row the server returns
   > first. Reachable only if one name holds pairings in more than
-  > one race, which nothing in the couple flow creates — the
-  > handlers pair two characters of the same race and Assert it —
+  > one race, which nothing in the couple flow creates —
+  > WaitForMeet::canMakeCouple rejects a different race and a
+  > matching sex before makeCouple, which then Asserts both, and
+  > Assert is live in every configuration this project builds —
   > but nothing in the SCHEMA prevents either, since CoupleInfo's
-  > only key is its AUTO_INCREMENT ID. Recorded, not fixed.
+  > only UNIQUE key is its AUTO_INCREMENT ID and the two name
+  > indexes are non-unique. Recorded, not fixed.
+  > TWO CORRECTIONS FROM THE REVIEW OF THIS ROUND'S TESTS. The
+  > wrong-column test pins that the derivation is sex-DEPENDENT, not
+  > that it is sex-CORRECT: every one of its assertions still holds
+  > with the column table swapped end for end. Orientation is pinned
+  > by the first test's raw-SQL pair, which reads MalePartnerName and
+  > FemalePartnerName by name. And a disclosure the round missed: both
+  > isCouple probes share the implementation's private countOf, which
+  > owns the BEGIN_DB block, so END_DB's __PRETTY_FUNCTION__ now logs
+  > that helper where two distinguishable CoupleManager frames used to
+  > appear. Log text only, but an operator reading DBError.log can no
+  > longer tell the name probe from the creature probe.
   > ctest 5/5, 155/155 integration tests, build exit 0,
   > clang-format clean.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the

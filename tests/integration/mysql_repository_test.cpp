@@ -240,8 +240,12 @@ TEST_F(CoupleMySQL, ProbesAreScopedToTheNamedPairAndMissAnyoneElse) {
     repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 0);
 
     // Right names, wrong side: the male name looked up in the female
-    // column finds nothing, which is what makes the derivation load
-    // bearing rather than decorative.
+    // column finds nothing. Note precisely what this pins and what it
+    // does not: every assertion below still holds if the column table
+    // were swapped end for end, so this test establishes that the
+    // derivation is sex-DEPENDENT, not that it is sex-CORRECT. The
+    // orientation is pinned by the raw-SQL pair in the test above,
+    // which reads MalePartnerName and FemalePartnerName by name.
     EXPECT_EQ(0, repository.countPairingsOf(FEMALE, "it-mike"));
     EXPECT_EQ(0, repository.countPairingWithPartner(MALE, "it-fay", "it-mike"));
 
