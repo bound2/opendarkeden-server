@@ -12,6 +12,7 @@
 #include "WarSchedule.h"
 #include "WarSystem.h"
 #include "Zone.h"
+#include "repository/WarInfoRepository.h"
 
 // dt 이후의 월, 수, 금 오후 8시(~9시)
 // dt 이후의 일요일 7시(~9시)
@@ -126,9 +127,6 @@ void WarScheduler::load()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     clear();
@@ -137,98 +135,82 @@ void WarScheduler::load()
 
     VSDateTime currentDateTime(VSDateTime::currentDateTime());
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery(
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    vector<WarScheduleRow> schedules =
+        repository.loadWarSchedules(g_pConfig->getPropertyInt("ServerID"), (int)m_pZone->getZoneID());
+
+    if (!schedules.empty()) {
+        WarID_t warID;
+        WarType_t warType;
 #ifndef __OLD_GUILD_WAR__
-            "SELECT WarID, WarType, AttackerCount, AttackGuildID, AttackGuildID2, AttackGuildID3, AttackGuildID4, "
-            "AttackGuildID5, "
-            "WarFee, StartTime FROM WarScheduleInfo "
+        uint challengerNum;
+        GuildID_t challengerGuildID[5];
 #else
-            "SELECT WarID, WarType, AttackGuildID, WarFee, StartTime FROM WarScheduleInfo "
+        GuildID_t challengerGuildID;
 #endif
-            "WHERE ServerID = %u AND ZoneID = %u AND ( Status = 'WAIT' OR Status = 'START' ) "
-            "ORDER BY StartTime",
-            g_pConfig->getPropertyInt("ServerID"), (int)m_pZone->getZoneID());
+        Gold_t warRegistrationFee;
+        string dateTemp;
+        VSDateTime warStartTime;
 
-        if (pResult->getRowCount() > 0) {
-            WarID_t warID;
-            WarType_t warType;
+        for (size_t r = 0; r < schedules.size(); r++) {
+            warID = (WarID_t)schedules[r].warID;
+            string warTypeStr = schedules[r].warType;
+
+            if (warTypeStr == "GUILD")
+                warType = WAR_GUILD;
+            else if (warTypeStr == "RACE")
+                continue; // warType = WAR_RACE;
+            else
+                Assert(false);
 #ifndef __OLD_GUILD_WAR__
-            uint challengerNum;
-            GuildID_t challengerGuildID[5];
-#else
-            GuildID_t challengerGuildID;
-#endif
-            Gold_t warRegistrationFee;
-            string dateTemp;
-            VSDateTime warStartTime;
+            challengerNum = schedules[r].attackerCount;
 
-            while (pResult->next()) {
-                int i = 0;
-
-                warID = (WarID_t)pResult->getInt(++i);
-                string warTypeStr = pResult->getString(++i);
-
-                if (warTypeStr == "GUILD")
-                    warType = WAR_GUILD;
-                else if (warTypeStr == "RACE")
-                    continue; // warType = WAR_RACE;
-                else
-                    Assert(false);
-#ifndef __OLD_GUILD_WAR__
-                challengerNum = pResult->getInt(++i);
-
-                for (int j = 0; j < 5; ++j) {
-                    challengerGuildID[j] = (GuildID_t)pResult->getInt(++i);
-                }
-#else
-                challengerGuildID = (GuildID_t)pResult->getInt(++i);
-#endif
-
-                warRegistrationFee = (Gold_t)pResult->getInt(++i);
-                dateTemp = pResult->getString(++i);
-                warStartTime = VSDateTime(dateTemp);
-
-                // 이미 시작되었어야할 전쟁이라면 시작시간을 바꿔준다.
-                if (warStartTime < currentDateTime) {
-                    warStartTime = currentDateTime;
-                }
-
-#ifndef __OLD_GUILD_WAR__
-                SiegeWar* pWar = new SiegeWar(m_pZone->getZoneID(), War::WAR_STATE_WAIT, warID);
-#else
-                GuildWar* pWar = new GuildWar(m_pZone->getZoneID(), challengerGuildID, War::WAR_STATE_WAIT, warID);
-#endif
-                pWar->setWarStartTime(warStartTime);
-                pWar->setRegistrationFee(warRegistrationFee);
-
-#ifndef __OLD_GUILD_WAR__
-                pResult = pStmt->executeQuery(
-                    "SELECT ReinforceGuildID FROM ReinforceRegisterInfo WHERE WarID=%u AND Status='ACCEPT'", warID);
-
-                if (pResult->next()) {
-                    pWar->setReinforceGuildID(pResult->getInt(1));
-                }
-
-                for (int j = 0; j < challengerNum; ++j) {
-                    pWar->addChallengerGuild(challengerGuildID[j]);
-                }
-#endif
-
-                WarSchedule* pWarSchedule = new WarSchedule(pWar, warStartTime, Schedule::SCHEDULE_TYPE_ONCE);
-                addSchedule(pWarSchedule);
-
-                // cout << "WarScheduler: loading [" << pWarSchedule->toString().c_str() << "]" << endl;
-                filelog("WarLog.txt", "[LOAD] %s", pWar->toString().c_str());
-
-                // if (warType==WAR_RACE) numRaceWar++;
+            for (int j = 0; j < 5; ++j) {
+                challengerGuildID[j] = (GuildID_t)schedules[r].attackGuildID[j];
             }
-        }
+#else
+            challengerGuildID = (GuildID_t)schedules[r].attackGuildID;
+#endif
 
-        SAFE_DELETE(pStmt);
+            warRegistrationFee = (Gold_t)schedules[r].warFee;
+            dateTemp = schedules[r].startTime;
+            warStartTime = VSDateTime(dateTemp);
+
+            // 이미 시작되었어야할 전쟁이라면 시작시간을 바꿔준다.
+            if (warStartTime < currentDateTime) {
+                warStartTime = currentDateTime;
+            }
+
+#ifndef __OLD_GUILD_WAR__
+            SiegeWar* pWar = new SiegeWar(m_pZone->getZoneID(), War::WAR_STATE_WAIT, warID);
+#else
+            GuildWar* pWar = new GuildWar(m_pZone->getZoneID(), challengerGuildID, War::WAR_STATE_WAIT, warID);
+#endif
+            pWar->setWarStartTime(warStartTime);
+            pWar->setRegistrationFee(warRegistrationFee);
+
+#ifndef __OLD_GUILD_WAR__
+            int reinforceGuildID = 0;
+
+            if (repository.loadAcceptedReinforceGuild(warID, reinforceGuildID)) {
+                pWar->setReinforceGuildID(reinforceGuildID);
+            }
+
+            for (int j = 0; j < challengerNum; ++j) {
+                pWar->addChallengerGuild(challengerGuildID[j]);
+            }
+#endif
+
+            WarSchedule* pWarSchedule = new WarSchedule(pWar, warStartTime, Schedule::SCHEDULE_TYPE_ONCE);
+            addSchedule(pWarSchedule);
+
+            // cout << "WarScheduler: loading [" << pWarSchedule->toString().c_str() << "]" << endl;
+            filelog("WarLog.txt", "[LOAD] %s", pWar->toString().c_str());
+
+            // if (warType==WAR_RACE) numRaceWar++;
+        }
     }
-    END_DB(pStmt)
 
     // 종족 전쟁 설정된게 없으면 설정한다.
     /*
@@ -426,19 +408,7 @@ void WarScheduler::cancelGuildSchedules()
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE WarScheduleInfo SET Status='CANCEL' WHERE ServerID = %d AND ZoneID = %d \
-				AND WarType='GUILD' AND (Status='WAIT' OR Status='START')",
-                            g_pConfig->getPropertyInt("ServerID"), m_pZone->getZoneID());
-
-        // pStmt->getAffectedRowCount()
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultWarInfoRepository().cancelGuildWarSchedules(g_pConfig->getPropertyInt("ServerID"), m_pZone->getZoneID());
 
     // 다시 로드한다. ㅋㅋ - -;
     load();

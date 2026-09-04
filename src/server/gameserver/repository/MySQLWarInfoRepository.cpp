@@ -433,6 +433,89 @@ public:
         END_DB(pStmt)
     }
 
+    vector<WarScheduleRow> loadWarSchedules(int serverID, int zoneID) {
+        vector<WarScheduleRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+#ifndef __OLD_GUILD_WAR__
+                "SELECT WarID, WarType, AttackerCount, AttackGuildID, AttackGuildID2, AttackGuildID3, AttackGuildID4, "
+                "AttackGuildID5, "
+                "WarFee, StartTime FROM WarScheduleInfo "
+#else
+                "SELECT WarID, WarType, AttackGuildID, WarFee, StartTime FROM WarScheduleInfo "
+#endif
+                "WHERE ServerID = %u AND ZoneID = %u AND ( Status = 'WAIT' OR Status = 'START' ) "
+                "ORDER BY StartTime",
+                serverID, zoneID);
+
+            while (pResult->next()) {
+                WarScheduleRow row;
+                int i = 0;
+
+                row.warID = pResult->getInt(++i);
+                row.warType = pResult->getString(++i);
+#ifndef __OLD_GUILD_WAR__
+                row.attackerCount = pResult->getInt(++i);
+
+                for (int j = 0; j < 5; ++j) {
+                    row.attackGuildID[j] = pResult->getInt(++i);
+                }
+#else
+                row.attackGuildID = pResult->getInt(++i);
+#endif
+                row.warFee = pResult->getInt(++i);
+                row.startTime = pResult->getString(++i);
+
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    bool loadAcceptedReinforceGuild(WarID_t warID, int& guildID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT ReinforceGuildID FROM ReinforceRegisterInfo WHERE WarID=%u AND Status='ACCEPT'", warID);
+
+            if (pResult->next()) {
+                guildID = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    void cancelGuildWarSchedules(int serverID, int zoneID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE WarScheduleInfo SET Status='CANCEL' WHERE ServerID = %d AND ZoneID = %d "
+                                "\t\t\t\tAND WarType='GUILD' AND (Status='WAIT' OR Status='START')",
+                                serverID, zoneID);
+
+            // pStmt->getAffectedRowCount()
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     vector<MasterLairRow> loadMasterLairs() {
         vector<MasterLairRow> rows;
         Statement* pStmt = NULL;

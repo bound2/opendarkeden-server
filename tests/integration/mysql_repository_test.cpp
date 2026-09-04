@@ -2414,6 +2414,103 @@ TEST_F(WarInfoMySQL, ReinforceRegistrationsAreScopedToTheWarAndServerThroughThei
 }
 
 
+TEST_F(WarInfoMySQL, EveryWaitingAndStartedGuildScheduleOfTheZoneComesBackInStartTimeOrder) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    // Three wars in the zone we ask about, deliberately inserted out of
+    // StartTime order, plus three the query must not see: another zone,
+    // another server, and one already ENDed.
+    repository.replaceWarSchedule(31002, 7, 21, "GUILD", 2, 201, 202, 0, 0, 0, 500, "2026-09-03 12:00:00", "WAIT");
+    repository.replaceWarSchedule(31000, 7, 21, "GUILD", 5, 101, 102, 103, 104, 105, 400, "2026-09-03 10:00:00",
+                                  "START");
+    repository.replaceWarSchedule(31001, 7, 21, "GUILD", 1, 301, 0, 0, 0, 0, 600, "2026-09-03 11:00:00", "WAIT");
+    repository.replaceWarSchedule(31003, 7, 22, "GUILD", 1, 401, 0, 0, 0, 0, 700, "2026-09-03 09:00:00", "WAIT");
+    repository.replaceWarSchedule(31004, 8, 21, "GUILD", 1, 501, 0, 0, 0, 0, 800, "2026-09-03 09:00:00", "WAIT");
+    repository.replaceWarSchedule(31005, 7, 21, "GUILD", 1, 601, 0, 0, 0, 0, 900, "2026-09-03 09:00:00", "END");
+
+    std::vector<WarScheduleRow> rows = repository.loadWarSchedules(7, 21);
+    ASSERT_EQ(3u, rows.size());
+
+    // ORDER BY StartTime, so the START row comes first even though it was
+    // inserted second.
+    EXPECT_EQ(31000, rows[0].warID);
+    EXPECT_EQ(31001, rows[1].warID);
+    EXPECT_EQ(31002, rows[2].warID);
+
+    // Ten columns, read positionally in SELECT order.
+    EXPECT_EQ("GUILD", rows[0].warType);
+    EXPECT_EQ(5, rows[0].attackerCount);
+    EXPECT_EQ(101, rows[0].attackGuildID[0]);
+    EXPECT_EQ(105, rows[0].attackGuildID[4]);
+    EXPECT_EQ(400, rows[0].warFee);
+    EXPECT_EQ("2026-09-03 10:00:00", rows[0].startTime);
+
+    EXPECT_EQ(2, rows[2].attackerCount);
+    EXPECT_EQ(202, rows[2].attackGuildID[1]);
+    EXPECT_EQ(0, rows[2].attackGuildID[4]);
+
+    // The three excluded rows really are in the table.
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM WarScheduleInfo WHERE WarID=31003"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM WarScheduleInfo WHERE WarID=31004"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM WarScheduleInfo WHERE WarID=31005"));
+    EXPECT_TRUE(repository.loadWarSchedules(7, 99).empty());
+}
+
+TEST_F(WarInfoMySQL, TheAcceptedReinforceReadIsScopedToTheWarIdAlone) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    int guildID = -1;
+    EXPECT_FALSE(repository.loadAcceptedReinforceGuild(31000, guildID));
+    EXPECT_EQ(-1, guildID);
+
+    // A WAIT and a DENY registration are not an ACCEPT.
+    repository.insertReinforceRegistration(31000, 7, 900);
+    EXPECT_FALSE(repository.loadAcceptedReinforceGuild(31000, guildID));
+    repository.denyReinforceRegistration(31000, 7, 900);
+    EXPECT_FALSE(repository.loadAcceptedReinforceGuild(31000, guildID));
+
+    // This statement carries no ServerID, unlike loadWaitingReinforceGuild:
+    // a row registered under a different server still answers.
+    repository.insertReinforceRegistration(31000, 8, 901);
+    repository.acceptReinforceRegistration(31000, 8, 901);
+    EXPECT_TRUE(repository.loadAcceptedReinforceGuild(31000, guildID));
+    EXPECT_EQ(901, guildID);
+
+    // Another war's ACCEPT is out of scope.
+    guildID = -1;
+    EXPECT_FALSE(repository.loadAcceptedReinforceGuild(31001, guildID));
+    EXPECT_EQ(-1, guildID);
+}
+
+TEST_F(WarInfoMySQL, CancellingGuildSchedulesSpansTheTabsAndSparesEveryOtherRow) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    repository.replaceWarSchedule(31000, 7, 21, "GUILD", 1, 101, 0, 0, 0, 0, 400, "2026-09-03 10:00:00", "WAIT");
+    repository.replaceWarSchedule(31001, 7, 21, "GUILD", 1, 102, 0, 0, 0, 0, 400, "2026-09-03 11:00:00", "START");
+    repository.replaceWarSchedule(31002, 7, 21, "GUILD", 1, 103, 0, 0, 0, 0, 400, "2026-09-03 12:00:00", "END");
+    repository.replaceWarSchedule(31003, 7, 21, "RACE", 1, 104, 0, 0, 0, 0, 400, "2026-09-03 13:00:00", "WAIT");
+    repository.replaceWarSchedule(31004, 7, 22, "GUILD", 1, 105, 0, 0, 0, 0, 400, "2026-09-03 14:00:00", "WAIT");
+
+    // The literal carries four tabs spliced in by a backslash-continued
+    // source line; MySQL treats them as whitespace, so the statement runs
+    // and the WarType clause after them still applies.
+    repository.cancelGuildWarSchedules(7, 21);
+
+    EXPECT_EQ("CANCEL", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31000"));
+    EXPECT_EQ("CANCEL", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31001"));
+    EXPECT_EQ("END", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31002"));
+    EXPECT_EQ("WAIT", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31003"));
+    EXPECT_EQ("WAIT", queryScalar("SELECT Status FROM WarScheduleInfo WHERE WarID=31004"));
+
+    // The cancelled wars drop out of the load. The RACE row survives both
+    // statements: the cancel filters on WarType, the load does not — its
+    // caller skips RACE rows itself.
+    std::vector<WarScheduleRow> rows = repository.loadWarSchedules(7, 21);
+    ASSERT_EQ(1u, rows.size());
+    EXPECT_EQ(31003, rows[0].warID);
+    EXPECT_EQ("RACE", rows[0].warType);
+}
+
 TEST_F(WarInfoMySQL, RaceWarLimitStatementsRunAgainstTheTableNameTheCallerHandsIn) {
     WarInfoRepository& repository = defaultWarInfoRepository();
 

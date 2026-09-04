@@ -19,9 +19,11 @@
 // promoted the same way as before).
 //
 // Not enclosed: the sharedserver's own Guild.cpp / GuildManager.cpp (a
-// separate copy with its own SQL), the war scheduler's WarScheduleInfo
-// writes (war/), CGSayHandler's GM guild commands, and the SG*Guild*
-// handlers that mutate guild rows from the SharedServerManager thread.
+// separate copy with its own SQL, WarScheduleInfo statements included),
+// CGSayHandler's GM guild commands, and the SG*Guild* handlers that
+// mutate guild rows from the SharedServerManager thread. war/'s own
+// WarScheduleInfo writes are no longer among them — WarInfoRepository
+// took the last of them with the war-scheduler round.
 
 // GuildMember::load — the four columns it reads back.
 struct GuildMemberRow {
