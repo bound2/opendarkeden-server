@@ -21,7 +21,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-BloodyBreaker::BloodyBreaker() throw() {
+BloodyBreaker::BloodyBreaker() {
     __BEGIN_TRY
 
     const int width[7] = {0, 0, 1, 1, 2, 2, 2};

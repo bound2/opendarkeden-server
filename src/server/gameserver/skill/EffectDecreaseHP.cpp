@@ -274,7 +274,7 @@ void EffectDecreaseHP::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Objec
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectDecreaseHP::toString() const throw() {
+string EffectDecreaseHP::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -16,14 +16,14 @@
 
 class Cannonade : public SkillHandler {
 public:
-    Cannonade() throw() {}
-    ~Cannonade() throw() {}
+    Cannonade() {}
+    ~Cannonade() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Cannonade";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CANNONADE;
     }
 

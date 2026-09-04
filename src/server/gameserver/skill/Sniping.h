@@ -15,14 +15,14 @@
 
 class Sniping : public SkillHandler {
 public:
-    Sniping() throw() {}
-    ~Sniping() throw() {}
+    Sniping() {}
+    ~Sniping() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Sniping";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SNIPING;
     }
 

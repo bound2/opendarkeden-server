@@ -15,14 +15,14 @@
 
 class RefusalEther : public SkillHandler {
 public:
-    RefusalEther() throw();
-    ~RefusalEther() throw() {}
+    RefusalEther();
+    ~RefusalEther() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "RefusalEther";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_REFUSAL_ETHER;
     }
 

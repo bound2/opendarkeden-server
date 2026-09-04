@@ -15,14 +15,14 @@
 
 class Rediance : public SkillHandler {
 public:
-    Rediance() throw() {}
-    ~Rediance() throw() {}
+    Rediance() {}
+    ~Rediance() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Rediance";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_REDIANCE;
     }
 

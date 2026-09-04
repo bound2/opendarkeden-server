@@ -20,7 +20,7 @@ public:
     EffectSanctuary(Zone* pZone, ZoneCoord_t ZoneX, ZoneCoord_t ZoneY, ZoneCoord_t CenterX, ZoneCoord_t CenterY);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_SANCTUARY;
     }
 
@@ -33,27 +33,27 @@ public:
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     void setCenterX(ZoneCoord_t x) {
         m_CenterX = x;
     }
-    ZoneCoord_t getCenterX() const throw() {
+    ZoneCoord_t getCenterX() const {
         return m_CenterX;
     }
 
     void setCenterY(ZoneCoord_t y) {
         m_CenterY = y;
     }
-    ZoneCoord_t getCenterY() const throw() {
+    ZoneCoord_t getCenterY() const {
         return m_CenterY;
     }
 
     void setLevel(Attr_t l) {
         m_Level = l;
     }
-    Attr_t getLevel() const throw() {
+    Attr_t getLevel() const {
         return m_Level;
     }
 
@@ -64,7 +64,7 @@ public:
         return m_Duration;
     }
 
-    void setStartTime() throw() {
+    void setStartTime() {
         getCurrentTime(m_StartTime);
     }
     bool isHalfTimePassed() {

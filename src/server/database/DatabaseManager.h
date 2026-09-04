@@ -28,12 +28,12 @@ public:
     void addConnection(int TID, Connection* pConnection);
     void addDistConnection(int TID, Connection* pConnection);
     void addCBillingConnection(int TID, Connection* pConnection);
-    //	void addPCRoomConnection(int TID, Connection * pConnection) throw(DuplicatedException);
+    //	void addPCRoomConnection(int TID, Connection * pConnection) ;
 
     Connection* getConnection(const string& ip);
     Connection* getDistConnection(const string& ip);
     Connection* getCBillingConnection(const string& ip);
-    //	Connection* getPCRoomConnection(const string& ip) throw(NoSuchElementException);
+    //	Connection* getPCRoomConnection(const string& ip) ;
     Connection* getUserInfoConnection(void) {
         return m_pUserInfoConnection;
     }
@@ -65,7 +65,7 @@ public:
     // 신경쓰지 않도록 한다.
     //--------------------------------------------------------------------
     Connection* getConnection(int TID);
-    //	void addConnection(WorldID_t WorldID, Connection * pConnection) throw(DuplicatedException);
+    //	void addConnection(WorldID_t WorldID, Connection * pConnection) ;
 
 private:
     // 각 쓰레드별로 존재하는 DB 연결

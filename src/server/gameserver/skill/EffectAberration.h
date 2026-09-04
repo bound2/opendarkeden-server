@@ -18,7 +18,7 @@ public:
     EffectAberration(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_ABERRATION;
     }
 
@@ -28,13 +28,13 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getRatio() const {
         return m_Ratio;
     }
-    void setRatio(int ratio) throw() {
+    void setRatio(int ratio) {
         m_Ratio = ratio;
     }
 

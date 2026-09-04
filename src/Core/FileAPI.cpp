@@ -168,7 +168,7 @@ int FileAPI::open_ex(const char* filename, int flags, int mode) {
 //////////////////////////////////////////////////////////////////////
 //
 // uint FileAPI::read_ex ( int fd , void * buf , uint len )
-//      throw ( IOException , Error );
+//      ;
 //
 // exception version of read()
 //
@@ -231,7 +231,7 @@ uint FileAPI::read_ex(int fd, void* buf, uint len) {
 //////////////////////////////////////////////////////////////////////
 //
 // uint FileAPI::write_ex ( int fd , void * buf , uint len )
-//      throw ( IOException );
+//      ;
 //
 // exception version of write()
 //
@@ -295,7 +295,7 @@ uint FileAPI::write_ex(int fd, const void* buf, uint len) {
 //////////////////////////////////////////////////////////////////////
 //
 // void FileAPI::close_ex ( int fd )
-//      throw ( FileNotOpenedException , Error )
+//
 //
 // exception version of close()
 //
@@ -331,7 +331,7 @@ void FileAPI::close_ex(int fd) {
 //////////////////////////////////////////////////////////////////////
 //
 // int FileAPI::fcntl_ex ( int fd , int cmd )
-//     throw ( Error );
+//     ;
 //
 // Parameters
 //     fd  - file descriptor
@@ -380,7 +380,7 @@ int FileAPI::fcntl_ex(int fd, int cmd) {
 //////////////////////////////////////////////////////////////////////
 //
 // int FileAPI::fcntl_ex ( int fd , int cmd , long arg )
-//     throw ( Error );
+//     ;
 //
 // Parameters
 //     fd  - file descriptor
@@ -433,7 +433,7 @@ int FileAPI::fcntl_ex(int fd, int cmd, long arg) {
 //////////////////////////////////////////////////////////////////////
 //
 // bool getfilenonblocking_ex ( int fd )
-//      throw ( Error );
+//      ;
 //
 // check if this file is nonblocking mode
 //
@@ -463,7 +463,7 @@ bool FileAPI::getfilenonblocking_ex(int fd) {
 //////////////////////////////////////////////////////////////////////
 //
 // void setfilenonblocking_ex ( int fd , bool on )
-//      throw ( Error );
+//      ;
 //
 // make this file blocking/nonblocking
 //
@@ -502,7 +502,7 @@ void FileAPI::setfilenonblocking_ex(int fd, bool on) {
 //////////////////////////////////////////////////////////////////////
 //
 // void FileAPI::ioctl_ex ( int fd , int request , void * argp )
-//     throw ( Error )
+//
 //
 // exception version of ioctl()
 //
@@ -546,7 +546,7 @@ void FileAPI::ioctl_ex(int fd, int request, void* argp) {
 //////////////////////////////////////////////////////////////////////
 //
 // void FileAPI::setfilenonblocking_ex2 ( int fd , bool on )
-//      throw ( Error )
+//
 //
 // make this stream blocking/nonblocking using ioctl_ex()
 //
@@ -578,7 +578,7 @@ void FileAPI::setfilenonblocking_ex2(int fd, bool on) {
 //////////////////////////////////////////////////////////////////////
 //
 // uint FileAPI::available_ex ( int fd )
-//      throw ( Error )
+//
 //
 // how much bytes available in this stream? using ioctl_ex()
 //
@@ -614,7 +614,7 @@ uint FileAPI::availablefile_ex(int fd) {
 //////////////////////////////////////////////////////////////////////
 //
 // int FileAPI::dup_ex ( int fd )
-//     throw ( Error )
+//
 //
 //////////////////////////////////////////////////////////////////////
 int FileAPI::dup_ex(int fd) {
@@ -651,7 +651,7 @@ int FileAPI::dup_ex(int fd) {
 //////////////////////////////////////////////////////////////////////
 //
 // long FileAPI::lseek_ex ( int fd , long offset , int whence )
-//      throw ( Error );
+//      ;
 //
 //////////////////////////////////////////////////////////////////////
 long FileAPI::lseek_ex(int fd, long offset, int whence) {

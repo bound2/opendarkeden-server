@@ -16,7 +16,7 @@ class QuestCreateInfo;
 class QuestFactory {
 public:
     virtual Quest::QuestType getQuestType() const = 0;
-    virtual Quest* create(const QuestCreateInfo* qcInfo = NULL) const throw(Error) = 0;
+    virtual Quest* create(const QuestCreateInfo* qcInfo = NULL) const = 0;
 };
 
 //--------------------------------------------------------------------------------
@@ -24,19 +24,19 @@ public:
 //--------------------------------------------------------------------------------
 class QuestFactoryManager {
 public:
-    QuestFactoryManager() throw(Error);
-    ~QuestFactoryManager() throw(Error);
+    QuestFactoryManager();
+    ~QuestFactoryManager() noexcept(false);
 
     static QuestFactoryManager* getInstance() {
         static QuestFactoryManager QPFM;
         return &QPFM;
     }
 
-    Quest* create(Quest::QuestType qptype, const QuestCreateInfo* qcInfo = NULL) const throw(Error);
+    Quest* create(Quest::QuestType qptype, const QuestCreateInfo* qcInfo = NULL) const;
 
 
 protected:
-    void addFactory(QuestFactory* pQuestFactory) throw(Error);
+    void addFactory(QuestFactory* pQuestFactory);
 
 private:
     QuestFactory* m_pQuestFactories[Quest::QUEST_MAX];

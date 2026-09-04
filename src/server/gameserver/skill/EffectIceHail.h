@@ -20,7 +20,7 @@ public:
     EffectIceHail(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zoneY);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_ICE_HAIL;
     }
 
@@ -30,7 +30,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     ObjectID_t getCasterID(void) const {

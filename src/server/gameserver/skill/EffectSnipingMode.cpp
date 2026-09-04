@@ -95,7 +95,7 @@ void EffectSnipingMode::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectSnipingMode::toString() const throw() {
+string EffectSnipingMode::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

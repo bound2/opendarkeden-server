@@ -301,7 +301,7 @@ void AbsorbSoul::execute(Ousters* pOusters, ObjectID_t TargetObjectID, ZoneCoord
 }
 
 void AbsorbSoul::makeLarvaToPupa(Ousters* pOusters, int TargetLevel, ObjectID_t ItemObjectID, CoordInven_t InvenX,
-                                 CoordInven_t InvenY, CoordInven_t TargetInvenX, CoordInven_t TargetInvenY) throw() {
+                                 CoordInven_t InvenY, CoordInven_t TargetInvenX, CoordInven_t TargetInvenY) {
     __BEGIN_TRY
 
     Inventory* pInventory = pOusters->getInventory();

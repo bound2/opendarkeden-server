@@ -15,15 +15,15 @@
 
 class SoulRebirth : public SkillHandler {
 public:
-    SoulRebirth() throw() {}
-    ~SoulRebirth() throw() {}
+    SoulRebirth() {}
+    ~SoulRebirth() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SoulRebirth";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SOUL_REBIRTH;
     }
 

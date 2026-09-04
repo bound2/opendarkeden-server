@@ -15,14 +15,14 @@
 
 class Berserker : public SkillHandler {
 public:
-    Berserker() throw() {}
-    ~Berserker() throw() {}
+    Berserker() {}
+    ~Berserker() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Berserker";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BERSERKER;
     }
 

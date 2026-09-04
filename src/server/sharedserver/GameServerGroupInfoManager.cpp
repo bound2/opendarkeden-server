@@ -18,12 +18,12 @@
 //----------------------------------------------------------------------
 // constructor
 //----------------------------------------------------------------------
-GameServerGroupInfoManager::GameServerGroupInfoManager() throw() {}
+GameServerGroupInfoManager::GameServerGroupInfoManager() {}
 
 //----------------------------------------------------------------------
 // destructor
 //----------------------------------------------------------------------
-GameServerGroupInfoManager::~GameServerGroupInfoManager() throw() {
+GameServerGroupInfoManager::~GameServerGroupInfoManager() {
     // hashmap 안의 각 pair 의 second, 즉 GameServerGroupInfo 객체만을 삭제하고
     // pair 자체는 그대로 둔다. (GameServerGroupInfo가 힙에 생성되어 있다는 것에
     // 유의하라. 즉 필살삭제를 해야 한다. 하긴, GSIM이 destruct 된다는 것은
@@ -46,7 +46,7 @@ GameServerGroupInfoManager::~GameServerGroupInfoManager() throw() {
 //----------------------------------------------------------------------
 // initialize GSIM
 //----------------------------------------------------------------------
-void GameServerGroupInfoManager::init() throw(Error) {
+void GameServerGroupInfoManager::init() {
     __BEGIN_TRY
 
     // just load data from GameServerGroupInfo table
@@ -61,7 +61,7 @@ void GameServerGroupInfoManager::init() throw(Error) {
 //----------------------------------------------------------------------
 // load data from database
 //----------------------------------------------------------------------
-void GameServerGroupInfoManager::load() throw(Error) {
+void GameServerGroupInfoManager::load() {
     __BEGIN_TRY
 
     Statement* pStmt;
@@ -115,8 +115,7 @@ void GameServerGroupInfoManager::load() throw(Error) {
 //----------------------------------------------------------------------
 // add info
 //----------------------------------------------------------------------
-void GameServerGroupInfoManager::addGameServerGroupInfo(GameServerGroupInfo* pGameServerGroupInfo,
-                                                        WorldID_t WorldID) throw(DuplicatedException) {
+void GameServerGroupInfoManager::addGameServerGroupInfo(GameServerGroupInfo* pGameServerGroupInfo, WorldID_t WorldID) {
     __BEGIN_TRY
 
     HashMapGameServerGroupInfo::iterator itr = m_GameServerGroupInfos[WorldID].find(pGameServerGroupInfo->getGroupID());
@@ -132,8 +131,7 @@ void GameServerGroupInfoManager::addGameServerGroupInfo(GameServerGroupInfo* pGa
 //----------------------------------------------------------------------
 // delete info
 //----------------------------------------------------------------------
-void GameServerGroupInfoManager::deleteGameServerGroupInfo(const ServerGroupID_t GroupID,
-                                                           WorldID_t WorldID) throw(NoSuchElementException) {
+void GameServerGroupInfoManager::deleteGameServerGroupInfo(const ServerGroupID_t GroupID, WorldID_t WorldID) {
     __BEGIN_TRY
 
     HashMapGameServerGroupInfo::iterator itr = m_GameServerGroupInfos[WorldID].find(GroupID);
@@ -157,8 +155,7 @@ void GameServerGroupInfoManager::deleteGameServerGroupInfo(const ServerGroupID_t
 // get GameServerGroupinfo by ServerGroupID
 //----------------------------------------------------------------------
 GameServerGroupInfo* GameServerGroupInfoManager::getGameServerGroupInfo(const ServerGroupID_t GroupID,
-                                                                        WorldID_t WorldID) const
-    throw(NoSuchElementException) {
+                                                                        WorldID_t WorldID) const {
     __BEGIN_TRY
 
     if (WorldID >= m_MaxWorldID) {
@@ -185,7 +182,7 @@ GameServerGroupInfo* GameServerGroupInfoManager::getGameServerGroupInfo(const Se
 //----------------------------------------------------------------------
 // get debug string
 //----------------------------------------------------------------------
-string GameServerGroupInfoManager::toString() const throw() {
+string GameServerGroupInfoManager::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

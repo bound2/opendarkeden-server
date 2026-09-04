@@ -15,14 +15,14 @@
 
 class Prominence : public SkillHandler {
 public:
-    Prominence() throw() {}
-    ~Prominence() throw() {}
+    Prominence() {}
+    ~Prominence() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Prominence";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PROMINENCE;
     }
 

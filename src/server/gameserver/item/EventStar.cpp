@@ -41,7 +41,7 @@ EventStar::EventStar(ItemType_t itemType, const list<OptionType_t>& optionType, 
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "EventStar::EventStar() : Invalid item type or option type");
-        throw("EventStar::EventStar() : Invalid item type or optionType");
+        throw "EventStar::EventStar() : Invalid item type or optionType";
     }
 }
 

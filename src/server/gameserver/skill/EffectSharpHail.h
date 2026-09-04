@@ -19,13 +19,13 @@ public:
     EffectSharpHail(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zoneY);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_PROMINENCE;
     }
 
     void affect();
     void unaffect();
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getDamage(void) const {

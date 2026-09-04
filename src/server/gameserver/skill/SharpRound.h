@@ -15,15 +15,15 @@
 
 class SharpRound : public SkillHandler {
 public:
-    SharpRound() throw() {}
-    ~SharpRound() throw() {}
+    SharpRound() {}
+    ~SharpRound() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SharpRound";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SHARP_ROUND;
     }
 

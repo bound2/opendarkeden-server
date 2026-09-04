@@ -15,14 +15,14 @@
 
 class SatelliteBomb : public SkillHandler {
 public:
-    SatelliteBomb() throw() {}
-    ~SatelliteBomb() throw() {}
+    SatelliteBomb() {}
+    ~SatelliteBomb() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SatelliteBomb";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SATELLITE_BOMB;
     }
 

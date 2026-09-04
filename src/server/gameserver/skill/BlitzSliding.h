@@ -15,14 +15,14 @@
 
 class BlitzSliding : public SkillHandler {
 public:
-    BlitzSliding() throw() {}
-    ~BlitzSliding() throw() {}
+    BlitzSliding() {}
+    ~BlitzSliding() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BlitzSliding";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLITZ_SLIDING;
     }
 

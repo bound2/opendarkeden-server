@@ -24,37 +24,37 @@
 class UpdateServer {
 public:
     // constructor
-    UpdateServer() throw(Error);
+    UpdateServer();
 
     // destructor
-    ~UpdateServer() throw(Error);
+    ~UpdateServer() noexcept(false);
 
     // intialize game server
-    void init() throw(Error);
+    void init();
 
     // start game server
-    void start() throw(Error);
+    void start();
 
     // stop game server
-    void stop() throw(Error);
+    void stop();
 
     // main loop
-    void run() throw();
+    void run();
 
 private:
     // system level initialization
-    void sysinit() throw(Error);
+    void sysinit();
 
     // become daemon
-    void goBackground() throw(Error);
+    void goBackground();
 
     // update client
-    void updateClient(Socket* pClient) throw();
+    void updateClient(Socket* pClient);
 
-    int getGuildMarkVersion() throw() {
+    int getGuildMarkVersion() {
         return m_GuildMarkVersion;
     }
-    int getLastGuildMarkVersion() throw() {
+    int getLastGuildMarkVersion() {
         return m_LastGuildMarkVersion;
     }
 

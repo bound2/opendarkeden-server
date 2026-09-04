@@ -31,7 +31,7 @@
 class IncomingPlayerManager : public PlayerManager {
 public:
     IncomingPlayerManager();
-    ~IncomingPlayerManager();
+    ~IncomingPlayerManager() noexcept(false);
 
 public:
     // initialize

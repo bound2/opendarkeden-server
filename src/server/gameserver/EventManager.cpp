@@ -55,7 +55,7 @@ void EventManager::addEvent(Event* pEvent)
         m_Events.push_back(pEvent);
     } else {
         // cerr << "EventManager::addEvent() : Duplicated event class" << endl;
-        throw("EventManager::addEvent() : Duplicated event class");
+        throw "EventManager::addEvent() : Duplicated event class";
     }
 
     __BEGIN_DEBUG

@@ -21,7 +21,7 @@ public:
     EffectFadeOut(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_FADE_OUT;
     }
 
@@ -34,7 +34,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     Duration_t getDuration() const {
@@ -47,14 +47,14 @@ public:
     bool isSniping(void) const {
         return m_isSniping;
     }
-    void setSniping() throw() {
+    void setSniping() {
         m_isSniping = true;
     }
 
     bool isInvisibility(void) const {
         return !m_isSniping;
     }
-    void setInvisibility() throw() {
+    void setInvisibility() {
         m_isSniping = false;
     }
 

@@ -177,7 +177,7 @@ void EffectEnergyDropToCreature::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectEnergyDropToCreature::toString() const throw() {
+string EffectEnergyDropToCreature::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

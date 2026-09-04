@@ -19,7 +19,7 @@ class MJob;
 class MPlayer : public Player {
 public:
     MPlayer(MJob* pJob);
-    virtual ~MPlayer();
+    virtual ~MPlayer() noexcept;
 
 public:
     // network read / write

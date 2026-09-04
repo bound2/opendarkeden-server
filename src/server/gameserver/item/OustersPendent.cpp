@@ -47,7 +47,7 @@ OustersPendent::OustersPendent(ItemType_t itemType, const list<OptionType_t>& op
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersPendent::OustersPendent() : Invalid item type or option type");
-        throw("OustersPendent::OustersPendent() : Invalid item type or optionType");
+        throw "OustersPendent::OustersPendent() : Invalid item type or optionType";
     }
 }
 

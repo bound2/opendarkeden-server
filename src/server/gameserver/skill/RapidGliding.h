@@ -15,14 +15,14 @@
 
 class RapidGliding : public SkillHandler {
 public:
-    RapidGliding() throw() {}
-    ~RapidGliding() throw() {}
+    RapidGliding() {}
+    ~RapidGliding() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "RapidGliding";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_RAPID_GLIDING;
     }
 

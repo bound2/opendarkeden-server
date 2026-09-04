@@ -166,7 +166,7 @@ void XMLUtil::filelog(const char* fmt, ...) {
         int nchars = vsnprintf(message_buffer, 30000, fmt, valist);
         if (nchars == -1 || nchars > 30000) {
             filelog(NULL, "filelog buffer overflow!");
-            throw("filelog() : more buffer size needed for log");
+            throw "filelog() : more buffer size needed for log";
         }
         va_end(valist);
 

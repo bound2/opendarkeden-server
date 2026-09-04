@@ -18,9 +18,9 @@
 
 class OustersSkillSlot {
 public:
-    OustersSkillSlot() throw();
-    OustersSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime) throw();
-    virtual ~OustersSkillSlot() throw();
+    OustersSkillSlot();
+    OustersSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime);
+    virtual ~OustersSkillSlot();
 
 public:
     virtual void save(const string& ownerID);
@@ -28,41 +28,41 @@ public:
     virtual void create(const string& ownerID);
     virtual void destroy(const string& ownerID);
 
-    SkillType_t getSkillType() throw() {
+    SkillType_t getSkillType() {
         return m_SkillType;
     }
-    void setSkillType(SkillType_t Type) throw() {
+    void setSkillType(SkillType_t Type) {
         m_SkillType = Type;
     }
 
-    ExpLevel_t getExpLevel() const throw() {
+    ExpLevel_t getExpLevel() const {
         return m_ExpLevel;
     }
-    void setExpLevel(ExpLevel_t ExpLevel) throw() {
+    void setExpLevel(ExpLevel_t ExpLevel) {
         m_ExpLevel = ExpLevel;
     }
 
-    ulong getInterval() throw() {
+    ulong getInterval() {
         return m_Interval;
     }
-    void setInterval(ulong Interval) throw() {
+    void setInterval(ulong Interval) {
         m_Interval = Interval;
     }
 
-    Turn_t getCastingTime() throw() {
+    Turn_t getCastingTime() {
         return m_CastingTime;
     }
-    void setCastingTime(Turn_t CastingTime) throw() {
+    void setCastingTime(Turn_t CastingTime) {
         m_CastingTime = CastingTime;
     }
 
-    Timeval getRunTime() throw() {
+    Timeval getRunTime() {
         return m_runTime;
     }
-    void setRunTime() throw();
-    void setRunTime(Turn_t delay) throw();
+    void setRunTime();
+    void setRunTime(Turn_t delay);
 
-    string getName() const throw() {
+    string getName() const {
         return m_Name;
     }
     void setName(const string& Name) {
@@ -70,7 +70,7 @@ public:
     }
 
     // 다음 캐스팅이 가능할때까지 남은 시간
-    Turn_t getRemainTurn(Timeval currentTime) const throw();
+    Turn_t getRemainTurn(Timeval currentTime) const;
 
 private:
     string m_Name;

@@ -18,7 +18,7 @@ public:
     EffectRediance(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_REDIANCE;
     }
 
@@ -28,10 +28,10 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getDexBonus() throw() {
+    int getDexBonus() {
         return m_DexBonus;
     }
     void setDexBonus(Attr_t DexBonus) {

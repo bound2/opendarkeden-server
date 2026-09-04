@@ -15,14 +15,14 @@
 
 class StoneAuger : public SkillHandler {
 public:
-    StoneAuger() throw() {}
-    ~StoneAuger() throw() {}
+    StoneAuger() {}
+    ~StoneAuger() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "StoneAuger";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_STONE_AUGER;
     }
 

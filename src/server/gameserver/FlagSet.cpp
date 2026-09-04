@@ -67,7 +67,7 @@ void FlagSet::load(const string& owner)
         defaultFlagSetRepository().insertEmptyIfMissing(owner);
 
         // cerr << msg.toString() << endl;
-        // throw (msg.toString());
+        // throw msg.toString();
     } else {
         for (uint i = 0; i < text.size() && i < FLAG_SIZE_MAX; i++) {
             if (text[i] == '0')

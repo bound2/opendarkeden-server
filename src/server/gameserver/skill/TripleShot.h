@@ -15,14 +15,14 @@
 
 class TripleShot : public SkillHandler {
 public:
-    TripleShot() throw() {}
-    ~TripleShot() throw() {}
+    TripleShot() {}
+    ~TripleShot() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TripleShot";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TRIPLE_SHOT;
     }
 

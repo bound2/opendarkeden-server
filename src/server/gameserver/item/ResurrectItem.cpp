@@ -42,7 +42,7 @@ ResurrectItem::ResurrectItem(ItemType_t itemType, const list<OptionType_t>& opti
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "ResurrectItem::ResurrectItem() : Invalid item type or option type");
-        throw("ResurrectItem::ResurrectItem() : Invalid item type or optionType");
+        throw "ResurrectItem::ResurrectItem() : Invalid item type or optionType";
     }
 }
 

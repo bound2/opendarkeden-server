@@ -231,7 +231,7 @@ void EffectBloodyWallBlocked::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectBloodyWallBlocked::toString() const throw() {
+string EffectBloodyWallBlocked::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

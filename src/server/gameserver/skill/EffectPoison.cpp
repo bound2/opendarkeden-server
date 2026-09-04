@@ -175,7 +175,7 @@ void EffectPoison::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* p
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectPoison::toString() const throw() {
+string EffectPoison::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

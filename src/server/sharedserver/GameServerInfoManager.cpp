@@ -13,10 +13,10 @@
 // class GameServerInfoManager member methods
 //////////////////////////////////////////////////////////////////////////////
 
-GameServerInfoManager::GameServerInfoManager() throw() {}
+GameServerInfoManager::GameServerInfoManager() {}
 
 
-GameServerInfoManager::~GameServerInfoManager() throw() {
+GameServerInfoManager::~GameServerInfoManager() {
     // hashmap 안의 각 pair 의 second, 즉 GameServerInfo 객체만을 삭제하고
     // pair 자체는 그대로 둔다. (GameServerInfo가 힙에 생성되어 있다는 것에
     // 유의하라. 즉 필살삭제를 해야 한다. 하긴, GSIM이 destruct 된다는 것은
@@ -37,7 +37,7 @@ GameServerInfoManager::~GameServerInfoManager() throw() {
 }
 
 
-void GameServerInfoManager::init() throw(Error) {
+void GameServerInfoManager::init() {
     __BEGIN_TRY
 
     // just load data from GameServerInfo table
@@ -49,7 +49,7 @@ void GameServerInfoManager::init() throw(Error) {
     __END_CATCH
 }
 
-void GameServerInfoManager::load() throw(Error) {
+void GameServerInfoManager::load() {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -109,8 +109,7 @@ void GameServerInfoManager::load() throw(Error) {
     __END_CATCH
 }
 
-void GameServerInfoManager::addGameServerInfo(GameServerInfo* pGameServerInfo,
-                                              const ServerGroupID_t ServerGroupID) throw(DuplicatedException) {
+void GameServerInfoManager::addGameServerInfo(GameServerInfo* pGameServerInfo, const ServerGroupID_t ServerGroupID) {
     __BEGIN_TRY
 
     if (ServerGroupID >= m_MaxServerGroupID) {
@@ -128,8 +127,7 @@ void GameServerInfoManager::addGameServerInfo(GameServerInfo* pGameServerInfo,
     __END_CATCH
 }
 
-void GameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID,
-                                                 const ServerGroupID_t ServerGroupID) throw(NoSuchElementException) {
+void GameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID, const ServerGroupID_t ServerGroupID) {
     __BEGIN_TRY
 
     if (ServerGroupID >= m_MaxServerGroupID) {
@@ -154,8 +152,7 @@ void GameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID,
 
 
 GameServerInfo* GameServerInfoManager::getGameServerInfo(const ServerID_t ServerID,
-                                                         const ServerGroupID_t ServerGroupID) const
-    throw(NoSuchElementException) {
+                                                         const ServerGroupID_t ServerGroupID) const {
     __BEGIN_TRY
 
     GameServerInfo* pGameServerInfo = NULL;
@@ -179,7 +176,7 @@ GameServerInfo* GameServerInfoManager::getGameServerInfo(const ServerID_t Server
     __END_CATCH
 }
 
-string GameServerInfoManager::toString() const throw() {
+string GameServerInfoManager::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

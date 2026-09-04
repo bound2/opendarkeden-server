@@ -136,7 +136,7 @@ void ShopTemplateManager::setTemplate(ShopTemplateID_t id, ShopTemplate* pTempla
     unordered_map<ShopTemplateID_t, ShopTemplate*>::iterator itr = m_Entries.find(id);
 
     if (itr != m_Entries.end())
-        throw("ShopTemplateManager::setTemplate() : Same ID already exist!");
+        throw "ShopTemplateManager::setTemplate() : Same ID already exist!";
 
     m_Entries[id] = pTemplate;
 

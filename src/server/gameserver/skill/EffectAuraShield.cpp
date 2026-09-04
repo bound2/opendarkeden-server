@@ -94,7 +94,7 @@ void EffectAuraShield::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Objec
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectAuraShield::toString() const throw() {
+string EffectAuraShield::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

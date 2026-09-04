@@ -1889,7 +1889,7 @@ bool Slayer::isRealWearing(WearPart part) const
     __BEGIN_TRY
 
     if (part >= WEAR_MAX)
-        throw("Slayer::isRealWearing() : invalid wear point!");
+        throw "Slayer::isRealWearing() : invalid wear point!";
     if (m_pWearItem[part] == NULL)
         return false;
     if (part >= WEAR_ZAP1 && part <= WEAR_ZAP4) {

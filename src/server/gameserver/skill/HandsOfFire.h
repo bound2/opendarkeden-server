@@ -15,14 +15,14 @@
 
 class HandsOfFire : public SkillHandler {
 public:
-    HandsOfFire() throw() {}
-    ~HandsOfFire() throw() {}
+    HandsOfFire() {}
+    ~HandsOfFire() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HandsOfFire";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HANDS_OF_FIRE;
     }
 

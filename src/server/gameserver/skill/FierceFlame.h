@@ -15,15 +15,15 @@
 
 class FierceFlame : public SkillHandler {
 public:
-    FierceFlame() throw() {}
-    ~FierceFlame() throw() {}
+    FierceFlame() {}
+    ~FierceFlame() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "FierceFlame";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_FIERCE_FLAME;
     }
 

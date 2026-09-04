@@ -16,14 +16,14 @@
 
 class HolyBlast : public SkillHandler {
 public:
-    HolyBlast() throw() {}
-    ~HolyBlast() throw() {}
+    HolyBlast() {}
+    ~HolyBlast() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HolyBlast";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HOLY_BLAST;
     }
 

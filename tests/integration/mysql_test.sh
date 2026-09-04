@@ -43,6 +43,7 @@ cleanup
 
 echo "--- building mysql_repository_tests"
 bash "$repo_root/tools/devbuild.sh" build mysql_repository_tests
+output_root=$(bash "$repo_root/tools/devbuild.sh" output-dir)
 
 echo "--- starting throwaway MySQL ($MYSQL_IMAGE)"
 docker network create "$NET" >/dev/null
@@ -71,4 +72,4 @@ echo "--- running mysql_repository_tests"
 docker run --rm --network "$NET" \
     -v "$WORK_VOLUME:/work" \
     -e IT_DB_HOST="$DB" \
-    "$DEV_IMAGE" /work/bin/mysql_repository_tests
+    "$DEV_IMAGE" "$output_root/bin/mysql_repository_tests"

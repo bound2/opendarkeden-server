@@ -15,14 +15,14 @@
 
 class SpiralSlay : public SkillHandler {
 public:
-    SpiralSlay() throw() {}
-    ~SpiralSlay() throw() {}
+    SpiralSlay() {}
+    ~SpiralSlay() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SpiralSlay";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SPIRAL_SLAY;
     }
 

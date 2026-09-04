@@ -43,7 +43,7 @@ BloodBible::BloodBible(ItemType_t itemType, const list<OptionType_t>& optionType
 
         if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
             filelog("itembug.log", "BloodBible::BloodBible() : Invalid item type or option type");
-            throw("BloodBible::BloodBible() : Invalid item type or optionType");
+            throw "BloodBible::BloodBible() : Invalid item type or optionType";
         }
     } catch (Throwable& t) {
         cout << t.toString().c_str() << endl;

@@ -16,7 +16,7 @@
 #include "Timeval.h"
 
 // constructor
-SBillingPlayerManager::SBillingPlayerManager() throw(Error) {
+SBillingPlayerManager::SBillingPlayerManager() {
     __BEGIN_TRY
 
     m_pSBillingPlayer = NULL;
@@ -42,7 +42,7 @@ SBillingPlayerManager::SBillingPlayerManager() throw(Error) {
 }
 
 // destructor
-SBillingPlayerManager::~SBillingPlayerManager() throw(Error) {
+SBillingPlayerManager::~SBillingPlayerManager() noexcept(false) {
     __BEGIN_TRY
 
     for (int i = 0; i < m_SBillingPlayers; ++i) {
@@ -55,7 +55,7 @@ SBillingPlayerManager::~SBillingPlayerManager() throw(Error) {
 }
 
 // stop thread. unsupport
-void SBillingPlayerManager::stop() throw(Error) {
+void SBillingPlayerManager::stop() {
     __BEGIN_TRY
 
     throw UnsupportedError();
@@ -64,7 +64,7 @@ void SBillingPlayerManager::stop() throw(Error) {
 }
 
 // main method
-void SBillingPlayerManager::run() throw() {
+void SBillingPlayerManager::run() {
     __BEGIN_TRY
 
     try {
@@ -187,7 +187,7 @@ void SBillingPlayerManager::run() throw() {
     __END_CATCH
 }
 
-void SBillingPlayerManager::sendIntervalValidation(int i) throw(ProtocolException, Error) {
+void SBillingPlayerManager::sendIntervalValidation(int i) {
     __BEGIN_TRY
     __ENTER_CRITICAL_SECTION(m_Mutex[i])
 
@@ -202,7 +202,7 @@ void SBillingPlayerManager::sendIntervalValidation(int i) throw(ProtocolExceptio
     __END_CATCH
 }
 
-bool SBillingPlayerManager::sendLogin(PayUser* pPayUser, int i) throw(ProtocolException, Error) {
+bool SBillingPlayerManager::sendLogin(PayUser* pPayUser, int i) {
     bool ret = true;
 
     __BEGIN_TRY
@@ -221,7 +221,7 @@ bool SBillingPlayerManager::sendLogin(PayUser* pPayUser, int i) throw(ProtocolEx
     return ret;
 }
 
-bool SBillingPlayerManager::sendMinusPoint(PayUser* pPayUser, int i) throw(ProtocolException, Error) {
+bool SBillingPlayerManager::sendMinusPoint(PayUser* pPayUser, int i) {
     bool ret = true;
 
     __BEGIN_TRY
@@ -240,7 +240,7 @@ bool SBillingPlayerManager::sendMinusPoint(PayUser* pPayUser, int i) throw(Proto
     return ret;
 }
 
-void SBillingPlayerManager::sendMinusMinute(PayUser* pPayUser, int i) throw(ProtocolException, Error) {
+void SBillingPlayerManager::sendMinusMinute(PayUser* pPayUser, int i) {
     __BEGIN_TRY
     __ENTER_CRITICAL_SECTION(m_Mutex[i])
 
@@ -252,7 +252,7 @@ void SBillingPlayerManager::sendMinusMinute(PayUser* pPayUser, int i) throw(Prot
     __END_CATCH
 }
 
-void SBillingPlayerManager::sendLogout(PayUser* pPayUser, int i) throw(ProtocolException, Error) {
+void SBillingPlayerManager::sendLogout(PayUser* pPayUser, int i) {
     __BEGIN_TRY
     __ENTER_CRITICAL_SECTION(m_Mutex[i])
 
@@ -264,7 +264,7 @@ void SBillingPlayerManager::sendLogout(PayUser* pPayUser, int i) throw(ProtocolE
     __END_CATCH
 }
 
-int SBillingPlayerManager::getVersionNumber() const throw() {
+int SBillingPlayerManager::getVersionNumber() const {
     __BEGIN_TRY
 
     int version_no = g_pConfig->getPropertyInt("ChinaBillingVersionNo");
@@ -274,7 +274,7 @@ int SBillingPlayerManager::getVersionNumber() const throw() {
     __END_CATCH
 }
 
-int SBillingPlayerManager::getMinusIntervalInt() const throw() {
+int SBillingPlayerManager::getMinusIntervalInt() const {
     __BEGIN_TRY
 
     static int interval = g_pConfig->getPropertyInt("ChinaBillingMinusInterval");
@@ -284,7 +284,7 @@ int SBillingPlayerManager::getMinusIntervalInt() const throw() {
     __END_CATCH
 }
 
-string SBillingPlayerManager::getMinusInterval() const throw() {
+string SBillingPlayerManager::getMinusInterval() const {
     __BEGIN_TRY
 
     static string interval = g_pConfig->getProperty("ChinaBillingMinusInterval");

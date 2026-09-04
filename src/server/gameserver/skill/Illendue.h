@@ -15,15 +15,15 @@
 
 class Illendue : public SkillHandler {
 public:
-    Illendue() throw() {}
-    ~Illendue() throw() {}
+    Illendue() {}
+    ~Illendue() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Illendue";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ILLENDUE;
     }
 

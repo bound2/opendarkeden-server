@@ -19,10 +19,10 @@ public:
     EffectRingOfFlare(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_RING_OF_FLARE;
     }
-    EffectClass getSendEffectClass() const throw() {
+    EffectClass getSendEffectClass() const {
         return m_SendEffectClass;
     }
 
@@ -31,10 +31,10 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    void setSendEffectClass(EffectClass eClass) throw() {
+    void setSendEffectClass(EffectClass eClass) {
         m_SendEffectClass = eClass;
     }
 

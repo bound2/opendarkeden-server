@@ -15,14 +15,14 @@
 
 class CreateBomb : public SkillHandler {
 public:
-    CreateBomb() throw() {}
-    ~CreateBomb() throw() {}
+    CreateBomb() {}
+    ~CreateBomb() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "CreateBomb";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CREATE_BOMB;
     }
 
@@ -32,7 +32,7 @@ public:
     void computeOutput(const SkillInput& input, SkillOutput& output);
 
 protected:
-    bool canMake(ItemType_t waterType, int DomainLevel, int SkillLevel) throw();
+    bool canMake(ItemType_t waterType, int DomainLevel, int SkillLevel);
 };
 
 // global variable declaration

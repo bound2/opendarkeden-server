@@ -17,7 +17,7 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-UDPManager::UDPManager() throw(Error) : m_pDatagramSocket(NULL) {
+UDPManager::UDPManager() : m_pDatagramSocket(NULL) {
     __BEGIN_TRY
 
     // create datagram server socket
@@ -29,7 +29,7 @@ UDPManager::UDPManager() throw(Error) : m_pDatagramSocket(NULL) {
 //////////////////////////////////////////////////////////////////////
 // destructor
 //////////////////////////////////////////////////////////////////////
-UDPManager::~UDPManager() throw(Error) {
+UDPManager::~UDPManager() noexcept(false) {
     __BEGIN_TRY
 
     SAFE_DELETE(m_pDatagramSocket);
@@ -40,7 +40,7 @@ UDPManager::~UDPManager() throw(Error) {
 
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-void UDPManager::sendDatagram(Datagram* pDatagram) throw(ProtocolException, Error) {
+void UDPManager::sendDatagram(Datagram* pDatagram) {
     __BEGIN_TRY
 
     m_pDatagramSocket->send(pDatagram);
@@ -51,7 +51,7 @@ void UDPManager::sendDatagram(Datagram* pDatagram) throw(ProtocolException, Erro
 //////////////////////////////////////////////////////////////////////
 // send datagram packet to login server
 //////////////////////////////////////////////////////////////////////
-void UDPManager::sendPacket(const string& host, uint port, DatagramPacket* pPacket) throw(ProtocolException, Error) {
+void UDPManager::sendPacket(const string& host, uint port, DatagramPacket* pPacket) {
     __BEGIN_TRY
     __BEGIN_DEBUG
 

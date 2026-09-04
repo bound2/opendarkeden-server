@@ -27,7 +27,7 @@ public:
     GameServerPlayer(Socket* pSocket);
 
     // destructor
-    virtual ~GameServerPlayer();
+    virtual ~GameServerPlayer() noexcept;
 
     virtual void processInput() noexcept(false);
 
@@ -47,12 +47,12 @@ public:
     virtual void disconnect(bool bDisconnected = DISCONNECTED) noexcept(false);
 
     // get/set socket
-    // Socket* getSocket () throw () { return m_pSocket; }
+    // Socket* getSocket ()  { return m_pSocket; }
     void setSocket(Socket* pSocket) noexcept;
 
     // get/set player ID
-    // string getID () const throw () { return m_ID; }
-    // void setID (const string & id) throw () { m_ID = id; }
+    // string getID () const  { return m_ID; }
+    // void setID (const string & id)  { m_ID = id; }
 
     // get debug string
     virtual string toString() const noexcept(false);

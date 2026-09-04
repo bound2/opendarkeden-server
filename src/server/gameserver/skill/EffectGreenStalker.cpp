@@ -199,7 +199,7 @@ void EffectGreenStalker::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obj
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectGreenStalker::toString() const throw() {
+string EffectGreenStalker::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

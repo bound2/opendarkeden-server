@@ -15,8 +15,9 @@ docker compose up -d --build
 That command:
 
 1. builds `../Dockerfile`, which compiles `loginserver`, `sharedserver` and
-   `gameserver` inside an Ubuntu 20.04 container and packages the binaries
-   together with `data/` and `docker/conf/`;
+   `gameserver` as C++20 with pinned Zig 0.16.0/Clang 21.1.0, then packages
+   the binaries in an Ubuntu 20.04 runtime together with `data/` and
+   `docker/conf/`;
 2. starts MySQL 5.7 and imports `initdb/*.sql` on first run;
 3. applies `docker/initdb-docker.sql`, which points `DARKEDEN.WorldDBInfo` and
    `DARKEDEN.GameServerInfo` at this stack (the dumps ship with the original
@@ -50,10 +51,12 @@ cd docker
 docker compose up -d --build
 ```
 
-The image is built with `CMAKE_BUILD_TYPE=Release`. For a debug build:
+The image defaults to `CMAKE_BUILD_TYPE=Release` and C++20. The compose build
+arguments can select Debug or the transitional C++17 compatibility lane:
 
 ```sh
-docker build -t darkeden:local --build-arg BUILD_TYPE=Debug .
+BUILD_TYPE=Debug docker compose up -d --build
+CXX_STANDARD=17 docker compose up -d --build
 ```
 
 ### Start the servers by hand
@@ -65,43 +68,29 @@ docker exec -w /home/darkeden/vs/bin -it odk-server /bin/bash
 ./start.sh
 ```
 
-## Building the binaries into the working tree (development)
+## Development builds and tests
 
-Use `Dockerfile.dev` when you want the compiled binaries in your local `bin/`
-directory instead of inside an image.
-
-First, build the development image:
+`Dockerfile.dev` provides the same pinned Zig/Clang compiler as the production
+builder. Build it once from the repository root:
 
 ```bash
-docker build -t darkeden:dev . -f Dockerfile.dev
+docker build -f Dockerfile.dev -t darkeden-dev .
 ```
 
-Second, run the container with the repository mounted:
+The development helper copies only build inputs into a Docker volume, avoiding
+the cost of compiling directly from a Windows bind mount. Artifacts remain in
+that volume rather than updating the checkout's `bin/` and `lib/` directories.
 
 ```bash
-docker run -v `pwd`:/home/darkeden/vs/ -it darkeden:dev /bin/bash
+make dev-test
+make dev-build
+
+# Exercise the C++17 compatibility build in its own build tree.
+CXX_STANDARD=17 make dev-test
+CXX_STANDARD=17 make dev-build
+
+make dev-shell
 ```
-
-On Windows `pwd` should be changed to %cd%
-
-```
-docker run -v %cd%/:/home/darkeden/vs/ -it darkeden:dev /bin/bash
-```
-
-Third, build the darkeden server binary files
-
-```
-make
-```
-
-`make` produces a debug build; use `make release` for an optimized one. The
-build uses every core it can find, so no `-j` flag is needed.
-
-When the build process finishes, exit docker; loginserver/sharedserver/gameserver
-are in the `bin/` directory.
-
-To run those binaries with compose, uncomment the volume mounts in
-`docker/docker-compose.yml` and mount `../bin/` as well.
 
 ## Howto
 

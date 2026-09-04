@@ -87,7 +87,7 @@ void EffectStriking::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object*
 
     {__BEGIN_TRY __END_CATCH}
 
-string EffectStriking::toString() const throw() {
+string EffectStriking::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

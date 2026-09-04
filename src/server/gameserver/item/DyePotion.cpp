@@ -41,7 +41,7 @@ DyePotion::DyePotion(ItemType_t itemType, const list<OptionType_t>& optionType, 
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "DyePotion::DyePotion() : Invalid item type or option type");
-        throw("DyePotion::DyePotion() : Invalid item type or optionType");
+        throw "DyePotion::DyePotion() : Invalid item type or optionType";
     }
 }
 

@@ -15,9 +15,9 @@
 
 class CastleSkillSlot : public SkillSlot {
 public:
-    CastleSkillSlot() throw() : SkillSlot() {}
-    CastleSkillSlot(SkillType_t SkillType, DWORD Exp, ulong Interval) throw() : SkillSlot(SkillType, Exp, Interval) {}
-    ~CastleSkillSlot() throw();
+    CastleSkillSlot() : SkillSlot() {}
+    CastleSkillSlot(SkillType_t SkillType, DWORD Exp, ulong Interval) : SkillSlot(SkillType, Exp, Interval) {}
+    ~CastleSkillSlot();
 
 public:
     virtual void save(const string& ownerID);

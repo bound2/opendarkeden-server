@@ -45,7 +45,7 @@ Coat::Coat(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Coat::Coat() : Invalid item type or option type");
-        throw("Coat::Coat() : Invalid item type or optionType");
+        throw "Coat::Coat() : Invalid item type or optionType";
     }
 }
 

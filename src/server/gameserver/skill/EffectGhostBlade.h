@@ -24,14 +24,14 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_GHOST_BLADE;
     }
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getToHitBonus() throw() {
+    int getToHitBonus() {
         return m_ToHitBonus;
     }
     void setToHitBonus(ToHit_t ToHitBonus) {

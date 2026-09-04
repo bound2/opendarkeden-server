@@ -20,7 +20,7 @@ public:
     EffectHarpoonBomb(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_HARPOON_BOMB;
     }
 
@@ -29,20 +29,20 @@ public:
 
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Damage_t getDamage() const throw() {
+    Damage_t getDamage() const {
         return m_Damage;
     }
-    void setDamage(Damage_t Damage) throw() {
+    void setDamage(Damage_t Damage) {
         m_Damage = Damage;
     }
 
-    void setUserObjectID(ObjectID_t oid) throw() {
+    void setUserObjectID(ObjectID_t oid) {
         m_UserObjectID = oid;
     }
-    ObjectID_t getUserObjectID() const throw() {
+    ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
     }
 

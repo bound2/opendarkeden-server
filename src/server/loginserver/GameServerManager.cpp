@@ -42,7 +42,7 @@ GameServerManager::GameServerManager() : m_pDatagramSocket(NULL) {
 //////////////////////////////////////////////////////////////////////
 // destructor
 //////////////////////////////////////////////////////////////////////
-GameServerManager::~GameServerManager() {
+GameServerManager::~GameServerManager() noexcept {
     __BEGIN_TRY
 
     if (m_pDatagramSocket != NULL) {

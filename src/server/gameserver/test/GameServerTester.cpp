@@ -11,7 +11,7 @@
 #include "GameServerSpeedCheckTest.h"
 #include "GameServerWarTest.h"
 
-void testGameServer() throw(Error) {
+void testGameServer() {
     __BEGIN_TRY
     __BEGIN_TEST
 

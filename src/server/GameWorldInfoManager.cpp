@@ -22,7 +22,7 @@ GameWorldInfoManager::GameWorldInfoManager() {}
 //----------------------------------------------------------------------
 // destructor
 //----------------------------------------------------------------------
-GameWorldInfoManager::~GameWorldInfoManager() throw() {
+GameWorldInfoManager::~GameWorldInfoManager() {
     // hashmap 안의 각 pair 의 second, 즉 GameWorldInfo 객체만을 삭제하고
     // pair 자체는 그대로 둔다. (GameWorldInfo가 힙에 생성되어 있다는 것에
     // 유의하라. 즉 필살삭제를 해야 한다. 하긴, GSIM이 destruct 된다는 것은

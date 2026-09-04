@@ -18,9 +18,9 @@ PayUserManager::PayUserManager() {
     }
 }
 
-PayUserManager::~PayUserManager() {}
+PayUserManager::~PayUserManager() noexcept {}
 
-void PayUserManager::init() throw(Error) {
+void PayUserManager::init() {
     __BEGIN_TRY
 
     int connections = g_pConfig->getPropertyInt("Connections");
@@ -38,7 +38,7 @@ void PayUserManager::init() throw(Error) {
     __END_CATCH
 }
 
-void PayUserManager::run() throw() {
+void PayUserManager::run() {
     __BEGIN_TRY
 
     while (true) {

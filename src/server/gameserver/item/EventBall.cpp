@@ -39,7 +39,7 @@ EventBall::EventBall(ItemType_t itemType, OptionType_t optionType, ItemNum_t Num
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "EventBall::EventBall() : Invalid item type or option type");
-        throw("EventBall::EventBall() : Invalid item type or optionType");
+        throw "EventBall::EventBall() : Invalid item type or optionType";
     }
 }
 

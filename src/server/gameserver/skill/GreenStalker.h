@@ -17,14 +17,14 @@
 
 class GreenStalker : public SkillHandler {
 public:
-    GreenStalker() throw() {}
-    ~GreenStalker() throw() {}
+    GreenStalker() {}
+    ~GreenStalker() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GreenStalker";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GREEN_STALKER;
     }
 

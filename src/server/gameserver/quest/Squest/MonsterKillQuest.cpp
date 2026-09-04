@@ -26,7 +26,7 @@ MonsterKillQuestFactory::MonsterTypeInfos MonsterKillQuestFactory::m_MonsterType
 //--------------------------------------------------------------------------------
 // create
 //--------------------------------------------------------------------------------
-void MonsterKillQuest::create() throw(Error) {
+void MonsterKillQuest::create() {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -54,7 +54,7 @@ void MonsterKillQuest::create() throw(Error) {
 //--------------------------------------------------------------------------------
 // save
 //--------------------------------------------------------------------------------
-void MonsterKillQuest::save() throw(Error) {
+void MonsterKillQuest::save() {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -74,7 +74,7 @@ void MonsterKillQuest::save() throw(Error) {
 //--------------------------------------------------------------------------------
 // check Success
 //--------------------------------------------------------------------------------
-bool MonsterKillQuest::checkSuccess(const QuestEvent* pQuestEvent) throw(Error) {
+bool MonsterKillQuest::checkSuccess(const QuestEvent* pQuestEvent) {
     __BEGIN_TRY
 
     if (getState() == STATE_ACTIVE) {
@@ -105,7 +105,7 @@ bool MonsterKillQuest::checkSuccess(const QuestEvent* pQuestEvent) throw(Error) 
 //--------------------------------------------------------------------------------
 // check Complete
 //--------------------------------------------------------------------------------
-bool MonsterKillQuest::checkComplete() throw(Error) {
+bool MonsterKillQuest::checkComplete() {
     __BEGIN_TRY
 
     __END_CATCH
@@ -116,7 +116,7 @@ bool MonsterKillQuest::checkComplete() throw(Error) {
 //--------------------------------------------------------------------------------
 // create
 //--------------------------------------------------------------------------------
-Quest* MonsterKillQuestFactory::create(const QuestCreateInfo* qcInfo) const throw(Error) {
+Quest* MonsterKillQuestFactory::create(const QuestCreateInfo* qcInfo) const {
     __BEGIN_TRY
 
     Assert(!m_MonsterTypeInfos.empty());
@@ -197,7 +197,7 @@ void MonsterKillQuestFactory::initMonsterTypeInfos() {
 }
 
 
-string MonsterKillQuest::toString() const throw(Error) {
+string MonsterKillQuest::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

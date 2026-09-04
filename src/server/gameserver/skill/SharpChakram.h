@@ -15,14 +15,14 @@
 
 class SharpChakram : public SkillHandler {
 public:
-    SharpChakram() throw() {}
-    ~SharpChakram() throw() {}
+    SharpChakram() {}
+    ~SharpChakram() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SharpChakram";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SHARP_CHAKRAM;
     }
 

@@ -15,14 +15,14 @@
 
 class FeldwebelFire : public SkillHandler {
 public:
-    FeldwebelFire() throw() {}
-    ~FeldwebelFire() throw() {}
+    FeldwebelFire() {}
+    ~FeldwebelFire() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "FeldwebelFire";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_FELDWEBEL_FIRE;
     }
 

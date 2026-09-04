@@ -15,14 +15,14 @@
 
 class QuickFire : public SkillHandler {
 public:
-    QuickFire() throw() {}
-    ~QuickFire() throw() {}
+    QuickFire() {}
+    ~QuickFire() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "QuickFire";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_QUICK_FIRE;
     }
 

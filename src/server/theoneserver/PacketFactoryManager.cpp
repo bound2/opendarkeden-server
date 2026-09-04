@@ -17,7 +17,7 @@
 // constructor
 //
 //////////////////////////////////////////////////////////////////////
-PacketFactoryManager::PacketFactoryManager() throw() : m_Factories(NULL), m_Size(Packet::PACKET_MAX) {
+PacketFactoryManager::PacketFactoryManager() : m_Factories(NULL), m_Size(Packet::PACKET_MAX) {
     __BEGIN_TRY
 
     Assert(m_Size > 0);
@@ -38,7 +38,7 @@ PacketFactoryManager::PacketFactoryManager() throw() : m_Factories(NULL), m_Size
 // destructor
 //
 //////////////////////////////////////////////////////////////////////
-PacketFactoryManager::~PacketFactoryManager() throw() {
+PacketFactoryManager::~PacketFactoryManager() {
     __BEGIN_TRY
 
     Assert(m_Factories != NULL);
@@ -74,7 +74,7 @@ PacketFactoryManager::~PacketFactoryManager() throw() {
 // 정의된 모든 패킷팩토리들을 여기에 추가한다.
 //
 //////////////////////////////////////////////////////////////////////
-void PacketFactoryManager::init() throw(Error) {
+void PacketFactoryManager::init() {
     __BEGIN_TRY
 
     addFactory(new GTOAcknowledgementFactory());
@@ -91,7 +91,7 @@ void PacketFactoryManager::init() throw(Error) {
 // 팩토리 객체를 특정 인덱스에 추가한다.
 //
 //////////////////////////////////////////////////////////////////////
-void PacketFactoryManager::addFactory(PacketFactory* pFactory) throw(Error) {
+void PacketFactoryManager::addFactory(PacketFactory* pFactory) {
     __BEGIN_TRY
 
     if (m_Factories[pFactory->getPacketID()] != NULL) {
@@ -120,7 +120,7 @@ void PacketFactoryManager::addFactory(PacketFactory* pFactory) throw(Error) {
 // 패킷아이디로 패킷객체를 생성한다.
 //
 //////////////////////////////////////////////////////////////////////
-Packet* PacketFactoryManager::createPacket(PacketID_t packetID) throw(InvalidProtocolException, Error) {
+Packet* PacketFactoryManager::createPacket(PacketID_t packetID) {
     __BEGIN_TRY
 
     // 패킷 아이디가 범위를 넘어섬으로 인해서 Seg.Fault 가 발생하지 않도록.
@@ -142,7 +142,7 @@ Packet* PacketFactoryManager::createPacket(PacketID_t packetID) throw(InvalidPro
 // 패킷아이디로 특정 패킷의 최대 크기를 리턴한다.
 //
 //////////////////////////////////////////////////////////////////////
-PacketSize_t PacketFactoryManager::getPacketMaxSize(PacketID_t packetID) throw(InvalidProtocolException, Error) {
+PacketSize_t PacketFactoryManager::getPacketMaxSize(PacketID_t packetID) {
     __BEGIN_TRY
 
     // 패킷 아이디가 범위를 넘어섬으로 인해서 Seg.Fault 가 발생하지 않도록.
@@ -165,7 +165,7 @@ PacketSize_t PacketFactoryManager::getPacketMaxSize(PacketID_t packetID) throw(I
 //
 //////////////////////////////////////////////////////////////////////
 #if !defined(__GAME_CLIENT__) || defined(__GAME_CLIENT__) && defined(__DEBUG_OUTPUT__)
-string PacketFactoryManager::getPacketName(PacketID_t packetID) throw(InvalidProtocolException, Error) {
+string PacketFactoryManager::getPacketName(PacketID_t packetID) {
     __BEGIN_TRY
 
     // 패킷 아이디가 범위를 넘어섬으로 인해서 Seg.Fault 가 발생하지 않도록.
@@ -185,7 +185,7 @@ string PacketFactoryManager::getPacketName(PacketID_t packetID) throw(InvalidPro
 //////////////////////////////////////////////////////////////////////
 // get debug string
 //////////////////////////////////////////////////////////////////////
-string PacketFactoryManager::toString() const throw() {
+string PacketFactoryManager::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

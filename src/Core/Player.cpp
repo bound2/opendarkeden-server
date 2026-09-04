@@ -54,7 +54,7 @@ Player::Player(Socket* pSocket) : m_pSocket(pSocket), m_pInputStream(NULL), m_pO
 // destructor
 //
 //////////////////////////////////////////////////////////////////////
-Player::~Player() noexcept {
+Player::~Player() noexcept(false) {
     // delete socket input stream
     SAFE_DELETE(m_pInputStream);
 

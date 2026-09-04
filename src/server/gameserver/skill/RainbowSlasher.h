@@ -15,14 +15,14 @@
 
 class RainbowSlasher : public SkillHandler {
 public:
-    RainbowSlasher() throw() {}
-    ~RainbowSlasher() throw() {}
+    RainbowSlasher() {}
+    ~RainbowSlasher() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "RainbowSlasher";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_RAINBOW_SLASHER;
     }
 

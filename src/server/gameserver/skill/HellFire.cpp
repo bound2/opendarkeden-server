@@ -18,7 +18,7 @@
 #include "GCSkillToTileOK6.h"
 #include "RankBonus.h"
 
-HellFire::HellFire() throw() {
+HellFire::HellFire() {
     m_HellFireMask[0][0].set(0, 0);
     m_MaskNum[0] = 1;
 

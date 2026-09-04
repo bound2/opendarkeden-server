@@ -82,7 +82,7 @@ void EffectRediance::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectRediance::toString() const throw() {
+string EffectRediance::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -15,14 +15,14 @@
 
 class Visible : public SkillHandler {
 public:
-    Visible() throw() {}
-    ~Visible() throw() {}
+    Visible() {}
+    ~Visible() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Visible";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_VISIBLE;
     }
 

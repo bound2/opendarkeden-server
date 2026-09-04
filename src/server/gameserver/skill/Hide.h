@@ -15,14 +15,14 @@
 
 class Hide : public SkillHandler {
 public:
-    Hide() throw() {}
-    ~Hide() throw() {}
+    Hide() {}
+    ~Hide() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Hide";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HIDE;
     }
 

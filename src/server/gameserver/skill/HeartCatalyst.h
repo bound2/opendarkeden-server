@@ -15,14 +15,14 @@
 
 class HeartCatalyst : public SkillHandler {
 public:
-    HeartCatalyst() throw() {}
-    ~HeartCatalyst() throw() {}
+    HeartCatalyst() {}
+    ~HeartCatalyst() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HeartCatalyst";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HEART_CATALYST;
     }
 

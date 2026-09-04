@@ -82,7 +82,7 @@ VampirePortalItem::VampirePortalItem(ItemType_t itemType, const list<OptionType_
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "VampirePortalItem::VampirePortalItem() : Invalid item type or option type");
-        throw("VampirePortalItem::VampirePortalItem() : Invalid item type or optionType");
+        throw "VampirePortalItem::VampirePortalItem() : Invalid item type or optionType";
     }
 
     // m_pEffectVampirePortal[0] = NULL;

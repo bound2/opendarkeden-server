@@ -18,7 +18,7 @@ public:
     EffectIntimateGrail(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_INTIMATE_GRAIL;
     }
 
@@ -31,7 +31,7 @@ public:
     void unaffect();
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getSkillLevel(void) const {

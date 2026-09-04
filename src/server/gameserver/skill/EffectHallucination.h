@@ -18,7 +18,7 @@ public:
     EffectHallucination(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_HALLUCINATION;
     }
 
@@ -28,13 +28,13 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getLevel() const {
         return m_Level;
     }
-    void setLevel(int level) throw() {
+    void setLevel(int level) {
         m_Level = level;
     }
 

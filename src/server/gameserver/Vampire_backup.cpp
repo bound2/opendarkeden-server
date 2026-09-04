@@ -303,7 +303,7 @@ bool Vampire::load()
     BEGIN_DB {
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
         pResult =
-            pStmt->executeQuery("SELECT Name, Sex, HairColor, SkinColor, 
+            pStmt->executeQuery("SELECT Name, Sex, HairColor, SkinColor,
                                 STR,
                                 DEX, INTE, HP, CurrentHP, Fame, Exp, GoalExp, ExpOffset, Level, Bonus, InMagics, Gold,
                                 GuildID, ZoneID, XCoord, YCoord, Sight, Alignment, F5, F6, F7, F8, F9, F10, F11, F12,
@@ -1019,7 +1019,7 @@ bool Vampire::isRealWearing(WearPart part) const
     __BEGIN_TRY
 
     if (part >= VAMPIRE_WEAR_MAX)
-        throw("Vampire::isRealWearing() : invalid wear point!");
+        throw "Vampire::isRealWearing() : invalid wear point!";
 
     if (m_pWearItem[part] == NULL)
         return false;

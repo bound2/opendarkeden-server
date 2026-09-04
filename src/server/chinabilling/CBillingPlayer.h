@@ -39,7 +39,7 @@ public:
     CBillingPlayer();
     CBillingPlayer(Socket* pSocket);
 
-    virtual ~CBillingPlayer();
+    virtual ~CBillingPlayer() noexcept;
 
 public:
     // network read / write

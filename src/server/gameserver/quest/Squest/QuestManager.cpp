@@ -9,11 +9,11 @@
 //--------------------------------------------------------------------------------
 // constructor / destructor
 //--------------------------------------------------------------------------------
-QuestManager::QuestManager() throw(Error){__BEGIN_TRY
+QuestManager::QuestManager(){__BEGIN_TRY
 
-                                              __END_CATCH}
+                                 __END_CATCH}
 
-QuestManager::~QuestManager() throw(Error) {
+QuestManager::~QuestManager() noexcept(false) {
     __BEGIN_TRY
 
     release();
@@ -24,7 +24,7 @@ QuestManager::~QuestManager() throw(Error) {
 //--------------------------------------------------------------------------------
 // release
 //--------------------------------------------------------------------------------
-void QuestManager::release() throw(Error) {
+void QuestManager::release() {
     __BEGIN_TRY
 
     QUEST_LIST::iterator itr = m_Quests.begin();
@@ -40,7 +40,7 @@ void QuestManager::release() throw(Error) {
 //--------------------------------------------------------------------------------
 // add Quest
 //--------------------------------------------------------------------------------
-bool QuestManager::addQuest(Quest* pQuest) throw(Error) {
+bool QuestManager::addQuest(Quest* pQuest) {
     __BEGIN_TRY
 
     m_Quests.push_back(pQuest);
@@ -53,7 +53,7 @@ bool QuestManager::addQuest(Quest* pQuest) throw(Error) {
 //--------------------------------------------------------------------------------
 // check Event
 //--------------------------------------------------------------------------------
-Quest* QuestManager::checkEvent(QuestEvent* pQuestEvent) throw(Error) {
+Quest* QuestManager::checkEvent(QuestEvent* pQuestEvent) {
     __BEGIN_TRY
 
     QUEST_LIST::iterator itr = m_Quests.begin();
@@ -73,7 +73,7 @@ Quest* QuestManager::checkEvent(QuestEvent* pQuestEvent) throw(Error) {
 //--------------------------------------------------------------------------------
 // remove CompleteQuest
 //--------------------------------------------------------------------------------
-Quest* QuestManager::removeCompleteQuest() throw(Error) {
+Quest* QuestManager::removeCompleteQuest() {
     __BEGIN_TRY
 
     QUEST_LIST::iterator itr = m_Quests.begin();
@@ -94,7 +94,7 @@ Quest* QuestManager::removeCompleteQuest() throw(Error) {
 //--------------------------------------------------------------------------------
 // heartbeat
 //--------------------------------------------------------------------------------
-void QuestManager::heartbeat() throw(Error) {
+void QuestManager::heartbeat() {
     __BEGIN_TRY
 
     QUEST_LIST::iterator itr = m_Quests.begin();

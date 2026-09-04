@@ -35,16 +35,20 @@
 #     tools/devbuild.sh test --record     # same, but re-record goldens first
 #     tools/devbuild.sh build             # build every production target
 #     tools/devbuild.sh build wire_tests  # build one target
+#     CXX_STANDARD=17 tools/devbuild.sh test
+#                                         # exercise the C++17 compatibility build
+#     tools/devbuild.sh output-dir        # print this lane's artifact root
 #     tools/devbuild.sh shell             # interactive shell in the workspace
-#     tools/devbuild.sh clean             # drop the workspace (and ccache,
-#                                         # unless only the workspace volume
-#                                         # was overridden — see below)
+#     tools/devbuild.sh clean             # drop the workspace and compiler
+#                                         # caches unless only the workspace
+#                                         # volume was overridden — see below
 #
 # Parallel checkouts (git worktrees): set DEVBUILD_WORK_VOLUME to give each
 # checkout its own workspace volume — two concurrent builds sharing one
-# volume race this script's rsync --delete. DEVBUILD_CCACHE_VOLUME may stay
-# shared (ccache is concurrency-safe). `clean` under a DEVBUILD_WORK_VOLUME
-# override removes only that workspace, never the shared default ccache.
+# volume race this script's rsync --delete. DEVBUILD_CCACHE_VOLUME and
+# DEVBUILD_ZIG_CACHE_VOLUME may stay shared (both caches are concurrency-safe).
+# `clean` under a DEVBUILD_WORK_VOLUME override removes only that workspace,
+# never the shared default compiler caches.
 #
 # Generated test data (goldens, the wire-layout inventory, the generated
 # factory list) is copied back into the checkout after a run, so a --record
@@ -55,10 +59,20 @@ set -euo pipefail
 IMAGE=darkeden-dev
 # Overridable so parallel checkouts (git worktrees) can each build in their
 # own workspace volume without racing this script's rsync --delete. The
-# ccache volume is safe to share — ccache is designed for concurrent use.
+# ccache and Zig cache volumes are safe to share between concurrent builds.
 WORK_VOLUME=${DEVBUILD_WORK_VOLUME:-darkeden-work}
 CCACHE_VOLUME=${DEVBUILD_CCACHE_VOLUME:-darkeden-ccache}
+ZIG_CACHE_VOLUME=${DEVBUILD_ZIG_CACHE_VOLUME:-darkeden-zig-cache}
 BUILD_TYPE=${BUILD_TYPE:-Debug}
+CXX_STANDARD=${CXX_STANDARD:-20}
+
+case "$CXX_STANDARD" in
+    17|20) ;;
+    *)
+        echo "CXX_STANDARD must be 17 or 20 (got '$CXX_STANDARD')" >&2
+        exit 2
+        ;;
+esac
 
 # Git Bash mangles absolute paths in docker arguments unless this is set.
 export MSYS_NO_PATHCONV=1
@@ -73,12 +87,15 @@ shift || true
 
 if [ "$command" = "clean" ]; then
     # A worktree that overrides only its workspace volume must not wipe the
-    # ccache every other checkout shares; remove the ccache volume only when
-    # it was named explicitly or when nothing was overridden (the original
-    # single-checkout behavior).
+    # compiler caches every other checkout shares; remove a cache volume only
+    # when it was named explicitly or when nothing was overridden (the
+    # original single-checkout behavior).
     volumes=("$WORK_VOLUME")
     if [ -n "${DEVBUILD_CCACHE_VOLUME:-}" ] || [ -z "${DEVBUILD_WORK_VOLUME:-}" ]; then
         volumes+=("$CCACHE_VOLUME")
+    fi
+    if [ -n "${DEVBUILD_ZIG_CACHE_VOLUME:-}" ] || [ -z "${DEVBUILD_WORK_VOLUME:-}" ]; then
+        volumes+=("$ZIG_CACHE_VOLUME")
     fi
     for v in "${volumes[@]}"; do
         if docker volume rm -f "$v" >/dev/null 2>&1; then
@@ -87,6 +104,34 @@ if [ "$command" = "clean" ]; then
             echo "could not remove volume $v (in use by a running container?)" >&2
         fi
     done
+    exit 0
+fi
+
+# The image label is the authority for the actual compiler installed in the
+# container. Include every compilation dimension in CMake, output and cache
+# paths so changing standard, build type, Zig version or target cannot reuse
+# incompatible artifacts.
+if ! zig_version=$(docker image inspect \
+    --format '{{ index .Config.Labels "org.opendarkeden.zig-version" }}' \
+    "$IMAGE" 2>/dev/null); then
+    echo "cannot inspect $IMAGE; build it with: docker build -f Dockerfile.dev -t $IMAGE ." >&2
+    exit 2
+fi
+if [ -z "$zig_version" ] || [ "$zig_version" = "<no value>" ]; then
+    echo "$IMAGE has no Zig version label; rebuild it from Dockerfile.dev" >&2
+    exit 2
+fi
+
+target_name=${ZIG_TARGET:-native}
+toolchain_id=$(printf '%s' "zig-${zig_version}-${target_name}-cxx${CXX_STANDARD}-${BUILD_TYPE}" \
+    | tr -c 'A-Za-z0-9._-' '_')
+BUILD_DIR=/work/build-${toolchain_id}
+OUTPUT_ROOT=/work/output-${toolchain_id}
+CCACHE_DIR=/ccache/${toolchain_id}
+ZIG_CACHE_DIR=/zig-cache/${toolchain_id}
+
+if [ "$command" = "output-dir" ]; then
+    echo "$OUTPUT_ROOT"
     exit 0
 fi
 
@@ -103,7 +148,7 @@ done
 # Only the build inputs are synced. Everything else in the checkout (the
 # 2.7 GB of build trees, lib/, bin/, .git) never crosses the mount.
 sync_in='rsync -a --delete --exclude=.git \
-    /repo/src /repo/tests /repo/third_party /repo/data \
+    /repo/cmake /repo/src /repo/tests /repo/third_party /repo/data \
     /repo/CMakeLists.txt /repo/Makefile /work/'
 
 # Copy generated test data back so a re-record shows up as a normal diff.
@@ -112,8 +157,12 @@ sync_out='rsync -a --checksum \
     /work/tests/golden /work/tests/generated /work/tests/wire-layout.txt \
     /repo/tests/'
 
-configure='cmake -G Ninja -B /work/build -S /work \
+configure='cmake -G Ninja -B '"$BUILD_DIR"' -S /work \
+    -DCMAKE_TOOLCHAIN_FILE=/work/cmake/zig-toolchain.cmake \
     -DCMAKE_BUILD_TYPE='"$BUILD_TYPE"' \
+    -DCMAKE_CXX_STANDARD='"$CXX_STANDARD"' \
+    -DDARKEDEN_ZIG_TARGET='"${ZIG_TARGET:-}"' \
+    -DDARKEDEN_OUTPUT_ROOT='"$OUTPUT_ROOT"' \
     -DDARKEDEN_BUILD_TESTS=ON \
     -DCMAKE_C_COMPILER_LAUNCHER=ccache \
     -DCMAKE_CXX_COMPILER_LAUNCHER=ccache'
@@ -122,20 +171,20 @@ case "$command" in
     test)
         target=${args[0]:-wire_tests}
         recorder=""
-        [ "$record" = "1" ] && recorder='echo "--- recording goldens"; (cd /work/build && UPDATE_GOLDENS=1 /work/bin/wire_tests >/dev/null);'
-        script="$sync_in && $configure >/dev/null && cmake --build /work/build --target $target -j\$(nproc) && $recorder (cd /work/build && ctest --output-on-failure); rc=\$?; $sync_out; exit \$rc"
+        [ "$record" = "1" ] && recorder='echo "--- recording goldens"; (cd '"$BUILD_DIR"' && UPDATE_GOLDENS=1 '"$OUTPUT_ROOT"'/bin/wire_tests >/dev/null);'
+        script="$sync_in && $configure >/dev/null && cmake --build $BUILD_DIR --target $target -j\$(nproc) && $recorder (cd $BUILD_DIR && ctest --output-on-failure); rc=\$?; $sync_out; exit \$rc"
         ;;
     build)
         target=${args[0]:-}
         target_arg=""
         [ -n "$target" ] && target_arg="--target $target"
-        script="$sync_in && $configure >/dev/null && cmake --build /work/build $target_arg -j\$(nproc)"
+        script="$sync_in && $configure >/dev/null && cmake --build $BUILD_DIR $target_arg -j\$(nproc)"
         ;;
     shell)
         script="$sync_in; echo 'workspace is /work (sources synced from the mounted checkout)'; exec bash"
         ;;
     *)
-        echo "usage: tools/devbuild.sh {test|build|shell|clean} [target] [--record]" >&2
+        echo "usage: tools/devbuild.sh {test|build|shell|clean|output-dir} [target] [--record]" >&2
         exit 2
         ;;
 esac
@@ -159,6 +208,9 @@ exec docker run --rm "${tty_args[@]}" \
     -v "$repo_mount/tests:/repo/tests" \
     -v "$WORK_VOLUME:/work" \
     -v "$CCACHE_VOLUME:/ccache" \
-    -e CCACHE_DIR=/ccache \
+    -v "$ZIG_CACHE_VOLUME:/zig-cache" \
+    -e CCACHE_DIR="$CCACHE_DIR" \
+    -e ZIG_GLOBAL_CACHE_DIR="$ZIG_CACHE_DIR" \
+    -e ZIG_TARGET="${ZIG_TARGET:-}" \
     -w /work \
     "$IMAGE" bash -c "$script"

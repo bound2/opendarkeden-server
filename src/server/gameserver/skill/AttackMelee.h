@@ -15,15 +15,15 @@
 
 class AttackMelee : public SkillHandler {
 public:
-    AttackMelee() throw() {}
-    ~AttackMelee() throw() {}
+    AttackMelee() {}
+    ~AttackMelee() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AttackMelee";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ATTACK_MELEE;
     }
 

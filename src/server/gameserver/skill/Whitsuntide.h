@@ -15,14 +15,14 @@
 
 class Whitsuntide : public SkillHandler {
 public:
-    Whitsuntide() throw() {}
-    ~Whitsuntide() throw() {}
+    Whitsuntide() {}
+    ~Whitsuntide() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Whitsuntide";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_WHITSUNTIDE;
     }
 

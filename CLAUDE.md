@@ -71,22 +71,27 @@ the container, the Windows mount costs ~160x on `stat` and ~145x on reads
 versus the container's own filesystem, and since every translation unit opens
 dozens of headers the build becomes I/O bound: a full build took ~20 minutes
 at ~20% CPU on 8 cores. `tools/devbuild.sh` syncs the build *inputs*
-(`src/`, `tests/`, the top-level CMake/Makefile — ~37 MB) into a container
+(`cmake/`, `src/`, `tests/`, the top-level CMake/Makefile — ~37 MB) into a container
 volume, builds there with Ninja and ccache, and copies only generated test
 data back. Same build: **~3.5 minutes at ~95% CPU**, and a no-op rebuild in
 seconds instead of minutes.
 
 ```bash
 make dev-test                      # build wire_tests + ctest
+CXX_STANDARD=17 make dev-test      # same suite in the C++17 compatibility lane
 bash tools/devbuild.sh test --record   # re-record goldens, then run
 make dev-build                     # all production targets
+CXX_STANDARD=17 make dev-build     # all production targets as C++17
 make dev-shell                     # shell in the workspace
-make dev-clean                     # drop the workspace + ccache volumes
+make dev-clean                     # drop the workspace + compiler-cache volumes
 ```
 
-Needs the image once: `docker build -f Dockerfile.dev -t darkeden-dev .`
-(it now carries ninja, ccache and rsync). Artifacts live in the volume, so
-`bin/` and `lib/` in the checkout are **not** updated by these targets.
+Needs the image once: `docker build -f Dockerfile.dev -t darkeden-dev .`.
+It pins Zig 0.16.0 (Clang 21.1.0) and also carries Ninja, ccache and rsync.
+Artifacts live in compiler/target/standard/build-type-specific directories in
+the volume, so `bin/` and `lib/` in the checkout are **not** updated by these
+targets. `bash tools/devbuild.sh output-dir` prints the active lane's artifact
+root.
 
 - The suite (in `tests/`) pins the client/server wire contract: golden byte
   fixtures and loopback round-trips for representative packets, a generated
@@ -110,7 +115,7 @@ Needs the image once: `docker build -f Dockerfile.dev -t darkeden-dev .`
 
 ## Project Architecture
 
-This is the **DarkEden** game server - an MMORPG server written in C++11.
+This is the **DarkEden** game server - an MMORPG server written in C++20.
 
 ### Server Architecture
 
@@ -357,7 +362,11 @@ Start servers in this order:
 
 - Source file encoding is **UTF-8** (project was migrated from legacy encodings)
 - Use **English** as code comment, there are some legacy Korean or maybe garbled encoding, translate them to English whenever possible
-- C++11 standard is used
+- C++20 is the default project language standard. The current tree also has a
+  transitional C++17 compatibility build, verified with the pinned Zig/Clang
+  container toolchain (`CXX_STANDARD=17 make dev-test`). C++20-only adoption
+  must update that compatibility policy deliberately rather than failing the
+  secondary lane accidentally.
 - Threaded architecture with `ZoneGroupThread` for parallel zone processing
 - Extensive use of inheritance (Creature → PlayerCreature → Slayer/Vampire/Ousters)
 - Lua scripting is integrated for quest systems (see `quest/luaScript/`)

@@ -21,7 +21,7 @@ public:
     EffectSoulChain(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_SOUL_CHAIN;
     }
 
@@ -31,7 +31,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     Duration_t getDuration() const {
@@ -49,10 +49,10 @@ public:
         m_TargetName = targetName;
     }
 
-    Zone* getZone() const throw() {
+    Zone* getZone() const {
         return m_pZone;
     }
-    void setZone(Zone* pZone) throw() {
+    void setZone(Zone* pZone) {
         m_pZone = pZone;
     }
 

@@ -15,14 +15,14 @@
 
 class ChargingAttack : public SkillHandler {
 public:
-    ChargingAttack() throw() {}
-    ~ChargingAttack() throw() {}
+    ChargingAttack() {}
+    ~ChargingAttack() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ChargingAttack";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CHARGING_ATTACK;
     }
 

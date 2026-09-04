@@ -47,7 +47,7 @@ OustersChakram::OustersChakram(ItemType_t itemType, const list<OptionType_t>& op
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersChakram::OustersChakram() : Invalid item type or option type");
-        throw("OustersChakram::OustersChakram() : Invalid item type or optionType");
+        throw "OustersChakram::OustersChakram() : Invalid item type or optionType";
     }
 }
 

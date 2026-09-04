@@ -42,7 +42,7 @@ Persona::Persona(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Persona::Persona() : Invalid item type or option type");
-        throw("Persona::Persona() : Invalid item type or optionType");
+        throw "Persona::Persona() : Invalid item type or optionType";
     }
 }
 

@@ -186,7 +186,7 @@ void EffectYellowPoison::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obj
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectYellowPoison::toString() const throw() {
+string EffectYellowPoison::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

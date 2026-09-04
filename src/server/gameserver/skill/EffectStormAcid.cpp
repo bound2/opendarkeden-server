@@ -188,7 +188,7 @@ void EffectStormAcid::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectStormAcid::toString() const throw() {
+string EffectStormAcid::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

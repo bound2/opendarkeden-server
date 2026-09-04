@@ -18,9 +18,9 @@ ResurrectLocationManager* g_pResurrectLocationManager = NULL;
 // class ResurrectLocationManager member methods
 //////////////////////////////////////////////////////////////////////////////
 
-ResurrectLocationManager::ResurrectLocationManager() throw(){__BEGIN_TRY __END_CATCH}
+ResurrectLocationManager::ResurrectLocationManager(){__BEGIN_TRY __END_CATCH}
 
-ResurrectLocationManager::~ResurrectLocationManager() throw() {
+ResurrectLocationManager::~ResurrectLocationManager() {
     __BEGIN_TRY
 
     m_SlayerPosition.clear();
@@ -29,7 +29,7 @@ ResurrectLocationManager::~ResurrectLocationManager() throw() {
     __END_CATCH
 }
 
-void ResurrectLocationManager::init() throw() {
+void ResurrectLocationManager::init() {
     __BEGIN_TRY
 
     load();
@@ -37,7 +37,7 @@ void ResurrectLocationManager::init() throw() {
     __END_CATCH
 }
 
-void ResurrectLocationManager::load() throw() {
+void ResurrectLocationManager::load() {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -50,7 +50,7 @@ void ResurrectLocationManager::load() throw() {
 
         if (pResult->getRowCount() == 0) {
             cerr << "ResurrectLocationManager::load() : TABLE DOES NOT EXIST!" << endl;
-            throw("ResurrectLocationManager::load() : TABLE DOES NOT EXIST!");
+            throw "ResurrectLocationManager::load() : TABLE DOES NOT EXIST!";
         }
 
         while (pResult->next()) {
@@ -78,7 +78,7 @@ void ResurrectLocationManager::load() throw() {
 }
 
 bool ResurrectLocationManager::getSlayerPosition(ZoneID_t id, ZONE_COORD& zoneCoord) const
-    throw() // NoSuchElementException)
+// NoSuchElementException)
 {
     __BEGIN_TRY
 
@@ -101,8 +101,7 @@ bool ResurrectLocationManager::getSlayerPosition(ZoneID_t id, ZONE_COORD& zoneCo
 }
 
 
-void ResurrectLocationManager::addSlayerPosition(ZoneID_t id, const ZONE_COORD& coord) throw(DuplicatedException,
-                                                                                             Error) {
+void ResurrectLocationManager::addSlayerPosition(ZoneID_t id, const ZONE_COORD& coord) {
     __BEGIN_TRY
 
     unordered_map<ZoneID_t, ZONE_COORD>::const_iterator itr = m_SlayerPosition.find(id);
@@ -118,7 +117,7 @@ void ResurrectLocationManager::addSlayerPosition(ZoneID_t id, const ZONE_COORD& 
 }
 
 bool ResurrectLocationManager::getVampirePosition(ZoneID_t id, ZONE_COORD& zoneCoord) const
-    throw() // NoSuchElementException)
+// NoSuchElementException)
 {
     __BEGIN_TRY
 
@@ -141,8 +140,7 @@ bool ResurrectLocationManager::getVampirePosition(ZoneID_t id, ZONE_COORD& zoneC
 }
 
 
-void ResurrectLocationManager::addVampirePosition(ZoneID_t id, const ZONE_COORD& coord) throw(DuplicatedException,
-                                                                                              Error) {
+void ResurrectLocationManager::addVampirePosition(ZoneID_t id, const ZONE_COORD& coord) {
     __BEGIN_TRY
 
     unordered_map<ZoneID_t, ZONE_COORD>::const_iterator itr = m_VampirePosition.find(id);

@@ -46,7 +46,7 @@ VampireRing::VampireRing(ItemType_t itemType, const list<OptionType_t>& optionTy
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireRing::VampireRing() : Invalid item type or option type");
-        throw("VampireRing::VampireRing() : Invalid item type or optionType");
+        throw "VampireRing::VampireRing() : Invalid item type or optionType";
     }
 }
 

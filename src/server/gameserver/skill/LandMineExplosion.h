@@ -15,14 +15,14 @@
 
 class LandMineExplosion : public SkillHandler {
 public:
-    LandMineExplosion() throw();
-    ~LandMineExplosion() throw() {}
+    LandMineExplosion();
+    ~LandMineExplosion() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "LandMineExplosion";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_LAND_MINE_EXPLOSION;
     }
 

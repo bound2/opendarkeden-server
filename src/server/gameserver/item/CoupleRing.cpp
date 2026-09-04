@@ -43,7 +43,7 @@ CoupleRing::CoupleRing(ItemType_t itemType, const list<OptionType_t>& optionType
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "CoupleRing::CoupleRing() : Invalid item type or option type");
-        throw("CoupleRing::CoupleRing() : Invalid item type or optionType");
+        throw "CoupleRing::CoupleRing() : Invalid item type or optionType";
     }
 
     __END_CATCH

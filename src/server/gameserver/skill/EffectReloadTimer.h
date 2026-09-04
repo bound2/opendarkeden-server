@@ -19,7 +19,7 @@ public:
     EffectReloadTimer(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_RELOAD_TIMER;
     }
 
@@ -32,10 +32,10 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    void setFromInventory(bool b) throw() {
+    void setFromInventory(bool b) {
         m_bFromInventory = b;
     }
     void setSlotID(SlotID_t id) {
@@ -44,7 +44,7 @@ public:
     void setObjectID(ObjectID_t id) {
         m_ObjectID = id;
     }
-    void setInventoryXY(CoordInven_t x, CoordInven_t y) throw() {
+    void setInventoryXY(CoordInven_t x, CoordInven_t y) {
         m_invenX = x;
         m_invenY = y;
     }

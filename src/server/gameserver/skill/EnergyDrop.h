@@ -15,14 +15,14 @@
 
 class EnergyDrop : public SkillHandler {
 public:
-    EnergyDrop() throw() {}
-    ~EnergyDrop() throw() {}
+    EnergyDrop() {}
+    ~EnergyDrop() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "EnergyDrop";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ENERGY_DROP;
     }
 

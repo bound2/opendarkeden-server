@@ -47,7 +47,7 @@ Sword::Sword(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Sword::Sword() : Invalid item type or option type");
-        throw("Sword::Sword() : Invalid item type or optionType");
+        throw "Sword::Sword() : Invalid item type or optionType";
     }
 }
 

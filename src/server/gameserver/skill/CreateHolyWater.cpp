@@ -182,7 +182,7 @@ void CreateHolyWater::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordIn
     __END_CATCH
 }
 
-bool CreateHolyWater::canMake(ItemType_t WaterType, int DomainLevel, int SkillLevel) throw() {
+bool CreateHolyWater::canMake(ItemType_t WaterType, int DomainLevel, int SkillLevel) {
     __BEGIN_TRY
 
     bool rvalue = false;

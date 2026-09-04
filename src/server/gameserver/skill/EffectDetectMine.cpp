@@ -72,7 +72,7 @@ void EffectDetectMine::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Objec
 
     {__BEGIN_TRY __END_CATCH}
 
-string EffectDetectMine::toString() const throw() {
+string EffectDetectMine::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

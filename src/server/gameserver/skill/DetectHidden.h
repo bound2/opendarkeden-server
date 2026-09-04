@@ -15,14 +15,14 @@
 
 class DetectHidden : public SkillHandler {
 public:
-    DetectHidden() throw() {}
-    ~DetectHidden() throw() {}
+    DetectHidden() {}
+    ~DetectHidden() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DetectHidden";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DETECT_HIDDEN;
     }
 

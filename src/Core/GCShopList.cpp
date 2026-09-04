@@ -220,7 +220,7 @@ SHOPLISTITEM GCShopList::getShopItem(BYTE index) const
 {
     // check bound
     if (index >= SHOP_RACK_INDEX_MAX)
-        throw("GCShopList::getShopItem() : Out of Bound!");
+        throw "GCShopList::getShopItem() : Out of Bound!";
 
     // return shop item info
     return m_pBuffer[index];

@@ -15,14 +15,14 @@
 
 class WideIceField : public SkillHandler {
 public:
-    WideIceField() throw() {}
-    ~WideIceField() throw() {}
+    WideIceField() {}
+    ~WideIceField() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "WideIceField";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_WIDE_ICE_FIELD;
     }
 

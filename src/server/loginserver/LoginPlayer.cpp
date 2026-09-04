@@ -94,7 +94,7 @@ LoginPlayer::LoginPlayer(Socket* pSocket)
 // destructor
 //
 //////////////////////////////////////////////////////////////////////
-LoginPlayer::~LoginPlayer() {
+LoginPlayer::~LoginPlayer() noexcept {
     __BEGIN_TRY
 
     // 그 어떤 플레이어 객체가 삭제될 때에도, 그 상태는 로그아웃이어야 한다.

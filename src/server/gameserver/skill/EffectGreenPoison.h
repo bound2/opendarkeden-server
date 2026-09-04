@@ -20,7 +20,7 @@ public:
     EffectGreenPoison(Zone*, ZoneCoord_t, ZoneCoord_t);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_GREEN_POISON;
     }
 
@@ -33,7 +33,7 @@ public:
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     void setLevel(Attr_t l) {
@@ -49,10 +49,10 @@ public:
         return m_Duration;
     }
 
-    void setUserObjectID(ObjectID_t oid) throw() {
+    void setUserObjectID(ObjectID_t oid) {
         m_UserObjectID = oid;
     }
-    ObjectID_t getUserObjectID() const throw() {
+    ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
     }
 
@@ -75,10 +75,10 @@ private:
 
 class EffectGreenPoisonLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_GREEN_POISON;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectGreenPoison";
     }
 

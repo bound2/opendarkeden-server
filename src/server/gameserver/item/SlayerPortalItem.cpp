@@ -41,7 +41,7 @@ SlayerPortalItem::SlayerPortalItem(ItemType_t itemType, const list<OptionType_t>
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "SlayerPortalItem::SlayerPortalItem() : Invalid item type or option type");
-        throw("SlayerPortalItem::SlayerPortalItem() : Invalid item type or optionType");
+        throw "SlayerPortalItem::SlayerPortalItem() : Invalid item type or optionType";
     }
 }
 

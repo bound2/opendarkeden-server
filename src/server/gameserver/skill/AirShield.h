@@ -15,14 +15,14 @@
 
 class AirShield : public SkillHandler {
 public:
-    AirShield() throw() {}
-    ~AirShield() throw() {}
+    AirShield() {}
+    ~AirShield() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AirShield";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_AIR_SHIELD;
     }
 

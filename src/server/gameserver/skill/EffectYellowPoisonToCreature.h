@@ -19,7 +19,7 @@ public:
     EffectYellowPoisonToCreature(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_YELLOW_POISON_TO_CREATURE;
     }
 
@@ -36,20 +36,20 @@ public:
     virtual void destroy(const string& ownerID);
     virtual void save(const string& ownerID);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Sight_t getOldSight() const throw() {
+    Sight_t getOldSight() const {
         return m_OldSight;
     }
-    void setOldSight(Sight_t OldSight) throw() {
+    void setOldSight(Sight_t OldSight) {
         m_OldSight = OldSight;
     }
 
-    Level_t getLevel() const throw() {
+    Level_t getLevel() const {
         return m_Level;
     }
-    void setLevel(Level_t Level) throw() {
+    void setLevel(Level_t Level) {
         m_Level = Level;
     }
 
@@ -64,10 +64,10 @@ private:
 
 class EffectYellowPoisonToCreatureLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectYellowPoisonToCreature";
     }
 

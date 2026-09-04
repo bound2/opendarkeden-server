@@ -15,14 +15,14 @@
 
 class CrossCounter : public SkillHandler {
 public:
-    CrossCounter() throw() {}
-    ~CrossCounter() throw() {}
+    CrossCounter() {}
+    ~CrossCounter() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "CrossCounter";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CROSS_COUNTER;
     }
 

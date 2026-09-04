@@ -82,7 +82,7 @@ void EffectMephisto::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectMephisto::toString() const throw() {
+string EffectMephisto::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -215,7 +215,7 @@ void EffectBloodyStorm::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 
     {__BEGIN_TRY __END_CATCH}
 
-string EffectBloodyStorm::toString() const throw() {
+string EffectBloodyStorm::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

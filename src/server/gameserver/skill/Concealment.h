@@ -15,14 +15,14 @@
 
 class Concealment : public SkillHandler {
 public:
-    Concealment() throw() {}
-    ~Concealment() throw() {}
+    Concealment() {}
+    ~Concealment() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Concealment";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CONCEALMENT;
     }
 

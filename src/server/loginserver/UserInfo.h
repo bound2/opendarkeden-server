@@ -26,32 +26,32 @@
 class UserInfo {
 public:
     // get/set zone group id
-    WorldID_t getWorldID() const throw() {
+    WorldID_t getWorldID() const {
         return m_WorldID;
     }
-    void setWorldID(WorldID_t WorldID) throw() {
+    void setWorldID(WorldID_t WorldID) {
         m_WorldID = WorldID;
     }
 
     // get/set zone group id
-    ZoneGroupID_t getServerGroupID() const throw() {
+    ZoneGroupID_t getServerGroupID() const {
         return m_ServerGroupID;
     }
-    void setServerGroupID(ZoneGroupID_t GroupID) throw() {
+    void setServerGroupID(ZoneGroupID_t GroupID) {
         m_ServerGroupID = GroupID;
     }
 
     // get/set zone group id
-    UserNum_t getUserNum() const throw() {
+    UserNum_t getUserNum() const {
         return m_UserNum;
     }
-    void setUserNum(UserNum_t UserNum) throw() {
+    void setUserNum(UserNum_t UserNum) {
         m_UserNum = UserNum;
     }
 
 
     // get debug string
-    string toString() const throw() {
+    string toString() const {
         StringStream msg;
 
         msg << "UserInfo(" << "WorldID:" << m_WorldID << "ServerGroupID:" << m_ServerGroupID << ",UserNum:" << m_UserNum

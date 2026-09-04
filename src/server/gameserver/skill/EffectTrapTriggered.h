@@ -18,10 +18,10 @@ public:
     EffectTrapTriggered(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_TRAP_TRIGGERED;
     }
-    EffectClass getSendEffectClass() const throw() {
+    EffectClass getSendEffectClass() const {
         return EFFECT_CLASS_TRAPPED;
     }
 
@@ -31,7 +31,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
 private:

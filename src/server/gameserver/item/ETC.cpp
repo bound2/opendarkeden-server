@@ -35,7 +35,7 @@ ETC::ETC(ItemType_t itemType, const list<OptionType_t>& optionType, ItemNum_t nu
     : m_ItemType(itemType), m_Num(num) {
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "ETC::ETC() : Invalid item type or option type");
-        throw("ETC::ETC() : Invalid item type or optionType");
+        throw "ETC::ETC() : Invalid item type or optionType";
     }
 }
 

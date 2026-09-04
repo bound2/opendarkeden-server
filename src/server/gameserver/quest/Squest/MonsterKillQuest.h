@@ -19,31 +19,31 @@
 //--------------------------------------------------------------------------------
 class MonsterKillQuest : public SimpleQuest, public MonsterSelector {
 public:
-    MonsterKillQuest(const MonsterSelector& mtc) throw(Error) : MonsterSelector(mtc) {}
-    MonsterKillQuest(MonsterType_t monsterType, SpriteType_t spriteType, int number) throw(Error)
+    MonsterKillQuest(const MonsterSelector& mtc) : MonsterSelector(mtc) {}
+    MonsterKillQuest(MonsterType_t monsterType, SpriteType_t spriteType, int number)
         : MonsterSelector(monsterType, spriteType, number) {}
 
-    virtual ~MonsterKillQuest() throw(Error) {}
+    virtual ~MonsterKillQuest() noexcept(false) {}
 
     virtual QuestType getQuestType() const {
         return QUEST_MONSTER_KILL;
     }
 
-    virtual void create() throw(Error);
-    virtual void save() throw(Error);
+    virtual void create();
+    virtual void save();
 
-    virtual bool checkSuccess(const QuestEvent* pQuestEvent) throw(Error);
-    virtual bool checkComplete() throw(Error);
+    virtual bool checkSuccess(const QuestEvent* pQuestEvent);
+    virtual bool checkComplete();
 
 public:
-    virtual void setObjective(const string& text) throw(Error) {
+    virtual void setObjective(const string& text) {
         MonsterSelector::setMonster(text);
     }
-    virtual string getObjectiveToString() const throw(Error) {
+    virtual string getObjectiveToString() const {
         return MonsterSelector::toString();
     }
 
-    string toString() const throw(Error);
+    string toString() const;
 };
 
 //--------------------------------------------------------------------------------
@@ -54,7 +54,7 @@ public:
     virtual Quest::QuestType getQuestType() const {
         return Quest::QUEST_MONSTER_KILL;
     }
-    virtual Quest* create(const QuestCreateInfo* qcInfo = NULL) const throw(Error);
+    virtual Quest* create(const QuestCreateInfo* qcInfo = NULL) const;
 
     static void initMonsterTypeInfos();
 

@@ -15,14 +15,14 @@
 
 class IceHorizon : public SkillHandler {
 public:
-    IceHorizon() throw();
-    ~IceHorizon() throw() {}
+    IceHorizon();
+    ~IceHorizon() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "IceHorizon";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ICE_HORIZON;
     }
 

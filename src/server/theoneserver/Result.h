@@ -28,40 +28,40 @@ class Statement;
 
 class Result {
 public:
-    Result(T_RESULT*, const string& statement) throw(Error);
-    ~Result() throw();
+    Result(T_RESULT*, const string& statement);
+    ~Result();
 
 public:
     // 다음 row로 넘어간다.
-    bool next() throw(Error);
+    bool next();
 
     // 특정 필드(컬럼) 값을 가지고 온다.
-    char* getField(uint index) throw(OutOfBoundException, Error);
-    char getChar(uint index) throw(OutOfBoundException, Error) {
+    char* getField(uint index);
+    char getChar(uint index) {
         return (getField(index))[0];
     }
-    int getInt(uint index) throw(OutOfBoundException, Error) {
+    int getInt(uint index) {
         return atoi(getField(index));
     }
-    uint getUInt(uint index) throw(OutOfBoundException, Error) {
+    uint getUInt(uint index) {
         return (uint)atoi(getField(index));
     }
-    BYTE getBYTE(uint index) throw(OutOfBoundException, Error) {
+    BYTE getBYTE(uint index) {
         return (BYTE)atoi(getField(index));
     }
-    WORD getWORD(uint index) throw(OutOfBoundException, Error) {
+    WORD getWORD(uint index) {
         return (WORD)atoi(getField(index));
     }
-    DWORD getDWORD(uint index) throw(OutOfBoundException, Error) {
+    DWORD getDWORD(uint index) {
         return strtoul(getField(index), (char**)NULL, 10);
     }
-    const char* getString(uint index) throw(OutOfBoundException, Error);
+    const char* getString(uint index);
 
     // 쿼리 결과값이 포함하는 row/column의 숫자를 리턴한다.
-    uint getRowCount() const throw() {
+    uint getRowCount() const {
         return m_RowCount;
     }
-    uint getFieldCount() const throw() {
+    uint getFieldCount() const {
         return m_FieldCount;
     }
 

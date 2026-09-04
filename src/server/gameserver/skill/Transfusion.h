@@ -15,14 +15,14 @@
 
 class Transfusion : public SkillHandler {
 public:
-    Transfusion() throw() {}
-    ~Transfusion() throw() {}
+    Transfusion() {}
+    ~Transfusion() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Transfusion";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TRANSFUSION;
     }
 

@@ -15,14 +15,14 @@
 
 class PassingHeal : public SkillHandler {
 public:
-    PassingHeal() throw() {}
-    ~PassingHeal() throw() {}
+    PassingHeal() {}
+    ~PassingHeal() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "PassingHeal";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PASSING_HEAL;
     }
 

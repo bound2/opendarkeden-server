@@ -40,7 +40,7 @@ TrapItem::TrapItem(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "TrapItem::TrapItem() : Invalid item type or option type");
-        throw("TrapItem::TrapItem() : Invalid item type or optionType");
+        throw "TrapItem::TrapItem() : Invalid item type or optionType";
     }
 }
 

@@ -41,8 +41,9 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        # Set to Debug for a development build.
-        BUILD_TYPE: Release
+        # Override in the environment for Debug and/or the C++17 compatibility lane.
+        BUILD_TYPE: ${BUILD_TYPE:-Release}
+        CXX_STANDARD: ${CXX_STANDARD:-20}
     image: darkeden:local
     container_name: odk-server
     depends_on:

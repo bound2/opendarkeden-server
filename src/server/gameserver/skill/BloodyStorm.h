@@ -15,14 +15,14 @@
 
 class BloodyStorm : public SkillHandler {
 public:
-    BloodyStorm() throw() {}
-    ~BloodyStorm() throw() {}
+    BloodyStorm() {}
+    ~BloodyStorm() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BloodyStorm";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLOODY_STORM;
     }
 

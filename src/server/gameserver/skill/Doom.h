@@ -15,14 +15,14 @@
 
 class Doom : public SkillHandler {
 public:
-    Doom() throw() {}
-    ~Doom() throw() {}
+    Doom() {}
+    ~Doom() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Doom";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DOOM;
     }
 

@@ -42,7 +42,7 @@ CBillingPlayerManager::CBillingPlayerManager() {
 }
 
 // destructor
-CBillingPlayerManager::~CBillingPlayerManager() {
+CBillingPlayerManager::~CBillingPlayerManager() noexcept {
     SAFE_DELETE(m_pCBillingPlayer);
 }
 

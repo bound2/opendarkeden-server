@@ -24,7 +24,7 @@
         msg += " : ";                              \
         msg += string(sqe.toString());             \
         filelog("DBError.log", "%s", msg.c_str()); \
-        throw(msg.c_str());                        \
+        throw msg.c_str();                         \
     }
 #define END_DB_EX(STMT, MSG)                       \
     catch (SQLQueryException & sqe) {              \
@@ -36,7 +36,7 @@
         msg += string(" : ");                      \
         msg += string(MSG);                        \
         filelog("DBError.log", "%s", msg.c_str()); \
-        throw(msg.c_str());                        \
+        throw msg.c_str();                         \
     }
 
 #define NEW_STMT g_pDatabaseManager->getConnection("DARKEDEN")->createStatement()

@@ -20,7 +20,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-PleasureExplosion::PleasureExplosion() throw() {
+PleasureExplosion::PleasureExplosion() {
     __BEGIN_TRY
 
     __END_CATCH

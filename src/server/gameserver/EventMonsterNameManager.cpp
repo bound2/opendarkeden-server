@@ -64,7 +64,7 @@ void MonsterNameManager::init()
         nCount = pResult->getRowCount();
         if (nCount == 0) {
             cerr << "MonsterNameManager::init() : No data exist on FirstNameInfo" << endl;
-            throw("MonsterNameManager::init() : No data exist on FirstNameInfo");
+            throw "MonsterNameManager::init() : No data exist on FirstNameInfo";
         }
 
         m_nFirstNameCount = nCount;
@@ -81,7 +81,7 @@ void MonsterNameManager::init()
         nCount = pResult->getRowCount();
         if (nCount == 0) {
             cerr << "MonsterNameManager::init() : No data exist on MiddleNameInfo" << endl;
-            throw("MonsterNameManager::init() : No data exist on MiddleNameInfo");
+            throw "MonsterNameManager::init() : No data exist on MiddleNameInfo";
         }
 
         m_nMiddleNameCount = nCount;
@@ -98,7 +98,7 @@ void MonsterNameManager::init()
         nCount = pResult->getRowCount();
         if (nCount == 0) {
             cerr << "MonsterNameManager::init() : No data exist on LastNameInfo" << endl;
-            throw("MonsterNameManager::init() : No data exist on LastNameInfo");
+            throw "MonsterNameManager::init() : No data exist on LastNameInfo";
         }
 
         m_nLastNameCount = nCount;

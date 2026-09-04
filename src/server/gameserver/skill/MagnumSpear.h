@@ -15,14 +15,14 @@
 
 class MagnumSpear : public SkillHandler {
 public:
-    MagnumSpear() throw() {}
-    ~MagnumSpear() throw() {}
+    MagnumSpear() {}
+    ~MagnumSpear() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "MagnumSpear";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MAGNUM_SPEAR;
     }
 

@@ -15,15 +15,15 @@
 
 class DuckingWallop : public SkillHandler {
 public:
-    DuckingWallop() throw();
-    ~DuckingWallop() throw() {}
+    DuckingWallop();
+    ~DuckingWallop() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DuckingWallop";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DUCKING_WALLOP;
     }
 

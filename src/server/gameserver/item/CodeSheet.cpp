@@ -59,7 +59,7 @@ CodeSheet::CodeSheet(ItemType_t itemType, const list<OptionType_t>& optionType)
     //	if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, m_OptionType))
     //	{
     //		filelog("itembug.log", "CodeSheet::CodeSheet() : Invalid item type or option type");
-    //		throw ("CodeSheet::CodeSheet() : Invalid item type or optionType");
+    //		throw "CodeSheet::CodeSheet() : Invalid item type or optionType";
     //	}
 }
 

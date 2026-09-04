@@ -15,14 +15,14 @@
 
 class Liberty : public SkillHandler {
 public:
-    Liberty() throw() {}
-    ~Liberty() throw() {}
+    Liberty() {}
+    ~Liberty() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Liberty";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_LIBERTY;
     }
 

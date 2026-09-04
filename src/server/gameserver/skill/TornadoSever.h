@@ -15,14 +15,14 @@
 
 class TornadoSever : public SkillHandler {
 public:
-    TornadoSever() throw();
-    ~TornadoSever() throw() {}
+    TornadoSever();
+    ~TornadoSever() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TornadoSever";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TORNADO_SEVER;
     }
 

@@ -18,7 +18,7 @@
 #include "GCSkillToTileOK6.h"
 #include "RankBonus.h"
 
-BloodyWall::BloodyWall() throw() {
+BloodyWall::BloodyWall() {
     // LEFT
     m_BloodyWallMask[0][0].set(0, -2);
     m_BloodyWallMask[0][1].set(0, -1);

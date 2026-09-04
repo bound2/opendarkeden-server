@@ -15,14 +15,14 @@
 
 class CutStorm : public SkillHandler {
 public:
-    CutStorm() throw() {}
-    ~CutStorm() throw() {}
+    CutStorm() {}
+    ~CutStorm() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "CutStorm";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_Cut_Storm;
     }
 

@@ -25,7 +25,7 @@ class EffectVigorDrop : public Effect {
 public:
     EffectVigorDrop(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zoneY);
 
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_VIGOR_DROP;
     }
 
@@ -38,7 +38,7 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     //	string getCasterName(void) const { return m_CasterName; }
@@ -90,10 +90,10 @@ private:
 
 class EffectVigorDropLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_VIGOR_DROP;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectVigorDrop";
     }
 

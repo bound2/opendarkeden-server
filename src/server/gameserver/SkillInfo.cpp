@@ -61,26 +61,20 @@ void SkillInfo::setRequireSkill(const string& requireSkill) {
     if (a > b)
         return;
 
-    string
-        requires
-    = trim(requireSkill.substr(a + 1, b - a - 1));
+    string requirements = trim(requireSkill.substr(a + 1, b - a - 1));
 
     size_t c = 0;
     size_t d;
     do {
-        d =
-            requires
-            .find_first_of(',', c + 1);
+        d = requirements.find_first_of(',', c + 1);
         if (d == string::npos)
-        d =
-            requires
-            .size();
+            d = requirements.size();
 
-        SkillType_t skillType = (SkillType_t)atoi(trim(requires.substr(c, d - c)).c_str());
+        SkillType_t skillType = (SkillType_t)atoi(trim(requirements.substr(c, d - c)).c_str());
         addRequireSkill(skillType);
 
         c = d + 1;
-    } while (c < requires.size() - 1);
+    } while (c < requirements.size() - 1);
 }
 
 void SkillInfo::setCondition(const string& condition) {

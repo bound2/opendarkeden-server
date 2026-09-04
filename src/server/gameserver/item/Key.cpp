@@ -35,7 +35,7 @@ Key::Key(ItemType_t itemType, const list<OptionType_t>& optionType)
     : m_ItemType(itemType), m_Target(0) {
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Key::Key() : Invalid item type or option type");
-        throw("Key::Key() : Invalid item type or optionType");
+        throw "Key::Key() : Invalid item type or optionType";
     }
 }
 

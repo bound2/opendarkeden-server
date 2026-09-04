@@ -15,14 +15,14 @@
 
 class BrambleHalo : public SkillHandler {
 public:
-    BrambleHalo() throw() {}
-    ~BrambleHalo() throw() {}
+    BrambleHalo() {}
+    ~BrambleHalo() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BrambleHalo";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_Bramble_Halo;
     }
 

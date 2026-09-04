@@ -18,7 +18,7 @@ public:
     EffectGunShotGuidancePoint(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_GUN_SHOT_GUIDANCE_POINT;
     }
 
@@ -26,7 +26,7 @@ public:
 
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 private:
 };

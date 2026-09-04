@@ -34,7 +34,7 @@ LearningItem::LearningItem(ItemType_t itemType, const list<OptionType_t>& option
     : m_ItemType(itemType) {
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "LearningItem::LearningItem() : Invalid item type or option type");
-        throw("LearningItem::LearningItem() : Invalid item type or optionType");
+        throw "LearningItem::LearningItem() : Invalid item type or optionType";
     }
 }
 

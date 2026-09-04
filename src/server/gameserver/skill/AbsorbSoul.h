@@ -15,14 +15,14 @@
 
 class AbsorbSoul : public SkillHandler {
 public:
-    AbsorbSoul() throw() {}
-    ~AbsorbSoul() throw() {}
+    AbsorbSoul() {}
+    ~AbsorbSoul() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AbsorbSoul";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ABSORB_SOUL;
     }
 
@@ -31,7 +31,7 @@ public:
                  CoordInven_t TargetInvenY);
 
     void makeLarvaToPupa(Ousters* pOusters, int TargetLevel, ObjectID_t ItemObjectID, CoordInven_t InvenX,
-                         CoordInven_t InvenY, CoordInven_t TargetInvenX, CoordInven_t TargetInvenY) throw();
+                         CoordInven_t InvenY, CoordInven_t TargetInvenX, CoordInven_t TargetInvenY);
 
     void computeOutput(const SkillInput& input, SkillOutput& output) {}
 };

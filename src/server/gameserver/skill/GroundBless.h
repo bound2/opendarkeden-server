@@ -15,14 +15,14 @@
 
 class GroundBless : public SkillHandler {
 public:
-    GroundBless() throw() {}
-    ~GroundBless() throw() {}
+    GroundBless() {}
+    ~GroundBless() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GroundBless";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GROUND_BLESS;
     }
 

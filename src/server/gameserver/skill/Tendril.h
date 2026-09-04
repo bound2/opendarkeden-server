@@ -15,14 +15,14 @@
 
 class Tendril : public SkillHandler {
 public:
-    Tendril() throw() {}
-    ~Tendril() throw() {}
+    Tendril() {}
+    ~Tendril() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Tendril";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TENDRIL;
     }
 

@@ -15,14 +15,14 @@
 
 class GnomesWhisper : public SkillHandler {
 public:
-    GnomesWhisper() throw() {}
-    ~GnomesWhisper() throw() {}
+    GnomesWhisper() {}
+    ~GnomesWhisper() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GnomesWhisper";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GNOMES_WHISPER;
     }
 

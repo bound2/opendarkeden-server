@@ -26,23 +26,23 @@
 class ZoneInfo {
 public:
     // get/set zone id
-    ZoneID_t getZoneID() const throw() {
+    ZoneID_t getZoneID() const {
         return m_ZoneID;
     }
-    void setZoneID(ZoneID_t zoneID) throw() {
+    void setZoneID(ZoneID_t zoneID) {
         m_ZoneID = zoneID;
     }
 
     // get/set zone group id
-    ZoneGroupID_t getZoneGroupID() const throw() {
+    ZoneGroupID_t getZoneGroupID() const {
         return m_ZoneGroupID;
     }
-    void setZoneGroupID(ZoneGroupID_t zoneGroupID) throw() {
+    void setZoneGroupID(ZoneGroupID_t zoneGroupID) {
         m_ZoneGroupID = zoneGroupID;
     }
 
     // get debug string
-    string toString() const throw() {
+    string toString() const {
         StringStream msg;
         msg << "ZoneInfo(ZoneID:" << m_ZoneID << ",ZoneGroupID:" << m_ZoneGroupID << ")";
         return msg.toString();

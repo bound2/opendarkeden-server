@@ -15,14 +15,14 @@
 
 class AcidEruption : public SkillHandler {
 public:
-    AcidEruption() throw() {}
-    ~AcidEruption() throw() {}
+    AcidEruption() {}
+    ~AcidEruption() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AcidEruption";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ACID_ERUPTION;
     }
 

@@ -15,14 +15,14 @@
 
 class ShineSword : public SkillHandler {
 public:
-    ShineSword() throw() {}
-    ~ShineSword() throw() {}
+    ShineSword() {}
+    ~ShineSword() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ShineSword";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SHINE_SWORD;
     }
 

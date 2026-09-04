@@ -12,7 +12,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-BloodyMasterWave::BloodyMasterWave() throw() {
+BloodyMasterWave::BloodyMasterWave() {
     __BEGIN_TRY
 
     m_pBloodyMasterWaveMask[0].set(0, -3);

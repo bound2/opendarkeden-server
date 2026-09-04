@@ -7,7 +7,7 @@ class Packet;
 class MockPlayer : public Player {
 public:
     MockPlayer() {}
-    ~MockPlayer() {}
+    ~MockPlayer() noexcept {}
 
     void sendPacket(Packet* pPacket) {}
 };

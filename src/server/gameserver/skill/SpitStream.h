@@ -15,14 +15,14 @@
 
 class SpitStream : public SkillHandler {
 public:
-    SpitStream() throw() {}
-    ~SpitStream() throw() {}
+    SpitStream() {}
+    ~SpitStream() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SpitStream";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SPIT_STREAM;
     }
 

@@ -15,14 +15,14 @@
 
 class DisarmMine : public SkillHandler {
 public:
-    DisarmMine() throw() {}
-    ~DisarmMine() throw() {}
+    DisarmMine() {}
+    ~DisarmMine() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DisarmMine";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DISARM_MINE;
     }
 

@@ -15,14 +15,14 @@
 
 class ShadowOfStorm : public SkillHandler {
 public:
-    ShadowOfStorm() throw() {}
-    ~ShadowOfStorm() throw() {}
+    ShadowOfStorm() {}
+    ~ShadowOfStorm() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ShadowOfStorm";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SHADOW_OF_STORM;
     }
 

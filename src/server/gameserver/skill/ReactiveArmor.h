@@ -15,14 +15,14 @@
 
 class ReactiveArmor : public SkillHandler {
 public:
-    ReactiveArmor() throw() {}
-    ~ReactiveArmor() throw() {}
+    ReactiveArmor() {}
+    ~ReactiveArmor() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ReactiveArmor";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_REACTIVE_ARMOR;
     }
 

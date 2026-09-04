@@ -82,7 +82,7 @@ void EffectExtreme::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectExtreme::toString() const throw() {
+string EffectExtreme::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

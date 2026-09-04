@@ -15,14 +15,14 @@
 
 class ContinualLight : public SkillHandler {
 public:
-    ContinualLight() throw() {}
-    ~ContinualLight() throw() {}
+    ContinualLight() {}
+    ~ContinualLight() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ContinualLight";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CONTINUAL_LIGHT;
     }
 

@@ -34,7 +34,7 @@
 // 시스템 매니저의 constructor에서는 하위 매니저 객체를 생성한다.
 //
 //////////////////////////////////////////////////////////////////////
-SharedServer::SharedServer() throw(Error) {
+SharedServer::SharedServer() {
     __BEGIN_TRY
 
     // create database manager
@@ -81,7 +81,7 @@ SharedServer::SharedServer() throw(Error) {
 // 시스템 매니저의 destructor에서는 하위 매니저 객체를 삭제해야 한다.
 //
 //////////////////////////////////////////////////////////////////////
-SharedServer::~SharedServer() throw(Error) {
+SharedServer::~SharedServer() noexcept(false) {
     __BEGIN_TRY
 
     SAFE_DELETE(g_pHeartbeatManager);
@@ -109,7 +109,7 @@ SharedServer::~SharedServer() throw(Error) {
 // initialize game server
 //
 //////////////////////////////////////////////////////////////////////
-void SharedServer::init() throw(Error) {
+void SharedServer::init() {
     __BEGIN_TRY
 
     cout << "SharedServer::init() start" << endl;
@@ -155,7 +155,7 @@ void SharedServer::init() throw(Error) {
 // start shared server
 //
 //////////////////////////////////////////////////////////////////////
-void SharedServer::start() throw(Error) {
+void SharedServer::start() {
     __BEGIN_TRY
 
     cout << "---------- Start SharedServer ---------" << endl;
@@ -192,7 +192,7 @@ void SharedServer::start() throw(Error) {
 // 같은 현상이 발생할 수 있다.
 //
 //////////////////////////////////////////////////////////////////////
-void SharedServer::stop() throw(Error) {
+void SharedServer::stop() {
     __BEGIN_TRY
 
     // 나중에 이 부분을 코멘트화해야 한다.

@@ -15,14 +15,14 @@
 
 class Purify : public SkillHandler {
 public:
-    Purify() throw() {}
-    ~Purify() throw() {}
+    Purify() {}
+    ~Purify() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Purify";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PURIFY;
     }
 

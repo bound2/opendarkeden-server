@@ -15,14 +15,14 @@
 
 class MiracleShield : public SkillHandler {
 public:
-    MiracleShield() throw() {}
-    ~MiracleShield() throw() {}
+    MiracleShield() {}
+    ~MiracleShield() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "MiracleShield";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MIRACLE_SHIELD;
     }
 

@@ -15,14 +15,14 @@
 
 class DenialMagic : public SkillHandler {
 public:
-    DenialMagic() throw() {}
-    ~DenialMagic() throw() {}
+    DenialMagic() {}
+    ~DenialMagic() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DenialMagic";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DENIAL_MAGIC;
     }
 

@@ -48,7 +48,7 @@ Blade::Blade(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Blade::Blade() : Invalid item type or option type");
-        throw("Blade::Blade() : Invalid item type or optionType");
+        throw "Blade::Blade() : Invalid item type or optionType";
     }
 }
 

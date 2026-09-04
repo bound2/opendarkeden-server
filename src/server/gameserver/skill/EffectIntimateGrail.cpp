@@ -106,7 +106,7 @@ void EffectIntimateGrail::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Ob
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectIntimateGrail::toString() const throw() {
+string EffectIntimateGrail::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

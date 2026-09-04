@@ -55,7 +55,7 @@ BillingPlayerManager::BillingPlayerManager() {
 //////////////////////////////////////////////////////////////////////
 // destructor
 //////////////////////////////////////////////////////////////////////
-BillingPlayerManager::~BillingPlayerManager() {
+BillingPlayerManager::~BillingPlayerManager() noexcept {
     __BEGIN_TRY
 
     SAFE_DELETE(m_pBillingPlayer);

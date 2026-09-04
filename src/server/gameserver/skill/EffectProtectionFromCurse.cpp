@@ -91,7 +91,7 @@ void EffectProtectionFromCurse::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectProtectionFromCurse::toString() const throw() {
+string EffectProtectionFromCurse::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

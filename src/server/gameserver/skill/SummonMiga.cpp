@@ -18,7 +18,7 @@
 #include "GCSkillToTileOK6.h"
 #include "MonsterAI.h"
 
-SummonMiga::SummonMiga() throw() {}
+SummonMiga::SummonMiga() {}
 
 //////////////////////////////////////////////////////////////////////////////
 // 아우스터즈 오브젝트 핸들러

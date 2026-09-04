@@ -15,14 +15,14 @@
 
 class ChargingPower : public SkillHandler {
 public:
-    ChargingPower() throw() {}
-    ~ChargingPower() throw() {}
+    ChargingPower() {}
+    ~ChargingPower() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ChargingPower";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CHARGING_POWER;
     }
 

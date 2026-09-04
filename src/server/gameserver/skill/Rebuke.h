@@ -15,14 +15,14 @@
 
 class Rebuke : public SkillHandler {
 public:
-    Rebuke() throw() {}
-    ~Rebuke() throw() {}
+    Rebuke() {}
+    ~Rebuke() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Rebuke";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_REBUKE;
     }
 

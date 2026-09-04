@@ -151,7 +151,7 @@ void EffectLight::save(const string& ownerID)
     __END_CATCH
 }
 
-string EffectLight::toString() const throw() {
+string EffectLight::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

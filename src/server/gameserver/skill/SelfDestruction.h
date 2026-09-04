@@ -15,14 +15,14 @@
 
 class SelfDestruction : public SkillHandler {
 public:
-    SelfDestruction() throw();
-    ~SelfDestruction() throw() {}
+    SelfDestruction();
+    ~SelfDestruction() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SelfDestruction";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SELF_DESTRUCTION;
     }
 

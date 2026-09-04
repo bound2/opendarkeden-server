@@ -53,7 +53,7 @@ OustersArmsband::OustersArmsband(ItemType_t itemType, const list<OptionType_t>& 
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersArmsband::OustersArmsband() : Invalid item type or option type");
-        throw("OustersArmsband::OustersArmsband() : Invalid item type or optionType");
+        throw "OustersArmsband::OustersArmsband() : Invalid item type or optionType";
     }
 }
 

@@ -15,14 +15,14 @@
 
 class SpiritGuard : public SkillHandler {
 public:
-    SpiritGuard() throw() {}
-    ~SpiritGuard() throw() {}
+    SpiritGuard() {}
+    ~SpiritGuard() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SpiritGuard";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SPIRIT_GUARD;
     }
 

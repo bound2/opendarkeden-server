@@ -38,7 +38,7 @@ public:
     ZonePlayerManager();
 
     // destructor
-    ~ZonePlayerManager();
+    ~ZonePlayerManager() noexcept;
 
     // select
     void select();

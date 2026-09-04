@@ -40,7 +40,7 @@ Fascia::Fascia(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Fascia::Fascia() : Invalid item type or option type");
-        throw("Fascia::Fascia() : Invalid item type or optionType");
+        throw "Fascia::Fascia() : Invalid item type or optionType";
     }
 }
 

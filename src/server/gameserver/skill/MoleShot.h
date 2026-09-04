@@ -15,14 +15,14 @@
 
 class MoleShot : public SkillHandler {
 public:
-    MoleShot() throw();
-    ~MoleShot() throw() {}
+    MoleShot();
+    ~MoleShot() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "MoleShot";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MOLE_SHOT;
     }
 

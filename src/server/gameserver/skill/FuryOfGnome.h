@@ -15,15 +15,15 @@
 
 class FuryOfGnome : public SkillHandler {
 public:
-    FuryOfGnome() throw() {}
-    ~FuryOfGnome() throw() {}
+    FuryOfGnome() {}
+    ~FuryOfGnome() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "FuryOfGnome";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_FURY_OF_GNOME;
     }
 

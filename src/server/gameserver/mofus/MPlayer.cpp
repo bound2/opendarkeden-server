@@ -41,7 +41,7 @@ MPlayer::MPlayer(MJob* pJob) {
 }
 
 // destructor
-MPlayer::~MPlayer() {
+MPlayer::~MPlayer() noexcept {
     // delete socket input stream
     SAFE_DELETE(m_pInputStream);
 

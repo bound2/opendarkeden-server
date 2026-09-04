@@ -15,14 +15,14 @@
 
 class HeadShot : public SkillHandler {
 public:
-    HeadShot() throw() {}
-    ~HeadShot() throw() {}
+    HeadShot() {}
+    ~HeadShot() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HeadShot";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HEAD_SHOT;
     }
 

@@ -15,14 +15,14 @@
 
 class Sanctuary : public SkillHandler {
 public:
-    Sanctuary() throw() {}
-    ~Sanctuary() throw() {}
+    Sanctuary() {}
+    ~Sanctuary() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Sanctuary";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SANCTUARY;
     }
 

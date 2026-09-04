@@ -581,7 +581,10 @@ int tileDistance(int ox, int oy, int tx, int ty) {
 
     double XOffset = pow(OriginX - TargetX, 2.0);
     double YOffset = pow(OriginY - TargetY, 2.0);
-    Byte range = (Byte)(sqrt(XOffset + YOffset));
+    // The wire-era formula intentionally returns a byte-wide distance. Make
+    // the modulo explicit so Zig's checked Debug mode preserves that behavior
+    // instead of trapping when the distance exceeds 255.
+    Byte range = static_cast<Byte>(fmod(sqrt(XOffset + YOffset), 256.0));
 
     return range;
 }

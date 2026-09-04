@@ -19,7 +19,7 @@ public:
     EffectGnomesWhisper(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_GNOMES_WHISPER;
     }
 
@@ -38,7 +38,7 @@ public:
         return m_Level >= 25;
     }
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     void setLevel(uint level) {

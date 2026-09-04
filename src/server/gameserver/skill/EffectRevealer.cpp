@@ -100,7 +100,7 @@ void EffectRevealer::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object*
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectRevealer::toString() const throw() {
+string EffectRevealer::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -15,15 +15,15 @@
 
 class AuraBall : public SkillHandler {
 public:
-    AuraBall() throw() {}
-    ~AuraBall() throw() {}
+    AuraBall() {}
+    ~AuraBall() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AuraBall";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_AURA_BALL;
     }
 

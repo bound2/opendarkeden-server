@@ -20,7 +20,7 @@ public:
     EffectProtectionFromAcid(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_PROTECTION_FROM_ACID;
     }
 
@@ -33,10 +33,10 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Resist_t getResist(void) const throw() {
+    Resist_t getResist(void) const {
         return m_Resist;
     }
     void setResist(Resist_t resist) {
@@ -53,10 +53,10 @@ private:
 
 class EffectProtectionFromAcidLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_PROTECTION_FROM_ACID;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectProtectionFromAcid";
     }
 

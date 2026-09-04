@@ -15,14 +15,14 @@
 
 class Activation : public SkillHandler {
 public:
-    Activation() throw() {}
-    ~Activation() throw() {}
+    Activation() {}
+    ~Activation() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Activation";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ACTIVATION;
     }
 

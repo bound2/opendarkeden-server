@@ -19,7 +19,7 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GameServerManager::GameServerManager() throw(Error) : m_pDatagramSocket(NULL) {
+GameServerManager::GameServerManager() : m_pDatagramSocket(NULL) {
     __BEGIN_TRY
 
     // create datagram server socket
@@ -31,7 +31,7 @@ GameServerManager::GameServerManager() throw(Error) : m_pDatagramSocket(NULL) {
 //////////////////////////////////////////////////////////////////////
 // destructor
 //////////////////////////////////////////////////////////////////////
-GameServerManager::~GameServerManager() throw(Error) {
+GameServerManager::~GameServerManager() noexcept(false) {
     __BEGIN_TRY
 
     SAFE_DELETE(m_pDatagramSocket);
@@ -42,7 +42,7 @@ GameServerManager::~GameServerManager() throw(Error) {
 //////////////////////////////////////////////////////////////////////
 // main method
 //////////////////////////////////////////////////////////////////////
-void GameServerManager::run() throw(Error) {
+void GameServerManager::run() {
     try {
         string host = g_pConfig->getProperty("DB_HOST");
         string db = g_pConfig->getProperty("DB_NAME");
@@ -121,7 +121,7 @@ void GameServerManager::run() throw(Error) {
 //////////////////////////////////////////////////////////////////////
 // send datagram to datagram-socket
 //////////////////////////////////////////////////////////////////////
-void GameServerManager::sendDatagram(Datagram* pDatagram) throw(ConnectException, Error) {
+void GameServerManager::sendDatagram(Datagram* pDatagram) {
     __BEGIN_TRY
 
     try {
@@ -139,7 +139,7 @@ void GameServerManager::sendDatagram(Datagram* pDatagram) throw(ConnectException
 //////////////////////////////////////////////////////////////////////
 // send datagram-packet to datagram-socket
 //////////////////////////////////////////////////////////////////////
-void GameServerManager::sendPacket(string host, uint port, DatagramPacket* pPacket) throw(ConnectException, Error) {
+void GameServerManager::sendPacket(string host, uint port, DatagramPacket* pPacket) {
     __BEGIN_TRY
     __BEGIN_DEBUG
 

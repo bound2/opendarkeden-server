@@ -15,15 +15,15 @@
 
 class SacredStamp : public SkillHandler {
 public:
-    SacredStamp() throw() {}
-    ~SacredStamp() throw() {}
+    SacredStamp() {}
+    ~SacredStamp() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SacredStamp";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_Sacred_Stamp;
     }
 

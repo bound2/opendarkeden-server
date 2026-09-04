@@ -82,7 +82,7 @@ void EffectStoneSkin::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectStoneSkin::toString() const throw() {
+string EffectStoneSkin::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

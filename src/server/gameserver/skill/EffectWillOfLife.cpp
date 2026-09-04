@@ -112,7 +112,7 @@ void EffectWillOfLife::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectWillOfLife::toString() const throw() {
+string EffectWillOfLife::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

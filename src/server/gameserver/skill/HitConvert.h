@@ -15,15 +15,15 @@
 
 class HitConvert : public SkillHandler {
 public:
-    HitConvert() throw() {}
-    ~HitConvert() throw() {}
+    HitConvert() {}
+    ~HitConvert() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HitConvert";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HIT_CONVERT;
     }
 

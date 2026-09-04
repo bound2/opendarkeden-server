@@ -15,14 +15,14 @@
 
 class ProtectionFromBlood : public SkillHandler {
 public:
-    ProtectionFromBlood() throw() {}
-    ~ProtectionFromBlood() throw() {}
+    ProtectionFromBlood() {}
+    ~ProtectionFromBlood() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ProtectionFromBlood";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PROTECTION_FROM_BLOOD;
     }
 

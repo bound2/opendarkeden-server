@@ -15,14 +15,14 @@
 
 class NooseOfWraith : public SkillHandler {
 public:
-    NooseOfWraith() throw();
-    ~NooseOfWraith() throw() {}
+    NooseOfWraith();
+    ~NooseOfWraith() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "NooseOfWraith";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_NOOSE_OF_WRAITH;
     }
 

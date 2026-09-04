@@ -15,14 +15,14 @@
 
 class UltimateBlow : public SkillHandler {
 public:
-    UltimateBlow() throw() {}
-    ~UltimateBlow() throw() {}
+    UltimateBlow() {}
+    ~UltimateBlow() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "UltimateBlow";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ULTIMATE_BLOW;
     }
 

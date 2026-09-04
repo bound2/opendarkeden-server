@@ -45,7 +45,7 @@ ComposMei::ComposMei(ItemType_t itemType, const list<OptionType_t>& optionType, 
     // cout << "ComposMei::ComposMei(" << getOptionTypeToString(optionType).c_str() << ")" << endl;
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "ComposMei::ComposMei() : Invalid item type or option type");
-        throw("ComposMei::ComposMei() : Invalid item type or optionType");
+        throw "ComposMei::ComposMei() : Invalid item type or optionType";
     }
 }
 

@@ -15,14 +15,14 @@
 
 class StoneSkin : public SkillHandler {
 public:
-    StoneSkin() throw() {}
-    ~StoneSkin() throw() {}
+    StoneSkin() {}
+    ~StoneSkin() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "StoneSkin";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_STONE_SKIN;
     }
 

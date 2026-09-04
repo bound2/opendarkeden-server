@@ -47,7 +47,7 @@ Shield::Shield(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Shield::Shield() : Invalid item type or option type");
-        throw("Shield::Shield() : Invalid item type or optionType");
+        throw "Shield::Shield() : Invalid item type or optionType";
     }
 }
 

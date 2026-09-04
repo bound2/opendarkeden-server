@@ -19,7 +19,7 @@ public:
     EffectPassingHeal(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_PASSING_HEAL;
     }
 
@@ -50,7 +50,7 @@ public:
         m_HealPoint = HealPoint;
     }
 
-    string toString() const throw();
+    string toString() const;
 
 private:
     int m_PassingCount;

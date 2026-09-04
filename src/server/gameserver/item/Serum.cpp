@@ -39,7 +39,7 @@ Serum::Serum(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Serum::Serum() : Invalid item type or option type");
-        throw("Serum::Serum() : Invalid item type or optionType");
+        throw "Serum::Serum() : Invalid item type or optionType";
     }
 }
 

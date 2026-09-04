@@ -123,7 +123,7 @@ void EffectFireMeteor::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectFireMeteor::toString() const throw() {
+string EffectFireMeteor::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

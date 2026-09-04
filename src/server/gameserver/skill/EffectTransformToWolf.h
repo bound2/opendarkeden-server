@@ -18,7 +18,7 @@ public:
     EffectTransformToWolf(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_TRANSFORM_TO_WOLF;
     }
 
@@ -31,7 +31,7 @@ public:
     void unaffect();
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 };
 
 #endif // __EFFECT_TRANSFORM_TO_WOLF__

@@ -13,7 +13,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-DeadlyClaw::DeadlyClaw() throw() {
+DeadlyClaw::DeadlyClaw() {
     __BEGIN_TRY
 
     m_pDeadlyClawMask[0].set(0, 0);

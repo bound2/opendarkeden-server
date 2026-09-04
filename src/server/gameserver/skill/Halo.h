@@ -15,15 +15,15 @@
 
 class Halo : public SkillHandler {
 public:
-    Halo() throw() {}
-    ~Halo() throw() {}
+    Halo() {}
+    ~Halo() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Halo";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HALO;
     }
 

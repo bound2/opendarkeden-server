@@ -161,7 +161,7 @@ void EffectVigorDrop::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object
 
     {__BEGIN_TRY __END_CATCH}
 
-string EffectVigorDrop::toString() const throw() {
+string EffectVigorDrop::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

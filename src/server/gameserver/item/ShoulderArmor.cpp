@@ -41,7 +41,7 @@ ShoulderArmor::ShoulderArmor(ItemType_t itemType, const list<OptionType_t>& opti
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "ShoulderArmor::ShoulderArmor() : Invalid item type or option type");
-        throw("ShoulderArmor::ShoulderArmor() : Invalid item type or optionType");
+        throw "ShoulderArmor::ShoulderArmor() : Invalid item type or optionType";
     }
 }
 

@@ -15,14 +15,14 @@
 
 class SkyFire : public SkillHandler {
 public:
-    SkyFire() throw() {}
-    ~SkyFire() throw() {}
+    SkyFire() {}
+    ~SkyFire() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SkyFire";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_Sky_Fire;
     }
 

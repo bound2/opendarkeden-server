@@ -52,7 +52,7 @@ public:
 
 public:
     GamePlayer(Socket* pSocket);
-    ~GamePlayer();
+    ~GamePlayer() noexcept;
 
 public:
     // read socket's receive buffer and fill input buffer

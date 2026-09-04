@@ -19,7 +19,7 @@ public:
     EffectHydroConvergence(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_HYDRO_CONVERGENCE;
     }
 
@@ -29,7 +29,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     ObjectID_t getUserOID(void) const {

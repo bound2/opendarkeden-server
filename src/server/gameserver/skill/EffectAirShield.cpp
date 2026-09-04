@@ -97,7 +97,7 @@ void EffectAirShield::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void EffectAirShield::setLevel(Level_t Level) throw() {
+void EffectAirShield::setLevel(Level_t Level) {
     m_Level = Level;
 
     if (Level <= GRADE_ADEPT_LIMIT_LEVEL)
@@ -112,7 +112,7 @@ void EffectAirShield::setLevel(Level_t Level) throw() {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectAirShield::toString() const throw() {
+string EffectAirShield::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

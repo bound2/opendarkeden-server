@@ -5,8 +5,7 @@
 // The result type for gameplay mutations (docs/RESTRUCTURING.md task 3.1):
 // domain code returns Ok(events) or Rejected(reason) instead of using
 // exceptions for control flow. Exceptions stay reserved for programming and
-// configuration errors — which is why accessing the wrong side of an Outcome
-// throws: that is a caller bug, not a domain outcome.
+// configuration errors, which is why accessing the wrong side throws.
 //
 //--------------------------------------------------------------------------------
 
@@ -15,190 +14,121 @@
 
 #include <stdexcept>
 #include <utility>
-
-#include <type_traits>
-
-// Mark a function whose Outcome must not be dropped: a discarded result
-// silently turns a rejected mutation into a no-op, which is exactly the
-// failure mode this type exists to prevent. Annotate every domain function
-// that returns an Outcome:
-//
-//     DE_MUST_USE Outcome<AttackEvents, RejectReason> attack(...);
-//
-#if defined(__GNUC__) || defined(__clang__)
-#define DE_MUST_USE __attribute__((warn_unused_result))
-#else
-#define DE_MUST_USE
-#endif
+#include <variant>
 
 // Thrown on wrong-side access. Deliberately derives from std::logic_error,
-// NOT from this codebase's Throwable: the legacy __END_CATCH_NO_RETHROW
-// macros swallow every Throwable (347 sites in the gameserver — the very
-// code being migrated to Outcome), which would silently defeat the
-// contract. A std::logic_error escapes them all and surfaces at the
-// outermost handler, loudly.
+// not this codebase's Throwable: the legacy __END_CATCH_NO_RETHROW macros
+// swallow every Throwable, which would silently defeat this contract.
 class OutcomeContractViolation : public std::logic_error {
 public:
     explicit OutcomeContractViolation(const char* what) : std::logic_error(what) {}
 };
 
-//--------------------------------------------------------------------------------
+// A tagged either-type backed by std::variant. Only the active side is stored,
+// so payloads need not be default-constructible. There is no public default
+// constructor: an Outcome always comes from one of the named factories.
 //
-// Outcome<Events, Rejection>
+//     [[nodiscard]] Outcome<AttackEvents, RejectReason> attack(...);
 //
-// A tagged either-type, C++11, usable by value. Both sides are stored as
-// plain members, so Events and Rejection must be default-constructible and
-// copyable (enforced below) — true for the intended uses (an event list, an
-// enum or string rejection reason). There is no default constructor: an
-// Outcome always comes from one of the named factories, so it cannot be used
-// as a std::map mapped type via operator[], in vector::resize, or as a class
-// member without an initializer.
-//
-//     DE_MUST_USE Outcome<AttackEvents, RejectReason> attack(...);
-//
-//     Outcome<AttackEvents, RejectReason> attack(...) {
-//         if (outOfRange) return Outcome<AttackEvents, RejectReason>::Rejected(REJECT_OUT_OF_RANGE);
-//         ...
-//         return Outcome<AttackEvents, RejectReason>::Ok(events);  // moves an rvalue in
-//     }
-//
-//     Outcome<AttackEvents, RejectReason> outcome = attack(target);
-//     if (outcome.isRejected()) { sendFail(outcome.rejection()); return; }
-//     apply(outcome.events());
-//
-// Accessor lifetime: events()/rejection() on an lvalue return a reference
-// into the Outcome — never bind one past the Outcome's own lifetime. Called
-// on an rvalue (attack(t).events(), or std::move(outcome).events()) they
-// return BY VALUE, moving the payload out, so the temporary-dangling trap of
-// `for (const Event& e : attack(t).events())` cannot arise and consumers
-// that want ownership get it without a copy.
-//
-// Mutations with no event payload use the Outcome<void, Rejection>
-// specialization below: Ok() takes nothing and there is no events().
-// Propagating a rejection outward across differing Events types is written
-// out by hand at each layer (C++11, no std::expected):
-//
-//     if (inner.isRejected()) return Outcome<Outer, RejectReason>::Rejected(inner.rejection());
-//
-//--------------------------------------------------------------------------------
-template <typename Events, typename Rejection> class Outcome {
-    static_assert(std::is_default_constructible<Events>::value,
-                  "Outcome stores both sides as plain members: Events must be default-constructible");
-    static_assert(std::is_copy_constructible<Events>::value, "Events must be copyable");
-    static_assert(std::is_default_constructible<Rejection>::value,
-                  "Outcome stores both sides as plain members: Rejection must be default-constructible");
-    static_assert(std::is_copy_constructible<Rejection>::value, "Rejection must be copyable");
-
+// Accessors on lvalues return references into the Outcome. Accessors on
+// rvalues return by value and move the payload out, avoiding references into
+// temporary Outcomes. Use Outcome<void, Rejection> when success has no payload.
+template <typename Events, typename Rejection> class [[nodiscard]] Outcome {
 public:
-    // By value + move: Ok(makeEvents()) moves the temporary in instead of
-    // deep-copying it; an lvalue argument costs the one copy it must.
-    DE_MUST_USE static Outcome Ok(Events events) {
-        Outcome outcome;
-        outcome.m_bOk = true;
-        outcome.m_Events = std::move(events);
-        return outcome;
+    // By value plus move: an rvalue payload is moved once; an lvalue pays the
+    // one copy needed to put an independent value into the Outcome.
+    static Outcome Ok(Events events) {
+        return Outcome(std::in_place_index<0>, std::move(events));
     }
 
-    DE_MUST_USE static Outcome Rejected(Rejection reason) {
-        Outcome outcome;
-        outcome.m_bOk = false;
-        outcome.m_Rejection = std::move(reason);
-        return outcome;
+    static Outcome Rejected(Rejection reason) {
+        return Outcome(std::in_place_index<1>, std::move(reason));
     }
 
     bool isOk() const {
-        return m_bOk;
-    }
-    bool isRejected() const {
-        return !m_bOk;
+        return m_Value.index() == 0;
     }
 
-    // Accessing the side that is not there is a caller bug (see
-    // OutcomeContractViolation above for why this is not a Throwable).
+    bool isRejected() const {
+        return !isOk();
+    }
+
     const Events& events() const& {
         requireOk();
-        return m_Events;
+        return std::get<0>(m_Value);
     }
-    // rvalue overload: moves the payload out, and makes calling events() on
-    // a temporary safe (a value, not a reference into a dead Outcome).
+
     Events events() && {
         requireOk();
-        return std::move(m_Events);
+        return std::get<0>(std::move(m_Value));
     }
 
     const Rejection& rejection() const& {
         requireRejected();
-        return m_Rejection;
+        return std::get<1>(m_Value);
     }
+
     Rejection rejection() && {
         requireRejected();
-        return std::move(m_Rejection);
+        return std::get<1>(std::move(m_Value));
     }
 
 private:
-    Outcome() : m_bOk(false), m_Events(), m_Rejection() {}
+    Outcome(std::in_place_index_t<0> index, Events&& events) : m_Value(index, std::move(events)) {}
+    Outcome(std::in_place_index_t<1> index, Rejection&& reason) : m_Value(index, std::move(reason)) {}
 
     void requireOk() const {
-        if (!m_bOk)
+        if (!isOk())
             throw OutcomeContractViolation("Outcome::events() on a rejected outcome");
     }
+
     void requireRejected() const {
-        if (m_bOk)
+        if (isOk())
             throw OutcomeContractViolation("Outcome::rejection() on an ok outcome");
     }
 
-    bool m_bOk;
-    Events m_Events;
-    Rejection m_Rejection;
+    std::variant<Events, Rejection> m_Value;
 };
 
-// The no-payload form: the mutation succeeded, or was rejected with a
-// reason. The single most common gameplay outcome.
-template <typename Rejection> class Outcome<void, Rejection> {
-    static_assert(std::is_default_constructible<Rejection>::value,
-                  "Outcome stores the rejection as a plain member: Rejection must be default-constructible");
-    static_assert(std::is_copy_constructible<Rejection>::value, "Rejection must be copyable");
-
+// The no-payload form: the mutation succeeded, or was rejected with a reason.
+template <typename Rejection> class [[nodiscard]] Outcome<void, Rejection> {
 public:
-    DE_MUST_USE static Outcome Ok() {
-        Outcome outcome;
-        outcome.m_bOk = true;
-        return outcome;
+    static Outcome Ok() {
+        return Outcome();
     }
 
-    DE_MUST_USE static Outcome Rejected(Rejection reason) {
-        Outcome outcome;
-        outcome.m_bOk = false;
-        outcome.m_Rejection = std::move(reason);
-        return outcome;
+    static Outcome Rejected(Rejection reason) {
+        return Outcome(std::move(reason));
     }
 
     bool isOk() const {
-        return m_bOk;
+        return m_Value.index() == 0;
     }
+
     bool isRejected() const {
-        return !m_bOk;
+        return !isOk();
     }
 
     const Rejection& rejection() const& {
         requireRejected();
-        return m_Rejection;
+        return std::get<1>(m_Value);
     }
+
     Rejection rejection() && {
         requireRejected();
-        return std::move(m_Rejection);
+        return std::get<1>(std::move(m_Value));
     }
 
 private:
-    Outcome() : m_bOk(false), m_Rejection() {}
+    Outcome() : m_Value(std::in_place_index<0>) {}
+    explicit Outcome(Rejection&& reason) : m_Value(std::in_place_index<1>, std::move(reason)) {}
 
     void requireRejected() const {
-        if (m_bOk)
+        if (isOk())
             throw OutcomeContractViolation("Outcome::rejection() on an ok outcome");
     }
 
-    bool m_bOk;
-    Rejection m_Rejection;
+    std::variant<std::monostate, Rejection> m_Value;
 };
 
 #endif

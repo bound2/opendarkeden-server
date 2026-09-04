@@ -15,14 +15,14 @@
 
 class MultiShot : public SkillHandler {
 public:
-    MultiShot() throw();
-    ~MultiShot() throw() {}
+    MultiShot();
+    ~MultiShot() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "MultiShot";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MULTI_SHOT;
     }
 

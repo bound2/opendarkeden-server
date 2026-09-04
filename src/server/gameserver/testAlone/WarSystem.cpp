@@ -32,7 +32,7 @@ WarID_t WarSystem::s_WarIDSuccessor = 0;
 
 WarSystem* g_pWarSystem = NULL;
 
-WarSystem::WarSystem() throw(Error) {
+WarSystem::WarSystem() {
     __BEGIN_TRY
 
     m_Mutex.setName("WarSystem");
@@ -47,7 +47,7 @@ WarSystem::WarSystem() throw(Error) {
     __END_CATCH
 }
 
-WarSystem::~WarSystem() throw(Error) {
+WarSystem::~WarSystem() noexcept(false) {
     __BEGIN_TRY
 
     SAFE_DELETE(m_pRaceWarSchedule);
@@ -55,7 +55,7 @@ WarSystem::~WarSystem() throw(Error) {
     __END_CATCH
 }
 
-void WarSystem::init() throw(Error) {
+void WarSystem::init() {
     __BEGIN_TRY
 
     load();
@@ -65,7 +65,7 @@ void WarSystem::init() throw(Error) {
     __END_CATCH
 }
 
-void WarSystem::prepareRaceWar() throw(Error) {
+void WarSystem::prepareRaceWar() {
     __BEGIN_TRY
 
     SAFE_DELETE(m_pRaceWarSchedule);
@@ -84,13 +84,13 @@ void WarSystem::prepareRaceWar() throw(Error) {
 }
 
 
-void WarSystem::load() throw(Error){__BEGIN_TRY
+void WarSystem::load(){__BEGIN_TRY
 
-                                        // load할거 없다.
+                           // load할거 없다.
 
-                                        // 진행중인 전쟁을 load해야 한다.
+                           // 진행중인 전쟁을 load해야 한다.
 
-                                        __END_CATCH}
+                           __END_CATCH}
 
 VSDateTime WarSystem::getWarEndTime(WarType_t warType) const {
     int seconds = 0;
@@ -111,7 +111,7 @@ VSDateTime WarSystem::getWarEndTime(WarType_t warType) const {
     return dt.addSecs(seconds);
 }
 
-bool WarSystem::addWarDelayed(War* pWar) throw(Error) {
+bool WarSystem::addWarDelayed(War* pWar) {
     __BEGIN_TRY
 
     Assert(pWar != NULL);
@@ -131,7 +131,7 @@ bool WarSystem::addWarDelayed(War* pWar) throw(Error) {
     __END_CATCH
 }
 
-bool WarSystem::addQueuedWar() throw(Error) {
+bool WarSystem::addQueuedWar() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_MutexWarQueue);
@@ -153,7 +153,7 @@ bool WarSystem::addQueuedWar() throw(Error) {
 }
 
 // WarSystem 안에서만 호출되는 함수이므로 LOCK필요없다.
-bool WarSystem::addWar(War* pWar) throw(Error) {
+bool WarSystem::addWar(War* pWar) {
     __BEGIN_TRY
 
     Assert(pWar != NULL);
@@ -223,7 +223,7 @@ bool WarSystem::addWar(War* pWar) throw(Error) {
 }
 
 
-bool WarSystem::makeGCWarList_LOCKED() throw(Error) {
+bool WarSystem::makeGCWarList_LOCKED() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_MutexWarList)
@@ -272,7 +272,7 @@ bool WarSystem::makeGCWarList_LOCKED() throw(Error) {
     __END_CATCH
 }
 
-bool WarSystem::makeGCWarList() throw(Error) {
+bool WarSystem::makeGCWarList() {
     __BEGIN_TRY
 
     bool ret = false;
@@ -290,7 +290,7 @@ bool WarSystem::makeGCWarList() throw(Error) {
     return false;
 }
 
-void WarSystem::sendGCWarList(Player* pPlayer) throw(Error) {
+void WarSystem::sendGCWarList(Player* pPlayer) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_MutexWarList)
@@ -305,7 +305,7 @@ void WarSystem::sendGCWarList(Player* pPlayer) throw(Error) {
     __END_CATCH
 }
 
-Work* WarSystem::heartbeat() throw(Error) {
+Work* WarSystem::heartbeat() {
     __BEGIN_TRY
 
     Work* pWork = NULL;
@@ -370,7 +370,7 @@ Work* WarSystem::heartbeat() throw(Error) {
     __END_CATCH
 }
 
-bool WarSystem::checkStartRaceWar() throw(Error) {
+bool WarSystem::checkStartRaceWar() {
     __BEGIN_TRY
 
     if (m_pRaceWarSchedule->heartbeat()) {
@@ -390,7 +390,7 @@ bool WarSystem::checkStartRaceWar() throw(Error) {
     __END_CATCH
 }
 
-bool WarSystem::getAttackGuildID(ZoneID_t zoneID, GuildID_t& guildID) const throw(Error) {
+bool WarSystem::getAttackGuildID(ZoneID_t zoneID, GuildID_t& guildID) const {
     __BEGIN_TRY
 
     bool bHasCastleActiveWar = false;
@@ -411,7 +411,7 @@ bool WarSystem::getAttackGuildID(ZoneID_t zoneID, GuildID_t& guildID) const thro
     __END_CATCH
 }
 
-bool WarSystem::hasCastleActiveWar(ZoneID_t zoneID) const throw(Error) {
+bool WarSystem::hasCastleActiveWar(ZoneID_t zoneID) const {
     __BEGIN_TRY
 
     bool bHasCastleActiveWar = false;
@@ -454,7 +454,7 @@ bool WarSystem::hasCastleActiveWar(ZoneID_t zoneID) const throw(Error) {
     __END_CATCH
 }
 
-WarSchedule* WarSystem::getActiveWarSchedule(ZoneID_t zoneID) throw(Error) {
+WarSchedule* WarSystem::getActiveWarSchedule(ZoneID_t zoneID) {
     __BEGIN_TRY
 
     WarSchedule* pWarSchedule = NULL;
@@ -471,7 +471,7 @@ WarSchedule* WarSystem::getActiveWarSchedule(ZoneID_t zoneID) throw(Error) {
 }
 
 
-WarSchedule* WarSystem::getActiveWarSchedule_LOCKED(ZoneID_t zoneID) throw(Error) {
+WarSchedule* WarSystem::getActiveWarSchedule_LOCKED(ZoneID_t zoneID) {
     __BEGIN_TRY
 
     const RecentSchedules::container_type& schedules = m_RecentSchedules.getSchedules();
@@ -502,7 +502,7 @@ WarSchedule* WarSystem::getActiveWarSchedule_LOCKED(ZoneID_t zoneID) throw(Error
     __END_CATCH
 }
 
-War* WarSystem::getActiveWar(ZoneID_t zoneID) const throw(Error) {
+War* WarSystem::getActiveWar(ZoneID_t zoneID) const {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -533,7 +533,7 @@ War* WarSystem::getActiveWar(ZoneID_t zoneID) const throw(Error) {
     __END_CATCH
 }
 
-bool WarSystem::isEndCondition(Item* pItem, MonsterCorpse* pMonsterCorpse) throw(Error) {
+bool WarSystem::isEndCondition(Item* pItem, MonsterCorpse* pMonsterCorpse) {
     __BEGIN_TRY
 
     Assert(pItem != NULL);
@@ -547,7 +547,7 @@ bool WarSystem::isEndCondition(Item* pItem, MonsterCorpse* pMonsterCorpse) throw
     __END_CATCH
 }
 
-bool WarSystem::isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC) throw(Error) {
+bool WarSystem::isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC) {
     __BEGIN_TRY
 
     War* pWar = getActiveWar(castleZoneID);
@@ -559,7 +559,7 @@ bool WarSystem::isModifyCastleOwner(ZoneID_t castleZoneID, PlayerCreature* pPC) 
 }
 
 // pPC가 castleZoneID와 관련된 전쟁에 승리했다.
-bool WarSystem::endWar(PlayerCreature* pPC, ZoneID_t castleZoneID) throw(Error) {
+bool WarSystem::endWar(PlayerCreature* pPC, ZoneID_t castleZoneID) {
     __BEGIN_TRY
 
     Assert(pPC != NULL);
@@ -596,7 +596,7 @@ bool WarSystem::endWar(PlayerCreature* pPC, ZoneID_t castleZoneID) throw(Error) 
 }
 
 // castleZoneID의 진행중인 전쟁을 제거한다.
-bool WarSystem::removeWar(ZoneID_t castleZoneID) throw(Error) {
+bool WarSystem::removeWar(ZoneID_t castleZoneID) {
     __BEGIN_TRY
 
     bool bRemoved = false;
@@ -623,7 +623,7 @@ bool WarSystem::removeWar(ZoneID_t castleZoneID) throw(Error) {
 }
 
 // castleZoneID의 진행중인 전쟁을 제거한다.
-bool WarSystem::removeRaceWar() throw(Error) {
+bool WarSystem::removeRaceWar() {
     __BEGIN_TRY
 
     bool bRemoved = false;
@@ -658,7 +658,7 @@ bool WarSystem::removeRaceWar() throw(Error) {
 }
 
 // 특정한 플레이어에게 현재 진행중인 전쟁의 리스트를 보내준다.
-void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const throw(Error) {
+void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -710,7 +710,7 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const throw(Error) {
     __END_CATCH
 }
 
-War* WarSystem::getActiveRaceWar() const throw(Error) {
+War* WarSystem::getActiveRaceWar() const {
     __BEGIN_TRY
 
     War* pWar = NULL;
@@ -726,7 +726,7 @@ War* WarSystem::getActiveRaceWar() const throw(Error) {
     __END_CATCH
 }
 
-bool WarSystem::startRaceWar() throw(Error) {
+bool WarSystem::startRaceWar() {
     __BEGIN_TRY
 
     if (hasActiveRaceWar())
@@ -747,7 +747,7 @@ bool WarSystem::startRaceWar() throw(Error) {
     __END_CATCH
 }
 
-War* WarSystem::getActiveRaceWarAtSameThread() const throw(Error) {
+War* WarSystem::getActiveRaceWarAtSameThread() const {
     __BEGIN_TRY
 
     const RecentSchedules::container_type& schedules = m_RecentSchedules.getSchedules();
@@ -767,7 +767,7 @@ War* WarSystem::getActiveRaceWarAtSameThread() const throw(Error) {
     __END_CATCH
 }
 
-bool WarSystem::addRaceWarScheduleInfo(WarScheduleInfo* pWSI) throw(Error) {
+bool WarSystem::addRaceWarScheduleInfo(WarScheduleInfo* pWSI) {
     __BEGIN_TRY
 
     if (m_pRaceWarSchedule == NULL)

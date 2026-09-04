@@ -83,7 +83,7 @@ void EffectVampirePortal::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Ob
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectVampirePortal::toString() const throw() {
+string EffectVampirePortal::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

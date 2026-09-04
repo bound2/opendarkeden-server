@@ -151,7 +151,7 @@ bool EffectObservingEye::canSeeInvisibility(Creature* pTarget) const
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectObservingEye::toString() const throw() {
+string EffectObservingEye::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

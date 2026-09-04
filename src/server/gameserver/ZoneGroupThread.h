@@ -31,7 +31,7 @@ public:
     ZoneGroupThread(ZoneGroup* pZoneGroup);
 
     // destructor
-    ~ZoneGroupThread();
+    ~ZoneGroupThread() noexcept;
 
     // main method
     void run();

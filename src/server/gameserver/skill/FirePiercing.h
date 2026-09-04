@@ -15,14 +15,14 @@
 
 class FirePiercing : public SkillHandler {
 public:
-    FirePiercing() throw() {}
-    ~FirePiercing() throw() {}
+    FirePiercing() {}
+    ~FirePiercing() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "FirePiercing";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_FIRE_PIERCING;
     }
 

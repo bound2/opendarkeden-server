@@ -35,7 +35,7 @@ Money::Money(ItemType_t itemType, const list<OptionType_t>& optionType, ItemNum_
     m_Num = Num;
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Money::Money() : Invalid item type or option type");
-        throw("Money::Money() : Invalid item type or optionType");
+        throw "Money::Money() : Invalid item type or optionType";
     }
 }
 

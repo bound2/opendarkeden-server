@@ -15,14 +15,14 @@
 
 class ViolentPhantom : public SkillHandler {
 public:
-    ViolentPhantom() throw();
-    ~ViolentPhantom() throw() {}
+    ViolentPhantom();
+    ~ViolentPhantom() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ViolentPhantom";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_VIOLENT_PHANTOM;
     }
 

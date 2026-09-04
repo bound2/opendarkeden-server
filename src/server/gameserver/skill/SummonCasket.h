@@ -15,14 +15,14 @@
 
 class SummonCasket : public SkillHandler {
 public:
-    SummonCasket() throw() {}
-    ~SummonCasket() throw() {}
+    SummonCasket() {}
+    ~SummonCasket() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SummonCasket";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SUMMON_CASKET;
     }
 

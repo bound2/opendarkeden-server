@@ -18,7 +18,7 @@ public:
     EffectSummonCasket(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_CASKET;
     }
 
@@ -31,13 +31,13 @@ public:
     void unaffect();
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getType() const throw() {
+    int getType() const {
         return m_Type;
     }
-    void setType(int t) throw() {
+    void setType(int t) {
         m_Type = t;
     }
 

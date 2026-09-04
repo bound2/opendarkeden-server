@@ -54,7 +54,7 @@ Belt::Belt(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Belt::Belt() : Invalid item type or option type");
-        throw("Belt::Belt() : Invalid item type or optionType");
+        throw "Belt::Belt() : Invalid item type or optionType";
     }
 
     __END_CATCH

@@ -14,19 +14,19 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-StringStream::StringStream() throw() : m_Size(0), m_bInserted(false), m_Buffer("") {}
+StringStream::StringStream() : m_Size(0), m_bInserted(false), m_Buffer("") {}
 
 
 //////////////////////////////////////////////////////////////////////
 // destructor
 //////////////////////////////////////////////////////////////////////
-StringStream::~StringStream() throw() {}
+StringStream::~StringStream() {}
 
 
 //////////////////////////////////////////////////////////////////////
 // add string to stream
 //////////////////////////////////////////////////////////////////////
-StringStream& StringStream::operator<<(bool T) throw() {
+StringStream& StringStream::operator<<(bool T) {
     string buf(T == true ? "true" : "false");
 
     m_Strings.push_back(buf);
@@ -37,7 +37,7 @@ StringStream& StringStream::operator<<(bool T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(char T) throw() {
+StringStream& StringStream::operator<<(char T) {
     string buf(2, '\0');
     buf[0] = T;
 
@@ -49,7 +49,7 @@ StringStream& StringStream::operator<<(char T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(uchar T) throw() {
+StringStream& StringStream::operator<<(uchar T) {
     string buf(2, 0);
     buf[0] = T;
 
@@ -61,7 +61,7 @@ StringStream& StringStream::operator<<(uchar T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(short T) throw() {
+StringStream& StringStream::operator<<(short T) {
     char buf[7];
     sprintf(buf, "%d", T);
 
@@ -75,7 +75,7 @@ StringStream& StringStream::operator<<(short T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(ushort T) throw() {
+StringStream& StringStream::operator<<(ushort T) {
     char buf[7];
     sprintf(buf, "%u", T);
 
@@ -89,7 +89,7 @@ StringStream& StringStream::operator<<(ushort T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(int T) throw() {
+StringStream& StringStream::operator<<(int T) {
     char buf[12];
     sprintf(buf, "%d", T);
 
@@ -103,7 +103,7 @@ StringStream& StringStream::operator<<(int T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(uint T) throw() {
+StringStream& StringStream::operator<<(uint T) {
     char buf[12];
     sprintf(buf, "%u", T);
 
@@ -117,7 +117,7 @@ StringStream& StringStream::operator<<(uint T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(long T) throw() {
+StringStream& StringStream::operator<<(long T) {
     char buf[12];
     sprintf(buf, "%ld", T);
 
@@ -131,7 +131,7 @@ StringStream& StringStream::operator<<(long T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(ulong T) throw() {
+StringStream& StringStream::operator<<(ulong T) {
     char buf[12];
     sprintf(buf, "%lu", T);
 
@@ -145,7 +145,7 @@ StringStream& StringStream::operator<<(ulong T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(float T) throw() {
+StringStream& StringStream::operator<<(float T) {
     char buf[12];
     sprintf(buf, "%f", T);
 
@@ -159,7 +159,7 @@ StringStream& StringStream::operator<<(float T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(double T) throw() {
+StringStream& StringStream::operator<<(double T) {
     char buf[22];
     sprintf(buf, "%f", T);
 
@@ -173,7 +173,7 @@ StringStream& StringStream::operator<<(double T) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(const char* buf) throw() {
+StringStream& StringStream::operator<<(const char* buf) {
     string str(buf);
 
     m_Strings.push_back(str);
@@ -184,7 +184,7 @@ StringStream& StringStream::operator<<(const char* buf) throw() {
     return *this;
 }
 
-StringStream& StringStream::operator<<(const string& str) throw() {
+StringStream& StringStream::operator<<(const string& str) {
     m_Strings.push_back(str);
 
     m_Size += str.size();
@@ -197,7 +197,7 @@ StringStream& StringStream::operator<<(const string& str) throw() {
 //////////////////////////////////////////////////////////////////////
 // make string
 //////////////////////////////////////////////////////////////////////
-const string& StringStream::toString() const throw() {
+const string& StringStream::toString() const {
     // 일단 스트링을 한번 생성해놓으면,
     // 그다음 호출때에는 새로 추가되지 않는 한 그대로 사용한다.
     if (m_bInserted) {

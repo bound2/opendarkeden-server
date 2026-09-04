@@ -130,7 +130,7 @@ void EffectGreenPoison::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectGreenPoison::toString() const throw() {
+string EffectGreenPoison::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -63,7 +63,7 @@ Motorcycle::Motorcycle(ItemType_t itemType, const list<OptionType_t>& optionType
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Motorcycle::Motorcycle() : Invalid item type or option type");
-        throw("Motorcycle::Motorcycle() : Invalid item type or optionType");
+        throw "Motorcycle::Motorcycle() : Invalid item type or optionType";
     }
 
     __END_CATCH

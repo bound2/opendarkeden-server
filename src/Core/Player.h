@@ -47,7 +47,7 @@ public:
     Player(Socket* pSocket);
 
     // destructor
-    virtual ~Player() noexcept;
+    virtual ~Player() noexcept(false);
 
     // read socket's receive buffer and fill input buffer
     virtual void processInput();

@@ -19,10 +19,10 @@ public:
     EffectAirShield(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_AIR_SHIELD_1;
     }
-    EffectClass getSendEffectClass() const throw() {
+    EffectClass getSendEffectClass() const {
         return m_ClientEffectClass;
     }
 
@@ -35,25 +35,25 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Level_t getLevel() const throw() {
+    Level_t getLevel() const {
         return m_Level;
     }
-    void setLevel(Level_t Level) throw();
+    void setLevel(Level_t Level);
 
-    EffectClass getClientEffectClass() const throw() {
+    EffectClass getClientEffectClass() const {
         return m_ClientEffectClass;
     }
-    void setClientEffectClass(EffectClass effectClass) throw() {
+    void setClientEffectClass(EffectClass effectClass) {
         m_ClientEffectClass = effectClass;
     }
 
-    Damage_t getDamage() const throw() {
+    Damage_t getDamage() const {
         return m_Damage;
     }
-    void setDamage(Damage_t Damage) throw() {
+    void setDamage(Damage_t Damage) {
         m_Damage = Damage;
     }
 
@@ -69,10 +69,10 @@ private:
 
 class EffectAirShieldLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_AIR_SHIELD_1;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectAirShield";
     }
 

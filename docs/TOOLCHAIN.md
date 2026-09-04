@@ -1,7 +1,7 @@
 # Toolchain notes
 
-Two related changes, proof-of-concept quality: the XML dependency was replaced,
-which in turn made an alternative compiler toolchain viable.
+Replacing the XML dependency made a reproducible Zig/Clang compiler toolchain
+viable. That toolchain is now used by both container builders.
 
 ## 1. xerces-c replaced by vendored tinyxml2
 
@@ -86,18 +86,52 @@ comparison; it is not built by default.
 
 ## 2. Building with `zig cc`
 
+`Dockerfile` and `Dockerfile.dev` pin Zig 0.16.0, whose C++ driver reports
+Clang 21.1.0. CMake always reaches it through `cmake/zig-toolchain.cmake`, so
+the distro's compiler version no longer controls the language features used by
+container builds.
+
+For the fast development-volume build:
+
+```bash
+docker build -f Dockerfile.dev -t darkeden-dev .
+make dev-test
+make dev-build
+
+# Exercise the transitional C++17 compatibility lane with:
+CXX_STANDARD=17 make dev-test
+CXX_STANDARD=17 make dev-build
+```
+
+The production image uses the same compiler and defaults to C++20:
+
+```bash
+docker build -t darkeden:local .
+docker build --build-arg CXX_STANDARD=17 -t darkeden:cxx17 .
+```
+
+Both image builds accept `--build-arg ZIG_VERSION=...` for an intentional
+toolchain update. The current tree is verified under C++17 and C++20; C++17 is
+a transition/rollback lane, not the language level new design should target.
+
+For a manually installed Zig toolchain, the equivalent direct CMake commands
+are:
+
 ```bash
 cmake -B build-zig -DCMAKE_TOOLCHAIN_FILE=cmake/zig-toolchain.cmake \
-      -DCMAKE_BUILD_TYPE=Debug
+      -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=20
 cmake --build build-zig -j
 ```
 
 Zig is located as `$ZIG`, else `zig` on `$PATH`, else `python3 -m ziglang`
 (the PyPI `ziglang` package ships the full toolchain).
 
-> **One build tree at a time.** `CMAKE_*_OUTPUT_DIRECTORY` point at the shared
-> source-tree `bin/` and `lib/`, so `build/` and `build-zig/` overwrite each
-> other's binaries while each still considers its own targets up to date.
+`tools/devbuild.sh` gives every Zig version, target, C++ standard and build type
+its own CMake tree, output root, ccache directory and Zig cache directory. Run
+`tools/devbuild.sh output-dir` with the same environment to print that lane's
+artifact root. For manual builds, use one build tree and output root per
+toolchain configuration, for example
+`-DDARKEDEN_OUTPUT_ROOT="$PWD/output-zig-cxx20"`.
 
 ### Why it works here
 
@@ -118,13 +152,25 @@ C++ ABI. **Re-introducing a C++-API dependency reopens this.**
 
 - One compiler binary, byte-identical on every machine and CI runner, rather
   than whatever `g++` the distribution shipped.
-- A bundled libc, so the glibc floor is chosen at build time instead of
-  discovered at deploy time:
+- Zig can select a target and libc version at configure time for code whose
+  complete dependency set supports that target:
   ```bash
-  ZIG_TARGET=x86_64-linux-gnu.2.17 cmake --build build-zig
+  cmake -B build-zig-glibc217 \
+        -DCMAKE_TOOLCHAIN_FILE=cmake/zig-toolchain.cmake \
+        -DDARKEDEN_ZIG_TARGET=x86_64-linux-gnu.2.17 \
+        -DDARKEDEN_OUTPUT_ROOT="$PWD/output-zig-glibc217"
   ```
-  produces a binary that runs on CentOS 7-era glibc from a modern host.
-- Cross-compilation without assembling a sysroot by hand.
+  The target is a CMake cache value, so it is visible in the generated Ninja
+  commands and changing it requires a separate build tree.
+- Cross-target compilation support without constructing a libc sysroot by
+  hand.
+
+The current container installs MySQL, Lua and zlib development libraries from
+its Ubuntu 20.04 package repository. Those host libraries are not a Zig cross
+sysroot, so a complete server binary built by these Dockerfiles is supported
+only for the container's native target. A non-native target or older glibc
+floor requires target-compatible builds of all three dependencies; do not
+infer CentOS 7 compatibility from `DARKEDEN_ZIG_TARGET` alone.
 
 ### What it found immediately
 
@@ -152,6 +198,12 @@ same single instruction, so there is no cost in the hot path. The wire golden
 tests pass unchanged under both toolchains, which is what establishes the
 output is byte-identical.
 
+The C++17/C++20 migration pass found a second checked-conversion case:
+`tileDistance` intentionally narrows a distance to the protocol's byte width.
+The code now spells that modulo operation explicitly, preserving the existing
+300 → 44 behavior without asking Zig's checked Debug mode to perform an
+out-of-range cast.
+
 This is the argument for sanitizers in one example: the bug was reachable from
 an ordinary `CGWhisper` round-trip, sat in the packet write path used by every
 outbound packet, and no amount of reading found it in twenty years.
@@ -161,5 +213,125 @@ outbound packet, and no amount of reading found it in twenty years.
 `zig cc` is a *compiler*, not a build system or a package manager. Zig's own
 package management (`build.zig.zon`) is reachable only through `zig build`,
 which would mean replacing CMake wholesale. With three external C
-dependencies that trade does not pay for itself, so this PoC keeps CMake and
+dependencies that trade does not pay for itself, so this setup keeps CMake and
 uses Zig only as the compiler driver.
+
+## 3. Where C++20 pays off in DarkEden
+
+Changing the compiler flag does not by itself make the server safer or faster.
+The value is that new/refactored code can use a stronger vocabulary at the
+places where this codebase currently relies on conventions, raw buffer pairs,
+macros and polling loops.
+
+The current tree still builds as C++17 to provide a transition and rollback
+lane. The items below are C++20 adoption work: each slice must either retire
+that lane deliberately or hide the new facility behind a small compatibility
+boundary. Do not spread project-wide `#if __cplusplus` branches merely to keep
+both modes alive.
+
+| Priority | C++20 facility | Project seam | Main benefit |
+|---|---|---|---|
+| P0 | `std::jthread`, `std::stop_token`, atomic wait/notify | `Thread`, `ZoneGroupThread`, `SMSServiceThread`, `NetmarbleGuildRegisterThread` | Cooperative shutdown and owned joins instead of unsupported `stop()`, `while (true)` and sleep polling |
+| P0 | `std::span`, concepts, `std::endian`, `std::bit_cast` | `SocketInputStream`, `SocketOutputStream`, packet codecs | Bound buffer lengths to their data and reject unsafe wire types at compile time |
+| P1 | `constexpr`/`consteval` metadata and concepts | `AllPacketFactories.inc`, `PacketIDSet`, packet factory classes | Detect duplicate IDs, invalid sizes and incomplete registrations during compilation |
+| P1 | `std::source_location` | `Assert.h`, `Exception.h`, DB/error macros | Preserve call-site diagnostics without compiler-specific macros or repeated file/line plumbing |
+| P1 | `std::latch`, `std::barrier`, `std::counting_semaphore` | thread startup phases and bounded work queues | Replace timing assumptions with explicit readiness and back-pressure |
+| P2 | ranges, views, `contains`, `erase_if` | manager/registry traversal | Reduce hand-written iterator and double-lookup mistakes once ownership and lock boundaries are explicit |
+
+### Structured thread lifetime and cancellation
+
+The base `Thread` class manually wraps `pthread_create`/`pthread_join`, exposes
+a status field, and has a default `stop()` that throws `UnsupportedError`.
+Several derived services run `while (true)` and periodically call `usleep` or
+`sleep`; `ZoneGroupThread` does this in the main gameplay tick.
+
+`std::jthread` owns the join operation and propagates a `std::stop_token` to
+the worker. A stop-aware condition-variable wait can wake immediately during
+shutdown instead of waiting for the next polling interval. Where only a state
+change is needed, `std::atomic::wait`/`notify_*` can avoid a mutex and repeated
+wakeups. This would make orderly process shutdown testable and remove a class
+of use-after-free and stuck-join failures.
+
+This should be migrated from the leaves inward: start with an isolated polling
+service such as `SMSServiceThread`, establish request-stop/join ownership, and
+only then change the `ZoneGroupThread` tick loop. The gameplay tick cadence and
+the existing lock around `ZoneGroup` must remain unchanged in the first slice.
+
+### Type-safe packet buffers
+
+The socket streams currently expose raw pointer-plus-length overloads and
+unconstrained `read<T>`/`write<T>` templates that copy `sizeof(T)` bytes. Any
+accidentally passed pointer, padded class, platform-sized integer or other
+non-wire type therefore compiles. The earlier misaligned-access fix proved
+that this hot path benefits from making representation rules explicit.
+
+Use `std::span<std::byte>`/`std::span<const std::byte>` for buffer regions and
+a `WireScalar` concept for the scalar overloads. That concept should permit
+only the fixed-width, trivially-copyable types approved by the protocol.
+`std::endian` can document the existing byte order, while `std::bit_cast`
+provides representation conversion without aliasing violations. These tools
+do not perform byte swapping or bounds validation automatically; the codec
+must still check sizes and preserve the deployed client's byte order.
+
+Migrate one packet family at a time behind the existing stream API. Every
+slice must keep the wire-layout inventory, per-code encryption goldens and
+round-trip tests byte-identical. Packet safety is the highest-value C++20 use
+because a compile-time rejection is much cheaper than diagnosing a corrupted
+live session.
+
+### Compile-time packet metadata
+
+Hundreds of packet factories are registered through generated lists and then
+validated by tests and ratchets. Keep runtime object creation, but move the
+static facts -- packet ID, direction, fixed/minimum size and factory mapping --
+into a `constexpr` table. A `consteval` builder can reject duplicate IDs,
+out-of-range sizes and missing metadata during compilation. Concepts can also
+state the required packet/factory interface and produce a local diagnostic
+instead of a template error far inside registration code.
+
+This complements rather than replaces the golden tests: compile-time checks
+prove internal consistency, while goldens prove compatibility with the client
+and the encrypted wire format.
+
+### Diagnostics without location macros
+
+`Assert.h`, `Exception.h` and the database helpers pass `__FILE__`, `__LINE__`
+and `__PRETTY_FUNCTION__` through macros. A defaulted
+`std::source_location::current()` parameter captures the caller in an ordinary
+function, preserves richer function names, and makes the diagnostic path
+unit-testable. This is a low-risk first use of a C++20-only library feature;
+the public logging format should remain stable during the migration.
+
+### Explicit coordination and bounded work
+
+Use `std::latch` for one-shot worker readiness, `std::barrier` only where a
+repeated phase boundary genuinely exists, and `std::counting_semaphore` for a
+bounded producer/consumer queue. These primitives are preferable to adding
+another sleep-and-check loop, but they should follow an ownership audit: a new
+primitive cannot make shared gameplay state safe if its owner and lock scope
+are unclear.
+
+### Safer collection traversal
+
+Ranges and named operations such as `contains` and `erase_if` can remove a lot
+of iterator boilerplate in managers and registries. Apply them during focused
+ownership refactors, not as a tree-wide style conversion. Views borrow their
+source; returning or storing a view into a temporary or into a container after
+its lock is released would replace visible iterator code with a subtler
+lifetime bug.
+
+### Features that are not first moves
+
+- Coroutines do not turn the current blocking socket and thread-per-zone
+  architecture into asynchronous I/O. They become useful only with an evented
+  transport, explicit cancellation and back-pressure; that is an architecture
+  project, not a language cleanup.
+- Modules should wait until the macro-heavy include graph and generated packet
+  headers have cleaner boundaries. Measure their effect against the current
+  ccache/Ninja build before accepting the extra build-system complexity.
+- Parallel algorithms are unsafe as a blanket optimisation over mutable
+  gameplay containers. Deterministic ordering, ownership and lock scope must
+  be established first.
+- `std::format` is useful for typed diagnostics, but changing the logging
+  surface is lower value than thread and packet safety and must be benchmarked
+  on hot paths.

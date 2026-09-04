@@ -125,7 +125,7 @@ void EffectSetAfire::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectSetAfire::toString() const throw() {
+string EffectSetAfire::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

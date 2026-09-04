@@ -15,14 +15,14 @@
 
 class PowerOfLand : public SkillHandler {
 public:
-    PowerOfLand() throw() {}
-    ~PowerOfLand() throw() {}
+    PowerOfLand() {}
+    ~PowerOfLand() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "PowerOfLand";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_POWER_OF_LAND;
     }
 

@@ -15,15 +15,15 @@
 
 class HeterChakram : public SkillHandler {
 public:
-    HeterChakram() throw() {}
-    ~HeterChakram() throw() {}
+    HeterChakram() {}
+    ~HeterChakram() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HeterChakram";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HETER_CHAKRAM;
     }
 

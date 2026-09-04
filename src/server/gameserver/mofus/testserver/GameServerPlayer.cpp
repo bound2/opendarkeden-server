@@ -34,10 +34,10 @@ const int defaultGameServerPlayerOutputStreamSize = 163840;
 // constructor
 //
 //////////////////////////////////////////////////////////////////////
-GameServerPlayer::GameServerPlayer() throw(Error) {}
+GameServerPlayer::GameServerPlayer() {}
 
 
-GameServerPlayer::GameServerPlayer(Socket* pSocket) throw(Error) {
+GameServerPlayer::GameServerPlayer(Socket* pSocket) {
     __BEGIN_TRY
 
     Assert(pSocket != NULL);
@@ -62,13 +62,13 @@ GameServerPlayer::GameServerPlayer(Socket* pSocket) throw(Error) {
 // destructor
 //
 //////////////////////////////////////////////////////////////////////
-GameServerPlayer::~GameServerPlayer() throw(Error) {
+GameServerPlayer::~GameServerPlayer() noexcept(false) {
     __BEGIN_TRY
     __END_CATCH
 }
 
 
-void GameServerPlayer::processInput() throw(IOException, Error) {
+void GameServerPlayer::processInput() {
     __BEGIN_TRY
 
     try {
@@ -80,7 +80,7 @@ void GameServerPlayer::processInput() throw(IOException, Error) {
 }
 
 
-void GameServerPlayer::processOutput() throw(IOException, Error) {
+void GameServerPlayer::processOutput() {
     __BEGIN_TRY
 
     try {
@@ -98,7 +98,7 @@ void GameServerPlayer::processOutput() throw(IOException, Error) {
 // parse packet and execute handler for the packet
 //
 //////////////////////////////////////////////////////////////////////
-void GameServerPlayer::processCommand() throw(IOException, Error) {
+void GameServerPlayer::processCommand() {
     __BEGIN_TRY
 
     try {
@@ -157,7 +157,7 @@ void GameServerPlayer::processCommand() throw(IOException, Error) {
 // send packet to player's output buffer
 //
 //////////////////////////////////////////////////////////////////////
-void GameServerPlayer::sendPacket(MPacket* pPacket) throw(ProtocolException, Error) {
+void GameServerPlayer::sendPacket(MPacket* pPacket) {
     __BEGIN_TRY
 
     Assert(pPacket != NULL);
@@ -173,7 +173,7 @@ void GameServerPlayer::sendPacket(MPacket* pPacket) throw(ProtocolException, Err
 // disconnect ( close socket )
 //
 //////////////////////////////////////////////////////////////////////
-void GameServerPlayer::disconnect(bool bDisconnected) throw(InvalidProtocolException, Error) {
+void GameServerPlayer::disconnect(bool bDisconnected) {
     __BEGIN_TRY
 
     try {
@@ -199,7 +199,7 @@ void GameServerPlayer::disconnect(bool bDisconnected) throw(InvalidProtocolExcep
 //////////////////////////////////////////////////////////////////////
 // set socket
 //////////////////////////////////////////////////////////////////////
-void GameServerPlayer::setSocket(Socket* pSocket) throw() {
+void GameServerPlayer::setSocket(Socket* pSocket) {
     __BEGIN_TRY
 
     m_pSocket = pSocket;
@@ -222,7 +222,7 @@ void GameServerPlayer::setSocket(Socket* pSocket) throw() {
 // get debug string
 //
 //////////////////////////////////////////////////////////////////////
-string GameServerPlayer::toString() const throw(Error) {
+string GameServerPlayer::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

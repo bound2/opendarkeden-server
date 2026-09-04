@@ -15,15 +15,15 @@
 
 class IllusionInversion : public SkillHandler {
 public:
-    IllusionInversion() throw() {}
-    ~IllusionInversion() throw() {}
+    IllusionInversion() {}
+    ~IllusionInversion() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "IllusionInversion";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ILLUSION_INVERSION;
     }
 

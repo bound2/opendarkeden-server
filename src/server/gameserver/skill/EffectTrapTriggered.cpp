@@ -73,7 +73,7 @@ void EffectTrapTriggered::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectTrapTriggered::toString() const throw() {
+string EffectTrapTriggered::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -15,14 +15,14 @@
 
 class WideLightning : public SkillHandler {
 public:
-    WideLightning() throw() {}
-    ~WideLightning() throw() {}
+    WideLightning() {}
+    ~WideLightning() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "WideLightning";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_WIDE_LIGHTNING;
     }
 

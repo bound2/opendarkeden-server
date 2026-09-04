@@ -47,7 +47,7 @@ public:
     PlayerManager();
 
     // destructor
-    virtual ~PlayerManager();
+    virtual ~PlayerManager() noexcept(false);
 
     // broadcast message
     virtual void broadcastPacket(Packet* pPacket);

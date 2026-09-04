@@ -14,7 +14,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-ClaymoreExplosion::ClaymoreExplosion() throw() {
+ClaymoreExplosion::ClaymoreExplosion() {
     __BEGIN_TRY
 
     int index = 0;

@@ -15,7 +15,7 @@
 #include "Timeval.h"
 #include "Utility.h"
 
-DatabaseManager::DatabaseManager() throw() {
+DatabaseManager::DatabaseManager() {
     __BEGIN_TRY
 
     m_Mutex.setName("DatabaseManager");
@@ -25,7 +25,7 @@ DatabaseManager::DatabaseManager() throw() {
     __END_CATCH
 }
 
-DatabaseManager::~DatabaseManager() throw() {
+DatabaseManager::~DatabaseManager() {
     __BEGIN_TRY
 
     // 모든 Connection 를 삭제해야 한다.

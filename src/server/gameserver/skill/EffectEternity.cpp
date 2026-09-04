@@ -109,7 +109,7 @@ void EffectEternity::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectEternity::toString() const throw() {
+string EffectEternity::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

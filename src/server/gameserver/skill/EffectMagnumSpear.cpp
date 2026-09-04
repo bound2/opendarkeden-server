@@ -123,7 +123,7 @@ void EffectMagnumSpear::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectMagnumSpear::toString() const throw() {
+string EffectMagnumSpear::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

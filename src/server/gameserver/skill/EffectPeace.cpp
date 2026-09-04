@@ -114,7 +114,7 @@ void EffectPeace::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pO
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectPeace::toString() const throw() {
+string EffectPeace::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

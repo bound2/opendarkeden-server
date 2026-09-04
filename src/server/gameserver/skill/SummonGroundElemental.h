@@ -17,14 +17,14 @@
 
 class SummonGroundElemental : public SkillHandler {
 public:
-    SummonGroundElemental() throw();
-    ~SummonGroundElemental() throw() {}
+    SummonGroundElemental();
+    ~SummonGroundElemental() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SummonGroundElemental";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SUMMON_GROUND_ELEMENTAL;
     }
 

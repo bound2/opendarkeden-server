@@ -42,7 +42,7 @@ PetFood::PetFood(ItemType_t itemType, const list<OptionType_t>& optionType, Item
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "PetFood::PetFood() : Invalid item type or option type");
-        throw("PetFood::PetFood() : Invalid item type or optionType");
+        throw "PetFood::PetFood() : Invalid item type or optionType";
     }
 }
 

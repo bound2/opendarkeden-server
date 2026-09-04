@@ -15,14 +15,14 @@
 
 class WideIceHail : public SkillHandler {
 public:
-    WideIceHail() throw() {}
-    ~WideIceHail() throw() {}
+    WideIceHail() {}
+    ~WideIceHail() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "WideIceHail";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_WIDE_ICE_HAIL;
     }
 

@@ -12,7 +12,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-TornadoSever::TornadoSever() throw() {
+TornadoSever::TornadoSever() {
     __BEGIN_TRY
 
     m_pTornadoSeverMask[0].set(0, 0);

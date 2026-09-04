@@ -15,14 +15,14 @@
 
 class Earthquake : public SkillHandler {
 public:
-    Earthquake() throw() {}
-    ~Earthquake() throw() {}
+    Earthquake() {}
+    ~Earthquake() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Earthquake";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_EARTHQUAKE;
     }
 

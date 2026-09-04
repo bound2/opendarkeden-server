@@ -15,14 +15,14 @@
 
 class Death : public SkillHandler {
 public:
-    Death() throw() {}
-    ~Death() throw() {}
+    Death() {}
+    ~Death() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Death";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DEATH;
     }
 

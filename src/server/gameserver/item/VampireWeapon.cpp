@@ -47,7 +47,7 @@ VampireWeapon::VampireWeapon(ItemType_t itemType, const list<OptionType_t>& opti
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireWeapon::VampireWeapon() : Invalid item type or option type");
-        throw("VampireWeapon::VampireWeapon() : Invalid item type or optionType");
+        throw "VampireWeapon::VampireWeapon() : Invalid item type or optionType";
     }
 }
 

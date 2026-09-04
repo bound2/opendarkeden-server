@@ -81,7 +81,7 @@ public:
     Thread(ThreadAttr* attr = NULL);
 
     // destructor
-    virtual ~Thread();
+    virtual ~Thread() noexcept(false);
 
 
     //////////////////////////////////////////////////

@@ -18,7 +18,7 @@ public:
     EffectRegeneration(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_REGENERATION;
     }
 
@@ -27,7 +27,7 @@ public:
 
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     Damage_t getDamage() const {

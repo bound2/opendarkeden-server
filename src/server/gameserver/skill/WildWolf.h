@@ -15,15 +15,15 @@
 
 class WildWolf : public SkillHandler {
 public:
-    WildWolf() throw() {}
-    ~WildWolf() throw() {}
+    WildWolf() {}
+    ~WildWolf() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "WildWolf";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_WILD_WOLF;
     }
 

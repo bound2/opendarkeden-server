@@ -127,7 +127,7 @@ void EffectHeartCatalyst::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectHeartCatalyst::toString() const throw() {
+string EffectHeartCatalyst::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -5,10 +5,10 @@
 
 class VampireCastleSkillSlot : public VampireSkillSlot {
 public:
-    VampireCastleSkillSlot() throw() : VampireSkillSlot() {}
-    VampireCastleSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime) throw()
+    VampireCastleSkillSlot() : VampireSkillSlot() {}
+    VampireCastleSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime)
         : VampireSkillSlot(SkillType, Interval, CastingTime) {}
-    ~VampireCastleSkillSlot() throw() {}
+    ~VampireCastleSkillSlot() {}
 
 public:
     virtual void save(const string& ownerID) {}

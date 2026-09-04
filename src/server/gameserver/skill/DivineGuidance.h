@@ -15,14 +15,14 @@
 
 class DivineGuidance : public SkillHandler {
 public:
-    DivineGuidance() throw() {}
-    ~DivineGuidance() throw() {}
+    DivineGuidance() {}
+    ~DivineGuidance() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DivineGuidance";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DIVINE_GUIDANCE;
     }
 

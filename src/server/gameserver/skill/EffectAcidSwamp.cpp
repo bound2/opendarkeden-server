@@ -211,7 +211,7 @@ void EffectAcidSwamp::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectAcidSwamp::toString() const throw() {
+string EffectAcidSwamp::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -15,14 +15,14 @@
 
 class GroundAttack : public SkillHandler {
 public:
-    GroundAttack() throw() {}
-    ~GroundAttack() throw() {}
+    GroundAttack() {}
+    ~GroundAttack() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GroundAttack";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GROUND_ATTACK;
     }
 

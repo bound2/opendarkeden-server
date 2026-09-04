@@ -19,7 +19,7 @@ public:
     EffectBloodDrain(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_BLOOD_DRAIN;
     }
 
@@ -36,13 +36,13 @@ public:
     virtual void destroy(const string& ownerID);
     virtual void save(const string& ownerID);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Level_t getLevel() const throw() {
+    Level_t getLevel() const {
         return m_Level;
     }
-    void setLevel(Level_t Level) throw() {
+    void setLevel(Level_t Level) {
         m_Level = Level;
     }
 
@@ -56,10 +56,10 @@ private:
 
 class EffectBloodDrainLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_BLOOD_DRAIN;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectBloodDrain";
     }
 

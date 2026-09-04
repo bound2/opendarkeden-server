@@ -80,7 +80,7 @@ void ActionTeachSkill::execute(Creature* pCreature1, Creature* pCreature2)
     else if (pCreature2->isVampire())
         executeVampire(pCreature1, pCreature2);
     else
-        throw("ActionTeachSkill::execute() : 알 수 없는 플레이어 크리쳐입니다!");
+        throw "ActionTeachSkill::execute() : 알 수 없는 플레이어 크리쳐입니다!";
 
     __END_CATCH
 }

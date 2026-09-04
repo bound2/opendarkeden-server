@@ -38,7 +38,7 @@ void ActionRedistributeAttr::read(PropertyBuffer& propertyBuffer)
             m_AttrType = 2;
         else {
             cout << "ActionRedistributeAttr::read() : Unknown ATTR type" << endl;
-            throw("ActionRedistributeAttr::read() : Unknown ATTR type");
+            throw "ActionRedistributeAttr::read() : Unknown ATTR type";
         }
     } catch (NoSuchElementException& nsee) {
         cout << nsee.toString() << endl;

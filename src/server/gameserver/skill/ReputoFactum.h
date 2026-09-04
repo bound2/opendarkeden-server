@@ -15,14 +15,14 @@
 
 class ReputoFactum : public SkillHandler {
 public:
-    ReputoFactum() throw() {}
-    ~ReputoFactum() throw() {}
+    ReputoFactum() {}
+    ~ReputoFactum() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ReputoFactum";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_REPUTO_FACTUM;
     }
 

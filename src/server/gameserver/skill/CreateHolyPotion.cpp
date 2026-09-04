@@ -176,7 +176,7 @@ void CreateHolyPotion::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordI
     __END_CATCH
 }
 
-bool CreateHolyPotion::canMake(ItemType_t PotionType, int DomainLevel, int SkillLevel) throw() {
+bool CreateHolyPotion::canMake(ItemType_t PotionType, int DomainLevel, int SkillLevel) {
     __BEGIN_TRY
 
     bool rvalue = false;

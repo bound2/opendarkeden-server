@@ -15,14 +15,14 @@
 
 class Aberration : public SkillHandler {
 public:
-    Aberration() throw() {}
-    ~Aberration() throw() {}
+    Aberration() {}
+    ~Aberration() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Aberration";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ABERRATION;
     }
 

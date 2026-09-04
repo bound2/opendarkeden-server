@@ -21,7 +21,7 @@ public:
     EffectFuryOfGnomeMark(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zoneY);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_FURY_OF_GNOME_MARK;
     }
 
@@ -31,7 +31,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     string getCasterName(void) const {

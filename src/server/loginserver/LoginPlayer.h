@@ -53,16 +53,16 @@ public:
     LoginPlayer(Socket* pSocket);
 
     // destructor
-    ~LoginPlayer();
+    ~LoginPlayer() noexcept;
 
     // read socket's receive buffer and fill input buffer
-    // virtual void processInput () throw ( IOException , Error );
+    // virtual void processInput () ;
 
     // parse packet and execute handler for the packet
     virtual void processCommand(bool Option = true);
 
     // flush output buffer to socket's send buffer
-    // virtual void processOutput () throw ( IOException , Error );
+    // virtual void processOutput () ;
 
     // send packet to player's output buffer
     virtual void sendPacket(Packet* packet);
@@ -86,83 +86,83 @@ public:
     Packet* getOldPacket(PacketID_t packetID);
 
     // get/set player's status
-    PlayerStatus getPlayerStatus() const throw() {
+    PlayerStatus getPlayerStatus() const {
         return m_PlayerStatus;
     }
-    void setPlayerStatus(PlayerStatus playerStatus) throw() {
+    void setPlayerStatus(PlayerStatus playerStatus) {
         m_PlayerStatus = playerStatus;
     }
 
     // 실패한 회수
-    uint getFailureCount() const throw() {
+    uint getFailureCount() const {
         return m_FailureCount;
     }
-    void setFailureCount(uint nFailed) throw() {
+    void setFailureCount(uint nFailed) {
         m_FailureCount = nFailed;
     }
 
     // get / set GoreLevel
-    bool isAdult() const throw() {
+    bool isAdult() const {
         return m_isAdult;
     }
-    void setAdult(bool isAdult) throw() {
+    void setAdult(bool isAdult) {
         m_isAdult = isAdult;
     }
 
 public:
-    int getKickCharacterCount() const throw() {
+    int getKickCharacterCount() const {
         return m_KickCharacterCount;
     }
     void setExpireTimeForKickCharacter();
 
     // 현재 월드의 ID
-    WorldID_t getWorldID() const throw() {
+    WorldID_t getWorldID() const {
         return m_WorldID;
     }
-    void setWorldID(WorldID_t WorldID) throw() {
+    void setWorldID(WorldID_t WorldID) {
         m_WorldID = WorldID;
     }
 
     // 현재 서버의 ID
-    WorldID_t getGroupID() const throw() {
+    WorldID_t getGroupID() const {
         return m_ServerGroupID;
     }
-    void setGroupID(ServerGroupID_t ServerGroupID) throw() {
+    void setGroupID(ServerGroupID_t ServerGroupID) {
         m_ServerGroupID = ServerGroupID;
     }
 
     // 현재 서버의 ID
-    uint getLastSlot() const throw() {
+    uint getLastSlot() const {
         return m_LastSlot;
     }
-    void setLastSlot(uint lastSlot) throw() {
+    void setLastSlot(uint lastSlot) {
         m_LastSlot = lastSlot;
     }
 
     // WorldID, GroupID가 설정되었나?
-    bool isSetWorldGroupID() const throw() {
+    bool isSetWorldGroupID() const {
         return m_bSetWorldGroupID;
     }
-    void setWorldGroupID(bool bSet) throw() {
+    void setWorldGroupID(bool bSet) {
         m_bSetWorldGroupID = bSet;
     }
 
     // 마지막으로 접속한 캐릭터의 이름
-    const string& getLastCharacterName() const throw() {
+    const string& getLastCharacterName() const {
         return m_LastCharacterName;
     }
-    void setLastCharacterName(const string& name) throw() {
+    void setLastCharacterName(const string& name) {
         m_LastCharacterName = name;
     }
 
-    const string& getZipcode() const throw() {
+    const string& getZipcode() const {
         return m_Zipcode;
     }
-    void setZipcode(const string& zipcode) throw() {
+    void setZipcode(const string& zipcode) {
         m_Zipcode = zipcode;
     }
 
-    const string& getSSN() const throw() {
+    const string& getSSN() const {
         return m_SSN;
     }
     void setSSN(const string& ssn) {

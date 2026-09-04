@@ -15,14 +15,14 @@
 
 class FireMeteor : public SkillHandler {
 public:
-    FireMeteor() throw() {}
-    ~FireMeteor() throw() {}
+    FireMeteor() {}
+    ~FireMeteor() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "FireMeteor";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_Fire_Meteor;
     }
 

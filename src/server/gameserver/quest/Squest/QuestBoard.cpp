@@ -30,7 +30,7 @@ QuestBoard::QuestBoard()
 //--------------------------------------------------------------------------------
 // init
 //--------------------------------------------------------------------------------
-void QuestBoard::init(int num) throw(Error) {
+void QuestBoard::init(int num) {
     __BEGIN_TRY
 
     regenerate(num);
@@ -41,7 +41,7 @@ void QuestBoard::init(int num) throw(Error) {
 //--------------------------------------------------------------------------------
 // release
 //--------------------------------------------------------------------------------
-void QuestBoard::release() throw(Error) {
+void QuestBoard::release() {
     __BEGIN_TRY
 
     QUESTS::iterator itr = m_Quests.begin();
@@ -61,7 +61,7 @@ void QuestBoard::release() throw(Error) {
 //--------------------------------------------------------------------------------
 // regenerate
 //--------------------------------------------------------------------------------
-void QuestBoard::regenerate(int num) throw(Error) {
+void QuestBoard::regenerate(int num) {
     __BEGIN_TRY
 
     release();
@@ -93,7 +93,7 @@ void QuestBoard::regenerate(int num) throw(Error) {
 // questID를 추가한다.
 // ID가 duplicate인 경우는 return false
 //--------------------------------------------------------------------------------
-bool QuestBoard::add(Quest* pQuest) throw(Error) {
+bool QuestBoard::add(Quest* pQuest) {
     __BEGIN_TRY
 
     QuestID_t qid = pQuest->getQuestID();
@@ -117,7 +117,7 @@ bool QuestBoard::add(Quest* pQuest) throw(Error) {
 // questID의 Quest*를 찾아서 return한다.
 // 없으면 NULL
 //--------------------------------------------------------------------------------
-Quest* QuestBoard::remove(QuestID_t qid) throw(Error) {
+Quest* QuestBoard::remove(QuestID_t qid) {
     __BEGIN_TRY
 
     QUESTS::iterator itr = m_Quests.find(qid);
@@ -139,7 +139,7 @@ Quest* QuestBoard::remove(QuestID_t qid) throw(Error) {
 //--------------------------------------------------------------------------------
 // QuestBoard에 들어있는 모든 Quest들의 내용을 GCNPCAskDynamic packet으로 만든다.
 //--------------------------------------------------------------------------------
-void QuestBoard::setScript(Script* pScript) const throw(Error) {
+void QuestBoard::setScript(Script* pScript) const {
     __BEGIN_TRY
 
     pScript->clearContents();
@@ -167,7 +167,7 @@ void QuestBoard::setScript(Script* pScript) const throw(Error) {
 /*
 void
 QuestBoard::makeNPCAskPacket(GCNPCAskDynamic& gcNPCAskDynamic) const
-    throw (Error)
+
 {
     __BEGIN_TRY
 

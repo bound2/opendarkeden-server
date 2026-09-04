@@ -40,7 +40,7 @@ SMSItem::SMSItem(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "SMSItem::SMSItem() : Invalid item type or option type");
-        throw("SMSItem::SMSItem() : Invalid item type or optionType");
+        throw "SMSItem::SMSItem() : Invalid item type or optionType";
     }
 }
 

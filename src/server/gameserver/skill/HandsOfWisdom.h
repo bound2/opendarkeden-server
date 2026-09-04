@@ -15,15 +15,15 @@
 
 class HandsOfWisdom : public SkillHandler {
 public:
-    HandsOfWisdom() throw() {}
-    ~HandsOfWisdom() throw() {}
+    HandsOfWisdom() {}
+    ~HandsOfWisdom() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HandsOfWisdom";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HANDS_OF_WISDOM;
     }
 

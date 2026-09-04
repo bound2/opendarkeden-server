@@ -30,25 +30,25 @@ enum QueryType {
 class Query {
 public:
     // Query Object ID
-    QueryID_t getQueryID() const throw() {
+    QueryID_t getQueryID() const {
         return m_QueryID;
     }
-    void setQueryID(QueryID_t QueryID) throw() {
+    void setQueryID(QueryID_t QueryID) {
     m_QueryID:
         = QueryID;
     }
 
     // Query Object Type
-    QueryType_t getQueryType() const throw() {
+    QueryType_t getQueryType() const {
         return m_QueryType;
     }
-    void setQueryType(QueryType QueryType) throw() {
+    void setQueryType(QueryType QueryType) {
     m_QueryType:
         = QueryType;
     }
 
     // Query Owner
-    string getQueryOwnerID() const throw() {
+    string getQueryOwnerID() const {
         return m_QueryOwnerID;
     }
     void setQueryOwnerID(const string& ownerID) {
@@ -57,7 +57,7 @@ public:
     }
 
     // Query Relate
-    string getQueryRelateID() const throw() {
+    string getQueryRelateID() const {
         return m_QueryRelateID;
     }
     void setQueryRelateID(const string& relateID) {
@@ -66,7 +66,7 @@ public:
     }
 
     // Query to String
-    string toString() const throw();
+    string toString() const;
 
 private:
     QueryID_t m_QueryID;

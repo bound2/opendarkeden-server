@@ -15,14 +15,14 @@
 
 class Extreme : public SkillHandler {
 public:
-    Extreme() throw() {}
-    ~Extreme() throw() {}
+    Extreme() {}
+    ~Extreme() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Extreme";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_EXTREME;
     }
 

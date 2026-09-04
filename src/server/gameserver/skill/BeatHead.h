@@ -15,14 +15,14 @@
 
 class BeatHead : public SkillHandler {
 public:
-    BeatHead() throw() {}
-    ~BeatHead() throw() {}
+    BeatHead() {}
+    ~BeatHead() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BeatHead";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BEAT_HEAD;
     }
 

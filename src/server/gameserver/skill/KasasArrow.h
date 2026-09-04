@@ -15,14 +15,14 @@
 
 class KasasArrow : public SkillHandler {
 public:
-    KasasArrow() throw() {}
-    ~KasasArrow() throw() {}
+    KasasArrow() {}
+    ~KasasArrow() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "KasasArrow";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_KASAS_ARROW;
     }
 

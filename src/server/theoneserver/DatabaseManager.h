@@ -19,16 +19,16 @@
 
 class DatabaseManager {
 public:
-    DatabaseManager() throw();
-    ~DatabaseManager() throw();
+    DatabaseManager();
+    ~DatabaseManager();
 
 public:
-    void init() throw(Error);
-    void addConnection(int TID, Connection* pConnection) throw(DuplicatedException);
+    void init();
+    void addConnection(int TID, Connection* pConnection);
 
-    Connection* getConnection() throw(NoSuchElementException);
-    Connection* getConnection(const string& ip) throw(NoSuchElementException);
-    void executeDummyQuery(Connection* pConnection) throw(Error);
+    Connection* getConnection();
+    Connection* getConnection(const string& ip);
+    void executeDummyQuery(Connection* pConnection);
 
 private:
     // �� �����庰�� �����ϴ� DB ����

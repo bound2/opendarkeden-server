@@ -20,7 +20,7 @@ public:
     EffectDarkBluePoison(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_DARKBLUE_POISON;
     }
 
@@ -33,7 +33,7 @@ public:
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     MP_t getDamage(void) const {
@@ -50,10 +50,10 @@ public:
         m_Level = l;
     }
 
-    void setTick(Turn_t Tick) throw() {
+    void setTick(Turn_t Tick) {
         m_Tick = Tick;
     }
-    Turn_t getTick() const throw() {
+    Turn_t getTick() const {
         return m_Tick;
     }
 

@@ -18,7 +18,7 @@ public:
     EffectHolyArmor(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_HOLY_ARMOR;
     }
 
@@ -28,10 +28,10 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getDefBonus() throw() {
+    int getDefBonus() {
         return m_DefBonus;
     }
     void setDefBonus(Attr_t DefBonus) {

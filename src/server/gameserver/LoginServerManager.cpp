@@ -52,7 +52,7 @@ LoginServerManager::LoginServerManager() : m_pDatagramSocket(NULL) {
 //////////////////////////////////////////////////////////////////////
 // destructor
 //////////////////////////////////////////////////////////////////////
-LoginServerManager::~LoginServerManager() {
+LoginServerManager::~LoginServerManager() noexcept {
     __BEGIN_TRY
 
     SAFE_DELETE(m_pDatagramSocket);

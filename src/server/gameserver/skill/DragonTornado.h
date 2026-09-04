@@ -15,14 +15,14 @@
 
 class DragonTornado : public SkillHandler {
 public:
-    DragonTornado() throw() {}
-    ~DragonTornado() throw() {}
+    DragonTornado() {}
+    ~DragonTornado() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DragonTornado";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DRAGON_TORNADO;
     }
 

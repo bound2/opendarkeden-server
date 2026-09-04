@@ -15,14 +15,14 @@
 
 class Invisibility : public SkillHandler {
 public:
-    Invisibility() throw() {}
-    ~Invisibility() throw() {}
+    Invisibility() {}
+    ~Invisibility() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Invisibility";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_INVISIBILITY;
     }
 

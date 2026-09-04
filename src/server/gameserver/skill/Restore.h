@@ -17,14 +17,14 @@ class NPC;
 
 class Restore : public SkillHandler {
 public:
-    Restore() throw() {}
-    ~Restore() throw() {}
+    Restore() {}
+    ~Restore() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Restore";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_RESTORE;
     }
 

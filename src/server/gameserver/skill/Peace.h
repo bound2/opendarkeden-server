@@ -16,14 +16,14 @@
 
 class Peace : public SkillHandler {
 public:
-    Peace() throw() {}
-    ~Peace() throw() {}
+    Peace() {}
+    ~Peace() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Peace";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PEACE;
     }
 

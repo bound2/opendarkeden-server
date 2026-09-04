@@ -79,7 +79,7 @@ void EffectPoisonMesh::unaffect(Creature* pCreature) {
     __END_CATCH
 }
 
-string EffectPoisonMesh::toString() const throw() {
+string EffectPoisonMesh::toString() const {
     __BEGIN_TRY
 
     return "EffectPoisonMesh";

@@ -19,7 +19,7 @@ public:
     EffectCureCriticalWounds(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_CURE_CRITICAL_WOUNDS;
     }
 
@@ -33,27 +33,27 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Range_t getRange() const throw() {
+    Range_t getRange() const {
         return m_Range;
     }
-    void setRange(HP_t Range) throw() {
+    void setRange(HP_t Range) {
         m_Range = Range;
     }
 
-    HP_t getPoint() const throw() {
+    HP_t getPoint() const {
         return m_Point;
     }
-    void setPoint(HP_t Point) throw() {
+    void setPoint(HP_t Point) {
         m_Point = Point;
     }
 
-    void setDelay(Turn_t Delay) throw() {
+    void setDelay(Turn_t Delay) {
         m_Delay = Delay;
     }
-    Turn_t getDelay() const throw() {
+    Turn_t getDelay() const {
         return m_Delay;
     }
 

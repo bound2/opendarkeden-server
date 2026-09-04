@@ -15,14 +15,14 @@
 
 class DarkBluePoison : public SkillHandler {
 public:
-    DarkBluePoison() throw() {}
-    ~DarkBluePoison() throw() {}
+    DarkBluePoison() {}
+    ~DarkBluePoison() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DarkBluePoison";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DARKBLUE_POISON;
     }
 

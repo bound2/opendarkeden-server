@@ -15,14 +15,14 @@
 
 class VigorDrop : public SkillHandler {
 public:
-    VigorDrop() throw() {}
-    ~VigorDrop() throw() {}
+    VigorDrop() {}
+    ~VigorDrop() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "VigorDrop";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_VIGOR_DROP;
     }
 

@@ -42,7 +42,7 @@ EventETC::EventETC(ItemType_t itemType, const list<OptionType_t>& optionType, It
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "EventETC::EventETC() : Invalid item type or option type");
-        throw("EventETC::EventETC() : Invalid item type or optionType");
+        throw "EventETC::EventETC() : Invalid item type or optionType";
     }
 }
 

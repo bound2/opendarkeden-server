@@ -46,7 +46,7 @@ VampireCoat::VampireCoat(ItemType_t itemType, const list<OptionType_t>& optionTy
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireCoat::VampireCoat() : Invalid item type or option type");
-        throw("VampireCoat::VampireCoat() : Invalid item type or optionType");
+        throw "VampireCoat::VampireCoat() : Invalid item type or optionType";
     }
 }
 

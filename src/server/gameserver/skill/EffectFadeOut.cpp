@@ -132,7 +132,7 @@ void EffectFadeOut::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* 
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectFadeOut::toString() const throw() {
+string EffectFadeOut::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

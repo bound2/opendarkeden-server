@@ -49,7 +49,7 @@ LoginPlayerManager::LoginPlayerManager() : m_pServerSocket(NULL), m_ServerFD(INV
 // 하위 매니저 객체를 삭제하는 곳이다. (그런데, 없다. - -;)
 //
 //////////////////////////////////////////////////////////////////////
-LoginPlayerManager::~LoginPlayerManager() {
+LoginPlayerManager::~LoginPlayerManager() noexcept {
     __BEGIN_TRY
 
     if (m_pServerSocket != NULL) {

@@ -15,15 +15,15 @@
 
 class SetAfire : public SkillHandler {
 public:
-    SetAfire() throw() {}
-    ~SetAfire() throw() {}
+    SetAfire() {}
+    ~SetAfire() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SetAfire";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SET_AFIRE;
     }
 

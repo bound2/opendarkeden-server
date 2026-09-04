@@ -216,7 +216,7 @@ void EffectAcidStorm::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object
 
     {__BEGIN_TRY __END_CATCH}
 
-string EffectAcidStorm::toString() const throw() {
+string EffectAcidStorm::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

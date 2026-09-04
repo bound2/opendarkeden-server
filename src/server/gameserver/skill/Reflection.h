@@ -15,14 +15,14 @@
 
 class Reflection : public SkillHandler {
 public:
-    Reflection() throw() {}
-    ~Reflection() throw() {}
+    Reflection() {}
+    ~Reflection() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Reflection";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_REFLECTION;
     }
 

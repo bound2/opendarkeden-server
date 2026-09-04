@@ -3,6 +3,7 @@
 // throw-on-wrong-side contract, value/move semantics, rvalue move-out, and
 // the void specialization.
 
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -34,6 +35,53 @@ Events makeEvents() {
     events.push_back(11);
     return events;
 }
+
+class NonDefaultPayload {
+public:
+    explicit NonDefaultPayload(int value) : m_Value(value) {}
+
+    int value() const {
+        return m_Value;
+    }
+
+private:
+    int m_Value;
+};
+
+static_assert(!std::is_default_constructible<NonDefaultPayload>::value,
+              "the variant test payload must not be default-constructible");
+
+class MoveCountedPayload {
+public:
+    explicit MoveCountedPayload(int value) : m_Value(value) {}
+    MoveCountedPayload(const MoveCountedPayload& other) : m_Value(other.m_Value) {
+        ++s_Copies;
+    }
+    MoveCountedPayload(MoveCountedPayload&& other) noexcept : m_Value(other.m_Value) {
+        ++s_Moves;
+    }
+    MoveCountedPayload& operator=(const MoveCountedPayload&) = default;
+    MoveCountedPayload& operator=(MoveCountedPayload&&) = default;
+
+    static void resetCounts() {
+        s_Copies = 0;
+        s_Moves = 0;
+    }
+    static int copies() {
+        return s_Copies;
+    }
+    static int moves() {
+        return s_Moves;
+    }
+
+private:
+    int m_Value;
+    static int s_Copies;
+    static int s_Moves;
+};
+
+int MoveCountedPayload::s_Copies = 0;
+int MoveCountedPayload::s_Moves = 0;
 
 TEST(OutcomeTest, OkCarriesEvents) {
     TestOutcome outcome = TestOutcome::Ok(makeEvents());
@@ -153,6 +201,55 @@ TEST(OutcomeTest, WorksWithEnumRejection) {
 
     IntOutcome ok = IntOutcome::Ok(42);
     EXPECT_EQ(42, ok.events());
+}
+
+TEST(OutcomeTest, VariantStoresNonDefaultConstructiblePayloads) {
+    typedef Outcome<NonDefaultPayload, NonDefaultPayload> NonDefaultOutcome;
+
+    NonDefaultOutcome ok = NonDefaultOutcome::Ok(NonDefaultPayload(23));
+    EXPECT_TRUE(ok.isOk());
+    EXPECT_EQ(23, ok.events().value());
+
+    NonDefaultOutcome rejected = NonDefaultOutcome::Rejected(NonDefaultPayload(47));
+    EXPECT_TRUE(rejected.isRejected());
+    EXPECT_EQ(47, rejected.rejection().value());
+}
+
+TEST(OutcomeTest, VariantSupportsMoveOnlyPayloads) {
+    typedef Outcome<std::unique_ptr<int>, std::string> MoveOnlyOutcome;
+    static_assert(!std::is_copy_constructible<MoveOnlyOutcome>::value,
+                  "Outcome copyability must follow its variant payloads");
+
+    MoveOnlyOutcome outcome = MoveOnlyOutcome::Ok(std::unique_ptr<int>(new int(31)));
+    ASSERT_NE(nullptr, outcome.events());
+    EXPECT_EQ(31, *outcome.events());
+
+    std::unique_ptr<int> payload = std::move(outcome).events();
+    ASSERT_NE(nullptr, payload);
+    EXPECT_EQ(31, *payload);
+}
+
+TEST(OutcomeTest, FactoriesMoveTemporaryPayloadOnce) {
+    typedef Outcome<MoveCountedPayload, std::string> EventOutcome;
+    MoveCountedPayload::resetCounts();
+    EventOutcome ok = EventOutcome::Ok(MoveCountedPayload(31));
+    EXPECT_TRUE(ok.isOk());
+    EXPECT_EQ(0, MoveCountedPayload::copies());
+    EXPECT_EQ(1, MoveCountedPayload::moves());
+
+    typedef Outcome<std::string, MoveCountedPayload> RejectedOutcome;
+    MoveCountedPayload::resetCounts();
+    RejectedOutcome rejected = RejectedOutcome::Rejected(MoveCountedPayload(47));
+    EXPECT_TRUE(rejected.isRejected());
+    EXPECT_EQ(0, MoveCountedPayload::copies());
+    EXPECT_EQ(1, MoveCountedPayload::moves());
+
+    typedef Outcome<void, MoveCountedPayload> VoidOutcome;
+    MoveCountedPayload::resetCounts();
+    VoidOutcome voidRejected = VoidOutcome::Rejected(MoveCountedPayload(59));
+    EXPECT_TRUE(voidRejected.isRejected());
+    EXPECT_EQ(0, MoveCountedPayload::copies());
+    EXPECT_EQ(1, MoveCountedPayload::moves());
 }
 
 TEST(OutcomeTest, VoidSpecialization) {

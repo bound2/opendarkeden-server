@@ -15,14 +15,14 @@
 
 class PotentialExplosion : public SkillHandler {
 public:
-    PotentialExplosion() throw() {}
-    ~PotentialExplosion() throw() {}
+    PotentialExplosion() {}
+    ~PotentialExplosion() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "PotentialExplosion";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_POTENTIAL_EXPLOSION;
     }
 

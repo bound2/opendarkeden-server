@@ -82,7 +82,7 @@ void EffectSleep::unaffect()
     __END_CATCH
 }
 
-string EffectSleep::toString() const throw() {
+string EffectSleep::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

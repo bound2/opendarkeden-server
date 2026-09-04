@@ -10,7 +10,7 @@
 // c   a   bc       a   b
 // Gold=100, RankExp=100, Fame=100
 //--------------------------------------------------------------------------------
-void QuestPrice::setPrice(const string& text) throw(Error) {
+void QuestPrice::setPrice(const string& text) {
     __BEGIN_TRY
 
     Gold_t Gold = 0;
@@ -54,7 +54,7 @@ void QuestPrice::setPrice(const string& text) throw(Error) {
     __END_CATCH
 }
 
-string QuestPrice::toString() const throw(Error) {
+string QuestPrice::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

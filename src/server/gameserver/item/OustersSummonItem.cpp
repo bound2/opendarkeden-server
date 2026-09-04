@@ -42,7 +42,7 @@ OustersSummonItem::OustersSummonItem(ItemType_t itemType, const list<OptionType_
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "OustersSummonItem::OustersSummonItem() : Invalid item type or option type");
-        throw("OustersSummonItem::OustersSummonItem() : Invalid item type or optionType");
+        throw "OustersSummonItem::OustersSummonItem() : Invalid item type or optionType";
     }
 }
 

@@ -18,8 +18,8 @@ public:
     };
 
 public:
-    QuestEvent() throw(Error) {}
-    virtual ~QuestEvent() throw(Error) {}
+    QuestEvent() {}
+    virtual ~QuestEvent() noexcept(false) {}
 
     virtual QuestEventType getQuestEventType() const = 0;
 };

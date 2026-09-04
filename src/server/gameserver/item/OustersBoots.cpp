@@ -47,7 +47,7 @@ OustersBoots::OustersBoots(ItemType_t itemType, const list<OptionType_t>& option
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersBoots::OustersBoots() : Invalid item type or option type");
-        throw("OustersBoots::OustersBoots() : Invalid item type or optionType");
+        throw "OustersBoots::OustersBoots() : Invalid item type or optionType";
     }
 }
 

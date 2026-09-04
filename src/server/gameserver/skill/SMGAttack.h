@@ -16,14 +16,14 @@
 
 class SMGAttack : public SkillHandler {
 public:
-    SMGAttack() throw() {}
-    ~SMGAttack() throw() {}
+    SMGAttack() {}
+    ~SMGAttack() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SMGAttack";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SMG_ATTACK;
     }
 

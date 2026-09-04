@@ -6,12 +6,12 @@
 
 #include "Assert.h"
 
-Scheduler::Scheduler() throw() {}
-Scheduler::~Scheduler() throw() {
+Scheduler::Scheduler() {}
+Scheduler::~Scheduler() noexcept(false) {
     clear();
 }
 
-void Scheduler::clear() throw(Error) {
+void Scheduler::clear() {
     __BEGIN_TRY
 
     while (!m_RecentSchedules.empty()) {
@@ -31,7 +31,7 @@ void Scheduler::clear() throw(Error) {
 //--------------------------------------------------------------------------------
 // Schedule은 RecentSchedules와 Schedules에 동시에 등록되어 있다.
 //--------------------------------------------------------------------------------
-void Scheduler::addSchedule(Schedule* pSchedule) throw(Error) {
+void Scheduler::addSchedule(Schedule* pSchedule) {
     __BEGIN_TRY
 
     m_RecentSchedules.push(pSchedule);
@@ -48,7 +48,7 @@ void Scheduler::addSchedule(Schedule* pSchedule) throw(Error) {
 // m_RecentSchedules, m_Schedules에서 제거
 // pRecentSchedule의 Work는 return하고 pRecentSchedule은 지운다
 //--------------------------------------------------------------------------------
-Work* Scheduler::popRecentWork() throw(Error) {
+Work* Scheduler::popRecentWork() {
     __BEGIN_TRY
 
     Schedule* pRecentSchedule = m_RecentSchedules.top();
@@ -71,7 +71,7 @@ Work* Scheduler::popRecentWork() throw(Error) {
 // 가장 근래?에 실행될 수 있는 Schedule을 체크해보고 실행됐다면,
 // Schedule의 Work를 return한다. 이 때, Schedule은 지운다.
 //--------------------------------------------------------------------------------
-Work* Scheduler::heartbeat() throw(Error) {
+Work* Scheduler::heartbeat() {
     __BEGIN_TRY
 
     if (m_RecentSchedules.empty())

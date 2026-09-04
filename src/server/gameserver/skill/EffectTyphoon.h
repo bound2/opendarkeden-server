@@ -24,11 +24,11 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_TYPHOON;
     }
 
-    string toString() const throw();
+    string toString() const;
 };
 
 #endif // __EFFECT_TYPHOON__

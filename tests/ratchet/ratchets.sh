@@ -81,6 +81,13 @@ check_ratchet R6c "HitRoll.cpp lines" 774 "$R6c"
 R6d=$(wc -l < src/server/gameserver/skill/SkillFormula.cpp 2>/dev/null || echo missing)
 check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
 
+# --- R7: pre-C++17 dynamic exception specifications ------------------------
+# The migration also normalized real `throw(expr)` expressions to `throw expr`
+# so this deliberately simple textual ban is unambiguous and catches typed,
+# empty, and commented-out specifications alike.
+R7=$(grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' | wc -l)
+check_ratchet R7 "files with parenthesized throw syntax" 0 "$R7"
+
 # --- Generated factory list is fresh ---------------------------------------
 # The generator only writes to $OUT, so point it at a scratch copy of the
 # tree's file rather than overwriting the tracked one: an interrupt (Ctrl-C,

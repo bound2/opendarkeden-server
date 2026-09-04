@@ -14,7 +14,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-CriticalGround::CriticalGround() throw() {
+CriticalGround::CriticalGround() {
     __BEGIN_TRY
 
     // 주위 8타일

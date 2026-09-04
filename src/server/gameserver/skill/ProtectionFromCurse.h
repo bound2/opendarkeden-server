@@ -15,14 +15,14 @@
 
 class ProtectionFromCurse : public SkillHandler {
 public:
-    ProtectionFromCurse() throw() {}
-    ~ProtectionFromCurse() throw() {}
+    ProtectionFromCurse() {}
+    ~ProtectionFromCurse() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ProtectionFromCurse";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PROTECTION_FROM_CURSE;
     }
 

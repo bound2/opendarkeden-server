@@ -15,14 +15,14 @@
 
 class LightningHand : public SkillHandler {
 public:
-    LightningHand() throw() {}
-    ~LightningHand() throw() {}
+    LightningHand() {}
+    ~LightningHand() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "LightningHand";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_LIGHTNING_HAND;
     }
 

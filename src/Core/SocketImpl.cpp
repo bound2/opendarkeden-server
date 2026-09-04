@@ -26,7 +26,7 @@
 
 ////////////////////////////////////////////////////////////////////////
 //
-// SocketImpl::SocketImpl () throw ( Error );
+// SocketImpl::SocketImpl () ;
 //
 // Parameters
 //     none
@@ -68,7 +68,7 @@ SocketImpl::SocketImpl(const SocketImpl& impl)
 
 ////////////////////////////////////////////////////////////////////////
 //
-// SocketImpl::~SocketImpl () throw ( Error );
+// SocketImpl::~SocketImpl () ;
 //
 // virtual destructor
 //
@@ -430,7 +430,7 @@ uint SocketImpl::getSendBufferSize() const {
 
 //////////////////////////////////////////////////////////////////////
 //
-// void SocketImpl::setSendBufferSize ( uint SendBufferSize ) throw ( Error )
+// void SocketImpl::setSendBufferSize ( uint SendBufferSize )
 //
 // set send buffer size
 //

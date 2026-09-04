@@ -40,7 +40,7 @@ static int maxIdleSec = 30; // 20초
 // by sigi. 2002.11.11
 const int clientBufferSize = 1024;
 
-UpdateServerPlayer::UpdateServerPlayer(Socket* pSocket) throw(Error)
+UpdateServerPlayer::UpdateServerPlayer(Socket* pSocket)
     //: m_pSocket(pSocket), m_PlayerStatus(USPS_NONE)
     : m_PlayerStatus(USPS_NONE) {
     __BEGIN_TRY
@@ -72,7 +72,7 @@ UpdateServerPlayer::UpdateServerPlayer(Socket* pSocket) throw(Error)
 // destructor
 //
 //--------------------------------------------------------------------------------
-UpdateServerPlayer::~UpdateServerPlayer() throw(Error) {
+UpdateServerPlayer::~UpdateServerPlayer() noexcept(false) {
     __BEGIN_TRY
 
     // 그 어떤 플레이어 객체가 삭제될 때에도, 그 상태는 로그아웃이어야 한다.
@@ -90,7 +90,7 @@ UpdateServerPlayer::~UpdateServerPlayer() throw(Error) {
 // 패킷팩토리를 사용하지 않는 이유는 필요없기 때문이다. -_-;
 //
 //--------------------------------------------------------------------------------
-void UpdateServerPlayer::processCommand() throw(IOException, Error) {
+void UpdateServerPlayer::processCommand() {
     __BEGIN_TRY
 
     //__BEGIN_DEBUG
@@ -330,7 +330,7 @@ INSUFFICIENT_DATA:
 //--------------------------------------------------------------------------------
 // 출력을 버퍼링하지 않기 때문에, 아무 것도 하지 않아도 된다.
 //--------------------------------------------------------------------------------
-void UpdateServerPlayer::processOutput() throw(IOException, Error) {
+void UpdateServerPlayer::processOutput() {
     __BEGIN_TRY
 
     // do nothing
@@ -342,7 +342,7 @@ void UpdateServerPlayer::processOutput() throw(IOException, Error) {
 //--------------------------------------------------------------------------------
 // send packet to socket
 //--------------------------------------------------------------------------------
-void UpdateServerPlayer::sendPacket(Packet* pPacket) throw(ProtocolException, Error) {
+void UpdateServerPlayer::sendPacket(Packet* pPacket) {
     __BEGIN_TRY
 
     __BEGIN_DEBUG
@@ -369,7 +369,7 @@ void UpdateServerPlayer::sendPacket(Packet* pPacket) throw(ProtocolException, Er
 //--------------------------------------------------------------------------------
 // disconnect player
 //--------------------------------------------------------------------------------
-void UpdateServerPlayer::disconnect(bool bDisconnected) throw(Error) {
+void UpdateServerPlayer::disconnect(bool bDisconnected) {
     __BEGIN_TRY
 
     if (bDisconnected == UNDISCONNECTED) {
@@ -393,7 +393,7 @@ void UpdateServerPlayer::disconnect(bool bDisconnected) throw(Error) {
 // get debug string
 //
 //--------------------------------------------------------------------------------
-string UpdateServerPlayer::toString() const throw(Error) {
+string UpdateServerPlayer::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -17,7 +17,7 @@
 #include "Timeval.h"
 #include "Utility.h"
 
-DatabaseManager::DatabaseManager() throw() {
+DatabaseManager::DatabaseManager() {
     __BEGIN_TRY
 
     m_Mutex.setName("DatabaseManager");
@@ -27,7 +27,7 @@ DatabaseManager::DatabaseManager() throw() {
     __END_CATCH
 }
 
-DatabaseManager::~DatabaseManager() throw() {
+DatabaseManager::~DatabaseManager() {
     __BEGIN_TRY
 
     // ��� Connection �� �����ؾ� �Ѵ�.
@@ -43,7 +43,7 @@ DatabaseManager::~DatabaseManager() throw() {
     __END_CATCH
 }
 
-void DatabaseManager::init() throw(Error) {
+void DatabaseManager::init() {
     __BEGIN_TRY
 
     try {
@@ -105,7 +105,7 @@ void DatabaseManager::init() throw(Error) {
     __END_CATCH
 }
 
-void DatabaseManager::addConnection(int TID, Connection* pConnection) throw(DuplicatedException) {
+void DatabaseManager::addConnection(int TID, Connection* pConnection) {
     __BEGIN_TRY
 
     cout << "Adding TID connection BEGIN" << endl;
@@ -128,7 +128,7 @@ void DatabaseManager::addConnection(int TID, Connection* pConnection) throw(Dupl
     __END_CATCH
 }
 
-Connection* DatabaseManager::getConnection() throw(NoSuchElementException) {
+Connection* DatabaseManager::getConnection() {
     __BEGIN_TRY
 
     Connection* pTempConnection = NULL;
@@ -145,7 +145,7 @@ Connection* DatabaseManager::getConnection() throw(NoSuchElementException) {
     __END_CATCH
 }
 
-Connection* DatabaseManager::getConnection(const string& connName) throw(NoSuchElementException) {
+Connection* DatabaseManager::getConnection(const string& connName) {
     __BEGIN_TRY
 
     Connection* pTempConnection = NULL;
@@ -178,7 +178,7 @@ Connection* DatabaseManager::getConnection(const string& connName) throw(NoSuchE
     __END_CATCH
 }
 
-void DatabaseManager::executeDummyQuery(Connection* pConnection) throw(Error) {
+void DatabaseManager::executeDummyQuery(Connection* pConnection) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;

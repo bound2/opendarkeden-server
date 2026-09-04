@@ -15,14 +15,14 @@
 
 class OpenCasket : public SkillHandler {
 public:
-    OpenCasket() throw() {}
-    ~OpenCasket() throw() {}
+    OpenCasket() {}
+    ~OpenCasket() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "OpenCasket";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_OPEN_CASKET;
     }
 

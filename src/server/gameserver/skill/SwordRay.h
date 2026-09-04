@@ -15,14 +15,14 @@
 
 class SwordRay : public SkillHandler {
 public:
-    SwordRay() throw() {}
-    ~SwordRay() throw() {}
+    SwordRay() {}
+    ~SwordRay() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SwordRay";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SWORD_RAY;
     }
 

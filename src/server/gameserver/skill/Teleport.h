@@ -15,14 +15,14 @@
 
 class Teleport : public SkillHandler {
 public:
-    Teleport() throw() {}
-    ~Teleport() throw() {}
+    Teleport() {}
+    ~Teleport() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Teleport";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TELEPORT;
     }
 

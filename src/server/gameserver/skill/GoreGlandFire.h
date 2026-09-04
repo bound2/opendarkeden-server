@@ -15,14 +15,14 @@
 
 class GoreGlandFire : public SkillHandler {
 public:
-    GoreGlandFire() throw();
-    ~GoreGlandFire() throw() {}
+    GoreGlandFire();
+    ~GoreGlandFire() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GoreGlandFire";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GORE_GLAND_FIRE;
     }
 

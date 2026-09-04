@@ -9,9 +9,9 @@
 set -e
 
 if [ -n "${ZIG}" ]; then
-    exec "${ZIG}" c++ ${ZIG_TARGET:+-target "${ZIG_TARGET}"} "$@"
+    exec "${ZIG}" c++ "$@"
 elif command -v zig >/dev/null 2>&1; then
-    exec zig c++ ${ZIG_TARGET:+-target "${ZIG_TARGET}"} "$@"
+    exec zig c++ "$@"
 else
-    exec python3 -m ziglang c++ ${ZIG_TARGET:+-target "${ZIG_TARGET}"} "$@"
+    exec python3 -m ziglang c++ "$@"
 fi

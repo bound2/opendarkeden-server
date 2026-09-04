@@ -15,14 +15,14 @@
 
 class SummonWaterElemental : public SkillHandler {
 public:
-    SummonWaterElemental() throw() {}
-    ~SummonWaterElemental() throw() {}
+    SummonWaterElemental() {}
+    ~SummonWaterElemental() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SummonWaterElemental";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SUMMON_WATER_ELEMENTAL;
     }
 

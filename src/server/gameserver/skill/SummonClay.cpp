@@ -20,7 +20,7 @@
 #include "MonsterAI.h"
 #include "RankBonus.h"
 
-SummonClay::SummonClay() throw() {
+SummonClay::SummonClay() {
     m_MaskIndex[0] = 4;
     m_ElementalMask[0][0] = POINT(0, 1);
     m_ElementalMask[0][1] = POINT(0, -1);

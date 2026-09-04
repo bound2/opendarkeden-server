@@ -31,7 +31,7 @@ class CBillingPlayer;
 class CBillingPlayerManager : public Thread {
 public:
     CBillingPlayerManager();
-    ~CBillingPlayerManager();
+    ~CBillingPlayerManager() noexcept;
 
 public:
     void init() {}

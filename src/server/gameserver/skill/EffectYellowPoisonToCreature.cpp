@@ -192,7 +192,7 @@ void EffectYellowPoisonToCreature::save(const string& ownerID)
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectYellowPoisonToCreature::toString() const throw() {
+string EffectYellowPoisonToCreature::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

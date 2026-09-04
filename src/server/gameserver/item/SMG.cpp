@@ -46,7 +46,7 @@ SMG::SMG(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "SMG::SMG() : Invalid item type or option type");
-        throw("SMG::SMG() : Invalid item type or optionType");
+        throw "SMG::SMG() : Invalid item type or optionType";
     }
 }
 

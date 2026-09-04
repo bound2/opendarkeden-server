@@ -243,7 +243,7 @@ void DirectiveSetManager::load()
     // The number of sets.
     int maxID = 0;
     if (!repository.loadMaxDirectiveSetID(maxID))
-        throw("DirectiveSetManager::load() : 테이블에 없습니다.");
+        throw "DirectiveSetManager::load() : 테이블에 없습니다.";
 
     m_nSetCount = maxID + 1;
 
@@ -291,7 +291,7 @@ DirectiveSet* DirectiveSetManager::getDirectiveSet(uint index)
 
     if (index >= m_nSetCount) {
         cerr << "DirectiveSetManager::getDirectiveSet() : Out of bounds, value = [" << index << "]" << endl;
-        throw("DirectiveSetManager::getDirectiveSet() : Out of bounds!");
+        throw "DirectiveSetManager::getDirectiveSet() : Out of bounds!";
     }
 
     return m_ppSet[index];
@@ -310,7 +310,7 @@ void DirectiveSetManager::createDirectiveSet(uint index, const string& name, con
 
     if (index >= m_nSetCount) {
         cerr << "DirectiveSetManager::createDirectiveSet() : Out of bounds!" << endl;
-        throw("DirectiveSetManager::createDirectiveSet() : Out of bounds!");
+        throw "DirectiveSetManager::createDirectiveSet() : Out of bounds!";
     }
 
     // 이전의 DirectiveSet을 삭제하고, 새 것을 만든다.
@@ -380,7 +380,7 @@ void DirectiveSetManager::createDirectiveSet(uint index, const string& name, con
                 parseDirectiveParameter(pDirective, parameter, MODE_ACTION);
             } else {
                 cerr << "DirectiveSetManager::createDirectiveSet() : 알 수 없는 IDENTIFIER" << endl;
-                throw("DirectiveSetManager::createDirectiveSet() : 알 수 없는 IDENTIFIER");
+                throw "DirectiveSetManager::createDirectiveSet() : 알 수 없는 IDENTIFIER";
             }
         }
 
@@ -446,7 +446,7 @@ void DirectiveSetManager::createDirectiveSet(uint index, const string& name, con
                     parseDirectiveParameter(pDirective, parameter, MODE_ACTION);
                 } else {
                     cerr << "DirectiveSetManager::createDirectiveSet() : 알 수 없는 IDENTIFIER" << endl;
-                    throw("DirectiveSetManager::createDirectiveSet() : 알 수 없는 IDENTIFIER");
+                    throw "DirectiveSetManager::createDirectiveSet() : 알 수 없는 IDENTIFIER";
                 }
             }
 
@@ -496,7 +496,7 @@ void DirectiveSetManager::parseDirectiveParameter(Directive* pDirective, const s
             if (paramCount != 0) {
                 cerr << "DirectiveSetManager::parseParameter() : There's two or more parameters in condition" << endl;
                 cerr << "ParsingText: " << text.c_str() << endl;
-                throw("DirectiveSetManager::parseParameter() : There's two or more parameters in condition");
+                throw "DirectiveSetManager::parseParameter() : There's two or more parameters in condition";
             }
             pDirective->addCondition(getCondition(token));
             break;
@@ -557,7 +557,7 @@ int DirectiveSetManager::getCondition(const string& token)
     msg << "DirectiveSetManager::getCondition() : Invalid condition string[" << token << "]";
 
     cerr << msg.toString() << endl;
-    throw(msg.toString());
+    throw msg.toString();
     return DIRECTIVE_COND_MAX;
 
     __END_CATCH
@@ -577,7 +577,7 @@ int DirectiveSetManager::getAction(const string& token)
             return i;
 
     cerr << "DirectiveSetManager::getAction() : Invalid action[" << token << "]" << endl;
-    throw("DirectiveSetManager::getAction() : Invalid action");
+    throw "DirectiveSetManager::getAction() : Invalid action";
     return DIRECTIVE_COND_MAX;
 
     __END_CATCH
@@ -599,7 +599,7 @@ int DirectiveSetManager::getParameter(const string& token)
     }
 
     cerr << "DirectiveSetManager::getParameter() : Invalid parameter[" << token << "]" << endl;
-    throw("DirectiveSetManager::getParameter() : Invalid parameter");
+    throw "DirectiveSetManager::getParameter() : Invalid parameter";
 
     return 0;
 
@@ -619,7 +619,7 @@ int DirectiveSetManager::getRatio(const string& token)
 
     if (rValue < 0 || rValue > 100) {
         cerr << "DirectiveSetManager::getRatio() : Invalid ratio value" << endl;
-        throw("DirectiveSetManager::getRatio() : Invalid ratio value");
+        throw "DirectiveSetManager::getRatio() : Invalid ratio value";
     }
 
     return rValue;

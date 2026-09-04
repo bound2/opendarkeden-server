@@ -41,7 +41,7 @@ EffectItem::EffectItem(ItemType_t itemType, const list<OptionType_t>& optionType
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "EffectItem::EffectItem() : Invalid item type or option type");
-        throw("EffectItem::EffectItem() : Invalid item type or optionType");
+        throw "EffectItem::EffectItem() : Invalid item type or optionType";
     }
 }
 

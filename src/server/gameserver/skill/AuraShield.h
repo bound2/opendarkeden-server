@@ -15,14 +15,14 @@
 
 class AuraShield : public SkillHandler {
 public:
-    AuraShield() throw() {}
-    ~AuraShield() throw() {}
+    AuraShield() {}
+    ~AuraShield() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AuraShield";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_AURA_SHIELD;
     }
 

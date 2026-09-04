@@ -15,14 +15,14 @@
 
 class TransformToBat : public SkillHandler {
 public:
-    TransformToBat() throw() {}
-    ~TransformToBat() throw() {}
+    TransformToBat() {}
+    ~TransformToBat() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TransformToBat";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TRANSFORM_TO_BAT;
     }
 

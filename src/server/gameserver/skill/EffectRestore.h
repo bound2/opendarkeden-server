@@ -19,7 +19,7 @@ public:
     EffectRestore(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_RESTORE;
     }
 
@@ -36,7 +36,7 @@ public:
     virtual void destroy(const string& ownerID);
     virtual void save(const string& ownerID);
 
-    string toString() const throw();
+    string toString() const;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -45,10 +45,10 @@ public:
 
 class EffectRestoreLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_RESTORE;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectRestore";
     }
 

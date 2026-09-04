@@ -46,7 +46,7 @@ Bracelet::Bracelet(ItemType_t itemType, const list<OptionType_t>& optionType)
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Bracelet::Bracelet() : Invalid item type or option type");
         cerr << "Bracelet::Bracelet() : Invalid item type or optionType" << endl;
-        throw("Bracelet::Bracelet() : Invalid item type or optionType");
+        throw "Bracelet::Bracelet() : Invalid item type or optionType";
     }
 }
 

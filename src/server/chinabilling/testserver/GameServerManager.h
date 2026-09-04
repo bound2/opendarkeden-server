@@ -24,54 +24,54 @@
 
 class GameServerManager : public Thread {
 public:
-    GameServerManager() throw(Error);
-    ~GameServerManager() throw(Error);
+    GameServerManager();
+    ~GameServerManager() noexcept(false);
 
 public:
     // 쉐어드서버에서 받아들이는 최대 게임서버 수
     const static uint nMaxGameServers = 100;
 
     // initialize
-    void init() throw(Error);
+    void init();
 
-    void run() throw(Error);
+    void run();
 
     // broadcast packet to all players
-    void broadcast(Packet* pPacket) throw(Error);
-    void broadcast(Packet* pPacket, Player* pPlayer) throw(Error);
+    void broadcast(Packet* pPacket);
+    void broadcast(Packet* pPacket, Player* pPlayer);
 
 
     // select
-    void select() throw(TimeoutException, InterruptedException, Error);
+    void select();
 
     // process all inputs
-    void processInputs() throw(IOException, Error);
+    void processInputs();
 
     // process all outputs
-    void processOutputs() throw(IOException, Error);
+    void processOutputs();
 
     // process all exceptions
-    void processExceptions() throw(IOException, Error);
+    void processExceptions();
 
     // process all commands
-    void processCommands() throw(IOException, Error);
+    void processCommands();
 
     // accept new connection
-    void acceptNewConnection() throw(Error);
+    void acceptNewConnection();
 
     // add/delete player
-    void addGameServerPlayer(GameServerPlayer* pGameServerPlayer) throw(DuplicatedException, Error);
-    void deleteGameServerPlayer(SOCKET fd) throw(OutOfBoundException, NoSuchElementException, Error);
+    void addGameServerPlayer(GameServerPlayer* pGameServerPlayer);
+    void deleteGameServerPlayer(SOCKET fd);
 
     // lock/unlock
-    void lock() throw(Error) {
+    void lock() {
         m_Mutex.lock();
     }
-    void unlock() throw(Error) {
+    void unlock() {
         m_Mutex.unlock();
     }
 
-    void heartbeat() throw(Error);
+    void heartbeat();
 
 private:
     // TCP 서버 소켓과 소켓 디스크립터

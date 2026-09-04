@@ -15,15 +15,15 @@
 
 class HandsOfNizie : public SkillHandler {
 public:
-    HandsOfNizie() throw() {}
-    ~HandsOfNizie() throw() {}
+    HandsOfNizie() {}
+    ~HandsOfNizie() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HandsOfNizie";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HANDS_OF_NIZIE;
     }
 

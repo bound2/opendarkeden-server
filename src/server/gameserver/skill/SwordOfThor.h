@@ -15,14 +15,14 @@
 
 class SwordOfThor : public SkillHandler {
 public:
-    SwordOfThor() throw() {}
-    ~SwordOfThor() throw() {}
+    SwordOfThor() {}
+    ~SwordOfThor() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SwordOfThor";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SWORD_OF_THOR;
     }
 

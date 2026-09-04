@@ -15,14 +15,14 @@
 
 class ARAttack : public SkillHandler {
 public:
-    ARAttack() throw() {}
-    ~ARAttack() throw() {}
+    ARAttack() {}
+    ~ARAttack() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ARAttack";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_AR_ATTACK;
     }
 

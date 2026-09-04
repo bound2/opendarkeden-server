@@ -176,7 +176,7 @@ void EffectVigorDropToCreature::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectVigorDropToCreature::toString() const throw() {
+string EffectVigorDropToCreature::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

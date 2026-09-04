@@ -15,14 +15,14 @@
 
 class SharpHail : public SkillHandler {
 public:
-    SharpHail() throw() {}
-    ~SharpHail() throw() {}
+    SharpHail() {}
+    ~SharpHail() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SharpHail";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SHARP_HAIL;
     }
 

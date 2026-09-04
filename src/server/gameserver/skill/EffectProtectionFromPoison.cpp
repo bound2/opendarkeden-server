@@ -91,7 +91,7 @@ void EffectProtectionFromPoison::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectProtectionFromPoison::toString() const throw() {
+string EffectProtectionFromPoison::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

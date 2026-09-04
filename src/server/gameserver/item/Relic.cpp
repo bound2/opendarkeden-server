@@ -45,7 +45,7 @@ Relic::Relic(ItemType_t itemType, const list<OptionType_t>& optionType)
 
         if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
             filelog("itembug.log", "Relic::Relic() : Invalid item type or option type");
-            throw("Relic::Relic() : Invalid item type or optionType");
+            throw "Relic::Relic() : Invalid item type or optionType";
         }
     } catch (Throwable& t) {
         cout << t.toString().c_str() << endl;

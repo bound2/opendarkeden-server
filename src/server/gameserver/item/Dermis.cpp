@@ -39,7 +39,7 @@ Dermis::Dermis(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Dermis::Dermis() : Invalid item type or option type");
-        throw("Dermis::Dermis() : Invalid item type or optionType");
+        throw "Dermis::Dermis() : Invalid item type or optionType";
     }
 }
 

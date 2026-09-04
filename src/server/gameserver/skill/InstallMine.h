@@ -15,14 +15,14 @@
 
 class InstallMine : public SkillHandler {
 public:
-    InstallMine() throw() {}
-    ~InstallMine() throw() {}
+    InstallMine() {}
+    ~InstallMine() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "InstallMine";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_INSTALL_MINE;
     }
 

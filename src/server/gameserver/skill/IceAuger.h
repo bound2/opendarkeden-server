@@ -15,14 +15,14 @@
 
 class IceAuger : public SkillHandler {
 public:
-    IceAuger() throw() {}
-    ~IceAuger() throw() {}
+    IceAuger() {}
+    ~IceAuger() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "IceAuger";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ICE_AUGER;
     }
 

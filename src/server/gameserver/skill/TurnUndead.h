@@ -15,14 +15,14 @@
 
 class TurnUndead : public SkillHandler {
 public:
-    TurnUndead() throw() {}
-    ~TurnUndead() throw() {}
+    TurnUndead() {}
+    ~TurnUndead() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TurnUndead";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TURN_UNDEAD;
     }
 

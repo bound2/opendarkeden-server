@@ -219,7 +219,7 @@ void EffectStorm::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pO
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectStorm::toString() const throw() {
+string EffectStorm::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

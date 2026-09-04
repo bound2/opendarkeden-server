@@ -15,14 +15,14 @@
 
 class Unburrow : public SkillHandler {
 public:
-    Unburrow() throw() {}
-    ~Unburrow() throw() {}
+    Unburrow() {}
+    ~Unburrow() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Unburrow";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_UN_BURROW;
     }
 

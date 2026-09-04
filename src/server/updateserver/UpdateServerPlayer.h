@@ -30,46 +30,46 @@
 class UpdateServerPlayer : public Player {
 public:
     // constructor
-    UpdateServerPlayer(Socket* pSocket) throw(Error);
+    UpdateServerPlayer(Socket* pSocket);
 
     // destructor
-    ~UpdateServerPlayer() throw(Error);
+    ~UpdateServerPlayer() noexcept(false);
 
 public:
     // read socket's receive buffer and fill input buffer
-    // virtual void processInput () throw ( IOException , Error );
+    // virtual void processInput () ;
 
     // parse packet and execute handler for the packet
-    virtual void processCommand() throw(IOException, Error);
+    virtual void processCommand();
 
     // flush output buffer to socket's send buffer
-    virtual void processOutput() throw(IOException, Error);
+    virtual void processOutput();
 
     // send packet to player's output buffer
-    virtual void sendPacket(Packet* packet) throw(ProtocolException, Error);
+    virtual void sendPacket(Packet* packet);
 
     // disconnect
     // 정식 로그아웃의 경우 disconnect(UNDISCONNECTED)
-    virtual void disconnect(bool bDisconnected = DISCONNECTED) throw(Error);
+    virtual void disconnect(bool bDisconnected = DISCONNECTED);
 
     // get debug string
-    virtual string toString() const throw(Error);
+    virtual string toString() const;
 
-    void setPenaltyFlag(PenaltyType PenaltyFlag) throw() {
+    void setPenaltyFlag(PenaltyType PenaltyFlag) {
         m_PenaltyFlag.set(PenaltyFlag);
     }
 
     // remove Flag
-    void removePenaltyFlag(PenaltyType PenaltyFlag) throw() {
+    void removePenaltyFlag(PenaltyType PenaltyFlag) {
         m_PenaltyFlag.reset(PenaltyFlag);
     }
 
     // Is Flag?
-    bool isPenaltyFlag(PenaltyType PenaltyFlag) throw() {
+    bool isPenaltyFlag(PenaltyType PenaltyFlag) {
         return m_PenaltyFlag.test(PenaltyFlag);
     }
 
-    void setExpiredTime(int t) throw() {
+    void setExpiredTime(int t) {
         getCurrentTime(m_ExpireTime);
         m_ExpireTime.tv_sec += 5;
     }
@@ -77,10 +77,10 @@ public:
 
 public:
     // get/set player's status
-    PlayerStatus getPlayerStatus() const throw() {
+    PlayerStatus getPlayerStatus() const {
         return m_PlayerStatus;
     }
-    void setPlayerStatus(PlayerStatus playerStatus) throw() {
+    void setPlayerStatus(PlayerStatus playerStatus) {
         m_PlayerStatus = playerStatus;
     }
 

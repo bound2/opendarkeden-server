@@ -161,7 +161,7 @@ void EffectEnergyDrop::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Objec
 
     {__BEGIN_TRY __END_CATCH}
 
-string EffectEnergyDrop::toString() const throw() {
+string EffectEnergyDrop::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

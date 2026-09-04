@@ -1344,7 +1344,7 @@ bool Ousters::isRealWearing(WearPart part) const
     __BEGIN_TRY
 
     if (part >= OUSTERS_WEAR_MAX)
-        throw("Ousters::isRealWearing() : invalid wear point!");
+        throw "Ousters::isRealWearing() : invalid wear point!";
 
     if (m_pWearItem[part] == NULL)
         return false;

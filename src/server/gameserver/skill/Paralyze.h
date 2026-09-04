@@ -15,14 +15,14 @@
 
 class Paralyze : public SkillHandler {
 public:
-    Paralyze() throw() {}
-    ~Paralyze() throw() {}
+    Paralyze() {}
+    ~Paralyze() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Paralyze";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PARALYZE;
     }
 

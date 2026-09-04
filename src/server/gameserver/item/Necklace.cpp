@@ -47,7 +47,7 @@ Necklace::Necklace(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Necklace::Necklace() : Invalid item type or option type");
-        throw("Necklace::Necklace() : Invalid item type or optionType");
+        throw "Necklace::Necklace() : Invalid item type or optionType";
     }
 }
 

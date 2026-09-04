@@ -252,7 +252,7 @@ void GameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID, cons
 // get info
 //----------------------------------------------------------------------
 GameServerInfo * GameServerInfoManager::getGameServerInfo (const string & nickname) const
-    throw (NoSuchElementException)
+
 {
     __BEGIN_TRY
 

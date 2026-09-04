@@ -14,15 +14,15 @@
 
 class FatalSnick : public SkillHandler {
 public:
-    FatalSnick() throw() {}
-    ~FatalSnick() throw() {}
+    FatalSnick() {}
+    ~FatalSnick() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "FatalSnick";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_FATAL_SNICK;
     }
 

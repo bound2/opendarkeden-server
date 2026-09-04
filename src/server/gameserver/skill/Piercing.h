@@ -15,14 +15,14 @@
 
 class Piercing : public SkillHandler {
 public:
-    Piercing() throw() {}
-    ~Piercing() throw() {}
+    Piercing() {}
+    ~Piercing() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Piercing";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PIERCING;
     }
 

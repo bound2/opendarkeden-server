@@ -29,6 +29,8 @@ private:
 
 class SMSServiceThread : public Thread {
 public:
+    ~SMSServiceThread() noexcept override = default;
+
     static SMSServiceThread& Instance() {
         static SMSServiceThread theInstance;
         return theInstance;

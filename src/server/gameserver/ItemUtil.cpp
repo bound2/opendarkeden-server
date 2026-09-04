@@ -651,7 +651,7 @@ Bullet_t decreaseBullet(Item* pWeapon)
     else
     {
         filelog("bulletBug.log", "decreaseBullet() : Invalid item class : %s\n", ItemClass2String[IClass].c_str());
-        throw ("decreaseBullet() : Invalid item class");
+        throw "decreaseBullet() : Invalid item class";
     }
     */
 
@@ -686,7 +686,7 @@ Bullet_t decreaseBullet(Item* pWeapon)
         pSMG->setSilver(silver);
     } else {
         filelog("bulletBug.log", "decreaseBullet() : Invalid item class : %s\n", ItemClass2String[IClass].c_str());
-        throw("decreaseBullet() : Invalid item class");
+        throw "decreaseBullet() : Invalid item class";
     }
     //*/
 
@@ -733,7 +733,7 @@ Bullet_t getRemainBullet(Item* pWeapon)
         return pSMG->getBulletCount();
     } else {
         filelog("bullet.log", "getRemainBullet() : Invalid item class : %s\n", ItemClass2String[IClass].c_str());
-        throw("getRemainBullet() : Invalid item class");
+        throw "getRemainBullet() : Invalid item class";
     }
 
     return 0;

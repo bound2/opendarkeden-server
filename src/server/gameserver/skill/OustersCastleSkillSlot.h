@@ -5,10 +5,10 @@
 
 class OustersCastleSkillSlot : public OustersSkillSlot {
 public:
-    OustersCastleSkillSlot() throw() : OustersSkillSlot() {}
-    OustersCastleSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime) throw()
+    OustersCastleSkillSlot() : OustersSkillSlot() {}
+    OustersCastleSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime)
         : OustersSkillSlot(SkillType, Interval, CastingTime) {}
-    ~OustersCastleSkillSlot() throw() {}
+    ~OustersCastleSkillSlot() {}
 
 public:
     virtual void save(const string& ownerID) {}

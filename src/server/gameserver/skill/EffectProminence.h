@@ -19,19 +19,19 @@ public:
     EffectProminence(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zoneY);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_PROMINENCE;
     }
-    EffectClass getSendEffectClass() const throw() {
+    EffectClass getSendEffectClass() const {
         return m_SendEffectClass;
     }
 
     void affect();
     void unaffect();
-    string toString() const throw();
+    string toString() const;
 
 public:
-    void setSendEffectClass(EffectClass eClass) throw() {
+    void setSendEffectClass(EffectClass eClass) {
         m_SendEffectClass = eClass;
     }
 
@@ -82,10 +82,10 @@ private:
 
 class EffectProminenceLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_PROMINENCE;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectProminence";
     }
 

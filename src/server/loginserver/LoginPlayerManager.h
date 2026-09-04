@@ -31,7 +31,7 @@ public:
     LoginPlayerManager();
 
     // destructor
-    ~LoginPlayerManager();
+    ~LoginPlayerManager() noexcept;
 
 public:
     // 클라이언트 매니저를 초기화한다.

@@ -18,7 +18,7 @@ public:
     EffectBrambleHalo(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return m_EffectClass;
     }
 
@@ -28,7 +28,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     Damage_t getDamage() const {

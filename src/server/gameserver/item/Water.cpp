@@ -37,7 +37,7 @@ Water::Water(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Water::Water() : Invalid item type or option type");
-        throw("Water::Water() : Invalid item type or optionType");
+        throw "Water::Water() : Invalid item type or optionType";
     }
 }
 
