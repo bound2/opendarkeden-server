@@ -22,6 +22,8 @@
 #include "PlayerCreature.h"
 #include "StringPool.h"
 #include "SystemAvailabilitiesManager.h"
+#include "repository/GuildRepository.h"
+#include "repository/MessageRepository.h"
 #endif // __GAME_SERVER__
 
 //////////////////////////////////////////////////////////////////////////////
@@ -102,37 +104,23 @@ void CGQuitUnionHandler::execute(CGQuitUnion* pPacket, Player* pPlayer)
 
             /* 10일간 다른연합에 가입하지 못하도록 패널티 처리한다. TODO
              */
-            Statement* pStmt = NULL;
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            MessageRepository& messages = defaultMessageRepository();
+            GuildRepository& guilds = defaultGuildRepository();
 
-                string escapeGuildName = g_pGuildManager->getGuildName(pPlayerCreature->getGuildID());
-                string escapeGuildNotice = "[" + escapeGuildName + "] " + g_pStringPool->c_str(378);
+            string escapeGuildName = g_pGuildManager->getGuildName(pPlayerCreature->getGuildID());
+            string escapeGuildNotice = "[" + escapeGuildName + "] " + g_pStringPool->c_str(378);
 
+            messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, escapeGuildNotice);
+            guilds.insertEscapeOffer(tempUnionID, pPacket->getGuildID());
 
-                pStmt->executeQuery("INSERT INTO Messages (Receiver, Message) values('%s','%s')",
-                                    TargetGuildMaster.c_str(), escapeGuildNotice.c_str());
-                pStmt->executeQuery("INSERT INTO GuildUnionOffer values('%u','ESCAPE','%u',now())", tempUnionID,
-                                    pPacket->getGuildID());
-
-                // 연합맴버가 있는지 보자..없으면?
-                Result* pResult =
-                    pStmt->executeQuery("SELECT count(*) FROM GuildUnionMember WHERE UnionID='%u'", tempUnionID);
-                pResult->next();
-
-                if (pResult->getInt(1) == 0) {
-                    // cout << "강제적으로 탈퇴를 한다..연합에 멤버가 없으므로 연합을..지워버린다 : unionid " <<
-                    // (int)tempUnionID << endl;
-                    pStmt->executeQuery("DELETE FROM GuildUnionInfo WHERE UnionID='%u'", tempUnionID);
-                    pStmt->executeQuery("INSERT INTO Messages (Receiver, Message) values('%s','%s')",
-                                        TargetGuildMaster.c_str(), g_pStringPool->c_str(379));
-                    GuildUnionManager::Instance().reload();
-                }
-
-
-                SAFE_DELETE(pStmt);
+            // 연합맴버가 있는지 보자..없으면?
+            if (guilds.countUnionMembersSpelled(UNION_SQL_PLAIN, tempUnionID) == 0) {
+                // cout << "강제적으로 탈퇴를 한다..연합에 멤버가 없으므로 연합을..지워버린다 : unionid " <<
+                // (int)tempUnionID << endl;
+                guilds.deleteUnionInfoOnly(UNION_SQL_PLAIN, tempUnionID);
+                messages.insertUnionNotice(UNION_NOTICE_PLAIN, TargetGuildMaster, g_pStringPool->c_str(379));
+                GuildUnionManager::Instance().reload();
             }
-            END_DB(pStmt)
 
             Creature* pCreature = NULL;
             pCreature = pGamePlayer->getCreature();

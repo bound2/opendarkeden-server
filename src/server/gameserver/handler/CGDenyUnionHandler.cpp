@@ -24,6 +24,8 @@
 #include "PlayerCreature.h"
 #include "StringPool.h"
 #include "SystemAvailabilitiesManager.h"
+#include "repository/GuildRepository.h"
+#include "repository/MessageRepository.h"
 #endif // __GAME_SERVER__
 
 //////////////////////////////////////////////////////////////////////////////
@@ -92,28 +94,18 @@ void CGDenyUnionHandler::execute(CGDenyUnion* pPacket, Player* pPlayer)
         // cout << "가입이 거부되었다. 통보받을 유저는 : " << TargetGuildMaster.c_str() << endl;
 
 
-        Statement* pStmt = NULL;
+        GuildRepository& guilds = defaultGuildRepository();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO `Messages` (`Receiver`, `Message`) values ('%s','%s')",
-                                TargetGuildMaster.c_str(), g_pStringPool->c_str(374));
+        defaultMessageRepository().insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, TargetGuildMaster,
+                                                     g_pStringPool->c_str(374));
 
-            // 거부한뒤에 나 혼자 남아있다면?
-            Result* pResult = pStmt->executeQuery("SELECT count(*) FROM `GuildUnionMember` WHERE `UnionID`='%u'",
-                                                  pUnion->getUnionID());
-            pResult->next();
+        // 거부한뒤에 나 혼자 남아있다면?
+        if (guilds.countUnionMembersSpelled(UNION_SQL_QUOTED, pUnion->getUnionID()) == 0) {
+            // cout << "가입을 거부했는데..내가 계속 연합장이면 안되니까..지워버린다" << endl;
+            guilds.deleteUnionInfoOnly(UNION_SQL_QUOTED, pUnion->getUnionID());
 
-            if (pResult->getInt(1) == 0) {
-                // cout << "가입을 거부했는데..내가 계속 연합장이면 안되니까..지워버린다" << endl;
-                pStmt->executeQuery("DELETE FROM `GuildUnionInfo` WHERE `UnionID`='%u'", pUnion->getUnionID());
-
-                GuildUnionManager::Instance().reload();
-            }
-
-            SAFE_DELETE(pStmt);
+            GuildUnionManager::Instance().reload();
         }
-        END_DB(pStmt)
 
         Creature* pCreature = NULL;
         pCreature = pGamePlayer->getCreature();

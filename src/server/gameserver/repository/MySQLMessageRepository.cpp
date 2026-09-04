@@ -5,10 +5,12 @@ namespace {
 
 // MySQL implementation of the queued-message seam. The legacy quirks
 // are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The SQL is byte-for-byte the Zone.cpp / ZonePlayerManager.cpp
-//    originals, the INSERT's "( Receiver, Message ) VALUES ( '%s', '%s')"
-//    spacing included (the guild handlers spell theirs differently —
-//    they keep their own literals).
+//  - The SQL is byte-for-byte the original at each call site.
+//    insertMessage() carries Zone.cpp / ZonePlayerManager.cpp's
+//    spelling, the "( Receiver, Message ) VALUES ( '%s', '%s')" spacing
+//    included; insertUnionNotice() carries the union handlers' three
+//    other spellings of the same INSERT, one spec row each. See
+//    MessageRepository.h for why they are kept apart.
 //  - Keyless table: a receiver can hold any number of rows, and the
 //    DELETE takes them all.
 //  - Zone::addPC ran the SELECT and the DELETE on ONE statement
@@ -43,6 +45,26 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("DELETE FROM Messages WHERE Receiver = '%s'", receiver.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void insertUnionNotice(UnionNoticeSpelling spelling, const string& receiver, const string& message) {
+        // Byte-for-byte what each handler wrote. See MessageRepository.h for
+        // why the three are kept apart.
+        static const char* const NOTICE_SQL[UNION_NOTICE_SPELLING_MAX] = {
+            "INSERT INTO Messages (Receiver, Message) values('%s','%s')",
+            "INSERT INTO `Messages` (`Receiver`, `Message`) values ('%s','%s')",
+            "INSERT INTO `Messages` (`Receiver`, `Message`) values('%s','%s')",
+        };
+
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(NOTICE_SQL[spelling], receiver.c_str(), message.c_str());
+
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
