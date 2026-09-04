@@ -35,6 +35,9 @@
 #define __THREAD_H__
 
 
+#include <atomic>
+
+
 //////////////////////////////////////////////////
 // include files
 //////////////////////////////////////////////////
@@ -92,11 +95,15 @@ public:
     // 쓰레드가 최초로 동작하도록 해주는 trigger 의 역할을 하는 함수. 쓰레드
     // 객체를 생성한 후에, 이 함수를 호출하면 내부적으로 derived 클래스의
     // run() 멤버함수를 호출하게 된다.
-    void start();
+    virtual void start();
 
     // 동작중인 쓰레드를 중단시킨다.
     // 내부에 뮤텍스를 사용하는 하위 쓰레드 클래스에서만 가능하다.
     virtual void stop();
+
+    // Wait for this thread to finish. Cooperative implementations override
+    // this so callers do not need to know which threading backend owns it.
+    virtual void join();
 
     // 쓰레드가 종료할 때까지 기다린다. 역시 쓰레드간에 사용된다. 보통은
     // 쓰레드를 새로 생성시켜 특정 작업을 시킨 후 그 처리가 완료될 때까지
@@ -115,7 +122,7 @@ public:
     static void join(const Thread* t, void* retval);
 
     // 쓰레드를 Detached 모드로 바꾼다.
-    void detach();
+    virtual void detach();
 
     // 현재 쓰레드들 종료한다. 즉 특정 쓰레드를 종료시킨다는 말이 아니라,
     // 이 메쏘드를 수행하는 쓰레드를 종료시킨다는 말이다. 이때, 특정
@@ -149,10 +156,10 @@ public:
 
     // get/set thread's status
     ThreadStatus getStatus() const {
-        return m_Status;
+        return m_Status.load(std::memory_order_acquire);
     }
     void setStatus(ThreadStatus status) {
-        m_Status = status;
+        m_Status.store(status, std::memory_order_release);
     }
 
     // get thread name
@@ -165,6 +172,11 @@ public:
     // data members
     //////////////////////////////////////////////////
 
+protected:
+    void setTID(TID tid) {
+        m_TID = tid;
+    }
+
 private:
     // thread identifier variable
     TID m_TID;
@@ -173,7 +185,7 @@ private:
     ThreadAttr* m_ThreadAttr;
 
     // thread status
-    ThreadStatus m_Status;
+    std::atomic<ThreadStatus> m_Status;
 };
 
 

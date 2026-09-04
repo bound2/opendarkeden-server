@@ -718,7 +718,7 @@ live client.
 Runs as ongoing background work; every extraction is independently mergeable
 and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
 
-- [ ] **3.1 `Outcome<Events, Rejection>` result type.** C++17 template in
+- [ ] **3.1 `Outcome<Events, Rejection>` result type.** C++20 template in
   `de-kernel` mirroring sidecar's `kernel.domain.Outcome`: gameplay mutations
   return `Ok(events)` or `Rejected(reason)`; exceptions reserved for
   programming/config errors. New/refactored domain code uses it; the
@@ -1078,7 +1078,7 @@ gating; `Zone.cpp` under 2,000 lines.
   > recorded inline in 1.4 where it was written. Ongoing discipline, not a
   > one-shot: new finds keep landing there.
 
-- [x] **5.4 Language standard: C++11 → C++20 default, C++17 compatibility.**
+- [x] **5.4 Language standard: C++11 → C++20 required.**
   Assessed 2026-08-30. No open task was *blocked* on the standard, but 3.1
   `Outcome` wants `std::variant` + `[[nodiscard]]` (an unchecked rejection
   becomes a compiler warning instead of a convention), the packet layer
@@ -1112,15 +1112,17 @@ gating; `Zone.cpp` under 2,000 lines.
   architecture/build evidence before adoption; concepts become useful only at
   focused boundaries such as the packet stream and factory contracts described
   in `docs/TOOLCHAIN.md`.
-  > **Status:** done (2026-09-04) — C++20 is the default project standard
-  > (`CMAKE_CXX_EXTENSIONS=OFF`); the fully verified C++17 build remains
-  > selectable with `-DCMAKE_CXX_STANDARD=17` as a transition/rollback lane.
+  > **Status:** done (2026-09-04) — C++20 is the required project standard
+  > (`CMAKE_CXX_EXTENSIONS=OFF`). The initially verified C++17 transition lane
+  > was retired deliberately when `std::jthread`/`std::stop_token` entered the
+  > production `ZoneGroupThread` lifecycle; non-20 configurations now fail at
+  > CMake configuration instead of failing partway through compilation.
   > Docker and development-volume builds pin
   > Zig 0.16.0/Clang 21.1.0, isolate build trees, output roots and compiler
-  > caches by Zig version, target, standard and build type, and
-  > pass the full test suite plus every production target under both C++17
-  > and C++20. Production Docker images were also built under both standards,
-  > and all three server binaries have complete runtime linkage. All dynamic
+  > caches by Zig version, target and build type. The migration was validated
+  > under both C++17 and C++20 before the rollback lane was retired; the
+  > production image now always builds C++20, and all three server binaries
+  > have complete runtime linkage. All dynamic
   > exception specifications are gone; legacy destructors that were declared
   > as potentially throwing retain that behavior with `noexcept(false)`.
   > `Outcome` uses
@@ -1128,6 +1130,10 @@ gating; `Zone.cpp` under 2,000 lines.
   > The runtime remains Ubuntu 20.04; its distro GCC is no longer the compiler.
   > Project-specific C++20 adoption priorities and guardrails are documented in
   > `docs/TOOLCHAIN.md` under “Where C++20 pays off in DarkEden.”
+  > The first adoption slice also makes thread status atomic, adds reusable
+  > cooperative-worker lifecycle tests, and gives the zone thread pool a real
+  > stop-all-then-join-all shutdown path. `GameServer` destroys that pool before
+  > zone/database dependencies, preventing workers from observing freed state.
   - Owner: ratchet R7, held at 0.
 
 ---

@@ -78,17 +78,15 @@ seconds instead of minutes.
 
 ```bash
 make dev-test                      # build wire_tests + ctest
-CXX_STANDARD=17 make dev-test      # same suite in the C++17 compatibility lane
 bash tools/devbuild.sh test --record   # re-record goldens, then run
 make dev-build                     # all production targets
-CXX_STANDARD=17 make dev-build     # all production targets as C++17
 make dev-shell                     # shell in the workspace
 make dev-clean                     # drop the workspace + compiler-cache volumes
 ```
 
 Needs the image once: `docker build -f Dockerfile.dev -t darkeden-dev .`.
 It pins Zig 0.16.0 (Clang 21.1.0) and also carries Ninja, ccache and rsync.
-Artifacts live in compiler/target/standard/build-type-specific directories in
+Artifacts live in compiler/target/build-type-specific directories in
 the volume, so `bin/` and `lib/` in the checkout are **not** updated by these
 targets. `bash tools/devbuild.sh output-dir` prints the active lane's artifact
 root.
@@ -362,11 +360,8 @@ Start servers in this order:
 
 - Source file encoding is **UTF-8** (project was migrated from legacy encodings)
 - Use **English** as code comment, there are some legacy Korean or maybe garbled encoding, translate them to English whenever possible
-- C++20 is the default project language standard. The current tree also has a
-  transitional C++17 compatibility build, verified with the pinned Zig/Clang
-  container toolchain (`CXX_STANDARD=17 make dev-test`). C++20-only adoption
-  must update that compatibility policy deliberately rather than failing the
-  secondary lane accidentally.
+- C++20 is the required project language standard, verified with the pinned
+  Zig/Clang container toolchain.
 - Threaded architecture with `ZoneGroupThread` for parallel zone processing
 - Extensive use of inheritance (Creature → PlayerCreature → Slayer/Vampire/Ousters)
 - Lua scripting is integrated for quest systems (see `quest/luaScript/`)

@@ -97,22 +97,18 @@ For the fast development-volume build:
 docker build -f Dockerfile.dev -t darkeden-dev .
 make dev-test
 make dev-build
-
-# Exercise the transitional C++17 compatibility lane with:
-CXX_STANDARD=17 make dev-test
-CXX_STANDARD=17 make dev-build
 ```
 
-The production image uses the same compiler and defaults to C++20:
+The production image uses the same compiler and requires C++20:
 
 ```bash
 docker build -t darkeden:local .
-docker build --build-arg CXX_STANDARD=17 -t darkeden:cxx17 .
 ```
 
 Both image builds accept `--build-arg ZIG_VERSION=...` for an intentional
-toolchain update. The current tree is verified under C++17 and C++20; C++17 is
-a transition/rollback lane, not the language level new design should target.
+toolchain update. The current tree requires C++20; the former C++17 rollback
+lane was retired when cooperative `std::jthread` ownership entered the zone
+tick.
 
 For a manually installed Zig toolchain, the equivalent direct CMake commands
 are:
@@ -126,7 +122,7 @@ cmake --build build-zig -j
 Zig is located as `$ZIG`, else `zig` on `$PATH`, else `python3 -m ziglang`
 (the PyPI `ziglang` package ships the full toolchain).
 
-`tools/devbuild.sh` gives every Zig version, target, C++ standard and build type
+`tools/devbuild.sh` gives every Zig version, target and build type
 its own CMake tree, output root, ccache directory and Zig cache directory. Run
 `tools/devbuild.sh output-dir` with the same environment to print that lane's
 artifact root. For manual builds, use one build tree and output root per
@@ -223,11 +219,9 @@ The value is that new/refactored code can use a stronger vocabulary at the
 places where this codebase currently relies on conventions, raw buffer pairs,
 macros and polling loops.
 
-The current tree still builds as C++17 to provide a transition and rollback
-lane. The items below are C++20 adoption work: each slice must either retire
-that lane deliberately or hide the new facility behind a small compatibility
-boundary. Do not spread project-wide `#if __cplusplus` branches merely to keep
-both modes alive.
+The project now requires C++20. The first production use is cooperative zone
+worker shutdown; new facilities should still be adopted at focused boundaries
+instead of through tree-wide style conversions.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|
@@ -252,10 +246,13 @@ change is needed, `std::atomic::wait`/`notify_*` can avoid a mutex and repeated
 wakeups. This would make orderly process shutdown testable and remove a class
 of use-after-free and stuck-join failures.
 
-This should be migrated from the leaves inward: start with an isolated polling
-service such as `SMSServiceThread`, establish request-stop/join ownership, and
-only then change the `ZoneGroupThread` tick loop. The gameplay tick cadence and
-the existing lock around `ZoneGroup` must remain unchanged in the first slice.
+The first slice migrated `ZoneGroupThread`: its one-millisecond cadence and the
+existing lock around `ZoneGroup` are unchanged, but the sleep is stop-aware and
+the owning pool requests every stop before joining. `CooperativeThread` keeps
+the C++20 lifetime mechanism reusable for the remaining polling services. The
+legacy pthread base remains temporarily because those services still have
+non-cooperative infinite loops; replacing their backend before their loop
+conditions would turn destruction into a stuck join.
 
 ### Type-safe packet buffers
 

@@ -108,6 +108,9 @@ GameServer::~GameServer()
 {
     __BEGIN_TRY
 
+    // Zone workers must stop while their zone and database dependencies are
+    // still alive.
+    SAFE_DELETE(g_pThreadManager);
     SAFE_DELETE(g_pClientManager);
     SAFE_DELETE(g_pObjectManager);
     SAFE_DELETE(g_pPacketValidator);
@@ -125,7 +128,6 @@ GameServer::~GameServer()
     SAFE_DELETE(g_pMPacketManager);
 #endif
     SAFE_DELETE(g_pGameServerInfoManager);
-    SAFE_DELETE(g_pThreadManager);
     SAFE_DELETE(g_pDatabaseManager);
 
     __END_CATCH_NO_RETHROW
@@ -299,7 +301,12 @@ void GameServer::stop()
     // 가장 먼저 클라이언트 매니저를 삭제시킴으로써 더이상 새 접속을
     // 받지 않도록 한다.
     //
-    g_pClientManager->stop();
+    try {
+        g_pClientManager->stop();
+    } catch (UnsupportedError&) {
+        // ClientManager::run executes on this calling thread, so reaching
+        // here already means its accept loop has unwound.
+    }
 
     //
     // stop thread manager
@@ -308,9 +315,9 @@ void GameServer::stop()
     // 않고 게임 서버에서 쫓아낸다. 이때 쓰레드 매니저의 하위 쓰레드풀에서
     // stop을 실행할때 적절하게 잘 되어야 한다.
     //
+    //
     g_pThreadManager->stop();
 
-    //
     // stop object manager
     //
     // 이제 모든 사용자들의 접속이 종료되었으므로, 남은 존 및 여러 가지 게임

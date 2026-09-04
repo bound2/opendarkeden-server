@@ -1,5 +1,16 @@
 # Fix log
 
+## Zone workers could outlive their zone state during teardown (2026-09-04)
+
+Found while migrating `ZoneGroupThread` to `std::jthread`: the gameserver
+destructor deleted `g_pObjectManager` before `g_pThreadManager`, even though
+the zone workers continuously dereference zone state owned below the object
+manager. The zone pool's `stop()` was also an `UnsupportedError`, so teardown
+could either trip its exit-state assertion or let a worker observe freed state.
+The pool now requests cancellation for every zone, joins every worker, and is
+destroyed before the client, object, and database managers.
+> **Status:** fixed (codex/cpp20-jthread-lifecycle)
+
 ## SGModifyGuildMemberOK was never handled: `#ifdef __GAME_SERER__` (2026-08-31)
 
 Found while migrating the SG direction onto the dispatch table (task

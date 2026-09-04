@@ -51,12 +51,11 @@ cd docker
 docker compose up -d --build
 ```
 
-The image defaults to `CMAKE_BUILD_TYPE=Release` and C++20. The compose build
-arguments can select Debug or the transitional C++17 compatibility lane:
+The image uses C++20 and defaults to `CMAKE_BUILD_TYPE=Release`. The compose
+build arguments can select Debug:
 
 ```sh
 BUILD_TYPE=Debug docker compose up -d --build
-CXX_STANDARD=17 docker compose up -d --build
 ```
 
 ### Start the servers by hand
@@ -84,10 +83,6 @@ that volume rather than updating the checkout's `bin/` and `lib/` directories.
 ```bash
 make dev-test
 make dev-build
-
-# Exercise the C++17 compatibility build in its own build tree.
-CXX_STANDARD=17 make dev-test
-CXX_STANDARD=17 make dev-build
 
 make dev-shell
 ```

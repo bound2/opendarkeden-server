@@ -5,8 +5,8 @@
 # =====================================================================
 include(FetchContent)
 
-# Keep the test framework on a maintained C++17-capable release. The project
-# was previously held at 1.12.1 solely by its C++11 language baseline.
+# Keep the test framework on a maintained release. The project was previously
+# held at 1.12.1 solely by its C++11 language baseline.
 FetchContent_Declare(
     googletest
     URL https://github.com/google/googletest/archive/refs/tags/v1.18.0.zip
@@ -173,6 +173,23 @@ add_dependencies(wire_tests formula_tests)
 
 add_test(NAME formula_tests COMMAND formula_tests)
 set_tests_properties(formula_tests PROPERTIES TIMEOUT 60)
+
+# C++20 structured-concurrency contract. This stays isolated from the game
+# libraries so lifecycle failures cannot be hidden by unrelated fixtures.
+add_executable(cooperative_thread_tests EXCLUDE_FROM_ALL
+    cooperative_thread_test.cpp
+)
+target_include_directories(cooperative_thread_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server
+)
+target_link_libraries(cooperative_thread_tests PRIVATE
+    gtest_main
+    Threads::Threads
+)
+add_dependencies(wire_tests cooperative_thread_tests)
+
+add_test(NAME cooperative_thread_tests COMMAND cooperative_thread_tests)
+set_tests_properties(cooperative_thread_tests PROPERTIES TIMEOUT 10)
 
 add_test(
     NAME ratchets

@@ -4,17 +4,17 @@ project(DarkEden VERSION 1.0 LANGUAGES CXX)
 # ============================================================================
 # 全局设置
 # ============================================================================
-set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ language standard (17 or 20)")
-set_property(CACHE CMAKE_CXX_STANDARD PROPERTY STRINGS 17 20)
-if(NOT CMAKE_CXX_STANDARD MATCHES "^(17|20)$")
-    message(FATAL_ERROR "DarkEden supports CMAKE_CXX_STANDARD=17 or 20")
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ language standard (20)")
+set_property(CACHE CMAKE_CXX_STANDARD PROPERTY STRINGS 20)
+if(NOT CMAKE_CXX_STANDARD EQUAL 20)
+    message(FATAL_ERROR "DarkEden requires CMAKE_CXX_STANDARD=20")
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 输出目录. Development lanes override the root so different compiler,
-# target, standard and build-type combinations cannot share artifacts.
+# target and build-type combinations cannot share artifacts.
 set(DARKEDEN_OUTPUT_ROOT "${CMAKE_SOURCE_DIR}" CACHE PATH "Root directory for DarkEden build artifacts")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DARKEDEN_OUTPUT_ROOT}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DARKEDEN_OUTPUT_ROOT}/lib")

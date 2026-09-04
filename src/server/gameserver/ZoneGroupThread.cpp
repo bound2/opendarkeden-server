@@ -38,7 +38,58 @@ ZoneGroupThread::ZoneGroupThread(ZoneGroup* pZoneGroup)
 
 {
     __BEGIN_TRY
+
+    stop();
+    join();
+
     __END_CATCH_NO_RETHROW
+}
+
+void ZoneGroupThread::start() {
+    if (getStatus() != Thread::READY)
+        throw ThreadException("invalid thread's status");
+
+    setStatus(Thread::RUNNING);
+
+    try {
+        m_Worker.start([this](std::stop_token stopToken) {
+            try {
+                run(stopToken);
+            } catch (...) {
+                setStatus(Thread::EXIT);
+                throw;
+            }
+
+            setStatus(Thread::EXIT);
+        });
+    } catch (...) {
+        setStatus(Thread::READY);
+        throw;
+    }
+
+    setTID(m_Worker.nativeHandle());
+}
+
+void ZoneGroupThread::stop() {
+    if (getStatus() == Thread::EXIT)
+        return;
+
+    if (!m_Worker.joinable()) {
+        setStatus(Thread::EXIT);
+        return;
+    }
+
+    setStatus(Thread::EXITING);
+    m_Worker.requestStop();
+}
+
+void ZoneGroupThread::join() {
+    m_Worker.join();
+    setStatus(Thread::EXIT);
+}
+
+void ZoneGroupThread::detach() {
+    throw UnsupportedError("ZoneGroupThread owns and joins its worker");
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -46,6 +97,12 @@ ZoneGroupThread::ZoneGroupThread(ZoneGroup* pZoneGroup)
 // 를 할 필요가 없다. 즉 모든 예외를 잡아서 처리해야 한다는 소리.
 //////////////////////////////////////////////////////////////////////////////
 void ZoneGroupThread::run()
+
+{
+    run(std::stop_token());
+}
+
+void ZoneGroupThread::run(std::stop_token stopToken)
 
 {
     __BEGIN_DEBUG
@@ -93,12 +150,19 @@ void ZoneGroupThread::run()
     getCurrentTime(dummyQueryTime);
 
     try {
-        while (true) {
+        while (!stopToken.stop_requested()) {
             //		beginProfileEx("ZGT_MAIN");
             try {
                 beginProfileExNoTry("ZGT_MAIN");
 
-                usleep(1000); // FIX: 原注释说 0.001秒 = 1000微秒，但代码写的是 100 微秒，已修正
+                std::unique_lock<std::mutex> stopLock(m_StopMutex);
+                m_StopCondition.wait_for(stopLock, stopToken, std::chrono::milliseconds(1), [] { return false; });
+                stopLock.unlock();
+
+                if (stopToken.stop_requested()) {
+                    endProfileExNoCatch("ZGT_MAIN");
+                    break;
+                }
 
                 __ENTER_CRITICAL_SECTION((*m_pZoneGroup))
 

@@ -12,6 +12,7 @@
 #include "ThreadPool.h"
 
 #include <algorithm>
+#include <mutex>
 
 #include "Assert.h"
 #include "LogClient.h"
@@ -62,10 +63,9 @@ ThreadPool::~ThreadPool()
 {
     __BEGIN_TRY
 
-    //////////////////////////////////////////////////
-    // enter critical section
-    //////////////////////////////////////////////////
-    m_Mutex.lock();
+    stop();
+
+    std::lock_guard<Mutex> lock(m_Mutex);
 
     /*
     list<Thread*>::iterator itr = m_Threads.begin();
@@ -97,11 +97,6 @@ ThreadPool::~ThreadPool()
 
         m_Threads.pop_front();
     }
-
-    //////////////////////////////////////////////////
-    // leave critical section
-    //////////////////////////////////////////////////
-    m_Mutex.unlock();
 
     __END_CATCH_NO_RETHROW
 }
@@ -149,7 +144,17 @@ void ThreadPool::stop()
 {
     __BEGIN_TRY
 
-    throw UnsupportedError("do not use this method now...");
+    std::lock_guard<Mutex> lock(m_Mutex);
+
+    // Request every stop before joining any worker so zone groups wind down
+    // concurrently instead of serially extending shutdown.
+    for (Thread* thread : m_Threads) {
+        Assert(thread != NULL);
+        thread->stop();
+    }
+
+    for (Thread* thread : m_Threads)
+        thread->join();
 
     __END_CATCH
 }

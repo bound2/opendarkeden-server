@@ -35,8 +35,6 @@
 #     tools/devbuild.sh test --record     # same, but re-record goldens first
 #     tools/devbuild.sh build             # build every production target
 #     tools/devbuild.sh build wire_tests  # build one target
-#     CXX_STANDARD=17 tools/devbuild.sh test
-#                                         # exercise the C++17 compatibility build
 #     tools/devbuild.sh output-dir        # print this lane's artifact root
 #     tools/devbuild.sh shell             # interactive shell in the workspace
 #     tools/devbuild.sh clean             # drop the workspace and compiler
@@ -64,15 +62,11 @@ WORK_VOLUME=${DEVBUILD_WORK_VOLUME:-darkeden-work}
 CCACHE_VOLUME=${DEVBUILD_CCACHE_VOLUME:-darkeden-ccache}
 ZIG_CACHE_VOLUME=${DEVBUILD_ZIG_CACHE_VOLUME:-darkeden-zig-cache}
 BUILD_TYPE=${BUILD_TYPE:-Debug}
-CXX_STANDARD=${CXX_STANDARD:-20}
 
-case "$CXX_STANDARD" in
-    17|20) ;;
-    *)
-        echo "CXX_STANDARD must be 17 or 20 (got '$CXX_STANDARD')" >&2
-        exit 2
-        ;;
-esac
+if [ "${CXX_STANDARD:-20}" != "20" ]; then
+    echo "DarkEden requires CXX_STANDARD=20 (got '$CXX_STANDARD')" >&2
+    exit 2
+fi
 
 # Git Bash mangles absolute paths in docker arguments unless this is set.
 export MSYS_NO_PATHCONV=1
@@ -109,7 +103,7 @@ fi
 
 # The image label is the authority for the actual compiler installed in the
 # container. Include every compilation dimension in CMake, output and cache
-# paths so changing standard, build type, Zig version or target cannot reuse
+# paths so changing build type, Zig version or target cannot reuse
 # incompatible artifacts.
 if ! zig_version=$(docker image inspect \
     --format '{{ index .Config.Labels "org.opendarkeden.zig-version" }}' \
@@ -123,7 +117,7 @@ if [ -z "$zig_version" ] || [ "$zig_version" = "<no value>" ]; then
 fi
 
 target_name=${ZIG_TARGET:-native}
-toolchain_id=$(printf '%s' "zig-${zig_version}-${target_name}-cxx${CXX_STANDARD}-${BUILD_TYPE}" \
+toolchain_id=$(printf '%s' "zig-${zig_version}-${target_name}-cxx20-${BUILD_TYPE}" \
     | tr -c 'A-Za-z0-9._-' '_')
 BUILD_DIR=/work/build-${toolchain_id}
 OUTPUT_ROOT=/work/output-${toolchain_id}
@@ -160,7 +154,7 @@ sync_out='rsync -a --checksum \
 configure='cmake -G Ninja -B '"$BUILD_DIR"' -S /work \
     -DCMAKE_TOOLCHAIN_FILE=/work/cmake/zig-toolchain.cmake \
     -DCMAKE_BUILD_TYPE='"$BUILD_TYPE"' \
-    -DCMAKE_CXX_STANDARD='"$CXX_STANDARD"' \
+    -DCMAKE_CXX_STANDARD=20 \
     -DDARKEDEN_ZIG_TARGET='"${ZIG_TARGET:-}"' \
     -DDARKEDEN_OUTPUT_ROOT='"$OUTPUT_ROOT"' \
     -DDARKEDEN_BUILD_TESTS=ON \

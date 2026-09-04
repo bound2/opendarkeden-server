@@ -90,7 +90,7 @@ Thread::~Thread() noexcept(false) {}
 void Thread::start() {
     __BEGIN_TRY
 
-    if (m_Status != Thread::READY)
+    if (getStatus() != Thread::READY)
         throw ThreadException("invalid thread's status");
 
     pthread_create_ex(&m_TID, (m_ThreadAttr == NULL ? NULL : m_ThreadAttr->getAttr()), start_routine, this);
@@ -112,6 +112,14 @@ void Thread::stop() {
     __END_CATCH
 }
 
+void Thread::join() {
+    __BEGIN_TRY
+
+    pthread_join_ex(m_TID, NULL);
+
+    __END_CATCH
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Ư�� �����尡 ������ ������ ���� �����带 �����.
@@ -123,35 +131,21 @@ void Thread::stop() {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void Thread::join(const Thread& t) {
-    __BEGIN_TRY
-
-    pthread_join_ex(t.getTID(), NULL);
-
-    __END_CATCH
+    const_cast<Thread&>(t).join();
 }
 
 void Thread::join(const Thread& t, void* status) {
-    __BEGIN_TRY
-
-    pthread_join_ex(t.getTID(), &status);
-
-    __END_CATCH
+    (void)status;
+    const_cast<Thread&>(t).join();
 }
 
 void Thread::join(const Thread* t) {
-    __BEGIN_TRY
-
-    pthread_join_ex(t->getTID(), NULL);
-
-    __END_CATCH
+    const_cast<Thread*>(t)->join();
 }
 
 void Thread::join(const Thread* t, void* status) {
-    __BEGIN_TRY
-
-    pthread_join_ex(t->getTID(), &status);
-
-    __END_CATCH
+    (void)status;
+    const_cast<Thread*>(t)->join();
 }
 
 

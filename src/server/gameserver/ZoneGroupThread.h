@@ -9,7 +9,14 @@
 #ifndef __ZONE_THREAD_H__
 #define __ZONE_THREAD_H__
 
+#include <chrono>
+#include <mutex>
+
+#include <condition_variable>
+#include <stop_token>
+
 // include files
+#include "CooperativeThread.h"
 #include "Exception.h"
 #include "Thread.h"
 #include "Types.h"
@@ -33,8 +40,13 @@ public:
     // destructor
     ~ZoneGroupThread() noexcept;
 
+    void start() override;
+    void stop() override;
+    void join() override;
+    void detach() override;
+
     // main method
-    void run();
+    void run() override;
 
     // get debug string
     string toString() const;
@@ -49,7 +61,14 @@ public:
     }
 
 private:
+    void run(std::stop_token stopToken);
+
     ZoneGroup* m_pZoneGroup;
+    std::mutex m_StopMutex;
+    std::condition_variable_any m_StopCondition;
+
+    // Keep this last: its destructor joins before the state above is torn down.
+    CooperativeThread m_Worker;
 };
 
 #endif
