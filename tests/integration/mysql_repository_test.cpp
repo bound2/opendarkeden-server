@@ -382,6 +382,29 @@ TEST_F(MofusMySQL, TheFirstSaveInsertsAndEveryLaterOneAccumulates) {
     EXPECT_TRUE(repository.increasePowerPoint("it-mofus", -50));
     ASSERT_TRUE(repository.loadPowerPoint("it-mofus", point));
     EXPECT_EQ(-8, point);
+
+    // The live shape the round's callers actually produce: a FIRST save
+    // that is a spend, which creates the row already negative. That is
+    // CGUsePowerPointHandler's -300 against a character who has never
+    // received a mofus credit.
+    EXPECT_FALSE(repository.increasePowerPoint("it-spend", -300));
+    repository.insertPowerPoint("it-spend", -300);
+    ASSERT_TRUE(repository.loadPowerPoint("it-spend", point));
+    EXPECT_EQ(-300, point);
+
+    // And the quirk that sends it there: affected-rows counts rows
+    // CHANGED, not matched, because the driver sets no
+    // CLIENT_FOUND_ROWS. Adding zero to an EXISTING row reports false,
+    // so the caller would insert against the primary key and raise —
+    // which the mofus swallow then eats.
+    EXPECT_FALSE(repository.increasePowerPoint("it-spend", 0));
+    bool refused = false;
+    try {
+        repository.insertPowerPoint("it-spend", 0);
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "the duplicate-key insert did not raise";
 }
 
 TEST_F(MofusMySQL, TheAuditRowIsStampedByTheDatabaseAndKeepsEverySave) {

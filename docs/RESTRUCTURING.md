@@ -3819,9 +3819,15 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > 162/162 integration tests, build exit 0, clang-format clean.
   > **The mofus power points (2026-09-04, stacked on the guild-remainder
   > round)**: mofus/Mofus.cpp — R3 90→89 (R1/R2/R5 unchanged). Five
-  > statements over two tables — MofusPowerPoint, the per-ACCOUNT
-  > balance, and MofusLog, the audit trail of every save — move into a
+  > statements over two tables — MofusPowerPoint, the power-point
+  > balance, and MofusLog, which records the credits the mofus link
+  > sends and NOT every save — logPowerPoint has one caller, and
+  > CGUsePowerPointHandler's spend goes through savePowerPoint without
+  > it — move into a
   > new MofusPointRepository, and mofus/ is left with no SQL at all.
+  > (Five statements, four methods: the two byte-identical
+  > "SELECT Point ..." calls collapse into one loadPowerPoint reused
+  > twice, which the draft did not say.)
   > THE THING THIS ROUND TURNS ON, and the reason it is worth reading
   > closely: every one of these functions deliberately SWALLOWS a SQL
   > failure ("SQL 에러는 무시한다" — ignore SQL errors) and carries on
@@ -3838,8 +3844,19 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > are rewritten to name const char*, and the SQLQueryException arm is
   > removed because nothing in these functions can raise one any more.
   > This is the same seam-boundary question the guild-remainder round
-  > answered for CGConnectHandler; there the outcome was unchanged
-  > because a catch (...) sat above it, and here it would NOT have been.
+  > answered for CGConnectHandler, but an earlier draft named the wrong
+  > reason for the difference. It is not that no catch-all sits above
+  > this one — GamePlayer::processCommand's catch (...) is above the
+  > most-live caller here too. It is that THERE the prior outcome was
+  > already a throw, so converting its type landed in the same place;
+  > HERE the prior outcome was a total swallow, so any escape at all is
+  > a change. What it would have changed, per caller: a disconnect at
+  > login, where PlayerCreature::load calls loadPowerPoint on every
+  > character; std::terminate on the zone thread, where the Restore and
+  > EventMorph paths reach it and nothing catches a const char*; and on
+  > the mofus thread, terminate plus g_pPCFinder left locked, because
+  > MPlayerManager::processResult calls it inside that critical section
+  > and __LEAVE_CRITICAL_SECTION catches Throwable& only.
   > DISCLOSURES. (1) The catch (...) that followed each swallow existed
   > only to free the Statement before rethrowing; with no Statement it
   > is a bare rethrow, so it is gone. (2) savePowerPoint keeps ONE try
@@ -3852,10 +3869,61 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > "Update" and "Insert Into" keywords, the POSITIONAL insert
   > "Values ('%s',%d)" that names no columns and so depends on
   > MofusPowerPoint being (OwnerID, Point), and recvPoint/savePoint —
-  > ints — reaching "%u" against smallint(5) SIGNED columns. (5) OwnerID
-  > is an ACCOUNT id, not a character name, and is interpolated raw as
-  > before. (6) DBError.log and the const char* END_DB rethrows now name
-  > the repository method. TESTS: two added in a new MofusMySQL tier —
+  > ints — reaching "%u" against smallint(5) SIGNED columns. (5) OwnerID IS A
+  > CHARACTER NAME, and an earlier draft of this paragraph said the
+  > opposite. Every caller passes getName(): PlayerCreature::load,
+  > MPlayerManager::processResult, CGUsePowerPointHandler, and
+  > PKTPowerPointHandler through MJob::m_Name, whose own comment reads
+  > "character name". MJob holds the account id separately as m_UserID
+  > and never passes it here, and the seeded MofusLog rows are
+  > character names. Interpolated raw, as before. Worth adding: the two
+  > OwnerID columns disagree — varchar(30) on the balance,
+  > varchar(20) on the log — though names are varchar(10) elsewhere,
+  > so neither truncates. (6) DBError.log entries are NEW here, not
+  > renamed: the old swallow was silent to disk, and END_DB now appends
+  > on every failure. That is reachable on an ORDINARY path, not just
+  > an error one — a save of zero points is possible (the handler
+  > clamps with min(points, 40)), the driver connects without
+  > CLIENT_FOUND_ROWS so affected-rows means rows CHANGED,
+  > "Point = Point + 0" changes nothing, the caller reads that as "no
+  > row" and inserts, and OwnerID is the PRIMARY KEY, so the insert
+  > raises on a duplicate key. The throw is pre-existing and swallowed
+  > as before; the log append is new. (7) THE STATEMENT LEAKS ON A
+  > NON-SQLQueryException PATH, and the draft's claim that the removed
+  > catch (...) "existed only to free the Statement" was right about
+  > the call site and silent about where the duty went. It went
+  > nowhere: SAFE_DELETE sits inside the repository's try, so success
+  > and SQLQueryException free it and nothing else does. Every
+  > MySQL*Repository in the tree has that shape, and the candidates are
+  > unreachable for four short statements, so it is recorded rather
+  > than fixed here — fixing it belongs in every seam at once.
+  > (8) WHAT THE SWALLOW PREVENTS IS WORSE THAN THE ROUND SAID.
+  > MPlayerManager::processResult calls loadPowerPoint INSIDE
+  > __ENTER_CRITICAL_SECTION((*g_pPCFinder)), and
+  > __LEAVE_CRITICAL_SECTION catches Throwable& only. Had the catch
+  > been left naming SQLQueryException, a SQL error would have escaped
+  > as a const char*, skipped the unlock and left g_pPCFinder held —
+  > every zone thread's next PC lookup would block on it. Not "an
+  > ignored error becomes a thrown one": a server-wide stall.
+  > (9) Nothing pins the catch itself. Both tests exercise the
+  > repository against real MySQL; neither goes through Mofus.cpp, and
+  > no repository in this stack has a setter to inject a fake through.
+  > The round's headline is the one thing left unpinned.
+  > (10) THE mysql.h CLAIM WAS FALSE. The round said replacing DB.h
+  > with Exception.h means "mofus/ no longer pulls <mysql/mysql.h> in
+  > through Result.h". Mofus.cpp no longer does; the MODULE still
+  > does, because MPlayerManager.cpp includes DB.h and needs it — it
+  > constructs the mofus thread's own Connection. That file is the
+  > module's remaining MySQL edge, and arch rule C1 misses it because
+  > C1 matches quoted basenames from a fixed list, so neither "DB.h"
+  > nor the angle-bracket mysql header is visible to it. (11) NOT
+  > ENCLOSED, which the header failed to say at all: the loginserver's
+  > "DELETE FROM MofusPowerPoint WHERE OwnerID='%s'" in
+  > CLDeletePCHandler.cpp. A different binary, so it joins its own
+  > round — and it is independent evidence for the character-name
+  > correction above, since it sits among the per-character cleanups.
+  > Nothing anywhere deletes MofusLog. That is three rounds running
+  > with a not-enclosed list wrong or missing. TESTS: two added in a new MofusMySQL tier —
   > the first save inserting where the UPDATE matched nothing and every
   > later one accumulating (including a negative amount going below
   > zero, since Point is signed), and the audit trail appending one row

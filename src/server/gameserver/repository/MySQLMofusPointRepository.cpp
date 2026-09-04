@@ -14,7 +14,26 @@ namespace {
 //    as a large unsigned number and then overflows the column; under
 //    this project's non-strict sql_mode that clamps to 32767 with a
 //    warning rather than failing. Kept as the call site wrote it.
-//  - OwnerID is an ACCOUNT id, and it is interpolated raw, as before.
+//  - OwnerID is a CHARACTER NAME (see the header; an earlier version of
+//    this note said account id), and it is interpolated raw, as before.
+//  - THE INSERT CAN FAIL ON AN ORDINARY PATH, which matters because
+//    END_DB writes DBError.log every time it does. A save of ZERO
+//    points is reachable — PKTPowerPointHandler clamps with min(points,
+//    40) and points can be 0 — and the driver connects without
+//    CLIENT_FOUND_ROWS, so mysql_affected_rows reports rows CHANGED.
+//    "Point = Point + 0" changes nothing, the caller reads that as "no
+//    row" and inserts, and OwnerID is the PRIMARY KEY, so the insert
+//    raises on a duplicate key. That throw is pre-existing and
+//    preserved; the per-occurrence log append is new.
+//  - THE STATEMENT LEAKS ON A NON-SQLQueryException PATH. SAFE_DELETE
+//    sits inside the try, so success and SQLQueryException free it and
+//    nothing else does. The inline code had a catch (...) that freed it
+//    unconditionally; that arm was removed from the call site and its
+//    cleanup was not reproduced here. Every other MySQL*Repository in
+//    the tree has the same shape, and the candidates — the 2048-byte
+//    statement guard, getField before next(), bad_alloc — are
+//    unreachable for these four short statements. Recorded rather than
+//    fixed, because fixing it belongs in every seam at once.
 class MySQLMofusPointRepository : public MofusPointRepository {
 public:
     bool loadPowerPoint(const string& ownerID, int& point) {

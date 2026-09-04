@@ -20,8 +20,22 @@
 // repository call converts its own inside END_DB and rethrows a bare
 // const char*, which is what the swallow has to name. The
 // SQLQueryException catch is gone because nothing here can raise one any
-// more, and so is the catch (...) that only existed to free a Statement
-// before rethrowing.
+// more, and so is the catch (...) that freed the Statement before
+// rethrowing — its cleanup did not move into the repository, which
+// therefore leaks on a non-SQLQueryException path. Unreachable for
+// these statements, and recorded in the implementation.
+//
+// What the swallow prevents is worse than an ignored error becoming a
+// thrown one, and it differs per caller. PlayerCreature::load calls
+// loadPowerPoint on EVERY character login, so an escape there reaches
+// GamePlayer::processCommand's catch (...) and disconnects the player
+// instead of logging them in with zero points. The Restore and
+// EventMorph paths call it on a zone thread, where nothing catches a
+// const char* at all — std::terminate, i.e. the process. And
+// MPlayerManager::processResult calls it INSIDE
+// __ENTER_CRITICAL_SECTION((*g_pPCFinder)), whose
+// __LEAVE_CRITICAL_SECTION catches Throwable& only: that one would
+// also leave g_pPCFinder held on the way out.
 
 int loadPowerPoint(const string& name) {
     __BEGIN_TRY
