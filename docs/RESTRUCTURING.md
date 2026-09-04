@@ -55,7 +55,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 94 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers; 120→113 on 2026-09-03: the five per-creature effect saves, EffectRestore and the two Restore skills — skill/ now holds no live inline SQL at all; 113→111 on 2026-09-03: GuildWar and RaceWar, the two war-history writers — SiegeWar loses its seven live statements too but keeps counting, its two SiegeWarHistory recorders being commented out whole; 111→109 on 2026-09-03: War and WarSchedule, the WarScheduleInfo probes and writes; 109→108 on 2026-09-03: RaceWarLimiter, the race-war entry limits and the participant list; 108→107 on 2026-09-03: WarScheduler, the per-zone schedule load and the guild-schedule cancel; 107→102 on 2026-09-03: the five guild-union handlers; 102→98 on 2026-09-03: CGExpelGuild and the three SG guild handlers, all pure reuse; 98→94 on 2026-09-04: the three guild-membership probe handlers and SGAddGuildMemberOK's clamped fee — note that CGJoinGuildHandler leaves this grep only because the commented-out DENY policy inside it, which contained a pStmt->executeQuery call, was rewritten to name the seam method now that pStmt is gone; left verbatim the file would still count and R3 would read 95. POLICY, written down because the SiegeWar entry earlier in this same cell records the opposite outcome and the two need reconciling: a commented-out block that REFERENCES CODE THE CONVERSION DELETED is updated to name what replaced it, because it is otherwise simply wrong; a commented-out block that is self-contained history, like SiegeWar's two whole recorders, is left alone and its file keeps counting. The distinction is whether the comment still describes something that exists, not whether editing it helps the number. A reader who rejects that distinction should read this round as R3 = 95 with CGJoinGuildHandler still on the list) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 93 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers; 120→113 on 2026-09-03: the five per-creature effect saves, EffectRestore and the two Restore skills — skill/ now holds no live inline SQL at all; 113→111 on 2026-09-03: GuildWar and RaceWar, the two war-history writers — SiegeWar loses its seven live statements too but keeps counting, its two SiegeWarHistory recorders being commented out whole; 111→109 on 2026-09-03: War and WarSchedule, the WarScheduleInfo probes and writes; 109→108 on 2026-09-03: RaceWarLimiter, the race-war entry limits and the participant list; 108→107 on 2026-09-03: WarScheduler, the per-zone schedule load and the guild-schedule cancel; 107→102 on 2026-09-03: the five guild-union handlers; 102→98 on 2026-09-03: CGExpelGuild and the three SG guild handlers, all pure reuse; 98→94 on 2026-09-04: the three guild-membership probe handlers and SGAddGuildMemberOK's clamped fee — note that CGJoinGuildHandler leaves this grep only because the commented-out DENY policy inside it, which contained a pStmt->executeQuery call, was rewritten to name the seam method now that pStmt is gone; left verbatim the file would still count and R3 would read 95. POLICY, written down because the SiegeWar entry earlier in this same cell records the opposite outcome and the two need reconciling: a commented-out block that REFERENCES CODE THE CONVERSION DELETED is updated to name what replaced it, because it is otherwise simply wrong; a commented-out block that is self-contained history, like SiegeWar's two whole recorders, is left alone and its file keeps counting. The distinction is whether the comment still describes something that exists, not whether editing it helps the number. A reader who rejects that distinction should read this round as R3 = 95 with CGJoinGuildHandler still on the list; 94→93 on 2026-09-04: couple/CoupleManager.cpp, the whole couple module's SQL in one file) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -3462,6 +3462,83 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > made this round's "not reuse" framing true. The note is corrected
   > and those files are the natural next guild round. ctest 5/5,
   > 152/152 integration tests, build exit 0, clang-format clean.
+  > **The couple pairings (2026-09-04, stacked on the guild-membership
+  > round)**: couple/CoupleManager.cpp — R3 94→93 (R1/R2/R5 unchanged).
+  > Eight statements, one table, one file: a new CoupleRepository takes
+  > every CoupleInfo statement the gameserver runs, and the couple
+  > module is left with no SQL at all. WHAT MAKES THIS ONE DIFFERENT:
+  > the columns are chosen by SEX rather than written literally. A
+  > pairing is ONE row with one column per sex (MalePartnerName,
+  > FemalePartnerName) plus Race and a CoupleDate the database stamps
+  > with now(), so every statement interpolates its column names
+  > through %s from CoupleManager::getFieldName /
+  > getCounterFieldName — a two-element array {"FemalePartnerName",
+  > "MalePartnerName"} indexed by Sex, which is FEMALE = 0, MALE = 1,
+  > so the ordering is right. That array and both accessors moved into
+  > MySQLCoupleRepository.cpp and were REMOVED from CoupleManager.h:
+  > they are SQL identifiers, and leaving a second copy outside the
+  > seam is exactly the drift the seam exists to prevent. Nothing
+  > outside CoupleManager.cpp ever called either accessor (grepped).
+  > TWO DERIVATIONS OF ONE LITERAL: isCouple(pPC1, name2) builds
+  > "SELECT count(*) FROM CoupleInfo where %s='%s' and %s='%s'" from
+  > its own sex and the COUNTER of its own sex, while
+  > isCouple(pPC1, pPC2) builds the same literal from each character's
+  > own sex. Those agree whenever the sexes differ, which the second
+  > caller guarantees by returning early when they match — so this is
+  > not a second spelling, it is a second derivation, and both are kept
+  > (countPairingWithPartner and countPairing) because 3.2 does not
+  > choose between call sites. The two DELETEs likewise differ by one
+  > byte of case — removeCouple writes WHERE, removeCoupleForce writes
+  > where — but unlike the guild member DELETE they ALSO derive their
+  > columns differently and have one caller each, so two methods carry
+  > the difference and no spelling enum was needed. DISCLOSURES.
+  > (1) THE OUT-OF-BOUNDS INDEXING IS INHERITED, NOT FIXED: neither
+  > lookup bounds-checks, so a Sex outside {FEMALE, MALE} reads
+  > SEX_FIELD_NAME[2] or, for the counter, [1 - 2] = [-1]. The seam
+  > keeps the arithmetic exactly, adds no clamp, and says so in place;
+  > bounding it is a behaviour change and belongs to its own round.
+  > (2) The array was a namespace-scope const string[] in a HEADER, so
+  > every translation unit including CoupleManager.h built its own two
+  > std::strings at static-init time and getFieldName returned a
+  > std::string BY VALUE on every call. It is now a
+  > const char* const[] in one .cpp returning a pointer. Invisible to
+  > the database, but a real change and not a cleanup this round set
+  > out to make. (3) The four probes used to leave a bool false and
+  > set it only when next() succeeded AND the count was >= 1; the seam
+  > returns the count and each caller compares >= 1. A count(*) always
+  > yields a row, so next() cannot fail on a live connection; if it
+  > ever did, the old code answered false and the new one returns 0,
+  > which compares false. Same answer. (4) getPartnerName leaves its
+  > out-parameter untouched when there is no row, as before, and a
+  > test pins it. (5) CoupleManager.cpp no longer includes DB.h or
+  > DatabaseManager.h; Assert and __BEGIN_TRY still reach it through
+  > CoupleManager.h. (6) Every function already ran exactly one
+  > statement on its own Statement, so no Statement count changed
+  > anywhere in this round. (7) DBError.log and the const char* END_DB
+  > rethrows now name the repository method. NOT ENCLOSED, and named
+  > in the header: the two "DELETE FROM CoupleInfo WHERE <column>='%s'"
+  > pairs that erase a deleted character's pairings from BOTH columns
+  > at once — CreatureUtil.cpp's and the loginserver's
+  > CLDeletePCHandler.cpp's. They name their columns literally rather
+  > than by sex, and the loginserver copy is a different binary.
+  > TESTS: three added to a new CoupleMySQL tier — one row found from
+  > either partner's side with the date stamped by the database, the
+  > probes missing a name looked up in the wrong sex's column (which is
+  > what makes the derivation load bearing rather than decorative), and
+  > the three deletes differing in what they match. That last test
+  > turned up an asymmetry worth recording, which is the inline
+  > code's and is kept: all three DELETEs filter on Race, while
+  > NEITHER count probe nor the partner read does. So a character
+  > paired in two races reads as coupled after removeCouple has
+  > removed the pairing of the race they are playing, and
+  > getPartnerName hands back whichever row the server returns
+  > first. Reachable only if one name holds pairings in more than
+  > one race, which nothing in the couple flow creates — the
+  > handlers pair two characters of the same race and Assert it —
+  > but nothing in the SCHEMA prevents either, since CoupleInfo's
+  > only key is its AUTO_INCREMENT ID. Recorded, not fixed.
+  > ctest 5/5, 155/155 integration tests, build exit 0,
+  > clang-format clean.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes
   > before PetItem — R3 136→133 (R1/R2/R5 unchanged). Motorcycle

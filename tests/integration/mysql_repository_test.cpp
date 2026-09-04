@@ -36,6 +36,7 @@
 #include "repository/CharacterRepository.h"
 #include "repository/ComebackEventRepository.h"
 #include "repository/ContentInfoRepository.h"
+#include "repository/CoupleRepository.h"
 #include "repository/EffectSaveRepository.h"
 #include "repository/FlagSetRepository.h"
 #include "repository/GameInfoRepository.h"
@@ -183,6 +184,109 @@ TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
     int gold = -1;
     ASSERT_TRUE(defaultStashRepository().loadStashGold(vampire.name, CHARACTER_RACE_VAMPIRE, gold));
     EXPECT_EQ(0, gold);
+}
+
+// --- couple pairings against real MySQL ------------------------------------
+
+class CoupleMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM CoupleInfo WHERE MalePartnerName LIKE 'it-%' OR FemalePartnerName LIKE 'it-%'");
+    }
+};
+
+TEST_F(CoupleMySQL, APairingIsOneRowFoundFromEitherSide) {
+    CoupleRepository& repository = defaultCoupleRepository();
+
+    // The row carries one column per sex, so the SAME row answers both
+    // partners' probes — each naming its own column. This is the property
+    // the sex-derived column names exist for, and the one a mixed-up
+    // derivation would break.
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 0);
+
+    EXPECT_EQ("it-mike", queryScalar("SELECT MalePartnerName FROM CoupleInfo WHERE FemalePartnerName='it-fay'"));
+    EXPECT_EQ("it-fay", queryScalar("SELECT FemalePartnerName FROM CoupleInfo WHERE MalePartnerName='it-mike'"));
+
+    EXPECT_EQ(1, repository.countPairingWithPartner(MALE, "it-mike", "it-fay"));
+    EXPECT_EQ(1, repository.countPairingWithPartner(FEMALE, "it-fay", "it-mike"));
+    // The other derivation, each column from its own character's sex.
+    // Same row, either way round.
+    EXPECT_EQ(1, repository.countPairing(MALE, "it-mike", FEMALE, "it-fay"));
+    EXPECT_EQ(1, repository.countPairing(FEMALE, "it-fay", MALE, "it-mike"));
+
+    EXPECT_EQ(1, repository.countPairingsOf(MALE, "it-mike"));
+    EXPECT_EQ(1, repository.countPairingsOf(FEMALE, "it-fay"));
+
+    std::string partner;
+    ASSERT_TRUE(repository.loadPartnerName(MALE, "it-mike", partner));
+    EXPECT_EQ("it-fay", partner);
+    ASSERT_TRUE(repository.loadPartnerName(FEMALE, "it-fay", partner));
+    EXPECT_EQ("it-mike", partner);
+
+    // CoupleDate is stamped by the database, not by the caller.
+    EXPECT_EQ(queryScalar("SELECT CURDATE()"),
+              queryScalar("SELECT CoupleDate FROM CoupleInfo WHERE MalePartnerName='it-mike'"));
+}
+
+TEST_F(CoupleMySQL, ProbesAreScopedToTheNamedPairAndMissAnyoneElse) {
+    CoupleRepository& repository = defaultCoupleRepository();
+
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 0);
+
+    // Right names, wrong side: the male name looked up in the female
+    // column finds nothing, which is what makes the derivation load
+    // bearing rather than decorative.
+    EXPECT_EQ(0, repository.countPairingsOf(FEMALE, "it-mike"));
+    EXPECT_EQ(0, repository.countPairingWithPartner(MALE, "it-fay", "it-mike"));
+
+    // A stranger, and a real character paired with the wrong partner.
+    EXPECT_EQ(0, repository.countPairingsOf(MALE, "it-nobody"));
+    EXPECT_EQ(0, repository.countPairingWithPartner(MALE, "it-mike", "it-eve"));
+
+    std::string partner = "untouched";
+    EXPECT_FALSE(repository.loadPartnerName(MALE, "it-nobody", partner));
+    EXPECT_EQ("untouched", partner); // left alone when there is no row
+}
+
+TEST_F(CoupleMySQL, TheThreeDeletesDifferInWhatTheyMatchNotInWhatTheyMean) {
+    CoupleRepository& repository = defaultCoupleRepository();
+
+    // Race is part of every DELETE's WHERE, so a pairing of another race
+    // survives all three. (Nothing stops two rows sharing a name across
+    // races; the statements were always race-scoped.)
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 0);
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 1);
+
+    repository.deletePairing(MALE, "it-mike", FEMALE, "it-fay", 0);
+    // The DELETEs filter on Race; the count probes do NOT. So the
+    // race-1 row survives the delete AND still answers the probe. That
+    // asymmetry is the inline code's and is kept: isCouple() and
+    // hasCouple() see a pairing in ANY race, while removeCouple() only
+    // removes the one matching the character's own.
+    EXPECT_EQ(1, repository.countPairing(MALE, "it-mike", FEMALE, "it-fay"));
+    EXPECT_EQ("1", queryScalar("SELECT count(*) FROM CoupleInfo WHERE MalePartnerName='it-mike'"));
+    EXPECT_EQ("1", queryScalar("SELECT Race FROM CoupleInfo WHERE MalePartnerName='it-mike'"));
+
+    // The counter-column form reaches the same row from one character
+    // plus a partner NAME. Its only textual difference from the above is
+    // a lower-case "where", which no assertion here can see: like the
+    // guild delete spellings, that mapping is held by review.
+    repository.deletePairingWithPartner(MALE, "it-mike", "it-fay", 1);
+    EXPECT_EQ(0, repository.countPairingsOf(MALE, "it-mike"));
+
+    // The one-sided form takes every pairing of a character in a race.
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 2);
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-eve", 2);
+    EXPECT_EQ(2, repository.countPairingsOf(MALE, "it-mike"));
+    repository.deletePairingsOf(MALE, "it-mike", 2);
+    EXPECT_EQ(0, repository.countPairingsOf(MALE, "it-mike"));
+    EXPECT_EQ(0, repository.countPairingsOf(FEMALE, "it-fay"));
 }
 
 // --- carried gold against real MySQL --------------------------------------

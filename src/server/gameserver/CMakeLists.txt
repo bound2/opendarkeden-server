@@ -553,6 +553,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLBulletinBoardRepository.cpp
     repository/MySQLComebackEventRepository.cpp
     repository/MySQLContentInfoRepository.cpp
+    repository/MySQLCoupleRepository.cpp
     repository/MySQLMessageRepository.cpp
     repository/MySQLRegenZoneRepository.cpp
     repository/MySQLZoneInfoRepository.cpp
