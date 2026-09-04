@@ -26,6 +26,7 @@
 #include "Properties.h"
 #include "ResurrectLocationManager.h"
 #include "Zone.h"
+#include "repository/MessageRepository.h"
 #endif
 
 //----------------------------------------------------------------------
@@ -134,72 +135,78 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
         HashMapGuildMember& Members = pGuild->getMembers();
         HashMapGuildMemberItor itr = Members.begin();
 
-        Statement* pStmt = NULL;
-        Result* pResult = NULL;
+        MessageRepository& messages = defaultMessageRepository();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        for (; itr != Members.end(); itr++) {
+            GuildMember* pGuildMember = itr->second;
 
-            for (; itr != Members.end(); itr++) {
-                GuildMember* pGuildMember = itr->second;
+            // 접속해 있으면
+            __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
-                // 접속해 있으면
-                __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+            Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuildMember->getName());
+            if (pCreature != NULL && pCreature->isPC()) {
+                Player* pPlayer = pCreature->getPlayer();
+                Assert(pPlayer != NULL);
 
-                Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuildMember->getName());
-                if (pCreature != NULL && pCreature->isPC()) {
-                    Player* pPlayer = pCreature->getPlayer();
-                    Assert(pPlayer != NULL);
+                PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
+                Assert(pPlayerCreature != NULL);
 
-                    PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
-                    Assert(pPlayerCreature != NULL);
-
-                    // 등록비를 환불한다.
-                    Gold_t Gold = pPlayerCreature->getGold();
-                    if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER) {
-                        Gold = min((uint64_t)(Gold + RETURN_SLAYER_MASTER_GOLD), (uint64_t)2000000000);
-                    } else if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
-                        Gold = min((uint64_t)(Gold + RETURN_SLAYER_SUBMASTER_GOLD), (uint64_t)2000000000);
-                    }
-
-                    pPlayerCreature->setGoldEx(Gold);
-
-                    GCModifyInformation gcModifyInformation;
-                    gcModifyInformation.addLongData(MODIFY_GOLD, Gold);
-                    pPlayer->sendPacket(&gcModifyInformation);
-
-                    // 메시지를 보낸다.
-                    pResult = pStmt->executeQuery("SELECT Message FROM Messages WHERE Receiver = '%s'",
-                                                  pCreature->getName().c_str());
-
-                    while (pResult->next()) {
-                        GCSystemMessage message;
-                        message.setMessage(pResult->getString(1));
-                        pPlayer->sendPacket(&message);
-                    }
-
-                    pStmt->executeQuery("DELETE FROM Messages WHERE Receiver = '%s'", pCreature->getName().c_str());
+                // 등록비를 환불한다.
+                Gold_t Gold = pPlayerCreature->getGold();
+                if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER) {
+                    Gold = min((uint64_t)(Gold + RETURN_SLAYER_MASTER_GOLD), (uint64_t)2000000000);
+                } else if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
+                    Gold = min((uint64_t)(Gold + RETURN_SLAYER_SUBMASTER_GOLD), (uint64_t)2000000000);
                 }
 
-                __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+                pPlayerCreature->setGoldEx(Gold);
 
-                // 길드 멤버 객체를 삭제한다.
-                SAFE_DELETE(pGuildMember);
+                GCModifyInformation gcModifyInformation;
+                gcModifyInformation.addLongData(MODIFY_GOLD, Gold);
+                pPlayer->sendPacket(&gcModifyInformation);
+
+                // 메시지를 보낸다.
+                // NOTE: this runs inside __ENTER_CRITICAL_SECTION, and a SQL
+                // failure here escapes as the const char* END_DB rethrows,
+                // which __LEAVE_CRITICAL_SECTION's catch (Throwable&) does not
+                // match — so g_pPCFinder is not unlocked on that path. It was
+                // unlocked before this seam, when the exception crossed the
+                // boundary as a SQLQueryException and END_DB sat outside.
+                // Unobservable today: nothing up this thread catches a
+                // const char* (SharedServerClient::processCommand takes three
+                // Throwable subclasses, SharedServerManager::run takes
+                // Throwable&, start_routine takes nothing), so the process
+                // terminates before the lock matters — and setGoldEx above
+                // already reaches CharacterRepository::tinysave, which throws
+                // the same const char* from inside this same section. The
+                // general fix belongs in __LEAVE_CRITICAL_SECTION and wants
+                // its own round; see docs/RESTRUCTURING.md.
+                vector<string> queued = messages.loadMessages(pCreature->getName());
+
+                for (size_t m = 0; m < queued.size(); m++) {
+                    GCSystemMessage message;
+                    message.setMessage(queued[m]);
+                    pPlayer->sendPacket(&message);
+                }
+
+                messages.deleteMessages(pCreature->getName());
             }
 
-            // 길드 멤버 해쉬 맵을 지운다.
-            Members.clear();
+            __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
 
-            // 길드 매니저에서 길드를 삭제한다.
-            g_pGuildManager->deleteGuild(pGuild->getID());
-            GuildUnionManager::Instance().removeMasterGuild(pGuild->getID());
-
-            // 길드 객체를 삭제한다.
-            SAFE_DELETE(pGuild);
-
-            SAFE_DELETE(pStmt);
+            // 길드 멤버 객체를 삭제한다.
+            SAFE_DELETE(pGuildMember);
         }
-        END_DB(pStmt)
+
+        // 길드 멤버 해쉬 맵을 지운다.
+        Members.clear();
+
+        // 길드 매니저에서 길드를 삭제한다.
+        g_pGuildManager->deleteGuild(pGuild->getID());
+        GuildUnionManager::Instance().removeMasterGuild(pGuild->getID());
+
+        // 길드 객체를 삭제한다.
+        SAFE_DELETE(pGuild);
     }
 
 #endif

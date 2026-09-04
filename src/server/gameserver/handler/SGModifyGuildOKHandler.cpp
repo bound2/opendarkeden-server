@@ -25,6 +25,7 @@
 #include "Zone.h"
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
+#include "repository/MessageRepository.h"
 
 #endif
 
@@ -136,25 +137,16 @@ void SGModifyGuildOKHandler::execute(SGModifyGuildOK* pPacket)
                 pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcOtherModifyInfo, pCreature);
 
                 // 정식 길드가 되었음을 알림
-                Statement* pStmt = NULL;
-                Result* pResult = NULL;
+                MessageRepository& messages = defaultMessageRepository();
+                vector<string> queued = messages.loadMessages(pGuildMember->getName());
 
-                BEGIN_DB {
-                    pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                    pResult = pStmt->executeQuery("SELECT Message FROM Messages WHERE Receiver = '%s'",
-                                                  pGuildMember->getName().c_str());
-
-                    while (pResult->next()) {
-                        GCSystemMessage gcSystemMessage;
-                        gcSystemMessage.setMessage(pResult->getString(1));
-                        pPlayer->sendPacket(&gcSystemMessage);
-                    }
-
-                    pStmt->executeQuery("DELETE FROM Messages WHERE Receiver = '%s'", pGuildMember->getName().c_str());
-
-                    SAFE_DELETE(pStmt);
+                for (size_t m = 0; m < queued.size(); m++) {
+                    GCSystemMessage gcSystemMessage;
+                    gcSystemMessage.setMessage(queued[m]);
+                    pPlayer->sendPacket(&gcSystemMessage);
                 }
-                END_DB(pStmt)
+
+                messages.deleteMessages(pGuildMember->getName());
             }
 
             __LEAVE_CRITICAL_SECTION((*g_pPCFinder))

@@ -20,12 +20,21 @@
 //
 // Not enclosed: the sharedserver's own Guild.cpp / GuildManager.cpp (a
 // separate copy with its own SQL, WarScheduleInfo statements included),
-// CGSayHandler's GM guild commands, and the SG*Guild* handlers that
-// mutate guild rows from the SharedServerManager thread. war/'s own
-// WarScheduleInfo writes are no longer among them — WarInfoRepository
-// took the last of them with the war-scheduler round. The five
-// guild-union handlers were never on this list; their statements are
-// enclosed as of this round.
+// CGSayHandler's GM guild commands, and the GuildMember/GuildInfo
+// reads and deletes still inline in CGRegistGuildHandler,
+// CGJoinGuildHandler and CGTryJoinGuildHandler.
+//
+// The gameserver's SG*Guild* handlers are NOT on this list any more.
+// Their Messages drain is enclosed, and the one statement left among
+// them — SGAddGuildMemberOKHandler's — is a character Gold UPDATE
+// against the race table, not a guild row at all. (They still mutate
+// guild state in memory from the SharedServerManager thread; that is a
+// threading matter, recorded in CLAUDE.md, not a SQL one.)
+//
+// war/'s own WarScheduleInfo writes are no longer among them —
+// WarInfoRepository took the last of them with the war-scheduler
+// round. The five guild-union handlers and CGExpelGuild were never on
+// this list; their statements are enclosed as of these two rounds.
 
 // Which spelling of the union handlers' two shared statements to write.
 // CGDenyUnionHandler backticks every identifier where the two quit

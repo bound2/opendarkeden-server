@@ -12,11 +12,13 @@
 //
 // The table is keyless (a Receiver index only) with a Sender column
 // this seam's INSERT never sets (it defaults to ''). The five
-// guild-union handlers' notices are enclosed here now; what still keeps
-// its own inline SQL is the gameserver's CGExpelGuild handler, its
-// SGDeleteGuildOK / SGModifyGuildOK / SGModifyGuildMemberOK handlers
-// (SELECT and DELETE, draining, never inserting) and the sharedserver's
-// GS*Guild* handlers.
+// guild-union handlers' notices are enclosed here now, and so are the
+// four guild handlers that followed them: CGExpelGuild's notice, and
+// the SGDeleteGuildOK / SGModifyGuildOK / SGModifyGuildMemberOK drain,
+// whose SELECT and DELETE were already loadMessages() and
+// deleteMessages() byte for byte. The sharedserver's GS*Guild*
+// handlers keep their own INSERT — a separate copy of the server, with
+// its own SQL.
 //
 // A note on the spellings below. The union handlers write the same
 // INSERT three different ways, and none of the three is the one

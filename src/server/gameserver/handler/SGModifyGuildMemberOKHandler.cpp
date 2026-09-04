@@ -25,6 +25,7 @@
 #include "PlayerCreature.h"
 #include "StringPool.h"
 #include "Zone.h"
+#include "repository/MessageRepository.h"
 
 #endif
 
@@ -94,25 +95,16 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
             pPlayer->sendPacket(&gcModifyGuildMemberInfo);
 
             // 길드 가입 승인 메시지를 보낸다.
-            Statement* pStmt = NULL;
-            Result* pResult = NULL;
+            MessageRepository& messages = defaultMessageRepository();
+            vector<string> queued = messages.loadMessages(pGuildMember->getName());
 
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pResult = pStmt->executeQuery("SELECT Message FROM Messages WHERE Receiver = '%s'",
-                                              pGuildMember->getName().c_str());
-
-                while (pResult->next()) {
-                    GCSystemMessage gcSystemMessage;
-                    gcSystemMessage.setMessage(pResult->getString(1));
-                    pPlayer->sendPacket(&gcSystemMessage);
-                }
-
-                pStmt->executeQuery("DELETE FROM Messages WHERE Receiver = '%s'", pGuildMember->getName().c_str());
-
-                SAFE_DELETE(pStmt);
+            for (size_t m = 0; m < queued.size(); m++) {
+                GCSystemMessage gcSystemMessage;
+                gcSystemMessage.setMessage(queued[m]);
+                pPlayer->sendPacket(&gcSystemMessage);
             }
-            END_DB(pStmt)
+
+            messages.deleteMessages(pGuildMember->getName());
 
             // 주위에 길드 가입을 알린다.
             GCOtherModifyInfo gcOtherModifyInfo;
