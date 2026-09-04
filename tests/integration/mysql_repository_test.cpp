@@ -199,8 +199,10 @@ protected:
     }
     static void clean() {
         execSQL("DELETE FROM FlagPolePosition WHERE ZoneID >= 31000");
-        // FlagWarStat has no key to scope by and the seam's own wipe is
-        // unconditional, so the tier owns the whole table for the run.
+        // The seam's own wipe is unconditional, so the tier owns the
+        // whole table for the run. (Name LIKE 'it-%' would scope it, as
+        // the FlagWarHistory line below does; owning the table is what
+        // lets the wipe test seed a row it does not own.)
         execSQL("DELETE FROM FlagWarStat");
         execSQL("DELETE FROM FlagWarHistory WHERE FlagWarID LIKE 'it-%'");
     }
@@ -288,12 +290,31 @@ TEST_F(FlagWarMySQL, TheHistoryRollUpIsRefusedByOnlyFullGroupByAndTheWipeTakesEv
     // Task 3.2 moves statements without fixing them, so the throw is
     // what this tier pins. Anyone who fixes the GROUP BY should expect
     // this assertion to be the thing that fails.
-    EXPECT_ANY_THROW(repository.loadFlagWarStatTotals());
+    // Pin more than "something threw": catch the const char* END_DB
+    // rethrows, so a failure raising some other type would fail here
+    // rather than quietly validating the claim.
+    //
+    // What this CANNOT do is read the message, and the reason is worth
+    // recording: END_DB builds a local std::string and throws
+    // msg.c_str(), so the pointer dangles the moment the catch block
+    // exits. Asserting on the 1055 text here read an empty string.
+    // That is a project-wide defect in the macro, not this seam's —
+    // every repository in the tree rethrows the same way — and it
+    // belongs with the __LEAVE_CRITICAL_SECTION fix in a Core round.
+    // The MySQL error text does reach DBError.log, which END_DB
+    // writes before throwing.
+    bool refused = false;
+    try {
+        repository.loadFlagWarStatTotals();
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "loadFlagWarStatTotals did not raise the ONLY_FULL_GROUP_BY refusal";
 
-    // The tally itself is fine, and the roll-up the statement MEANT to
-    // produce is what the history writer takes. Feeding it by hand
-    // covers the writer, which is reachable, without pretending the
-    // reader is.
+    // The tally itself is fine. The history writer is fed BY HAND
+    // below with what the roll-up would have produced, so the writer is
+    // covered without pretending the reader is — nothing was actually
+    // rolled into those rows.
     EXPECT_EQ("2", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ServerID=7"));
     EXPECT_EQ("1", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ServerID=8"));
     EXPECT_EQ("1", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-dana' AND ServerID=7"));
@@ -305,9 +326,12 @@ TEST_F(FlagWarMySQL, TheHistoryRollUpIsRefusedByOnlyFullGroupByAndTheWipeTakesEv
     EXPECT_EQ("2", queryScalar("SELECT FlagNum FROM FlagWarHistory "
                                "WHERE FlagWarID='it-round1' AND Name='it-carl' AND ServerID=7"));
 
-    // The between-rounds wipe is UNCONDITIONAL — no WHERE at all. It
-    // clears every server's tally, not just this one's, and the history
-    // rows it was rolled into survive.
+    // The wipe is UNCONDITIONAL — no WHERE at all. Seed a row the test
+    // does not own, so that a hypothetical scoped implementation
+    // (WHERE Name LIKE 'it-%') would leave it behind and fail here;
+    // without this row the assertion could not tell the two apart.
+    execSQL("INSERT INTO FlagWarStat (PlayerID, Name, Race, ServerID, ItemID) "
+            "VALUES ('other-acc', 'other', 0, 9, 99)");
     repository.deleteAllFlagWarStats();
     EXPECT_EQ("0", queryScalar("SELECT count(*) FROM FlagWarStat"));
     EXPECT_EQ("3", queryScalar("SELECT count(*) FROM FlagWarHistory WHERE FlagWarID='it-round1'"));

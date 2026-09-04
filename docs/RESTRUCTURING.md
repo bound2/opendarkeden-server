@@ -3571,21 +3571,32 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > loaded at boot), FlagWarStat (the per-round tally of who planted
   > which flag) and FlagWarHistory (the roll-up written when a round
   > ends) — move into a new FlagWarRepository, and ctf/ is left with no
-  > SQL at all. THE FINDING THAT MATTERS: this round closes FOUR
-  > Statement leaks, one in every function it touched. init(),
-  > reset(), recordPutFlag() and recordFlagWarHistory() each opened a
-  > Statement inside BEGIN_DB and reached END_DB without a
+  > SQL at all. THE FINDING THAT MATTERS: this round closes FIVE
+  > Statement objects across four functions, and both
+  > counts in an earlier draft of this paragraph were wrong. init(),
+  > resetFlagCounts(), recordPutFlag() and recordFlagWarHistory() each
+  > opened a Statement inside BEGIN_DB and reached END_DB without a
   > SAFE_DELETE, so every SUCCESSFUL call leaked it; only the
   > SQLQueryException path, where END_DB deletes, ever freed one.
-  > recordFlagWarHistory freed its second Statement (pStmt2) and not
-  > its first, which is the shape of an oversight rather than a
-  > convention. init()'s is the worst of the four, because it also
-  > leaked on a path that is not an error at all: the loop body calls
-  > addPoleField, whose Assert(pZone != NULL) raises an AssertionError
-  > for any FlagPolePosition row naming a zone this server does not
-  > host — a Throwable, which END_DB does not catch — so the throw
-  > escaped mid-iteration with the Statement still open. All four are
-  > closed by construction now. A QUIRK WORTH RECORDING:
+  > recordFlagWarHistory is the one the draft got backwards. It opened
+  > TWO Statements and freed the second on the success path only — but
+  > END_DB(pStmt) frees the FIRST, and since that function's SELECT
+  > always throws (below), the only path ever taken freed pStmt and
+  > leaked pStmt2, every call. The draft described a success path this
+  > same round proves never happens. init()'s leak is the one that
+  > fires on a path that is not an error at all, and the draft named
+  > the wrong mechanism for it too: it said addPoleField's
+  > Assert(pZone != NULL) raises an AssertionError for a
+  > FlagPolePosition row naming a zone this server does not host. That
+  > assert is unreachable — getZoneByZoneID never returns NULL. It
+  > throws first, an Error, because ZoneGroupManager::getZoneGroup
+  > misses and ZoneUtil converts the NoSuchElementException. The
+  > conclusion survives — a Throwable escapes the loop, END_DB catches
+  > only SQLQueryException, the Statement leaks mid-iteration — but the
+  > throw comes from the line BEFORE addPoleField. All five are closed
+  > now; "by construction" would be too strong, since the new
+  > SAFE_DELETE still sits inside the try, but nothing that can throw
+  > anything other than SQLQueryException remains in those blocks. A QUIRK WORTH RECORDING:
   > FlagPolePosition.Race is a MySQL ENUM('SLAYER','VAMPIRE','OUSTERS')
   > and the boot query selects "Race-1", because arithmetic on an ENUM
   > yields its 1-BASED index; the "-1" is what lines the value up with
@@ -3598,8 +3609,11 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > Statement is closed rather than during the walk. For
   > recordFlagWarHistory the inline version interleaved a SELECT on
   > FlagWarStat with INSERTs into FlagWarHistory — but on a SECOND
-  > Statement, which is what kept its result alive, and against a
-  > different table, so both orders see the same rows. This is the
+  > Statement, which is what kept its result alive. The stronger
+  > guarantee, which the review supplied, is that executeQuery uses
+  > mysql_store_result: the whole result set is buffered client-side
+  > before the first next(), so the INSERTs could not perturb it
+  > whatever table they hit. This is the
   > pattern the war-scheduler round found broken; here it was correct,
   > and the vector keeps it correct without depending on the second
   > Statement. (2) recordFlagWarHistory's per-row INSERT used one
@@ -3614,8 +3628,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > MonsterType_t) stay at the call site; the seam hands back the ints
   > getInt returned. (6) ItemID reaches two statements through "%d"
   > although the column is bigint(20) unsigned and ItemID_t is a DWORD,
-  > exactly as written before: an id above INT_MAX formats negative and
-  > matches nothing. Kept, and named in the implementation. (7) THE ROLL-UP
+  > exactly as written before: an id above INT_MAX formats negative, so
+  > the SELECT matches nothing and the INSERT writes ItemID = 0,
+  > clamped because this project's sql_mode drops STRICT_TRANS_TABLES.
+  > Unreachable in practice — ids step by the server count from a
+  > per-class MAX(ItemID) — unlike the gold overflow an earlier round
+  > found, which was reachable. Kept, and named in the implementation. (7) THE ROLL-UP
   > CANNOT RUN, and the integration tier is what established it —
   > against my own claim in an earlier draft of this paragraph, which
   > said the GROUP BY was legal here because the project's sql_mode
@@ -3623,11 +3641,23 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > NO_ZERO_DATE and STRICT_TRANS_TABLES and KEEPS ONLY_FULL_GROUP_BY.
   > The statement groups by (Name, ServerID) while selecting PlayerID
   > and Race bare, so MySQL refuses it with error 1055 and
-  > loadFlagWarStatTotals throws on EVERY call. Consequence worth
-  > stating plainly: no flag-war history is recorded on a server
-  > configured the way this project says to configure it, and none
-  > ever has been — the old code threw at the same point, from inside
-  > BEGIN_DB, leaking the Statement on the way out. The statement is
+  > loadFlagWarStatTotals throws on every call it RECEIVES — and the
+  > review of this round established that it receives none on a
+  > default deployment. ActiveFlagWar is 0 in both shipped
+  > gameserver.conf files, and ClientManager only ticks FlagManager
+  > when it is on, so the roll-up is dead twice over: unreachable by
+  > configuration, and refused by the server when an operator or a GM
+  > turns the flag war on. An earlier draft presented 1055 as the sole
+  > cause and said flatly that no history "ever has been" recorded;
+  > the scoping matters, because the original deployment ran MySQL
+  > versions with no ONLY_FULL_GROUP_BY, where the statement would
+  > have succeeded and returned an arbitrary PlayerID and Race per
+  > group. AND THE CONSEQUENCE IS WORSE THAN NOT RECORDING: the
+  > const char* END_DB rethrows is not a Throwable, so nothing between
+  > endFlagWar and main.cpp's catch (...) catches it. The first flag
+  > war that ends takes the gameserver process down. The old code
+  > threw at the same point, from inside BEGIN_DB, leaking pStmt2 —
+  > the second Statement, which END_DB does not see — on the way out. The statement is
   > kept byte-for-byte because 3.2 moves statements without fixing
   > them; the throw is pinned by the tier so the bug is recorded
   > rather than rediscovered, and the fix (adding PlayerID and Race to
@@ -3638,8 +3668,28 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > ItemID) is an INDEX rather than a unique constraint, which is WHY
   > the caller probes first), and the roll-up counting per player per
   > server — which is where the ONLY_FULL_GROUP_BY refusal surfaced —
-  > while the between-rounds wipe takes the whole table
-  > unconditionally and leaves the history behind. ctest 5/5, 158/158
+  > while the wipe takes the whole table unconditionally and leaves the
+  > history behind. TWO TEST CORRECTIONS from the review. The refusal
+  > was pinned with EXPECT_ANY_THROW, which passes for a dropped
+  > connection or a missing table just as well and would have
+  > validated the claim for the wrong reason; it now catches the
+  > const char* END_DB rethrows, which at least pins the type. It
+  > does NOT assert on the 1055 text, and the attempt to is what
+  > turned up a project-wide defect: END_DB builds a local
+  > std::string and throws msg.c_str(), so the pointer dangles as
+  > soon as the catch block exits and the message reads empty.
+  > Every repository in the tree rethrows that way; it belongs with
+  > the __LEAVE_CRITICAL_SECTION fix in a Core round. The error text
+  > does reach DBError.log, which END_DB writes before throwing.
+  > One more thing this round tripped over and is worth recording
+  > next to the R3 comment policy: the corrected comment in
+  > FlagManager.cpp originally named the driver call by name, which
+  > put the token back in the file and pushed R3 from 92 to 93. It
+  > is reworded, not exempted. And
+  > the wipe assertion could not tell "unconditional" from "scoped to
+  > the test's own rows", since the fixture empties the table either
+  > way; it now seeds a row the test does not own, which a scoped
+  > implementation would leave behind. ctest 5/5, 158/158
   > integration tests, build exit 0, clang-format clean.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes

@@ -4,7 +4,6 @@
 
 #include <cstdlib>
 
-#include "DB.h"
 #include "EffectFlagInsert.h"
 #include "EffectManager.h"
 #include "FlagWar.h"
@@ -335,8 +334,10 @@ void FlagManager::recordFlagWarHistory()
 
     // The tally is read in full before the first history row is written.
     // The inline version interleaved them, but on a SECOND Statement --
-    // which is what kept its result alive -- and against a different
-    // table, so the two orders see the same rows.
+    // which is what kept its result alive. The stronger guarantee is
+    // that the driver buffers the whole result set client-side
+    // (mysql_store_result) before the first next(), so the INSERTs could
+    // not perturb it whatever table they hit.
     vector<FlagWarStatTotalRow> totals = flagWars.loadFlagWarStatTotals();
 
     for (size_t r = 0; r < totals.size(); r++) {

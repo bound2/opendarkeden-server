@@ -37,11 +37,23 @@ struct FlagPoleRow {
 //
 // WARNING: the statement behind this cannot run under the sql_mode
 // this project requires. It groups by (Name, ServerID) while selecting
-// PlayerID and Race bare, and CLAUDE.md's sql_mode keeps
-// ONLY_FULL_GROUP_BY, so MySQL refuses it with error 1055 and
-// loadFlagWarStatTotals throws on EVERY call. That is the inline
-// statement's behaviour, moved unchanged and pinned by the
-// integration tier; see MySQLFlagWarRepository.cpp.
+// PlayerID and Race bare; FlagWarStat has no unique key, so no
+// functional dependency saves it, and CLAUDE.md's sql_mode keeps
+// ONLY_FULL_GROUP_BY. MySQL refuses it with error 1055 and
+// loadFlagWarStatTotals throws on every call it receives.
+//
+// It receives none on a default deployment: ActiveFlagWar is 0 in both
+// shipped gameserver.conf files, and ClientManager only ticks
+// FlagManager when it is on. So the roll-up is dead twice over —
+// unreachable by configuration, and refused by the server if an
+// operator or a GM turns the flag war on.
+//
+// And when it IS reached, the throw does not stop at the caller. The
+// const char* END_DB rethrows is not a Throwable, so nothing between
+// endFlagWar and main.cpp's catch (...) catches it: the first flag war
+// that ends takes the gameserver process down. That is the inline
+// statement's behaviour, moved unchanged and pinned by the integration
+// tier; see MySQLFlagWarRepository.cpp.
 struct FlagWarStatTotalRow {
     std::string playerID;
     std::string name;
@@ -57,7 +69,9 @@ public:
     // FlagManager::init, at boot.
     virtual std::vector<FlagPoleRow> loadFlagPoles() = 0;
 
-    // FlagManager::reset — the whole tally, between rounds.
+    // FlagManager::resetFlagCounts — the whole tally, unconditionally.
+    // Called at round START (from startFlagWar), not between rounds as
+    // an earlier draft of this comment said.
     virtual void deleteAllFlagWarStats() = 0;
 
     // FlagManager::recordPutFlag. The tally is keyed by (Name, ItemID)
