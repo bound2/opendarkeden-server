@@ -78,10 +78,10 @@ seconds instead of minutes.
 
 ```bash
 make dev-test                      # build wire_tests + ctest
-CXX_STANDARD=20 make dev-test      # same suite in the C++20 lane
+CXX_STANDARD=17 make dev-test      # same suite in the C++17 compatibility lane
 bash tools/devbuild.sh test --record   # re-record goldens, then run
 make dev-build                     # all production targets
-CXX_STANDARD=20 make dev-build     # all production targets as C++20
+CXX_STANDARD=17 make dev-build     # all production targets as C++17
 make dev-shell                     # shell in the workspace
 make dev-clean                     # drop the workspace + compiler-cache volumes
 ```
@@ -115,7 +115,7 @@ root.
 
 ## Project Architecture
 
-This is the **DarkEden** game server - an MMORPG server written in C++17.
+This is the **DarkEden** game server - an MMORPG server written in C++20.
 
 ### Server Architecture
 
@@ -362,9 +362,11 @@ Start servers in this order:
 
 - Source file encoding is **UTF-8** (project was migrated from legacy encodings)
 - Use **English** as code comment, there are some legacy Korean or maybe garbled encoding, translate them to English whenever possible
-- C++17 is the default and required language standard. Keep new code
-  C++20-compatible; both standards are supported and verified with the pinned
-  Zig/Clang container toolchain (`CXX_STANDARD=20 make dev-test`).
+- C++20 is the default project language standard. The current tree also has a
+  transitional C++17 compatibility build, verified with the pinned Zig/Clang
+  container toolchain (`CXX_STANDARD=17 make dev-test`). C++20-only adoption
+  must update that compatibility policy deliberately rather than failing the
+  secondary lane accidentally.
 - Threaded architecture with `ZoneGroupThread` for parallel zone processing
 - Extensive use of inheritance (Creature → PlayerCreature → Slayer/Vampire/Ousters)
 - Lua scripting is integrated for quest systems (see `quest/luaScript/`)

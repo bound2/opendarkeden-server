@@ -4,7 +4,7 @@ project(DarkEden VERSION 1.0 LANGUAGES CXX)
 # ============================================================================
 # 全局设置
 # ============================================================================
-set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ language standard (17 or 20)")
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ language standard (17 or 20)")
 set_property(CACHE CMAKE_CXX_STANDARD PROPERTY STRINGS 17 20)
 if(NOT CMAKE_CXX_STANDARD MATCHES "^(17|20)$")
     message(FATAL_ERROR "DarkEden supports CMAKE_CXX_STANDARD=17 or 20")

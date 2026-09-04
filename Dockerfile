@@ -3,7 +3,7 @@
 # Build the DarkEden servers from source and package them into a runnable image.
 #
 #   docker build -t darkeden:local .
-#   docker build --build-arg CXX_STANDARD=20 -t darkeden:cxx20 .
+#   docker build --build-arg CXX_STANDARD=17 -t darkeden:cxx17 .
 #
 # docker/docker-compose.yml uses this Dockerfile, so `docker compose up` builds
 # everything from this repository - no pre-built image is pulled from a registry.
@@ -46,7 +46,7 @@ COPY tests/arch/kernel_files.txt ./tests/arch/kernel_files.txt
 # CMakeLists.txt), which is what used to strip the side effects out of the
 # project's Assert() and __END_CATCH_NO_RETHROW macros.
 ARG BUILD_TYPE=Release
-ARG CXX_STANDARD=17
+ARG CXX_STANDARD=20
 ARG ZIG_TARGET=
 # Number of parallel compile jobs; defaults to all available cores.
 ARG BUILD_JOBS=

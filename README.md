@@ -15,7 +15,7 @@ docker compose up -d --build
 That command:
 
 1. builds `../Dockerfile`, which compiles `loginserver`, `sharedserver` and
-   `gameserver` as C++17 with pinned Zig 0.16.0/Clang 21.1.0, then packages
+   `gameserver` as C++20 with pinned Zig 0.16.0/Clang 21.1.0, then packages
    the binaries in an Ubuntu 20.04 runtime together with `data/` and
    `docker/conf/`;
 2. starts MySQL 5.7 and imports `initdb/*.sql` on first run;
@@ -51,12 +51,12 @@ cd docker
 docker compose up -d --build
 ```
 
-The image defaults to `CMAKE_BUILD_TYPE=Release` and C++17. The compose build
-arguments can select Debug or the supported C++20 lane:
+The image defaults to `CMAKE_BUILD_TYPE=Release` and C++20. The compose build
+arguments can select Debug or the transitional C++17 compatibility lane:
 
 ```sh
 BUILD_TYPE=Debug docker compose up -d --build
-CXX_STANDARD=20 docker compose up -d --build
+CXX_STANDARD=17 docker compose up -d --build
 ```
 
 ### Start the servers by hand
@@ -85,9 +85,9 @@ that volume rather than updating the checkout's `bin/` and `lib/` directories.
 make dev-test
 make dev-build
 
-# Exercise the C++20-ready build in its own build tree.
-CXX_STANDARD=20 make dev-test
-CXX_STANDARD=20 make dev-build
+# Exercise the C++17 compatibility build in its own build tree.
+CXX_STANDARD=17 make dev-test
+CXX_STANDARD=17 make dev-build
 
 make dev-shell
 ```

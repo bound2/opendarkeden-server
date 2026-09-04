@@ -1078,7 +1078,7 @@ gating; `Zone.cpp` under 2,000 lines.
   > recorded inline in 1.4 where it was written. Ongoing discipline, not a
   > one-shot: new finds keep landing there.
 
-- [x] **5.4 Language standard: C++11 → C++17 baseline, C++20-ready builds.**
+- [x] **5.4 Language standard: C++11 → C++20 default, C++17 compatibility.**
   Assessed 2026-08-30. No open task was *blocked* on the standard, but 3.1
   `Outcome` wants `std::variant` + `[[nodiscard]]` (an unchecked rejection
   becomes a compiler warning instead of a convention), the packet layer
@@ -1108,11 +1108,14 @@ gating; `Zone.cpp` under 2,000 lines.
   so land it when no feature branch is in flight; (e) `make test` green: the
   goldens and inventory prove the wire layer did not move. Then rewrite 3.1's
   "C++11 template" to `std::variant` + `[[nodiscard]]` and unpin googletest.
-  Not pursued: modules (4,271 TUs on GCC, no upside), coroutines (the
-  thread-per-zone-group model stays, see non-goals), concepts (few templates).
-  > **Status:** done (2026-09-04) — C++17 is the default and required
-  > baseline (`CMAKE_CXX_EXTENSIONS=OFF`); C++20 can be selected explicitly
-  > with `-DCMAKE_CXX_STANDARD=20`. Docker and development-volume builds pin
+  Not required for the mechanical migration: modules and coroutines still need
+  architecture/build evidence before adoption; concepts become useful only at
+  focused boundaries such as the packet stream and factory contracts described
+  in `docs/TOOLCHAIN.md`.
+  > **Status:** done (2026-09-04) — C++20 is the default project standard
+  > (`CMAKE_CXX_EXTENSIONS=OFF`); the fully verified C++17 build remains
+  > selectable with `-DCMAKE_CXX_STANDARD=17` as a transition/rollback lane.
+  > Docker and development-volume builds pin
   > Zig 0.16.0/Clang 21.1.0, isolate build trees, output roots and compiler
   > caches by Zig version, target, standard and build type, and
   > pass the full test suite plus every production target under both C++17
@@ -1123,6 +1126,8 @@ gating; `Zone.cpp` under 2,000 lines.
   > `Outcome` uses
   > `std::variant`/`[[nodiscard]]`, and GoogleTest is updated to v1.18.0.
   > The runtime remains Ubuntu 20.04; its distro GCC is no longer the compiler.
+  > Project-specific C++20 adoption priorities and guardrails are documented in
+  > `docs/TOOLCHAIN.md` under “Where C++20 pays off in DarkEden.”
   - Owner: ratchet R7, held at 0.
 
 ---

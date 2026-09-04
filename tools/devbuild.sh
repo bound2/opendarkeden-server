@@ -35,8 +35,8 @@
 #     tools/devbuild.sh test --record     # same, but re-record goldens first
 #     tools/devbuild.sh build             # build every production target
 #     tools/devbuild.sh build wire_tests  # build one target
-#     CXX_STANDARD=20 tools/devbuild.sh test
-#                                         # exercise the C++20-ready build
+#     CXX_STANDARD=17 tools/devbuild.sh test
+#                                         # exercise the C++17 compatibility build
 #     tools/devbuild.sh output-dir        # print this lane's artifact root
 #     tools/devbuild.sh shell             # interactive shell in the workspace
 #     tools/devbuild.sh clean             # drop the workspace and compiler
@@ -64,7 +64,7 @@ WORK_VOLUME=${DEVBUILD_WORK_VOLUME:-darkeden-work}
 CCACHE_VOLUME=${DEVBUILD_CCACHE_VOLUME:-darkeden-ccache}
 ZIG_CACHE_VOLUME=${DEVBUILD_ZIG_CACHE_VOLUME:-darkeden-zig-cache}
 BUILD_TYPE=${BUILD_TYPE:-Debug}
-CXX_STANDARD=${CXX_STANDARD:-17}
+CXX_STANDARD=${CXX_STANDARD:-20}
 
 case "$CXX_STANDARD" in
     17|20) ;;
