@@ -2096,6 +2096,8 @@ protected:
         execSQL("DELETE FROM RaceWarPCLimit WHERE ID >= 31000");
         execSQL("DELETE FROM ReinforceRegisterInfo WHERE WarID >= 31000");
         execSQL("DELETE FROM WarScheduleInfo WHERE WarID >= 31000");
+        execSQL("DELETE FROM RaceWarPCList");
+        execSQL("DROP TABLE IF EXISTS RaceWarPCLimitIT");
     }
 };
 
@@ -2411,6 +2413,114 @@ TEST_F(WarInfoMySQL, ReinforceRegistrationsAreScopedToTheWarAndServerThroughThei
     EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM ReinforceRegisterInfo WHERE WarID=31001 AND ServerID=7"));
 }
 
+
+TEST_F(WarInfoMySQL, RaceWarLimitStatementsRunAgainstTheTableNameTheCallerHandsIn) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    // A copy of the real table, so the three statements can be exercised —
+    // clearRaceWarCurrentNums covers every row of its table — without
+    // rewriting the seeded rows the other tests read.
+    execSQL("DROP TABLE IF EXISTS RaceWarPCLimitIT");
+    execSQL("CREATE TABLE RaceWarPCLimitIT LIKE RaceWarPCLimit");
+    execSQL("INSERT INTO RaceWarPCLimitIT (ID, Race, MinLevel, MaxLevel, LimitNum, CurrentNum) VALUES "
+            "(31010, 1, 10, 20, 100, 5)");
+    execSQL("INSERT INTO RaceWarPCLimitIT (ID, Race, MinLevel, MaxLevel, LimitNum, CurrentNum) VALUES "
+            "(31011, 1, 21, 30, 200, 6)");
+    execSQL("INSERT INTO RaceWarPCLimitIT (ID, Race, MinLevel, MaxLevel, LimitNum, CurrentNum) VALUES "
+            "(31012, 2, 10, 20, 300, 7)");
+
+    // The %s really is the table name — the load reads the copy, not the
+    // table the same statement hits when the caller's getTableName()
+    // answers "RaceWarPCLimit".
+    std::vector<RaceWarLimitRow> rows = repository.loadRaceWarLimits("RaceWarPCLimitIT", 1);
+    ASSERT_EQ(2u, rows.size());
+
+    // Five columns in SELECT order, every one through getInt. The SELECT
+    // carries no ORDER BY, so indexing the rows leans on the scan order of
+    // a keyless InnoDB copy being the insertion order — the same
+    // dependence SkillSaveMySQL's load-order test names.
+    EXPECT_EQ(31010, rows[0].id);
+    EXPECT_EQ(10, rows[0].minLevel);
+    EXPECT_EQ(20, rows[0].maxLevel);
+    EXPECT_EQ(100, rows[0].limitNum);
+    EXPECT_EQ(5, rows[0].currentNum);
+    EXPECT_EQ(31011, rows[1].id);
+    EXPECT_EQ(6, rows[1].currentNum);
+
+    // The Race=2 row is out of scope of that read but not of the writes.
+    EXPECT_EQ(1u, repository.loadRaceWarLimits("RaceWarPCLimitIT", 2).size());
+
+    // saveCurrent is keyed on the row's own ID, so it lands on exactly one.
+    repository.saveRaceWarCurrentNum("RaceWarPCLimitIT", 42, 31010);
+    EXPECT_EQ("42", queryScalar("SELECT CurrentNum FROM RaceWarPCLimitIT WHERE ID=31010"));
+    EXPECT_EQ("6", queryScalar("SELECT CurrentNum FROM RaceWarPCLimitIT WHERE ID=31011"));
+    EXPECT_EQ("7", queryScalar("SELECT CurrentNum FROM RaceWarPCLimitIT WHERE ID=31012"));
+
+    // clearCurrent carries no WHERE at all: every row of the table goes to
+    // zero, the other races' included.
+    repository.clearRaceWarCurrentNums("RaceWarPCLimitIT");
+    EXPECT_EQ("0", queryScalar("SELECT SUM(CurrentNum) FROM RaceWarPCLimitIT"));
+
+    execSQL("DROP TABLE RaceWarPCLimitIT");
+}
+
+TEST_F(WarInfoMySQL, ParticipantEntriesAreInsertIgnoredCountedAndDeletedByName) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    EXPECT_EQ(0, repository.countRaceWarPCListEntries("itracewar1"));
+
+    repository.insertRaceWarPCListEntry("itracewar1", 1);
+    EXPECT_EQ(1, repository.countRaceWarPCListEntries("itracewar1"));
+    EXPECT_EQ("1", queryScalar("SELECT Race FROM RaceWarPCList WHERE Name='itracewar1'"));
+
+    // Name is the PRIMARY KEY and the write is an INSERT IGNORE, so
+    // re-joining is dropped rather than failing — and the stored race does
+    // not change.
+    repository.insertRaceWarPCListEntry("itracewar1", 2);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM RaceWarPCList WHERE Name='itracewar1'"));
+    EXPECT_EQ("1", queryScalar("SELECT Race FROM RaceWarPCList WHERE Name='itracewar1'"));
+
+    repository.insertRaceWarPCListEntry("itracewar2", 2);
+    repository.deleteRaceWarPCListEntry("itracewar1");
+    EXPECT_EQ(0, repository.countRaceWarPCListEntries("itracewar1"));
+    EXPECT_EQ(1, repository.countRaceWarPCListEntries("itracewar2"));
+}
+
+TEST_F(WarInfoMySQL, TheParticipantListReadTakesItsRaceFromTheNameColumn) {
+    WarInfoRepository& repository = defaultWarInfoRepository();
+
+    execSQL("DELETE FROM RaceWarPCList");
+    execSQL("INSERT INTO RaceWarPCList (Name, Race) VALUES ('itrw1', 1)");
+    execSQL("INSERT INTO RaceWarPCList (Name, Race) VALUES ('7abc', 2)");
+
+    std::vector<RaceWarPCListRow> rows = repository.loadRaceWarPCList();
+    ASSERT_EQ(2u, rows.size());
+
+    int named = -1;
+    int numeric = -1;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].name == "itrw1")
+            named = rows[r].race;
+        else if (rows[r].name == "7abc")
+            numeric = rows[r].race;
+    }
+
+    // The Race column holds 1 and 2. The loader reports 0 and 7, because the
+    // inline read this seam preserves hands getInt column 1 — Name — and
+    // getInt is atoi. The caller then uses that value to index a
+    // three-element array: "itrw1" parses to 0 and merely lands in the
+    // wrong bucket, while "7abc" parses to 7 and writes outside the array.
+    // Pinned, not fixed: correcting it is a behaviour change of its own.
+    EXPECT_EQ("1", queryScalar("SELECT Race FROM RaceWarPCList WHERE Name='itrw1'"));
+    EXPECT_EQ("2", queryScalar("SELECT Race FROM RaceWarPCList WHERE Name='7abc'"));
+    EXPECT_EQ(0, named);
+    EXPECT_EQ(7, numeric);
+
+    // The companion statement empties the table outright.
+    repository.deleteRaceWarPCList();
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM RaceWarPCList"));
+    EXPECT_TRUE(repository.loadRaceWarPCList().empty());
+}
 
 TEST_F(WarInfoMySQL, WarScheduleWritesReportWhetherARowChangedAndTheProbesSeeThem) {
     WarInfoRepository& repository = defaultWarInfoRepository();

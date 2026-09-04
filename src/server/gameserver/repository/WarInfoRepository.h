@@ -9,13 +9,15 @@
 // Persistence seam for the race-war tables (task 3.2): the shrines and
 // their owning race (ShrineInfo), the castles and their guild/tax state
 // (CastleInfo), the level-war sweeper bonuses (SweeperBonusInfo), the
-// sweeper safes and owners (SweeperSetInfo, SweeperOwnerInfo), the four
-// war histories (LevelWarHistory, GuildWarHistory, RaceWarHistory and
-// the RaceWarPCLimit totals one of them records), the siege-war
-// reinforcement registry (ReinforceRegisterInfo), the scheduled wars
+// sweeper safes and owners (SweeperSetInfo, SweeperOwnerInfo), the
+// three war histories (LevelWarHistory, GuildWarHistory and
+// RaceWarHistory), the race-war entry limits (RaceWarPCLimit, both
+// the rows themselves and the per-race totals one history records),
+// the participant list (RaceWarPCList), the siege-war reinforcement
+// registry (ReinforceRegisterInfo), the scheduled wars
 // (WarScheduleInfo) and the master lairs (MasterLairInfo). Reads are
-// typed to the driver getter the inline
-// code called (getInt → int, getString → std::string); the writes'
+// typed to the driver getter the inline code called (getInt → int,
+// getString → std::string); the writes'
 // parameters are typed to the member/getter each caller streamed, so
 // the varargs bytes reaching the format strings are unchanged.
 //
@@ -101,6 +103,24 @@ struct CastleStateRecord {
 struct RaceCurrentNumRow {
     int race;
     int currentNum;
+};
+
+// PCWarLimiter::load's row: the five columns in SELECT order, every one
+// through getInt.
+struct RaceWarLimitRow {
+    int id;
+    int minLevel;
+    int maxLevel;
+    int limitNum;
+    int currentNum;
+};
+
+// RaceWarLimiter::clearPCList's row. `race` is deliberately read from
+// column 1 — the Name column — because that is the column the inline
+// loop passed to getInt. See the note above loadRaceWarPCList().
+struct RaceWarPCListRow {
+    std::string name;
+    int race;
 };
 
 struct SweeperBonusRow {
@@ -237,6 +257,45 @@ public:
                                       const std::string& oustersOld) = 0;
     virtual void updateRaceWarBloodBibles(const std::string& slayerNew, const std::string& vampireNew,
                                           const std::string& oustersNew, const std::string& raceWarID) = 0;
+
+    // --- race-war entry limits (RaceWarPCLimit) -----------------------------
+    // PCWarLimiter's three statements. `tableName` is the caller's
+    // getTableName(), spliced through "%s" as raw SQL text — the same
+    // quarantine as tinysaveCastle. The hook is polymorphic in form only:
+    // all three overrides (Slayer, Vampire, Ousters) return
+    // "RaceWarPCLimit".
+    virtual std::vector<RaceWarLimitRow> loadRaceWarLimits(const std::string& tableName, int race) = 0;
+    // PCWarLimiter::clearCurrent — every row of the table, not just this
+    // limiter's race.
+    virtual void clearRaceWarCurrentNums(const std::string& tableName) = 0;
+    // PCWarLimiter::saveCurrent, keyed on the row's own ID.
+    virtual void saveRaceWarCurrentNum(const std::string& tableName, int currentNum, int id) = 0;
+
+    // --- race-war participants (RaceWarPCList) ------------------------------
+    // RaceWarLimiter::clearPCList reads the list, logs it to a file and then
+    // empties the table. The two statements are separate here; the caller's
+    // log loop still sits between them, so the order on the wire is
+    // unchanged.
+    //
+    // WARNING — the row's `race` is what the inline loop actually read:
+    // getInt(COLUMN 1), which is Name, not Race. getInt is atoi, so the
+    // value is 0 for any name that does not begin with a digit or sign,
+    // and the caller's per-race tally is wrong. The caller indexes a
+    // three-element array with it: a name parsing to 0, 1 or 2 lands in
+    // the wrong bucket, and one parsing to 3 or more — or to a negative,
+    // atoi honouring a leading sign — writes outside the array
+    // altogether. Preserved here byte-for-byte rather than quietly
+    // corrected: the fix is a behaviour change and wants its own round.
+    virtual std::vector<RaceWarPCListRow> loadRaceWarPCList() = 0;
+    virtual void deleteRaceWarPCList() = 0;
+    // RaceWarLimiter::addPCList — an INSERT IGNORE, Name being the table's
+    // PRIMARY KEY, so re-joining is dropped rather than failing.
+    virtual void insertRaceWarPCListEntry(const std::string& name, int race) = 0;
+    // RaceWarLimiter::isInPCList. A COUNT(*) always answers with exactly one
+    // row, so the inline "if (pResult->next())" guard could never fail; the
+    // caller compares the count against 0 as it did.
+    virtual int countRaceWarPCListEntries(const std::string& name) = 0;
+    virtual void deleteRaceWarPCListEntry(const std::string& name) = 0;
 
     // --- siege-war reinforcement registry ----------------------------------
     // SiegeWar's six statements, all scoped to (WarID, ServerID). serverID is
