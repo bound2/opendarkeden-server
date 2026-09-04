@@ -15,7 +15,6 @@
 #include "BillingPlayerManager.h"
 #include "CastleInfoManager.h"
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "EffectGhost.h"
 #include "Encrypter.h"
 #include "EventHeadCount.h"
@@ -318,14 +317,24 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         pGamePlayer->setPayPlayValue(payType, payPlayDate, payPlayHours, payPlayFlag, familyPayPlayDate);
 #endif
 
-        // This guard stays for whatever else in the block can raise a
-        // SQLQueryException, but the statements above no longer do: each
-        // repository call converts its own inside END_DB and rethrows a
-        // const char*, which this catch does not match. That escapes to
-        // GamePlayer::processCommand's catch (...), which turns anything
-        // into the same DisconnectException it turned the Error into, so
-        // the outcome is unchanged; what is new is a DBError.log entry,
-        // which the hand-rolled conversion never wrote.
+        // NOTE: nothing left in this try can raise a SQLQueryException.
+        // Each repository call converts its own inside END_DB and
+        // rethrows a const char*, which this catch does not match, and
+        // everything else in the block is in-memory work. (loginPayPlay
+        // and sendPayInfo could reach the database, but they live in the
+        // __CONNECT_BILLING_SYSTEM__ / __PAY_SYSTEM_* arms, and the
+        // gameserver compiles neither.) The catch is kept because it
+        // costs nothing and would come back to life if a DB call were
+        // added here, not because it has anything to catch today.
+        //
+        // What the const char* does instead: it matches no handler
+        // between here and GamePlayer::processCommand's catch (...),
+        // which turns anything into the same DisconnectException it
+        // turned the Error into. Two observables move rather than one.
+        // New: a DBError.log entry, which the hand-rolled conversion
+        // never wrote. Gone: __END_DEBUG's catch (Throwable&) printed
+        // the Error's text to stdout on the way past, and a const char*
+        // matches neither of its handlers.
     } catch (SQLQueryException& sqe) {
         throw Error(sqe.toString());
     }
@@ -400,7 +409,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
                         // DB ¾÷µ¥ÀÌÆ®
-                        { defaultSessionRepository().markGuildMemberLoggedOn(pSlayer->getName().c_str()); }
+                        { defaultSessionRepository().markGuildMemberLoggedOn(pSlayer->getName()); }
 
                     } catch (DuplicatedException& t) {
                         // ÀÏ´Ü ¹«½ÃÇÑ´Ù. by sigi. 2002.8.29
@@ -461,7 +470,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
                         // DB ¾÷µ¥ÀÌÆ®
-                        { defaultSessionRepository().markGuildMemberLoggedOn(pVampire->getName().c_str()); }
+                        { defaultSessionRepository().markGuildMemberLoggedOn(pVampire->getName()); }
                     } catch (DuplicatedException& t) {
                         // ÀÏ´Ü ¹«½ÃÇÑ´Ù. by sigi. 2002.8.29
                         filelog("guildBug.log", "%s", t.toString().c_str());
@@ -524,7 +533,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
                         // DB ¾÷µ¥ÀÌÆ®
-                        { defaultSessionRepository().markGuildMemberLoggedOn(pOusters->getName().c_str()); }
+                        { defaultSessionRepository().markGuildMemberLoggedOn(pOusters->getName()); }
                     } catch (DuplicatedException& t) {
                         // ÀÏ´Ü ¹«½ÃÇÑ´Ù. by sigi. 2002.8.29
                         filelog("guildBug.log", "%s", t.toString().c_str());

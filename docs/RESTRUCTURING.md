@@ -3697,7 +3697,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > round exists because the guild-membership round's audit found two
   > files it should have taken and did not, one of them carrying a
   > BYTE-IDENTICAL copy of a literal that round had just introduced.
-  > Nine statements move and both files are left with no SQL at all.
+  > Nine textual statements move and both files are left with no SQL
+  > at all — six LOGICAL ones from CGConnectHandler, since the Player
+  > SELECT is written twice, once per arm of an #ifdef.
   > REUSE FIRST: ActionShowGuildDialog's guild-registration probe is
   > exactly loadMemberRankExpireDate, spelling and positional reads
   > included, so it needed nothing new; its quit path's
@@ -3713,11 +3715,19 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > the LogOn='GAME' flip join it as loadPlayerSession and
   > markPlayerLoggedOn, and the connect-time
   > "SELECT PlayerID,Race FROM Slayer" probe becomes
-  > CharacterRepository::loadSlayerAccount. SIX MORE STATEMENT LEAKS
-  > CLOSED, on top of the capture-the-flag round's four. All three
-  > guild LogOn writes ran BEGIN_DB/END_DB with no SAFE_DELETE, so
-  > every successful login leaked a Statement per guild member —
-  > three sites, one per race. ActionShowGuildDialog's registration
+  > CharacterRepository::loadSlayerAccount. FOUR MORE LEAKING STATEMENT
+  > SITES CLOSED, on top of the capture-the-flag round's five. Both
+  > those numbers were wrong in an earlier draft of this paragraph,
+  > which said six and four — the same class of miscount the previous
+  > round was pulled up for, one commit later, so it is worth being
+  > exact about the unit. FOUR SITES: three guild LogOn writes and one
+  > probe. That probe leaks on three distinct control PATHS, which is
+  > where "six" came from; mixing sites and paths in one sentence is
+  > what made it wrong. And the capture-the-flag round closed five
+  > Statement OBJECTS across four functions — "four" was that entry's
+  > function count, not its leak count. All three guild LogOn writes
+  > ran BEGIN_DB/END_DB with no SAFE_DELETE, so every successful login
+  > leaked a Statement per guild member — three sites, one per race. ActionShowGuildDialog's registration
   > probe freed its Statement on both early-return branches and NOT on
   > the fall-through, which is the ordinary path: a character with no
   > guild row at all, i.e. everyone registering a first guild. Its
@@ -3732,9 +3742,19 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > that catch does not match. Both types land in
   > GamePlayer::processCommand's catch (...), which turns anything into
   > the same DisconnectException, so the outcome for the player is
-  > unchanged. What IS new: DBError.log now gets an entry, which the
-  > hand-rolled conversion never wrote. The catch itself is kept, for
-  > whatever else in that block can still raise one. (2) The account
+  > unchanged. TWO observables move, not one, and an earlier draft
+  > named only the first. New: DBError.log gets an entry, which the
+  > hand-rolled conversion never wrote. Gone: __END_DEBUG's
+  > catch (Throwable&) printed the Error's text to stdout on the way
+  > past, and a const char* matches neither of its handlers — so the
+  > text MOVES from stdout to DBError.log rather than simply appearing.
+  > The catch itself is kept, but not for the reason the draft gave:
+  > nothing left in that block can raise a SQLQueryException in any
+  > configuration the gameserver builds. loginPayPlay and sendPayInfo
+  > could reach the database, but they live in the
+  > __CONNECT_BILLING_SYSTEM__ and __PAY_SYSTEM_* arms, and the build
+  > defines neither. It is kept because it costs nothing and would
+  > matter again if a DB call were added there. (2) The account
   > read and the LogOn flip ran on ONE Statement against the dist
   > connection and now take one each; same connection, same order.
   > (3) The connect probe's two columns are still read and still used —
@@ -3754,8 +3774,22 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > is a hardcoded 604800, where CGRegistGuildHandler's is
   > g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 *
   > 3600. Two paths to the same rule, one configurable and one not.
-  > (7) DBError.log and the const char* END_DB rethrows now name the
-  > repository method. TESTS: four added — the session handshake (every
+  > (7) Two hygiene items the review of this round turned up. The dead
+  > #include "DB.h" is removed from both files, which the couple and
+  > capture-the-flag rounds did and the earlier guild-handler round did
+  > not; leaving it kept dragging <mysql/mysql.h> into quest/ and
+  > handler/ through Result.h. And the three guild LogOn call sites
+  > passed getName().c_str() into a const std::string& parameter,
+  > forcing a strlen and a copy where every other converted site in
+  > this round passes the string itself. (8) Bare { } scopes are left
+  > where BEGIN_DB { and if (pResult->next()) { used to open, and they
+  > scope nothing. Deliberate: they keep the enclosed code's
+  > indentation identical to the original, so the diff reads line for
+  > line against it. (9) One comment was DELETED rather than updated,
+  > against this stack's own policy: CGConnectHandler's commented-out
+  > createStatement line, which named a local that no longer exists. It
+  > holds no SQL call, so it moved no ratchet. (10) DBError.log and the
+  > const char* END_DB rethrows now name the repository method. TESTS: four added — the session handshake (every
   > column read back with a distinct sentinel, then the double-login
   > guard: markPlayerLoggedOn is true once and false the second time,
   > because the UPDATE only matches a row still in LOGOFF), the guild

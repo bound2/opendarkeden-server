@@ -7,7 +7,6 @@
 #include "ActionShowGuildDialog.h"
 
 #include "Creature.h"
-#include "DB.h"
 #include "GCActiveGuildList.h"
 #include "GCNPCResponse.h"
 #include "GCWaitGuildList.h"
