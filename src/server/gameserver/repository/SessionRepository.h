@@ -19,10 +19,13 @@
 // connection, the rest through the DARKEDEN connection. Write parameters
 // are typed to the members/expressions each caller streamed.
 //
-// Not enclosed: the session START side — CGConnectHandler's Player
-// LogOn='GAME' flip
-// and GuildMember LogOn = 1 writes, CGPortCheckHandler's UserIPInfo
-// upsert, CGRequestIPHandler's and CGSayHandler's UserIPInfo reads — all
+// The session START side joined this seam on 2026-09-04:
+// CGConnectHandler's account read, its Player LogOn='GAME' flip and
+// its three GuildMember LogOn = 1 writes are loadPlayerSession,
+// markPlayerLoggedOn and markGuildMemberLoggedOn below.
+//
+// Not enclosed: CGPortCheckHandler's UserIPInfo upsert,
+// CGRequestIPHandler's and CGSayHandler's UserIPInfo reads — all
 // handler-directory files (R3); CGSayHandler's and
 // billing/CommonBillingPacket.cpp's Player.LogOn / LastLogoutDate reads;
 // src/server/PaySystem.cpp's PCRoomUserInfo statements (ServerCore, every
@@ -30,6 +33,25 @@
 // LoginPlayerManager sweep and its copy of addLogoutPlayerData (the
 // gameserver's copy was dead and is deleted); and the unbuilt
 // src/server/IncomingPlayerManager.cpp fork that still carries the sweep.
+
+// CGConnectHandler's account read. The columns are named in the order
+// the statement selects them, and each is typed to the driver getter
+// that call site used: getString, getInt, getDWORD for the event
+// count. payType is the int the caller casts to PayType.
+struct PlayerSessionRow {
+    std::string playerID;
+    int serverGroupID;
+    std::string logOn;
+    DWORD specialEventCount;
+    int payType;
+    std::string payPlayDate;
+    int payPlayHours;
+    int payPlayFlag;
+    int billingUserKey;
+    std::string familyPayPlayDate;
+    // __THAILAND_SERVER__ only; empty elsewhere.
+    std::string birthday;
+};
 
 class SessionRepository {
 public:
@@ -41,7 +63,28 @@ public:
     // of the write never freed its Statement.
     virtual void markGuildMemberLoggedOff(const std::string& name) = 0;
 
+    // GuildMember.LogOn = 1, the mirror of the write above. Three
+    // identical call sites in CGConnectHandler, one per race, none of
+    // which freed its Statement.
+    virtual void markGuildMemberLoggedOn(const std::string& name) = 0;
+
     // --- the account row (dist connection) ---------------------------------
+    // The connect-time account read. False unless EXACTLY one row: the
+    // caller treats none and several alike, logging to
+    // connectDB_BUG.txt and throwing ProtocolException, so the
+    // distinction never reaches game code.
+    //
+    // Under __THAILAND_SERVER__ the statement selects an eleventh
+    // column, Birthday, which that build reads to set the adult
+    // permission. birthday is left empty in every other build, where
+    // the column is not selected at all.
+    virtual bool loadPlayerSession(const std::string& playerID, PlayerSessionRow& row) = 0;
+    // LogOn='GAME', but only for a row still in 'LOGOFF'. Returns
+    // whether a row was affected — the caller reads false as "someone
+    // else got there first" and throws. This is the mirror of
+    // markPlayerLoggedOff, which does not report its row count because
+    // its caller never asked.
+    virtual bool markPlayerLoggedOn(const std::string& playerID) = 0;
     // LogOn='LOGOFF', LastLogoutDate=now() — only for a row still in 'GAME'.
     virtual void markPlayerLoggedOff(const std::string& playerID) = 0;
     // The accounts this world/server group left in 'GAME' (boot-time sweep).

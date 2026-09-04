@@ -255,6 +255,13 @@ public:
     // character while it was handed over); on true, record carries
     // every selected column.
     virtual bool loadSlayer(const std::string& ownerName, SlayerLoadRecord& record) = 0;
+    // CGConnectHandler's connect-time probe, which exists to take the
+    // character's race from the DATABASE rather than trusting the type
+    // the client sent. False unless EXACTLY one row: that caller treats
+    // none and several alike, logging to connectDB_BUG.txt and throwing
+    // ProtocolException. Every character has a Slayer row whatever its
+    // race, which is why one probe covers all three.
+    virtual bool loadSlayerAccount(const std::string& name, std::string& playerID, std::string& race) = 0;
     virtual bool loadVampire(const std::string& ownerName, VampireLoadRecord& record) = 0;
     virtual bool loadOusters(const std::string& ownerName, OustersLoadRecord& record) = 0;
 

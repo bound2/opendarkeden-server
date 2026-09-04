@@ -22,16 +22,16 @@
 // gameserver:
 //  - the sharedserver's own Guild.cpp / GuildManager.cpp, a separate
 //    copy with its own SQL, WarScheduleInfo statements included;
-//  - quest/ActionShowGuildDialog.cpp, whose two GuildMember probes
-//    include a BYTE-IDENTICAL copy of loadMemberRankExpireDate's
-//    statement (read the same way, followed by the same seven-day
-//    penalty logic) plus a "SELECT GuildID FROM GuildMember WHERE
-//    Name = '%s'" that memberExists cannot serve, because it reads the
-//    id rather than counting rows;
-//  - CGConnectHandler.cpp's three copies of
-//    "UPDATE GuildMember SET LogOn = 1 WHERE Name = '%s'";
-//  - src/server/Restore.cpp's LogOn = 0 counterpart, which is in no
-//    CMakeLists and so is not built, though it still counts in R3.
+//  - src/server/Restore.cpp's "UPDATE GuildMember SET LogOn = 0"
+//    counterpart, which is in no CMakeLists and so is not built,
+//    though it still counts in R3.
+//
+// quest/ActionShowGuildDialog.cpp and CGConnectHandler.cpp came off
+// that list on 2026-09-04: the first reuses loadMemberRankExpireDate
+// (its statement was a byte-identical copy) and the new
+// loadMemberGuildID; the second's three GuildMember LogOn writes are
+// SessionRepository::markGuildMemberLoggedOn, beside the LogOn = 0
+// mirror that seam already held.
 //
 // CGRegistGuildHandler, CGJoinGuildHandler and CGTryJoinGuildHandler
 // came off that list: their membership probes and the one GuildMember
@@ -173,6 +173,14 @@ public:
                                      const std::string& name) = 0;
     // False unless exactly one row (Name is the primary key).
     virtual bool loadMember(const std::string& name, GuildMemberRow& row) = 0;
+    // ActionShowGuildDialog's quit path: the guild this character
+    // belongs to. Same statement as memberExists — they share one
+    // literal in the implementation — but this one READS the id where
+    // that one only counts rows, and it uses next() rather than
+    // getRowCount(), so it answers on the FIRST row rather than
+    // requiring exactly one. Name is the primary key, so there is at
+    // most one either way.
+    virtual bool loadMemberGuildID(const std::string& name, int& guildID) = 0;
     virtual void saveMember(GuildID_t guildID, GuildMemberRank_t rank, const std::string& name) = 0;
     virtual void deleteMember(const std::string& name) = 0;
     virtual void deleteMemberSpelled(GuildMemberDeleteSpelling spelling, const std::string& name) = 0;

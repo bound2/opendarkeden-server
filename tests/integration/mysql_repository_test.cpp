@@ -562,6 +562,29 @@ protected:
     }
 };
 
+TEST_F(CharacterMySQL, TheConnectProbeReadsTheAccountAndRaceOffTheSlayerRow) {
+    CharacterRepository& repository = defaultCharacterRepository();
+
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+
+    std::string playerID = "untouched";
+    std::string race = "untouched";
+    EXPECT_FALSE(repository.loadSlayerAccount(vampire.name, playerID, race)); // no row yet
+    EXPECT_EQ("untouched", playerID);                                         // left alone
+    EXPECT_EQ("untouched", race);
+
+    vampire.persist();
+    execSQL("UPDATE Slayer SET PlayerID='it-acct', Race='VAMPIRE' WHERE Name='" + vampire.name + "'");
+
+    ASSERT_TRUE(repository.loadSlayerAccount(vampire.name, playerID, race));
+    EXPECT_EQ("it-acct", playerID);
+    // A vampire's SLAYER row carries the real race — every character has
+    // one whatever its race. That is the whole point of this probe: the
+    // connect path takes the race from the database rather than trusting
+    // the type the client sent.
+    EXPECT_EQ("VAMPIRE", race);
+}
+
 TEST_F(CharacterMySQL, SlayerVitalsLandInTheSlayerRowInFull) {
     // Every written column is asserted with a distinct sentinel: an
     // argument transposition in the impl cannot survive this test.
@@ -5821,6 +5844,67 @@ protected:
     }
 };
 
+TEST_F(SessionMySQL, TheSessionHandshakeReadsTheAccountThenClaimsItExactlyOnce) {
+    SessionRepository& repository = defaultSessionRepository();
+
+    execSQL("INSERT INTO Player (PlayerID, CurrentServerGroupID, LogOn, SpecialEventCount, PayType, PayPlayDate, "
+            "PayPlayHours, PayPlayFlag, BillingUserKey, FamilyPayPlayDate) VALUES "
+            "('it-acct', 7, 'LOGOFF', 42, 3, '2026-01-02 03:04:05', 11, 22, 33, '2026-02-03 04:05:06')");
+
+    PlayerSessionRow row;
+    ASSERT_TRUE(repository.loadPlayerSession("it-acct", row));
+    EXPECT_EQ("it-acct", row.playerID);
+    EXPECT_EQ(7, row.serverGroupID);
+    EXPECT_EQ("LOGOFF", row.logOn);
+    EXPECT_EQ(42u, row.specialEventCount);
+    EXPECT_EQ(3, row.payType);
+    EXPECT_EQ("2026-01-02 03:04:05", row.payPlayDate);
+    EXPECT_EQ(11, row.payPlayHours);
+    EXPECT_EQ(22, row.payPlayFlag);
+    EXPECT_EQ(33, row.billingUserKey);
+    EXPECT_EQ("2026-02-03 04:05:06", row.familyPayPlayDate);
+
+    // The columns are read positionally, and every value above is
+    // distinct, so a projection that drifted out of step with the reads
+    // shows up here.
+
+    // Claiming the session is the double-login guard: the UPDATE only
+    // matches a row still in LOGOFF, so the SECOND caller gets false and
+    // the handler throws rather than letting two clients in.
+    EXPECT_TRUE(repository.markPlayerLoggedOn("it-acct"));
+    EXPECT_EQ("GAME", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-acct'"));
+    EXPECT_FALSE(repository.markPlayerLoggedOn("it-acct"));
+    EXPECT_EQ("GAME", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-acct'"));
+
+    // And the mirror puts it back, which is what makes a second login
+    // possible at all.
+    repository.markPlayerLoggedOff("it-acct");
+    EXPECT_EQ("LOGOFF", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-acct'"));
+    EXPECT_TRUE(repository.markPlayerLoggedOn("it-acct"));
+
+    // An account with no row is false, not a throw — the caller turns
+    // that into its own ProtocolException.
+    EXPECT_FALSE(repository.loadPlayerSession("it-nobody", row));
+    EXPECT_FALSE(repository.markPlayerLoggedOn("it-nobody"));
+}
+
+TEST_F(SessionMySQL, GuildMemberLogOnAndLogOffAreMirrorsScopedToOneMember) {
+    SessionRepository& repository = defaultSessionRepository();
+
+    execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-on-a', 1, '', 0)");
+    execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-on-b', 1, '', 0)");
+
+    repository.markGuildMemberLoggedOn("it-on-a");
+    EXPECT_EQ("1", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-a'"));
+    EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-b'"));
+
+    repository.markGuildMemberLoggedOff("it-on-a");
+    EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-a'"));
+
+    // A name with no row is a silent no-op, as the connect path assumes.
+    repository.markGuildMemberLoggedOn("it-none");
+}
+
 TEST_F(SessionMySQL, GuildMemberLogOffFlagsOnlyThatMember) {
     execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-gm-a', 1, '', 1)");
     execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-gm-b', 1, '', 1)");
@@ -6158,6 +6242,26 @@ TEST_F(GuildMySQL, TheGuildNameProbeSeesOnlyActiveAndWaitingGuilds) {
     EXPECT_FALSE(repository.guildNameInUse("it-broken"));
 
     EXPECT_FALSE(repository.guildNameInUse("it-unknown"));
+}
+
+TEST_F(GuildMySQL, TheGuildIdReadAnswersOnTheFirstRowWhereTheExistenceProbeCounts) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    int guildID = -1;
+    EXPECT_FALSE(repository.loadMemberGuildID("it-gid", guildID));
+    EXPECT_EQ(-1, guildID); // left alone when there is no row
+
+    repository.insertMember(31020, "it-gid", 2);
+    EXPECT_TRUE(repository.memberExists("it-gid"));
+    ASSERT_TRUE(repository.loadMemberGuildID("it-gid", guildID));
+    EXPECT_EQ(31020, guildID);
+
+    // Same statement, two questions: memberExists counts rows and this
+    // one reads the id. Name is the primary key, so there is at most one
+    // row and the two can never disagree.
+    repository.saveMember(31021, 2, "it-gid");
+    ASSERT_TRUE(repository.loadMemberGuildID("it-gid", guildID));
+    EXPECT_EQ(31021, guildID);
 }
 
 TEST_F(GuildMySQL, GuildRowsAreCreatedLoadedSavedListedByStateAndDeletedWithTheirUnionRows) {

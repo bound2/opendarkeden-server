@@ -25,6 +25,10 @@ namespace {
 //    one row; the loads return false on none.
 //  - Names, dates and intros are interpolated raw (the callers pass intros
 //    through Guild::correctString first), as before.
+// memberExists and loadMemberGuildID are the same statement asked two
+// ways, so the literal is written once.
+const char* const MEMBER_GUILD_ID_SQL = "SELECT GuildID FROM GuildMember WHERE Name = '%s'";
+
 class MySQLGuildRepository : public GuildRepository {
 public:
     // --- members ------------------------------------------------------------
@@ -34,7 +38,7 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery("SELECT GuildID FROM GuildMember WHERE Name = '%s'", name.c_str());
+            Result* pResult = pStmt->executeQuery(MEMBER_GUILD_ID_SQL, name.c_str());
 
             exists = pResult->getRowCount() != 0;
 
@@ -185,6 +189,26 @@ public:
 
             if (pResult->next()) {
                 expireDate = pResult->getString(2);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool loadMemberGuildID(const string& name, int& guildID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(MEMBER_GUILD_ID_SQL, name.c_str());
+
+            if (pResult->next()) {
+                guildID = pResult->getInt(1);
                 found = true;
             }
 

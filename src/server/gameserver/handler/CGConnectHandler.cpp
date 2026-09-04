@@ -57,6 +57,8 @@
 #include "ZonePlayerManager.h"
 #include "ZoneUtil.h"
 #include "mission/QuestManager.h"
+#include "repository/CharacterRepository.h"
+#include "repository/SessionRepository.h"
 #include "skill/EffectGnomesWhisper.h"
 // #include "GCLoadInventory.h"
 #include "GDRLairManager.h"
@@ -194,9 +196,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     //----------------------------------------------------------------------
     // ·Î±×ÀÎ Ã¼Å©
     //----------------------------------------------------------------------
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
     // ºô¸µ~
     PayType payType;
     string payPlayDate;
@@ -209,26 +208,20 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     try {
         // È¡½ÇÉ«ÀàÐÍ£¬²»Ê¹ÓÃ¿Í»§¶ËÉÏÀ´µÄÀàÐÍ£¬·ÀÖ¹µôÏß
         // ³Â¹â»ÔÐÞ¸Ä2006 05 31
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult =
-            pStmt->executeQuery("SELECT PlayerID,Race FROM Slayer WHERE Name = '%s'", pPacket->getPCName().c_str());
+        string spID;
+        string spRace;
 
-
-        if (pResult->getRowCount() != 1) {
+        if (!defaultCharacterRepository().loadSlayerAccount(pPacket->getPCName(), spID, spRace)) {
             StringStream msg;
             msg << "Failed to load PlayerCreature data from DB. Not 1 PlayerID (" << pPacket->getPCName().c_str()
                 << ")";
 
             filelog("connectDB_BUG.txt", "%s", msg.toString().c_str());
 
-            SAFE_DELETE(pStmt);
             throw ProtocolException(msg.toString().c_str());
         }
 
-        if (pResult->next()) {
-            string spID = pResult->getString(1);
-            string spRace = pResult->getString(2);
-
+        {
             if (spRace == "SLAYER") {
                 pPacket->setPCType(PC_SLAYER);
             } else if (spRace == "VAMPIRE") {
@@ -242,7 +235,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
                 filelog("connectDB_BUG.txt", "%s", msg.toString().c_str());
 
-                SAFE_DELETE(pStmt);
                 throw ProtocolException(msg.toString().c_str());
             }
 
@@ -254,60 +246,35 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
 
                 filelog("connectDB_BUG.txt", "%s", msg.toString().c_str());
 
-                SAFE_DELETE(pStmt);
                 throw ProtocolException(msg.toString().c_str());
             }
         }
 
-        SAFE_DELETE(pStmt);
+        PlayerSessionRow session;
 
-        // pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-#ifdef __THAILAND_SERVER__
-
-        pResult = pStmt->executeQuery(
-            "SELECT PlayerID, CurrentServerGroupID, LogOn, SpecialEventCount, PayType, PayPlayDate, PayPlayHours, "
-            "PayPlayFlag, BillingUserKey, FamilyPayPlayDate, Birthday FROM Player WHERE PlayerID = '%s'",
-            pGamePlayer->getID().c_str());
-
-#else
-
-        pResult = pStmt->executeQuery(
-            "SELECT PlayerID, CurrentServerGroupID, LogOn, SpecialEventCount, PayType, PayPlayDate, PayPlayHours, "
-            "PayPlayFlag, BillingUserKey, FamilyPayPlayDate FROM Player WHERE PlayerID = '%s'",
-            pGamePlayer->getID().c_str());
-
-#endif
-        if (pResult->getRowCount() != 1) {
+        if (!defaultSessionRepository().loadPlayerSession(pGamePlayer->getID(), session)) {
             StringStream msg;
             msg << "Failed to load PlayerCreature data from DB. No Player(" << pPacket->getPCName().c_str() << ")";
 
             filelog("connectDB_BUG.txt", "%s", msg.toString().c_str());
 
-            SAFE_DELETE(pStmt);
             throw ProtocolException(msg.toString().c_str());
         }
 
-        pResult->next();
+        string playerID = session.playerID;
+        ServerGroupID_t GID = session.serverGroupID;
+        string logon = session.logOn;
+        uint scount = session.specialEventCount;
 
-        int i = 0;
-
-        string playerID = pResult->getString(++i);
-        ServerGroupID_t GID = pResult->getInt(++i);
-        string logon = pResult->getString(++i);
-        uint scount = pResult->getDWORD(++i);
-
-        payType = (PayType)pResult->getInt(++i);
-        payPlayDate = pResult->getString(++i);
-        payPlayHours = pResult->getInt(++i);
-        payPlayFlag = pResult->getInt(++i);
-        billingUserKey = pResult->getInt(++i);
-        familyPayPlayDate = pResult->getString(++i);
+        payType = (PayType)session.payType;
+        payPlayDate = session.payPlayDate;
+        payPlayHours = session.payPlayHours;
+        payPlayFlag = session.payPlayFlag;
+        billingUserKey = session.billingUserKey;
+        familyPayPlayDate = session.familyPayPlayDate;
 
 #ifdef __THAILAND_SERVER__
-        string Birthday = pResult->getString(++i);
-        pGamePlayer->setPermission(isAdultByBirthdayDate(Birthday));
+        pGamePlayer->setPermission(isAdultByBirthdayDate(session.birthday));
 #endif
 
         pGamePlayer->setServerGroupID(GID);
@@ -315,18 +282,15 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         pGamePlayer->setBillingUserKey(billingUserKey);
 
         if (logon != "LOGOFF") {
-            SAFE_DELETE(pStmt);
             char str[80];
             sprintf(str, "Already connected player ID: %s, %s", playerID.c_str(), logon.c_str());
             throw ProtocolException(str);
         }
 
-        pStmt->executeQuery("UPDATE Player SET LogOn='GAME' WHERE PlayerID = '%s' AND LogOn='LOGOFF'",
-                            playerID.c_str());
+        bool tookTheSession = defaultSessionRepository().markPlayerLoggedOn(playerID);
 
         // LogOnÀÌ LOGOFF°¡ ¾Æ´Ï°Å³ª.. µîµî.. by sigi. 2002.5.15
-        if (pStmt->getAffectedRowCount() == 0) {
-            SAFE_DELETE(pStmt);
+        if (!tookTheSession) {
             char str[80];
             sprintf(str, "Already connected player ID2: %s, %s", playerID.c_str(), logon.c_str());
             throw ProtocolException(str);
@@ -343,7 +307,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         if (pGamePlayer->loginPayPlay(payType, payPlayDate, payPlayHours, payPlayFlag, connectIP, playerID)) {
             sendPayInfo(pGamePlayer);
         } else {
-            SAFE_DELETE(pStmt);
             throw ProtocolException("no pay account");
         }
 // by sigi. 2002.11.18. Á¦ÇÑÀû ¹«·á »ç¿ëÀÚ. - -; ÀÏ´Ü login
@@ -355,10 +318,15 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         pGamePlayer->setPayPlayValue(payType, payPlayDate, payPlayHours, payPlayFlag, familyPayPlayDate);
 #endif
 
-
-        SAFE_DELETE(pStmt);
+        // This guard stays for whatever else in the block can raise a
+        // SQLQueryException, but the statements above no longer do: each
+        // repository call converts its own inside END_DB and rethrows a
+        // const char*, which this catch does not match. That escapes to
+        // GamePlayer::processCommand's catch (...), which turns anything
+        // into the same DisconnectException it turned the Error into, so
+        // the outcome is unchanged; what is new is a DBError.log entry,
+        // which the hand-rolled conversion never wrote.
     } catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
         throw Error(sqe.toString());
     }
 
@@ -432,12 +400,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
                         // DB ¾÷µ¥ÀÌÆ®
-                        BEGIN_DB {
-                            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                            pStmt->executeQuery("UPDATE GuildMember SET LogOn = 1 WHERE Name = '%s'",
-                                                pSlayer->getName().c_str());
-                        }
-                        END_DB(pStmt)
+                        { defaultSessionRepository().markGuildMemberLoggedOn(pSlayer->getName().c_str()); }
 
                     } catch (DuplicatedException& t) {
                         // ÀÏ´Ü ¹«½ÃÇÑ´Ù. by sigi. 2002.8.29
@@ -498,12 +461,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
                         // DB ¾÷µ¥ÀÌÆ®
-                        BEGIN_DB {
-                            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                            pStmt->executeQuery("UPDATE GuildMember SET LogOn = 1 WHERE Name = '%s'",
-                                                pVampire->getName().c_str());
-                        }
-                        END_DB(pStmt)
+                        { defaultSessionRepository().markGuildMemberLoggedOn(pVampire->getName().c_str()); }
                     } catch (DuplicatedException& t) {
                         // ÀÏ´Ü ¹«½ÃÇÑ´Ù. by sigi. 2002.8.29
                         filelog("guildBug.log", "%s", t.toString().c_str());
@@ -566,12 +524,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
                         g_pSharedServerManager->sendPacket(&gsGuildMemberLogOn);
 
                         // DB ¾÷µ¥ÀÌÆ®
-                        BEGIN_DB {
-                            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                            pStmt->executeQuery("UPDATE GuildMember SET LogOn = 1 WHERE Name = '%s'",
-                                                pOusters->getName().c_str());
-                        }
-                        END_DB(pStmt)
+                        { defaultSessionRepository().markGuildMemberLoggedOn(pOusters->getName().c_str()); }
                     } catch (DuplicatedException& t) {
                         // ÀÏ´Ü ¹«½ÃÇÑ´Ù. by sigi. 2002.8.29
                         filelog("guildBug.log", "%s", t.toString().c_str());
