@@ -15,14 +15,14 @@
 
 class SweepVice : public SkillHandler {
 public:
-    SweepVice(int level) throw() : m_Level(level) {}
-    ~SweepVice() throw() {}
+    SweepVice(int level) : m_Level(level) {}
+    ~SweepVice() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SweepVice";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SWEEP_VICE_1 + m_Level;
     }
 

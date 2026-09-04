@@ -20,10 +20,10 @@ public:
     EffectDragonTornado(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zoneY);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_DRAGON_TORNADO;
     }
-    EffectClass getSendEffectClass() const throw() {
+    EffectClass getSendEffectClass() const {
         return (m_bCanSplit) ? EFFECT_CLASS_DRAGON_TORNADO : EFFECT_CLASS_DRAGON_TORNADO_CHILD;
     }
 
@@ -33,7 +33,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     ObjectID_t getUserOID(void) const {

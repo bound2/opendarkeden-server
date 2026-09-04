@@ -39,7 +39,7 @@ CarryingReceiver::CarryingReceiver(ItemType_t itemType, const list<OptionType_t>
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "CarryingReceiver::CarryingReceiver() : Invalid item type or option type");
-        throw("CarryingReceiver::CarryingReceiver() : Invalid item type or optionType");
+        throw "CarryingReceiver::CarryingReceiver() : Invalid item type or optionType";
     }
 }
 

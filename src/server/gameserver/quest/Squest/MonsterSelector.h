@@ -59,8 +59,8 @@ public:
         return false;
     }
 
-    void setMonster(const string& text) throw(Error);
-    string toString() const throw(Error);
+    void setMonster(const string& text);
+    string toString() const;
 
 private:
     MonsterType_t m_MonsterType;

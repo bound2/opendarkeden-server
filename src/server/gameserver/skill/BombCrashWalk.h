@@ -15,14 +15,14 @@
 
 class BombCrashWalk : public SkillHandler {
 public:
-    BombCrashWalk() throw() {}
-    ~BombCrashWalk() throw() {}
+    BombCrashWalk() {}
+    ~BombCrashWalk() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BombCrashWalk";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BOMB_CRASH_WALK;
     }
 

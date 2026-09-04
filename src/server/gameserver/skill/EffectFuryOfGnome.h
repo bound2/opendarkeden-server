@@ -20,7 +20,7 @@ public:
     EffectFuryOfGnome(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zoneY);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_FURY_OF_GNOME;
     }
 
@@ -30,7 +30,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     string getCasterName(void) const {

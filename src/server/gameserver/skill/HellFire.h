@@ -15,14 +15,14 @@
 
 class HellFire : public SkillHandler {
 public:
-    HellFire() throw();
-    ~HellFire() throw() {}
+    HellFire();
+    ~HellFire() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HellFire";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HELLFIRE;
     }
 

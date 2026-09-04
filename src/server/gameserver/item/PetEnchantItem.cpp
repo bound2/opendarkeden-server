@@ -41,7 +41,7 @@ PetEnchantItem::PetEnchantItem(ItemType_t itemType, const list<OptionType_t>& op
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "PetEnchantItem::PetEnchantItem() : Invalid item type or option type");
-        throw("PetEnchantItem::PetEnchantItem() : Invalid item type or optionType");
+        throw "PetEnchantItem::PetEnchantItem() : Invalid item type or optionType";
     }
 }
 

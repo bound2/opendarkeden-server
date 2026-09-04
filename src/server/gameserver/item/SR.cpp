@@ -47,7 +47,7 @@ SR::SR(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "SR::SR() : Invalid item type or option type");
-        throw("SR::SR() : Invalid item type or optionType");
+        throw "SR::SR() : Invalid item type or optionType";
     }
 }
 

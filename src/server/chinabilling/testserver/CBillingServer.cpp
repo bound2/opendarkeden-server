@@ -21,7 +21,7 @@
 // 시스템 매니저의 constructor에서는 하위 매니저 객체를 생성한다.
 //
 //////////////////////////////////////////////////////////////////////
-CBillingServer::CBillingServer() throw(Error) {
+CBillingServer::CBillingServer() {
     __BEGIN_TRY
 
     // create inter-server communication manager
@@ -38,7 +38,7 @@ CBillingServer::CBillingServer() throw(Error) {
 // 시스템 매니저의 destructor에서는 하위 매니저 객체를 삭제해야 한다.
 //
 //////////////////////////////////////////////////////////////////////
-CBillingServer::~CBillingServer() throw(Error) {
+CBillingServer::~CBillingServer() noexcept(false) {
     __BEGIN_TRY
 
     SAFE_DELETE(g_pGameServerManager);
@@ -52,7 +52,7 @@ CBillingServer::~CBillingServer() throw(Error) {
 // initialize game server
 //
 //////////////////////////////////////////////////////////////////////
-void CBillingServer::init() throw(Error) {
+void CBillingServer::init() {
     __BEGIN_TRY
 
     cout << "CBillingServer::init() start" << endl;
@@ -69,7 +69,7 @@ void CBillingServer::init() throw(Error) {
 // start shared server
 //
 //////////////////////////////////////////////////////////////////////
-void CBillingServer::start() throw(Error) {
+void CBillingServer::start() {
     __BEGIN_TRY
 
     cout << "---------- Start CBillingServer ---------" << endl;
@@ -93,7 +93,7 @@ void CBillingServer::start() throw(Error) {
 // 같은 현상이 발생할 수 있다.
 //
 //////////////////////////////////////////////////////////////////////
-void CBillingServer::stop() throw(Error) {
+void CBillingServer::stop() {
     __BEGIN_TRY
 
     // 나중에 이 부분을 코멘트화해야 한다.

@@ -15,15 +15,15 @@
 
 class LightBall : public SkillHandler {
 public:
-    LightBall() throw() {}
-    ~LightBall() throw() {}
+    LightBall() {}
+    ~LightBall() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "LightBall";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_LIGHT_BALL;
     }
 

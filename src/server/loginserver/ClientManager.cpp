@@ -32,7 +32,7 @@
 // 하위 매니저 객체를 생성하는 곳이다.
 //
 //////////////////////////////////////////////////////////////////////
-ClientManager::ClientManager() throw(Error) {
+ClientManager::ClientManager() {
     __BEGIN_TRY
 
     // 로그인 플레이어 매니저를 생성한다.
@@ -49,7 +49,7 @@ ClientManager::ClientManager() throw(Error) {
 // 하위 매니저 객체를 삭제하는 곳이다.
 //
 //////////////////////////////////////////////////////////////////////
-ClientManager::~ClientManager() throw(Error) {
+ClientManager::~ClientManager() noexcept(false) {
     __BEGIN_TRY
 
     // 로그인 플레이어 매니저를 삭제한다.
@@ -67,7 +67,7 @@ ClientManager::~ClientManager() throw(Error) {
 // 하위 매니저 객체를 초기화하고, 자신을 초기화한다.
 //
 //////////////////////////////////////////////////////////////////////
-void ClientManager::init() throw(Error) {
+void ClientManager::init() {
     __BEGIN_TRY
 
     g_pLoginPlayerManager->init();
@@ -81,7 +81,7 @@ void ClientManager::init() throw(Error) {
 // 서비스를 시작한다.
 //
 //////////////////////////////////////////////////////////////////////
-void ClientManager::start() throw(Error) {
+void ClientManager::start() {
     __BEGIN_TRY
 
     run(); // 바로 run() 메쏘드를 호출한다. ^^;
@@ -95,7 +95,7 @@ void ClientManager::start() throw(Error) {
 // 자신의 서비스를 중단한 후, 하위 매니저 객체들의 서비스를 중단시킨다.
 //
 //////////////////////////////////////////////////////////////////////
-void ClientManager::stop() throw(Error) {
+void ClientManager::stop() {
     __BEGIN_TRY
 
     throw UnsupportedError("stopping manager not supported.");
@@ -107,7 +107,7 @@ void ClientManager::stop() throw(Error) {
 //////////////////////////////////////////////////////////////////////
 // 클라이언트 매니저의 메인 루프이다.
 //////////////////////////////////////////////////////////////////////
-void ClientManager::run() throw(Error) {
+void ClientManager::run() {
     __BEGIN_TRY
 
     Assert(g_pLoginPlayerManager != NULL);

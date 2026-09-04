@@ -15,14 +15,14 @@
 
 class DuplicateSelf : public SkillHandler {
 public:
-    DuplicateSelf() throw();
-    ~DuplicateSelf() throw() {}
+    DuplicateSelf();
+    ~DuplicateSelf() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DuplicateSelf";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DUPLICATE_SELF;
     }
 

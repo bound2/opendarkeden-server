@@ -15,14 +15,14 @@
 
 class Lightness : public SkillHandler {
 public:
-    Lightness() throw() {}
-    ~Lightness() throw() {}
+    Lightness() {}
+    ~Lightness() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Lightness";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_LIGHTNESS;
     }
 

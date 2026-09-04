@@ -43,7 +43,7 @@ Mitten::Mitten(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Mitten::Mitten() : Invalid item type or option type");
-        throw("Mitten::Mitten() : Invalid item type or optionType");
+        throw "Mitten::Mitten() : Invalid item type or optionType";
     }
 }
 

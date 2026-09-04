@@ -15,14 +15,14 @@
 
 class SingleBlow : public SkillHandler {
 public:
-    SingleBlow() throw() {}
-    ~SingleBlow() throw() {}
+    SingleBlow() {}
+    ~SingleBlow() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SingleBlow";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SINGLE_BLOW;
     }
 

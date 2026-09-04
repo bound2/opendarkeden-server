@@ -19,7 +19,7 @@ public:
     EffectDetectInvisibility(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_DETECT_INVISIBILITY;
     }
 
@@ -32,7 +32,7 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
 
-    string toString() const throw();
+    string toString() const;
 
 private:
 };

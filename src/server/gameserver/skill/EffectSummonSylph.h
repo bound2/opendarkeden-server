@@ -19,10 +19,10 @@ public:
     EffectSummonSylph(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_SUMMON_SYLPH;
     }
-    EffectClass getSendEffectClass() const throw() {
+    EffectClass getSendEffectClass() const {
         return m_EClass;
     }
 
@@ -31,7 +31,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     void setBonus(uint bonus) {

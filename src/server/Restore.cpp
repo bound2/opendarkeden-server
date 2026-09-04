@@ -31,8 +31,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // 슬레이어 오브젝트 핸들러
 //////////////////////////////////////////////////////////////////////////////
-void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot,
-                      CEffectID_t CEffectID) throw(Error) {
+void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkillSlot, CEffectID_t CEffectID) {
     __BEGIN_TRY
 
     // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
@@ -379,7 +378,7 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 //////////////////////////////////////////////////////////////////////////////
 // NPC 오브젝트 핸들러
 //////////////////////////////////////////////////////////////////////////////
-void Restore::execute(NPC* pNPC, Creature* pFromCreature) throw(Error) {
+void Restore::execute(NPC* pNPC, Creature* pFromCreature) {
     __BEGIN_TRY
 
     // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;

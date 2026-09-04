@@ -15,14 +15,14 @@
 
 class ThrowHolyWater : public SkillHandler {
 public:
-    ThrowHolyWater() throw() {}
-    ~ThrowHolyWater() throw() {}
+    ThrowHolyWater() {}
+    ~ThrowHolyWater() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ThrowHolyWater";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_THROW_HOLY_WATER;
     }
 

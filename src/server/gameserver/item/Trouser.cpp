@@ -46,7 +46,7 @@ Trouser::Trouser(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Trouser::Trouser() : Invalid item type or option type");
-        throw("Trouser::Trouser() : Invalid item type or optionType");
+        throw "Trouser::Trouser() : Invalid item type or optionType";
     }
 }
 

@@ -171,7 +171,7 @@ void EffectDarkBluePoison::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, O
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectDarkBluePoison::toString() const throw() {
+string EffectDarkBluePoison::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

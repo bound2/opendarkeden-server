@@ -20,7 +20,7 @@ public:
     EffectBombCrashWalk(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zoneY);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_SKILL_BOMB_CRASH_WALK_TO_ENEMY;
     }
 
@@ -30,7 +30,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getDamage(void) const {

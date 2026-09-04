@@ -80,7 +80,7 @@ void EffectHolyArmor::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectHolyArmor::toString() const throw() {
+string EffectHolyArmor::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

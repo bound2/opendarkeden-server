@@ -15,14 +15,14 @@
 
 class EarthsTeeth : public SkillHandler {
 public:
-    EarthsTeeth() throw() {}
-    ~EarthsTeeth() throw() {}
+    EarthsTeeth() {}
+    ~EarthsTeeth() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "EarthsTeeth";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_EARTHS_TEETH;
     }
 

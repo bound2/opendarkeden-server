@@ -18,7 +18,7 @@ public:
     EffectDancingSword(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_DANCING_SWORD;
     }
 
@@ -28,10 +28,10 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getToHitBonus() throw() {
+    int getToHitBonus() {
         return m_ToHitBonus;
     }
     void setToHitBonus(ToHit_t ToHitBonus) {

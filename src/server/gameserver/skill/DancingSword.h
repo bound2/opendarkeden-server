@@ -15,14 +15,14 @@
 
 class DancingSword : public SkillHandler {
 public:
-    DancingSword() throw() {}
-    ~DancingSword() throw() {}
+    DancingSword() {}
+    ~DancingSword() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DancingSword";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DANCING_SWORD;
     }
 

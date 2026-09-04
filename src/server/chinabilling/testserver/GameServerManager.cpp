@@ -22,8 +22,7 @@
 // 하위 매니저 및 데이타 멤버들을 생성한다.
 //////////////////////////////////////////////////////////////////////////////
 
-GameServerManager::GameServerManager() throw(Error)
-    : m_pServerSocket(NULL), m_SocketID(INVALID_SOCKET), m_MinFD(-1), m_MaxFD(-1) {
+GameServerManager::GameServerManager() : m_pServerSocket(NULL), m_SocketID(INVALID_SOCKET), m_MinFD(-1), m_MaxFD(-1) {
     __BEGIN_TRY
 
     m_Mutex.setName("GameServerManager");
@@ -48,7 +47,7 @@ GameServerManager::GameServerManager() throw(Error)
 // destructor
 //////////////////////////////////////////////////////////////////////////////
 
-GameServerManager::~GameServerManager() throw(Error) {
+GameServerManager::~GameServerManager() noexcept(false) {
     __BEGIN_TRY
     __END_CATCH
 }
@@ -58,7 +57,7 @@ GameServerManager::~GameServerManager() throw(Error) {
 // 하위 매니저 및 데이터 멤버를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
 
-void GameServerManager::init() throw(Error) {
+void GameServerManager::init() {
     __BEGIN_TRY
 
     // fd_set 들을 0 으로 초기화한다.
@@ -82,7 +81,7 @@ void GameServerManager::init() throw(Error) {
 }
 
 
-void GameServerManager::run() throw(Error) {
+void GameServerManager::run() {
     __BEGIN_TRY
     __BEGIN_DEBUG
 
@@ -115,7 +114,7 @@ void GameServerManager::run() throw(Error) {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void GameServerManager::broadcast(Packet* pPacket) throw(Error) {
+void GameServerManager::broadcast(Packet* pPacket) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -137,7 +136,7 @@ void GameServerManager::broadcast(Packet* pPacket) throw(Error) {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void GameServerManager::broadcast(Packet* pPacket, Player* pPlayer) throw(Error) {
+void GameServerManager::broadcast(Packet* pPacket, Player* pPlayer) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -157,7 +156,7 @@ void GameServerManager::broadcast(Packet* pPacket, Player* pPlayer) throw(Error)
 // call select() system call
 // 상위에서 TimeoutException 을 받으면 플레이어는 처리하지 않아도 된다.
 //////////////////////////////////////////////////////////////////////////////
-void GameServerManager::select() throw(TimeoutException, InterruptedException, Error) {
+void GameServerManager::select() {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
@@ -191,7 +190,7 @@ void GameServerManager::select() throw(TimeoutException, InterruptedException, E
 // 이를 처리하고, 다른 소켓의 read flag가 켜졌을 경우, 새로운 패킷이
 // 들어왔으므로 그 플레이어의 processInput()을 호출하면 된다.
 //////////////////////////////////////////////////////////////////////////////
-void GameServerManager::processInputs() throw(IOException, Error) {
+void GameServerManager::processInputs() {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
@@ -257,7 +256,7 @@ void GameServerManager::processInputs() throw(IOException, Error) {
 // process all players' commands
 //////////////////////////////////////////////////////////////////////////////
 
-void GameServerManager::processCommands() throw(IOException, Error) {
+void GameServerManager::processCommands() {
     __BEGIN_TRY
     __BEGIN_DEBUG
 
@@ -318,7 +317,7 @@ void GameServerManager::processCommands() throw(IOException, Error) {
 // process all players' outputs
 //////////////////////////////////////////////////////////////////////////////
 
-void GameServerManager::processOutputs() throw(IOException, Error) {
+void GameServerManager::processOutputs() {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
@@ -407,7 +406,7 @@ void GameServerManager::processOutputs() throw(IOException, Error) {
 // 따라서, 만약 OOB가 켜져 있다면 에러로 간주하고 접속을 확 짤라 버린다.
 //////////////////////////////////////////////////////////////////////////////
 
-void GameServerManager::processExceptions() throw(IOException, Error) {
+void GameServerManager::processExceptions() {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
@@ -456,7 +455,7 @@ void GameServerManager::processExceptions() throw(IOException, Error) {
 //////////////////////////////////////////////////////////////////////////////
 // select 기반에서는 nonblocking 소켓을 사용하지 않는다.
 //////////////////////////////////////////////////////////////////////////////
-void GameServerManager::acceptNewConnection() throw(Error) {
+void GameServerManager::acceptNewConnection() {
     __BEGIN_TRY
 
     // 블록킹 방식으로 connection을 기다릴 경우
@@ -534,7 +533,7 @@ void GameServerManager::acceptNewConnection() throw(Error) {
 // 새로운 연결에 관련된 플레이어 객체를 IPM에 추가한다.
 //
 //////////////////////////////////////////////////////////////////////
-void GameServerManager::addGameServerPlayer(GameServerPlayer* pGameServerPlayer) throw(DuplicatedException, Error) {
+void GameServerManager::addGameServerPlayer(GameServerPlayer* pGameServerPlayer) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -563,7 +562,7 @@ void GameServerManager::addGameServerPlayer(GameServerPlayer* pGameServerPlayer)
 // 특정 플레이어를 IPM 에서 삭제한다.
 //
 //////////////////////////////////////////////////////////////////////
-void GameServerManager::deleteGameServerPlayer(SOCKET fd) throw(OutOfBoundException, NoSuchElementException, Error) {
+void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -620,13 +619,13 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) throw(OutOfBoundExcept
     __END_CATCH
 }
 
-void GameServerManager::heartbeat() throw(Error){__BEGIN_TRY
+void GameServerManager::heartbeat(){__BEGIN_TRY
 
-                                                     __ENTER_CRITICAL_SECTION(m_Mutex)
+                                        __ENTER_CRITICAL_SECTION(m_Mutex)
 
-                                                         __LEAVE_CRITICAL_SECTION(m_Mutex)
+                                            __LEAVE_CRITICAL_SECTION(m_Mutex)
 
-                                                             __END_CATCH}
+                                                __END_CATCH}
 
 // external variable definition
 GameServerManager* g_pGameServerManager = NULL;

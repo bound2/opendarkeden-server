@@ -37,12 +37,12 @@ const int defaultGameServerPlayerOutputStreamSize = 163840;
 // constructor
 //
 //////////////////////////////////////////////////////////////////////
-GameServerPlayer::GameServerPlayer() throw(Error)
+GameServerPlayer::GameServerPlayer()
 //: m_pSocket(NULL), m_pInputStream(NULL), m_pOutputStream(NULL)
 {}
 
 
-GameServerPlayer::GameServerPlayer(Socket* pSocket) throw(Error)
+GameServerPlayer::GameServerPlayer(Socket* pSocket)
 //: Player( pSocket )//m_pSocket(pSocket), m_pInputStream(NULL), m_pOutputStream(NULL)
 {
     __BEGIN_TRY
@@ -69,7 +69,7 @@ GameServerPlayer::GameServerPlayer(Socket* pSocket) throw(Error)
 // destructor
 //
 //////////////////////////////////////////////////////////////////////
-GameServerPlayer::~GameServerPlayer() throw(Error) {
+GameServerPlayer::~GameServerPlayer() noexcept(false) {
     __BEGIN_TRY
 
     /*
@@ -92,7 +92,7 @@ if ( m_pSocket != NULL )
 }
 
 
-void GameServerPlayer::processInput() throw(IOException, Error) {
+void GameServerPlayer::processInput() {
     __BEGIN_TRY
 
     try {
@@ -104,7 +104,7 @@ void GameServerPlayer::processInput() throw(IOException, Error) {
 }
 
 
-void GameServerPlayer::processOutput() throw(IOException, Error) {
+void GameServerPlayer::processOutput() {
     __BEGIN_TRY
 
     try {
@@ -122,7 +122,7 @@ void GameServerPlayer::processOutput() throw(IOException, Error) {
 // parse packet and execute handler for the packet
 //
 //////////////////////////////////////////////////////////////////////
-void GameServerPlayer::processCommand() throw(IOException, Error) {
+void GameServerPlayer::processCommand() {
     __BEGIN_TRY
 
     try {
@@ -233,7 +233,7 @@ void GameServerPlayer::processCommand() throw(IOException, Error) {
 // send packet to player's output buffer
 //
 //////////////////////////////////////////////////////////////////////
-void GameServerPlayer::sendPacket(Packet* pPacket) throw(ProtocolException, Error) {
+void GameServerPlayer::sendPacket(Packet* pPacket) {
     __BEGIN_TRY
 
     m_pOutputStream->writePacket(pPacket);
@@ -254,7 +254,7 @@ void GameServerPlayer::sendPacket(Packet* pPacket) throw(ProtocolException, Erro
 // disconnect ( close socket )
 //
 //////////////////////////////////////////////////////////////////////
-void GameServerPlayer::disconnect(bool bDisconnected) throw(InvalidProtocolException, Error) {
+void GameServerPlayer::disconnect(bool bDisconnected) {
     __BEGIN_TRY
 
     try {
@@ -280,7 +280,7 @@ void GameServerPlayer::disconnect(bool bDisconnected) throw(InvalidProtocolExcep
 //////////////////////////////////////////////////////////////////////
 // set socket
 //////////////////////////////////////////////////////////////////////
-void GameServerPlayer::setSocket(Socket* pSocket) throw() {
+void GameServerPlayer::setSocket(Socket* pSocket) {
     __BEGIN_TRY
 
     m_pSocket = pSocket;
@@ -299,8 +299,7 @@ void GameServerPlayer::setSocket(Socket* pSocket) throw() {
 }
 
 void GameServerPlayer::executeIntervalValidation(CBillingPacketHeader& header,
-                                                 CBillingPacketRequestIntervalValidationBody& body) throw(IOException,
-                                                                                                          Error) {
+                                                 CBillingPacketRequestIntervalValidationBody& body) {
     __BEGIN_TRY
 
     CBillingPacketHeader sHeader;
@@ -323,8 +322,7 @@ void GameServerPlayer::executeIntervalValidation(CBillingPacketHeader& header,
     __END_CATCH
 }
 
-void GameServerPlayer::executeLogin(CBillingPacketHeader& header,
-                                    CBillingPacketRequestLoginBody& body) throw(IOException, Error) {
+void GameServerPlayer::executeLogin(CBillingPacketHeader& header, CBillingPacketRequestLoginBody& body) {
     __BEGIN_TRY
 
     CBillingPacketHeader sHeader;
@@ -353,8 +351,7 @@ void GameServerPlayer::executeLogin(CBillingPacketHeader& header,
 
     __END_CATCH
 }
-void GameServerPlayer::executeMinusPoint(CBillingPacketHeader& header,
-                                         CBillingPacketRequestMinusPointBody& body) throw(IOException, Error) {
+void GameServerPlayer::executeMinusPoint(CBillingPacketHeader& header, CBillingPacketRequestMinusPointBody& body) {
     __BEGIN_TRY
 
     CBillingPacketHeader sHeader;
@@ -381,8 +378,7 @@ void GameServerPlayer::executeMinusPoint(CBillingPacketHeader& header,
 
     __END_CATCH
 }
-void GameServerPlayer::executeMinusMinute(CBillingPacketHeader& header,
-                                          CBillingPacketRequestMinusMinuteBody& body) throw(IOException, Error) {
+void GameServerPlayer::executeMinusMinute(CBillingPacketHeader& header, CBillingPacketRequestMinusMinuteBody& body) {
     __BEGIN_TRY
 
     CBillingPacketHeader sHeader;
@@ -408,8 +404,7 @@ void GameServerPlayer::executeMinusMinute(CBillingPacketHeader& header,
 
     __END_CATCH
 }
-void GameServerPlayer::executeLogout(CBillingPacketHeader& header,
-                                     CBillingPacketRequestLogoutBody& body) throw(IOException, Error) {
+void GameServerPlayer::executeLogout(CBillingPacketHeader& header, CBillingPacketRequestLogoutBody& body) {
     __BEGIN_TRY
 
     CBillingPacketHeader sHeader;
@@ -439,7 +434,7 @@ void GameServerPlayer::executeLogout(CBillingPacketHeader& header,
 // get debug string
 //
 //////////////////////////////////////////////////////////////////////
-string GameServerPlayer::toString() const throw(Error) {
+string GameServerPlayer::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

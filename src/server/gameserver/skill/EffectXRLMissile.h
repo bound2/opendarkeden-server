@@ -19,7 +19,7 @@ public:
     EffectXRLMissile(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_XRL_Missile;
     }
 
@@ -27,20 +27,20 @@ public:
     void affect(Creature* pCreature);
 
     void unaffect();
-    string toString() const throw();
+    string toString() const;
 
 public:
-    HP_t getPoint() const throw() {
+    HP_t getPoint() const {
         return m_Point;
     }
-    void setPoint(HP_t Point) throw() {
+    void setPoint(HP_t Point) {
         m_Point = Point;
     }
 
-    void setUserObjectID(ObjectID_t oid) throw() {
+    void setUserObjectID(ObjectID_t oid) {
         m_UserObjectID = oid;
     }
-    ObjectID_t getUserObjectID() const throw() {
+    ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
     }
 

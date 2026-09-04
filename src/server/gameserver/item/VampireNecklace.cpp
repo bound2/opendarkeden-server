@@ -46,7 +46,7 @@ VampireNecklace::VampireNecklace(ItemType_t itemType, const list<OptionType_t>& 
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireNecklace::VampireNecklace() : Invalid item type or option type");
-        throw("VampireNecklace::VampireNecklace() : Invalid item type or optionType");
+        throw "VampireNecklace::VampireNecklace() : Invalid item type or optionType";
     }
 }
 

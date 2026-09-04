@@ -30,92 +30,92 @@ class Statement;
 class Connection {
 public:
     // constructor
-    Connection() throw(Error);
+    Connection();
 
     // constructor(1-time connection)
-    Connection(string host, string db, string user, string password, uint port = 0) throw(SQLConnectException, Error);
+    Connection(string host, string db, string user, string password, uint port = 0);
 
     // destructor
-    ~Connection() throw(Error);
+    ~Connection() noexcept(false);
 
     // close the connection to database
-    void close() throw(SQLConnectException, Error);
+    void close();
 
     // 데이타베이스에 연결을 시도한다.
-    void connect(string host, string db, string user, string password, uint port = 0) throw(SQLConnectException);
+    void connect(string host, string db, string user, string password, uint port = 0);
 
     // 데이타베이스에 연결을 시도한다.
-    void connect() throw(SQLConnectException);
+    void connect();
 
     // check the connection
-    bool isConnected() const throw() {
+    bool isConnected() const {
         return m_bConnected;
     }
-    bool operator!() const throw() {
+    bool operator!() const {
         return m_bConnected == false;
     }
 
     // Statement 객체를 생성해서 리턴한다.
-    Statement* createStatement() throw();
+    Statement* createStatement();
 
     // get the MYSQL object
-    MYSQL* getMYSQL() throw() {
+    MYSQL* getMYSQL() {
         return &m_Mysql;
     }
 
     // get MS's host name(ip)
-    string getHost() const throw() {
+    string getHost() const {
         return m_Host;
     }
 
     // get MS's service port
-    uint getPort() const throw() {
+    uint getPort() const {
         return m_Port;
     }
 
     // get database name
-    string getDatabase() const throw() {
+    string getDatabase() const {
         return m_Database;
     }
 
     // get user id
-    string getUser() const throw() {
+    string getUser() const {
         return m_User;
     }
 
     // get user password
-    string getPassword() const throw() {
+    string getPassword() const {
         return m_Password;
     }
 
     // get connection's name
-    string getName() const throw() {
+    string getName() const {
         return m_Name;
     }
 
     // set connection's name
-    void setName(string name) throw() {
+    void setName(string name) {
         m_Name = name;
     }
 
     // get/set busy status
-    bool isBusy(void) const throw() {
+    bool isBusy(void) const {
         return m_bBusy;
     }
-    void setBusy(bool busy = true) throw() {
+    void setBusy(bool busy = true) {
         m_bBusy = busy;
     }
 
     // get error
-    string getError() throw() {
+    string getError() {
         return mysql_error(&m_Mysql);
     }
 
     // lock/unlock
-    void lock() throw(Error) {
+    void lock() {
         m_Mutex.lock();
     }
-    void unlock() throw(Error) {
+    void unlock() {
         m_Mutex.unlock();
     }
 

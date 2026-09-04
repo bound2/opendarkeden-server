@@ -18,7 +18,7 @@ public:
     EffectInstallTurret(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_INSTALL_TURRET;
     }
 
@@ -28,7 +28,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getDamage(void) const {

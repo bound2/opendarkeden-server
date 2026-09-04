@@ -43,7 +43,7 @@ VampireCoupleRing::VampireCoupleRing(ItemType_t itemType, const list<OptionType_
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "VampireCoupleRing::VampireCoupleRing() : Invalid item type or option type");
-        throw("VampireCoupleRing::VampireCoupleRing() : Invalid item type or optionType");
+        throw "VampireCoupleRing::VampireCoupleRing() : Invalid item type or optionType";
     }
 
     __END_CATCH

@@ -15,14 +15,14 @@
 
 class HurricaneCombo : public SkillHandler {
 public:
-    HurricaneCombo() throw() {}
-    ~HurricaneCombo() throw() {}
+    HurricaneCombo() {}
+    ~HurricaneCombo() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HurricaneCombo";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HURRICANE_COMBO;
     }
 

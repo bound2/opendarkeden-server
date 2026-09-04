@@ -15,14 +15,14 @@
 
 class FrozenArmor : public SkillHandler {
 public:
-    FrozenArmor() throw() {}
-    ~FrozenArmor() throw() {}
+    FrozenArmor() {}
+    ~FrozenArmor() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "FrozenArmor";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_FROZEN_ARMOR;
     }
 

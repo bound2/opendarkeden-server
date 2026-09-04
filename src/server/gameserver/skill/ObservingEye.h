@@ -15,14 +15,14 @@
 
 class ObservingEye : public SkillHandler {
 public:
-    ObservingEye() throw() {}
-    ~ObservingEye() throw() {}
+    ObservingEye() {}
+    ~ObservingEye() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ObservingEye";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_OBSERVING_EYE;
     }
 

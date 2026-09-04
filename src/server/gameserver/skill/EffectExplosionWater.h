@@ -19,7 +19,7 @@ public:
     EffectExplosionWater(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_EXPLOSION_WATER;
     }
 
@@ -29,7 +29,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
     void setDamageReduce(int dr) {
         m_DamageReduce = dr;

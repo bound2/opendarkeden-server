@@ -15,14 +15,14 @@
 
 class WaterBarrier : public SkillHandler {
 public:
-    WaterBarrier() throw() {}
-    ~WaterBarrier() throw() {}
+    WaterBarrier() {}
+    ~WaterBarrier() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "WaterBarrier";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_WATER_BARRIER;
     }
 

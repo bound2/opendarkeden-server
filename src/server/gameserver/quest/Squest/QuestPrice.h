@@ -29,8 +29,8 @@ public:
 
     virtual QuestPriceType getQuestPriceType() const = 0;
 
-    virtual void affect(Creature* pCreature) throw(Error) {}
-    virtual void affect(Item* pItem) throw(Error) {}
+    virtual void affect(Creature* pCreature) {}
+    virtual void affect(Item* pItem) {}
 
     Gold_t getGold() const {
         return m_Gold;
@@ -53,9 +53,9 @@ public:
         m_Fame = fame;
     }
 
-    virtual void setPrice(const string& text) throw(Error);
+    virtual void setPrice(const string& text);
 
-    string toString() const throw(Error);
+    string toString() const;
 
 private:
     Gold_t m_Gold;

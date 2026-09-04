@@ -15,14 +15,14 @@
 
 class AcidStrike : public SkillHandler {
 public:
-    AcidStrike() throw() {}
-    ~AcidStrike() throw() {}
+    AcidStrike() {}
+    ~AcidStrike() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AcidStrike";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ACID_STRIKE;
     }
 

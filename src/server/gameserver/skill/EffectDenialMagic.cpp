@@ -94,7 +94,7 @@ void EffectDenialMagic::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectDenialMagic::toString() const throw() {
+string EffectDenialMagic::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

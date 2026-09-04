@@ -108,7 +108,7 @@ void EffectMindControl::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectMindControl::toString() const throw() {
+string EffectMindControl::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

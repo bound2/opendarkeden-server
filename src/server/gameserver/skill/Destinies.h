@@ -15,15 +15,15 @@
 
 class Destinies : public SkillHandler {
 public:
-    Destinies() throw() {}
-    ~Destinies() throw() {}
+    Destinies() {}
+    ~Destinies() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Destinies";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DESTINIES;
     }
 

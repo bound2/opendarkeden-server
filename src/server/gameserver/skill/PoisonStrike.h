@@ -15,14 +15,14 @@
 
 class PoisonStrike : public SkillHandler {
 public:
-    PoisonStrike() throw() {}
-    ~PoisonStrike() throw() {}
+    PoisonStrike() {}
+    ~PoisonStrike() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "PoisonStrike";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_POISON_STRIKE;
     }
 

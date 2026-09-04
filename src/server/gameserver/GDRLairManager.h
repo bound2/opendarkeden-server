@@ -356,6 +356,8 @@ public:
 // 질드레 레어를 총괄하는 매니저. ClientManager의 스레드에서 돈다.
 class GDRLairManager : public FiniteStateMachine, public Thread {
 public:
+    ~GDRLairManager() noexcept override = default;
+
     enum GDRLairZones {
         ILLUSIONS_WAY_1,
         ILLUSIONS_WAY_2,

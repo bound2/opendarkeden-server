@@ -15,14 +15,14 @@
 
 class Revealer : public SkillHandler {
 public:
-    Revealer() throw() {}
-    ~Revealer() throw() {}
+    Revealer() {}
+    ~Revealer() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Revealer";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_REVEALER;
     }
 

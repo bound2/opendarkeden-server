@@ -15,14 +15,14 @@
 
 class SnakeCombo : public SkillHandler {
 public:
-    SnakeCombo() throw() {}
-    ~SnakeCombo() throw() {}
+    SnakeCombo() {}
+    ~SnakeCombo() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SnakeCombo";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SNAKE_COMBO;
     }
 

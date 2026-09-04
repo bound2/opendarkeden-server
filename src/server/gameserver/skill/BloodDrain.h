@@ -17,14 +17,14 @@
 
 class BloodDrain : public SkillHandler {
 public:
-    BloodDrain() throw() {}
-    ~BloodDrain() throw() {}
+    BloodDrain() {}
+    ~BloodDrain() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BloodDrain";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLOOD_DRAIN;
     }
 

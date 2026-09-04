@@ -120,7 +120,7 @@ void EffectTransformToWerwolf::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t 
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectTransformToWerwolf::toString() const throw() {
+string EffectTransformToWerwolf::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

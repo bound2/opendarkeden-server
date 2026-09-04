@@ -15,14 +15,14 @@
 
 class Eternity : public SkillHandler {
 public:
-    Eternity() throw() {}
-    ~Eternity() throw() {}
+    Eternity() {}
+    ~Eternity() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Eternity";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ETERNITY;
     }
 

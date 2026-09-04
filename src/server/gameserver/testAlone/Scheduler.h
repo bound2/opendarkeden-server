@@ -37,10 +37,10 @@ public:
 
 class Scheduler {
 public:
-    Scheduler() throw();
-    virtual ~Scheduler() throw();
+    Scheduler();
+    virtual ~Scheduler() noexcept(false);
 
-    void clear() throw(Error);
+    void clear();
 
     int getSize() const {
         return m_RecentSchedules.size();
@@ -50,12 +50,12 @@ public:
     }
 
 public:
-    void addSchedule(Schedule* pSchedule) throw(Error);
+    void addSchedule(Schedule* pSchedule);
 
-    virtual Work* heartbeat() throw(Error);
+    virtual Work* heartbeat();
 
 protected:
-    Work* popRecentWork() throw(Error);
+    Work* popRecentWork();
 
 protected:
     RecentSchedules m_RecentSchedules;

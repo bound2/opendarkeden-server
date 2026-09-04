@@ -15,14 +15,14 @@
 
 class SummonSylph : public SkillHandler {
 public:
-    SummonSylph() throw() {}
-    ~SummonSylph() throw() {}
+    SummonSylph() {}
+    ~SummonSylph() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SummonSylph";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SUMMON_SYLPH;
     }
 

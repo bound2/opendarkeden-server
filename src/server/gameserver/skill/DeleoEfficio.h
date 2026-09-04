@@ -15,14 +15,14 @@
 
 class DeleoEfficio : public SkillHandler {
 public:
-    DeleoEfficio() throw() {}
-    ~DeleoEfficio() throw() {}
+    DeleoEfficio() {}
+    ~DeleoEfficio() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DeleoEfficio";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DELEO_EFFICIO;
     }
 

@@ -18,7 +18,7 @@
 #include "GCSkillToTileOK6.h"
 #include "RankBonus.h"
 
-IceHorizon::IceHorizon() throw(){
+IceHorizon::IceHorizon(){
 
 };
 

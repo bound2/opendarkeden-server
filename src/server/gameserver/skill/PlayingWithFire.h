@@ -15,14 +15,14 @@
 
 class PlayingWithFire : public SkillHandler {
 public:
-    PlayingWithFire() throw();
-    ~PlayingWithFire() throw() {}
+    PlayingWithFire();
+    ~PlayingWithFire() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "PlayingWithFire";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PLAYING_WITH_FIRE;
     }
 

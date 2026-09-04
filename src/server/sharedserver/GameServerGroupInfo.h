@@ -27,31 +27,31 @@
 class GameServerGroupInfo {
 public:
     // get/set GameWorldID
-    WorldID_t getWorldID() const throw() {
+    WorldID_t getWorldID() const {
         return m_WorldID;
     }
-    void setWorldID(WorldID_t WorldID) throw() {
+    void setWorldID(WorldID_t WorldID) {
         m_WorldID = WorldID;
     }
 
     // get/set GameServerGroupID
-    ServerGroupID_t getGroupID() const throw() {
+    ServerGroupID_t getGroupID() const {
         return m_GroupID;
     }
-    void setGroupID(ServerGroupID_t GroupID) throw() {
+    void setGroupID(ServerGroupID_t GroupID) {
         m_GroupID = GroupID;
     }
 
     // get/set host name
-    string getGroupName() const throw() {
+    string getGroupName() const {
         return m_GroupName;
     }
-    void setGroupName(string GroupName) throw() {
+    void setGroupName(string GroupName) {
         m_GroupName = GroupName;
     }
 
     // get debug string
-    string toString() const throw() {
+    string toString() const {
         StringStream msg;
         msg << "GameServerGroupInfo(" << "WorldID : " << (int)m_WorldID << "ServerGroupID: " << (int)m_GroupID
             << ",GroupName:" << m_GroupName << ")";

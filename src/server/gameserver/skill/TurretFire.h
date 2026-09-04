@@ -15,14 +15,14 @@
 
 class TurretFire : public SkillHandler {
 public:
-    TurretFire() throw() {}
-    ~TurretFire() throw() {}
+    TurretFire() {}
+    ~TurretFire() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TurretFire";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TURRET_FIRE;
     }
 

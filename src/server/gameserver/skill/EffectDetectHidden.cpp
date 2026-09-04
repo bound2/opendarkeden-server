@@ -96,7 +96,7 @@ void EffectDetectHidden::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obj
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectDetectHidden::toString() const throw() {
+string EffectDetectHidden::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

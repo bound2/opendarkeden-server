@@ -43,7 +43,7 @@ CastleSymbol::CastleSymbol(ItemType_t itemType, const list<OptionType_t>& option
 
         if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
             filelog("itembug.log", "CastleSymbol::CastleSymbol() : Invalid item type or option type");
-            throw("CastleSymbol::CastleSymbol() : Invalid item type or optionType");
+            throw "CastleSymbol::CastleSymbol() : Invalid item type or optionType";
         }
     } catch (Throwable& t) {
         cout << t.toString().c_str() << endl;

@@ -25,7 +25,7 @@
 class GameServerManager : public Thread {
 public:
     GameServerManager();
-    ~GameServerManager();
+    ~GameServerManager() noexcept;
 
 public:
     // 쉐어드서버에서 받아들이는 최대 게임서버 수

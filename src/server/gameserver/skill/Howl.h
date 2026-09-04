@@ -15,14 +15,14 @@
 
 class Howl : public SkillHandler {
 public:
-    Howl() throw() {}
-    ~Howl() throw() {}
+    Howl() {}
+    ~Howl() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Howl";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HOWL;
     }
 

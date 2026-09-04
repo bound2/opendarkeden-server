@@ -14,7 +14,7 @@
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
 POINT
-BloodyWarp::getWarpPosition(int myX, int myY, int targetX, int targetY) throw() {
+BloodyWarp::getWarpPosition(int myX, int myY, int targetX, int targetY) {
     __BEGIN_TRY
 
     POINT pt;

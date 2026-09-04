@@ -26,48 +26,48 @@
 class ReconnectLoginInfo {
 public:
     // constructor
-    ReconnectLoginInfo() throw() : m_Key(0) {
+    ReconnectLoginInfo() : m_Key(0) {
         m_ExpireTime.tv_sec = 0;
         m_ExpireTime.tv_usec = 0;
     }
 
     // destructor
-    ~ReconnectLoginInfo() throw() {}
+    ~ReconnectLoginInfo() {}
 
     // get/set client ip
-    string getClientIP() const throw() {
+    string getClientIP() const {
         return m_ClientIP;
     }
-    void setClientIP(const string& clientIP) throw() {
+    void setClientIP(const string& clientIP) {
         m_ClientIP = clientIP;
     }
 
     // get/set PlayerID
-    string getPlayerID() const throw() {
+    string getPlayerID() const {
         return m_PlayerID;
     }
-    void setPlayerID(const string& PlayerID) throw() {
+    void setPlayerID(const string& PlayerID) {
         m_PlayerID = PlayerID;
     }
 
     // get/set expire time
-    Timeval getExpireTime() const throw() {
+    Timeval getExpireTime() const {
         return m_ExpireTime;
     }
-    void setExpireTime(Timeval tv) throw() {
+    void setExpireTime(Timeval tv) {
         m_ExpireTime = tv;
     }
 
     // get/set validation key
-    DWORD getKey() const throw() {
+    DWORD getKey() const {
         return m_Key;
     }
-    void setKey(DWORD key) throw() {
+    void setKey(DWORD key) {
         m_Key = key;
     }
 
     // get debug string
-    string toString() const throw() {
+    string toString() const {
         StringStream msg;
         msg << "ReconnectLoginInfo(ClientIP:" << m_ClientIP << ",ExpireTime:" << m_ExpireTime.tv_sec << "."
             << m_ExpireTime.tv_usec << ",KEY: " << m_Key << ")";

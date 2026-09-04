@@ -1,7 +1,7 @@
 # Toolchain notes
 
-Two related changes, proof-of-concept quality: the XML dependency was replaced,
-which in turn made an alternative compiler toolchain viable.
+Replacing the XML dependency made a reproducible Zig/Clang compiler toolchain
+viable. That toolchain is now used by both container builders.
 
 ## 1. xerces-c replaced by vendored tinyxml2
 
@@ -86,18 +86,52 @@ comparison; it is not built by default.
 
 ## 2. Building with `zig cc`
 
+`Dockerfile` and `Dockerfile.dev` pin Zig 0.16.0, whose C++ driver reports
+Clang 21.1.0. CMake always reaches it through `cmake/zig-toolchain.cmake`, so
+the distro's compiler version no longer controls the language features used by
+container builds.
+
+For the fast development-volume build:
+
+```bash
+docker build -f Dockerfile.dev -t darkeden-dev .
+make dev-test
+make dev-build
+
+# The source baseline remains C++17; exercise the supported C++20 lane with:
+CXX_STANDARD=20 make dev-test
+CXX_STANDARD=20 make dev-build
+```
+
+The production image uses the same compiler and defaults to C++17:
+
+```bash
+docker build -t darkeden:local .
+docker build --build-arg CXX_STANDARD=20 -t darkeden:cxx20 .
+```
+
+Both image builds accept `--build-arg ZIG_VERSION=...` for an intentional
+toolchain update. Change the checked-in default only with a complete C++17 and
+C++20 test/build pass.
+
+For a manually installed Zig toolchain, the equivalent direct CMake commands
+are:
+
 ```bash
 cmake -B build-zig -DCMAKE_TOOLCHAIN_FILE=cmake/zig-toolchain.cmake \
-      -DCMAKE_BUILD_TYPE=Debug
+      -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_STANDARD=17
 cmake --build build-zig -j
 ```
 
 Zig is located as `$ZIG`, else `zig` on `$PATH`, else `python3 -m ziglang`
 (the PyPI `ziglang` package ships the full toolchain).
 
-> **One build tree at a time.** `CMAKE_*_OUTPUT_DIRECTORY` point at the shared
-> source-tree `bin/` and `lib/`, so `build/` and `build-zig/` overwrite each
-> other's binaries while each still considers its own targets up to date.
+`tools/devbuild.sh` gives every Zig version, target, C++ standard and build type
+its own CMake tree, output root, ccache directory and Zig cache directory. Run
+`tools/devbuild.sh output-dir` with the same environment to print that lane's
+artifact root. For manual builds, use one build tree and output root per
+toolchain configuration, for example
+`-DDARKEDEN_OUTPUT_ROOT="$PWD/output-zig-cxx17"`.
 
 ### Why it works here
 
@@ -118,13 +152,25 @@ C++ ABI. **Re-introducing a C++-API dependency reopens this.**
 
 - One compiler binary, byte-identical on every machine and CI runner, rather
   than whatever `g++` the distribution shipped.
-- A bundled libc, so the glibc floor is chosen at build time instead of
-  discovered at deploy time:
+- Zig can select a target and libc version at configure time for code whose
+  complete dependency set supports that target:
   ```bash
-  ZIG_TARGET=x86_64-linux-gnu.2.17 cmake --build build-zig
+  cmake -B build-zig-glibc217 \
+        -DCMAKE_TOOLCHAIN_FILE=cmake/zig-toolchain.cmake \
+        -DDARKEDEN_ZIG_TARGET=x86_64-linux-gnu.2.17 \
+        -DDARKEDEN_OUTPUT_ROOT="$PWD/output-zig-glibc217"
   ```
-  produces a binary that runs on CentOS 7-era glibc from a modern host.
-- Cross-compilation without assembling a sysroot by hand.
+  The target is a CMake cache value, so it is visible in the generated Ninja
+  commands and changing it requires a separate build tree.
+- Cross-target compilation support without constructing a libc sysroot by
+  hand.
+
+The current container installs MySQL, Lua and zlib development libraries from
+its Ubuntu 20.04 package repository. Those host libraries are not a Zig cross
+sysroot, so a complete server binary built by these Dockerfiles is supported
+only for the container's native target. A non-native target or older glibc
+floor requires target-compatible builds of all three dependencies; do not
+infer CentOS 7 compatibility from `DARKEDEN_ZIG_TARGET` alone.
 
 ### What it found immediately
 
@@ -152,6 +198,12 @@ same single instruction, so there is no cost in the hot path. The wire golden
 tests pass unchanged under both toolchains, which is what establishes the
 output is byte-identical.
 
+The C++17/C++20 migration pass found a second checked-conversion case:
+`tileDistance` intentionally narrows a distance to the protocol's byte width.
+The code now spells that modulo operation explicitly, preserving the existing
+300 → 44 behavior without asking Zig's checked Debug mode to perform an
+out-of-range cast.
+
 This is the argument for sanitizers in one example: the bug was reachable from
 an ordinary `CGWhisper` round-trip, sat in the packet write path used by every
 outbound packet, and no amount of reading found it in twenty years.
@@ -161,5 +213,5 @@ outbound packet, and no amount of reading found it in twenty years.
 `zig cc` is a *compiler*, not a build system or a package manager. Zig's own
 package management (`build.zig.zon`) is reachable only through `zig build`,
 which would mean replacing CMake wholesale. With three external C
-dependencies that trade does not pay for itself, so this PoC keeps CMake and
+dependencies that trade does not pay for itself, so this setup keeps CMake and
 uses Zig only as the compiler driver.

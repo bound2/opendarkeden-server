@@ -18,7 +18,7 @@ public:
     EffectHeartCatalyst(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_HEART_CATALYST;
     }
 
@@ -28,10 +28,10 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getHealPoint() throw() {
+    int getHealPoint() {
         return m_HealPoint;
     }
     void setHealPoint(HP_t HealPoint) {

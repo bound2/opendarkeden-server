@@ -15,14 +15,14 @@
 
 class TransformToWerwolf : public SkillHandler {
 public:
-    TransformToWerwolf() throw() {}
-    ~TransformToWerwolf() throw() {}
+    TransformToWerwolf() {}
+    ~TransformToWerwolf() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TransformToWerwolf";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TRANSFORM_TO_WERWOLF;
     }
 

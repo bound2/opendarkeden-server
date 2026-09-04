@@ -91,8 +91,8 @@ public:
 class SkillHandler {
     ///// constructor & destructor /////
 public:
-    SkillHandler() throw() {}
-    virtual ~SkillHandler() throw() {}
+    SkillHandler() {}
+    virtual ~SkillHandler() {}
 
 
     ///// method header for overriding /////
@@ -155,8 +155,8 @@ public:
 
     ///// identity methods /////
 public:
-    virtual string getSkillHandlerName() const throw() = 0;
-    virtual SkillType_t getSkillType() const throw() = 0;
+    virtual string getSkillHandlerName() const = 0;
+    virtual SkillType_t getSkillType() const = 0;
 };
 
 #endif

@@ -17,14 +17,14 @@
 
 class SummonClay : public SkillHandler {
 public:
-    SummonClay() throw();
-    ~SummonClay() throw() {}
+    SummonClay();
+    ~SummonClay() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SummonClay";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SUMMON_CLAY;
     }
 

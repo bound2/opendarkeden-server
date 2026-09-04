@@ -27,7 +27,7 @@ public:
 
 public:
     SharedServerClient(Socket* pSocket);
-    ~SharedServerClient();
+    ~SharedServerClient() noexcept;
 
 public:
     // read socket's receive buffer and fill input buffer

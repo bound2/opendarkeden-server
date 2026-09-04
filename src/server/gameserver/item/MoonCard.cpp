@@ -41,7 +41,7 @@ MoonCard::MoonCard(ItemType_t itemType, const list<OptionType_t>& optionType, It
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "MoonCard::MoonCard() : Invalid item type or option type");
-        throw("MoonCard::MoonCard() : Invalid item type or optionType");
+        throw "MoonCard::MoonCard() : Invalid item type or optionType";
     }
 }
 

@@ -15,14 +15,14 @@
 
 class InstallTrap : public SkillHandler {
 public:
-    InstallTrap() throw() {}
-    ~InstallTrap() throw() {}
+    InstallTrap() {}
+    ~InstallTrap() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "InstallTrap";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_INSTALL_TRAP;
     }
 

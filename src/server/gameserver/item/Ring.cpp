@@ -46,7 +46,7 @@ Ring::Ring(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Ring::Ring() : Invalid item type or option type");
-        throw("Ring::Ring() : Invalid item type or optionType");
+        throw "Ring::Ring() : Invalid item type or optionType";
     }
 }
 

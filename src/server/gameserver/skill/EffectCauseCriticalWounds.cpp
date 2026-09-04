@@ -79,7 +79,7 @@ void EffectCauseCriticalWounds::unaffect()
     __END_CATCH
 }
 
-string EffectCauseCriticalWounds::toString() const throw() {
+string EffectCauseCriticalWounds::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

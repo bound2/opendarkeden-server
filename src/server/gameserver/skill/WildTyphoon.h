@@ -15,14 +15,14 @@
 
 class WildTyphoon : public SkillHandler {
 public:
-    WildTyphoon() throw() {}
-    ~WildTyphoon() throw() {}
+    WildTyphoon() {}
+    ~WildTyphoon() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "WildTyphoon";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_WILD_TYPHOON;
     }
 

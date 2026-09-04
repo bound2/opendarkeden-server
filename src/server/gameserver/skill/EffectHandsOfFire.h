@@ -19,7 +19,7 @@ public:
     EffectHandsOfFire(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_HANDS_OF_FIRE;
     }
 
@@ -28,7 +28,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     void setBonus(uint bonus) {

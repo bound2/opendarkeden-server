@@ -28,47 +28,47 @@ class Result;
 class Statement {
 public:
     // constructor
-    Statement() throw();
+    Statement();
 
     // constructor
-    Statement(char* fmt, ...) throw(Error);
+    Statement(char* fmt, ...);
 
     // destructor
-    ~Statement() throw();
+    ~Statement();
 
 public:
     // »çÀü¿¡ ÁöÁ¤µÈ SQL ¹®À» °¡Áö°í Äõ¸®ÇÑ´Ù.
-    Result* executeQuery() throw(SQLQueryException, Error);
+    Result* executeQuery();
 
     // SQL ¹®À» ¹Þ¾Æ¼­ Äõ¸®ÇÑ´Ù.
-    Result* executeQuery(char*, ...) throw(SQLQueryException, Error);
-    Result* executeQuery(const string& sqlStatement) throw(SQLQueryException, Error);
+    Result* executeQuery(char*, ...);
+    Result* executeQuery(const string& sqlStatement);
 
     // get SQL statement
-    string getStatement() const throw() {
+    string getStatement() const {
         return m_Statement;
     }
 
     // SQL ¹®À» ÁöÁ¤ÇÑ´Ù.
-    void setStatement(char* fmt, ...) throw(Error);
+    void setStatement(char* fmt, ...);
 
     // get connection object
-    Connection* getConnection() const throw() {
+    Connection* getConnection() const {
         return m_pConnection;
     }
 
     // set connection object
-    void setConnection(Connection* pConnection) throw() {
+    void setConnection(Connection* pConnection) {
         m_pConnection = pConnection;
     }
 
     // get warning/error string
-    string getError() const throw() {
+    string getError() const {
         return (m_pConnection == NULL) ? ("Not Associated with Connection Object") : (m_pConnection->getError());
     }
 
     // get affected rows
-    uint getAffectedRowCount() const throw() {
+    uint getAffectedRowCount() const {
         return m_nAffectedRows;
     }
 

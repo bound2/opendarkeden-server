@@ -192,7 +192,7 @@ void CreateMine::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
     __END_CATCH
 }
 
-bool CreateMine::canMake(ItemType_t BombType, int DomainLevel, int SkillLevel) throw() {
+bool CreateMine::canMake(ItemType_t BombType, int DomainLevel, int SkillLevel) {
     __BEGIN_TRY
 
     int ratio = 10 * ((SkillLevel / 10) - BombType) + 40;

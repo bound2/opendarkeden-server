@@ -15,14 +15,14 @@
 
 class InstallTurret : public SkillHandler {
 public:
-    InstallTurret() throw() {}
-    ~InstallTurret() throw() {}
+    InstallTurret() {}
+    ~InstallTurret() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "InstallTurret";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_INSTALL_TURRET;
     }
 

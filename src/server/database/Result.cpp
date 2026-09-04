@@ -34,7 +34,7 @@ Result::Result(T_RESULT* pResult, const string& statement) {
 // destructor
 //////////////////////////////////////////////////////////////////////////////
 
-Result::~Result() throw() {
+Result::~Result() {
     __BEGIN_TRY
 
     if (m_pResult != NULL) {

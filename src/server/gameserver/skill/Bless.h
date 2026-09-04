@@ -15,14 +15,14 @@
 
 class Bless : public SkillHandler {
 public:
-    Bless() throw() {}
-    ~Bless() throw() {}
+    Bless() {}
+    ~Bless() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Bless";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLESS;
     }
 

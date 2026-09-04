@@ -15,14 +15,14 @@
 
 class LarSlash : public SkillHandler {
 public:
-    LarSlash() throw() {}
-    ~LarSlash() throw() {}
+    LarSlash() {}
+    ~LarSlash() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "LarSlash";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_LAR_SLASH;
     }
 

@@ -118,7 +118,7 @@ void EffectTransformToBat::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, O
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectTransformToBat::toString() const throw() {
+string EffectTransformToBat::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

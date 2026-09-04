@@ -15,14 +15,14 @@
 
 class CurePoison : public SkillHandler {
 public:
-    CurePoison() throw() {}
-    ~CurePoison() throw() {}
+    CurePoison() {}
+    ~CurePoison() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "CurePoison";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CURE_POISON;
     }
 

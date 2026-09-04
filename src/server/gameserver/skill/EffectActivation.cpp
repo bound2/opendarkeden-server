@@ -94,7 +94,7 @@ void EffectActivation::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Objec
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectActivation::toString() const throw() {
+string EffectActivation::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

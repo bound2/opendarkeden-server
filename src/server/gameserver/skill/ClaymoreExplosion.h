@@ -15,14 +15,14 @@
 
 class ClaymoreExplosion : public SkillHandler {
 public:
-    ClaymoreExplosion() throw();
-    ~ClaymoreExplosion() throw() {}
+    ClaymoreExplosion();
+    ~ClaymoreExplosion() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ClaymoreExplosion";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CLAYMORE_EXPLOSION;
     }
 

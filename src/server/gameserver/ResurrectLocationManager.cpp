@@ -71,7 +71,7 @@ void ResurrectLocationManager::load()
 
     if (rows.empty()) {
         // cerr << "ResurrectLocationManager::load() : TABLE DOES NOT EXIST!" << endl;
-        throw("ResurrectLocationManager::load() : TABLE DOES NOT EXIST!");
+        throw "ResurrectLocationManager::load() : TABLE DOES NOT EXIST!";
     }
 
     for (size_t r = 0; r < rows.size(); r++) {

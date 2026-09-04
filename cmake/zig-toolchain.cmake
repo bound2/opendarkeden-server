@@ -14,11 +14,9 @@
 # What it buys:
 #   * one compiler binary, byte-identical on every machine and CI runner,
 #     instead of "whatever g++ the distro shipped"
-#   * a bundled libc, so the glibc floor is chosen at build time rather than
-#     discovered at deploy time -- set ZIG_TARGET to pin it, e.g.
-#         ZIG_TARGET=x86_64-linux-gnu.2.17 cmake --build build-zig
-#     produces a binary that runs on CentOS 7-era glibc from a modern host.
-#   * cross-compilation without assembling a sysroot by hand.
+#   * a bundled libc and cross-target compiler support. Complete server
+#     portability still requires target-compatible MySQL, Lua and zlib
+#     libraries; the host libraries found below are not a cross sysroot.
 #
 # Prerequisite: this project must have no C++-API external dependency, since
 # `zig c++` links libc++ rather than libstdc++. That became true when
@@ -32,6 +30,16 @@ get_filename_component(_zig_dir "${CMAKE_CURRENT_LIST_DIR}" ABSOLUTE)
 
 set(CMAKE_C_COMPILER "${_zig_dir}/zig-cc" CACHE FILEPATH "zig cc wrapper")
 set(CMAKE_CXX_COMPILER "${_zig_dir}/zig-c++" CACHE FILEPATH "zig c++ wrapper")
+
+# Capture the target while CMake configures the compiler. CMake then records
+# it in every compile command and reruns ABI detection in a target-specific
+# build tree. Reading ZIG_TARGET only inside the wrappers made target changes
+# invisible to both CMake and Ninja.
+set(DARKEDEN_ZIG_TARGET "$ENV{ZIG_TARGET}" CACHE STRING "Optional Zig target triple")
+if(DARKEDEN_ZIG_TARGET)
+    set(CMAKE_C_COMPILER_TARGET "${DARKEDEN_ZIG_TARGET}")
+    set(CMAKE_CXX_COMPILER_TARGET "${DARKEDEN_ZIG_TARGET}")
+endif()
 
 # Zig ships its own linker (LLD) and archiver; using the host binutils
 # alongside a Zig-produced object set is the usual source of confusing link

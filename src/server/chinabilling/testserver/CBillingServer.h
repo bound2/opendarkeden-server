@@ -24,19 +24,19 @@
 class CBillingServer {
 public:
     // constructor
-    CBillingServer() throw(Error);
+    CBillingServer();
 
     // destructor
-    ~CBillingServer() throw(Error);
+    ~CBillingServer() noexcept(false);
 
     // intialize game server
-    void init() throw(Error);
+    void init();
 
     // start game server
-    void start() throw(Error);
+    void start();
 
     // stop game server
-    void stop() throw(Error);
+    void stop();
 };
 
 // global variable declaration

@@ -15,15 +15,15 @@
 
 class BombingStar : public SkillHandler {
 public:
-    BombingStar() throw() {}
-    ~BombingStar() throw() {}
+    BombingStar() {}
+    ~BombingStar() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BombingStar";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BOMBING_STAR;
     }
 

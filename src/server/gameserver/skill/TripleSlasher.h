@@ -15,14 +15,14 @@
 
 class TripleSlasher : public SkillHandler {
 public:
-    TripleSlasher() throw() {}
-    ~TripleSlasher() throw() {}
+    TripleSlasher() {}
+    ~TripleSlasher() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TripleSlasher";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TRIPLE_SLASHER;
     }
 

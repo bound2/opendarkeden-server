@@ -39,7 +39,7 @@ VampireETC::VampireETC(ItemType_t itemType, const list<OptionType_t>& optionType
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "VampireETC::VampireETC() : Invalid item type or option type");
-        throw("VampireETC::VampireETC() : Invalid item type or optionType");
+        throw "VampireETC::VampireETC() : Invalid item type or optionType";
     }
 }
 

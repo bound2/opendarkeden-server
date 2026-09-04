@@ -129,7 +129,7 @@ void EffectParalyze::unaffect()
     __END_CATCH
 }
 
-string EffectParalyze::toString() const throw() {
+string EffectParalyze::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -46,7 +46,7 @@ Helm::Helm(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Helm::Helm() : Invalid item type or option type");
-        throw("Helm::Helm() : Invalid item type or optionType");
+        throw "Helm::Helm() : Invalid item type or optionType";
     }
 }
 

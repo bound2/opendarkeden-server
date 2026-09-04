@@ -15,15 +15,15 @@
 
 class BloodyNail : public SkillHandler {
 public:
-    BloodyNail() throw() {}
-    ~BloodyNail() throw() {}
+    BloodyNail() {}
+    ~BloodyNail() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BloodyNail";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLOODY_NAIL;
     }
 

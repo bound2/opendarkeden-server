@@ -20,9 +20,9 @@
 // 하위 매니저 객체를 생성하는 곳이다.
 //
 //////////////////////////////////////////////////////////////////////
-HeartbeatManager::HeartbeatManager() throw(Error){__BEGIN_TRY
+HeartbeatManager::HeartbeatManager(){__BEGIN_TRY
 
-                                                      __END_CATCH}
+                                         __END_CATCH}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -32,7 +32,7 @@ HeartbeatManager::HeartbeatManager() throw(Error){__BEGIN_TRY
 // 하위 매니저 객체를 삭제하는 곳이다.
 //
 //////////////////////////////////////////////////////////////////////
-HeartbeatManager::~HeartbeatManager() throw(Error) {
+HeartbeatManager::~HeartbeatManager() noexcept(false) {
     __BEGIN_TRY
 
     __END_CATCH
@@ -44,7 +44,7 @@ HeartbeatManager::~HeartbeatManager() throw(Error) {
 // 하위 매니저 객체를 초기화하고, 자신을 초기화한다.
 //
 //////////////////////////////////////////////////////////////////////
-void HeartbeatManager::init() throw(Error) {
+void HeartbeatManager::init() {
     __BEGIN_TRY
 
     __END_CATCH
@@ -56,7 +56,7 @@ void HeartbeatManager::init() throw(Error) {
 // 서비스를 시작한다.
 //
 //////////////////////////////////////////////////////////////////////
-void HeartbeatManager::start() throw(Error) {
+void HeartbeatManager::start() {
     __BEGIN_TRY
 
     run(); // 바로 run() 메쏘드를 호출한다. ^^;
@@ -70,7 +70,7 @@ void HeartbeatManager::start() throw(Error) {
 // 자신의 서비스를 중단한 후, 하위 매니저 객체들의 서비스를 중단시킨다.
 //
 //////////////////////////////////////////////////////////////////////
-void HeartbeatManager::stop() throw(Error) {
+void HeartbeatManager::stop() {
     __BEGIN_TRY
 
     throw UnsupportedError("stopping manager not supported.");
@@ -82,7 +82,7 @@ void HeartbeatManager::stop() throw(Error) {
 //////////////////////////////////////////////////////////////////////
 // 클라이언트 매니저의 메인 루프이다.
 //////////////////////////////////////////////////////////////////////
-void HeartbeatManager::run() throw(Error) {
+void HeartbeatManager::run() {
     __BEGIN_TRY
 
     while (true) {

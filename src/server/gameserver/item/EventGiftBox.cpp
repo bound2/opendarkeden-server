@@ -37,7 +37,7 @@ EventGiftBox::EventGiftBox(ItemType_t itemType, const list<OptionType_t>& option
     : m_ItemType(itemType) {
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "EventGiftBox::EventGiftBox() : Invalid item type or option type");
-        throw("EventGiftBox::EventGiftBox() : Invalid item type or optionType");
+        throw "EventGiftBox::EventGiftBox() : Invalid item type or optionType";
     }
 }
 

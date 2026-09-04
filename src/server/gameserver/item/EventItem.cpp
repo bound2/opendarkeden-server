@@ -42,7 +42,7 @@ EventItem::EventItem(ItemType_t itemType, const list<OptionType_t>& optionType, 
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "EventItem::EventItem() : Invalid item type or option type");
-        throw("EventItem::EventItem() : Invalid item type or optionType");
+        throw "EventItem::EventItem() : Invalid item type or optionType";
     }
 }
 

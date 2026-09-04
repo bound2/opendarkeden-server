@@ -16,14 +16,14 @@
 
 class Flare : public SkillHandler {
 public:
-    Flare() throw() {}
-    ~Flare() throw() {}
+    Flare() {}
+    ~Flare() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Flare";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_FLARE;
     }
 

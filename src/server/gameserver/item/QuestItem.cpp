@@ -40,7 +40,7 @@ QuestItem::QuestItem(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "QuestItem::QuestItem() : Invalid item type or option type");
-        throw("QuestItem::QuestItem() : Invalid item type or optionType");
+        throw "QuestItem::QuestItem() : Invalid item type or optionType";
     }
 }
 

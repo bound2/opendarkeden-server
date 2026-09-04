@@ -19,7 +19,7 @@ public:
     EffectLightness(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_LIGHTNESS;
     }
 
@@ -28,7 +28,7 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 };
 
 #endif // __EFFECT_LIGHTNESS__

@@ -15,14 +15,14 @@
 
 class BloodCurse : public SkillHandler {
 public:
-    BloodCurse() throw() {}
-    ~BloodCurse() throw() {}
+    BloodCurse() {}
+    ~BloodCurse() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BloodCurse";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLOOD_CURSE;
     }
 

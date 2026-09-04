@@ -97,7 +97,7 @@ void EffectSharpShield::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void EffectSharpShield::setLevel(Level_t Level) throw() {
+void EffectSharpShield::setLevel(Level_t Level) {
     //	m_ClientEffectClass = EFFECT_CLASS_SHARP_SHIELD_1;
     if (Level <= GRADE_ADEPT_LIMIT_LEVEL)
         m_ClientEffectClass = EFFECT_CLASS_SHARP_SHIELD_1;
@@ -111,7 +111,7 @@ void EffectSharpShield::setLevel(Level_t Level) throw() {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectSharpShield::toString() const throw() {
+string EffectSharpShield::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

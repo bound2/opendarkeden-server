@@ -15,14 +15,14 @@
 
 class DoubleImpact : public SkillHandler {
 public:
-    DoubleImpact() throw() {}
-    ~DoubleImpact() throw() {}
+    DoubleImpact() {}
+    ~DoubleImpact() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DoubleImpact";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DOUBLE_IMPACT;
     }
 

@@ -47,7 +47,7 @@ void ActionGiveNewbieItem::read(PropertyBuffer& propertyBuffer)
             m_ItemClass = Item::ITEM_CLASS_MACE;
         else {
             cout << "ActionGiveNewbieItem::read() : Unknown item type" << endl;
-            throw("ActionGiveNewbieItem::read() : Unknown item type");
+            throw "ActionGiveNewbieItem::read() : Unknown item type";
         }
     } catch (NoSuchElementException& nsee) {
         cout << nsee.toString() << endl;

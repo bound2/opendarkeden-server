@@ -47,7 +47,7 @@ OustersCirclet::OustersCirclet(ItemType_t itemType, const list<OptionType_t>& op
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersCirclet::OustersCirclet() : Invalid item type or option type");
-        throw("OustersCirclet::OustersCirclet() : Invalid item type or optionType");
+        throw "OustersCirclet::OustersCirclet() : Invalid item type or optionType";
     }
 }
 

@@ -25,15 +25,15 @@ public:
 
 public:
     // constructor & destructor
-    NetmarbleGuildRegisterThread() throw(Error);
-    ~NetmarbleGuildRegisterThread() throw(Error);
+    NetmarbleGuildRegisterThread();
+    ~NetmarbleGuildRegisterThread() noexcept(false);
 
 public:
     // initialize
-    void init() throw(Error);
+    void init();
 
     // thread main loop
-    void run() throw(Error);
+    void run();
 
 public:
     // 넷마블에 등록할 길드 아이디를 쌓는다.

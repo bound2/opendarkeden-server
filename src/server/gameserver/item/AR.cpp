@@ -46,7 +46,7 @@ AR::AR(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "AR::AR() : Invalid item type or option type");
-        throw("AR::AR() : Invalid item type or optionType");
+        throw "AR::AR() : Invalid item type or optionType";
     }
 }
 

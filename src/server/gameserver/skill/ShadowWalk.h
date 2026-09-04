@@ -15,14 +15,14 @@
 
 class ShadowWalk : public SkillHandler {
 public:
-    ShadowWalk() throw() {}
-    ~ShadowWalk() throw() {}
+    ShadowWalk() {}
+    ~ShadowWalk() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ShadowWalk";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SHADOW_WALK;
     }
 

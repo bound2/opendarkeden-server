@@ -15,14 +15,14 @@
 
 class AcidSwamp : public SkillHandler {
 public:
-    AcidSwamp() throw() {}
-    ~AcidSwamp() throw() {}
+    AcidSwamp() {}
+    ~AcidSwamp() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AcidSwamp";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ACID_SWAMP;
     }
 

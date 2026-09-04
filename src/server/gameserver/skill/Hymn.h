@@ -15,14 +15,14 @@
 
 class Hymn : public SkillHandler {
 public:
-    Hymn() throw() {}
-    ~Hymn() throw() {}
+    Hymn() {}
+    ~Hymn() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Hymn";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HYMN;
     }
 

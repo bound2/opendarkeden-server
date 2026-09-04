@@ -38,7 +38,7 @@ Mine::Mine(ItemType_t itemType, const list<OptionType_t>& optionType)
     : m_ItemType(itemType) {
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Mine::Mine() : Invalid item type or option type");
-        throw("Mine::Mine() : Invalid item type or optionType");
+        throw "Mine::Mine() : Invalid item type or optionType";
     }
     m_Num = 1;
     m_Damage = 0;

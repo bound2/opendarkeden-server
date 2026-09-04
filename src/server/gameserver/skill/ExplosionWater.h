@@ -15,14 +15,14 @@
 
 class ExplosionWater : public SkillHandler {
 public:
-    ExplosionWater() throw() {}
-    ~ExplosionWater() throw() {}
+    ExplosionWater() {}
+    ~ExplosionWater() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ExplosionWater";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_EXPLOSION_WATER;
     }
 

@@ -38,7 +38,7 @@ void ConditionRaceComp::read(PropertyBuffer& propertyBuffer)
             m_CClass = Creature::CREATURE_CLASS_OUSTERS;
         else {
             cout << "ConditionRaceComp::read() : unknown race" << endl;
-            throw("ConditionRaceComp::read() : unknown race");
+            throw "ConditionRaceComp::read() : unknown race";
         }
     } catch (NoSuchElementException& nsee) {
         throw Error(nsee.toString());

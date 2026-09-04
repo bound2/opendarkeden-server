@@ -80,7 +80,7 @@ void EffectDancingSword::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectDancingSword::toString() const throw() {
+string EffectDancingSword::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

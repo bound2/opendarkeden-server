@@ -15,15 +15,15 @@
 
 class AcidTouch : public SkillHandler {
 public:
-    AcidTouch() throw() {}
-    ~AcidTouch() throw() {}
+    AcidTouch() {}
+    ~AcidTouch() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AcidTouch";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ACID_TOUCH;
     }
 

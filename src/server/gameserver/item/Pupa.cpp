@@ -39,7 +39,7 @@ Pupa::Pupa(ItemType_t itemType, const list<OptionType_t>& optionType, ItemNum_t 
     // cout << "Pupa::Pupa(" << getOptionTypeToString(optionType).c_str() << ")" << endl;
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Pupa::Pupa() : Invalid item type or option type");
-        throw("Pupa::Pupa() : Invalid item type or optionType");
+        throw "Pupa::Pupa() : Invalid item type or optionType";
     }
 }
 

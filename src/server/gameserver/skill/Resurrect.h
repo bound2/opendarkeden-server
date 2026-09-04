@@ -15,15 +15,15 @@
 
 class Resurrect : public SkillHandler {
 public:
-    Resurrect() throw() {}
-    ~Resurrect() throw() {}
+    Resurrect() {}
+    ~Resurrect() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Resurrect";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_RESURRECT;
     }
 

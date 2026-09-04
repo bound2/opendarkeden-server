@@ -15,14 +15,14 @@
 
 class TripleBreak : public SkillHandler {
 public:
-    TripleBreak() throw() {}
-    ~TripleBreak() throw() {}
+    TripleBreak() {}
+    ~TripleBreak() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TripleBreak";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TRIPLE_BREAK;
     }
 

@@ -104,7 +104,7 @@ public:
     isSameName(string Name) : m_Name(Name) {}
 
 
-    bool operator()(VersionInfo* pVersionInfo) throw() {
+    bool operator()(VersionInfo* pVersionInfo) {
         // ÀÌ¸§ÀÌ °°´Ù.
         if (strcasecmp(m_Name.c_str(), pVersionInfo->getName().c_str()) == 0) {
             return true;
@@ -124,7 +124,7 @@ public:
     isSource(string Name) : m_Name(Name) {}
 
 
-    bool operator()(SourceInfo* pSourceInfo) throw() {
+    bool operator()(SourceInfo* pSourceInfo) {
         // ÀÌ¸§ÀÌ °°´Ù.
         if (strcasecmp(m_Name.c_str(), pSourceInfo->getName().c_str()) == 0) {
             return true;

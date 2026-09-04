@@ -15,14 +15,14 @@
 
 class Expansion : public SkillHandler {
 public:
-    Expansion() throw() {}
-    ~Expansion() throw() {}
+    Expansion() {}
+    ~Expansion() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Expansion";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_EXPANSION;
     }
 

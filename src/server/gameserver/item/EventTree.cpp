@@ -41,7 +41,7 @@ EventTree::EventTree(ItemType_t itemType, const list<OptionType_t>& optionType, 
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "EventTree::EventTree() : Invalid item type or option type");
-        throw("EventTree::EventTree() : Invalid item type or optionType");
+        throw "EventTree::EventTree() : Invalid item type or optionType";
     }
 }
 

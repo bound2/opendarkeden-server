@@ -938,7 +938,7 @@ bool MonsterManager::findPosition(MonsterType_t monsterType, ZoneCoord_t& RX, Zo
 
         if (++count >= 300) {
             cerr << "MonsterManager::findPosition() : Max Count Exceeded" << endl;
-            throw("MonsterManager::findPosition() : Max Count Exceeded");
+            throw "MonsterManager::findPosition() : Max Count Exceeded";
         }
     }
 

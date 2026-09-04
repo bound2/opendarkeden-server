@@ -32,10 +32,10 @@ const int defaultSBillingPlayerInputStreamSize = 10240;
 const int defaultSBillingPlayerOutputStreamSize = 10240;
 
 // constructor
-SBillingPlayer::SBillingPlayer() throw(Error) {}
+SBillingPlayer::SBillingPlayer() {}
 
 // constructor
-SBillingPlayer::SBillingPlayer(Socket* pSocket) throw(Error) {
+SBillingPlayer::SBillingPlayer(Socket* pSocket) {
     __BEGIN_TRY
 
     Assert(pSocket != NULL);
@@ -53,7 +53,7 @@ SBillingPlayer::SBillingPlayer(Socket* pSocket) throw(Error) {
 }
 
 // destructor
-SBillingPlayer::~SBillingPlayer() throw(Error) {
+SBillingPlayer::~SBillingPlayer() noexcept(false) {
     __BEGIN_TRY
 
     // delete socket intput stream
@@ -73,7 +73,7 @@ SBillingPlayer::~SBillingPlayer() throw(Error) {
     __END_CATCH
 }
 
-void SBillingPlayer::processInput() throw(IOException, Error) {
+void SBillingPlayer::processInput() {
     __BEGIN_TRY
 
     try {
@@ -84,7 +84,7 @@ void SBillingPlayer::processInput() throw(IOException, Error) {
     __END_CATCH
 }
 
-void SBillingPlayer::processOutput() throw(IOException, Error) {
+void SBillingPlayer::processOutput() {
     __BEGIN_TRY
 
     try {
@@ -97,7 +97,7 @@ void SBillingPlayer::processOutput() throw(IOException, Error) {
 }
 
 // parse packet and execute packet handler
-void SBillingPlayer::processCommand() throw(IOException, Error) {
+void SBillingPlayer::processCommand() {
     __BEGIN_TRY
 
     try {
@@ -239,7 +239,7 @@ void SBillingPlayer::processCommand() throw(IOException, Error) {
 }
 
 // send packet to player's output buffer
-void SBillingPlayer::sendPacket(Packet* pPacket) throw(ProtocolException, Error) {
+void SBillingPlayer::sendPacket(Packet* pPacket) {
     __BEGIN_TRY
 
     // pPacket->write( *m_pOutputStream );
@@ -248,7 +248,7 @@ void SBillingPlayer::sendPacket(Packet* pPacket) throw(ProtocolException, Error)
 }
 
 // disconnect
-void SBillingPlayer::disconnect(bool bDisconnected) throw(InvalidProtocolException, Error) {
+void SBillingPlayer::disconnect(bool bDisconnected) {
     __BEGIN_TRY
 
     try {
@@ -267,7 +267,7 @@ void SBillingPlayer::disconnect(bool bDisconnected) throw(InvalidProtocolExcepti
 }
 
 // set socket
-void SBillingPlayer::setSocket(Socket* pSocket) throw() {
+void SBillingPlayer::setSocket(Socket* pSocket) {
     __BEGIN_TRY
 
     m_pSocket = pSocket;
@@ -282,7 +282,7 @@ void SBillingPlayer::setSocket(Socket* pSocket) throw() {
 }
 
 // send interval validation packet
-void SBillingPlayer::sendIntervalValidation() throw(ProtocolException, Error) {
+void SBillingPlayer::sendIntervalValidation() {
     __BEGIN_TRY
 
     CBillingPacketHeader header;
@@ -310,7 +310,7 @@ void SBillingPlayer::sendIntervalValidation() throw(ProtocolException, Error) {
 }
 
 // send login packet
-void SBillingPlayer::sendLogin(PayUser* pPayUser) throw(ProtocolException, Error) {
+void SBillingPlayer::sendLogin(PayUser* pPayUser) {
     __BEGIN_TRY
 
     CBillingPacketHeader header;
@@ -343,7 +343,7 @@ void SBillingPlayer::sendLogin(PayUser* pPayUser) throw(ProtocolException, Error
 }
 
 // send minus point packet
-void SBillingPlayer::sendMinusPoint(PayUser* pPayUser) throw(ProtocolException, Error) {
+void SBillingPlayer::sendMinusPoint(PayUser* pPayUser) {
     __BEGIN_TRY
 
     CBillingPacketHeader header;
@@ -374,7 +374,7 @@ void SBillingPlayer::sendMinusPoint(PayUser* pPayUser) throw(ProtocolException, 
 }
 
 // send minus minute packet
-void SBillingPlayer::sendMinusMinute(PayUser* pPayUser) throw(ProtocolException, Error) {
+void SBillingPlayer::sendMinusMinute(PayUser* pPayUser) {
     __BEGIN_TRY
 
     CBillingPacketHeader header;
@@ -405,7 +405,7 @@ void SBillingPlayer::sendMinusMinute(PayUser* pPayUser) throw(ProtocolException,
 }
 
 // send logout packet
-void SBillingPlayer::sendLogout(PayUser* pPayUser) throw(ProtocolException, Error) {
+void SBillingPlayer::sendLogout(PayUser* pPayUser) {
     __BEGIN_TRY
 
     CBillingPacketHeader header;
@@ -435,8 +435,7 @@ void SBillingPlayer::sendLogout(PayUser* pPayUser) throw(ProtocolException, Erro
     __END_CATCH
 }
 
-void SBillingPlayer::executeError(CBillingPacketHeader& header, CBillingPacketErrorBody& body) throw(IOException,
-                                                                                                     Error) {
+void SBillingPlayer::executeError(CBillingPacketHeader& header, CBillingPacketErrorBody& body) {
     __BEGIN_TRY
 
     // 유료 끝났다 짤려라~
@@ -458,8 +457,7 @@ void SBillingPlayer::executeError(CBillingPacketHeader& header, CBillingPacketEr
 }
 
 void SBillingPlayer::executeIntervalValidation(CBillingPacketHeader& header,
-                                               CBillingPacketResponseIntervalValidationBody& body) throw(IOException,
-                                                                                                         Error) {
+                                               CBillingPacketResponseIntervalValidationBody& body) {
     __BEGIN_TRY
 
     if (atoi(body.Parameter_Value) != g_pSBillingPlayerManager->getMinusIntervalInt()) {
@@ -491,8 +489,7 @@ void SBillingPlayer::executeIntervalValidation(CBillingPacketHeader& header,
     __END_CATCH
 }
 
-void SBillingPlayer::executeLogin(CBillingPacketHeader& header,
-                                  CBillingPacketResponseLoginBody& body) throw(IOException, Error) {
+void SBillingPlayer::executeLogin(CBillingPacketHeader& header, CBillingPacketResponseLoginBody& body) {
     __BEGIN_TRY
 
     PayUser* pPayUser = g_pPayUserManager->getUser(body.Login_Name);
@@ -523,8 +520,7 @@ void SBillingPlayer::executeLogin(CBillingPacketHeader& header,
     __END_CATCH
 }
 
-void SBillingPlayer::executeMinusPoint(CBillingPacketHeader& header,
-                                       CBillingPacketResponseMinusPointBody& body) throw(IOException, Error) {
+void SBillingPlayer::executeMinusPoint(CBillingPacketHeader& header, CBillingPacketResponseMinusPointBody& body) {
     __BEGIN_TRY
 
     PayUser* pPayUser = g_pPayUserManager->getUser(body.Login_Name);
@@ -542,8 +538,7 @@ void SBillingPlayer::executeMinusPoint(CBillingPacketHeader& header,
     __END_CATCH
 }
 
-void SBillingPlayer::executeMinusMinute(CBillingPacketHeader& header,
-                                        CBillingPacketResponseMinusMinuteBody& body) throw(IOException, Error) {
+void SBillingPlayer::executeMinusMinute(CBillingPacketHeader& header, CBillingPacketResponseMinusMinuteBody& body) {
     __BEGIN_TRY
 
     PayUser* pPayUser = g_pPayUserManager->getUser(body.Login_Name);
@@ -561,8 +556,7 @@ void SBillingPlayer::executeMinusMinute(CBillingPacketHeader& header,
     __END_CATCH
 }
 
-void SBillingPlayer::executeLogout(CBillingPacketHeader& header,
-                                   CBillingPacketResponseLogoutBody& body) throw(IOException, Error) {
+void SBillingPlayer::executeLogout(CBillingPacketHeader& header, CBillingPacketResponseLogoutBody& body) {
     __BEGIN_TRY
 
     PayUser* pPayUser = g_pPayUserManager->getUser(body.Login_Name);
@@ -581,7 +575,7 @@ void SBillingPlayer::executeLogout(CBillingPacketHeader& header,
 }
 
 // get debug string
-string SBillingPlayer::toString() const throw(Error) {
+string SBillingPlayer::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

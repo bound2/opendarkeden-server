@@ -13,7 +13,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-ViolentPhantom::ViolentPhantom() throw() {
+ViolentPhantom::ViolentPhantom() {
     __BEGIN_TRY
 
     m_pViolentPhantomMask[0].set(0, 0);

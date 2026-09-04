@@ -31,7 +31,7 @@ WarItem::WarItem(ItemType_t itemType, const list<OptionType_t>& optionType)
     try {
         if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
             filelog("itembug.log", "WarItem::WarItem() : Invalid item type or option type");
-            throw("WarItem::WarItem() : Invalid item type or optionType");
+            throw "WarItem::WarItem() : Invalid item type or optionType";
         }
     } catch (Throwable& t) {
         cout << t.toString().c_str() << endl;

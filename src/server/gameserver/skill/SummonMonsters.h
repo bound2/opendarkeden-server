@@ -15,14 +15,14 @@
 
 class SummonMonsters : public SkillHandler {
 public:
-    SummonMonsters() throw();
-    ~SummonMonsters() throw() {}
+    SummonMonsters();
+    ~SummonMonsters() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SummonMonsters";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SUMMON_MONSTERS;
     }
 

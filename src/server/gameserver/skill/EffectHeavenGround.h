@@ -18,7 +18,7 @@ public:
     EffectHeavenGround(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_HEAVEN_GROUND;
     }
 
@@ -27,7 +27,7 @@ public:
 
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getDamage(void) const {
@@ -51,10 +51,10 @@ public:
         m_Level = level;
     }
 
-    void setUserObjectID(ObjectID_t oid) throw() {
+    void setUserObjectID(ObjectID_t oid) {
         m_UserObjectID = oid;
     }
-    ObjectID_t getUserObjectID() const throw() {
+    ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
     }
 

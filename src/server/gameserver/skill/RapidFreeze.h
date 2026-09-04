@@ -15,14 +15,14 @@
 
 class RapidFreeze : public SkillHandler {
 public:
-    RapidFreeze() throw() {}
-    ~RapidFreeze() throw() {}
+    RapidFreeze() {}
+    ~RapidFreeze() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "RapidFreeze";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_Rapid_Freeze;
     }
 

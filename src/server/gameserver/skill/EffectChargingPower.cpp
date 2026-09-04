@@ -83,7 +83,7 @@ void EffectChargingPower::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectChargingPower::toString() const throw() {
+string EffectChargingPower::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

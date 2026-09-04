@@ -24,7 +24,7 @@ public:
         test = true;
     }
 
-    string toString() const throw(Error) {
+    string toString() const {
         return "TestWork";
     }
 };

@@ -46,7 +46,7 @@ VampireAmulet::VampireAmulet(ItemType_t itemType, const list<OptionType_t>& opti
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireAmulet::VampireAmulet() : Invalid item type or option type");
-        throw("VampireAmulet::VampireAmulet() : Invalid item type or optionType");
+        throw "VampireAmulet::VampireAmulet() : Invalid item type or optionType";
     }
 }
 

@@ -31,24 +31,24 @@ class DatagramPacket;
 
 class GameServerManager {
 public:
-    GameServerManager() throw(Error);
-    ~GameServerManager() throw(Error);
+    GameServerManager();
+    ~GameServerManager() noexcept(false);
 
-    void init() throw(Error) {}
+    void init() {}
 
-    void start() throw(Error) {
+    void start() {
         m_bRunning = true;
         run();
     }
-    void stop() throw(Error) {
+    void stop() {
         m_bRunning = false;
     }
 
     // main method
-    void run() throw(Error);
+    void run();
 
-    void sendDatagram(Datagram* pDatagram) throw(ConnectException, Error);
-    void sendPacket(string host, uint port, DatagramPacket* pPacket) throw(ConnectException, Error);
+    void sendDatagram(Datagram* pDatagram);
+    void sendPacket(string host, uint port, DatagramPacket* pPacket);
 
 private:
     // UDP 서버 소켓

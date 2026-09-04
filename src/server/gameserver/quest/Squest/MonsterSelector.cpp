@@ -6,7 +6,7 @@
 // 012345678
 // b    a  bc
 // MType=11, SType=33, Num=10
-void MonsterSelector::setMonster(const string& text) throw(Error) {
+void MonsterSelector::setMonster(const string& text) {
     __BEGIN_TRY
 
     int MType = 0;
@@ -52,7 +52,7 @@ void MonsterSelector::setMonster(const string& text) throw(Error) {
     __END_CATCH
 }
 
-string MonsterSelector::toString() const throw(Error) {
+string MonsterSelector::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

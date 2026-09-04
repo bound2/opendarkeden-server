@@ -78,7 +78,7 @@ void EffectExplosionWater::unaffect()
     __END_CATCH
 }
 
-string EffectExplosionWater::toString() const throw() {
+string EffectExplosionWater::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

@@ -15,15 +15,15 @@
 
 class DestructionSpear : public SkillHandler {
 public:
-    DestructionSpear() throw() {}
-    ~DestructionSpear() throw() {}
+    DestructionSpear() {}
+    ~DestructionSpear() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DestructionSpear";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DESTRUCTION_SPEAR;
     }
 

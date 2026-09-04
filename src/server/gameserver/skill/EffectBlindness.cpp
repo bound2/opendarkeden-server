@@ -84,7 +84,7 @@ void EffectBlindness::unaffect(Creature* pCreature) {
     __END_CATCH
 }
 
-string EffectBlindness::toString() const throw() {
+string EffectBlindness::toString() const {
     __BEGIN_TRY
 
     return "EffectBlindness";

@@ -15,14 +15,14 @@
 
 class MentalSword : public SkillHandler {
 public:
-    MentalSword() throw() {}
-    ~MentalSword() throw() {}
+    MentalSword() {}
+    ~MentalSword() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "MentalSword";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MENTAL_SWORD;
     }
 

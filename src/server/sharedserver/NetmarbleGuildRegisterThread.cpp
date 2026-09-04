@@ -13,7 +13,7 @@
 #include "Timeval.h"
 
 // constructor
-NetmarbleGuildRegisterThread::NetmarbleGuildRegisterThread() throw(Error) {
+NetmarbleGuildRegisterThread::NetmarbleGuildRegisterThread() {
     __BEGIN_TRY
 
     m_Mutex.setName("NetmarbleGuildRegisterThread");
@@ -22,13 +22,13 @@ NetmarbleGuildRegisterThread::NetmarbleGuildRegisterThread() throw(Error) {
 }
 
 // destructor
-NetmarbleGuildRegisterThread::~NetmarbleGuildRegisterThread() throw(Error) {}
+NetmarbleGuildRegisterThread::~NetmarbleGuildRegisterThread() noexcept(false) {}
 
 // initialize
-void NetmarbleGuildRegisterThread::init() throw(Error) {}
+void NetmarbleGuildRegisterThread::init() {}
 
 // thread main loop
-void NetmarbleGuildRegisterThread::run() throw(Error) {
+void NetmarbleGuildRegisterThread::run() {
     __BEGIN_DEBUG
 
     // create GAME Database Connection

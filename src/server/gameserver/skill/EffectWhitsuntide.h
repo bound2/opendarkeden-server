@@ -18,14 +18,14 @@ public:
     EffectWhitsuntide(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_WHITSUNTIDE;
     }
 
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
     int getBonus() const {
         return m_Bonus;

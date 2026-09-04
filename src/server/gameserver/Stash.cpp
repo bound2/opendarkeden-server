@@ -70,7 +70,7 @@ void Stash::remove(BYTE rack, BYTE index) {
     __BEGIN_DEBUG
 
     if (rack >= STASH_RACK_MAX)
-        throw("Stash::() : OutOfBounds!");
+        throw "Stash::() : OutOfBounds!";
     m_pRack[rack].remove(index);
 
     __END_DEBUG

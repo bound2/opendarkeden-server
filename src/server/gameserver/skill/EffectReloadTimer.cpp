@@ -192,7 +192,7 @@ void EffectReloadTimer::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 //////////////////////////////////////////////////////////////////////////////
 // get debug string
 //////////////////////////////////////////////////////////////////////////////
-string EffectReloadTimer::toString() const throw() {
+string EffectReloadTimer::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

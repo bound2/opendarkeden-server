@@ -378,7 +378,7 @@ MonsterRangeSkill g_TraslaAttack(SKILL_TRASLA_ATTACK, false), g_PuscaAttack(SKIL
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-SkillHandlerManager::SkillHandlerManager() throw() : m_SkillHandlers(NULL), m_Size(SKILL_MAX) {
+SkillHandlerManager::SkillHandlerManager() : m_SkillHandlers(NULL), m_Size(SKILL_MAX) {
     __BEGIN_TRY
 
     Assert(m_Size > 0);
@@ -395,7 +395,7 @@ SkillHandlerManager::SkillHandlerManager() throw() : m_SkillHandlers(NULL), m_Si
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-SkillHandlerManager::~SkillHandlerManager() throw() {
+SkillHandlerManager::~SkillHandlerManager() {
     __BEGIN_TRY
 
     Assert(m_SkillHandlers != NULL);
@@ -863,7 +863,7 @@ SkillHandler* SkillHandlerManager::getSkillHandler(SkillType_t SkillType)
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string SkillHandlerManager::toString() const throw() {
+string SkillHandlerManager::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

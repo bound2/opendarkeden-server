@@ -15,14 +15,14 @@
 
 class ThunderSpark : public SkillHandler {
 public:
-    ThunderSpark() throw() {}
-    ~ThunderSpark() throw() {}
+    ThunderSpark() {}
+    ~ThunderSpark() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ThunderSpark";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_THUNDER_SPARK;
     }
 

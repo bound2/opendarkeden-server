@@ -15,14 +15,14 @@
 
 class PenetrateWheel : public SkillHandler {
 public:
-    PenetrateWheel() throw() {}
-    ~PenetrateWheel() throw() {}
+    PenetrateWheel() {}
+    ~PenetrateWheel() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "PenetrateWheel";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_Penetrate_Wheel;
     }
 

@@ -207,7 +207,7 @@ void ConditionAttrComp::read(PropertyBuffer& propertyBuffer)
                 parseOperator(op, m_LevelOperator);
             } else {
                 cout << "ConditionAttrComp::read() : Unknown attribute type[" << attr << "]" << endl;
-                throw("ConditionAttrComp::read() : Unknown attribute type");
+                throw "ConditionAttrComp::read() : Unknown attribute type";
             }
 
         } // while (d < text.size() - 1)
@@ -232,7 +232,7 @@ void ConditionAttrComp::parseOperator(string& op, uint& var)
         var = CONDITION_ATTR_COMP_HIGHER;
     else {
         cout << "ConditionAttrComp::parseOperator() : Unknown operator[" << op << "]" << endl;
-        throw("ConditionAttrComp::parseOperator() : Unknown operator");
+        throw "ConditionAttrComp::parseOperator() : Unknown operator";
     }
 
     __END_CATCH

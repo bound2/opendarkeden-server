@@ -15,14 +15,14 @@
 
 class PoisonMesh : public SkillHandler {
 public:
-    PoisonMesh() throw() {}
-    ~PoisonMesh() throw() {}
+    PoisonMesh() {}
+    ~PoisonMesh() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "PoisonMesh";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_POISON_MESH;
     }
 

@@ -67,7 +67,7 @@ CBillingPlayer::CBillingPlayer(Socket* pSocket) {
 }
 
 // destructor
-CBillingPlayer::~CBillingPlayer() {
+CBillingPlayer::~CBillingPlayer() noexcept {
     // delete socket intput stream
     SAFE_DELETE(m_pInputStream);
 

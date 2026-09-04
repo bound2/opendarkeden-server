@@ -1430,7 +1430,7 @@ bool Vampire::isRealWearing(WearPart part) const
     __BEGIN_TRY
 
     if (part >= VAMPIRE_WEAR_MAX)
-        throw("Vampire::isRealWearing() : invalid wear point!");
+        throw "Vampire::isRealWearing() : invalid wear point!";
 
     if (m_pWearItem[part] == NULL)
         return false;

@@ -3,16 +3,18 @@
 # Build the DarkEden servers from source and package them into a runnable image.
 #
 #   docker build -t darkeden:local .
+#   docker build --build-arg CXX_STANDARD=20 -t darkeden:cxx20 .
 #
 # docker/docker-compose.yml uses this Dockerfile, so `docker compose up` builds
 # everything from this repository - no pre-built image is pulled from a registry.
 
 # ----------------------------------------------------------------------------
-# Stage 1: build - same toolchain as Dockerfile.dev, plus cmake
+# Stage 1: build with the same pinned Zig/Clang toolchain as Dockerfile.dev
 # ----------------------------------------------------------------------------
 FROM ubuntu:20.04 AS builder
 
 ENV DEBIAN_FRONTEND=noninteractive
+ARG ZIG_VERSION=0.16.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -20,15 +22,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cmake \
     ninja-build \
     pkg-config \
+    python3 \
+    python3-pip \
     libmysqlclient-dev \
     liblua5.1-dev \
     zlib1g-dev \
+    && python3 -m pip install --no-cache-dir "ziglang==${ZIG_VERSION}" \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home/darkeden/vs
 
 # Only the sources are needed to build; data/ and conf/ go into the final image.
 COPY CMakeLists.txt ./
+COPY cmake ./cmake
 COPY third_party ./third_party
 COPY src ./src
 # src/Core/CMakeLists.txt reads the de-kernel membership list at configure
@@ -40,6 +46,8 @@ COPY tests/arch/kernel_files.txt ./tests/arch/kernel_files.txt
 # CMakeLists.txt), which is what used to strip the side effects out of the
 # project's Assert() and __END_CATCH_NO_RETHROW macros.
 ARG BUILD_TYPE=Release
+ARG CXX_STANDARD=17
+ARG ZIG_TARGET=
 # Number of parallel compile jobs; defaults to all available cores.
 ARG BUILD_JOBS=
 
@@ -52,10 +60,17 @@ ARG BUILD_JOBS=
 # ccache in a BuildKit cache mount keeps object files across image rebuilds so
 # only the sources that changed are recompiled. Needs BuildKit (the default
 # for docker >= 23 and docker compose v2).
-ENV CCACHE_DIR=/ccache
 RUN --mount=type=cache,target=/ccache,sharing=locked \
-    cmake -G Ninja -B build \
-        -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+    --mount=type=cache,target=/zig-cache,sharing=locked \
+    toolchain_id="zig-${ZIG_VERSION}-${ZIG_TARGET:-native}-cxx${CXX_STANDARD}-${BUILD_TYPE}" \
+    && toolchain_id="$(printf '%s' "${toolchain_id}" | tr -c 'A-Za-z0-9._-' '_')" \
+    && export CCACHE_DIR="/ccache/${toolchain_id}" \
+        ZIG_GLOBAL_CACHE_DIR="/zig-cache/${toolchain_id}" \
+    && cmake -G Ninja -B build \
+        -DCMAKE_TOOLCHAIN_FILE=cmake/zig-toolchain.cmake \
+        -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+        -DCMAKE_CXX_STANDARD="${CXX_STANDARD}" \
+        -DDARKEDEN_ZIG_TARGET="${ZIG_TARGET}" \
         -DCMAKE_C_COMPILER_LAUNCHER=ccache \
         -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     && cmake --build build -j "${BUILD_JOBS:-$(nproc)}" \

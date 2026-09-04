@@ -20,7 +20,7 @@ public:
     EffectYellowPoison(Zone*, ZoneCoord_t, ZoneCoord_t);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_YELLOW_POISON;
     }
 
@@ -33,20 +33,20 @@ public:
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Duration_t getDuration() const throw() {
+    Duration_t getDuration() const {
         return m_Duration;
     }
-    void setDuration(Duration_t d) throw() {
+    void setDuration(Duration_t d) {
         m_Duration = d;
     }
 
-    Attr_t getLevel() const throw() {
+    Attr_t getLevel() const {
         return m_Level;
     }
-    void setLevel(Attr_t l) throw() {
+    void setLevel(Attr_t l) {
         m_Level = l;
     }
 
@@ -76,10 +76,10 @@ private:
 
 class EffectYellowPoisonLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_YELLOW_POISON;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectYellowPoison";
     }
 

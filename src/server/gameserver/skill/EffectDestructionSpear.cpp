@@ -103,7 +103,7 @@ void EffectDestructionSpear::unaffect(Creature* pCreature) {
     __END_CATCH
 }
 
-string EffectDestructionSpear::toString() const throw() {
+string EffectDestructionSpear::toString() const {
     __BEGIN_TRY
 
     return "EffectDestructionSpear";

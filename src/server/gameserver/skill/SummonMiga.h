@@ -17,14 +17,14 @@
 
 class SummonMiga : public SkillHandler {
 public:
-    SummonMiga() throw();
-    ~SummonMiga() throw() {}
+    SummonMiga();
+    ~SummonMiga() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SummonMiga";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SUMMON_MIGA;
     }
 

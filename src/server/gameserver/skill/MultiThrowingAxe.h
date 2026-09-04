@@ -15,14 +15,14 @@
 
 class MultiThrowingAxe : public SkillHandler {
 public:
-    MultiThrowingAxe() throw() {}
-    ~MultiThrowingAxe() throw() {}
+    MultiThrowingAxe() {}
+    ~MultiThrowingAxe() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "MultiThrowingAxe";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MULTI_THROWING_AXE;
     }
 

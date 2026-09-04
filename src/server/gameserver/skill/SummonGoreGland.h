@@ -15,14 +15,14 @@
 
 class SummonGoreGland : public SkillHandler {
 public:
-    SummonGoreGland() throw() {}
-    ~SummonGoreGland() throw() {}
+    SummonGoreGland() {}
+    ~SummonGoreGland() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SummonGoreGland";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SUMMON_GORE_GLAND;
     }
 

@@ -16,14 +16,14 @@
 
 class ChoppingFirewood : public SkillHandler {
 public:
-    ChoppingFirewood() throw() {}
-    ~ChoppingFirewood() throw() {}
+    ChoppingFirewood() {}
+    ~ChoppingFirewood() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ChoppingFirewood";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CHOPPING_FIREWOOD;
     }
 

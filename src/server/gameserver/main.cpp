@@ -41,14 +41,6 @@ void handleUnhandledException() {
     abort();
 }
 
-void handleUnexpectedException() {
-    cerr << "==============================================================================" << endl;
-    cerr << "UNEXPECTED EXCEPTION OCCURED" << endl;
-    cerr << "==============================================================================" << endl;
-    filelog("CriticalError.log", "UNEXPECTED EXCEPTION OCCURED");
-    abort();
-}
-
 void testMaxMemory() {
     long mem = 10 * 1024 * 1024; // 10M
 
@@ -76,7 +68,6 @@ int main(int argc, char* argv[]) {
     // °¢Á¾ ÇÚµé·¯¸¦ ¼³Á¤ÇÑ´Ù.
     std::set_new_handler(handleMemoryError);
     std::set_terminate(handleUnhandledException);
-    std::set_unexpected(handleUnexpectedException);
 
     /*
     int* pPointer = NULL;

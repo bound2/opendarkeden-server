@@ -15,14 +15,14 @@
 
 class HarpoonBomb : public SkillHandler {
 public:
-    HarpoonBomb() throw() {}
-    ~HarpoonBomb() throw() {}
+    HarpoonBomb() {}
+    ~HarpoonBomb() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HarpoonBomb";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HARPOON_BOMB;
     }
 

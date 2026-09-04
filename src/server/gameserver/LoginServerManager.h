@@ -23,7 +23,7 @@
 class LoginServerManager : public Thread {
 public:
     LoginServerManager();
-    ~LoginServerManager();
+    ~LoginServerManager() noexcept;
 
 public:
     void init() {}

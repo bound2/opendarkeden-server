@@ -13,7 +13,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-GoreGlandFire::GoreGlandFire() throw() {
+GoreGlandFire::GoreGlandFire() {
     __BEGIN_TRY
 
     m_pGoreGlandFireMask[0].set(0, 0);

@@ -15,14 +15,14 @@
 
 class BikeCrash : public SkillHandler {
 public:
-    BikeCrash() throw() {}
-    ~BikeCrash() throw() {}
+    BikeCrash() {}
+    ~BikeCrash() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BikeCrash";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BIKE_CRASH;
     }
 

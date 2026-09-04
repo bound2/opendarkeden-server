@@ -15,14 +15,14 @@
 
 class IntimateGrail : public SkillHandler {
 public:
-    IntimateGrail() throw() {}
-    ~IntimateGrail() throw() {}
+    IntimateGrail() {}
+    ~IntimateGrail() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "IntimateGrail";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_INTIMATE_GRAIL;
     }
 

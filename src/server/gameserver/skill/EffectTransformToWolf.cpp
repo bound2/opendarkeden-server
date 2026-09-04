@@ -120,7 +120,7 @@ void EffectTransformToWolf::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, 
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectTransformToWolf::toString() const throw() {
+string EffectTransformToWolf::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

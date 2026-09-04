@@ -15,14 +15,14 @@
 
 class ProtectionFromAcid : public SkillHandler {
 public:
-    ProtectionFromAcid() throw() {}
-    ~ProtectionFromAcid() throw() {}
+    ProtectionFromAcid() {}
+    ~ProtectionFromAcid() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ProtectionFromAcid";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PROTECTION_FROM_ACID;
     }
 

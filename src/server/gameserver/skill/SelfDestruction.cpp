@@ -15,7 +15,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-SelfDestruction::SelfDestruction() throw() {
+SelfDestruction::SelfDestruction() {
     __BEGIN_TRY
 
     __END_CATCH

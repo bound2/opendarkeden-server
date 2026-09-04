@@ -18,7 +18,7 @@ public:
     EffectBless(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_BLESS;
     }
 
@@ -31,7 +31,7 @@ public:
     void unaffect();
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getSTRBonus(void) const {

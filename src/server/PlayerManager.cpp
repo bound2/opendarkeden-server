@@ -41,7 +41,7 @@ PlayerManager::PlayerManager() : m_nPlayers(0) {
 //////////////////////////////////////////////////////////////////////
 // destructor
 //////////////////////////////////////////////////////////////////////
-PlayerManager::~PlayerManager() noexcept {
+PlayerManager::~PlayerManager() noexcept(false) {
     // Destructors must not throw; perform best-effort cleanup.
     try {
         for (uint i = 0; i < nMaxPlayers; i++) {

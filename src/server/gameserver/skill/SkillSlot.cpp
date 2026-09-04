@@ -8,7 +8,7 @@
 
 #include "repository/SkillSaveRepository.h"
 
-SkillSlot::SkillSlot() throw() {
+SkillSlot::SkillSlot() {
     __BEGIN_TRY
 
     // The Vampire/Ousters slot classes zero these in their default
@@ -25,7 +25,7 @@ SkillSlot::SkillSlot() throw() {
     __END_CATCH
 }
 
-SkillSlot::SkillSlot(SkillType_t SkillType, DWORD Exp, ulong Interval) throw() {
+SkillSlot::SkillSlot(SkillType_t SkillType, DWORD Exp, ulong Interval) {
     __BEGIN_TRY
 
     m_SkillType = SkillType;
@@ -36,7 +36,7 @@ SkillSlot::SkillSlot(SkillType_t SkillType, DWORD Exp, ulong Interval) throw() {
     __END_CATCH
 }
 
-SkillSlot::~SkillSlot() throw() {
+SkillSlot::~SkillSlot() {
     __BEGIN_TRY
 
     m_SkillType = 0;
@@ -84,14 +84,14 @@ void SkillSlot::save()
     __END_CATCH
 }
 
-Turn_t SkillSlot::getRemainTurn(Timeval currentTime) const throw() {
+Turn_t SkillSlot::getRemainTurn(Timeval currentTime) const {
     Turn_t remainTurn =
         (m_runTime.tv_sec - currentTime.tv_sec) * 10 + (m_runTime.tv_usec - currentTime.tv_usec) / 100000;
 
     return remainTurn;
 }
 
-void SkillSlot::setRunTime() throw() {
+void SkillSlot::setRunTime() {
     // 현재 시간을 받아온다.
     getCurrentTime(m_runTime);
 
@@ -100,7 +100,7 @@ void SkillSlot::setRunTime() throw() {
     m_runTime.tv_usec += (m_Interval % 10) * 100000;
 }
 
-void SkillSlot::setRunTime(Turn_t delay, bool bSave) throw() {
+void SkillSlot::setRunTime(Turn_t delay, bool bSave) {
     // 현재 시간을 받아온다.
     getCurrentTime(m_runTime);
 

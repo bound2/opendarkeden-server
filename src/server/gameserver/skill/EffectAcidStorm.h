@@ -8,7 +8,7 @@ class EffectAcidStorm : public Effect {
 public:
     EffectAcidStorm(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zoneY);
 
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_ACID_STORM;
     }
 
@@ -21,7 +21,7 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getDamage(void) const {
@@ -45,10 +45,10 @@ public:
         m_Level = level;
     }
 
-    void setUserObjectID(ObjectID_t oid) throw() {
+    void setUserObjectID(ObjectID_t oid) {
         m_UserObjectID = oid;
     }
-    ObjectID_t getUserObjectID() const throw() {
+    ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
     }
 
@@ -73,10 +73,10 @@ private:
 
 class EffectAcidStormLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_ACID_STORM;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectAcidStorm";
     }
 

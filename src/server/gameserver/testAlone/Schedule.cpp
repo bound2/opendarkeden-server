@@ -8,7 +8,7 @@
 #include "StringStream.h"
 #include "Work.h"
 
-Schedule::Schedule(Work* pWork, const VSDateTime& Time, ScheduleType type) throw()
+Schedule::Schedule(Work* pWork, const VSDateTime& Time, ScheduleType type)
     : m_ScheduleType(type), m_pWork(pWork),
       m_ScheduledTime(Time){__BEGIN_TRY
 
@@ -18,7 +18,7 @@ Schedule::Schedule(Work* pWork, const VSDateTime& Time, ScheduleType type) throw
 
                                 __END_CATCH}
 
-      Schedule::~Schedule() throw() {
+      Schedule::~Schedule() {
     __BEGIN_TRY
 
     SAFE_DELETE(m_pWork);
@@ -34,7 +34,7 @@ Work* Schedule::popWork() {
     return pWork;
 }
 
-bool Schedule::heartbeat() throw(Error) {
+bool Schedule::heartbeat() {
     __BEGIN_TRY
 
     // VSDateTime current( VSDateTime::currentDateTime() );
@@ -56,7 +56,7 @@ bool Schedule::heartbeat() throw(Error) {
     __END_CATCH
 }
 
-string Schedule::toString() const throw(Error) {
+string Schedule::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

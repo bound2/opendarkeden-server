@@ -1,23 +1,28 @@
 FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ARG ZIG_VERSION=0.16.0
+LABEL org.opendarkeden.zig-version="${ZIG_VERSION}"
 
-# ninja-build, ccache and rsync are what tools/devbuild.sh needs; see that
-# script for why the dev build does not compile straight off the bind mount.
-RUN apt update && apt install -y \
-    gcc \
+# Zig supplies the pinned Clang/LLVM toolchain. The host GCC from
+# build-essential remains available only for dependency tooling; CMake builds
+# always select cmake/zig-toolchain.cmake through tools/devbuild.sh.
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ccache \
     cmake \
     ninja-build \
     pkg-config \
+    python3 \
+    python3-pip \
     rsync \
-    libxerces-c-dev \
     libmysqlclient-dev \
     liblua5.1-dev \
     zlib1g-dev \
     xutils-dev \
-    psmisc
+    psmisc \
+    && python3 -m pip install --no-cache-dir "ziglang==${ZIG_VERSION}" \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir /home/darkeden
 RUN mkdir /home/darkeden/vs

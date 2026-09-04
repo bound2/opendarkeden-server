@@ -19,7 +19,7 @@ public:
     EffectArmageddon(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_ARMAGEDDON;
     }
 
@@ -29,7 +29,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     //	string getCasterName(void) const { return m_CasterName; }
@@ -51,7 +51,7 @@ public:
     void setHP(HP_t hp) {
         m_HP = hp;
     }
-    void decreaseHP(Damage_t damage) throw();
+    void decreaseHP(Damage_t damage);
 
     Damage_t getDamage() const {
         return m_Damage;
@@ -83,10 +83,10 @@ private:
 
 class EffectArmageddonLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_ARMAGEDDON;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectArmageddon";
     }
 

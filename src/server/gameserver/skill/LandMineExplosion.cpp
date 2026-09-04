@@ -14,7 +14,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-LandMineExplosion::LandMineExplosion() throw() {
+LandMineExplosion::LandMineExplosion() {
     __BEGIN_TRY
 
     int index = 0;

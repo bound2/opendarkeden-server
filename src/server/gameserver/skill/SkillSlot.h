@@ -18,9 +18,9 @@
 
 class SkillSlot {
 public:
-    SkillSlot() throw();
-    SkillSlot(SkillType_t SkillType, DWORD Exp, ulong Interval) throw();
-    virtual ~SkillSlot() throw();
+    SkillSlot();
+    SkillSlot(SkillType_t SkillType, DWORD Exp, ulong Interval);
+    virtual ~SkillSlot();
 
 public:
     virtual void save(const string& ownerID);
@@ -28,48 +28,48 @@ public:
 
     virtual void create(const string& ownerID);
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return m_SkillType;
     }
-    void setSkillType(SkillType_t Type) throw() {
+    void setSkillType(SkillType_t Type) {
         m_SkillType = Type;
     }
 
-    void setExp(Exp_t Exp) throw() {
+    void setExp(Exp_t Exp) {
         m_Exp = Exp;
     }
-    Exp_t getExp() throw() {
+    Exp_t getExp() {
         return m_Exp;
     }
 
-    void setExpLevel(ExpLevel_t ExpLevel) throw() {
+    void setExpLevel(ExpLevel_t ExpLevel) {
         m_ExpLevel = ExpLevel;
     }
-    ExpLevel_t getExpLevel() throw() {
+    ExpLevel_t getExpLevel() {
         return m_ExpLevel;
     }
 
-    Turn_t getInterval() throw() {
+    Turn_t getInterval() {
         return m_Interval;
     }
-    void setInterval(Turn_t Interval) throw() {
+    void setInterval(Turn_t Interval) {
         m_Interval = Interval;
     }
 
-    Turn_t getCastingTime() throw() {
+    Turn_t getCastingTime() {
         return m_CastingTime;
     }
-    void setCastingTime(Turn_t CastingTime) throw() {
+    void setCastingTime(Turn_t CastingTime) {
         m_CastingTime = CastingTime;
     }
 
-    Timeval getRunTime() throw() {
+    Timeval getRunTime() {
         return m_runTime;
     }
-    void setRunTime() throw();
-    void setRunTime(Turn_t delay, bool bSave = true) throw();
+    void setRunTime();
+    void setRunTime(Turn_t delay, bool bSave = true);
 
-    string getName() const throw() {
+    string getName() const {
         return m_Name;
     }
     void setName(const string& Name) {
@@ -78,18 +78,18 @@ public:
 
     // 사용가능할 경우 true
     // 사용 불가능할 경우 false
-    void setDisable() throw() {
+    void setDisable() {
         m_Enable = false;
     }
-    void setEnable() throw() {
+    void setEnable() {
         m_Enable = true;
     }
-    bool canUse() const throw() {
+    bool canUse() const {
         return m_Enable;
     }
 
     // 다음 캐스팅이 가능할때까지 남은 시간
-    Turn_t getRemainTurn(Timeval currentTime) const throw();
+    Turn_t getRemainTurn(Timeval currentTime) const;
 
 protected:
     string m_Name;

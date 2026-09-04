@@ -16,14 +16,14 @@ class VampireSkillSlot;
 
 class BloodyBreaker : public SkillHandler {
 public:
-    BloodyBreaker() throw();
-    ~BloodyBreaker() throw() {}
+    BloodyBreaker();
+    ~BloodyBreaker() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BloodyBreaker";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLOODY_BREAKER;
     }
 

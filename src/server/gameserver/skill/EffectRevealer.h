@@ -22,7 +22,7 @@ public:
     EffectRevealer(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_REVEALER;
     }
 
@@ -35,11 +35,11 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
 
-    string toString() const throw();
+    string toString() const;
 
     // 볼 수 있는 레벨 계산
 public:
-    void setSkillLevel(ExpLevel_t level) throw() {
+    void setSkillLevel(ExpLevel_t level) {
         m_SkillLevel = level;
     }
 

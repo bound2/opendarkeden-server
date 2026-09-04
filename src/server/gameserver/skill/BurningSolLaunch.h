@@ -15,14 +15,14 @@
 
 class BurningSolLaunch : public SkillHandler {
 public:
-    BurningSolLaunch() throw() {}
-    ~BurningSolLaunch() throw() {}
+    BurningSolLaunch() {}
+    ~BurningSolLaunch() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BurningSolLaunch";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BURNING_SOL_LAUNCH;
     }
 

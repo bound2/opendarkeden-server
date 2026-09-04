@@ -25,24 +25,24 @@ class SBillingPlayer;
 /////////////////////////////////////////////////////
 class SBillingPlayerManager : public Thread {
 public:
-    SBillingPlayerManager() throw(Error);
-    ~SBillingPlayerManager() throw(Error);
+    SBillingPlayerManager();
+    ~SBillingPlayerManager() noexcept(false);
 
 public:
-    void init() throw(Error) {}
-    void stop() throw(Error);
-    void run() throw();
+    void init() {}
+    void stop();
+    void run();
 
     // 빌링 관련 패킷 보내기 함수
-    bool sendLogin(PayUser* pPayUser, int i) throw(ProtocolException, Error);
-    void sendIntervalValidation(int i) throw(ProtocolException, Error);
-    bool sendMinusPoint(PayUser* pPayUser, int i) throw(ProtocolException, Error);
-    void sendMinusMinute(PayUser* pPayUser, int i) throw(ProtocolException, Error);
-    void sendLogout(PayUser* pPayUser, int i) throw(ProtocolException, Error);
+    bool sendLogin(PayUser* pPayUser, int i);
+    void sendIntervalValidation(int i);
+    bool sendMinusPoint(PayUser* pPayUser, int i);
+    void sendMinusMinute(PayUser* pPayUser, int i);
+    void sendLogout(PayUser* pPayUser, int i);
 
-    int getVersionNumber() const throw();
-    int getMinusIntervalInt() const throw();
-    string getMinusInterval() const throw();
+    int getVersionNumber() const;
+    int getMinusIntervalInt() const;
+    string getMinusInterval() const;
 
 private:
     SBillingPlayer** m_pSBillingPlayer;

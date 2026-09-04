@@ -82,7 +82,7 @@ void EffectHowl::unaffect(Creature* pCreature)
     __END_CATCH
 }
 
-string EffectHowl::toString() const throw() {
+string EffectHowl::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

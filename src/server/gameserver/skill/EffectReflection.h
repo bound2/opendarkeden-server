@@ -19,7 +19,7 @@ public:
     EffectReflection(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_REFLECTION;
     }
 
@@ -32,13 +32,13 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Level_t getLevel() const throw() {
+    Level_t getLevel() const {
         return m_Level;
     }
-    void setLevel(Level_t Level) throw() {
+    void setLevel(Level_t Level) {
         m_Level = Level;
     }
 
@@ -52,10 +52,10 @@ private:
 
 class EffectReflectionLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_REFLECTION;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectReflection";
     }
 

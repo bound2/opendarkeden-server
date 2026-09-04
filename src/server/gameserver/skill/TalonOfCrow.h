@@ -15,15 +15,15 @@
 
 class TalonOfCrow : public SkillHandler {
 public:
-    TalonOfCrow() throw() {}
-    ~TalonOfCrow() throw() {}
+    TalonOfCrow() {}
+    ~TalonOfCrow() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TalonOfCrow";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TALON_OF_CROW;
     }
 

@@ -141,7 +141,7 @@ void EffectArmageddon::unaffect()
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectArmageddon::toString() const throw() {
+string EffectArmageddon::toString() const {
     __BEGIN_TRY
 
     StringStream msg;
@@ -154,7 +154,7 @@ string EffectArmageddon::toString() const throw() {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void EffectArmageddon::decreaseHP(Damage_t damage) throw() {
+void EffectArmageddon::decreaseHP(Damage_t damage) {
     // cout << "EffectArmageddon Damaged : " << (int)damage << endl;
 
     HP_t RemainHP = max(0, m_HP - damage);

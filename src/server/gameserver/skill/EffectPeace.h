@@ -20,7 +20,7 @@ public:
     EffectPeace(Creature* pCreature, ObjectID_t PeaceCreatureID);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_PEACE;
     }
 
@@ -33,13 +33,13 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    ObjectID_t getPeaceCreatureID() const throw() {
+    ObjectID_t getPeaceCreatureID() const {
         return m_PeaceCreatureID;
     }
-    void setPeaceCreatureID(ObjectID_t PeaceCreatureID) throw() {
+    void setPeaceCreatureID(ObjectID_t PeaceCreatureID) {
         m_PeaceCreatureID = PeaceCreatureID;
     }
 

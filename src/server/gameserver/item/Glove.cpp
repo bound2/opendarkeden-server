@@ -46,7 +46,7 @@ Glove::Glove(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Glove::Glove() : Invalid item type or option type");
-        throw("Glove::Glove() : Invalid item type or optionType");
+        throw "Glove::Glove() : Invalid item type or optionType";
     }
 }
 

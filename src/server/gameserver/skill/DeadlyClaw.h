@@ -15,14 +15,14 @@
 
 class DeadlyClaw : public SkillHandler {
 public:
-    DeadlyClaw() throw();
-    ~DeadlyClaw() throw() {}
+    DeadlyClaw();
+    ~DeadlyClaw() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DeadlyClaw";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_Deadly_Claw;
     }
 

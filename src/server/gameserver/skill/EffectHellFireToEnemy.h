@@ -18,10 +18,10 @@ public:
     EffectHellFireToEnemy(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_HELLFIRE_TO_ENEMY;
     }
-    EffectClass getSendEffectClass() const throw() {
+    EffectClass getSendEffectClass() const {
         return EFFECT_CLASS_HELLFIRE_TO_ENEMY;
     }
 
@@ -31,7 +31,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
     Damage_t getDamage() const {
         return m_Damage;

@@ -26,19 +26,19 @@
 
 class ResurrectLocationManager {
 public:
-    ResurrectLocationManager() throw();
-    ~ResurrectLocationManager() throw();
+    ResurrectLocationManager();
+    ~ResurrectLocationManager();
 
 public:
-    void init() throw();
-    void load() throw();
+    void init();
+    void load();
 
 public:
-    bool getSlayerPosition(ZoneID_t id, ZONE_COORD& zoneCoord) const throw();  // NoSuchElementException);
-    bool getVampirePosition(ZoneID_t id, ZONE_COORD& zoneCoord) const throw(); // NoSuchElementException);
+    bool getSlayerPosition(ZoneID_t id, ZONE_COORD& zoneCoord) const;  // NoSuchElementException);
+    bool getVampirePosition(ZoneID_t id, ZONE_COORD& zoneCoord) const; // NoSuchElementException);
 
-    void addSlayerPosition(ZoneID_t id, const ZONE_COORD& coord) throw(DuplicatedException, Error);
-    void addVampirePosition(ZoneID_t id, const ZONE_COORD& coord) throw(DuplicatedException, Error);
+    void addSlayerPosition(ZoneID_t id, const ZONE_COORD& coord);
+    void addVampirePosition(ZoneID_t id, const ZONE_COORD& coord);
 
 
 protected:

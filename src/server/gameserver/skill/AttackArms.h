@@ -15,14 +15,14 @@
 
 class AttackArms : public SkillHandler {
 public:
-    AttackArms() throw() {}
-    ~AttackArms() throw() {}
+    AttackArms() {}
+    ~AttackArms() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AttackArms";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ATTACK_ARMS;
     }
 

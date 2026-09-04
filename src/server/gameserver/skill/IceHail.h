@@ -15,14 +15,14 @@
 
 class IceHail : public SkillHandler {
 public:
-    IceHail() throw() {}
-    ~IceHail() throw() {}
+    IceHail() {}
+    ~IceHail() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "IceHail";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ICE_HAIL;
     }
 

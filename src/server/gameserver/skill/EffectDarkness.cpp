@@ -128,7 +128,7 @@ void EffectDarkness::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object*
 
     {__BEGIN_TRY __END_CATCH}
 
-string EffectDarkness::toString() const throw() {
+string EffectDarkness::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

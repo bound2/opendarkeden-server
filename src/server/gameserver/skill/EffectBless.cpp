@@ -113,7 +113,7 @@ void EffectBless::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pO
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectBless::toString() const throw() {
+string EffectBless::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

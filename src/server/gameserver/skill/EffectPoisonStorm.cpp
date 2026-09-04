@@ -214,7 +214,7 @@ void EffectPoisonStorm::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 
     {__BEGIN_TRY __END_CATCH}
 
-string EffectPoisonStorm::toString() const throw() {
+string EffectPoisonStorm::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

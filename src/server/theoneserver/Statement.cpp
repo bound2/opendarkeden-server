@@ -19,7 +19,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////////////
-Statement::Statement() throw() {
+Statement::Statement() {
     __BEGIN_TRY
 
     m_pConnection = NULL;
@@ -29,7 +29,7 @@ Statement::Statement() throw() {
     __END_CATCH
 }
 
-Statement::Statement(char* fmt, ...) throw(Error) {
+Statement::Statement(char* fmt, ...) {
     __BEGIN_TRY
 
     // variable argument list
@@ -62,7 +62,7 @@ Statement::Statement(char* fmt, ...) throw(Error) {
 //
 //////////////////////////////////////////////////////////////////////
 
-Statement::~Statement() throw() {
+Statement::~Statement() {
     __BEGIN_TRY
 
     if (m_pResult != NULL) {
@@ -82,7 +82,7 @@ Statement::~Statement() throw() {
 //
 //////////////////////////////////////////////////////////////////////
 
-Result* Statement::executeQuery() throw(SQLQueryException, Error) {
+Result* Statement::executeQuery() {
     __BEGIN_TRY
 
     Assert(m_pConnection != NULL);
@@ -134,7 +134,7 @@ Result* Statement::executeQuery() throw(SQLQueryException, Error) {
 //
 //////////////////////////////////////////////////////////////////////
 
-Result* Statement::executeQuery(const string& sqlStatement) throw(SQLQueryException, Error) {
+Result* Statement::executeQuery(const string& sqlStatement) {
     __BEGIN_TRY
 
     m_Statement = sqlStatement;
@@ -152,7 +152,7 @@ Result* Statement::executeQuery(const string& sqlStatement) throw(SQLQueryExcept
 //
 //////////////////////////////////////////////////////////////////////
 
-Result* Statement::executeQuery(char* fmt, ...) throw(SQLQueryException, Error) {
+Result* Statement::executeQuery(char* fmt, ...) {
     __BEGIN_TRY
 
     // SQL Statement 를 만들어낸다.
@@ -185,7 +185,7 @@ Result* Statement::executeQuery(char* fmt, ...) throw(SQLQueryException, Error) 
 //
 //////////////////////////////////////////////////////////////////////
 
-void Statement::setStatement(char* fmt, ...) throw(Error) {
+void Statement::setStatement(char* fmt, ...) {
     __BEGIN_TRY
 
     // variable argument list

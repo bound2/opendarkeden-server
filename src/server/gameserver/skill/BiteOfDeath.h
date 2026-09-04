@@ -15,14 +15,14 @@
 
 class BiteOfDeath : public SkillHandler {
 public:
-    BiteOfDeath() throw() {}
-    ~BiteOfDeath() throw() {}
+    BiteOfDeath() {}
+    ~BiteOfDeath() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BiteOfDeath";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BITE_OF_DEATH;
     }
 

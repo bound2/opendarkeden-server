@@ -15,14 +15,14 @@
 
 class HolyArrow : public SkillHandler {
 public:
-    HolyArrow() throw() {}
-    ~HolyArrow() throw() {}
+    HolyArrow() {}
+    ~HolyArrow() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HolyArrow";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HOLY_ARROW;
     }
 

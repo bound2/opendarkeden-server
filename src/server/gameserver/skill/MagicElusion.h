@@ -15,14 +15,14 @@
 
 class MagicElusion : public SkillHandler {
 public:
-    MagicElusion() throw() {}
-    ~MagicElusion() throw() {}
+    MagicElusion() {}
+    ~MagicElusion() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "MagicElusion";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MAGIC_ELUSION;
     }
 

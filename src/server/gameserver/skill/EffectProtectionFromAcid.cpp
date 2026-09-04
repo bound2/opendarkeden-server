@@ -91,7 +91,7 @@ void EffectProtectionFromAcid::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t 
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectProtectionFromAcid::toString() const throw() {
+string EffectProtectionFromAcid::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

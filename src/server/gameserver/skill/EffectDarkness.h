@@ -20,7 +20,7 @@ public:
     EffectDarkness(Zone* pZone, ZoneCoord_t ZoneX, ZoneCoord_t ZoneY);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_DARKNESS;
     }
 
@@ -33,13 +33,13 @@ public:
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     void setLevel(Attr_t l) {
         m_Level = l;
     }
-    Attr_t getLevel() const throw() {
+    Attr_t getLevel() const {
         return m_Level;
     }
 
@@ -50,7 +50,7 @@ public:
         return m_Duration;
     }
 
-    void setStartTime() throw() {
+    void setStartTime() {
         getCurrentTime(m_StartTime);
     }
     bool isHalfTimePassed() {
@@ -78,10 +78,10 @@ private:
 
 class EffectDarknessLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_DARKNESS;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectDarkness";
     }
 

@@ -15,14 +15,14 @@
 
 class ThrowingAxe : public SkillHandler {
 public:
-    ThrowingAxe() throw() {}
-    ~ThrowingAxe() throw() {}
+    ThrowingAxe() {}
+    ~ThrowingAxe() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ThrowingAxe";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_THROWING_AXE;
     }
 

@@ -302,7 +302,7 @@ void EffectBloodySnake::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectBloodySnake::toString() const throw() {
+string EffectBloodySnake::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

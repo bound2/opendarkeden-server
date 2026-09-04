@@ -19,7 +19,7 @@ public:
     EffectLight(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_LIGHT;
     }
 
@@ -36,13 +36,13 @@ public:
     virtual void destroy(const string& ownerID);
     virtual void save(const string& ownerID);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Sight_t getOldSight() const throw() {
+    Sight_t getOldSight() const {
         return m_OldSight;
     }
-    void setOldSight(Sight_t OldSight) throw() {
+    void setOldSight(Sight_t OldSight) {
         m_OldSight = OldSight;
     }
 
@@ -56,10 +56,10 @@ private:
 
 class EffectLightLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_LIGHT;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectLight";
     }
 

@@ -101,7 +101,7 @@ void EffectDetectInvisibility::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t 
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectDetectInvisibility::toString() const throw() {
+string EffectDetectInvisibility::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

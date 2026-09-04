@@ -42,7 +42,7 @@ Sweeper::Sweeper(ItemType_t itemType, const list<OptionType_t>& optionType)
 
         if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
             filelog("itembug.log", "Sweeper::Sweeper() : Invalid item type or option type");
-            throw("Sweeper::Sweeper() : Invalid item type or optionType");
+            throw "Sweeper::Sweeper() : Invalid item type or optionType";
         }
     } catch (Throwable& t) {
         cout << t.toString().c_str() << endl;

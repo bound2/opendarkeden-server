@@ -49,7 +49,7 @@ Mace::Mace(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Mace::Mace() : Invalid item type or option type");
-        throw("Mace::Mace() : Invalid item type or optionType");
+        throw "Mace::Mace() : Invalid item type or optionType";
     }
 }
 

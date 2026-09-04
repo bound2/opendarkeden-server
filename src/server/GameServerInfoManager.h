@@ -35,7 +35,7 @@ public:
 
     void addGameServerInfo(GameServerInfo* pGameServerInfo, const ServerGroupID_t ServerGroupID, WorldID_t WorldID);
     void deleteGameServerInfo(const ServerID_t ServerID, const ServerGroupID_t ServerGroupID, WorldID_t WorldID);
-    // GameServerInfo * getGameServerInfo ( const string & name ) const throw ( NoSuchElementException );
+    // GameServerInfo * getGameServerInfo ( const string & name ) const ;
     GameServerInfo* getGameServerInfo(const ServerID_t ServerID, const ServerGroupID_t ServerGroupID,
                                       WorldID_t WorldID) const;
     uint getSize(WorldID_t WorldID, const ServerGroupID_t ServerGroupID) const {

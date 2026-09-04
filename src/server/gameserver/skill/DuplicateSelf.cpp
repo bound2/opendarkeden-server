@@ -20,7 +20,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-DuplicateSelf::DuplicateSelf() throw() {
+DuplicateSelf::DuplicateSelf() {
     __BEGIN_TRY
 
     // 머.. 답답하믄 테이블로 빼든지.. -_-;

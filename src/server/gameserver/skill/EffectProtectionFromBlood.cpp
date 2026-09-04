@@ -91,7 +91,7 @@ void EffectProtectionFromBlood::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectProtectionFromBlood::toString() const throw() {
+string EffectProtectionFromBlood::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

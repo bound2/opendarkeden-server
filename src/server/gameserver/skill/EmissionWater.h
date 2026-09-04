@@ -15,14 +15,14 @@
 
 class EmissionWater : public SkillHandler {
 public:
-    EmissionWater() throw() {}
-    ~EmissionWater() throw() {}
+    EmissionWater() {}
+    ~EmissionWater() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "EmissionWater";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_EMISSION_WATER;
     }
 

@@ -289,7 +289,7 @@ void MonsterInfo::parseSlayerTreasureString(const string& text)
     if (newtext.size() < 10)
     {
         cerr << "MonsterInfo::parseSlayerTreasureString() : Too short treasure string" << endl;
-        throw ("MonsterInfo::parseSlayerTreasureString() : Too short treasure string");
+        throw "MonsterInfo::parseSlayerTreasureString() : Too short treasure string";
     }
     */
 
@@ -320,7 +320,7 @@ void MonsterInfo::parseVampireTreasureString(const string& text)
     if (newtext.size() < 10)
     {
         cerr << "MonsterInfo::parseVampireTreasureString() : Too short treasure string" << endl;
-        throw ("MonsterInfo::parseVampireTreasureString() : Too short treasure string");
+        throw "MonsterInfo::parseVampireTreasureString() : Too short treasure string";
     }
     */
 
@@ -869,8 +869,7 @@ void MonsterInfoManager::addMonsterInfo(MonsterType_t monsterType, MonsterInfo* 
 
     if (pMonsterInfo->getMonsterClass() != 0 && pMonsterInfo->isNormalRegen()) {
         vector<SpriteType_t>& mList = m_MonsterClassMap[pMonsterInfo->getMonsterClass()];
-        vector<SpriteType_t>::iterator itr =
-            find_if(mList.begin(), mList.end(), bind2nd(greater_equal<int>(), pMonsterInfo->getSpriteType()));
+        vector<SpriteType_t>::iterator itr = lower_bound(mList.begin(), mList.end(), pMonsterInfo->getSpriteType());
         if (itr == mList.end() || *itr != pMonsterInfo->getSpriteType())
             mList.insert(itr, pMonsterInfo->getSpriteType());
     }

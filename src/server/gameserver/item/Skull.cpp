@@ -41,7 +41,7 @@ Skull::Skull(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Skull::Skull() : Invalid item type or option type");
-        throw("Skull::Skull() : Invalid item type or optionType");
+        throw "Skull::Skull() : Invalid item type or optionType";
     }
 }
 

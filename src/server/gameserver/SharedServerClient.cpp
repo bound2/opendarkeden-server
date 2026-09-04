@@ -43,7 +43,7 @@ SharedServerClient::SharedServerClient(Socket* pSocket)
 // destructor
 //////////////////////////////////////////////////////////////////////////////
 
-SharedServerClient::~SharedServerClient()
+SharedServerClient::~SharedServerClient() noexcept
 
 {
     __BEGIN_TRY

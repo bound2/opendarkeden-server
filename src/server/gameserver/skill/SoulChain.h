@@ -15,14 +15,14 @@
 
 class SoulChain : public SkillHandler {
 public:
-    SoulChain() throw() {}
-    ~SoulChain() throw() {}
+    SoulChain() {}
+    ~SoulChain() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SoulChain";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SOUL_CHAIN;
     }
 

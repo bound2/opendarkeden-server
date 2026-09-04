@@ -9,7 +9,7 @@ public:
         : EffectWithWarning(Effect::EFFECT_CLASS_ICICLE_DROP_SIGN, Effect::EFFECT_CLASS_ICE_HAIL, pZone, x, y) {}
     void affect();
 
-    string toString() const throw() {
+    string toString() const {
         return "EffectIceHailToTile";
     }
 

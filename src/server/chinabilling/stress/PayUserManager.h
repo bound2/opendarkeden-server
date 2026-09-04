@@ -10,12 +10,12 @@
 class PayUserManager : public Thread {
 public:
     PayUserManager();
-    ~PayUserManager();
+    ~PayUserManager() noexcept;
 
 public:
-    void init() throw(Error);
-    void stop() throw(Error) {}
-    void run() throw();
+    void init();
+    void stop() {}
+    void run();
 
 public:
     PayUser* getUser(char* name);

@@ -50,7 +50,7 @@ Cross::Cross(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Cross::Cross() : Invalid item type or option type");
-        throw("Cross::Cross() : Invalid item type or optionType");
+        throw "Cross::Cross() : Invalid item type or optionType";
     }
 }
 

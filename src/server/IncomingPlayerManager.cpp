@@ -43,7 +43,7 @@
 // 하위 매니저 및 데이타 멤버들을 생성한다.
 //////////////////////////////////////////////////////////////////////////////
 
-IncomingPlayerManager::IncomingPlayerManager() throw(Error)
+IncomingPlayerManager::IncomingPlayerManager()
     : m_pServerSocket(NULL), m_SocketID(INVALID_SOCKET), m_MinFD(-1), m_MaxFD(-1) {
     __BEGIN_TRY
 
@@ -84,7 +84,7 @@ IncomingPlayerManager::IncomingPlayerManager() throw(Error)
 // destructor
 //////////////////////////////////////////////////////////////////////////////
 
-IncomingPlayerManager::~IncomingPlayerManager() throw(Error) {
+IncomingPlayerManager::~IncomingPlayerManager() noexcept(false) {
     __BEGIN_TRY
 
     SAFE_DELETE(g_pConnectionInfoManager);
@@ -97,7 +97,7 @@ IncomingPlayerManager::~IncomingPlayerManager() throw(Error) {
 // 하위 매니저 및 데이터 멤버를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
 
-void IncomingPlayerManager::init() throw(Error) {
+void IncomingPlayerManager::init() {
     __BEGIN_TRY
 
     // fd_set 들을 0 으로 초기화한다.
@@ -226,7 +226,7 @@ void IncomingPlayerManager::init() throw(Error) {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void IncomingPlayerManager::copyPlayers() throw() {
+void IncomingPlayerManager::copyPlayers() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -241,7 +241,7 @@ void IncomingPlayerManager::copyPlayers() throw() {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void IncomingPlayerManager::broadcast(Packet* pPacket) throw(Error) {
+void IncomingPlayerManager::broadcast(Packet* pPacket) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -261,7 +261,7 @@ void IncomingPlayerManager::broadcast(Packet* pPacket) throw(Error) {
 // call select() system call
 // 상위에서 TimeoutException 을 받으면 플레이어는 처리하지 않아도 된다.
 //////////////////////////////////////////////////////////////////////////////
-void IncomingPlayerManager::select() throw(TimeoutException, InterruptedException, Error) {
+void IncomingPlayerManager::select() {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
@@ -303,7 +303,7 @@ void IncomingPlayerManager::select() throw(TimeoutException, InterruptedExceptio
 // 이를 처리하고, 다른 소켓의 read flag가 켜졌을 경우, 새로운 패킷이
 // 들어왔으므로 그 플레이어의 processInput()을 호출하면 된다.
 //////////////////////////////////////////////////////////////////////////////
-void IncomingPlayerManager::processInputs() throw(IOException, Error) {
+void IncomingPlayerManager::processInputs() {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
@@ -410,7 +410,7 @@ void IncomingPlayerManager::processInputs() throw(IOException, Error) {
 // process all players' commands
 //////////////////////////////////////////////////////////////////////////////
 
-void IncomingPlayerManager::processCommands() throw(IOException, Error) {
+void IncomingPlayerManager::processCommands() {
     __BEGIN_TRY
     __BEGIN_DEBUG
 
@@ -514,7 +514,7 @@ void IncomingPlayerManager::processCommands() throw(IOException, Error) {
 // process all players' outputs
 //////////////////////////////////////////////////////////////////////////////
 
-void IncomingPlayerManager::processOutputs() throw(IOException, Error) {
+void IncomingPlayerManager::processOutputs() {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
@@ -655,7 +655,7 @@ void IncomingPlayerManager::processOutputs() throw(IOException, Error) {
 // 따라서, 만약 OOB가 켜져 있다면 에러로 간주하고 접속을 확 짤라 버린다.
 //////////////////////////////////////////////////////////////////////////////
 
-void IncomingPlayerManager::processExceptions() throw(IOException, Error) {
+void IncomingPlayerManager::processExceptions() {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
@@ -719,7 +719,7 @@ void IncomingPlayerManager::processExceptions() throw(IOException, Error) {
 //////////////////////////////////////////////////////////////////////////////
 // select 기반에서는 nonblocking 소켓을 사용하지 않는다.
 //////////////////////////////////////////////////////////////////////////////
-bool IncomingPlayerManager::acceptNewConnection() throw(Error) {
+bool IncomingPlayerManager::acceptNewConnection() {
     __BEGIN_TRY
 
     m_CheckValue = 0;
@@ -886,7 +886,7 @@ bool IncomingPlayerManager::acceptNewConnection() throw(Error) {
 // 새로운 연결에 관련된 플레이어 객체를 IPM에 추가한다.
 //
 //////////////////////////////////////////////////////////////////////
-void IncomingPlayerManager::addPlayer(Player* pGamePlayer) throw(DuplicatedException, Error) {
+void IncomingPlayerManager::addPlayer(Player* pGamePlayer) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -916,7 +916,7 @@ void IncomingPlayerManager::addPlayer(Player* pGamePlayer) throw(DuplicatedExcep
 // 새로운 연결에 관련된 플레이어 객체를 IPM에 추가한다.
 //
 //////////////////////////////////////////////////////////////////////
-void IncomingPlayerManager::addPlayer_NOBLOCKED(Player* pGamePlayer) throw(DuplicatedException, Error) {
+void IncomingPlayerManager::addPlayer_NOBLOCKED(Player* pGamePlayer) {
     __BEGIN_TRY
 
     // call base class's method
@@ -937,8 +937,7 @@ void IncomingPlayerManager::addPlayer_NOBLOCKED(Player* pGamePlayer) throw(Dupli
     __END_CATCH
 }
 
-void IncomingPlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) throw(OutOfBoundException, NoSuchElementException,
-                                                                    Error) {
+void IncomingPlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) {
     __BEGIN_TRY
 
     // call base class's method
@@ -1010,7 +1009,7 @@ void IncomingPlayerManager::deletePlayer_NOBLOCKED(SOCKET fd) throw(OutOfBoundEx
 // 따라서, 플레이어 삭제는 외부에서 이루어져야 한다.
 //
 //////////////////////////////////////////////////////////////////////
-void IncomingPlayerManager::deletePlayer(SOCKET fd) throw(OutOfBoundException, NoSuchElementException, Error) {
+void IncomingPlayerManager::deletePlayer(SOCKET fd) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -1073,7 +1072,7 @@ void IncomingPlayerManager::deletePlayer(SOCKET fd) throw(OutOfBoundException, N
     __END_CATCH
 }
 
-GamePlayer* IncomingPlayerManager::getPlayer_NOBLOCKED(const string& id) throw(NoSuchElementException, Error) {
+GamePlayer* IncomingPlayerManager::getPlayer_NOBLOCKED(const string& id) {
     __BEGIN_TRY
 
     GamePlayer* pGamePlayer = NULL;
@@ -1095,7 +1094,7 @@ GamePlayer* IncomingPlayerManager::getPlayer_NOBLOCKED(const string& id) throw(N
     __END_CATCH
 }
 
-GamePlayer* IncomingPlayerManager::getPlayer(const string& id) throw(NoSuchElementException, Error) {
+GamePlayer* IncomingPlayerManager::getPlayer(const string& id) {
     __BEGIN_TRY
 
     GamePlayer* pGamePlayer = NULL;
@@ -1111,7 +1110,7 @@ GamePlayer* IncomingPlayerManager::getPlayer(const string& id) throw(NoSuchEleme
     __END_CATCH
 }
 
-GamePlayer* IncomingPlayerManager::getReadyPlayer(const string& id) throw(NoSuchElementException, Error) {
+GamePlayer* IncomingPlayerManager::getReadyPlayer(const string& id) {
     __BEGIN_TRY
 
     GamePlayer* pGamePlayer = NULL;
@@ -1134,7 +1133,7 @@ GamePlayer* IncomingPlayerManager::getReadyPlayer(const string& id) throw(NoSuch
     __END_CATCH
 }
 
-void IncomingPlayerManager::pushPlayer(GamePlayer* pGamePlayer) throw(Error) {
+void IncomingPlayerManager::pushPlayer(GamePlayer* pGamePlayer) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -1146,7 +1145,7 @@ void IncomingPlayerManager::pushPlayer(GamePlayer* pGamePlayer) throw(Error) {
     __END_CATCH
 }
 
-void IncomingPlayerManager::pushOutPlayer(GamePlayer* pGamePlayer) throw(Error) {
+void IncomingPlayerManager::pushOutPlayer(GamePlayer* pGamePlayer) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_MutexOut)
@@ -1158,7 +1157,7 @@ void IncomingPlayerManager::pushOutPlayer(GamePlayer* pGamePlayer) throw(Error) 
     __END_CATCH
 }
 
-void IncomingPlayerManager::heartbeat() throw(Error) {
+void IncomingPlayerManager::heartbeat() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -1419,7 +1418,7 @@ void IncomingPlayerManager::heartbeat() throw(Error) {
     __END_CATCH
 }
 
-void IncomingPlayerManager::deleteQueuePlayer(GamePlayer* pGamePlayer) throw(NoSuchElementException, Error) {
+void IncomingPlayerManager::deleteQueuePlayer(GamePlayer* pGamePlayer) {
     __BEGIN_TRY
 
 
@@ -1445,7 +1444,7 @@ void IncomingPlayerManager::deleteQueuePlayer(GamePlayer* pGamePlayer) throw(NoS
 ////////////////////////////////////////////////////////////////////////
 // IncomingPlayerManager 에 있는 모든 사용자를 정리한다.
 ////////////////////////////////////////////////////////////////////////
-void IncomingPlayerManager::clearPlayers() throw(Error) {
+void IncomingPlayerManager::clearPlayers() {
     __BEGIN_TRY
 
     // PlayerListQueue 에 있는 애들을 정리한다.

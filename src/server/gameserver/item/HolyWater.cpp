@@ -40,7 +40,7 @@ HolyWater::HolyWater(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "HolyWater::HolyWater() : Invalid item type or option type");
-        throw("HolyWater::HolyWater() : Invalid item type or optionType");
+        throw "HolyWater::HolyWater() : Invalid item type or optionType";
     }
 }
 

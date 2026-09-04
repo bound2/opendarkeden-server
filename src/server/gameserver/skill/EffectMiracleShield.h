@@ -24,21 +24,21 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_MIRACLE_SHIELD;
     }
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getDefenseBonus() throw() {
+    int getDefenseBonus() {
         return m_DefenseBonus;
     }
     void setDefenseBonus(Defense_t DefenseBonus) {
         m_DefenseBonus = DefenseBonus;
     }
 
-    int getProtectionBonus() throw() {
+    int getProtectionBonus() {
         return m_ProtectionBonus;
     }
     void setProtectionBonus(Protection_t ProtectionBonus) {

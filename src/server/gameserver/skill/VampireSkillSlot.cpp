@@ -8,7 +8,7 @@
 
 #include "repository/SkillSaveRepository.h"
 
-VampireSkillSlot::VampireSkillSlot() throw() {
+VampireSkillSlot::VampireSkillSlot() {
     __BEGIN_TRY
     m_SkillType = 0;
     m_Interval = 0;
@@ -16,7 +16,7 @@ VampireSkillSlot::VampireSkillSlot() throw() {
     __END_CATCH
 }
 
-VampireSkillSlot::VampireSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime) throw() {
+VampireSkillSlot::VampireSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime) {
     __BEGIN_TRY
 
     m_SkillType = SkillType;
@@ -26,7 +26,7 @@ VampireSkillSlot::VampireSkillSlot(SkillType_t SkillType, ulong Interval, ulong 
     __END_CATCH
 }
 
-VampireSkillSlot::~VampireSkillSlot() throw() {
+VampireSkillSlot::~VampireSkillSlot() {
     __BEGIN_TRY
 
     m_SkillType = 0;
@@ -71,14 +71,14 @@ void VampireSkillSlot::save()
     __END_CATCH
 }
 
-Turn_t VampireSkillSlot::getRemainTurn(Timeval currentTime) const throw() {
+Turn_t VampireSkillSlot::getRemainTurn(Timeval currentTime) const {
     Turn_t remainTurn =
         (m_runTime.tv_sec - currentTime.tv_sec) * 10 + (m_runTime.tv_usec - currentTime.tv_usec) / 100000;
 
     return remainTurn;
 }
 
-void VampireSkillSlot::setRunTime() throw() {
+void VampireSkillSlot::setRunTime() {
     // 현재 시간을 받아온다.
     getCurrentTime(m_runTime);
 
@@ -87,7 +87,7 @@ void VampireSkillSlot::setRunTime() throw() {
     m_runTime.tv_usec += (m_Interval % 10) * 100000;
 }
 
-void VampireSkillSlot::setRunTime(Turn_t delay) throw() {
+void VampireSkillSlot::setRunTime(Turn_t delay) {
     // 현재 시간을 받아온다.
     getCurrentTime(m_runTime);
 

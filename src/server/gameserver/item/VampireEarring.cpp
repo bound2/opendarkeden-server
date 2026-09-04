@@ -46,7 +46,7 @@ VampireEarring::VampireEarring(ItemType_t itemType, const list<OptionType_t>& op
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireEarring::VampireEarring() : Invalid item type or option type");
-        throw("VampireEarring::VampireEarring() : Invalid item type or optionType");
+        throw "VampireEarring::VampireEarring() : Invalid item type or optionType";
     }
 }
 

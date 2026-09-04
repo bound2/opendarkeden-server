@@ -18,7 +18,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-ThunderFlash::ThunderFlash() throw() {
+ThunderFlash::ThunderFlash() {
     __BEGIN_TRY
 
     m_pThunderFlashMask[0].set(0, -1);

@@ -15,14 +15,14 @@
 
 class WindDivider : public SkillHandler {
 public:
-    WindDivider() throw() {}
-    ~WindDivider() throw() {}
+    WindDivider() {}
+    ~WindDivider() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "WindDivider";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_WIND_DIVIDER;
     }
 

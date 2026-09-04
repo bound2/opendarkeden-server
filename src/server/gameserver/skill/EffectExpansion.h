@@ -24,14 +24,14 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_EXPANSION;
     }
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getHPBonus() throw() {
+    int getHPBonus() {
         return m_HPBonus;
     }
     void setHPBonus(HP_t HPBonus) {

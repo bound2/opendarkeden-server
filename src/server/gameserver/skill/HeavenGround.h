@@ -15,14 +15,14 @@
 
 class HeavenGround : public SkillHandler {
 public:
-    HeavenGround() throw() {}
-    ~HeavenGround() throw() {}
+    HeavenGround() {}
+    ~HeavenGround() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HeavenGround";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HEAVEN_GROUND;
     }
 

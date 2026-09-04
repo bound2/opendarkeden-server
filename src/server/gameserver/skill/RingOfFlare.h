@@ -15,14 +15,14 @@
 
 class RingOfFlare : public SkillHandler {
 public:
-    RingOfFlare() throw() {}
-    ~RingOfFlare() throw() {}
+    RingOfFlare() {}
+    ~RingOfFlare() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "RingOfFlare";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_RING_OF_FLARE;
     }
 

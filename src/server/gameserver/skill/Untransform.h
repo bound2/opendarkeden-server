@@ -15,14 +15,14 @@
 
 class Untransform : public SkillHandler {
 public:
-    Untransform() throw() {}
-    ~Untransform() throw() {}
+    Untransform() {}
+    ~Untransform() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Untransform";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_UN_TRANSFORM;
     }
 

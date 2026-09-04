@@ -15,14 +15,14 @@
 
 class GunShotGuidance : public SkillHandler {
 public:
-    GunShotGuidance() throw() {}
-    ~GunShotGuidance() throw() {}
+    GunShotGuidance() {}
+    ~GunShotGuidance() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GunShotGuidance";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GUN_SHOT_GUIDANCE;
     }
 

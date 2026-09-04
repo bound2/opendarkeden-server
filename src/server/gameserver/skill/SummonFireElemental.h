@@ -15,14 +15,14 @@
 
 class SummonFireElemental : public SkillHandler {
 public:
-    SummonFireElemental() throw() {}
-    ~SummonFireElemental() throw() {}
+    SummonFireElemental() {}
+    ~SummonFireElemental() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SummonFireElemental";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SUMMON_FIRE_ELEMENTAL;
     }
 

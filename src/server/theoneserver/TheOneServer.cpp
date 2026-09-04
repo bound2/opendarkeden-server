@@ -22,7 +22,7 @@
 // 시스템 매니저의 constructor에서는 하위 매니저 객체를 생성한다.
 //
 //////////////////////////////////////////////////////////////////////
-TheOneServer::TheOneServer() throw(Error) {
+TheOneServer::TheOneServer() {
     __BEGIN_TRY
 
     // create database manager
@@ -46,7 +46,7 @@ TheOneServer::TheOneServer() throw(Error) {
 // 시스템 매니저의 destructor에서는 하위 매니저 객체를 삭제해야 한다.
 //
 //////////////////////////////////////////////////////////////////////
-TheOneServer::~TheOneServer() throw(Error) {
+TheOneServer::~TheOneServer() noexcept(false) {
     __BEGIN_TRY
 
     SAFE_DELETE(g_pGameServerManager);
@@ -62,7 +62,7 @@ TheOneServer::~TheOneServer() throw(Error) {
 // initialize game server
 //
 //////////////////////////////////////////////////////////////////////
-void TheOneServer::init() throw(Error) {
+void TheOneServer::init() {
     __BEGIN_TRY
 
     cout << "Init DatabaseManager..." << endl;
@@ -84,7 +84,7 @@ void TheOneServer::init() throw(Error) {
 // start login server
 //
 //////////////////////////////////////////////////////////////////////
-void TheOneServer::start() throw(Error) {
+void TheOneServer::start() {
     __BEGIN_TRY
 
     // 서버간 통신 매니저를 시작한다.
@@ -103,7 +103,7 @@ void TheOneServer::start() throw(Error) {
 // 같은 현상이 발생할 수 있다.
 //
 //////////////////////////////////////////////////////////////////////
-void TheOneServer::stop() throw(Error) {
+void TheOneServer::stop() {
     __BEGIN_TRY
 
     g_pGameServerManager->stop();

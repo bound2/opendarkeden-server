@@ -15,14 +15,14 @@
 
 class MercyGround : public SkillHandler {
 public:
-    MercyGround() throw() {}
-    ~MercyGround() throw() {}
+    MercyGround() {}
+    ~MercyGround() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "MercyGround";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MERCY_GROUND;
     }
 

@@ -20,7 +20,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-Connection::Connection() throw(Error) : m_bConnected(false), m_bBusy(false) {
+Connection::Connection() : m_bConnected(false), m_bBusy(false) {
     __BEGIN_TRY
 
     m_Mutex.setName("Connection");
@@ -43,8 +43,7 @@ Connection::Connection() throw(Error) : m_bConnected(false), m_bBusy(false) {
 //
 //////////////////////////////////////////////////////////////////////
 
-Connection::Connection(string host, string db, string user, string password, uint port) throw(SQLConnectException,
-                                                                                              Error)
+Connection::Connection(string host, string db, string user, string password, uint port)
     : m_bConnected(false), m_Host(host), m_Port(port), m_Database(db), m_User(user), m_Password(password) {
     __BEGIN_TRY
 
@@ -66,7 +65,7 @@ Connection::Connection(string host, string db, string user, string password, uin
 //
 //////////////////////////////////////////////////////////////////////
 
-Connection::~Connection() throw(Error) {
+Connection::~Connection() noexcept(false) {
     __BEGIN_TRY
 
     // 연결되어 있을 경우, 연결을 끊는다.
@@ -98,7 +97,7 @@ Connection::~Connection() throw(Error) {
 //
 //////////////////////////////////////////////////////////////////////
 
-void Connection::connect(string host, string db, string user, string password, uint port) throw(SQLConnectException) {
+void Connection::connect(string host, string db, string user, string password, uint port) {
     __BEGIN_TRY
 
     m_Host = host;
@@ -121,7 +120,7 @@ void Connection::connect(string host, string db, string user, string password, u
 //
 //////////////////////////////////////////////////////////////////////
 
-void Connection::connect() throw(SQLConnectException) {
+void Connection::connect() {
     __BEGIN_TRY
 
     // 연결을 하려구 하는데 이미 연결이 되어있다면 에러다.
@@ -155,7 +154,7 @@ void Connection::connect() throw(SQLConnectException) {
 //
 //////////////////////////////////////////////////////////////////////
 
-void Connection::close() throw(SQLConnectException, Error) {
+void Connection::close() {
     __BEGIN_TRY
 
     if (!m_bConnected) {
@@ -178,7 +177,7 @@ void Connection::close() throw(SQLConnectException, Error) {
 //
 //////////////////////////////////////////////////////////////////////
 
-Statement* Connection::createStatement() throw() {
+Statement* Connection::createStatement() {
     __BEGIN_TRY
 
     // 새로운 Statement 객체를 만든다.

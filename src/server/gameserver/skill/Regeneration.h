@@ -15,14 +15,14 @@
 
 class Regeneration : public SkillHandler {
 public:
-    Regeneration() throw() {}
-    ~Regeneration() throw() {}
+    Regeneration() {}
+    ~Regeneration() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Regeneration";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_REGENERATION;
     }
 

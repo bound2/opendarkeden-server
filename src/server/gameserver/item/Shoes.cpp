@@ -43,7 +43,7 @@ Shoes::Shoes(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "Shoes::Shoes() : Invalid item type or option type");
-        throw("Shoes::Shoes() : Invalid item type or optionType");
+        throw "Shoes::Shoes() : Invalid item type or optionType";
     }
 }
 

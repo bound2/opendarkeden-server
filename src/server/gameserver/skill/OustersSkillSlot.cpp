@@ -8,7 +8,7 @@
 
 #include "repository/SkillSaveRepository.h"
 
-OustersSkillSlot::OustersSkillSlot() throw() {
+OustersSkillSlot::OustersSkillSlot() {
     __BEGIN_TRY
     m_SkillType = 0;
     m_Interval = 0;
@@ -16,7 +16,7 @@ OustersSkillSlot::OustersSkillSlot() throw() {
     __END_CATCH
 }
 
-OustersSkillSlot::OustersSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime) throw() {
+OustersSkillSlot::OustersSkillSlot(SkillType_t SkillType, ulong Interval, ulong CastingTime) {
     __BEGIN_TRY
 
     m_SkillType = SkillType;
@@ -26,7 +26,7 @@ OustersSkillSlot::OustersSkillSlot(SkillType_t SkillType, ulong Interval, ulong 
     __END_CATCH
 }
 
-OustersSkillSlot::~OustersSkillSlot() throw() {
+OustersSkillSlot::~OustersSkillSlot() {
     __BEGIN_TRY
 
     m_SkillType = 0;
@@ -82,14 +82,14 @@ void OustersSkillSlot::save()
     __END_CATCH
 }
 
-Turn_t OustersSkillSlot::getRemainTurn(Timeval currentTime) const throw() {
+Turn_t OustersSkillSlot::getRemainTurn(Timeval currentTime) const {
     Turn_t remainTurn =
         (m_runTime.tv_sec - currentTime.tv_sec) * 10 + (m_runTime.tv_usec - currentTime.tv_usec) / 100000;
 
     return remainTurn;
 }
 
-void OustersSkillSlot::setRunTime() throw() {
+void OustersSkillSlot::setRunTime() {
     // 현재 시간을 받아온다.
     getCurrentTime(m_runTime);
 
@@ -98,7 +98,7 @@ void OustersSkillSlot::setRunTime() throw() {
     m_runTime.tv_usec += (m_Interval % 10) * 100000;
 }
 
-void OustersSkillSlot::setRunTime(Turn_t delay) throw() {
+void OustersSkillSlot::setRunTime(Turn_t delay) {
     // 현재 시간을 받아온다.
     getCurrentTime(m_runTime);
 

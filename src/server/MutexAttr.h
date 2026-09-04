@@ -77,20 +77,20 @@ public:
     }
 
     /*
-    bool isFastMutex () const throw ( MutexAttrException ) { return getMutexKind() == PTHREAD_MUTEX_FAST_NP; }
-    bool isRecursiveMutex () const throw ( MutexAttrException ) { return getMutexKind() == PTHREAD_MUTEX_RECURSIVE_NP; }
-    bool isErrorCheckMutex () const throw ( MutexAttrException ) { return getMutexKind() == PTHREAD_MUTEX_ERRORCHECK_NP;
+    bool isFastMutex () const  { return getMutexKind() == PTHREAD_MUTEX_FAST_NP; }
+    bool isRecursiveMutex () const  { return getMutexKind() == PTHREAD_MUTEX_RECURSIVE_NP; }
+    bool isErrorCheckMutex () const  { return getMutexKind() == PTHREAD_MUTEX_ERRORCHECK_NP;
     }
 
-    void setFastMutex () throw ( MutexAttrException ) { setMutexKind( PTHREAD_MUTEX_FAST_NP ); }
-    void setRecursiveMutex () throw ( MutexAttrException ) { setMutexKind( PTHREAD_MUTEX_RECURSIVE_NP ); }
-    void setErrorCheckMutex () throw ( MutexAttrException ) { setMutexKind( PTHREAD_MUTEX_ERRORCHECK_NP ); }
+    void setFastMutex ()  { setMutexKind( PTHREAD_MUTEX_FAST_NP ); }
+    void setRecursiveMutex ()  { setMutexKind( PTHREAD_MUTEX_RECURSIVE_NP ); }
+    void setErrorCheckMutex ()  { setMutexKind( PTHREAD_MUTEX_ERRORCHECK_NP ); }
 
     // get mutex kind
-    int getMutexKind () const throw ( MutexAttrException );
+    int getMutexKind () const ;
 
     // set mutex kind
-    void setMutexKind ( int Kind ) throw ( MutexAttrException );
+    void setMutexKind ( int Kind ) ;
     */
 
 

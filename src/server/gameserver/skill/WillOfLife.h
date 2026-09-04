@@ -15,14 +15,14 @@
 
 class WillOfLife : public SkillHandler {
 public:
-    WillOfLife() throw() {}
-    ~WillOfLife() throw() {}
+    WillOfLife() {}
+    ~WillOfLife() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "WillOfLife";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_WILL_OF_LIFE;
     }
 

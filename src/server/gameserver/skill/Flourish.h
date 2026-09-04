@@ -15,15 +15,15 @@
 
 class Flourish : public SkillHandler {
 public:
-    Flourish() throw() {}
-    ~Flourish() throw() {}
+    Flourish() {}
+    ~Flourish() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Flourish";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_FLOURISH;
     }
 

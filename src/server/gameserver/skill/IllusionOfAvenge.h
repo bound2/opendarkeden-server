@@ -15,14 +15,14 @@
 
 class IllusionOfAvenge : public SkillHandler {
 public:
-    IllusionOfAvenge() throw() {}
-    ~IllusionOfAvenge() throw() {}
+    IllusionOfAvenge() {}
+    ~IllusionOfAvenge() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "IllusionOfAvenge";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ILLUSION_OF_AVENGE;
     }
 

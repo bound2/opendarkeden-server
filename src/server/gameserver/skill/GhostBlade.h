@@ -15,14 +15,14 @@
 
 class GhostBlade : public SkillHandler {
 public:
-    GhostBlade() throw() {}
-    ~GhostBlade() throw() {}
+    GhostBlade() {}
+    ~GhostBlade() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GhostBlade";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GHOST_BLADE;
     }
 

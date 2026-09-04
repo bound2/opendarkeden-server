@@ -15,14 +15,14 @@
 
 class SharpShield : public SkillHandler {
 public:
-    SharpShield() throw() {}
-    ~SharpShield() throw() {}
+    SharpShield() {}
+    ~SharpShield() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SharpShield";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SHARP_SHIELD;
     }
 

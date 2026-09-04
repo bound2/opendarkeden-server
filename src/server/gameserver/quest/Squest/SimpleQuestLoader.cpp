@@ -12,7 +12,7 @@
 #include "SimpleQuest.h"
 #include "Timeval.h"
 
-void SimpleQuestLoader::load(Creature* pCreature) throw(Error) {
+void SimpleQuestLoader::load(Creature* pCreature) {
     __BEGIN_TRY
 
     Assert(pCreature != NULL);

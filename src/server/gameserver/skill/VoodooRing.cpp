@@ -13,7 +13,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-VoodooRing::VoodooRing() throw() {
+VoodooRing::VoodooRing() {
     __BEGIN_TRY
 
     __END_CATCH

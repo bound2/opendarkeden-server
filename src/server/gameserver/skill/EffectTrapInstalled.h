@@ -18,7 +18,7 @@ public:
     EffectTrapInstalled(Zone* pZone, ZoneCoord_t X, ZoneCoord_t Y);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_TRAP_INSTALLED;
     }
 
@@ -28,7 +28,7 @@ public:
 
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     void setTick(Turn_t tick) {

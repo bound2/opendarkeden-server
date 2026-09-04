@@ -28,7 +28,7 @@ class CommonBillingPacket;
 class BillingPlayerManager : public Thread {
 public:
     BillingPlayerManager();
-    ~BillingPlayerManager();
+    ~BillingPlayerManager() noexcept;
 
 public:
     void init() {}

@@ -63,13 +63,13 @@ public:
     // get/set shop version
     ShopVersion_t getVersion(ShopRackType_t type) const {
         if (type >= SHOP_RACK_TYPE_MAX)
-            throw("GCShopVersion::getVersion() : Out of Bound!");
+            throw "GCShopVersion::getVersion() : Out of Bound!";
         return m_Version[type];
     }
 
     void setVersion(ShopRackType_t type, ShopVersion_t ver) {
         if (type >= SHOP_RACK_TYPE_MAX)
-            throw("GCShopVersion::setVersion() : Out of Bound!");
+            throw "GCShopVersion::setVersion() : Out of Bound!";
         m_Version[type] = ver;
     }
 

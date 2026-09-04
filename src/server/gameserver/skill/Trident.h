@@ -15,14 +15,14 @@
 
 class Trident : public SkillHandler {
 public:
-    Trident() throw() {}
-    ~Trident() throw() {}
+    Trident() {}
+    ~Trident() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Trident";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TRIDENT;
     }
 

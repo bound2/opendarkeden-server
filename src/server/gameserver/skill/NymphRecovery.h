@@ -15,14 +15,14 @@
 
 class NymphRecovery : public SkillHandler {
 public:
-    NymphRecovery() throw() {}
-    ~NymphRecovery() throw() {}
+    NymphRecovery() {}
+    ~NymphRecovery() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "NymphRecovery";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_NYMPH_RECOVERY;
     }
 

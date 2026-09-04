@@ -15,14 +15,14 @@
 
 class Typhoon : public SkillHandler {
 public:
-    Typhoon() throw() {}
-    ~Typhoon() throw() {}
+    Typhoon() {}
+    ~Typhoon() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Typhoon";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TYPHOON;
     }
 

@@ -315,7 +315,7 @@ void pthreadAPI::pthread_mutexattr_destroy_ex(pthread_mutexattr_t* attr) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 void pthreadAPI::pthread_mutexattr_gettype_ex ( const pthread_mutexattr_t * attr , int * kind )
-    throw ( Error )
+
 {
     __BEGIN_TRY
 
@@ -332,7 +332,7 @@ void pthreadAPI::pthread_mutexattr_gettype_ex ( const pthread_mutexattr_t * attr
 //
 ////////////////////////////////////////////////////////////////////////////////
 void pthreadAPI::pthread_mutexattr_settype_ex ( pthread_mutexattr_t * attr , int kind )
-    throw ( Error )
+
 {
     __BEGIN_TRY
 

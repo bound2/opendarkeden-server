@@ -15,14 +15,14 @@
 
 class CriticalGround : public SkillHandler {
 public:
-    CriticalGround() throw();
-    ~CriticalGround() throw() {}
+    CriticalGround();
+    ~CriticalGround() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "CriticalGround";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CRITICAL_GROUND;
     }
 

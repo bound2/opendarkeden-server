@@ -15,14 +15,14 @@
 
 class RottenApple : public SkillHandler {
 public:
-    RottenApple() throw() {}
-    ~RottenApple() throw() {}
+    RottenApple() {}
+    ~RottenApple() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "RottenApple";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ROTTEN_APPLE;
     }
 

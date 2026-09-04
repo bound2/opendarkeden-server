@@ -19,7 +19,7 @@ public:
     EffectStormAcid(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_STORM_ACID;
     }
 
@@ -32,34 +32,34 @@ public:
     void unaffect(Item* pItem) {}
     void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Level_t getLevel() const throw() {
+    Level_t getLevel() const {
         return m_Level;
     }
-    void setLevel(Level_t Level) throw() {
+    void setLevel(Level_t Level) {
         m_Level = Level;
     }
 
-    HP_t getPoint() const throw() {
+    HP_t getPoint() const {
         return m_Point;
     }
-    void setPoint(HP_t Point) throw() {
+    void setPoint(HP_t Point) {
         m_Point = Point;
     }
 
-    void setTick(Turn_t Tick) throw() {
+    void setTick(Turn_t Tick) {
         m_Tick = Tick;
     }
-    Turn_t getTick() const throw() {
+    Turn_t getTick() const {
         return m_Tick;
     }
 
-    void setUserObjectID(ObjectID_t oid) throw() {
+    void setUserObjectID(ObjectID_t oid) {
         m_UserObjectID = oid;
     }
-    ObjectID_t getUserObjectID() const throw() {
+    ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
     }
 

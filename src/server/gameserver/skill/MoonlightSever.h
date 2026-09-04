@@ -15,14 +15,14 @@
 
 class MoonlightSever : public SkillHandler {
 public:
-    MoonlightSever() throw() {}
-    ~MoonlightSever() throw() {}
+    MoonlightSever() {}
+    ~MoonlightSever() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "MoonlightSever";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MOONLIGHT_SEVER;
     }
 

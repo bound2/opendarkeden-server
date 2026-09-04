@@ -15,14 +15,14 @@
 
 class VoodooRing : public SkillHandler {
 public:
-    VoodooRing() throw();
-    ~VoodooRing() throw() {}
+    VoodooRing();
+    ~VoodooRing() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "VoodooRing";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_Voodoo_Ring;
     }
 

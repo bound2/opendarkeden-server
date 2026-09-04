@@ -15,14 +15,14 @@
 
 class JabbingVein : public SkillHandler {
 public:
-    JabbingVein() throw() {}
-    ~JabbingVein() throw() {}
+    JabbingVein() {}
+    ~JabbingVein() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "JabbingVein";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_JABBING_VEIN;
     }
 

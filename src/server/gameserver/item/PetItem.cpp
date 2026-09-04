@@ -49,7 +49,7 @@ PetItem::PetItem(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "PetItem::PetItem() : Invalid item type or option type");
-        throw("PetItem::PetItem() : Invalid item type or optionType");
+        throw "PetItem::PetItem() : Invalid item type or optionType";
     }
 }
 

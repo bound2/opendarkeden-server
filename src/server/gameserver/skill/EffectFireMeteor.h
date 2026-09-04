@@ -18,7 +18,7 @@ public:
     EffectFireMeteor(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_Fire_Meteor;
     }
 
@@ -28,7 +28,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     Damage_t getDamage() const {

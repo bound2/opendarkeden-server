@@ -41,7 +41,7 @@ SubInventory::SubInventory(ItemType_t itemType, const list<OptionType_t>& option
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "SubInventory::SubInventory() : Invalid item type or option type");
-        throw("SubInventory::SubInventory() : Invalid item type or optionType");
+        throw "SubInventory::SubInventory() : Invalid item type or optionType";
     }
 
     SubInventoryInfo* pInfo = dynamic_cast<SubInventoryInfo*>(g_pSubInventoryInfoManager->getItemInfo(itemType));

@@ -5,11 +5,11 @@
 # =====================================================================
 include(FetchContent)
 
-# googletest release-1.12.1 is the last line supporting C++11, which is what
-# this codebase builds as.
+# Keep the test framework on a maintained C++17-capable release. The project
+# was previously held at 1.12.1 solely by its C++11 language baseline.
 FetchContent_Declare(
     googletest
-    URL https://github.com/google/googletest/archive/refs/tags/release-1.12.1.zip
+    URL https://github.com/google/googletest/archive/refs/tags/v1.18.0.zip
 )
 set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)

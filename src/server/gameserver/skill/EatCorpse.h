@@ -15,14 +15,14 @@
 
 class EatCorpse : public SkillHandler {
 public:
-    EatCorpse() throw() {}
-    ~EatCorpse() throw() {}
+    EatCorpse() {}
+    ~EatCorpse() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "EatCorpse";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_EAT_CORPSE;
     }
 

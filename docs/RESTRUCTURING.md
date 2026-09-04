@@ -63,7 +63,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
-| R7 | Files declaring dynamic exception specifications (`throw(...)`) — added 2026-08-30, see 5.4 | 867 | `grep -rlE 'throw\s*\([^)]*\)\s*(const\s*)?(;|\{|=)' src --include='*.h' --include='*.cpp' \| wc -l` (867 since the never-compiled `SlotInfo.cpp`'s stale specs left with the file, 2.4 review) |
+| R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 
 God-file baselines (R6):
 
@@ -80,7 +80,7 @@ predated that pass); only the rows `ratchets.sh` names are enforced so far.
 | `src/server/gameserver/skill/SkillFormula.cpp` | 820 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
 | `src/server/gameserver/skill/HitRoll.cpp` | 774 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 
-Once Phase 1's test harness exists, encode R1–R5 as **ratchet tests**: the
+Once Phase 1's test harness exists, encode R1–R7 as **ratchet tests**: the
 checked-in expected count lives next to the test, the test fails when the
 measured count *exceeds* it, and lowering it is part of the shrinking commit
 (sidecar's `ConventionScanTest` shrink-only pattern).
@@ -718,14 +718,15 @@ live client.
 Runs as ongoing background work; every extraction is independently mergeable
 and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
 
-- [ ] **3.1 `Outcome<Events, Rejection>` result type.** C++11 template in
+- [ ] **3.1 `Outcome<Events, Rejection>` result type.** C++17 template in
   `de-kernel` mirroring sidecar's `kernel.domain.Outcome`: gameplay mutations
   return `Ok(events)` or `Rejected(reason)`; exceptions reserved for
   programming/config errors. New/refactored domain code uses it; the
   `__BEGIN_TRY/__END_CATCH` macros stop being control flow (ratchet R5).
-  > **Status:** in progress (2026-08-31) — `src/Core/Outcome.h` exists in the
-  > kernel with unit tests (tests/outcome_test.cpp: factories, accessors,
-  > throw-on-wrong-side, value semantics); adoption by domain code pending.
+  > **Status:** in progress (2026-09-04) — `src/Core/Outcome.h` is a
+  > `[[nodiscard]]` `std::variant`-backed kernel type with unit tests
+  > (factories, accessors, throw-on-wrong-side, value/move semantics and
+  > non-default/move-only payloads); adoption by domain code pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).
 
@@ -1077,21 +1078,23 @@ gating; `Zone.cpp` under 2,000 lines.
   > recorded inline in 1.4 where it was written. Ongoing discipline, not a
   > one-shot: new finds keep landing there.
 
-- [ ] **5.4 Language standard: C++11 → C++17 now, C++20 with the image bump.**
-  Assessed 2026-08-30. No open task is *blocked* on the standard, but 3.1
+- [x] **5.4 Language standard: C++11 → C++17 baseline, C++20-ready builds.**
+  Assessed 2026-08-30. No open task was *blocked* on the standard, but 3.1
   `Outcome` wants `std::variant` + `[[nodiscard]]` (an unchecked rejection
   becomes a compiler warning instead of a convention), the packet layer
   wants `string_view`/`optional`/`if constexpr`, and googletest is pinned at
-  1.12.1 only because it is the last C++11 release. The Docker image is
-  `ubuntu:20.04` → GCC 9.4: full C++17, only partial `-std=c++2a` (no
-  `<ranges>`/`<format>`, incomplete concepts), so real C++20 is an infra
-  change (22.04/GCC 11 or 24.04/GCC 13, which also moves `libmysqlclient`
-  to the 8.0 client) and must not be bundled with the language switch.
-  The only migration cost is pre-C++11 dynamic exception specifications;
-  everything else removed by C++17/20 (`auto_ptr`, `bind1st`,
-  `random_shuffle`, `hash_map`, `register`, …) is already absent:
+  1.12.1 only because it is the last C++11 release. At assessment time the
+  image's Ubuntu 20.04/GCC 9.4 compiler had full C++17 but only partial
+  `-std=c++2a`. The completed work avoids a distro/dependency bump by making
+  both builders use the already-added Zig toolchain: pinned Zig 0.16.0 ships
+  Clang 21.1.0 while the runtime remains Ubuntu 20.04.
+  The main mechanical migration cost was pre-C++11 dynamic exception
+  specifications.
+  A full production-target build also found three previously uncompiled uses
+  of removed library facilities: `binary_function`, `bind2nd`, and
+  `set_unexpected`; all three are now gone.
 
-  | Form | Measured | C++17 | C++20 |
+  | Form | Pre-migration | C++17 | C++20 |
   |------|---------:|-------|-------|
   | typed `throw(Error)`, `throw(ProtocolException, Error)`, … | 139 files / ~650 sites | hard error | hard error |
   | empty `throw()` | ~2,600 sites | accepted (= `noexcept`) | removed (GCC/Clang warn; `-pedantic-errors` fails) |
@@ -1107,8 +1110,20 @@ gating; `Zone.cpp` under 2,000 lines.
   "C++11 template" to `std::variant` + `[[nodiscard]]` and unpin googletest.
   Not pursued: modules (4,271 TUs on GCC, no upside), coroutines (the
   thread-per-zone-group model stays, see non-goals), concepts (few templates).
-  > **Status:** not started
-  - Owner: ratchet R7, held at 0 once the sweep lands.
+  > **Status:** done (2026-09-04) — C++17 is the default and required
+  > baseline (`CMAKE_CXX_EXTENSIONS=OFF`); C++20 can be selected explicitly
+  > with `-DCMAKE_CXX_STANDARD=20`. Docker and development-volume builds pin
+  > Zig 0.16.0/Clang 21.1.0, isolate build trees, output roots and compiler
+  > caches by Zig version, target, standard and build type, and
+  > pass the full test suite plus every production target under both C++17
+  > and C++20. Production Docker images were also built under both standards,
+  > and all three server binaries have complete runtime linkage. All dynamic
+  > exception specifications are gone; legacy destructors that were declared
+  > as potentially throwing retain that behavior with `noexcept(false)`.
+  > `Outcome` uses
+  > `std::variant`/`[[nodiscard]]`, and GoogleTest is updated to v1.18.0.
+  > The runtime remains Ubuntu 20.04; its distro GCC is no longer the compiler.
+  - Owner: ratchet R7, held at 0.
 
 ---
 

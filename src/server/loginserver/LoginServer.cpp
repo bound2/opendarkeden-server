@@ -39,7 +39,7 @@
 // 시스템 매니저의 constructor에서는 하위 매니저 객체를 생성한다.
 //
 //////////////////////////////////////////////////////////////////////
-LoginServer::LoginServer() throw(Error) {
+LoginServer::LoginServer() {
     __BEGIN_TRY
 
     // create database manager
@@ -101,7 +101,7 @@ LoginServer::LoginServer() throw(Error) {
 // 시스템 매니저의 destructor에서는 하위 매니저 객체를 삭제해야 한다.
 //
 //////////////////////////////////////////////////////////////////////
-LoginServer::~LoginServer() throw(Error) {
+LoginServer::~LoginServer() noexcept(false) {
     __BEGIN_TRY
 
     if (g_pClientManager != NULL) {
@@ -192,7 +192,7 @@ LoginServer::~LoginServer() throw(Error) {
 // initialize game server
 //
 //////////////////////////////////////////////////////////////////////
-void LoginServer::init() throw(Error) {
+void LoginServer::init() {
     __BEGIN_TRY
 
     // 데이타베이스매니저를 초기화한다.
@@ -247,7 +247,7 @@ void LoginServer::init() throw(Error) {
 // start login server
 //
 //////////////////////////////////////////////////////////////////////
-void LoginServer::start() throw(Error) {
+void LoginServer::start() {
     __BEGIN_TRY
 
     // 서버간 통신 매니저를 시작한다.
@@ -289,7 +289,7 @@ void LoginServer::start() throw(Error) {
 // 같은 현상이 발생할 수 있다.
 //
 //////////////////////////////////////////////////////////////////////
-void LoginServer::stop() throw(Error) {
+void LoginServer::stop() {
     __BEGIN_TRY
 
     // 나중에 이 부분을 코멘트화해야 한다.

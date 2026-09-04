@@ -15,14 +15,14 @@
 
 class FlashSliding : public SkillHandler {
 public:
-    FlashSliding() throw() {}
-    ~FlashSliding() throw() {}
+    FlashSliding() {}
+    ~FlashSliding() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "FlashSliding";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_FLASH_SLIDING;
     }
 

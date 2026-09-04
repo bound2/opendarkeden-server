@@ -54,7 +54,7 @@ void TreasureOptionType::loadFromFile(ifstream& file)
         Assert(pInfo != NULL);
     } catch (NoSuchElementException& nsee) {
         cerr << "TreasureOptionType::loadFromFile() : Unknown Option" << endl;
-        throw("TreasureOptionType::loadFromFile() : Unknown Option");
+        throw "TreasureOptionType::loadFromFile() : Unknown Option";
     }
 
     __END_CATCH
@@ -82,11 +82,11 @@ void TreasureOptionType::parseString(const string& text)
             m_OptionType = pInfo->getType();
         } catch (NoSuchElementException& nsee) {
             cerr << "TreasureOptionType::parseString() : Unknown Option String[" << optionString << "]" << endl;
-            throw("TreasureOptionType::parseString() : Unknown Option String");
+            throw "TreasureOptionType::parseString() : Unknown Option String";
         }
     } else {
         cerr << "TreasureOptionType::parseString() : Error[" << text << "]" << endl;
-        throw("TreasureOptionType::parseString() : Error");
+        throw "TreasureOptionType::parseString() : Error";
     }
 
     __END_CATCH
@@ -167,7 +167,7 @@ void TreasureItemType::loadFromFile(int itemClass, ifstream& file)
         msg << "TreasureItemType::loadFromFile() : Invalid Item Type!\n"
             << "ItemClass:" << ItemClass2String[itemClass] << ",ItemType:" << (int)m_ItemType << "\n";
         cerr << msg.toString();
-        throw(msg.toString());
+        throw msg.toString();
     }
 
     for (int i = 0; i < OptionTypeCount; i++) {
@@ -200,7 +200,7 @@ void TreasureItemType::parseString(int itemClass, const string& text)
 
     if (i == string::npos || j == string::npos || k == string::npos) {
         cerr << "TreasureItemType::parseString() : Error" << endl;
-        throw("TreasureItemType::parseString() : Error");
+        throw "TreasureItemType::parseString() : Error";
     }
 
     m_ItemType = atoi(trim(text.substr(i + 1, j - i - 1)).c_str());
@@ -212,7 +212,7 @@ void TreasureItemType::parseString(int itemClass, const string& text)
         msg << "TreasureItemType::parseString() : Invalid Item Type!\n"
             << "ItemClass:" << ItemClass2String[itemClass] << ",ItemType:" << (int)m_ItemType << "\n";
         cerr << msg.toString();
-        throw(msg.toString());
+        throw msg.toString();
     }
 
     string newText = text.substr(k + 1, text.size() - k - 1);
@@ -568,7 +568,7 @@ Item::ItemClass TreasureItemClass::getItemClassFromString(const string& text)
     StringStream msg;
     msg << "TreasureItemClass::getItemClassFromString() : Unknown String[" << text << "]";
     cerr << msg.toString() << endl;
-    throw(msg.toString());
+    throw msg.toString();
 
     __END_CATCH
 }
@@ -657,7 +657,7 @@ void Treasure::parseString(const string& text)
 
     if (i == string::npos || j == string::npos || k == string::npos) {
         cerr << "Treasure::parseString() : Error" << endl;
-        throw("Treasure::parseString() : Error");
+        throw "Treasure::parseString() : Error";
     }
 
     // m_ItemRatio = atoi(trim(text.substr(i+1, j-i-1)).c_str()) * 150 / 100 ;
@@ -1044,7 +1044,7 @@ TreasureList* TreasureLists::loadTreasure(const string& filename) {
         StringStream msg;
         msg << "Cannot open " << filename << " to read.";
         cerr << msg.toString() << endl;
-        throw(msg.toString());
+        throw msg.toString();
     }
 
     pTreasureList->loadFromFile(file);

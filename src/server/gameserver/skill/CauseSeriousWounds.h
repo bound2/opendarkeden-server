@@ -15,14 +15,14 @@
 
 class CauseSeriousWounds : public SkillHandler {
 public:
-    CauseSeriousWounds() throw() {}
-    ~CauseSeriousWounds() throw() {}
+    CauseSeriousWounds() {}
+    ~CauseSeriousWounds() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "CauseSeriousWounds";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CAUSE_SERIOUS_WOUNDS;
     }
 

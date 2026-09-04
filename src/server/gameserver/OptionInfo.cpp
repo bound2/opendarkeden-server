@@ -314,7 +314,7 @@ void OptionInfo::setReqAbility(const string& req)
             setReqSum(reqAbility);
         } else if (identifier != "") {
             // cerr << "OptionInfo::setReqAbility() : Unknown ability type [" << identifier << "]" << endl;
-            throw("OptionInfo::setReqAbility() : Unknown ability type");
+            throw "OptionInfo::setReqAbility() : Unknown ability type";
         }
 
     } while (c < req.size() - 1);

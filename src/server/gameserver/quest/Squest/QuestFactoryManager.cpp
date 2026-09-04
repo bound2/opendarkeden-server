@@ -11,14 +11,14 @@
 //--------------------------------------------------------------------------------
 // constructor / destructor
 //--------------------------------------------------------------------------------
-QuestFactoryManager::QuestFactoryManager() throw(Error) {
+QuestFactoryManager::QuestFactoryManager() {
     for (int i = 0; i < Quest::QUEST_MAX; i++)
         m_pQuestFactories[i] = NULL;
 
     addFactory(new MonsterKillQuestFactory());
 }
 
-QuestFactoryManager::~QuestFactoryManager() throw(Error) {
+QuestFactoryManager::~QuestFactoryManager() noexcept(false) {
     for (int i = 0; i < Quest::QUEST_MAX; i++)
         SAFE_DELETE(m_pQuestFactories[i]);
 }
@@ -26,7 +26,7 @@ QuestFactoryManager::~QuestFactoryManager() throw(Error) {
 //--------------------------------------------------------------------------------
 // add Factory
 //--------------------------------------------------------------------------------
-void QuestFactoryManager::addFactory(QuestFactory* pQuestFactory) throw(Error) {
+void QuestFactoryManager::addFactory(QuestFactory* pQuestFactory) {
     Assert(pQuestFactory != NULL);
     Assert(pQuestFactory->getQuestType() < Quest::QUEST_MAX);
     Assert(m_pQuestFactories[pQuestFactory->getQuestType()] == NULL);
@@ -37,7 +37,7 @@ void QuestFactoryManager::addFactory(QuestFactory* pQuestFactory) throw(Error) {
 //--------------------------------------------------------------------------------
 // create
 //--------------------------------------------------------------------------------
-Quest* QuestFactoryManager::create(Quest::QuestType qptype, const QuestCreateInfo* qcInfo) const throw(Error) {
+Quest* QuestFactoryManager::create(Quest::QuestType qptype, const QuestCreateInfo* qcInfo) const {
     Assert(qptype < Quest::QUEST_MAX);
 
     return m_pQuestFactories[qptype]->create(qcInfo);

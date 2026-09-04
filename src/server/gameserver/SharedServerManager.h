@@ -26,7 +26,7 @@ class SharedServerClient;
 class SharedServerManager : public Thread {
 public:
     SharedServerManager();
-    ~SharedServerManager();
+    ~SharedServerManager() noexcept;
 
 public:
     void init() {}

@@ -29,19 +29,19 @@
 class TheOneServer {
 public:
     // constructor
-    TheOneServer() throw(Error);
+    TheOneServer();
 
     // destructor
-    ~TheOneServer() throw(Error);
+    ~TheOneServer() noexcept(false);
 
     // intialize game server
-    void init() throw(Error);
+    void init();
 
     // start game server
-    void start() throw(Error);
+    void start();
 
     // stop game server
-    void stop() throw(Error);
+    void stop();
 };
 
 // global variable declaration

@@ -16,14 +16,14 @@ class VampireSkillSlot;
 
 class BloodyWarp : public SkillHandler {
 public:
-    BloodyWarp() throw() {}
-    ~BloodyWarp() throw() {}
+    BloodyWarp() {}
+    ~BloodyWarp() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BloodyWarp";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLOODY_WARP;
     }
 
@@ -35,7 +35,7 @@ public:
 
     void computeOutput(const SkillInput& input, SkillOutput& output);
 
-    POINT getWarpPosition(int myX, int myY, int targetX, int targetY) throw();
+    POINT getWarpPosition(int myX, int myY, int targetX, int targetY);
 };
 
 // global variable declaration

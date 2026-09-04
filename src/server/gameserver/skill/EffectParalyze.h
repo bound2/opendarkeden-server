@@ -19,7 +19,7 @@ public:
     EffectParalyze(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_PARALYZE;
     }
 
@@ -29,17 +29,17 @@ public:
     void unaffect();
     void unaffect(Creature* pCreature);
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    Level_t getLevel() const throw() {
+    Level_t getLevel() const {
         return m_Level;
     }
-    void setLevel(Level_t level) throw() {
+    void setLevel(Level_t level) {
         m_Level = level;
     }
 
-    //	int getDefensePenalty(void) const throw() { return m_DefensePenalty; }
+    //	int getDefensePenalty(void) const  { return m_DefensePenalty; }
     //	void setDefensePenalty(int penalty) { m_DefensePenalty = penalty; }
 
 private:

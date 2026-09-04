@@ -15,14 +15,14 @@
 
 class BlazeWalk : public SkillHandler {
 public:
-    BlazeWalk() throw() {}
-    ~BlazeWalk() throw() {}
+    BlazeWalk() {}
+    ~BlazeWalk() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BlazeWalk";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLAZE_WALK;
     }
 

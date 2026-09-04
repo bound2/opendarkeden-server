@@ -100,7 +100,7 @@ void EffectContinualBloodyWall::unaffect()
 //----------------------------------------------------------------------
 // get debug string
 //----------------------------------------------------------------------
-string EffectContinualBloodyWall::toString() const throw() {
+string EffectContinualBloodyWall::toString() const {
     StringStream msg;
 
     if (m_pZone) {

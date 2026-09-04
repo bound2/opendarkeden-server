@@ -15,15 +15,15 @@
 
 class AuraRing : public SkillHandler {
 public:
-    AuraRing() throw() {}
-    ~AuraRing() throw() {}
+    AuraRing() {}
+    ~AuraRing() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "AuraRing";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_AURA_RING;
     }
 

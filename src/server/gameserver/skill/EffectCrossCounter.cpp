@@ -94,7 +94,7 @@ void EffectCrossCounter::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obj
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectCrossCounter::toString() const throw() {
+string EffectCrossCounter::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

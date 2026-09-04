@@ -15,14 +15,14 @@
 
 class Glacier1 : public SkillHandler {
 public:
-    Glacier1() throw() {}
-    ~Glacier1() throw() {}
+    Glacier1() {}
+    ~Glacier1() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Glacier1";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GLACIER_1;
     }
 

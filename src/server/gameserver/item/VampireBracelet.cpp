@@ -46,7 +46,7 @@ VampireBracelet::VampireBracelet(ItemType_t itemType, const list<OptionType_t>& 
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "VampireBracelet::VampireBracelet() : Invalid item type or option type");
-        throw("VampireBracelet::VampireBracelet() : Invalid item type or optionType");
+        throw "VampireBracelet::VampireBracelet() : Invalid item type or optionType";
     }
 }
 

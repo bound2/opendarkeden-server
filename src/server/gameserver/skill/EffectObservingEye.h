@@ -18,7 +18,7 @@ public:
     EffectObservingEye(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_OBSERVING_EYE;
     }
 
@@ -33,7 +33,7 @@ public:
 
     bool canSeeInvisibility(Creature* pTarget) const;
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     int getDamageBonus(void) const {
@@ -57,7 +57,7 @@ public:
         m_VisionBonus = bonus;
     }
 
-    void setSkillLevel(ExpLevel_t level) throw() {
+    void setSkillLevel(ExpLevel_t level) {
         m_SkillLevel = level;
     }
 

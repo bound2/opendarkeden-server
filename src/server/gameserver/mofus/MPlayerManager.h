@@ -29,7 +29,7 @@ public:
 
 public:
     MPlayerManager();
-    ~MPlayerManager();
+    ~MPlayerManager() noexcept;
 
 public:
     void init() {}

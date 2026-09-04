@@ -15,14 +15,14 @@
 
 class BloodyTunnel : public SkillHandler {
 public:
-    BloodyTunnel() throw() {}
-    ~BloodyTunnel() throw() {}
+    BloodyTunnel() {}
+    ~BloodyTunnel() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BloodyTunnel";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLOODY_TUNNEL;
     }
 

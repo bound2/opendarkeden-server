@@ -15,15 +15,15 @@
 
 class BackStab : public SkillHandler {
 public:
-    BackStab() throw() {}
-    ~BackStab() throw() {}
+    BackStab() {}
+    ~BackStab() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BackStab";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BACK_STAB;
     }
 

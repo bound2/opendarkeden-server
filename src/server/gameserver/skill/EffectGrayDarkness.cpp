@@ -137,7 +137,7 @@ void EffectGrayDarkness::unaffect()
     __END_CATCH
 }*/
 
-string EffectGrayDarkness::toString() const throw() {
+string EffectGrayDarkness::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

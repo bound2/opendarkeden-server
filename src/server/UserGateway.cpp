@@ -7,7 +7,7 @@ string UserGateway::s_UserGatewayTypeToString[MAX_USER_GATEWAY_TYPE] = {
     "ZPM_C_ERROR", "ZPM_O_ERROR",    "ZPM_O_DISCONNECT", "ZPM_O_DISCONNECT2", "ZPM_EXCEPTION",
 };
 
-UserGateway::UserGateway() throw(Error) {
+UserGateway::UserGateway() {
     __BEGIN_TRY
 
     m_Mutex.setName("UserGateway");
@@ -17,13 +17,13 @@ UserGateway::UserGateway() throw(Error) {
     __END_CATCH
 }
 
-UserGateway::~UserGateway() throw(Error) {
+UserGateway::~UserGateway() noexcept(false) {
     __BEGIN_TRY
     __END_CATCH
 }
 
 
-void UserGateway::clear() throw(Error) {
+void UserGateway::clear() {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -40,7 +40,7 @@ void UserGateway::clear() throw(Error) {
     __END_CATCH
 }
 
-void UserGateway::passUser(UserGatewayType ugt) throw(Error) {
+void UserGateway::passUser(UserGatewayType ugt) {
     __BEGIN_TRY
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -52,7 +52,7 @@ void UserGateway::passUser(UserGatewayType ugt) throw(Error) {
     __END_CATCH
 }
 
-int UserGateway::getInfo(UserGatewayType ugt) const throw(Error) {
+int UserGateway::getInfo(UserGatewayType ugt) const {
     __BEGIN_TRY
 
     int userInfo = 0;
@@ -68,7 +68,7 @@ int UserGateway::getInfo(UserGatewayType ugt) const throw(Error) {
     __END_CATCH
 }
 
-int UserGateway::getTotalInfo() const throw(Error) {
+int UserGateway::getTotalInfo() const {
     __BEGIN_TRY
 
     int totalUserInfo = 0;
@@ -87,7 +87,7 @@ int UserGateway::getTotalInfo() const throw(Error) {
 }
 
 
-string UserGateway::toString() throw(Error) {
+string UserGateway::toString() {
     __BEGIN_TRY
 
     StringStream msg;

@@ -19,7 +19,7 @@ public:
     EffectConcealment(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_CONCEALMENT;
     }
 
@@ -28,7 +28,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
     void setLevel(SkillLevel_t level) {
@@ -48,10 +48,10 @@ private:
 
 class EffectConcealmentLoader : public EffectLoader {
 public:
-    virtual Effect::EffectClass getEffectClass() const throw() {
+    virtual Effect::EffectClass getEffectClass() const {
         return Effect::EFFECT_CLASS_CONCEALMENT;
     }
-    virtual string getEffectClassName() const throw() {
+    virtual string getEffectClassName() const {
         return "EffectConcealment";
     }
 

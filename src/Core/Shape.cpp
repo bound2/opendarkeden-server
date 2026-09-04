@@ -39,7 +39,7 @@ PantsType getPantsType(ItemType_t IType) {
     case 20:
     case 21:
     default:
-        //			throw ("getPantsType() : unknown pants type");
+        //			throw "getPantsType() : unknown pants type";
         return PANTS3;
         break;
     }
@@ -74,7 +74,7 @@ JacketType getJacketType(ItemType_t IType) {
     case 20:
     case 21:
     default:
-        //			throw ("getJacketType() : unknown jacket type");
+        //			throw "getJacketType() : unknown jacket type";
         return JACKET3;
         break;
     }
@@ -98,7 +98,7 @@ HelmetType getHelmetType(ItemType_t IType) {
     case 10:
     case 11:
     default:
-        //			throw ("getHelmetType() : unknown helmet type");
+        //			throw "getHelmetType() : unknown helmet type";
         return HELMET2;
         break;
     }
@@ -122,7 +122,7 @@ ShieldType getShieldType(ItemType_t IType) {
     case 10:
     case 11:
     default:
-        //			throw ("getShieldType() : unknown shield type");
+        //			throw "getShieldType() : unknown shield type";
         return SHIELD2;
         break;
     }
@@ -154,7 +154,7 @@ VampireCoatType getVampireCoatType(ItemType_t IType) {
     case 17:
 
     default:
-        //			throw ("getVampireCoatType() : unknown VampireCoat type");
+        //			throw "getVampireCoatType() : unknown VampireCoat type";
         return VAMPIRE_COAT3;
         break;
     }

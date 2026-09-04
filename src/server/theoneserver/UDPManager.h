@@ -22,13 +22,13 @@
 
 class UDPManager {
 public:
-    UDPManager() throw(Error);
-    ~UDPManager() throw(Error);
+    UDPManager();
+    ~UDPManager() noexcept(false);
 
 public:
-    void sendDatagram(Datagram* pDatagram) throw(ProtocolException, Error);
+    void sendDatagram(Datagram* pDatagram);
 
-    void sendPacket(const string& host, uint port, DatagramPacket* pPacket) throw(ProtocolException, Error);
+    void sendPacket(const string& host, uint port, DatagramPacket* pPacket);
 
 
 private:

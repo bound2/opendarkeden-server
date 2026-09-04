@@ -15,15 +15,15 @@
 
 class HydroConvergence : public SkillHandler {
 public:
-    HydroConvergence() throw() {}
-    ~HydroConvergence() throw() {}
+    HydroConvergence() {}
+    ~HydroConvergence() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "HydroConvergence";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_HYDRO_CONVERGENCE;
     }
 

@@ -9,7 +9,7 @@
 //--------------------------------------------------------------------------------
 // affect ( Creature* )
 //--------------------------------------------------------------------------------
-void QuestPriceReward::affect(Creature* pCreature) throw(Error) {
+void QuestPriceReward::affect(Creature* pCreature) {
     __BEGIN_TRY
 
     if (pCreature == NULL)

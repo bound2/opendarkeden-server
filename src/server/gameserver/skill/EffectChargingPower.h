@@ -18,7 +18,7 @@ public:
     EffectChargingPower(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_CHARGING_POWER;
     }
 
@@ -28,10 +28,10 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getDamageBonus() throw() {
+    int getDamageBonus() {
         return m_DamageBonus;
     }
     void setDamageBonus(ToHit_t DamageBonus) {

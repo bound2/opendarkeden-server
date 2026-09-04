@@ -15,14 +15,14 @@
 
 class ShadowDancing : public SkillHandler {
 public:
-    ShadowDancing() throw() {}
-    ~ShadowDancing() throw() {}
+    ShadowDancing() {}
+    ~ShadowDancing() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ShadowDancing";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SHADOW_DANCING;
     }
 

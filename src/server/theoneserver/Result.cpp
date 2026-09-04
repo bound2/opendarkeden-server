@@ -13,7 +13,7 @@
 // constructor
 //////////////////////////////////////////////////////////////////////////////
 
-Result::Result(T_RESULT* pResult, const string& statement) throw(Error) {
+Result::Result(T_RESULT* pResult, const string& statement) {
     __BEGIN_TRY
 
     m_pResult = pResult;
@@ -34,7 +34,7 @@ Result::Result(T_RESULT* pResult, const string& statement) throw(Error) {
 // destructor
 //////////////////////////////////////////////////////////////////////////////
 
-Result::~Result() throw() {
+Result::~Result() {
     __BEGIN_TRY
 
     if (m_pResult != NULL) {
@@ -63,7 +63,7 @@ Result::~Result() throw() {
 // 다음 row 가 존재할 경우 true 를, 없을 경우 false 를 리턴한다.
 //////////////////////////////////////////////////////////////////////////////
 
-bool Result::next() throw(Error) {
+bool Result::next() {
     __BEGIN_TRY
 
     Assert(m_pResult != NULL);
@@ -79,7 +79,7 @@ bool Result::next() throw(Error) {
 // 1 이 최초의 컬럼이 된다. (0 이 아니당..)
 //////////////////////////////////////////////////////////////////////////////
 
-char* Result::getField(uint index) throw(OutOfBoundException, Error) {
+char* Result::getField(uint index) {
     __BEGIN_TRY
 
     if (m_pRow == NULL) {
@@ -104,7 +104,7 @@ char* Result::getField(uint index) throw(OutOfBoundException, Error) {
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-const char* Result::getString(uint index) throw(OutOfBoundException, Error) {
+const char* Result::getString(uint index) {
     __BEGIN_TRY
 
     static const char* pNULL = "";

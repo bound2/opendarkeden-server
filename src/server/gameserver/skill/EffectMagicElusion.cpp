@@ -17,6 +17,6 @@ void EffectMagicElusion::unaffect() {
     __END_CATCH
 }
 
-string EffectMagicElusion::toString() const throw() {
+string EffectMagicElusion::toString() const {
     return "EffectMagicElusion()";
 }

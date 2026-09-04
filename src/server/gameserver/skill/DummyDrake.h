@@ -15,15 +15,15 @@
 
 class DummyDrake : public SkillHandler {
 public:
-    DummyDrake() throw() {}
-    ~DummyDrake() throw() {}
+    DummyDrake() {}
+    ~DummyDrake() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DummyDrake";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DUMMY_DRAKE;
     }
 

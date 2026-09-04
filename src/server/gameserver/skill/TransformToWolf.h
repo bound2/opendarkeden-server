@@ -15,14 +15,14 @@
 
 class TransformToWolf : public SkillHandler {
 public:
-    TransformToWolf() throw() {}
-    ~TransformToWolf() throw() {}
+    TransformToWolf() {}
+    ~TransformToWolf() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "TransformToWolf";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_TRANSFORM_TO_WOLF;
     }
 

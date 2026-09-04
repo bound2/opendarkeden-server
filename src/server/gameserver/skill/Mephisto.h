@@ -15,14 +15,14 @@
 
 class Mephisto : public SkillHandler {
 public:
-    Mephisto() throw() {}
-    ~Mephisto() throw() {}
+    Mephisto() {}
+    ~Mephisto() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Mephisto";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_MEPHISTO;
     }
 

@@ -15,14 +15,14 @@
 
 class Blunting : public SkillHandler {
 public:
-    Blunting() throw() {}
-    ~Blunting() throw() {}
+    Blunting() {}
+    ~Blunting() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Blunting";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLUNTING;
     }
 

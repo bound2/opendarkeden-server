@@ -92,7 +92,7 @@ void EffectPotentialExplosion::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t 
 
     {__BEGIN_TRY __END_CATCH}
 
-string EffectPotentialExplosion::toString() const throw() {
+string EffectPotentialExplosion::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

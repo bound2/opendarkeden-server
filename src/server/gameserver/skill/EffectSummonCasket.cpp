@@ -129,7 +129,7 @@ void EffectSummonCasket::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obj
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectSummonCasket::toString() const throw() {
+string EffectSummonCasket::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

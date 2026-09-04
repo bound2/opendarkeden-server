@@ -34,7 +34,7 @@ Magazine::Magazine(ItemType_t itemType, const list<OptionType_t>& optionType, It
     : m_ItemType(itemType), m_Num(Num) {
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Magazine::Magazine() : Invalid item type or option type");
-        throw("Magazine::Magazine() : Invalid item type or optionType");
+        throw "Magazine::Magazine() : Invalid item type or optionType";
     }
 }
 

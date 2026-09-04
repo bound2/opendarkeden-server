@@ -27,47 +27,47 @@
 class GameServerInfo {
 public:
     // get/set GameServerID
-    ServerID_t getServerID() const throw() {
+    ServerID_t getServerID() const {
         return m_ServerID;
     }
-    void setServerID(ServerID_t ServerID) throw() {
+    void setServerID(ServerID_t ServerID) {
         m_ServerID = ServerID;
     }
 
     // get/set host name
-    string getNickname() const throw() {
+    string getNickname() const {
         return m_Nickname;
     }
-    void setNickname(string nickname) throw() {
+    void setNickname(string nickname) {
         m_Nickname = nickname;
     }
 
     // get/set ip address
-    string getIP() const throw() {
+    string getIP() const {
         return m_IP;
     }
-    void setIP(string ip) throw() {
+    void setIP(string ip) {
         m_IP = ip;
     }
 
     // get/set port
-    uint getTCPPort() const throw() {
+    uint getTCPPort() const {
         return m_TCPPort;
     }
-    void setTCPPort(uint port) throw() {
+    void setTCPPort(uint port) {
         m_TCPPort = port;
     }
 
     // get/set UDP port
-    uint getUDPPort() const throw() {
+    uint getUDPPort() const {
         return m_UDPPort;
     }
-    void setUDPPort(uint port) throw() {
+    void setUDPPort(uint port) {
         m_UDPPort = port;
     }
 
     // get/set GameServerGroupID
-    ServerGroupID_t getGroupID() const throw() {
+    ServerGroupID_t getGroupID() const {
         return m_GroupID;
     }
     void setGroupID(ServerGroupID_t GroupID) {
@@ -75,7 +75,7 @@ public:
     }
 
     // get/set GameWorldID
-    WorldID_t getWorldID() const throw() {
+    WorldID_t getWorldID() const {
         return m_WorldID;
     }
     void setWorldID(WorldID_t WorldID) {
@@ -83,15 +83,15 @@ public:
     }
 
     // get/set ServerStat
-    ServerStatus getServerStat() const throw() {
+    ServerStatus getServerStat() const {
         return m_ServerStat;
     }
-    void setServerStat(ServerStatus Stat) throw() {
+    void setServerStat(ServerStatus Stat) {
         m_ServerStat = Stat;
     }
 
     // get debug string
-    string toString() const throw() {
+    string toString() const {
         StringStream msg;
         msg << "GameServerInfo(" << "ServerID: " << (int)m_ServerID << ",Nickname:" << m_Nickname << ",IP: " << m_IP
             << ",TCPPort:" << m_TCPPort << ",UDPPort:" << m_UDPPort << ",GroupID:" << (int)m_GroupID

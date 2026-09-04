@@ -44,7 +44,7 @@ Potion::Potion(ItemType_t itemType, const list<OptionType_t>& optionType, ItemNu
     // cout << "Potion::Potion(" << getOptionTypeToString(optionType).c_str() << ")" << endl;
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), optionType)) {
         filelog("itembug.log", "Potion::Potion() : Invalid item type or option type");
-        throw("Potion::Potion() : Invalid item type or optionType");
+        throw "Potion::Potion() : Invalid item type or optionType";
     }
 }
 

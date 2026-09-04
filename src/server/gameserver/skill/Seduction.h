@@ -15,14 +15,14 @@
 
 class Seduction : public SkillHandler {
 public:
-    Seduction() throw() {}
-    ~Seduction() throw() {}
+    Seduction() {}
+    ~Seduction() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Seduction";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SEDUCTION;
     }
 

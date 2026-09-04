@@ -18,7 +18,7 @@ public:
     EffectWillOfLife(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_WILL_OF_LIFE;
     }
 
@@ -28,10 +28,10 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getBonus() throw() {
+    int getBonus() {
         return m_Bonus;
     }
     void setBonus(int Bonus) {

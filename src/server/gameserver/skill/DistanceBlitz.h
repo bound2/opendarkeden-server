@@ -15,14 +15,14 @@
 
 class DistanceBlitz : public SkillHandler {
 public:
-    DistanceBlitz() throw() {}
-    ~DistanceBlitz() throw() {}
+    DistanceBlitz() {}
+    ~DistanceBlitz() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "DistanceBlitz";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_DISTANCE_BLITZ;
     }
 

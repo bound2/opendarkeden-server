@@ -86,7 +86,7 @@ IncomingPlayerManager::IncomingPlayerManager()
 // destructor
 //////////////////////////////////////////////////////////////////////////////
 
-IncomingPlayerManager::~IncomingPlayerManager()
+IncomingPlayerManager::~IncomingPlayerManager() noexcept(false)
 
 {
     __BEGIN_TRY

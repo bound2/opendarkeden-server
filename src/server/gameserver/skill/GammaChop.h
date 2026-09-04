@@ -15,15 +15,15 @@
 
 class GammaChop : public SkillHandler {
 public:
-    GammaChop() throw() {}
-    ~GammaChop() throw() {}
+    GammaChop() {}
+    ~GammaChop() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GammaChop";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GAMMA_CHOP;
     }
 

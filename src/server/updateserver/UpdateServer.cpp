@@ -30,7 +30,7 @@
 // constructor
 //
 //--------------------------------------------------------------------------------
-UpdateServer::UpdateServer() throw(Error) : m_pServerSocket(NULL) {
+UpdateServer::UpdateServer() : m_pServerSocket(NULL) {
     __BEGIN_TRY
 
     try {
@@ -50,7 +50,7 @@ UpdateServer::UpdateServer() throw(Error) : m_pServerSocket(NULL) {
 // destructor
 //
 //--------------------------------------------------------------------------------
-UpdateServer::~UpdateServer() throw(Error) {
+UpdateServer::~UpdateServer() noexcept(false) {
     __BEGIN_TRY
 
     if (m_pServerSocket != NULL) {
@@ -67,7 +67,7 @@ UpdateServer::~UpdateServer() throw(Error) {
 // initialize game server
 //
 //--------------------------------------------------------------------------------
-void UpdateServer::init() throw(Error) {
+void UpdateServer::init() {
     __BEGIN_TRY
 
     sysinit();
@@ -81,7 +81,7 @@ void UpdateServer::init() throw(Error) {
 // start game server
 //
 //--------------------------------------------------------------------------------
-void UpdateServer::start() throw(Error) {
+void UpdateServer::start() {
     __BEGIN_TRY
 
     run();
@@ -95,7 +95,7 @@ void UpdateServer::start() throw(Error) {
 // stop game server
 //
 //--------------------------------------------------------------------------------
-void UpdateServer::stop() throw(Error) {
+void UpdateServer::stop() {
     __BEGIN_TRY
     __END_CATCH
 }
@@ -106,7 +106,7 @@ void UpdateServer::stop() throw(Error) {
 // main loop
 //
 //--------------------------------------------------------------------------------
-void UpdateServer::run() throw() {
+void UpdateServer::run() {
     try {
         int p[2];
         const int exitFlagSize = 1;
@@ -337,7 +337,7 @@ void UpdateServer::run() throw() {
 // 시스템 레벨의 초기화
 //
 //--------------------------------------------------------------------------------
-void UpdateServer::sysinit() throw(Error) {
+void UpdateServer::sysinit() {
     __BEGIN_TRY
 
     signal(SIGPIPE, SIG_IGN); // 이거는 종종 발생할 듯
@@ -354,7 +354,7 @@ void UpdateServer::sysinit() throw(Error) {
 // 이 함수를 호출하도록 한다.
 //
 //--------------------------------------------------------------------------------
-void UpdateServer::goBackground() throw(Error) {
+void UpdateServer::goBackground() {
     __BEGIN_TRY
 
     int forkres = SystemAPI::fork_ex();

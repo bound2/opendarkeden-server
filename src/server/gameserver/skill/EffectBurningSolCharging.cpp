@@ -115,7 +115,7 @@ void EffectBurningSolCharging::unaffect(Creature* pCreature)
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectBurningSolCharging::toString() const throw() {
+string EffectBurningSolCharging::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

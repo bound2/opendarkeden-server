@@ -15,14 +15,14 @@
 
 class CrossGuard : public SkillHandler {
 public:
-    CrossGuard() throw() {}
-    ~CrossGuard() throw() {}
+    CrossGuard() {}
+    ~CrossGuard() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "CrossGuard";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CROSS_GUARD;
     }
 

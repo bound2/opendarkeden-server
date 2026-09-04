@@ -30,7 +30,7 @@ public:
     BillingPlayer(Socket* pSocket);
 
     // destructor
-    virtual ~BillingPlayer();
+    virtual ~BillingPlayer() noexcept;
 
     virtual void processInput();
 

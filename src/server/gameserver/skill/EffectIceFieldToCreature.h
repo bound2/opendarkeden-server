@@ -19,10 +19,10 @@ public:
     EffectIceFieldToCreature(Creature* pCreature, bool byFrozenArmor = false);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_ICE_FIELD_TO_CREATURE;
     }
-    EffectClass getSendEffectClass() const throw() {
+    EffectClass getSendEffectClass() const {
         return (m_bFrozenArmor) ? EFFECT_CLASS_FROZEN_ARMOR_TO_ENEMY : EFFECT_CLASS_ICE_FIELD_TO_CREATURE;
     }
 
@@ -31,7 +31,7 @@ public:
     void unaffect(Creature* pCreature);
     void unaffect();
 
-    string toString() const throw();
+    string toString() const;
 
 private:
     bool m_bFrozenArmor;

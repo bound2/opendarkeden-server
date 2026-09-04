@@ -155,7 +155,7 @@ GamePlayer::GamePlayer(Socket* pSocket)
 // destructor
 //////////////////////////////////////////////////////////////////////////////
 
-GamePlayer::~GamePlayer() {
+GamePlayer::~GamePlayer() noexcept {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
@@ -274,7 +274,7 @@ GamePlayer::~GamePlayer() {
         }
     } catch (NoSuchElementException& nsee) {
         cerr << "GamePlayer::~GamePlayer() : " << nsee.toString() << endl;
-        throw("GamePlayer::~GamePlayer() : NoSuchElementException");
+        throw "GamePlayer::~GamePlayer() : NoSuchElementException";
     } catch (Throwable& t) {
         t.addStack(__PRETTY_FUNCTION__);
         throw;
@@ -1268,7 +1268,7 @@ void GamePlayer::loadSpecialEventCount(void) {
 
     DWORD count = 0;
     if (!defaultSessionRepository().loadSpecialEventCount(m_ID, count)) {
-        throw("GamePlayer::loadSpecialEventCount() : unable to dispatch data");
+        throw "GamePlayer::loadSpecialEventCount() : unable to dispatch data";
     }
     m_SpecialEventCount = count;
 

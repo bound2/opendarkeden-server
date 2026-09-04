@@ -15,14 +15,14 @@
 
 class BloodyWall : public SkillHandler {
 public:
-    BloodyWall() throw();
-    ~BloodyWall() throw() {}
+    BloodyWall();
+    ~BloodyWall() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "BloodyWall";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_BLOODY_WALL;
     }
 

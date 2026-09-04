@@ -94,7 +94,7 @@ void EffectReflection::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Objec
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-string EffectReflection::toString() const throw() {
+string EffectReflection::toString() const {
     __BEGIN_TRY
 
     StringStream msg;

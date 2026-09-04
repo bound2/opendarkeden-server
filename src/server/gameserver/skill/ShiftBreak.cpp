@@ -16,7 +16,7 @@
 // 생성자
 // 마스크를 초기화한다.
 //////////////////////////////////////////////////////////////////////////////
-ShiftBreak::ShiftBreak() throw() {
+ShiftBreak::ShiftBreak() {
     __BEGIN_TRY
 
     TPOINT mask[8];

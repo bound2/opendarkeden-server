@@ -41,7 +41,7 @@ MixingItem::MixingItem(ItemType_t itemType, const list<OptionType_t>& optionType
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "MixingItem::MixingItem() : Invalid item type or option type");
-        throw("MixingItem::MixingItem() : Invalid item type or optionType");
+        throw "MixingItem::MixingItem() : Invalid item type or optionType";
     }
 }
 

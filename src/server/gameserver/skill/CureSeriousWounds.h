@@ -15,14 +15,14 @@
 
 class CureSeriousWounds : public SkillHandler {
 public:
-    CureSeriousWounds() throw() {}
-    ~CureSeriousWounds() throw() {}
+    CureSeriousWounds() {}
+    ~CureSeriousWounds() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "CureSeriousWounds";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_CURE_SERIOUS_WOUNDS;
     }
 

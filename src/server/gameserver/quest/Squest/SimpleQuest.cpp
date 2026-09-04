@@ -12,12 +12,12 @@
 
 //--------------------------------------------------------------------------------
 //--------------------------------------------------------------------------------
-SimpleQuest::SimpleQuest() throw(Error) : m_pOwner(NULL), m_AvailableSecond(0), m_pReward(NULL), m_pPenalty(NULL) {
+SimpleQuest::SimpleQuest() : m_pOwner(NULL), m_AvailableSecond(0), m_pReward(NULL), m_pPenalty(NULL) {
     // m_Deadline.tv_sec = m_Deadline.tv_usec = 0;
     setDeadline(99999999);
 }
 
-SimpleQuest::~SimpleQuest() throw(Error) {
+SimpleQuest::~SimpleQuest() noexcept(false) {
     __BEGIN_TRY
 
     if (m_pReward != NULL)
@@ -32,7 +32,7 @@ SimpleQuest::~SimpleQuest() throw(Error) {
 //--------------------------------------------------------------------------------
 // setDeadline
 //--------------------------------------------------------------------------------
-void SimpleQuest::setDeadline(Turn_t delay) throw() {
+void SimpleQuest::setDeadline(Turn_t delay) {
     __BEGIN_TRY
 
     // 현재 시간을 측정한다.
@@ -47,7 +47,7 @@ void SimpleQuest::setDeadline(Turn_t delay) throw() {
 }
 
 // 남은 duration(1/10초 단위)
-Duration_t SimpleQuest::getRemainDuration() const throw() {
+Duration_t SimpleQuest::getRemainDuration() const {
     __BEGIN_TRY
 
     Timeval currentTime;
@@ -61,7 +61,7 @@ Duration_t SimpleQuest::getRemainDuration() const throw() {
 //--------------------------------------------------------------------------------
 // destroy
 //--------------------------------------------------------------------------------
-void SimpleQuest::destroy() throw(Error) {
+void SimpleQuest::destroy() {
     __BEGIN_TRY
 
     Assert(m_pOwner != NULL);
@@ -93,7 +93,7 @@ void SimpleQuest::destroy() throw(Error) {
 //--------------------------------------------------------------------------------
 // checkFail
 //--------------------------------------------------------------------------------
-bool SimpleQuest::checkFail() throw(Error) {
+bool SimpleQuest::checkFail() {
     __BEGIN_TRY
 
     Timeval currentTime;
@@ -107,7 +107,7 @@ bool SimpleQuest::checkFail() throw(Error) {
 //--------------------------------------------------------------------------------
 // heartbeat
 //--------------------------------------------------------------------------------
-void SimpleQuest::heartbeat() throw(Error) {
+void SimpleQuest::heartbeat() {
     __BEGIN_TRY
 
     if (m_State == STATE_ACTIVE) {
@@ -120,7 +120,7 @@ void SimpleQuest::heartbeat() throw(Error) {
 //--------------------------------------------------------------------------------
 // process Active
 //--------------------------------------------------------------------------------
-void SimpleQuest::processActive() throw(Error) {
+void SimpleQuest::processActive() {
     __BEGIN_TRY
 
     if (checkFail()) {
@@ -133,7 +133,7 @@ void SimpleQuest::processActive() throw(Error) {
 //--------------------------------------------------------------------------------
 // process Fail
 //--------------------------------------------------------------------------------
-void SimpleQuest::processFail() throw(Error) {
+void SimpleQuest::processFail() {
     __BEGIN_TRY
 
     givePenalty();
@@ -147,7 +147,7 @@ void SimpleQuest::processFail() throw(Error) {
 //--------------------------------------------------------------------------------
 // take
 //--------------------------------------------------------------------------------
-void SimpleQuest::take(Creature* pCreature, bool bNewQuest) throw(Error) {
+void SimpleQuest::take(Creature* pCreature, bool bNewQuest) {
     __BEGIN_TRY
 
     setOwner(pCreature);
@@ -168,7 +168,7 @@ void SimpleQuest::take(Creature* pCreature, bool bNewQuest) throw(Error) {
 //--------------------------------------------------------------------------------
 // give Reward
 //--------------------------------------------------------------------------------
-void SimpleQuest::giveReward() throw(Error) {
+void SimpleQuest::giveReward() {
     __BEGIN_TRY
 
     if (m_pReward != NULL && m_pOwner != NULL) {
@@ -181,7 +181,7 @@ void SimpleQuest::giveReward() throw(Error) {
 //--------------------------------------------------------------------------------
 // give Penalty
 //--------------------------------------------------------------------------------
-void SimpleQuest::givePenalty() throw(Error) {
+void SimpleQuest::givePenalty() {
     __BEGIN_TRY
 
     if (m_pPenalty != NULL && m_pOwner != NULL) {
@@ -194,7 +194,7 @@ void SimpleQuest::givePenalty() throw(Error) {
 //--------------------------------------------------------------------------------
 // add Reward
 //--------------------------------------------------------------------------------
-void SimpleQuest::addReward(QuestPrice* pQuestPrice) throw(Error) {
+void SimpleQuest::addReward(QuestPrice* pQuestPrice) {
     __BEGIN_TRY
 
     Assert(pQuestPrice != NULL);
@@ -206,7 +206,7 @@ void SimpleQuest::addReward(QuestPrice* pQuestPrice) throw(Error) {
 //--------------------------------------------------------------------------------
 // add Penalty
 //--------------------------------------------------------------------------------
-void SimpleQuest::addPenalty(QuestPrice* pQuestPrice) throw(Error) {
+void SimpleQuest::addPenalty(QuestPrice* pQuestPrice) {
     __BEGIN_TRY
 
     Assert(pQuestPrice != NULL);
@@ -216,7 +216,7 @@ void SimpleQuest::addPenalty(QuestPrice* pQuestPrice) throw(Error) {
 }
 
 //
-void SimpleQuest::addReward(const string& text) throw(Error) {
+void SimpleQuest::addReward(const string& text) {
     __BEGIN_TRY
 
     QuestPrice* pQuestPrice = new QuestPriceReward;
@@ -228,7 +228,7 @@ void SimpleQuest::addReward(const string& text) throw(Error) {
     __END_CATCH
 }
 
-void SimpleQuest::addPenalty(const string& text) throw(Error) {
+void SimpleQuest::addPenalty(const string& text) {
     __BEGIN_TRY
 
     QuestPrice* pQuestPrice = new QuestPricePenalty;
@@ -240,7 +240,7 @@ void SimpleQuest::addPenalty(const string& text) throw(Error) {
     __END_CATCH
 }
 
-string SimpleQuest::getRewardToString() const throw(Error) {
+string SimpleQuest::getRewardToString() const {
     __BEGIN_TRY
 
     if (m_pReward == NULL)
@@ -251,7 +251,7 @@ string SimpleQuest::getRewardToString() const throw(Error) {
     __END_CATCH
 }
 
-string SimpleQuest::getPenaltyToString() const throw(Error) {
+string SimpleQuest::getPenaltyToString() const {
     __BEGIN_TRY
 
     if (m_pReward == NULL)

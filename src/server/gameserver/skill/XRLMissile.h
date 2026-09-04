@@ -15,14 +15,14 @@
 
 class XRLMissile : public SkillHandler {
 public:
-    XRLMissile() throw() {}
-    ~XRLMissile() throw() {}
+    XRLMissile() {}
+    ~XRLMissile() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "XRLMissile";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_XRL_Missile;
     }
 

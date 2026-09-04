@@ -15,14 +15,14 @@
 
 class IceWave : public SkillHandler {
 public:
-    IceWave() throw();
-    ~IceWave() throw() {}
+    IceWave();
+    ~IceWave() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "IceWave";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ICE_WAVE;
     }
 

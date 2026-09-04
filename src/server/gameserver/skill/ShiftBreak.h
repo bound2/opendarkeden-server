@@ -14,14 +14,14 @@
 
 class ShiftBreak : public SkillHandler {
 public:
-    ShiftBreak() throw();
-    ~ShiftBreak() throw() {}
+    ShiftBreak();
+    ~ShiftBreak() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ShiftBreak";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SHIFT_BREAK;
     }
 

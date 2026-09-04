@@ -15,14 +15,14 @@
 
 class GreatHeal : public SkillHandler {
 public:
-    GreatHeal() throw() {}
-    ~GreatHeal() throw() {}
+    GreatHeal() {}
+    ~GreatHeal() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GreatHeal";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GREAT_HEAL;
     }
 

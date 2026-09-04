@@ -34,7 +34,7 @@ struct LoadInfo {
     int load;
 };
 
-template <class T> struct loadCheck : public binary_function<T, T, bool> {
+template <class T> struct loadCheck {
     bool operator()(const T& x, const T& y) const {
         return x > y;
     }

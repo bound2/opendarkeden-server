@@ -15,14 +15,14 @@
 
 class Armageddon : public SkillHandler {
 public:
-    Armageddon() throw() {}
-    ~Armageddon() throw() {}
+    Armageddon() {}
+    ~Armageddon() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "Armageddon";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_ARMAGEDDON;
     }
 

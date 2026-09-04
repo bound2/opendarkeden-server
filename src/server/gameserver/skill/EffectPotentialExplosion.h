@@ -18,7 +18,7 @@ public:
     EffectPotentialExplosion(Creature* pCreature);
 
 public:
-    EffectClass getEffectClass() const throw() {
+    EffectClass getEffectClass() const {
         return EFFECT_CLASS_POTENTIAL_EXPLOSION;
     }
 
@@ -31,13 +31,13 @@ public:
     void unaffect();
     void unaffect(Item* pItem) {}
 
-    string toString() const throw();
+    string toString() const;
 
 public:
-    int getDiffSTR(void) throw() {
+    int getDiffSTR(void) {
         return m_diffSTR;
     }
-    int getDiffDEX(void) throw() {
+    int getDiffDEX(void) {
         return m_diffDEX;
     }
     void setDiffSTR(int diffSTR) {

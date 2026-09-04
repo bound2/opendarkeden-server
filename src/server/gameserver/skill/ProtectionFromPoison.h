@@ -15,14 +15,14 @@
 
 class ProtectionFromPoison : public SkillHandler {
 public:
-    ProtectionFromPoison() throw() {}
-    ~ProtectionFromPoison() throw() {}
+    ProtectionFromPoison() {}
+    ~ProtectionFromPoison() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "ProtectionFromPoison";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_PROTECTION_FROM_POISON;
     }
 

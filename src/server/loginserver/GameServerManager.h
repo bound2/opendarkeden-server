@@ -34,7 +34,7 @@ public:
     GameServerManager();
 
     // destructor
-    ~GameServerManager();
+    ~GameServerManager() noexcept;
 
     //
     void init() {}

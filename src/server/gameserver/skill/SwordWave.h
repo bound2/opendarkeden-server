@@ -15,15 +15,15 @@
 
 class SwordWave : public SkillHandler {
 public:
-    SwordWave() throw();
-    ~SwordWave() throw() {}
+    SwordWave();
+    ~SwordWave() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "SwordWave";
     }
 
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_SWORD_WAVE;
     }
 

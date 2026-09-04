@@ -37,7 +37,7 @@ Bomb::Bomb(ItemType_t itemType, const list<OptionType_t>& optionType)
     : m_ItemType(itemType) {
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Bomb::Bomb() : Invalid item type or option type");
-        throw("Bomb::Bomb() : Invalid item type or optionType");
+        throw "Bomb::Bomb() : Invalid item type or optionType";
     }
     m_Num = 1;
     m_Damage = 0;

@@ -15,14 +15,14 @@
 
 class GreenPoison : public SkillHandler {
 public:
-    GreenPoison() throw() {}
-    ~GreenPoison() throw() {}
+    GreenPoison() {}
+    ~GreenPoison() {}
 
 public:
-    string getSkillHandlerName() const throw() {
+    string getSkillHandlerName() const {
         return "GreenPoison";
     }
-    SkillType_t getSkillType() const throw() {
+    SkillType_t getSkillType() const {
         return SKILL_GREEN_POISON;
     }
 

@@ -15,7 +15,7 @@ void GCShopList::setShopItem(BYTE index, const Item* pItem)
 {
     // check bound
     if (index >= SHOP_RACK_INDEX_MAX)
-        throw("GCShopList::setShopItem() : Out of Bound!");
+        throw "GCShopList::setShopItem() : Out of Bound!";
 
     // check pointer
     Assert(pItem != NULL);
