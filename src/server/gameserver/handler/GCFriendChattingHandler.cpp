@@ -250,7 +250,9 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
         {
             FriendRepository& friends = defaultFriendRepository();
 
-            // One direction each, as the insert pair does.
+            // One direction each, like the insert pair — but NOT in the
+            // same parameter order: the inserts take (friend, owner)
+            // and these take (owner, friend), mirroring the statements.
             friends.deleteFriend(pCreature->getName(), pPacket->getPlayerName());
             friends.deleteFriend(pPacket->getPlayerName(), pCreature->getName());
         }

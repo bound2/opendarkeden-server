@@ -202,16 +202,33 @@ TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
 // replace them with the round-trip assertions they were always meant to
 // be: insert a mutual pair and read it back, spool a message and drain
 // it, blacklist and check both directions.
-class FriendMySQL : public ::testing::Test {};
+class FriendMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        // No-ops while the tables are absent, and correct the moment
+        // they are added — which is the scenario this fixture exists for.
+        execSQLIgnoringErrors("DELETE FROM FriendList WHERE Owner_Name LIKE 'it-%'");
+        execSQLIgnoringErrors("DELETE FROM FriendHistory WHERE Owner_Name LIKE 'it-%'");
+    }
+};
 
 TEST_F(FriendMySQL, EveryReadRaisesBecauseTheTableIsNotInTheSchema) {
     FriendRepository& repository = defaultFriendRepository();
 
     // Catch the const char* END_DB rethrows rather than using
-    // EXPECT_ANY_THROW: that would pass for any failure at all, and the
-    // claim here is specifically that the statement reaches MySQL and is
-    // refused. (The message cannot be asserted on — END_DB throws
-    // msg.c_str() from a local std::string, so the pointer dangles.)
+    // EXPECT_ANY_THROW, which would pass for any failure at all. Be
+    // precise about what that buys: it pins the failure to the SQL
+    // layer, and nothing more. It CANNOT tell a missing table from a
+    // dropped connection — Statement::executeQuery raises
+    // SQLQueryException for both, and END_DB converts both to the same
+    // const char*. Nor can the message be read: END_DB throws
+    // msg.c_str() from a local std::string, so the pointer dangles.
     bool refused = false;
     try {
         repository.loadFriends("it-friend");
@@ -265,6 +282,35 @@ TEST_F(FriendMySQL, EveryWriteRaisesToo) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "deleteFriend succeeded, so FriendList now exists";
+
+    // The three the first draft left uncovered. insertBlacklisted and
+    // hasBlacklisted are the only statements CG_ADD_FRIEND_BLACK
+    // reaches, and deleteMessages is the one the IsHave flag gates, so
+    // without these a table-adder would get no signal from that whole
+    // branch.
+    refused = false;
+    try {
+        repository.insertBlacklisted("it-other", "it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "insertBlacklisted succeeded, so FriendList now exists";
+
+    refused = false;
+    try {
+        repository.hasBlacklisted("it-other", "it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "hasBlacklisted succeeded, so FriendList now exists";
+
+    refused = false;
+    try {
+        repository.deleteMessages("it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "deleteMessages succeeded, so FriendHistory now exists";
 }
 
 // --- capture-the-flag against real MySQL -----------------------------------
@@ -727,6 +773,29 @@ protected:
         PlayerFixtures::removeAll();
     }
 };
+
+TEST_F(CharacterMySQL, TheWhisperProbeReadsOnlyTheAccountAndTakesTheFirstRow) {
+    CharacterRepository& repository = defaultCharacterRepository();
+
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+
+    std::string playerID = "untouched";
+    EXPECT_FALSE(repository.loadSlayerPlayerID(slayer.name, playerID));
+    EXPECT_EQ("untouched", playerID);
+
+    slayer.persist();
+    execSQL("UPDATE Slayer SET PlayerID='it-acct' WHERE Name='" + slayer.name + "'");
+
+    ASSERT_TRUE(repository.loadSlayerPlayerID(slayer.name, playerID));
+    EXPECT_EQ("it-acct", playerID);
+
+    // Distinct from loadSlayerAccount, which selects two columns and
+    // requires EXACTLY one row. Both answer here, for the same row.
+    std::string accountID;
+    std::string race;
+    ASSERT_TRUE(repository.loadSlayerAccount(slayer.name, accountID, race));
+    EXPECT_EQ("it-acct", accountID);
+}
 
 TEST_F(CharacterMySQL, TheConnectProbeReadsTheAccountAndRaceOffTheSlayerRow) {
     CharacterRepository& repository = defaultCharacterRepository();
@@ -6009,6 +6078,34 @@ protected:
         execSQL("DELETE FROM USERINFO.UserStatus WHERE ServerID >= 31000");
     }
 };
+
+TEST_F(SessionMySQL, TheWhisperLocationReadReachesTheSameRowsAsThePlayerDbName) {
+    SessionRepository& repository = defaultSessionRepository();
+
+    execSQL("INSERT INTO Player (PlayerID, CurrentServerGroupID, LogOn) "
+            "VALUES ('it-where', 9, 'GAME')");
+
+    int serverGroupID = -1;
+    std::string logOn = "untouched";
+    ASSERT_TRUE(repository.loadPlayerLocation("it-where", serverGroupID, logOn));
+    EXPECT_EQ(9, serverGroupID);
+    EXPECT_EQ("GAME", logOn);
+
+    // This is the point of the test. loadPlayerLocation asks
+    // getDistConnection for "USERINFO" where every other Player
+    // statement asks for "PLAYER_DB"; the round claims the name is
+    // ignored and both reach the same socket. A write through the
+    // PLAYER_DB-named path landing in the row the USERINFO-named path
+    // reads is what actually establishes that.
+    execSQL("UPDATE Player SET LogOn='LOGOFF' WHERE PlayerID='it-where'");
+    ASSERT_TRUE(repository.markPlayerLoggedOn("it-where")) << "the LOGOFF row was not claimed";
+    ASSERT_TRUE(repository.loadPlayerLocation("it-where", serverGroupID, logOn));
+    EXPECT_EQ("GAME", logOn);
+
+    logOn = "untouched";
+    EXPECT_FALSE(repository.loadPlayerLocation("it-nobody", serverGroupID, logOn));
+    EXPECT_EQ("untouched", logOn);
+}
 
 TEST_F(SessionMySQL, TheSessionHandshakeReadsTheAccountThenClaimsItExactlyOnce) {
     SessionRepository& repository = defaultSessionRepository();

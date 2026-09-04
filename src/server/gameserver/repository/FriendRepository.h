@@ -13,10 +13,11 @@
 //
 // ================== READ THIS BEFORE USING THIS SEAM ==================
 //
-// NEITHER TABLE EXISTS. `initdb/DARKEDEN.sql` defines 374 tables and
+// NEITHER TABLE EXISTS. initdb/DARKEDEN.sql defines 374 tables and
 // neither FriendList nor FriendHistory is among them, in this schema or
-// in USERINFO.sql; the only mention of either name anywhere in the tree
-// is the handler these statements came from. So every method here raises
+// in USERINFO.sql. No other code in the tree references either table:
+// these statements, which came from GCFriendChattingHandler, are the
+// only ones. So every method here raises
 // against the shipped schema, and it always has.
 //
 // That is not a defect this round introduced or is fixing — task 3.2
@@ -34,8 +35,28 @@
 //
 // Whoever adds the tables should expect the integration tier's
 // FriendMySQL cases to start failing, and should replace them with the
-// success-path assertions they were always meant to be.
+// success-path assertions they were always meant to be. Note the limit
+// of that tripwire: it fires only if the columns added match the names
+// these statements guess at. A table with any name or type mismatch
+// still raises, every assertion stays green, and the tripwire silently
+// stops working. Note the tier
+// covers six of these nine methods, not all of them: insertBlacklisted,
+// hasBlacklisted and deleteMessages have no case, so adding the tables
+// gives no signal from those three.
+//
+// Nothing else in the tree touches either table, so there is no
+// "not enclosed" list to keep — which is itself only true because the
+// tables do not exist for anything else to touch.
 // =====================================================================
+
+// A HAZARD IN THIS INTERFACE, stated because nothing catches it. The
+// two insert methods take (friendName, ownerName); every other method
+// takes the owner first. That mirrors the statements — the INSERT names
+// (Friend_Name, Owner_Name) while every WHERE names Owner_Name first —
+// but it means the insert pair and the delete pair are NOT parameter
+// compatible, and every parameter here is a const std::string&, so a
+// transposition compiles silently and writes or deletes the wrong
+// direction.
 
 // One FriendList row as CG_UPDATE reads it: the friend's name and the
 // blacklist flag, through getString and getBYTE.

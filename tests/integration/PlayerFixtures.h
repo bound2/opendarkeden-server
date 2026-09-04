@@ -19,6 +19,17 @@ inline void execSQL(const std::string& sql) {
     END_DB(pStmt)
 }
 
+// Cleanup for a fixture whose tables may not exist. A missing table
+// raises, and for a DELETE that is the same outcome as deleting
+// nothing — so swallow it rather than making every such fixture
+// conditional. END_DB rethrows a const char*.
+inline void execSQLIgnoringErrors(const std::string& sql) {
+    try {
+        execSQL(sql);
+    } catch (const char*) {
+    }
+}
+
 inline std::string queryScalar(const std::string& sql) {
     std::string value;
     Statement* pStmt = NULL;

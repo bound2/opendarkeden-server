@@ -3939,7 +3939,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > CharacterRepository::loadSlayerPlayerID and
   > SessionRepository::loadPlayerLocation. Both files are left with no
   > SQL at all. CGWhisperHandler is here because the previous round's
-  > audit found it missing from SessionRepository.h's not-enclosed list.
+  > audit for the guild-remainder round (not the previous round, which
+  > was mofus) found it missing from SessionRepository.h's not-enclosed
+  > list.
   > THE FINDING: NEITHER FRIEND TABLE EXISTS. initdb/DARKEDEN.sql
   > defines 374 tables and neither FriendList nor FriendHistory is among
   > them, in that schema or in USERINFO.sql, and the only mention of
@@ -3952,19 +3954,41 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > driver's SQLQueryException to a const char* and nothing in between
   > catches it, so a client that opens its friend list is DISCONNECTED.
   > Task 3.2 moves statements without fixing them, so the tables are not
-  > added here ${EM} that is a schema change, and guessing at column types
+  > added here — that is a schema change, and guessing at column types
   > for a feature nobody can have used would be worse than recording the
   > fact. What the round does instead is pin the failure, the way the
   > capture-the-flag round pinned its ONLY_FULL_GROUP_BY refusal: the new
-  > FriendMySQL tier asserts that every read and every write raises,
-  > catching the const char* rather than using EXPECT_ANY_THROW so that a
-  > dropped connection would not pass for a missing table. Whoever adds
+  > FriendMySQL tier asserts that every one of the nine methods raises,
+  > catching the const char* rather than using EXPECT_ANY_THROW. BE
+  > PRECISE ABOUT WHAT THAT BUYS, because an earlier draft was not: it
+  > pins the failure to the SQL layer and nothing more. It CANNOT tell
+  > a missing table from a dropped connection — Statement::executeQuery
+  > raises SQLQueryException for both and END_DB converts both to the
+  > same const char* — and the message cannot be read either, because
+  > that pointer dangles. The draft claimed the opposite, which is
+  > worse than a loose sentence: the capture-the-flag entry above,
+  > written after ITS review made exactly this correction, already says
+  > "which at least pins the type". This round upgraded that into the
+  > claim its own precedent had declined to make.
+  > There is a second limit worth naming: the tripwire fires only if
+  > the columns someone adds match the names these statements guess at.
+  > A table with any mismatch still raises, every assertion stays
+  > green, and the tripwire silently stops working. (An earlier
+  > draft said "every read and every write" while the tier covered six
+  > of the nine; insertBlacklisted, hasBlacklisted and deleteMessages
+  > had no case, which would have left a table-adder with no signal from
+  > the whole CG_ADD_FRIEND_BLACK branch. All nine are covered now.) Whoever adds
   > the tables should expect those cases to fail and should replace them
   > with the round-trip assertions they were always meant to be.
   > DISCLOSURES. (1) A leak closed in CGWhisperHandler: the location
   > probe freed its Statement when the account was in GAME and when the
-  > row was missing, but NOT when the row was found in any other state ${EM}
-  > so whispering to someone who is logged in but not in game leaked one.
+  > row was missing, but NOT when the row was found in any other state.
+  > An earlier draft glossed that as "logged in but not in game", which
+  > names the rare case. The whole branch is reached only when
+  > g_pPCFinder did NOT find the target, so the dominant state there is
+  > LOGOFF — the column's default. The leak fired on essentially every
+  > whisper to a character that exists and is offline. It leaked the
+  > Statement, its Result, and the buffered MYSQL_RES that Result owns.
   > (2) CG_UPDATE read two rosters row by row while sending a packet per
   > row; both are read in full first now. The inline version's loop body
   > could throw out of sendPacket, escaping mid-iteration with the
@@ -3973,21 +3997,59 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > inside the loop and the two agree only as long as the loop is the
   > only writer. (4) CGWhisperHandler's outer catch (...) already
   > swallowed everything, so unlike the mofus round nothing had to change
-  > about what it names ${EM} the seam's const char* is caught exactly as the
-  > driver's SQLQueryException was. (5) The two add-friend probes SELECT
+  > about what it names — the seam's const char* is caught exactly as the
+  > driver's SQLQueryException was. Worth saying why that catch matters
+  > rather than treating the parity as cosmetic: it sits INSIDE the
+  > g_pPCFinder critical section, and __LEAVE_CRITICAL_SECTION unlocks
+  > only on a normal exit or a Throwable&. A const char* escaping it
+  > would leave that mutex held for the life of the process. The catch
+  > is load bearing against exactly the deadlock the mofus round
+  > described; it was already there, which is why this round did
+  > nothing. (5) The two add-friend probes SELECT
   > columns nobody reads; the projections are kept as written rather than
   > reduced to the question actually asked. (6) The whisper handler's
-  > Slayer probe is NOT loadSlayerAccount: one column instead of two, and
-  > "Name='%s'" unspaced where that one has "Name = '%s'". Kept apart
-  > because the bytes differ, not the meaning. (7) That handler asks
+  > Slayer probe is NOT loadSlayerAccount: one column instead of two,
+  > "Name='%s'" unspaced where that one has "Name = '%s'", AND a
+  > different answer — loadSlayerAccount requires exactly one row where
+  > this one takes the first, so on a duplicate name one returns false
+  > and the other returns a value. The draft said "the bytes differ,
+  > not the meaning", contradicting its own previous sentence. (7) That handler asks
   > getDistConnection for "USERINFO" where every other Player statement
-  > asks for "PLAYER_DB"; DatabaseManager ignores the name, so both reach
-  > the same per-thread socket, and the name is kept because it is what
-  > the call site wrote. (8) #include "DB.h" is gone from both files.
+  > asks for "PLAYER_DB" — every other one THAT GOES THROUGH
+  > getDistConnection, that is. Plenty do not: CGSayHandler's
+  > "UPDATE Player set Access='DENY'" uses getConnection("DARKEDEN"), as
+  > does every Player statement in the loginserver, so the draft's
+  > "every other Player statement" was wrong. DatabaseManager ignores
+  > the name, so both reach the same per-thread socket, and the name is
+  > kept because it is what the call site wrote. (8) #include "DB.h" is gone from both files.
   > (9) DBError.log and the const char* END_DB rethrows now name the
-  > repository method. TESTS: two added, both pinning the absence
-  > described above. ctest 5/5, 166/166 integration tests, build exit 0,
-  > clang-format clean.
+  > repository method. (10) FOUR MORE THINGS THE REVIEW OF THIS ROUND
+  > TURNED UP. Three literal placeholder tokens reached this file: the
+  > round's docs script put an unexpanded variable inside a
+  > non-interpolating heredoc, and nothing caught it. Replaced with the
+  > em dashes intended. The two seams' not-enclosed lists were wrong
+  > AGAIN, for the fourth round running: CGSayHandler holds an
+  > "UPDATE Player set Access='DENY'" that SessionRepository.h's list
+  > missed twice, and a THIRD spelling of the Slayer name-to-PlayerID
+  > lookup (lower-case where) that CharacterRepository.h could not have
+  > recorded because it had no such list at all. Both are named now.
+  > FriendRepository's interface mixes (friend, owner) in its two
+  > inserts with (owner, friend) everywhere else, mirroring the
+  > statements — every parameter is a const std::string&, so a
+  > transposition compiles silently, and the handler comment saying the
+  > deletes work "as the insert pair does" invited exactly that
+  > reading. And "the new code leaks on no path" was too strong: like
+  > every seam here, SAFE_DELETE sits inside the try, so a
+  > non-SQLQueryException throw leaks — and the two vector loaders add
+  > one path the inline code did not have, since push_back can raise
+  > bad_alloc. TESTS: five, not the two an earlier draft shipped. The
+  > three friend methods that draft missed, plus round trips for the two
+  > whisper seams, whose tables DO exist and which it left entirely
+  > uncovered — including the one claim this round makes that only a
+  > live database can settle, that getDistConnection("USERINFO") and
+  > getDistConnection("PLAYER_DB") reach the same rows. A write through
+  > the one now has to land in the row the other reads. ctest 5/5,
+  > 168/168 integration tests, build exit 0, clang-format clean.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes
   > before PetItem — R3 136→133 (R1/R2/R5 unchanged). Motorcycle

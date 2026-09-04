@@ -5,13 +5,15 @@ namespace {
 
 // MySQL implementation of the friend-list seam. The legacy quirks are
 // quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original, including the
-//    lower-case "and" in every WHERE, the unspaced "Owner_Name='%s'"
-//    against the spaced "Owner_Name = '%s'" in the two SELECTs that scan
-//    a whole roster, the unspaced "FriendHistory(HistoryMessage, ...)"
-//    against the spaced "FriendList (Friend_Name, ...)", and the
-//    "HistoryMessage,Friend_Name" projection with no space after its
-//    comma.
+//  - Every statement is byte-for-byte the inline original. The spacing
+//    splits three and three, not by what the statement does: spaced
+//    "Owner_Name = '%s'" in friendExists, loadFriends and loadMessages;
+//    unspaced in hasBlacklisted, deleteFriend and deleteMessages. Three
+//    of the six WHEREs have a conjunction and all three spell it "and"
+//    in lower case. The INSERTs disagree too — unspaced
+//    "FriendHistory(HistoryMessage, ...)" against spaced
+//    "FriendList (Friend_Name, ...)" — and the spool projection is
+//    "HistoryMessage,Friend_Name" with no space after its comma.
 //  - The two add-friend probes SELECT columns nobody reads: the callers
 //    only ask whether next() returned a row. The projections are kept as
 //    written rather than reduced.
@@ -21,6 +23,12 @@ namespace {
 //  - See FriendRepository.h: neither table exists in the shipped schema,
 //    so every one of these statements raises. The bytes are still the
 //    bytes.
+//  - Like every other seam here, SAFE_DELETE sits inside the try, so a
+//    throw that is not a SQLQueryException leaks the Statement (and the
+//    Result and MYSQL_RES it owns). The two vector loaders add one such
+//    path the inline code did not have: push_back can raise bad_alloc.
+//    Theoretical, and the ordinary leak the round closes is a different
+//    and reachable one — but "leaks on no path" would be too strong.
 class MySQLFriendRepository : public FriendRepository {
 public:
     void insertFriend(const string& friendName, const string& ownerName) {

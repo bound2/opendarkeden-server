@@ -15,7 +15,8 @@
 // (UserIPInfo) and the per-server user count a NetMarble deployment
 // publishes (USERINFO.UserStatus). Three connections, as before: Player
 // and the PC-room tables go through the thread's dist connection
-// ("PLAYER_DB" — DatabaseManager ignores the name and hands back the
+// (mostly under the name "PLAYER_DB", though loadPlayerLocation asks
+// for "USERINFO" — DatabaseManager ignores the name and hands back the
 // second per-thread socket to the same schema, see
 // MySQLGoodsRepository.cpp), UserStatus through the process-wide USERINFO
 // connection, the rest through the DARKEDEN connection. Write parameters
@@ -29,7 +30,9 @@
 // Not enclosed: CGPortCheckHandler's UserIPInfo upsert,
 // CGRequestIPHandler's and CGSayHandler's UserIPInfo reads — all
 // handler-directory files (R3); CGSayHandler's and
-// billing/CommonBillingPacket.cpp's Player.LogOn / LastLogoutDate reads;
+// billing/CommonBillingPacket.cpp's Player.LogOn / LastLogoutDate reads,
+// and CGSayHandler's "UPDATE Player set Access='DENY'" — a Player WRITE
+// to a column this seam does not name, which the list missed twice;
 // src/server/PaySystem.cpp's PCRoomUserInfo statements (ServerCore, every
 // caller under the disabled __PAY_SYSTEM_* macros); the loginserver's
 // LoginPlayerManager sweep and its copy of addLogoutPlayerData (the
@@ -92,10 +95,16 @@ public:
     // and is it in game? False when the account has no row, leaving
     // both out-parameters untouched. Note the connection name: that
     // call site asks getDistConnection for "USERINFO" where every
-    // other Player statement asks for "PLAYER_DB". DatabaseManager
-    // ignores the name and hands back the same per-thread socket, so
-    // the two reach the same schema; the name is kept because it is
-    // what that call site wrote.
+    // other Player statement THAT GOES THROUGH getDistConnection asks
+    // for "PLAYER_DB". Plenty do not go through it at all —
+    // CGSayHandler's "UPDATE Player set Access='DENY'" uses
+    // getConnection("DARKEDEN"), as does every Player statement in the
+    // loginserver — so "every other Player statement" would be wrong.
+    // DatabaseManager ignores the name and hands back the same
+    // per-thread socket, so the two reach the same schema; the name is
+    // kept because it is what that call site wrote, and the integration
+    // tier now pins that a write through the PLAYER_DB-named path lands
+    // in the row this one reads.
     virtual bool loadPlayerLocation(const std::string& playerID, int& serverGroupID, std::string& logOn) = 0;
     // LogOn='LOGOFF', LastLogoutDate=now() — only for a row still in 'GAME'.
     virtual void markPlayerLoggedOff(const std::string& playerID) = 0;
