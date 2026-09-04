@@ -7,8 +7,10 @@
 #include "Types.h"
 
 // Seam for the player-session bookkeeping (task 3.2): the guild roster's
-// online flag (GuildMember.LogOn), the account's session state and event
-// counter (Player.LogOn / LastLogoutDate / SpecialEventCount), the PC-room
+// online flag (GuildMember.LogOn), the account row the connect path
+// reads WHOLE (Player.LogOn, LastLogoutDate and SpecialEventCount, plus
+// the server group and the billing columns loadPlayerSession takes), the
+// PC-room
 // records (PCRoomUserInfo, PCRoomLottoObject), the per-character IP table
 // (UserIPInfo) and the per-server user count a NetMarble deployment
 // publishes (USERINFO.UserStatus). Three connections, as before: Player
@@ -25,7 +27,10 @@
 // markPlayerLoggedOn and markGuildMemberLoggedOn below.
 //
 // Not enclosed: CGPortCheckHandler's UserIPInfo upsert,
-// CGRequestIPHandler's and CGSayHandler's UserIPInfo reads — all
+// CGRequestIPHandler's and CGSayHandler's UserIPInfo reads, and
+// CGWhisperHandler's pair — a Slayer name-to-PlayerID probe and a
+// "SELECT CurrentServerGroupID, LogOn FROM Player" read on the dist
+// connection, which an earlier version of this list missed — all
 // handler-directory files (R3); CGSayHandler's and
 // billing/CommonBillingPacket.cpp's Player.LogOn / LastLogoutDate reads;
 // src/server/PaySystem.cpp's PCRoomUserInfo statements (ServerCore, every
@@ -82,8 +87,9 @@ public:
     // LogOn='GAME', but only for a row still in 'LOGOFF'. Returns
     // whether a row was affected — the caller reads false as "someone
     // else got there first" and throws. This is the mirror of
-    // markPlayerLoggedOff, which does not report its row count because
-    // its caller never asked.
+    // markPlayerLoggedOff, which does not report its row count. (Its
+    // caller did ask, into an empty if block the session round deleted;
+    // "never asked" was the wrong way to put it.)
     virtual bool markPlayerLoggedOn(const std::string& playerID) = 0;
     // LogOn='LOGOFF', LastLogoutDate=now() — only for a row still in 'GAME'.
     virtual void markPlayerLoggedOff(const std::string& playerID) = 0;

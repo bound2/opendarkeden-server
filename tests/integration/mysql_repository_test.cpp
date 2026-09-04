@@ -5866,7 +5866,9 @@ TEST_F(SessionMySQL, TheSessionHandshakeReadsTheAccountThenClaimsItExactlyOnce) 
 
     // The columns are read positionally, and every value above is
     // distinct, so a projection that drifted out of step with the reads
-    // shows up here.
+    // shows up here. Only the ten-column arm is covered: the
+    // __THAILAND_SERVER__ arm selects an eleventh column, Birthday,
+    // which this schema does not have, so no tier can reach it.
 
     // Claiming the session is the double-login guard: the UPDATE only
     // matches a row still in LOGOFF, so the SECOND caller gets false and
@@ -5902,7 +5904,12 @@ TEST_F(SessionMySQL, GuildMemberLogOnAndLogOffAreMirrorsScopedToOneMember) {
     EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-a'"));
 
     // A name with no row is a silent no-op, as the connect path assumes.
+    // Assert it rather than just calling it: without these three lines
+    // the call proved only that it does not throw.
     repository.markGuildMemberLoggedOn("it-none");
+    EXPECT_EQ("", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-none'"));
+    EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-a'"));
+    EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-b'"));
 }
 
 TEST_F(SessionMySQL, GuildMemberLogOffFlagsOnlyThatMember) {

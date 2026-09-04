@@ -3726,8 +3726,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > what made it wrong. And the capture-the-flag round closed five
   > Statement OBJECTS across four functions — "four" was that entry's
   > function count, not its leak count. All three guild LogOn writes
-  > ran BEGIN_DB/END_DB with no SAFE_DELETE, so every successful login
-  > leaked a Statement per guild member — three sites, one per race. ActionShowGuildDialog's registration
+  > ran BEGIN_DB/END_DB with no SAFE_DELETE, so every login by a
+  > character that BELONGS TO A GUILD leaked one Statement — three
+  > identical sites, one per race, exactly one of which runs per
+  > login. (An earlier draft said "a Statement per guild member",
+  > which is wrong twice: the write targets the logging-in player's
+  > own row, and it is gated on the character having a guild.) ActionShowGuildDialog's registration
   > probe freed its Statement on both early-return branches and NOT on
   > the fall-through, which is the ordinary path: a character with no
   > guild row at all, i.e. everyone registering a first guild. Its
@@ -3750,11 +3754,13 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > text MOVES from stdout to DBError.log rather than simply appearing.
   > The catch itself is kept, but not for the reason the draft gave:
   > nothing left in that block can raise a SQLQueryException in any
-  > configuration the gameserver builds. loginPayPlay and sendPayInfo
-  > could reach the database, but they live in the
-  > __CONNECT_BILLING_SYSTEM__ and __PAY_SYSTEM_* arms, and the build
-  > defines neither. It is kept because it costs nothing and would
-  > matter again if a DB call were added there. (2) The account
+  > SHIPPED build. The one candidate is PaySystem::loginPayPlay, under
+  > __PAY_SYSTEM_LOGIN__ / __PAY_SYSTEM_FREE_LIMIT__ — and all three
+  > pay-system macros are commented out in PaySystem.h, which THIS
+  > DOCUMENT already records in the session-cluster entry. The draft's
+  > claim was refuted by the file it was written into. The catch is
+  > kept because it costs nothing and would matter again if a DB call
+  > were added there. (2) The account
   > read and the LogOn flip ran on ONE Statement against the dist
   > connection and now take one each; same connection, same order.
   > (3) The connect probe's two columns are still read and still used —
@@ -3773,12 +3779,26 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > recorded: ActionShowGuildDialog's seven-day guild-creation penalty
   > is a hardcoded 604800, where CGRegistGuildHandler's is
   > g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 *
-  > 3600. Two paths to the same rule, one configurable and one not.
+  > 3600. An earlier draft called these "two paths to the same rule";
+  > the review corrected that. They are two STAGES of one flow — the
+  > NPC dialog gate that decides whether to show the registration UI,
+  > then the handler that processes the submit — both reading the same
+  > row through the same loadMemberRankExpireDate. The consequence the
+  > draft missed: because the hardcoded gate runs FIRST, setting
+  > QUIT_GUILD_PENALTY_TERM below seven days is silently ineffective,
+  > and setting it above seven only lets the dialog open on a request
+  > the handler then refuses.
   > (7) Two hygiene items the review of this round turned up. The dead
   > #include "DB.h" is removed from both files, which the couple and
   > capture-the-flag rounds did and the earlier guild-handler round did
   > not; leaving it kept dragging <mysql/mysql.h> into quest/ and
-  > handler/ through Result.h. And the three guild LogOn call sites
+  > handler/ through Result.h. Two "not enclosed" lists were also
+  > wrong and are corrected: SessionRepository.h missed
+  > CGWhisperHandler's Player LogOn read entirely, and its opening
+  > sentence still described the seam as covering only LogOn,
+  > LastLogoutDate and SpecialEventCount when loadPlayerSession reads
+  > the whole account row; GuildRepository.h's sharedserver bullet
+  > omitted GSAddGuildMemberHandler's GuildMember write. And the three guild LogOn call sites
   > passed getName().c_str() into a const std::string& parameter,
   > forcing a strlen and a copy where every other converted site in
   > this round passes the string itself. (8) Bare { } scopes are left

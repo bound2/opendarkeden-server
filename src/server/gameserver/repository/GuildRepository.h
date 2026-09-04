@@ -21,7 +21,9 @@
 // Not enclosed, and this list is meant to be exhaustive for the
 // gameserver:
 //  - the sharedserver's own Guild.cpp / GuildManager.cpp, a separate
-//    copy with its own SQL, WarScheduleInfo statements included;
+//    copy with its own SQL, WarScheduleInfo statements included, plus
+//    its GSAddGuildMemberHandler's "UPDATE GuildMember SET
+//    RequestDateTime=now()", which this list used to omit;
 //  - src/server/Restore.cpp's "UPDATE GuildMember SET LogOn = 0"
 //    counterpart, which is in no CMakeLists and so is not built,
 //    though it still counts in R3.
@@ -177,9 +179,10 @@ public:
     // belongs to. Same statement as memberExists — they share one
     // literal in the implementation — but this one READS the id where
     // that one only counts rows, and it uses next() rather than
-    // getRowCount(), so it answers on the FIRST row rather than
-    // requiring exactly one. Name is the primary key, so there is at
-    // most one either way.
+    // getRowCount(). Name is the primary key, so there is at most one
+    // row and the difference cannot show — an earlier version of this
+    // comment contrasted "the FIRST row" with "requiring exactly one",
+    // which memberExists does not require either.
     virtual bool loadMemberGuildID(const std::string& name, int& guildID) = 0;
     virtual void saveMember(GuildID_t guildID, GuildMemberRank_t rank, const std::string& name) = 0;
     virtual void deleteMember(const std::string& name) = 0;

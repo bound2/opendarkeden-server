@@ -320,12 +320,13 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         // NOTE: nothing left in this try can raise a SQLQueryException.
         // Each repository call converts its own inside END_DB and
         // rethrows a const char*, which this catch does not match, and
-        // everything else in the block is in-memory work. (loginPayPlay
-        // and sendPayInfo could reach the database, but they live in the
-        // __CONNECT_BILLING_SYSTEM__ / __PAY_SYSTEM_* arms, and the
-        // gameserver compiles neither.) The catch is kept because it
-        // costs nothing and would come back to life if a DB call were
-        // added here, not because it has anything to catch today.
+        // everything else in the block is in-memory work. The one
+        // candidate, PaySystem::loginPayPlay, sits under
+        // __PAY_SYSTEM_LOGIN__ / __PAY_SYSTEM_FREE_LIMIT__, and all
+        // three pay-system macros are commented out in PaySystem.h —
+        // which docs/RESTRUCTURING.md already records. The catch is
+        // kept because it costs nothing and would matter again if a DB
+        // call were added here, not because it has anything to catch.
         //
         // What the const char* does instead: it matches no handler
         // between here and GamePlayer::processCommand's catch (...),
