@@ -33,6 +33,111 @@ public:
         END_DB(pStmt)
     }
 
+    void markGuildMemberLoggedOn(const string& name) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE GuildMember SET LogOn = 1 WHERE Name = '%s'", name.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    bool loadPlayerSession(const string& playerID, PlayerSessionRow& row) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+
+#ifdef __THAILAND_SERVER__
+
+            Result* pResult = pStmt->executeQuery(
+                "SELECT PlayerID, CurrentServerGroupID, LogOn, SpecialEventCount, PayType, PayPlayDate, "
+                "PayPlayHours, PayPlayFlag, BillingUserKey, FamilyPayPlayDate, Birthday FROM Player WHERE "
+                "PlayerID = '%s'",
+                playerID.c_str());
+
+#else
+
+            Result* pResult = pStmt->executeQuery(
+                "SELECT PlayerID, CurrentServerGroupID, LogOn, SpecialEventCount, PayType, PayPlayDate, "
+                "PayPlayHours, PayPlayFlag, BillingUserKey, FamilyPayPlayDate FROM Player WHERE PlayerID = '%s'",
+                playerID.c_str());
+
+#endif
+
+            if (pResult->getRowCount() == 1) {
+                pResult->next();
+
+                int i = 0;
+                row.playerID = pResult->getString(++i);
+                row.serverGroupID = pResult->getInt(++i);
+                row.logOn = pResult->getString(++i);
+                row.specialEventCount = pResult->getDWORD(++i);
+                row.payType = pResult->getInt(++i);
+                row.payPlayDate = pResult->getString(++i);
+                row.payPlayHours = pResult->getInt(++i);
+                row.payPlayFlag = pResult->getInt(++i);
+                row.billingUserKey = pResult->getInt(++i);
+                row.familyPayPlayDate = pResult->getString(++i);
+#ifdef __THAILAND_SERVER__
+                row.birthday = pResult->getString(++i);
+#endif
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool markPlayerLoggedOn(const string& playerID) {
+        bool affected = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt->executeQuery("UPDATE Player SET LogOn='GAME' WHERE PlayerID = '%s' AND LogOn='LOGOFF'",
+                                playerID.c_str());
+
+            affected = pStmt->getAffectedRowCount() != 0;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return affected;
+    }
+
+    bool loadPlayerLocation(const string& playerID, int& serverGroupID, string& logOn) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            // "USERINFO", not "PLAYER_DB": the name is ignored, and this
+            // is what the call site wrote.
+            pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT CurrentServerGroupID, LogOn FROM Player WHERE PlayerID='%s'",
+                                                  playerID.c_str());
+
+            if (pResult->next()) {
+                serverGroupID = pResult->getInt(1);
+                logOn = pResult->getString(2);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
     void markPlayerLoggedOff(const string& playerID) {
         Statement* pStmt = NULL;
 

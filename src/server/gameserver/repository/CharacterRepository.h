@@ -255,6 +255,31 @@ public:
     // character while it was handed over); on true, record carries
     // every selected column.
     virtual bool loadSlayer(const std::string& ownerName, SlayerLoadRecord& record) = 0;
+    // CGConnectHandler's connect-time probe, which exists to take the
+    // character's race from the DATABASE rather than trusting the type
+    // the client sent. False unless EXACTLY one row: that caller treats
+    // none and several alike, logging to connectDB_BUG.txt and throwing
+    // ProtocolException. Every character has a Slayer row whatever its
+    // race, which is why one probe covers all three.
+    virtual bool loadSlayerAccount(const std::string& name, std::string& playerID, std::string& race) = 0;
+    // CGWhisperHandler's own name-to-account lookup. NOT the same
+    // statement as loadSlayerAccount: one column instead of two, and
+    // "Name='%s'" unspaced where that one has "Name = '%s'". It also
+    // answers on the FIRST row rather than requiring exactly one,
+    // because that caller only wants an account to look up. So they are
+    // kept apart because BOTH the bytes and the answer differ — an
+    // earlier version of this comment said "not because the meaning
+    // does", contradicting the sentence just before it. On a duplicate
+    // name one returns false and the other returns a value.
+    virtual bool loadSlayerPlayerID(const std::string& name, std::string& playerID) = 0;
+    // Not enclosed, and this header had no such list before. A THIRD
+    // spelling of the same lookup lives in CGSayHandler's GM ban
+    // command — "SELECT PlayerID FROM Slayer where Name='%s'", with a
+    // lower-case where. Nor is it alone: CGSayHandler also reads
+    // "SELECT Fame, BladeLevel, ... FROM Slayer", and CreatureUtil.cpp
+    // carries "SELECT Race FROM Slayer where Name='%s'" plus its SEX
+    // and Active='INACTIVE' updates. The loginserver's Slayer
+    // statements are a different binary. All join their own rounds.
     virtual bool loadVampire(const std::string& ownerName, VampireLoadRecord& record) = 0;
     virtual bool loadOusters(const std::string& ownerName, OustersLoadRecord& record) = 0;
 

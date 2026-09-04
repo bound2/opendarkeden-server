@@ -36,8 +36,11 @@
 #include "repository/CharacterRepository.h"
 #include "repository/ComebackEventRepository.h"
 #include "repository/ContentInfoRepository.h"
+#include "repository/CoupleRepository.h"
 #include "repository/EffectSaveRepository.h"
 #include "repository/FlagSetRepository.h"
+#include "repository/FlagWarRepository.h"
+#include "repository/FriendRepository.h"
 #include "repository/GameInfoRepository.h"
 #include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
@@ -45,6 +48,7 @@
 #include "repository/ItemObjectRepository.h"
 #include "repository/ItemRepository.h"
 #include "repository/MessageRepository.h"
+#include "repository/MofusPointRepository.h"
 #include "repository/NicknameRepository.h"
 #include "repository/PlayRecordRepository.h"
 #include "repository/QuestInfoRepository.h"
@@ -55,6 +59,7 @@
 #include "repository/SessionRepository.h"
 #include "repository/SkillSaveRepository.h"
 #include "repository/StashRepository.h"
+#include "repository/SystemAvailabilityRepository.h"
 #include "repository/WarInfoRepository.h"
 #include "repository/ZoneInfoRepository.h"
 
@@ -185,6 +190,515 @@ TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
     EXPECT_EQ(0, gold);
 }
 
+// --- system-availability flags against real MySQL --------------------------
+
+TEST(SystemAvailabilityMySQL, TheBootReadTakesTheFirstTwoColumnsOfASelectStar) {
+    // This is the only thing that will ever catch the hazard the seam's
+    // header names. The statement is "SELECT *" and the caller reads
+    // columns 1 and 2 POSITIONALLY, so a column inserted before them would
+    // silently reassign every system flag. Both of that seam's callers are
+    // compiled out of this build, so the compiler will never notice; an
+    // earlier draft of this round declined to write this test on the
+    // grounds that the callers are dead, which got the argument backwards.
+    SystemAvailabilityRepository& repository = defaultSystemAvailabilityRepository();
+
+    execSQL("DELETE FROM SystemAvailabilities WHERE SystemKind >= 31000");
+    execSQL("INSERT INTO SystemAvailabilities (SystemKind, Available, Description) "
+            "VALUES (31000, 7, 'it-availability')");
+
+    std::vector<SystemAvailabilityRow> rows = repository.loadAll();
+
+    bool seen = false;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].systemKind == 31000) {
+            seen = true;
+            // 7, not 1: the caller turns this into a bool for most systems
+            // but reads it as an integer for the three limit rows, so the
+            // seam must hand back the column rather than a flag.
+            EXPECT_EQ(7, rows[r].available);
+        }
+    }
+    EXPECT_TRUE(seen) << "the seeded row did not come back — has a column been "
+                         "inserted before SystemKind or Available?";
+
+    // The seeded production rows come back too, which is what the boot
+    // path depends on.
+    EXPECT_FALSE(rows.empty());
+
+    repository.deleteSystemKind(31000);
+    EXPECT_EQ("0", queryScalar("SELECT count(*) FROM SystemAvailabilities WHERE SystemKind=31000"));
+
+    // The delete is scoped to the one kind, so the seeded rows survive it.
+    EXPECT_NE("0", queryScalar("SELECT count(*) FROM SystemAvailabilities"));
+}
+
+// --- the friend list against real MySQL ------------------------------------
+
+// Every case here pins a FAILURE, and that is deliberate. FriendList and
+// FriendHistory do not exist: initdb/DARKEDEN.sql defines 374 tables and
+// neither is among them, in that schema or in USERINFO.sql, and the only
+// mention of either name anywhere in the tree is the handler these
+// statements came from. So the friend feature has never worked against
+// the shipped schema, and no success path is reachable to assert.
+//
+// Whoever adds the tables should expect these cases to fail, and should
+// replace them with the round-trip assertions they were always meant to
+// be: insert a mutual pair and read it back, spool a message and drain
+// it, blacklist and check both directions.
+class FriendMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        // No-ops while the tables are absent, and correct the moment
+        // they are added — which is the scenario this fixture exists for.
+        execSQLIgnoringErrors("DELETE FROM FriendList WHERE Owner_Name LIKE 'it-%'");
+        execSQLIgnoringErrors("DELETE FROM FriendHistory WHERE Owner_Name LIKE 'it-%'");
+    }
+};
+
+TEST_F(FriendMySQL, EveryReadRaisesBecauseTheTableIsNotInTheSchema) {
+    FriendRepository& repository = defaultFriendRepository();
+
+    // Catch the const char* END_DB rethrows rather than using
+    // EXPECT_ANY_THROW, which would pass for any failure at all. Be
+    // precise about what that buys: it pins the failure to the SQL
+    // layer, and nothing more. It CANNOT tell a missing table from a
+    // dropped connection — Statement::executeQuery raises
+    // SQLQueryException for both, and END_DB converts both to the same
+    // const char*. Nor can the message be read: END_DB throws
+    // msg.c_str() from a local std::string, so the pointer dangles.
+    bool refused = false;
+    try {
+        repository.loadFriends("it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "loadFriends succeeded, so FriendList now exists — see this fixture's comment";
+
+    refused = false;
+    try {
+        repository.loadMessages("it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "loadMessages succeeded, so FriendHistory now exists";
+
+    refused = false;
+    try {
+        repository.friendExists("it-friend", "it-other");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "friendExists succeeded, so FriendList now exists";
+}
+
+TEST_F(FriendMySQL, EveryWriteRaisesToo) {
+    FriendRepository& repository = defaultFriendRepository();
+
+    bool refused = false;
+    try {
+        repository.insertFriend("it-friend", "it-other");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "insertFriend succeeded, so FriendList now exists";
+
+    refused = false;
+    try {
+        repository.insertMessage("hello", "it-other", "it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "insertMessage succeeded, so FriendHistory now exists";
+
+    // The deletes fail the same way, which matters because the handler
+    // runs them without checking anything first.
+    refused = false;
+    try {
+        repository.deleteFriend("it-friend", "it-other");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "deleteFriend succeeded, so FriendList now exists";
+
+    // The three the first draft left uncovered. insertBlacklisted and
+    // hasBlacklisted are the only statements CG_ADD_FRIEND_BLACK
+    // reaches, and deleteMessages is the one the IsHave flag gates, so
+    // without these a table-adder would get no signal from that whole
+    // branch.
+    refused = false;
+    try {
+        repository.insertBlacklisted("it-other", "it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "insertBlacklisted succeeded, so FriendList now exists";
+
+    refused = false;
+    try {
+        repository.hasBlacklisted("it-other", "it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "hasBlacklisted succeeded, so FriendList now exists";
+
+    refused = false;
+    try {
+        repository.deleteMessages("it-friend");
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "deleteMessages succeeded, so FriendHistory now exists";
+}
+
+// --- capture-the-flag against real MySQL -----------------------------------
+
+class FlagWarMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM FlagPolePosition WHERE ZoneID >= 31000");
+        // The seam's own wipe is unconditional, so the tier owns the
+        // whole table for the run. (Name LIKE 'it-%' would scope it, as
+        // the FlagWarHistory line below does; owning the table is what
+        // lets the wipe test seed a row it does not own.)
+        execSQL("DELETE FROM FlagWarStat");
+        execSQL("DELETE FROM FlagWarHistory WHERE FlagWarID LIKE 'it-%'");
+    }
+};
+
+TEST_F(FlagWarMySQL, ThePoleLoadTurnsTheRaceEnumIntoAZeroBasedIndex) {
+    // FlagPolePosition.Race is an ENUM('SLAYER','VAMPIRE','OUSTERS'), and
+    // the statement selects "Race-1". MySQL evaluates arithmetic on an
+    // ENUM against its 1-BASED index, so the "-1" is what makes the
+    // value line up with Race_t. Getting this wrong would shift every
+    // flag pole one race over, which is why it is pinned here rather
+    // than left to the comment.
+    execSQL("INSERT INTO FlagPolePosition (ZoneID, CenterX, CenterY, Width, Height, Race, MonsterType) "
+            "VALUES (31000, 10, 20, 3, 4, 'SLAYER', 77)");
+    execSQL("INSERT INTO FlagPolePosition (ZoneID, CenterX, CenterY, Width, Height, Race, MonsterType) "
+            "VALUES (31001, 11, 21, 5, 6, 'VAMPIRE', 78)");
+    execSQL("INSERT INTO FlagPolePosition (ZoneID, CenterX, CenterY, Width, Height, Race, MonsterType) "
+            "VALUES (31002, 12, 22, 7, 8, 'OUSTERS', 79)");
+
+    std::vector<FlagPoleRow> poles = defaultFlagWarRepository().loadFlagPoles();
+
+    // The table carries the production seed rows too, so pick out ours.
+    int seen = 0;
+    for (size_t r = 0; r < poles.size(); r++) {
+        if (poles[r].zoneID == 31000) {
+            seen++;
+            EXPECT_EQ(10, poles[r].centerX);
+            EXPECT_EQ(20, poles[r].centerY);
+            EXPECT_EQ(3, poles[r].width);
+            EXPECT_EQ(4, poles[r].height);
+            EXPECT_EQ(0, poles[r].race); // SLAYER is enum index 1
+            EXPECT_EQ(77, poles[r].monsterType);
+        }
+        if (poles[r].zoneID == 31001) {
+            seen++;
+            EXPECT_EQ(1, poles[r].race); // VAMPIRE
+        }
+        if (poles[r].zoneID == 31002) {
+            seen++;
+            EXPECT_EQ(2, poles[r].race); // OUSTERS
+        }
+    }
+    EXPECT_EQ(3, seen);
+}
+
+TEST_F(FlagWarMySQL, ThePerFlagTallyIsCheckedBeforeInsertBecauseNothingEnforcesIt) {
+    FlagWarRepository& repository = defaultFlagWarRepository();
+
+    EXPECT_FALSE(repository.flagStatExists("it-carl", 4242));
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 4242);
+    EXPECT_TRUE(repository.flagStatExists("it-carl", 4242));
+
+    // The probe is keyed on BOTH columns: the same player with another
+    // flag, and another player with this flag, are both misses.
+    EXPECT_FALSE(repository.flagStatExists("it-carl", 4243));
+    EXPECT_FALSE(repository.flagStatExists("it-dana", 4242));
+
+    // (Name, ItemID) is an INDEX, not a unique constraint, so the
+    // database would happily take a second identical row. That is
+    // exactly why the caller probes first, and why the probe is part of
+    // the seam rather than a detail of the handler.
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 4242);
+    EXPECT_EQ("2", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ItemID=4242"));
+}
+
+TEST_F(FlagWarMySQL, TheHistoryRollUpIsRefusedByOnlyFullGroupByAndTheWipeTakesEverything) {
+    FlagWarRepository& repository = defaultFlagWarRepository();
+
+    // Two flags for one player on server 7, one on server 8, one for
+    // another player. The GROUP BY is on (Name, ServerID), so the same
+    // name on two servers is two rows.
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 1);
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 2);
+    repository.insertFlagStat("it-acc1", "it-carl", 1, 8, 3);
+    repository.insertFlagStat("it-acc2", "it-dana", 2, 7, 4);
+
+    // THE ROLL-UP CANNOT RUN. The statement groups by (Name, ServerID)
+    // while selecting PlayerID and Race bare, and this project's
+    // required sql_mode KEEPS ONLY_FULL_GROUP_BY (it removes
+    // NO_ZERO_DATE and STRICT_TRANS_TABLES, not this one), so MySQL
+    // refuses it with error 1055 and the read throws. Which means no
+    // flag-war history is recorded on a correctly configured server,
+    // and never has been.
+    //
+    // Task 3.2 moves statements without fixing them, so the throw is
+    // what this tier pins. Anyone who fixes the GROUP BY should expect
+    // this assertion to be the thing that fails.
+    // Pin more than "something threw": catch the const char* END_DB
+    // rethrows, so a failure raising some other type would fail here
+    // rather than quietly validating the claim.
+    //
+    // What this CANNOT do is read the message, and the reason is worth
+    // recording: END_DB builds a local std::string and throws
+    // msg.c_str(), so the pointer dangles the moment the catch block
+    // exits. Asserting on the 1055 text here read an empty string.
+    // That is a project-wide defect in the macro, not this seam's —
+    // every repository in the tree rethrows the same way — and it
+    // belongs with the __LEAVE_CRITICAL_SECTION fix in a Core round.
+    // The MySQL error text does reach DBError.log, which END_DB
+    // writes before throwing.
+    bool refused = false;
+    try {
+        repository.loadFlagWarStatTotals();
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "loadFlagWarStatTotals did not raise the ONLY_FULL_GROUP_BY refusal";
+
+    // The tally itself is fine. The history writer is fed BY HAND
+    // below with what the roll-up would have produced, so the writer is
+    // covered without pretending the reader is — nothing was actually
+    // rolled into those rows.
+    EXPECT_EQ("2", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ServerID=7"));
+    EXPECT_EQ("1", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ServerID=8"));
+    EXPECT_EQ("1", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-dana' AND ServerID=7"));
+
+    repository.insertFlagWarHistory("it-round1", "it-acc1", "it-carl", 1, 7, 2);
+    repository.insertFlagWarHistory("it-round1", "it-acc1", "it-carl", 1, 8, 1);
+    repository.insertFlagWarHistory("it-round1", "it-acc2", "it-dana", 2, 7, 1);
+    EXPECT_EQ("3", queryScalar("SELECT count(*) FROM FlagWarHistory WHERE FlagWarID='it-round1'"));
+    EXPECT_EQ("2", queryScalar("SELECT FlagNum FROM FlagWarHistory "
+                               "WHERE FlagWarID='it-round1' AND Name='it-carl' AND ServerID=7"));
+
+    // The wipe is UNCONDITIONAL — no WHERE at all. Seed a row the test
+    // does not own, so that a hypothetical scoped implementation
+    // (WHERE Name LIKE 'it-%') would leave it behind and fail here;
+    // without this row the assertion could not tell the two apart.
+    execSQL("INSERT INTO FlagWarStat (PlayerID, Name, Race, ServerID, ItemID) "
+            "VALUES ('other-acc', 'other', 0, 9, 99)");
+    repository.deleteAllFlagWarStats();
+    EXPECT_EQ("0", queryScalar("SELECT count(*) FROM FlagWarStat"));
+    EXPECT_EQ("3", queryScalar("SELECT count(*) FROM FlagWarHistory WHERE FlagWarID='it-round1'"));
+}
+
+// --- mofus power points against real MySQL ---------------------------------
+
+class MofusMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM MofusPowerPoint WHERE OwnerID LIKE 'it-%'");
+        execSQL("DELETE FROM MofusLog WHERE OwnerID LIKE 'it-%'");
+    }
+};
+
+TEST_F(MofusMySQL, TheFirstSaveInsertsAndEveryLaterOneAccumulates) {
+    MofusPointRepository& repository = defaultMofusPointRepository();
+
+    // No row yet: the UPDATE matches nothing, which is exactly how the
+    // caller knows to insert. OwnerID is the PRIMARY KEY, so the insert
+    // can only happen once.
+    int point = -1;
+    EXPECT_FALSE(repository.loadPowerPoint("it-mofus", point));
+    EXPECT_EQ(-1, point); // left alone when there is no row
+
+    EXPECT_FALSE(repository.increasePowerPoint("it-mofus", 30));
+    EXPECT_EQ("0", queryScalar("SELECT count(*) FROM MofusPowerPoint WHERE OwnerID='it-mofus'"));
+
+    repository.insertPowerPoint("it-mofus", 30);
+    ASSERT_TRUE(repository.loadPowerPoint("it-mofus", point));
+    EXPECT_EQ(30, point);
+
+    // Now the UPDATE matches, so the caller does NOT insert again.
+    EXPECT_TRUE(repository.increasePowerPoint("it-mofus", 12));
+    ASSERT_TRUE(repository.loadPowerPoint("it-mofus", point));
+    EXPECT_EQ(42, point);
+
+    // The balance is relative and signed: Point is int(11) SIGNED, so a
+    // negative amount really does subtract and can go below zero. That is
+    // the inline statement's arithmetic, kept.
+    EXPECT_TRUE(repository.increasePowerPoint("it-mofus", -50));
+    ASSERT_TRUE(repository.loadPowerPoint("it-mofus", point));
+    EXPECT_EQ(-8, point);
+
+    // The live shape the round's callers actually produce: a FIRST save
+    // that is a spend, which creates the row already negative. That is
+    // CGUsePowerPointHandler's -300 against a character who has never
+    // received a mofus credit.
+    EXPECT_FALSE(repository.increasePowerPoint("it-spend", -300));
+    repository.insertPowerPoint("it-spend", -300);
+    ASSERT_TRUE(repository.loadPowerPoint("it-spend", point));
+    EXPECT_EQ(-300, point);
+
+    // And the quirk that sends it there: affected-rows counts rows
+    // CHANGED, not matched, because the driver sets no
+    // CLIENT_FOUND_ROWS. Adding zero to an EXISTING row reports false,
+    // so the caller would insert against the primary key and raise —
+    // which the mofus swallow then eats.
+    EXPECT_FALSE(repository.increasePowerPoint("it-spend", 0));
+    bool refused = false;
+    try {
+        repository.insertPowerPoint("it-spend", 0);
+    } catch (const char*) {
+        refused = true;
+    }
+    EXPECT_TRUE(refused) << "the duplicate-key insert did not raise";
+}
+
+TEST_F(MofusMySQL, TheAuditRowIsStampedByTheDatabaseAndKeepsEverySave) {
+    MofusPointRepository& repository = defaultMofusPointRepository();
+
+    repository.logPowerPoint("it-mofus", 5, 7);
+    repository.logPowerPoint("it-mofus", 9, 11);
+
+    // MofusLog has no unique key, so every save appends — it is an audit
+    // trail, not a balance.
+    EXPECT_EQ("2", queryScalar("SELECT count(*) FROM MofusLog WHERE OwnerID='it-mofus'"));
+    EXPECT_EQ("7", queryScalar("SELECT SavePoint FROM MofusLog WHERE OwnerID='it-mofus' AND RecvPoint=5"));
+    EXPECT_EQ("11", queryScalar("SELECT SavePoint FROM MofusLog WHERE OwnerID='it-mofus' AND RecvPoint=9"));
+
+    // SaveTime is now(), stamped by the database rather than the caller.
+    EXPECT_EQ(queryScalar("SELECT CURDATE()"),
+              queryScalar("SELECT DATE(SaveTime) FROM MofusLog WHERE OwnerID='it-mofus' AND RecvPoint=5"));
+}
+
+// --- couple pairings against real MySQL ------------------------------------
+
+class CoupleMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM CoupleInfo WHERE MalePartnerName LIKE 'it-%' OR FemalePartnerName LIKE 'it-%'");
+    }
+};
+
+TEST_F(CoupleMySQL, APairingIsOneRowFoundFromEitherSide) {
+    CoupleRepository& repository = defaultCoupleRepository();
+
+    // The row carries one column per sex, so the SAME row answers both
+    // partners' probes — each naming its own column. This is the property
+    // the sex-derived column names exist for, and the one a mixed-up
+    // derivation would break.
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 0);
+
+    EXPECT_EQ("it-mike", queryScalar("SELECT MalePartnerName FROM CoupleInfo WHERE FemalePartnerName='it-fay'"));
+    EXPECT_EQ("it-fay", queryScalar("SELECT FemalePartnerName FROM CoupleInfo WHERE MalePartnerName='it-mike'"));
+
+    EXPECT_EQ(1, repository.countPairingWithPartner(MALE, "it-mike", "it-fay"));
+    EXPECT_EQ(1, repository.countPairingWithPartner(FEMALE, "it-fay", "it-mike"));
+    // The other derivation, each column from its own character's sex.
+    // Same row, either way round.
+    EXPECT_EQ(1, repository.countPairing(MALE, "it-mike", FEMALE, "it-fay"));
+    EXPECT_EQ(1, repository.countPairing(FEMALE, "it-fay", MALE, "it-mike"));
+
+    EXPECT_EQ(1, repository.countPairingsOf(MALE, "it-mike"));
+    EXPECT_EQ(1, repository.countPairingsOf(FEMALE, "it-fay"));
+
+    std::string partner;
+    ASSERT_TRUE(repository.loadPartnerName(MALE, "it-mike", partner));
+    EXPECT_EQ("it-fay", partner);
+    ASSERT_TRUE(repository.loadPartnerName(FEMALE, "it-fay", partner));
+    EXPECT_EQ("it-mike", partner);
+
+    // CoupleDate is stamped by the database, not by the caller.
+    EXPECT_EQ(queryScalar("SELECT CURDATE()"),
+              queryScalar("SELECT CoupleDate FROM CoupleInfo WHERE MalePartnerName='it-mike'"));
+}
+
+TEST_F(CoupleMySQL, ProbesAreScopedToTheNamedPairAndMissAnyoneElse) {
+    CoupleRepository& repository = defaultCoupleRepository();
+
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 0);
+
+    // Right names, wrong side: the male name looked up in the female
+    // column finds nothing. Note precisely what this pins and what it
+    // does not: every assertion below still holds if the column table
+    // were swapped end for end, so this test establishes that the
+    // derivation is sex-DEPENDENT, not that it is sex-CORRECT. The
+    // orientation is pinned by the raw-SQL pair in the test above,
+    // which reads MalePartnerName and FemalePartnerName by name.
+    EXPECT_EQ(0, repository.countPairingsOf(FEMALE, "it-mike"));
+    EXPECT_EQ(0, repository.countPairingWithPartner(MALE, "it-fay", "it-mike"));
+
+    // A stranger, and a real character paired with the wrong partner.
+    EXPECT_EQ(0, repository.countPairingsOf(MALE, "it-nobody"));
+    EXPECT_EQ(0, repository.countPairingWithPartner(MALE, "it-mike", "it-eve"));
+
+    std::string partner = "untouched";
+    EXPECT_FALSE(repository.loadPartnerName(MALE, "it-nobody", partner));
+    EXPECT_EQ("untouched", partner); // left alone when there is no row
+}
+
+TEST_F(CoupleMySQL, TheThreeDeletesDifferInWhatTheyMatchNotInWhatTheyMean) {
+    CoupleRepository& repository = defaultCoupleRepository();
+
+    // Race is part of every DELETE's WHERE, so a pairing of another race
+    // survives all three. (Nothing stops two rows sharing a name across
+    // races; the statements were always race-scoped.)
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 0);
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 1);
+
+    repository.deletePairing(MALE, "it-mike", FEMALE, "it-fay", 0);
+    // The DELETEs filter on Race; the count probes do NOT. So the
+    // race-1 row survives the delete AND still answers the probe. That
+    // asymmetry is the inline code's and is kept: isCouple() and
+    // hasCouple() see a pairing in ANY race, while removeCouple() only
+    // removes the one matching the character's own.
+    EXPECT_EQ(1, repository.countPairing(MALE, "it-mike", FEMALE, "it-fay"));
+    EXPECT_EQ("1", queryScalar("SELECT count(*) FROM CoupleInfo WHERE MalePartnerName='it-mike'"));
+    EXPECT_EQ("1", queryScalar("SELECT Race FROM CoupleInfo WHERE MalePartnerName='it-mike'"));
+
+    // The counter-column form reaches the same row from one character
+    // plus a partner NAME. Its only textual difference from the above is
+    // a lower-case "where", which no assertion here can see: like the
+    // guild delete spellings, that mapping is held by review.
+    repository.deletePairingWithPartner(MALE, "it-mike", "it-fay", 1);
+    EXPECT_EQ(0, repository.countPairingsOf(MALE, "it-mike"));
+
+    // The one-sided form takes every pairing of a character in a race.
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-fay", 2);
+    repository.insertCouple(MALE, "it-mike", FEMALE, "it-eve", 2);
+    EXPECT_EQ(2, repository.countPairingsOf(MALE, "it-mike"));
+    repository.deletePairingsOf(MALE, "it-mike", 2);
+    EXPECT_EQ(0, repository.countPairingsOf(MALE, "it-mike"));
+    EXPECT_EQ(0, repository.countPairingsOf(FEMALE, "it-fay"));
+}
+
 // --- carried gold against real MySQL --------------------------------------
 
 class GoldMySQL : public ::testing::Test {
@@ -238,6 +752,43 @@ TEST_F(GoldMySQL, DecreaseBelowTheRowBalanceRaisesOutOfRangeAndLeavesTheRowUntou
     EXPECT_EQ(10, gold);
 }
 
+TEST_F(GoldMySQL, TheClampedGuildFeeZeroesARowThatCannotPayInsteadOfThrowing) {
+    // SGAddGuildMemberOKHandler charges the guild-registration fee to a
+    // character who is NOT logged in, so there is no in-memory balance to
+    // clamp against and the clamp lives in the statement:
+    // SET Gold = IF (fee > Gold, 0, Gold - fee). That makes it behave
+    // differently from decreaseGold at exactly one point — a payer short
+    // of the fee — and this pins both sides of that difference.
+    PlayerFixture payer = PlayerFixtures::midLevelVampire();
+    payer.persist();
+    defaultGoldRepository().increaseGold(payer.name, CHARACTER_RACE_VAMPIRE, 1000);
+
+    // Enough to pay: an ordinary subtraction.
+    defaultGoldRepository().decreaseGoldClamped(payer.name, CHARACTER_RACE_VAMPIRE, 400);
+    int gold = -1;
+    ASSERT_TRUE(defaultGoldRepository().loadGold(payer.name, CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(600, gold);
+
+    // Short of the fee: emptied, silently. The caller cannot tell this
+    // from a fee that was paid in full, and never could.
+    defaultGoldRepository().decreaseGoldClamped(payer.name, CHARACTER_RACE_VAMPIRE, 5000);
+    ASSERT_TRUE(defaultGoldRepository().loadGold(payer.name, CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(0, gold);
+
+    // The same shortfall through the relative write raises
+    // ER_DATA_OUT_OF_RANGE and leaves the row alone. Two writers of one
+    // column, two failure shapes — which is why they are two methods.
+    defaultGoldRepository().increaseGold(payer.name, CHARACTER_RACE_VAMPIRE, 10);
+    EXPECT_ANY_THROW(defaultGoldRepository().decreaseGold(payer.name, CHARACTER_RACE_VAMPIRE, 5000));
+    ASSERT_TRUE(defaultGoldRepository().loadGold(payer.name, CHARACTER_RACE_VAMPIRE, gold));
+    EXPECT_EQ(10, gold);
+
+    // A name with no row is a silent no-op, like the other writes.
+    PlayerFixture ghost = PlayerFixtures::highLevelSlayer(); // never persisted
+    defaultGoldRepository().decreaseGoldClamped(ghost.name, CHARACTER_RACE_SLAYER, 100);
+    EXPECT_FALSE(defaultGoldRepository().loadGold(ghost.name, CHARACTER_RACE_SLAYER, gold));
+}
+
 TEST_F(GoldMySQL, OperationsAgainstMissingRowsAreSilentNoOps) {
     PlayerFixture ghost = PlayerFixtures::highLevelSlayer(); // never persisted
 
@@ -265,6 +816,52 @@ protected:
         PlayerFixtures::removeAll();
     }
 };
+
+TEST_F(CharacterMySQL, TheWhisperProbeReadsOnlyTheAccountAndTakesTheFirstRow) {
+    CharacterRepository& repository = defaultCharacterRepository();
+
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+
+    std::string playerID = "untouched";
+    EXPECT_FALSE(repository.loadSlayerPlayerID(slayer.name, playerID));
+    EXPECT_EQ("untouched", playerID);
+
+    slayer.persist();
+    execSQL("UPDATE Slayer SET PlayerID='it-acct' WHERE Name='" + slayer.name + "'");
+
+    ASSERT_TRUE(repository.loadSlayerPlayerID(slayer.name, playerID));
+    EXPECT_EQ("it-acct", playerID);
+
+    // Distinct from loadSlayerAccount, which selects two columns and
+    // requires EXACTLY one row. Both answer here, for the same row.
+    std::string accountID;
+    std::string race;
+    ASSERT_TRUE(repository.loadSlayerAccount(slayer.name, accountID, race));
+    EXPECT_EQ("it-acct", accountID);
+}
+
+TEST_F(CharacterMySQL, TheConnectProbeReadsTheAccountAndRaceOffTheSlayerRow) {
+    CharacterRepository& repository = defaultCharacterRepository();
+
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+
+    std::string playerID = "untouched";
+    std::string race = "untouched";
+    EXPECT_FALSE(repository.loadSlayerAccount(vampire.name, playerID, race)); // no row yet
+    EXPECT_EQ("untouched", playerID);                                         // left alone
+    EXPECT_EQ("untouched", race);
+
+    vampire.persist();
+    execSQL("UPDATE Slayer SET PlayerID='it-acct', Race='VAMPIRE' WHERE Name='" + vampire.name + "'");
+
+    ASSERT_TRUE(repository.loadSlayerAccount(vampire.name, playerID, race));
+    EXPECT_EQ("it-acct", playerID);
+    // A vampire's SLAYER row carries the real race — every character has
+    // one whatever its race. That is the whole point of this probe: the
+    // connect path takes the race from the database rather than trusting
+    // the type the client sent.
+    EXPECT_EQ("VAMPIRE", race);
+}
 
 TEST_F(CharacterMySQL, SlayerVitalsLandInTheSlayerRowInFull) {
     // Every written column is asserted with a distinct sentinel: an
@@ -5525,6 +6122,102 @@ protected:
     }
 };
 
+TEST_F(SessionMySQL, TheWhisperLocationReadReachesTheSameRowsAsThePlayerDbName) {
+    SessionRepository& repository = defaultSessionRepository();
+
+    execSQL("INSERT INTO Player (PlayerID, CurrentServerGroupID, LogOn) "
+            "VALUES ('it-where', 9, 'GAME')");
+
+    int serverGroupID = -1;
+    std::string logOn = "untouched";
+    ASSERT_TRUE(repository.loadPlayerLocation("it-where", serverGroupID, logOn));
+    EXPECT_EQ(9, serverGroupID);
+    EXPECT_EQ("GAME", logOn);
+
+    // This is the point of the test. loadPlayerLocation asks
+    // getDistConnection for "USERINFO" where every other Player
+    // statement asks for "PLAYER_DB"; the round claims the name is
+    // ignored and both reach the same socket. A write through the
+    // PLAYER_DB-named path landing in the row the USERINFO-named path
+    // reads is what actually establishes that.
+    execSQL("UPDATE Player SET LogOn='LOGOFF' WHERE PlayerID='it-where'");
+    ASSERT_TRUE(repository.markPlayerLoggedOn("it-where")) << "the LOGOFF row was not claimed";
+    ASSERT_TRUE(repository.loadPlayerLocation("it-where", serverGroupID, logOn));
+    EXPECT_EQ("GAME", logOn);
+
+    logOn = "untouched";
+    EXPECT_FALSE(repository.loadPlayerLocation("it-nobody", serverGroupID, logOn));
+    EXPECT_EQ("untouched", logOn);
+}
+
+TEST_F(SessionMySQL, TheSessionHandshakeReadsTheAccountThenClaimsItExactlyOnce) {
+    SessionRepository& repository = defaultSessionRepository();
+
+    execSQL("INSERT INTO Player (PlayerID, CurrentServerGroupID, LogOn, SpecialEventCount, PayType, PayPlayDate, "
+            "PayPlayHours, PayPlayFlag, BillingUserKey, FamilyPayPlayDate) VALUES "
+            "('it-acct', 7, 'LOGOFF', 42, 3, '2026-01-02 03:04:05', 11, 22, 33, '2026-02-03 04:05:06')");
+
+    PlayerSessionRow row;
+    ASSERT_TRUE(repository.loadPlayerSession("it-acct", row));
+    EXPECT_EQ("it-acct", row.playerID);
+    EXPECT_EQ(7, row.serverGroupID);
+    EXPECT_EQ("LOGOFF", row.logOn);
+    EXPECT_EQ(42u, row.specialEventCount);
+    EXPECT_EQ(3, row.payType);
+    EXPECT_EQ("2026-01-02 03:04:05", row.payPlayDate);
+    EXPECT_EQ(11, row.payPlayHours);
+    EXPECT_EQ(22, row.payPlayFlag);
+    EXPECT_EQ(33, row.billingUserKey);
+    EXPECT_EQ("2026-02-03 04:05:06", row.familyPayPlayDate);
+
+    // The columns are read positionally, and every value above is
+    // distinct, so a projection that drifted out of step with the reads
+    // shows up here. Only the ten-column arm is covered: the
+    // __THAILAND_SERVER__ arm selects an eleventh column, Birthday,
+    // which this schema does not have, so no tier can reach it.
+
+    // Claiming the session is the double-login guard: the UPDATE only
+    // matches a row still in LOGOFF, so the SECOND caller gets false and
+    // the handler throws rather than letting two clients in.
+    EXPECT_TRUE(repository.markPlayerLoggedOn("it-acct"));
+    EXPECT_EQ("GAME", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-acct'"));
+    EXPECT_FALSE(repository.markPlayerLoggedOn("it-acct"));
+    EXPECT_EQ("GAME", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-acct'"));
+
+    // And the mirror puts it back, which is what makes a second login
+    // possible at all.
+    repository.markPlayerLoggedOff("it-acct");
+    EXPECT_EQ("LOGOFF", queryScalar("SELECT LogOn FROM Player WHERE PlayerID='it-acct'"));
+    EXPECT_TRUE(repository.markPlayerLoggedOn("it-acct"));
+
+    // An account with no row is false, not a throw — the caller turns
+    // that into its own ProtocolException.
+    EXPECT_FALSE(repository.loadPlayerSession("it-nobody", row));
+    EXPECT_FALSE(repository.markPlayerLoggedOn("it-nobody"));
+}
+
+TEST_F(SessionMySQL, GuildMemberLogOnAndLogOffAreMirrorsScopedToOneMember) {
+    SessionRepository& repository = defaultSessionRepository();
+
+    execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-on-a', 1, '', 0)");
+    execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-on-b', 1, '', 0)");
+
+    repository.markGuildMemberLoggedOn("it-on-a");
+    EXPECT_EQ("1", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-a'"));
+    EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-b'"));
+
+    repository.markGuildMemberLoggedOff("it-on-a");
+    EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-a'"));
+
+    // A name with no row is a silent no-op, as the connect path assumes.
+    // Assert it rather than just calling it: without these three lines
+    // the call proved only that it does not throw.
+    repository.markGuildMemberLoggedOn("it-none");
+    EXPECT_EQ("", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-none'"));
+    EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-a'"));
+    EXPECT_EQ("0", queryScalar("SELECT LogOn FROM GuildMember WHERE Name='it-on-b'"));
+}
+
 TEST_F(SessionMySQL, GuildMemberLogOffFlagsOnlyThatMember) {
     execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-gm-a', 1, '', 1)");
     execSQL("INSERT INTO GuildMember (GuildID, Name, Rank, Intro, LogOn) VALUES (5, 'it-gm-b', 1, '', 1)");
@@ -5750,6 +6443,138 @@ TEST_F(GuildMySQL, MemberRowsAreCreatedRejoinedSavedExpiredAndDeleted) {
 
     repository.deleteMember("it-m2");
     EXPECT_FALSE(repository.loadMember("it-m2", row));
+}
+
+TEST_F(GuildMySQL, TheThreeMembershipProbesEachReadTheirOwnColumns) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    // One row, read through three different column lists. The handlers
+    // read their columns POSITIONALLY, so what matters is that each
+    // projection hands back the field its own handler used to take.
+    repository.insertMember(31007, "it-probe", 4);
+    repository.setMemberRankAndExpireDate(5, "1260901", "it-probe");
+
+    // CGRegistGuildHandler: SELECT `Rank`, ExpireDate.
+    int rank = -1;
+    std::string expireDate;
+    ASSERT_TRUE(repository.loadMemberRankExpireDate("it-probe", rank, expireDate));
+    EXPECT_EQ(5, rank);
+    EXPECT_EQ("1260901", expireDate);
+
+    // CGJoinGuildHandler: SELECT GuildID, `Rank`, ExpireDate.
+    int guildID = -1;
+    rank = -1;
+    expireDate.clear();
+    ASSERT_TRUE(repository.loadMemberGuildRankExpireDate("it-probe", guildID, rank, expireDate));
+    EXPECT_EQ(31007, guildID);
+    EXPECT_EQ(5, rank);
+    EXPECT_EQ("1260901", expireDate);
+
+    // CGTryJoinGuildHandler: SELECT GuildID, ExpireDate,`Rank`, of which
+    // only ExpireDate was ever read. The three seeded values are
+    // pairwise distinct, so a mismatch between a statement's column
+    // order and its read indices shows up in ALL three probes, not just
+    // this one. What no assertion here can catch is a CONSISTENT
+    // rewrite of both, which stays invisible to the database.
+    expireDate.clear();
+    ASSERT_TRUE(repository.loadMemberExpireDate("it-probe", expireDate));
+    EXPECT_EQ("1260901", expireDate);
+
+    // No row at all: false everywhere, which every caller reads as
+    // "belongs to no guild" and lets through.
+    EXPECT_FALSE(repository.loadMemberRankExpireDate("it-none", rank, expireDate));
+    EXPECT_FALSE(repository.loadMemberGuildRankExpireDate("it-none", guildID, rank, expireDate));
+    EXPECT_FALSE(repository.loadMemberExpireDate("it-none", expireDate));
+
+    // A fresh row's ExpireDate is "" and not NULL (varchar(7) NOT NULL
+    // DEFAULT ''), so the size() == 7 test the callers make is false and
+    // no substr runs against a short string.
+    repository.insertMember(31008, "it-fresh", 2);
+    ASSERT_TRUE(repository.loadMemberExpireDate("it-fresh", expireDate));
+    EXPECT_EQ("", expireDate);
+}
+
+TEST_F(GuildMySQL, BothSpellingsOfTheMemberDeleteRemoveTheRow) {
+    GuildRepository& repository = defaultGuildRepository();
+    GuildMemberRow row;
+
+    repository.insertMember(31009, "it-del1", 2);
+    repository.deleteMemberSpelled(GUILD_MEMBER_DELETE_SPACED, "it-del1");
+    EXPECT_FALSE(repository.loadMember("it-del1", row));
+
+    repository.insertMember(31009, "it-del2", 2);
+    repository.deleteMemberSpelled(GUILD_MEMBER_DELETE_UNSPACED, "it-del2");
+    EXPECT_FALSE(repository.loadMember("it-del2", row));
+
+    // deleteMember() IS the spaced spelling, delegating. Worth stating
+    // what this test cannot do: whitespace around "=" is not part of the
+    // parsed statement, so no assertion here can tell the two literals
+    // apart, and a swapped enumerator would pass. The mapping is held by
+    // review; what is pinned is that neither spelling is malformed.
+    repository.insertMember(31009, "it-del3", 2);
+    repository.deleteMember("it-del3");
+    EXPECT_FALSE(repository.loadMember("it-del3", row));
+}
+
+TEST_F(GuildMySQL, TheGuildNameProbeSeesOnlyActiveAndWaitingGuilds) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    GuildRecord record;
+    record.id = 31010;
+    record.name = "it-taken";
+    record.type = 0;
+    record.race = 0;
+    record.state = 0; // GUILD_STATE_ACTIVE, the first of the probe's two
+    record.serverGroupID = 1;
+    record.zoneID = 31010;
+    record.master = "it-master";
+    record.date = "2026-09-04";
+    record.intro = "";
+    repository.insertGuild(record);
+    EXPECT_TRUE(repository.guildNameInUse("it-taken"));
+
+    // State 1 is GUILD_STATE_WAIT: a name is held from the moment the
+    // registration is sent, before the sharedserver approves it.
+    record.id = 31011;
+    record.name = "it-pending";
+    record.state = 1;
+    repository.insertGuild(record);
+    EXPECT_TRUE(repository.guildNameInUse("it-pending"));
+
+    // States 2 and 3 are CANCEL and BROKEN, and release the name.
+    record.id = 31012;
+    record.name = "it-cancelled";
+    record.state = 2;
+    repository.insertGuild(record);
+    EXPECT_FALSE(repository.guildNameInUse("it-cancelled"));
+
+    record.id = 31013;
+    record.name = "it-broken";
+    record.state = 3;
+    repository.insertGuild(record);
+    EXPECT_FALSE(repository.guildNameInUse("it-broken"));
+
+    EXPECT_FALSE(repository.guildNameInUse("it-unknown"));
+}
+
+TEST_F(GuildMySQL, TheGuildIdReadAnswersOnTheFirstRowWhereTheExistenceProbeCounts) {
+    GuildRepository& repository = defaultGuildRepository();
+
+    int guildID = -1;
+    EXPECT_FALSE(repository.loadMemberGuildID("it-gid", guildID));
+    EXPECT_EQ(-1, guildID); // left alone when there is no row
+
+    repository.insertMember(31020, "it-gid", 2);
+    EXPECT_TRUE(repository.memberExists("it-gid"));
+    ASSERT_TRUE(repository.loadMemberGuildID("it-gid", guildID));
+    EXPECT_EQ(31020, guildID);
+
+    // Same statement, two questions: memberExists counts rows and this
+    // one reads the id. Name is the primary key, so there is at most one
+    // row and the two can never disagree.
+    repository.saveMember(31021, 2, "it-gid");
+    ASSERT_TRUE(repository.loadMemberGuildID("it-gid", guildID));
+    EXPECT_EQ(31021, guildID);
 }
 
 TEST_F(GuildMySQL, GuildRowsAreCreatedLoadedSavedListedByStateAndDeletedWithTheirUnionRows) {

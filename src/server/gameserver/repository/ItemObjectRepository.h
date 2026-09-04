@@ -1197,9 +1197,27 @@ struct PetItemObjectRow {
     std::string nickname;
 };
 
+// EventShutdown's egg-dummy-DB teardown seeds one sentinel row in each
+// of three object tables. These are NOT the named-column inserts the
+// rest of this seam carries: they are POSITIONAL, name no columns, and
+// quote every value including the numeric ones, so they depend on each
+// table's exact column order and count. The id is INT_MAX in both the
+// ItemID and ObjectID positions — a sentinel, not a real object.
+//
+// That path does not compile into the shipped gameserver: it sits
+// behind the "#else" of a
+// "#if !defined(__THAILAND_SERVER__) && !defined(__CHINA_SERVER__)",
+// and the build defines neither.
+enum DummyObjectTable { DUMMY_OBJECT_LARVA, DUMMY_OBJECT_SKULL, DUMMY_OBJECT_POTION, DUMMY_OBJECT_TABLE_MAX };
+
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
+
+    // EventShutdown's egg-dummy-DB teardown; see DummyObjectTable above
+    // for why these three are positional and why they never compile into
+    // the shipped gameserver.
+    virtual void insertDummySentinelRow(DummyObjectTable table) = 0;
 
     // <Class>::create — the INSERT with the ItemFlag column fed the create type.
     // Refuses tables whose INSERT takes other arguments (the guns' thirteen, the

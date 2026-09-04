@@ -21,6 +21,7 @@
 #include "SystemAvailabilitiesManager.h"
 #include "Vampire.h"
 #include "VariableManager.h"
+#include "repository/GuildRepository.h"
 
 #endif // __GAME_SERVER__
 
@@ -47,72 +48,57 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
     Player* pPlayer = pCreature->getPlayer();
     Assert(pPlayer != NULL);
 
-    Statement* pStmt;
-    Result* pResult;
-
     // cout << pPacket->toString() << endl;
 
-    BEGIN_DB {
-        // 정상적인 과정을 거쳤다면 여기서 체크할때 걸리면 안된다.
-        // 그런 이유로 에러메시지를 클라이언트로 보내지 않는다.
-        // 다른 길드 소속인지 체크
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT GuildID, `Rank`, ExpireDate FROM GuildMember WHERE Name = '%s'",
-                                      pCreature->getName().c_str());
+    // 정상적인 과정을 거쳤다면 여기서 체크할때 걸리면 안된다.
+    // 그런 이유로 에러메시지를 클라이언트로 보내지 않는다.
+    // 다른 길드 소속인지 체크
+    //
+    // GuildID and Rank are read because the statement selects them, not
+    // because this handler uses them: the only code that ever did is the
+    // commented-out DENY policy below.
+    int GuildID = 0;
+    int Rank = 0;
+    string ExpireDate;
 
-        if (pResult->next()) {
-            GuildID_t GuildID = pResult->getInt(1);
-            int Rank = pResult->getInt(2);
-            string ExpireDate = pResult->getString(3);
+    if (defaultGuildRepository().loadMemberGuildRankExpireDate(pCreature->getName(), GuildID, Rank, ExpireDate)) {
+        if (ExpireDate.size() == 7) {
+            time_t daytime = time(0);
 
-            if (ExpireDate.size() == 7) {
-                time_t daytime = time(0);
+            tm Time;
 
-                tm Time;
+            Time.tm_year = atoi(ExpireDate.substr(0, 3).c_str());
+            Time.tm_mon = atoi(ExpireDate.substr(3, 2).c_str());
+            Time.tm_mday = atoi(ExpireDate.substr(5, 2).c_str());
+            Time.tm_hour = 0;
+            Time.tm_min = 0;
+            Time.tm_sec = 0;
 
-                Time.tm_year = atoi(ExpireDate.substr(0, 3).c_str());
-                Time.tm_mon = atoi(ExpireDate.substr(3, 2).c_str());
-                Time.tm_mday = atoi(ExpireDate.substr(5, 2).c_str());
-                Time.tm_hour = 0;
-                Time.tm_min = 0;
-                Time.tm_sec = 0;
+            //				if ( difftime( daytime, mktime(&Time) ) < 604800 )	// 실시간 7일이 지났는가?
+            if (difftime(daytime, mktime(&Time)) <
+                g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 * 3600) // 실시간 7일이 지났는가?
+            {
+                /*					if (Rank==GuildMember::GUILDMEMBER_RANK_DENY
+                                        && GuildID != pPacket->getGuildID())
+                                    {
+                                        // rank4==추방/거부..인 애들은 다른 길드에는 들어갈 수 있다.
+                                        // 기존에 있던 GuildMember에서 제거한다.
+                                        defaultGuildRepository().deleteMember(pCreature->getName());
+                                    }
+                                    else
+                                    {
+                                        return;
+                                    }*/
 
-                //				if ( difftime( daytime, mktime(&Time) ) < 604800 )	// 실시간 7일이 지났는가?
-                if (difftime(daytime, mktime(&Time)) <
-                    g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 * 3600) // 실시간 7일이 지났는가?
-                {
-                    /*					if (Rank==GuildMember::GUILDMEMBER_RANK_DENY
-                                            && GuildID != pPacket->getGuildID())
-                                        {
-                                            // rank4==추방/거부..인 애들은 다른 길드에는 들어갈 수 있다.
-                                            // 기존에 있던 GuildMember에서 제거한다.
-                                            pStmt->executeQuery( "DELETE FROM GuildMember WHERE Name = '%s'",
-                                                                    pCreature->getName().c_str() );
-                                        }
-                                        else
-                                        {
-                                            SAFE_DELETE( pStmt );
-
-                                            return;
-                                        }*/
-
-                    // 실시간 7일이 지나지 않으면 가입할 수 없다. 무조건
-                    // 2003. 6. 25 by bezz
-                    SAFE_DELETE(pStmt);
-
-                    return;
-                }
-            } else {
-                // 이미 다른 길드에 소속되어 있음
-                SAFE_DELETE(pStmt);
-
+                // 실시간 7일이 지나지 않으면 가입할 수 없다. 무조건
+                // 2003. 6. 25 by bezz
                 return;
             }
+        } else {
+            // 이미 다른 길드에 소속되어 있음
+            return;
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
 
     // 스타팅 멤버로 가입할 경우

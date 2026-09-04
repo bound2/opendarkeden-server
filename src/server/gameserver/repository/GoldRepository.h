@@ -18,9 +18,11 @@
 //
 // This seam does NOT enclose every writer of the Gold column: setGoldEx
 // in all three races writes it ABSOLUTELY through a tinysave fragment,
-// SGAddGuildMemberOKHandler.cpp writes it inline with its own DB-side
-// clamp, and the sharedserver binary's GSQuitGuildHandler.cpp writes it
-// from another process entirely. Those join their own extractions.
+// and the sharedserver binary's GSQuitGuildHandler.cpp writes it from
+// another process entirely. Those join their own extractions.
+//
+// SGAddGuildMemberOKHandler's DB-side-clamped fee is no longer among
+// them — it is decreaseGoldClamped below.
 class GoldRepository {
 public:
     virtual ~GoldRepository() {}
@@ -34,6 +36,26 @@ public:
     // ER_DATA_OUT_OF_RANGE territory as GoodsRepository::takeOne — see
     // the MySQL implementation's quirk notes.
     virtual void decreaseGold(const std::string& ownerName, CharacterRace race, Gold_t delta) = 0;
+
+    // SGAddGuildMemberOKHandler's guild-registration fee, charged to a
+    // character who is NOT logged in: the guild was approved while the
+    // payer was offline, so there is no in-memory balance to clamp
+    // against and the clamp is written into the statement instead —
+    // note that the handler's ONLINE path does not use decreaseGold
+    // either: it clamps in memory and then writes ABSOLUTELY through
+    // setGoldEx's tinysave fragment.
+    // SET Gold = IF (fee > Gold, 0, Gold - fee). Two consequences worth
+    // naming. It cannot raise the ER_DATA_OUT_OF_RANGE that
+    // decreaseGold can, because a row holding less than the fee is
+    // zeroed rather than driven negative; and the zeroing is silent, so
+    // a character short of the fee pays everything they have and the
+    // caller cannot tell. Both are the inline statement's behaviour,
+    // kept.
+    //
+    // The WHERE names Name, not the uppercase NAME the two relative
+    // writes above use. MySQL folds neither — column names are always
+    // case-insensitive — but the bytes are the call site's.
+    virtual void decreaseGoldClamped(const std::string& ownerName, CharacterRace race, Gold_t fee) = 0;
 
     // Read back the stored gold (the checkGoldIntegrity flow). Returns
     // false when the table has no row for the name; on true, gold carries

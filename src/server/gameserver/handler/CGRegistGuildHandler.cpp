@@ -21,6 +21,7 @@
 #include "SystemAvailabilitiesManager.h"
 #include "Vampire.h"
 #include "VariableManager.h"
+#include "repository/GuildRepository.h"
 
 #endif // __GAME_SERVER__
 
@@ -65,84 +66,67 @@ void CGRegistGuildHandler::execute(CGRegistGuild* pPacket, Player* pPlayer)
         return;
     }
 
-    Statement* pStmt;
-    Result* pResult;
+    GuildRepository& guilds = defaultGuildRepository();
 
-    BEGIN_DB {
-        // 같은 길드 이름이 있는지 체크
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT GuildID FROM GuildInfo WHERE GuildName = '%s' AND GuildState IN ( 0, 1 )",
-                                      pPacket->getGuildName().c_str());
-
-        if (pResult->getRowCount() != 0) {
-            SAFE_DELETE(pStmt);
-
-            // 이미 사용 중인 길드 이름이다
-            if (pCreature->isSlayer()) {
-                GCNPCResponse response;
-                response.setCode(NPC_RESPONSE_TEAM_REGIST_FAIL_NAME);
-                pPlayer->sendPacket(&response);
-            } else if (pCreature->isVampire()) {
-                GCNPCResponse response;
-                response.setCode(NPC_RESPONSE_CLAN_REGIST_FAIL_NAME);
-                pPlayer->sendPacket(&response);
-            } else if (pCreature->isOusters()) {
-                GCNPCResponse response;
-                response.setCode(NPC_RESPONSE_GUILD_REGIST_FAIL_NAME);
-                pPlayer->sendPacket(&response);
-            }
-
-            return;
+    // 같은 길드 이름이 있는지 체크
+    if (guilds.guildNameInUse(pPacket->getGuildName())) {
+        // 이미 사용 중인 길드 이름이다
+        if (pCreature->isSlayer()) {
+            GCNPCResponse response;
+            response.setCode(NPC_RESPONSE_TEAM_REGIST_FAIL_NAME);
+            pPlayer->sendPacket(&response);
+        } else if (pCreature->isVampire()) {
+            GCNPCResponse response;
+            response.setCode(NPC_RESPONSE_CLAN_REGIST_FAIL_NAME);
+            pPlayer->sendPacket(&response);
+        } else if (pCreature->isOusters()) {
+            GCNPCResponse response;
+            response.setCode(NPC_RESPONSE_GUILD_REGIST_FAIL_NAME);
+            pPlayer->sendPacket(&response);
         }
 
-        // 다른 길드 소속인지 체크
-        pResult = pStmt->executeQuery("SELECT `Rank`, ExpireDate FROM GuildMember WHERE Name = '%s'",
-                                      pCreature->getName().c_str());
-
-        if (pResult->next()) {
-            int Rank = pResult->getInt(1);
-            string ExpireDate = pResult->getString(2);
-
-            // 다른 길드에서 탈퇴한 경우는 길드를 생성할 수 없다.
-            if (ExpireDate.size() == 7 && Rank == GuildMember::GUILDMEMBER_RANK_LEAVE) {
-                time_t daytime = time(0);
-                tm Time;
-                Time.tm_year = atoi(ExpireDate.substr(0, 3).c_str());
-                Time.tm_mon = atoi(ExpireDate.substr(3, 2).c_str());
-                Time.tm_mday = atoi(ExpireDate.substr(5, 2).c_str());
-
-                //				if ( difftime( daytime, mktime(&Time) ) < 604800 )	// 실시간 7일이 지났는가?
-                if (difftime(daytime, mktime(&Time)) <
-                    g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 * 3600) // 실시간 7일이 지났는가?
-                {
-                    // 길드 생성할 수 없다는 메세지
-                    GCNPCResponse response;
-
-                    if (pCreature->isSlayer())
-                        response.setCode(NPC_RESPONSE_TEAM_REGIST_FAIL_DENY);
-                    else if (pCreature->isVampire())
-                        response.setCode(NPC_RESPONSE_CLAN_REGIST_FAIL_DENY);
-                    else if (pCreature->isOusters())
-                        response.setCode(NPC_RESPONSE_GUILD_REGIST_FAIL_DENY);
-
-                    pPlayer->sendPacket(&response);
-
-                    SAFE_DELETE(pStmt);
-
-                    return;
-                }
-            }
-
-            // 기존의 길드멤버 정보를 지워준다.
-            pStmt->executeQuery("DELETE FROM GuildMember WHERE Name='%s'", pCreature->getName().c_str());
-
-            // SAFE_DELETE( pStmt );
-            // return;
-        }
-
-        SAFE_DELETE(pStmt);
+        return;
     }
-    END_DB(pStmt)
+
+    // 다른 길드 소속인지 체크
+    int Rank = 0;
+    string ExpireDate;
+
+    if (guilds.loadMemberRankExpireDate(pCreature->getName(), Rank, ExpireDate)) {
+        // 다른 길드에서 탈퇴한 경우는 길드를 생성할 수 없다.
+        if (ExpireDate.size() == 7 && Rank == GuildMember::GUILDMEMBER_RANK_LEAVE) {
+            time_t daytime = time(0);
+            tm Time;
+            Time.tm_year = atoi(ExpireDate.substr(0, 3).c_str());
+            Time.tm_mon = atoi(ExpireDate.substr(3, 2).c_str());
+            Time.tm_mday = atoi(ExpireDate.substr(5, 2).c_str());
+
+            //				if ( difftime( daytime, mktime(&Time) ) < 604800 )	// 실시간 7일이 지났는가?
+            if (difftime(daytime, mktime(&Time)) <
+                g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 * 3600) // 실시간 7일이 지났는가?
+            {
+                // 길드 생성할 수 없다는 메세지
+                GCNPCResponse response;
+
+                if (pCreature->isSlayer())
+                    response.setCode(NPC_RESPONSE_TEAM_REGIST_FAIL_DENY);
+                else if (pCreature->isVampire())
+                    response.setCode(NPC_RESPONSE_CLAN_REGIST_FAIL_DENY);
+                else if (pCreature->isOusters())
+                    response.setCode(NPC_RESPONSE_GUILD_REGIST_FAIL_DENY);
+
+                pPlayer->sendPacket(&response);
+
+                return;
+            }
+        }
+
+        // 기존의 길드멤버 정보를 지워준다.
+        // The unspaced spelling of the DELETE, which is this call site's.
+        guilds.deleteMemberSpelled(GUILD_MEMBER_DELETE_UNSPACED, pCreature->getName());
+
+        // return;
+    }
 
 
     if (pCreature->isSlayer()) {

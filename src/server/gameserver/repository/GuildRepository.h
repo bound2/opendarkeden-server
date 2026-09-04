@@ -18,18 +18,34 @@
 // unchanged (GuildID_t is a WORD, the rank/type/race/state BYTEs, all
 // promoted the same way as before).
 //
-// Not enclosed: the sharedserver's own Guild.cpp / GuildManager.cpp (a
-// separate copy with its own SQL, WarScheduleInfo statements included),
-// CGSayHandler's GM guild commands, and the GuildMember/GuildInfo
-// reads and deletes still inline in CGRegistGuildHandler,
-// CGJoinGuildHandler and CGTryJoinGuildHandler.
+// Not enclosed, and this list is meant to be exhaustive for the
+// gameserver:
+//  - the sharedserver's own Guild.cpp / GuildManager.cpp, a separate
+//    copy with its own SQL, WarScheduleInfo statements included, plus
+//    its GSAddGuildMemberHandler's "UPDATE GuildMember SET
+//    RequestDateTime=now()", which this list used to omit;
+//  - src/server/Restore.cpp's "UPDATE GuildMember SET LogOn = 0"
+//    counterpart, which is in no CMakeLists and so is not built,
+//    though it still counts in R3.
 //
-// The gameserver's SG*Guild* handlers are NOT on this list any more.
-// Their Messages drain is enclosed, and the one statement left among
-// them — SGAddGuildMemberOKHandler's — is a character Gold UPDATE
-// against the race table, not a guild row at all. (They still mutate
-// guild state in memory from the SharedServerManager thread; that is a
-// threading matter, recorded in CLAUDE.md, not a SQL one.)
+// quest/ActionShowGuildDialog.cpp and CGConnectHandler.cpp came off
+// that list on 2026-09-04: the first reuses loadMemberRankExpireDate
+// (its statement was a byte-identical copy) and the new
+// loadMemberGuildID; the second's three GuildMember LogOn writes are
+// SessionRepository::markGuildMemberLoggedOn, beside the LogOn = 0
+// mirror that seam already held.
+//
+// CGRegistGuildHandler, CGJoinGuildHandler and CGTryJoinGuildHandler
+// came off that list: their membership probes and the one GuildMember
+// DELETE among them are the loadMember*/guildNameInUse/
+// deleteMemberSpelled entries below. CGSayHandler came off it too, and
+// should never have been on it — its GM commands touch the race
+// tables, not the guild ones. So did the SG*Guild* handlers, which now
+// hold no SQL at all: the Messages drain is enclosed and
+// SGAddGuildMemberOK's Gold UPDATE against the race table is
+// GoldRepository::decreaseGoldClamped. (They still mutate guild state
+// in memory from the SharedServerManager thread; that is a threading
+// matter, recorded in CLAUDE.md, not a SQL one.)
 //
 // war/'s own WarScheduleInfo writes are no longer among them —
 // WarInfoRepository took the last of them with the war-scheduler
@@ -51,6 +67,24 @@ enum UnionStatementSpelling {
     // CGDenyUnionHandler.
     UNION_SQL_QUOTED,
     UNION_SQL_SPELLING_MAX
+};
+
+// The two spellings of the member DELETE: Guild::destroy's is spaced
+// ("Name = '%s'"), CGRegistGuildHandler's is not ("Name='%s'"). MySQL
+// does not care — whitespace around an operator is not significant —
+// but task 3.2 moves statements without rewriting them, so which one a
+// call site used stays a parameter rather than being normalised away.
+//
+// Unlike the union spellings above, one enumerator IS the literal the
+// seam already carried, so deleteMember() is implemented AS
+// deleteMemberSpelled(GUILD_MEMBER_DELETE_SPACED, .) and each spelling
+// is still written exactly once.
+enum GuildMemberDeleteSpelling {
+    // Guild::destroy, through deleteMember().
+    GUILD_MEMBER_DELETE_SPACED,
+    // CGRegistGuildHandler.
+    GUILD_MEMBER_DELETE_UNSPACED,
+    GUILD_MEMBER_DELETE_SPELLING_MAX
 };
 
 // GuildMember::load — the four columns it reads back.
@@ -141,8 +175,51 @@ public:
                                      const std::string& name) = 0;
     // False unless exactly one row (Name is the primary key).
     virtual bool loadMember(const std::string& name, GuildMemberRow& row) = 0;
+    // ActionShowGuildDialog's quit path: the guild this character
+    // belongs to. Same statement as memberExists — they share one
+    // literal in the implementation — but this one READS the id where
+    // that one only counts rows, and it uses next() rather than
+    // getRowCount(). Name is the primary key, so there is at most one
+    // row and the difference cannot show — an earlier version of this
+    // comment contrasted "the FIRST row" with "requiring exactly one",
+    // which memberExists does not require either.
+    virtual bool loadMemberGuildID(const std::string& name, int& guildID) = 0;
     virtual void saveMember(GuildID_t guildID, GuildMemberRank_t rank, const std::string& name) = 0;
     virtual void deleteMember(const std::string& name) = 0;
+    virtual void deleteMemberSpelled(GuildMemberDeleteSpelling spelling, const std::string& name) = 0;
+
+    // The three guild-membership probes the regist/join handlers make
+    // before letting a character found or join a guild. They are NOT
+    // three spellings of one statement: each SELECTs a different set of
+    // columns in a different order, so each keeps its own method rather
+    // than becoming a spec-table row. Their out-parameter lists differ
+    // in arity (2, 3, 1), which makes calling the wrong one a compile
+    // error rather than the silent swap a spelling enum permits. That
+    // argument covers these three and no more: loadMemberIntro below
+    // has the SAME signature as loadMemberExpireDate, so swapping those
+    // two compiles and returns a different column, and the two int&
+    // out-parameters of the three-column probe are transposable. Both
+    // are held by review and by the integration test's pairwise
+    // distinct sentinels, not by the compiler.
+    //
+    // All three answer false when the name has no GuildMember row at
+    // all. rank comes through getInt (atoi over the field text) and
+    // expireDate through getString, which maps a SQL NULL to "" — the
+    // callers all test expireDate.size() == 7 and parse it positionally.
+
+    // CGRegistGuildHandler: SELECT `Rank`, ExpireDate.
+    virtual bool loadMemberRankExpireDate(const std::string& name, int& rank, std::string& expireDate) = 0;
+    // CGJoinGuildHandler: SELECT GuildID, `Rank`, ExpireDate.
+    virtual bool loadMemberGuildRankExpireDate(const std::string& name, int& guildID, int& rank,
+                                               std::string& expireDate) = 0;
+    // CGTryJoinGuildHandler: SELECT GuildID, ExpireDate,`Rank` — three
+    // columns, of which that handler only ever READ ExpireDate. Its
+    // GuildID and rank reads sit commented out beside a disabled policy
+    // (rank 4, expelled/denied, may join a DIFFERENT guild). The
+    // statement keeps all three columns byte-for-byte; this hands back
+    // the one that was read, so no field the inline code left alone is
+    // touched now.
+    virtual bool loadMemberExpireDate(const std::string& name, std::string& expireDate) = 0;
     // GuildMember::expire / leave — a GuildRank enumerator through "%d" and
     // the caller's "%03d%02d%02d" date text.
     virtual void setMemberRankAndExpireDate(int rank, const std::string& expireDate, const std::string& name) = 0;
@@ -161,6 +238,12 @@ public:
     virtual std::vector<GuildListRow> loadGuildsInStates(int stateA, int stateB) = 0;
     // makeOfferList's per-offer lookup; false when the guild has no row.
     virtual bool loadGuildNameAndMaster(int guildID, std::string& name, std::string& master) = 0;
+    // CGRegistGuildHandler's name probe: does a guild in state 0 or 1
+    // already hold this name? The states are written as the literals
+    // "( 0, 1 )" the inline query had, not as GUILD_STATE_ACTIVE and
+    // GUILD_STATE_WAIT — which is what 0 and 1 are. Row-count only: the
+    // GuildID the statement selects was never read.
+    virtual bool guildNameInUse(const std::string& guildName) = 0;
 
     // --- castles and wars (GuildManager's guild-scoped reads) ---------------------
     virtual int countCastlesOfGuild(int guildID) = 0;

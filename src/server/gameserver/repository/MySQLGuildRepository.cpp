@@ -12,7 +12,11 @@ namespace {
 //    the lower-case "and" in the union-member DELETE and the escape-penalty
 //    read, "count(*)" against "COUNT(*)", the five-slot attacker OR, and
 //    the DATE_FORMAT(Offertime,'%%y%%m%%d') read (the doubled %% survives
-//    the format pass as a literal %).
+//    the format pass as a literal %). The membership probes add four
+//    more: their column ORDER differs per call site (`Rank`, ExpireDate
+//    / GuildID, `Rank`, ExpireDate / GuildID, ExpireDate,`Rank` — note
+//    the missing space in the last), and CGRegistGuildHandler's member
+//    DELETE omits the spaces around the "=" that Guild::destroy's has.
 //  - Ids stream as before: GuildID_t (WORD) and the BYTE rank/type/race/
 //    state through "%d" in the GuildInfo/GuildMember statements, through
 //    "%u" in the union and offer statements; the union id is a uint.
@@ -21,6 +25,10 @@ namespace {
 //    one row; the loads return false on none.
 //  - Names, dates and intros are interpolated raw (the callers pass intros
 //    through Guild::correctString first), as before.
+// memberExists and loadMemberGuildID are the same statement asked two
+// ways, so the literal is written once.
+const char* const MEMBER_GUILD_ID_SQL = "SELECT GuildID FROM GuildMember WHERE Name = '%s'";
+
 class MySQLGuildRepository : public GuildRepository {
 public:
     // --- members ------------------------------------------------------------
@@ -30,7 +38,7 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery("SELECT GuildID FROM GuildMember WHERE Name = '%s'", name.c_str());
+            Result* pResult = pStmt->executeQuery(MEMBER_GUILD_ID_SQL, name.c_str());
 
             exists = pResult->getRowCount() != 0;
 
@@ -122,6 +130,95 @@ public:
         return found;
     }
 
+    bool loadMemberRankExpireDate(const string& name, int& rank, string& expireDate) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT `Rank`, ExpireDate FROM GuildMember WHERE Name = '%s'", name.c_str());
+
+            if (pResult->next()) {
+                rank = pResult->getInt(1);
+                expireDate = pResult->getString(2);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool loadMemberGuildRankExpireDate(const string& name, int& guildID, int& rank, string& expireDate) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT GuildID, `Rank`, ExpireDate FROM GuildMember WHERE Name = '%s'", name.c_str());
+
+            if (pResult->next()) {
+                guildID = pResult->getInt(1);
+                rank = pResult->getInt(2);
+                expireDate = pResult->getString(3);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool loadMemberExpireDate(const string& name, string& expireDate) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            // Three columns selected, one read — exactly as the handler
+            // did. GuildID and `Rank` belong to a policy that is
+            // commented out there, not to this answer.
+            Result* pResult = pStmt->executeQuery(
+                "SELECT GuildID, ExpireDate,`Rank` FROM GuildMember WHERE Name = '%s'", name.c_str());
+
+            if (pResult->next()) {
+                expireDate = pResult->getString(2);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool loadMemberGuildID(const string& name, int& guildID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(MEMBER_GUILD_ID_SQL, name.c_str());
+
+            if (pResult->next()) {
+                guildID = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
     void saveMember(GuildID_t guildID, GuildMemberRank_t rank, const string& name) {
         Statement* pStmt = NULL;
 
@@ -136,11 +233,22 @@ public:
     }
 
     void deleteMember(const string& name) {
+        // Guild::destroy's spelling, the spaced one.
+        deleteMemberSpelled(GUILD_MEMBER_DELETE_SPACED, name);
+    }
+
+    void deleteMemberSpelled(GuildMemberDeleteSpelling spelling, const string& name) {
+        // Byte-for-byte what each call site wrote; see GuildRepository.h.
+        static const char* const DELETE_MEMBER_SQL[GUILD_MEMBER_DELETE_SPELLING_MAX] = {
+            "DELETE FROM GuildMember WHERE Name = '%s'",
+            "DELETE FROM GuildMember WHERE Name='%s'",
+        };
+
         Statement* pStmt = NULL;
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("DELETE FROM GuildMember WHERE Name = '%s'", name.c_str());
+            pStmt->executeQuery(DELETE_MEMBER_SQL[spelling], name.c_str());
 
             SAFE_DELETE(pStmt);
         }
@@ -349,6 +457,25 @@ public:
         END_DB(pStmt)
 
         return found;
+    }
+
+    bool guildNameInUse(const string& guildName) {
+        bool inUse = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT GuildID FROM GuildInfo WHERE GuildName = '%s' AND GuildState IN ( 0, 1 )", guildName.c_str());
+
+            // Row count only; the selected GuildID was never read.
+            inUse = pResult->getRowCount() != 0;
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return inUse;
     }
 
     // --- castles and wars -----------------------------------------------------

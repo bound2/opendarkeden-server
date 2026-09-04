@@ -7,7 +7,6 @@
 #include "ActionShowGuildDialog.h"
 
 #include "Creature.h"
-#include "DB.h"
 #include "GCActiveGuildList.h"
 #include "GCNPCResponse.h"
 #include "GCWaitGuildList.h"
@@ -22,6 +21,7 @@
 #include "Slayer.h"
 #include "SystemAvailabilitiesManager.h"
 #include "Vampire.h"
+#include "repository/GuildRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // read from property buffer
@@ -71,19 +71,13 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
         ////////////////////////////////////////////////////////////////////////////////
         // 길드 등록을 선택했을 경우
         ////////////////////////////////////////////////////////////////////////////////
-        Statement* pStmt;
-        Result* pResult;
+        // 다른 길드 소속인지 체크
+        int Rank = 0;
+        string ExpireDate;
 
-        BEGIN_DB {
-            // 다른 길드 소속인지 체크
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pResult = pStmt->executeQuery("SELECT `Rank`, ExpireDate FROM GuildMember WHERE Name = '%s'",
-                                          pCreature->getName().c_str());
-
-            if (pResult->next()) {
+        {
+            if (defaultGuildRepository().loadMemberRankExpireDate(pCreature->getName(), Rank, ExpireDate)) {
                 // 길드 등록 정보가 있다. expire date를 보고 결정한다.
-                int Rank = pResult->getInt(1);
-                string ExpireDate = pResult->getString(2);
 
                 if (ExpireDate.size() == 7) {
                     // 다른 길드에서 탈퇴한 경우에는 일주일 동안 길드를 만들 수 없다.
@@ -97,8 +91,6 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
 
                         if (difftime(daytime, mktime(&Time)) < 604800) // 실시간 7일이 지났는가?
                         {
-                            SAFE_DELETE(pStmt);
-
                             // 시간이 일주일 ...어쩌고
                             if (pCreature->isSlayer()) {
                                 GCNPCResponse response;
@@ -118,8 +110,6 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
                         }
                     }
                 } else {
-                    SAFE_DELETE(pStmt);
-
                     // 다른 길드에 가입되어있는 경우
                     if (pCreature->isSlayer()) {
                         GCNPCResponse response;
@@ -140,7 +130,6 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
                 }
             }
         }
-        END_DB(pStmt)
 
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -294,21 +283,10 @@ void ActionShowGuildDialog::execute(Creature* pCreature1, Creature* pCreature2)
         // 길드 탈퇴 창을 띄우지 않고 길드 탈퇴를 확정한 것으로 간주한다.
         Guild* pGuild = NULL;
 
-        Statement* pStmt = NULL;
-        Result* pResult = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pResult =
-                pStmt->executeQuery("SELECT GuildID FROM GuildMember WHERE Name = '%s'", pCreature->getName().c_str());
-
-            if (pResult->next()) {
-                pGuild = g_pGuildManager->getGuild(pResult->getInt(1));
-            }
-
-            SAFE_DELETE(pStmt);
+        int guildID = 0;
+        if (defaultGuildRepository().loadMemberGuildID(pCreature->getName(), guildID)) {
+            pGuild = g_pGuildManager->getGuild(guildID);
         }
-        END_DB(pStmt)
 
         // 길드 상태가 활동중이거나 대기중이어야 한다.
         if (pGuild == NULL ||

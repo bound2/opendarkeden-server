@@ -23,6 +23,7 @@
 #include "SystemAvailabilitiesManager.h"
 #include "Vampire.h"
 #include "VariableManager.h"
+#include "repository/GuildRepository.h"
 #endif // __GAME_SERVER__
 
 //////////////////////////////////////////////////////////////////////////////
@@ -58,57 +59,46 @@ void CGTryJoinGuildHandler::execute(CGTryJoinGuild* pPacket, Player* pPlayer)
         return;
     }
 
-    Statement* pStmt;
-    Result* pResult;
+    // 다른 길드 소속인지 체크
+    //
+    // The statement still selects GuildID and `Rank`; this handler only
+    // ever read ExpireDate, so that is all the seam hands back. The two
+    // commented-out reads below name the columns it would need for the
+    // disabled DENY policy further down.
+    string ExpireDate;
 
-    BEGIN_DB {
-        // 다른 길드 소속인지 체크
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT GuildID, ExpireDate,`Rank` FROM GuildMember WHERE Name = '%s'",
-                                      pCreature->getName().c_str());
+    if (defaultGuildRepository().loadMemberExpireDate(pCreature->getName(), ExpireDate)) {
+        // int GuildID = <column 1>;
+        // int rank = <column 3>;
 
-        /*
-        if (pResult->getRowCount() == 0 )
-        {
-            cout << "no result" << endl;
-        }
-        */
+        // 제한날짜가 있을때 rank : 5 탈퇴한경우와 쫒겨나거나 거부당한 길드에 다시 들어가려하면 에러 by 쑥갓
+        if (ExpireDate.size() == 7) {
+            time_t daytime = time(0);
 
-        if (pResult->next()) {
-            string ExpireDate = pResult->getString(2);
-            // int GuildID = pResult->getInt(1);
-            // int rank = pResult->getInt(3);
+            tm Time;
 
-            // 제한날짜가 있을때 rank : 5 탈퇴한경우와 쫒겨나거나 거부당한 길드에 다시 들어가려하면 에러 by 쑥갓
-            if (ExpireDate.size() == 7) {
-                time_t daytime = time(0);
+            Time.tm_year = atoi(ExpireDate.substr(0, 3).c_str());
+            Time.tm_mon = atoi(ExpireDate.substr(3, 2).c_str());
+            Time.tm_mday = atoi(ExpireDate.substr(5, 2).c_str());
+            Time.tm_hour = 0;
+            Time.tm_min = 0;
+            Time.tm_sec = 0;
 
-                tm Time;
+            //				if (difftime(daytime, mktime(&Time) ) < 604800 )		// 실시간 7일이 지났는가?
+            if (difftime(daytime, mktime(&Time)) <
+                g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 * 3600) // 실시간 7일이 지났는가?
+            {
+                //					if (rank==GuildMember::GUILDMEMBER_RANK_DENY
+                //						&& GuildID != pGuild->getID())
+                //					{
+                //						// rank4==추방/거부..인 애들은 다른 길드에는 들어갈 수 있다.
+                //					}
+                //					else
+                //					{
+                // 탈퇴한지 실시간 7일이 지나야 함
+                GCNPCResponse response;
 
-                Time.tm_year = atoi(ExpireDate.substr(0, 3).c_str());
-                Time.tm_mon = atoi(ExpireDate.substr(3, 2).c_str());
-                Time.tm_mday = atoi(ExpireDate.substr(5, 2).c_str());
-                Time.tm_hour = 0;
-                Time.tm_min = 0;
-                Time.tm_sec = 0;
-
-                //				if (difftime(daytime, mktime(&Time) ) < 604800 )		// 실시간 7일이 지났는가?
-                if (difftime(daytime, mktime(&Time)) <
-                    g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 * 3600) // 실시간 7일이 지났는가?
-                {
-                    //					if (rank==GuildMember::GUILDMEMBER_RANK_DENY
-                    //						&& GuildID != pGuild->getID())
-                    //					{
-                    //						// rank4==추방/거부..인 애들은 다른 길드에는 들어갈 수 있다.
-                    //					}
-                    //					else
-                    //					{
-                    SAFE_DELETE(pStmt);
-
-                    // 탈퇴한지 실시간 7일이 지나야 함
-                    GCNPCResponse response;
-
-                    /*						if (GuildID == pGuild->getID())
+                /*						if (GuildID == pGuild->getID())
                                             {
                                                 if (pCreature->isSlayer() )
                                                     response.setCode(NPC_RESPONSE_TEAM_STARTING_FAIL_DENY);
@@ -119,44 +109,38 @@ void CGTryJoinGuildHandler::execute(CGTryJoinGuild* pPacket, Player* pPlayer)
                                             }
                                             else
                                             {*/
-                    if (pCreature->isSlayer())
-                        response.setCode(NPC_RESPONSE_TEAM_STARTING_FAIL_QUIT_TIMEOUT);
-                    else if (pCreature->isVampire())
-                        response.setCode(NPC_RESPONSE_CLAN_STARTING_FAIL_QUIT_TIMEOUT);
-                    else if (pCreature->isOusters())
-                        response.setCode(NPC_RESPONSE_GUILD_STARTING_FAIL_QUIT_TIMEOUT);
-                    //}
+                if (pCreature->isSlayer())
+                    response.setCode(NPC_RESPONSE_TEAM_STARTING_FAIL_QUIT_TIMEOUT);
+                else if (pCreature->isVampire())
+                    response.setCode(NPC_RESPONSE_CLAN_STARTING_FAIL_QUIT_TIMEOUT);
+                else if (pCreature->isOusters())
+                    response.setCode(NPC_RESPONSE_GUILD_STARTING_FAIL_QUIT_TIMEOUT);
+                //}
 
-                    pPlayer->sendPacket(&response);
-
-                    return;
-                    //					}
-                }
-            } else {
-                SAFE_DELETE(pStmt);
-
-                // 다른 길드에 속해 있지 않아야 함
-                if (pCreature->isSlayer()) {
-                    GCNPCResponse response;
-                    response.setCode(NPC_RESPONSE_TEAM_STARTING_FAIL_ALREADY_JOIN);
-                    pPlayer->sendPacket(&response);
-                } else if (pCreature->isVampire()) {
-                    GCNPCResponse response;
-                    response.setCode(NPC_RESPONSE_CLAN_STARTING_FAIL_ALREADY_JOIN);
-                    pPlayer->sendPacket(&response);
-                } else if (pCreature->isOusters()) {
-                    GCNPCResponse response;
-                    response.setCode(NPC_RESPONSE_GUILD_STARTING_FAIL_ALREADY_JOIN);
-                    pPlayer->sendPacket(&response);
-                }
+                pPlayer->sendPacket(&response);
 
                 return;
+                //					}
             }
-        }
+        } else {
+            // 다른 길드에 속해 있지 않아야 함
+            if (pCreature->isSlayer()) {
+                GCNPCResponse response;
+                response.setCode(NPC_RESPONSE_TEAM_STARTING_FAIL_ALREADY_JOIN);
+                pPlayer->sendPacket(&response);
+            } else if (pCreature->isVampire()) {
+                GCNPCResponse response;
+                response.setCode(NPC_RESPONSE_CLAN_STARTING_FAIL_ALREADY_JOIN);
+                pPlayer->sendPacket(&response);
+            } else if (pCreature->isOusters()) {
+                GCNPCResponse response;
+                response.setCode(NPC_RESPONSE_GUILD_STARTING_FAIL_ALREADY_JOIN);
+                pPlayer->sendPacket(&response);
+            }
 
-        SAFE_DELETE(pStmt);
+            return;
+        }
     }
-    END_DB(pStmt)
 
     if (pPacket->getGuildMemberRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
         if (pCreature->isSlayer()) {

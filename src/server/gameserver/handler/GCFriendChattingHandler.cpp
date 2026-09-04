@@ -10,9 +10,9 @@
 #include "GCFriendChatting.h"
 
 #ifdef __GAME_SERVER__
-#include "DB.h"
 #include "GamePlayer.h"
 #include "PCFinder.h"
+#include "repository/FriendRepository.h"
 #endif
 
 void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer) {
@@ -34,20 +34,13 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
     switch (Command) {
         /////////////////////////////////////////////////CG_ADD_FRIEND_AGREE/////////////////////////////////////////
     case CG_ADD_FRIEND_AGREE: {
-        Statement* pStmt = NULL;
+        {
+            FriendRepository& friends = defaultFriendRepository();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO FriendList (Friend_Name, Owner_Name) VALUES "
-                                "('%s', '%s')",
-                                pCreature->getName().c_str(), pPacket->getPlayerName().c_str());
-            pStmt->executeQuery("INSERT INTO FriendList (Friend_Name, Owner_Name) VALUES "
-                                "('%s', '%s')",
-                                pPacket->getPlayerName().c_str(), pCreature->getName().c_str());
-
-            SAFE_DELETE(pStmt);
+            // One row per direction: the roster is mutual by construction.
+            friends.insertFriend(pCreature->getName(), pPacket->getPlayerName());
+            friends.insertFriend(pPacket->getPlayerName(), pCreature->getName());
         }
-        END_DB(pStmt)
 
         Creature* pTargetCreature = NULL;
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
@@ -88,16 +81,10 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
             GamePlayer* pTargetGamePlayer = dynamic_cast<GamePlayer*>(pTargetPlayer);
             if (pTargetGamePlayer == NULL)
                 break;
-            Statement* pStmt = NULL;
-            Result* pResult = NULL;
-
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            {
+                FriendRepository& friends = defaultFriendRepository();
                 ////////////////////GC_ADD_FRIEND_EXIST//////////////////
-                pResult = pStmt->executeQuery(
-                    "SELECT Friend_Name, IsBlack FROM FriendList WHERE Owner_Name = '%s' and Friend_Name='%s'",
-                    pCreature->getName().c_str(), pPacket->getPlayerName().c_str());
-                if (pResult->next()) {
+                if (friends.friendExists(pCreature->getName(), pPacket->getPlayerName())) {
                     blResult = false;
                     GCFriendChatting gcFriend3;
                     gcFriend3.setCommand(GC_ADD_FRIEND_EXIST);
@@ -105,19 +92,16 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
                     pGamePlayer->sendPacket(&gcFriend3);
                 }
                 /////////////////GC_ADD_FRIEND_BLACK///////////////////////
-                pResult = pStmt->executeQuery(
-                    "SELECT IsBlack FROM FriendList WHERE Owner_Name='%s' and Friend_Name='%s' and IsBlack=1",
-                    pPacket->getPlayerName().c_str(), pCreature->getName().c_str());
-                if (pResult->next()) {
+                // Asked with the OTHER character as owner: "has the person
+                // I am adding blacklisted ME?"
+                if (friends.hasBlacklisted(pPacket->getPlayerName(), pCreature->getName())) {
                     blResult = false;
                     GCFriendChatting gcFriend4;
                     gcFriend4.setCommand(GC_ADD_FRIEND_BLACK);
                     gcFriend4.setPlayerName(pPacket->getPlayerName());
                     pGamePlayer->sendPacket(&gcFriend4);
                 }
-                SAFE_DELETE(pStmt);
             }
-            END_DB(pStmt)
 
             if (blResult) {
                 GCFriendChatting gcFriend;
@@ -153,35 +137,29 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
             gcFriend.setMessage(pPacket->getMessage());
             pTargetGamePlayer->sendPacket(&gcFriend);
         } else {
-            Statement* pStmt = NULL;
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pStmt->executeQuery("INSERT INTO FriendHistory(HistoryMessage, Owner_Name, Friend_Name) VALUES "
-                                    "('%s', '%s', '%s')",
-                                    pPacket->getMessage().c_str(), pPacket->getPlayerName().c_str(),
-                                    pCreature->getName().c_str());
-
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
+            defaultFriendRepository().insertMessage(pPacket->getMessage(), pPacket->getPlayerName(),
+                                                    pCreature->getName());
         }
         break;
     }
     ///////////////////////////////////////////CG_GETSTATE//////////////////////////////////////////////////////////
     case CG_UPDATE: {
         // cout<<"friend3"<<endl;
-        Statement* pStmt = NULL;
-        Result* pResult = NULL;
+        {
+            FriendRepository& friends = defaultFriendRepository();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pResult = pStmt->executeQuery("SELECT Friend_Name, IsBlack FROM FriendList WHERE Owner_Name = '%s'",
-                                          pCreature->getName().c_str());
-            while (pResult->next()) {
+            // Both rosters are read in full before anything is sent. The
+            // inline version walked each Result while sending packets, so
+            // a Throwable out of sendPacket escaped mid-iteration and
+            // leaked the Statement -- END_DB catches only
+            // SQLQueryException.
+            vector<FriendListRow> roster = friends.loadFriends(pCreature->getName());
+
+            for (size_t r = 0; r < roster.size(); r++) {
                 GCFriendChatting gcFriend;
                 gcFriend.setCommand(GC_UPDATE);
-                gcFriend.setPlayerName(pResult->getString(1));
-                gcFriend.setIsBlack(pResult->getBYTE(2));
+                gcFriend.setPlayerName(roster[r].friendName);
+                gcFriend.setIsBlack(roster[r].isBlack);
 
                 Creature* pTargetCreature = NULL;
                 __ENTER_CRITICAL_SECTION((*g_pPCFinder))
@@ -196,25 +174,22 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
                 pGamePlayer->sendPacket(&gcFriend);
             }
 
-            pResult =
-                pStmt->executeQuery("SELECT HistoryMessage,Friend_Name FROM FriendHistory WHERE Owner_Name = '%s'",
-                                    pCreature->getName().c_str());
+            vector<FriendMessageRow> spool = friends.loadMessages(pCreature->getName());
             bool IsHave = false;
-            while (pResult->next()) {
+            for (size_t m = 0; m < spool.size(); m++) {
                 IsHave = true;
                 GCFriendChatting gcFriend2;
                 gcFriend2.setCommand(GC_MESSAGE);
-                gcFriend2.setMessage(pResult->getString(1));
-                gcFriend2.setPlayerName(pResult->getString(2));
+                gcFriend2.setMessage(spool[m].message);
+                gcFriend2.setPlayerName(spool[m].friendName);
 
                 pGamePlayer->sendPacket(&gcFriend2);
             }
+            // IsHave rather than !spool.empty(): the flag is the inline
+            // code's, and it is set inside the loop, so the two agree.
             if (IsHave)
-                pStmt->executeQuery("DELETE FROM FriendHistory WHERE Owner_Name='%s'", pCreature->getName().c_str());
-
-            SAFE_DELETE(pStmt);
+                friends.deleteMessages(pCreature->getName());
         }
-        END_DB(pStmt)
 
         break;
     }
@@ -245,16 +220,7 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
     }
         /////////////////////////////////////CG_ADD_FRIEND_BLACK///////////////////////////////////////
     case CG_ADD_FRIEND_BLACK: {
-        Statement* pStmt = NULL;
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO FriendList (Friend_Name, Owner_Name, IsBlack) VALUES "
-                                "('%s', '%s', 1)",
-                                pPacket->getPlayerName().c_str(), pCreature->getName().c_str());
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        defaultFriendRepository().insertBlacklisted(pPacket->getPlayerName(), pCreature->getName());
 
         Creature* pTargetCreature = NULL;
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
@@ -281,16 +247,15 @@ void GCFriendChattingHandler::execute(GCFriendChatting* pPacket, Player* pPlayer
     }
         //////////////////////////////////////////////////////CG_FRIEND_DELTET//////////////////////////////////
     case CG_FRIEND_DELETE: {
-        Statement* pStmt = NULL;
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("DELETE FROM FriendList WHERE Owner_Name='%s' and Friend_Name='%s'",
-                                pCreature->getName().c_str(), pPacket->getPlayerName().c_str());
-            pStmt->executeQuery("DELETE FROM FriendList WHERE Owner_Name='%s' and Friend_Name='%s'",
-                                pPacket->getPlayerName().c_str(), pCreature->getName().c_str());
-            SAFE_DELETE(pStmt);
+        {
+            FriendRepository& friends = defaultFriendRepository();
+
+            // One direction each, like the insert pair — but NOT in the
+            // same parameter order: the inserts take (friend, owner)
+            // and these take (owner, friend), mirroring the statements.
+            friends.deleteFriend(pCreature->getName(), pPacket->getPlayerName());
+            friends.deleteFriend(pPacket->getPlayerName(), pCreature->getName());
         }
-        END_DB(pStmt)
 
         GCFriendChatting gcFriend;
         gcFriend.setCommand(GC_FRIEND_DELETE);

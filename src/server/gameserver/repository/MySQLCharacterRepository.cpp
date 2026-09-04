@@ -150,6 +150,48 @@ public:
         return found;
     }
 
+    bool loadSlayerAccount(const string& name, string& playerID, string& race) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT PlayerID,Race FROM Slayer WHERE Name = '%s'", name.c_str());
+
+            if (pResult->getRowCount() == 1) {
+                pResult->next();
+                playerID = pResult->getString(1);
+                race = pResult->getString(2);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool loadSlayerPlayerID(const string& name, string& playerID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT PlayerID FROM Slayer WHERE Name='%s'", name.c_str());
+
+            if (pResult->next()) {
+                playerID = pResult->getString(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
     bool loadVampire(const string& ownerName, VampireLoadRecord& record) {
         bool found = false;
         Statement* pStmt = NULL;

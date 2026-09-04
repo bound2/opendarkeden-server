@@ -27,6 +27,7 @@
 #include "StringPool.h"
 #include "StringStream.h"
 #include "Zone.h"
+#include "repository/GoldRepository.h"
 
 #endif
 
@@ -131,24 +132,25 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
             else
                 Fee = 0;
 
-            string table = "";
+            // The race decides which table the row is in. A guild whose
+            // race is none of the three named none, and the write was
+            // skipped; hasRaceTable keeps that guard, since CharacterRace
+            // has no "no table" value.
+            CharacterRace race = CHARACTER_RACE_SLAYER;
+            bool hasRaceTable = false;
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-                table = "Slayer";
+                race = CHARACTER_RACE_SLAYER;
+                hasRaceTable = true;
             } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                table = "Vampire";
+                race = CHARACTER_RACE_VAMPIRE;
+                hasRaceTable = true;
             } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-                table = "Ousters";
+                race = CHARACTER_RACE_OUSTERS;
+                hasRaceTable = true;
             }
 
-            if (table != "" && Fee != 0) {
-                Statement* pStmt = NULL;
-
-                BEGIN_DB {
-                    pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                    pStmt->executeQuery("UPDATE %s SET Gold = IF (%u > Gold , 0, Gold - %u ) WHERE Name = '%s'",
-                                        table.c_str(), Fee, Fee, pGuildMember->getName().c_str());
-                }
-                END_DB(pStmt)
+            if (hasRaceTable && Fee != 0) {
+                defaultGoldRepository().decreaseGoldClamped(pGuildMember->getName(), race, Fee);
             }
         }
     }

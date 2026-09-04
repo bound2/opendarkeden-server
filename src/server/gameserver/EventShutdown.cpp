@@ -17,7 +17,8 @@
 #include "billing/BillingPlayerManager.h"
 #endif
 
-#include "DB.h"
+#include "repository/ItemObjectRepository.h"
+#include "repository/SystemAvailabilityRepository.h"
 //////////////////////////////////////////////////////////////////////////////
 // class EventShutdown member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -70,30 +71,22 @@ void EventShutdown::activate()
                g_pVariableManager->isEggDummyDB() == true) {
         __BEGIN_TRY
 
-        Statement* pStmt = NULL;
+        {
+            ItemObjectRepository& objects = defaultItemObjectRepository();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            objects.insertDummySentinelRow(DUMMY_OBJECT_LARVA);
+            objects.insertDummySentinelRow(DUMMY_OBJECT_SKULL);
+            objects.insertDummySentinelRow(DUMMY_OBJECT_POTION);
 
-            pStmt->executeQuery(
-                "INSERT INTO LarvaObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')");
+            SystemAvailabilityRepository& systems = defaultSystemAvailabilityRepository();
 
-            pStmt->executeQuery(
-                "INSERT INTO SkullObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')");
-
-            pStmt->executeQuery(
-                "INSERT INTO PotionObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')");
-
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='0'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='1'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='4'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='7'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='9'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='888'");
-
-            SAFE_DELETE(pStmt);
+            systems.deleteSystemKind(0);
+            systems.deleteSystemKind(1);
+            systems.deleteSystemKind(4);
+            systems.deleteSystemKind(7);
+            systems.deleteSystemKind(9);
+            systems.deleteSystemKind(888);
         }
-        END_DB(pStmt)
 
         __END_CATCH
 
@@ -105,28 +98,22 @@ void EventShutdown::activate()
 
         __BEGIN_TRY
 
-        Statement* pStmt = NULL;
+        {
+            ItemObjectRepository& objects = defaultItemObjectRepository();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            objects.insertDummySentinelRow(DUMMY_OBJECT_LARVA);
+            objects.insertDummySentinelRow(DUMMY_OBJECT_SKULL);
+            objects.insertDummySentinelRow(DUMMY_OBJECT_POTION);
 
-            pStmt->executeQuery(
-                "INSERT INTO LarvaObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')");
-            pStmt->executeQuery(
-                "INSERT INTO SkullObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')");
-            pStmt->executeQuery(
-                "INSERT INTO PotionObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')");
+            SystemAvailabilityRepository& systems = defaultSystemAvailabilityRepository();
 
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='0'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='1'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='4'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='7'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='9'");
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='888'");
-
-            SAFE_DELETE(pStmt);
+            systems.deleteSystemKind(0);
+            systems.deleteSystemKind(1);
+            systems.deleteSystemKind(4);
+            systems.deleteSystemKind(7);
+            systems.deleteSystemKind(9);
+            systems.deleteSystemKind(888);
         }
-        END_DB(pStmt)
 
         __END_CATCH
     }

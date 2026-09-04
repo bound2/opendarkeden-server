@@ -7,11 +7,13 @@
 
 class PlayerCreature;
 
-// const 안하면 우예 되는거지?
-const string Sex2FieldName[] = {
-    "FemalePartnerName",
-    "MalePartnerName",
-};
+// The Sex-to-column mapping this class used to publish moved into
+// repository/MySQLCoupleRepository.cpp along with the statements that
+// used it: "MalePartnerName" and "FemalePartnerName" are SQL
+// identifiers, and a seam whose whole point is to own the SQL should
+// own them too rather than leave a second copy here to drift.
+// Nothing outside CoupleManager.cpp ever called getFieldName or
+// getCounterFieldName.
 
 class CoupleManager {
 public:
@@ -22,14 +24,6 @@ public:
     bool hasCouple(PlayerCreature* pPC);
     bool getPartnerName(PlayerCreature* pPC, string& partnerName);
     bool isCouple(PlayerCreature* pPC1, string name2);
-
-public:
-    static string getFieldName(Sex sex) {
-        return Sex2FieldName[(int)sex];
-    }
-    static string getCounterFieldName(Sex sex) {
-        return Sex2FieldName[1 - (int)sex];
-    }
 
 public:
     void makeCouple(PlayerCreature* pPC1, PlayerCreature* pPC2);

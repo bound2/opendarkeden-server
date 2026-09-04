@@ -8,7 +8,6 @@
 
 #ifdef __GAME_SERVER__
 #include "Creature.h"
-#include "DB.h"
 #include "GCWhisper.h"
 #include "GCWhisperFailed.h"
 #include "GGServerChat.h"
@@ -18,6 +17,8 @@
 #include "LoginServerManager.h"
 #include "PCFinder.h"
 #include "Properties.h"
+#include "repository/CharacterRepository.h"
+#include "repository/SessionRepository.h"
 
 #endif
 
@@ -93,46 +94,27 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
              *	없으면 말자(Failed보낸다).
              *	사용자가 있다 없다는 DB에서만 판단하자. DB의 신뢰도는..??????
              */
-            Statement* pStmt = NULL;
-            Result* pResult = NULL;
-
             bool bServerFind = false;
             ServerGroupID_t CurrentServerGroupID;
             string LogOn;
             string PlayerID;
 
             try {
-                BEGIN_DB {
-                    pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
+                {
                     // 크리쳐이름으로 Slayer테이블에서 PlayerID 를 찾는다.
-                    pResult =
-                        pStmt->executeQuery("SELECT PlayerID FROM Slayer WHERE Name='%s'", pPacket->getName().c_str());
-
-                    if (pResult->next()) {
-                        PlayerID = pResult->getString(1);
-                        SAFE_DELETE(pStmt);
-
+                    if (defaultCharacterRepository().loadSlayerPlayerID(pPacket->getName(), PlayerID)) {
                         // 찾은 PlayerID로 Player테이블에서 ServerGroupID와 LogOn정보를 찾는다.
-                        pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
-                        pResult = pStmt->executeQuery(
-                            "SELECT CurrentServerGroupID, LogOn FROM Player WHERE PlayerID='%s'", PlayerID.c_str());
+                        int serverGroupID = 0;
 
                         // Player 정보를 찾았다.
-                        if (pResult->next()) {
-                            CurrentServerGroupID = pResult->getInt(1);
-                            LogOn = pResult->getString(2);
+                        if (defaultSessionRepository().loadPlayerLocation(PlayerID, serverGroupID, LogOn)) {
+                            CurrentServerGroupID = serverGroupID;
 
                             // 게임중인 상태일때 bServerFind에 true flag
                             if (LogOn == "GAME") {
                                 bServerFind = true;
-                                SAFE_DELETE(pStmt);
                             }
-                        } else {
-                            SAFE_DELETE(pStmt);
                         }
-                    } else {
-                        SAFE_DELETE(pStmt);
                     }
 
                     if (bServerFind) // 찾았을때
@@ -169,7 +151,10 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
                         pGamePlayer->sendPacket(&gcWhisperFailed);
                     }
                 }
-                END_DB(pStmt)
+                // This catch already swallowed everything, so the seam's
+                // const char* is caught exactly as the driver's
+                // SQLQueryException was. Unlike the mofus round, nothing
+                // had to change here.
             } catch (...) { /* write log plz */
             }
         }

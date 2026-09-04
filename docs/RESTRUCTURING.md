@@ -54,8 +54,8 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 10 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 98 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers; 120→113 on 2026-09-03: the five per-creature effect saves, EffectRestore and the two Restore skills — skill/ now holds no live inline SQL at all; 113→111 on 2026-09-03: GuildWar and RaceWar, the two war-history writers — SiegeWar loses its seven live statements too but keeps counting, its two SiegeWarHistory recorders being commented out whole; 111→109 on 2026-09-03: War and WarSchedule, the WarScheduleInfo probes and writes; 109→108 on 2026-09-03: RaceWarLimiter, the race-war entry limits and the participant list; 108→107 on 2026-09-03: WarScheduler, the per-zone schedule load and the guild-schedule cancel; 107→102 on 2026-09-03: the five guild-union handlers; 102→98 on 2026-09-03: CGExpelGuild and the three SG guild handlers, all pure reuse) |
+| R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files; 10→8 on 2026-09-04: SystemAvailabilitiesManager and EventShutdown, the first movement of this ratchet since the guild trio on 2026-09-02. That round LIFTED INTO THIS CELL the classification the ExpTable and guild paragraphs had already recorded — it is not a new finding, and an earlier draft of this note and of that round's paragraph called it one. Of R2's ten files, five are in no CMakeLists at all and are never compiled: EventMonsterNameManager.cpp, GameServerInfoManager.cpp (a stale third copy of a file that also lives in src/server/ and src/server/sharedserver/, both of which ARE built), GameWorldInfoManager.cpp, MoonCardUtil.cpp and Vampire_backup.cpp. No file(GLOB) exists anywhere in the build, so "in no CMakeLists" does mean never compiled. Two more hide their SQL behind __THAILAND_SERVER__ or __CHINA_SERVER__, which no build file defines — though ItemUtil.cpp #defines __THAILAND_SERVER__ TU-locally, and reaches neither of them; the ExpTable paragraph already said so, and the 09-04 round rediscovered it. SMSServiceThread.cpp is compiled but its thread is never started. That leaves two files whose SQL both compiles and can run: CreatureUtil.cpp (128 textual matches, of which 124 compile — three are commented out and one is under __UNDERWORLD__, which Types.h leaves commented out) and TradeManager.cpp (1). R2 is worth keeping — the dead files are still debt, and deleting them is a separate decision — but nobody should read "10" as ten live sites. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 85 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers; 120→113 on 2026-09-03: the five per-creature effect saves, EffectRestore and the two Restore skills — skill/ now holds no live inline SQL at all; 113→111 on 2026-09-03: GuildWar and RaceWar, the two war-history writers — SiegeWar loses its seven live statements too but keeps counting, its two SiegeWarHistory recorders being commented out whole; 111→109 on 2026-09-03: War and WarSchedule, the WarScheduleInfo probes and writes; 109→108 on 2026-09-03: RaceWarLimiter, the race-war entry limits and the participant list; 108→107 on 2026-09-03: WarScheduler, the per-zone schedule load and the guild-schedule cancel; 107→102 on 2026-09-03: the five guild-union handlers; 102→98 on 2026-09-03: CGExpelGuild and the three SG guild handlers, all pure reuse; 98→94 on 2026-09-04: the three guild-membership probe handlers and SGAddGuildMemberOK's clamped fee — note that CGJoinGuildHandler leaves this grep only because the commented-out DENY policy inside it, which contained a pStmt->executeQuery call, was rewritten to name the seam method now that pStmt is gone; left verbatim the file would still count and R3 would read 95. POLICY, written down because the SiegeWar entry earlier in this same cell records the opposite outcome and the two need reconciling: a commented-out block that REFERENCES CODE THE CONVERSION DELETED is updated to name what replaced it, because it is otherwise simply wrong; a commented-out block that is self-contained history, like SiegeWar's two whole recorders, is left alone and its file keeps counting. The distinction is whether the comment still describes something that exists, not whether editing it helps the number. A reader who rejects that distinction should read this round as R3 = 95 with CGJoinGuildHandler still on the list; 94→93 on 2026-09-04: couple/CoupleManager.cpp, the whole couple module's SQL in one file; 93→92 on 2026-09-04: ctf/FlagManager.cpp, likewise the whole capture-the-flag module; 92→90 on 2026-09-04: quest/ActionShowGuildDialog.cpp and CGConnectHandler.cpp, the two files the guild-membership round's review found it should have taken; 90→89 on 2026-09-04: mofus/Mofus.cpp, the whole mofus module; 89→87 on 2026-09-04: GCFriendChattingHandler and CGWhisperHandler; 87→85 on 2026-09-04: SystemAvailabilitiesManager and EventShutdown) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -840,9 +840,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `getIP` UserIPInfo, Slayer's AND Vampire's reward flows) are
   > comments, not debt. Gold's seam does not enclose every Gold writer:
   > `setGoldEx` writes the column absolutely via tinysave,
-  > SGAddGuildMemberOKHandler inline, and the sharedserver's
-  > GSQuitGuildHandler from another process — named in
-  > GoldRepository.h, to be extracted with their own flows.
+  > and the sharedserver's GSQuitGuildHandler from another process —
+  > named in GoldRepository.h, to be extracted with their own flows.
+  > CORRECTION (2026-09-04): SGAddGuildMemberOK's clamped fee was in
+  > that list and joined the seam that day as decreaseGoldClamped; it
+  > is no longer named in GoldRepository.h, and the sentence above has
+  > been amended to match rather than left to mislead.
   > **Character-load round (2026-09-01)**: the race files' login-time
   > `load()` SELECTs moved into `CharacterRepository` as
   > `loadSlayer/loadVampire/loadOusters` returning per-race load
@@ -3351,6 +3354,800 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > MessageMySQL.InsertLoadAndDeleteAreScopedToTheReceiver and the three
   > tests the guild-union round added. ctest 5/5, 148/148 integration
   > tests, build exit 0, clang-format clean.
+  > **The guild-membership probes (2026-09-04, on master once the four
+  > earlier rounds merged)**: CGRegistGuildHandler, CGJoinGuildHandler,
+  > CGTryJoinGuildHandler and SGAddGuildMemberOKHandler — R3 98→94
+  > (R1/R2/R5 unchanged). Six live statements, and unlike the previous
+  > round they are NOT reuse: five of the six are shapes neither seam
+  > held. GuildRepository gains guildNameInUse (CGRegistGuild's
+  > "SELECT GuildID FROM GuildInfo WHERE GuildName = '%s' AND
+  > GuildState IN ( 0, 1 )", row-count only — the selected GuildID was
+  > never read, and 0 and 1 are GUILD_STATE_ACTIVE and GUILD_STATE_WAIT
+  > written as literals), three membership probes and
+  > deleteMemberSpelled; GoldRepository gains decreaseGoldClamped.
+  > THE SHAPE OF THE ROUND: three handlers read the same GuildMember
+  > row through three DIFFERENT column lists — `Rank`, ExpireDate /
+  > GuildID, `Rank`, ExpireDate / GuildID, ExpireDate,`Rank` (no space
+  > after that last comma) — and read them positionally. These are not
+  > spellings of one statement the way the union round's were: the
+  > projections genuinely differ, so each keeps its own method rather
+  > than a spec-table row behind an enum. That is the better outcome
+  > for the reason the union round could not have: the out-parameter
+  > lists have arities 2, 3 and 1, so calling the wrong probe is a
+  > COMPILE ERROR, where a swapped enumerator is silent. The one real
+  > spelling difference — CGRegistGuild's "DELETE FROM GuildMember
+  > WHERE Name='%s'" against Guild::destroy's spaced "Name = '%s'" —
+  > does get the enum treatment (GuildMemberDeleteSpelling), but with
+  > one improvement over the union enums: the SPACED enumerator IS the
+  > literal the seam already carried, so deleteMember() is implemented
+  > as deleteMemberSpelled(GUILD_MEMBER_DELETE_SPACED, .) and each
+  > spelling is still written exactly once. SGAddGuildMemberOK's is a
+  > different table entirely: "UPDATE %s SET Gold = IF (%u > Gold , 0,
+  > Gold - %u ) WHERE Name = '%s'" against the race table, a gold
+  > write whose clamp is IN THE STATEMENT because its payer is
+  > OFFLINE — the guild was approved while they were logged out, so
+  > there is no in-memory balance to clamp against. That makes it
+  > behave differently from decreaseGold at exactly one point: a payer
+  > short of the fee is silently emptied where the relative write
+  > raises ER_DATA_OUT_OF_RANGE on the UNSIGNED column. Two failure
+  > shapes, hence two methods, and the integration test asserts both
+  > sides of the difference. DISCLOSURES. (1) A LEAK CLOSED:
+  > SGAddGuildMemberOK's BEGIN_DB block had NO SAFE_DELETE(pStmt) on
+  > the success path, so every successful fee UPDATE leaked its
+  > Statement; only the exception path (END_DB's delete) freed one.
+  > The repository frees it. (2) THE COMMENT THAT MOVED THE RATCHET,
+  > stated plainly because R3 is a textual grep: CGJoinGuild's
+  > disabled DENY policy sits in a /* */ block that contained a literal
+  > pStmt->executeQuery call. pStmt no longer exists in that function,
+  > so the comment now names the seam method instead. Had it been left
+  > verbatim the file would still match the grep and R3 would read 95,
+  > not 94. (3) Two dead locals in that handler, GuildID_t GuildID and
+  > int Rank, were read from the row and used by nothing but that same
+  > commented-out policy. They survive as int locals filled by the
+  > probe, so the columns are still read; the WORD truncation on
+  > GuildID is gone, but nothing reads the value, and they no longer
+  > draw an unused-variable warning. (4) CGTryJoinGuild's two
+  > commented-out reads named pResult explicitly and now name their
+  > column numbers. (5) Rank and ExpireDate in the two regist/join
+  > handlers are declared above the probe rather than inside the row
+  > branch, and initialised — as is CGTryJoinGuild's ExpireDate, which
+  > an earlier draft of this sentence left out; all three are still
+  > read only when the probe returned true. (6) THE CRITICAL SECTION, and this time nothing
+  > changes: the fee UPDATE sits inside __ENTER_CRITICAL_SECTION
+  > ((*g_pPCFinder)) exactly as the previous round's drain did, but
+  > unlike that one its BEGIN_DB/END_DB was ALREADY inside the
+  > section — so a SQL failure already crossed __LEAVE_CRITICAL_SECTION
+  > as a const char* and already left the mutex held. Moving the
+  > conversion into the repository changes neither the type that
+  > crosses nor the lock that is not released. Same project-wide issue
+  > recorded last round, no new instance of it. (7) The table != ""
+  > guard survives as hasRaceTable, since CharacterRace has no "no
+  > table" value and a guild race outside the three must still skip the
+  > write. (8) DBError.log and the const char* END_DB rethrows now name
+  > the repository method. TESTS: four added — three to GuildMySQL (the
+  > three probes against one row and against a missing name, the fresh
+  > row's "" ExpireDate, both delete spellings, and the name probe
+  > seeing states 0 and 1 but not 2 and 3) and one to GoldMySQL (the
+  > clamp paying, the clamp emptying, decreaseGold raising on the same
+  > shortfall, and the missing-row no-op) — plus one domain contract
+  > test for the fake. What the delete test CANNOT do is stated in it:
+  > whitespace around "=" is not in the parsed statement, so a swapped
+  > enumerator passes; that mapping is held by review, as with the
+  > union spellings. FURTHER DISCLOSURES, from the fidelity review of
+  > this round, all of them things the original list should have
+  > carried. (9) A SECOND Statement leak is closed and only the first
+  > was named: CGRegistGuild's DENY branch called sendPacket BEFORE
+  > its SAFE_DELETE, and END_DB catches only SQLQueryException, so a
+  > Throwable out of sendPacket leaked the Statement. That path is
+  > gone. (10) CGRegistGuild reused ONE Statement for three queries
+  > and now takes three; same connection (getConnection is
+  > thread-keyed), same order, and createStatement is stateless. (11)
+  > A dead comment block was DELETED rather than rewritten in
+  > CGTryJoinGuild — a commented-out getRowCount()/cout probe that
+  > referenced pResult. It holds no executeQuery, so unlike the
+  > CGJoinGuild comment it moves no ratchet, but this round's own
+  > standard says comment churn is disclosable. Same for the
+  > "// SAFE_DELETE( pStmt );" line dropped in CGRegistGuild, whose
+  > neighbouring "// return;" survives. (12) #include "DB.h" is now
+  > dead in all four handlers and was left in place, matching what
+  > every earlier round in this stack did. AND THE LIST THIS ROUND GOT
+  > WRONG: GuildRepository.h's "Not enclosed" note was rewritten to
+  > name only the sharedserver copy and CGSayHandler. Both halves were
+  > wrong — CGSayHandler holds no guild SQL at all (its GM commands
+  > touch the race tables), while quest/ActionShowGuildDialog.cpp and
+  > CGConnectHandler.cpp both still do, and ActionShowGuildDialog's
+  > first probe is a BYTE-IDENTICAL copy of the literal this very
+  > round added as loadMemberRankExpireDate. It was a fifth file
+  > available for almost no marginal work, and leaving it out is what
+  > made this round's "not reuse" framing true. The note is corrected
+  > and those files are the natural next guild round. ctest 5/5,
+  > 152/152 integration tests, build exit 0, clang-format clean.
+  > **The couple pairings (2026-09-04, stacked on the guild-membership
+  > round)**: couple/CoupleManager.cpp — R3 94→93 (R1/R2/R5 unchanged).
+  > Eight statements, one table, one file: a new CoupleRepository takes
+  > every CoupleInfo statement the COUPLE MODULE runs, and couple/ is
+  > left with no SQL at all. (An earlier draft of this sentence said
+  > "the gameserver", which is false and which this same paragraph
+  > refutes further down: CreatureUtil.cpp is a gameserver source and
+  > runs two CoupleInfo DELETEs of its own.) WHAT MAKES THIS ONE DIFFERENT:
+  > the columns are chosen by SEX rather than written literally. A
+  > pairing is ONE row with one column per sex (MalePartnerName,
+  > FemalePartnerName) plus Race and a CoupleDate the database stamps
+  > with now(), so every statement interpolates its column names
+  > through %s from CoupleManager::getFieldName /
+  > getCounterFieldName — a two-element array {"FemalePartnerName",
+  > "MalePartnerName"} indexed by Sex, which is FEMALE = 0, MALE = 1,
+  > so the ordering is right. That array and both accessors moved into
+  > MySQLCoupleRepository.cpp and were REMOVED from CoupleManager.h:
+  > they are SQL identifiers, and leaving a second copy outside the
+  > seam is exactly the drift the seam exists to prevent. Nothing
+  > outside CoupleManager.cpp ever called either accessor (grepped).
+  > TWO DERIVATIONS OF ONE LITERAL: isCouple(pPC1, name2) builds
+  > "SELECT count(*) FROM CoupleInfo where %s='%s' and %s='%s'" from
+  > its own sex and the COUNTER of its own sex, while
+  > isCouple(pPC1, pPC2) builds the same literal from each character's
+  > own sex. Those agree whenever the sexes differ, which the second
+  > caller guarantees by returning early when they match — so this is
+  > not a second spelling, it is a second derivation, and both are kept
+  > (countPairingWithPartner and countPairing) because 3.2 does not
+  > choose between call sites. The two DELETEs likewise differ by one
+  > byte of case — removeCouple writes WHERE, removeCoupleForce writes
+  > where — but unlike the guild member DELETE they ALSO derive their
+  > columns differently and have one caller each, so two methods carry
+  > the difference and no spelling enum was needed. DISCLOSURES.
+  > (1) THE MISSING BOUNDS CHECK IS INHERITED, NOT FIXED: neither
+  > lookup bounds-checks, so a Sex outside {FEMALE, MALE} would read
+  > SEX_FIELD_NAME[2] or, for the counter, [1 - 2] = [-1]. The review
+  > of this round established that no PlayerCreature can hold such a
+  > value — the DB-load path feeds a string to the three race
+  > classes, which accept only Sex2String[MALE]/[FEMALE] and throw
+  > InvalidProtocolException otherwise, and the create packet derives
+  > the sex from one bit — so this is a defensive gap, not the live
+  > hazard an earlier draft called it. The seam keeps the arithmetic
+  > exactly and adds no clamp; bounding it is a behaviour change and
+  > belongs to its own round.
+  > (2) The array was a namespace-scope const string[] in a HEADER, so
+  > every translation unit including CoupleManager.h built its own two
+  > std::strings at static-init time and getFieldName returned a
+  > std::string BY VALUE on every call. It is now a
+  > const char* const[] in one .cpp returning a pointer. Invisible to
+  > the database, but a real change and not a cleanup this round set
+  > out to make. (3) The three count probes used to leave a bool false
+  > and
+  > set it only when next() succeeded AND the count was >= 1; the seam
+  > returns the count and each caller compares >= 1. A count(*) always
+  > yields a row, so next() cannot fail on a live connection; if it
+  > ever did, the old code answered false and the new one returns 0,
+  > which compares false. Same answer. (Three, not four:
+  > getPartnerName is the fourth bool-returning function but reads
+  > no count, and is disclosure (4) below.) (4) getPartnerName leaves its
+  > out-parameter untouched when there is no row, as before, and a
+  > test pins it. (5) CoupleManager.cpp no longer includes DB.h or
+  > DatabaseManager.h; Assert and __BEGIN_TRY still reach it through
+  > CoupleManager.h. (6) Every function already ran exactly one
+  > statement on its own Statement, so no Statement count changed
+  > anywhere in this round. (7) DBError.log and the const char* END_DB
+  > rethrows now name the repository method. NOT ENCLOSED, and named
+  > in the header: the two "DELETE FROM CoupleInfo WHERE <column>='%s'"
+  > pairs that erase a deleted character's pairings from BOTH columns
+  > at once — CreatureUtil.cpp's and the loginserver's
+  > CLDeletePCHandler.cpp's. They name their columns literally rather
+  > than by sex, and the loginserver copy is a different binary.
+  > TESTS: three added to a new CoupleMySQL tier — one row found from
+  > either partner's side with the date stamped by the database, the
+  > probes missing a name looked up in the wrong sex's column, and
+  > the three deletes differing in what they match. That last test
+  > turned up an asymmetry worth recording, which is the inline
+  > code's and is kept: all three DELETEs filter on Race, while
+  > none of the three count probes nor the partner read does. So a
+  > character
+  > paired in two races reads as coupled after removeCouple has
+  > removed the pairing of the race they are playing, and
+  > getPartnerName hands back whichever row the server returns
+  > first. Reachable only if one name holds pairings in more than
+  > one race, which nothing in the couple flow creates —
+  > WaitForMeet::canMakeCouple rejects a different race and a
+  > matching sex before makeCouple, which then Asserts both, and
+  > Assert is live in every configuration this project builds —
+  > but nothing in the SCHEMA prevents either, since CoupleInfo's
+  > only UNIQUE key is its AUTO_INCREMENT ID and the two name
+  > indexes are non-unique. Recorded, not fixed.
+  > TWO CORRECTIONS FROM THE REVIEW OF THIS ROUND'S TESTS. The
+  > wrong-column test pins that the derivation is sex-DEPENDENT, not
+  > that it is sex-CORRECT: every one of its assertions still holds
+  > with the column table swapped end for end. Orientation is pinned
+  > by the first test's raw-SQL pair, which reads MalePartnerName and
+  > FemalePartnerName by name. And a disclosure the round missed: both
+  > isCouple probes share the implementation's private countOf, which
+  > owns the BEGIN_DB block, so END_DB's __PRETTY_FUNCTION__ now logs
+  > that helper where two distinguishable CoupleManager frames used to
+  > appear. Log text only, but an operator reading DBError.log can no
+  > longer tell the name probe from the creature probe.
+  > ctest 5/5, 155/155 integration tests, build exit 0,
+  > clang-format clean.
+  > **The capture-the-flag tables (2026-09-04, stacked on the couple
+  > round)**: ctf/FlagManager.cpp — R3 93→92 (R1/R2/R5 unchanged). Six
+  > statements over three tables — FlagPolePosition (the pole fields
+  > loaded at boot), FlagWarStat (the per-round tally of who planted
+  > which flag) and FlagWarHistory (the roll-up written when a round
+  > ends) — move into a new FlagWarRepository, and ctf/ is left with no
+  > SQL at all. THE FINDING THAT MATTERS: this round closes FIVE
+  > Statement objects across four functions, and both
+  > counts in an earlier draft of this paragraph were wrong. init(),
+  > resetFlagCounts(), recordPutFlag() and recordFlagWarHistory() each
+  > opened a Statement inside BEGIN_DB and reached END_DB without a
+  > SAFE_DELETE, so every SUCCESSFUL call leaked it; only the
+  > SQLQueryException path, where END_DB deletes, ever freed one.
+  > recordFlagWarHistory is the one the draft got backwards. It opened
+  > TWO Statements and freed the second on the success path only — but
+  > END_DB(pStmt) frees the FIRST, and since that function's SELECT
+  > always throws (below), the only path ever taken freed pStmt and
+  > leaked pStmt2, every call. The draft described a success path this
+  > same round proves never happens. init()'s leak is the one that
+  > fires on a path that is not an error at all, and the draft named
+  > the wrong mechanism for it too: it said addPoleField's
+  > Assert(pZone != NULL) raises an AssertionError for a
+  > FlagPolePosition row naming a zone this server does not host. That
+  > assert is unreachable — getZoneByZoneID never returns NULL. It
+  > throws first, an Error, because ZoneGroupManager::getZoneGroup
+  > misses and ZoneUtil converts the NoSuchElementException. The
+  > conclusion survives — a Throwable escapes the loop, END_DB catches
+  > only SQLQueryException, the Statement leaks mid-iteration — but the
+  > throw comes from the line BEFORE addPoleField. All five are closed
+  > now; "by construction" would be too strong, since the new
+  > SAFE_DELETE still sits inside the try, but nothing that can throw
+  > anything other than SQLQueryException remains in those blocks. A QUIRK WORTH RECORDING:
+  > FlagPolePosition.Race is a MySQL ENUM('SLAYER','VAMPIRE','OUSTERS')
+  > and the boot query selects "Race-1", because arithmetic on an ENUM
+  > yields its 1-BASED index; the "-1" is what lines the value up with
+  > Race_t, and getting it wrong would shift every flag pole one race
+  > over. Pinned by a test that inserts one row per enumerator rather
+  > than left to a comment. DISCLOSURES. (1) init() and
+  > recordFlagWarHistory() now read their whole result into a vector
+  > before doing anything with it, where the inline code worked row by
+  > row. For init() that means every pole field is built after the
+  > Statement is closed rather than during the walk. For
+  > recordFlagWarHistory the inline version interleaved a SELECT on
+  > FlagWarStat with INSERTs into FlagWarHistory — but on a SECOND
+  > Statement, which is what kept its result alive. The stronger
+  > guarantee, which the review supplied, is that executeQuery uses
+  > mysql_store_result: the whole result set is buffered client-side
+  > before the first next(), so the INSERTs could not perturb it
+  > whatever table they hit. This is the
+  > pattern the war-scheduler round found broken; here it was correct,
+  > and the vector keeps it correct without depending on the second
+  > Statement. (2) recordFlagWarHistory's per-row INSERT used one
+  > shared Statement and now takes one per row; same order, and a
+  > Statement is not a transaction. (3) reset() and recordPutFlag
+  > assigned the result of a DELETE and of an INSERT to a Result* that
+  > nothing read; those assignments are gone. (4) recordPutFlag ran its
+  > check and its INSERT on ONE Statement, so the INSERT deleted the
+  > SELECT's Result under it — harmless, since next() had already been
+  > consumed, and gone now that they are two calls. (5) The casts the
+  > call site applied to each column (ZoneID_t, ZoneCoord_t, Race_t,
+  > MonsterType_t) stay at the call site; the seam hands back the ints
+  > getInt returned. (6) ItemID reaches two statements through "%d"
+  > although the column is bigint(20) unsigned and ItemID_t is a DWORD,
+  > exactly as written before: an id above INT_MAX formats negative, so
+  > the SELECT matches nothing and the INSERT writes ItemID = 0,
+  > clamped because this project's sql_mode drops STRICT_TRANS_TABLES.
+  > Unreachable in practice — ids step by the server count from a
+  > per-class MAX(ItemID) — unlike the gold overflow an earlier round
+  > found, which was reachable. Kept, and named in the implementation. (7) THE ROLL-UP
+  > CANNOT RUN, and the integration tier is what established it —
+  > against my own claim in an earlier draft of this paragraph, which
+  > said the GROUP BY was legal here because the project's sql_mode
+  > drops ONLY_FULL_GROUP_BY. It does not: CLAUDE.md's setting removes
+  > NO_ZERO_DATE and STRICT_TRANS_TABLES and KEEPS ONLY_FULL_GROUP_BY.
+  > The statement groups by (Name, ServerID) while selecting PlayerID
+  > and Race bare, so MySQL refuses it with error 1055 and
+  > loadFlagWarStatTotals throws on every call it RECEIVES — and the
+  > review of this round established that it receives none on a
+  > default deployment. ActiveFlagWar is 0 in both shipped
+  > gameserver.conf files, and ClientManager only ticks FlagManager
+  > when it is on, so the roll-up is dead twice over: unreachable by
+  > configuration, and refused by the server when an operator or a GM
+  > turns the flag war on. An earlier draft presented 1055 as the sole
+  > cause and said flatly that no history "ever has been" recorded;
+  > the scoping matters, because the original deployment ran MySQL
+  > versions with no ONLY_FULL_GROUP_BY, where the statement would
+  > have succeeded and returned an arbitrary PlayerID and Race per
+  > group. AND THE CONSEQUENCE IS WORSE THAN NOT RECORDING: the
+  > const char* END_DB rethrows is not a Throwable, so nothing between
+  > endFlagWar and main.cpp's catch (...) catches it. The first flag
+  > war that ends takes the gameserver process down. The old code
+  > threw at the same point, from inside BEGIN_DB, leaking pStmt2 —
+  > the second Statement, which END_DB does not see — on the way out. The statement is
+  > kept byte-for-byte because 3.2 moves statements without fixing
+  > them; the throw is pinned by the tier so the bug is recorded
+  > rather than rediscovered, and the fix (adding PlayerID and Race to
+  > the GROUP BY, or ANY_VALUE) belongs to its own round. (8) DBError.log and the const char* END_DB
+  > rethrows now name the repository method. TESTS: three added in a new
+  > FlagWarMySQL tier — the ENUM arithmetic across all three
+  > enumerators, the tally's check-before-insert (and that (Name,
+  > ItemID) is an INDEX rather than a unique constraint, which is WHY
+  > the caller probes first), and the roll-up counting per player per
+  > server — which is where the ONLY_FULL_GROUP_BY refusal surfaced —
+  > while the wipe takes the whole table unconditionally and leaves the
+  > history behind. TWO TEST CORRECTIONS from the review. The refusal
+  > was pinned with EXPECT_ANY_THROW, which passes for a dropped
+  > connection or a missing table just as well and would have
+  > validated the claim for the wrong reason; it now catches the
+  > const char* END_DB rethrows, which at least pins the type. It
+  > does NOT assert on the 1055 text, and the attempt to is what
+  > turned up a project-wide defect: END_DB builds a local
+  > std::string and throws msg.c_str(), so the pointer dangles as
+  > soon as the catch block exits and the message reads empty.
+  > Every repository in the tree rethrows that way; it belongs with
+  > the __LEAVE_CRITICAL_SECTION fix in a Core round. The error text
+  > does reach DBError.log, which END_DB writes before throwing.
+  > One more thing this round tripped over and is worth recording
+  > next to the R3 comment policy: the corrected comment in
+  > FlagManager.cpp originally named the driver call by name, which
+  > put the token back in the file and pushed R3 from 92 to 93. It
+  > is reworded, not exempted. And
+  > the wipe assertion could not tell "unconditional" from "scoped to
+  > the test's own rows", since the fixture empties the table either
+  > way; it now seeds a row the test does not own, which a scoped
+  > implementation would leave behind. ctest 5/5, 158/158
+  > integration tests, build exit 0, clang-format clean.
+  > **The guild remainder and the session start (2026-09-04, stacked on
+  > the capture-the-flag round)**: quest/ActionShowGuildDialog.cpp and
+  > handler/CGConnectHandler.cpp — R3 92→90 (R1/R2/R5 unchanged). This
+  > round exists because the guild-membership round's audit found two
+  > files it should have taken and did not, one of them carrying a
+  > BYTE-IDENTICAL copy of a literal that round had just introduced.
+  > Nine textual statements move and both files are left with no SQL
+  > at all — six LOGICAL ones from CGConnectHandler, since the Player
+  > SELECT is written twice, once per arm of an #ifdef.
+  > REUSE FIRST: ActionShowGuildDialog's guild-registration probe is
+  > exactly loadMemberRankExpireDate, spelling and positional reads
+  > included, so it needed nothing new; its quit path's
+  > "SELECT GuildID FROM GuildMember WHERE Name = '%s'" is the same
+  > literal memberExists already carried, asked a different question
+  > (next() and getInt rather than getRowCount), so loadMemberGuildID
+  > joins it and the two now SHARE one spelling of the statement in the
+  > implementation. CGConnectHandler's three
+  > "UPDATE GuildMember SET LogOn = 1" writes become
+  > SessionRepository::markGuildMemberLoggedOn, the mirror of the
+  > LogOn = 0 write that seam already held and which its header had
+  > already named as the not-enclosed START side. The account read and
+  > the LogOn='GAME' flip join it as loadPlayerSession and
+  > markPlayerLoggedOn, and the connect-time
+  > "SELECT PlayerID,Race FROM Slayer" probe becomes
+  > CharacterRepository::loadSlayerAccount. FOUR MORE LEAKING STATEMENT
+  > SITES CLOSED, on top of the capture-the-flag round's five. Both
+  > those numbers were wrong in an earlier draft of this paragraph,
+  > which said six and four — the same class of miscount the previous
+  > round was pulled up for, one commit later, so it is worth being
+  > exact about the unit. FOUR SITES: three guild LogOn writes and one
+  > probe. That probe leaks on three distinct control PATHS, which is
+  > where "six" came from; mixing sites and paths in one sentence is
+  > what made it wrong. And the capture-the-flag round closed five
+  > Statement OBJECTS across four functions — "four" was that entry's
+  > function count, not its leak count. All three guild LogOn writes
+  > ran BEGIN_DB/END_DB with no SAFE_DELETE, so every login by a
+  > character that BELONGS TO A GUILD leaked one Statement — three
+  > identical sites, one per race, exactly one of which runs per
+  > login. (An earlier draft said "a Statement per guild member",
+  > which is wrong twice: the write targets the logging-in player's
+  > own row, and it is gated on the character having a guild.) ActionShowGuildDialog's registration
+  > probe freed its Statement on both early-return branches and NOT on
+  > the fall-through, which is the ordinary path: a character with no
+  > guild row at all, i.e. everyone registering a first guild. Its
+  > quit-path read and CGConnectHandler's own statements were freed
+  > correctly. DISCLOSURES. (1) THE EXCEPTION TYPE ESCAPING
+  > CGConnectHandler CHANGES, and this one is not the usual case:
+  > that handler does not use BEGIN_DB/END_DB but a hand-rolled
+  > try { … } catch (SQLQueryException& sqe) { throw Error(...); }.
+  > A SQL failure in the moved statements used to reach that catch as
+  > a SQLQueryException and leave as an Error; now each repository call
+  > converts its own inside END_DB and rethrows a const char*, which
+  > that catch does not match. Both types land in
+  > GamePlayer::processCommand's catch (...), which turns anything into
+  > the same DisconnectException, so the outcome for the player is
+  > unchanged. TWO observables move, not one, and an earlier draft
+  > named only the first. New: DBError.log gets an entry, which the
+  > hand-rolled conversion never wrote. Gone: __END_DEBUG's
+  > catch (Throwable&) printed the Error's text to stdout on the way
+  > past, and a const char* matches neither of its handlers — so the
+  > text MOVES from stdout to DBError.log rather than simply appearing.
+  > The catch itself is kept, but not for the reason the draft gave:
+  > nothing left in that block can raise a SQLQueryException in any
+  > SHIPPED build. The one candidate is PaySystem::loginPayPlay, under
+  > __PAY_SYSTEM_LOGIN__ / __PAY_SYSTEM_FREE_LIMIT__ — and all three
+  > pay-system macros are commented out in PaySystem.h, which THIS
+  > DOCUMENT already records in the session-cluster entry. The draft's
+  > claim was refuted by the file it was written into. The catch is
+  > kept because it costs nothing and would matter again if a DB call
+  > were added there. (2) The account
+  > read and the LogOn flip ran on ONE Statement against the dist
+  > connection and now take one each; same connection, same order.
+  > (3) The connect probe's two columns are still read and still used —
+  > spRace picks the PC type and spID is compared against the account,
+  > which is why the probe exists at all: it takes the race from the
+  > DATABASE rather than trusting the type the client sent. They are
+  > now locals filled by the seam rather than read inside
+  > "if (pResult->next())", which a one-row result always satisfied.
+  > (4) Rank and ExpireDate in ActionShowGuildDialog are declared above
+  > the probe rather than inside the row branch, and initialised.
+  > (5) The Player SELECT's string literal is re-split across its
+  > continuation lines; the concatenated bytes are identical, and both
+  > the __THAILAND_SERVER__ eleven-column arm and the ten-column one
+  > are kept, with the Birthday field left empty in builds that do not
+  > select it. (6) Something the round did NOT change, and should be
+  > recorded: ActionShowGuildDialog's seven-day guild-creation penalty
+  > is a hardcoded 604800, where CGRegistGuildHandler's is
+  > g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 *
+  > 3600. An earlier draft called these "two paths to the same rule";
+  > the review corrected that. They are two STAGES of one flow — the
+  > NPC dialog gate that decides whether to show the registration UI,
+  > then the handler that processes the submit — both reading the same
+  > row through the same loadMemberRankExpireDate. The consequence the
+  > draft missed: because the hardcoded gate runs FIRST, setting
+  > QUIT_GUILD_PENALTY_TERM below seven days is silently ineffective,
+  > and setting it above seven only lets the dialog open on a request
+  > the handler then refuses.
+  > (7) Two hygiene items the review of this round turned up. The dead
+  > #include "DB.h" is removed from both files, which the couple and
+  > capture-the-flag rounds did and the earlier guild-handler round did
+  > not; leaving it kept dragging <mysql/mysql.h> into quest/ and
+  > handler/ through Result.h. Two "not enclosed" lists were also
+  > wrong and are corrected: SessionRepository.h missed
+  > CGWhisperHandler's Player LogOn read entirely, and its opening
+  > sentence still described the seam as covering only LogOn,
+  > LastLogoutDate and SpecialEventCount when loadPlayerSession reads
+  > the whole account row; GuildRepository.h's sharedserver bullet
+  > omitted GSAddGuildMemberHandler's GuildMember write. And the three guild LogOn call sites
+  > passed getName().c_str() into a const std::string& parameter,
+  > forcing a strlen and a copy where every other converted site in
+  > this round passes the string itself. (8) Bare { } scopes are left
+  > where BEGIN_DB { and if (pResult->next()) { used to open, and they
+  > scope nothing. Deliberate: they keep the enclosed code's
+  > indentation identical to the original, so the diff reads line for
+  > line against it. (9) One comment was DELETED rather than updated,
+  > against this stack's own policy: CGConnectHandler's commented-out
+  > createStatement line, which named a local that no longer exists. It
+  > holds no SQL call, so it moved no ratchet. (10) DBError.log and the
+  > const char* END_DB rethrows now name the repository method. TESTS: four added — the session handshake (every
+  > column read back with a distinct sentinel, then the double-login
+  > guard: markPlayerLoggedOn is true once and false the second time,
+  > because the UPDATE only matches a row still in LOGOFF), the guild
+  > LogOn/LogOff mirrors scoped to one member, the guild-id read beside
+  > the existence probe that shares its statement, and the connect
+  > probe reading a VAMPIRE's race off its SLAYER row. ctest 5/5,
+  > 162/162 integration tests, build exit 0, clang-format clean.
+  > **The mofus power points (2026-09-04, stacked on the guild-remainder
+  > round)**: mofus/Mofus.cpp — R3 90→89 (R1/R2/R5 unchanged). Five
+  > statements over two tables — MofusPowerPoint, the power-point
+  > balance, and MofusLog, which records the credits the mofus link
+  > sends and NOT every save — logPowerPoint has one caller, and
+  > CGUsePowerPointHandler's spend goes through savePowerPoint without
+  > it — move into a
+  > new MofusPointRepository, and mofus/ is left with no SQL at all.
+  > (Five statements, four methods: the two byte-identical
+  > "SELECT Point ..." calls collapse into one loadPowerPoint reused
+  > twice, which the draft did not say.)
+  > THE THING THIS ROUND TURNS ON, and the reason it is worth reading
+  > closely: every one of these functions deliberately SWALLOWS a SQL
+  > failure ("SQL 에러는 무시한다" — ignore SQL errors) and carries on
+  > with a zero balance, because the mofus link is an external service
+  > and the game must not fall over when its bookkeeping does. That
+  > swallow is a hand-rolled catch (SQLQueryException&), NOT
+  > BEGIN_DB/END_DB. Moving the statements behind the seam therefore
+  > changes the type it has to name: each repository call converts its
+  > own SQLQueryException inside END_DB and rethrows a bare const
+  > char*, which catch (SQLQueryException&) does not match. Left
+  > alone, the catch would have gone dead and every SQL failure the
+  > mofus path is written to IGNORE would have propagated instead —
+  > a silent, one-word change from "ignored" to "thrown". The catches
+  > are rewritten to name const char*, and the SQLQueryException arm is
+  > removed because nothing in these functions can raise one any more.
+  > This is the same seam-boundary question the guild-remainder round
+  > answered for CGConnectHandler, but an earlier draft named the wrong
+  > reason for the difference. It is not that no catch-all sits above
+  > this one — GamePlayer::processCommand's catch (...) is above the
+  > most-live caller here too. It is that THERE the prior outcome was
+  > already a throw, so converting its type landed in the same place;
+  > HERE the prior outcome was a total swallow, so any escape at all is
+  > a change. What it would have changed, per caller: a disconnect at
+  > login, where PlayerCreature::load calls loadPowerPoint on every
+  > character; std::terminate on the zone thread, where the Restore and
+  > EventMorph paths reach it and nothing catches a const char*; and on
+  > the mofus thread, terminate plus g_pPCFinder left locked, because
+  > MPlayerManager::processResult calls it inside that critical section
+  > and __LEAVE_CRITICAL_SECTION catches Throwable& only.
+  > DISCLOSURES. (1) The catch (...) that followed each swallow existed
+  > only to free the Statement before rethrowing; with no Statement it
+  > is a bare rethrow, so it is gone. (2) savePowerPoint keeps ONE try
+  > around all three of its statements, so a failure in any of them
+  > still skips the rest and leaves the balance at 0 — the seam did not
+  > get one try per call. (3) The UPDATE's affected-row count, which is
+  > how a first save learns to insert, is returned by
+  > increasePowerPoint rather than read off a shared Statement.
+  > (4) Quirks kept and named in the implementation: the mixed-case
+  > "Update" and "Insert Into" keywords, the POSITIONAL insert
+  > "Values ('%s',%d)" that names no columns and so depends on
+  > MofusPowerPoint being (OwnerID, Point), and recvPoint/savePoint —
+  > ints — reaching "%u" against smallint(5) SIGNED columns. (5) OwnerID IS A
+  > CHARACTER NAME, and an earlier draft of this paragraph said the
+  > opposite. Every caller passes getName(): PlayerCreature::load,
+  > MPlayerManager::processResult, CGUsePowerPointHandler, and
+  > PKTPowerPointHandler through MJob::m_Name, whose own comment reads
+  > "character name". MJob holds the account id separately as m_UserID
+  > and never passes it here, and the seeded MofusLog rows are
+  > character names. Interpolated raw, as before. Worth adding: the two
+  > OwnerID columns disagree — varchar(30) on the balance,
+  > varchar(20) on the log — though names are varchar(10) elsewhere,
+  > so neither truncates. (6) DBError.log entries are NEW here, not
+  > renamed: the old swallow was silent to disk, and END_DB now appends
+  > on every failure. That is reachable on an ORDINARY path, not just
+  > an error one — a save of zero points is possible (the handler
+  > clamps with min(points, 40)), the driver connects without
+  > CLIENT_FOUND_ROWS so affected-rows means rows CHANGED,
+  > "Point = Point + 0" changes nothing, the caller reads that as "no
+  > row" and inserts, and OwnerID is the PRIMARY KEY, so the insert
+  > raises on a duplicate key. The throw is pre-existing and swallowed
+  > as before; the log append is new. (7) THE STATEMENT LEAKS ON A
+  > NON-SQLQueryException PATH, and the draft's claim that the removed
+  > catch (...) "existed only to free the Statement" was right about
+  > the call site and silent about where the duty went. It went
+  > nowhere: SAFE_DELETE sits inside the repository's try, so success
+  > and SQLQueryException free it and nothing else does. Every
+  > MySQL*Repository in the tree has that shape, and the candidates are
+  > unreachable for four short statements, so it is recorded rather
+  > than fixed here — fixing it belongs in every seam at once.
+  > (8) WHAT THE SWALLOW PREVENTS IS WORSE THAN THE ROUND SAID.
+  > MPlayerManager::processResult calls loadPowerPoint INSIDE
+  > __ENTER_CRITICAL_SECTION((*g_pPCFinder)), and
+  > __LEAVE_CRITICAL_SECTION catches Throwable& only. Had the catch
+  > been left naming SQLQueryException, a SQL error would have escaped
+  > as a const char*, skipped the unlock and left g_pPCFinder held —
+  > every zone thread's next PC lookup would block on it. Not "an
+  > ignored error becomes a thrown one": a server-wide stall.
+  > (9) Nothing pins the catch itself. Both tests exercise the
+  > repository against real MySQL; neither goes through Mofus.cpp, and
+  > no repository in this stack has a setter to inject a fake through.
+  > The round's headline is the one thing left unpinned.
+  > (10) THE mysql.h CLAIM WAS FALSE. The round said replacing DB.h
+  > with Exception.h means "mofus/ no longer pulls <mysql/mysql.h> in
+  > through Result.h". Mofus.cpp no longer does; the MODULE still
+  > does, because MPlayerManager.cpp includes DB.h and needs it — it
+  > constructs the mofus thread's own Connection. That file is the
+  > module's remaining MySQL edge, and arch rule C1 misses it because
+  > C1 matches quoted basenames from a fixed list, so neither "DB.h"
+  > nor the angle-bracket mysql header is visible to it. (11) NOT
+  > ENCLOSED, which the header failed to say at all: the loginserver's
+  > "DELETE FROM MofusPowerPoint WHERE OwnerID='%s'" in
+  > CLDeletePCHandler.cpp. A different binary, so it joins its own
+  > round — and it is independent evidence for the character-name
+  > correction above, since it sits among the per-character cleanups.
+  > Nothing anywhere deletes MofusLog. That is three rounds running
+  > with a not-enclosed list wrong or missing. TESTS: two added in a new MofusMySQL tier —
+  > the first save inserting where the UPDATE matched nothing and every
+  > later one accumulating (including a negative amount going below
+  > zero, since Point is signed), and the audit trail appending one row
+  > per save with SaveTime stamped by the database. ctest 5/5, 164/164
+  > integration tests, build exit 0, clang-format clean.
+  > **The friend list and the whisper lookup (2026-09-04, stacked on the
+  > mofus round)**: handler/GCFriendChattingHandler.cpp and
+  > handler/CGWhisperHandler.cpp — R3 89→87 (R1/R2/R5 unchanged).
+  > Thirteen statements. Eleven go into a new FriendRepository
+  > (FriendList, the mutual roster with a per-entry blacklist flag, and
+  > FriendHistory, the offline message spool); the whisper handler's two
+  > join seams that already own their tables, as
+  > CharacterRepository::loadSlayerPlayerID and
+  > SessionRepository::loadPlayerLocation. Both files are left with no
+  > SQL at all. CGWhisperHandler is here because the previous round's
+  > audit for the guild-remainder round (not the previous round, which
+  > was mofus) found it missing from SessionRepository.h's not-enclosed
+  > list.
+  > THE FINDING: NEITHER FRIEND TABLE EXISTS. initdb/DARKEDEN.sql
+  > defines 374 tables and neither FriendList nor FriendHistory is among
+  > them, in that schema or in USERINFO.sql, and the only mention of
+  > either name anywhere in the tree is the handler these statements came
+  > from. So every one of those eleven statements raises against the
+  > shipped schema, and always has. The consequence is not subtle:
+  > GCFriendChatting is the one GC packet with a live server-side
+  > handler, dispatched from GamePlayer::processCommand, whose catch (...)
+  > turns anything into a DisconnectException. END_DB converts the
+  > driver's SQLQueryException to a const char* and nothing in between
+  > catches it, so a client that opens its friend list is DISCONNECTED.
+  > Task 3.2 moves statements without fixing them, so the tables are not
+  > added here — that is a schema change, and guessing at column types
+  > for a feature nobody can have used would be worse than recording the
+  > fact. What the round does instead is pin the failure, the way the
+  > capture-the-flag round pinned its ONLY_FULL_GROUP_BY refusal: the new
+  > FriendMySQL tier asserts that every one of the nine methods raises,
+  > catching the const char* rather than using EXPECT_ANY_THROW. BE
+  > PRECISE ABOUT WHAT THAT BUYS, because an earlier draft was not: it
+  > pins the failure to the SQL layer and nothing more. It CANNOT tell
+  > a missing table from a dropped connection — Statement::executeQuery
+  > raises SQLQueryException for both and END_DB converts both to the
+  > same const char* — and the message cannot be read either, because
+  > that pointer dangles. The draft claimed the opposite, which is
+  > worse than a loose sentence: the capture-the-flag entry above,
+  > written after ITS review made exactly this correction, already says
+  > "which at least pins the type". This round upgraded that into the
+  > claim its own precedent had declined to make.
+  > There is a second limit worth naming: the tripwire fires only if
+  > the columns someone adds match the names these statements guess at.
+  > A table with any mismatch still raises, every assertion stays
+  > green, and the tripwire silently stops working. (An earlier
+  > draft said "every read and every write" while the tier covered six
+  > of the nine; insertBlacklisted, hasBlacklisted and deleteMessages
+  > had no case, which would have left a table-adder with no signal from
+  > the whole CG_ADD_FRIEND_BLACK branch. All nine are covered now.) Whoever adds
+  > the tables should expect those cases to fail and should replace them
+  > with the round-trip assertions they were always meant to be.
+  > DISCLOSURES. (1) A leak closed in CGWhisperHandler: the location
+  > probe freed its Statement when the account was in GAME and when the
+  > row was missing, but NOT when the row was found in any other state.
+  > An earlier draft glossed that as "logged in but not in game", which
+  > names the rare case. The whole branch is reached only when
+  > g_pPCFinder did NOT find the target, so the dominant state there is
+  > LOGOFF — the column's default. The leak fired on essentially every
+  > whisper to a character that exists and is offline. It leaked the
+  > Statement, its Result, and the buffered MYSQL_RES that Result owns.
+  > (2) CG_UPDATE read two rosters row by row while sending a packet per
+  > row; both are read in full first now. The inline version's loop body
+  > could throw out of sendPacket, escaping mid-iteration with the
+  > Statement open, which END_DB does not catch. (3) The IsHave flag is
+  > kept rather than replaced by an emptiness test, because it is set
+  > inside the loop and the two agree only as long as the loop is the
+  > only writer. (4) CGWhisperHandler's outer catch (...) already
+  > swallowed everything, so unlike the mofus round nothing had to change
+  > about what it names — the seam's const char* is caught exactly as the
+  > driver's SQLQueryException was. Worth saying why that catch matters
+  > rather than treating the parity as cosmetic: it sits INSIDE the
+  > g_pPCFinder critical section, and __LEAVE_CRITICAL_SECTION unlocks
+  > only on a normal exit or a Throwable&. A const char* escaping it
+  > would leave that mutex held for the life of the process. The catch
+  > is load bearing against exactly the deadlock the mofus round
+  > described; it was already there, which is why this round did
+  > nothing. (5) The two add-friend probes SELECT
+  > columns nobody reads; the projections are kept as written rather than
+  > reduced to the question actually asked. (6) The whisper handler's
+  > Slayer probe is NOT loadSlayerAccount: one column instead of two,
+  > "Name='%s'" unspaced where that one has "Name = '%s'", AND a
+  > different answer — loadSlayerAccount requires exactly one row where
+  > this one takes the first, so on a duplicate name one returns false
+  > and the other returns a value. The draft said "the bytes differ,
+  > not the meaning", contradicting its own previous sentence. (7) That handler asks
+  > getDistConnection for "USERINFO" where every other Player statement
+  > asks for "PLAYER_DB" — every other one THAT GOES THROUGH
+  > getDistConnection, that is. Plenty do not: CGSayHandler's
+  > "UPDATE Player set Access='DENY'" uses getConnection("DARKEDEN"), as
+  > does every Player statement in the loginserver, so the draft's
+  > "every other Player statement" was wrong. DatabaseManager ignores
+  > the name, so both reach the same per-thread socket, and the name is
+  > kept because it is what the call site wrote. (8) #include "DB.h" is gone from both files.
+  > (9) DBError.log and the const char* END_DB rethrows now name the
+  > repository method. (10) FOUR MORE THINGS THE REVIEW OF THIS ROUND
+  > TURNED UP. Three literal placeholder tokens reached this file: the
+  > round's docs script put an unexpanded variable inside a
+  > non-interpolating heredoc, and nothing caught it. Replaced with the
+  > em dashes intended. The two seams' not-enclosed lists were wrong
+  > AGAIN, for the fourth round running: CGSayHandler holds an
+  > "UPDATE Player set Access='DENY'" that SessionRepository.h's list
+  > missed twice, and a THIRD spelling of the Slayer name-to-PlayerID
+  > lookup (lower-case where) that CharacterRepository.h could not have
+  > recorded because it had no such list at all. Both are named now.
+  > FriendRepository's interface mixes (friend, owner) in its two
+  > inserts with (owner, friend) everywhere else, mirroring the
+  > statements — every parameter is a const std::string&, so a
+  > transposition compiles silently, and the handler comment saying the
+  > deletes work "as the insert pair does" invited exactly that
+  > reading. And "the new code leaks on no path" was too strong: like
+  > every seam here, SAFE_DELETE sits inside the try, so a
+  > non-SQLQueryException throw leaks — and the two vector loaders add
+  > one path the inline code did not have, since push_back can raise
+  > bad_alloc. TESTS: five, not the two an earlier draft shipped. The
+  > three friend methods that draft missed, plus round trips for the two
+  > whisper seams, whose tables DO exist and which it left entirely
+  > uncovered — including the one claim this round makes that only a
+  > live database can settle, that getDistConnection("USERINFO") and
+  > getDistConnection("PLAYER_DB") reach the same rows. A write through
+  > the one now has to land in the row the other reads. ctest 5/5,
+  > 168/168 integration tests, build exit 0, clang-format clean.
+  > **The system-availability flags (2026-09-04, stacked on the
+  > friend round)**: SystemAvailabilitiesManager.cpp and
+  > EventShutdown.cpp — R2 10→8, R3 87→85 (R1/R5 unchanged).
+  > The first movement of R2 in this stack. Nineteen textual
+  > statements, TEN distinct — an earlier draft said eight, which its
+  > own enumeration refutes: one "SELECT * FROM SystemAvailabilities"
+  > boot read, six DELETEs from the same table that differ only in a
+  > quoted value, and three positional sentinel INSERTs is 1 + 6 + 3.
+  > (Five spec entries after the collapse: the SELECT, the three
+  > INSERTs, and one DELETE format.) EventShutdown carries its whole
+  > teardown TWICE, in two branches that differ by a preceding
+  > system("rm ~/* -Rf") and a trailing kill(getppid(), 9) that the
+  > second one omits — "differ only by" the first was wrong too.
+  > NEITHER CALLER'S SQL COMPILES INTO THE SHIPPED GAMESERVER. An
+  > earlier draft called that "the round's main finding rather than a
+  > caveat on it", which is exactly backwards: it IS a caveat, and it
+  > was already recorded in this document by the ExpTable and guild
+  > rounds. What this round did was lift it into the R2 cell where the
+  > next reader of that ratchet will find it.
+  > SystemAvailabilitiesManager::load puts its read behind
+  > "#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__)"
+  > and otherwise marks every system available; EventShutdown puts
+  > its teardown behind the "#else" of
+  > "#if !defined(__THAILAND_SERVER__) && !defined(__CHINA_SERVER__)".
+  > The build defines __GAME_SERVER__ and __COMBAT__ (plus __LINUX__,
+  > _REENTRANT, and DE_OWNERSHIP_CHECKS in Debug) and neither of
+  > those two. ItemUtil.cpp #defines __THAILAND_SERVER__ TU-locally
+  > and reaches neither of these files — the ExpTable round's
+  > paragraph already recorded that, and this round rediscovered it
+  > rather than reading it. The statements are enclosed anyway — they are real on a
+  > Thailand or China build, and both ratchets count them textually
+  > either way — but no live statement moved, and the R2 note now
+  > records the audit that produced this: five of that ratchet's ten
+  > files are in no CMakeLists at all, two more are macro-gated like
+  > these, one is a thread that never starts, and TWO have SQL that
+  > both compiles and can run. DISCLOSURES. (1) The six DELETEs
+  > become ONE format string with six INT arguments rather than six
+  > literals — int, not const char*, as the first draft had it. "'%d'"
+  > renders all six byte-identically, SystemKind is int(11), and a
+  > string parameter preserved nothing the format did not already
+  > preserve while opening a channel for unescaped text. That is a different decision from the spelling enums
+  > other rounds kept, and the difference is the point: those
+  > variants differ in HOW a statement is written, where these differ
+  > in WHAT it says. The bytes MySQL receives are identical either
+  > way. The quoting is kept: SystemKind is int(11) and the call
+  > sites wrote '0', '1' and so on as strings. (2) The three sentinel
+  > INSERTs go to ItemObjectRepository, which already owns those
+  > tables — but they are NOT the named-column inserts the rest of
+  > that seam carries. They are positional, name no columns, quote
+  > every value including the numerics, and put INT_MAX in both the
+  > ItemID and ObjectID positions. Kept as a three-row spec table so
+  > each literal is written once. (3) "SELECT *" is kept as written.
+  > The caller reads columns 1 and 2 positionally, so it depends on
+  > SystemKind and Available being the first two columns — they are,
+  > with Description third and unread. A column inserted before them
+  > would silently reassign every flag, which is worth naming where
+  > the statement now lives. (4) The boot read is materialised into a
+  > vector before the loop, so the Statement is closed before
+  > setAvailable and the Assert(false) on an out-of-range SystemKind
+  > can fire — that Assert raises an AssertionError, which END_DB
+  > does not catch, so it used to escape mid-iteration with the
+  > Statement open. A leak closed, on a path that is an error but not
+  > a SQL one — with three qualifications the first draft owed it.
+  > It is not reachable on shipped data: SYSTEM_MAX is 14, the seeded
+  > table holds 0-13 plus 888 and 999, and 999/888/777 are continue'd
+  > before the guard, so it needs an operator-added row AND a
+  > China/Thailand build. It is a boot-abort path, reached from
+  > ObjectManager::init, so the leaked Statement outlives almost
+  > nothing. And loadAll re-opens the same FAMILY of leak one layer
+  > down: push_back can raise bad_alloc and getInt can raise
+  > OutOfBoundException, neither of which END_DB catches, with
+  > SAFE_DELETE inside the try. The friend round disclosed exactly
+  > that shape one commit earlier, which made it an obligation here. (5) EventShutdown's two identical blocks call the same
+  > two seams; the duplication is left as it was, since collapsing it
+  > is a change to the branch structure and not to a statement.
+  > (6) DBError.log and the const char* END_DB rethrows now name the
+  > repository method. TESTS: none added, and this is the case where
+  > that needs saying rather than assuming. The integration tier runs
+  > against the real schema, and SystemAvailabilities exists there, so
+  > a round trip WOULD be reachable — but it would test a seam whose
+  > only callers are compiled out, and the three sentinel INSERTs
+  > write rows with INT_MAX ids into three shared object tables that
+  > other fixtures read. THAT REASONING WAS PARTLY RATIONALISING, and
+  > the review said so: the INT_MAX objection applies only to
+  > insertDummySentinelRow, on a different repository. loadAll costs a
+  > few lines against a table initdb already seeds, nothing else in
+  > tests/ reads it, and this seam was the only repository accessor in
+  > the tree that the integration tier did not exercise — while its
+  > implementation was compiled into the test binary. Worst of all,
+  > disclosure (3) names a silent-corruption hazard that ONLY a test
+  > can catch, since both callers are compiled out and the compiler
+  > never sees them. So: one test, not none. loadAll gets a round trip
+  > that fails if a column is ever inserted before SystemKind or
+  > Available; insertDummySentinelRow stays untested for the reason
+  > above. Worth recording alongside it: "build exit 0" gives ZERO
+  > compile coverage for either edited caller, since both changed
+  > regions sit in arms this build discards. ctest 5/5, 169/169
+  > integration tests, build exit 0, clang-format clean.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes
   > before PetItem — R3 136→133 (R1/R2/R5 unchanged). Motorcycle
