@@ -1213,6 +1213,10 @@ enum DummyObjectTable { DUMMY_OBJECT_LARVA, DUMMY_OBJECT_SKULL, DUMMY_OBJECT_POT
 class ItemObjectRepository {
 public:
     virtual ~ItemObjectRepository() {}
+
+    // EventShutdown's egg-dummy-DB teardown; see DummyObjectTable above
+    // for why these three are positional and why they never compile into
+    // the shipped gameserver.
     virtual void insertDummySentinelRow(DummyObjectTable table) = 0;
 
     // <Class>::create — the INSERT with the ItemFlag column fed the create type.

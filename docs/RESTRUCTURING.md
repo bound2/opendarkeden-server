@@ -54,7 +54,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files; 10→8 on 2026-09-04: SystemAvailabilitiesManager and EventShutdown, the first movement of this ratchet since. THAT ROUND ALSO AUDITED WHAT R2 IS MEASURING, because it had been stuck at 10 for a long time, and the answer is mostly dead code. Of its ten files, FIVE are in no CMakeLists at all and are never compiled: EventMonsterNameManager.cpp, GameServerInfoManager.cpp (a stale third copy of a file that also lives in src/server/ and src/server/sharedserver/, both of which ARE built), GameWorldInfoManager.cpp, MoonCardUtil.cpp and Vampire_backup.cpp. Of the five that are built, two hide their SQL behind __THAILAND_SERVER__ or __CHINA_SERVER__, which the gameserver build defines neither of — those two are the ones this round enclosed, so the count moved without any live statement moving. A third, SMSServiceThread.cpp, is compiled but its thread is never started (see CLAUDE.md). That leaves TWO files whose SQL both compiles and can run: CreatureUtil.cpp (128 statements) and TradeManager.cpp (1). R2 is worth keeping — the dead files are still debt, and deleting them is a separate decision — but nobody should read "10" as ten live sites. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
+| R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (glob is deliberately non-recursive: a `repository/` MySQL impl doesn't count here — R2 measures SQL *leaving the game logic*. 101→98 on 2026-09-01: the three race files; 10→8 on 2026-09-04: SystemAvailabilitiesManager and EventShutdown, the first movement of this ratchet since the guild trio on 2026-09-02. That round LIFTED INTO THIS CELL the classification the ExpTable and guild paragraphs had already recorded — it is not a new finding, and an earlier draft of this note and of that round's paragraph called it one. Of R2's ten files, five are in no CMakeLists at all and are never compiled: EventMonsterNameManager.cpp, GameServerInfoManager.cpp (a stale third copy of a file that also lives in src/server/ and src/server/sharedserver/, both of which ARE built), GameWorldInfoManager.cpp, MoonCardUtil.cpp and Vampire_backup.cpp. No file(GLOB) exists anywhere in the build, so "in no CMakeLists" does mean never compiled. Two more hide their SQL behind __THAILAND_SERVER__ or __CHINA_SERVER__, which no build file defines — though ItemUtil.cpp #defines __THAILAND_SERVER__ TU-locally, and reaches neither of them; the ExpTable paragraph already said so, and the 09-04 round rediscovered it. SMSServiceThread.cpp is compiled but its thread is never started. That leaves two files whose SQL both compiles and can run: CreatureUtil.cpp (128 textual matches, of which 124 compile — three are commented out and one is under __UNDERWORLD__, which Types.h leaves commented out) and TradeManager.cpp (1). R2 is worth keeping — the dead files are still debt, and deleting them is a separate decision — but nobody should read "10" as ten live sites. The grep is textual, so a commented-out `executeQuery` still counts — the character-load round deleted the dead comment blocks that would otherwise have held the number. 98→85 the same day: the eight persisted-effect files, FlagSet, SMSAddressBook, GQuestInventory and the two quest-item elements. 85→75 the same day, the Zone milestone: Zone, ZoneGroupManager, ZoneUtil, ZoneInfo, ZoneInfoManager, ZonePlayerManager, RegenZoneManager, ResurrectLocationManager, WayPoint, ThreadManager. 75→61 the same day, the balance/info loaders: AttrBalanceInfo, VampEXPInfo, OustersEXPInfo, RankEXPInfo, SkillDomainInfoManager, FameLimitInfo, PetExpInfo, PetAttrInfo, SkillParentInfo, RankBonusInfo, PetTypeInfo, GameServerGroupInfoManager, BloodBibleBonusManager, MonsterNameManager. 61→44 the same day, the config loaders: WeatherInfo, StringPool, ShopTemplate, PKZoneInfoManager, LevelWarZoneInfoManager, LevelNickInfoManager, ItemMineInfo, ItemGradeManager, GoodsInfoManager, EventZoneInfo, DefaultOptionSetInfo, DarkLightInfo, CastleSkillInfo, CastleShrineInfoManager, EffectOnBridge, MonsterManager, LogNameManager — not gameserver/GameWorldInfoManager.cpp, an unbuilt stale fork of ServerCore's live loader, which R2 keeps counting. 44→37 on 2026-09-02, the race-war cluster: ShrineInfoManager, CastleInfoManager, SweeperBonusManager, SweeperBonus, SweeperSet, LevelWarManager, MasterLairInfoManager. 37→30 on 2026-09-02, the item cluster: ItemUtil, UniqueItemManager, TimeLimitItemManager, EventItemUtil, Item, GlobalItemPositionLoader, OptionInfo. 30→23 on 2026-09-02, the content-info cluster: MonsterInfo, SkillInfo, NPCManager, ScriptManager, Directive, VariableManager, EffectShutDown. 23→19 on 2026-09-02, the play-record cluster: GQuestManager, GQuestStatus, EventHeadCount, PacketUtil. 19→14 on 2026-09-02, the session cluster: GamePlayer, IncomingPlayerManager, ZoneGroupThread, EventMorph, ConnectionInfoManager. 14→13 on 2026-09-02: SomethingGrowingUp.h, the ExpTable template — a header, so R3 is unchanged. 13→10 on 2026-09-02, the guild trio: Guild, GuildManager, GuildUnion) |
 | R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 85 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (repository/ joined the exclusion 2026-09-01, baseline 317→314 — two files cleansed, one pilot impl no longer counted. This reverses the pilot's "R3 still counts the impl files" note: that held only while an extraction cleansed at least as many files as it created; the PlayerCreature round — 4 tables from 2 files — would have RAISED a shrink-only ratchet for sanctioned quarantining. 314→308 on 2026-09-01: the three race files and the three skill-slot files; 308→295 the same day: the thirteen files of the effect/flag/address-book/quest-item round; 295→285 the same day: the ten files of the Zone milestone; 285→271 the same day: the fourteen balance/info loaders; 271→254 the same day: the seventeen config loaders; 254→247 on 2026-09-02: the seven race-war files; 247→240 on 2026-09-02: the seven item files; 240→233 on 2026-09-02: the seven content-info files; 233→229 on 2026-09-02: the four play-record files; 229→224 on 2026-09-02: the five session files; 224→221 on 2026-09-02: the guild trio; 221→220 on 2026-09-02: item/ItemIDRegistry.cpp; 220→211 on 2026-09-02: the nine gear item classes; 211→203 on 2026-09-02: the eight vampire/ousters gear classes; 203→197 on 2026-09-02: the six gear classes with their own Info shapes; 197→193 on 2026-09-02: the four silver weapons; 193→189 on 2026-09-02: the four guns; 189→179 on 2026-09-02: the ten Num + ItemFlag items; 179→175 on 2026-09-02: the four Num-only items; 175→169 on 2026-09-02: the six Num-only items with a parameterized create; 169→165 on 2026-09-02: Skull and the three Bomb tables; 165→159 on 2026-09-02: the four ItemFlag-only items and the two plain ones; 159→154 on 2026-09-03: MixingItem, PetFood, Key and the two charge items; 154→150 on 2026-09-03: Money, the two couple rings and VampirePortalItem; 150→146 on 2026-09-03: VampireAmulet, CoreZap, Belt and OustersArmsband; 146→140 on 2026-09-03: the six items whose zone loader holds no SQL; 140→136 on 2026-09-03: the four war items; 136→133 on 2026-09-03: Motorcycle, CodeSheet and WarItem; 133→132 on 2026-09-03: PetItem, the last item class with SQL; 132→127 on 2026-09-03: the five mission/ files with live SQL; 127→120 on 2026-09-03: the seven ZoneEffectInfo readers; 120→113 on 2026-09-03: the five per-creature effect saves, EffectRestore and the two Restore skills — skill/ now holds no live inline SQL at all; 113→111 on 2026-09-03: GuildWar and RaceWar, the two war-history writers — SiegeWar loses its seven live statements too but keeps counting, its two SiegeWarHistory recorders being commented out whole; 111→109 on 2026-09-03: War and WarSchedule, the WarScheduleInfo probes and writes; 109→108 on 2026-09-03: RaceWarLimiter, the race-war entry limits and the participant list; 108→107 on 2026-09-03: WarScheduler, the per-zone schedule load and the guild-schedule cancel; 107→102 on 2026-09-03: the five guild-union handlers; 102→98 on 2026-09-03: CGExpelGuild and the three SG guild handlers, all pure reuse; 98→94 on 2026-09-04: the three guild-membership probe handlers and SGAddGuildMemberOK's clamped fee — note that CGJoinGuildHandler leaves this grep only because the commented-out DENY policy inside it, which contained a pStmt->executeQuery call, was rewritten to name the seam method now that pStmt is gone; left verbatim the file would still count and R3 would read 95. POLICY, written down because the SiegeWar entry earlier in this same cell records the opposite outcome and the two need reconciling: a commented-out block that REFERENCES CODE THE CONVERSION DELETED is updated to name what replaced it, because it is otherwise simply wrong; a commented-out block that is self-contained history, like SiegeWar's two whole recorders, is left alone and its file keeps counting. The distinction is whether the comment still describes something that exists, not whether editing it helps the number. A reader who rejects that distinction should read this round as R3 = 95 with CGJoinGuildHandler still on the list; 94→93 on 2026-09-04: couple/CoupleManager.cpp, the whole couple module's SQL in one file; 93→92 on 2026-09-04: ctf/FlagManager.cpp, likewise the whole capture-the-flag module; 92→90 on 2026-09-04: quest/ActionShowGuildDialog.cpp and CGConnectHandler.cpp, the two files the guild-membership round's review found it should have taken; 90→89 on 2026-09-04: mofus/Mofus.cpp, the whole mofus module; 89→87 on 2026-09-04: GCFriendChattingHandler and CGWhisperHandler; 87→85 on 2026-09-04: SystemAvailabilitiesManager and EventShutdown) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
@@ -4054,28 +4054,43 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > friend round)**: SystemAvailabilitiesManager.cpp and
   > EventShutdown.cpp — R2 10→8, R3 87→85 (R1/R5 unchanged).
   > The first movement of R2 in this stack. Nineteen textual
-  > statements, eight distinct: one "SELECT * FROM
-  > SystemAvailabilities" boot read, six DELETEs from the same table
-  > that differ only in a quoted value, and three positional sentinel
-  > INSERTs. EventShutdown carries its whole teardown TWICE, in two
-  > branches that differ only by a preceding system("rm ~/* -Rf").
-  > NEITHER CALLER'S SQL COMPILES INTO THE SHIPPED GAMESERVER, and
-  > that is the round's main finding rather than a caveat on it.
+  > statements, TEN distinct — an earlier draft said eight, which its
+  > own enumeration refutes: one "SELECT * FROM SystemAvailabilities"
+  > boot read, six DELETEs from the same table that differ only in a
+  > quoted value, and three positional sentinel INSERTs is 1 + 6 + 3.
+  > (Five spec entries after the collapse: the SELECT, the three
+  > INSERTs, and one DELETE format.) EventShutdown carries its whole
+  > teardown TWICE, in two branches that differ by a preceding
+  > system("rm ~/* -Rf") and a trailing kill(getppid(), 9) that the
+  > second one omits — "differ only by" the first was wrong too.
+  > NEITHER CALLER'S SQL COMPILES INTO THE SHIPPED GAMESERVER. An
+  > earlier draft called that "the round's main finding rather than a
+  > caveat on it", which is exactly backwards: it IS a caveat, and it
+  > was already recorded in this document by the ExpTable and guild
+  > rounds. What this round did was lift it into the R2 cell where the
+  > next reader of that ratchet will find it.
   > SystemAvailabilitiesManager::load puts its read behind
   > "#if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__)"
   > and otherwise marks every system available; EventShutdown puts
   > its teardown behind the "#else" of
   > "#if !defined(__THAILAND_SERVER__) && !defined(__CHINA_SERVER__)".
-  > The build defines __GAME_SERVER__ and __COMBAT__ and neither of
-  > those. The statements are enclosed anyway — they are real on a
+  > The build defines __GAME_SERVER__ and __COMBAT__ (plus __LINUX__,
+  > _REENTRANT, and DE_OWNERSHIP_CHECKS in Debug) and neither of
+  > those two. ItemUtil.cpp #defines __THAILAND_SERVER__ TU-locally
+  > and reaches neither of these files — the ExpTable round's
+  > paragraph already recorded that, and this round rediscovered it
+  > rather than reading it. The statements are enclosed anyway — they are real on a
   > Thailand or China build, and both ratchets count them textually
   > either way — but no live statement moved, and the R2 note now
   > records the audit that produced this: five of that ratchet's ten
   > files are in no CMakeLists at all, two more are macro-gated like
   > these, one is a thread that never starts, and TWO have SQL that
   > both compiles and can run. DISCLOSURES. (1) The six DELETEs
-  > become ONE format string with six arguments rather than six
-  > literals. That is a different decision from the spelling enums
+  > become ONE format string with six INT arguments rather than six
+  > literals — int, not const char*, as the first draft had it. "'%d'"
+  > renders all six byte-identically, SystemKind is int(11), and a
+  > string parameter preserved nothing the format did not already
+  > preserve while opening a channel for unescaped text. That is a different decision from the spelling enums
   > other rounds kept, and the difference is the point: those
   > variants differ in HOW a statement is written, where these differ
   > in WHAT it says. The bytes MySQL receives are identical either
@@ -4097,7 +4112,17 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > can fire — that Assert raises an AssertionError, which END_DB
   > does not catch, so it used to escape mid-iteration with the
   > Statement open. A leak closed, on a path that is an error but not
-  > a SQL one. (5) EventShutdown's two identical blocks call the same
+  > a SQL one — with three qualifications the first draft owed it.
+  > It is not reachable on shipped data: SYSTEM_MAX is 14, the seeded
+  > table holds 0-13 plus 888 and 999, and 999/888/777 are continue'd
+  > before the guard, so it needs an operator-added row AND a
+  > China/Thailand build. It is a boot-abort path, reached from
+  > ObjectManager::init, so the leaked Statement outlives almost
+  > nothing. And loadAll re-opens the same FAMILY of leak one layer
+  > down: push_back can raise bad_alloc and getInt can raise
+  > OutOfBoundException, neither of which END_DB catches, with
+  > SAFE_DELETE inside the try. The friend round disclosed exactly
+  > that shape one commit earlier, which made it an obligation here. (5) EventShutdown's two identical blocks call the same
   > two seams; the duplication is left as it was, since collapsing it
   > is a change to the branch structure and not to a statement.
   > (6) DBError.log and the const char* END_DB rethrows now name the
@@ -4107,7 +4132,21 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > a round trip WOULD be reachable — but it would test a seam whose
   > only callers are compiled out, and the three sentinel INSERTs
   > write rows with INT_MAX ids into three shared object tables that
-  > other fixtures read. The cost outweighs it. ctest 5/5, 168/168
+  > other fixtures read. THAT REASONING WAS PARTLY RATIONALISING, and
+  > the review said so: the INT_MAX objection applies only to
+  > insertDummySentinelRow, on a different repository. loadAll costs a
+  > few lines against a table initdb already seeds, nothing else in
+  > tests/ reads it, and this seam was the only repository accessor in
+  > the tree that the integration tier did not exercise — while its
+  > implementation was compiled into the test binary. Worst of all,
+  > disclosure (3) names a silent-corruption hazard that ONLY a test
+  > can catch, since both callers are compiled out and the compiler
+  > never sees them. So: one test, not none. loadAll gets a round trip
+  > that fails if a column is ever inserted before SystemKind or
+  > Available; insertDummySentinelRow stays untested for the reason
+  > above. Worth recording alongside it: "build exit 0" gives ZERO
+  > compile coverage for either edited caller, since both changed
+  > regions sit in arms this build discards. ctest 5/5, 169/169
   > integration tests, build exit 0, clang-format clean.
   > **Motorcycle, CodeSheet and WarItem (2026-09-03, stacked on the
   > war-item round; item milestone round 17)**: the last three shapes

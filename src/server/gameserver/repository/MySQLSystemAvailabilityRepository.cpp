@@ -10,7 +10,12 @@ namespace {
 //    table's column order; see the header.
 //  - The delete's value is quoted although SystemKind is int(11), because
 //    the call sites wrote it quoted. MySQL coerces, and the six
-//    statements this replaces were byte-identical to what it now formats.
+//    statements this replaces are byte-identical to what "'%d'" formats
+//    for each of 0, 1, 4, 7, 9 and 888.
+//  - loadAll leaks its Statement if getInt raises OutOfBoundException on
+//    a short row: SAFE_DELETE sits inside the try and END_DB catches only
+//    SQLQueryException. Same shape as every seam here, not a regression,
+//    and unreachable against a two-column read of a three-column table.
 class MySQLSystemAvailabilityRepository : public SystemAvailabilityRepository {
 public:
     vector<SystemAvailabilityRow> loadAll() {
@@ -35,12 +40,12 @@ public:
         return rows;
     }
 
-    void deleteSystemKind(const char* systemKind) {
+    void deleteSystemKind(int systemKind) {
         Statement* pStmt = NULL;
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='%s'", systemKind);
+            pStmt->executeQuery("DELETE FROM SystemAvailabilities WHERE SystemKind='%d'", systemKind);
 
             SAFE_DELETE(pStmt);
         }

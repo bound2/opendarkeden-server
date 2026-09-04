@@ -80,12 +80,12 @@ void EventShutdown::activate()
 
             SystemAvailabilityRepository& systems = defaultSystemAvailabilityRepository();
 
-            systems.deleteSystemKind("0");
-            systems.deleteSystemKind("1");
-            systems.deleteSystemKind("4");
-            systems.deleteSystemKind("7");
-            systems.deleteSystemKind("9");
-            systems.deleteSystemKind("888");
+            systems.deleteSystemKind(0);
+            systems.deleteSystemKind(1);
+            systems.deleteSystemKind(4);
+            systems.deleteSystemKind(7);
+            systems.deleteSystemKind(9);
+            systems.deleteSystemKind(888);
         }
 
         __END_CATCH
@@ -107,12 +107,12 @@ void EventShutdown::activate()
 
             SystemAvailabilityRepository& systems = defaultSystemAvailabilityRepository();
 
-            systems.deleteSystemKind("0");
-            systems.deleteSystemKind("1");
-            systems.deleteSystemKind("4");
-            systems.deleteSystemKind("7");
-            systems.deleteSystemKind("9");
-            systems.deleteSystemKind("888");
+            systems.deleteSystemKind(0);
+            systems.deleteSystemKind(1);
+            systems.deleteSystemKind(4);
+            systems.deleteSystemKind(7);
+            systems.deleteSystemKind(9);
+            systems.deleteSystemKind(888);
         }
 
         __END_CATCH

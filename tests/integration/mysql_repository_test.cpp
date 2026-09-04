@@ -59,6 +59,7 @@
 #include "repository/SessionRepository.h"
 #include "repository/SkillSaveRepository.h"
 #include "repository/StashRepository.h"
+#include "repository/SystemAvailabilityRepository.h"
 #include "repository/WarInfoRepository.h"
 #include "repository/ZoneInfoRepository.h"
 
@@ -187,6 +188,48 @@ TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
     int gold = -1;
     ASSERT_TRUE(defaultStashRepository().loadStashGold(vampire.name, CHARACTER_RACE_VAMPIRE, gold));
     EXPECT_EQ(0, gold);
+}
+
+// --- system-availability flags against real MySQL --------------------------
+
+TEST(SystemAvailabilityMySQL, TheBootReadTakesTheFirstTwoColumnsOfASelectStar) {
+    // This is the only thing that will ever catch the hazard the seam's
+    // header names. The statement is "SELECT *" and the caller reads
+    // columns 1 and 2 POSITIONALLY, so a column inserted before them would
+    // silently reassign every system flag. Both of that seam's callers are
+    // compiled out of this build, so the compiler will never notice; an
+    // earlier draft of this round declined to write this test on the
+    // grounds that the callers are dead, which got the argument backwards.
+    SystemAvailabilityRepository& repository = defaultSystemAvailabilityRepository();
+
+    execSQL("DELETE FROM SystemAvailabilities WHERE SystemKind >= 31000");
+    execSQL("INSERT INTO SystemAvailabilities (SystemKind, Available, Description) "
+            "VALUES (31000, 7, 'it-availability')");
+
+    std::vector<SystemAvailabilityRow> rows = repository.loadAll();
+
+    bool seen = false;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].systemKind == 31000) {
+            seen = true;
+            // 7, not 1: the caller turns this into a bool for most systems
+            // but reads it as an integer for the three limit rows, so the
+            // seam must hand back the column rather than a flag.
+            EXPECT_EQ(7, rows[r].available);
+        }
+    }
+    EXPECT_TRUE(seen) << "the seeded row did not come back — has a column been "
+                         "inserted before SystemKind or Available?";
+
+    // The seeded production rows come back too, which is what the boot
+    // path depends on.
+    EXPECT_FALSE(rows.empty());
+
+    repository.deleteSystemKind(31000);
+    EXPECT_EQ("0", queryScalar("SELECT count(*) FROM SystemAvailabilities WHERE SystemKind=31000"));
+
+    // The delete is scoped to the one kind, so the seeded rows survive it.
+    EXPECT_NE("0", queryScalar("SELECT count(*) FROM SystemAvailabilities"));
 }
 
 // --- the friend list against real MySQL ------------------------------------

@@ -2634,6 +2634,11 @@ public:
     void insertDummySentinelRow(DummyObjectTable table) {
         // Byte-for-byte EventShutdown's three; see ItemObjectRepository.h
         // for why they are positional and why they never compile here.
+        //
+        // executeQueryString, not executeQuery, and deliberately: these
+        // carry no arguments, so the format pass would only expose them
+        // to its 2048-byte cap for nothing. The bytes are the same. It
+        // is the one method here that does this; leave it that way.
         static const char* const DUMMY_SQL[DUMMY_OBJECT_TABLE_MAX] = {
             "INSERT INTO LarvaObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')",
             "INSERT INTO SkullObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')",
