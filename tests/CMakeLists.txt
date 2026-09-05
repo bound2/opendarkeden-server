@@ -36,6 +36,7 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_encrypter_test.cpp
     packet_exchange_test.cpp
     wire_layout_test.cpp
+    wire_types_test.cpp
     xml_parse_test.cpp
 )
 

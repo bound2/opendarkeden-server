@@ -77,11 +77,13 @@ public:
         buf = m_Encrypter.convert(buf);
         return n;
     }
-    uint readEncrypt(long& buf) {
-        uint n = read(buf);
-        buf = m_Encrypter.convert(buf);
-        return n;
-    }
+    // No signed 64-bit overload: the protocol has no signed 64-bit
+    // field, and `long` is 8 bytes here but 4 on the Win32 client, so
+    // de::WireScalar rejects it (WireTypes.h). This overload was dead
+    // -- nothing ever called it -- but being defined in-class it still
+    // instantiated SocketInputStream::read<long>. The ulong overload
+    // below stays: on this platform ulong IS std::uint64_t, the width
+    // the Exchange listing id uses.
     uint readEncrypt(ulong& buf) {
         uint n = read(buf);
         buf = m_Encrypter.convert(buf);

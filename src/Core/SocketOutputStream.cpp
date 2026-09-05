@@ -51,28 +51,36 @@ SocketOutputStream::~SocketOutputStream() noexcept {
 //
 // write data to stream (output buffer)
 //
+// The one copy of the ring-buffer walk: the const char*/uint overload
+// and the scalar write<T>() template both come through here. The span
+// binds the source to its own length, so the two can no longer
+// disagree.
+//
 // *Notes*
 //
 // ( ( m_Head = m_Tail + 1 ) ||
 //   ( ( m_Head == 0 ) && ( m_Tail == m_BufferLen - 1 ) )
 //
-// �� �� ���� full �� �����Ѵٴ� ���� ���� ����. ����, ������ ��
-// ������ ũ��� �׻� 1 �� ����� �Ѵٴ� ���!
+// is what "full" means, so one byte of the buffer is always left
+// unused: that is how m_Head == m_Tail can mean "empty" and never
+// "full". (The original Korean note did not survive the encoding
+// migration.)
 //
 //////////////////////////////////////////////////////////////////////
-uint SocketOutputStream::write(const char* buf, uint len) {
+uint SocketOutputStream::write(std::span<const std::byte> src) {
     __BEGIN_TRY
 
-    // ���� ������ �� ������ ����Ѵ�.
-    // (!) m_Head > m_Tail�� ��쿡 m_Head - m_Tail - 1 �� �����ߴ�. by sigi. 2002.9.16
-    // �ٵ� buffer_resize�� �� ���� �Ͼ��. �ٸ��� ������ �ִµ� �ϴ� ��
-    // ã�����Ƿ�.. back. by sigi. 2002.9.23
-    // �׽�Ʈ �غ��ϱ�.. �������̾���. ������ buffer resize�� ����� �Ͼ�� ������ ����?
-    // �ٽ� ����. by sigi. 2002.9.27
+    const char* buf = reinterpret_cast<const char*>(src.data());
+    const uint len = (uint)src.size();
+
+    // Free space left in the buffer. The m_Head > m_Tail case was
+    // revised repeatedly -- by sigi. 2002.9.16 / 2002.9.23 / 2002.9.27 --
+    // and the dead expression below is what it was revised away from.
+    // (The original Korean note did not survive the encoding migration.)
     uint nFree = ((m_Head <= m_Tail) ? m_BufferLen - m_Tail + m_Head - 1 : m_Head - m_Tail - 1);
     // m_Tail - m_Head - 1 );
 
-    // ������ �ϴ� ����Ÿ�� ũ�Ⱑ �� ������ ũ�⸦ �ʰ��� ��� ���۸� ������Ų��.
+    // Grow the buffer when the data does not fit in the free space.
     if (len >= nFree)
         resize(len - nFree + 1);
 
@@ -115,6 +123,14 @@ uint SocketOutputStream::write(const char* buf, uint len) {
     return len;
 
     __END_CATCH
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// write data to stream (legacy pointer/length entry point)
+//////////////////////////////////////////////////////////////////////
+uint SocketOutputStream::write(const char* buf, uint len) {
+    return write(std::span<const std::byte>(reinterpret_cast<const std::byte*>(buf), len));
 }
 
 

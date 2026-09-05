@@ -22,9 +22,13 @@
 #define __SOCKET_INPUT_STREAM_H__
 
 // include files
+#include <cstddef>
+#include <span>
+
 #include "Exception.h"
 #include "Socket.h"
 #include "Types.h"
+#include "WireTypes.h"
 
 // constant definitions
 const uint DefaultSocketInputBufferSize = 81920;
@@ -55,11 +59,36 @@ public:
     //////////////////////////////////////////////////
 public:
     // read data from stream (input buffer)
+    //
+    // The span overload carries the implementation: it binds the buffer
+    // to its length instead of trusting the caller to pass a matching
+    // pair. The char*/uint form is kept verbatim for the existing call
+    // sites and forwards, so bounds behaviour and the exceptions thrown
+    // (InvalidProtocolException on an empty request,
+    // InsufficientDataException when the buffer holds less) are the same
+    // through either entry point.
+    uint read(std::span<std::byte> dst);
     uint read(char* buf, uint len);
     uint read(string& str, uint len);
     void readPacket(Packet* p);
 
-    template <typename T> uint read(T& buf);
+    // Raw scalar read: copies sizeof(T) bytes of the object
+    // representation straight off the wire. Only de::WireScalar types
+    // may do that -- see WireTypes.h for what that admits and why.
+    template <de::WireScalar T> uint read(T& buf);
+
+    // Deliberately an overload rather than only a constraint on the one
+    // above: it keeps a rejected type from quietly finding some other
+    // viable overload, and reports the type by name instead of "no
+    // matching member function".
+    template <typename T> uint read(T& buf) {
+        static_assert(de::WireScalar<T>,
+                      "SocketInputStream::read<T>: T is not a protocol wire scalar. Reading it would copy "
+                      "sizeof(T) raw bytes of a pointer, an object layout or a platform-sized integer off the "
+                      "wire. Read the protocol's own fixed-width fields (see WireTypes.h), or read a length "
+                      "prefix plus read(char*, uint) / read(std::span<std::byte>) for a buffer.");
+        return 0;
+    }
 
     /*	uint read (bool   & buf)  { return read((char*)&buf, szbool  ); }
         uint read (char   & buf)  { return read((char*)&buf, szchar  ); }
@@ -71,7 +100,8 @@ public:
         uint read (long   & buf)  { return read((char*)&buf, szlong  ); }
         uint read (ulong  & buf)  { return read((char*)&buf, szulong ); }
     */
-    // peek data from stream (input buffer)
+    // peek data from stream (input buffer). Same split as read() above.
+    bool peek(std::span<std::byte> dst);
     bool peek(char* buf, uint len);
 
     // skip data from stream (input buffer)
@@ -135,50 +165,23 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
-// read data from input buffer
+// read a scalar from the input buffer
+//
+// The ring-buffer walk now lives in read(std::span<std::byte>) alone.
+// This template used to carry a second, hand-copied version of the
+// same walk -- the copy whose T* cast at an arbitrary buffer offset
+// tripped UBSan and was changed to memcpy (docs/TOOLCHAIN.md section
+// 2). Behaviour is unchanged: sizeof(T) is never 0 and &buf is never
+// null, so neither extra guard in the span overload can fire here.
+//
+// reinterpret_cast to std::byte* is not an aliasing violation: std::byte
+// (like char) may alias any object. std::bit_cast would need a second
+// copy through a temporary array to say the same thing, so it is not
+// used here.
 //
 //////////////////////////////////////////////////////////////////////
-template <typename T> uint SocketInputStream::read(T& buf) {
-    uint len = (uint)sizeof(T);
-
-    // ��û�� ��ŭ�� ����Ÿ�� ���۳��� �������� ���� ��� ���ܸ� ������.
-    // ���� ��� read �� peek() �� üũ�� �� ȣ��ȴٸ�, �Ʒ� if-throw ��
-    // �ߺ��� ���� �ִ�. ����, �ڸ�Ʈ�� ó���ص� �����ϴ�.
-    // �� �Ʒ� �ڵ带 �ڸ�Ʈó���ϸ�, �ٷ� �Ʒ��� if-else �� 'if'-'else if'-'else'
-    // �� ��������� �Ѵ�.
-    if (len > length())
-        throw InsufficientDataException(len - length());
-
-    if (m_Head < m_Tail) // normal order
-    {
-        //
-        //    H   T
-        // 0123456789
-        // ...abcd...
-        //
-        memcpy(&buf, m_Buffer + m_Head, len);
-
-    } else // reversed order ( m_Head > m_Tail )
-    {
-        //
-        //     T  H
-        // 0123456789
-        // abcd...efg
-        //
-        uint rightLen = m_BufferLen - m_Head;
-        if (len <= rightLen) {
-            memcpy(&buf, m_Buffer + m_Head, len);
-        } else {
-            memcpy((char*)&buf, &m_Buffer[m_Head], rightLen);
-            memcpy(((char*)(&buf) + rightLen), m_Buffer, len - rightLen);
-        }
-    }
-
-    m_Head = (m_Head + len) % m_BufferLen;
-
-    return len;
-
-    //	__END_CATCH
+template <de::WireScalar T> uint SocketInputStream::read(T& buf) {
+    return read(std::span<std::byte>(reinterpret_cast<std::byte*>(&buf), sizeof(T)));
 }
 
 #endif

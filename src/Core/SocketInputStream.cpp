@@ -55,20 +55,24 @@ SocketInputStream::~SocketInputStream() noexcept {
 //
 // read data from input buffer
 //
+// The one copy of the ring-buffer walk: the char*/uint overload and the
+// scalar read<T>() template both come through here. The span binds the
+// destination to its own length, so the two can no longer disagree.
+//
 //////////////////////////////////////////////////////////////////////
-uint SocketInputStream::read(char* buf, uint len) {
+uint SocketInputStream::read(std::span<std::byte> dst) {
     //	__BEGIN_TRY
+
+    char* buf = reinterpret_cast<char*>(dst.data());
+    const uint len = (uint)dst.size();
 
     Assert(buf != NULL);
 
     if (len == 0)
         throw InvalidProtocolException("len==0");
 
-    // ��û�� ��ŭ�� ����Ÿ�� ���۳��� �������� ���� ��� ���ܸ� ������.
-    // ���� ��� read �� peek() �� üũ�� �� ȣ��ȴٸ�, �Ʒ� if-throw ��
-    // �ߺ��� ���� �ִ�. ����, �ڸ�Ʈ�� ó���ص� �����ϴ�.
-    // �� �Ʒ� �ڵ带 �ڸ�Ʈó���ϸ�, �ٷ� �Ʒ��� if-else �� 'if'-'else if'-'else'
-    // �� ��������� �Ѵ�.
+    // Less data buffered than the caller asked for. (The original
+    // Korean note here did not survive the encoding migration.)
     if (len > length())
         throw InsufficientDataException(len - length());
 
@@ -104,6 +108,20 @@ uint SocketInputStream::read(char* buf, uint len) {
     return len;
 
     //	__END_CATCH
+}
+
+
+//////////////////////////////////////////////////////////////////////
+//
+// read data from input buffer (legacy pointer/length entry point)
+//
+//////////////////////////////////////////////////////////////////////
+uint SocketInputStream::read(char* buf, uint len) {
+    // Checked before the span is formed: a null buffer must still be the
+    // assertion it has always been, not a span over a null pointer.
+    Assert(buf != NULL);
+
+    return read(std::span<std::byte>(reinterpret_cast<std::byte*>(buf), len));
 }
 
 
@@ -186,21 +204,25 @@ void SocketInputStream::readPacket(Packet* pPacket) {
 //////////////////////////////////////////////////////////////////////
 // peek data from buffer
 //////////////////////////////////////////////////////////////////////
-bool SocketInputStream::peek(char* buf, uint len) {
+bool SocketInputStream::peek(std::span<std::byte> dst) {
     //	__BEGIN_TRY
+
+    char* buf = reinterpret_cast<char*>(dst.data());
+    const uint len = (uint)dst.size();
 
     Assert(buf != NULL);
 
     if (len == 0)
         throw InvalidProtocolException("len==0");
 
-    // ��û�� ũ�⺸�� ������ ����Ÿ�� ���� ���, ���ܸ� ������.
+    // Less data buffered than asked for. Unlike read() that is not an
+    // exception here: "not yet" is peek()'s normal answer.
+    // by sigi. 2002.5.4
     if (len > length())
         // throw InsufficientDataException( len - length() );
-        //  NoSuch����. by sigi. 2002.5.4
         return false;
 
-    // buf �� ����� �ϵ�, m_Head �� ��ȭ��Ű�� �ʴ´�.
+    // Copy into buf, but leave m_Head where it is.
     if (m_Head < m_Tail) { // normal order
 
         //
@@ -230,6 +252,16 @@ bool SocketInputStream::peek(char* buf, uint len) {
 
     return true;
     //	__END_CATCH
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// peek data from buffer (legacy pointer/length entry point)
+//////////////////////////////////////////////////////////////////////
+bool SocketInputStream::peek(char* buf, uint len) {
+    Assert(buf != NULL);
+
+    return peek(std::span<std::byte>(reinterpret_cast<std::byte*>(buf), len));
 }
 
 

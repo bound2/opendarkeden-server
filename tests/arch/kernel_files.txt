@@ -44,6 +44,7 @@ src/Core/Socket.h
 src/Core/Socket.cpp
 src/Core/ServerSocket.h
 src/Core/ServerSocket.cpp
+src/Core/WireTypes.h
 src/Core/SocketInputStream.h
 src/Core/SocketInputStream.cpp
 src/Core/SocketOutputStream.h

@@ -288,25 +288,75 @@ unsupported toolchain fails at configuration instead of deep in compilation.
 
 ### Type-safe packet buffers
 
-The socket streams currently expose raw pointer-plus-length overloads and
-unconstrained `read<T>`/`write<T>` templates that copy `sizeof(T)` bytes. Any
-accidentally passed pointer, padded class, platform-sized integer or other
-non-wire type therefore compiles. The earlier misaligned-access fix proved
-that this hot path benefits from making representation rules explicit.
+Done for the stream layer; the packet codecs above it are unchanged.
 
-Use `std::span<std::byte>`/`std::span<const std::byte>` for buffer regions and
-a `WireScalar` concept for the scalar overloads. That concept should permit
-only the fixed-width, trivially-copyable types approved by the protocol.
-`std::endian` can document the existing byte order, while `std::bit_cast`
-provides representation conversion without aliasing violations. These tools
-do not perform byte swapping or bounds validation automatically; the codec
-must still check sizes and preserve the deployed client's byte order.
+`SocketInputStream::read<T>` and `SocketOutputStream::write<T>` copy
+`sizeof(T)` bytes of an object's representation out of / into the socket ring
+buffer, so whatever compiles *defines* the protocol. Before this change a
+pointer, a `std::string`, a padded class or a platform-sized integer (`long`
+and `size_t` are 8 bytes on the Linux server and 4 on the Win32 client) all
+compiled silently. `src/Core/WireTypes.h` now states the rule once as a
+`de::WireScalar` concept, and both templates are constrained by it.
 
-Migrate one packet family at a time behind the existing stream API. Every
-slice must keep the wire-layout inventory, per-code encryption goldens and
-round-trip tests byte-identical. Packet safety is the highest-value C++20 use
-because a compile-time rejection is much cheaper than diagnosing a corrupted
-live session.
+The accept list came from evidence rather than taste: every `T` that
+instantiates the two templates across de-kernel and all three servers was
+enumerated first, with a throwaway deprecated-probe build. It is `bool`,
+`char`, `signed char`, `unsigned char`, `short`, `unsigned short`, `int`,
+`unsigned int` and `std::uint64_t`. That covers every `Types.h` field alias,
+since `BYTE`/`WORD`/`DWORD` are `unsigned char`/`unsigned short`/`unsigned
+int`. Pointers, arrays, class types, floating point, enumerations and
+signed 64-bit in every spelling are rejected — trivially copyable
+aggregates included, because "can be memcpy'd" is not the question the
+wire asks.
+
+One caveat is unavoidable, and the header spells it out. The Exchange packets
+(`CGExchangeBuy`, `GCExchangeBuy`, `GCExchangeList`) write their listing id as
+a `uint64_t`, so that has to stay admitted — and on the LP64 server
+`std::uint64_t` **is** `unsigned long`, so `unsigned long` and `size_t` are
+admitted with it and a stray `write(size_t)` still compiles here while it
+would be four bytes on the client. Signed 64-bit is not admitted, and that is
+what keeps plain `long` out; its only instantiation sites were the dead
+`readEncrypt(long&)` / `writeEncrypt(long)` overloads, now removed. The test
+asserts this split relative to `std::uint64_t` rather than to a spelling, so
+it states the intent on a platform where the two differ.
+
+Constraining alone would have been a hazard rather than a fix: with
+`write<T>` constrained away, `write(someCharPointer)` would have found
+`write(const string&)` through a user-defined conversion and put a
+*different* byte sequence on the wire. Each template therefore has an
+unconstrained sibling whose only statement is a `static_assert`, so a
+rejected type is a named compile error instead.
+
+The buffer paths gained `read` / `peek(std::span<std::byte>)` and
+`write(std::span<const std::byte>)`. Those now carry the implementation; the
+`char*` / `const char*` plus `uint` signatures are kept for the existing call
+sites and forward to them, so the hundreds of callers and the exceptions they
+rely on (`InvalidProtocolException` for a zero-length request,
+`InsufficientDataException` for a short buffer) are unchanged. The scalar
+templates forward as well, which removes the hand-copied second version of
+the ring-buffer walk — the copy the misaligned-access fix above had to patch
+separately.
+
+`std::endian` states the deployed byte order once, as a `static_assert` in
+`WireTypes.h`: the wire format is the little-endian in-memory representation,
+no packet swaps bytes, and none is introduced here. `std::bit_cast` is
+deliberately **not** used. The aliasing casts it would replace are already
+gone (that is what the five `memcpy` sites above are), and the remaining
+pointer conversion is to `std::byte*`, which may legally alias any object,
+whereas `bit_cast` would add a copy through a temporary array in a hot path.
+
+`tests/wire_types_test.cpp` pins both lists with `static_assert`s, round-trips
+every admitted scalar and a span buffer through real loopback sockets, and
+drives a 16-byte ring buffer so the wrap-around branch and its split copy
+actually run. The wire-layout inventory and every golden are unchanged, which
+is what establishes that no packet moved.
+
+What remains: the codecs above the stream still read and write field by
+field with no declarative layout; packet sizes are still hand-maintained
+(`writePacket` only *warns* when `getPacketSize()` disagrees with the bytes
+written); and string fields still carry hand-written length prefixes, which
+is why `CGExchangeBuy` needs a comment telling the next author not to pass a
+`std::string` to `write` — something the concept now enforces.
 
 ### Compile-time packet metadata
 
