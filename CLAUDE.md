@@ -339,9 +339,11 @@ prevents shutdown. See `docs/TOOLCHAIN.md` for the full contract.
 held.** The group's own `ZoneGroupThread` holds it for its entire tick;
 any other thread must take it explicitly, e.g.
 `__ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))` — `GDRLairManager`
-does this at its transport, broadcast, reward and effect-sweep sites (not
-at its `addEffect_LOCKING` calls — see Known violations). Note
-`Zone::m_Mutex` is a **different, narrower** lock some
+does this at every site that touches zone-group state. Its
+`addEffect_LOCKING`/`deleteEffect_LOCKING` calls need no group mutex: they
+go to the zone's separate locked effect manager, which the tick services
+only under `Zone::m_MutexEffect`, the one sub-lock designed for cross-thread
+adds. Note `Zone::m_Mutex` is a **different, narrower** lock some
 main-thread heartbeats take (war/ctf via `pZone->lock()`); holding it does
 NOT exclude the zone-group tick and does not satisfy this rule.
 
@@ -449,10 +451,9 @@ gateways, not a full guarantee.
   sweeps, inventory and registry writes, the same explicit
   `__ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))` the file's other
   sites use. None hits a gated gateway, so the assert still cannot see a
-  regression there. Still open in the same file: the ~17
-  `addEffect_LOCKING` calls in the lair-setup helpers add effects to live
-  zones under only `Zone::m_MutexEffect`, which does not exclude the zone
-  tick.
+  regression there. (The file's `addEffect_LOCKING` calls are not
+  violations: that path is served by the zone's locked effect manager
+  under `Zone::m_MutexEffect` on both sides.)
 - ~~Packets pipelined behind `CGReady` drained on the main thread after
   `GPS_NORMAL` opened the validator gate, reaching the gateways with no
   group mutex~~ — **fixed**: `GamePlayer::processCommand` stops the
