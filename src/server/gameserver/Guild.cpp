@@ -30,6 +30,7 @@
 GuildMember::GuildMember()
 
 {
+    m_Rank = GUILDMEMBER_RANK_NORMAL; // was left indeterminate
     m_bLogOn = false;
     m_ServerID = 255;
 }
@@ -184,7 +185,7 @@ string GuildMember::toString() const
 GuildMember& GuildMember::operator=(GuildMember& Member) {
     m_GuildID = Member.m_GuildID;
     m_Name = Member.m_Name;
-    m_Rank = Member.m_Rank;
+    m_Rank.store(Member.m_Rank.load(std::memory_order_relaxed), std::memory_order_relaxed);
 
     return *this;
 }
@@ -307,6 +308,10 @@ Guild::~Guild()
     }
 
     m_Members.clear();
+
+    for (size_t i = 0; i < m_RetiredMembers.size(); i++)
+        SAFE_DELETE(m_RetiredMembers[i]);
+    m_RetiredMembers.clear();
 
 #ifdef __GAME_SERVER__
     m_CurrentMembers.clear();
@@ -470,6 +475,51 @@ GuildMember* Guild::getMember_NOLOCKED(const string& name) const
     __END_CATCH
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// guild teardown: take every member out of the map under the mutex
+//////////////////////////////////////////////////////////////////////////////
+std::vector<std::pair<std::string, GuildMemberRank_t>> Guild::retireAllMembers() {
+    std::vector<std::pair<std::string, GuildMemberRank_t>> members;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    // Two passes: the first copies names and can fail on allocation, while
+    // nothing has moved yet; the second moves the pointers and cannot throw
+    // (both vectors are reserved), so a member is never owned by the map
+    // and the retired list at once.
+    members.reserve(m_Members.size());
+    m_RetiredMembers.reserve(m_RetiredMembers.size() + m_Members.size());
+    for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr)
+        members.push_back(std::make_pair(itr->first, itr->second->getRank()));
+    for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr)
+        m_RetiredMembers.push_back(itr->second);
+    m_Members.clear();
+    m_ActiveMemberCount = 0;
+    m_WaitMemberCount = 0;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return members;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// member names, copied under the guild mutex -- for readers on other threads
+//////////////////////////////////////////////////////////////////////////////
+std::vector<std::string> Guild::getMemberNames() const {
+    std::vector<std::string> names;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    names.reserve(m_Members.size());
+    for (HashMapGuildMemberConstItor itr = m_Members.begin(); itr != m_Members.end(); ++itr)
+        names.push_back(itr->first);
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return names;
+}
+
+
 void Guild::addMember(GuildMember* pMember)
 
 {
@@ -537,7 +587,9 @@ void Guild::deleteMember(const string& name)
         m_WaitMemberCount--;
     }
 
-    SAFE_DELETE(itr->second);
+    // Retire, don't free: a zone thread may hold this pointer (see
+    // m_RetiredMembers).
+    m_RetiredMembers.push_back(itr->second);
 
     m_Members.erase(itr);
 
@@ -581,7 +633,12 @@ void Guild::modifyMemberRank(const string& name, GuildMemberRank_t rank)
 {
     __BEGIN_TRY
 
-    GuildMember* pMember = getMember(name);
+    // The counters and the member's rank change together; hold the guild
+    // mutex across the lookup and both updates so a reader (a zone thread
+    // building a member list) never sees the rank moved but the counts not.
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    GuildMember* pMember = getMember_NOLOCKED(name);
     if (pMember == NULL)
         return;
 
@@ -610,6 +667,8 @@ void Guild::modifyMemberRank(const string& name, GuildMemberRank_t rank)
     pMember->save();
     saveCount();
 #endif
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -745,7 +804,7 @@ void Guild::makeMemberInfo(GCGuildMemberList& gcGuildMemberList)
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    HashMapGuildMember& Members = getMembers();
+    HashMapGuildMember& Members = getMembers_NOLOCKED(); // m_Mutex is held above
     HashMapGuildMemberConstItor itr = Members.begin();
 
     for (; itr != Members.end(); itr++) {

@@ -426,10 +426,23 @@ gateways, not a full guarantee.
 - ~~SG/LG/GG handlers **mutate** creature state holding only the `PCFinder`
   lock~~ — **fixed** for the creature side: the six guild handlers and
   `LGKickCharacter` post their gold / guild-id / kick-flag / zone-broadcast
-  work through `de::postToPlayer` (see "Cross-thread communication"). Still
-  open: the same handlers mutate `Guild`/`GuildMember` objects on the
-  `SharedServerManager` thread while zone threads read them; `Guild` and
-  `GuildManager` carry their own mutexes but the handlers do not take them.
+  work through `de::postToPlayer` (see "Cross-thread communication"). Now
+  the guild side is closed as far as the maps and flags go: `GuildManager`
+  and `Guild` lock their maps on both sides; `Guild::getMembers()` no
+  longer hands the live member map to a zone-thread reader (it is
+  `getMembers_NOLOCKED()` for the writer thread, readers copy the names
+  under the guild mutex, and the delete-guild handler empties the map
+  through `retireAllMembers()` under it); the per-member rank / log-on /
+  server flags and the member counters are atomics, with the rank change
+  and its counter update under the mutex together. Object lifetime is
+  handled by not freeing: `getGuild()` and `getMember()` return raw
+  pointers after releasing their locks, so a deleted guild or member is
+  retired (`GuildManager::m_RetiredGuilds`, `Guild::m_RetiredMembers`) and
+  stays readable, stale, until the managers are destroyed — the whole-table
+  `clear()` a sharedserver resync triggers retires too, never frees. Still open: a zone thread reading
+  a retired member sees its last rank, and `Guild` scalar fields (name,
+  master, state, intro) are plain members written on the
+  `SharedServerManager` thread.
 - `EventMorph.cpp` mutates `Tile` contents directly
   (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
   assert cannot see such call sites — the assert covers the gateway

@@ -7,7 +7,11 @@
 #ifndef __GUILD_H__
 #define __GUILD_H__
 
+#include <atomic>
 #include <list>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include <unordered_map>
 
@@ -191,22 +195,22 @@ public: // identity methods
     }
 
     GuildMemberRank_t getRank() const {
-        return m_Rank;
+        return m_Rank.load(std::memory_order_relaxed);
     }
     void setRank(GuildMemberRank_t rank); // Guild class 에서 처리한다.
 
     bool getLogOn() const {
-        return m_bLogOn;
+        return m_bLogOn.load(std::memory_order_relaxed);
     }
     void setLogOn(bool logOn) {
-        m_bLogOn = logOn;
+        m_bLogOn.store(logOn, std::memory_order_relaxed);
     }
 
     ServerID_t getServerID() const {
-        return m_ServerID;
+        return m_ServerID.load(std::memory_order_relaxed);
     }
     void setServerID(ServerID_t ServerID) {
-        m_ServerID = ServerID;
+        m_ServerID.store(ServerID, std::memory_order_relaxed);
     }
 
     string getRequestDateTime() const;
@@ -229,12 +233,16 @@ public:
     ///// Member data /////
 
 protected:
-    GuildID_t m_GuildID;          // 길드 ID
-    string m_Name;                // 멤버 이름
-    GuildMemberRank_t m_Rank;     // 멤버의 계급
-    VSDateTime m_RequestDateTime; // 가입 신청 시간
-    bool m_bLogOn;                // 접속 여부
-    ServerID_t m_ServerID;        // 서버 위치
+    GuildID_t m_GuildID; // 길드 ID
+    string m_Name;       // 멤버 이름
+    // Rank, log-on and server are written by the SG handlers on the
+    // SharedServerManager thread and read by zone threads through
+    // Guild::getMember(); each is an independent flag, so an atomic rather
+    // than a field under the guild mutex.
+    std::atomic<GuildMemberRank_t> m_Rank; // 멤버의 계급
+    VSDateTime m_RequestDateTime;          // 가입 신청 시간
+    std::atomic<bool> m_bLogOn;            // 접속 여부
+    std::atomic<ServerID_t> m_ServerID;    // 서버 위치
 };
 
 
@@ -392,15 +400,27 @@ public: // identity methods
 
     void modifyMemberRank(const string& name, GuildMemberRank_t rank);
 
-    HashMapGuildMember& getMembers() {
+    // The live map, for the one thread that owns the writes only: the
+    // SharedServerManager thread, where the SG handlers run. That thread
+    // may walk it while adding or deleting members; nobody else may hold a
+    // reference to it. A zone thread answering a client takes a copy
+    // under the guild mutex instead.
+    HashMapGuildMember& getMembers_NOLOCKED() {
         return m_Members;
     }
+    std::vector<std::string> getMemberNames() const;
+
+    // Guild teardown (SGDeleteGuildOK): empties the member map under the
+    // mutex and returns each member's name and rank for the handler to act
+    // on. The GuildMember objects are retired, not freed -- see
+    // m_RetiredMembers.
+    std::vector<std::pair<std::string, GuildMemberRank_t>> retireAllMembers();
 
     int getActiveMemberCount() const {
-        return m_ActiveMemberCount;
+        return m_ActiveMemberCount.load(std::memory_order_relaxed);
     }
     int getWaitMemberCount() const {
-        return m_WaitMemberCount;
+        return m_WaitMemberCount.load(std::memory_order_relaxed);
     }
 
 #ifdef __GAME_SERVER__
@@ -470,8 +490,17 @@ protected:
     string m_Intro;                  // 길드 소개
 
     HashMapGuildMember m_Members; // 길드 멤버 포인터 맵
-    int m_ActiveMemberCount;      // Active Member Count
-    int m_WaitMemberCount;        // Wait Member Count
+    // Members removed from the map are parked here until the guild is
+    // destroyed rather than deleted: getMember() hands its GuildMember* out
+    // after releasing m_Mutex, so a zone thread may still be reading one
+    // while the SharedServerManager thread removes it. A stale read is
+    // harmless; a freed one is not. Departures come from players and from
+    // the sharedserver's hourly expiry of stale join requests (one
+    // SGExpelGuildMemberOK each), so the list grows at the pace of join
+    // requests, about a hundred bytes per member.
+    std::vector<GuildMember*> m_RetiredMembers;
+    std::atomic<int> m_ActiveMemberCount; // Active Member Count
+    std::atomic<int> m_WaitMemberCount;   // Wait Member Count
 
     static GuildID_t m_MaxGuildID;      // 길드 아이디 최대값
     static ZoneID_t m_MaxSlayerZoneID;  // 슬레이어 길드 존 ID 최대값

@@ -11,6 +11,10 @@
 
 #ifdef __GAME_SERVER__
 
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "Assert1.h"
 #include "DB.h"
 #include "GCModifyGuildMemberInfo.h"
@@ -59,22 +63,27 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
 
     // 길드 활동 중인 상태에서의 해체인지 대기 중인 상태에서의 해체인지 구별한다.
     if (pGuild->getState() == Guild::GUILD_STATE_ACTIVE) {
-        HashMapGuildMember& Members = pGuild->getMembers();
-        HashMapGuildMemberItor itr = Members.begin();
+        // Take the members out under the guild mutex -- a zone thread may
+        // be copying the member list at this moment (CGSelectGuild) -- and
+        // work from the returned names. The GuildMember objects and the
+        // Guild itself are retired, never freed here: readers hold raw
+        // pointers to both across the lock (see Guild::m_RetiredMembers,
+        // GuildManager::m_RetiredGuilds).
+        const std::vector<std::pair<std::string, GuildMemberRank_t>> members = pGuild->retireAllMembers();
 
-        for (; itr != Members.end(); itr++) {
-            GuildMember* pGuildMember = itr->second;
+        for (size_t i = 0; i < members.size(); i++) {
+            const std::string& memberName = members[i].first;
 
             // If the member is online, reset its guild id on the owning zone
             // thread (PlayerMailbox.h). Nothing from this handler is
-            // captured by pointer: the member and the guild are deleted
+            // captured by pointer: the member and the guild are retired
             // below, before the command runs.
-            // That also means the guild object is gone one tick before the
+            // That also means the guild is unregistered one tick before the
             // member's guild id is reset (the old code reset it first); the
             // readers of a creature's guild id all null-check the lookup
             // (GuildMissing.log), so the window shows as a stale badge, not
             // a crash.
-            de::postToPlayer(pGuildMember->getName(), [](PlayerCreature& pc, Player& player) {
+            de::postToPlayer(memberName, [](PlayerCreature& pc, Player& player) {
                 // Slayer, Vampire 의 길드 아이디를 바꾼다.
                 if (pc.isSlayer()) {
                     pc.setGuildID(99); // 슬레이어 가입안한 상태의 길드 ID
@@ -115,37 +124,27 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
 
                 pZone->broadcastPacket(pc.getX(), pc.getY(), &gcOtherModifyInfo, &pc);
             });
-
-            // Guild Member 객체를 삭제한다.
-            SAFE_DELETE(pGuildMember);
         }
 
-        // 길드 멤버 맵을 삭제한다.
-        Members.clear();
-
-        // 길드 매니저에서 길드를 삭제한다.
+        // 길드 매니저에서 길드를 삭제한다 (retired, not freed).
         g_pGuildManager->deleteGuild(pGuild->getID());
-
-        // 길드 객체를 삭제한다.
-        SAFE_DELETE(pGuild);
     } else if (pGuild->getState() == Guild::GUILD_STATE_WAIT) {
-        HashMapGuildMember& Members = pGuild->getMembers();
-        HashMapGuildMemberItor itr = Members.begin();
+        const std::vector<std::pair<std::string, GuildMemberRank_t>> members = pGuild->retireAllMembers();
 
-        for (; itr != Members.end(); itr++) {
-            GuildMember* pGuildMember = itr->second;
+        for (size_t i = 0; i < members.size(); i++) {
+            const std::string& memberName = members[i].first;
 
             // If the member is online, refund the fee on the owning zone
             // thread (PlayerMailbox.h); the rank is captured by value
-            // because the member object is deleted right below. The
+            // taken from the returned list, not a live member. The
             // message repository is looked up inside the command so the
             // SQL runs on the zone thread's own connection. A SQL failure
             // there surfaces as the const char* END_DB rethrows -- not a
             // Throwable -- which the mailbox drain logs without stopping
             // the tick; the dangling const char* itself (END_DB throws
             // msg.c_str() from a local string) is a separate open defect.
-            const GuildMemberRank_t rank = pGuildMember->getRank();
-            de::postToPlayer(pGuildMember->getName(), [rank](PlayerCreature& pc, Player& player) {
+            const GuildMemberRank_t rank = members[i].second;
+            de::postToPlayer(memberName, [rank](PlayerCreature& pc, Player& player) {
                 // 등록비를 환불한다.
                 Gold_t Gold = pc.getGold();
                 if (rank == GuildMember::GUILDMEMBER_RANK_MASTER) {
@@ -172,20 +171,11 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
 
                 messages.deleteMessages(pc.getName());
             });
-
-            // 길드 멤버 객체를 삭제한다.
-            SAFE_DELETE(pGuildMember);
         }
 
-        // 길드 멤버 해쉬 맵을 지운다.
-        Members.clear();
-
-        // 길드 매니저에서 길드를 삭제한다.
+        // 길드 매니저에서 길드를 삭제한다 (retired, not freed).
         g_pGuildManager->deleteGuild(pGuild->getID());
         GuildUnionManager::Instance().removeMasterGuild(pGuild->getID());
-
-        // 길드 객체를 삭제한다.
-        SAFE_DELETE(pGuild);
     }
 
 #endif

@@ -75,10 +75,11 @@ void CGSelectGuildHandler::execute(CGSelectGuild* pPacket, Player* pPlayer)
         else if (pCreature->isOusters())
             gcShowWaitGuildInfo.setJoinFee(REQUIRE_OUSTERS_SUBMASTER_GOLD);
 
-        HashMapGuildMember& Members = pGuild->getMembers();
-        HashMapGuildMemberConstItor itr = Members.begin();
-        for (; itr != Members.end(); itr++)
-            gcShowWaitGuildInfo.addMember(itr->first);
+        // A copy under the guild mutex: this is a zone thread, and the
+        // SharedServerManager thread adds and removes members meanwhile.
+        const std::vector<std::string> names = pGuild->getMemberNames();
+        for (size_t i = 0; i < names.size(); i++)
+            gcShowWaitGuildInfo.addMember(names[i]);
 
         pPlayer->sendPacket(&gcShowWaitGuildInfo);
 
