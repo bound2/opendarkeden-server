@@ -95,6 +95,52 @@ TEST(Mailbox, WithoutAHandlerTheExceptionPropagatesAndDropsTheBatch) {
     EXPECT_EQ(box.size(), 0u);
 }
 
+TEST(Mailbox, EmptyIsALockFreeHintThatTracksPostsAndDrains) {
+    de::CommandMailbox box;
+    EXPECT_TRUE(box.empty());
+    box.post([] {});
+    EXPECT_FALSE(box.empty());
+    EXPECT_EQ(run(box), 1u);
+    EXPECT_TRUE(box.empty());
+}
+
+// The main thread may run only player-scoped commands while it owns a
+// player (PlayerMailbox.h); drainIf must take those and leave the rest in
+// their original order, ahead of anything posted afterwards.
+TEST(Mailbox, DrainIfTakesOnlyAcceptedItemsAndKeepsTheRestInOrder) {
+    struct Tagged {
+        char kind;
+        int seq;
+    };
+    de::Mailbox<Tagged> box;
+    box.post({'z', 1});
+    box.post({'p', 2});
+    box.post({'z', 3});
+    box.post({'p', 4});
+
+    std::vector<int> taken;
+    std::size_t ran = box.drainIf([](const Tagged& t) { return t.kind == 'p'; },
+                                  [&](Tagged& t) { taken.push_back(t.seq); }, [] { throw; });
+    EXPECT_EQ(ran, 2u);
+    EXPECT_EQ(taken, (std::vector<int>{2, 4}));
+    EXPECT_EQ(box.size(), 2u);
+    EXPECT_FALSE(box.empty());
+
+    box.post({'z', 5});
+    std::vector<int> rest;
+    box.drain([&](Tagged& t) { rest.push_back(t.seq); });
+    EXPECT_EQ(rest, (std::vector<int>{1, 3, 5})) << "kept items stay ahead of later posts";
+    EXPECT_TRUE(box.empty());
+}
+
+TEST(Mailbox, DrainIfWithNothingAcceptedLeavesTheBoxUntouched) {
+    de::CommandMailbox box;
+    box.post([] {});
+    EXPECT_EQ(box.drainIf([](const Command&) { return false; }, [](Command& c) { c(); }, [] { throw; }), 0u);
+    EXPECT_EQ(box.size(), 1u);
+    EXPECT_FALSE(box.empty());
+}
+
 TEST(Mailbox, ProducersOnOtherThreadsLoseNothing) {
     de::CommandMailbox box;
     constexpr int kProducers = 4;

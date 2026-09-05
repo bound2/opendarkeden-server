@@ -72,12 +72,16 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
             // cout << "LGKickVerify Send Packet to ServerPort : " << port << endl;
         };
 
-        // The kick flags are read by the player manager that owns the
-        // player (the zone group's, once the player is in a zone), so they
-        // are set on that thread (PlayerMailbox.h). A player that logs out
-        // between the post and the tick gets the same "not here" verify a
-        // player who was never found gets, so the loginserver is answered
-        // either way.
+        // The kick flags are GamePlayer state, read by whichever manager
+        // owns the player, so they are set on that thread (PlayerMailbox.h,
+        // Scope::Player: the main thread applies it too while the player is
+        // logging in or changing zone, which is exactly when a stuck session
+        // needs kicking). A player that logs out between the post and the
+        // owner's pass gets the same "not here" verify a player who was
+        // never found gets, so the loginserver is answered either way; it
+        // keys the reply on the request id and lets the pending login
+        // through (GLKickVerifyHandler), which is what a completed kick
+        // achieves as well.
         const bool found = de::postToPlayer(
             pcName,
             [=](PlayerCreature&, Player& player) {
@@ -108,7 +112,7 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
                 pGamePlayer->setKickRequestHost(host);
                 pGamePlayer->setKickRequestPort(port);
             },
-            notHere);
+            notHere, de::Scope::Player);
 
         if (!found)
             notHere();

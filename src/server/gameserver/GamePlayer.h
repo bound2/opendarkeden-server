@@ -91,9 +91,9 @@ public:
     }
 
     // Commands other threads posted for this player (PlayerMailbox.h);
-    // drained by the ZonePlayerManager that owns the player, abandoned by
-    // disconnect(). Thread-safe to post to from anywhere.
-    de::PlayerMailbox& mailbox() {
+    // drained by whichever manager owns the player, abandoned by the
+    // destructor. Thread-safe to post to from anywhere.
+    de::PlayerCommandMailbox& mailbox() {
         return m_Mailbox;
     }
 
@@ -263,7 +263,7 @@ private:
     // creature
     Creature* m_pCreature;
 
-    de::PlayerMailbox m_Mailbox;
+    de::PlayerCommandMailbox m_Mailbox;
 
     // previous packet queue
     deque<Packet*> m_PacketHistory;

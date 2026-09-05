@@ -7,7 +7,6 @@
 #include "ZoneGroup.h"
 
 #include <cstdlib>
-#include <exception>
 
 #include "Assert.h"
 #include "Profile.h"
@@ -210,37 +209,6 @@ void ZoneGroup::processPlayers()
 
     __END_DEBUG
     __END_CATCH
-}
-
-
-//////////////////////////////////////////////////////////////////////////////
-// Run the commands other threads posted for this group. Called by the
-// ZoneGroupThread at the top of its tick, with the group mutex held, so a
-// command sees the same ownership guarantees as a CG handler. One failing
-// command is logged, not fatal: the others still run and the tick goes on.
-//////////////////////////////////////////////////////////////////////////////
-std::size_t ZoneGroup::drainMailbox() {
-    assertOwned();
-
-    std::size_t ran = m_Mailbox.drain(
-        [](std::function<void()>& command) { command(); },
-        [this] {
-            try {
-                throw;
-            } catch (Throwable& t) {
-                filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: %s", (unsigned)m_ZoneGroupID,
-                        t.toString().c_str());
-            } catch (std::exception& e) {
-                filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: %s", (unsigned)m_ZoneGroupID, e.what());
-            } catch (...) {
-                filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: unknown exception",
-                        (unsigned)m_ZoneGroupID);
-            }
-        });
-    if (ran > kMailboxDepthWarning)
-        filelog("errorLog.txt", "ZoneGroup %u mailbox drained %u commands in one tick: a producer outran the tick",
-                (unsigned)m_ZoneGroupID, (unsigned)ran);
-    return ran;
 }
 
 

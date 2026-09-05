@@ -27,6 +27,7 @@
 #include "PaySystem.h"
 #include "Player.h"
 #include "PlayerCreature.h"
+#include "PlayerMailbox.h"
 #include "Properties.h"
 #include "Socket.h"
 #include "SocketAPI.h"
@@ -425,6 +426,12 @@ void IncomingPlayerManager::processCommands() {
                     filelog("Destructer.log", "IncommingPlayerManager.cpp +509 : %s", t.toString().c_str());
                 }
             } else {
+                // This manager owns pTempPlayer while it logs in or changes
+                // zone: run the player-scoped commands other threads posted
+                // for it (PlayerMailbox.h); zone-scoped ones wait for a zone
+                // thread.
+                de::drainPlayerMailboxOnMainThread(*pTempPlayer);
+
                 try {
                     pTempPlayer->processCommand(false);
                 } catch (ProtocolException& pe) {

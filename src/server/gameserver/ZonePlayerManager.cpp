@@ -573,7 +573,7 @@ void ZonePlayerManager::processCommands() {
                 // This manager owns pTempPlayer and the group mutex is held:
                 // run what other threads posted for it (PlayerMailbox.h)
                 // before its own packets.
-                de::drainPlayerMailbox(*pTempPlayer);
+                de::drainPlayerMailbox(*pTempPlayer, *this);
 
                 try {
                     beginProfileEx("ZPM_PACKET");

@@ -182,8 +182,13 @@ GamePlayer::~GamePlayer() noexcept {
             //}
 
             // From here on postToPlayer() cannot find this player, so what
-            // is still queued for it runs its ifGone handlers now.
-            de::abandonPlayerMailbox(*this);
+            // is still queued for it runs its ifGone handlers now. Each
+            // handler's own failure is logged inside; the try covers the
+            // drain itself (an allocation), since this destructor is noexcept.
+            try {
+                de::abandonPlayerMailbox(*this);
+            } catch (...) {
+            }
 
 #ifdef __CONNECT_BILLING_SYSTEM__
             // Pay Á¾·áÇÑ´Ù°í ¾Ë·ÁÁØ´Ù. by sigi. 2002.11.18

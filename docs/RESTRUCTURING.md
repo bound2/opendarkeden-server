@@ -1014,8 +1014,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > below the gateways; cross-group `DynamicZone` `addZone()`; three
   > unlocked `GDRLair*::start` loops. **2026-09-05: the SG/LG/GG one is
   > fixed for creature state** — `GamePlayer` carries a mailbox
-  > (`src/server/Mailbox.h`) that `ZonePlayerManager::processCommands`
-  > drains for each player it owns, under the group mutex, and
+  > (`src/server/Mailbox.h`) that the manager owning the player drains
+  > each tick (the zone manager under the group mutex; the main thread
+  > only for player-scoped commands), and
   > `de::postToPlayer` routes the six guild handlers' and
   > `LGKickCharacter`'s mutations through it; the
   > "cross-group communication via queues only" rule above now has its
