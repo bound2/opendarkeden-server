@@ -379,12 +379,34 @@ and the encrypted wire format.
 
 ### Diagnostics without location macros
 
-`Assert.h`, `Exception.h` and the database helpers pass `__FILE__`, `__LINE__`
-and `__PRETTY_FUNCTION__` through macros. A defaulted
-`std::source_location::current()` parameter captures the caller in an ordinary
-function, preserves richer function names, and makes the diagnostic path
-unit-testable. This is a low-risk first use of a C++20-only library feature;
-the public logging format should remain stable during the migration.
+Done for the call-site diagnostics. `Assert.h` declares `assertionFailed()` /
+`protocolAssertionFailed()`, ordinary functions whose last parameter defaults
+to `std::source_location::current()`; `Assert(expr)` and `ProtocolAssert(expr)`
+remain macros only because the diagnostic needs the unevaluated `#expr` text
+and must evaluate the expression exactly once. `Throwable::addStack()` has the
+same defaulted parameter, so `__END_CATCH` / `__END_CATCH_NO_RETHROW` no longer
+forward `__PRETTY_FUNCTION__`, and `END_DB` / `END_DB_EX` in
+`src/server/database/DB.h` take the enclosing function the same way. Under
+Clang `source_location::function_name()` is the text `__PRETTY_FUNCTION__`
+produced, so `assertion_failed.log`, `protocol_assertion_failed.log`,
+`DBError.log` and `getStackTrace()` are byte-identical to before; the historical
+quirks (no separator between the function name and the expression, function
+names only in the stack trace) are preserved deliberately. Because
+`std::source_location` is portable, the dead `__WIN32__` / `__WIN_CONSOLE__` /
+`__MFC__` branches of `Assert`, `__BEGIN_DEBUG` and `__END_DEBUG` are gone.
+`Assert1.h` - a near-duplicate included by ~116 files - is now a one-line
+forwarder to `Assert.h`, and its never-compiled twin `Assert1.cpp` (a copy of
+the old implementation, in no build list) is deleted.
+`tests/diagnostics_test.cpp` pins the message layout, the reported
+file/line/function and the stack-trace format.
+
+No `__FILE__` or `__LINE__` use is left in `src/`. What remains is 81 direct
+`__PRETTY_FUNCTION__` uses in 38 files - mostly
+`throw UnsupportedError(__PRETTY_FUNCTION__)` in unimplemented virtual stubs,
+plus one direct `addStack` call in `GamePlayer.cpp` and one in
+`src/Core/SocketAPI.cpp`. Those are ordinary call sites rather than location
+plumbing: none of them costs a macro layer, so converting them is a separate,
+optional sweep.
 
 ### Explicit coordination and bounded work
 

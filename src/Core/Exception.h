@@ -20,6 +20,8 @@
 
 #include <list>
 
+#include <source_location>
+
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -49,6 +51,15 @@ public:
     // add function name to throwable object's function stack
     void addStack(const string& stackname) {
         m_Stacks.push_front(stackname);
+    }
+
+    // add the caller's function to the stack, without a location macro at the
+    // call site: the defaulted std::source_location captures the enclosing
+    // function, which is what __END_CATCH used to pass by hand as
+    // __PRETTY_FUNCTION__. Under Clang both produce the same text, so the
+    // stack trace format is unchanged.
+    void addStack(const std::source_location& loc = std::source_location::current()) {
+        m_Stacks.push_front(loc.function_name());
     }
 
     // return debug string - throwable object's function stack trace
@@ -111,26 +122,21 @@ private:
 #define __END_CATCH ((void)0);
 #define __END_CATCH_NO_RETHROW ((void)0);
 #else
+// t.addStack() takes the enclosing function from its defaulted
+// std::source_location, so these macros no longer forward __PRETTY_FUNCTION__.
 #define __BEGIN_TRY try {
-#define __END_CATCH                      \
-    }                                    \
-    catch (Throwable & t) {              \
-        t.addStack(__PRETTY_FUNCTION__); \
-        throw;                           \
+#define __END_CATCH         \
+    }                       \
+    catch (Throwable & t) { \
+        t.addStack();       \
+        throw;              \
     }
-#define __END_CATCH_NO_RETHROW           \
-    }                                    \
-    catch (Throwable & t) {              \
-        t.addStack(__PRETTY_FUNCTION__); \
+#define __END_CATCH_NO_RETHROW \
+    }                          \
+    catch (Throwable & t) {    \
+        t.addStack();          \
     }
 #endif
-
-// END_CATCH for method definitions
-// #define __END_CATCH } catch (Throwable & t) { t.addStack(__PRETTY_FUNCTION__); throw; }
-
-// Verbose END_CATCH with logging
-// #define __END_CATCH } catch (Throwable & t) { cout << "\nCAUGHT Exception IN END_CATCH MACRO...\n[" <<
-// __PRETTY_FUNCTION__ << "]\n>>> " << t.toString() << endl; t.addStack(__PRETTY_FUNCTION__); throw; }
 
 
 /*
@@ -165,10 +171,13 @@ private:
 // cout debugging
 //
 //--------------------------------------------------------------------------------
-#if defined(NDEBUG) || defined(__WIN32__)
+// Only the console form survives: this build defines __LINUX__ (or __APPLE__),
+// never __WIN32__, __WIN_CONSOLE__ or __MFC__, so the Windows and MFC branches
+// were dead code referencing a port that no longer exists.
+#if defined(NDEBUG)
 #define __BEGIN_DEBUG ((void)0);
 #define __END_DEBUG ((void)0);
-#elif defined(__LINUX__) || defined(__APPLE__) || defined(__WIN_CONSOLE__)
+#else
 #define __BEGIN_DEBUG try {
 #define __END_DEBUG                   \
     }                                 \
@@ -179,14 +188,6 @@ private:
     catch (exception & e) {           \
         cout << e.what() << endl;     \
         throw;                        \
-    }
-#elif defined(__MFC__)
-#define __BEGIN_DEBUG try {
-#define __END_DEBUG                  \
-    }                                \
-    catch (Throwable & t) {          \
-        AfxMessageBox(t.toString()); \
-        throw;                       \
     }
 #endif
 

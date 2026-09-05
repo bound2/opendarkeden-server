@@ -229,6 +229,24 @@ add_test(NAME shutdown_supervisor COMMAND bash
     $<TARGET_FILE:shutdown_probe> ${CMAKE_SOURCE_DIR}/docker/start.sh)
 set_tests_properties(shutdown_supervisor PROPERTIES TIMEOUT 50)
 
+# Call-site diagnostics (docs/TOOLCHAIN.md, "Diagnostics without location
+# macros"): Assert/ProtocolAssert and the __END_CATCH stack trace, now carried
+# by std::source_location instead of __FILE__/__LINE__/__PRETTY_FUNCTION__.
+# Assert.h and Exception.h are de-kernel sources, so this links nothing else.
+# A failing assert appends to assertion_failed.log in the working directory,
+# hence the build-tree WORKING_DIRECTORY (same reason as scheduler_tests).
+add_executable(diagnostics_tests EXCLUDE_FROM_ALL
+    diagnostics_test.cpp
+)
+target_include_directories(diagnostics_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+)
+target_link_libraries(diagnostics_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests diagnostics_tests)
+add_test(NAME diagnostics_tests COMMAND diagnostics_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(diagnostics_tests PROPERTIES TIMEOUT 30)
+
 add_executable(database_timeout_tests EXCLUDE_FROM_ALL database_timeout_test.cpp)
 target_link_libraries(database_timeout_tests PRIVATE Database ServerCore de-kernel ${MYSQL_LIBRARY} gtest_main Threads::Threads)
 add_dependencies(wire_tests database_timeout_tests)

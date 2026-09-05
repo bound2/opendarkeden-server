@@ -15,19 +15,22 @@
 
 //--------------------------------------------------------------------------------
 //
-// __assert__
+// assertionFailed
 //
-// �� �Լ������� __BEGIN_TRY , __END_CATCH�� wrapping�� �ʿ䰡 ����.
+// This function does not need to be wrapped with __BEGIN_TRY / __END_CATCH.
+//
+// The message layout is deliberately byte-identical to the pre-source_location
+// version, including the missing separator between the function name and the
+// expression text - existing logs and log readers depend on it.
 //
 //--------------------------------------------------------------------------------
-void __assert__(const char* file, uint line, const char* func, const char* expr) noexcept(false) {
+[[noreturn]] void assertionFailed(const char* expr, const std::source_location& loc) noexcept(false) {
     StringStream msg;
 
     msg << "\n"
-        << "Assertion Failed : " << file << " : " << line;
+        << "Assertion Failed : " << loc.file_name() << " : " << static_cast<uint>(loc.line());
 
-    if (func)
-        msg << " : " << func;
+    msg << " : " << loc.function_name();
 
     time_t currentTime = time(0);
 
@@ -42,18 +45,19 @@ void __assert__(const char* file, uint line, const char* func, const char* expr)
 
 //--------------------------------------------------------------------------------
 //
-// ���ο� Ư�� ������ BAN �ϰ�, �α׸� ����� �ڵ尡 �� ��
-// ������?
+// protocolAssertionFailed
+//
+// Idea worth considering: ban the offending user here and write a log entry
+// as well.
 //
 //--------------------------------------------------------------------------------
-void __protocol_assert__(const char* file, uint line, const char* func, const char* expr) noexcept(false) {
+[[noreturn]] void protocolAssertionFailed(const char* expr, const std::source_location& loc) noexcept(false) {
     StringStream msg;
 
     msg << "\n"
-        << "Protocol Assertion Failed : " << file << " : " << line;
+        << "Protocol Assertion Failed : " << loc.file_name() << " : " << static_cast<uint>(loc.line());
 
-    if (func)
-        msg << " : " << func;
+    msg << " : " << loc.function_name();
 
     time_t currentTime = time(0);
 
