@@ -167,6 +167,27 @@ else
     echo "[OK]   every registered factory is covered by the wire inventory"
 fi
 
+# --- Per-server registration membership is pinned ---------------------------
+# The check above only proves registered <= inventory, so it cannot see a
+# registration that was dropped. tests/tools/factory_registrations.pl derives
+# each server's set from the FactoryList type lists and the per-server Concat
+# selection; the committed tests/ratchet/factory_registrations.txt is the
+# expected membership (as of the switch to type lists, identical to the
+# addFactory() sequence it replaced). Any add or drop fails here; when it is
+# intended, regenerate the file with the command in the script's header.
+expected=tests/ratchet/factory_registrations.txt
+if [ ! -f "$expected" ]; then
+    echo "[FAIL] $expected is missing"
+    fail=1
+elif membership_diff=$(perl tests/tools/factory_registrations.pl | diff "$expected" - 2>&1); then
+    echo "[OK]   per-server factory registrations match $expected ($(wc -l < "$expected") entries)"
+else
+    echo "[FAIL] per-server factory registrations differ from $expected:"
+    echo "$membership_diff" | sed 's/^/         /'
+    echo "         (if the change is intended: perl tests/tools/factory_registrations.pl > $expected)"
+    fail=1
+fi
+
 # --- Every encrypter-using packet has per-code goldens -------------------
 # A packet whose read/write call readEncrypt/writeEncrypt puts bytes on the
 # wire that depend on the session encrypt code, and for the shuffled ones

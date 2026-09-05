@@ -247,18 +247,14 @@
 #include "LCRegisterPlayerError.h"
 #include "LCRegisterPlayerOK.h"
 #include "LCSelectPCError.h"
-
-#ifndef __GAME_CLIENT__
-#include "LGIncomingConnection.h"
-#include "LGIncomingConnectionError.h"
-#include "LGIncomingConnectionOK.h"
-#include "LGKickCharacter.h"
-#endif
-
 #include "LCServerList.h"
 #include "LCVersionCheckError.h"
 #include "LCVersionCheckOK.h"
 #include "LCWorldList.h"
+#include "LGIncomingConnection.h"
+#include "LGIncomingConnectionError.h"
+#include "LGIncomingConnectionOK.h"
+#include "LGKickCharacter.h"
 
 // added by elcastle 2000-11-29
 // #include "CGDialUp.h"
@@ -333,10 +329,7 @@
 #include "GCTradePrepare.h"
 #include "GCTradeRemoveItem.h"
 #include "GCTradeVerify.h"
-
-#ifndef __GAME_CLIENT__
 #include "GGCommand.h"
-#endif
 
 
 // Guild feature update - 2002.05.31 (bezz)
@@ -355,55 +348,10 @@
 #include "CGRequestGuildMemberList.h"
 #include "CGSelectGuildMember.h"
 // #include "CGExpelGuildMember.h"
-#include "CGModifyGuildMember.h"
-#include "GCActiveGuildList.h"
-#include "GCGuildMemberList.h"
-#include "GCModifyGuildMemberInfo.h"
-#include "GCShowGuildMemberInfo.h"
-
-#ifndef __GAME_CLIENT__
-#include "GSAddGuild.h"
-#include "GSAddGuildMember.h"
-#include "GSExpelGuildMember.h"
-#include "GSModifyGuildMember.h"
-#include "GSQuitGuild.h"
-#include "SGAddGuildMemberOK.h"
-#include "SGAddGuildOK.h"
-#include "SGDeleteGuildOK.h"
-#include "SGExpelGuildMemberOK.h"
-#include "SGModifyGuildMemberOK.h"
-#include "SGModifyGuildOK.h"
-#include "SGQuitGuildOK.h"
-#endif
-
-#include "CGGuildChat.h"
-#include "CGPortCheck.h"
-#include "CGRelicToObject.h"
-#include "GCGuildChat.h"
-
-#ifndef __GAME_CLIENT__
-#include "GGGuildChat.h"
-#include "GSRequestGuildInfo.h"
-#include "SGGuildInfo.h"
-#endif
-
-#include "CGAddItemToItem.h"
-#include "CGModifyGuildIntro.h"
-#include "CGModifyGuildMemberIntro.h"
-#include "CGRequestInfo.h"
-#include "GCAddItemToItemVerify.h"
-#include "GCNoticeEvent.h"
-
-#ifndef __GAME_CLIENT__
-#include "GSGuildMemberLogOn.h"
-#include "GSModifyGuildIntro.h"
-#include "SGGuildMemberLogOnOK.h"
-#include "SGModifyGuildIntroOK.h"
-#endif
-
 #include "CGAbsorbSoul.h"
 #include "CGAcceptUnion.h"
 #include "CGAddItemToCodeSheet.h"
+#include "CGAddItemToItem.h"
 #include "CGAddSMSAddress.h"
 #include "CGAppointSubmaster.h"
 #include "CGAuthKey.h"
@@ -416,6 +364,39 @@
 #include "CGDonationMoney.h"
 #include "CGDownSkill.h"
 #include "CGExpelGuild.h"
+#include "CGGuildChat.h"
+#include "CGModifyGuildIntro.h"
+#include "CGModifyGuildMember.h"
+#include "CGModifyGuildMemberIntro.h"
+#include "CGPortCheck.h"
+#include "CGRelicToObject.h"
+#include "CGRequestInfo.h"
+#include "GCActiveGuildList.h"
+#include "GCAddItemToItemVerify.h"
+#include "GCGuildChat.h"
+#include "GCGuildMemberList.h"
+#include "GCModifyGuildMemberInfo.h"
+#include "GCNoticeEvent.h"
+#include "GCShowGuildMemberInfo.h"
+#include "GGGuildChat.h"
+#include "GSAddGuild.h"
+#include "GSAddGuildMember.h"
+#include "GSExpelGuildMember.h"
+#include "GSGuildMemberLogOn.h"
+#include "GSModifyGuildIntro.h"
+#include "GSModifyGuildMember.h"
+#include "GSQuitGuild.h"
+#include "GSRequestGuildInfo.h"
+#include "SGAddGuildMemberOK.h"
+#include "SGAddGuildOK.h"
+#include "SGDeleteGuildOK.h"
+#include "SGExpelGuildMemberOK.h"
+#include "SGGuildInfo.h"
+#include "SGGuildMemberLogOnOK.h"
+#include "SGModifyGuildIntroOK.h"
+#include "SGModifyGuildMemberOK.h"
+#include "SGModifyGuildOK.h"
+#include "SGQuitGuildOK.h"
 
 // Exchange System Packets
 #include "CGExchangeBuy.h"
@@ -517,10 +498,8 @@
 #include "CGConnectSetKey.h"
 #include "GCFriendChatting.h"
 // end
-#ifndef __GAME_CLIENT__
 // #include "GSGuildAction.h"
 // #include "SGGuildResponse.h"
-#endif
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -584,9 +563,10 @@ PacketFactoryManager::~PacketFactoryManager() noexcept {
 // duplicate or out-of-range id is a compile error naming the id. The
 // per-server set is the Concat of the lists below, validated as one
 // table, so a clash across lists is rejected the same way. The
-// membership itself is unchanged from the hand-written addFactory()
-// sequence it replaces; tests/ratchet/ratchets.sh pins it against the
-// wire inventory.
+// membership is the hand-written addFactory() sequence it replaced,
+// pinned per server in tests/ratchet/factory_registrations.txt: adding
+// or dropping an entry here fails tests/ratchet/ratchets.sh until that
+// file is regenerated (tests/tools/factory_registrations.pl).
 //
 //////////////////////////////////////////////////////////////////////
 namespace {
@@ -644,6 +624,7 @@ using LoginOnlyFactories = FactoryList<
     CLQueryCharacterNameFactory,
     CLQueryPlayerIDFactory,
     CLReconnectLoginFactory,
+    CLRegisterPlayerFactory,
     CLSelectPCFactory,
     CLSelectServerFactory,
     CLSelectWorldFactory,

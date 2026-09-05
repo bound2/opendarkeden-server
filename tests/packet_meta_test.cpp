@@ -17,6 +17,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <string>
@@ -165,13 +166,33 @@ TEST(PacketMeta, ForEachVisitsInPackOrder) {
     EXPECT_EQ(names[1], "CGMove");
 }
 
-TEST(PacketMeta, KernelTableMatchesFactoryCount) {
-    // The generated list feeds both the run-time inventory and this table;
-    // a factory present in one section but not the other is a generator bug.
-    std::size_t visited = 0;
-    KernelFactories::forEach([&](auto) { ++visited; });
-    EXPECT_EQ(visited, KernelFactories::kCount);
-    EXPECT_EQ(visited, KernelFactories::kMeta.size());
+// The generated .inc has two sections built from one list: the REGISTER
+// section (heap factories, what wire_layout_test inventories) and the TYPES
+// section (this file's KernelFactories). They are only useful together if
+// they name the same factories, so compare the ids the run-time section
+// produces with the ids in the compile-time table.
+std::vector<PacketFactory*> makeRegisteredFactories() {
+    std::vector<PacketFactory*> factories;
+#define ALL_PACKET_FACTORIES_REGISTER
+#include "AllPacketFactories.inc"
+#undef ALL_PACKET_FACTORIES_REGISTER
+    return factories;
+}
+
+TEST(PacketMeta, GeneratedSectionsNameTheSameFactories) {
+    std::vector<PacketFactory*> registered = makeRegisteredFactories();
+    std::vector<PacketID_t> runtimeIds;
+    for (PacketFactory* factory : registered)
+        runtimeIds.push_back(factory->getPacketID());
+    std::vector<PacketID_t> tableIds;
+    for (const Meta& meta : KernelFactories::kMeta)
+        tableIds.push_back(meta.id);
+    std::sort(runtimeIds.begin(), runtimeIds.end());
+    std::sort(tableIds.begin(), tableIds.end());
+    EXPECT_EQ(runtimeIds, tableIds);
+    EXPECT_EQ(registered.size(), KernelFactories::kCount);
+    for (PacketFactory* factory : registered)
+        delete factory;
 }
 
 } // namespace

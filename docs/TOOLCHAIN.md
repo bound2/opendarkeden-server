@@ -398,8 +398,17 @@ out-of-range or unnamed id is a compile error whose "in instantiation of
 `RegistryCheck<RegistryError::DuplicateId, 231>`" note carries the rule and the
 id. `PacketFactoryManager::init()` is four such lists (client link, guild link,
 login-only, game-only) concatenated per server with `de::packet::Concat`, which
-validates the joined table, and `forEach` instantiates them in pack order; the
-per-server membership is byte-for-byte the old `addFactory(new ...)` sequence.
+validates the joined table, and `forEach` instantiates them in pack order. The
+per-server membership is the old `addFactory(new ...)` set (registration order
+changed, which a slot table does not observe), pinned in
+`tests/ratchet/factory_registrations.txt`: `ratchets.sh` regenerates the file
+from the type lists with `tests/tools/factory_registrations.pl` and fails on
+any add or drop — the inventory check alone only proves registered ⊆ inventory,
+and the first cut of this branch dropped `CLRegisterPlayerFactory` from the
+loginserver without any test noticing. Note the test build defines no server
+macro, so the production lists are instantiated (and their tables validated)
+only by the server builds; a factory listed twice across lists is caught
+there, not by `make dev-test`.
 `DE_REGISTER_PACKET_HANDLER` binds handlers by `Cls##Factory::kPacketID`
 instead of constructing a throwaway packet to ask for its id.
 
