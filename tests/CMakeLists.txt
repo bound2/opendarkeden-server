@@ -250,6 +250,19 @@ add_dependencies(wire_tests mailbox_tests)
 add_test(NAME mailbox_tests COMMAND mailbox_tests)
 set_tests_properties(mailbox_tests PROPERTIES TIMEOUT 30)
 
+# Copy-on-write snapshot (src/server/Snapshot.h): header-only, standard
+# library only.
+add_executable(snapshot_tests EXCLUDE_FROM_ALL
+    snapshot_test.cpp
+)
+target_include_directories(snapshot_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server
+)
+target_link_libraries(snapshot_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests snapshot_tests)
+add_test(NAME snapshot_tests COMMAND snapshot_tests)
+set_tests_properties(snapshot_tests PROPERTIES TIMEOUT 60)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)

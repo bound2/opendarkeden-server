@@ -399,9 +399,22 @@ gateways, not a full guarantee.
   handlers whose offline branch matters, like charging a guild fee in the
   database. Commands capture by value only; a `Guild*`/`GuildMember*` may be
   deleted before they run. Commands run without the PCFinder lock, so they
-  may post to other players. Cross-group work that is not about one player
-  (the `addZone()` race below) has no queue yet; `de::Mailbox` is the piece
-  to give `ZoneGroup` when it does.
+  may post to other players. `ZoneGroup` has a box of its own
+  (`ZoneGroup::post()`, drained at the top of the tick under the group
+  mutex) for group-level work from other threads; its producer is dynamic
+  zone recycling, which hands an instance's `init()` to the group that
+  owns it.
+- Tables that every thread reads and one thread occasionally extends — a
+  group's zone map, the `ZoneInfoManager` lookups — are published
+  copy-on-write through `de::Snapshot` (`src/server/Snapshot.h`): readers
+  load an immutable `shared_ptr<const T>` without waiting on a writer and
+  may iterate it for a whole tick; a writer copies, changes and swaps the
+  pointer under a leaf mutex held for nothing else. That is what lets a
+  zone thread create a dynamic zone in another group's map while that
+  group iterates it. The writer mutex is held while the change runs, so a
+  change must be pure work on the copy (the current ones are map inserts
+  and erases); the snapshot protects the table, not the objects it points
+  to, which stay raw pointers with their old lifetime rules.
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 
@@ -418,15 +431,17 @@ gateways, not a full guarantee.
   (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
   assert cannot see such call sites — the assert covers the gateway
   methods only.
-- **Cross-group `ZoneGroup::addZone()` race**: `DynamicZone.cpp` (reached
-  from `CGSelectWayPointHandler` / `ActionEnterQuestZone` on the
-  *requesting player's* zone thread) inserts the new zone into the
-  **template zone's** group — generally a different group — while that
-  group's own thread iterates `m_Zones` in its heartbeat
-  (`unordered_map` rehash-during-iteration). Ungated by the assert
-  (`addZone` is not a gateway); the fix is a deferred handoff to the
-  owning thread, and simply taking the target group's mutex risks a
-  lock-ordering deadlock while the caller holds its own group's.
+- ~~Cross-group `ZoneGroup::addZone()` race~~ — **fixed**: `DynamicZone.cpp`
+  (reached from `CGSelectWayPointHandler` / `ActionEnterQuestZone` on the
+  *requesting player's* zone thread) still inserts the new zone into the
+  template zone's group from that thread, but the group's zone map and
+  the `ZoneInfoManager` tables are now `de::Snapshot`s, so the iterating
+  heartbeat and every concurrent `getZone()` keep the map they loaded; a
+  recycled instance's `init()` is posted to the owning group
+  (`ZoneGroup::post()`); `DynamicZoneGroup` serialises selection/creation
+  under its own mutex and the instance status flag is atomic. Still not
+  gated by the assert (`addZone` is not a gateway), but no longer needs
+  to be.
 - `GDRLairManager` locks correctly at most sites but not all:
   `GDRLairIcepole::start`, `GDRLairScene6::start` (iterates the zone's
   PCManager and registers objects) and `GDRLairEnding::start` mutate zone
