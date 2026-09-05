@@ -18,7 +18,6 @@
 #include "GCSystemMessage.h"
 #include "Guild.h"
 #include "GuildManager.h"
-#include "PCFinder.h"
 #include "Player.h"
 #include "PlayerCreature.h"
 #include "PlayerMailbox.h"

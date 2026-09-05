@@ -377,21 +377,27 @@ gateways, not a full guarantee.
   (`getCreature_LOCKED`), then use `pPlayer->sendPacket(...)` — sending
   to a player's socket is the main legitimate cross-thread operation.
 - Anything beyond sending — gold, guild id, kick flags, a zone broadcast —
-  goes through the group's **mailbox**: `ZoneGroup::post()` queues a command
-  (`src/server/Mailbox.h`) and the group's `ZoneGroupThread` runs it at the
-  top of its next tick, under the group mutex, before `processPlayers()`.
-  `de::postToPlayer(name, command[, ifGone])`
-  (`src/server/gameserver/PlayerMailbox.h`) is the handler-facing form: it
-  finds the player under the PCFinder lock, posts to the owning group, and at
-  drain time looks the player up again — a player who moved groups is
-  followed, one who logged out is skipped (or `ifGone` runs, for handlers
-  whose offline branch matters, like charging a guild fee in the database).
-  Commands capture by value only; a `Guild*`/`GuildMember*` may be deleted
-  before they run. A player in the PCFinder but not yet in a zone has no
-  owning group, and the command runs immediately under the PCFinder lock.
-  `post()` takes no group mutex, so posting from inside a PCFinder section or
-  another group's tick cannot deadlock; the drain takes the PCFinder lock
-  while holding the group mutex, the same order every CG handler uses.
+  goes through the player's **mailbox** (`src/server/Mailbox.h`, owned by
+  `GamePlayer`): `de::postToPlayer(name, command[, ifGone])`
+  (`src/server/gameserver/PlayerMailbox.h`) finds the player under the
+  PCFinder lock and queues the command; `ZonePlayerManager::processCommands`
+  drains it for every player it owns, each tick, on the zone thread under the
+  group mutex, before the player's own packets. The box belongs to the player
+  rather than to a group because a player's owner changes over its life (the
+  main thread during login and zone transfer, a zone thread in between) and
+  the creature's zone pointer does not say which — it is set as soon as the
+  character loads and stays on the old zone during a transfer. So the box
+  follows the player, keeps posting order across group changes, and is never
+  drained while the main thread owns the player: the commands wait until the
+  player is back in a group. A player who logs out with commands pending runs
+  their `ifGone` handlers instead (`GamePlayer::disconnect`, right after the
+  PCFinder removal), for the handlers whose offline branch matters, like
+  charging a guild fee in the database. Commands capture by value only; a
+  `Guild*`/`GuildMember*` may be deleted before they run. Commands run
+  without the PCFinder lock, so they may post to other players. `ZoneGroup`
+  also has a box (`ZoneGroup::post()`, drained at the top of the tick) for
+  group-level work; nothing uses it yet — the cross-group `addZone()` race
+  below is its intended first customer.
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 

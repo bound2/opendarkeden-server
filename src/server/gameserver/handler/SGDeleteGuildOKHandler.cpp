@@ -20,7 +20,6 @@
 #include "Guild.h"
 #include "GuildManager.h"
 #include "GuildUnion.h"
-#include "PCFinder.h"
 #include "Player.h"
 #include "PlayerCreature.h"
 #include "PlayerMailbox.h"
@@ -70,6 +69,11 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
             // thread (PlayerMailbox.h). Nothing from this handler is
             // captured by pointer: the member and the guild are deleted
             // below, before the command runs.
+            // That also means the guild object is gone one tick before the
+            // member's guild id is reset (the old code reset it first); the
+            // readers of a creature's guild id all null-check the lookup
+            // (GuildMissing.log), so the window shows as a stale badge, not
+            // a crash.
             de::postToPlayer(pGuildMember->getName(), [](PlayerCreature& pc, Player& player) {
                 // Slayer, Vampire 의 길드 아이디를 바꾼다.
                 if (pc.isSlayer()) {

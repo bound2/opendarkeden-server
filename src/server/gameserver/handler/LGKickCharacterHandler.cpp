@@ -16,7 +16,6 @@
 #include "GamePlayer.h"
 #include "LogDef.h"
 #include "LoginServerManager.h"
-#include "PCFinder.h"
 #include "PlayerMailbox.h"
 
 #endif

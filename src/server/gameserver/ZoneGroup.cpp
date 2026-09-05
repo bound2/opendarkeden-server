@@ -222,18 +222,25 @@ void ZoneGroup::processPlayers()
 std::size_t ZoneGroup::drainMailbox() {
     assertOwned();
 
-    return m_Mailbox.drain([this] {
-        try {
-            throw;
-        } catch (Throwable& t) {
-            filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: %s", (unsigned)m_ZoneGroupID,
-                    t.toString().c_str());
-        } catch (std::exception& e) {
-            filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: %s", (unsigned)m_ZoneGroupID, e.what());
-        } catch (...) {
-            filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: unknown exception", (unsigned)m_ZoneGroupID);
-        }
-    });
+    std::size_t ran = m_Mailbox.drain(
+        [](std::function<void()>& command) { command(); },
+        [this] {
+            try {
+                throw;
+            } catch (Throwable& t) {
+                filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: %s", (unsigned)m_ZoneGroupID,
+                        t.toString().c_str());
+            } catch (std::exception& e) {
+                filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: %s", (unsigned)m_ZoneGroupID, e.what());
+            } catch (...) {
+                filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: unknown exception",
+                        (unsigned)m_ZoneGroupID);
+            }
+        });
+    if (ran > kMailboxDepthWarning)
+        filelog("errorLog.txt", "ZoneGroup %u mailbox drained %u commands in one tick: a producer outran the tick",
+                (unsigned)m_ZoneGroupID, (unsigned)ran);
+    return ran;
 }
 
 

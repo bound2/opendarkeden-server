@@ -464,23 +464,30 @@ another sleep-and-check loop, but they should follow an ownership audit: a new
 primitive cannot make shared gameplay state safe if its owner and lock scope
 are unclear.
 
-The cross-thread mailbox is the first of these queues. `de::Mailbox`
-(`src/server/Mailbox.h`) is a mutex-guarded vector of `std::function<void()>`:
-`post()` from any thread, `drain()` by the owner, which swaps the batch out
-under the mutex and runs it lock-free in posting order, isolating a throwing
-command through the caller's failure handler. `ZoneGroup` owns one and
-`ZoneGroupThread` drains it at the top of every tick, under the group mutex,
-before `processPlayers()`; `de::postToPlayer` (`PlayerMailbox.h`) is the
-handler-facing form that re-finds the player at drain time and follows it
-across groups. The six guild SG handlers and `LGKickCharacter` now post their
-creature mutations instead of applying them on the `SharedServerManager` /
+The cross-thread mailbox is the first of these queues. `de::Mailbox<Item>`
+(`src/server/Mailbox.h`) is a mutex-guarded vector: `post()` from any thread,
+`drain(visit[, onFailure])` by the owner, which swaps the batch out under the
+mutex and visits it lock-free in posting order, isolating a throwing item
+through the caller's failure handler. Two owners use it. `GamePlayer` carries
+a box of player commands, and `de::postToPlayer` (`PlayerMailbox.h`) is what
+the six guild SG handlers and `LGKickCharacter` now call instead of mutating
+gold, guild id and kick flags on the `SharedServerManager` /
 `LoginServerManager` threads under only the PCFinder lock — the data race
-CLAUDE.md listed first among the known violations. The box is deliberately
-unbounded: its producers are the inter-server links, and blocking one of them
-on a busy zone group's back-pressure would stall guild and login traffic for
-every group; `ZoneGroup::mailboxSize()` exposes the depth instead. What is
-still open on this row is readiness: worker start-up still has no `std::latch`
-handshake, because after the jthread work nothing waits on a sleep for it.
+CLAUDE.md listed first among the known violations. The box is on the player,
+not the zone group, because the owner of a player changes (main thread during
+login and zone transfer, a zone thread in between) and the creature's zone
+pointer does not track that; `ZonePlayerManager::processCommands` drains it
+for each player it owns, so a command runs only when a zone thread owns the
+player and holds the group mutex, in posting order across group changes, and a
+player that logs out first runs the commands' `ifGone` handlers from
+`disconnect()`. `ZoneGroup` has a box of thunks too, drained at the top of the
+tick for group-level work; it has no producer yet and is meant for the
+cross-group `addZone()` race. The boxes are deliberately unbounded: the
+producers are the inter-server links, and blocking one of them on a busy zone
+group's back-pressure would stall guild and login traffic for every group;
+the group drain logs a batch over `kMailboxDepthWarning` instead. Still open
+on this row is readiness: worker start-up has no `std::latch` handshake,
+because after the jthread work nothing waits on a sleep for it.
 
 The 463 critical sections in `src/` are now RAII. `__ENTER_CRITICAL_SECTION(x)`
 declares a scoped `CriticalSection` guard (`src/Core/Exception.h`) over any

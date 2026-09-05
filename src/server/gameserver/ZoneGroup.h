@@ -11,6 +11,7 @@
 
 // include files
 #include <cstddef>
+#include <functional>
 
 #include <unordered_map>
 
@@ -58,19 +59,25 @@ public:
     void processPlayers();
     void heartbeat();
 
-    // Cross-thread mailbox (CLAUDE.md, "Thread ownership"). Work that must
-    // touch this group's state but originates on another thread -- the
-    // SG/LG/GG handlers on the manager threads, a sibling zone thread --
-    // is posted here and run by this group's ZoneGroupThread at the start
-    // of its next tick, under the group mutex. post() never takes the
-    // group mutex, so a caller holding the PCFinder lock or its own
-    // group's mutex cannot deadlock on it.
-    void post(de::Mailbox::Command command) {
+    // Cross-thread mailbox (CLAUDE.md, "Thread ownership"). Group-level work
+    // that originates on another thread -- a sibling zone thread, a manager
+    // thread -- is posted here and run by this group's ZoneGroupThread at
+    // the start of its next tick, under the group mutex. post() never takes
+    // the group mutex, so a caller holding the PCFinder lock or its own
+    // group's mutex cannot deadlock on it. Work aimed at one player goes
+    // through the player's own box instead (PlayerMailbox.h), which follows
+    // the player between groups and is drained only by its current owner.
+    void post(std::function<void()> command) {
         m_Mailbox.post(std::move(command));
     }
     // Runs the posted commands. The caller must hold the group mutex
-    // (asserted under DE_OWNERSHIP_CHECKS); a command that throws is
-    // logged and the rest still run. Returns how many ran.
+    // (asserted under DE_OWNERSHIP_CHECKS); a command that throws -- any
+    // type, Throwable or not -- is logged to errorLog.txt and the rest still
+    // run, so a command must leave the state consistent at every throw
+    // point. A batch deeper than kMailboxDepthWarning is logged as well:
+    // the box is unbounded, so that is the sign a producer outran this
+    // group's tick. Returns how many ran.
+    static constexpr std::size_t kMailboxDepthWarning = 1000;
     std::size_t drainMailbox();
     std::size_t mailboxSize() const {
         return m_Mailbox.size();
@@ -204,7 +211,7 @@ private:
 
     mutable Mutex m_Mutex;
 
-    de::Mailbox m_Mailbox;
+    de::CommandMailbox m_Mailbox;
 
 #ifdef DE_OWNERSHIP_CHECKS
     // Debug-only ownership tracking (see lock()/unlock()/assertOwned()).

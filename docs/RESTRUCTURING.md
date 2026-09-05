@@ -1013,10 +1013,11 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > violations (CLAUDE.md has the full list): `EventMorph` tile writes
   > below the gateways; cross-group `DynamicZone` `addZone()`; three
   > unlocked `GDRLair*::start` loops. **2026-09-05: the SG/LG/GG one is
-  > fixed for creature state** — `ZoneGroup` has a mailbox
-  > (`src/server/Mailbox.h`, drained at the top of the zone tick under
-  > the group mutex) and `de::postToPlayer` routes the six guild handlers'
-  > and `LGKickCharacter`'s mutations to the owning zone thread; the
+  > fixed for creature state** — `GamePlayer` carries a mailbox
+  > (`src/server/Mailbox.h`) that `ZonePlayerManager::processCommands`
+  > drains for each player it owns, under the group mutex, and
+  > `de::postToPlayer` routes the six guild handlers' and
+  > `LGKickCharacter`'s mutations through it; the
   > "cross-group communication via queues only" rule above now has its
   > queue. The handlers' `Guild`/`GuildMember` writes stay open.
   - Owner: the debug asserts.

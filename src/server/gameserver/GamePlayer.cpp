@@ -28,6 +28,7 @@
 #include "PacketDispatcher.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
+#include "PlayerMailbox.h"
 #include "Properties.h"
 #include "RelicUtil.h"
 #include "ServiceDeadline.h"
@@ -179,6 +180,10 @@ GamePlayer::~GamePlayer() noexcept {
             // catch (NoSuchElementException & t)
             //{
             //}
+
+            // From here on postToPlayer() cannot find this player, so what
+            // is still queued for it runs its ifGone handlers now.
+            de::abandonPlayerMailbox(*this);
 
 #ifdef __CONNECT_BILLING_SYSTEM__
             // Pay Á¾·áÇÑ´Ù°í ¾Ë·ÁÁØ´Ù. by sigi. 2002.11.18
