@@ -438,7 +438,8 @@ gateways, not a full guarantee.
   handled by not freeing: `getGuild()` and `getMember()` return raw
   pointers after releasing their locks, so a deleted guild or member is
   retired (`GuildManager::m_RetiredGuilds`, `Guild::m_RetiredMembers`) and
-  stays readable, stale, until shutdown. Still open: a zone thread reading
+  stays readable, stale, until the managers are destroyed — the whole-table
+  `clear()` a sharedserver resync triggers retires too, never frees. Still open: a zone thread reading
   a retired member sees its last rank, and `Guild` scalar fields (name,
   master, state, intro) are plain members written on the
   `SharedServerManager` thread.

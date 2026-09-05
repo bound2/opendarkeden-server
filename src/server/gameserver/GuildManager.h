@@ -60,6 +60,7 @@ public: // memory related methods
 
     void clear();
     void clear_NOBLOCKED();
+    void retireAll_NOBLOCKED(); // what clear() does: retire, never free
 
 
 public: // misc methods
@@ -116,8 +117,9 @@ public: // debug
 
 protected:
     unordered_map<GuildID_t, Guild*> m_Guilds; // 길드 포인터 맵
-    // Guilds taken out of the map are parked here until shutdown rather than
-    // deleted: getGuild() returns its Guild* after releasing m_Mutex, so a
+    // Guilds taken out of the map -- by deleteGuild(), or by the whole-table
+    // clear() that the sharedserver resync triggers -- are parked here until
+    // the destructor rather than deleted: getGuild() returns its Guild* after releasing m_Mutex, so a
     // zone thread may still be inside one -- reading it, holding its mutex --
     // while the SharedServerManager thread tears it down. A retired guild
     // stays readable with an empty member map; a freed one is a crash and,

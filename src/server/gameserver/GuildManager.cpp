@@ -356,16 +356,7 @@ void GuildManager::clear()
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    HashMapGuildItor itr = m_Guilds.begin();
-    for (; itr != m_Guilds.end(); itr++) {
-        SAFE_DELETE(itr->second);
-    }
-
-    m_Guilds.clear();
-
-    for (size_t i = 0; i < m_RetiredGuilds.size(); i++)
-        SAFE_DELETE(m_RetiredGuilds[i]);
-    m_RetiredGuilds.clear();
+    retireAll_NOBLOCKED();
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -375,18 +366,21 @@ void GuildManager::clear()
 void GuildManager::clear_NOBLOCKED() {
     __BEGIN_TRY
 
-    HashMapGuildItor itr = m_Guilds.begin();
-    for (; itr != m_Guilds.end(); itr++) {
-        SAFE_DELETE(itr->second);
-    }
-
-    m_Guilds.clear();
-
-    for (size_t i = 0; i < m_RetiredGuilds.size(); i++)
-        SAFE_DELETE(m_RetiredGuilds[i]);
-    m_RetiredGuilds.clear();
+    retireAll_NOBLOCKED();
 
     __END_CATCH
+}
+
+// clear()/clear_NOBLOCKED() run mid-session: SGGuildInfo (the sharedserver's
+// answer to GSRequestGuildInfo on every (re)connect) empties the table
+// before reloading it. Zone threads may be holding Guild* and GuildMember*
+// from before, so the guilds are retired here like a deleted one, never
+// freed; only the destructor frees the retired list.
+void GuildManager::retireAll_NOBLOCKED() {
+    m_RetiredGuilds.reserve(m_RetiredGuilds.size() + m_Guilds.size());
+    for (HashMapGuildItor itr = m_Guilds.begin(); itr != m_Guilds.end(); itr++)
+        m_RetiredGuilds.push_back(itr->second);
+    m_Guilds.clear();
 }
 
 #ifdef __SHARED_SERVER__

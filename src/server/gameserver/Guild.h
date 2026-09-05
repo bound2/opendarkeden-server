@@ -494,8 +494,10 @@ protected:
     // destroyed rather than deleted: getMember() hands its GuildMember* out
     // after releasing m_Mutex, so a zone thread may still be reading one
     // while the SharedServerManager thread removes it. A stale read is
-    // harmless; a freed one is not. Guild departures are rare, human-paced
-    // events, so this costs a few hundred bytes each.
+    // harmless; a freed one is not. Departures come from players and from
+    // the sharedserver's hourly expiry of stale join requests (one
+    // SGExpelGuildMemberOK each), so the list grows at the pace of join
+    // requests, about a hundred bytes per member.
     std::vector<GuildMember*> m_RetiredMembers;
     std::atomic<int> m_ActiveMemberCount; // Active Member Count
     std::atomic<int> m_WaitMemberCount;   // Wait Member Count

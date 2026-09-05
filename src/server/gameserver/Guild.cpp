@@ -483,12 +483,16 @@ std::vector<std::pair<std::string, GuildMemberRank_t>> Guild::retireAllMembers()
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
+    // Two passes: the first copies names and can fail on allocation, while
+    // nothing has moved yet; the second moves the pointers and cannot throw
+    // (both vectors are reserved), so a member is never owned by the map
+    // and the retired list at once.
     members.reserve(m_Members.size());
     m_RetiredMembers.reserve(m_RetiredMembers.size() + m_Members.size());
-    for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr) {
+    for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr)
         members.push_back(std::make_pair(itr->first, itr->second->getRank()));
+    for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr)
         m_RetiredMembers.push_back(itr->second);
-    }
     m_Members.clear();
     m_ActiveMemberCount = 0;
     m_WaitMemberCount = 0;
