@@ -241,4 +241,29 @@ printf(
     $n{manual}, $n{mismatch}, $n{unbalanced}
 );
 
-exit($n{manual} + $n{mismatch} + $n{unbalanced} > 0 ? 1 : 0);
+# Finding nothing is a failure, not a pass: this scans "src" relative to the
+# working directory, so a ctest entry pointed at the wrong root -- or a renamed
+# macro -- would otherwise report zero errors over zero sections. The same trap
+# tests/ratchet/ratchets.sh guards with its non-numeric measurement check.
+if ($n{sections} == 0) {
+    print "[FAIL] found no critical sections at all. This scans ./src relative to",
+          " the working directory, so either that is wrong or the macro was renamed.
+";
+    exit 1;
+}
+
+my $bad = $n{manual} + $n{mismatch} + $n{unbalanced};
+
+if ($bad > 0) {
+    print "[FAIL] $bad critical-section defect(s); see the ERROR lines above. A",
+          " hand-written unlock on the guarded object double-unlocks a non-recursive",
+          " pthread mutex when the guard is destroyed - release through",
+          " __CRITICAL_SECTION_LOCK.unlock()/.lock() instead.
+";
+    exit 1;
+}
+
+print "[OK]   $n{sections} critical sections, no hand-written lock calls on the guarded object
+";
+
+exit 0;

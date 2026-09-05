@@ -24,6 +24,9 @@ tests/ratchet/*.txt text eol=lf
 # match fails, and de-kernel configures with zero sources.
 tests/arch/*.txt text eol=lf
 tests/arch/*.pl text eol=lf
+# Same reason for the critical-section audit: ctest runs it with perl inside
+# the container.
+tests/tools/*.pl text eol=lf
 tools/*.sh text eol=lf
 cmake/zig-* text eol=lf
 Dockerfile.pub.dockerignore text eol=lf

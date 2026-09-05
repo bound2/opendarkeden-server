@@ -329,7 +329,8 @@ is released on every exit — end of block, `return`, `goto`/`continue` out of i
 and any thrown type. Consequently a hand-written `x.unlock()` inside a section
 is a **double unlock** of a non-recursive mutex: to run work unlocked, use
 `__CRITICAL_SECTION_LOCK.unlock()` / `.lock()`, the guard's own name.
-`tests/tools/critical_section_audit.pl` fails on a hand-written one.
+`tests/tools/critical_section_audit.pl` fails on a hand-written one; it runs
+in ctest as `critical_section_audit`, alongside `ratchets` and `arch_includes`.
 
 This is mutex-guarded ownership, not pure thread-affinity: the guarded
 region is the contract. Under `DE_OWNERSHIP_CHECKS` — defined only for

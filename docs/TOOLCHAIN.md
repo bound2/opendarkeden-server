@@ -430,8 +430,9 @@ the section skipped the unlock entirely unless the author wrote one by hand.
 Because the guard tracks ownership, hand-written `x.unlock()` inside a section
 is now a double unlock and is forbidden; release early through
 `__CRITICAL_SECTION_LOCK.unlock()` (and `.lock()` to retake it) instead.
-`tests/critical_section_tests` pins the exits, and
-`tests/tools/critical_section_audit.pl` fails on a hand-written unlock or a
+`tests/critical_section_tests` pins the exits, and the ctest entry
+`critical_section_audit` (`tests/tools/critical_section_audit.pl`) fails the
+build on a hand-written unlock or a
 `__LEAVE_CRITICAL_SECTION` whose argument does not match its `__ENTER`'s. This
 removes a lock-leak class; it does not change which thread owns which state, so
 the ownership violations listed in CLAUDE.md remain open.

@@ -281,3 +281,19 @@ add_test(
     COMMAND perl ${CMAKE_SOURCE_DIR}/tests/arch/check_includes.pl
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+
+# Critical-section audit (src/Core/Exception.h). The __ENTER/__LEAVE block is
+# owned by a scoped CriticalSection guard, so a hand-written x.unlock() inside
+# one now unlocks a non-recursive pthread mutex twice - undefined behaviour, and
+# invisible in a diff. This fails on that, on a __LEAVE_CRITICAL_SECTION whose
+# argument disagrees with its __ENTER's, on an unclosed section, and on finding
+# no sections at all (a wrong working directory must not read as a pass). It
+# scans ./src, hence WORKING_DIRECTORY at the repo root. Perl, like tests/arch/ -
+# the dev image ships it and has no python3. -q drops the informational lines;
+# the ERROR lines and the verdict always print.
+add_test(
+    NAME critical_section_audit
+    COMMAND perl ${CMAKE_SOURCE_DIR}/tests/tools/critical_section_audit.pl -q
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(critical_section_audit PROPERTIES TIMEOUT 60)
