@@ -11,6 +11,7 @@
 
 // include files
 #include <cstddef>
+#include <cstring>
 #include <span>
 
 #include "Exception.h"
@@ -163,12 +164,99 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
+// write data to stream (output buffer)
+//
+// The one copy of the ring-buffer walk: the const char*/uint overload
+// and the scalar write<T>() template both come through here. The span
+// binds the source to its own length, so the two can no longer
+// disagree.
+//
+// Defined inline, in the header, ON PURPOSE. write<T>() calls this with
+// src.size() == sizeof(T); out of line that becomes a call with a runtime
+// length, and the memcpy below stops folding to the single store that
+// docs/TOOLCHAIN.md section 2 relies on. Every scalar field of every
+// packet goes through here, so keep the definition visible.
+//
+// *Notes*
+//
+// ( ( m_Head = m_Tail + 1 ) ||
+//   ( ( m_Head == 0 ) && ( m_Tail == m_BufferLen - 1 ) )
+//
+// is what "full" means, so one byte of the buffer is always left
+// unused: that is how m_Head == m_Tail can mean "empty" and never
+// "full". (The original Korean note did not survive the encoding
+// migration.)
+//
+//////////////////////////////////////////////////////////////////////
+inline uint SocketOutputStream::write(std::span<const std::byte> src) {
+    __BEGIN_TRY
+
+    const char* buf = reinterpret_cast<const char*>(src.data());
+    const uint len = (uint)src.size();
+
+    // Free space left in the buffer. The m_Head > m_Tail case was
+    // revised repeatedly -- by sigi. 2002.9.16 / 2002.9.23 / 2002.9.27 --
+    // and the dead expression below is what it was revised away from.
+    // (The original Korean note did not survive the encoding migration.)
+    uint nFree = ((m_Head <= m_Tail) ? m_BufferLen - m_Tail + m_Head - 1 : m_Head - m_Tail - 1);
+    // m_Tail - m_Head - 1 );
+
+    // Grow the buffer when the data does not fit in the free space.
+    if (len >= nFree)
+        resize(len - nFree + 1);
+
+    if (m_Head <= m_Tail) { // normal order
+
+        //
+        //    H   T
+        // 0123456789
+        // ...abcd...
+        //
+
+        if (m_Head == 0) {
+            nFree = m_BufferLen - m_Tail - 1;
+            memcpy(&m_Buffer[m_Tail], buf, len);
+
+        } else {
+            nFree = m_BufferLen - m_Tail;
+            if (len <= nFree)
+                memcpy(&m_Buffer[m_Tail], buf, len);
+            else {
+                memcpy(&m_Buffer[m_Tail], buf, nFree);
+                memcpy(m_Buffer, &buf[nFree], len - nFree);
+            }
+        }
+
+    } else { // reversed order
+
+        //
+        //     T  H
+        // 0123456789
+        // abcd...efg
+        //
+
+        memcpy(&m_Buffer[m_Tail], buf, len);
+    }
+
+    // advance m_Tail
+    m_Tail = (m_Tail + len) % m_BufferLen;
+
+    return len;
+
+    __END_CATCH
+}
+
+
+//////////////////////////////////////////////////////////////////////
+//
 // write a scalar to the output buffer
 //
 // The ring-buffer walk (and the resize rule that keeps at least one
 // byte free, so head == tail can only ever mean "empty") now lives in
-// write(std::span<const std::byte>) alone. This template used to carry
-// a second, hand-copied version of the same walk -- the copy whose T*
+// the write(std::span<const std::byte>) definition just above --
+// inline, so sizeof(T) still reaches its memcpy as a constant. This
+// template used to carry a second, hand-copied version of the same
+// walk -- the copy whose T*
 // cast at an arbitrary buffer offset tripped UBSan and was changed to
 // memcpy (docs/TOOLCHAIN.md section 2). Behaviour is unchanged.
 //

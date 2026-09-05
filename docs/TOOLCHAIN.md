@@ -328,7 +328,12 @@ unconstrained sibling whose only statement is a `static_assert`, so a
 rejected type is a named compile error instead.
 
 The buffer paths gained `read` / `peek(std::span<std::byte>)` and
-`write(std::span<const std::byte>)`. Those now carry the implementation; the
+`write(std::span<const std::byte>)`. The `read` and `write` spans carry the
+implementation, and are defined **inline in the headers** so the scalar
+templates keep handing their `memcpy` a compile-time-constant `sizeof(T)`:
+at `-O2` a four-byte field is still the single load/store the section above
+describes, not a call with a runtime length. (`peek` stays out of line --
+nothing calls it with a constant size.) The
 `char*` / `const char*` plus `uint` signatures are kept for the existing call
 sites and forward to them, so the hundreds of callers and the exceptions they
 rely on (`InvalidProtocolException` for a zero-length request,

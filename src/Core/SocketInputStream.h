@@ -23,8 +23,10 @@
 
 // include files
 #include <cstddef>
+#include <cstring>
 #include <span>
 
+#include "Assert.h"
 #include "Exception.h"
 #include "Socket.h"
 #include "Types.h"
@@ -165,10 +167,78 @@ public:
 
 //////////////////////////////////////////////////////////////////////
 //
+// read data from input buffer
+//
+// The one copy of the ring-buffer walk: the char*/uint overload and the
+// scalar read<T>() template both come through here. The span binds the
+// destination to its own length, so the two can no longer disagree.
+//
+// Defined inline, in the header, ON PURPOSE. read<T>() calls this with
+// dst.size() == sizeof(T); out of line that becomes a call with a runtime
+// length, and the memcpy below stops folding to the single load that
+// docs/TOOLCHAIN.md section 2 relies on. Every scalar field of every
+// packet goes through here, so keep the definition visible.
+//
+//////////////////////////////////////////////////////////////////////
+inline uint SocketInputStream::read(std::span<std::byte> dst) {
+    //	__BEGIN_TRY
+
+    char* buf = reinterpret_cast<char*>(dst.data());
+    const uint len = (uint)dst.size();
+
+    Assert(buf != NULL);
+
+    if (len == 0)
+        throw InvalidProtocolException("len==0");
+
+    // Less data buffered than the caller asked for. (The original
+    // Korean note here did not survive the encoding migration.)
+    if (len > length())
+        throw InsufficientDataException(len - length());
+
+    if (m_Head < m_Tail) { // normal order
+
+        //
+        //    H   T
+        // 0123456789
+        // ...abcd...
+        //
+
+        memcpy(buf, &m_Buffer[m_Head], len);
+
+    } else { // reversed order ( m_Head > m_Tail )
+
+        //
+        //     T  H
+        // 0123456789
+        // abcd...efg
+        //
+
+        uint rightLen = m_BufferLen - m_Head;
+        if (len <= rightLen) {
+            memcpy(buf, &m_Buffer[m_Head], len);
+        } else {
+            memcpy(buf, &m_Buffer[m_Head], rightLen);
+            memcpy(&buf[rightLen], m_Buffer, len - rightLen);
+        }
+    }
+
+    m_Head = (m_Head + len) % m_BufferLen;
+
+    return len;
+
+    //	__END_CATCH
+}
+
+
+//////////////////////////////////////////////////////////////////////
+//
 // read a scalar from the input buffer
 //
-// The ring-buffer walk now lives in read(std::span<std::byte>) alone.
-// This template used to carry a second, hand-copied version of the
+// The ring-buffer walk now lives in the read(std::span<std::byte>)
+// definition just above -- inline, so sizeof(T) still reaches its
+// memcpy as a constant. This template used to carry a second,
+// hand-copied version of the
 // same walk -- the copy whose T* cast at an arbitrary buffer offset
 // tripped UBSan and was changed to memcpy (docs/TOOLCHAIN.md section
 // 2). Behaviour is unchanged: sizeof(T) is never 0 and &buf is never
