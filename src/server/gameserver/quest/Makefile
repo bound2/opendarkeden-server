@@ -23,7 +23,6 @@ GSDIR    = ..
 SKILLDIR = ../skill
 ITEMDIR  = ../item
 WARDIR  = ../war
-#SIMPLEQUESTDIR  = ./Squest
 LUASCRIPTDIR  = ./luaScript
 
 #----------------------------------------------------------------------
@@ -208,7 +207,6 @@ TARGET   = $(LIBDIR)/libQuest.a
 all :
 	$(MAKE) -C luaScript 
 	$(MAKE) $(TARGET)
-#$(MAKE) -C Squest
 
 $(TARGET) : $(OBJS)
 	ar rc $@ $^
@@ -216,12 +214,10 @@ $(TARGET) : $(OBJS)
 clean :
 	rm -rf *.o
 	$(MAKE) -C luaScript clean
-	$(MAKE) -C Squest clean
 
 cleanall :
 	rm -rf *.o $(TARGET)
 	$(MAKE) -C luaScript cleanall
-#	$(MAKE) -C Squest cleanll
 
 $(DEPDIR):
 	@mkdir -p $@

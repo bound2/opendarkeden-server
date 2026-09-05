@@ -57,11 +57,11 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
-| R1 | `g_p*` global-singleton extern declarations | 337 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
+| R1 | `g_p*` global-singleton extern declarations | 333 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `CreatureUtil.cpp` and `TradeManager.cpp` hold SQL that compiles and runs; the rest are listed under 3.2 "What remains".) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 81 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 74 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,897 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,790 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 
@@ -871,10 +871,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `item/EventBall.cpp` (9; its tables are not in `initdb/` and the
   > class is not registered); files whose only `executeQuery` is
   > commented out (five `mission/` files, EffectBloodyWall,
-  > EffectGrayDarkness, SiegeWar); unbuilt ServerCore forks
-  > (`src/server/Restore.cpp`, `Restore2.cpp`, `ZoneUtil.cpp`,
-  > `IncomingPlayerManager.cpp`; `theoneserver/` left this list when it
-  > was deleted on 2026-09-05); and the loginserver
+  > EffectGrayDarkness, SiegeWar); and the loginserver
   > and sharedserver copies (CLDeletePCHandler's per-character purge,
   > the sharedserver's Guild*.cpp), which are other binaries and get
   > their own seams.
@@ -929,8 +926,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > before delegation (equivalent: all 393 compiled call sites pass a
   > freshly zeroed SkillOutput, and no formula body reads an output field
   > before writing it, so the copy-back of all six fields is identical to
-  > the original partial assignments; the one output-reusing caller sits
-  > in the never-built legacy `gameserver/test/` dir).
+  > the original partial assignments; the one output-reusing caller was
+  > in the never-built legacy `gameserver/test/` dir, deleted 2026-09-05).
   > `formula_tests` pins every gun-class branch (MultiShot, HeadShot,
   > MoleShot), every grade switch including the unset-grade default, and
   > the no-break HeadShot fallthrough where every in-range Range cascades
@@ -1273,6 +1270,65 @@ remaining broader CI rollout below is deferred:
   > outside the directory referenced it. It held no `g_p*` externs or
   > SQL, so R1–R7 are unchanged; the ratchet regression scan now rejects
   > `cacheserver` too.
+
+- [x] **Remove the dead sub-trees, stale forks and VSS residue.**
+  > **Status:** Removed on 2026-09-05. Nothing below was compiled by any
+  > CMake target; the legacy Makefiles carried only commented-out or
+  > include-path references.
+  >
+  > Deleted inside `gameserver/`: `test/` (a 2002 cppunit suite plus
+  > `MockPlayer`/`MockZone`/`MockSkillInput`, driven by a `-t` argv flag
+  > and `g_pTestConfig`; its `GameServerTester.h` include in
+  > `GameServer.cpp`, the `test` include path, the `-t` parsing in
+  > `main.cpp` and the `g_pTestConfig` global in Core `Properties` went
+  > with it), `testAlone/` (a standalone scheduler/war harness carrying
+  > private forks of `VSDateTime`, `Mutex`, `StringStream`, `Schedule`,
+  > `Scheduler`, `WarSystem`), `mofus/testserver/` (a fake mofus peer),
+  > `quest/Squest/` (the pre-Lua "simple quest" system, reachable only
+  > through `__ACTIVE_QUEST__` blocks that no build defines),
+  > `gameguard/` (a 2003 INCA nProtect `CSAuth` SEED-cipher header and
+  > `.tab`/`.idx` tables; `ObjectManager.cpp`, `CGAuthKeyHandler.cpp` and
+  > `CGSayHandler.cpp` still included the header around commented-out
+  > calls — the includes and `ObjectManager`'s two "CSAuth ...
+  > Initialization" print pairs are removed, so startup logs four fewer
+  > lines), `billing/test/` (config fixtures),
+  > `item/_{weapon,armor,gear,accessory,etc}/` (leftover `create`
+  > scripts) and `quest/luaScript/test/` (xmas-event Lua fixtures with
+  > compiled `.luac` copies). The stale commented-out `test_exchange`
+  > block in `gameserver/CMakeLists.txt` referred to a file that no
+  > longer existed.
+  >
+  > Deleted in the `src/server/` root: the unbuilt ServerCore forks
+  > `Restore.cpp`, `Restore2.cpp`, `ZoneUtil.cpp`,
+  > `IncomingPlayerManager.cpp` (each a stale copy of a gameserver file)
+  > and `UserGateway.{h,cpp}` (referenced only from comments).
+  >
+  > Deleted everywhere: all 27 `vssver.scc` Visual SourceSafe files.
+  >
+  > **Ported to the gtest suite** rather than deleted: the
+  > `GameServerSkillTest` sharp-shield expectations now live in
+  > `tests/formula_test.cpp` against `decore::skillformula::SharpShield`
+  > (with the 2003 "Delay equals Duration" balance, which the old test
+  > predated); `GameServerWarTest`'s `VSDateTime` arithmetic and
+  > `testAlone`'s `ScheduleTest`/`WarSystemTest` scheduler behaviour are
+  > `tests/scheduler_test.cpp`, a new `scheduler_tests` target linking
+  > de-kernel plus the live `war/Schedule.cpp`/`Scheduler.cpp`. The live
+  > `Schedule::heartbeat()` reads the wall clock (the old harness stepped
+  > a fake one), so the port uses past/future scheduled times instead.
+  > Not portable: `GameServerItemTest`/`ExpTest` (need
+  > `g_pVariableManager`/`g_pLuckInfoManager` loaded from the DB),
+  > `SpeedCheckTest` (needs a live `GamePlayer` socket) and
+  > `UserGatewayTest` (its subject was deleted).
+  >
+  > R1: 337 → 333 (`g_pTestConfig` plus three externs in the deleted
+  > trees); R3: 81 → 74 (the four root forks and three `Squest` files);
+  > R5: 5,897 → 5,790 (the deleted gameserver sub-trees). Four
+  > `tests/arch/baseline.txt` C1 entries for `mofus/testserver/` went too.
+  >
+  > Left for a later pass: commented-out `UserGateway`/`CSAuth` calls in
+  > `ClientManager.cpp`, `IncomingPlayerManager.cpp`, `EventAuth.cpp` and
+  > `GamePlayer.h`, and the `__ACTIVE_QUEST__` blocks in `NPC.cpp` and
+  > `PlayerCreature.cpp` that still name the deleted `QuestBoard`.
 
 ## Appendix — measured inventory (2026-08-29)
 

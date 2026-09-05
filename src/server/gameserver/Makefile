@@ -23,13 +23,11 @@ ITEMDIR  = ./item
 BILLINGDIR  = ./billing
 WARDIR  = ./war
 COUPLEDIR = ./couple
-TESTDIR  = ./test
 MISSIONDIR = ./mission
 CTFDIR = ./ctf
 PYLIBDIR = /usr/local/lib/python2.2/config
 PYINCDIR = /usr/local/include/python2.2
 #GQUESTDIR = ./gq
-#SIMPLEQUESTDIR  = ./quest/Squest
 
 #----------------------------------------------------------------------
 # General Rules
@@ -38,10 +36,10 @@ PYINCDIR = /usr/local/include/python2.2
 
 CC       = g++
 DEFS     = -D__LINUX__ -D_REENTRANT -D__GAME_SERVER__  -D__COMBAT__
-INCLUDES = -I$(STLDIR) -I$(COREDIR) -I$(SERVDIR) -I$(DBDIR) -I$(SKILLDIR) -I$(ITEMDIR) -I$(BILLINGDIR) -I$(WARDIR) -I$(COUPLEDIR) -I$(TESTDIR) -I$(MISSIONDIR) -I.
+INCLUDES = -I$(STLDIR) -I$(COREDIR) -I$(SERVDIR) -I$(DBDIR) -I$(SKILLDIR) -I$(ITEMDIR) -I$(BILLINGDIR) -I$(WARDIR) -I$(COUPLEDIR) -I$(MISSIONDIR) -I.
 CCFLAGS  = -Wall -c -g 
 #CCFLAGS  = -Wall -c -g 
-#LIBS     = -L$(LIBDIR) -lItems -lQuest -lMofus -lGameServerDatabase -lServerCore -lGameServerPackets -lSkill -lCore -lGameServerBilling -lLuaScript -lGameServerTest -lWar -lCouple -lMission -lCTF -lxerces-c -lsicuuc -lsicudata -lCSAuth
+#LIBS     = -L$(LIBDIR) -lItems -lQuest -lMofus -lGameServerDatabase -lServerCore -lGameServerPackets -lSkill -lCore -lGameServerBilling -lLuaScript -lWar -lCouple -lMission -lCTF -lxerces-c -lsicuuc -lsicudata
 LIBS     = -L$(LIBDIR) -lItems -lQuest -lMofus -lGameServerDatabase -lServerCore -lGameServerPackets -lSkill -lCore -lGameServerBilling -lLuaScript -lWar -lCouple -lMission -lCTF
 #SYSLIBS  = -L$(MYSQLDIR) -static -lpthread -lnsl -lutil -ldl -lmysqlclient -llua -llualib -lz -lcppunit
 SYSLIBS  = -lpthread -lnsl -lutil -lmysqlclient -llua5.1 -lxerces-c -ldl -lz
@@ -191,7 +189,7 @@ gameserver :
 	$(MAKE) $(TARGET)
 	# $(MAKE) -C test
 
-#$(TARGET) : $(OBJS) $(LIBDIR)/libGameServerDatabase.a $(LIBDIR)/libSkill.a $(LIBDIR)/libGameServerPackets.a $(LIBDIR)/libItems.a $(LIBDIR)/libQuest.a $(LIBDIR)/libMofus.a $(LIBDIR)/libServerCore.a $(LIBDIR)/libCore.a $(LIBDIR)/libSharedServerPackets.a $(LIBDIR)/libGameServerBilling.a $(LIBDIR)/libLuaScript.a $(LIBDIR)/libGameServerTest.a $(LIBDIR)/libWar.a $(LIBDIR)/libCouple.a $(LIBDIR)/libMission.a $(LIBDIR)/libCTF.a
+#$(TARGET) : $(OBJS) $(LIBDIR)/libGameServerDatabase.a $(LIBDIR)/libSkill.a $(LIBDIR)/libGameServerPackets.a $(LIBDIR)/libItems.a $(LIBDIR)/libQuest.a $(LIBDIR)/libMofus.a $(LIBDIR)/libServerCore.a $(LIBDIR)/libCore.a $(LIBDIR)/libSharedServerPackets.a $(LIBDIR)/libGameServerBilling.a $(LIBDIR)/libLuaScript.a $(LIBDIR)/libWar.a $(LIBDIR)/libCouple.a $(LIBDIR)/libMission.a $(LIBDIR)/libCTF.a
 
 $(TARGET) : $(OBJS) $(LIBDIR)/libGameServerDatabase.a $(LIBDIR)/libSkill.a $(LIBDIR)/libGameServerPackets.a $(LIBDIR)/libItems.a $(LIBDIR)/libQuest.a $(LIBDIR)/libMofus.a $(LIBDIR)/libServerCore.a $(LIBDIR)/libCore.a $(LIBDIR)/libSharedServerPackets.a $(LIBDIR)/libGameServerBilling.a $(LIBDIR)/libLuaScript.a $(LIBDIR)/libWar.a $(LIBDIR)/libCouple.a $(LIBDIR)/libMission.a $(LIBDIR)/libCTF.a
 	$(CC) -o $@ $(OBJS) $(LIBS) $(SYSLIBS) -rdynamic

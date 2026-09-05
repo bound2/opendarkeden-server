@@ -200,6 +200,25 @@ add_dependencies(wire_tests managed_thread_tests)
 add_test(NAME managed_thread_tests COMMAND managed_thread_tests)
 set_tests_properties(managed_thread_tests PROPERTIES TIMEOUT 15)
 
+# War-system Schedule/Scheduler and the VSDateTime clock they run on —
+# ported from the deleted gameserver/test and gameserver/testAlone cppunit
+# suites. Links only de-kernel plus the two war/ sources under test; the
+# heartbeat appends to Schedule.txt via filelog(), so run from the build
+# tree rather than the source tree.
+add_executable(scheduler_tests EXCLUDE_FROM_ALL
+    scheduler_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/war/Schedule.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/war/Scheduler.cpp
+)
+target_include_directories(scheduler_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(scheduler_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests scheduler_tests)
+add_test(NAME scheduler_tests COMMAND scheduler_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(scheduler_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)

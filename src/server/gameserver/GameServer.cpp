@@ -15,7 +15,6 @@
 #include "ClientManager.h"
 #include "DatabaseManager.h"
 #include "GameServerInfoManager.h"
-#include "GameServerTester.h"
 #include "LogClient.h"
 #include "LoginServerManager.h"
 #include "ObjectManager.h"
@@ -240,11 +239,6 @@ void GameServer::start()
     cout << ">>> STARTING ClientManager->start() INFINITE LOOP..." << endl;
 
     log(LOG_SYSTEM, "", "", "Game Server Started");
-
-    // 테스트 by sigi. 2002.12.26
-    if (g_pTestConfig != NULL) {
-        // testGameServer();
-    }
 
     try {
         g_pClientManager->start();
