@@ -109,8 +109,14 @@ update GameServerInfo set IP = '192.168.0.16';
 ### Pack pre-built binaries into an image
 
 `Dockerfile.pub` packages an already-compiled `bin/` directory instead of
-compiling from source, which is useful when publishing a release image:
+compiling from source, which is useful when publishing a release image. It
+installs the same runtime libraries and applies the same `start.sh`/CRLF
+handling as the source build's runtime stage. The checkout's `bin/` must hold
+Linux binaries built for the Ubuntu 20.04 runtime (e.g. copied out of the
+`darkeden-dev` volume; `make dev-build` does not update `bin/`). BuildKit is
+required so that `Dockerfile.pub.dockerignore` (which keeps `bin/` in the
+context) is used instead of `.dockerignore`:
 
 ```sh
-docker build . -t darkeden:latest -f Dockerfile.pub
+DOCKER_BUILDKIT=1 docker build . -t darkeden:latest -f Dockerfile.pub
 ```

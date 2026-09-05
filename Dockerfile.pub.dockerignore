@@ -1,0 +1,29 @@
+# Context filter for Dockerfile.pub (BuildKit uses <Dockerfile>.dockerignore
+# in preference to .dockerignore). Unlike the source build, this image needs
+# the pre-built bin/ directory, so only the unrelated trees are dropped.
+.git
+.github
+.claude
+.vscode
+.idea
+build/
+build-tests/
+lib/
+*.o
+*.a
+*.so
+src/
+cmake/
+tests/
+third_party/
+initdb/
+conf/
+Dockerfile
+Dockerfile.dev
+Dockerfile.pub
+*.md
+docs
+gameserver
+loginserver
+sharedserver
+wire_tests
