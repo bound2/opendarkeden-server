@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : PlayerMailbox.h
 // Description : Run a command against a logged-in player on the thread
-//               that owns the player, under that owner's lock.
+//               that owns the player, under whatever protects that owner.
 //
 //               This is how the cross-thread packet handlers (SG/LG/GG, on
 //               the SharedServerManager / LoginServerManager threads) reach
@@ -22,7 +22,9 @@
 //               during a transfer. So the box moves with the player and
 //               keeps its commands in posting order across group changes.
 //               Each owner drains it from the one place it processes the
-//               players it owns, under its own lock:
+//               players it owns -- the zone thread under the group mutex,
+//               the main thread as the sole thread that touches its
+//               players (IncomingPlayerManager takes no lock in that loop):
 //
 //                 * ZonePlayerManager::processCommands, on the zone thread
 //                   under the group mutex, runs everything -- the creature
@@ -99,11 +101,13 @@ bool postToPlayer(const std::string& name, PlayerCommand command, GoneCommand if
                   Scope scope = Scope::Zone);
 
 // Owner side; see the file comment for which owner runs what. Both return
-// the number of commands run. The zone form skips (keeps everything
-// queued) when the creature's zone group is not `owner`'s -- a listing
-// mismatch the manager itself logs as ZPMCheck -- rather than mutate a zone
-// another thread is ticking. abandonPlayerMailbox runs the ifGone handlers
-// of everything pending and drops the commands; called at logout.
+// the number of commands run. When the creature's zone group is not
+// `owner`'s -- a listing mismatch the manager itself logs as ZPMCheck -- the
+// zone form runs only Scope::Player commands, like the main thread, rather
+// than mutate a zone another thread is ticking. A backlog the owner cannot
+// run is logged (rate-limited) so a box that never drains is visible.
+// abandonPlayerMailbox runs the ifGone handlers of everything pending and
+// drops the commands; called at logout.
 std::size_t drainPlayerMailbox(GamePlayer& player, const ZonePlayerManager& owner);
 std::size_t drainPlayerMailboxOnMainThread(GamePlayer& player);
 std::size_t abandonPlayerMailbox(GamePlayer& player);

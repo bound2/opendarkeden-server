@@ -4,6 +4,8 @@
 
 #include "PlayerMailbox.h"
 
+#include <atomic>
+#include <ctime>
 #include <exception>
 #include <utility>
 
@@ -60,6 +62,23 @@ std::size_t noteDepth(GamePlayer& player, std::size_t ran) {
     return ran;
 }
 
+// Commands are waiting that this owner may not run. Normal for a moment
+// (a zone change), a problem when it lasts; logged when the backlog is deep
+// or, rate-limited across all players, when it is merely present, so a
+// player whose box never drains shows up before logout.
+void noteStuck(GamePlayer& player, const char* why) {
+    static std::atomic<std::time_t> lastLog{0};
+    const std::size_t waiting = player.mailbox().size();
+    if (waiting == 0)
+        return;
+    const std::time_t now = std::time(nullptr);
+    if (waiting < kDepthWarning && now - lastLog.load(std::memory_order_relaxed) < 10)
+        return;
+    lastLog.store(now, std::memory_order_relaxed);
+    filelog("errorLog.txt", "player mailbox for %s holds %u commands its owner cannot run (%s)", player.getID().c_str(),
+            (unsigned)waiting, why);
+}
+
 template <typename Take> std::size_t runPending(GamePlayer& player, PlayerCreature& pc, Take&& take) {
     return noteDepth(player,
                      player.mailbox().drainIf(
@@ -92,9 +111,15 @@ std::size_t drainPlayerMailbox(GamePlayer& player, const ZonePlayerManager& owne
     if (pc == nullptr)
         return 0; // nothing to run against right now; the commands wait
     Zone* pZone = pc->getZone();
-    if (pZone == nullptr || pZone->getZoneGroup() == nullptr || pZone->getZoneGroup()->getZonePlayerManager() != &owner)
-        return 0; // listed here, but the creature is in another group's zone: not ours to touch
-    return runPending(player, *pc, [](const PostedPlayerCommand&) { return true; });
+    if (pZone != nullptr && pZone->getZoneGroup() != nullptr && pZone->getZoneGroup()->getZonePlayerManager() == &owner)
+        return runPending(player, *pc, [](const PostedPlayerCommand&) { return true; });
+
+    // Listed here, but the creature is in another group's zone (the
+    // mismatch the manager logs as ZPMCheck, when it checks). Zone-scoped
+    // commands are not ours to run; player-scoped ones are, since this
+    // manager is the player's owner whatever its creature points at.
+    noteStuck(player, "creature is in another group's zone");
+    return runPending(player, *pc, [](const PostedPlayerCommand& posted) { return posted.scope == Scope::Player; });
 }
 
 std::size_t drainPlayerMailboxOnMainThread(GamePlayer& player) {
@@ -103,7 +128,11 @@ std::size_t drainPlayerMailboxOnMainThread(GamePlayer& player) {
     PlayerCreature* pc = dynamic_cast<PlayerCreature*>(player.getCreature());
     if (pc == nullptr)
         return 0;
-    return runPending(player, *pc, [](const PostedPlayerCommand& posted) { return posted.scope == Scope::Player; });
+    std::size_t ran =
+        runPending(player, *pc, [](const PostedPlayerCommand& posted) { return posted.scope == Scope::Player; });
+    if (!player.mailbox().empty())
+        noteStuck(player, "owned by the main thread");
+    return ran;
 }
 
 std::size_t abandonPlayerMailbox(GamePlayer& player) {

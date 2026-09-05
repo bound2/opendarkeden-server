@@ -389,9 +389,9 @@ gateways, not a full guarantee.
   pointer does not say which — it is set as soon as the character loads and
   stays on the old zone during a transfer. So the box follows the player and
   keeps posting order across group changes. The zone manager, under the group
-  mutex, runs everything (and skips a player whose creature is in another
-  group's zone, the listing mismatch it already logs as ZPMCheck); the main
-  thread runs only `Scope::Player` commands (the kick flags), because the
+  mutex, runs everything (for a player whose creature is in another
+  group's zone, the listing mismatch it already logs as ZPMCheck, only the
+  player-scoped ones); the main thread runs only `Scope::Player` commands (the kick flags), because the
   zone the creature points at is ticking elsewhere — `Scope::Zone` commands
   wait, in order, for a zone thread. A player who logs out with commands
   pending runs their `ifGone` handlers instead (`~GamePlayer`, right after
