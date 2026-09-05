@@ -1167,10 +1167,6 @@ void GDRLairScene5::start() {
     Monster* pGDR = getGDR();
     Zone* pZone = pGDR->getZone();
 
-    // The reward loop walks the zone's PCManager and writes inventories and
-    // the zone's object registry; all zone-group state, and this is the GDR
-    // thread, so the group mutex is held from here (it used to be taken
-    // only for the transport at the end).
     __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
     pGDR->setBrain(NULL);
@@ -1249,6 +1245,12 @@ void GDRLairScene6::start() {
     Monster* pGDR = getGDR();
     Zone* pZone = pGDR->getZone();
 
+    // The reward loop walks the zone's PCManager and writes inventories and
+    // the zone's object registry; all zone-group state, and this is the GDR
+    // thread, so the group mutex is held from here (it used to be taken
+    // only for the transport at the end).
+    __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
+
     // ���� ����
     const PCManager* pPCManager = pZone->getPCManager();
     const unordered_map<ObjectID_t, Creature*>& creatures = pPCManager->getCreatures();
@@ -1299,8 +1301,6 @@ void GDRLairScene6::start() {
     }
 
     // 6���ִٰ� ���󰣴�.
-    __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
-
     pGDR->setBrain(NULL);
     pZone->getPCManager()->transportAllCreatures(pZone->getZoneID(), 82, 93, defaultRaceValue, 15);
 
@@ -1332,6 +1332,8 @@ void GDRLairEnding::start() {
     TimerState::start();
 
     Zone* pZone = GDRLairManager::Instance().getZone(GDRLairManager::GDR_LAIR_CORE);
+    if (pZone == NULL)
+        return; // end() guards the same accessor
 
     // Same contract as Scene6: PCManager walk, inventory and registry
     // writes, on the GDR thread -- under the group mutex.
