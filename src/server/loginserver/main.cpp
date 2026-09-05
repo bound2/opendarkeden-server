@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include <chrono>
+#include <exception>
 #include <new>
 
 #include <sys/resource.h>
@@ -21,6 +23,7 @@
 #include "LoginPacketDispatch.h"
 #include "LoginServer.h"
 #include "Properties.h"
+#include "ServerShutdown.h"
 #include "StringStream.h"
 #include "Types.h"
 
@@ -35,7 +38,17 @@ void memoryError() {
 //
 //////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[]) {
-    // ¸Þ¸ð¸® ¾ø´Ù.. ÇÔ¼ö¸¦ ¼³Á¤ÇÑ´Ù.
+    // SIGTERM/SIGINT only store a lock-free request; the main client loop and
+    // every worker observe it on their next turn.
+    struct sigaction action {};
+    action.sa_handler = ServerShutdown::request;
+    sigemptyset(&action.sa_mask);
+    if (sigaction(SIGTERM, &action, nullptr) != 0 || sigaction(SIGINT, &action, nullptr) != 0)
+        return EXIT_FAILURE;
+    // Armed before initialization so a startup that blocks still exits.
+    ServerShutdown::Deadline shutdownDeadline(std::chrono::seconds(30), "loginserver");
+
+    // Set the out-of-memory handler.
     set_new_handler(memoryError);
 
     // Bind every packet id the loginserver receives to its handler before
@@ -131,7 +144,8 @@ int main(int argc, char* argv[]) {
         g_pLoginServer->init();
 
         // ·Î±×ÀÎ ¼­¹ö °´Ã¼¸¦ È°¼ºÈ­½ÃÅ²´Ù.
-        g_pLoginServer->start();
+        if (!ServerShutdown::isRequested())
+            g_pLoginServer->start();
     } catch (Throwable& e) {
         // ·Î±×°¡ ÀÌ·ïÁö±â Àü¿¡ ¼­¹ö°¡ ³¡³¯ °æ¿ì¸¦ ´ëºñÇØ¼­
         ofstream ofile("../log/instant.log", ios::out);
@@ -145,8 +159,39 @@ int main(int argc, char* argv[]) {
         // Ç¥ÁØ Ãâ·ÂÀ¸·Îµµ Ãâ·ÂÇØÁØ´Ù.
         cout << e.toString() << endl;
 
-        // ·Î±×ÀÎ ¼­¹ö¸¦ Áß´Ü½ÃÅ²´Ù.
-        // ÀÌ ³»ºÎ¿¡¼­ ÇÏÀ§ ¸Å´ÏÀú ¿ª½Ã Áß´ÜµÇ¾î¾ß ÇÑ´Ù.
-        g_pLoginServer->stop();
+        // Stop the login server; every sub-manager has to stop with it.
+        ServerShutdown::fail();
+    } catch (...) {
+        cout << "unknown exception..." << endl;
+        ServerShutdown::fail();
     }
+
+    // Both the signal-driven and the failed-startup paths reach the same
+    // teardown: request the stop, then join every worker while the managers
+    // it uses are still alive.
+    ServerShutdown::request();
+    bool drained = true;
+    try {
+        if (g_pLoginServer != NULL)
+            g_pLoginServer->stop();
+    } catch (Throwable& error) {
+        drained = false;
+        ServerShutdown::fail();
+        cerr << "Shutdown failed: " << error.toString() << endl;
+    } catch (const std::exception& error) {
+        drained = false;
+        ServerShutdown::fail();
+        cerr << "Shutdown failed: " << error.what() << endl;
+    } catch (...) {
+        drained = false;
+        ServerShutdown::fail();
+        cerr << "Shutdown failed: unknown exception" << endl;
+    }
+    // The legacy singleton graph has no audited destruction order, so let the
+    // OS reclaim it once every worker has joined.
+    if (drained)
+        cout << ">>> ALL LOGIN WORKERS STOPPED." << endl;
+    cout.flush();
+    cerr.flush();
+    std::_Exit(ServerShutdown::failed.load() ? EXIT_FAILURE : EXIT_SUCCESS);
 }

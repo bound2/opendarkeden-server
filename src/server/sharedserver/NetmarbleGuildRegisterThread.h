@@ -10,15 +10,15 @@
 #include <queue>
 
 #include "Exception.h"
+#include "ManagedThread.h"
 #include "Mutex.h"
-#include "Thread.h"
 #include "Types.h"
 
 
 /////////////////////////////////////////////////////////////////////
 // class NetmarbleGuildRegisterThread
 /////////////////////////////////////////////////////////////////////
-class NetmarbleGuildRegisterThread : public Thread {
+class NetmarbleGuildRegisterThread : public ManagedThread {
 public:
     // type definition
     typedef queue<GuildID_t> QueueGuildID;
@@ -33,13 +33,13 @@ public:
     void init();
 
     // thread main loop
-    void run();
+    void run() override;
 
 public:
-    // 넷마블에 등록할 길드 아이디를 쌓는다.
+    // Queue a guild id to be registered with Netmarble.
     void pushGuildID(GuildID_t guildID);
 
-    // 길드 정보를 넷마블쪽으로 등록한다.
+    // Register the guild information with Netmarble.
     void registerGuild();
 
 private:

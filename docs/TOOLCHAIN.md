@@ -225,7 +225,7 @@ instead of through tree-wide style conversions.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|
-| P0 | `std::jthread`, `std::stop_token`, atomic wait/notify | `Thread`, `ZoneGroupThread`, `SMSServiceThread`, `NetmarbleGuildRegisterThread` | Cooperative shutdown and owned joins instead of unsupported `stop()`, `while (true)` and sleep polling |
+| P0 | `std::jthread`, `std::stop_token`, atomic wait/notify | `ManagedThread` (every worker in all three servers) | Cooperative shutdown and owned joins instead of unsupported `stop()`, `while (true)` and sleep polling — done |
 | P0 | `std::span`, concepts, `std::endian`, `std::bit_cast` | `SocketInputStream`, `SocketOutputStream`, packet codecs | Bound buffer lengths to their data and reject unsafe wire types at compile time |
 | P1 | `constexpr`/`consteval` metadata and concepts | `AllPacketFactories.inc`, `PacketIDSet`, packet factory classes | Detect duplicate IDs, invalid sizes and incomplete registrations during compilation |
 | P1 | `std::source_location` | `Assert.h`, `Exception.h`, DB/error macros | Preserve call-site diagnostics without compiler-specific macros or repeated file/line plumbing |
@@ -234,10 +234,15 @@ instead of through tree-wide style conversions.
 
 ### Structured thread lifetime and cancellation
 
-The legacy `Thread` backend remains for services outside the gameserver
-migration. Gameserver zone, login-link, shared-link, GDR, and enabled
-billing/mofus workers now opt into `ManagedThread`, which owns a
-`CooperativeThread` backed by `std::jthread`.
+`ManagedThread` is now the only subclass of the legacy `Thread`, so every
+worker in all three server processes uses it: gameserver zone, login-link,
+shared-link, GDR, SMS and enabled billing/mofus workers, the loginserver's
+`GameServerManager` (UDP game-server link), and the sharedserver's
+`GameServerManager` (TCP game-server link) and `NetmarbleGuildRegisterThread`.
+`ManagedThread` owns a `CooperativeThread` backed by `std::jthread`. What is
+left of the legacy base is `start()`/`stop()`/`join()`/`run()`, the status
+enum and `Thread::self()` (the key for per-thread database connections); the
+pthread-only `detach()` and the unused static `join()` overloads are gone.
 
 `std::jthread` owns the join operation and propagates a `std::stop_token` to
 the worker. A stop-aware condition-variable wait can wake immediately during
@@ -255,9 +260,13 @@ any exception; shutdown requests all stops before joining. Derived destructors
 must join before their members disappear; a base destructor alone is too late.
 
 SIGTERM/SIGINT only store a lock-free atomic request, using operations permitted
-in [C++ signal handlers](https://eel.is/c++draft/support.signal). The main client
-loop returns, all zone and auxiliary workers are requested to stop and joined,
-then main flushes its status message and calls `_Exit`. The OS reclaims the
+in [C++ signal handlers](https://eel.is/c++draft/support.signal). All three
+processes now install that handler and share the same teardown: the main loop
+(gameserver `ClientManager`, loginserver `ClientManager`, sharedserver
+`HeartbeatManager`) returns, every worker is requested to stop and joined,
+then main flushes its status message and calls `_Exit` with a failure code if
+any step failed. `LoginServer::stop()`/`SharedServer::stop()` are idempotent
+and no longer throw `UnsupportedError`. The OS reclaims the
 legacy singleton graph: its destructor dependency order is not fully audited,
 so normal process shutdown deliberately does not invoke that graph. Explicit
 `GameServer` destruction also joins workers before releasing dependencies.
@@ -269,17 +278,21 @@ read/write timeouts, allowing longer normal-service queries. Operators can set
 positive integer seconds (Compose forwards them). These are per-operation
 limits with [client retry semantics](https://dev.mysql.com/doc/c-api/8.0/en/mysql-options.html),
 not an overall query or shutdown time guarantee. Stop is checked between zone
-connection setup operations. The login-link UDP socket is nonblocking so idle
-traffic cannot prevent shutdown. A separate watchdog starts before server
-initialization and allows 30 seconds after a signal/error/shutdown request;
-if I/O or gameplay code stays blocked, it exits the whole process with failure
-without freeing memory underneath live workers. The container supervisor keeps
-login/shared alive while gameserver drains, enforces a 35-second backstop, and
-Compose has a 45-second stop grace period.
+connection setup operations. Both ends of the login link use a nonblocking UDP
+socket so idle traffic cannot prevent shutdown. A separate watchdog starts
+before server initialization in each process and allows 30 seconds after a
+signal/error/shutdown request; if I/O or gameplay code stays blocked, it exits
+the whole process with failure without freeing memory underneath live workers,
+naming the process that gave up. The container supervisor keeps
+login/shared alive while gameserver drains, enforces a 35-second backstop, then
+gives login/shared 8 seconds of their own before SIGKILL — 43 seconds in total,
+inside Compose's 45-second stop grace period.
 
 Regression tests exercise concurrent lifecycle calls, worker errors, pool
 rollback and stop/join ordering, dependency lifetime, signals, a stuck worker,
-a silent MySQL peer, and the real `docker/start.sh` with stand-in processes.
+stop-aware waits waking without sitting out their polling interval, a silent
+MySQL peer, and the real `docker/start.sh` with stand-in processes — both when
+they all drain and when one login/shared stand-in ignores SIGTERM.
 The pinned-Zig CI job runs these tests and builds all production targets and
 the production image only on master pushes/merges. PRs and feature-branch
 commits use local verification to conserve Actions minutes. CMake probes the

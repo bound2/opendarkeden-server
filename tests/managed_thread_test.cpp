@@ -23,6 +23,9 @@ public:
     std::atomic<bool> exited{false};
     bool failStart = false;
     bool failRun = false;
+    // The polling interval the loop would sit out if its wait were a plain
+    // sleep instead of a stop-aware one.
+    std::chrono::microseconds pause{1ms};
 
     void start() override {
         if (failStart)
@@ -34,7 +37,7 @@ public:
         entered.set_value();
         if (failRun)
             throw std::runtime_error("injected worker failure");
-        while (pauseFor(1ms)) {
+        while (pauseFor(pause)) {
         }
         exited = true;
     }
@@ -98,6 +101,39 @@ TEST_F(ManagedThreadTest, StopCanInterruptAnAlreadyWaitingJoin) {
     EXPECT_EQ(joined.wait_for(1s), std::future_status::ready);
     EXPECT_TRUE(worker.exited);
     EXPECT_EQ(worker.getStatus(), Thread::EXIT);
+}
+
+// The login/shared workers replaced sleep(1)/usleep() polling with pauseFor().
+// A stop must not have to wait out the remaining interval.
+TEST_F(ManagedThreadTest, StopWakesALongPollingWait) {
+    Worker worker;
+    worker.pause = 5s;
+    auto entered = worker.entered.get_future();
+    worker.start();
+    ASSERT_EQ(entered.wait_for(1s), std::future_status::ready);
+    const auto begin = std::chrono::steady_clock::now();
+    worker.stop();
+    worker.join();
+    EXPECT_LT(std::chrono::steady_clock::now() - begin, 2s);
+    EXPECT_TRUE(worker.exited);
+    EXPECT_EQ(worker.getStatus(), Thread::EXIT);
+}
+
+// What a SIGTERM handler stores is the process-wide request alone. A loop
+// written as `while (!stopRequested())` must end on it, and the managed
+// backend must not report that exit as a worker failure. This is the path
+// LoginServer::stop()/SharedServer::stop() take before they join.
+TEST_F(ManagedThreadTest, ShutdownRequestAloneDrainsAManagedWorker) {
+    Worker worker;
+    auto entered = worker.entered.get_future();
+    worker.start();
+    ASSERT_EQ(entered.wait_for(1s), std::future_status::ready);
+    ServerShutdown::request();
+    worker.join();
+    EXPECT_TRUE(worker.exited);
+    EXPECT_FALSE(ServerShutdown::failed.load());
+    EXPECT_EQ(worker.getStatus(), Thread::EXIT);
+    EXPECT_NO_THROW(worker.rethrowFailure());
 }
 
 TEST_F(ManagedThreadTest, WorkerFailureRequestsShutdownAndIsRetained) {
@@ -218,4 +254,23 @@ TEST_F(ManagedThreadTest, DeadlineTerminatesBlockedInitializationWithoutFreeingS
             std::_Exit(0);
         },
         testing::ExitedWithCode(EXIT_FAILURE), "shutdown deadline exceeded");
+}
+
+// loginserver and sharedserver arm the same watchdog, so its message has to
+// say which process gave up rather than always naming the gameserver.
+TEST_F(ManagedThreadTest, DeadlineNamesTheProcessItForceExits) {
+    ASSERT_EXIT(
+        {
+            ServerShutdown::Deadline deadline(50ms, "loginserver");
+            CooperativeThread worker;
+            worker.start([](std::stop_token) {
+                for (;;)
+                    std::this_thread::sleep_for(1s);
+            });
+            ServerShutdown::request();
+            worker.requestStop();
+            worker.join();
+            std::_Exit(0);
+        },
+        testing::ExitedWithCode(EXIT_FAILURE), "loginserver shutdown deadline exceeded");
 }

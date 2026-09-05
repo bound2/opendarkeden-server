@@ -100,8 +100,23 @@ shutdown_all() {
             wait "$pid" 2>/dev/null || result=$?
         fi
     done
-    for pid in "${pids[@]}"; do
-        kill "$pid" 2>/dev/null || true
+    # login/shared drain cooperatively too now, so they no longer die the
+    # instant SIGTERM lands. Bound them here as well: Compose allows 45s in
+    # total, and 35s for the gameserver plus 8s here leaves headroom before
+    # docker escalates to SIGKILL. Each server still carries its own 30s
+    # failed-exit deadline for a run outside this supervisor.
+    for i in "${!pids[@]}"; do
+        [ "${names[$i]}" = gameserver ] || kill -TERM "${pids[$i]}" 2>/dev/null || true
+    done
+    deadline=$((SECONDS + 8))
+    for i in "${!pids[@]}"; do
+        [ "${names[$i]}" != gameserver ] || continue
+        pid=${pids[$i]}
+        while is_alive "$pid" && (( SECONDS < deadline )); do sleep 0.1; done
+        if is_alive "$pid"; then
+            log "${names[$i]} did not drain; forcing termination"
+            kill -KILL "$pid" 2>/dev/null || true
+        fi
     done
     wait "${pids[@]}" 2>/dev/null
     return "$result"

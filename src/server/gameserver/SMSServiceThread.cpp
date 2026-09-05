@@ -2,6 +2,8 @@
 
 #include <unistd.h>
 
+#include <chrono>
+
 #include "Assert.h"
 #include "Properties.h"
 #include "StringStream.h"
@@ -38,8 +40,14 @@ void operator++(string& id) {
 void SMSServiceThread::run() {
     __BEGIN_TRY
 
-    if (g_pConfig->getPropertyInt("IsNetMarble") != 0)
+    if (g_pConfig->getPropertyInt("IsNetMarble") != 0) {
+        // Nothing to relay on a NetMarble deployment. Idle until shutdown
+        // rather than returning: a managed worker that returns while no stop
+        // has been requested is reported as a worker failure.
+        while (pauseFor(std::chrono::seconds(1))) {
+        }
         return;
+    }
 
     string host = g_pConfig->getProperty("SMS_DB_HOST");
     string db = g_pConfig->getProperty("SMS_DB_DB");
@@ -97,7 +105,7 @@ void SMSServiceThread::run() {
     Timeval dummyQueryTime;
     getCurrentTime(dummyQueryTime);
 
-    while (true) {
+    while (!stopRequested()) {
         __ENTER_CRITICAL_SECTION(m_QueueMutex)
 
         try {
@@ -160,7 +168,9 @@ void SMSServiceThread::run() {
             dummyQueryTime.tv_sec += (60 + rand() % 30) * 60;
         }
 
-        sleep(1); // 1초에 한번씩 큐를 체크한다.
+        // Check the queue once per second. Stop-aware, so a shutdown request
+        // wakes this immediately instead of costing another second.
+        pauseFor(std::chrono::seconds(1));
     }
 
     __END_CATCH

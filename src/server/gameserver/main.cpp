@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     sigemptyset(&action.sa_mask);
     if (sigaction(SIGTERM, &action, nullptr) != 0 || sigaction(SIGINT, &action, nullptr) != 0)
         return EXIT_FAILURE;
-    ServerShutdown::Deadline shutdownDeadline;
+    ServerShutdown::Deadline shutdownDeadline(std::chrono::seconds(30), "gameserver");
     cout << ">>> STARTING GAME SERVER..." << endl;
 
     filelog("serverStart.log", "GameServer Start");

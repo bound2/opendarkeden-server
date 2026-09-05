@@ -40,8 +40,12 @@ public:
     // start game server
     void start();
 
-    // stop game server
+    // Request every worker to stop, then join them while the managers they
+    // use are still alive. Idempotent: main and the startup catch both call it.
     void stop();
+
+private:
+    bool m_Stopped = false;
 };
 
 // global variable declaration

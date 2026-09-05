@@ -199,7 +199,9 @@ add_executable(managed_thread_tests EXCLUDE_FROM_ALL
 target_link_libraries(managed_thread_tests PRIVATE ServerCore de-kernel gtest_main Threads::Threads)
 add_dependencies(wire_tests managed_thread_tests)
 add_test(NAME managed_thread_tests COMMAND managed_thread_tests)
-set_tests_properties(managed_thread_tests PROPERTIES TIMEOUT 15)
+# Headroom for the stop-aware-wait tests: a regression there sits out a
+# five-second polling interval per case instead of waking immediately.
+set_tests_properties(managed_thread_tests PROPERTIES TIMEOUT 30)
 
 # War-system Schedule/Scheduler and the VSDateTime clock they run on —
 # ported from the deleted gameserver/test and gameserver/testAlone cppunit
@@ -241,7 +243,9 @@ add_dependencies(wire_tests shutdown_probe)
 add_test(NAME shutdown_supervisor COMMAND bash
     ${CMAKE_CURRENT_SOURCE_DIR}/shutdown_supervisor_test.sh
     $<TARGET_FILE:shutdown_probe> ${CMAKE_SOURCE_DIR}/docker/start.sh)
-set_tests_properties(shutdown_supervisor PROPERTIES TIMEOUT 50)
+# Two scenarios, each paying start.sh's 6s of staged startup, and the second
+# also waiting out the supervisor's 8s bound on a server that ignores SIGTERM.
+set_tests_properties(shutdown_supervisor PROPERTIES TIMEOUT 90)
 
 # Call-site diagnostics (docs/TOOLCHAIN.md, "Diagnostics without location
 # macros"): Assert/ProtocolAssert and the __END_CATCH stack trace, now carried

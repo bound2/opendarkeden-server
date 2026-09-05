@@ -7,6 +7,8 @@
 // include files
 #include "NetmarbleGuildRegisterThread.h"
 
+#include <chrono>
+
 #include "DB.h"
 #include "Properties.h"
 #include "Python.h"
@@ -22,7 +24,12 @@ NetmarbleGuildRegisterThread::NetmarbleGuildRegisterThread() {
 }
 
 // destructor
-NetmarbleGuildRegisterThread::~NetmarbleGuildRegisterThread() noexcept(false) {}
+// The worker drains m_GuildIDs, so it must be joined before that member is
+// destroyed. A base destructor would run too late.
+NetmarbleGuildRegisterThread::~NetmarbleGuildRegisterThread() noexcept(false) {
+    stop();
+    join();
+}
 
 // initialize
 void NetmarbleGuildRegisterThread::init() {}
@@ -71,12 +78,13 @@ void NetmarbleGuildRegisterThread::run() {
         Timeval dummyQueryTime;
         getCurrentTime(dummyQueryTime);
 
-        while (true) {
-            // 길드 등록
+        while (!stopRequested()) {
+            // register queued guilds
             registerGuild();
 
-            // for context switch
-            usleep(1000); // FIX: 降低 CPU 占用率
+            // Stop-aware idle: a shutdown request wakes this immediately
+            // instead of costing another polling interval.
+            pauseFor(std::chrono::milliseconds(1));
         }
     } catch (Throwable& t) {
         filelog("NetmarbleGuildRegisterThread.log", "%s", t.toString().c_str());
@@ -93,7 +101,7 @@ void NetmarbleGuildRegisterThread::run() {
     __END_DEBUG
 }
 
-// 넷마블에 등록할 길드 아이디를 쌓는다.
+// Queue a guild id to be registered with Netmarble.
 void NetmarbleGuildRegisterThread::pushGuildID(GuildID_t guildID) {
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
@@ -102,7 +110,7 @@ void NetmarbleGuildRegisterThread::pushGuildID(GuildID_t guildID) {
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 }
 
-// 길드 정보를 넷마블 쪽으로 등록한다.
+// Register the guild information with Netmarble.
 void NetmarbleGuildRegisterThread::registerGuild() {
     GuildID_t guildID;
 

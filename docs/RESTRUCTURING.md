@@ -1144,6 +1144,18 @@ gating; `Zone.cpp` under 2,000 lines.
   > rather than invoking unaudited singleton destructors; no new world-save
   > guarantee is implied. MySQL operations have finite timeout options.
   > CMake probes the C++20 library and a pinned-Zig workflow tests/builds master.
+  > Extended to the other two processes (2026-09-05): the loginserver and
+  > sharedserver `GameServerManager` workers, `NetmarbleGuildRegisterThread`
+  > and `SMSServiceThread` moved off the legacy `Thread` too, so
+  > `ManagedThread` is now its only subclass and the pthread-only `detach()`
+  > and unused static `join()` overloads are gone. Both processes install the
+  > SIGTERM/SIGINT handler, end their main loop on the request, stop and join
+  > their worker while its dependencies are alive, and `_Exit` with the
+  > failure code under their own 30-second watchdog. The loginserver's UDP
+  > listener became nonblocking so an idle link cannot hold the worker inside
+  > `recvfrom`. `docker/start.sh` now bounds the login/shared drain at 8
+  > seconds after the gameserver's 35, staying inside Compose's 45-second
+  > grace period, and the shutdown watchdog now names the process it kills.
   - Owner: ratchet R7, held at 0.
 
 ---

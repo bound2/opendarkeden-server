@@ -134,40 +134,6 @@ void Thread::join(const Thread& t) {
     const_cast<Thread&>(t).join();
 }
 
-void Thread::join(const Thread& t, void* status) {
-    (void)status;
-    const_cast<Thread&>(t).join();
-}
-
-void Thread::join(const Thread* t) {
-    const_cast<Thread*>(t)->join();
-}
-
-void Thread::join(const Thread* t, void* status) {
-    (void)status;
-    const_cast<Thread*>(t)->join();
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-// �����带 Detached ���� �ٲ۴�.
-//
-// � �����尡 detached ����� ���, ������ �� �ڵ�������
-// ���� ���� ���ҽ��� �ݳ��ϰ� �ȴ�. ���� �ƴ϶�� join()�� ���ؼ� ������ ������ ��ٷȴٰ� ���ҽ��� �ݳ��ϰ� �ؾ� �Ѵ�. �̷��� �� ���
-// �ý����� �����ս��� �������� �ǹǷ�, ��κ�
-// �� ������鿡 �־ �� �޽�带 ȣ�����ִ� ���� ����
-// ���̴�.
-//
-////////////////////////////////////////////////////////////////////////////////
-void Thread::detach() {
-    __BEGIN_TRY
-
-    pthread_detach_ex(m_TID);
-
-    __END_CATCH
-}
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //

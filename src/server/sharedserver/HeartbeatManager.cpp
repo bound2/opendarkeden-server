@@ -12,6 +12,7 @@
 #include <unistd.h>
 
 #include "Assert.h"
+#include "ServerShutdown.h"
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -67,13 +68,15 @@ void HeartbeatManager::start() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 자신의 서비스를 중단한 후, 하위 매니저 객체들의 서비스를 중단시킨다.
+// Stop this manager's own service; the sub-managers are stopped with it.
 //
 //////////////////////////////////////////////////////////////////////
 void HeartbeatManager::stop() {
     __BEGIN_TRY
 
-    throw UnsupportedError("stopping manager not supported.");
+    // run() below is the sharedserver's main-thread loop; a signal handler
+    // only stores the request and the loop returns on its next turn.
+    ServerShutdown::request();
 
     __END_CATCH
 }
@@ -85,9 +88,9 @@ void HeartbeatManager::stop() {
 void HeartbeatManager::run() {
     __BEGIN_TRY
 
-    while (true) {
+    while (!ServerShutdown::isRequested()) {
         // *TODO
-        // 각종 HeartBeat들을 여기서 처리하면 된다.
+        // Per-subsystem heartbeats belong here.
 
         usleep(1000); // FIX: 降低 CPU 占用率
     }

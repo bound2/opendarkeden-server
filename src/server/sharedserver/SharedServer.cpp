@@ -9,6 +9,8 @@
 // include files
 #include "SharedServer.h"
 
+#include <exception>
+
 #include "Assert.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameServerInfoManager.h"
@@ -20,6 +22,7 @@
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
 #include "ResurrectLocationManager.h"
+#include "ServerShutdown.h"
 #include "StringPool.h"
 #include "database/DatabaseManager.h"
 #include "types/ServerType.h"
@@ -187,22 +190,34 @@ void SharedServer::start() {
 //
 // stop shared server
 //
-// stop 순서에 유의하도록 하자. 가장 영향을 많이 주는 매니저부터
-// stop 시켜야 한다. 만일 반대의 순서로 stop 시킬 경우 null pointer
-// 같은 현상이 발생할 수 있다.
+// Mind the stop order: the manager with the widest reach goes first.
+// Stopping in the opposite order can leave another manager dereferencing
+// something that is already gone.
 //
 //////////////////////////////////////////////////////////////////////
 void SharedServer::stop() {
+    if (m_Stopped)
+        return;
     __BEGIN_TRY
 
-    // 나중에 이 부분을 코멘트화해야 한다.
-    throw UnsupportedError();
-
-    //
+    // End the main-thread heartbeat loop first, so nothing new is started.
+    ServerShutdown::request();
     g_pHeartbeatManager->stop();
 
-    //
+    // Request the stop before joining, then join while every manager the
+    // worker uses (config, database, guild manager) is still alive.
     g_pGameServerManager->stop();
+    g_pGameServerManager->join();
+    try {
+        g_pGameServerManager->rethrowFailure();
+    } catch (Throwable& error) {
+        cerr << "GameServerManager: " << error.toString() << endl;
+    } catch (const std::exception& error) {
+        cerr << "GameServerManager: " << error.what() << endl;
+    } catch (...) {
+        cerr << "GameServerManager: unknown worker failure" << endl;
+    }
+    m_Stopped = true;
 
     __END_CATCH
 }
