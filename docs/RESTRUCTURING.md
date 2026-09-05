@@ -1010,10 +1010,15 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > compare/zero sentinel, and the review's main-thread hole is closed:
   > packets pipelined behind `CGReady` no longer drain on the main
   > thread after `GPS_NORMAL` opens the validator gate. Documented
-  > violations (CLAUDE.md has the full list): SG/LG/GG handlers under
-  > only the `PCFinder` lock; `EventMorph` tile writes below the
-  > gateways; cross-group `DynamicZone` `addZone()`; three unlocked
-  > `GDRLair*::start` loops.
+  > violations (CLAUDE.md has the full list): `EventMorph` tile writes
+  > below the gateways; cross-group `DynamicZone` `addZone()`; three
+  > unlocked `GDRLair*::start` loops. **2026-09-05: the SG/LG/GG one is
+  > fixed for creature state** — `ZoneGroup` has a mailbox
+  > (`src/server/Mailbox.h`, drained at the top of the zone tick under
+  > the group mutex) and `de::postToPlayer` routes the six guild handlers'
+  > and `LGKickCharacter`'s mutations to the owning zone thread; the
+  > "cross-group communication via queues only" rule above now has its
+  > queue. The handlers' `Guild`/`GuildMember` writes stay open.
   - Owner: the debug asserts.
 
 - [ ] **3.5 Globals → context (long tail).** No big-bang DI. Introduce a

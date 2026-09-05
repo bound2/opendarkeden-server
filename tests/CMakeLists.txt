@@ -235,6 +235,18 @@ target_include_directories(critical_section_tests PRIVATE
 target_link_libraries(critical_section_tests PRIVATE de-kernel gtest_main Threads::Threads)
 add_dependencies(wire_tests critical_section_tests)
 add_test(NAME critical_section_tests COMMAND critical_section_tests)
+
+# Cross-thread mailbox (src/server/Mailbox.h): header-only, no dependencies
+# beyond the standard library, so nothing but gtest is linked.
+add_executable(mailbox_tests EXCLUDE_FROM_ALL
+    mailbox_test.cpp
+)
+target_include_directories(mailbox_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server
+)
+target_link_libraries(mailbox_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests mailbox_tests)
+add_test(NAME mailbox_tests COMMAND mailbox_tests)
 set_tests_properties(critical_section_tests PROPERTIES TIMEOUT 30)
 
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)

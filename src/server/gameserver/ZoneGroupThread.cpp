@@ -113,6 +113,13 @@ void ZoneGroupThread::run()
 
                 __ENTER_CRITICAL_SECTION((*m_pZoneGroup))
 
+                // Commands other threads posted for this group (SG/LG/GG
+                // handlers, sibling zone threads) run first, under the
+                // group mutex we now hold -- see ZoneGroup::post().
+                beginProfileEx("ZG_MAILBOX");
+                m_pZoneGroup->drainMailbox();
+                endProfileEx("ZG_MAILBOX");
+
                 beginProfileEx("ZG_PP");
                 m_pZoneGroup->processPlayers(); // process all players in ZonePlayerManager;
                 endProfileEx("ZG_PP");

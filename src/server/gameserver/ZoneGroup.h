@@ -10,11 +10,14 @@
 #define __ZONE_GROUP_H__
 
 // include files
+#include <cstddef>
+
 #include <unordered_map>
 
 #include "Exception.h"
 #include "GMServerInfo.h"
 #include "GameTime.h"
+#include "Mailbox.h"
 #include "Thread.h"
 #include "Types.h"
 #include "Zone.h"
@@ -54,6 +57,24 @@ public:
     //
     void processPlayers();
     void heartbeat();
+
+    // Cross-thread mailbox (CLAUDE.md, "Thread ownership"). Work that must
+    // touch this group's state but originates on another thread -- the
+    // SG/LG/GG handlers on the manager threads, a sibling zone thread --
+    // is posted here and run by this group's ZoneGroupThread at the start
+    // of its next tick, under the group mutex. post() never takes the
+    // group mutex, so a caller holding the PCFinder lock or its own
+    // group's mutex cannot deadlock on it.
+    void post(de::Mailbox::Command command) {
+        m_Mailbox.post(std::move(command));
+    }
+    // Runs the posted commands. The caller must hold the group mutex
+    // (asserted under DE_OWNERSHIP_CHECKS); a command that throws is
+    // logged and the rest still run. Returns how many ran.
+    std::size_t drainMailbox();
+    std::size_t mailboxSize() const {
+        return m_Mailbox.size();
+    }
 
 public:
     // add zone to zone group
@@ -182,6 +203,8 @@ private:
     DWORD m_LoadValue;
 
     mutable Mutex m_Mutex;
+
+    de::Mailbox m_Mailbox;
 
 #ifdef DE_OWNERSHIP_CHECKS
     // Debug-only ownership tracking (see lock()/unlock()/assertOwned()).

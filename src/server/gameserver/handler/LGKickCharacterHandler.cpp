@@ -17,6 +17,7 @@
 #include "LogDef.h"
 #include "LoginServerManager.h"
 #include "PCFinder.h"
+#include "PlayerMailbox.h"
 
 #endif
 
@@ -54,62 +55,64 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
 
         try {
 
-        __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-
-        // 이름으로 사용자를 찾아온다.
-        Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getPCName());
+        const string pcName = pPacket->getPCName();
+        const string host = pPacket->getHost();
+        const uint port = pPacket->getPort();
+        const uint requestID = pPacket->getID();
 
         // 캐릭터가 없는 경우에는 GLKickVerify(false)를 보낸다.
-        if (pCreature == NULL) {
+        de::GoneCommand notHere = [=] {
             GLKickVerify glKickVerify;
             glKickVerify.setKicked(false);
-            glKickVerify.setID(pPacket->getID());
-            glKickVerify.setPCName(pPacket->getPCName());
+            glKickVerify.setID(requestID);
+            glKickVerify.setPCName(pcName);
 
-            g_pLoginServerManager->sendPacket(pPacket->getHost(), pPacket->getPort(), &glKickVerify);
+            g_pLoginServerManager->sendPacket(host, port, &glKickVerify);
 
-            // cout << "LGKickVerify Send Packet to ServerIP : " << pPacket->getHost() << endl;
-            // cout << "LGKickVerify Send Packet to ServerPort : " << pPacket->getPort() << endl;
+            // cout << "LGKickVerify Send Packet to ServerIP : " << host << endl;
+            // cout << "LGKickVerify Send Packet to ServerPort : " << port << endl;
+        };
 
-            return;
-        }
+        // The kick flags are read by the player manager that owns the
+        // player (the zone group's, once the player is in a zone), so they
+        // are set on that thread (PlayerMailbox.h). A player that logs out
+        // between the post and the tick gets the same "not here" verify a
+        // player who was never found gets, so the loginserver is answered
+        // either way.
+        const bool found = de::postToPlayer(
+            pcName,
+            [=](PlayerCreature&, Player& player) {
+                // cout << "KickCharacter : " << pcName.c_str() << endl;
 
-        // cout << "KickCharacter : " << pPacket->getPCName().c_str() << endl;
+                GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(&player);
 
-        GamePlayer* pGamePlayer = NULL;
-        try {
-            pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
-        } catch (Throwable& t) {
-            // pCreature->getPlayer()안에서 Assert(m_pPlayer!=NULL)때문이다.
-            // filelog("kickCharacterAssert.txt", "%s", t.toString().c_str());
-            return;
-        }
+                // Assert(pGamePlayer!=NULL);
+                if (pGamePlayer == NULL) // 어떻게 가능할까? -_-;
+                {
+                    return;
+                }
 
-        // Assert(pGamePlayer!=NULL);
-        if (pGamePlayer == NULL) // 어떻게 가능할까? -_-;
-        {
-            return;
-        }
+                int fd = -1;
+                Socket* pSocket = pGamePlayer->getSocket();
+                if (pSocket != NULL)
+                    fd = (int)pSocket->getSOCKET();
 
-        int fd = -1;
-        Socket* pSocket = pGamePlayer->getSocket();
-        if (pSocket != NULL)
-            fd = (int)pSocket->getSOCKET();
+                FILELOG_INCOMING_CONNECTION("incomingDisconnect.log", "Kick FD : %d, %s", fd,
+                                            (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()));
 
-        FILELOG_INCOMING_CONNECTION("incomingDisconnect.log", "Kick FD : %d, %s", fd,
-                                    (pSocket == NULL ? "NULL" : pSocket->getHost().c_str()));
+                // 강제 종료 시킨다.
+                pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
+                pGamePlayer->setItemRatioBonusPoint(4);
+                pGamePlayer->setKickForLogin(true);
 
+                // 접속 해제 후, 응답을 보내줄 곳..
+                pGamePlayer->setKickRequestHost(host);
+                pGamePlayer->setKickRequestPort(port);
+            },
+            notHere);
 
-        // 강제 종료 시킨다.
-        pGamePlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
-        pGamePlayer->setItemRatioBonusPoint(4);
-        pGamePlayer->setKickForLogin(true);
-
-        // 접속 해제 후, 응답을 보내줄 곳..
-        pGamePlayer->setKickRequestHost(pPacket->getHost());
-        pGamePlayer->setKickRequestPort(pPacket->getPort());
-
-        __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+        if (!found)
+            notHere();
 
     } catch (NoSuchElementException&) {
     }

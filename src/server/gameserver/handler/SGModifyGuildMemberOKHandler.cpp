@@ -23,6 +23,7 @@
 #include "PCFinder.h"
 #include "Player.h"
 #include "PlayerCreature.h"
+#include "PlayerMailbox.h"
 #include "StringPool.h"
 #include "Zone.h"
 #include "repository/MessageRepository.h"
@@ -70,51 +71,55 @@ void SGModifyGuildMemberOKHandler::execute(SGModifyGuildMemberOK* pPacket)
         // 길드멤버 정보를 변경한다.
         pGuild->modifyMemberRank(pGuildMember->getName(), pPacket->getGuildMemberRank());
 
-        // 접속해 있다면 메시지를 보낸다.
+        // If the new member is online, apply the guild id and tell the
+        // zone. That mutates creature and zone state, so it runs on the
+        // owning zone thread (PlayerMailbox.h); everything it needs is
+        // captured by value because pGuildMember may be gone by then.
+        {
+            const string memberName = pGuildMember->getName();
+            const GuildID_t memberGuildID = pGuildMember->getGuildID();
+            const GuildID_t guildID = pGuild->getID();
+            const string guildName = pGuild->getName();
+            const GuildMemberRank_t rank = pGuildMember->getRank();
+            de::postToPlayer(memberName, [=](PlayerCreature& pc, Player& player) {
+                // 실제 길드 ID를 등록한다.
+                pc.setGuildID(memberGuildID);
+
+                Zone* pZone = pc.getZone();
+                Assert(pZone != NULL);
+
+                // 바뀐 길드 ID 정보를 보내준다.
+                GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
+                gcModifyGuildMemberInfo.setGuildID(guildID);
+                gcModifyGuildMemberInfo.setGuildName(guildName);
+                gcModifyGuildMemberInfo.setGuildMemberRank(rank);
+                player.sendPacket(&gcModifyGuildMemberInfo);
+
+                // 길드 가입 승인 메시지를 보낸다.
+                MessageRepository& messages = defaultMessageRepository();
+                vector<string> queued = messages.loadMessages(memberName);
+
+                for (size_t m = 0; m < queued.size(); m++) {
+                    GCSystemMessage gcSystemMessage;
+                    gcSystemMessage.setMessage(queued[m]);
+                    player.sendPacket(&gcSystemMessage);
+                }
+
+                messages.deleteMessages(memberName);
+
+                // 주위에 길드 가입을 알린다.
+                GCOtherModifyInfo gcOtherModifyInfo;
+                gcOtherModifyInfo.setObjectID(pc.getObjectID());
+                gcOtherModifyInfo.addShortData(MODIFY_GUILDID, memberGuildID);
+
+                pZone->broadcastPacket(pc.getX(), pc.getY(), &gcOtherModifyInfo);
+            });
+        }
+
+        // 승인한 사람에게 메시지를 보낸다. (send only: fine from this thread)
         __ENTER_CRITICAL_SECTION((*g_pPCFinder))
 
-        Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuildMember->getName());
-        if (pCreature != NULL && pCreature->isPC()) {
-            PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
-            Assert(pPlayerCreature != NULL);
-
-            // 실제 길드 ID를 등록한다.
-            pPlayerCreature->setGuildID(pGuildMember->getGuildID());
-
-            Player* pPlayer = pCreature->getPlayer();
-            Assert(pPlayer != NULL);
-
-            Zone* pZone = pCreature->getZone();
-            Assert(pZone != NULL);
-
-            // 바뀐 길드 ID 정보를 보내준다.
-            GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
-            gcModifyGuildMemberInfo.setGuildID(pGuild->getID());
-            gcModifyGuildMemberInfo.setGuildName(pGuild->getName());
-            gcModifyGuildMemberInfo.setGuildMemberRank(pGuildMember->getRank());
-            pPlayer->sendPacket(&gcModifyGuildMemberInfo);
-
-            // 길드 가입 승인 메시지를 보낸다.
-            MessageRepository& messages = defaultMessageRepository();
-            vector<string> queued = messages.loadMessages(pGuildMember->getName());
-
-            for (size_t m = 0; m < queued.size(); m++) {
-                GCSystemMessage gcSystemMessage;
-                gcSystemMessage.setMessage(queued[m]);
-                pPlayer->sendPacket(&gcSystemMessage);
-            }
-
-            messages.deleteMessages(pGuildMember->getName());
-
-            // 주위에 길드 가입을 알린다.
-            GCOtherModifyInfo gcOtherModifyInfo;
-            gcOtherModifyInfo.setObjectID(pCreature->getObjectID());
-            gcOtherModifyInfo.addShortData(MODIFY_GUILDID, pGuildMember->getGuildID());
-
-            pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcOtherModifyInfo);
-        }
-        // 승인한 사람에게 메시지를 보낸다.
-        pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getSender());
+        Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pPacket->getSender());
         if (pCreature != NULL && pCreature->isPC()) {
             Player* pPlayer = pCreature->getPlayer();
             Assert(pPlayer != NULL);

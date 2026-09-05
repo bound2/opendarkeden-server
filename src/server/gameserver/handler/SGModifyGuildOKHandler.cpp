@@ -21,6 +21,7 @@
 #include "PCFinder.h"
 #include "Player.h"
 #include "PlayerCreature.h"
+#include "PlayerMailbox.h"
 #include "Properties.h"
 #include "Zone.h"
 #include "ZoneGroupManager.h"
@@ -105,51 +106,47 @@ void SGModifyGuildOKHandler::execute(SGModifyGuildOK* pPacket)
         for (; itr != Members.end(); itr++) {
             GuildMember* pGuildMember = itr->second;
 
-            // 멤버가 접속해 있다면
-            __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-
-            Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuildMember->getName());
-            if (pCreature != NULL && pCreature->isPC()) {
-                Player* pPlayer = pCreature->getPlayer();
-                Assert(pPlayer != NULL);
-
-                PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
-                Assert(pPlayerCreature != NULL);
-
+            // If the member is online, apply the guild id on the owning zone
+            // thread (PlayerMailbox.h), with the guild facts captured by
+            // value: the member map is walked here and now, the command
+            // runs a tick later.
+            const string memberName = pGuildMember->getName();
+            const GuildID_t guildID = pGuild->getID();
+            const string guildName = pGuild->getName();
+            const GuildMemberRank_t rank = pGuildMember->getRank();
+            de::postToPlayer(memberName, [=](PlayerCreature& pc, Player& player) {
                 // 길드 아이디를 바꿔준다.
-                pPlayerCreature->setGuildID(pGuild->getID());
+                pc.setGuildID(guildID);
 
                 // 클라이언트에 길드 아이디가 바꼈음을 알려준다.
                 GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
-                gcModifyGuildMemberInfo.setGuildID(pGuild->getID());
-                gcModifyGuildMemberInfo.setGuildName(pGuild->getName());
-                gcModifyGuildMemberInfo.setGuildMemberRank(pGuildMember->getRank());
-                pPlayer->sendPacket(&gcModifyGuildMemberInfo);
+                gcModifyGuildMemberInfo.setGuildID(guildID);
+                gcModifyGuildMemberInfo.setGuildName(guildName);
+                gcModifyGuildMemberInfo.setGuildMemberRank(rank);
+                player.sendPacket(&gcModifyGuildMemberInfo);
 
                 // 주위에 알린다.
-                Zone* pZone = pCreature->getZone();
+                Zone* pZone = pc.getZone();
                 Assert(pZone != NULL);
 
                 GCOtherModifyInfo gcOtherModifyInfo;
-                gcOtherModifyInfo.setObjectID(pCreature->getObjectID());
-                gcOtherModifyInfo.addShortData(MODIFY_GUILDID, pPlayerCreature->getGuildID());
+                gcOtherModifyInfo.setObjectID(pc.getObjectID());
+                gcOtherModifyInfo.addShortData(MODIFY_GUILDID, pc.getGuildID());
 
-                pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcOtherModifyInfo, pCreature);
+                pZone->broadcastPacket(pc.getX(), pc.getY(), &gcOtherModifyInfo, &pc);
 
                 // 정식 길드가 되었음을 알림
                 MessageRepository& messages = defaultMessageRepository();
-                vector<string> queued = messages.loadMessages(pGuildMember->getName());
+                vector<string> queued = messages.loadMessages(memberName);
 
                 for (size_t m = 0; m < queued.size(); m++) {
                     GCSystemMessage gcSystemMessage;
                     gcSystemMessage.setMessage(queued[m]);
-                    pPlayer->sendPacket(&gcSystemMessage);
+                    player.sendPacket(&gcSystemMessage);
                 }
 
-                messages.deleteMessages(pGuildMember->getName());
-            }
-
-            __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
+                messages.deleteMessages(memberName);
+            });
         }
     }
 

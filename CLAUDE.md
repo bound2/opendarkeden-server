@@ -376,19 +376,34 @@ gateways, not a full guarantee.
   player creatures through `g_pPCFinder` under **its** critical section
   (`getCreature_LOCKED`), then use `pPlayer->sendPacket(...)` — sending
   to a player's socket is the main legitimate cross-thread operation.
+- Anything beyond sending — gold, guild id, kick flags, a zone broadcast —
+  goes through the group's **mailbox**: `ZoneGroup::post()` queues a command
+  (`src/server/Mailbox.h`) and the group's `ZoneGroupThread` runs it at the
+  top of its next tick, under the group mutex, before `processPlayers()`.
+  `de::postToPlayer(name, command[, ifGone])`
+  (`src/server/gameserver/PlayerMailbox.h`) is the handler-facing form: it
+  finds the player under the PCFinder lock, posts to the owning group, and at
+  drain time looks the player up again — a player who moved groups is
+  followed, one who logged out is skipped (or `ifGone` runs, for handlers
+  whose offline branch matters, like charging a guild fee in the database).
+  Commands capture by value only; a `Guild*`/`GuildMember*` may be deleted
+  before they run. A player in the PCFinder but not yet in a zone has no
+  owning group, and the command runs immediately under the PCFinder lock.
+  `post()` takes no group mutex, so posting from inside a PCFinder section or
+  another group's tick cannot deadlock; the drain takes the PCFinder lock
+  while holding the group mutex, the same order every CG handler uses.
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 
 ### Known violations (documented, not yet fixed)
 
-- SG/LG/GG handlers **mutate** creature/guild state (e.g.
-  `SGAddGuildMemberOKHandler` rewrites guild membership on the
-  `SharedServerManager` thread) holding only the `PCFinder` lock. The
-  `PCFinder` lock serializes lookup/removal, but NOT against the zone
-  thread concurrently mutating the same creature under the group mutex.
-  Long-standing data race; fixing it means routing these mutations
-  through the owning group's mutex or a per-group command queue (Phase 3
-  work).
+- ~~SG/LG/GG handlers **mutate** creature state holding only the `PCFinder`
+  lock~~ — **fixed** for the creature side: the six guild handlers and
+  `LGKickCharacter` post their gold / guild-id / kick-flag / zone-broadcast
+  work through `de::postToPlayer` (see "Cross-thread communication"). Still
+  open: the same handlers mutate `Guild`/`GuildMember` objects on the
+  `SharedServerManager` thread while zone threads read them; `Guild` and
+  `GuildManager` carry their own mutexes but the handlers do not take them.
 - `EventMorph.cpp` mutates `Tile` contents directly
   (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
   assert cannot see such call sites — the assert covers the gateway
