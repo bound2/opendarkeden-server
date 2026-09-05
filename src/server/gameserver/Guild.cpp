@@ -309,6 +309,10 @@ Guild::~Guild()
 
     m_Members.clear();
 
+    for (size_t i = 0; i < m_RetiredMembers.size(); i++)
+        SAFE_DELETE(m_RetiredMembers[i]);
+    m_RetiredMembers.clear();
+
 #ifdef __GAME_SERVER__
     m_CurrentMembers.clear();
 #endif
@@ -472,6 +476,29 @@ GuildMember* Guild::getMember_NOLOCKED(const string& name) const
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// guild teardown: take every member out of the map under the mutex
+//////////////////////////////////////////////////////////////////////////////
+std::vector<std::pair<std::string, GuildMemberRank_t>> Guild::retireAllMembers() {
+    std::vector<std::pair<std::string, GuildMemberRank_t>> members;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    members.reserve(m_Members.size());
+    m_RetiredMembers.reserve(m_RetiredMembers.size() + m_Members.size());
+    for (HashMapGuildMemberItor itr = m_Members.begin(); itr != m_Members.end(); ++itr) {
+        members.push_back(std::make_pair(itr->first, itr->second->getRank()));
+        m_RetiredMembers.push_back(itr->second);
+    }
+    m_Members.clear();
+    m_ActiveMemberCount = 0;
+    m_WaitMemberCount = 0;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return members;
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // member names, copied under the guild mutex -- for readers on other threads
 //////////////////////////////////////////////////////////////////////////////
 std::vector<std::string> Guild::getMemberNames() const {
@@ -556,7 +583,9 @@ void Guild::deleteMember(const string& name)
         m_WaitMemberCount--;
     }
 
-    SAFE_DELETE(itr->second);
+    // Retire, don't free: a zone thread may hold this pointer (see
+    // m_RetiredMembers).
+    m_RetiredMembers.push_back(itr->second);
 
     m_Members.erase(itr);
 

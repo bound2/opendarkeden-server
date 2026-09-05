@@ -67,6 +67,10 @@ GuildManager::~GuildManager()
 
     m_Guilds.clear();
 
+    for (size_t i = 0; i < m_RetiredGuilds.size(); i++)
+        SAFE_DELETE(m_RetiredGuilds[i]);
+    m_RetiredGuilds.clear();
+
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH_NO_RETHROW
@@ -282,6 +286,9 @@ void GuildManager::deleteGuild(GuildID_t id) {
 */
 #endif
 
+    // Retire, don't free (see m_RetiredGuilds): the handler that called us
+    // used to SAFE_DELETE the guild right after this returned.
+    m_RetiredGuilds.push_back(itr->second);
     m_Guilds.erase(itr);
 
     // The sharedserver-only DB purge of the guild's rows lived here under
@@ -356,6 +363,10 @@ void GuildManager::clear()
 
     m_Guilds.clear();
 
+    for (size_t i = 0; i < m_RetiredGuilds.size(); i++)
+        SAFE_DELETE(m_RetiredGuilds[i]);
+    m_RetiredGuilds.clear();
+
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
@@ -370,6 +381,10 @@ void GuildManager::clear_NOBLOCKED() {
     }
 
     m_Guilds.clear();
+
+    for (size_t i = 0; i < m_RetiredGuilds.size(); i++)
+        SAFE_DELETE(m_RetiredGuilds[i]);
+    m_RetiredGuilds.clear();
 
     __END_CATCH
 }

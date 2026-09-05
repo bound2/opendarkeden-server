@@ -10,6 +10,7 @@
 #include <atomic>
 #include <list>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <unordered_map>
@@ -409,6 +410,12 @@ public: // identity methods
     }
     std::vector<std::string> getMemberNames() const;
 
+    // Guild teardown (SGDeleteGuildOK): empties the member map under the
+    // mutex and returns each member's name and rank for the handler to act
+    // on. The GuildMember objects are retired, not freed -- see
+    // m_RetiredMembers.
+    std::vector<std::pair<std::string, GuildMemberRank_t>> retireAllMembers();
+
     int getActiveMemberCount() const {
         return m_ActiveMemberCount.load(std::memory_order_relaxed);
     }
@@ -482,7 +489,14 @@ protected:
     string m_Date;                   // 길드 Expire, Regist Date
     string m_Intro;                  // 길드 소개
 
-    HashMapGuildMember m_Members;         // 길드 멤버 포인터 맵
+    HashMapGuildMember m_Members; // 길드 멤버 포인터 맵
+    // Members removed from the map are parked here until the guild is
+    // destroyed rather than deleted: getMember() hands its GuildMember* out
+    // after releasing m_Mutex, so a zone thread may still be reading one
+    // while the SharedServerManager thread removes it. A stale read is
+    // harmless; a freed one is not. Guild departures are rare, human-paced
+    // events, so this costs a few hundred bytes each.
+    std::vector<GuildMember*> m_RetiredMembers;
     std::atomic<int> m_ActiveMemberCount; // Active Member Count
     std::atomic<int> m_WaitMemberCount;   // Wait Member Count
 
