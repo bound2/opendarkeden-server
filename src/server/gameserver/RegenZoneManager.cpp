@@ -104,7 +104,6 @@ void RegenZoneManager::reload() {
         if (pTowerItem == NULL || pTowerItem->getItemClass() != Item::ITEM_CLASS_CORPSE ||
             pTowerItem->getItemType() != MONSTER_CORPSE) {
             filelog("RaceWar.log", "리젠존 타워를 못 찾았습니다. [%d:(%d,%d)]", ZoneID, ZoneX, ZoneY);
-            pZone->unlock();
             continue;
         }
 
@@ -115,7 +114,6 @@ void RegenZoneManager::reload() {
         if (pInfo == NULL) {
             filelog("RaceWar.log", "Reload : 해당되는 리젠존이 없습니다. [%d]", ID);
             m_RegenZoneInfos.erase(ID);
-            pZone->unlock();
             continue;
         }
 
@@ -125,7 +123,6 @@ void RegenZoneManager::reload() {
             pTower->getEffectManager().findEffect(Effect::EFFECT_CLASS_SLAYER_REGEN_ZONE));
         if (pEffect == NULL) {
             filelog("RaceWar.log", "Reload : 리젠존 이펙트가 날라갔습니다. [%d]", ID);
-            pZone->unlock();
             continue;
         }
 

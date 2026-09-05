@@ -323,6 +323,14 @@ sites. Note `Zone::m_Mutex` is a **different, narrower** lock some
 main-thread heartbeats take (war/ctf via `pZone->lock()`); holding it does
 NOT exclude the zone-group tick and does not satisfy this rule.
 
+`__ENTER_CRITICAL_SECTION` / `__LEAVE_CRITICAL_SECTION` delimit a **block**
+owned by a scoped `CriticalSection` guard (`src/Core/Exception.h`), so the lock
+is released on every exit — end of block, `return`, `goto`/`continue` out of it,
+and any thrown type. Consequently a hand-written `x.unlock()` inside a section
+is a **double unlock** of a non-recursive mutex: to run work unlocked, use
+`__CRITICAL_SECTION_LOCK.unlock()` / `.lock()`, the guard's own name.
+`tests/tools/critical_section_audit.pl` fails on a hand-written one.
+
 This is mutex-guarded ownership, not pure thread-affinity: the guarded
 region is the contract. Under `DE_OWNERSHIP_CHECKS` — defined only for
 Debug builds; this project deliberately never defines `NDEBUG`, so the

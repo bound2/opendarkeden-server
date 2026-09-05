@@ -85,7 +85,6 @@ void PCFinder::deleteCreature(const string& name)
         // throw NoSuchElementException();
         //  NoSuch제거. by sigi. 2002.5.2
 
-        m_Mutex.unlock();
         return;
     }
 
@@ -202,7 +201,6 @@ Creature* PCFinder::getCreature(const string& name) const
     if (itr == m_PCs.end()) {
         // cerr << "PCFinder::getCreature() : NoSuchElementException" << endl;
         // cerr << "PCFinder::getCreature() : NoSuchCreature" << endl;
-        m_Mutex.unlock();
 
         // throw NoSuchElementException();
         //  NoSuch제거. by sigi. 2002.5.2
@@ -232,7 +230,6 @@ Creature* PCFinder::getCreatureByID(const string& ID) const
     if (itr == m_IDs.end()) {
         // cerr << "PCFinder::getCreature() : NoSuchElementException" << endl;
         // cerr << "PCFinder::getCreature() : NoSuchCreature" << endl;
-        m_Mutex.unlock();
 
         // throw NoSuchElementException();
         //  NoSuch제거. by sigi. 2002.5.2
@@ -435,7 +432,6 @@ NPC* PCFinder::getNPC(const string& name) const
     itr = m_NPCs.find(name);
 
     if (itr == m_NPCs.end()) {
-        m_Mutex.unlock();
         return NULL;
     }
 

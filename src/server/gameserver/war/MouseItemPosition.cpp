@@ -155,7 +155,6 @@ Creature* MouseItemPosition::findCreature()
     if (pTargetCreature == NULL) {
         filelog("ItemError.log", "InventoryItemPosition:getItem() : 해당하는 Creature가 없습니다.");
 
-        g_pPCFinder->unlock();
         return NULL;
     }
 

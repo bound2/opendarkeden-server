@@ -71,7 +71,6 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
             // cout << "LGKickVerify Send Packet to ServerIP : " << pPacket->getHost() << endl;
             // cout << "LGKickVerify Send Packet to ServerPort : " << pPacket->getPort() << endl;
 
-            g_pPCFinder->unlock();
             return;
         }
 
@@ -83,14 +82,12 @@ void LGKickCharacterHandler::execute(LGKickCharacter* pPacket)
         } catch (Throwable& t) {
             // pCreature->getPlayer()안에서 Assert(m_pPlayer!=NULL)때문이다.
             // filelog("kickCharacterAssert.txt", "%s", t.toString().c_str());
-            g_pPCFinder->unlock();
             return;
         }
 
         // Assert(pGamePlayer!=NULL);
         if (pGamePlayer == NULL) // 어떻게 가능할까? -_-;
         {
-            g_pPCFinder->unlock();
             return;
         }
 

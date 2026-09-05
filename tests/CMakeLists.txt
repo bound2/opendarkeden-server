@@ -220,6 +220,20 @@ add_test(NAME scheduler_tests COMMAND scheduler_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(scheduler_tests PROPERTIES TIMEOUT 30)
 
+# RAII critical sections (src/Core/Exception.h). Exception.h is a kernel
+# header, so the test includes it directly; de-kernel is linked only for
+# Throwable's out-of-line dependencies (StringStream).
+add_executable(critical_section_tests EXCLUDE_FROM_ALL
+    critical_section_test.cpp
+)
+target_include_directories(critical_section_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+)
+target_link_libraries(critical_section_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests critical_section_tests)
+add_test(NAME critical_section_tests COMMAND critical_section_tests)
+set_tests_properties(critical_section_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)

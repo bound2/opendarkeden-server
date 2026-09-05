@@ -166,7 +166,6 @@ void CGUseItemFromGearHandler::executeCoupleRing(CGUseItemFromGear* pPacket, Gam
         _GCCannotUse.setObjectID(pPacket->getObjectID());
         pGamePlayer->sendPacket(&_GCCannotUse);
 
-        g_pPCFinder->unlock();
         return;
     }
 

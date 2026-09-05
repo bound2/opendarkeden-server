@@ -355,8 +355,6 @@ bool Guild::load()
 
     GuildRow row;
     if (!defaultGuildRepository().loadGuild(m_ID, row)) {
-        m_Mutex.unlock();
-
         return false;
     }
 
@@ -435,7 +433,6 @@ GuildMember* Guild::getMember(const string& name) const
 
     if (itr == m_Members.end()) {
         // cout << "Guild::getMember() : NoSuchMember" << endl;
-        m_Mutex.unlock();
 
         return NULL;
     }
@@ -487,7 +484,6 @@ void Guild::addMember(GuildMember* pMember)
     itr = m_Members.find(pMember->getName());
 
     if (itr != m_Members.end()) {
-        m_Mutex.unlock();
         throw DuplicatedException();
     }
 
@@ -527,7 +523,6 @@ void Guild::deleteMember(const string& name)
 
     if (itr == m_Members.end()) {
         cerr << "Guild::deleteMember() : NoSuchElementException" << endl;
-        m_Mutex.unlock();
 
         return;
     }
@@ -569,7 +564,6 @@ void Guild::modifyMember(GuildMember& Member)
 
     if (itr == m_Members.end()) {
         cerr << "Guild::modifyMember() : NoSuchElementException" << endl;
-        m_Mutex.unlock();
 
         return;
     }
@@ -628,7 +622,6 @@ void Guild::addCurrentMember(const string& name) {
     __ENTER_CRITICAL_SECTION(m_Mutex) // 다른 뮤텍스 써도 될 듯한데.. 귀찮아..
 
     if (m_CurrentMembers.end() != find(m_CurrentMembers.begin(), m_CurrentMembers.end(), name)) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -637,7 +630,6 @@ void Guild::addCurrentMember(const string& name) {
     // Guild Member 객체에 로그온을 세팅한다.
     GuildMember* pGuildMember = getMember_NOLOCKED(name);
     if (pGuildMember == NULL) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -656,7 +648,6 @@ void Guild::deleteCurrentMember(const string& name) {
     list<string>::iterator itr = find(m_CurrentMembers.begin(), m_CurrentMembers.end(), name);
 
     if (m_CurrentMembers.end() == itr) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -665,7 +656,6 @@ void Guild::deleteCurrentMember(const string& name) {
     // Guild Member 객체에 로그오프를 세팅한다.
     GuildMember* pGuildMember = getMember_NOLOCKED(name);
     if (pGuildMember == NULL) {
-        m_Mutex.unlock();
         return;
     }
 

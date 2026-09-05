@@ -258,7 +258,6 @@ bool WarSystem::makeGCWarList_LOCKED()
     m_GCWarList.clear();
 
     if (isEmpty()) {
-        m_MutexWarList.unlock();
         return false;
     }
 
@@ -622,7 +621,6 @@ War* WarSystem::getActiveWar(ZoneID_t zoneID) const
             Assert(pSiegeWar != NULL);
 
             if (pSiegeWar->getCastleZoneID() == zoneID) {
-                m_Mutex.unlock();
                 return pWar;
             }
         }
@@ -787,7 +785,6 @@ void WarSystem::broadcastWarList(GamePlayer* pGamePlayer) const
         gcSystemMessage.setMessage(g_pStringPool->getString(STRID_NO_WAR_IN_ACTIVE));
         pGamePlayer->sendPacket(&gcSystemMessage);
 
-        m_Mutex.unlock();
         return;
     }
 

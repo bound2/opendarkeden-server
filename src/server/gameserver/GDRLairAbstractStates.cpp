@@ -189,7 +189,6 @@ DWORD MonsterSummonState::heartbeat(Timeval currentTime) {
     const PCManager* pPM = m_pZone->getPCManager();
 
     if (pPM->getSize() < 1) {
-        m_pZone->getZoneGroup()->unlock();
         return m_FailState;
     }
 
@@ -197,7 +196,6 @@ DWORD MonsterSummonState::heartbeat(Timeval currentTime) {
 
     if (pMM->getSize() <= 1) {
         if (m_CurrentSummonInfo == m_GroupSummonInfos.end()) {
-            m_pZone->getZoneGroup()->unlock();
             return m_ClearState;
         } else {
             (*m_CurrentSummonInfo)->executeSummon(m_pZone);

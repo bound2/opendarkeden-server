@@ -417,6 +417,25 @@ another sleep-and-check loop, but they should follow an ownership audit: a new
 primitive cannot make shared gameplay state safe if its owner and lock scope
 are unclear.
 
+The 463 critical sections in `src/` are now RAII. `__ENTER_CRITICAL_SECTION(x)`
+declares a scoped `CriticalSection` guard (`src/Core/Exception.h`) over any
+BasicLockable — `Mutex`, `Zone`, `ZoneGroup`, `PCFinder`, `ObjectRegistry` — and
+`__LEAVE_CRITICAL_SECTION` closes that block; the guard calls exactly `lock()`
+and `unlock()`, so `ZoneGroup` keeps its `DE_OWNERSHIP_CHECKS` owner record. The
+pair previously expanded to a bare `x.lock()` plus a
+`catch (Throwable&) { x.unlock(); throw; }` tail, which released the lock only
+for `Throwable`: a `std::bad_alloc`, a `std::out_of_range`, or the `const char*`
+that `END_DB` rethrows walked past it holding the mutex, and a `return` inside
+the section skipped the unlock entirely unless the author wrote one by hand.
+Because the guard tracks ownership, hand-written `x.unlock()` inside a section
+is now a double unlock and is forbidden; release early through
+`__CRITICAL_SECTION_LOCK.unlock()` (and `.lock()` to retake it) instead.
+`tests/critical_section_tests` pins the exits, and
+`tests/tools/critical_section_audit.pl` fails on a hand-written unlock or a
+`__LEAVE_CRITICAL_SECTION` whose argument does not match its `__ENTER`'s. This
+removes a lock-leak class; it does not change which thread owns which state, so
+the ownership violations listed in CLAUDE.md remain open.
+
 ### Safer collection traversal
 
 Ranges and named operations such as `contains` and `erase_if` can remove a lot

@@ -285,12 +285,10 @@ bool LevelWarManager::makeGCWarList()
     m_GCWarList.clear();
 
     if (!hasWar()) {
-        m_MutexWarList.unlock();
         return false;
     }
 
     if (isEmpty()) {
-        m_MutexWarList.unlock();
         return false;
     }
 

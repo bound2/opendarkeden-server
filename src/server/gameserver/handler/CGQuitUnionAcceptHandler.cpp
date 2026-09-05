@@ -123,7 +123,6 @@ void CGQuitUnionAcceptHandler::execute(CGQuitUnionAccept* pPacket, Player* pPlay
 
         pTargetCreature = g_pPCFinder->getCreature_LOCKED(TargetGuildMaster);
         if (pTargetCreature == NULL) {
-            g_pPCFinder->unlock();
             return;
         }
         GCModifyInformation gcModifyInformation;

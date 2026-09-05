@@ -94,7 +94,6 @@ void CGPartyLeaveHandler::execute(CGPartyLeave* pPacket, Player* pPlayer)
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
-            g_pPCFinder->unlock();
             return;
         }
 

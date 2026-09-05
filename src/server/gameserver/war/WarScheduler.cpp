@@ -278,7 +278,6 @@ void WarScheduler::tinysave(WarID_t warID, const string& query)
 
         if (pWarSchedule->getWarID() == warID) {
             pWarSchedule->tinysave(query);
-            m_Mutex.unlock();
             return;
         }
     }

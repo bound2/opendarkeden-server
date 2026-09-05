@@ -846,14 +846,16 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   days ahead of the handler's QUIT_GUILD_PENALTY_TERM.
   >
   > **Three one-line Core defects every seam inherits — owed a Core
-  > round, not fixed:** `END_DB` throws `msg.c_str()` of a local string
-  > (the message dangles; no test can read it); `__LEAVE_CRITICAL_SECTION`
-  > releases only on `Throwable&`, so a repository call inside a critical
-  > section leaves its mutex held on failure (masked today because
-  > nothing catches the `const char*` before the process terminates);
+  > round; one now fixed:** `END_DB` throws `msg.c_str()` of a local
+  > string (the message dangles; no test can read it) — open;
+  > `__LEAVE_CRITICAL_SECTION` released only on `Throwable&`, so a
+  > repository call inside a critical section left its mutex held on
+  > failure (masked because nothing catches the `const char*` before the
+  > process terminates) — **fixed 2026-09-05**, the section is now a
+  > scoped guard that releases on any exit (`docs/FIXES.md`);
   > `SAFE_DELETE(pStmt)` sits inside every seam's try, so a
   > non-SQLQueryException throw (`bad_alloc`, `OutOfBoundException`)
-  > leaks the Statement.
+  > leaks the Statement — open.
   >
   > **What remains.** Of R2's eight files only two hold SQL that
   > compiles and runs: `CreatureUtil.cpp` (124 live statements, the

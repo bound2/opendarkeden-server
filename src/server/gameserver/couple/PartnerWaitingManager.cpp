@@ -88,7 +88,6 @@ uint PartnerWaitingManager::waitForPartner(PlayerCreature* pWaitingPC, string Re
     Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(RequestedPCName);
     if (pTargetCreature != NULL) {
         if (!pTargetCreature->isPC()) {
-            g_pPCFinder->unlock();
             return COUPLE_MESSAGE_LOGOFF;
         }
 

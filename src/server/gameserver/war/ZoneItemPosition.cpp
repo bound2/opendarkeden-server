@@ -66,7 +66,6 @@ Item* ZoneItemPosition::getItem(bool isDel)
     pItem = getItemFromZone(pZone);
 
     if (pItem == NULL) {
-        pZone->unlock();
         return NULL;
     }
 
