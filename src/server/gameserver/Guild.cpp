@@ -30,6 +30,7 @@
 GuildMember::GuildMember()
 
 {
+    m_Rank = GUILDMEMBER_RANK_NORMAL; // was left indeterminate
     m_bLogOn = false;
     m_ServerID = 255;
 }
@@ -184,7 +185,7 @@ string GuildMember::toString() const
 GuildMember& GuildMember::operator=(GuildMember& Member) {
     m_GuildID = Member.m_GuildID;
     m_Name = Member.m_Name;
-    m_Rank = Member.m_Rank;
+    m_Rank.store(Member.m_Rank.load(std::memory_order_relaxed), std::memory_order_relaxed);
 
     return *this;
 }
@@ -470,6 +471,24 @@ GuildMember* Guild::getMember_NOLOCKED(const string& name) const
     __END_CATCH
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// member names, copied under the guild mutex -- for readers on other threads
+//////////////////////////////////////////////////////////////////////////////
+std::vector<std::string> Guild::getMemberNames() const {
+    std::vector<std::string> names;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    names.reserve(m_Members.size());
+    for (HashMapGuildMemberConstItor itr = m_Members.begin(); itr != m_Members.end(); ++itr)
+        names.push_back(itr->first);
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return names;
+}
+
+
 void Guild::addMember(GuildMember* pMember)
 
 {
@@ -581,7 +600,12 @@ void Guild::modifyMemberRank(const string& name, GuildMemberRank_t rank)
 {
     __BEGIN_TRY
 
-    GuildMember* pMember = getMember(name);
+    // The counters and the member's rank change together; hold the guild
+    // mutex across the lookup and both updates so a reader (a zone thread
+    // building a member list) never sees the rank moved but the counts not.
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    GuildMember* pMember = getMember_NOLOCKED(name);
     if (pMember == NULL)
         return;
 
@@ -610,6 +634,8 @@ void Guild::modifyMemberRank(const string& name, GuildMemberRank_t rank)
     pMember->save();
     saveCount();
 #endif
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -745,7 +771,7 @@ void Guild::makeMemberInfo(GCGuildMemberList& gcGuildMemberList)
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    HashMapGuildMember& Members = getMembers();
+    HashMapGuildMember& Members = getMembers_NOLOCKED(); // m_Mutex is held above
     HashMapGuildMemberConstItor itr = Members.begin();
 
     for (; itr != Members.end(); itr++) {

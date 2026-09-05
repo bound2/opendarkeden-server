@@ -427,9 +427,16 @@ gateways, not a full guarantee.
   lock~~ — **fixed** for the creature side: the six guild handlers and
   `LGKickCharacter` post their gold / guild-id / kick-flag / zone-broadcast
   work through `de::postToPlayer` (see "Cross-thread communication"). Still
-  open: the same handlers mutate `Guild`/`GuildMember` objects on the
-  `SharedServerManager` thread while zone threads read them; `Guild` and
-  `GuildManager` carry their own mutexes but the handlers do not take them.
+  the guild side is closed too: `GuildManager` and `Guild` lock their maps
+  on both sides already, and the two gaps are gone — `Guild::getMembers()`
+  handed out the live member map and a zone-thread handler iterated it
+  while the SG handlers added and removed members (now
+  `getMembers_NOLOCKED()` for the writer thread only, and a copied
+  `getMemberNames()` under the guild mutex for readers), and the per-member
+  rank / log-on / server flags plus the guild's member counters were plain
+  fields written on the `SharedServerManager` thread and read on zone
+  threads (now atomics, with the rank change and its counter update under
+  the guild mutex together).
 - `EventMorph.cpp` mutates `Tile` contents directly
   (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
   assert cannot see such call sites — the assert covers the gateway

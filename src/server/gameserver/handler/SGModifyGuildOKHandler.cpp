@@ -100,7 +100,7 @@ void SGModifyGuildOKHandler::execute(SGModifyGuildOK* pPacket)
         // 정식 길드로 변경
         pGuild->setState(Guild::GUILD_STATE_ACTIVE);
 
-        HashMapGuildMember& Members = pGuild->getMembers();
+        HashMapGuildMember& Members = pGuild->getMembers_NOLOCKED();
         HashMapGuildMemberItor itr = Members.begin();
         for (; itr != Members.end(); itr++) {
             GuildMember* pGuildMember = itr->second;

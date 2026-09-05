@@ -59,7 +59,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
 
     // 길드 활동 중인 상태에서의 해체인지 대기 중인 상태에서의 해체인지 구별한다.
     if (pGuild->getState() == Guild::GUILD_STATE_ACTIVE) {
-        HashMapGuildMember& Members = pGuild->getMembers();
+        HashMapGuildMember& Members = pGuild->getMembers_NOLOCKED();
         HashMapGuildMemberItor itr = Members.begin();
 
         for (; itr != Members.end(); itr++) {
@@ -129,7 +129,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
         // 길드 객체를 삭제한다.
         SAFE_DELETE(pGuild);
     } else if (pGuild->getState() == Guild::GUILD_STATE_WAIT) {
-        HashMapGuildMember& Members = pGuild->getMembers();
+        HashMapGuildMember& Members = pGuild->getMembers_NOLOCKED();
         HashMapGuildMemberItor itr = Members.begin();
 
         for (; itr != Members.end(); itr++) {
