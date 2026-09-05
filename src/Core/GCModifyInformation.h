@@ -36,17 +36,21 @@ public:
 
 class GCModifyInformationFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MODIFY_INFORMATION;
+    static constexpr std::string_view kName = "GCModifyInformation";
+    static constexpr PacketSize_t kMaxSize{ModifyInfo::getPacketMaxSize()};
+
+    Packet* createPacket() override {
         return new GCModifyInformation();
     }
-    string getPacketName() const {
-        return "GCModifyInformation";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MODIFY_INFORMATION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return ModifyInfo::getPacketMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -204,30 +204,34 @@ private:
 
 class CLCreatePCFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CL_CREATE_PC;
+    static constexpr std::string_view kName = "CLCreatePC";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 20 // 이름
+                                           + szSlot    // 슬랏
+                                           + szBYTE    // 슬레이어 플래그(3 bit)
+                                           + szAttr * 3 + szColor * CLCreatePC::SLAYER_COLOR_MAX // 색깔 정보
+                                           + szRace};                                            // 종족
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CLCreatePC();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CLCreatePC";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CL_CREATE_PC;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
     // *OPTIMIZATION HINT*
     // const static CLCreatePCPacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 20                                           // 이름
-               + szSlot                                              // 슬랏
-               + szBYTE                                              // 슬레이어 플래그(3 bit)
-               + szAttr * 3 + szColor * CLCreatePC::SLAYER_COLOR_MAX // 색깔 정보
-               + szRace;                                             // 종족
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

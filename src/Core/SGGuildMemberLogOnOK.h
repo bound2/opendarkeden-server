@@ -115,30 +115,34 @@ private:
 
 class SGGuildMemberLogOnOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_SG_GUILDMEMBER_LOGON_OK;
+    static constexpr std::string_view kName = "SGGuildMemberLogOnOK";
+    static constexpr PacketSize_t kMaxSize{szGuildID +  // guild ID
+                                           szBYTE +     // name length
+                                           20 +         // name max size
+                                           szbool +     // logon
+                                           szServerID}; // serverid
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new SGGuildMemberLogOnOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "SGGuildMemberLogOnOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_SG_GUILDMEMBER_LOGON_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // Use LGIncomingConnectionPacketMaxSize if that constant is defined.
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID + // guild ID
-               szBYTE +    // name length
-               20 +        // name max size
-               szbool +    // logon
-               szServerID; // serverid
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

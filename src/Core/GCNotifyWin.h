@@ -59,17 +59,21 @@ private:
 
 class GCNotifyWinFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_NOTIFY_WIN;
+    static constexpr std::string_view kName = "GCNotifyWin";
+    static constexpr PacketSize_t kMaxSize{szDWORD + szBYTE + 2048};
+
+    Packet* createPacket() override {
         return new GCNotifyWin();
     }
-    string getPacketName() const {
-        return "GCNotifyWin";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_NOTIFY_WIN;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szDWORD + szBYTE + 2048;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

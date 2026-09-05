@@ -51,17 +51,21 @@ private:
 
 class CGTakeOutGoodFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_TAKE_OUT_GOOD;
+    static constexpr std::string_view kName = "CGTakeOutGood";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
+    Packet* createPacket() override {
         return new CGTakeOutGood();
     }
-    string getPacketName() const {
-        return "CGTakeOutGood";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_TAKE_OUT_GOOD;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

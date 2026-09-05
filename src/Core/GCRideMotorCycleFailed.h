@@ -81,6 +81,10 @@ private:
 //////////////////////////////////////////////////////////////////////
 class GCRideMotorCycleFailedFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_RIDE_MOTORCYCLE_FAILED;
+    static constexpr std::string_view kName = "GCRideMotorCycleFailed";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
     // constructor
     GCRideMotorCycleFailedFactory() {}
 
@@ -90,23 +94,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCRideMotorCycleFailed();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCRideMotorCycleFailed";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_RIDE_MOTORCYCLE_FAILED;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

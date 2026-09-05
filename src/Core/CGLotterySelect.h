@@ -97,6 +97,10 @@ private:
 
 class CGLotterySelectFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_LOTTERY_SELECT;
+    static constexpr std::string_view kName = "CGLotterySelect";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szDWORD + szDWORD};
+
     // constructor
     CGLotterySelectFactory() {}
 
@@ -106,23 +110,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGLotterySelect();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGLotterySelect";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_LOTTERY_SELECT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szDWORD + szDWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

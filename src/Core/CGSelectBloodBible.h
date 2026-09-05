@@ -76,6 +76,10 @@ private:
 
 class CGSelectBloodBibleFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SELECT_BLOOD_BIBLE;
+    static constexpr std::string_view kName = "CGSelectBloodBible";
+    static constexpr PacketSize_t kMaxSize{szItemType};
+
     // constructor
     CGSelectBloodBibleFactory() {}
 
@@ -85,23 +89,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGSelectBloodBible();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGSelectBloodBible";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SELECT_BLOOD_BIBLE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szItemType;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

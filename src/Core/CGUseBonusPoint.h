@@ -86,6 +86,10 @@ private:
 
 class CGUseBonusPointFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_USE_BONUS_POINT;
+    static constexpr std::string_view kName = "CGUseBonusPoint";
+    static constexpr PacketSize_t kMaxSize{szBYTE};
+
     // constructor
     CGUseBonusPointFactory() {}
 
@@ -95,23 +99,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGUseBonusPoint();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGUseBonusPoint";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_USE_BONUS_POINT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

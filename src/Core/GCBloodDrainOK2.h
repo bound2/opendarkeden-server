@@ -83,6 +83,10 @@ private:
 
 class GCBloodDrainOK2Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_BLOOD_DRAIN_OK_2;
+    static constexpr std::string_view kName = "GCBloodDrainOK2";
+    static constexpr PacketSize_t kMaxSize{szObjectID + ModifyInfo::getPacketMaxSize()};
+
     // constructor
     GCBloodDrainOK2Factory() {}
 
@@ -92,23 +96,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCBloodDrainOK2();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCBloodDrainOK2";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_BLOOD_DRAIN_OK_2;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + ModifyInfo::getPacketMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

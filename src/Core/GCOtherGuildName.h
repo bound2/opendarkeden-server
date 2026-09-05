@@ -96,26 +96,30 @@ private:
 
 class GCOtherGuildNameFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_OTHER_GUILD_NAME;
+    static constexpr std::string_view kName = "GCOtherGuildName";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szGuildID + szBYTE + 30};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCOtherGuildName();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCOtherGuildName";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_OTHER_GUILD_NAME;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCOtherGuildNamePacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szGuildID + szBYTE + 30;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

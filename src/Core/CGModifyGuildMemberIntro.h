@@ -85,6 +85,10 @@ private:
 
 class CGModifyGuildMemberIntroFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_MODIFY_GUILDMEMBER_INTRO;
+    static constexpr std::string_view kName = "CGModifyGuildMemberIntro";
+    static constexpr PacketSize_t kMaxSize{szGuildID + szBYTE + 255};
+
     // constructor
     CGModifyGuildMemberIntroFactory() {}
 
@@ -94,23 +98,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGModifyGuildMemberIntro();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGModifyGuildMemberIntro";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_MODIFY_GUILDMEMBER_INTRO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID + szBYTE + 255;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

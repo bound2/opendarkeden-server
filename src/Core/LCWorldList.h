@@ -102,25 +102,29 @@ private:
 
 class LCWorldListFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LC_WORLD_LIST;
+    static constexpr std::string_view kName = "LCWorldList";
+    // write() emits a BYTE ListNum between the world id and the infos
+    static constexpr PacketSize_t kMaxSize{szWorldID + szBYTE + WorldInfo::getMaxSize()};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LCWorldList();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LCWorldList";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LC_WORLD_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        // write() emits a BYTE ListNum between the world id and the infos
-        return szWorldID + szBYTE + WorldInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

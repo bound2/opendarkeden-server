@@ -49,7 +49,7 @@ public:
                + szuint + szLevel + szExp;
     }
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szObjectID             // ObjectID
                + szBYTE + 20          // 아우스터스 이름
                + szLevel              // 레벨

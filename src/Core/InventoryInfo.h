@@ -29,7 +29,7 @@ public:
 
     PacketSize_t getSize();
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szBYTE + (InventorySlotInfo::getMaxSize() * 60);
     }
 

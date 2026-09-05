@@ -43,7 +43,7 @@ public:
     // Serialized size varies with the contained skill list.
     PacketSize_t getSize();
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szBYTE + szSkillDomainType + szBYTE + (SubSlayerSkillInfo::getMaxSize() * 255);
     }
 

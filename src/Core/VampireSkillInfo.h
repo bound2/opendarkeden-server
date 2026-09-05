@@ -44,7 +44,7 @@ public:
     // ����ȭ��, �̸� ���� ������ ����Ѵ�.
     PacketSize_t getSize();
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szBYTE + szBYTE + (SubVampireSkillInfo::getMaxSize() * 120);
     }
 

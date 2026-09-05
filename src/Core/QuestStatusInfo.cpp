@@ -33,7 +33,3 @@ PacketSize_t QuestStatusInfo::getSize() const {
 
     return ret;
 }
-
-PacketSize_t QuestStatusInfo::getMaxSize() {
-    return szDWORD + szBYTE + szBYTE + MissionInfo::getMaxSize() * MAX_MISSION_NUM;
-}

@@ -88,24 +88,28 @@ private:
 
 class CLReconnectLoginFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CL_RECONNECT_LOGIN;
+    static constexpr std::string_view kName = "CLReconnectLogin";
+    static constexpr PacketSize_t kMaxSize{szDWORD + szBYTE}; // authentication key
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CLReconnectLogin();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CLReconnectLogin";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CL_RECONNECT_LOGIN;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szDWORD + szBYTE; // authentication key
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

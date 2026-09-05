@@ -69,17 +69,21 @@ protected:
 
 class GCRequestedIPFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_REQUESTED_IP;
+    static constexpr std::string_view kName = "GCRequestedIP";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szuint + 10 + 4};
+
+    Packet* createPacket() override {
         return new GCRequestedIP();
     }
-    string getPacketName() const {
-        return "GCRequestedIP";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_REQUESTED_IP;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szuint + 10 + 4;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

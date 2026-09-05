@@ -48,6 +48,9 @@
 # `clean` under a DEVBUILD_WORK_VOLUME override removes only that workspace,
 # never the shared default compiler caches.
 #
+# DEVBUILD_JOBS=N caps the build at N compiler jobs and pins the container to
+# N CPUs (docker --cpus), for building while the host is in use. Default: all.
+#
 # Generated test data (goldens, the wire-layout inventory, the generated
 # factory list) is copied back into the checkout after a run, so a --record
 # leaves a reviewable diff exactly as an in-tree build would.
@@ -61,6 +64,9 @@ IMAGE=darkeden-dev
 WORK_VOLUME=${DEVBUILD_WORK_VOLUME:-darkeden-work}
 CCACHE_VOLUME=${DEVBUILD_CCACHE_VOLUME:-darkeden-ccache}
 ZIG_CACHE_VOLUME=${DEVBUILD_ZIG_CACHE_VOLUME:-darkeden-zig-cache}
+JOBS=${DEVBUILD_JOBS:-\$(nproc)}
+cpu_args=()
+[ -n "${DEVBUILD_JOBS:-}" ] && cpu_args=(--cpus="$DEVBUILD_JOBS")
 BUILD_TYPE=${BUILD_TYPE:-Debug}
 
 # Git Bash mangles absolute paths in docker arguments unless this is set.
@@ -167,13 +173,13 @@ case "$command" in
         target=${args[0]:-wire_tests}
         recorder=""
         [ "$record" = "1" ] && recorder='echo "--- recording goldens"; (cd '"$BUILD_DIR"' && UPDATE_GOLDENS=1 '"$OUTPUT_ROOT"'/bin/wire_tests >/dev/null);'
-        script="$sync_in && $configure >/dev/null && cmake --build $BUILD_DIR --target $target -j\$(nproc) && $recorder (cd $BUILD_DIR && ctest --output-on-failure); rc=\$?; $sync_out; exit \$rc"
+        script="$sync_in && $configure >/dev/null && cmake --build $BUILD_DIR --target $target -j$JOBS && $recorder (cd $BUILD_DIR && ctest --output-on-failure); rc=\$?; $sync_out; exit \$rc"
         ;;
     build)
         target=${args[0]:-}
         target_arg=""
         [ -n "$target" ] && target_arg="--target $target"
-        script="$sync_in && $configure >/dev/null && cmake --build $BUILD_DIR $target_arg -j\$(nproc)"
+        script="$sync_in && $configure >/dev/null && cmake --build $BUILD_DIR $target_arg -j$JOBS"
         ;;
     shell)
         script="$sync_in; echo 'workspace is /work (sources synced from the mounted checkout)'; exec bash"
@@ -198,7 +204,7 @@ fi
 # a nested rw mount over the ro one. Without it a --record run's rsync back
 # fails on the read-only filesystem — and silently, since exit $rc reports
 # ctest's status, not the copy's.
-exec docker run --rm "${tty_args[@]}" \
+exec docker run --rm "${tty_args[@]}" "${cpu_args[@]}" \
     -v "$repo_mount:/repo:ro" \
     -v "$repo_mount/tests:/repo/tests" \
     -v "$WORK_VOLUME:/work" \

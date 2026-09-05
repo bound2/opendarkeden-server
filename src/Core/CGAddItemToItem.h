@@ -67,17 +67,21 @@ private:
 
 class CGAddItemToItemFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_ADD_ITEM_TO_ITEM;
+    static constexpr std::string_view kName = "CGAddItemToItem";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoordInven + szCoordInven};
+
+    Packet* createPacket() override {
         return new CGAddItemToItem();
     }
-    string getPacketName() const {
-        return "CGAddItemToItem";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_ADD_ITEM_TO_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoordInven + szCoordInven;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

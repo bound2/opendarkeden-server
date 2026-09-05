@@ -135,6 +135,10 @@ private:
 
 class GCKnocksTargetBackOK5Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_KNOCKS_TARGET_BACK_OK_5;
+    static constexpr std::string_view kName = "GCKnocksTargetBackOK5";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szObjectID + szbool + szSkillType + szCoord * 2 + szDir};
+
     // constructor
     GCKnocksTargetBackOK5Factory() {}
 
@@ -144,23 +148,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCKnocksTargetBackOK5();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCKnocksTargetBackOK5";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_KNOCKS_TARGET_BACK_OK_5;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szObjectID + szbool + szSkillType + szCoord * 2 + szDir;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

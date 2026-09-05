@@ -22,7 +22,7 @@ public:
     PacketSize_t getPacketSize() const {
         return szBYTE + sizeof(T) * m_Values.size();
     }
-    static uint getPacketMaxSize() {
+    static constexpr uint getPacketMaxSize() {
         return szBYTE + sizeof(T) * 255;
     }
 

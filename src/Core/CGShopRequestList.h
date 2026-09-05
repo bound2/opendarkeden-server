@@ -84,24 +84,28 @@ private:
 
 class CGShopRequestListFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SHOP_REQUEST_LIST;
+    static constexpr std::string_view kName = "CGShopRequestList";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szShopRackType};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGShopRequestList();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGShopRequestList";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SHOP_REQUEST_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szShopRackType;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

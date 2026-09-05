@@ -101,28 +101,32 @@ private:
 
 class LCReconnectFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LC_RECONNECT;
+    static constexpr std::string_view kName = "LCReconnect";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 15 // 게임 서버 아이피
+                                           + szuint    // 게임 서버 포트
+                                           + szDWORD}; // 인증 키
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LCReconnect();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LCReconnect";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LC_RECONNECT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static LCReconnectPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 15 // 게임 서버 아이피
-               + szuint    // 게임 서버 포트
-               + szDWORD;  // 인증 키
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

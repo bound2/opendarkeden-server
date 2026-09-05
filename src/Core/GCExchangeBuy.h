@@ -82,24 +82,28 @@ private:
 
 class GCExchangeBuyFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_EXCHANGE_BUY;
+    static constexpr std::string_view kName = "GCExchangeBuy";
+    static constexpr PacketSize_t kMaxSize{szBYTE +                     // m_Success
+                                           szBYTE +                     // m_Message length byte
+                                           GCExchangeBuy::kMaxMessage + // m_Message body (write() clamps to this)
+                                           sizeof(int64_t)};            // m_OrderID
+
+    Packet* createPacket() override {
         return new GCExchangeBuy();
     }
 
-    string getPacketName() const {
-        return "GCExchangeBuy";
+    string getPacketName() const override {
+        return string(kName);
     }
 
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_EXCHANGE_BUY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // 1 + 1 + 255 + 8 = 265. The client factory must match.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE +                     // m_Success
-               szBYTE +                     // m_Message length byte
-               GCExchangeBuy::kMaxMessage + // m_Message body (write() clamps to this)
-               sizeof(int64_t);             // m_OrderID
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

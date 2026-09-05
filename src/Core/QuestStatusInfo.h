@@ -58,7 +58,7 @@ struct MissionInfo {
     PacketSize_t getSize() const {
         return szBYTE + szWORD + szBYTE + szBYTE + m_StrArg.size() + szDWORD;
     }
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return szBYTE + szWORD + szBYTE + szBYTE + 255 + szDWORD;
     }
 };
@@ -80,7 +80,9 @@ public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     PacketSize_t getSize() const;
-    static PacketSize_t getMaxSize();
+    static constexpr PacketSize_t getMaxSize() {
+        return szDWORD + szBYTE + szBYTE + MissionInfo::getMaxSize() * MAX_MISSION_NUM;
+    }
 
 protected:
     DWORD m_QuestID;

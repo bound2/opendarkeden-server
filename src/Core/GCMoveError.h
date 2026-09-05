@@ -92,24 +92,28 @@ private:
 
 class GCMoveErrorFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MOVE_ERROR;
+    static constexpr std::string_view kName = "GCMoveError";
+    static constexpr PacketSize_t kMaxSize{szCoord + szCoord};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCMoveError();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCMoveError";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MOVE_ERROR;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szCoord + szCoord;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

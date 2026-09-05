@@ -113,24 +113,28 @@ private:
 
 class GCShopSellOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOP_SELL_OK;
+    static constexpr std::string_view kName = "GCShopSellOK";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szShopVersion + szObjectID + szPrice};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCShopSellOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCShopSellOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SHOP_SELL_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szShopVersion + szObjectID + szPrice;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

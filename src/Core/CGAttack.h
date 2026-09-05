@@ -111,6 +111,10 @@ private:
 
 class CGAttackFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_ATTACK;
+    static constexpr std::string_view kName = "CGAttack";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoord + szCoord + szDir};
+
     // constructor
     CGAttackFactory() {}
 
@@ -120,23 +124,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGAttack();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGAttack";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_ATTACK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoord + szCoord + szDir;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

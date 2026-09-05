@@ -111,6 +111,10 @@ private:
 
 class CGThrowItemFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_THROW_ITEM;
+    static constexpr std::string_view kName = "CGThrowItem";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szObjectID + szCoordInven + szCoordInven};
+
     // constructor
     CGThrowItemFactory() {}
 
@@ -120,23 +124,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGThrowItem();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGThrowItem";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_THROW_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szObjectID + szCoordInven + szCoordInven;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -75,17 +75,21 @@ private:
 
 class CGAddInventoryToMouseFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_ADD_INVENTORY_TO_MOUSE;
+    static constexpr std::string_view kName = "CGAddInventoryToMouse";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoordInven + szCoordInven};
+
+    Packet* createPacket() override {
         return new CGAddInventoryToMouse();
     }
-    string getPacketName() const {
-        return "CGAddInventoryToMouse";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_ADD_INVENTORY_TO_MOUSE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoordInven + szCoordInven;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

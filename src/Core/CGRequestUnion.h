@@ -75,6 +75,10 @@ private:
 
 class CGRequestUnionFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_REQUEST_UNION;
+    static constexpr std::string_view kName = "CGRequestUnion";
+    static constexpr PacketSize_t kMaxSize{szGuildID};
+
     // constructor
     CGRequestUnionFactory() {}
 
@@ -84,23 +88,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGRequestUnion();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGRequestUnion";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_REQUEST_UNION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

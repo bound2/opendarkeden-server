@@ -91,26 +91,30 @@ private:
 
 class CGRequestInfoFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_REQUEST_INFO;
+    static constexpr std::string_view kName = "CGRequestInfo";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szuint};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGRequestInfo();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGRequestInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_REQUEST_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static CGRequestInfoPacketSize 를 정의해서 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szuint;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

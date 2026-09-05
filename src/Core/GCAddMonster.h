@@ -153,38 +153,42 @@ private:
 
 class GCAddMonsterFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_MONSTER;
+    static constexpr std::string_view kName = "GCAddMonster";
+    static constexpr PacketSize_t kMaxSize{szObjectID +               // object id
+                                           szMonsterType +            // monster type
+                                           szBYTE +                   // monster name length
+                                           32 +                       // monster name max
+                                           szColor +                  // monster main color
+                                           szColor +                  // sub color
+                                           szCoord +                  // x coord.
+                                           szCoord +                  // y coord.
+                                           szDir +                    // monster direction
+                                           EffectInfo::getMaxSize() + // effects info on monster
+                                           szHP +                     // current hp
+                                           szHP +                     // max hp
+                                           szBYTE};                   // from Flag
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddMonster();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAddMonster";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_MONSTER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
     // *OPTIMIZATION HINT*
     // const static GCAddMonsterPacketSize �� ����, �����϶�.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID +               // object id
-               szMonsterType +            // monster type
-               szBYTE +                   // monster name length
-               32 +                       // monster name max
-               szColor +                  // monster main color
-               szColor +                  // sub color
-               szCoord +                  // x coord.
-               szCoord +                  // y coord.
-               szDir +                    // monster direction
-               EffectInfo::getMaxSize() + // effects info on monster
-               szHP +                     // current hp
-               szHP +                     // max hp
-               szBYTE;                    // from Flag
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

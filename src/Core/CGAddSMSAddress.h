@@ -67,17 +67,21 @@ private:
 
 class CGAddSMSAddressFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_ADD_SMS_ADDRESS;
+    static constexpr std::string_view kName = "CGAddSMSAddress";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 20 + szBYTE + 40 + szBYTE + 11};
+
+    Packet* createPacket() override {
         return new CGAddSMSAddress();
     }
-    string getPacketName() const {
-        return "CGAddSMSAddress";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_ADD_SMS_ADDRESS;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 20 + szBYTE + 40 + szBYTE + 11;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

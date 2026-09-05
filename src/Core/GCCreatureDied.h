@@ -78,26 +78,30 @@ private:
 
 class GCCreatureDiedFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_CREATURE_DIED;
+    static constexpr std::string_view kName = "GCCreatureDied";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCCreatureDied();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCCreatureDied";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_CREATURE_DIED;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCCreatureDiedPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

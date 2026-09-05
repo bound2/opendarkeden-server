@@ -39,18 +39,23 @@ public:
 
 class GCAddInstalledMineToZoneFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_INSTALLED_MINE_TO_ZONE;
+    static constexpr std::string_view kName = "GCAddInstalledMineToZone";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoord + szCoord + szBYTE + szItemType + szBYTE + 255 +
+                                           szDurability + szItemNum + szBYTE +
+                                           (szObjectID + szBYTE + szItemType + szItemNum + szSlotID) * 12};
+
+    Packet* createPacket() override {
         return new GCAddInstalledMineToZone();
     }
-    string getPacketName() const {
-        return "GCAddInstalledMineToZone";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_INSTALLED_MINE_TO_ZONE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoord + szCoord + szBYTE + szItemType + szBYTE + 255 + szDurability + szItemNum + szBYTE +
-               (szObjectID + szBYTE + szItemType + szItemNum + szSlotID) * 12;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -40,7 +40,7 @@ public:
         return WarInfo::getSize() + m_CastleIDs.getPacketSize();
     }
 
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return WarInfo::getMaxSize() + ZoneIDList::getPacketMaxSize();
     }
 

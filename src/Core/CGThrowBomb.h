@@ -84,17 +84,21 @@ private:
 
 class CGThrowBombFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_THROW_BOMB;
+    static constexpr std::string_view kName = "CGThrowBomb";
+    static constexpr PacketSize_t kMaxSize{szCoord * 4 + szBYTE};
+
+    Packet* createPacket() override {
         return new CGThrowBomb();
     }
-    string getPacketName() const {
-        return "CGThrowBomb";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_THROW_BOMB;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szCoord * 4 + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

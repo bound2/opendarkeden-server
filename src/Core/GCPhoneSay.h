@@ -88,26 +88,30 @@ private:
 
 class GCPhoneSayFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PHONE_SAY;
+    static constexpr std::string_view kName = "GCPhoneSay";
+    static constexpr PacketSize_t kMaxSize{szSlotID + szBYTE + 128};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCPhoneSay();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCPhoneSay";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_PHONE_SAY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // Use const static GCPhoneSayPacketMaxSize when possible.
-    PacketSize_t getPacketMaxSize() const {
-        return szSlotID + szBYTE + 128;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

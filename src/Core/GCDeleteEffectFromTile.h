@@ -106,6 +106,10 @@ private:
 
 class GCDeleteEffectFromTileFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_DELETE_EFFECT_FROM_TILE;
+    static constexpr std::string_view kName = "GCDeleteEffectFromTile";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoord * 2 + szEffectID};
+
     // constructor
     GCDeleteEffectFromTileFactory() {}
 
@@ -115,25 +119,25 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCDeleteEffectFromTile();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCDeleteEffectFromTile";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_DELETE_EFFECT_FROM_TILE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
     // PacketSize_t getPacketMaxSize() const  { return szSkillType + szCEffectID + szDuration + szBYTE + szBYTE*
     // m_ListNum* 2 ; }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoord * 2 + szEffectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

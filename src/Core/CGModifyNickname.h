@@ -60,17 +60,21 @@ private:
 
 class CGModifyNicknameFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_MODIFY_NICKNAME;
+    static constexpr std::string_view kName = "CGModifyNickname";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + MAX_NICKNAME_SIZE};
+
+    Packet* createPacket() override {
         return new CGModifyNickname();
     }
-    string getPacketName() const {
-        return "CGModifyNickname";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_MODIFY_NICKNAME;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE + MAX_NICKNAME_SIZE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

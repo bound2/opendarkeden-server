@@ -93,26 +93,30 @@ private:
 
 class CGReloadFromQuickSlotFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_RELOAD_FROM_QUICKSLOT;
+    static constexpr std::string_view kName = "CGReloadFromQuickSlot";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szSlotID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGReloadFromQuickSlot();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGReloadFromQuickSlot";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_RELOAD_FROM_QUICKSLOT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static CGReloadFromQuickSlotPacketSize 를 정의해서 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szSlotID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

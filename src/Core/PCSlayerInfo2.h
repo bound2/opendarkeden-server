@@ -29,7 +29,7 @@ public:
                szGuildMemberRank + szBYTE + szuint + szLevel + szExp + szBonus;
     }
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szObjectID + szBYTE + 20 + szSex + szHairStyle + szColor * 2 + szBYTE + szAlignment + szAttr * 3 * 3 +
                szRank + szRankExp + szExp * 3 + szHP * 2 + szMP * 2 + szFame + szGold +
                (szSkillLevel + szSkillExp) * 6 + szSkillType * 4 + szSight + szGuildID + szBYTE + 30 +

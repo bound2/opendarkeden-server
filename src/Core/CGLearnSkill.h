@@ -59,17 +59,21 @@ private:
 
 class CGLearnSkillFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_LEARN_SKILL;
+    static constexpr std::string_view kName = "CGLearnSkill";
+    static constexpr PacketSize_t kMaxSize{szSkillType + szSkillDomainType};
+
+    Packet* createPacket() override {
         return new CGLearnSkill();
     }
-    string getPacketName() const {
-        return "CGLearnSkill";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_LEARN_SKILL;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillType + szSkillDomainType;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

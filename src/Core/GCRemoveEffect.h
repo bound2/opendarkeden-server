@@ -52,7 +52,7 @@ public:
     PacketSize_t getPacketSize() const {
         return szObjectID + szBYTE + szEffectID * m_ListNum;
     }
-    static PacketSize_t getPacketMaxSize() {
+    static constexpr PacketSize_t getPacketMaxSize() {
         return 255;
     }
 
@@ -110,6 +110,10 @@ protected:
 
 class GCRemoveEffectFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_REMOVE_EFFECT;
+    static constexpr std::string_view kName = "GCRemoveEffect";
+    static constexpr PacketSize_t kMaxSize{255};
+
     // constructor
     GCRemoveEffectFactory() {}
 
@@ -119,23 +123,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCRemoveEffect();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCRemoveEffect";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_REMOVE_EFFECT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return 255;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

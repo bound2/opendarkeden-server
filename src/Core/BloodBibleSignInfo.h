@@ -33,7 +33,7 @@ public:
     PacketSize_t getSize() const {
         return szuint + szBYTE + szItemType * m_SignList.size();
     }
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szuint + szBYTE + szItemType * BLOOD_BIBLE_SIGN_SLOT_NUM;
     }
 

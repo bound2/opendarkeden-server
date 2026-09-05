@@ -64,21 +64,25 @@ private:
 
 class GCPetUseSkillFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PET_USE_SKILL;
+    static constexpr std::string_view kName = "GCPetUseSkill";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szObjectID};
+
     GCPetUseSkillFactory() {}
     virtual ~GCPetUseSkillFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCPetUseSkill();
     }
-    string getPacketName() const {
-        return "GCPetUseSkill";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_PET_USE_SKILL;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

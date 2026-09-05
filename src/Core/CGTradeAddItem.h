@@ -62,17 +62,21 @@ private:
 
 class CGTradeAddItemFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_TRADE_ADD_ITEM;
+    static constexpr std::string_view kName = "CGTradeAddItem";
+    static constexpr PacketSize_t kMaxSize{szObjectID * 2};
+
+    Packet* createPacket() override {
         return new CGTradeAddItem();
     }
-    string getPacketName() const {
-        return "CGTradeAddItem";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_TRADE_ADD_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID * 2;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

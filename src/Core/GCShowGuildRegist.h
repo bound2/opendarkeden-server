@@ -75,26 +75,30 @@ private:
 
 class GCShowGuildRegistFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOW_GUILD_REGIST;
+    static constexpr std::string_view kName = "GCShowGuildRegist";
+    static constexpr PacketSize_t kMaxSize{szGold};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCShowGuildRegist();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCShowGuildRegist";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SHOW_GUILD_REGIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // Use GCSystemMessagePacketMaxSize if that constant is defined.
-    PacketSize_t getPacketMaxSize() const {
-        return szGold;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

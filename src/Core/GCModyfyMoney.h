@@ -75,26 +75,30 @@ private:
 
 class GCModifyMoneyFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MODIFY_MONEY;
+    static constexpr std::string_view kName = "GCModifyMoney";
+    static constexpr PacketSize_t kMaxSize{szGold};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCModifyMoney();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCModifyMoney";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MODIFY_MONEY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCSystemMessagePacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szGold;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

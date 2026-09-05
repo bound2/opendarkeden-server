@@ -82,24 +82,28 @@ private:
 
 class GCMorphSlayer2Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MORPH_SLAYER_2;
+    static constexpr std::string_view kName = "GCMorphSlayer2";
+    static constexpr PacketSize_t kMaxSize{PCSlayerInfo3::getMaxSize()};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCMorphSlayer2();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCMorphSlayer2";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MORPH_SLAYER_2;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
-    PacketSize_t getPacketMaxSize() const {
-        return PCSlayerInfo3::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

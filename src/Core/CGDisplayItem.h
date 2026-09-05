@@ -100,6 +100,10 @@ private:
 
 class CGDisplayItemFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_DISPLAY_ITEM;
+    static constexpr std::string_view kName = "CGDisplayItem";
+    static constexpr PacketSize_t kMaxSize{szCoordInven + szCoordInven + szObjectID + szGold + szBYTE};
+
     // constructor
     CGDisplayItemFactory() {}
 
@@ -109,23 +113,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGDisplayItem();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGDisplayItem";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_DISPLAY_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szCoordInven + szCoordInven + szObjectID + szGold + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

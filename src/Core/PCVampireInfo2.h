@@ -47,7 +47,7 @@ public:
                + szuint + szLevel + szExp;
     }
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szObjectID             // ObjectID
                + szBYTE + 20          // Character name
                + szLevel              // Level

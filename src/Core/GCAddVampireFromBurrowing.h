@@ -107,24 +107,28 @@ private:
 
 class GCAddVampireFromBurrowingFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_VAMPIRE_FROM_BURROWING;
+    static constexpr std::string_view kName = "GCAddVampireFromBurrowing";
+    static constexpr PacketSize_t kMaxSize{PCVampireInfo3::getMaxSize() + EffectInfo::getMaxSize()};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddVampireFromBurrowing();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAddVampireFromBurrowing";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_VAMPIRE_FROM_BURROWING;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
-    PacketSize_t getPacketMaxSize() const {
-        return PCVampireInfo3::getMaxSize() + EffectInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

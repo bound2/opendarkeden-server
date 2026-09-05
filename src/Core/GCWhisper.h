@@ -110,26 +110,30 @@ private:
 
 class GCWhisperFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_WHISPER;
+    static constexpr std::string_view kName = "GCWhisper";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 10 + szuint + szBYTE + 128 + szBYTE};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCWhisper();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCWhisper";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_WHISPER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCWhisperPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 10 + szuint + szBYTE + 128 + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

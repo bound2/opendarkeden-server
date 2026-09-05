@@ -59,17 +59,21 @@ private:
 
 class CGAddQuickSlotToMouseFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_ADD_QUICKSLOT_TO_MOUSE;
+    static constexpr std::string_view kName = "CGAddQuickSlotToMouse";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szSlotID};
+
+    Packet* createPacket() override {
         return new CGAddQuickSlotToMouse();
     }
-    string getPacketName() const {
-        return "CGAddQuickSlotToMouse";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_ADD_QUICKSLOT_TO_MOUSE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szSlotID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

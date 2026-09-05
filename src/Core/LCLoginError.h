@@ -76,24 +76,28 @@ private:
 
 class LCLoginErrorFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LC_LOGIN_ERROR;
+    static constexpr std::string_view kName = "LCLoginError";
+    static constexpr PacketSize_t kMaxSize{szBYTE};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LCLoginError();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LCLoginError";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LC_LOGIN_ERROR;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

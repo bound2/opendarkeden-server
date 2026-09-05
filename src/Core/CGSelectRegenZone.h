@@ -50,17 +50,22 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 
 class CGSelectRegenZoneFactory : public PacketFactory {
-    Packet* createPacket() {
+public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SELECT_REGEN_ZONE;
+    static constexpr std::string_view kName = "CGSelectRegenZone";
+    static constexpr PacketSize_t kMaxSize{szBYTE};
+
+    Packet* createPacket() override {
         return new CGSelectRegenZone();
     }
-    string getPacketName() const {
-        return "CGSelectRegenZone";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SELECT_REGEN_ZONE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

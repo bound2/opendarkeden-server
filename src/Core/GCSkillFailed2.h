@@ -113,6 +113,10 @@ private:
 
 class GCSkillFailed2Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SKILL_FAILED_2;
+    static constexpr std::string_view kName = "GCSkillFailed2";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szObjectID + szSkillType + szBYTE};
+
     // constructor
     GCSkillFailed2Factory() {}
 
@@ -122,23 +126,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSkillFailed2();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCSkillFailed2";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SKILL_FAILED_2;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szObjectID + szSkillType + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

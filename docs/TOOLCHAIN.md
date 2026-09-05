@@ -227,7 +227,7 @@ instead of through tree-wide style conversions.
 |---|---|---|---|
 | P0 | `std::jthread`, `std::stop_token`, atomic wait/notify | `ManagedThread` (every worker in all three servers) | Cooperative shutdown and owned joins instead of unsupported `stop()`, `while (true)` and sleep polling — done |
 | P0 | `std::span`, concepts, `std::endian`, `std::bit_cast` | `SocketInputStream`, `SocketOutputStream`, packet codecs | Bound buffer lengths to their data and reject unsafe wire types at compile time |
-| P1 | `constexpr`/`consteval` metadata and concepts | `AllPacketFactories.inc`, `PacketIDSet`, packet factory classes | Detect duplicate IDs, invalid sizes and incomplete registrations during compilation |
+| P1 | `constexpr`/`consteval` metadata and concepts | `PacketMeta.h`, every packet factory, `PacketFactoryManager` | Detect duplicate IDs, invalid sizes and incomplete registrations during compilation — done |
 | P1 | `std::source_location` | `Assert.h`, `Exception.h`, DB/error macros | Preserve call-site diagnostics without compiler-specific macros or repeated file/line plumbing |
 | P1 | `std::latch`, `std::barrier`, `std::counting_semaphore` | thread startup phases and bounded work queues | Replace timing assumptions with explicit readiness and back-pressure |
 | P2 | ranges, views, `contains`, `erase_if` | manager/registry traversal | Reduce hand-written iterator and double-lookup mistakes once ownership and lock boundaries are explicit |
@@ -378,17 +378,51 @@ is why `CGExchangeBuy` needs a comment telling the next author not to pass a
 
 ### Compile-time packet metadata
 
-Hundreds of packet factories are registered through generated lists and then
-validated by tests and ratchets. Keep runtime object creation, but move the
-static facts -- packet ID, direction, fixed/minimum size and factory mapping --
-into a `constexpr` table. A `consteval` builder can reject duplicate IDs,
-out-of-range sizes and missing metadata during compilation. Concepts can also
-state the required packet/factory interface and produce a local diagnostic
-instead of a template error far inside registration code.
+Every packet factory now states its static facts as constant expressions:
+`static constexpr` `kPacketID`, `kName` and `kMaxSize` members, with the four
+virtuals delegating to them (`src/Core/PacketMeta.h` documents the contract).
+`kMaxSize` is brace-initialised, so a body-size expression that no longer fits
+`PacketSize_t` is a narrowing error where it is written; the `Info::getMaxSize`
+helpers the expressions call are `constexpr` too, and the one that lived in a
+`.cpp` (`QuestStatusInfo`) moved inline. Runtime creation is unchanged:
+`PacketFactoryManager` still owns one heap factory per id and
+`createPacket()` still allocates.
+
+`de::PacketFactoryType` is the concept for that contract. It instantiates
+`std::integral_constant` on the members rather than merely naming them, so a
+factory that still computed its id in a virtual body fails the concept, not a
+`static_assert` somewhere inside a table. `de::packet::FactoryList<F...>` folds
+a pack of factories into a `constexpr` `Meta` table and runs `consteval`
+`validateRegistry` over it while the class is instantiated; a duplicate,
+out-of-range or unnamed id is a compile error whose "in instantiation of
+`RegistryCheck<RegistryError::DuplicateId, 231>`" note carries the rule and the
+id. `PacketFactoryManager::init()` is four such lists (client link, guild link,
+login-only, game-only) concatenated per server with `de::packet::Concat`, which
+validates the joined table, and `forEach` instantiates them in pack order. The
+per-server membership is the old `addFactory(new ...)` set (registration order
+changed, which a slot table does not observe), pinned in
+`tests/ratchet/factory_registrations.txt`: `ratchets.sh` regenerates the file
+from the type lists with `tests/tools/factory_registrations.pl` and fails on
+any add or drop — the inventory check alone only proves registered ⊆ inventory,
+and the first cut of this branch dropped `CLRegisterPlayerFactory` from the
+loginserver without any test noticing. Note the test build defines no server
+macro, so the production lists are instantiated (and their tables validated)
+only by the server builds; a factory listed twice across lists is caught
+there, not by `make dev-test`.
+`DE_REGISTER_PACKET_HANDLER` binds handlers by `Cls##Factory::kPacketID`
+instead of constructing a throwaway packet to ask for its id.
+
+`tests/packet_meta_test.cpp` compiles the whole kernel (the generated
+`ALL_PACKET_FACTORIES_TYPES` section of `AllPacketFactories.inc`) into one
+`FactoryList`, so two kernel factories claiming one id is now a build failure,
+pins each rejection rule on hand-built tables, and checks at run time that every
+factory's constants agree with its virtuals and with the packet it creates —
+that last agreement is what keeps the dispatcher pointed at the same handlers.
 
 This complements rather than replaces the golden tests: compile-time checks
 prove internal consistency, while goldens prove compatibility with the client
-and the encrypted wire format.
+and the encrypted wire format. What is still open from the original item is
+per-packet direction and fixed/minimum size: the factories only know a maximum.
 
 ### Diagnostics without location macros
 

@@ -72,21 +72,25 @@ private:
 
 class GCQuestStatusFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_QUEST_STATUS;
+    static constexpr std::string_view kName = "GCQuestStatus";
+    static constexpr PacketSize_t kMaxSize{szWORD + szWORD + szDWORD};
+
     GCQuestStatusFactory() {}
     virtual ~GCQuestStatusFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCQuestStatus();
     }
-    string getPacketName() const {
-        return "GCQuestStatus";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_QUEST_STATUS;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szWORD + szWORD + szDWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

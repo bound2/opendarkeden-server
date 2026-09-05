@@ -152,6 +152,11 @@ private:
 
 class GCMineExplosionOK1Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MINE_EXPLOSION_OK_1;
+    static constexpr std::string_view kName = "GCMineExplosionOK1";
+    static constexpr PacketSize_t kMaxSize{szCoord * 2 + szDir + szItemType + szBYTE + szWORD + szObjectID +
+                                           ModifyInfo::getPacketMaxSize()};
+
     // constructor
     GCMineExplosionOK1Factory() {}
 
@@ -161,23 +166,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCMineExplosionOK1();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCMineExplosionOK1";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MINE_EXPLOSION_OK_1;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Pakcet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szCoord * 2 + szDir + szItemType + szBYTE + szWORD + szObjectID + ModifyInfo::getPacketMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

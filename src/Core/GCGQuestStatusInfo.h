@@ -66,21 +66,25 @@ private:
 
 class GCGQuestStatusInfoFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_GQUEST_STATUS_INFO;
+    static constexpr std::string_view kName = "GCGQuestStatusInfo";
+    static constexpr PacketSize_t kMaxSize{szBYTE + QuestStatusInfo::getMaxSize() * MAX_QUEST_NUM};
+
     GCGQuestStatusInfoFactory() {}
     virtual ~GCGQuestStatusInfoFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCGQuestStatusInfo();
     }
-    string getPacketName() const {
-        return "GCGQuestStatusInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_GQUEST_STATUS_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + QuestStatusInfo::getMaxSize() * MAX_QUEST_NUM;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

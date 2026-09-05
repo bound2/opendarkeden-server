@@ -72,26 +72,30 @@ private:
 
 class GCDisconnectFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_DISCONNECT;
+    static constexpr std::string_view kName = "GCDisconnect";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 128};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCDisconnect();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCDisconnect";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_DISCONNECT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCDisconnectPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 128;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

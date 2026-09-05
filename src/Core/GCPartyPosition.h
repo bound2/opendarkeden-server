@@ -114,26 +114,30 @@ private:
 
 class GCPartyPositionFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PARTY_POSITION;
+    static constexpr std::string_view kName = "GCPartyPosition";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 20 + szZoneID + szZoneCoord * 2 + szHP * 2};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCPartyPosition();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCPartyPosition";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_PARTY_POSITION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCPartyPositionPacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 20 + szZoneID + szZoneCoord * 2 + szHP * 2;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

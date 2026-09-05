@@ -105,26 +105,30 @@ private:
 
 class GCGuildMemberListFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_GUILD_MEMBER_LIST;
+    static constexpr std::string_view kName = "GCGuildMemberList";
+    static constexpr PacketSize_t kMaxSize{szBYTE + GuildMemberInfo::getMaxSize()};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCGuildMemberList();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCGuildMemberList";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_GUILD_MEMBER_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCSystemMessagePacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + GuildMemberInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

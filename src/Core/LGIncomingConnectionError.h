@@ -84,26 +84,30 @@ private:
 
 class LGIncomingConnectionErrorFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LG_INCOMING_CONNECTION_ERROR;
+    static constexpr std::string_view kName = "LGIncomingConnectionError";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 128};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LGIncomingConnectionError();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LGIncomingConnectionError";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LG_INCOMING_CONNECTION_ERROR;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static LGIncomingConnectionErrorPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 128;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

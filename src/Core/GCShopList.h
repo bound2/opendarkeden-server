@@ -114,18 +114,9 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 class GCShopListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
-        return new GCShopList();
-    }
-    string getPacketName() const {
-        return "GCShopList";
-    }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SHOP_LIST;
-    }
-
-    // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOP_LIST;
+    static constexpr std::string_view kName = "GCShopList";
+    static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t unit = 0;
         unit += szBYTE;       // shop rack index
         unit += szObjectID;   // item object id
@@ -144,6 +135,21 @@ public:
                unit * SHOP_RACK_INDEX_MAX + // all item info
                szMarketCond * 2 +           // market condition
                szBYTE;                      // shop type
+    }()};
+
+    Packet* createPacket() override {
+        return new GCShopList();
+    }
+    string getPacketName() const override {
+        return string(kName);
+    }
+    PacketID_t getPacketID() const override {
+        return kPacketID;
+    }
+
+    // get packet's max body size
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

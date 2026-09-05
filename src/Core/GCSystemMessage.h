@@ -119,26 +119,30 @@ private:
 
 class GCSystemMessageFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SYSTEM_MESSAGE;
+    static constexpr std::string_view kName = "GCSystemMessage";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 256 + szuint + szBYTE};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSystemMessage();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCSystemMessage";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SYSTEM_MESSAGE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCSystemMessagePacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 256 + szuint + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

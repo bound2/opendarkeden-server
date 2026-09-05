@@ -22,7 +22,7 @@ struct PetStashItemInfo {
     PacketSize_t getPacketSize() const {
         return szBYTE + pPetInfo->getSize() + szDWORD;
     }
-    static PacketSize_t getPacketMaxSize() {
+    static constexpr PacketSize_t getPacketMaxSize() {
         return szBYTE + PetInfo::getMaxSize() + szDWORD;
     }
 };
@@ -71,17 +71,21 @@ private:
 
 class GCPetStashListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PET_STASH_LIST;
+    static constexpr std::string_view kName = "GCPetStashList";
+    static constexpr PacketSize_t kMaxSize{szBYTE + PetStashItemInfo::getPacketMaxSize() * MAX_PET_STASH};
+
+    Packet* createPacket() override {
         return new GCPetStashList();
     }
-    string getPacketName() const {
-        return "GCPetStashList";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_PET_STASH_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + PetStashItemInfo::getPacketMaxSize() * MAX_PET_STASH;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

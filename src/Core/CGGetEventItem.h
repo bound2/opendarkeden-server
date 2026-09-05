@@ -65,17 +65,21 @@ private:
 
 class CGGetEventItemFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_GET_EVENT_ITEM;
+    static constexpr std::string_view kName = "CGGetEventItem";
+    static constexpr PacketSize_t kMaxSize{szBYTE};
+
+    Packet* createPacket() override {
         return new CGGetEventItem();
     }
-    string getPacketName() const {
-        return "CGGetEventItem";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_GET_EVENT_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

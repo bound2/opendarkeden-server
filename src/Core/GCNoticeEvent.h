@@ -161,17 +161,21 @@ private:
 
 class GCNoticeEventFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_NOTICE_EVENT;
+    static constexpr std::string_view kName = "GCNoticeEvent";
+    static constexpr PacketSize_t kMaxSize{szWORD + szuint};
+
+    Packet* createPacket() override {
         return new GCNoticeEvent();
     }
-    string getPacketName() const {
-        return "GCNoticeEvent";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_NOTICE_EVENT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szWORD + szuint;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

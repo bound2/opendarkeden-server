@@ -62,6 +62,10 @@ public:
 
 class CGStoreCloseFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_STORE_CLOSE;
+    static constexpr std::string_view kName = "CGStoreClose";
+    static constexpr PacketSize_t kMaxSize{0};
+
     // constructor
     CGStoreCloseFactory() {}
 
@@ -71,23 +75,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGStoreClose();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGStoreClose";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_STORE_CLOSE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return 0;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

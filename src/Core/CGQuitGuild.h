@@ -75,6 +75,10 @@ private:
 
 class CGQuitGuildFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_QUIT_GUILD;
+    static constexpr std::string_view kName = "CGQuitGuild";
+    static constexpr PacketSize_t kMaxSize{szGuildID};
+
     // constructor
     CGQuitGuildFactory() {}
 
@@ -84,23 +88,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGQuitGuild();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGQuitGuild";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_QUIT_GUILD;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

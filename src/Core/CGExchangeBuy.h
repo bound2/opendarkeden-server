@@ -75,20 +75,25 @@ private:
 
 class CGExchangeBuyFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_EXCHANGE_BUY;
+    static constexpr std::string_view kName = "CGExchangeBuy";
+    static constexpr PacketSize_t kMaxSize{
+        sizeof(uint64_t) +                  // listingID
+        szBYTE +                            // idempotencyKey length byte
+        CGExchangeBuy::kMaxIdempotencyKey}; // idempotencyKey body (write() clamps to this)
+
+    Packet* createPacket() override {
         return new CGExchangeBuy();
     }
-    string getPacketName() const {
-        return "CGExchangeBuy";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_EXCHANGE_BUY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
     // 8 + 1 + 64 = 73. The client factory must match.
-    PacketSize_t getPacketMaxSize() const {
-        return sizeof(uint64_t) +                 // listingID
-               szBYTE +                           // idempotencyKey length byte
-               CGExchangeBuy::kMaxIdempotencyKey; // idempotencyKey body (write() clamps to this)
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

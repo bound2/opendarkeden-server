@@ -143,24 +143,28 @@ private:
 
 class GCAddMonsterFromTransformationFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_MONSTER_FROM_TRANSFORMATION;
+    static constexpr std::string_view kName = "GCAddMonsterFromTransformation";
+    static constexpr PacketSize_t kMaxSize{szObjectID                  // object id
+                                           + szMonsterType             // monster type
+                                           + szBYTE                    // monster name length
+                                           + 32                        // monster namx max
+                                           + szColor + szColor         // monster main & sub color
+                                           + szCoord + szCoord + szDir // monster x, y coord & direction
+                                           + EffectInfo::getMaxSize()  // effects info on monster
+                                           + szHP * 2};                // current & max hp
+
+    Packet* createPacket() override {
         return new GCAddMonsterFromTransformation();
     }
-    string getPacketName() const {
-        return "GCAddMonsterFromTransformation";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_MONSTER_FROM_TRANSFORMATION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID                  // object id
-               + szMonsterType             // monster type
-               + szBYTE                    // monster name length
-               + 32                        // monster namx max
-               + szColor + szColor         // monster main & sub color
-               + szCoord + szCoord + szDir // monster x, y coord & direction
-               + EffectInfo::getMaxSize()  // effects info on monster
-               + szHP * 2;                 // current & max hp
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

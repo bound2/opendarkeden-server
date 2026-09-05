@@ -104,30 +104,34 @@ private:
 
 class SGExpelGuildMemberOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_SG_EXPEL_GUILD_MEMBER_OK;
+    static constexpr std::string_view kName = "SGExpelGuildMemberOK";
+    static constexpr PacketSize_t kMaxSize{szGuildID + // guild ID
+                                           szBYTE +    // name length
+                                           20 +        // name max size
+                                           szBYTE +    // sender length
+                                           20};        // sender max size
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new SGExpelGuildMemberOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "SGExpelGuildMemberOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_SG_EXPEL_GUILD_MEMBER_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static LGIncomingConnectionPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID + // guild ID
-               szBYTE +    // name length
-               20 +        // name max size
-               szBYTE +    // sender length
-               20;         // sender max size
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

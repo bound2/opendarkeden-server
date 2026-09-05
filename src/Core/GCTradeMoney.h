@@ -88,17 +88,21 @@ private:
 
 class GCTradeMoneyFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_TRADE_MONEY;
+    static constexpr std::string_view kName = "GCTradeMoney";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szGold + szBYTE};
+
+    Packet* createPacket() override {
         return new GCTradeMoney();
     }
-    string getPacketName() const {
-        return "GCTradeMoney";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_TRADE_MONEY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szGold + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

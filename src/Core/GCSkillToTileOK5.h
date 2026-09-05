@@ -179,6 +179,11 @@ private:
 
 class GCSkillToTileOK5Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SKILL_TO_TILE_OK_5;
+    static constexpr std::string_view kName = "GCSkillToTileOK5";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szSkillType + szCoord * 2 + szRange + szDuration + szBYTE +
+                                           szWORD + szObjectID + 255 + szBYTE};
+
     // constructor
     GCSkillToTileOK5Factory() {}
 
@@ -188,24 +193,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSkillToTileOK5();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCSkillToTileOK5";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SKILL_TO_TILE_OK_5;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Pakcet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szSkillType + szCoord * 2 + szRange + szDuration + szBYTE + szWORD + szObjectID + 255 +
-               szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

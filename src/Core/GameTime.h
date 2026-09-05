@@ -35,7 +35,7 @@ public:
     uint getSize() const {
         return szWORD + szBYTE * 5;
     }
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szWORD + szBYTE * 5;
     }
 

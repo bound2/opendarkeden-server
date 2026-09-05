@@ -98,26 +98,30 @@ private:
 
 class GCModifyGuildMemberInfoFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MODIFY_GUILD_MEMBER_INFO;
+    static constexpr std::string_view kName = "GCModifyGuildMemberInfo";
+    static constexpr PacketSize_t kMaxSize{szGuildID + szBYTE + 30 + szGuildMemberRank};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCModifyGuildMemberInfo();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCModifyGuildMemberInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MODIFY_GUILD_MEMBER_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCModifyGuildMemberInfoPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID + szBYTE + 30 + szGuildMemberRank;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -88,24 +88,28 @@ private:
 
 class CGConnectSetKeyFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_ENCODE_KEY;
+    static constexpr std::string_view kName = "CGConnectSetKey";
+    static constexpr PacketSize_t kMaxSize{szWORD + szWORD};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGConnectSetKey();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGConnectSetKey";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_ENCODE_KEY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szWORD + szWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

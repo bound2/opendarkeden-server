@@ -171,27 +171,31 @@ private:
 
 class GCShopBoughtFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOP_BOUGHT;
+    static constexpr std::string_view kName = "GCShopBought";
+    static constexpr PacketSize_t kMaxSize{szObjectID +               // NPC OID
+                                           szShopVersion +            // shop version
+                                           szShopRackType +           // shop rack type
+                                           szBYTE +                   // shop rack index
+                                           szObjectID +               // item OID
+                                           szBYTE +                   // item class
+                                           szItemType +               // item type
+                                           szBYTE + 255 +             // item option type
+                                           szDurability +             // item durablility
+                                           szSilver +                 // silver coating amount
+                                           szGrade + szEnchantLevel}; // enchant level
+
+    Packet* createPacket() override {
         return new GCShopBought();
     }
-    string getPacketName() const {
-        return "GCShopBought";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SHOP_BOUGHT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID +              // NPC OID
-               szShopVersion +           // shop version
-               szShopRackType +          // shop rack type
-               szBYTE +                  // shop rack index
-               szObjectID +              // item OID
-               szBYTE +                  // item class
-               szItemType +              // item type
-               szBYTE + 255 +            // item option type
-               szDurability +            // item durablility
-               szSilver +                // silver coating amount
-               szGrade + szEnchantLevel; // enchant level
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

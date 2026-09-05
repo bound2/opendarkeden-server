@@ -86,6 +86,10 @@ private:
 
 class CGRegistGuildFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_REGIST_GUILD;
+    static constexpr std::string_view kName = "CGRegistGuild";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 30 + szBYTE + 256};
+
     // constructor
     CGRegistGuildFactory() {}
 
@@ -95,23 +99,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGRegistGuild();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGRegistGuild";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_REGIST_GUILD;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 30 + szBYTE + 256;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

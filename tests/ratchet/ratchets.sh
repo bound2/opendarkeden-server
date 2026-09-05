@@ -143,8 +143,14 @@ if [ ! -f tests/ratchet/factory_exceptions.txt ]; then
 fi
 registered=$(mktemp)
 inventory=$(mktemp)
-sed -n '/void PacketFactoryManager::init/,/^}/p' src/Core/PacketFactoryManager.cpp |
-    grep -oE 'addFactory\(new [A-Za-z0-9_]+' | sed 's/addFactory(new //' | sort -u > "$registered"
+# The registrations are the `using <Name>Factories = FactoryList<...>;` type
+# lists that init() concatenates per server (PacketMeta.h).
+sed -n '/^using [A-Za-z0-9_]*Factories = FactoryList</,/>;/p' src/Core/PacketFactoryManager.cpp |
+    grep -oE '^ +[A-Za-z0-9_]+Factory' | tr -d ' ' | sort -u > "$registered"
+if [ ! -s "$registered" ]; then
+    echo "[FAIL] no FactoryList registrations found in PacketFactoryManager.cpp"
+    fail=1
+fi
 {
     grep -oE 'new [A-Za-z0-9_]+Factory' tests/generated/AllPacketFactories.inc | sed 's/new //'
     grep -vE '^\s*(#|$)' tests/ratchet/factory_exceptions.txt || true
@@ -159,6 +165,27 @@ if [ -n "$missing" ]; then
     fail=1
 else
     echo "[OK]   every registered factory is covered by the wire inventory"
+fi
+
+# --- Per-server registration membership is pinned ---------------------------
+# The check above only proves registered <= inventory, so it cannot see a
+# registration that was dropped. tests/tools/factory_registrations.pl derives
+# each server's set from the FactoryList type lists and the per-server Concat
+# selection; the committed tests/ratchet/factory_registrations.txt is the
+# expected membership (as of the switch to type lists, identical to the
+# addFactory() sequence it replaced). Any add or drop fails here; when it is
+# intended, regenerate the file with the command in the script's header.
+expected=tests/ratchet/factory_registrations.txt
+if [ ! -f "$expected" ]; then
+    echo "[FAIL] $expected is missing"
+    fail=1
+elif membership_diff=$(perl tests/tools/factory_registrations.pl | diff "$expected" - 2>&1); then
+    echo "[OK]   per-server factory registrations match $expected ($(wc -l < "$expected") entries)"
+else
+    echo "[FAIL] per-server factory registrations differ from $expected:"
+    echo "$membership_diff" | sed 's/^/         /'
+    echo "         (if the change is intended: perl tests/tools/factory_registrations.pl > $expected)"
+    fail=1
 fi
 
 # --- Every encrypter-using packet has per-code goldens -------------------

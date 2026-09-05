@@ -33,12 +33,12 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     // get size of object
-    static uint getSize() {
+    static constexpr uint getSize() {
         return szObjectID + szBYTE + szItemType + szItemNum + szSlotID;
     }
 
     // get max size of object
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szObjectID + szBYTE + szItemType + szItemNum + szSlotID;
     }
 

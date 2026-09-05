@@ -107,6 +107,10 @@ private:
 
 class CGPartyPositionFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_PARTY_POSITION;
+    static constexpr std::string_view kName = "CGPartyPosition";
+    static constexpr PacketSize_t kMaxSize{szZoneID + szZoneCoord * 2 + szHP * 2};
+
     // constructor
     CGPartyPositionFactory() {}
 
@@ -116,23 +120,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGPartyPosition();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGPartyPosition";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_PARTY_POSITION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szZoneID + szZoneCoord * 2 + szHP * 2;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

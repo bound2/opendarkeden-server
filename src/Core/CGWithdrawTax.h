@@ -74,6 +74,10 @@ private:
 
 class CGWithdrawTaxFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_WITHDRAW_TAX;
+    static constexpr std::string_view kName = "CGWithdrawTax";
+    static constexpr PacketSize_t kMaxSize{szGold};
+
     // constructor
     CGWithdrawTaxFactory() {}
 
@@ -83,23 +87,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGWithdrawTax();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGWithdrawTax";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_WITHDRAW_TAX;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szGold;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

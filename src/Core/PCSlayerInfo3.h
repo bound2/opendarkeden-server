@@ -128,7 +128,7 @@ public:
                + szuint + szLevel;
     }
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szObjectID                   // 크리처 아이디
                + szBYTE + 20                // 이름
                + szCoord + szCoord + szDir  // 좌표와 방향

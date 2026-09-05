@@ -135,27 +135,31 @@ private:
 
 class CLLoginFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CL_LOGIN;
+    static constexpr std::string_view kName = "CLLogin";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 30 + szBYTE + 30 + 6 + szBYTE};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CLLogin();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CLLogin";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CL_LOGIN;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // szID + ID(<=30) + szPassword + password(<=30) + mac(6) + loginMode —
     // read() rejects longer strings; the old netmarble sso layout (szint +
     // 2048) is no longer read.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 30 + szBYTE + 30 + 6 + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -73,24 +73,28 @@ private:
 
 class CLChangeServerFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CL_CHANGE_SERVER;
+    static constexpr std::string_view kName = "CLChangeServer";
+    static constexpr PacketSize_t kMaxSize{szServerGroupID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CLChangeServer();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CLChangeServer";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CL_CHANGE_SERVER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szServerGroupID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

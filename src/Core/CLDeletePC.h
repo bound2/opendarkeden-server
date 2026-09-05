@@ -96,24 +96,28 @@ private:
 
 class CLDeletePCFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CL_DELETE_PC;
+    static constexpr std::string_view kName = "CLDeletePC";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 20 + szSlot + szBYTE + 20};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CLDeletePC();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CLDeletePC";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CL_DELETE_PC;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 20 + szSlot + szBYTE + 20;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

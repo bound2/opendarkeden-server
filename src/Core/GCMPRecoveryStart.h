@@ -105,6 +105,10 @@ private:
 
 class GCMPRecoveryStartFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MP_RECOVERY_START;
+    static constexpr std::string_view kName = "GCMPRecoveryStart";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szMP + szMP};
+
     // constructor
     GCMPRecoveryStartFactory() {}
 
@@ -114,23 +118,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCMPRecoveryStart();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCMPRecoveryStart";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MP_RECOVERY_START;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szMP + szMP;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -111,6 +111,10 @@ private:
 
 class GCAttackArmsOK4Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ATTACK_ARMS_OK_4;
+    static constexpr std::string_view kName = "GCAttackArmsOK4";
+    static constexpr PacketSize_t kMaxSize{szSkillType + szObjectID};
+
     // constructor
     GCAttackArmsOK4Factory() {}
 
@@ -120,23 +124,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAttackArmsOK4();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAttackArmsOK4";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ATTACK_ARMS_OK_4;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillType + szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -145,7 +145,7 @@ public:
                szEnchantLevel + szItemNum + szWORD + szBYTE + SubItemInfo::getMaxSize() * m_ListNum;
     }
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szObjectID + szBYTE + szItemType + szBYTE + 255 + szDurability + szSilver + szGrade + szEnchantLevel +
                szItemNum + szWORD + szBYTE + SubItemInfo::getMaxSize() * 8;
     }

@@ -219,7 +219,7 @@ public:
     PacketSize_t getPacketSize() const {
         return szBYTE * 2 + m_ShortCount * (szBYTE + szshort) + m_LongCount * (szBYTE + szDWORD);
     }
-    static PacketSize_t getPacketMaxSize() {
+    static constexpr PacketSize_t getPacketMaxSize() {
         return szBYTE * 2 + 255 * (szBYTE + szshort + szBYTE + szDWORD);
     }
     string toString() const;

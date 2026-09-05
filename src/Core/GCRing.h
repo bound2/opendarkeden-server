@@ -106,6 +106,10 @@ private:
 
 class GCRingFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_RING;
+    static constexpr std::string_view kName = "GCRing";
+    static constexpr PacketSize_t kMaxSize{szPhoneNumber + szSlotID + szBYTE + 20};
+
     // constructor
     GCRingFactory() {}
 
@@ -115,23 +119,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCRing();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCRing";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_RING;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szPhoneNumber + szSlotID + szBYTE + 20;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

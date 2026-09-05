@@ -194,6 +194,17 @@ Each packet type typically has two files, in different layers:
   processes the packet, registered on the dispatch table at the server's
   composition root (see task 2.3 in `docs/RESTRUCTURING.md`)
 
+Every `XFactory` states its packet's id, name and maximum body size as
+`static constexpr kPacketID` / `kName` / `kMaxSize`; the virtual getters return
+them. `src/Core/PacketMeta.h` names that contract (`de::PacketFactoryType`) and
+folds a pack of factories into a `constexpr` table (`de::packet::FactoryList`)
+that rejects duplicate or out-of-range ids at compile time.
+`PacketFactoryManager::init()` is four such lists concatenated per server
+(edit the lists, not an `addFactory` sequence), the dispatcher registers
+handlers by `XFactory::kPacketID`, and `tests/packet_meta_test.cpp` compiles
+the whole kernel into one list. A new packet needs the three constants in its
+factory or it will not satisfy the concept. See `docs/TOOLCHAIN.md` §3.
+
 ### Preprocessor Macros
 
 Key compile definitions that control behavior:

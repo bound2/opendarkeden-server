@@ -74,25 +74,29 @@ private:
 
 class GCAddInjuriousCreatureFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_INJURIOUS_CREATURE;
+    static constexpr std::string_view kName = "GCAddInjuriousCreature";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 10};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddInjuriousCreature();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAddInjuriousCreature";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_INJURIOUS_CREATURE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // message 의 최대 크기에 대한 설정이 필요하다.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 10;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

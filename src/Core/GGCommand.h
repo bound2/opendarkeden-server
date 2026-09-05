@@ -86,26 +86,30 @@ private:
 
 class GGCommandFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GG_COMMAND;
+    static constexpr std::string_view kName = "GGCommand";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 80};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GGCommand();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GGCommand";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GG_COMMAND;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GGCommandPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 80;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

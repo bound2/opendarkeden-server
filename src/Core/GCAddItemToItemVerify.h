@@ -101,17 +101,21 @@ private:
 
 class GCAddItemToItemVerifyFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_ITEM_TO_ITEM_VERIFY;
+    static constexpr std::string_view kName = "GCAddItemToItemVerify";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szuint + szuint};
+
+    Packet* createPacket() override {
         return new GCAddItemToItemVerify();
     }
-    string getPacketName() const {
-        return "GCAddItemToItemVerify";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_ITEM_TO_ITEM_VERIFY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szuint + szuint;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

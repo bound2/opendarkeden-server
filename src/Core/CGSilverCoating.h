@@ -51,17 +51,21 @@ private:
 
 class CGSilverCoatingFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SILVER_COATING;
+    static constexpr std::string_view kName = "CGSilverCoating";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
+    Packet* createPacket() override {
         return new CGSilverCoating();
     }
-    string getPacketName() const {
-        return "CGSilverCoating";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SILVER_COATING;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

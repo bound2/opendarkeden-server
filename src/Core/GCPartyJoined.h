@@ -66,17 +66,21 @@ private:
 
 class GCPartyJoinedFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PARTY_JOINED;
+    static constexpr std::string_view kName = "GCPartyJoined";
+    static constexpr PacketSize_t kMaxSize{szBYTE + PARTY_MEMBER_INFO_MAX_SIZE * 6};
+
+    Packet* createPacket() override {
         return new GCPartyJoined();
     }
-    string getPacketName() const {
-        return "GCPartyJoined";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_PARTY_JOINED;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + PARTY_MEMBER_INFO_MAX_SIZE * 6;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

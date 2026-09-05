@@ -80,17 +80,21 @@ private:
 
 class CGMixItemFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_MIX_ITEM;
+    static constexpr std::string_view kName = "CGMixItem";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoordInven + szCoordInven + (szObjectID * 2)};
+
+    Packet* createPacket() override {
         return new CGMixItem();
     }
-    string getPacketName() const {
-        return "CGMixItem";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_MIX_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoordInven + szCoordInven + (szObjectID * 2);
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

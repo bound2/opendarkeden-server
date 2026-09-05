@@ -90,26 +90,30 @@ private:
 
 class CGNPCAskAnswerFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_NPC_ASK_ANSWER;
+    static constexpr std::string_view kName = "CGNPCAskAnswer";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szScriptID + szAnswerID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGNPCAskAnswer();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGNPCAskAnswer";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_NPC_ASK_ANSWER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static CGNPCAskAnswerPacketSize 를 정의해서 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szScriptID + szAnswerID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

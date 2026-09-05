@@ -60,21 +60,25 @@ private:
 
 class GCGQuestInventoryFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_GQUEST_INVENTORY;
+    static constexpr std::string_view kName = "GCGQuestInventory";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szItemType * MAX_GQUEST_INVENTORY_ITEM_NUM};
+
     GCGQuestInventoryFactory() {}
     virtual ~GCGQuestInventoryFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCGQuestInventory();
     }
-    string getPacketName() const {
-        return "GCGQuestInventory";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_GQUEST_INVENTORY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szItemType * MAX_GQUEST_INVENTORY_ITEM_NUM;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

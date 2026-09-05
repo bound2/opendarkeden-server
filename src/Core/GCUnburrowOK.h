@@ -101,26 +101,30 @@ private:
 
 class GCUnburrowOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_UNBURROW_OK;
+    static constexpr std::string_view kName = "GCUnburrowOK";
+    static constexpr PacketSize_t kMaxSize{szCoord + szCoord + szDir};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCUnburrowOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCUnburrowOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_UNBURROW_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCUnburrowOKPacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szCoord + szCoord + szDir;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

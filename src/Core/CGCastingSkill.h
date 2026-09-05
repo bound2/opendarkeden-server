@@ -80,6 +80,10 @@ private:
 
 class CGCastingSkillFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_CASTING_SKILL;
+    static constexpr std::string_view kName = "CGCastingSkill";
+    static constexpr PacketSize_t kMaxSize{szSkillType};
+
     // constructor
     CGCastingSkillFactory() {}
 
@@ -89,23 +93,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGCastingSkill();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGCastingSkill";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_CASTING_SKILL;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillType;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

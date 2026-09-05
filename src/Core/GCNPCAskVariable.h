@@ -73,17 +73,21 @@ private:
 
 class GCNPCAskVariableFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_NPC_ASK_VARIABLE;
+    static constexpr std::string_view kName = "GCNPCAskVariable";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szScriptID + szBYTE + ScriptParameter::getMaxSize() * 255};
+
+    Packet* createPacket() override {
         return new GCNPCAskVariable();
     }
-    string getPacketName() const {
-        return "GCNPCAskVariable";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_NPC_ASK_VARIABLE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szScriptID + szBYTE + ScriptParameter::getMaxSize() * 255;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

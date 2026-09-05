@@ -116,31 +116,35 @@ private:
 
 class GSModifyGuildMemberFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GS_MODIFY_GUILD_MEMBER;
+    static constexpr std::string_view kName = "GSModifyGuildMember";
+    static constexpr PacketSize_t kMaxSize{szGuildID +         // guild ID
+                                           szBYTE +            // name length
+                                           20 +                // name max length
+                                           szGuildMemberRank + // guild member rank
+                                           szBYTE +            // sender length
+                                           20};                // sender max length
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GSModifyGuildMember();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GSModifyGuildMember";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GS_MODIFY_GUILD_MEMBER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static LGIncomingConnectionPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID +         // guild ID
-               szBYTE +            // name length
-               20 +                // name max length
-               szGuildMemberRank + // guild member rank
-               szBYTE +            // sender length
-               20;                 // sender max length
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

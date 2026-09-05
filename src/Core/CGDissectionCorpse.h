@@ -107,6 +107,10 @@ private:
 
 class CGDissectionCorpseFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_DISSECTION_CORPSE;
+    static constexpr std::string_view kName = "CGDissectionCorpse";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoord + szCoord + szBYTE};
+
     // constructor
     CGDissectionCorpseFactory() {}
 
@@ -116,23 +120,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGDissectionCorpse();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGDissectionCorpse";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_DISSECTION_CORPSE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoord + szCoord + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -102,25 +102,29 @@ private:
 
 class LCServerListFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LC_SERVER_LIST;
+    static constexpr std::string_view kName = "LCServerList";
+    // write() emits a BYTE ListNum between the group id and the infos
+    static constexpr PacketSize_t kMaxSize{szServerGroupID + szBYTE + ServerGroupInfo::getMaxSize()};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LCServerList();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LCServerList";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LC_SERVER_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        // write() emits a BYTE ListNum between the group id and the infos
-        return szServerGroupID + szBYTE + ServerGroupInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -87,25 +87,29 @@ private:
 
 class CGGlobalChatFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_GLOBAL_CHAT;
+    static constexpr std::string_view kName = "CGGlobalChat";
+    static constexpr PacketSize_t kMaxSize{szuint + szBYTE + 128};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGGlobalChat();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGGlobalChat";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_GLOBAL_CHAT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // message 의 최대 크기에 대한 설정이 필요하다.
-    PacketSize_t getPacketMaxSize() const {
-        return szuint + szBYTE + 128;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

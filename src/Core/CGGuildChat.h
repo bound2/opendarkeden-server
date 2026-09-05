@@ -92,27 +92,31 @@ private:
 
 class CGGuildChatFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_GUILD_CHAT;
+    static constexpr std::string_view kName = "CGGuildChat";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szuint + // text color
+                                           szBYTE +          // message size
+                                           128};             // chatting message
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGGuildChat();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGGuildChat";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_GUILD_CHAT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // Depends on the maximum message length.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szuint + // text color
-               szBYTE +          // message size
-               128;              // chatting message
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

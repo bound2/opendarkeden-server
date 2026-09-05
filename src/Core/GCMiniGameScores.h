@@ -80,21 +80,25 @@ private:
 
 class GCMiniGameScoresFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MINI_GAME_SCORES;
+    static constexpr std::string_view kName = "GCMiniGameScores";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE + szBYTE + (szWORD + 21) * 10};
+
     GCMiniGameScoresFactory() {}
     virtual ~GCMiniGameScoresFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCMiniGameScores();
     }
-    string getPacketName() const {
-        return "GCMiniGameScores";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MINI_GAME_SCORES;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szBYTE + szBYTE + (szWORD + 21) * 10;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

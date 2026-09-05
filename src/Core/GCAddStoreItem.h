@@ -65,17 +65,21 @@ private:
 
 class GCAddStoreItemFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_STORE_ITEM;
+    static constexpr std::string_view kName = "GCAddStoreItem";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + StoreItemInfo::getMaxSize()};
+
+    Packet* createPacket() override {
         return new GCAddStoreItem();
     }
-    string getPacketName() const {
-        return "GCAddStoreItem";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_STORE_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE + StoreItemInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

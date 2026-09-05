@@ -64,24 +64,28 @@ private:
 
 class CLGetWorldListFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CL_GET_WORLD_LIST;
+    static constexpr std::string_view kName = "CLGetWorldList";
+    static constexpr PacketSize_t kMaxSize{0};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CLGetWorldList();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CLGetWorldList";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CL_GET_WORLD_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return 0;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -37,7 +37,7 @@ public:
         return szSkillType + szExp + szExpLevel + szTurn + szTurn + szBYTE;
     }
     // get max size of object
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szSkillType + szExp + szExpLevel + szTurn + szTurn + szBYTE;
     }
 

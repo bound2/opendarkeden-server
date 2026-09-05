@@ -226,38 +226,42 @@ private:
 
 class CLRegisterPlayerFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CL_REGISTER_PLAYER;
+    static constexpr std::string_view kName = "CLRegisterPlayer";
+    // 최적화시 미리 계산된 상수를 사용하도록 한다.
+    static constexpr PacketSize_t kMaxSize{szBYTE + maxIDLength          // 아이디
+                                           + szBYTE + maxPasswordLength  // 패스워드
+                                           + szBYTE + maxNameLength      // 이름
+                                           + szBYTE                      // 성별
+                                           + szBYTE + maxSSNLength       // 주민등록번호
+                                           + szBYTE + maxTelephoneLength // 전화번호
+                                           + szBYTE + maxCellularLength  // 휴대폰번호
+                                           + szBYTE + maxZipCodeLength   // 우편번호
+                                           + szBYTE + maxAddressLength   // 주소
+                                           + szBYTE                      // 국가코드
+                                           + szBYTE + maxEmailLength     // 전자메일
+                                           + szBYTE + maxHomepageLength  // 홈페이지
+                                           + szBYTE + maxProfileLength   // 자기소개
+                                           + szBYTE};                    // 공개여부
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CLRegisterPlayer();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CLRegisterPlayer";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CL_REGISTER_PLAYER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        // 최적화시 미리 계산된 상수를 사용하도록 한다.
-        return szBYTE + maxIDLength          // 아이디
-               + szBYTE + maxPasswordLength  // 패스워드
-               + szBYTE + maxNameLength      // 이름
-               + szBYTE                      // 성별
-               + szBYTE + maxSSNLength       // 주민등록번호
-               + szBYTE + maxTelephoneLength // 전화번호
-               + szBYTE + maxCellularLength  // 휴대폰번호
-               + szBYTE + maxZipCodeLength   // 우편번호
-               + szBYTE + maxAddressLength   // 주소
-               + szBYTE                      // 국가코드
-               + szBYTE + maxEmailLength     // 전자메일
-               + szBYTE + maxHomepageLength  // 홈페이지
-               + szBYTE + maxProfileLength   // 자기소개
-               + szBYTE;                     // 공개여부
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

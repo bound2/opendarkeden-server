@@ -87,16 +87,9 @@ private:
 
 class GCNPCAskDynamicFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
-        return new GCNPCAskDynamic();
-    }
-    string getPacketName() const {
-        return "GCNPCAskDynamic";
-    }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_NPC_ASK_DYNAMIC;
-    }
-    PacketSize_t getPacketMaxSize() const {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_NPC_ASK_DYNAMIC;
+    static constexpr std::string_view kName = "GCNPCAskDynamic";
+    static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
 
         size += szObjectID;          // npc object id
@@ -105,6 +98,19 @@ public:
         size += szWORD * 10 + 10240; // contents length & actual strings
 
         return size;
+    }()};
+
+    Packet* createPacket() override {
+        return new GCNPCAskDynamic();
+    }
+    string getPacketName() const override {
+        return string(kName);
+    }
+    PacketID_t getPacketID() const override {
+        return kPacketID;
+    }
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -73,17 +73,21 @@ private:
 
 class CGBuyStoreItemFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_BUY_STORE_ITEM;
+    static constexpr std::string_view kName = "CGBuyStoreItem";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szObjectID + szBYTE};
+
+    Packet* createPacket() override {
         return new CGBuyStoreItem();
     }
-    string getPacketName() const {
-        return "CGBuyStoreItem";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_BUY_STORE_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szObjectID + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

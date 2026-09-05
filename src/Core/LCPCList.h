@@ -97,31 +97,35 @@ private:
 
 class LCPCListFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LC_PC_LIST;
+    static constexpr std::string_view kName = "LCPCList";
+    // Slayer info is the largest of the three races, so the packet is
+    // biggest with SLOT_MAX slayers. The m_Agree byte is only on the
+    // wire for netmarble builds (see write()).
+    static constexpr PacketSize_t kMaxSize{PCSlayerInfo::getMaxSize() * SLOT_MAX + SLOT_MAX
+#ifdef __NETMARBLE_SERVER__
+                                           + szBYTE
+#endif
+    };
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LCPCList();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LCPCList";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LC_PC_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        // Slayer info is the largest of the three races, so the packet is
-        // biggest with SLOT_MAX slayers. The m_Agree byte is only on the
-        // wire for netmarble builds (see write()).
-        return PCSlayerInfo::getMaxSize() * SLOT_MAX + SLOT_MAX
-#ifdef __NETMARBLE_SERVER__
-               + szBYTE
-#endif
-            ;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

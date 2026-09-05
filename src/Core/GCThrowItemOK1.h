@@ -83,6 +83,10 @@ private:
 
 class GCThrowItemOK1Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_THROW_ITEM_OK_1;
+    static constexpr std::string_view kName = "GCThrowItemOK1";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
     // constructor
     GCThrowItemOK1Factory() {}
 
@@ -92,23 +96,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCThrowItemOK1();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCThrowItemOK1";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_THROW_ITEM_OK_1;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

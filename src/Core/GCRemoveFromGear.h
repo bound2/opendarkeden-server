@@ -84,6 +84,10 @@ private:
 
 class GCRemoveFromGearFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_REMOVE_FROM_GEAR;
+    static constexpr std::string_view kName = "GCRemoveFromGear";
+    static constexpr PacketSize_t kMaxSize{szSlotID};
+
     // constructor
     GCRemoveFromGearFactory() {}
 
@@ -93,23 +97,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCRemoveFromGear();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCRemoveFromGear";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_REMOVE_FROM_GEAR;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szSlotID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

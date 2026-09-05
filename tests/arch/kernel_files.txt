@@ -63,6 +63,7 @@ src/Core/Encrypter.cpp
 # execute() is off them)
 src/Core/Packet.h
 src/Core/PacketFactory.h
+src/Core/PacketMeta.h
 src/Core/PacketDispatcher.h
 src/Core/PacketDispatcher.cpp
 #

@@ -90,24 +90,28 @@ private:
 
 class LCQueryResultPlayerIDFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LC_QUERY_RESULT_PLAYER_ID;
+    static constexpr std::string_view kName = "LCQueryResultPlayerID";
+    static constexpr PacketSize_t kMaxSize{szbool + szBYTE + 20};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LCQueryResultPlayerID();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LCQueryResultPlayerID";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LC_QUERY_RESULT_PLAYER_ID;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szbool + szBYTE + 20;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

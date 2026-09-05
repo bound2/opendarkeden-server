@@ -54,17 +54,21 @@ protected:
 
 class CGRequestIPFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_REQUEST_IP;
+    static constexpr std::string_view kName = "CGRequestIP";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 10};
+
+    Packet* createPacket() override {
         return new CGRequestIP();
     }
-    string getPacketName() const {
-        return "CGRequestIP";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_REQUEST_IP;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 10;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

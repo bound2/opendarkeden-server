@@ -51,17 +51,21 @@ private:
 
 class GCAuthKeyFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_AUTH_KEY;
+    static constexpr std::string_view kName = "GCAuthKey";
+    static constexpr PacketSize_t kMaxSize{szDWORD};
+
+    Packet* createPacket() override {
         return new GCAuthKey();
     }
-    string getPacketName() const {
-        return "GCAuthKey";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_AUTH_KEY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szDWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

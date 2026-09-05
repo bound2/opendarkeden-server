@@ -111,28 +111,32 @@ private:
 
 class LGIncomingConnectionFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LG_INCOMING_CONNECTION;
+    static constexpr std::string_view kName = "LGIncomingConnection";
+    static constexpr PacketSize_t kMaxSize{+szBYTE + 20    // creature name
+                                           + szBYTE + 20   // PC name
+                                           + szBYTE + 15}; // client ip
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LGIncomingConnection();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LGIncomingConnection";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LG_INCOMING_CONNECTION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static LGIncomingConnectionPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return +szBYTE + 20   // creature name
-               + szBYTE + 20  // PC name
-               + szBYTE + 15; // client ip
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

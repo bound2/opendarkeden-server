@@ -104,17 +104,21 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 class GCShopBuyFailFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOP_BUY_FAIL;
+    static constexpr std::string_view kName = "GCShopBuyFail";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
+    Packet* createPacket() override {
         return new GCShopBuyFail();
     }
-    string getPacketName() const {
-        return "GCShopBuyFail";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SHOP_BUY_FAIL;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

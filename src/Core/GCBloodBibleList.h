@@ -51,17 +51,21 @@ private:
 
 class GCBloodBibleListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_BLOOD_BIBLE_LIST;
+    static constexpr std::string_view kName = "GCBloodBibleList";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szItemType * 12};
+
+    Packet* createPacket() override {
         return new GCBloodBibleList();
     }
-    string getPacketName() const {
-        return "GCBloodBibleList";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_BLOOD_BIBLE_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szItemType * 12;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

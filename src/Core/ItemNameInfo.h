@@ -38,7 +38,7 @@ public:
 
     virtual PacketSize_t getSize() const;
 
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return (szObjectID + szBYTE + (szBYTE * 20));
     }
 

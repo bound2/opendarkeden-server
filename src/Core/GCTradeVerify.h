@@ -96,17 +96,21 @@ private:
 
 class GCTradeVerifyFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_TRADE_VERIFY;
+    static constexpr std::string_view kName = "GCTradeVerify";
+    static constexpr PacketSize_t kMaxSize{szBYTE};
+
+    Packet* createPacket() override {
         return new GCTradeVerify();
     }
-    string getPacketName() const {
-        return "GCTradeVerify";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_TRADE_VERIFY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

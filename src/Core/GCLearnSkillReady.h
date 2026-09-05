@@ -80,6 +80,10 @@ private:
 
 class GCLearnSkillReadyFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_LEARN_SKILL_READY;
+    static constexpr std::string_view kName = "GCLearnSkillReady";
+    static constexpr PacketSize_t kMaxSize{szSkillDomainType};
+
     // constructor
     GCLearnSkillReadyFactory() {}
 
@@ -89,23 +93,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCLearnSkillReady();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCLearnSkillReady";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_LEARN_SKILL_READY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillDomainType;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

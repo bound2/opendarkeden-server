@@ -78,24 +78,28 @@ private:
 
 class GCDeleteInventoryItemFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_DELETE_INVENTORY_ITEM;
+    static constexpr std::string_view kName = "GCDeleteInventoryItem";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCDeleteInventoryItem();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCDeleteInventoryItem";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_DELETE_INVENTORY_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 
