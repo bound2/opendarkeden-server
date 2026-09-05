@@ -6,19 +6,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Building the project
 ```bash
-# Standard release build
+# Default: debug build
 make
 
-# Debug build
+# Same as `make`
 make debug
+
+# Release build
+make release
 
 # Clean build artifacts
 make clean
 ```
 
 The project uses CMake. The Makefile wraps CMake commands for convenience:
-- `make` - Builds with CMake in Release mode (`-DCMAKE_BUILD_TYPE=Release`)
-- `make debug` - Builds with CMake in Debug mode (`-DCMAKE_BUILD_TYPE=Debug`)
+- `make` / `make debug` - Builds with CMake in Debug mode (`-DCMAKE_BUILD_TYPE=Debug`)
+- `make release` - Builds with CMake in Release mode (`-DCMAKE_BUILD_TYPE=Release`)
 - Build output binaries go to `bin/` directory
 - Build output libraries go to `lib/` directory
 
@@ -62,6 +65,10 @@ make test
 # Same suite, but built inside the container off a local workspace. On a
 # Windows host this is the one to use — see "Building in the container" below.
 make dev-test
+
+# MySQL-backed repository integration tier (throwaway MySQL 5.7 + initdb/
+# schema + the real MySQL*Repository impls). Needs docker + darkeden-dev.
+make integration-test
 ```
 
 Prefer the pinned Zig container. Ubuntu 20.04's distro GCC 9 lacks the
@@ -77,9 +84,9 @@ the container, the Windows mount costs ~160x on `stat` and ~145x on reads
 versus the container's own filesystem, and since every translation unit opens
 dozens of headers the build becomes I/O bound: a full build took ~20 minutes
 at ~20% CPU on 8 cores. `tools/devbuild.sh` syncs the build *inputs*
-(`cmake/`, `src/`, `tests/`, the top-level CMake/Makefile — ~37 MB) into a container
-volume, builds there with Ninja and ccache, and copies only generated test
-data back. Same build: **~3.5 minutes at ~95% CPU**, and a no-op rebuild in
+(`cmake/`, `src/`, `tests/`, `third_party/`, `data/`, `docker/start.sh` and
+the top-level CMake/Makefile — ~37 MB) into a container volume, builds there
+with Ninja and ccache, and copies only generated test data back. Same build: **~3.5 minutes at ~95% CPU**, and a no-op rebuild in
 seconds instead of minutes.
 
 ```bash
@@ -139,12 +146,18 @@ The server is split into multiple coordinated processes:
 
 ```
 src/
-├── Core/                      # Core library - shared utilities, no server-type dependencies
-│   ├── Packets/               # Protocol packet definitions (GC, CG, CL, LC, GL, LG, GS, SG, GG)
-│   └── [core utilities]       # Socket, datagram, player info, items, skills, etc.
+├── Core/                      # de-kernel: packets + shared utilities, no server-type dependencies
+│   ├── [GC|CG|CL|LC|GL|LG|GS|SG|GG]*.{h,cpp}   # Protocol packet classes, directly in Core/
+│   ├── [core utilities]       # Socket, datagram, player info, items, skills, etc.
+│   └── CMakeLists.txt         # Defines the de-kernel / packet libraries and Core library
+├── domain/                    # de-core: pure formula functions (Formulas, SkillOutputFormulas), freestanding
 ├── server/
+│   ├── ManagedThread.h, CooperativeThread.h, Thread.h   # Worker thread backends
 │   ├── database/              # Database abstraction layer and connection management
 │   ├── gameserver/            # Main game server executable
+│   │   ├── handler/           # CG/LG/GG/SG packet handlers (registered at the composition root)
+│   │   ├── packetfill/        # Server-side packet fill helpers moved out of Core
+│   │   ├── repository/        # Persistence seams: *Repository.h interfaces + MySQL*Repository.cpp impls
 │   │   ├── skill/             # Skill system module
 │   │   ├── item/              # Item system module
 │   │   ├── billing/           # Billing/payment module
@@ -155,9 +168,10 @@ src/
 │   │   ├── quest/             # Quest system (with Lua scripting)
 │   │   ├── mofus/             # Game events module
 │   │   └── exchange/          # Player exchange/auction system
-│   ├── loginserver/           # Login server executable
-│   └── sharedserver/          # Shared server executable
-└── Core/CMakeLists.txt        # Defines packet libraries and Core library
+│   ├── loginserver/           # Login server executable (CL/GL handlers in handler/)
+│   └── sharedserver/          # Shared server executable (GS handlers in handler/)
+third_party/
+└── tinyxml2/                  # Vendored XML parser (10.0.0), replaces xerces-c
 ```
 
 ### Packet System
@@ -174,9 +188,11 @@ Packets are the primary communication mechanism between servers and clients. The
 - **SG** (Shared → Game): Shared server responds to game server
 - **GG** (Game → Game): Inter-game-server communication
 
-Each packet type typically has two files:
-- `PacketName.cpp` - Packet class definition
-- `PacketNameHandler.cpp` - Handler that processes the packet
+Each packet type typically has two files, in different layers:
+- `src/Core/PacketName.{h,cpp}` - Packet class (wire layout only; no `execute()`)
+- `src/server/<server>/handler/PacketNameHandler.{h,cpp}` - Handler that
+  processes the packet, registered on the dispatch table at the server's
+  composition root (see task 2.3 in `docs/RESTRUCTURING.md`)
 
 ### Preprocessor Macros
 
@@ -213,22 +229,29 @@ Databases:
 - `DARKEDEN` - Main game database
 - `USERINFO` - User account database
 
-Load schema with:
+Load schema with (`initdb/a-setup.sql` creates both databases and the
+`elcastle` user; the docker compose setup applies all three automatically):
 ```bash
+mysql -h 127.0.0.1 -u root -p < initdb/a-setup.sql
 mysql -h 127.0.0.1 -u elcastle -D 'DARKEDEN' -p < initdb/DARKEDEN.sql
 mysql -h 127.0.0.1 -u elcastle -D 'USERINFO' -p < initdb/USERINFO.sql
 ```
 
 ## Dependencies
 
-Required libraries:
-- **libmysqlclient-dev** (5.7) - MySQL client library
+Required libraries (all expose a C API — see `docs/TOOLCHAIN.md` for why
+re-introducing a C++-API dependency is a problem under the Zig toolchain):
+- **libmysqlclient-dev** - MySQL client library (Ubuntu 20.04 ships 8.0 /
+  `libmysqlclient21`; the server talks to MySQL 5.7 or 8)
 - **lua5.1-dev** or **luajit** - Lua scripting (used by quest system)
-- **xerces-c** (3.2.3) - XML parsing (used by SXml in Core)
+- **zlib**
+
+XML parsing uses the vendored **tinyxml2** (10.0.0) in `third_party/tinyxml2`,
+wrapped by `SXml` in Core; xerces-c is no longer needed (`docs/TOOLCHAIN.md` §1).
 
 Install on Ubuntu/Debian:
 ```bash
-sudo apt install libxerces-c-dev libmysqlclient-dev liblua5.1-dev
+sudo apt install libmysqlclient-dev liblua5.1-dev zlib1g-dev
 ```
 
 ## Key Game Concepts
@@ -365,10 +388,13 @@ gateways, not a full guarantee.
 
 Start servers in this order:
 ```bash
-./bin/loginserver -f ./conf1/loginserver.conf
-./bin/sharedserver -f ./conf1/sharedserver.conf
-./bin/gameserver -f ./conf1/gameserver.conf
+./bin/loginserver -f ./conf/loginserver.conf
+./bin/sharedserver -f ./conf/sharedserver.conf
+./bin/gameserver -f ./conf/gameserver.conf
 ```
+
+In the container image `docker/start.sh` does this (it uses `docker/conf/`
+rather than `conf/`).
 
 ## Development Notes
 

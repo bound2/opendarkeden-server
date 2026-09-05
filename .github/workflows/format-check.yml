@@ -53,7 +53,7 @@ jobs:
 
           if [ "$failed" = true ]; then
             echo ""
-            echo "Format check failed! Please run 'make fmt' to fix formatting issues."
+            echo "Format check failed! Run clang-format -i on the files listed above (not bare 'make fmt' — see CLAUDE.md)."
             exit 1
           fi
 

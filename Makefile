@@ -1,13 +1,14 @@
 # DarkEden Makefile
 
-.PHONY: all fmt fmt fmt-check fmt-check-all clean help debug test \
+.PHONY: all fmt fmt-check fmt-check-all clean help debug release test \
         dev-test dev-build dev-shell dev-clean integration-test
 
 # Default target
 all: debug
 
-# Wire-contract test suite (docs/RESTRUCTURING.md Phase 1). Runs locally by
-# design — there is no CI tier for it yet (Phase 6).
+# Wire-contract test suite (docs/RESTRUCTURING.md Phase 1). Run it locally
+# before every push; CI (.github/workflows/cpp20.yml) runs the same suite via
+# tools/devbuild.sh only on master pushes/merges, to conserve Actions minutes.
 test:
 	cmake -B build -DCMAKE_BUILD_TYPE=Debug -DDARKEDEN_BUILD_TESTS=ON
 	cmake --build build --target wire_tests -j$(shell sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 4)
@@ -69,7 +70,8 @@ fmt-check:
 	fi; \
 	if $$failed; then \
 		echo ""; \
-		echo "Run 'make fmt' to fix formatting issues"; \
+		echo "Format only the files you touched (see CLAUDE.md), e.g.:"; \
+		echo "  clang-format -i <file>"; \
 		exit 1; \
 	fi; \
 	echo "[OK] All modified files are properly formatted!"
@@ -98,10 +100,17 @@ clean:
 # Show help message
 help:
 	@echo "DarkEden Makefile targets:"
-	@echo "  all           - Build the project (default)"
-	@echo "  fmt           - Format all C++ code"
-	@echo "  fmt-check     - Check format for modified files only (fast)"
+	@echo "  all           - Debug build (default, same as 'debug')"
+	@echo "  debug         - Debug build (-DCMAKE_BUILD_TYPE=Debug)"
+	@echo "  release       - Release build (-DCMAKE_BUILD_TYPE=Release)"
 	@echo "  test          - Build and run the wire-contract test suite"
+	@echo "  dev-test      - Same suite, built in the darkeden-dev container volume"
+	@echo "  dev-build     - All production targets, built in the container volume"
+	@echo "  dev-shell     - Shell in the container workspace"
+	@echo "  dev-clean     - Drop the container workspace + compiler-cache volumes"
+	@echo "  integration-test - MySQL-backed repository tests (docker + darkeden-dev)"
+	@echo "  fmt           - Format ALL C++ code (avoid before committing; see CLAUDE.md)"
+	@echo "  fmt-check     - Check format for modified files only (fast)"
 	@echo "  fmt-check-all - Check format for all files (slow)"
 	@echo "  clean         - Clean build artifacts"
 	@echo "  help          - Show this help message"
