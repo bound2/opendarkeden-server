@@ -47,6 +47,50 @@ unlocked before the return). `tests/critical_section_tests` pins the exits and
 `tests/tools/critical_section_audit.pl` fails the class on sight.
 > **Status:** fixed (cpp20/raii-critical-sections)
 
+## loginserver and sharedserver could not be shut down (2026-09-05)
+
+Found while extending PR #89's cooperative lifecycle to the other two server
+processes. Neither `main()` installed a signal handler, so SIGTERM took the
+default disposition and killed the process outright — no worker join, no
+socket drain, no chance for the loop to finish its turn. There was no
+graceful path either: `LoginServer::stop()` and `SharedServer::stop()` both
+began with `throw UnsupportedError()` (the sub-manager stops after it were
+dead code), `ClientManager::stop()`/`HeartbeatManager::stop()` threw the
+same, and the `GameServerManager` workers derived from the legacy pthread
+`Thread`, whose `stop()` also throws — their `while (true)` loops had no exit
+at all. The loginserver's UDP listener compounded it: the socket was left
+blocking, so the worker sat inside `recvfrom` for as long as the game servers
+stayed quiet. The container supervisor's unbounded final `wait` matched the
+old behaviour (login/shared died instantly), so it too had to be bounded once
+they started draining. Every worker now uses `ManagedThread`, both mains
+install the SIGTERM/SIGINT handler and the named 30-second failed-exit
+watchdog, `stop()` is idempotent and joins before dependencies are released,
+and `docker/start.sh` gives login/shared 8 seconds before SIGKILL.
+> **Status:** fixed (cpp20/login-shared-managed-threads)
+
+## sharedserver keep-alive query runs every tick, not hourly (2026-09-05)
+
+Found while migrating `sharedserver/GameServerManager::run()`. Its
+connection keep-alive reschedules with `dummyQueryTime.tv_sec = (60 + rand()
+% 30) * 60;` — a plain assignment where the gameserver's `LoginServerManager`,
+`SharedServerManager`, `SMSServiceThread` and the loginserver's
+`ClientManager` all use `+=`. The absolute deadline therefore lands about an
+hour after the epoch, is always in the past, and `executeDummyQuery()` fires
+on every pass of a loop that now turns roughly every millisecond. Left alone
+here deliberately: the lifecycle migration changed no thread's actual work.
+> **Status:** open
+
+## Self-initialised pointer in sharedserver processOutputs() (2026-09-05)
+
+`GameServerManager::processOutputs()` writes `GameServerPlayer*
+pGameServerPlayer = pGameServerPlayer;` inside the socket-error branch,
+shadowing the live outer pointer with one initialised from itself, and then
+`delete`s it. Clang reports it (`-Wuninitialized`) on every build. The same
+file never initialises `m_pGameServerPlayers[nMaxGameServers]`, so its
+unwritten slots are indeterminate rather than NULL — the `m_MinFD`/`m_MaxFD`
+window is what keeps the loops off them today.
+> **Status:** open
+
 ## Cooperative lifecycle and process shutdown gaps (2026-09-05)
 
 Adversarial review of PR #89 found unsynchronized start/stop publication,

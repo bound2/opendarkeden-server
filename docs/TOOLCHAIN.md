@@ -237,8 +237,8 @@ instead of through tree-wide style conversions.
 `ManagedThread` is now the only subclass of the legacy `Thread`, so every
 worker in all three server processes uses it: gameserver zone, login-link,
 shared-link, GDR, SMS and enabled billing/mofus workers, the loginserver's
-`GameServerManager` (UDP game-server link), and the sharedserver's
-`GameServerManager` (TCP game-server link) and `NetmarbleGuildRegisterThread`.
+`GameServerManager` (UDP game-server link) and the sharedserver's
+`GameServerManager` (TCP game-server link).
 `ManagedThread` owns a `CooperativeThread` backed by `std::jthread`. What is
 left of the legacy base is `start()`/`stop()`/`join()`/`run()`, the status
 enum and `Thread::self()` (the key for per-thread database connections); the

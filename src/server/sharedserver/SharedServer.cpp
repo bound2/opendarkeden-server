@@ -26,9 +26,6 @@
 #include "StringPool.h"
 #include "database/DatabaseManager.h"
 #include "types/ServerType.h"
-#ifdef __NETMARBLE_SERVER__
-#include "NetmarbleGuildRegisterThread.h"
-#endif
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -69,10 +66,6 @@ SharedServer::SharedServer() {
 
     g_pStringPool = new StringPool();
 
-    /*#ifdef __NETMARBLE_SERVER__
-        g_pNetmarbleGuildRegisterThread = new NetmarbleGuildRegisterThread();
-    #endif*/
-
     __END_CATCH
 }
 
@@ -98,10 +91,6 @@ SharedServer::~SharedServer() noexcept(false) {
     SAFE_DELETE(g_pGameWorldInfoManager);
     SAFE_DELETE(g_pResurrectLocationManager);
     SAFE_DELETE(g_pStringPool);
-
-    /*#ifdef __NETMARBLE_SERVER__
-        SAFE_DELETE( g_pNetmarbleGuildRegisterThread );
-    #endif*/
 
     __END_CATCH
 }
@@ -141,10 +130,6 @@ void SharedServer::init() {
     // ResurrectLocationManager 초기화
     g_pResurrectLocationManager->init();
 
-    /*#ifdef __NETMARBLE_SERVER__
-        g_pNetmarbleGuildRegisterThread->init();
-    #endif*/
-
     // 만반의 준비가 끝이 나면 이제 클라이언트매니저를 초기화함으로써,
     // 네트워킹에 대비한다.
     g_pHeartbeatManager->init();
@@ -164,11 +149,6 @@ void SharedServer::start() {
     cout << "---------- Start SharedServer ---------" << endl;
     // 서버간 통신 매니저를 시작한다.
     g_pGameServerManager->start();
-
-    // 넷마블 길드 등록 스레드 시작
-    /*#ifdef __NETMARBLE_SERVER__
-        g_pNetmarbleGuildRegisterThread->start();
-    #endif*/
 
     //
     // 클라이언트 매니저를 시작한다.
