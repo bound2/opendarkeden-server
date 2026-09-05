@@ -27,8 +27,8 @@ conventions.
   number with the change.
 - Run the suite locally before every push (`make dev-test` with the pinned
   toolchain). The C++20 workflow also runs the suite and production builds on
-  PRs/master pushes when Actions minutes are available. DB-backed integration
-  CI remains deferred.
+  master pushes/merges only; PRs are verified locally to conserve minutes.
+  DB-backed integration CI remains deferred.
 
 ## Goals / non-goals
 
@@ -1141,7 +1141,7 @@ gating; `Zone.cpp` under 2,000 lines.
   > deadline for blocked work. Main then lets the OS reclaim the legacy graph
   > rather than invoking unaudited singleton destructors; no new world-save
   > guarantee is implied. MySQL operations have finite timeout options.
-  > CMake probes the C++20 library and a pinned-Zig workflow tests/builds PRs.
+  > CMake probes the C++20 library and a pinned-Zig workflow tests/builds master.
   - Owner: ratchet R7, held at 0.
 
 ---
@@ -1153,7 +1153,7 @@ workflow. Execution still depends on Actions minutes being available. The
 remaining broader CI rollout below is deferred:
 
 - [x] **6.1 Build + test workflow.** Pinned Zig Debug contract/lifecycle tests,
-  all production targets, and the production image; PRs and master pushes.
+  all production targets, and the production image; master pushes/merges only.
   > **Status:** done — `.github/workflows/cpp20.yml`; running the jobs still
   > requires available Actions minutes. Local verification remains mandatory.
 

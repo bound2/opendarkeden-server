@@ -37,8 +37,8 @@ make fmt-check-all
 ```
 
 The project uses clang-format with a `.clang-format` configuration file.
-- Format checking is enforced via GitHub Actions on PRs, and it checks only
-  the files a PR **changed** (`git diff origin/master HEAD`), using whatever
+- Format checking runs via GitHub Actions only on pushes/merges to master,
+  and checks files changed since the previous master tip, using whatever
   clang-format `ubuntu-latest` installs (18.x as of 2026-08).
 - **Do not run bare `make fmt` before committing — the tree is not v18-clean.**
   1,253 `src/` files were formatted with an older clang-format, so `make fmt`
@@ -67,7 +67,8 @@ make dev-test
 Prefer the pinned Zig container. Ubuntu 20.04's distro GCC 9 lacks the
 required library facilities; CMake checks `jthread`, `stop_token`, and
 stop-aware condition-variable waits at configure time. The C++20 workflow
-now runs the Debug suite and production builds on PRs and master pushes.
+now runs the Debug suite and production builds only on master pushes/merges.
+PRs and feature-branch commits are verified locally to conserve Actions minutes.
 
 #### Building in the container
 

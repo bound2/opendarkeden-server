@@ -281,7 +281,9 @@ Regression tests exercise concurrent lifecycle calls, worker errors, pool
 rollback and stop/join ordering, dependency lifetime, signals, a stuck worker,
 a silent MySQL peer, and the real `docker/start.sh` with stand-in processes.
 The pinned-Zig CI job runs these tests and builds all production targets and
-the production image. CMake probes the required library facilities, so an
+the production image only on master pushes/merges. PRs and feature-branch
+commits use local verification to conserve Actions minutes. CMake probes the
+required library facilities, so an
 unsupported toolchain fails at configuration instead of deep in compilation.
 
 ### Type-safe packet buffers

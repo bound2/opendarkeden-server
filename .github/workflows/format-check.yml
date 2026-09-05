@@ -1,9 +1,8 @@
 name: Format Check
 
 on:
-  pull_request:
+  push:
     branches: [master]
-    types: [opened, synchronize, reopened]
 
 jobs:
   format-check:
@@ -21,12 +20,17 @@ jobs:
           sudo apt-get install -y clang-format
 
       - name: Check C++ formatting
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
-          # Fetch master branch for comparison
-          git fetch origin master
+          # Compare the whole push/merge against its previous master tip.
+          # origin/master already equals HEAD on a master push.
+          if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE_SHA=$(git hash-object -t tree /dev/null)
+          fi
 
           # Get list of changed C++ files
-          changed_files=$(git diff --name-only --diff-filter=ACM origin/master HEAD | grep -E '\.(cpp|h|hpp)$' || true)
+          changed_files=$(git diff --name-only --diff-filter=ACM "$BEFORE_SHA" "$GITHUB_SHA" | grep -E '\.(cpp|h|hpp)$' || true)
 
           if [ -z "$changed_files" ]; then
             echo "No C++ files changed. Skipping format check."
