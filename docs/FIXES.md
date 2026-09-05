@@ -1,5 +1,16 @@
 # Fix log
 
+Real bugs uncovered by the restructuring work (task 5.3 in
+`docs/RESTRUCTURING.md`), recorded instead of fixed silently. Sidecar's
+convention: every entry has a `> **Status:**` line updated in the same
+commit as the fix.
+
+The Exchange-reconcile defect set (SQL injection, string size/body
+desync, `StringStream` stack overflows, unbounded listing counts, …) is
+recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
+Entries below are newest first; the oldest is the 1.4 max-size reconcile
+that followed it.
+
 ## Cooperative lifecycle and process shutdown gaps (2026-09-05)
 
 Adversarial review of PR #89 found unsynchronized start/stop publication,
@@ -56,16 +67,6 @@ volume kept passing. Fixed by pinning `Utility.h` below the `types/`
 block behind `// clang-format off`. Lesson recorded: **re-run the build
 after formatting**, not before.
 > **Status:** fixed (restructuring/dispatch-cg)
-
-Real bugs uncovered by the restructuring work (task 5.3 in
-`docs/RESTRUCTURING.md`), recorded instead of fixed silently. Sidecar's
-convention: every entry has a `> **Status:**` line updated in the same
-commit as the fix.
-
-The Exchange-reconcile defect set (SQL injection, string size/body
-desync, `StringStream` stack overflows, unbounded listing counts, …) is
-recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found;
-entries below start with the 1.4 max-size reconcile that followed it.
 
 ## Wire max-size reconcile (both repos, 2026-08-31)
 

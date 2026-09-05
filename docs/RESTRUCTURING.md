@@ -68,15 +68,16 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 God-file baselines (R6):
 
 All rows re-measured 2026-08-31 post-clang-format-18 (the 08-29 numbers
-predated that pass); only the rows `ratchets.sh` names are enforced so far.
+predated that pass) and again 2026-09-05; only the rows `ratchets.sh` names
+are enforced so far.
 
 | File | Baseline lines |
 |------|---------------:|
-| `src/server/gameserver/Zone.cpp` | 9,297 |
+| `src/server/gameserver/Zone.cpp` | 9,263 (9,297 on 2026-08-31) |
 | `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (enforced by `ratchets.sh` R6a) |
 | `src/server/gameserver/InitAllStat.cpp` | 4,803 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
-| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,905 |
-| `src/server/gameserver/Slayer.cpp` | 4,375 |
+| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,904 (4,905 on 2026-08-31) |
+| `src/server/gameserver/Slayer.cpp` | 4,068 (4,375 on 2026-08-31) |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 820 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
 | `src/server/gameserver/skill/HitRoll.cpp` | 774 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
 
@@ -97,7 +98,8 @@ before anything else moves. Everything later shelters under this pin.
 - [x] **1.1 Test harness in CMake.** Add GoogleTest (FetchContent or vendored),
   a `tests/` tree, and a `make test` target that builds and runs it locally.
   Debug build, no MySQL/network required for the unit tier.
-  > **Status:** done — GoogleTest 1.12.1 via FetchContent, `tests/` +
+  > **Status:** done — GoogleTest via FetchContent (1.12.1 at the time;
+  > v1.18.0 since the 5.4 C++20 migration), `tests/` +
   > `make test` (`-DDARKEDEN_BUILD_TESTS=ON`); the `TestPackets` library
   > compiles the full packet set with no server-type macro (7 files needed
   > the standard `#ifdef __GAME_SERVER__` guards they were missing).
@@ -741,7 +743,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > **Status:** in progress (2026-09-04) — 32 seams under
   > `src/server/gameserver/repository/` (interface `*Repository.h`, impl
   > `MySQL*Repository.cpp`, reached through `default*Repository()`
-  > accessors, never `g_p*` externs). R2 104→8 and R3 317→85 since the
+  > accessors, never `g_p*` externs). R2 104→8 and R3 317→74 since the
   > pilot; every extraction is one branch and one PR
   > (`restructuring/*-repositor{y,ies}`, #18 through #85). The per-round
   > narrative — what moved, what the two adversarial reviews caught, the
@@ -984,7 +986,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   - Owner: the formula test suite; R6 line ratchets on `SkillUtil.cpp` /
     `InitAllStat.cpp` / `HitRoll.cpp` / `SkillFormula.cpp`.
 
-- [ ] **3.4 Codify thread ownership.** Document (in CLAUDE.md) which state is
+- [x] **3.4 Codify thread ownership.** Document (in CLAUDE.md) which state is
   owned by which thread: zone-group state mutated only on its
   `ZoneGroupThread`, cross-group communication via queues only. Add
   debug-build `assertOwnedByZoneThread()` checks on Zone/Creature mutation
@@ -1026,7 +1028,7 @@ down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
 
 ## Phase 4 — God files behind routers
 
-- [ ] **4.1 GM-command router for `CGSayHandler.cpp`** (3,967 lines). A
+- [ ] **4.1 GM-command router for `CGSayHandler.cpp`** (4,904 lines). A
   `CommandRouter` with one class/function per GM command and **gating
   declared at registration** — sidecar's `on(name, limiter, handler)` /
   `onGated(...)` insight: hand-kept permission maps drift silently, so the
@@ -1035,7 +1037,7 @@ down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
   > **Status:** not started
   - Owner: router registration + the enumeration test; R6 ratchet.
 
-- [ ] **4.2 Split `Zone.cpp`** (7,616 lines) by concern: movement, broadcast,
+- [ ] **4.2 Split `Zone.cpp`** (9,263 lines) by concern: movement, broadcast,
   spawn/despawn, scan/visibility, persistence (→ 3.2 repository). Mechanical,
   many small commits, each verified by build + smoke.
   > **Status:** not started
@@ -1144,11 +1146,11 @@ gating; `Zone.cpp` under 2,000 lines.
 
 ---
 
-## Phase 6 — CI (deliberately last; blocked on GitHub Actions minutes)
+## Phase 6 — CI (deliberately last; limited by GitHub Actions minutes)
 
 The C++20 lifecycle work now has a pinned-Zig Debug test and production-build
-workflow. Execution still depends on Actions minutes being available. The
-remaining broader CI rollout below is deferred:
+workflow (6.1, master pushes/merges only). Execution still depends on Actions
+minutes being available. The remaining broader CI rollout below is deferred:
 
 - [x] **6.1 Build + test workflow.** Pinned Zig Debug contract/lifecycle tests,
   all production targets, and the production image; master pushes/merges only.

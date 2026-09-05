@@ -26,3 +26,4 @@ tests/arch/*.txt text eol=lf
 tests/arch/*.pl text eol=lf
 tools/*.sh text eol=lf
 cmake/zig-* text eol=lf
+Dockerfile.pub.dockerignore text eol=lf

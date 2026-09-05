@@ -1,20 +1,38 @@
+# Packages an already-compiled bin/ directory (see README "Pack pre-built
+# binaries into an image"). The default .dockerignore drops bin/ from the
+# context, so this file ships its own Dockerfile.pub.dockerignore (BuildKit
+# picks <Dockerfile>.dockerignore over .dockerignore).
+#
+# Mirrors the runtime stage of ./Dockerfile: only the shared libraries the
+# servers link against. libmysqlclient, lua 5.1 and zlib all expose C APIs;
+# XML parsing is the vendored tinyxml2, so xerces-c is not needed
+# (docs/TOOLCHAIN.md §1).
 FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt install -y \
-    libxerces-c-dev \
-    libmysqlclient-dev \
-    liblua5.1-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libmysqlclient21 \
+    liblua5.1-0 \
+    zlib1g \
     psmisc \
     && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir /home/darkeden
-RUN mkdir /home/darkeden/vs
-RUN mkdir /home/darkeden/vs/src
 
 COPY bin /home/darkeden/vs/bin/
 COPY data /home/darkeden/vs/data/
 COPY docker/conf /home/darkeden/vs/conf/
+COPY docker/start.sh /home/darkeden/vs/bin/start.sh
+
+# A Windows checkout can carry CRLF endings, which both the configuration
+# parser (Properties::load) and /bin/bash choke on - normalize them here so the
+# image builds correctly regardless of how the repository was cloned.
+RUN sed -i 's/\r$//' /home/darkeden/vs/conf/*.conf /home/darkeden/vs/bin/start.sh \
+    && chmod +x /home/darkeden/vs/bin/start.sh /home/darkeden/vs/bin/loginserver \
+       /home/darkeden/vs/bin/sharedserver /home/darkeden/vs/bin/gameserver
 
 WORKDIR /home/darkeden/vs/bin
+
+# loginserver TCP, gameserver TCP, gameserver UDP
+EXPOSE 9999 9998 9997/udp
+
+CMD ["./start.sh"]
