@@ -26,17 +26,14 @@ ZoneInfoManager::~ZoneInfoManager()
 {
     __BEGIN_TRY
 
-    m_Tables.update([](Tables& tables) {
-        for (unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = tables.byID.begin(); itr != tables.byID.end(); itr++) {
-            ZoneInfo* pInfo = itr->second;
-            SAFE_DELETE(pInfo);
-        }
-
-        // 해쉬맵안에 있는 모든 pair 들을 삭제한다.
-        tables.byID.clear();
-        tables.byFullName.clear();
-        tables.byShortName.clear();
-    });
+    // Teardown: free the ZoneInfo objects through the published tables; the
+    // Snapshot member releases the tables themselves with this object.
+    const std::shared_ptr<const Tables> tables = m_Tables.load();
+    for (unordered_map<ZoneID_t, ZoneInfo*>::const_iterator itr = tables->byID.begin(); itr != tables->byID.end();
+         itr++) {
+        ZoneInfo* pInfo = itr->second;
+        SAFE_DELETE(pInfo);
+    }
 
     __END_CATCH_NO_RETHROW
 }
@@ -192,8 +189,10 @@ void ZoneInfoManager::addZoneInfo(ZoneInfo* pZoneInfo)
 void ZoneInfoManager::deleteZoneInfo(ZoneID_t zoneID) {
     __BEGIN_TRY
 
-    // Unpublish first, delete after: a reader holding the old snapshot may
-    // still be looking at this ZoneInfo.
+    // Unpublishing first only keeps NEW readers from finding the entry; one
+    // that loaded the old snapshot still holds the raw ZoneInfo* and is not
+    // protected by the delete coming second. Safe only while no such reader
+    // can exist -- this function has no caller.
     ZoneInfo* pZoneInfo = m_Tables.update([zoneID](Tables& tables) -> ZoneInfo* {
         unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = tables.byID.find(zoneID);
         if (itr == tables.byID.end())

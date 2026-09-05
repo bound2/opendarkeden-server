@@ -406,12 +406,15 @@ gateways, not a full guarantee.
   owns it.
 - Tables that every thread reads and one thread occasionally extends — a
   group's zone map, the `ZoneInfoManager` lookups — are published
-  copy-on-write through `de::Snapshot` (`src/server/Snapshot.h`,
-  `std::atomic<std::shared_ptr>`): readers load an immutable snapshot
-  without waiting on a writer and may iterate it for a whole tick; a writer copies, changes
-  and swaps. That is what lets a zone thread create a dynamic zone in
-  another group's map while that group iterates it. Writers are serialised
-  by a mutex nobody else takes, so no lock order is created.
+  copy-on-write through `de::Snapshot` (`src/server/Snapshot.h`): readers
+  load an immutable `shared_ptr<const T>` without waiting on a writer and
+  may iterate it for a whole tick; a writer copies, changes and swaps the
+  pointer under a leaf mutex held for nothing else. That is what lets a
+  zone thread create a dynamic zone in another group's map while that
+  group iterates it. The writer mutex is held while the change runs, so a
+  change must be pure work on the copy (the current ones are map inserts
+  and erases); the snapshot protects the table, not the objects it points
+  to, which stay raw pointers with their old lifetime rules.
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 

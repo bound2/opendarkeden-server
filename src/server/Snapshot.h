@@ -59,6 +59,11 @@ public:
     // result. Writers are serialised; a writer never blocks a reader beyond
     // the pointer swap. `change` may throw, in which case nothing is
     // published. Returns whatever `change` returns.
+    //
+    // `change` runs with the writer mutex held, so it must be pure work on
+    // the copy: no lock it takes may be one that is ever held while calling
+    // update() on this Snapshot, and it must not call update() on this
+    // Snapshot itself (the mutex is not recursive). load() is fine.
     template <typename Change> decltype(auto) update(Change&& change) {
         std::lock_guard lock(m_WriterMutex);
         // Copy from the published value, not from a cached one: a previous

@@ -49,9 +49,9 @@ public:
     // on -- two players on two groups can ask at the same moment -- and
     // getAvailableDynamicZone() may create an instance (Zone load, a
     // ZoneInfo publish, an insert into the template group's zone map).
-    // m_Mutex serialises them; the maps the creation publishes are
-    // copy-on-write for their readers (Snapshot.h), so holding it while
-    // the zone loads blocks only the next player wanting this type.
+    // m_Mutex serialises the choice and the reservation of a new instance;
+    // the build itself (the zone load) runs outside it, and the maps the
+    // build publishes are copy-on-write for their readers (Snapshot.h).
     bool canEnter();
     DynamicZone* getAvailableDynamicZone();
 

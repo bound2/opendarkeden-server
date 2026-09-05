@@ -55,8 +55,8 @@ ZoneGroup::~ZoneGroup()
 {
     __BEGIN_TRY
 
-    // 해쉬맵안에 있는 모든 pair 들을 삭제한다.
-    m_Zones.update([](ZoneMap& zones) { zones.clear(); });
+    // 해쉬맵안에 있는 모든 pair 들을 삭제한다. The Snapshot member frees the
+    // published map with the object; nothing to clear by hand.
 
     __END_CATCH_NO_RETHROW
 }
@@ -220,10 +220,10 @@ void ZoneGroup::processPlayers()
 // command is logged, not fatal: the others still run and the tick goes on.
 //////////////////////////////////////////////////////////////////////////////
 std::size_t ZoneGroup::drainMailbox() {
+    assertOwned();
+
     if (m_Mailbox.empty())
         return 0;
-
-    assertOwned();
 
     std::size_t ran = m_Mailbox.drain(
         [](std::function<void()>& command) { command(); },
@@ -328,8 +328,10 @@ void ZoneGroup::addZone(Zone* pZone)
 void ZoneGroup::deleteZone(ZoneID_t zoneID) {
     __BEGIN_TRY
 
-    // A reader that loaded the old snapshot may still hold this Zone*: the
-    // pair leaves the published map first, the object is deleted after.
+    // Unpublishing first only keeps NEW readers from finding the zone; one
+    // that loaded the old snapshot still holds the raw Zone* and is not
+    // protected by the delete coming second. Safe only while no such
+    // reader can exist -- this function has no live caller.
     Zone* pZone = removeZone(zoneID);
     SAFE_DELETE(pZone);
 
