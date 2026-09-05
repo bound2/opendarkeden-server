@@ -72,9 +72,6 @@ allsharedserver : $(SERVER_CORE_LIB)
 	$(MAKE) -C database
 	$(MAKE) -C sharedserver
 
-alltheoneserver : $(SERVER_CORE_LIB)
-	$(MAKE) -C theoneserver
-
 $(SERVER_CORE_LIB) : $(SERVER_CORE_OBJS)
 	ar rc $@ $^
 

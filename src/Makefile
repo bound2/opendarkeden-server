@@ -36,10 +36,6 @@ allsharedserver :
 	$(MAKE) -C Core allsharedserver
 	$(MAKE) -C server allsharedserver
 
-alltheoneserver :
-	$(MAKE) -C Core alltheoneserver
-	$(MAKE) -C server alltheoneserver
-
 clean :
 	$(MAKE) -C Core clean
 	$(MAKE) -C server clean

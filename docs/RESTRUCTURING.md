@@ -57,9 +57,9 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
-| R1 | `g_p*` global-singleton extern declarations | 345 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
+| R1 | `g_p*` global-singleton extern declarations | 338 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `CreatureUtil.cpp` and `TradeManager.cpp` hold SQL that compiles and runs; the rest are listed under 3.2 "What remains".) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 84 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 81 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,897 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -697,9 +697,10 @@ visibility can't express.
   >    — all three relic packet dirs are now **deleted** (`Upackets`/
   >    `TOpackets` with the dead `ClientManager.cpp` phone-home beacon;
   >    `Rpackets` in the follow-up, closing `factory_exceptions.txt` to
-  >    zero entries). `src/server/updateserver/` and `theoneserver/`
-  >    still reference the deleted headers but are built by no target;
-  >    deleting those dead server trees is an open decision.
+  >    zero entries). `src/server/updateserver/` still references the
+  >    deleted headers but is built by no target; deleting that dead
+  >    server tree is an open decision (`theoneserver/` was deleted on
+  >    2026-09-05, see "Legacy service cleanup").
   > 8. **Core's gameserver include leak is gone**: with the splits above,
   >    nothing Core compiles needs a gameserver header, so the PUBLIC
   >    `src/server/gameserver[/item]` exports on `Core` and the private
@@ -873,7 +874,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > commented out (five `mission/` files, EffectBloodyWall,
   > EffectGrayDarkness, SiegeWar); unbuilt ServerCore forks
   > (`src/server/Restore.cpp`, `Restore2.cpp`, `ZoneUtil.cpp`,
-  > `IncomingPlayerManager.cpp`, `theoneserver/`); and the loginserver
+  > `IncomingPlayerManager.cpp`; `theoneserver/` left this list when it
+  > was deleted on 2026-09-05); and the loginserver
   > and sharedserver copies (CLDeletePCHandler's per-character purge,
   > the sharedserver's Guild*.cpp), which are other binaries and get
   > their own seams.
@@ -1180,15 +1182,32 @@ remaining broader CI rollout below is deferred:
   > servers build, all nine CTest suites pass, and touched C++ files pass
   > clang-format 18. No live deployment was restarted for this cleanup.
 
-- [ ] **Remove `theoneserver` after approval.**
-  > **Status:** Audited; obsolete in the supported repository build and
-  > deployment. Left in place for a separate removal decision.
+- [x] **Remove `theoneserver`.**
+  > **Status:** Removed on 2026-09-05, following the audit below. Deleted
+  > the whole `src/server/theoneserver/` tree (its private `Connection`/
+  > `Statement`/`Result`/`DatabaseManager` forks, `GameServerManager`, the
+  > unbuilt `KillManager` duplicate, `UDPManager`, thread-pool forks,
+  > `PacketFactoryManager`, `TheOneServer` and `main.cpp`) and the three
+  > `alltheoneserver` recipes in `src/Makefile`, `src/Core/Makefile` and
+  > `src/server/Makefile`. Nothing else referenced the tree: no CMake
+  > target, install entry, configuration, or Docker startup ever did.
+  > R1: 345 → 338 (the tree's seven `g_p*` externs); R3: 84 → 81 (its
+  > three SQL-bearing forks). R5 is gameserver-scoped and unchanged.
+  > The ratchet regression scan that rejects China billing references now
+  > also rejects `theoneserver`/`TOpackets` in source and build files;
+  > the historical `src/build_error.sql` transcript is deliberately
+  > untouched. Generic `GGCommand` handling, the shared `database/`
+  > classes, and the login/shared-server managers are unchanged — the
+  > supported servers still use them.
+  >
+  > **Audit (2026-09-05, pre-removal):** obsolete in the supported
+  > repository build and deployment.
   >
   > Its role was publisher server registration/policy enforcement, not a
-  > fourth gameplay service. `TheOneServer.cpp` creates a database manager
-  > and UDP `GameServerManager`; the latter binds `TheOneServerUDPPort`
-  > and dispatches received datagrams. Its local `PacketFactoryManager.cpp`
-  > registers only `GTOAcknowledgement`.
+  > fourth gameplay service. `TheOneServer.cpp` created a database manager
+  > and UDP `GameServerManager`; the latter bound `TheOneServerUDPPort`
+  > and dispatched received datagrams. Its local `PacketFactoryManager.cpp`
+  > registered only `GTOAcknowledgement`.
   >
   > The deleted handler (inspect
   > `git show 25f25ee6^:src/Core/TOpackets/GTOAcknowledgementHandler.cpp`)
@@ -1200,28 +1219,22 @@ remaining broader CI rollout below is deferred:
   > Commit `25f25ee6` already deleted the TOpackets protocol and the
   > China/Thailand-only phone-home sender/timer in gameserver's
   > `ClientManager.cpp`. No remaining caller outside the dead tree was
-  > found. There is no CMake target, install entry, checked-in configuration,
-  > or Docker startup entry for this service: only login/shared/game are
-  > built and launched. Legacy `alltheoneserver` Makefile recipes remain,
-  > but require the deleted `libTheOneServerPackets.a` and packet headers;
-  > they cannot resurrect a working service.
-  >
-  > `KillManager.{h,cpp}` is an unbuilt duplicate of `GameServerManager`,
-  > not a separate active kill worker. `UDPManager` construction is
-  > commented out and it is absent from the legacy object list.
-  >
-  > Recommended follow-up: delete `src/server/theoneserver/` and the
-  > three remaining `alltheoneserver` recipes, then tighten debt ratchets.
-  > Do not delete generic `GGCommand` handling, shared database classes,
-  > or login/shared-server managers: the supported servers still use them.
-  > This audit covers the checked-in build/deployment, not independently
-  > maintained out-of-tree binaries or installations.
+  > found. The legacy `alltheoneserver` Makefile recipes required the
+  > deleted `libTheOneServerPackets.a` and packet headers and could not
+  > resurrect a working service. `KillManager.{h,cpp}` was an unbuilt
+  > duplicate of `GameServerManager`, not a separate active kill worker;
+  > `UDPManager` construction was commented out and it was absent from
+  > the legacy object list. The audit covered the checked-in
+  > build/deployment, not independently maintained out-of-tree binaries
+  > or installations. The tree remains recoverable from git history
+  > (`git show <this commit>^:src/server/theoneserver/`).
 
 ## Appendix — measured inventory (2026-08-29)
 
 - ~502k LOC across 4,271 C++ files. `Core` 149k (1,410 packet-prefixed files
   in its root), `gameserver` 120k, `skill` 103k / 1,031 files, `item` 51k,
-  `quest` 23k (Lua-integrated), plus legacy `theoneserver` (see audit above).
+  `quest` 23k (Lua-integrated). The legacy `chinabilling` and `theoneserver`
+  trees counted here were deleted on 2026-09-05 (see "Legacy service cleanup").
 - 433 packet types in `src/Core/Packet.h`
   (`grep -cE 'PACKET_(GC|CG|CL|LC|GL|LG|GS|SG|GG)[A-Z_]* *[,=]' src/Core/Packet.h`).
 - Wire encryption: per-session encrypt code reorders field read/write order

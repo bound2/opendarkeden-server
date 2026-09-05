@@ -686,8 +686,6 @@ allsharedserver : $(TARGETS)
 	$(MAKE) -C Cpackets allsharedserver
 	$(MAKE) -C Spackets allsharedserver
 
-alltheoneserver : $(CORE_LIB)
-
 $(LIBDIR) :
 	mkdir -p $(LIBDIR)
 
