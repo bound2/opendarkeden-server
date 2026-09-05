@@ -150,26 +150,31 @@ private:
 
 class GCAddMonsterCorpseFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_MONSTER_CORPSE;
+    static constexpr std::string_view kName = "GCAddMonsterCorpse";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szMonsterType + szBYTE + 128 + szCoord + szCoord + szDir +
+                                           szbool + szBYTE + szObjectID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddMonsterCorpse();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAddMonsterCorpse";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_MONSTER_CORPSE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
     // *OPTIMIZATION HINT*
     // const static GCAddMonsterCorpsePacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szMonsterType + szBYTE + 128 + szCoord + szCoord + szDir + szbool + szBYTE + szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -26,7 +26,7 @@ public:
         DWORD timeLimit;
     };
 
-    static const int szQuestInfo;
+    static constexpr int szQuestInfo = szQuestID + szSpriteType + szWORD + szDWORD;
 
     GCMonsterKillQuestInfo() {}
     virtual ~GCMonsterKillQuestInfo();
@@ -66,17 +66,21 @@ private:
 
 class GCMonsterKillQuestInfoFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MONSTER_KILL_QUEST_INFO;
+    static constexpr std::string_view kName = "GCMonsterKillQuestInfo";
+    static constexpr PacketSize_t kMaxSize{szBYTE + GCMonsterKillQuestInfo::szQuestInfo * maxQuestNum};
+
+    Packet* createPacket() override {
         return new GCMonsterKillQuestInfo();
     }
-    string getPacketName() const {
-        return "GCMonsterKillQuestInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MONSTER_KILL_QUEST_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + GCMonsterKillQuestInfo::szQuestInfo * maxQuestNum;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

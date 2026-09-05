@@ -73,6 +73,10 @@ private:
 
 class GCWhisperFailedFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_WHISPER_FAILED;
+    static constexpr std::string_view kName = "GCWhisperFailed";
+    static constexpr PacketSize_t kMaxSize{0};
+
     // constructor
     GCWhisperFailedFactory() {}
 
@@ -82,23 +86,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCWhisperFailed();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCWhisperFailed";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_WHISPER_FAILED;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return 0;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

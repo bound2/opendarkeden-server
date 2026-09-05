@@ -41,7 +41,7 @@ public:
     // 최적화시, 미리 계산된 정수를 사용한다.
     PacketSize_t getSize();
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szGuildID + szBYTE + 20 + szGuildMemberRank + szbool;
     }
 

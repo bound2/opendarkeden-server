@@ -101,26 +101,30 @@ private:
 
 class CGPickupMoneyFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_PICKUP_MONEY;
+    static constexpr std::string_view kName = "CGPickupMoney";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoord + szCoord};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGPickupMoney();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGPickupMoney";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_PICKUP_MONEY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static CGPickupMoneyPacketSize 를 정의해서 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoord + szCoord;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

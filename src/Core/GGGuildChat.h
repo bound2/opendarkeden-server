@@ -116,29 +116,33 @@ private:
 
 class GGGuildChatFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GG_GUILD_CHAT;
+    static constexpr std::string_view kName = "GGGuildChat";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szGuildID + // GuildID
+                                           szBYTE + 10 +        // Sender
+                                           szuint +             // Color
+                                           szBYTE + 128};       // Message
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GGGuildChat();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GGGuildChat";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GG_GUILD_CHAT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GGGuildChatPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szGuildID + // GuildID
-               szBYTE + 10 +        // Sender
-               szuint +             // Color
-               szBYTE + 128;        // Message
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -67,17 +67,21 @@ private:
 
 class GCNPCSayFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_NPC_SAY;
+    static constexpr std::string_view kName = "GCNPCSay";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szScriptID + szBYTE};
+
+    Packet* createPacket() override {
         return new GCNPCSay();
     }
-    string getPacketName() const {
-        return "GCNPCSay";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_NPC_SAY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szScriptID + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

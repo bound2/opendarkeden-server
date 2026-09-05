@@ -76,26 +76,30 @@ private:
 
 class GCCannotAddFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_CANNOT_ADD;
+    static constexpr std::string_view kName = "GCCannotAdd";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCCannotAdd();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCCannotAdd";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_CANNOT_ADD;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCCannotAddPacketSize 를 정의해서 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

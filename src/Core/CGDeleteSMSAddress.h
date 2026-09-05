@@ -51,17 +51,21 @@ private:
 
 class CGDeleteSMSAddressFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_DELETE_SMS_ADDRESS;
+    static constexpr std::string_view kName = "CGDeleteSMSAddress";
+    static constexpr PacketSize_t kMaxSize{szDWORD};
+
+    Packet* createPacket() override {
         return new CGDeleteSMSAddress();
     }
-    string getPacketName() const {
-        return "CGDeleteSMSAddress";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_DELETE_SMS_ADDRESS;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szDWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

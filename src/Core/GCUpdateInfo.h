@@ -500,25 +500,9 @@ private:
 
 class GCUpdateInfoFactory : public PacketFactory {
 public:
-    // create packet
-    Packet* createPacket() {
-        return new GCUpdateInfo();
-    }
-
-    // get packet name
-    string getPacketName() const {
-        return "GCUpdateInfo";
-    }
-
-    // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_UPDATE_INFO;
-    }
-
-    // get packet's max body size
-    // *OPTIMIZATION HINT*
-    // const static GCUpdateInfoPacketMaxSize �� ����, �����϶�.
-    PacketSize_t getPacketMaxSize() const {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_UPDATE_INFO;
+    static constexpr std::string_view kName = "GCUpdateInfo";
+    static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
 
         size += szBYTE;
@@ -563,6 +547,28 @@ public:
         size += szint;
 
         return size;
+    }()};
+
+    // create packet
+    Packet* createPacket() override {
+        return new GCUpdateInfo();
+    }
+
+    // get packet name
+    string getPacketName() const override {
+        return string(kName);
+    }
+
+    // get packet id
+    PacketID_t getPacketID() const override {
+        return kPacketID;
+    }
+
+    // get packet's max body size
+    // *OPTIMIZATION HINT*
+    // const static GCUpdateInfoPacketMaxSize �� ����, �����϶�.
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -69,7 +69,7 @@ public:
     }
 
     // get max size of object
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szObjectID                    // ObjectID
                + szBYTE + 20                 // 뱀파이어 이름
                + szCoord + szCoord + szDir   // 좌표와 방향

@@ -94,6 +94,10 @@ private:
 
 class GCAttackMeleeOK3Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ATTACK_MELEE_OK_3;
+    static constexpr std::string_view kName = "GCAttackMeleeOK3";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szObjectID};
+
     // constructor
     GCAttackMeleeOK3Factory() {}
 
@@ -103,23 +107,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAttackMeleeOK3();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAttackMeleeOK3";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ATTACK_MELEE_OK_3;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

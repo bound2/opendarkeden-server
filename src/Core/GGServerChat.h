@@ -124,30 +124,34 @@ private:
 
 class GGServerChatFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GG_SERVER_CHAT;
+    static constexpr std::string_view kName = "GGServerChat";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 10 +  // Sender
+                                           szBYTE + 10 +  // Receiver
+                                           szuint +       // Color
+                                           szBYTE + 128 + // Message
+                                           szRace};       // Race
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GGServerChat();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GGServerChat";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GG_SERVER_CHAT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GGServerChatPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 10 +  // Sender
-               szBYTE + 10 +  // Receiver
-               szuint +       // Color
-               szBYTE + 128 + // Message
-               szRace;        // Race
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

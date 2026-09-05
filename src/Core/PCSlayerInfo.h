@@ -79,7 +79,7 @@ public:
     }
 
     // get max size of object
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szBYTE + 20 + szSlot + szAlignment + szAttr * 3 + szRank + szExp * 3 + szHP * 2 + szMP * 2 +
                szFame
                //+ szGold

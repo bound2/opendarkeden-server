@@ -30,7 +30,7 @@ public:
         //			return szPetType + szMonsterType + szPetLevel + szPetExp + szPetAttr + szPetAttrLevel + szOptionType
         //+ szItemType + szObjectID;
     }
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         //		if ( type == MY_INFO )
         return szPetType + szMonsterType + szPetLevel + szPetExp + szPetHP + szPetAttr + szPetAttrLevel + szOptionType +
                szItemType + szBYTE + szBYTE + szBYTE + szBYTE + szObjectID + szBYTE + 22;

@@ -101,28 +101,32 @@ private:
 
 class GCReconnectLoginFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_RECONNECT_LOGIN;
+    static constexpr std::string_view kName = "GCReconnectLogin";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 15 // 게임 서버 아이피
+                                           + szuint    // 게임 서버 포트
+                                           + szDWORD}; // 인증 키
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCReconnectLogin();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCReconnectLogin";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_RECONNECT_LOGIN;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCReconnectLoginPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 15 // 게임 서버 아이피
-               + szuint    // 게임 서버 포트
-               + szDWORD;  // 인증 키
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

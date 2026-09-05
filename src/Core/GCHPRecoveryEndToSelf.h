@@ -79,26 +79,30 @@ private:
 
 class GCHPRecoveryEndToSelfFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_HP_RECOVERY_END_TO_SELF;
+    static constexpr std::string_view kName = "GCHPRecoveryEndToSelf";
+    static constexpr PacketSize_t kMaxSize{szHP};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCHPRecoveryEndToSelf();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCHPRecoveryEndToSelf";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_HP_RECOVERY_END_TO_SELF;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
     // *OPTIMIZATION HINT*
     // const static GCHPRecoveryEndToSelfPacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szHP;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

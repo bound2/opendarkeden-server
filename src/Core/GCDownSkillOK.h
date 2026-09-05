@@ -81,6 +81,10 @@ private:
 
 class GCDownSkillOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_DOWN_SKILL_OK;
+    static constexpr std::string_view kName = "GCDownSkillOK";
+    static constexpr PacketSize_t kMaxSize{szSkillType};
+
     // constructor
     GCDownSkillOKFactory() {}
 
@@ -90,23 +94,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCDownSkillOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCDownSkillOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_DOWN_SKILL_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillType;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

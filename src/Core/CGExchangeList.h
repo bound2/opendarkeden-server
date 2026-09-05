@@ -104,25 +104,30 @@ private:
 
 class CGExchangeListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_EXCHANGE_LIST;
+    static constexpr std::string_view kName = "CGExchangeList";
+    static constexpr PacketSize_t kMaxSize{
+        sizeof(int) +                      // m_Page
+        sizeof(int) +                      // m_PageSize
+        szBYTE +                           // m_ItemClass
+        szWORD +                           // m_ItemType (uint16)
+        sizeof(int) +                      // m_MinPrice
+        sizeof(int) +                      // m_MaxPrice
+        szBYTE +                           // m_SellerFilter length byte
+        CGExchangeList::kMaxSellerFilter}; // m_SellerFilter body (write() clamps to this)
+
+    Packet* createPacket() override {
         return new CGExchangeList();
     }
-    string getPacketName() const {
-        return "CGExchangeList";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_EXCHANGE_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
     // 4 + 4 + 1 + 2 + 4 + 4 + 1 + 255 = 275. The client factory must match.
-    PacketSize_t getPacketMaxSize() const {
-        return sizeof(int) +                     // m_Page
-               sizeof(int) +                     // m_PageSize
-               szBYTE +                          // m_ItemClass
-               szWORD +                          // m_ItemType (uint16)
-               sizeof(int) +                     // m_MinPrice
-               sizeof(int) +                     // m_MaxPrice
-               szBYTE +                          // m_SellerFilter length byte
-               CGExchangeList::kMaxSellerFilter; // m_SellerFilter body (write() clamps to this)
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -72,6 +72,10 @@ private:
 
 class CGStoreSignFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_STORE_SIGN;
+    static constexpr std::string_view kName = "CGStoreSign";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 80};
+
     // constructor
     CGStoreSignFactory() {}
 
@@ -81,23 +85,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGStoreSign();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGStoreSign";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_STORE_SIGN;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 80;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

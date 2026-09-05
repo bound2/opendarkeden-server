@@ -141,6 +141,10 @@ private:
 
 class GCChangeShapeFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_CHANGE_SHAPE;
+    static constexpr std::string_view kName = "GCChangeShape";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + szItemType + szOptionType + szSpeed + szBYTE};
+
     // constructor
     GCChangeShapeFactory() {}
 
@@ -150,23 +154,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCChangeShape();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCChangeShape";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_CHANGE_SHAPE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE + szItemType + szOptionType + szSpeed + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

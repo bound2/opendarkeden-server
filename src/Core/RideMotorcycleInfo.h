@@ -33,7 +33,7 @@ public:
 
     PacketSize_t getSize();
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szObjectID +   // motorcycle object id
                szItemType +   // motorcycle type
                szBYTE + 255 + // motorcycle option type

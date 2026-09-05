@@ -89,25 +89,29 @@ private:
 
 class CLSelectPCFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CL_SELECT_PC;
+    static constexpr std::string_view kName = "CLSelectPC";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 20  // name
+                                           + szPCType}; // pc type
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CLSelectPC();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CLSelectPC";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CL_SELECT_PC;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 20 // name
-               + szPCType; // pc type
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

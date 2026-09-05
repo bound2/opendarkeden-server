@@ -87,26 +87,30 @@ public:
 
 class GCChangeDarkLightFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_CHANGE_DARK_LIGHT;
+    static constexpr std::string_view kName = "GCChangeDarkLight";
+    static constexpr PacketSize_t kMaxSize{szDarkLevel + szLightLevel};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCChangeDarkLight();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCChangeDarkLight";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_CHANGE_DARK_LIGHT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCChangeDarkLightPacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szDarkLevel + szLightLevel;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

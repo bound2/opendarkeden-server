@@ -97,6 +97,10 @@ private:
 
 class CGJoinGuildFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_JOIN_GUILD;
+    static constexpr std::string_view kName = "CGJoinGuild";
+    static constexpr PacketSize_t kMaxSize{szGuildID + szGuildMemberRank + szBYTE + 256};
+
     // constructor
     CGJoinGuildFactory() {}
 
@@ -106,23 +110,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGJoinGuild();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGJoinGuild";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_JOIN_GUILD;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID + szGuildMemberRank + szBYTE + 256;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

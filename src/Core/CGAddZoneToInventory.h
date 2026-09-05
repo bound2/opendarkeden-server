@@ -83,17 +83,21 @@ private:
 
 class CGAddZoneToInventoryFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_ADD_ZONE_TO_INVENTORY;
+    static constexpr std::string_view kName = "CGAddZoneToInventory";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoord + szCoord + szCoordInven + szCoordInven};
+
+    Packet* createPacket() override {
         return new CGAddZoneToInventory();
     }
-    string getPacketName() const {
-        return "CGAddZoneToInventory";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_ADD_ZONE_TO_INVENTORY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoord + szCoord + szCoordInven + szCoordInven;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -20,7 +20,7 @@ public:
     uint getSize() const {
         return szBYTE + ((m_ItemExist) ? (PCItemInfo::getSize() + szGold) : 0);
     }
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szBYTE + PCItemInfo::getMaxSize() + szGold;
     }
 
@@ -53,7 +53,7 @@ public:
     PacketSize_t getSize() const {
         return szBYTE + ((m_Open == 0) ? 0 : (szBYTE + m_Sign.size()));
     }
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return szBYTE + szBYTE + MAX_SIGN_SIZE;
     }
 
@@ -84,7 +84,7 @@ public:
     StoreInfo() : m_Open(0), m_Items(MAX_ITEM_NUM) {}
 
     PacketSize_t getSize(bool toOther) const;
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return szBYTE + szBYTE + MAX_SIGN_SIZE + szBYTE + MAX_ITEM_NUM * StoreItemInfo::getMaxSize();
     }
 

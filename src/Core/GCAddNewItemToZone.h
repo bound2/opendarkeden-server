@@ -53,27 +53,32 @@ public:
 
 class GCAddNewItemToZoneFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_NEW_ITEM_TO_ZONE;
+    static constexpr std::string_view kName = "GCAddNewItemToZone";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoord + szCoord + szBYTE + szItemType + szBYTE + 255 +
+                                           szDurability + szItemNum + szBYTE +
+                                           (szObjectID + szBYTE + szItemType + szItemNum + szSlotID) * 12};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddNewItemToZone();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAddNewItemToZone";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_NEW_ITEM_TO_ZONE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
     // *OPTIMIZATION HINT*
     // const static GCAddNewItemToZonePacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoord + szCoord + szBYTE + szItemType + szBYTE + 255 + szDurability + szItemNum + szBYTE +
-               (szObjectID + szBYTE + szItemType + szItemNum + szSlotID) * 12;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

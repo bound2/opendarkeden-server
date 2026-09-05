@@ -65,17 +65,21 @@ private:
 
 class GCPetStashVerifyFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PET_STASH_VERIFY;
+    static constexpr std::string_view kName = "GCPetStashVerify";
+    static constexpr PacketSize_t kMaxSize{szBYTE};
+
+    Packet* createPacket() override {
         return new GCPetStashVerify();
     }
-    string getPacketName() const {
-        return "GCPetStashVerify";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_PET_STASH_VERIFY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

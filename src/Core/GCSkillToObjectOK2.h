@@ -123,6 +123,11 @@ private:
 
 class GCSkillToObjectOK2Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SKILL_TO_OBJECT_OK_2;
+    static constexpr std::string_view kName = "GCSkillToObjectOK2";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szSkillType + szDuration + szBYTE +
+                                           ModifyInfo::getPacketMaxSize()};
+
     // constructor
     GCSkillToObjectOK2Factory() {}
 
@@ -132,23 +137,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSkillToObjectOK2();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCSkillToObjectOK2";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SKILL_TO_OBJECT_OK_2;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szSkillType + szDuration + szBYTE + ModifyInfo::getPacketMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -89,27 +89,31 @@ private:
 
 class LGKickCharacterFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LG_KICK_CHARACTER;
+    static constexpr std::string_view kName = "LGKickCharacter";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 20 // PC name
+                                           + szuint};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LGKickCharacter();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LGKickCharacter";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LG_KICK_CHARACTER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static LGKickCharacterPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 20 // PC name
-               + szuint;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

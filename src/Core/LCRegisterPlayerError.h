@@ -71,24 +71,28 @@ private:
 
 class LCRegisterPlayerErrorFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LC_REGISTER_PLAYER_ERROR;
+    static constexpr std::string_view kName = "LCRegisterPlayerError";
+    static constexpr PacketSize_t kMaxSize{szBYTE};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LCRegisterPlayerError();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LCRegisterPlayerError";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LC_REGISTER_PLAYER_ERROR;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

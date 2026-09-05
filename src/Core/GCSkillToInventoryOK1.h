@@ -148,6 +148,11 @@ private:
 
 class GCSkillToInventoryOK1Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SKILL_TO_INVENTORY_OK_1;
+    static constexpr std::string_view kName = "GCSkillToInventoryOK1";
+    static constexpr PacketSize_t kMaxSize{szSkillType + szObjectID + szItemType + szCEffectID + szCoord * 2 +
+                                           szDuration + ModifyInfo::getPacketMaxSize()};
+
     // constructor
     GCSkillToInventoryOK1Factory() {}
 
@@ -157,24 +162,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSkillToInventoryOK1();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCSkillToInventoryOK1";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SKILL_TO_INVENTORY_OK_1;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillType + szObjectID + szItemType + szCEffectID + szCoord * 2 + szDuration +
-               ModifyInfo::getPacketMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

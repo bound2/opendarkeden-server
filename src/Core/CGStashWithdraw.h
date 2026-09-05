@@ -54,17 +54,21 @@ private:
 
 class CGStashWithdrawFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_STASH_WITHDRAW;
+    static constexpr std::string_view kName = "CGStashWithdraw";
+    static constexpr PacketSize_t kMaxSize{szGold};
+
+    Packet* createPacket() override {
         return new CGStashWithdraw();
     }
-    string getPacketName() const {
-        return "CGStashWithdraw";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_STASH_WITHDRAW;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szGold;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

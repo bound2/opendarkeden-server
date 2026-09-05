@@ -55,7 +55,7 @@ public:
     }
 
     // get max size of object
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szBYTE + 20                   // 아우스터스 이름
                + szSlot                      // 슬롯
                + szAlignment                 // 성향

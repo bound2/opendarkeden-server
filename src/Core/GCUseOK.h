@@ -68,26 +68,30 @@ public:
 
 class GCUseOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_USE_OK;
+    static constexpr std::string_view kName = "GCUseOK";
+    static constexpr PacketSize_t kMaxSize{ModifyInfo::getPacketMaxSize()};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCUseOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCUseOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_USE_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // Use the const static GCUseOKPacketSize for efficiency.
-    PacketSize_t getPacketMaxSize() const {
-        return ModifyInfo::getPacketMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

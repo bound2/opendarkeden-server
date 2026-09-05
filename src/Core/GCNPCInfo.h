@@ -114,31 +114,37 @@ private:
 
 class GCNPCInfoFactory : public PacketFactory {
 public:
-    // create packet
-    Packet* createPacket() {
-        return new GCNPCInfo();
-    }
-
-    // get packet name
-    string getPacketName() const {
-        return "GCNPCInfo";
-    }
-
-    // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_NPC_INFO;
-    }
-
-    // get packet's max body size
-    // *OPTIMIZATION HINT*
-    // const static GCNPCInfoPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_NPC_INFO;
+    static constexpr std::string_view kName = "GCNPCInfo";
+    static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
 
         size += szBYTE;
         size += NPCInfo::getMaxSize() * 255;
 
         return size;
+    }()};
+
+    // create packet
+    Packet* createPacket() override {
+        return new GCNPCInfo();
+    }
+
+    // get packet name
+    string getPacketName() const override {
+        return string(kName);
+    }
+
+    // get packet id
+    PacketID_t getPacketID() const override {
+        return kPacketID;
+    }
+
+    // get packet's max body size
+    // *OPTIMIZATION HINT*
+    // const static GCNPCInfoPacketMaxSize 를 정의, 리턴하라.
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

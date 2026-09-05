@@ -86,6 +86,10 @@ private:
 
 class CGAppointSubmasterFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_APPOINT_SUBMASTER;
+    static constexpr std::string_view kName = "CGAppointSubmaster";
+    static constexpr PacketSize_t kMaxSize{szGuildID + szBYTE + 20};
+
     // constructor
     CGAppointSubmasterFactory() {}
 
@@ -95,23 +99,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGAppointSubmaster();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGAppointSubmaster";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_APPOINT_SUBMASTER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID + szBYTE + 20;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

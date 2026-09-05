@@ -38,7 +38,7 @@ struct SingleGuildInfo {
                szGold;                // Guild Join Fee
     }
 
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return szGuildID +    // Guild ID
                szBYTE +       // Guild Name length
                30 +           // Guild Name
@@ -254,26 +254,30 @@ private:
 
 class GCShowUnionInfoFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOW_UNION_INFO;
+    static constexpr std::string_view kName = "GCShowUnionInfo";
+    static constexpr PacketSize_t kMaxSize{SingleGuildInfo::getMaxSize() * 4};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCShowUnionInfo();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCShowUnionInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SHOW_UNION_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCSystemMessagePacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return SingleGuildInfo::getMaxSize() * 4;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

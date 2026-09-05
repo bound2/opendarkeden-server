@@ -63,17 +63,21 @@ private:
 
 class GCPartyLeaveFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PARTY_LEAVE;
+    static constexpr std::string_view kName = "GCPartyLeave";
+    static constexpr PacketSize_t kMaxSize{szBYTE * 2 + 20};
+
+    Packet* createPacket() override {
         return new GCPartyLeave();
     }
-    string getPacketName() const {
-        return "GCPartyLeave";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_PARTY_LEAVE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE * 2 + 20;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

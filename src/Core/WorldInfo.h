@@ -42,7 +42,7 @@ public:
     // ����ȭ��, �̸� ���� ������ ����Ѵ�.
     PacketSize_t getSize();
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return (szBYTE + szBYTE + 20 + szBYTE) * 37;
     }
 

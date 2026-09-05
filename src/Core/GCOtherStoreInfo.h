@@ -68,17 +68,21 @@ private:
 
 class GCOtherStoreInfoFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_OTHER_STORE_INFO;
+    static constexpr std::string_view kName = "GCOtherStoreInfo";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + StoreInfo::getMaxSize()};
+
+    Packet* createPacket() override {
         return new GCOtherStoreInfo();
     }
-    string getPacketName() const {
-        return "GCOtherStoreInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_OTHER_STORE_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE + StoreInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

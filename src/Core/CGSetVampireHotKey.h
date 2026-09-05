@@ -75,26 +75,30 @@ private:
 
 class CGSetVampireHotKeyFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SET_VAMPIRE_HOT_KEY;
+    static constexpr std::string_view kName = "CGSetVampireHotKey";
+    static constexpr PacketSize_t kMaxSize{szSkillType * 8};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGSetVampireHotKey();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGSetVampireHotKey";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SET_VAMPIRE_HOT_KEY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // Use CGSetVampireHotKeyPacketSize if that constant is defined.
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillType * 8;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

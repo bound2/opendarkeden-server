@@ -60,17 +60,21 @@ private:
 
 class GCAddHelicopterFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_HELICOPTER;
+    static constexpr std::string_view kName = "GCAddHelicopter";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE};
+
+    Packet* createPacket() override {
         return new GCAddHelicopter();
     }
-    string getPacketName() const {
-        return "GCAddHelicopter";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_HELICOPTER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

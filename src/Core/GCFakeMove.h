@@ -100,26 +100,30 @@ private:
 
 class GCFakeMoveFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_FAKE_MOVE;
+    static constexpr std::string_view kName = "GCFakeMove";
+    static constexpr PacketSize_t kMaxSize{szObjectID + 2 * szCoord};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCFakeMove();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCFakeMove";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_FAKE_MOVE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCFakeMovePacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + 2 * szCoord;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

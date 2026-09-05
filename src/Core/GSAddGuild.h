@@ -142,34 +142,38 @@ private:
 
 class GSAddGuildFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GS_ADD_GUILD;
+    static constexpr std::string_view kName = "GSAddGuild";
+    static constexpr PacketSize_t kMaxSize{szBYTE +          // guild name length
+                                           30 +              // guild name max length
+                                           szBYTE +          // guild master length
+                                           20 +              // guild manster max length
+                                           szBYTE +          // guild intro length
+                                           256 +             // guild intro max length
+                                           szGuildState +    // guild state size
+                                           szGuildRace +     // guild race
+                                           szServerGroupID}; // server group ID
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GSAddGuild();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GSAddGuild";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GS_ADD_GUILD;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static LGIncomingConnectionPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE +         // guild name length
-               30 +             // guild name max length
-               szBYTE +         // guild master length
-               20 +             // guild manster max length
-               szBYTE +         // guild intro length
-               256 +            // guild intro max length
-               szGuildState +   // guild state size
-               szGuildRace +    // guild race
-               szServerGroupID; // server group ID
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -95,26 +95,30 @@ private:
 
 class GCSetPositionFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SET_POSITION;
+    static constexpr std::string_view kName = "GCSetPosition";
+    static constexpr PacketSize_t kMaxSize{szCoord + szCoord + szDir};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSetPosition();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCSetPosition";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SET_POSITION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCSetPositionPacketSize 를 정의해서 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szCoord + szCoord + szDir;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

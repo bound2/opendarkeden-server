@@ -45,7 +45,7 @@ public:
     // 최적화시, 미리 계산된 정수를 사용한다.
     PacketSize_t getSize();
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return (szGuildID + szBYTE + 30 + szGuildType + szGuildRace + szGuildState + szServerGroupID + szZoneID +
                 szBYTE + 20 + szBYTE + 11 + szBYTE + 256) +
                szWORD + GuildMemberInfo2::getMaxSize() * 220 + szWORD;

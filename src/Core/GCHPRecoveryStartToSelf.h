@@ -105,6 +105,10 @@ private:
 
 class GCHPRecoveryStartToSelfFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_HP_RECOVERY_START_TO_SELF;
+    static constexpr std::string_view kName = "GCHPRecoveryStartToSelf";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szHP + szHP};
+
     // constructor
     GCHPRecoveryStartToSelfFactory() {}
 
@@ -114,23 +118,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCHPRecoveryStartToSelf();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCHPRecoveryStartToSelf";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_HP_RECOVERY_START_TO_SELF;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szHP + szHP;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

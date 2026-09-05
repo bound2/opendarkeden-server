@@ -157,27 +157,31 @@ private:
 
 class GCCreateItemFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_CREATE_ITEM;
+    static constexpr std::string_view kName = "GCCreateItem";
+    static constexpr PacketSize_t kMaxSize{szObjectID +     // 아이템 오브젝트 ID
+                                           szBYTE +         // 아이템 클래스
+                                           szItemType +     // 아이템 타입
+                                           szBYTE + 255 +   // 아이템 옵션
+                                           szDurability +   // 아이템 내구도
+                                           szSilver +       // 아이템 은 도금량
+                                           szGrade +        // 아이템 등급
+                                           szEnchantLevel + // 아이템 인챈트 레벨
+                                           szItemNum +      // 아이템 숫자
+                                           szCoordInven +   // 아이템 X 좌표
+                                           szCoordInven};   // 아이템 Y 좌표
+
+    Packet* createPacket() override {
         return new GCCreateItem();
     }
-    string getPacketName() const {
-        return "GCCreateItem";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_CREATE_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID +     // 아이템 오브젝트 ID
-               szBYTE +         // 아이템 클래스
-               szItemType +     // 아이템 타입
-               szBYTE + 255 +   // 아이템 옵션
-               szDurability +   // 아이템 내구도
-               szSilver +       // 아이템 은 도금량
-               szGrade +        // 아이템 등급
-               szEnchantLevel + // 아이템 인챈트 레벨
-               szItemNum +      // 아이템 숫자
-               szCoordInven +   // 아이템 X 좌표
-               szCoordInven;    // 아이템 Y 좌표
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

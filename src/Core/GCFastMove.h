@@ -116,26 +116,30 @@ private:
 
 class GCFastMoveFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_FAST_MOVE;
+    static constexpr std::string_view kName = "GCFastMove";
+    static constexpr PacketSize_t kMaxSize{szObjectID + 4 * szCoord + szSkillType};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCFastMove();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCFastMove";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_FAST_MOVE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // Use GCFastMovePacketSize if that constant is defined.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + 4 * szCoord + szSkillType;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

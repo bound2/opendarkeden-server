@@ -95,25 +95,29 @@ private:
 
 class SGGuildInfoFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_SG_GUILD_INFO;
+    static constexpr std::string_view kName = "SGGuildInfo";
+    static constexpr PacketSize_t kMaxSize{szWORD + GuildInfo2::getMaxSize() * 500};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new SGGuildInfo();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "SGGuildInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_SG_GUILD_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    PacketSize_t getPacketMaxSize() const {
-        return szWORD + GuildInfo2::getMaxSize() * 500;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

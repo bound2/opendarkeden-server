@@ -71,17 +71,21 @@ private:
 
 class CGPartyInviteFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_PARTY_INVITE;
+    static constexpr std::string_view kName = "CGPartyInvite";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE};
+
+    Packet* createPacket() override {
         return new CGPartyInvite();
     }
-    string getPacketName() const {
-        return "CGPartyInvite";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_PARTY_INVITE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

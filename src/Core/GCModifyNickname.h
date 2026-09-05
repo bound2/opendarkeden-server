@@ -54,17 +54,21 @@ private:
 
 class GCModifyNicknameFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MODIFY_NICKNAME;
+    static constexpr std::string_view kName = "GCModifyNickname";
+    static constexpr PacketSize_t kMaxSize{szObjectID + NicknameInfo::getMaxSize()};
+
+    Packet* createPacket() override {
         return new GCModifyNickname();
     }
-    string getPacketName() const {
-        return "GCModifyNickname";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MODIFY_NICKNAME;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + NicknameInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

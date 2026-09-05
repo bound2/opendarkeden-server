@@ -63,17 +63,21 @@ private:
 
 class GCTimeLimitItemInfoFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_TIME_LIMIT_ITEM_INFO;
+    static constexpr std::string_view kName = "GCTimeLimitItemInfo";
+    static constexpr PacketSize_t kMaxSize{szBYTE + MAX_TIME_LIMIT_ITEM_INFO * (szObjectID + szDWORD)};
+
+    Packet* createPacket() override {
         return new GCTimeLimitItemInfo();
     }
-    string getPacketName() const {
-        return "GCTimeLimitItemInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_TIME_LIMIT_ITEM_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + MAX_TIME_LIMIT_ITEM_INFO * (szObjectID + szDWORD);
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

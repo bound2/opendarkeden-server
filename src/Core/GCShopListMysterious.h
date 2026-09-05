@@ -100,16 +100,9 @@ private:
 
 class GCShopListMysteriousFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
-        return new GCShopListMysterious();
-    }
-    string getPacketName() const {
-        return "GCShopListMysterious";
-    }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SHOP_LIST_MYSTERIOUS;
-    }
-    PacketSize_t getPacketMaxSize() const {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOP_LIST_MYSTERIOUS;
+    static constexpr std::string_view kName = "GCShopListMysterious";
+    static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t unit_size = szBYTE + szItemType;
         PacketSize_t rValue = 0;
 
@@ -121,6 +114,19 @@ public:
         rValue += szMarketCond * 2;                // market condition
 
         return rValue;
+    }()};
+
+    Packet* createPacket() override {
+        return new GCShopListMysterious();
+    }
+    string getPacketName() const override {
+        return string(kName);
+    }
+    PacketID_t getPacketID() const override {
+        return kPacketID;
+    }
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

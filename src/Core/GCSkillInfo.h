@@ -108,26 +108,30 @@ private:
 
 class GCSkillInfoFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SKILL_INFO;
+    static constexpr std::string_view kName = "GCSkillInfo";
+    static constexpr PacketSize_t kMaxSize{SlayerSkillInfo::getMaxSize()};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSkillInfo();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCSkillInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SKILL_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // Use const static GCSkillInfoPacketMaxSize when possible.
-    PacketSize_t getPacketMaxSize() const {
-        return SlayerSkillInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

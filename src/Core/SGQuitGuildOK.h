@@ -91,28 +91,32 @@ private:
 
 class SGQuitGuildOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_SG_QUIT_GUILD_OK;
+    static constexpr std::string_view kName = "SGQuitGuildOK";
+    static constexpr PacketSize_t kMaxSize{szGuildID + // guild ID
+                                           szBYTE +    // name length
+                                           20};        // name max size
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new SGQuitGuildOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "SGQuitGuildOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_SG_QUIT_GUILD_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static LGIncomingConnectionPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID + // guild ID
-               szBYTE +    // name length
-               20;         // name max size
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

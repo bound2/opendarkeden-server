@@ -139,6 +139,11 @@ private:
 
 class CGAbsorbSoulFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_ABSORB_SOUL;
+    static constexpr std::string_view kName = "CGAbsorbSoul";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szZoneCoord + szZoneCoord + szObjectID + szCoordInven +
+                                           szCoordInven + szCoordInven + szCoordInven};
+
     // constructor
     CGAbsorbSoulFactory() {}
 
@@ -148,24 +153,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGAbsorbSoul();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGAbsorbSoul";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_ABSORB_SOUL;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szZoneCoord + szZoneCoord + szObjectID + szCoordInven + szCoordInven + szCoordInven +
-               szCoordInven;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

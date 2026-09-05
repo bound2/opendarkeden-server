@@ -52,17 +52,21 @@ protected:
 
 class CGRequestPowerPointFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_REQUEST_POWER_POINT;
+    static constexpr std::string_view kName = "CGRequestPowerPoint";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 12};
+
+    Packet* createPacket() override {
         return new CGRequestPowerPoint();
     }
-    string getPacketName() const {
-        return "CGRequestPowerPoint";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_REQUEST_POWER_POINT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 12;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

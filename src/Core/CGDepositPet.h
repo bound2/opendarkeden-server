@@ -65,17 +65,21 @@ private:
 
 class CGDepositPetFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_DEPOSIT_PET;
+    static constexpr std::string_view kName = "CGDepositPet";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE};
+
+    Packet* createPacket() override {
         return new CGDepositPet();
     }
-    string getPacketName() const {
-        return "CGDepositPet";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_DEPOSIT_PET;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

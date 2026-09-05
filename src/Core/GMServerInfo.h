@@ -116,26 +116,30 @@ private:
 
 class GMServerInfoFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GM_SERVER_INFO;
+    static constexpr std::string_view kName = "GMServerInfo";
+    static constexpr PacketSize_t kMaxSize{szWorldID + szBYTE + 255 * (szBYTE + szDWORD)};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GMServerInfo();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GMServerInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GM_SERVER_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // Use GMServerInfoPacketMaxSize if that constant is defined.
-    PacketSize_t getPacketMaxSize() const {
-        return szWorldID + szBYTE + 255 * (szBYTE + szDWORD);
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

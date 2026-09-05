@@ -44,7 +44,7 @@ public:
     PacketSize_t getSize() const {
         return szBYTE + szWORD * m_ListNum * 2;
     }
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return 255;
     }
 

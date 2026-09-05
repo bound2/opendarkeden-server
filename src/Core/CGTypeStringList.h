@@ -93,17 +93,21 @@ private:
 
 class CGTypeStringListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_TYPE_STRING_LIST;
+    static constexpr std::string_view kName = "CGTypeStringList";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE + (szBYTE + MAX_STRING_LENGTH) * MAX_STRING_NUM + szDWORD};
+
+    Packet* createPacket() override {
         return new CGTypeStringList();
     }
-    string getPacketName() const {
-        return "CGTypeStringList";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_TYPE_STRING_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szBYTE + (szBYTE + MAX_STRING_LENGTH) * MAX_STRING_NUM + szDWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

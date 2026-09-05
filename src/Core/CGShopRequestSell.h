@@ -91,17 +91,21 @@ private:
 
 class CGShopRequestSellFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SHOP_REQUEST_SELL;
+    static constexpr std::string_view kName = "CGShopRequestSell";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szObjectID + szBYTE};
+
+    Packet* createPacket() override {
         return new CGShopRequestSell();
     }
-    string getPacketName() const {
-        return "CGShopRequestSell";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SHOP_REQUEST_SELL;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szObjectID + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

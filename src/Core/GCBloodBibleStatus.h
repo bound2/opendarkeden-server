@@ -148,26 +148,31 @@ private:
 
 class GCBloodBibleStatusFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_BLOOD_BIBLE_STATUS;
+    static constexpr std::string_view kName = "GCBloodBibleStatus";
+    static constexpr PacketSize_t kMaxSize{szItemType + szZoneID + szStorage + szBYTE + 255 + szRace + szRace +
+                                           szZoneCoord + szZoneCoord};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCBloodBibleStatus();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCBloodBibleStatus";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_BLOOD_BIBLE_STATUS;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCBloodBibleStatusPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szItemType + szZoneID + szStorage + szBYTE + 255 + szRace + szRace + szZoneCoord + szZoneCoord;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

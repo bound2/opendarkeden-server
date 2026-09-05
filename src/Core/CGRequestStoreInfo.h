@@ -72,6 +72,10 @@ private:
 
 class CGRequestStoreInfoFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_REQUEST_STORE_INFO;
+    static constexpr std::string_view kName = "CGRequestStoreInfo";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
     // constructor
     CGRequestStoreInfoFactory() {}
 
@@ -81,23 +85,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGRequestStoreInfo();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGRequestStoreInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_REQUEST_STORE_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

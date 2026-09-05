@@ -92,24 +92,28 @@ private:
 
 class LCRegisterPlayerOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LC_REGISTER_PLAYER_OK;
+    static constexpr std::string_view kName = "LCRegisterPlayerOK";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 20 + szBYTE};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LCRegisterPlayerOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LCRegisterPlayerOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LC_REGISTER_PLAYER_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 20 + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

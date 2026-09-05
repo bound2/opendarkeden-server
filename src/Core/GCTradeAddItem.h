@@ -198,16 +198,9 @@ private:
 
 class GCTradeAddItemFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
-        return new GCTradeAddItem();
-    }
-    string getPacketName() const {
-        return "GCTradeAddItem";
-    }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_TRADE_ADD_ITEM;
-    }
-    PacketSize_t getPacketMaxSize() const {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_TRADE_ADD_ITEM;
+    static constexpr std::string_view kName = "GCTradeAddItem";
+    static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
         size += szObjectID;                   // m_TargetObjectID
         size += szCoordInven;                 // m_X
@@ -224,6 +217,19 @@ public:
         size += szBYTE;                       // m_ListNum
         size += (SubItemInfo::getSize() * 8); // list<SubItemInfo*> m_InfoList;
         return size;
+    }()};
+
+    Packet* createPacket() override {
+        return new GCTradeAddItem();
+    }
+    string getPacketName() const override {
+        return string(kName);
+    }
+    PacketID_t getPacketID() const override {
+        return kPacketID;
+    }
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

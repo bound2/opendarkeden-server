@@ -93,6 +93,10 @@ private:
 
 class GCGetDamageFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_GET_DAMAGE;
+    static constexpr std::string_view kName = "GCGetDamage";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szWORD};
+
     // constructor
     GCGetDamageFactory() {}
 
@@ -102,23 +106,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCGetDamage();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCGetDamage";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_GET_DAMAGE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

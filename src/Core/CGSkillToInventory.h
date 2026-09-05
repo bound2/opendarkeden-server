@@ -99,17 +99,21 @@ private:
 
 class CGSkillToInventoryFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SKILL_TO_INVENTORY;
+    static constexpr std::string_view kName = "CGSkillToInventory";
+    static constexpr PacketSize_t kMaxSize{szSkillType + szObjectID + szCoordInven * 4};
+
+    Packet* createPacket() override {
         return new CGSkillToInventory();
     }
-    string getPacketName() const {
-        return "CGSkillToInventory";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SKILL_TO_INVENTORY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillType + szObjectID + szCoordInven * 4;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

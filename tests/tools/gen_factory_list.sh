@@ -6,6 +6,9 @@
 #
 # The .inc is the wire-layout inventory's registry: one include + one
 # registration per packet factory whose class is compiled into de-kernel.
+# A third section, ALL_PACKET_FACTORIES_TYPES, lists the same factories as
+# a comma-separated type list so a test can fold them into one
+# de::packet::FactoryList (PacketMeta.h) and compile-check the ids.
 # It is committed; tests/ratchet/ratchets.sh fails when it drifts from
 # this script's output or when PacketFactoryManager registers a factory
 # that is missing from it.
@@ -58,6 +61,10 @@ done
     echo "#ifdef ALL_PACKET_FACTORIES_REGISTER"
     sort -u "$tmp_reg"
     echo "#endif // ALL_PACKET_FACTORIES_REGISTER"
+    echo "#ifdef ALL_PACKET_FACTORIES_TYPES"
+    # One `    Name,` per factory, no comma after the last one.
+    sort -u "$tmp_reg" | sed -E 's/.*new ([A-Za-z0-9_]+Factory).*/    \1,/' | sed '$ s/,$//'
+    echo "#endif // ALL_PACKET_FACTORIES_TYPES"
     echo "// clang-format on"
 } > "$OUT"
 

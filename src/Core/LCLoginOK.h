@@ -110,24 +110,28 @@ private:
 
 class LCLoginOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_LC_LOGIN_OK;
+    static constexpr std::string_view kName = "LCLoginOK";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE + szBYTE + szWORD};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new LCLoginOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "LCLoginOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_LC_LOGIN_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szBYTE + szBYTE + szWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

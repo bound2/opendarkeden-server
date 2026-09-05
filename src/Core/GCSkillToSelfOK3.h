@@ -118,6 +118,10 @@ private:
 
 class GCSkillToSelfOK3Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SKILL_TO_SELF_OK_3;
+    static constexpr std::string_view kName = "GCSkillToSelfOK3";
+    static constexpr PacketSize_t kMaxSize{szCoord * 2 + szSkillType + szDuration + szBYTE};
+
     // constructor
     GCSkillToSelfOK3Factory() {}
 
@@ -127,23 +131,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSkillToSelfOK3();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCSkillToSelfOK3";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SKILL_TO_SELF_OK_3;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szCoord * 2 + szSkillType + szDuration + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

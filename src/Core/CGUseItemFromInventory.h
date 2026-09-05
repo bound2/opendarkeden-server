@@ -78,17 +78,21 @@ private:
 
 class CGUseItemFromInventoryFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_USE_ITEM_FROM_INVENTORY;
+    static constexpr std::string_view kName = "CGUseItemFromInventory";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoordInven + szCoordInven};
+
+    Packet* createPacket() override {
         return new CGUseItemFromInventory();
     }
-    string getPacketName() const {
-        return "CGUseItemFromInventory";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_USE_ITEM_FROM_INVENTORY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoordInven + szCoordInven;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -181,30 +181,34 @@ private:
 
 class GCAddWolfFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_WOLF;
+    static constexpr std::string_view kName = "GCAddWolf";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE +
+                                           20
+                                           //			+ szSpriteType
+                                           //			+ szColor
+                                           + szColor + szItemType + szCoord + szCoord + szDir + szHP * 2 + szGuildID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddWolf();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAddWolf";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_WOLF;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
     // *OPTIMIZATION HINT*
     // const static GCAddWolfPacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE +
-               20
-               //			+ szSpriteType
-               //			+ szColor
-               + szColor + szItemType + szCoord + szCoord + szDir + szHP * 2 + szGuildID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

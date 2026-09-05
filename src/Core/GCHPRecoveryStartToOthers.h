@@ -116,6 +116,10 @@ private:
 
 class GCHPRecoveryStartToOthersFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_HP_RECOVERY_START_TO_OTHERS;
+    static constexpr std::string_view kName = "GCHPRecoveryStartToOthers";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + szHP + szHP};
+
     // constructor
     GCHPRecoveryStartToOthersFactory() {}
 
@@ -125,23 +129,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCHPRecoveryStartToOthers();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCHPRecoveryStartToOthers";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_HP_RECOVERY_START_TO_OTHERS;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE + szHP + szHP;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

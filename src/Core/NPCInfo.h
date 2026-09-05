@@ -59,7 +59,7 @@ public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
 
-    static uint getMaxSize(void) {
+    static constexpr uint getMaxSize() {
         return szBYTE + 30 + szNPCID + szZoneCoord + szZoneCoord;
     }
 

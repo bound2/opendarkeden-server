@@ -94,24 +94,28 @@ private:
 
 class GCAddOustersCorpseFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_OUSTERS_CORPSE;
+    static constexpr std::string_view kName = "GCAddOustersCorpse";
+    static constexpr PacketSize_t kMaxSize{PCOustersInfo3::getMaxSize() + szBYTE};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddOustersCorpse();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAddOustersCorpse";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_OUSTERS_CORPSE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
-    PacketSize_t getPacketMaxSize() const {
-        return PCOustersInfo3::getMaxSize() + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

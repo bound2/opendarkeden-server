@@ -77,6 +77,10 @@ private:
 
 class GCMakeItemOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MAKE_ITEM_OK;
+    static constexpr std::string_view kName = "GCMakeItemOK";
+    static constexpr PacketSize_t kMaxSize{255 + 255 + ModifyInfo::getPacketMaxSize()};
+
     // constructor
     GCMakeItemOKFactory() {}
 
@@ -86,25 +90,25 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCMakeItemOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCMakeItemOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MAKE_ITEM_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
     // PacketSize_t getPacketMaxSize() const  { return szSkillType + szCEffectID + szDuration + szBYTE + szBYTE*
     // m_ListNum* 2 ; }
-    PacketSize_t getPacketMaxSize() const {
-        return 255 + 255 + ModifyInfo::getPacketMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -69,17 +69,21 @@ private:
 
 class GCAddGearToInventoryFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_GEAR_TO_INVENTORY;
+    static constexpr std::string_view kName = "GCAddGearToInventory";
+    static constexpr PacketSize_t kMaxSize{szSlotID + szCoordInven + szCoordInven};
+
+    Packet* createPacket() override {
         return new GCAddGearToInventory();
     }
-    string getPacketName() const {
-        return "GCAddGearToInventory";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_GEAR_TO_INVENTORY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szSlotID + szCoordInven + szCoordInven;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

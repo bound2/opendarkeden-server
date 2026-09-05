@@ -84,27 +84,31 @@ private:
 
 class GLIncomingConnectionErrorFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GL_INCOMING_CONNECTION_ERROR;
+    static constexpr std::string_view kName = "GLIncomingConnectionError";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 127 + szBYTE + 127};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GLIncomingConnectionError();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GLIncomingConnectionError";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GL_INCOMING_CONNECTION_ERROR;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GLIncomingConnectionErrorPacketMaxSize 를 정의, 리턴하라.
     // two length-prefixed strings, each capped at 127 by read()/write()
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 127 + szBYTE + 127;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

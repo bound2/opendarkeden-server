@@ -40,17 +40,21 @@ public:
 
 class CGSMSAddressListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SMS_ADDRESS_LIST;
+    static constexpr std::string_view kName = "CGSMSAddressList";
+    static constexpr PacketSize_t kMaxSize{0};
+
+    Packet* createPacket() override {
         return new CGSMSAddressList();
     }
-    string getPacketName() const {
-        return "CGSMSAddressList";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SMS_ADDRESS_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return 0;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

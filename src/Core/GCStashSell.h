@@ -56,17 +56,21 @@ private:
 
 class GCStashSellFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_STASH_SELL;
+    static constexpr std::string_view kName = "GCStashSell";
+    static constexpr PacketSize_t kMaxSize{szGold};
+
+    Packet* createPacket() override {
         return new GCStashSell();
     }
-    string getPacketName() const {
-        return "GCStashSell";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_STASH_SELL;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szGold;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

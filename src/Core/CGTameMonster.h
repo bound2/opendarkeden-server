@@ -64,21 +64,25 @@ private:
 
 class CGTameMonsterFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_TAME_MONSTER;
+    static constexpr std::string_view kName = "CGTameMonster";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
     CGTameMonsterFactory() {}
     virtual ~CGTameMonsterFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGTameMonster();
     }
-    string getPacketName() const {
-        return "CGTameMonster";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_TAME_MONSTER;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

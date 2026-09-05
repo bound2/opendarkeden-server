@@ -150,35 +150,39 @@ private:
 
 class GCShowGuildInfoFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOW_GUILD_INFO;
+    static constexpr std::string_view kName = "GCShowGuildInfo";
+    static constexpr PacketSize_t kMaxSize{szGuildID +    // Guild ID
+                                           szBYTE +       // Guild Name length
+                                           30 +           // Guild Name
+                                           szGuildState + // Guild State
+                                           szBYTE +       // Guild Master length
+                                           20 +           // Guild Master
+                                           szBYTE +       // Guild Member Count
+                                           szBYTE +       // Guild Intro length
+                                           256 +          // Guild Intro
+                                           szGold};       // Guild Join Fee
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCShowGuildInfo();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCShowGuildInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SHOW_GUILD_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCSystemMessagePacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID +    // Guild ID
-               szBYTE +       // Guild Name length
-               30 +           // Guild Name
-               szGuildState + // Guild State
-               szBYTE +       // Guild Master length
-               20 +           // Guild Master
-               szBYTE +       // Guild Member Count
-               szBYTE +       // Guild Intro length
-               256 +          // Guild Intro
-               szGold;        // Guild Join Fee
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

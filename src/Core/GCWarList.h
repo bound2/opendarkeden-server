@@ -58,17 +58,21 @@ private:
 
 class GCWarListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_WAR_LIST;
+    static constexpr std::string_view kName = "GCWarList";
+    static constexpr PacketSize_t kMaxSize{(RaceWarInfo::getMaxSize() + GuildWarInfo::getMaxSize()) * 12};
+
+    Packet* createPacket() override {
         return new GCWarList();
     }
-    string getPacketName() const {
-        return "GCWarList";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_WAR_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return (RaceWarInfo::getMaxSize() + GuildWarInfo::getMaxSize()) * 12;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

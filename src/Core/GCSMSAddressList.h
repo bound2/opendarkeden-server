@@ -30,7 +30,7 @@ struct AddressUnit {
     PacketSize_t getPacketSize() const {
         return szDWORD + szBYTE + CharacterName.size() + szBYTE + CustomName.size() + szBYTE + Number.size();
     }
-    static PacketSize_t getMaxPacketSize() {
+    static constexpr PacketSize_t getMaxPacketSize() {
         return szDWORD + szBYTE + 20 + szBYTE + 40 + szBYTE + 11;
     }
 
@@ -70,21 +70,25 @@ private:
 
 class GCSMSAddressListFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SMS_ADDRESS_LIST;
+    static constexpr std::string_view kName = "GCSMSAddressList";
+    static constexpr PacketSize_t kMaxSize{szBYTE + AddressUnit::getMaxPacketSize() * MAX_ADDRESS_NUM};
+
     GCSMSAddressListFactory() {}
     virtual ~GCSMSAddressListFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSMSAddressList();
     }
-    string getPacketName() const {
-        return "GCSMSAddressList";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SMS_ADDRESS_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + AddressUnit::getMaxPacketSize() * MAX_ADDRESS_NUM;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

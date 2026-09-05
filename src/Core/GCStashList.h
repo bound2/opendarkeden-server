@@ -19,7 +19,7 @@ typedef struct _STASHITEM {
                szGrade + szEnchantLevel;
     }
 
-    static int getPacketMaxSize() {
+    static constexpr int getPacketMaxSize() {
         return szObjectID + szBYTE + szItemType + szBYTE + 255 + szDurability + szItemNum + szSilver + szGrade +
                szEnchantLevel;
     }
@@ -97,16 +97,9 @@ private:
 
 class GCStashListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
-        return new GCStashList();
-    }
-    string getPacketName() const {
-        return "GCStashList";
-    }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_STASH_LIST;
-    }
-    PacketSize_t getPacketMaxSize() const {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_STASH_LIST;
+    static constexpr std::string_view kName = "GCStashList";
+    static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
         PacketSize_t unit_size = szBYTE * 2 + // rack과 인덱스
                                               // sizeof(STASHITEM) +         // 실제 정보
@@ -119,6 +112,19 @@ public:
         size += szGold;                                       // 돈
 
         return size;
+    }()};
+
+    Packet* createPacket() override {
+        return new GCStashList();
+    }
+    string getPacketName() const override {
+        return string(kName);
+    }
+    PacketID_t getPacketID() const override {
+        return kPacketID;
+    }
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

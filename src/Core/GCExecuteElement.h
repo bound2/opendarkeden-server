@@ -80,21 +80,25 @@ private:
 
 class GCExecuteElementFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_EXECUTE_ELEMENT;
+    static constexpr std::string_view kName = "GCExecuteElement";
+    static constexpr PacketSize_t kMaxSize{szDWORD + szBYTE + szWORD};
+
     GCExecuteElementFactory() {}
     virtual ~GCExecuteElementFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCExecuteElement();
     }
-    string getPacketName() const {
-        return "GCExecuteElement";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_EXECUTE_ELEMENT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szDWORD + szBYTE + szWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

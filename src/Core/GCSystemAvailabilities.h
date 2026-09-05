@@ -72,21 +72,25 @@ private:
 
 class GCSystemAvailabilitiesFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SYSTEM_AVAILABILITIES;
+    static constexpr std::string_view kName = "GCSystemAvailabilities";
+    static constexpr PacketSize_t kMaxSize{szDWORD + szBYTE + szBYTE};
+
     GCSystemAvailabilitiesFactory() {}
     virtual ~GCSystemAvailabilitiesFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCSystemAvailabilities();
     }
-    string getPacketName() const {
-        return "GCSystemAvailabilities";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SYSTEM_AVAILABILITIES;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szDWORD + szBYTE + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

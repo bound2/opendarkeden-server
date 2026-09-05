@@ -66,24 +66,28 @@ public:
 
 class CGLogoutFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_LOGOUT;
+    static constexpr std::string_view kName = "CGLogout";
+    static constexpr PacketSize_t kMaxSize{0};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGLogout();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGLogout";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_LOGOUT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return 0;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

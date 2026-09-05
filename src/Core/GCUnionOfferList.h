@@ -40,7 +40,7 @@ public:
                szDWORD;              // Date
     }
 
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return szGuildID + // Guild ID
                szBYTE +    // Guild Type
                szBYTE +    // Guild Name length
@@ -207,26 +207,30 @@ private:
 
 class GCUnionOfferListFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_UNION_OFFER_LIST;
+    static constexpr std::string_view kName = "GCUnionOfferList";
+    static constexpr PacketSize_t kMaxSize{SingleGuildUnionOffer::getMaxSize() * 20};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCUnionOfferList();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCUnionOfferList";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_UNION_OFFER_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCSystemMessagePacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return SingleGuildUnionOffer::getMaxSize() * 20;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

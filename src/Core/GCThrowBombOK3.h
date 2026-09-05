@@ -165,6 +165,11 @@ private:
 
 class GCThrowBombOK3Factory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_THROW_BOMB_OK_3;
+    static constexpr std::string_view kName = "GCThrowBombOK3";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoord * 2 + szDir + szItemType + szBYTE + szWORD +
+                                           szObjectID + 255};
+
     // constructor
     GCThrowBombOK3Factory() {}
 
@@ -174,23 +179,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCThrowBombOK3();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCThrowBombOK3";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_THROW_BOMB_OK_3;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Pakcet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoord * 2 + szDir + szItemType + szBYTE + szWORD + szObjectID + 255;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -74,6 +74,10 @@ private:
 
 class CGModifyTaxRatioFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_MODIFY_TAX_RATIO;
+    static constexpr std::string_view kName = "CGModifyTaxRatio";
+    static constexpr PacketSize_t kMaxSize{szuint};
+
     // constructor
     CGModifyTaxRatioFactory() {}
 
@@ -83,23 +87,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGModifyTaxRatio();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGModifyTaxRatio";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_MODIFY_TAX_RATIO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szuint;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -143,8 +143,14 @@ if [ ! -f tests/ratchet/factory_exceptions.txt ]; then
 fi
 registered=$(mktemp)
 inventory=$(mktemp)
-sed -n '/void PacketFactoryManager::init/,/^}/p' src/Core/PacketFactoryManager.cpp |
-    grep -oE 'addFactory\(new [A-Za-z0-9_]+' | sed 's/addFactory(new //' | sort -u > "$registered"
+# The registrations are the `using <Name>Factories = FactoryList<...>;` type
+# lists that init() concatenates per server (PacketMeta.h).
+sed -n '/^using [A-Za-z0-9_]*Factories = FactoryList</,/>;/p' src/Core/PacketFactoryManager.cpp |
+    grep -oE '^ +[A-Za-z0-9_]+Factory' | tr -d ' ' | sort -u > "$registered"
+if [ ! -s "$registered" ]; then
+    echo "[FAIL] no FactoryList registrations found in PacketFactoryManager.cpp"
+    fail=1
+fi
 {
     grep -oE 'new [A-Za-z0-9_]+Factory' tests/generated/AllPacketFactories.inc | sed 's/new //'
     grep -vE '^\s*(#|$)' tests/ratchet/factory_exceptions.txt || true

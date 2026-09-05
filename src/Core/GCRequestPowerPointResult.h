@@ -113,26 +113,30 @@ private:
 
 class GCRequestPowerPointResultFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_REQUEST_POWER_POINT_RESULT;
+    static constexpr std::string_view kName = "GCRequestPowerPointResult";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szint + szint};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCRequestPowerPointResult();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCRequestPowerPointResult";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_REQUEST_POWER_POINT_RESULT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCRequestPowerPointResultPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szint + szint;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -102,6 +102,10 @@ private:
 
 class CGRideMotorCycleFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_RIDE_MOTORCYCLE;
+    static constexpr std::string_view kName = "CGRideMotorCycle";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szCoord + szCoord};
+
     // constructor
     CGRideMotorCycleFactory() {}
 
@@ -111,23 +115,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGRideMotorCycle();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGRideMotorCycle";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_RIDE_MOTORCYCLE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szCoord + szCoord;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

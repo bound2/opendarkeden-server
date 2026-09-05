@@ -62,17 +62,21 @@ private:
 
 class GCGuildResponseFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_GUILD_RESPONSE;
+    static constexpr std::string_view kName = "GCGuildResponse";
+    static constexpr PacketSize_t kMaxSize{szWORD + szuint};
+
+    Packet* createPacket() override {
         return new GCGuildResponse();
     }
-    string getPacketName() const {
-        return "GCGuildResponse";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_GUILD_RESPONSE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szWORD + szuint;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -84,6 +84,10 @@ private:
 
 class CGSelectQuestFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SELECT_QUEST;
+    static constexpr std::string_view kName = "CGSelectQuest";
+    static constexpr PacketSize_t kMaxSize{szQuestID + szObjectID};
+
     // constructor
     CGSelectQuestFactory() {}
 
@@ -93,23 +97,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGSelectQuest();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGSelectQuest";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SELECT_QUEST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szQuestID + szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

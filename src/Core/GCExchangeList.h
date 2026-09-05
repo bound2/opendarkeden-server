@@ -154,20 +154,9 @@ private:
 
 class GCExchangeListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
-        return new GCExchangeList();
-    }
-
-    string getPacketName() const {
-        return "GCExchangeList";
-    }
-
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_EXCHANGE_LIST;
-    }
-
-    // 14 + 20 * 1855 = 37114. The client factory must match.
-    PacketSize_t getPacketMaxSize() const {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_EXCHANGE_LIST;
+    static constexpr std::string_view kName = "GCExchangeList";
+    static constexpr PacketSize_t kMaxSize{[] {
         // One length-prefixed string at its clamped maximum: 1 + 255 = 256.
         const PacketSize_t kMaxString = szBYTE + GCExchangeList::kMaxListingString;
         const PacketSize_t listing = sizeof(int64_t)                          // listingID
@@ -188,6 +177,23 @@ public:
                                      + sizeof(int);                               // stackCount
         // Header: m_Page + m_PageSize + m_Total + the uint16 listing count.
         return sizeof(int) * 3 + sizeof(uint16_t) + listing * GCExchangeList::kMaxListingsPerPage;
+    }()};
+
+    Packet* createPacket() override {
+        return new GCExchangeList();
+    }
+
+    string getPacketName() const override {
+        return string(kName);
+    }
+
+    PacketID_t getPacketID() const override {
+        return kPacketID;
+    }
+
+    // 14 + 20 * 1855 = 37114. The client factory must match.
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

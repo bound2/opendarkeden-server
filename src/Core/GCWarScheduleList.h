@@ -59,18 +59,22 @@ private:
 
 class GCWarScheduleListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_WAR_SCHEDULE_LIST;
+    static constexpr std::string_view kName = "GCWarScheduleList";
+    static constexpr PacketSize_t kMaxSize{
+        (szBYTE + (szBYTE + szWORD + szBYTE + szBYTE + szBYTE + szGuildID * 6 + (szBYTE * 16) * 6) * MAX_WAR_NUM)};
+
+    Packet* createPacket() override {
         return new GCWarScheduleList();
     }
-    string getPacketName() const {
-        return "GCWarScheduleList";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_WAR_SCHEDULE_LIST;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return (szBYTE +
-                (szBYTE + szWORD + szBYTE + szBYTE + szBYTE + szGuildID * 6 + (szBYTE * 16) * 6) * MAX_WAR_NUM);
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

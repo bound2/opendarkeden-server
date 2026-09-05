@@ -87,26 +87,30 @@ private:
 
 class CGMakeItemFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_MAKE_ITEM;
+    static constexpr std::string_view kName = "CGMakeItem";
+    static constexpr PacketSize_t kMaxSize{szItemClass + szItemType};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGMakeItem();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGMakeItem";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_MAKE_ITEM;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static CGMakeItemPacketSize 를 정의해서 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szItemClass + szItemType;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

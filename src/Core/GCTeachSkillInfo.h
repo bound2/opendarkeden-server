@@ -60,17 +60,21 @@ private:
 
 class GCTeachSkillInfoFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_TEACH_SKILL_INFO;
+    static constexpr std::string_view kName = "GCTeachSkillInfo";
+    static constexpr PacketSize_t kMaxSize{szSkillDomainType + szSkillLevel};
+
+    Packet* createPacket() override {
         return new GCTeachSkillInfo();
     }
-    string getPacketName() const {
-        return "GCTeachSkillInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_TEACH_SKILL_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillDomainType + szSkillLevel;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

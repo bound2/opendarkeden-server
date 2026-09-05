@@ -64,21 +64,25 @@ private:
 
 class GCFlagWarStatusFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_FLAG_WAR_STATUS;
+    static constexpr std::string_view kName = "GCFlagWarStatus";
+    static constexpr PacketSize_t kMaxSize{szWORD + szBYTE * 3};
+
     GCFlagWarStatusFactory() {}
     virtual ~GCFlagWarStatusFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCFlagWarStatus();
     }
-    string getPacketName() const {
-        return "GCFlagWarStatus";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_FLAG_WAR_STATUS;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szWORD + szBYTE * 3;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

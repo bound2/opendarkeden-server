@@ -26,7 +26,7 @@ public:
         return PCItemInfo::getSize() + szSlotID;
     }
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return PCItemInfo::getMaxSize() + szSlotID;
     }
 

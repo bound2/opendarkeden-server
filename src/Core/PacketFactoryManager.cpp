@@ -8,6 +8,8 @@
 // include files
 #include "PacketFactoryManager.h"
 
+#include <type_traits>
+
 #include "Assert.h"
 #include "CGAddGearToMouse.h"
 #include "CGAddInventoryToMouse.h"
@@ -175,6 +177,7 @@
 #include "GCThrowBombOK1.h"
 #include "GCThrowBombOK2.h"
 #include "GCThrowBombOK3.h"
+#include "PacketMeta.h"
 #include "StringStream.h"
 // Shop Interface
 #include "GCNPCAskVariable.h"
@@ -226,15 +229,11 @@
 #include "GCVisibleOK.h"
 #include "GCWarList.h"
 #include "GCWarScheduleList.h"
-
-#if defined(__GAME_SERVER__) || defined(__LOGIN_SERVER__)
 #include "GLIncomingConnection.h"
 #include "GLIncomingConnectionError.h"
 #include "GLIncomingConnectionOK.h"
 #include "GLKickVerify.h"
 #include "GMServerInfo.h"
-#endif
-
 #include "LCCreatePCError.h"
 #include "LCCreatePCOK.h"
 #include "LCDeletePCError.h"
@@ -580,573 +579,501 @@ PacketFactoryManager::~PacketFactoryManager() noexcept {
 //
 // Register every supported packet factory here.
 //
+// Each list is a de::packet::FactoryList (PacketMeta.h): its packet ids
+// are folded into a constexpr table while this file compiles, and a
+// duplicate or out-of-range id is a compile error naming the id. The
+// per-server set is the Concat of the lists below, validated as one
+// table, so a clash across lists is rejected the same way. The
+// membership itself is unchanged from the hand-written addFactory()
+// sequence it replaces; tests/ratchet/ratchets.sh pins it against the
+// wire inventory.
+//
 //////////////////////////////////////////////////////////////////////
+namespace {
+
+using de::packet::Concat;
+using de::packet::FactoryList;
+
+// clang-format off
+// Client traffic both the gameserver and the loginserver accept.
+using ClientLinkFactories = FactoryList<
+    CGConnectSetKeyFactory,
+    GGCommandFactory,
+    GLIncomingConnectionErrorFactory,
+    GLIncomingConnectionFactory,
+    GLIncomingConnectionOKFactory,
+    GLKickVerifyFactory,
+    GMServerInfoFactory,
+    LGIncomingConnectionErrorFactory,
+    LGIncomingConnectionFactory,
+    LGIncomingConnectionOKFactory,
+    LGKickCharacterFactory>;
+
+// Guild traffic the gameserver and the sharedserver exchange.
+using GuildLinkFactories = FactoryList<
+    GGGuildChatFactory,
+    GSAddGuildFactory,
+    GSAddGuildMemberFactory,
+    GSExpelGuildMemberFactory,
+    GSGuildMemberLogOnFactory,
+    GSModifyGuildIntroFactory,
+    GSModifyGuildMemberFactory,
+    GSQuitGuildFactory,
+    GSRequestGuildInfoFactory,
+    SGAddGuildMemberOKFactory,
+    SGAddGuildOKFactory,
+    SGDeleteGuildOKFactory,
+    SGExpelGuildMemberOKFactory,
+    SGGuildInfoFactory,
+    SGGuildMemberLogOnOKFactory,
+    SGModifyGuildIntroOKFactory,
+    SGModifyGuildMemberOKFactory,
+    SGModifyGuildOKFactory,
+    SGQuitGuildOKFactory>;
+
+// Login-phase packets: CL/LC, and the GL/LG link seen from the loginserver.
+using LoginOnlyFactories = FactoryList<
+    CLChangeServerFactory,
+    CLCreatePCFactory,
+    CLDeletePCFactory,
+    CLGetPCListFactory,
+    CLGetServerListFactory,
+    CLGetWorldListFactory,
+    CLLoginFactory,
+    CLLogoutFactory,
+    CLQueryCharacterNameFactory,
+    CLQueryPlayerIDFactory,
+    CLReconnectLoginFactory,
+    CLSelectPCFactory,
+    CLSelectServerFactory,
+    CLSelectWorldFactory,
+    CLVersionCheckFactory,
+    LCCreatePCErrorFactory,
+    LCCreatePCOKFactory,
+    LCDeletePCErrorFactory,
+    LCDeletePCOKFactory,
+    LCLoginErrorFactory,
+    LCLoginOKFactory,
+    LCPCListFactory,
+    LCQueryResultCharacterNameFactory,
+    LCQueryResultPlayerIDFactory,
+    LCReconnectFactory,
+    LCRegisterPlayerErrorFactory,
+    LCRegisterPlayerOKFactory,
+    LCSelectPCErrorFactory,
+    LCServerListFactory,
+    LCVersionCheckErrorFactory,
+    LCVersionCheckOKFactory,
+    LCWorldListFactory>;
+
+// Everything else the gameserver speaks: CG/GC, GG, and its GL/LG, GS/SG ends.
+using GameOnlyFactories = FactoryList<
+    CGAbsorbSoulFactory,
+    CGAcceptUnionFactory,
+    CGAddGearToMouseFactory,
+    CGAddInventoryToMouseFactory,
+    CGAddItemToCodeSheetFactory,
+    CGAddItemToItemFactory,
+    CGAddMouseToGearFactory,
+    CGAddMouseToInventoryFactory,
+    CGAddMouseToQuickSlotFactory,
+    CGAddMouseToZoneFactory,
+    CGAddQuickSlotToMouseFactory,
+    CGAddSMSAddressFactory,
+    CGAddZoneToInventoryFactory,
+    CGAddZoneToMouseFactory,
+    CGAppointSubmasterFactory,
+    CGAttackFactory,
+    CGAuthKeyFactory,
+    CGBloodDrainFactory,
+    CGBuyStoreItemFactory,
+    CGCastingSkillFactory,
+    CGConnectFactory,
+    CGCrashReportFactory,
+    CGDeleteSMSAddressFactory,
+    CGDenyUnionFactory,
+    CGDepositPetFactory,
+    CGDisplayItemFactory,
+    CGDissectionCorpseFactory,
+    CGDonationMoneyFactory,
+    CGDownSkillFactory,
+    CGDropMoneyFactory,
+    CGExchangeBuyFactory,
+    CGExchangeListFactory,
+    CGExpelGuildFactory,
+    CGFailQuestFactory,
+    CGGQuestAcceptFactory,
+    CGGQuestCancelFactory,
+    CGGetEventItemFactory,
+    CGGetOffMotorCycleFactory,
+    CGGlobalChatFactory,
+    CGGuildChatFactory,
+    CGJoinGuildFactory,
+    CGLearnSkillFactory,
+    CGLogoutFactory,
+    CGLotterySelectFactory,
+    CGMakeItemFactory,
+    CGMixItemFactory,
+    CGModifyGuildIntroFactory,
+    CGModifyGuildMemberFactory,
+    CGModifyGuildMemberIntroFactory,
+    CGModifyNicknameFactory,
+    CGModifyTaxRatioFactory,
+    CGMouseToStashFactory,
+    CGMoveFactory,
+    CGNPCAskAnswerFactory,
+    CGNPCTalkFactory,
+    CGPartyInviteFactory,
+    CGPartyLeaveFactory,
+    CGPartyPositionFactory,
+    CGPartySayFactory,
+    CGPetGambleFactory,
+    CGPickupMoneyFactory,
+    CGPortCheckFactory,
+    CGQuitUnionAcceptFactory,
+    CGQuitUnionDenyFactory,
+    CGQuitUnionFactory,
+    CGRangerSayFactory,
+    CGReadyFactory,
+    CGRegistGuildFactory,
+    CGRelicToObjectFactory,
+    CGReloadFromInventoryFactory,
+    CGReloadFromQuickSlotFactory,
+    CGRequestGuildListFactory,
+    CGRequestGuildMemberListFactory,
+    CGRequestIPFactory,
+    CGRequestInfoFactory,
+    CGRequestNewbieItemFactory,
+    CGRequestPowerPointFactory,
+    CGRequestRepairFactory,
+    CGRequestStoreInfoFactory,
+    CGRequestUnionFactory,
+    CGRequestUnionInfoFactory,
+    CGResurrectFactory,
+    CGRideMotorCycleFactory,
+    CGSMSAddressListFactory,
+    CGSMSSendFactory,
+    CGSayFactory,
+    CGSelectBloodBibleFactory,
+    CGSelectGuildFactory,
+    CGSelectGuildMemberFactory,
+    CGSelectNicknameFactory,
+    CGSelectPortalFactory,
+    CGSelectQuestFactory,
+    CGSelectRankBonusFactory,
+    CGSelectRegenZoneFactory,
+    CGSelectTileEffectFactory,
+    CGSelectWayPointFactory,
+    CGSetSlayerHotKeyFactory,
+    CGSetVampireHotKeyFactory,
+    CGShopRequestBuyFactory,
+    CGShopRequestListFactory,
+    CGShopRequestSellFactory,
+    CGSilverCoatingFactory,
+    CGSkillToInventoryFactory,
+    CGSkillToNamedFactory,
+    CGSkillToObjectFactory,
+    CGSkillToSelfFactory,
+    CGSkillToTileFactory,
+    CGStashDepositFactory,
+    CGStashListFactory,
+    CGStashRequestBuyFactory,
+    CGStashToMouseFactory,
+    CGStashWithdrawFactory,
+    CGStoreCloseFactory,
+    CGStoreOpenFactory,
+    CGStoreSignFactory,
+    CGSubmitScoreFactory,
+    CGTakeOutGoodFactory,
+    CGTameMonsterFactory,
+    CGThrowBombFactory,
+    CGThrowItemFactory,
+    CGTradeAddItemFactory,
+    CGTradeFinishFactory,
+    CGTradeMoneyFactory,
+    CGTradePrepareFactory,
+    CGTradeRemoveItemFactory,
+    CGTryJoinGuildFactory,
+    CGTypeStringListFactory,
+    CGUnburrowFactory,
+    CGUndisplayItemFactory,
+    CGUntransformFactory,
+    CGUseBonusPointFactory,
+    CGUseItemFromGQuestInventoryFactory,
+    CGUseItemFromGearFactory,
+    CGUseItemFromInventoryFactory,
+    CGUseMessageItemFromInventoryFactory,
+    CGUsePotionFromInventoryFactory,
+    CGUsePotionFromQuickSlotFactory,
+    CGUsePowerPointFactory,
+    CGVerifyTimeFactory,
+    CGVisibleFactory,
+    CGWhisperFactory,
+    CGWithdrawPetFactory,
+    CGWithdrawTaxFactory,
+    GCActiveGuildListFactory,
+    GCAddBatFactory,
+    GCAddBurrowingCreatureFactory,
+    GCAddEffectFactory,
+    GCAddEffectToTileFactory,
+    GCAddGearToInventoryFactory,
+    GCAddGearToZoneFactory,
+    GCAddHelicopterFactory,
+    GCAddInjuriousCreatureFactory,
+    GCAddInstalledMineToZoneFactory,
+    GCAddItemToItemVerifyFactory,
+    GCAddMonsterCorpseFactory,
+    GCAddMonsterFactory,
+    GCAddMonsterFromBurrowingFactory,
+    GCAddMonsterFromTransformationFactory,
+    GCAddNPCFactory,
+    GCAddNewItemToZoneFactory,
+    GCAddNicknameFactory,
+    GCAddOustersCorpseFactory,
+    GCAddOustersFactory,
+    GCAddSlayerCorpseFactory,
+    GCAddSlayerFactory,
+    GCAddStoreItemFactory,
+    GCAddVampireCorpseFactory,
+    GCAddVampireFactory,
+    GCAddVampireFromBurrowingFactory,
+    GCAddVampireFromTransformationFactory,
+    GCAddVampirePortalFactory,
+    GCAddWolfFactory,
+    GCAddressListVerifyFactory,
+    GCAttackArmsOK1Factory,
+    GCAttackArmsOK2Factory,
+    GCAttackArmsOK3Factory,
+    GCAttackArmsOK4Factory,
+    GCAttackArmsOK5Factory,
+    GCAttackFactory,
+    GCAttackMeleeOK1Factory,
+    GCAttackMeleeOK2Factory,
+    GCAttackMeleeOK3Factory,
+    GCAuthKeyFactory,
+    GCBloodBibleListFactory,
+    GCBloodBibleSignInfoFactory,
+    GCBloodBibleStatusFactory,
+    GCBloodDrainOK1Factory,
+    GCBloodDrainOK2Factory,
+    GCBloodDrainOK3Factory,
+    GCCannotAddFactory,
+    GCCannotUseFactory,
+    GCCastingSkillFactory,
+    GCChangeDarkLightFactory,
+    GCChangeShapeFactory,
+    GCChangeWeatherFactory,
+    GCCreateItemFactory,
+    GCCreatureDiedFactory,
+    GCCrossCounterOK1Factory,
+    GCCrossCounterOK2Factory,
+    GCCrossCounterOK3Factory,
+    GCDeleteEffectFromTileFactory,
+    GCDeleteInventoryItemFactory,
+    GCDeleteObjectFactory,
+    GCDeleteandPickUpOKFactory,
+    GCDisconnectFactory,
+    GCDownSkillFailedFactory,
+    GCDownSkillOKFactory,
+    GCDropItemToZoneFactory,
+    GCEnterVampirePortalFactory,
+    GCExecuteElementFactory,
+    GCFakeMoveFactory,
+    GCFastMoveFactory,
+    GCFlagWarStatusFactory,
+    GCFriendChattingFactory,
+    GCGQuestInventoryFactory,
+    GCGQuestStatusInfoFactory,
+    GCGQuestStatusModifyFactory,
+    GCGetDamageFactory,
+    GCGetOffMotorCycleFactory,
+    GCGetOffMotorCycleFailedFactory,
+    GCGetOffMotorCycleOKFactory,
+    GCGlobalChatFactory,
+    GCGoodsListFactory,
+    GCGuildChatFactory,
+    GCGuildMemberListFactory,
+    GCGuildResponseFactory,
+    GCHPRecoveryEndToOthersFactory,
+    GCHPRecoveryEndToSelfFactory,
+    GCHPRecoveryStartToOthersFactory,
+    GCHPRecoveryStartToSelfFactory,
+    GCHolyLandBonusInfoFactory,
+    GCKickMessageFactory,
+    GCKnockBackFactory,
+    GCKnocksTargetBackOK1Factory,
+    GCKnocksTargetBackOK2Factory,
+    GCKnocksTargetBackOK4Factory,
+    GCKnocksTargetBackOK5Factory,
+    GCLearnSkillFailedFactory,
+    GCLearnSkillOKFactory,
+    GCLearnSkillReadyFactory,
+    GCLightningFactory,
+    GCMPRecoveryEndFactory,
+    GCMPRecoveryStartFactory,
+    GCMakeItemFailFactory,
+    GCMakeItemOKFactory,
+    GCMineExplosionOK1Factory,
+    GCMineExplosionOK2Factory,
+    GCMiniGameScoresFactory,
+    GCModifyGuildMemberInfoFactory,
+    GCModifyInformationFactory,
+    GCModifyNicknameFactory,
+    GCMonsterKillQuestInfoFactory,
+    GCMorph1Factory,
+    GCMorphSlayer2Factory,
+    GCMorphVampire2Factory,
+    GCMoveErrorFactory,
+    GCMoveFactory,
+    GCMoveOKFactory,
+    GCMyStoreInfoFactory,
+    GCNPCAskDynamicFactory,
+    GCNPCAskFactory,
+    GCNPCAskVariableFactory,
+    GCNPCInfoFactory,
+    GCNPCResponseFactory,
+    GCNPCSayDynamicFactory,
+    GCNPCSayFactory,
+    GCNicknameListFactory,
+    GCNicknameVerifyFactory,
+    GCNoticeEventFactory,
+    GCNotifyWinFactory,
+    GCOtherGuildNameFactory,
+    GCOtherModifyInfoFactory,
+    GCOtherStoreInfoFactory,
+    GCPartyErrorFactory,
+    GCPartyInviteFactory,
+    GCPartyJoinedFactory,
+    GCPartyLeaveFactory,
+    GCPartyPositionFactory,
+    GCPartySayFactory,
+    GCPetInfoFactory,
+    GCPetStashListFactory,
+    GCPetStashVerifyFactory,
+    GCPetUseSkillFactory,
+    GCQuestStatusFactory,
+    GCRankBonusInfoFactory,
+    GCRealWearingInfoFactory,
+    GCReconnectFactory,
+    GCReconnectLoginFactory,
+    GCRegenZoneStatusFactory,
+    GCReloadOKFactory,
+    GCRemoveCorpseHeadFactory,
+    GCRemoveEffectFactory,
+    GCRemoveFromGearFactory,
+    GCRemoveInjuriousCreatureFactory,
+    GCRemoveStoreItemFactory,
+    GCRequestFailedFactory,
+    GCRequestPowerPointResultFactory,
+    GCRequestedIPFactory,
+    GCRideMotorCycleFactory,
+    GCRideMotorCycleFailedFactory,
+    GCRideMotorCycleOKFactory,
+    GCSMSAddressListFactory,
+    GCSayFactory,
+    GCSearchMotorcycleFailFactory,
+    GCSearchMotorcycleOKFactory,
+    GCSelectQuestIDFactory,
+    GCSelectRankBonusFailedFactory,
+    GCSelectRankBonusOKFactory,
+    GCSetPositionFactory,
+    GCShopBoughtFactory,
+    GCShopBuyFailFactory,
+    GCShopBuyOKFactory,
+    GCShopListFactory,
+    GCShopListMysteriousFactory,
+    GCShopMarketConditionFactory,
+    GCShopSellFailFactory,
+    GCShopSellOKFactory,
+    GCShopSoldFactory,
+    GCShopVersionFactory,
+    GCShowGuildInfoFactory,
+    GCShowGuildJoinFactory,
+    GCShowGuildMemberInfoFactory,
+    GCShowMessageBoxFactory,
+    GCShowWaitGuildInfoFactory,
+    GCSkillFailed1Factory,
+    GCSkillFailed2Factory,
+    GCSkillInfoFactory,
+    GCSkillToInventoryOK1Factory,
+    GCSkillToInventoryOK2Factory,
+    GCSkillToObjectOK1Factory,
+    GCSkillToObjectOK2Factory,
+    GCSkillToObjectOK3Factory,
+    GCSkillToObjectOK4Factory,
+    GCSkillToObjectOK5Factory,
+    GCSkillToObjectOK6Factory,
+    GCSkillToSelfOK1Factory,
+    GCSkillToSelfOK2Factory,
+    GCSkillToSelfOK3Factory,
+    GCSkillToTileOK1Factory,
+    GCSkillToTileOK2Factory,
+    GCSkillToTileOK3Factory,
+    GCSkillToTileOK4Factory,
+    GCSkillToTileOK5Factory,
+    GCSkillToTileOK6Factory,
+    GCStashListFactory,
+    GCStashSellFactory,
+    GCStatusCurrentHPFactory,
+    GCSweeperBonusInfoFactory,
+    GCSystemAvailabilitiesFactory,
+    GCSystemMessageFactory,
+    GCTakeOffFactory,
+    GCTakeOutFailFactory,
+    GCTakeOutOKFactory,
+    GCTeachSkillInfoFactory,
+    GCThrowBombOK1Factory,
+    GCThrowBombOK2Factory,
+    GCThrowBombOK3Factory,
+    GCThrowItemOK1Factory,
+    GCThrowItemOK2Factory,
+    GCThrowItemOK3Factory,
+    GCTimeLimitItemInfoFactory,
+    GCTradeAddItemFactory,
+    GCTradeErrorFactory,
+    GCTradeFinishFactory,
+    GCTradeMoneyFactory,
+    GCTradePrepareFactory,
+    GCTradeRemoveItemFactory,
+    GCTradeVerifyFactory,
+    GCUnburrowFailFactory,
+    GCUnburrowOKFactory,
+    GCUnionOfferListFactory,
+    GCUntransformFailFactory,
+    GCUntransformOKFactory,
+    GCUpdateInfoFactory,
+    GCUseBonusPointFailFactory,
+    GCUseBonusPointOKFactory,
+    GCUseOKFactory,
+    GCUsePowerPointResultFactory,
+    GCVisibleFailFactory,
+    GCVisibleOKFactory,
+    GCWaitGuildListFactory,
+    GCWarListFactory,
+    GCWarScheduleListFactory,
+    GCWhisperFactory,
+    GCWhisperFailedFactory,
+    GGServerChatFactory>;
+
+// clang-format on
+
+#if defined(__GAME_SERVER__)
+using ServerFactories = Concat<GameOnlyFactories, ClientLinkFactories, GuildLinkFactories>;
+#elif defined(__LOGIN_SERVER__)
+using ServerFactories = Concat<LoginOnlyFactories, ClientLinkFactories>;
+#elif defined(__SHARED_SERVER__)
+using ServerFactories = GuildLinkFactories;
+#else
+// Define-free (TestPackets): nothing is registered, exactly as before.
+using ServerFactories = FactoryList<>;
+#endif
+
+} // namespace
+
 void PacketFactoryManager::init() {
     __BEGIN_TRY
 
-#if defined(__GAME_SERVER__)
-    addFactory(new CGAttackFactory());
-    addFactory(new CGAddGearToMouseFactory());
-    addFactory(new CGAddInventoryToMouseFactory());
-    addFactory(new CGAddMouseToGearFactory());
-    addFactory(new CGAddMouseToInventoryFactory());
-    addFactory(new CGAddMouseToQuickSlotFactory());
-    addFactory(new CGAddMouseToZoneFactory());
-    addFactory(new CGAddQuickSlotToMouseFactory());
-    addFactory(new CGAddZoneToInventoryFactory());
-    addFactory(new CGAddZoneToMouseFactory());
-    addFactory(new CGBloodDrainFactory());
-    addFactory(new CGCastingSkillFactory());
-    addFactory(new CGConnectFactory());
-    addFactory(new CGDissectionCorpseFactory());
-    addFactory(new CGDropMoneyFactory());
-    addFactory(new CGGetOffMotorCycleFactory());
-    addFactory(new CGGlobalChatFactory());
-    addFactory(new CGLearnSkillFactory());
-    addFactory(new CGLogoutFactory());
-    addFactory(new CGMakeItemFactory());
-    addFactory(new CGMoveFactory());
-    addFactory(new CGNPCAskAnswerFactory());
-    addFactory(new CGNPCTalkFactory());
-    addFactory(new CGPickupMoneyFactory());
-    addFactory(new CGReadyFactory());
-    addFactory(new CGReloadFromInventoryFactory());
-    addFactory(new CGReloadFromQuickSlotFactory());
-    addFactory(new CGRideMotorCycleFactory());
-    addFactory(new CGSayFactory());
-    addFactory(new CGSetSlayerHotKeyFactory());
-    addFactory(new CGSetVampireHotKeyFactory());
-    addFactory(new CGSelectPortalFactory());
-    addFactory(new CGShopRequestBuyFactory());
-    addFactory(new CGShopRequestListFactory());
-    addFactory(new CGShopRequestSellFactory());
-    addFactory(new CGSkillToInventoryFactory());
-    addFactory(new CGThrowBombFactory());
-    addFactory(new CGThrowItemFactory());
-    addFactory(new CGUnburrowFactory());
-    addFactory(new CGUntransformFactory());
-    addFactory(new CGUseBonusPointFactory());
-    addFactory(new CGUsePotionFromInventoryFactory());
-    addFactory(new CGUsePotionFromQuickSlotFactory());
-    addFactory(new CGRequestRepairFactory());
-    addFactory(new CGVisibleFactory());
-    addFactory(new CGVerifyTimeFactory());
-#endif
-
-#if defined(__LOGIN_SERVER__)
-    addFactory(new CLCreatePCFactory());
-    addFactory(new CLDeletePCFactory());
-    addFactory(new CLGetPCListFactory());
-    addFactory(new CLLoginFactory());
-    addFactory(new CLLogoutFactory());
-    addFactory(new CLQueryPlayerIDFactory());
-    addFactory(new CLQueryCharacterNameFactory());
-    addFactory(new CLRegisterPlayerFactory);
-    addFactory(new CLSelectPCFactory());
-    addFactory(new CLVersionCheckFactory());
-    addFactory(new CLGetServerListFactory());
-    addFactory(new CLGetWorldListFactory());
-    addFactory(new CLChangeServerFactory());
-    addFactory(new CLReconnectLoginFactory());
-    addFactory(new CLSelectWorldFactory());
-    addFactory(new CLSelectServerFactory());
-    // By tiancaiamao: This one is required by the LoginServer to handle Encryption.
-    // If client use encryption, it send this packet and pass the encryption key.
-    // After that, the communication is encrypted using that key.
-    addFactory(new CGConnectSetKeyFactory());
-#endif
-
-#if defined(__GAME_SERVER__)
-    // 2002.6.28
-    addFactory(new CGPortCheckFactory());
-
-    // added by elcastle 2000-11-29
-    /*
-    addFactory(new CGDialUpFactory());
-    addFactory(new CGPhoneDisconnectFactory());
-    addFactory(new CGPhoneSayFactory());
-    */
-    addFactory(new CGWhisperFactory());
-
-    addFactory(new CGMouseToStashFactory());
-    addFactory(new CGStashToMouseFactory());
-    addFactory(new CGStashListFactory());
-    addFactory(new CGStashDepositFactory());
-    addFactory(new CGStashWithdrawFactory());
-
-    addFactory(new CGStashRequestBuyFactory());
-
-    addFactory(new CGTradePrepareFactory());
-    addFactory(new CGTradeAddItemFactory());
-    addFactory(new CGTradeRemoveItemFactory());
-    addFactory(new CGTradeMoneyFactory());
-    addFactory(new CGTradeFinishFactory());
-
-    addFactory(new CGSkillToObjectFactory());
-    addFactory(new CGSkillToSelfFactory());
-    addFactory(new CGSkillToTileFactory());
-
-    addFactory(new CGSilverCoatingFactory());
-    addFactory(new CGRequestNewbieItemFactory());
-    addFactory(new CGUseItemFromInventoryFactory());
-    addFactory(new CGSelectWayPointFactory());
-    addFactory(new CGSelectTileEffectFactory());
-
-    addFactory(new CGPartyInviteFactory());
-    addFactory(new CGPartyLeaveFactory());
-
-    addFactory(new CGResurrectFactory());
-
-    addFactory(new CGRequestIPFactory());
-
-    // Relic system
-    addFactory(new CGRelicToObjectFactory());
-
-    addFactory(new CGRegistGuildFactory());
-    addFactory(new CGSelectGuildFactory());
-    addFactory(new CGTryJoinGuildFactory());
-    addFactory(new CGJoinGuildFactory());
-    //	addFactory( new CGQuitGuildFactory() );
-    addFactory(new CGRequestGuildMemberListFactory());
-    addFactory(new CGSelectGuildMemberFactory());
-    //	addFactory( new CGExpelGuildMemberFactory() );
-    addFactory(new CGModifyGuildMemberFactory());
-    addFactory(new CGGuildChatFactory());
-
-    // Inventory item-to-item merge: source item -> destination item
-    addFactory(new CGAddItemToItemFactory());
-
-    // Information request packet - 2002.9.2
-    addFactory(new CGRequestInfoFactory());
-
-    addFactory(new CGModifyGuildIntroFactory());
-    addFactory(new CGModifyGuildMemberIntroFactory());
-
-    addFactory(new CGUseMessageItemFromInventoryFactory());
-
-    // 2003. 1. 21
-    addFactory(new CGWithdrawTaxFactory());
-
-    addFactory(new CGTypeStringListFactory());
-
-    addFactory(new CGUseItemFromGearFactory());
-
-    addFactory(new CGSkillToNamedFactory());
-
-    addFactory(new CGSelectRankBonusFactory());
-    addFactory(new CGSelectQuestFactory());
-    addFactory(new CGLotterySelectFactory());
-    addFactory(new CGTakeOutGoodFactory());
-    addFactory(new CGMixItemFactory());
-    addFactory(new CGAbsorbSoulFactory());
-    addFactory(new CGDownSkillFactory());
-    addFactory(new CGSubmitScoreFactory());
-    addFactory(new CGFailQuestFactory());
-    addFactory(new CGAddItemToCodeSheetFactory());
-    addFactory(new CGSelectRegenZoneFactory());
-    addFactory(new CGTameMonsterFactory());
-    addFactory(new CGPetGambleFactory());
-    addFactory(new CGCrashReportFactory());
-
-
-    addFactory(new GCAddBatFactory());
-    addFactory(new GCAddBurrowingCreatureFactory());
-    addFactory(new GCAddEffectFactory());
-    addFactory(new GCAddEffectToTileFactory());
-    addFactory(new GCAddGearToInventoryFactory());
-    addFactory(new GCAddGearToZoneFactory());
-    addFactory(new GCAddInstalledMineToZoneFactory());
-    addFactory(new GCAddMonsterFactory());
-    addFactory(new GCAddMonsterCorpseFactory());
-    addFactory(new GCAddMonsterFromBurrowingFactory());
-    addFactory(new GCAddMonsterFromTransformationFactory());
-    addFactory(new GCAddNewItemToZoneFactory());
-    addFactory(new GCAddNPCFactory());
-    addFactory(new GCAddSlayerFactory());
-    addFactory(new GCAddSlayerCorpseFactory());
-    addFactory(new GCAddVampireFactory());
-    addFactory(new GCAddVampireCorpseFactory());
-    addFactory(new GCAddVampireFromBurrowingFactory());
-    addFactory(new GCAddVampireFromTransformationFactory());
-    addFactory(new GCAddWolfFactory());
-    addFactory(new GCAttackFactory());
-    addFactory(new GCAttackArmsOK1Factory());
-    addFactory(new GCAttackArmsOK2Factory());
-    addFactory(new GCAttackArmsOK3Factory());
-    addFactory(new GCAttackArmsOK4Factory());
-    addFactory(new GCAttackArmsOK5Factory());
-    addFactory(new GCAttackMeleeOK1Factory());
-    addFactory(new GCAttackMeleeOK2Factory());
-    addFactory(new GCAttackMeleeOK3Factory());
-    addFactory(new GCBloodDrainOK1Factory());
-    addFactory(new GCBloodDrainOK2Factory());
-    addFactory(new GCBloodDrainOK3Factory());
-    addFactory(new GCCastingSkillFactory());
-    addFactory(new GCCannotAddFactory());
-    addFactory(new GCCannotUseFactory());
-    addFactory(new GCChangeShapeFactory());
-    addFactory(new GCChangeDarkLightFactory());
-    addFactory(new GCChangeWeatherFactory());
-    addFactory(new GCCreateItemFactory());
-    addFactory(new GCCreatureDiedFactory());
-    addFactory(new GCCrossCounterOK1Factory());
-    addFactory(new GCCrossCounterOK2Factory());
-    addFactory(new GCCrossCounterOK3Factory());
-    addFactory(new GCDeleteandPickUpOKFactory());
-    addFactory(new GCDeleteInventoryItemFactory());
-    addFactory(new GCDeleteObjectFactory());
-    addFactory(new GCRemoveCorpseHeadFactory());
-    addFactory(new GCRemoveInjuriousCreatureFactory());
-    addFactory(new GCDeleteEffectFromTileFactory());
-    addFactory(new GCDisconnectFactory());
-    addFactory(new GCDropItemToZoneFactory());
-    addFactory(new GCFastMoveFactory());
-    addFactory(new GCFakeMoveFactory());
-    addFactory(new GCGetDamageFactory());
-    addFactory(new GCGetOffMotorCycleFactory());
-    addFactory(new GCGetOffMotorCycleOKFactory());
-    addFactory(new GCGetOffMotorCycleFailedFactory());
-    addFactory(new GCGlobalChatFactory());
-    addFactory(new GCHPRecoveryStartToSelfFactory());
-    addFactory(new GCHPRecoveryStartToOthersFactory());
-    addFactory(new GCHPRecoveryEndToSelfFactory());
-    addFactory(new GCHPRecoveryEndToOthersFactory());
-    addFactory(new GCLightningFactory());
-    addFactory(new GCLearnSkillFailedFactory());
-    addFactory(new GCLearnSkillOKFactory());
-    addFactory(new GCLearnSkillReadyFactory());
-    addFactory(new GCKnockBackFactory());
-    addFactory(new GCKnocksTargetBackOK1Factory());
-    addFactory(new GCKnocksTargetBackOK2Factory());
-    addFactory(new GCKnocksTargetBackOK4Factory());
-    addFactory(new GCKnocksTargetBackOK5Factory());
-    addFactory(new GCMakeItemOKFactory());
-    addFactory(new GCMakeItemFailFactory());
-    addFactory(new GCMineExplosionOK1Factory());
-    addFactory(new GCMineExplosionOK2Factory());
-    addFactory(new GCModifyInformationFactory());
-    addFactory(new GCMorph1Factory());
-    addFactory(new GCMorphSlayer2Factory());
-    addFactory(new GCMorphVampire2Factory());
-    addFactory(new GCMoveFactory());
-    addFactory(new GCMoveErrorFactory());
-    addFactory(new GCMoveOKFactory());
-    addFactory(new GCMPRecoveryStartFactory());
-    addFactory(new GCMPRecoveryEndFactory());
-    addFactory(new GCNPCAskFactory());
-    addFactory(new GCNPCSayFactory());
-    addFactory(new GCRealWearingInfoFactory());
-    addFactory(new GCReconnectFactory());
-    addFactory(new GCReconnectLoginFactory());
-    addFactory(new GCRemoveEffectFactory());
-    addFactory(new GCRemoveFromGearFactory());
-    addFactory(new GCRideMotorCycleFactory());
-    addFactory(new GCRideMotorCycleOKFactory());
-    addFactory(new GCRideMotorCycleFailedFactory());
-    addFactory(new GCReloadOKFactory());
-    addFactory(new GCUnburrowOKFactory());
-    addFactory(new GCUnburrowFailFactory());
-    addFactory(new GCUntransformOKFactory());
-    addFactory(new GCUntransformFailFactory());
-    addFactory(new GCUseBonusPointFailFactory());
-    addFactory(new GCUseBonusPointOKFactory());
-    addFactory(new GCSayFactory());
-    addFactory(new GCSearchMotorcycleOKFactory());
-    addFactory(new GCSearchMotorcycleFailFactory());
-    addFactory(new GCSetPositionFactory());
-    // shop interface
-    addFactory(new GCShopVersionFactory());
-    addFactory(new GCShopListFactory());
-    addFactory(new GCShopListMysteriousFactory());
-    addFactory(new GCShopBuyOKFactory());
-    addFactory(new GCShopBuyFailFactory());
-    addFactory(new GCShopSoldFactory());
-    addFactory(new GCShopSellFailFactory());
-    addFactory(new GCShopSellOKFactory());
-    addFactory(new GCShopBoughtFactory());
-    addFactory(new GCShopMarketConditionFactory());
-
-    addFactory(new GCSkillFailed1Factory());
-    addFactory(new GCSkillFailed2Factory());
-    addFactory(new GCSkillToInventoryOK1Factory());
-    addFactory(new GCSkillToInventoryOK2Factory());
-    addFactory(new GCSkillToObjectOK1Factory());
-    addFactory(new GCSkillToObjectOK2Factory());
-    addFactory(new GCSkillToObjectOK3Factory());
-    addFactory(new GCSkillToObjectOK4Factory());
-    addFactory(new GCSkillToObjectOK5Factory());
-    addFactory(new GCSkillToObjectOK6Factory());
-    addFactory(new GCSkillToSelfOK1Factory());
-    addFactory(new GCSkillToSelfOK2Factory());
-    addFactory(new GCSkillToSelfOK3Factory());
-    addFactory(new GCSkillToTileOK1Factory());
-    addFactory(new GCSkillToTileOK2Factory());
-    addFactory(new GCSkillToTileOK3Factory());
-    addFactory(new GCSkillToTileOK4Factory());
-    addFactory(new GCSkillToTileOK5Factory());
-    addFactory(new GCSkillToTileOK6Factory());
-    addFactory(new GCSystemMessageFactory());
-    addFactory(new GCTakeOffFactory());
-    addFactory(new GCTeachSkillInfoFactory());
-    addFactory(new GCThrowItemOK1Factory());
-    addFactory(new GCThrowItemOK2Factory());
-    addFactory(new GCThrowItemOK3Factory());
-    addFactory(new GCUpdateInfoFactory());
-    addFactory(new GCUseOKFactory());
-
-    // Add by elcastle 2000-11-29
-    //	addFactory(new GCPhoneConnectedFactory());
-    //	addFactory(new GCRingFactory());
-    //	addFactory(new GCPhoneDisconnectedFactory());
-    //	addFactory(new GCPhoneConnectionFailedFactory());
-    //	addFactory(new GCPhoneSayFactory());
-    addFactory(new GCWhisperFactory());
-    addFactory(new GCWhisperFailedFactory());
-
-    // Add by elcastle 2000-12-2
-    addFactory(new GCSkillInfoFactory());
-
-    // Add by elcastle 2000-12-9
-    addFactory(new GCStatusCurrentHPFactory());
-
-    addFactory(new GCStashListFactory());
-    addFactory(new GCStashSellFactory());
-
-    addFactory(new GCTradePrepareFactory());
-    addFactory(new GCTradeAddItemFactory());
-    addFactory(new GCTradeRemoveItemFactory());
-    addFactory(new GCTradeMoneyFactory());
-    addFactory(new GCTradeFinishFactory());
-    addFactory(new GCTradeErrorFactory());
-    addFactory(new GCTradeVerifyFactory());
-    addFactory(new GCVisibleOKFactory());
-    addFactory(new GCVisibleFailFactory());
-
-    addFactory(new GCNPCResponseFactory());
-
-    addFactory(new GCNPCSayDynamicFactory());
-    addFactory(new GCNPCAskDynamicFactory());
-
-    addFactory(new GCAddHelicopterFactory());
-    addFactory(new GCAddVampirePortalFactory());
-    addFactory(new GCAddInjuriousCreatureFactory());
-    addFactory(new GCEnterVampirePortalFactory());
-
-    addFactory(new GCPartyInviteFactory());
-    addFactory(new GCPartyLeaveFactory());
-    addFactory(new GCPartyJoinedFactory());
-    addFactory(new GCPartyErrorFactory());
-
-    addFactory(new GCRequestedIPFactory());
-    addFactory(new GCRequestFailedFactory());
-
-    addFactory(new GCOtherModifyInfoFactory());
-    addFactory(new GCThrowBombOK1Factory());
-    addFactory(new GCThrowBombOK2Factory());
-    addFactory(new GCThrowBombOK3Factory());
-
-    //	addFactory( new GCShowGuildRegistFactory() );
-    addFactory(new GCWaitGuildListFactory());
-    addFactory(new GCShowGuildInfoFactory());
-    addFactory(new GCShowGuildJoinFactory());
-    addFactory(new GCShowMessageBoxFactory());
-    //	addFactory( new GCModifyMoneyFactory() );
-    addFactory(new GCShowWaitGuildInfoFactory());
-    addFactory(new GCActiveGuildListFactory());
-
-    addFactory(new GCShowGuildMemberInfoFactory());
-    addFactory(new GCGuildChatFactory());
-    addFactory(new GCGuildMemberListFactory());
-    addFactory(new GCModifyGuildMemberInfoFactory());
-    addFactory(new GCAddItemToItemVerifyFactory());
-
-    // 2002.9.2
-    addFactory(new GCNoticeEventFactory());
-
-    addFactory(new GCSelectRankBonusOKFactory());
-    addFactory(new GCSelectRankBonusFailedFactory());
-    addFactory(new GCRankBonusInfoFactory());
-
-    addFactory(new GCNPCInfoFactory());
-    addFactory(new GCNPCAskVariableFactory());
-    addFactory(new GCWarScheduleListFactory());
-    addFactory(new GCWarListFactory());
-
-    addFactory(new GCHolyLandBonusInfoFactory());
-    addFactory(new GCBloodBibleStatusFactory());
-    addFactory(new GCKickMessageFactory());
-    addFactory(new GCTimeLimitItemInfoFactory());
-    addFactory(new GCSelectQuestIDFactory());
-    addFactory(new GCQuestStatusFactory());
-    addFactory(new GCMonsterKillQuestInfoFactory());
-    addFactory(new GCNotifyWinFactory());
-    addFactory(new GCGoodsListFactory());
-    addFactory(new GCTakeOutOKFactory());
-    addFactory(new GCTakeOutFailFactory());
-    addFactory(new GCAddOustersFactory());
-    addFactory(new GCAddOustersCorpseFactory());
-    addFactory(new GCDownSkillOKFactory());
-    addFactory(new GCDownSkillFailedFactory());
-
-    addFactory(new GCMiniGameScoresFactory());
-    addFactory(new GCFlagWarStatusFactory());
-    addFactory(new GCOtherGuildNameFactory());
-    addFactory(new GCSweeperBonusInfoFactory());
-    addFactory(new GCRegenZoneStatusFactory());
-    addFactory(new GCPetInfoFactory());
-    addFactory(new GCPetUseSkillFactory());
-    addFactory(new GCSystemAvailabilitiesFactory());
-
-    addFactory(new GCPartyPositionFactory());
-    addFactory(new CGPartyPositionFactory());
-    addFactory(new CGPartySayFactory());
-    addFactory(new GCPartySayFactory());
-
-    addFactory(new GGServerChatFactory());
-
-    addFactory(new GCPetStashListFactory());
-    addFactory(new CGWithdrawPetFactory());
-    addFactory(new CGDepositPetFactory());
-    addFactory(new GCPetStashVerifyFactory());
-
-    addFactory(new CGSMSSendFactory());
-
-    addFactory(new CGAddSMSAddressFactory());
-    addFactory(new CGDeleteSMSAddressFactory());
-    addFactory(new CGSMSAddressListFactory());
-    addFactory(new GCSMSAddressListFactory());
-    addFactory(new GCAddressListVerifyFactory());
-
-    addFactory(new GCNicknameListFactory());
-    addFactory(new GCAddNicknameFactory());
-    addFactory(new CGModifyNicknameFactory());
-    addFactory(new CGSelectNicknameFactory());
-    addFactory(new GCNicknameVerifyFactory());
-    addFactory(new GCModifyNicknameFactory());
-
-    addFactory(new GCGQuestStatusInfoFactory());
-    addFactory(new GCGQuestStatusModifyFactory());
-    addFactory(new CGGQuestAcceptFactory());
-    addFactory(new CGGQuestCancelFactory());
-    addFactory(new GCExecuteElementFactory());
-    addFactory(new GCGQuestInventoryFactory());
-
-    addFactory(new GCAuthKeyFactory());
-    addFactory(new CGAuthKeyFactory());
-    addFactory(new CGUseItemFromGQuestInventoryFactory());
-
-    addFactory(new GCGuildResponseFactory());
-    addFactory(new CGRequestGuildListFactory());
-    addFactory(new CGAppointSubmasterFactory());
-    addFactory(new CGRequestUnionFactory());
-    addFactory(new CGAcceptUnionFactory());
-    addFactory(new CGDenyUnionFactory());
-    addFactory(new CGRequestUnionInfoFactory());
-    addFactory(new CGExpelGuildFactory());
-    addFactory(new CGQuitUnionFactory());
-    addFactory(new CGQuitUnionAcceptFactory());
-    addFactory(new CGQuitUnionDenyFactory());
-    addFactory(new GCUnionOfferListFactory());
-
-    addFactory(new GCBloodBibleListFactory());
-    addFactory(new CGSelectBloodBibleFactory());
-    addFactory(new GCBloodBibleSignInfoFactory());
-    addFactory(new CGRangerSayFactory());
-    addFactory(new CGModifyTaxRatioFactory());
-
-    addFactory(new CGDisplayItemFactory());
-    addFactory(new CGUndisplayItemFactory());
-    addFactory(new CGStoreSignFactory());
-    addFactory(new CGStoreOpenFactory());
-    addFactory(new CGStoreCloseFactory());
-    addFactory(new CGRequestStoreInfoFactory());
-    addFactory(new CGBuyStoreItemFactory());
-    addFactory(new GCMyStoreInfoFactory());
-    addFactory(new GCOtherStoreInfoFactory());
-    addFactory(new GCRemoveStoreItemFactory());
-    addFactory(new GCAddStoreItemFactory());
-    addFactory(new CGRequestPowerPointFactory());
-    addFactory(new GCRequestPowerPointResultFactory());
-    addFactory(new CGUsePowerPointFactory());
-    addFactory(new GCUsePowerPointResultFactory());
-    addFactory(new CGDonationMoneyFactory());
-    addFactory(new CGGetEventItemFactory());
-
-
-    // add by viva 2008-12-31
-    addFactory(new CGConnectSetKeyFactory());
-    addFactory(new GCFriendChattingFactory());
-    // addFactory( new GCUseSkillCardOKFactory() );
-    // end
-
-#endif
-
-
-#ifdef __LOGIN_SERVER__
-    addFactory(new LCCreatePCErrorFactory());
-    addFactory(new LCCreatePCOKFactory());
-    addFactory(new LCDeletePCErrorFactory());
-    addFactory(new LCDeletePCOKFactory());
-    addFactory(new LCLoginErrorFactory());
-    addFactory(new LCLoginOKFactory());
-    addFactory(new LCPCListFactory());
-    addFactory(new LCQueryResultPlayerIDFactory());
-    addFactory(new LCQueryResultCharacterNameFactory());
-    addFactory(new LCReconnectFactory());
-    addFactory(new LCRegisterPlayerErrorFactory());
-    addFactory(new LCRegisterPlayerOKFactory());
-    addFactory(new LCSelectPCErrorFactory());
-    addFactory(new LCVersionCheckOKFactory());
-    addFactory(new LCVersionCheckErrorFactory());
-    addFactory(new LCServerListFactory());
-    addFactory(new LCWorldListFactory());
-#endif
-
-#if defined(__GAME_SERVER__) || defined(__LOGIN_SERVER__)
-    addFactory(new LGIncomingConnectionFactory());
-    addFactory(new LGIncomingConnectionOKFactory());
-    addFactory(new LGIncomingConnectionErrorFactory());
-    addFactory(new LGKickCharacterFactory());
-
-    addFactory(new GGCommandFactory());
-    addFactory(new GMServerInfoFactory());
-    addFactory(new GLIncomingConnectionFactory());
-    addFactory(new GLIncomingConnectionErrorFactory());
-    addFactory(new GLIncomingConnectionOKFactory());
-    addFactory(new GLKickVerifyFactory());
-#endif
-
-#if defined(__GAME_SERVER__) || defined(__SHARED_SERVER__)
-    addFactory(new SGQuitGuildOKFactory());
-    addFactory(new SGExpelGuildMemberOKFactory());
-    addFactory(new SGModifyGuildMemberOKFactory());
-    addFactory(new SGDeleteGuildOKFactory());
-    addFactory(new SGModifyGuildOKFactory());
-    addFactory(new GSExpelGuildMemberFactory());
-    addFactory(new GSModifyGuildMemberFactory());
-    addFactory(new SGAddGuildMemberOKFactory());
-    addFactory(new SGAddGuildOKFactory());
-    addFactory(new GSAddGuildFactory());
-    addFactory(new GSAddGuildMemberFactory());
-    addFactory(new GSQuitGuildFactory());
-
-    addFactory(new GGGuildChatFactory());
-    addFactory(new GSRequestGuildInfoFactory());
-    addFactory(new SGGuildInfoFactory());
-
-    addFactory(new GSModifyGuildIntroFactory());
-    addFactory(new SGModifyGuildIntroOKFactory());
-
-    addFactory(new GSGuildMemberLogOnFactory());
-    addFactory(new SGGuildMemberLogOnOKFactory());
-#endif
-
-    // Exchange System Packets
-#if defined(__GAME_SERVER__)
-    addFactory(new CGExchangeListFactory());
-    addFactory(new CGExchangeBuyFactory());
-#endif
-
+    ServerFactories::forEach([this]<typename Factory>(std::type_identity<Factory>) { addFactory(new Factory()); });
 
 #if __OUTPUT_INIT__
     cout << toString() << endl;

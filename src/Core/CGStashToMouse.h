@@ -71,17 +71,21 @@ private:
 
 class CGStashToMouseFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_STASH_TO_MOUSE;
+    static constexpr std::string_view kName = "CGStashToMouse";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE * 2};
+
+    Packet* createPacket() override {
         return new CGStashToMouse();
     }
-    string getPacketName() const {
-        return "CGStashToMouse";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_STASH_TO_MOUSE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE * 2;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -94,26 +94,30 @@ private:
 
 class GCPartySayFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PARTY_SAY;
+    static constexpr std::string_view kName = "GCPartySay";
+    static constexpr PacketSize_t kMaxSize{szBYTE + 20 + szDWORD + szBYTE + 128};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCPartySay();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCPartySay";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_PARTY_SAY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCPartySayPacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + 20 + szDWORD + szBYTE + 128;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

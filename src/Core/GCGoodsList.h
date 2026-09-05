@@ -20,7 +20,7 @@ typedef struct _GoodsInfo {
         return szObjectID + szBYTE + szItemType + szGrade + szBYTE + optionType.size() + szItemNum + szDWORD;
     }
 
-    static int getPacketMaxSize() {
+    static constexpr int getPacketMaxSize() {
         return szObjectID + szBYTE + szItemType + szGrade + szBYTE + 255 + szItemNum + szDWORD;
     }
 
@@ -94,20 +94,26 @@ private:
 
 class GCGoodsListFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
-        return new GCGoodsList();
-    }
-    string getPacketName() const {
-        return "GCGoodsList";
-    }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_GOODS_LIST;
-    }
-    PacketSize_t getPacketMaxSize() const {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_GOODS_LIST;
+    static constexpr std::string_view kName = "GCGoodsList";
+    static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = szBYTE;
         size += GoodsInfo::getPacketMaxSize() * MAX_GOODS_LIST;
 
         return size;
+    }()};
+
+    Packet* createPacket() override {
+        return new GCGoodsList();
+    }
+    string getPacketName() const override {
+        return string(kName);
+    }
+    PacketID_t getPacketID() const override {
+        return kPacketID;
+    }
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

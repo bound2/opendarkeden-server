@@ -154,21 +154,25 @@ private:
 
 class GCAddBatFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_BAT;
+    static constexpr std::string_view kName = "GCAddBat";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + 20 +
+                                           szItemType
+                                           //+ szSpriteType
+                                           //+ szColor + szColor
+                                           + szCoord + szCoord + szDir + szHP * 2 + szGuildID + szColor};
+
+    Packet* createPacket() override {
         return new GCAddBat();
     }
-    string getPacketName() const {
-        return "GCAddBat";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_BAT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE + 20 +
-               szItemType
-               //+ szSpriteType
-               //+ szColor + szColor
-               + szCoord + szCoord + szDir + szHP * 2 + szGuildID + szColor;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

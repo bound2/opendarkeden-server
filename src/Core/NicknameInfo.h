@@ -22,7 +22,7 @@ public:
     };
 
     PacketSize_t getSize() const;
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return szWORD + szBYTE + szBYTE + MAX_NICKNAME_SIZE;
     }
 

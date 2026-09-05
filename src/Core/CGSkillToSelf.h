@@ -91,6 +91,10 @@ private:
 
 class CGSkillToSelfFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SKILL_TO_SELF;
+    static constexpr std::string_view kName = "CGSkillToSelf";
+    static constexpr PacketSize_t kMaxSize{szSkillType + szCEffectID};
+
     // constructor
     CGSkillToSelfFactory() {}
 
@@ -100,23 +104,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGSkillToSelf();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGSkillToSelf";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SKILL_TO_SELF;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szSkillType + szCEffectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

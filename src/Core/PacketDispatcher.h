@@ -36,24 +36,26 @@ private:
 // to Cls##Handler::execute, preserving the exact call the packet's own
 // execute() used to make before task 2.3. The _NOPLAYER form is for
 // handlers that take only the packet (the inter-server directions).
-#define DE_REGISTER_PACKET_HANDLER(Cls)                                       \
-    {                                                                         \
-        struct Thunk {                                                        \
-            static void call(Packet* pPacket, Player* pPlayer) {              \
-                Cls##Handler::execute(static_cast<Cls*>(pPacket), pPlayer);   \
-            }                                                                 \
-        };                                                                    \
-        PacketDispatcher::registerHandler(Cls().getPacketID(), &Thunk::call); \
+// The id comes from the factory's compile-time metadata (PacketMeta.h),
+// so registration no longer constructs a throwaway packet to ask for it.
+#define DE_REGISTER_PACKET_HANDLER(Cls)                                           \
+    {                                                                             \
+        struct Thunk {                                                            \
+            static void call(Packet* pPacket, Player* pPlayer) {                  \
+                Cls##Handler::execute(static_cast<Cls*>(pPacket), pPlayer);       \
+            }                                                                     \
+        };                                                                        \
+        PacketDispatcher::registerHandler(Cls##Factory::kPacketID, &Thunk::call); \
     }
 
-#define DE_REGISTER_PACKET_HANDLER_NOPLAYER(Cls)                              \
-    {                                                                         \
-        struct Thunk {                                                        \
-            static void call(Packet* pPacket, Player*) {                      \
-                Cls##Handler::execute(static_cast<Cls*>(pPacket));            \
-            }                                                                 \
-        };                                                                    \
-        PacketDispatcher::registerHandler(Cls().getPacketID(), &Thunk::call); \
+#define DE_REGISTER_PACKET_HANDLER_NOPLAYER(Cls)                                  \
+    {                                                                             \
+        struct Thunk {                                                            \
+            static void call(Packet* pPacket, Player*) {                          \
+                Cls##Handler::execute(static_cast<Cls*>(pPacket));                \
+            }                                                                     \
+        };                                                                        \
+        PacketDispatcher::registerHandler(Cls##Factory::kPacketID, &Thunk::call); \
     }
 
 #endif

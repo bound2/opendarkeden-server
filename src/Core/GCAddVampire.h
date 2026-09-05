@@ -127,18 +127,23 @@ private:
 
 class GCAddVampireFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_VAMPIRE;
+    static constexpr std::string_view kName = "GCAddVampire";
+    static constexpr PacketSize_t kMaxSize{PCVampireInfo3::getMaxSize() + EffectInfo::getMaxSize() +
+                                           PetInfo::getMaxSize() + NicknameInfo::getMaxSize() +
+                                           StoreOutlook::getMaxSize() + szBYTE};
+
+    Packet* createPacket() override {
         return new GCAddVampire();
     }
-    string getPacketName() const {
-        return "GCAddVampire";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_VAMPIRE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return PCVampireInfo3::getMaxSize() + EffectInfo::getMaxSize() + PetInfo::getMaxSize() +
-               NicknameInfo::getMaxSize() + StoreOutlook::getMaxSize() + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

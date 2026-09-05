@@ -106,6 +106,10 @@ private:
 
 class CGRelicToObjectFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_RELIC_TO_OBJECT;
+    static constexpr std::string_view kName = "CGRelicToObject";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szObjectID + szCoord + szCoord};
+
     // constructor
     CGRelicToObjectFactory() {}
 
@@ -115,23 +119,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGRelicToObject();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGRelicToObject";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_RELIC_TO_OBJECT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szObjectID + szCoord + szCoord;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

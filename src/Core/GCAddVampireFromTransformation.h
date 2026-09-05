@@ -108,24 +108,28 @@ private:
 
 class GCAddVampireFromTransformationFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_VAMPIRE_FROM_TRANSFORMATION;
+    static constexpr std::string_view kName = "GCAddVampireFromTransformation";
+    static constexpr PacketSize_t kMaxSize{PCVampireInfo3::getMaxSize() + EffectInfo::getMaxSize()};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddVampireFromTransformation();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAddVampireFromTransformation";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_VAMPIRE_FROM_TRANSFORMATION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
-    PacketSize_t getPacketMaxSize() const {
-        return PCVampireInfo3::getMaxSize() + EffectInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

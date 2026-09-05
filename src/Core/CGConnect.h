@@ -107,26 +107,30 @@ private:
 
 class CGConnectFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_CONNECT;
+    static constexpr std::string_view kName = "CGConnect";
+    static constexpr PacketSize_t kMaxSize{szDWORD             // authentication key
+                                           + szPCType          // Slayer or Vampire
+                                           + szBYTE + 20 + 6}; // name
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGConnect();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGConnect";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_CONNECT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szDWORD            // authentication key
-               + szPCType         // Slayer or Vampire
-               + szBYTE + 20 + 6; // name
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -63,24 +63,28 @@ private:
 
 class CGSelectRankBonusFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SELECT_RANK_BONUS;
+    static constexpr std::string_view kName = "CGSelectRankBonus";
+    static constexpr PacketSize_t kMaxSize{szDWORD};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGSelectRankBonus();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGSelectRankBonus";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SELECT_RANK_BONUS;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szDWORD;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

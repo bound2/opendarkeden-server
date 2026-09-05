@@ -51,17 +51,22 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 
 class CGSelectTileEffectFactory : public PacketFactory {
-    Packet* createPacket() {
+public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SELECT_TILE_EFFECT;
+    static constexpr std::string_view kName = "CGSelectTileEffect";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
+    Packet* createPacket() override {
         return new CGSelectTileEffect();
     }
-    string getPacketName() const {
-        return "CGSelectTileEffect";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SELECT_TILE_EFFECT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

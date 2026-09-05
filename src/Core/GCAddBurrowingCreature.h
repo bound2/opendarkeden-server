@@ -76,17 +76,21 @@ private:
 
 class GCAddBurrowingCreatureFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_BURROWING_CREATURE;
+    static constexpr std::string_view kName = "GCAddBurrowingCreature";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + 20 + szCoord + szCoord};
+
+    Packet* createPacket() override {
         return new GCAddBurrowingCreature();
     }
-    string getPacketName() const {
-        return "GCAddBurrowingCreature";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_BURROWING_CREATURE;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE + 20 + szCoord + szCoord;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

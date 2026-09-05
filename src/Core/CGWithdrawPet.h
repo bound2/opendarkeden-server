@@ -65,17 +65,21 @@ private:
 
 class CGWithdrawPetFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_WITHDRAW_PET;
+    static constexpr std::string_view kName = "CGWithdrawPet";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE};
+
+    Packet* createPacket() override {
         return new CGWithdrawPet();
     }
-    string getPacketName() const {
-        return "CGWithdrawPet";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_WITHDRAW_PET;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

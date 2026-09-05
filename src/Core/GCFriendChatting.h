@@ -139,26 +139,30 @@ private:
 
 class GCFriendChattingFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_FRIEND_CHATTING;
+    static constexpr std::string_view kName = "GCFriendChatting";
+    static constexpr PacketSize_t kMaxSize{szDWORD + szBYTE + 32 + szWORD + 512 + szBYTE + szBYTE};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCFriendChatting();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCFriendChatting";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_FRIEND_CHATTING;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCSayPacketMaxSize �� ����, �����϶�.
-    PacketSize_t getPacketMaxSize() const {
-        return szDWORD + szBYTE + 32 + szWORD + 512 + szBYTE + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

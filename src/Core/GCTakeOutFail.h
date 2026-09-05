@@ -76,26 +76,30 @@ private:
 
 class GCTakeOutFailFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_TAKE_OUT_FAIL;
+    static constexpr std::string_view kName = "GCTakeOutFail";
+    static constexpr PacketSize_t kMaxSize{szObjectID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCTakeOutFail();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCTakeOutFail";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_TAKE_OUT_FAIL;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCTakeOutFailPacketSize 를 정의해서 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -79,26 +79,30 @@ private:
 
 class GCMPRecoveryEndFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MP_RECOVERY_END;
+    static constexpr std::string_view kName = "GCMPRecoveryEnd";
+    static constexpr PacketSize_t kMaxSize{szMP};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCMPRecoveryEnd();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCMPRecoveryEnd";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_MP_RECOVERY_END;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
     // *OPTIMIZATION HINT*
     // const static GCMPRecoveryEndPacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szMP;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

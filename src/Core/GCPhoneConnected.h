@@ -106,6 +106,10 @@ private:
 
 class GCPhoneConnectedFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PHONE_CONNECTED;
+    static constexpr std::string_view kName = "GCPhoneConnected";
+    static constexpr PacketSize_t kMaxSize{szPhoneNumber + szSlotID + szBYTE + 20};
+
     // constructor
     GCPhoneConnectedFactory() {}
 
@@ -115,23 +119,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCPhoneConnected();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCPhoneConnected";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_PHONE_CONNECTED;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szPhoneNumber + szSlotID + szBYTE + 20;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

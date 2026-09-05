@@ -73,24 +73,28 @@ private:
 
 class CLSelectWorldFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CL_SELECT_WORLD;
+    static constexpr std::string_view kName = "CLSelectWorld";
+    static constexpr PacketSize_t kMaxSize{szWorldID};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CLSelectWorld();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CLSelectWorld";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CL_SELECT_WORLD;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
-    PacketSize_t getPacketMaxSize() const {
-        return szWorldID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

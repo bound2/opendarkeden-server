@@ -26,7 +26,7 @@ public:
         return PCItemInfo::getSize() + szCoordInven * 2;
     }
 
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return PCItemInfo::getMaxSize() + szCoordInven * 2;
     }
 

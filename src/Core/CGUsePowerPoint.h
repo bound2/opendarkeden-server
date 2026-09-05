@@ -40,17 +40,21 @@ public:
 
 class CGUsePowerPointFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_USE_POWER_POINT;
+    static constexpr std::string_view kName = "CGUsePowerPoint";
+    static constexpr PacketSize_t kMaxSize{0};
+
+    Packet* createPacket() override {
         return new CGUsePowerPoint();
     }
-    string getPacketName() const {
-        return "CGUsePowerPoint";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_USE_POWER_POINT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return 0;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -35,7 +35,7 @@ public:
         return WarInfo::getSize() + szint;
     }
 
-    static PacketSize_t getMaxSize() {
+    static constexpr PacketSize_t getMaxSize() {
         return WarInfo::getMaxSize() + szint;
     }
 

@@ -81,26 +81,30 @@ private:
 
 class GCReloadOKFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_RELOAD_OK;
+    static constexpr std::string_view kName = "GCReloadOK";
+    static constexpr PacketSize_t kMaxSize{szBullet};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCReloadOK();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCReloadOK";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_RELOAD_OK;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // Use GCReloadOKPacketSize if that constant is defined.
-    PacketSize_t getPacketMaxSize() const {
-        return szBullet;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

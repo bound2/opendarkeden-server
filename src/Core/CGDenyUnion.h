@@ -75,6 +75,10 @@ private:
 
 class CGDenyUnionFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_DENY_UNION;
+    static constexpr std::string_view kName = "CGDenyUnion";
+    static constexpr PacketSize_t kMaxSize{szGuildID};
+
     // constructor
     CGDenyUnionFactory() {}
 
@@ -84,23 +88,23 @@ public:
 
 public:
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new CGDenyUnion();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "CGDenyUnion";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_DENY_UNION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get Packet Max Size
-    PacketSize_t getPacketMaxSize() const {
-        return szGuildID;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

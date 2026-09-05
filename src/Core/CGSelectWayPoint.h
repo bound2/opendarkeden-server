@@ -67,17 +67,22 @@ private:
 //////////////////////////////////////////////////////////////////////////////
 
 class CGSelectWayPointFactory : public PacketFactory {
-    Packet* createPacket() {
+public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SELECT_WAYPOINT;
+    static constexpr std::string_view kName = "CGSelectWayPoint";
+    static constexpr PacketSize_t kMaxSize{szZoneID + szCoord * 2};
+
+    Packet* createPacket() override {
         return new CGSelectWayPoint();
     }
-    string getPacketName() const {
-        return "CGSelectWayPoint";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_SELECT_WAYPOINT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szZoneID + szCoord * 2;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

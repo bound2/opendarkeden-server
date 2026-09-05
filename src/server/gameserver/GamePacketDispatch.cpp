@@ -355,16 +355,16 @@ void registerGameServerPacketHandlers() {
     DE_REGISTER_PACKET_HANDLER(CGWithdrawPet);
     DE_REGISTER_PACKET_HANDLER(CGWithdrawTax);
 
-    PacketDispatcher::registerHandler(CGPortCheck().getPacketID(), &dispatchCGPortCheck);
-    PacketDispatcher::registerHandler(CGStashList().getPacketID(), &dispatchCGStashList);
+    PacketDispatcher::registerHandler(CGPortCheckFactory::kPacketID, &dispatchCGPortCheck);
+    PacketDispatcher::registerHandler(CGStashListFactory::kPacketID, &dispatchCGStashList);
 
     // GC packets the gameserver really receives (see the thunks above).
     // GCFriendChatting is the one GC packet with a live server handler:
     // the friend system's requests ride it client -> server.
     DE_REGISTER_PACKET_HANDLER(GCFriendChatting);
-    PacketDispatcher::registerHandler(GCAddStoreItem().getPacketID(), &dispatchIgnore);
-    PacketDispatcher::registerHandler(GCRemoveStoreItem().getPacketID(), &dispatchIgnore);
-    PacketDispatcher::registerHandler(GCCannotUse().getPacketID(), &dispatchIgnore);
+    PacketDispatcher::registerHandler(GCAddStoreItemFactory::kPacketID, &dispatchIgnore);
+    PacketDispatcher::registerHandler(GCRemoveStoreItemFactory::kPacketID, &dispatchIgnore);
+    PacketDispatcher::registerHandler(GCCannotUseFactory::kPacketID, &dispatchIgnore);
 
     // SG (shared -> game), received on the SharedServerClient link.
     // SGModifyGuildMemberOK never ran before 2.3: its execute() was

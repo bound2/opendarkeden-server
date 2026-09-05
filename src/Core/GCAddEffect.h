@@ -72,21 +72,25 @@ private:
 
 class GCAddEffectFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_EFFECT;
+    static constexpr std::string_view kName = "GCAddEffect";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szEffectID + szDuration};
+
     GCAddEffectFactory() {}
     virtual ~GCAddEffectFactory() {}
 
 public:
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddEffect();
     }
-    string getPacketName() const {
-        return "GCAddEffect";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_EFFECT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szEffectID + szDuration;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

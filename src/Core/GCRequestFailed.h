@@ -64,17 +64,21 @@ private:
 
 class GCRequestFailedFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_REQUEST_FAILED;
+    static constexpr std::string_view kName = "GCRequestFailed";
+    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE + 10};
+
+    Packet* createPacket() override {
         return new GCRequestFailed();
     }
-    string getPacketName() const {
-        return "GCRequestFailed";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_REQUEST_FAILED;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szBYTE + szBYTE + 10;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

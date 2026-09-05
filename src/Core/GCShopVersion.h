@@ -102,26 +102,30 @@ private:
 
 class GCShopVersionFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOP_VERSION;
+    static constexpr std::string_view kName = "GCShopVersion";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szShopVersion * 3 + szMarketCond};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCShopVersion();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCShopVersion";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_SHOP_VERSION;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
     // const static GCShopVersionPacketMaxSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szShopVersion * 3 + szMarketCond;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

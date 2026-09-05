@@ -10,6 +10,10 @@
 #define __PACKET_FACTORY_H__
 
 // include files
+#include <string>
+
+#include <string_view>
+
 #include "Packet.h"
 
 //////////////////////////////////////////////////////////////////////

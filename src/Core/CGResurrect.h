@@ -38,17 +38,21 @@ public:
 
 class CGResurrectFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_RESURRECT;
+    static constexpr std::string_view kName = "CGResurrect";
+    static constexpr PacketSize_t kMaxSize{0};
+
+    Packet* createPacket() override {
         return new CGResurrect();
     }
-    string getPacketName() const {
-        return "CGResurrect";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_RESURRECT;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return 0;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

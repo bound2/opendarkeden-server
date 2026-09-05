@@ -60,17 +60,21 @@ private:
 
 class CGUseItemFromGearFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_USE_ITEM_FROM_GEAR;
+    static constexpr std::string_view kName = "CGUseItemFromGear";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE};
+
+    Packet* createPacket() override {
         return new CGUseItemFromGear();
     }
-    string getPacketName() const {
-        return "CGUseItemFromGear";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_USE_ITEM_FROM_GEAR;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

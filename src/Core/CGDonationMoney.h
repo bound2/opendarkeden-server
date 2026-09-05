@@ -74,17 +74,21 @@ private:
 
 class CGDonationMoneyFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_CG_DONATION_MONEY;
+    static constexpr std::string_view kName = "CGDonationMoney";
+    static constexpr PacketSize_t kMaxSize{szGold + szBYTE};
+
+    Packet* createPacket() override {
         return new CGDonationMoney();
     }
-    string getPacketName() const {
-        return "CGDonationMoney";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_CG_DONATION_MONEY;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return szGold + szBYTE;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

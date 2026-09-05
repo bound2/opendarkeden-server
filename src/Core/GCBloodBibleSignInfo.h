@@ -52,17 +52,21 @@ private:
 
 class GCBloodBibleSignInfoFactory : public PacketFactory {
 public:
-    Packet* createPacket() {
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_BLOOD_BIBLE_SIGN_INFO;
+    static constexpr std::string_view kName = "GCBloodBibleSignInfo";
+    static constexpr PacketSize_t kMaxSize{BloodBibleSignInfo::getMaxSize()};
+
+    Packet* createPacket() override {
         return new GCBloodBibleSignInfo();
     }
-    string getPacketName() const {
-        return "GCBloodBibleSignInfo";
+    string getPacketName() const override {
+        return string(kName);
     }
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_BLOOD_BIBLE_SIGN_INFO;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
-    PacketSize_t getPacketMaxSize() const {
-        return BloodBibleSignInfo::getMaxSize();
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

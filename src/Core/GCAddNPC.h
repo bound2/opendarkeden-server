@@ -160,26 +160,31 @@ private:
 
 class GCAddNPCFactory : public PacketFactory {
 public:
+    static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_NPC;
+    static constexpr std::string_view kName = "GCAddNPC";
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + 40 + szNPCID + szSpriteType + szColor + szColor +
+                                           szCoord + szCoord + szDir};
+
     // create packet
-    Packet* createPacket() {
+    Packet* createPacket() override {
         return new GCAddNPC();
     }
 
     // get packet name
-    string getPacketName() const {
-        return "GCAddNPC";
+    string getPacketName() const override {
+        return string(kName);
     }
 
     // get packet id
-    PacketID_t getPacketID() const {
-        return Packet::PACKET_GC_ADD_NPC;
+    PacketID_t getPacketID() const override {
+        return kPacketID;
     }
 
     // get packet's body size
     // *OPTIMIZATION HINT*
     // const static GCAddNPCPacketSize 를 정의, 리턴하라.
-    PacketSize_t getPacketMaxSize() const {
-        return szObjectID + szBYTE + 40 + szNPCID + szSpriteType + szColor + szColor + szCoord + szCoord + szDir;
+    PacketSize_t getPacketMaxSize() const override {
+        return kMaxSize;
     }
 };
 

@@ -46,7 +46,7 @@ public:
     }
 
     // get packet's max size
-    static uint getMaxSize() {
+    static constexpr uint getMaxSize() {
         return szBYTE;
     }
 
