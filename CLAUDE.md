@@ -376,19 +376,44 @@ gateways, not a full guarantee.
   player creatures through `g_pPCFinder` under **its** critical section
   (`getCreature_LOCKED`), then use `pPlayer->sendPacket(...)` — sending
   to a player's socket is the main legitimate cross-thread operation.
+- Anything beyond sending — gold, guild id, kick flags, a zone broadcast —
+  goes through the player's **mailbox** (`src/server/Mailbox.h`, owned by
+  `GamePlayer`): `de::postToPlayer(name, command[, ifGone[, scope]])`
+  (`src/server/gameserver/PlayerMailbox.h`) finds the player under the
+  PCFinder lock and queues the command; the manager that owns the player
+  drains it from the one place it processes its players, each tick, before
+  the player's own packets. The box belongs to the player rather than to a
+  group because a player's owner changes over its life (the main thread's
+  `IncomingPlayerManager` during login and zone transfer, a
+  `ZonePlayerManager` on a zone thread in between) and the creature's zone
+  pointer does not say which — it is set as soon as the character loads and
+  stays on the old zone during a transfer. So the box follows the player and
+  keeps posting order across group changes. The zone manager, under the group
+  mutex, runs everything (for a player whose creature is in another
+  group's zone, the listing mismatch it already logs as ZPMCheck, only the
+  player-scoped ones); the main thread runs only `Scope::Player` commands (the kick flags), because the
+  zone the creature points at is ticking elsewhere — `Scope::Zone` commands
+  wait, in order, for a zone thread. A player who logs out with commands
+  pending runs their `ifGone` handlers instead (`~GamePlayer`, right after
+  the PCFinder removal, so exactly one of command/`ifGone` runs), for the
+  handlers whose offline branch matters, like charging a guild fee in the
+  database. Commands capture by value only; a `Guild*`/`GuildMember*` may be
+  deleted before they run. Commands run without the PCFinder lock, so they
+  may post to other players. Cross-group work that is not about one player
+  (the `addZone()` race below) has no queue yet; `de::Mailbox` is the piece
+  to give `ZoneGroup` when it does.
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 
 ### Known violations (documented, not yet fixed)
 
-- SG/LG/GG handlers **mutate** creature/guild state (e.g.
-  `SGAddGuildMemberOKHandler` rewrites guild membership on the
-  `SharedServerManager` thread) holding only the `PCFinder` lock. The
-  `PCFinder` lock serializes lookup/removal, but NOT against the zone
-  thread concurrently mutating the same creature under the group mutex.
-  Long-standing data race; fixing it means routing these mutations
-  through the owning group's mutex or a per-group command queue (Phase 3
-  work).
+- ~~SG/LG/GG handlers **mutate** creature state holding only the `PCFinder`
+  lock~~ — **fixed** for the creature side: the six guild handlers and
+  `LGKickCharacter` post their gold / guild-id / kick-flag / zone-broadcast
+  work through `de::postToPlayer` (see "Cross-thread communication"). Still
+  open: the same handlers mutate `Guild`/`GuildMember` objects on the
+  `SharedServerManager` thread while zone threads read them; `Guild` and
+  `GuildManager` carry their own mutexes but the handlers do not take them.
 - `EventMorph.cpp` mutates `Tile` contents directly
   (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
   assert cannot see such call sites — the assert covers the gateway

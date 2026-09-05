@@ -23,6 +23,7 @@
 #include "PCFinder.h"
 #include "Player.h"
 #include "PlayerCreature.h"
+#include "PlayerMailbox.h"
 #include "StringPool.h"
 #include "Zone.h"
 
@@ -56,93 +57,95 @@ void SGQuitGuildOKHandler::execute(SGQuitGuildOK* pPacket)
 
     string memberName = pGuildMember->getName();
 
-    // 접속해 있다면 메시지를 보낸다.
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    // If the member is online, reset its guild id / refund the fee and tell
+    // the zone. That mutates creature and zone state, so it runs on the
+    // owning zone thread (PlayerMailbox.h) with everything captured by
+    // value: pGuildMember is deleted below, before the command can run.
+    {
+        const GuildState_t guildState = pGuild->getState();
+        const GuildID_t guildID = pGuild->getID();
+        const string guildName = pGuild->getName();
+        const GuildRace_t guildRace = pGuild->getRace();
+        const GuildMemberRank_t rank = pGuildMember->getRank();
+        de::postToPlayer(memberName, [=](PlayerCreature& pc, Player& player) {
+            if (guildState == Guild::GUILD_STATE_ACTIVE) {
+                ////////////////////////////////////////////////////////////////////////////////
+                // 활동 중인 길드 였다면 Slayer, Vampire 길드 아이디를 가입 안한 상태로 바꾼다.
+                ////////////////////////////////////////////////////////////////////////////////
+                if (pc.isSlayer()) {
+                    pc.setGuildID(99); // 슬레이어의 가입안한 상태의 길드 ID
 
-    Creature* pCreature = g_pPCFinder->getCreature_LOCKED(memberName);
-    if (pCreature != NULL && pCreature->isPC()) {
-        Player* pPlayer = pCreature->getPlayer();
-        Assert(pPlayer != NULL);
+                    // 클라이언트로 메시지를 보낸다.
+                    GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
+                    gcModifyGuildMemberInfo.setGuildID(guildID);
+                    gcModifyGuildMemberInfo.setGuildName(guildName);
+                    gcModifyGuildMemberInfo.setGuildMemberRank(rank);
+                    player.sendPacket(&gcModifyGuildMemberInfo);
+                } else if (pc.isVampire()) {
+                    pc.setGuildID(0); // 뱀파이어의 가입안한 상태의 길드 ID
 
-        PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
-        Assert(pPlayerCreature != NULL);
+                    // 클라이언트로 메시지를 보낸다.
+                    GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
+                    gcModifyGuildMemberInfo.setGuildID(guildID);
+                    gcModifyGuildMemberInfo.setGuildName(guildName);
+                    gcModifyGuildMemberInfo.setGuildMemberRank(rank);
+                    player.sendPacket(&gcModifyGuildMemberInfo);
+                } else if (pc.isOusters()) {
+                    pc.setGuildID(66); // 아우스터즈의 가입안한 상태의 길드 ID
 
-        if (pGuild->getState() == Guild::GUILD_STATE_ACTIVE) {
-            ////////////////////////////////////////////////////////////////////////////////
-            // 활동 중인 길드 였다면 Slayer, Vampire 길드 아이디를 가입 안한 상태로 바꾼다.
-            ////////////////////////////////////////////////////////////////////////////////
-            if (pPlayerCreature->isSlayer()) {
-                pPlayerCreature->setGuildID(99); // 슬레이어의 가입안한 상태의 길드 ID
-
-                // 클라이언트로 메시지를 보낸다.
-                GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
-                gcModifyGuildMemberInfo.setGuildID(pGuild->getID());
-                gcModifyGuildMemberInfo.setGuildName(pGuild->getName());
-                gcModifyGuildMemberInfo.setGuildMemberRank(pGuildMember->getRank());
-                pPlayer->sendPacket(&gcModifyGuildMemberInfo);
-            } else if (pPlayerCreature->isVampire()) {
-                pPlayerCreature->setGuildID(0); // 뱀파이어의 가입안한 상태의 길드 ID
-
-                // 클라이언트로 메시지를 보낸다.
-                GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
-                gcModifyGuildMemberInfo.setGuildID(pGuild->getID());
-                gcModifyGuildMemberInfo.setGuildName(pGuild->getName());
-                gcModifyGuildMemberInfo.setGuildMemberRank(pGuildMember->getRank());
-                pPlayer->sendPacket(&gcModifyGuildMemberInfo);
-            } else if (pPlayerCreature->isOusters()) {
-                pPlayerCreature->setGuildID(66); // 아우스터즈의 가입안한 상태의 길드 ID
-
-                // 클라이언트로 메시지를 보낸다.
-                GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
-                gcModifyGuildMemberInfo.setGuildID(pGuild->getID());
-                gcModifyGuildMemberInfo.setGuildName(pGuild->getName());
-                gcModifyGuildMemberInfo.setGuildMemberRank(pGuildMember->getRank());
-                pPlayer->sendPacket(&gcModifyGuildMemberInfo);
+                    // 클라이언트로 메시지를 보낸다.
+                    GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
+                    gcModifyGuildMemberInfo.setGuildID(guildID);
+                    gcModifyGuildMemberInfo.setGuildName(guildName);
+                    gcModifyGuildMemberInfo.setGuildMemberRank(rank);
+                    player.sendPacket(&gcModifyGuildMemberInfo);
+                }
             }
-        }
 
-        if (pGuild->getState() == Guild::GUILD_STATE_WAIT &&
-            pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
-            ///////////////////////////////////////////////////////////
-            // 대기 중인 길드의 서브 마스터라면 등록비를 환불한다.
-            ///////////////////////////////////////////////////////////
-            Gold_t Gold = pPlayerCreature->getGold();
-            Gold = min((uint64_t)(Gold + RETURN_SLAYER_SUBMASTER_GOLD), (uint64_t)2000000000);
-            pPlayerCreature->setGoldEx(Gold);
+            if (guildState == Guild::GUILD_STATE_WAIT && rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
+                ///////////////////////////////////////////////////////////
+                // 대기 중인 길드의 서브 마스터라면 등록비를 환불한다.
+                ///////////////////////////////////////////////////////////
+                Gold_t Gold = pc.getGold();
+                Gold = min((uint64_t)(Gold + RETURN_SLAYER_SUBMASTER_GOLD), (uint64_t)2000000000);
+                pc.setGoldEx(Gold);
 
-            GCModifyInformation gcModifyInformation;
-            gcModifyInformation.addLongData(MODIFY_GOLD, Gold);
-            pPlayer->sendPacket(&gcModifyInformation);
-        }
+                GCModifyInformation gcModifyInformation;
+                gcModifyInformation.addLongData(MODIFY_GOLD, Gold);
+                player.sendPacket(&gcModifyInformation);
+            }
 
-        // 길드 탈퇴 메시지를 보낸다.
-        GCSystemMessage gcSystemMessage;
-        if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_QUIT_TEAM));
-        else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE)
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_QUIT_CLAN));
-        else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS)
-            gcSystemMessage.setMessage(g_pStringPool->getString(STRID_QUIT_CLAN));
-        pPlayer->sendPacket(&gcSystemMessage);
+            // 길드 탈퇴 메시지를 보낸다.
+            GCSystemMessage gcSystemMessage;
+            if (guildRace == Guild::GUILD_RACE_SLAYER)
+                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_QUIT_TEAM));
+            else if (guildRace == Guild::GUILD_RACE_VAMPIRE)
+                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_QUIT_CLAN));
+            else if (guildRace == Guild::GUILD_RACE_OUSTERS)
+                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_QUIT_CLAN));
+            player.sendPacket(&gcSystemMessage);
 
-        if (pGuild->getState() == Guild::GUILD_STATE_ACTIVE) {
-            // 주위에 알린다.
-            Zone* pZone = pCreature->getZone();
-            Assert(pZone != NULL);
+            if (guildState == Guild::GUILD_STATE_ACTIVE) {
+                // 주위에 알린다.
+                Zone* pZone = pc.getZone();
+                Assert(pZone != NULL);
 
-            GCOtherModifyInfo gcOtherModifyInfo;
-            gcOtherModifyInfo.setObjectID(pCreature->getObjectID());
-            gcOtherModifyInfo.addShortData(MODIFY_GUILDID, pPlayerCreature->getGuildID());
+                GCOtherModifyInfo gcOtherModifyInfo;
+                gcOtherModifyInfo.setObjectID(pc.getObjectID());
+                gcOtherModifyInfo.addShortData(MODIFY_GUILDID, pc.getGuildID());
 
-            pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcOtherModifyInfo, pCreature);
-        }
+                pZone->broadcastPacket(pc.getX(), pc.getY(), &gcOtherModifyInfo, &pc);
+            }
+        });
     }
 
     // 길드에서 삭제한다.
     pGuild->deleteMember(memberName);
 
-    // 길드 마스터에게 메시지를 보낸다.
-    pCreature = g_pPCFinder->getCreature_LOCKED(pGuild->getMaster());
+    // 길드 마스터에게 메시지를 보낸다. (send only: fine from this thread)
+    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+
+    Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuild->getMaster());
     if (pCreature != NULL && pCreature->isPC()) {
         Player* pPlayer = pCreature->getPlayer();
         Assert(pPlayer != NULL);

@@ -17,6 +17,7 @@
 #include "LogClient.h"
 #include "PaySystem.h"
 #include "PlayerCreature.h"
+#include "PlayerMailbox.h"
 #include "Profile.h"
 #include "ResurrectLocationManager.h"
 #include "Slayer.h"
@@ -568,6 +569,11 @@ void ZonePlayerManager::processCommands() {
                 */
             } else {
                 bool IsPayPlayEnd = false;
+
+                // This manager owns pTempPlayer and the group mutex is held:
+                // run what other threads posted for it (PlayerMailbox.h)
+                // before its own packets.
+                de::drainPlayerMailbox(*pTempPlayer, *this);
 
                 try {
                     beginProfileEx("ZPM_PACKET");

@@ -442,6 +442,7 @@ set(GAMESERVER_MAIN_SOURCES
     NPCManager.cpp
     ResurrectLocationManager.cpp
     PCFinder.cpp
+    PlayerMailbox.cpp
     TelephoneCenter.cpp
     ParkingCenter.cpp
     PCManager.cpp

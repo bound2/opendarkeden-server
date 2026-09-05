@@ -23,6 +23,7 @@
 #include "PCFinder.h"
 #include "Player.h"
 #include "PlayerCreature.h"
+#include "PlayerMailbox.h"
 #include "Properties.h"
 #include "StringPool.h"
 #include "StringStream.h"
@@ -54,109 +55,110 @@ void SGAddGuildMemberOKHandler::execute(SGAddGuildMemberOK* pPacket)
     pGuild->addMember(pGuildMember);
 
     // 멤버에게 메세지를 보낸다.
-    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+    //
+    // A master/submaster pays the fee: from the in-memory gold if the
+    // member is online, from the database row if not. The in-memory path
+    // mutates the creature, so it runs on the owning zone thread
+    // (PlayerMailbox.h) with the guild facts captured by value; the
+    // database path doubles as the ifGone fallback, so a member who logs
+    // out between the post and the tick is still charged.
+    const string memberName = pGuildMember->getName();
+    const GuildMemberRank_t rank = pGuildMember->getRank();
+    const GuildRace_t guildRace = pGuild->getRace();
 
-    Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuildMember->getName());
-    if (pCreature != NULL && pCreature->isPC()) {
-        Player* pPlayer = pCreature->getPlayer();
-        Assert(pPlayer != NULL);
+    Gold_t Fee;
+    if (rank == GuildMember::GUILDMEMBER_RANK_MASTER)
+        Fee = REQUIRE_SLAYER_MASTER_GOLD;
+    else if (rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER)
+        Fee = REQUIRE_SLAYER_SUBMASTER_GOLD;
+    else
+        Fee = 0;
 
-        if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER ||
-            pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) // 길드마스터나 서브마스터일 경우
+    // 접속이 안되어 있다: 마스터나 서브마스터일 경우 DB 에서 돈을 까도록 한다.
+    const bool addedHere = pPacket->getServerGroupID() == g_pConfig->getPropertyInt("ServerID");
+    de::GoneCommand chargeInDatabase = [=] {
+        if ((rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
+             rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) // 길드마스터나 서브마스터일 경우
+            && addedHere)                                     // 이 게임 서버에서 추가한 길드원인가?
         {
-            PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
-            Assert(pPlayerCreature != NULL);
-
-            Gold_t Fee;
-            if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
-                Fee = REQUIRE_SLAYER_MASTER_GOLD;
-            else if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER)
-                Fee = REQUIRE_SLAYER_SUBMASTER_GOLD;
-            else
-                Fee = 0;
-
-            Gold_t CurMoney = pPlayerCreature->getGold();
-            if (CurMoney < Fee) {
-                // 큰일났군
-                CurMoney = 0;
-            } else
-                CurMoney -= Fee;
-
-            pPlayerCreature->setGoldEx(CurMoney);
-
-            if (Fee != 0) {
-                GCModifyInformation gcModifyInformation;
-                gcModifyInformation.addLongData(MODIFY_GOLD, CurMoney);
-
-                // 바뀐정보를 클라이언트에 보내준다.
-                pPlayer->sendPacket(&gcModifyInformation);
-            }
-
-            // 길드 가입 메시지를 보여준다.
-            GCSystemMessage gcSystemMessage;
-            if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TEAM_JOIN_ACCEPTED));
-            else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE)
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_ACCEPTED));
-            else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS)
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_ACCEPTED));
-            pPlayer->sendPacket(&gcSystemMessage);
-
-        } else if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_WAIT) {
-            // 길드 가입 신청 메시지를 보낸다.
-            GCSystemMessage gcSystemMessage;
-            if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER)
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TEAM_JOIN_TRY));
-            else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE)
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_TRY));
-            else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS)
-                gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_TRY));
-
-            pPlayer->sendPacket(&gcSystemMessage);
-        }
-    } else {
-        // 접속이 안되어 있다.
-
-        // 마스터나 서브마스터일 경우
-        // DB 에서 돈을 까도록 한다.
-        if ((pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER ||
-             pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) // 길드마스터나 서브마스터일 경우
-            &&
-            pPacket->getServerGroupID() == g_pConfig->getPropertyInt("ServerID")) // 이 게임 서버에서 추가한 길드원인가?
-        {
-            Gold_t Fee;
-            if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
-                Fee = REQUIRE_SLAYER_MASTER_GOLD;
-            else if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER)
-                Fee = REQUIRE_SLAYER_SUBMASTER_GOLD;
-            else
-                Fee = 0;
-
             // The race decides which table the row is in. A guild whose
             // race is none of the three named none, and the write was
             // skipped; hasRaceTable keeps that guard, since CharacterRace
             // has no "no table" value.
             CharacterRace race = CHARACTER_RACE_SLAYER;
             bool hasRaceTable = false;
-            if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
+            if (guildRace == Guild::GUILD_RACE_SLAYER) {
                 race = CHARACTER_RACE_SLAYER;
                 hasRaceTable = true;
-            } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
+            } else if (guildRace == Guild::GUILD_RACE_VAMPIRE) {
                 race = CHARACTER_RACE_VAMPIRE;
                 hasRaceTable = true;
-            } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
+            } else if (guildRace == Guild::GUILD_RACE_OUSTERS) {
                 race = CHARACTER_RACE_OUSTERS;
                 hasRaceTable = true;
             }
 
             if (hasRaceTable && Fee != 0) {
-                defaultGoldRepository().decreaseGoldClamped(pGuildMember->getName(), race, Fee);
+                defaultGoldRepository().decreaseGoldClamped(memberName, race, Fee);
             }
         }
-    }
+    };
 
-    // 길드 마스터에게 메시지를 보낸다.
-    pCreature = g_pPCFinder->getCreature_LOCKED(pGuild->getMaster());
+    const bool online = de::postToPlayer(
+        memberName,
+        [=](PlayerCreature& pc, Player& player) {
+            if (rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
+                rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) // 길드마스터나 서브마스터일 경우
+            {
+                Gold_t CurMoney = pc.getGold();
+                if (CurMoney < Fee) {
+                    // 큰일났군
+                    CurMoney = 0;
+                } else
+                    CurMoney -= Fee;
+
+                pc.setGoldEx(CurMoney);
+
+                if (Fee != 0) {
+                    GCModifyInformation gcModifyInformation;
+                    gcModifyInformation.addLongData(MODIFY_GOLD, CurMoney);
+
+                    // 바뀐정보를 클라이언트에 보내준다.
+                    player.sendPacket(&gcModifyInformation);
+                }
+
+                // 길드 가입 메시지를 보여준다.
+                GCSystemMessage gcSystemMessage;
+                if (guildRace == Guild::GUILD_RACE_SLAYER)
+                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TEAM_JOIN_ACCEPTED));
+                else if (guildRace == Guild::GUILD_RACE_VAMPIRE)
+                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_ACCEPTED));
+                else if (guildRace == Guild::GUILD_RACE_OUSTERS)
+                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_ACCEPTED));
+                player.sendPacket(&gcSystemMessage);
+
+            } else if (rank == GuildMember::GUILDMEMBER_RANK_WAIT) {
+                // 길드 가입 신청 메시지를 보낸다.
+                GCSystemMessage gcSystemMessage;
+                if (guildRace == Guild::GUILD_RACE_SLAYER)
+                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_TEAM_JOIN_TRY));
+                else if (guildRace == Guild::GUILD_RACE_VAMPIRE)
+                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_TRY));
+                else if (guildRace == Guild::GUILD_RACE_OUSTERS)
+                    gcSystemMessage.setMessage(g_pStringPool->getString(STRID_CLAN_JOIN_TRY));
+
+                player.sendPacket(&gcSystemMessage);
+            }
+        },
+        chargeInDatabase);
+
+    if (!online)
+        chargeInDatabase();
+
+    // 길드 마스터에게 메시지를 보낸다. (send only: fine from this thread)
+    __ENTER_CRITICAL_SECTION((*g_pPCFinder))
+
+    Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuild->getMaster());
     if (pCreature != NULL && pCreature->isPC() && pGuildMember->getRank() != GuildMember::GUILDMEMBER_RANK_MASTER) {
         Player* pPlayer = pCreature->getPlayer();
         Assert(pPlayer != NULL);

@@ -229,7 +229,7 @@ instead of through tree-wide style conversions.
 | P0 | `std::span`, concepts, `std::endian`, `std::bit_cast` | `SocketInputStream`, `SocketOutputStream`, packet codecs | Bound buffer lengths to their data and reject unsafe wire types at compile time |
 | P1 | `constexpr`/`consteval` metadata and concepts | `PacketMeta.h`, every packet factory, `PacketFactoryManager` | Detect duplicate IDs, invalid sizes and incomplete registrations during compilation — done |
 | P1 | `std::source_location` | `Assert.h`, `Exception.h`, DB/error macros | Preserve call-site diagnostics without compiler-specific macros or repeated file/line plumbing |
-| P1 | `std::latch`, `std::barrier`, `std::counting_semaphore` | thread startup phases and bounded work queues | Replace timing assumptions with explicit readiness and back-pressure |
+| P1 | `std::latch`, `std::barrier`, `std::counting_semaphore` | thread startup phases and bounded work queues | Replace timing assumptions with explicit readiness and back-pressure — the queue half is done as the zone-group mailbox; see below |
 | P2 | ranges, views, `contains`, `erase_if` | manager/registry traversal | Reduce hand-written iterator and double-lookup mistakes once ownership and lock boundaries are explicit |
 
 ### Structured thread lifetime and cancellation
@@ -463,6 +463,34 @@ bounded producer/consumer queue. These primitives are preferable to adding
 another sleep-and-check loop, but they should follow an ownership audit: a new
 primitive cannot make shared gameplay state safe if its owner and lock scope
 are unclear.
+
+The cross-thread mailbox is the first of these queues. `de::Mailbox<Item>`
+(`src/server/Mailbox.h`) is a mutex-guarded vector: `post()` from any thread;
+`drain(visit[, onFailure])` by the owner, which takes the batch out under the
+mutex and visits it lock-free in posting order, isolating a throwing item
+through the caller's failure handler; `drainIf(take, …)` for an owner that may
+run only some kinds of item, which leaves the rest in place, in order, ahead
+of later posts; and a lock-free `empty()` so the owner's hot loop pays nothing
+when nothing is queued. `GamePlayer` carries a box of player commands, and
+`de::postToPlayer` (`PlayerMailbox.h`) is what the six guild SG handlers and
+`LGKickCharacter` now call instead of mutating gold, guild id and kick flags
+on the `SharedServerManager` / `LoginServerManager` threads under only the
+PCFinder lock — the data race CLAUDE.md listed first among the known
+violations. The box is on the player, not the zone group, because the owner of
+a player changes (main thread during login and zone transfer, a zone thread in
+between) and the creature's zone pointer does not track that. Each owner
+drains from the one place it processes its players: `ZonePlayerManager` runs
+everything under the group mutex; `IncomingPlayerManager` runs only
+`Scope::Player` commands (the kick, which must reach a stuck session precisely
+while the main thread holds it) and leaves `Scope::Zone` commands queued for
+a zone thread. A player that logs out first runs the commands' `ifGone`
+handlers from `~GamePlayer`, right after the PCFinder removal, so exactly one
+of command/`ifGone` runs. The box is deliberately unbounded: the producers
+are the inter-server links, and blocking one of them on a busy zone group's
+back-pressure would stall guild and login traffic for every group; the drain
+logs a pass deeper than `kDepthWarning` instead. Still open on this row is
+readiness: worker start-up has no `std::latch` handshake, because after the
+jthread work nothing waits on a sleep for it.
 
 The 463 critical sections in `src/` are now RAII. `__ENTER_CRITICAL_SECTION(x)`
 declares a scoped `CriticalSection` guard (`src/Core/Exception.h`) over any
