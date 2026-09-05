@@ -26,14 +26,17 @@ ZoneInfoManager::~ZoneInfoManager()
 {
     __BEGIN_TRY
 
-    unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = m_ZoneInfos.begin();
-    for (; itr != m_ZoneInfos.end(); itr++) {
-        ZoneInfo* pInfo = itr->second;
-        SAFE_DELETE(pInfo);
-    }
+    m_Tables.update([](Tables& tables) {
+        for (unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = tables.byID.begin(); itr != tables.byID.end(); itr++) {
+            ZoneInfo* pInfo = itr->second;
+            SAFE_DELETE(pInfo);
+        }
 
-    // 해쉬맵안에 있는 모든 pair 들을 삭제한다.
-    m_ZoneInfos.clear();
+        // 해쉬맵안에 있는 모든 pair 들을 삭제한다.
+        tables.byID.clear();
+        tables.byFullName.clear();
+        tables.byShortName.clear();
+    });
 
     __END_CATCH_NO_RETHROW
 }
@@ -64,7 +67,8 @@ void ZoneInfoManager::load()
 {
     __BEGIN_TRY
 
-    bool bReload = !m_ZoneInfos.empty();
+    const std::shared_ptr<const Tables> loaded = m_Tables.load();
+    bool bReload = !loaded->byID.empty();
 
     vector<ZoneInfoRow> rows = defaultZoneInfoRepository().loadZoneInfos();
 
@@ -79,9 +83,9 @@ void ZoneInfoManager::load()
         bool bExistInfo = false;
 
         if (bReload) {
-            unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = m_ZoneInfos.find(zoneID);
+            unordered_map<ZoneID_t, ZoneInfo*>::const_iterator itr = loaded->byID.find(zoneID);
 
-            if (itr != m_ZoneInfos.end()) {
+            if (itr != loaded->byID.end()) {
                 pZoneInfo = itr->second;
                 bExistInfo = true;
             } else {
@@ -150,34 +154,33 @@ void ZoneInfoManager::addZoneInfo(ZoneInfo* pZoneInfo)
 {
     __BEGIN_TRY
 
-    // 일단 같은 아이디의 존이 있는지 체크해본다.
-    unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = m_ZoneInfos.find(pZoneInfo->getZoneID());
+    // One copy-on-write publish covers all three maps, so a reader never
+    // sees the id in one table and not yet in another; a duplicate throws
+    // before anything is published.
+    m_Tables.update([pZoneInfo](Tables& tables) {
+        // 일단 같은 아이디의 존이 있는지 체크해본다.
+        if (tables.byID.find(pZoneInfo->getZoneID()) != tables.byID.end())
+            // 똑같은 아이디가 이미 존재한다는 소리다. - -;
+            throw Error("duplicated zone id");
 
-    if (itr != m_ZoneInfos.end())
-        // 똑같은 아이디가 이미 존재한다는 소리다. - -;
-        throw Error("duplicated zone id");
+        // Zone full name 맵에다 존 ID를 집어넣어둔다.
+        // 운영자 명령어를 위한 기능이다.
+        if (tables.byFullName.find(pZoneInfo->getFullName()) != tables.byFullName.end()) {
+            cerr << "Duplicated Zone Full Name:" << pZoneInfo->getFullName() << endl;
+            throw Error("Duplicated Zone Full Name");
+        }
 
-    m_ZoneInfos[pZoneInfo->getZoneID()] = pZoneInfo;
+        // Zone short name 맵에다 존 ID를 집어넣어둔다.
+        // 운영자 명령어를 위한 기능이다.
+        if (tables.byShortName.find(pZoneInfo->getShortName()) != tables.byShortName.end()) {
+            cerr << "Duplicated Zone Short Name" << endl;
+            throw Error("Duplicated Zone Short Name");
+        }
 
-    // Zone full name 맵에다 존 ID를 집어넣어둔다.
-    // 운영자 명령어를 위한 기능이다.
-    unordered_map<string, ZoneInfo*>::iterator fitr = m_FullNameMap.find(pZoneInfo->getFullName());
-    if (fitr != m_FullNameMap.end()) {
-        cerr << "Duplicated Zone Full Name:" << pZoneInfo->getFullName() << endl;
-        throw Error("Duplicated Zone Full Name");
-    }
-
-    m_FullNameMap[pZoneInfo->getFullName()] = pZoneInfo;
-
-    // Zone short name 맵에다 존 ID를 집어넣어둔다.
-    // 운영자 명령어를 위한 기능이다.
-    unordered_map<string, ZoneInfo*>::iterator sitr = m_ShortNameMap.find(pZoneInfo->getShortName());
-    if (sitr != m_ShortNameMap.end()) {
-        cerr << "Duplicated Zone Short Name" << endl;
-        throw Error("Duplicated Zone Short Name");
-    }
-
-    m_ShortNameMap[pZoneInfo->getShortName()] = pZoneInfo;
+        tables.byID[pZoneInfo->getZoneID()] = pZoneInfo;
+        tables.byFullName[pZoneInfo->getFullName()] = pZoneInfo;
+        tables.byShortName[pZoneInfo->getShortName()] = pZoneInfo;
+    });
 
     __END_CATCH
 }
@@ -189,14 +192,22 @@ void ZoneInfoManager::addZoneInfo(ZoneInfo* pZoneInfo)
 void ZoneInfoManager::deleteZoneInfo(ZoneID_t zoneID) {
     __BEGIN_TRY
 
-    unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = m_ZoneInfos.find(zoneID);
+    // Unpublish first, delete after: a reader holding the old snapshot may
+    // still be looking at this ZoneInfo.
+    ZoneInfo* pZoneInfo = m_Tables.update([zoneID](Tables& tables) -> ZoneInfo* {
+        unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = tables.byID.find(zoneID);
+        if (itr == tables.byID.end())
+            return NULL;
+        ZoneInfo* pFound = itr->second;
+        tables.byID.erase(itr);
+        tables.byFullName.erase(pFound->getFullName());
+        tables.byShortName.erase(pFound->getShortName());
+        return pFound;
+    });
 
-    if (itr != m_ZoneInfos.end()) {
+    if (pZoneInfo != NULL) {
         // 존을 삭제한다.
-        SAFE_DELETE(itr->second);
-
-        // pair를 삭제한다.
-        m_ZoneInfos.erase(itr);
+        SAFE_DELETE(pZoneInfo);
     } else {
         // 그런 존 아이디를 찾을 수 없었을 때
         StringStream msg;
@@ -216,9 +227,10 @@ ZoneInfo* ZoneInfoManager::getZoneInfo(ZoneID_t zoneID) {
 
     ZoneInfo* pZoneInfo = NULL;
 
-    unordered_map<ZoneID_t, ZoneInfo*>::iterator itr = m_ZoneInfos.find(zoneID);
+    const std::shared_ptr<const Tables> tables = m_Tables.load();
+    unordered_map<ZoneID_t, ZoneInfo*>::const_iterator itr = tables->byID.find(zoneID);
 
-    if (itr != m_ZoneInfos.end()) {
+    if (itr != tables->byID.end()) {
         pZoneInfo = itr->second;
 
     } else {
@@ -237,15 +249,17 @@ ZoneInfo* ZoneInfoManager::getZoneInfo(ZoneID_t zoneID) {
 // get zone from zone info manager
 //////////////////////////////////////////////////////////////////////////////
 ZoneInfo* ZoneInfoManager::getZoneInfoByName(const string& ZoneName) {
+    const std::shared_ptr<const Tables> tables = m_Tables.load();
+
     // 먼저 short name map을 검색한다.
-    unordered_map<string, ZoneInfo*>::const_iterator short_itr = m_ShortNameMap.find(ZoneName);
-    if (short_itr != m_ShortNameMap.end()) {
+    unordered_map<string, ZoneInfo*>::const_iterator short_itr = tables->byShortName.find(ZoneName);
+    if (short_itr != tables->byShortName.end()) {
         return short_itr->second;
     }
 
     // 없다면 full name map을 검색한다.
-    unordered_map<string, ZoneInfo*>::const_iterator full_itr = m_FullNameMap.find(ZoneName);
-    if (full_itr != m_FullNameMap.end()) {
+    unordered_map<string, ZoneInfo*>::const_iterator full_itr = tables->byFullName.find(ZoneName);
+    if (full_itr != tables->byFullName.end()) {
         return full_itr->second;
     }
 
@@ -282,10 +296,11 @@ string ZoneInfoManager::toString() const
 
     msg << "ZoneInfoManager(";
 
-    if (m_ZoneInfos.empty())
+    const std::shared_ptr<const Tables> tables = m_Tables.load();
+    if (tables->byID.empty())
         msg << "EMPTY";
     else {
-        for (unordered_map<ZoneID_t, ZoneInfo*>::const_iterator itr = m_ZoneInfos.begin(); itr != m_ZoneInfos.end();
+        for (unordered_map<ZoneID_t, ZoneInfo*>::const_iterator itr = tables->byID.begin(); itr != tables->byID.end();
              itr++) {
             msg << itr->second->toString();
         }

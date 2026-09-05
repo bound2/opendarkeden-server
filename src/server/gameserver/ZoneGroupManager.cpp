@@ -294,12 +294,12 @@ void ZoneGroupManager::outputLoadValue()
         ZoneGroup* pZoneGroup = itr->second;
         file << "[" << (int)pZoneGroup->getZoneGroupID() << "] ";
 
-        const unordered_map<ZoneID_t, Zone*>& zones = pZoneGroup->getZones();
+        const std::shared_ptr<const ZoneGroup::ZoneMap> zones = pZoneGroup->getZones();
         unordered_map<ZoneID_t, Zone*>::const_iterator iZone;
 
         // 각 Zone의 loadValue를 구한다.
         int totalLoad = 0;
-        for (iZone = zones.begin(); iZone != zones.end(); iZone++) {
+        for (iZone = zones->begin(); iZone != zones->end(); iZone++) {
             Zone* pZone = iZone->second;
 
             int load = pZone->getLoadValue();
@@ -362,11 +362,11 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
     for (itr = m_ZoneGroups.begin(); itr != m_ZoneGroups.end(); itr++) {
         ZoneGroup* pZoneGroup = itr->second;
 
-        const unordered_map<ZoneID_t, Zone*>& zones = pZoneGroup->getZones();
+        const std::shared_ptr<const ZoneGroup::ZoneMap> zones = pZoneGroup->getZones();
         unordered_map<ZoneID_t, Zone*>::const_iterator iZone;
 
         // 각 Zone의 loadValue를 구한다.
-        for (iZone = zones.begin(); iZone != zones.end(); iZone++) {
+        for (iZone = zones->begin(); iZone != zones->end(); iZone++) {
             Zone* pZone = iZone->second;
 
             int load = pZone->getLoadValue();
@@ -419,11 +419,11 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
                 ZoneGroup* pZoneGroup = itr->second;
 
                 // loadValue를 초기화 시켜준다.
-                const unordered_map<ZoneID_t, Zone*>& zones = pZoneGroup->getZones();
+                const std::shared_ptr<const ZoneGroup::ZoneMap> zones = pZoneGroup->getZones();
                 unordered_map<ZoneID_t, Zone*>::const_iterator iZone;
 
                 // 각 Zone의 loadValue를 구한다.
-                for (iZone = zones.begin(); iZone != zones.end(); iZone++) {
+                for (iZone = zones->begin(); iZone != zones->end(); iZone++) {
                     Zone* pZone = iZone->second;
 
                     pZone->initLoadValue();

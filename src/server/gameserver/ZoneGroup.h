@@ -10,11 +10,17 @@
 #define __ZONE_GROUP_H__
 
 // include files
+#include <cstddef>
+#include <functional>
+#include <memory>
+
 #include <unordered_map>
 
 #include "Exception.h"
 #include "GMServerInfo.h"
 #include "GameTime.h"
+#include "Mailbox.h"
+#include "Snapshot.h"
 #include "Thread.h"
 #include "Types.h"
 #include "Zone.h"
@@ -54,6 +60,29 @@ public:
     //
     void processPlayers();
     void heartbeat();
+
+    // Cross-thread mailbox (CLAUDE.md, "Thread ownership"). Work that must
+    // touch this group's state but originates on another thread is posted
+    // here and run by this group's ZoneGroupThread at the top of its next
+    // tick, under the group mutex. The producer today is dynamic-zone
+    // recycling: the requesting player's zone thread hands an instance's
+    // init() to the group that owns the instance, then transports the
+    // player, whose arrival (ZonePlayerManager's queue) that same tick sees
+    // after the drain. post() never takes the group mutex, so a caller
+    // holding its own group's mutex or the PCFinder lock cannot deadlock
+    // on it. Work aimed at one player goes through the player's own box
+    // instead (PlayerMailbox.h), which follows the player between owners.
+    void post(std::function<void()> command) {
+        m_Mailbox.post(std::move(command));
+    }
+    // Runs the posted commands. The caller must hold the group mutex
+    // (asserted under DE_OWNERSHIP_CHECKS); a command that throws -- any
+    // type, Throwable or not -- is logged to errorLog.txt and the rest still
+    // run, so a command must leave the state consistent at every throw
+    // point. Returns how many ran; a batch deeper than kMailboxDepthWarning
+    // is logged, since the box is unbounded.
+    static constexpr std::size_t kMailboxDepthWarning = 1000;
+    std::size_t drainMailbox();
 
 public:
     // add zone to zone group
@@ -100,8 +129,15 @@ public:
 
     void makeZoneUserInfo(GMServerInfo& gmServerInfo);
 
-    const unordered_map<ZoneID_t, Zone*>& getZones() const {
-        return m_Zones;
+    // The zones of this group, as an immutable snapshot the caller may keep
+    // for an iteration. Zones are only ever added -- at load, and at run
+    // time when a dynamic zone is created, from whichever zone thread the
+    // requesting player is on -- while every transport on every thread
+    // reads the map through getZone(); the snapshot is what makes that
+    // concurrent insert safe (see Snapshot.h and the note at m_Zones).
+    using ZoneMap = unordered_map<ZoneID_t, Zone*>;
+    std::shared_ptr<const ZoneMap> getZones() const {
+        return m_Zones.load();
     }
 
     // get debug string
@@ -167,8 +203,13 @@ private:
     // zone group id
     ZoneGroupID_t m_ZoneGroupID;
 
-    // zone 의 해쉬맵
-    unordered_map<ZoneID_t, Zone*> m_Zones;
+    // zone 의 해쉬맵. Published copy-on-write: readers on any thread load a
+    // snapshot without waiting on a writer; addZone()/removeZone()/deleteZone() replace it.
+    // Pre-snapshot, a dynamic zone created on one zone thread was inserted
+    // straight into the template zone's group -- generally another group --
+    // while that group's thread iterated the same unordered_map in its
+    // heartbeat (the "cross-group addZone() race" CLAUDE.md listed).
+    de::Snapshot<ZoneMap> m_Zones;
 
     // zone player manager
     ZonePlayerManager* m_pZonePlayerManager;
@@ -182,6 +223,8 @@ private:
     DWORD m_LoadValue;
 
     mutable Mutex m_Mutex;
+
+    de::CommandMailbox m_Mailbox;
 
 #ifdef DE_OWNERSHIP_CHECKS
     // Debug-only ownership tracking (see lock()/unlock()/assertOwned()).

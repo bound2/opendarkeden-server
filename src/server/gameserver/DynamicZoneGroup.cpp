@@ -10,6 +10,8 @@
 #include "DynamicZoneFactoryManager.h"
 #include "DynamicZoneInfo.h"
 #include "DynamicZoneManager.h"
+#include "Zone.h"
+#include "ZoneGroup.h"
 
 ///////////////////////////////////////////////////////////
 // class DynamicZoneGroup
@@ -45,6 +47,8 @@ void DynamicZoneGroup::addDynamicZone(DynamicZone* pDynamicZone) {
 }
 
 bool DynamicZoneGroup::canEnter() {
+    std::lock_guard lock(m_Mutex);
+
     // 현재 있는 DynamicZone 중에서 가능한 넘을 찾는다.
     HashMapDynamicZoneItor itr = m_DynamicZones.begin();
     HashMapDynamicZoneItor endItr = m_DynamicZones.end();
@@ -59,15 +63,28 @@ bool DynamicZoneGroup::canEnter() {
 }
 
 DynamicZone* DynamicZoneGroup::getAvailableDynamicZone() {
+    std::lock_guard lock(m_Mutex);
+
     // 현재 있는 DynamicZone 중에서 가능한 넘을 찾는다.
     HashMapDynamicZoneItor itr = m_DynamicZones.begin();
     HashMapDynamicZoneItor endItr = m_DynamicZones.end();
 
     for (; itr != endItr; ++itr) {
         if (itr->second->getStatus() == DYNAMIC_ZONE_STATUS_READY) {
-            itr->second->setStatus(DYNAMIC_ZONE_STATUS_RUNNING);
-            itr->second->init();
-            return itr->second;
+            DynamicZone* pDynamicZone = itr->second;
+            pDynamicZone->setStatus(DYNAMIC_ZONE_STATUS_RUNNING);
+
+            // init() resets the instance's state machine, which the zone
+            // group that owns the instance drives from its heartbeat. This
+            // runs on the requesting player's zone thread, generally another
+            // group, so the reset is handed to the owner (ZoneGroup::post);
+            // it runs at the top of that group's next tick, before the
+            // transported player can be added to the zone. Instances are
+            // never deleted, so the pointer stays valid.
+            Zone* pZone = pDynamicZone->getZone();
+            Assert(pZone != NULL && pZone->getZoneGroup() != NULL);
+            pZone->getZoneGroup()->post([pDynamicZone] { pDynamicZone->init(); });
+            return pDynamicZone;
         }
     }
 

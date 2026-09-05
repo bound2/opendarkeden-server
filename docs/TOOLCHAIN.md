@@ -485,12 +485,28 @@ everything under the group mutex; `IncomingPlayerManager` runs only
 while the main thread holds it) and leaves `Scope::Zone` commands queued for
 a zone thread. A player that logs out first runs the commands' `ifGone`
 handlers from `~GamePlayer`, right after the PCFinder removal, so exactly one
-of command/`ifGone` runs. The box is deliberately unbounded: the producers
-are the inter-server links, and blocking one of them on a busy zone group's
-back-pressure would stall guild and login traffic for every group; the drain
-logs a pass deeper than `kDepthWarning` instead. Still open on this row is
-readiness: worker start-up has no `std::latch` handshake, because after the
-jthread work nothing waits on a sleep for it.
+of command/`ifGone` runs. `ZoneGroup` has a box of thunks too, drained at the
+top of the tick; its producer is dynamic-zone recycling, which hands an
+instance's `init()` to the group that owns it. The boxes are deliberately
+unbounded: the producers are the inter-server links, and blocking one of them
+on a busy zone group's back-pressure would stall guild and login traffic for
+every group; the drains log a pass deeper than their depth warning instead.
+
+The other cross-thread race CLAUDE.md listed, the dynamic-zone `addZone()`,
+turned out to be a read-mostly-table problem rather than a queue problem:
+the requesting player's zone thread inserts into the template group's zone
+map and the `ZoneInfoManager` tables while that group's heartbeat and every
+transport on every thread read them. `de::Snapshot<T>`
+(`src/server/Snapshot.h`) publishes such a table copy-on-write behind a
+`shared_ptr<const T>`: readers load a snapshot they may iterate for a whole
+tick, writers copy, change and swap the pointer under a leaf mutex held for
+nothing else, so no lock order is created. (`std::atomic<std::shared_ptr>`
+would be the C++20 spelling; the pinned libc++ 21 does not ship it, so the
+slot is a mutex-guarded pointer.) `DynamicZoneGroup` serialises instance
+selection/creation under its own mutex, and the instance status is a
+`std::atomic<int>`. Still open on this row is readiness: worker start-up has
+no `std::latch` handshake, because after the jthread work nothing waits on a
+sleep for it.
 
 The 463 critical sections in `src/` are now RAII. `__ENTER_CRITICAL_SECTION(x)`
 declares a scoped `CriticalSection` guard (`src/Core/Exception.h`) over any
