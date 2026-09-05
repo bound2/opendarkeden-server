@@ -1261,13 +1261,26 @@ remaining broader CI rollout below is deferred:
   > ratchet regression scan now also rejects `updateserver`/`Upackets`/
   > `__UPDATE_SERVER__`/`__UPDATE_CLIENT__` in source and build files.
 
+- [x] **Remove `cacheserver`.**
+  > **Status:** Removed on 2026-09-05. `src/server/cacheserver/` was a
+  > two-file (~220 line) "Database Cache Server" prototype from February
+  > 2002 by a Metrotech contractor, untouched since the ragezone recovery.
+  > `main.cpp` was the gameserver's main loop with the names swapped,
+  > calling a `CacheServer` class defined nowhere in the repository and
+  > including the gameserver's `GameServer.h`; `Query.h` was a broken
+  > query-record class whose setters had degraded into invalid text. No
+  > CMake target, legacy Makefile recipe, Docker/config entry, or source
+  > outside the directory referenced it. It held no `g_p*` externs or
+  > SQL, so R1–R7 are unchanged; the ratchet regression scan now rejects
+  > `cacheserver` too.
+
 ## Appendix — measured inventory (2026-08-29)
 
 - ~502k LOC across 4,271 C++ files. `Core` 149k (1,410 packet-prefixed files
   in its root), `gameserver` 120k, `skill` 103k / 1,031 files, `item` 51k,
-  `quest` 23k (Lua-integrated). The legacy `chinabilling`, `theoneserver` and
-  `updateserver` trees counted here were deleted on 2026-09-05 (see "Legacy
-  service cleanup").
+  `quest` 23k (Lua-integrated). The legacy `chinabilling`, `theoneserver`,
+  `updateserver` and `cacheserver` trees counted here were deleted on
+  2026-09-05 (see "Legacy service cleanup").
 - 433 packet types in `src/Core/Packet.h`
   (`grep -cE 'PACKET_(GC|CG|CL|LC|GL|LG|GS|SG|GG)[A-Z_]* *[,=]' src/Core/Packet.h`).
 - Wire encryption: per-session encrypt code reorders field read/write order

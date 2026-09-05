@@ -88,19 +88,20 @@ check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
 R7=$(grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' | wc -l)
 check_ratchet R7 "files with parenthesized throw syntax" 0 "$R7"
 
-# --- Removed China billing / theoneserver / updateserver must not return --
+# --- Removed dead services must not return --------------------------------
+# China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.
-if grep -riE 'chinabilling|cbilling|theoneserver|TOpackets|updateserver|Upackets|__UPDATE_(SERVER|CLIENT)__' src \
+if grep -riE 'chinabilling|cbilling|theoneserver|TOpackets|updateserver|Upackets|__UPDATE_(SERVER|CLIENT)__|cacheserver' src \
     --include='*.cpp' --include='*.h' --include='*.hpp' \
     --include='CMakeLists.txt' --include='*.cmake' --include='Makefile'; then
-    echo "[FAIL] obsolete China billing / theoneserver / updateserver references remain in source/build files"
+    echo "[FAIL] obsolete dead-service references remain in source/build files"
     fail=1
 else
     scan_status=$?
     if [ "$scan_status" -eq 1 ]; then
-        echo "[OK]   no obsolete China billing / theoneserver / updateserver source/build references"
+        echo "[OK]   no obsolete dead-service source/build references"
     else
-        echo "[FAIL] could not scan for obsolete China billing / theoneserver / updateserver references"
+        echo "[FAIL] could not scan for obsolete dead-service references"
         fail=1
     fi
 fi
