@@ -1011,7 +1011,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > packets pipelined behind `CGReady` no longer drain on the main
   > thread after `GPS_NORMAL` opens the validator gate. Documented
   > violations (CLAUDE.md has the full list): `EventMorph` tile writes
-  > below the gateways; three unlocked `GDRLair*::start` loops. The
+  > below the gateways. The three `GDRLair*::start` loops now take the
+  > group mutex like the file's other sites (2026-09-05). The
   > cross-group `DynamicZone` `addZone()` race is fixed (2026-09-05):
   > the group zone map and the `ZoneInfoManager` tables are
   > `de::Snapshot`s (copy-on-write, `src/server/Snapshot.h`), a recycled

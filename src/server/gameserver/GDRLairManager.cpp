@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <cstdio>
+#include <vector>
 
 #include "DB.h"
 #include "EffectCastingTrap.h"
@@ -630,18 +631,22 @@ void GDRLairIcepole::start() {
     GCSystemMessage gcSM;
     gcSM.setMessage("û��ͨ���þ�֮·.10����ƶ�������ص�.");
 
+    // Zone-group state (the zone's PCManager, its effects) may only be
+    // touched with that group's mutex held -- this runs on the GDR thread.
+    // The transport and the effect sweep were outside the section before;
+    // only the broadcast was inside it.
+    __ENTER_CRITICAL_SECTION((*(pIllusionsWay1->getZoneGroup())))
     pIllusionsWay1->getPCManager()->transportAllCreatures(0xffff);
     pIllusionsWay1->deleteEffect_LOCKING(0);
-
-    __ENTER_CRITICAL_SECTION((*(pIllusionsWay1->getZoneGroup())))
     pIllusionsWay1->broadcastPacket(&gcSM);
     __LEAVE_CRITICAL_SECTION((*(pIllusionsWay1->getZoneGroup())))
 
+    __ENTER_CRITICAL_SECTION((*(pIllusionsWay2->getZoneGroup())))
     pIllusionsWay2->getPCManager()->transportAllCreatures(0xffff);
     pIllusionsWay2->deleteEffect_LOCKING(0);
-
-    __ENTER_CRITICAL_SECTION((*(pIllusionsWay2->getZoneGroup())))
-    pIllusionsWay1->broadcastPacket(&gcSM);
+    // Was pIllusionsWay1 here, so way 2 never got the message and way 1
+    // got it twice.
+    pIllusionsWay2->broadcastPacket(&gcSM);
     __LEAVE_CRITICAL_SECTION((*(pIllusionsWay2->getZoneGroup())))
 }
 
@@ -1240,6 +1245,12 @@ void GDRLairScene6::start() {
     Monster* pGDR = getGDR();
     Zone* pZone = pGDR->getZone();
 
+    // The reward loop walks the zone's PCManager and writes inventories and
+    // the zone's object registry; all zone-group state, and this is the GDR
+    // thread, so the group mutex is held from here (it used to be taken
+    // only for the transport at the end).
+    __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
+
     // ���� ����
     const PCManager* pPCManager = pZone->getPCManager();
     const unordered_map<ObjectID_t, Creature*>& creatures = pPCManager->getCreatures();
@@ -1290,8 +1301,6 @@ void GDRLairScene6::start() {
     }
 
     // 6���ִٰ� ���󰣴�.
-    __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
-
     pGDR->setBrain(NULL);
     pZone->getPCManager()->transportAllCreatures(pZone->getZoneID(), 82, 93, defaultRaceValue, 15);
 
@@ -1323,6 +1332,12 @@ void GDRLairEnding::start() {
     TimerState::start();
 
     Zone* pZone = GDRLairManager::Instance().getZone(GDRLairManager::GDR_LAIR_CORE);
+    if (pZone == NULL)
+        return; // end() guards the same accessor
+
+    // Same contract as Scene6: PCManager walk, inventory and registry
+    // writes, on the GDR thread -- under the group mutex.
+    __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
     const PCManager* pPCManager = pZone->getPCManager();
     const unordered_map<ObjectID_t, Creature*>& creatures = pPCManager->getCreatures();
@@ -1332,7 +1347,7 @@ void GDRLairEnding::start() {
     int PendentNum = 3;
 
     int totalNum = creatures.size();
-    int* rewardType = new int[totalNum];
+    std::vector<int> rewardType(totalNum); // was a new[] that never met delete[]
 
     for (int i = 0; i < totalNum; ++i) {
         if (CoreZapNum + PendentNum > 0) {
@@ -1431,6 +1446,8 @@ void GDRLairEnding::start() {
             }
         }
     }
+
+    __LEAVE_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 }
 
 void GDRLairEnding::end() {
