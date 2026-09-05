@@ -1137,13 +1137,9 @@ src/Core/VSTemplateLib.h
 src/Core/Player.h
 src/Core/Player.cpp
 src/Core/UpdateDef.h
-src/Core/Update.h
-src/Core/Update.cpp
 src/Core/Resource.h
 src/Core/Resource.cpp
 src/Core/ResourceManager.h
 src/Core/ResourceManager.cpp
-src/Core/UpdateManager.h
-src/Core/UpdateManager.cpp
 # 3.1 Outcome
 src/Core/Outcome.h

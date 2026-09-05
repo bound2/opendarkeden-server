@@ -37,7 +37,7 @@ void CLVersionCheckHandler::execute(CLVersionCheck* pPacket, Player* pPlayer)
     BEGIN_DB {
         //----------------------------------------------------------------------
         // *CAUTION*
-        // Server�� �ִ� Version Field�� UpdateServer�� �׻� ���Ͻ� �ؾ��Ѵ�.
+        // The ClientVersion row must match the version the launcher/patcher distributes.
         //----------------------------------------------------------------------
 
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();

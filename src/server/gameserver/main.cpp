@@ -119,15 +119,6 @@ int main(int argc, char* argv[]) {
         g_pConfig->load(Argv[2]);
 
         // cout << g_pConfig->toString() << endl;
-
-        // by sigi. 2002.12.26
-        if (argc >= 4 && Argv[3] == "-t") {
-            g_pTestConfig = new Properties();
-
-            if (argc >= 5) {
-                g_pTestConfig->load(Argv[4]);
-            }
-        }
     } catch (Error& e) {
         // cout << e.toString() << endl;
     }

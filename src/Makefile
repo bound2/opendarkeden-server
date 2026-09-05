@@ -36,10 +36,6 @@ allsharedserver :
 	$(MAKE) -C Core allsharedserver
 	$(MAKE) -C server allsharedserver
 
-alltheoneserver :
-	$(MAKE) -C Core alltheoneserver
-	$(MAKE) -C server alltheoneserver
-
 clean :
 	$(MAKE) -C Core clean
 	$(MAKE) -C server clean
@@ -64,8 +60,7 @@ cleanall :
 #	$(MAKE) -C util cleanall
 
 cleanbin :
-	rm -rf $(BINDIR)/gameserver $(BINDIR)/loginserver $(BINDIR)/gameclient \
-			$(BINDIR)/updateserver $(BINDIR)/updateclient
+	rm -rf $(BINDIR)/gameserver $(BINDIR)/loginserver $(BINDIR)/gameclient
 
 cleanlib :
 	rm -rf $(LIBDIR)/*.a $(LIBDIR)/st*

@@ -100,6 +100,5 @@ private:
 // global variable declaration
 //////////////////////////////////////////////////
 extern Properties* g_pConfig;
-extern Properties* g_pTestConfig; // by sigi. 2002.12.26
 
 #endif

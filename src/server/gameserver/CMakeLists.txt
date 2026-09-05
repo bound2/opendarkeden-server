@@ -19,7 +19,6 @@ set(GAMESERVER_INCLUDE_DIRS
     ${CMAKE_CURRENT_SOURCE_DIR}/quest
     ${CMAKE_CURRENT_SOURCE_DIR}/quest/luaScript
     ${CMAKE_CURRENT_SOURCE_DIR}/mofus
-    ${CMAKE_CURRENT_SOURCE_DIR}/test
 )
 
 # ============================================================================
@@ -659,24 +658,3 @@ target_link_libraries(gameserver PRIVATE
 
 # 导出符号（用于动态加载）
 set_target_properties(gameserver PROPERTIES ENABLE_EXPORTS ON)
-
-# ============================================================================
-# Exchange System Test Program
-# ============================================================================
-# Temporarily disabled - test_exchange.cpp is broken
-# add_executable(test_exchange
-#     exchange/test_exchange.cpp
-#     exchange/ExchangeDB.cpp
-#     ${EXTRA_SOURCES}
-# )
-#
-# target_compile_definitions(test_exchange PRIVATE ${GAMESERVER_COMPILE_DEFS})
-# target_include_directories(test_exchange PRIVATE ${GAMESERVER_INCLUDE_DIRS})
-#
-# target_link_libraries(test_exchange PRIVATE
-#     GameServerDatabase
-#     ServerCore
-#     Core
-#     ${MYSQL_LIBRARY}
-#     ${EXTRA_LIBS}
-# )

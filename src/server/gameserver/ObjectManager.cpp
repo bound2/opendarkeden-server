@@ -129,7 +129,6 @@
 #include "SystemAvailabilitiesManager.h"
 #include "TimeChecker.h"
 #include "ctf/FlagManager.h"
-#include "gameguard/CSAuth.h"
 #include "mission/EventQuestLootingManager.h"
 #include "war/DragonEyeManager.h"
 
@@ -721,14 +720,6 @@ void ObjectManager::load()
     printf("ObjectManager::load() : SiegeManager Initialization Start\n");
     SiegeManager::Instance().init();
     printf("ObjectManager::load() : SiegeManager Initialization Success\n");
-
-    printf("ObjectManager::load() : CSAuth Table Initialization Start\n");
-    // LoadAuthTable((g_pConfig->getProperty("HomePath") + "/data/CSAuth.tab").c_str());
-    printf("ObjectManager::load() : CSAuth Table Initialization Success\n");
-
-    printf("ObjectManager::load() : CSAuth Index Initialization Start\n");
-    // LoadAuthIndex((g_pConfig->getProperty("HomePath") + "/data/CSAuth.idx").c_str());
-    printf("ObjectManager::load() : CSAuth Index Initialization Success\n");
 
     printf("ObjectManager::load() : DynamicZoneInfoManager Initialization Start\n");
     g_pDynamicZoneInfoManager->init();

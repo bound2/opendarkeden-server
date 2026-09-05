@@ -14,7 +14,6 @@
 #include "EventKick.h"
 #include "GCSystemMessage.h"
 #include "GamePlayer.h"
-#include "gameguard/CSAuth.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////

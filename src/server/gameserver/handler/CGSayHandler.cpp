@@ -101,7 +101,6 @@
 #include "ZonePlayerManager.h"
 #include "ZoneUtil.h"
 #include "ctf/FlagManager.h"
-#include "gameguard/CSAuth.h"
 #include "item/OustersSummonItem.h"
 #include "item/PetItem.h"
 #include "item/SlayerPortalItem.h"

@@ -472,6 +472,28 @@ TEST(SkillOutputFormula, DoubleImpactStrAndLevel) {
     EXPECT_EQ(0, out.ToHit);
 }
 
+// Ported from the deleted cppunit suite src/server/gameserver/test/
+// GameServerSkillTest.cpp (2003). That test expected
+// Delay = (5 - SkillLevel/25) * 10; the formula was changed the same year
+// so that Delay equals Duration, and this pins the shipped balance.
+TEST(SkillOutputFormula, SharpShieldDurationDamageAndDelayEqualsDuration) {
+    SFIn in = sfin();
+    in.SkillLevel = 50;
+    in.STR = 50;
+    SFOut out;
+    decore::skillformula::SharpShield(in, out);
+    EXPECT_EQ(350, out.Duration); // (10 + 50/2) * 10
+    EXPECT_EQ(4, out.Damage);     // 50/20 + 50/20
+    EXPECT_EQ(350, out.Delay);
+
+    in.SkillLevel = 1;
+    in.STR = 100;
+    decore::skillformula::SharpShield(in, out);
+    EXPECT_EQ(100, out.Duration); // (10 + 0) * 10
+    EXPECT_EQ(5, out.Damage);     // 100/20 + 0
+    EXPECT_EQ(100, out.Delay);
+}
+
 TEST(SkillOutputFormula, TripleShotNegativeOutputsPreserved) {
     SFIn in = sfin();
     in.SkillLevel = 30;

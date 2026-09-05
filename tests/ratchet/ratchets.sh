@@ -34,7 +34,7 @@ check_ratchet() {
 
 # --- R1: g_p* global-singleton extern declarations -------------------------
 R1=$(grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R1 "global singleton externs" 345 "$R1"
+check_ratchet R1 "global singleton externs" 333 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
@@ -47,11 +47,11 @@ check_ratchet R2 "gameserver-root files with inline SQL" 8 "$R2"
 # cleansed at least as many files as it created: the PlayerCreature round
 # (4 tables, 2 files) would have RAISED a shrink-only ratchet. Repository
 # impls are the sanctioned quarantine for SQL — R3 measures SQL loose in
-# game logic, and still counts loginserver/sharedserver and the dead
-# theoneserver tree. (Trailing slash: only the directory is excluded.)
+# game logic, and still counts loginserver/sharedserver. (Trailing slash:
+# only the directory is excluded.)
 R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' |
     grep -v 'server/gameserver/repository/' | wc -l)
-check_ratchet R3 "files with inline SQL outside database/, repository/" 84 "$R3"
+check_ratchet R3 "files with inline SQL outside database/, repository/" 74 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------
 R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)
@@ -63,7 +63,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # them would jump the baseline without any new debt. Fold them in (with a
 # re-baseline note) when they become de-core extraction targets in 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5897 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5790 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -88,19 +88,20 @@ check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
 R7=$(grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' | wc -l)
 check_ratchet R7 "files with parenthesized throw syntax" 0 "$R7"
 
-# --- Removed China billing integration must not return -------------------
+# --- Removed dead services must not return --------------------------------
+# China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.
-if grep -riE 'chinabilling|cbilling' src \
+if grep -riE 'chinabilling|cbilling|theoneserver|TOpackets|updateserver|Upackets|__UPDATE_(SERVER|CLIENT)__|cacheserver' src \
     --include='*.cpp' --include='*.h' --include='*.hpp' \
     --include='CMakeLists.txt' --include='*.cmake' --include='Makefile'; then
-    echo "[FAIL] obsolete China billing references remain in source/build files"
+    echo "[FAIL] obsolete dead-service references remain in source/build files"
     fail=1
 else
     scan_status=$?
     if [ "$scan_status" -eq 1 ]; then
-        echo "[OK]   no obsolete China billing source/build references"
+        echo "[OK]   no obsolete dead-service source/build references"
     else
-        echo "[FAIL] could not scan for obsolete China billing references"
+        echo "[FAIL] could not scan for obsolete dead-service references"
         fail=1
     fi
 fi

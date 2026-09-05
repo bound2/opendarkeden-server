@@ -199,4 +199,3 @@ string Properties::toString() const {
 // global variable definition
 //--------------------------------------------------------------------------------
 Properties* g_pConfig = NULL;
-Properties* g_pTestConfig = NULL; // by sigi. 2002.12.26
