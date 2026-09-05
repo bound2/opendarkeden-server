@@ -24,7 +24,6 @@
 #include "database/DatabaseManager.h"
 // #include "gameserver/billing/BillingPlayerManager.h"
 #include "LogClient.h"
-#include "chinabilling/CBillingPlayerManager.h"
 
 #ifdef __THAILAND_SERVER__
 
@@ -78,12 +77,6 @@ LoginServer::LoginServer() {
     //  create GameWorldInfoManager
     // g_pBillingPlayerManager = new BillingPlayerManager();
     // #endif
-
-    // 중국 빌링
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    // create CBillingPlayerManager
-    g_pCBillingPlayerManager = new CBillingPlayerManager();
-#endif
 
 #ifdef __THAILAND_SERVER__
 
@@ -165,15 +158,6 @@ LoginServer::~LoginServer() noexcept(false) {
     //}
     // #endif
 
-    // 중국 빌링
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    // destroy CBillingPlayerManager
-    if (g_pCBillingPlayerManager != NULL) {
-        delete g_pCBillingPlayerManager;
-        g_pCBillingPlayerManager = NULL;
-    }
-#endif
-
 #ifdef __THAILAND_SERVER__
     if (g_pTimeChecker != NULL) {
         delete g_pTimeChecker;
@@ -222,12 +206,6 @@ void LoginServer::init() {
     // g_pBillingPlayerManager->init();
     // #endif
 
-    // 중국 빌링
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    // 중국 빌링 서버 접속 준비
-    g_pCBillingPlayerManager->init();
-#endif
-
 #ifdef __THAILAND_SERVER__
     // for Thailand ChildGuard System
     g_pTimeChecker->init();
@@ -255,14 +233,9 @@ void LoginServer::start() {
 
     // login 서버에서는 빌링을 빼기로 한다.
     // 애드빌 요청. by bezz 2003.04.22
-// #ifdef __CONNECT_BILLING_SYSTEM__
-// g_pBillingPlayerManager->start();
-// #endif
-//  중국 빌링
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    // 중국 빌링 서버 돌려
-    g_pCBillingPlayerManager->start();
-#endif
+    // #ifdef __CONNECT_BILLING_SYSTEM__
+    // g_pBillingPlayerManager->start();
+    // #endif
 
     //
     // 클라이언트 매니저를 시작한다.
@@ -306,12 +279,6 @@ void LoginServer::stop() {
     // #ifdef __CONNECT_BILLING_SYSTEM__
     // g_pBillingPlayerManager->stop();
     // #endif
-
-    // 중국 빌링
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    // 중국 빌링 서버 세워
-    g_pCBillingPlayerManager->stop();
-#endif
 
     __END_CATCH
 }

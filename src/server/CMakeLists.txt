@@ -33,7 +33,6 @@ target_include_directories(ServerCore PUBLIC
 # 子目录
 # ============================================================================
 add_subdirectory(database)
-add_subdirectory(chinabilling)
 add_subdirectory(gameserver)
 add_subdirectory(loginserver)
 add_subdirectory(sharedserver)

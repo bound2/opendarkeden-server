@@ -18,7 +18,6 @@
 #include "LCCreatePCOK.h"
 #include "LoginPlayer.h"
 #include "PCSlayerInfo.h"
-#include "chinabilling/CBillingInfo.h"
 #endif
 
 bool isAvailableID(const char* pID);
@@ -59,19 +58,6 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
     LCCreatePCError lcCreatePCError;
     WorldID_t WorldID = pLoginPlayer->getWorldID();
 
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    if (pLoginPlayer->isCBillingVerified()) {
-        if (!pLoginPlayer->isPayPlayer()) {
-            lcCreatePCError.setErrorID(CANNOT_CREATE_PC_BILLING);
-            pLoginPlayer->sendPacket(&lcCreatePCError);
-            return;
-        }
-    } else {
-        lcCreatePCError.setErrorID(CANNOT_AUTHORIZE_BILLING);
-        pLoginPlayer->sendPacket(&lcCreatePCError);
-        return;
-    }
-#endif
 
     try {
         pStmt = g_pDatabaseManager->getConnection(WorldID)->createStatement();

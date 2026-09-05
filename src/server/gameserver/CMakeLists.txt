@@ -91,7 +91,6 @@ set(EVENT_SOURCES
     EventSystemMessage.cpp
     EventRefreshHolyLandPlayer.cpp
     EventHeadCount.cpp
-    EventCBilling.cpp
     EventAuth.cpp
 )
 
@@ -648,7 +647,6 @@ target_link_libraries(gameserver PRIVATE
     Couple
     Mission
     CTF
-    GameServerCBilling
     de-core
     # The wire archive itself (task 2.4) — also reached transitively through
     # Core/GameServerPackets, named here so the layering is visible.

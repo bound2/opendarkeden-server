@@ -53,7 +53,6 @@ DEPS = $(SERVER_CORE_SRCS:%.cpp=$(DEPDIR)/%.d)
 #----------------------------------------------------------------------
 all : $(BINDIR) $(SERVER_CORE_LIB)
 	$(MAKE) -C database
-	$(MAKE) -C chinabilling
 	$(MAKE) -C gameserver
 	$(MAKE) -C loginserver
 	$(MAKE) -C sharedserver
@@ -63,12 +62,10 @@ server : $(SERVER_CORE_LIB)
 
 allgameserver : $(SERVER_CORE_LIB)
 	$(MAKE) -C database
-	$(MAKE) -C chinabilling
 	$(MAKE) -C gameserver
 
 allloginserver : $(SERVER_CORE_LIB)
 	$(MAKE) -C database
-	$(MAKE) -C chinabilling
 	$(MAKE) -C loginserver
 
 allsharedserver : $(SERVER_CORE_LIB)
@@ -83,7 +80,6 @@ $(SERVER_CORE_LIB) : $(SERVER_CORE_OBJS)
 
 clean :
 	$(MAKE) -C database clean
-	$(MAKE) -C chinabilling clean
 	$(MAKE) -C loginserver clean
 	$(MAKE) -C gameserver clean
 	$(MAKE) -C updateserver clean
@@ -92,13 +88,11 @@ clean :
 
 cleanloginserver :
 	$(MAKE) -C database clean
-	$(MAKE) -C chinabilling clean
 	$(MAKE) -C loginserver clean
 	rm -rf *.o
 
 cleangameserver :
 	$(MAKE) -C database clean
-	$(MAKE) -C chinabilling clean
 	$(MAKE) -C gameserver clean
 	rm -rf *.o
 
@@ -109,7 +103,6 @@ cleansharedserver :
 
 cleanall :
 	$(MAKE) -C database cleanall
-	$(MAKE) -C chinabilling cleanall
 	$(MAKE) -C loginserver cleanall
 	$(MAKE) -C gameserver cleanall
 	$(MAKE) -C updateserver cleanall

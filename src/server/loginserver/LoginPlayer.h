@@ -19,7 +19,6 @@
 #include "Player.h"
 #include "PlayerStatus.h"
 #include "Timeval.h"
-#include "chinabilling/CBillingPlayerInfo.h"
 #include "gameserver/billing/BillingPlayerInfo.h"
 
 class LCPCList;
@@ -41,7 +40,7 @@ class LCPCList;
 //
 //////////////////////////////////////////////////////////////////////
 
-class LoginPlayer : public Player, public PaySystem, public BillingPlayerInfo, public CBillingPlayerInfo {
+class LoginPlayer : public Player, public PaySystem, public BillingPlayerInfo {
 public:
     // 저장해놓을 이전 패킷의 개수
     static const uint nPacketHistory = 10;

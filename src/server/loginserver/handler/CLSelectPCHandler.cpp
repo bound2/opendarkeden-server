@@ -19,7 +19,6 @@
 #include "Properties.h"
 #include "ZoneGroupInfoManager.h"
 #include "ZoneInfoManager.h"
-#include "chinabilling/CBillingInfo.h"
 #include "gameserver/billing/BillingInfo.h"
 #endif
 
@@ -120,24 +119,6 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
     }
 #endif
 
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    if (pLoginPlayer->isCBillingVerified()) {
-        if (!pLoginPlayer->isPayPlayer()) {
-            LCSelectPCError lcSelectPCError;
-            lcSelectPCError.setCode(SELECT_PC_CANNOT_PLAY);
-            pLoginPlayer->sendPacket(&lcSelectPCError);
-
-            return;
-        }
-    } else {
-        LCSelectPCError lcSelectPCError;
-        lcSelectPCError.setCode(SELECT_PC_NOT_BILLING_CHECK);
-        pLoginPlayer->sendPacket(&lcSelectPCError);
-
-        return;
-    }
-
-#endif
 
 // �ֵ�� ������ ������� �ʾƵ�..
 // �ɷ�ġ ���� üũ�� �ؾ��ϴ� ���

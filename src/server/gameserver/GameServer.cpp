@@ -24,11 +24,6 @@
 #include "SharedServerManager.h"
 #include "SystemAPI.h"
 #include "ThreadManager.h"
-#include "chinabilling/CBillingInfo.h"
-#ifdef __CONNECT_CBILLING_SYSTEM__
-#include "chinabilling/CBillingPlayerManager.h"
-#endif
-
 #include "mofus/Mofus.h"
 #ifdef __MOFUS__
 #include "mofus/MPacketManager.h"
@@ -73,11 +68,6 @@ GameServer::GameServer()
         g_pBillingPlayerManager = new BillingPlayerManager();
 #endif
 
-        // create china billing player manager
-#ifdef __CONNECT_CBILLING_SYSTEM__
-        g_pCBillingPlayerManager = new CBillingPlayerManager();
-#endif
-
 #ifdef __MOFUS__
         g_pMPlayerManager = new MPlayerManager();
         g_pMPacketManager = new MPacketManager();
@@ -120,9 +110,6 @@ GameServer::~GameServer()
     SAFE_DELETE(g_pSharedServerManager);
 #ifdef __CONNECT_BILLING_SYSTEM__
     SAFE_DELETE(g_pBillingPlayerManager);
-#endif
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    SAFE_DELETE(g_pCBillingPlayerManager);
 #endif
 #ifdef __MOFUS__
     SAFE_DELETE(g_pMPlayerManager);
@@ -184,12 +171,6 @@ void GameServer::init()
     cout << "GameServer::init() : BillingPlayerManager Initialization Success..." << endl;
 #endif
 
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    // china billing server 와의 통신 준비에 들어간다.
-    g_pCBillingPlayerManager->init();
-    cout << "GameServer::init() : CBillingPlayerManager Initialization Success..." << endl;
-#endif
-
 #ifdef __MOFUS__
     g_pMPacketManager->init();
     cout << "GameServer::init() : MPacketManager Initialization Success..." << endl;
@@ -234,11 +215,6 @@ void GameServer::start()
 #ifdef __CONNECT_BILLING_SYSTEM__
     cout << ">>> STARTING BILLING PLAYER MANAGER..." << endl;
     g_pBillingPlayerManager->start();
-#endif
-
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    cout << ">>> STARTING CBILLING PLAYER MANAGER..." << endl;
-    g_pCBillingPlayerManager->start();
 #endif
 
 #ifdef __MOFUS__
@@ -311,9 +287,6 @@ void GameServer::stop()
     std::vector<ManagedThread*> workers{g_pLoginServerManager, g_pSharedServerManager, &GDRLairManager::Instance()};
 #ifdef __CONNECT_BILLING_SYSTEM__
     workers.push_back(g_pBillingPlayerManager);
-#endif
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    workers.push_back(g_pCBillingPlayerManager);
 #endif
 #ifdef __MOFUS__
     workers.push_back(g_pMPlayerManager);

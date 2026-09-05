@@ -37,7 +37,6 @@
 #include "StringPool.h"
 #include "VariableManager.h"
 #include "ZoneGroup.h"
-#include "chinabilling/CBillingInfo.h"
 #include "repository/MessageRepository.h"
 
 #ifdef __THAILAND_SERVER__
@@ -766,19 +765,6 @@ void ZonePlayerManager::processCommands() {
                         if (pTempPlayer->isFamilyFreePassEnd()) {
                             pTempPlayer->setFamilyPayPartyType(FAMILY_PAY_PARTY_TYPE_NONE);
                         }
-
-#ifdef __CONNECT_CBILLING_SYSTEM__
-                        if (!pTempPlayer->isPayPlayer()) {
-                            // 유료 시간 끝났음. 짜른다.
-                            pTempPlayer->kickPlayer(30, KICK_MESSAGE_PAY_TIMEOUT);
-                        } else {
-                            // 유료 사용자의 경우 pay info 를 아직 안 보내줬다면 보내준다.
-                            if (pTempPlayer->isCBillingVerified() && !pTempPlayer->isCBShowPayInfo()) {
-                                pTempPlayer->sendCBillingPayInfo();
-                                pTempPlayer->setCBShowPayInfo();
-                            }
-                        }
-#endif
                     }
                 } catch (ProtocolException& pe) {
                     pTempPlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);

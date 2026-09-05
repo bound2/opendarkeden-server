@@ -34,7 +34,6 @@ public:
         EVENT_CLASS_REFRESH_HOLY_LAND_PLAYER, // Holy Land Race Bonus 변화에 따라 Holy Land Player Stat 을 갱신
         EVENT_CLASS_SHUTDOWN,                 // 사용자들을 몽땅 정리하고 셧다운
         EVENT_CLASS_HEAD_COUNT,               // 30분에 한번씩 머리 딴 갯수 세장
-        EVENT_CLASS_CBILLING,                 // 중국 빌링. 주기적으로 minus point/minute 패킷을 보낸다.
         EVENT_CLASS_AUTH,                     // Nprotect 인증
         EVENT_CLASS_MAX
     };

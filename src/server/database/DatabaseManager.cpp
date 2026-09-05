@@ -233,32 +233,6 @@ void DatabaseManager::addDistConnection(int TID, Connection* pConnection) {
     __END_CATCH
 }
 
-////////////////////////////////////////////////////////////////////////////
-// China Billing log ������ ���� DB ���� �߰�
-////////////////////////////////////////////////////////////////////////////
-void DatabaseManager::addCBillingConnection(int TID, Connection* pConnection) {
-    __BEGIN_TRY
-
-    cout << "Adding TID connection BEGIN" << endl;
-
-    __ENTER_CRITICAL_SECTION(m_Mutex)
-
-    unordered_map<int, Connection*>::iterator itr = m_CBillingConnections.find(TID);
-
-    if (itr != m_CBillingConnections.end()) {
-        cout << "duplicated connection info id" << endl;
-        throw DuplicatedException("duplicated connection info id");
-    }
-
-    m_CBillingConnections[TID] = pConnection;
-
-    __LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    cout << "Adding TID connection END" << endl;
-
-    __END_CATCH
-}
-
 /*
 ////////////////////////////////////////////////////////////////////////////////
 // PC �� ���� Connection ����
@@ -351,28 +325,6 @@ Connection* DatabaseManager::getConnection(const string& connName)
     __END_CATCH
 }
 
-Connection* DatabaseManager::getCBillingConnection(const string& connName)
-
-{
-    __BEGIN_TRY
-
-    Connection* pTempConnection = NULL;
-
-    unordered_map<int, Connection*>::iterator itr;
-
-    itr = m_CBillingConnections.find((int)(long)Thread::self());
-
-    if (itr != m_CBillingConnections.end()) {
-        pTempConnection = itr->second;
-    } else {
-        throw NoSuchElementException("No such element CBilling Connection error");
-    }
-
-    // Assert(pTempConnection!=NULL);
-    return pTempConnection;
-
-    __END_CATCH
-}
 /*
 ////////////////////////////////////////////////////////////////////////////
 // PC �� ���տ� Connection ��������

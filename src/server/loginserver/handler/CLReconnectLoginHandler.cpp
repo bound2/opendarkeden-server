@@ -253,10 +253,6 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
     pLoginPlayer->sendPacket(&lcPCList);
     pLoginPlayer->setPlayerStatus(LPS_PC_MANAGEMENT);
 
-#ifdef __CONNECT_CBILLING_SYSTEM__
-    pLoginPlayer->setCBillingVerified();
-    pLoginPlayer->setPayPlayer();
-#endif
 
 #endif
 
