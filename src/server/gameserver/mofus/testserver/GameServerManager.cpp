@@ -101,7 +101,7 @@ void GameServerManager::run() {
         }
 
     } catch (Throwable& t) {
-        filelog("cbillingserverBug.txt", "%s", t.toString().c_str());
+        filelog("mofusTestServerBug.txt", "%s", t.toString().c_str());
         throw;
     }
 

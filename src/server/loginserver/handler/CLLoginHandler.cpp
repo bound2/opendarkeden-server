@@ -82,12 +82,8 @@
 #include "LoginPlayer.h"
 #include "Properties.h"
 #include "UserInfoManager.h"
-#include "chinabilling/CBillingInfo.h"
 #include "gameserver/billing/BillingPlayerManager.h"
 #include "types/ServerType.h"
-#ifdef __CONNECT_CBILLING_SYSTEM__
-#include "chinabilling/CBillingPlayerManager.h"
-#endif
 
 #endif
 
@@ -658,11 +654,7 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
                 // pLoginPlayer->setBillingSession();
 
                 // pLoginPlayer->sendBillingLogin();
-// #endif
-#ifdef __CONNECT_CBILLING_SYSTEM__
-                // 중국 빌링 서버에 로그인 하라고 알린다.
-                g_pCBillingPlayerManager->sendLogin(pLoginPlayer);
-#endif
+                // #endif
 
 
                 // 로그인 전에는 무조건 게임서버에 이 패킷 보내서

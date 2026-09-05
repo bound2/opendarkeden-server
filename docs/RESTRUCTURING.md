@@ -57,11 +57,11 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
-| R1 | `g_p*` global-singleton extern declarations | 351 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
+| R1 | `g_p*` global-singleton extern declarations | 345 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `CreatureUtil.cpp` and `TradeManager.cpp` hold SQL that compiles and runs; the rest are listed under 3.2 "What remains".) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 85 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 84 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,899 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,897 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 
@@ -1163,11 +1163,65 @@ remaining broader CI rollout below is deferred:
 
 ---
 
+## Legacy service cleanup (2026-09-05)
+
+- [x] **Remove China billing.**
+  > **Status:** Removed the entire `src/server/chinabilling/` tree (including
+  > its stress/test servers), both CBilling library targets and legacy Makefile
+  > links, `EventCBilling`, the player-info mixins, dormant login/game hooks,
+  > and the dedicated database connection API. The feature switch was already
+  > disabled, so supported builds retain their existing login/payment behavior.
+  > The separate `gameserver/billing/` and `PaySystem` remain intact.
+  > Client packet IDs/error codes, string-table IDs/data, and the historical
+  > `src/build_error.sql` build transcript are deliberately unchanged.
+  > R1: 351 → 345; R3: 85 → 84; R5: 5,899 → 5,897.
+  > The ratchet suite rejects China billing references in source/build files.
+  > Verified with the pinned Zig/C++20 Debug toolchain: all three production
+  > servers build, all nine CTest suites pass, and touched C++ files pass
+  > clang-format 18. No live deployment was restarted for this cleanup.
+
+- [ ] **Remove `theoneserver` after approval.**
+  > **Status:** Audited; obsolete in the supported repository build and
+  > deployment. Left in place for a separate removal decision.
+  >
+  > Its role was publisher server registration/policy enforcement, not a
+  > fourth gameplay service. `TheOneServer.cpp` creates a database manager
+  > and UDP `GameServerManager`; the latter binds `TheOneServerUDPPort`
+  > and dispatches received datagrams. Its local `PacketFactoryManager.cpp`
+  > registers only `GTOAcknowledgement`.
+  >
+  > The deleted handler (inspect
+  > `git show 25f25ee6^:src/Core/TOpackets/GTOAcknowledgementHandler.cpp`)
+  > recorded server IP/port/heartbeat information in
+  > `TheOneServerRules_New`, consulted `NEWSERVER_POLICY`, and sent
+  > `GGCommand` remote-control commands such as `*shutdown 0` under
+  > deny/kill policies. This is historical functionality, not a live path.
+  >
+  > Commit `25f25ee6` already deleted the TOpackets protocol and the
+  > China/Thailand-only phone-home sender/timer in gameserver's
+  > `ClientManager.cpp`. No remaining caller outside the dead tree was
+  > found. There is no CMake target, install entry, checked-in configuration,
+  > or Docker startup entry for this service: only login/shared/game are
+  > built and launched. Legacy `alltheoneserver` Makefile recipes remain,
+  > but require the deleted `libTheOneServerPackets.a` and packet headers;
+  > they cannot resurrect a working service.
+  >
+  > `KillManager.{h,cpp}` is an unbuilt duplicate of `GameServerManager`,
+  > not a separate active kill worker. `UDPManager` construction is
+  > commented out and it is absent from the legacy object list.
+  >
+  > Recommended follow-up: delete `src/server/theoneserver/` and the
+  > three remaining `alltheoneserver` recipes, then tighten debt ratchets.
+  > Do not delete generic `GGCommand` handling, shared database classes,
+  > or login/shared-server managers: the supported servers still use them.
+  > This audit covers the checked-in build/deployment, not independently
+  > maintained out-of-tree binaries or installations.
+
 ## Appendix — measured inventory (2026-08-29)
 
 - ~502k LOC across 4,271 C++ files. `Core` 149k (1,410 packet-prefixed files
   in its root), `gameserver` 120k, `skill` 103k / 1,031 files, `item` 51k,
-  `quest` 23k (Lua-integrated), plus legacy `chinabilling` / `theoneserver`.
+  `quest` 23k (Lua-integrated), plus legacy `theoneserver` (see audit above).
 - 433 packet types in `src/Core/Packet.h`
   (`grep -cE 'PACKET_(GC|CG|CL|LC|GL|LG|GS|SG|GG)[A-Z_]* *[,=]' src/Core/Packet.h`).
 - Wire encryption: per-session encrypt code reorders field read/write order

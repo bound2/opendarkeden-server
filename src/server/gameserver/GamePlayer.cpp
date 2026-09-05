@@ -6,6 +6,8 @@
 
 #include "GamePlayer.h"
 
+#include <stdio.h>
+
 #include <fstream>
 
 #include "Assert.h"
@@ -38,13 +40,7 @@
 #include "Vampire.h"
 #include "VariableManager.h"
 #include "Zone.h"
-#include "chinabilling/CBillingInfo.h"
 #include "repository/SessionRepository.h"
-#ifdef __CONNECT_CBILLING_SYSTEM__
-#include "chinabilling/CBillingPlayerManager.h"
-#endif
-
-#include <stdio.h>
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -190,9 +186,6 @@ GamePlayer::~GamePlayer() noexcept {
             {
                 g_pBillingPlayerManager->sendPayLogout(this);
             }
-#elif defined(__CONNECT_CBILLING_SYSTEM__)
-            // Áß±¹ ºô¸µ ¼­¹ö¿¡ logout ÆÐÅ¶À» º¸³½´Ù.
-            g_pCBillingPlayerManager->sendLogout(this);
 #endif
 
 
@@ -1317,34 +1310,6 @@ bool GamePlayer::sendBillingLogin() {
     __END_CATCH
 }
 
-void GamePlayer::sendCBillingPayInfo() {
-    __BEGIN_TRY
-
-    char m[200];
-    if (m_CBPlayerType == CBILLING_PLAYER_TYPE_MONTHLY) {
-        VSDate currentDate;
-        currentDate = VSDate::currentDate();
-
-        sprintf(m, g_pStringPool->c_str(STRID_CB_MONTHLY_PLAYER), m_CBEndDateTime.date().year(),
-                m_CBEndDateTime.date().month(), m_CBEndDateTime.date().day(), currentDate.year(), currentDate.month(),
-                currentDate.day());
-
-        GCSystemMessage msg;
-        msg.setMessage(m);
-
-        sendPacket(&msg);
-    } else if (m_CBPlayerType == CBILLING_PLAYER_TYPE_POINT) {
-        sprintf(m, g_pStringPool->c_str(STRID_CB_POINT_PLAYER), m_CBLeftTime / 10);
-
-        GCSystemMessage msg;
-        msg.setMessage(m);
-
-        sendPacket(&msg);
-    }
-
-    __END_CATCH
-}
-
 // ¾ÏÈ£È­ ÄÚµå¸¦ ¼³Á¤ÇÑ´Ù.
 void GamePlayer::setEncryptCode() {
     __BEGIN_TRY
@@ -1465,8 +1430,6 @@ void GamePlayer::logoutPayPlay(const string& playerID, bool bClear, bool bDecrea
 bool GamePlayer::isPayPlaying() const {
 #ifdef __CONNECT_BILLING_SYSTEM__
     return BillingPlayerInfo::isBillingPlayAvaiable();
-#elif defined(__CONNECT_CBILLING_SYSTEM__)
-    return CBillingPlayerInfo::isPayPlayer();
 #elif !defined(__PAY_SYSTEM_ZONE__) && !defined(__PAY_SYSTEM_LOGIN__) && !defined(__PAY_SYSTEM_FREE_LIMIT__)
     // if there is no Pay defines, all users are pay player
     return true;

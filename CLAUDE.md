@@ -276,9 +276,7 @@ known violations are listed at the end, not silently fixed.
   dispatches **SG** packets on its own thread under its own `m_Mutex`.
 - **`BillingPlayerManager`, `MPlayerManager` (mofus), `GDRLairManager`** —
   auxiliary threads with their own loops. (`SMSServiceThread` exists but is
-  not started, and `CBillingPlayerManager`'s start is compiled out —
-  `__CONNECT_CBILLING_SYSTEM__` is commented out in
-  `chinabilling/CBillingInfo.h` — so it never runs either.)
+  not started. The obsolete China billing integration has been removed.)
 
 The gameserver workers above use `ManagedThread` (`std::jthread`). Start and
 stop are serialized; stop-before-start is terminal, and join allows a

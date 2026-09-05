@@ -27,12 +27,10 @@ public:
     void init();
     void addConnection(int TID, Connection* pConnection);
     void addDistConnection(int TID, Connection* pConnection);
-    void addCBillingConnection(int TID, Connection* pConnection);
     //	void addPCRoomConnection(int TID, Connection * pConnection) ;
 
     Connection* getConnection(const string& ip);
     Connection* getDistConnection(const string& ip);
-    Connection* getCBillingConnection(const string& ip);
     //	Connection* getPCRoomConnection(const string& ip) ;
     Connection* getUserInfoConnection(void) {
         return m_pUserInfoConnection;
@@ -76,9 +74,6 @@ private:
 
     //	unordered_map<WorldID_t, Connection*> m_WorldConnections;
     unordered_map<int, Connection*> m_WorldConnections;
-
-    // 각 쓰레드별로 존재하는 CBilling DB 연결
-    unordered_map<int, Connection*> m_CBillingConnections;
 
     // PC방 통합용 DB 연결
     //	unordered_map<int, Connection*> m_PCRoomConnections;

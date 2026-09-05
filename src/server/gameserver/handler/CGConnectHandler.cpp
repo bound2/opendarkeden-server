@@ -60,17 +60,11 @@
 #include "repository/SessionRepository.h"
 #include "skill/EffectGnomesWhisper.h"
 // #include "GCLoadInventory.h"
-#include "GDRLairManager.h"
-#include "SystemAvailabilitiesManager.h"
-#include "chinabilling/CBillingInfo.h"
-#include "types/ServerType.h"
-#ifdef __CONNECT_CBILLING_SYSTEM__
-#include "EventCBilling.h"
-#include "chinabilling/CBillingPlayerManager.h"
-#endif
-
 #include "DynamicZoneManager.h"
 #include "EventAuth.h"
+#include "GDRLairManager.h"
+#include "SystemAvailabilitiesManager.h"
+#include "types/ServerType.h"
 
 #endif
 
@@ -736,18 +730,6 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
     } catch (NoSuchElementException&) {
         throw Error("ZoneInfo¿¡ zoneID°¡ ¾ø´Ù.");
     }
-#elif defined(__CONNECT_CBILLING_SYSTEM__)
-    // ºô¸µ ¼­¹ö·Î ÁÖ±âÀûÀ¸·Î minus point/minute ÆÐÅ¶À» º¸³»´Â ÀÌº¥Æ®¸¦ ºÙÀÎ´Ù.
-    EventCBilling* pEvent = new EventCBilling(pGamePlayer);
-    pEvent->setDeadline(g_pCBillingPlayerManager->getMinusIntervalInt() * 600);
-    pGamePlayer->addEvent(pEvent);
-
-    // Áß±¹ ºô¸µÀº Àü¸é À¯·áÈ­ ÀÌ¹Ç·Î ¿©±â±îÁö ¿Ô´Ù¸é À¯·á »ç¿ëÀÚÀÌ´Ù. ¹«·á »ç¿ëÀÚÀÏ °æ¿ì ·Î±×ÀÎ ¼­¹ö¿¡¼­ ¸·Èù´Ù.
-    pGamePlayer->setPayPlayer(true);
-    pGamePlayer->setPremiumPlay();
-
-    // send Login
-    pGamePlayer->setCBillingVerified(g_pCBillingPlayerManager->sendLogin(pGamePlayer));
 #else
     // ¾Æ¹«°Íµµ ¼³Á¤µÇ¾î ÀÖÁö ¾ÊÀ¸¸é
     // °Á À¯·á »ç¿ëÀÚ¶ó°í ÇØ¹ö¸®ÀÚ

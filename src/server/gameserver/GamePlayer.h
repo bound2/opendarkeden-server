@@ -23,7 +23,6 @@
 #include "Timeval.h"
 #include "Types.h"
 #include "billing/BillingPlayerInfo.h"
-#include "chinabilling/CBillingPlayerInfo.h"
 #include "skill/Skill.h"
 
 // #include "gameguard/CSAuth.h"
@@ -45,7 +44,7 @@
 
 class Creature;
 
-class GamePlayer : public Player, public PaySystem, public BillingPlayerInfo, public CBillingPlayerInfo {
+class GamePlayer : public Player, public PaySystem, public BillingPlayerInfo {
 public:
     // 저장해 놓을 이전 패킷의 개수
     const static BYTE nPacketHistorySize = 10;
@@ -192,8 +191,6 @@ public:
         BillingPlayerInfo::setBillingSession(this);
     }
     bool sendBillingLogin();
-
-    void sendCBillingPayInfo();
 
     // 패킷 암호화 관련
     // by sigi. 2002.11.27
