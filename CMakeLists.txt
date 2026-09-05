@@ -4,17 +4,17 @@ project(DarkEden VERSION 1.0 LANGUAGES CXX)
 # ============================================================================
 # 全局设置
 # ============================================================================
-set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ language standard (17 or 20)")
-set_property(CACHE CMAKE_CXX_STANDARD PROPERTY STRINGS 17 20)
-if(NOT CMAKE_CXX_STANDARD MATCHES "^(17|20)$")
-    message(FATAL_ERROR "DarkEden supports CMAKE_CXX_STANDARD=17 or 20")
+set(CMAKE_CXX_STANDARD 20 CACHE STRING "C++ language standard (20)")
+set_property(CACHE CMAKE_CXX_STANDARD PROPERTY STRINGS 20)
+if(NOT CMAKE_CXX_STANDARD EQUAL 20)
+    message(FATAL_ERROR "DarkEden requires CMAKE_CXX_STANDARD=20")
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 输出目录. Development lanes override the root so different compiler,
-# target, standard and build-type combinations cannot share artifacts.
+# target and build-type combinations cannot share artifacts.
 set(DARKEDEN_OUTPUT_ROOT "${CMAKE_SOURCE_DIR}" CACHE PATH "Root directory for DarkEden build artifacts")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DARKEDEN_OUTPUT_ROOT}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DARKEDEN_OUTPUT_ROOT}/lib")
@@ -68,6 +68,29 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")
 # 查找依赖
 # ============================================================================
 find_package(Threads REQUIRED)
+
+include(CheckCXXSourceCompiles)
+set(CMAKE_REQUIRED_LIBRARIES Threads::Threads)
+check_cxx_source_compiles("
+    #include <thread>
+    #include <stop_token>
+    #include <condition_variable>
+    #include <mutex>
+    #include <chrono>
+    int main() {
+        std::jthread worker([](std::stop_token token) {
+            std::mutex mutex;
+            std::condition_variable_any wake;
+            std::unique_lock lock(mutex);
+            wake.wait_for(lock, token, std::chrono::milliseconds(1), [] { return false; });
+        });
+        worker.request_stop();
+    }
+" DARKEDEN_HAS_COOPERATIVE_THREADS)
+unset(CMAKE_REQUIRED_LIBRARIES)
+if(NOT DARKEDEN_HAS_COOPERATIVE_THREADS)
+    message(FATAL_ERROR "DarkEden needs a C++20 standard library with std::jthread, std::stop_token and stop-aware condition_variable_any. Use the pinned Zig toolchain: docker build -f Dockerfile.dev -t darkeden-dev . then make dev-test.")
+endif()
 
 # MySQL
 if(APPLE)

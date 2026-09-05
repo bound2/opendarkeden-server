@@ -9,8 +9,15 @@
 #ifndef __ZONE_THREAD_H__
 #define __ZONE_THREAD_H__
 
+#include <chrono>
+#include <mutex>
+
+#include <condition_variable>
+#include <stop_token>
+
 // include files
 #include "Exception.h"
+#include "ManagedThread.h"
 #include "Thread.h"
 #include "Types.h"
 #include "ZoneGroup.h"
@@ -25,7 +32,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-class ZoneGroupThread : public Thread {
+class ZoneGroupThread : public ManagedThread {
 public:
     // constructor
     ZoneGroupThread(ZoneGroup* pZoneGroup);
@@ -34,7 +41,7 @@ public:
     ~ZoneGroupThread() noexcept;
 
     // main method
-    void run();
+    void run() override;
 
     // get debug string
     string toString() const;

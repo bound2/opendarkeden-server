@@ -37,8 +37,8 @@ make fmt-check-all
 ```
 
 The project uses clang-format with a `.clang-format` configuration file.
-- Format checking is enforced via GitHub Actions on PRs, and it checks only
-  the files a PR **changed** (`git diff origin/master HEAD`), using whatever
+- Format checking runs via GitHub Actions only on pushes/merges to master,
+  and checks files changed since the previous master tip, using whatever
   clang-format `ubuntu-latest` installs (18.x as of 2026-08).
 - **Do not run bare `make fmt` before committing — the tree is not v18-clean.**
   1,253 `src/` files were formatted with an older clang-format, so `make fmt`
@@ -56,13 +56,19 @@ The project uses clang-format with a `.clang-format` configuration file.
 ### Tests
 
 ```bash
-# Build and run the wire-contract test suite (local only — no CI tier yet)
+# Build and run the contract suite with a C++20-capable compiler AND library
 make test
 
 # Same suite, but built inside the container off a local workspace. On a
 # Windows host this is the one to use — see "Building in the container" below.
 make dev-test
 ```
+
+Prefer the pinned Zig container. Ubuntu 20.04's distro GCC 9 lacks the
+required library facilities; CMake checks `jthread`, `stop_token`, and
+stop-aware condition-variable waits at configure time. The C++20 workflow
+now runs the Debug suite and production builds only on master pushes/merges.
+PRs and feature-branch commits are verified locally to conserve Actions minutes.
 
 #### Building in the container
 
@@ -78,17 +84,15 @@ seconds instead of minutes.
 
 ```bash
 make dev-test                      # build wire_tests + ctest
-CXX_STANDARD=17 make dev-test      # same suite in the C++17 compatibility lane
 bash tools/devbuild.sh test --record   # re-record goldens, then run
 make dev-build                     # all production targets
-CXX_STANDARD=17 make dev-build     # all production targets as C++17
 make dev-shell                     # shell in the workspace
 make dev-clean                     # drop the workspace + compiler-cache volumes
 ```
 
 Needs the image once: `docker build -f Dockerfile.dev -t darkeden-dev .`.
 It pins Zig 0.16.0 (Clang 21.1.0) and also carries Ninja, ccache and rsync.
-Artifacts live in compiler/target/standard/build-type-specific directories in
+Artifacts live in compiler/target/build-type-specific directories in
 the volume, so `bin/` and `lib/` in the checkout are **not** updated by these
 targets. `bash tools/devbuild.sh output-dir` prints the active lane's artifact
 root.
@@ -276,6 +280,16 @@ known violations are listed at the end, not silently fixed.
   `__CONNECT_CBILLING_SYSTEM__` is commented out in
   `chinabilling/CBillingInfo.h` — so it never runs either.)
 
+The gameserver workers above use `ManagedThread` (`std::jthread`). Start and
+stop are serialized; stop-before-start is terminal, and join allows a
+concurrent stop request. Derived destructors must stop/join before destroying
+members. SIGTERM/SIGINT request process shutdown; main exits its client loop,
+requests every worker to stop, and joins them while dependencies remain alive.
+The process then uses `_Exit` to reclaim the legacy singleton graph without
+running its unaudited destructors. This does not add a world-save operation.
+A 30-second watchdog forces a nonzero exit if startup, I/O, or a heartbeat
+prevents shutdown. See `docs/TOOLCHAIN.md` for the full contract.
+
 ### The mutation rule
 
 **Zone-group state (Zones, Creatures in them, the group's
@@ -362,11 +376,8 @@ Start servers in this order:
 
 - Source file encoding is **UTF-8** (project was migrated from legacy encodings)
 - Use **English** as code comment, there are some legacy Korean or maybe garbled encoding, translate them to English whenever possible
-- C++20 is the default project language standard. The current tree also has a
-  transitional C++17 compatibility build, verified with the pinned Zig/Clang
-  container toolchain (`CXX_STANDARD=17 make dev-test`). C++20-only adoption
-  must update that compatibility policy deliberately rather than failing the
-  secondary lane accidentally.
+- C++20 is the required project language standard, verified with the pinned
+  Zig/Clang container toolchain.
 - Threaded architecture with `ZoneGroupThread` for parallel zone processing
 - Extensive use of inheritance (Creature → PlayerCreature → Slayer/Vampire/Ousters)
 - Lua scripting is integrated for quest systems (see `quest/luaScript/`)

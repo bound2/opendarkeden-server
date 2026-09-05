@@ -1,12 +1,12 @@
 # =====================================================================# Wire-contract test suite (docs/RESTRUCTURING.md Phase 1)
 #
 # Built only with -DDARKEDEN_BUILD_TESTS=ON (make test does this). Runs
-# locally by design — CI is deliberately Phase 6.
+# locally and in the pinned-Zig C++20 CI job.
 # =====================================================================
 include(FetchContent)
 
-# Keep the test framework on a maintained C++17-capable release. The project
-# was previously held at 1.12.1 solely by its C++11 language baseline.
+# Keep the test framework on a maintained release. The project was previously
+# held at 1.12.1 solely by its C++11 language baseline.
 FetchContent_Declare(
     googletest
     URL https://github.com/google/googletest/archive/refs/tags/v1.18.0.zip
@@ -173,6 +173,47 @@ add_dependencies(wire_tests formula_tests)
 
 add_test(NAME formula_tests COMMAND formula_tests)
 set_tests_properties(formula_tests PROPERTIES TIMEOUT 60)
+
+# C++20 structured-concurrency contract. This stays isolated from the game
+# libraries so lifecycle failures cannot be hidden by unrelated fixtures.
+add_executable(cooperative_thread_tests EXCLUDE_FROM_ALL
+    cooperative_thread_test.cpp
+)
+target_include_directories(cooperative_thread_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server
+)
+target_link_libraries(cooperative_thread_tests PRIVATE
+    gtest_main
+    Threads::Threads
+)
+add_dependencies(wire_tests cooperative_thread_tests)
+
+add_test(NAME cooperative_thread_tests COMMAND cooperative_thread_tests)
+set_tests_properties(cooperative_thread_tests PROPERTIES TIMEOUT 10)
+
+add_executable(managed_thread_tests EXCLUDE_FROM_ALL
+    managed_thread_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/ThreadPool.cpp
+)
+target_link_libraries(managed_thread_tests PRIVATE ServerCore de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests managed_thread_tests)
+add_test(NAME managed_thread_tests COMMAND managed_thread_tests)
+set_tests_properties(managed_thread_tests PROPERTIES TIMEOUT 15)
+
+add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
+target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
+target_link_libraries(shutdown_probe PRIVATE Threads::Threads)
+add_dependencies(wire_tests shutdown_probe)
+add_test(NAME shutdown_supervisor COMMAND bash
+    ${CMAKE_CURRENT_SOURCE_DIR}/shutdown_supervisor_test.sh
+    $<TARGET_FILE:shutdown_probe> ${CMAKE_SOURCE_DIR}/docker/start.sh)
+set_tests_properties(shutdown_supervisor PROPERTIES TIMEOUT 50)
+
+add_executable(database_timeout_tests EXCLUDE_FROM_ALL database_timeout_test.cpp)
+target_link_libraries(database_timeout_tests PRIVATE Database ServerCore de-kernel ${MYSQL_LIBRARY} gtest_main Threads::Threads)
+add_dependencies(wire_tests database_timeout_tests)
+add_test(NAME database_timeout_tests COMMAND database_timeout_tests)
+set_tests_properties(database_timeout_tests PROPERTIES TIMEOUT 20)
 
 add_test(
     NAME ratchets

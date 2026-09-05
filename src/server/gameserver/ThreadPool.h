@@ -13,9 +13,9 @@
 // include files
 //////////////////////////////////////////////////
 #include <list>
+#include <mutex>
 
 #include "Exception.h"
-#include "Mutex.h"
 #include "Thread.h"
 #include "Types.h"
 
@@ -71,6 +71,7 @@ public:
 
     // #ifdef __NO_COMBAT__
     list<Thread*> getThreads() {
+        std::lock_guard lock(m_Mutex);
         return m_Threads;
     } // 김경석
     // #endif
@@ -91,7 +92,7 @@ private:
     list<Thread*> m_Threads;
 
     // mutex for list operation(add, delete, get ...)
-    mutable Mutex m_Mutex;
+    mutable std::mutex m_Mutex;
 };
 
 #endif

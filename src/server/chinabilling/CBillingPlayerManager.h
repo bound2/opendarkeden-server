@@ -10,9 +10,9 @@
 // include files
 #include "CBillingInfo.h"
 #include "Exception.h"
+#include "ManagedThread.h"
 #include "Mutex.h"
 #include "Socket.h"
-#include "Thread.h"
 #include "Types.h"
 
 #ifdef __LOGIN_SERVER__
@@ -28,7 +28,7 @@ class CBillingPlayer;
 //
 // 중국 빌링 서버와 통신을 전담하는 쓰레드
 /////////////////////////////////////////////////////
-class CBillingPlayerManager : public Thread {
+class CBillingPlayerManager : public ManagedThread {
 public:
     CBillingPlayerManager();
     ~CBillingPlayerManager() noexcept;

@@ -3,7 +3,7 @@
 
 #include "FiniteStateMachine.h"
 #include "GDRLairAbstractStates.h"
-#include "Thread.h"
+#include "ManagedThread.h"
 #include "Types.h"
 
 class Monster;
@@ -354,9 +354,12 @@ public:
 };
 
 // 질드레 레어를 총괄하는 매니저. ClientManager의 스레드에서 돈다.
-class GDRLairManager : public FiniteStateMachine, public Thread {
+class GDRLairManager : public FiniteStateMachine, public ManagedThread {
 public:
-    ~GDRLairManager() noexcept override = default;
+    ~GDRLairManager() noexcept override {
+        stop();
+        join();
+    }
 
     enum GDRLairZones {
         ILLUSIONS_WAY_1,

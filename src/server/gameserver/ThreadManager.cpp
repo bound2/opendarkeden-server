@@ -110,7 +110,7 @@ void ThreadManager::stop()
 {
     __BEGIN_TRY
 
-    throw UnsupportedError(__PRETTY_FUNCTION__);
+    m_pZoneGroupThreadPool->stop();
 
     __END_CATCH
 }

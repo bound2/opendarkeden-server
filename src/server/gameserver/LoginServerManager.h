@@ -9,8 +9,8 @@
 
 #include "DatagramSocket.h"
 #include "Exception.h"
+#include "ManagedThread.h"
 #include "Mutex.h"
-#include "Thread.h"
 #include "Types.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@
 // 내부에 데이터그램 서버소켓을 하나 가지고 블로킹 기반으로 동작한다.
 //////////////////////////////////////////////////////////////////////////////
 
-class LoginServerManager : public Thread {
+class LoginServerManager : public ManagedThread {
 public:
     LoginServerManager();
     ~LoginServerManager() noexcept;

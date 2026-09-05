@@ -9,10 +9,10 @@
 
 #include "BillingInfo.h" // for #define __CONNECT_BILLING_SYSTEM__
 #include "Exception.h"
+#include "ManagedThread.h"
 #include "Mutex.h"
 #include "Packet.h"
 #include "Socket.h"
-#include "Thread.h"
 #include "Types.h"
 
 class BillingPlayer;
@@ -25,7 +25,7 @@ class CommonBillingPacket;
 // 연결 끊기면 다시 연결해야 된다. 될 때까지~~
 //////////////////////////////////////////////////////////////////////////////
 
-class BillingPlayerManager : public Thread {
+class BillingPlayerManager : public ManagedThread {
 public:
     BillingPlayerManager();
     ~BillingPlayerManager() noexcept;

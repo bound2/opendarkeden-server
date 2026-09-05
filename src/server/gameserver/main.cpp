@@ -22,6 +22,7 @@
 #include "GameServer.h"
 #include "LogClient.h"
 #include "Properties.h"
+#include "ServerShutdown.h"
 #include "StringStream.h"
 #include "Types.h"
 
@@ -61,6 +62,12 @@ void testMaxMemory() {
 //
 //////////////////////////////////////////////////////////////////////
 int main(int argc, char* argv[]) {
+    struct sigaction action {};
+    action.sa_handler = ServerShutdown::request;
+    sigemptyset(&action.sa_mask);
+    if (sigaction(SIGTERM, &action, nullptr) != 0 || sigaction(SIGINT, &action, nullptr) != 0)
+        return EXIT_FAILURE;
+    ServerShutdown::Deadline shutdownDeadline;
     cout << ">>> STARTING GAME SERVER..." << endl;
 
     filelog("serverStart.log", "GameServer Start");
@@ -168,7 +175,8 @@ int main(int argc, char* argv[]) {
         cout << ">>> GAME SERVER INITIALIZATION SUCCESS..." << endl;
 
         // °ÔÀÓ ¼­¹ö °´Ã¼¸¦ È°¼ºÈ­½ÃÅ²´Ù.
-        g_pGameServer->start();
+        if (!ServerShutdown::isRequested())
+            g_pGameServer->start();
     } catch (Throwable& e) {
         // ·Î±×°¡ ÀÌ·ïÁö±â Àü¿¡ ¼­¹ö°¡ ³¡³¯ °æ¿ì¸¦ ´ëºñÇØ¼­
         ofstream ofile("../log/instant.log", ios::out);
@@ -180,8 +188,35 @@ int main(int argc, char* argv[]) {
 
         // °ÔÀÓ ¼­¹ö¸¦ Áß´Ü½ÃÅ²´Ù.
         // ÀÌ ³»ºÎ¿¡¼­ ÇÏÀ§ ¸Å´ÏÀú ¿ª½Ã Áß´ÜµÇ¾î¾ß ÇÑ´Ù.
-        g_pGameServer->stop();
+        ServerShutdown::fail();
     } catch (...) {
         cout << "unknown exception..." << endl;
+        ServerShutdown::fail();
     }
+    // Both signal-driven and failed startup paths reach the same teardown.
+    ServerShutdown::request();
+    bool drained = true;
+    try {
+        if (g_pGameServer != NULL)
+            g_pGameServer->stop();
+    } catch (Throwable& error) {
+        drained = false;
+        ServerShutdown::fail();
+        cerr << "Shutdown failed: " << error.toString() << endl;
+    } catch (const std::exception& error) {
+        drained = false;
+        ServerShutdown::fail();
+        cerr << "Shutdown failed: " << error.what() << endl;
+    } catch (...) {
+        drained = false;
+        ServerShutdown::fail();
+        cerr << "Shutdown failed: unknown exception" << endl;
+    }
+    // Legacy singleton destructors do not have a complete dependency order.
+    // After every worker has joined, let the OS reclaim the process graph;
+    // do not introduce untested singleton destruction on the signal path.
+    if (drained)
+        cout << ">>> ALL GAME WORKERS STOPPED." << endl;
+    cerr.flush();
+    std::_Exit(ServerShutdown::failed.load() ? EXIT_FAILURE : EXIT_SUCCESS);
 }

@@ -31,6 +31,7 @@ public:
     void stop();
 
 private:
+    bool m_Stopped = false; // Lifecycle operations are owned by the main thread.
     void sysinit();
     void goBackground();
 };

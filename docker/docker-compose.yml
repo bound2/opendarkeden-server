@@ -41,11 +41,15 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        # Override in the environment for Debug and/or the C++17 compatibility lane.
+        # Override in the environment for a Debug build.
         BUILD_TYPE: ${BUILD_TYPE:-Release}
-        CXX_STANDARD: ${CXX_STANDARD:-20}
     image: darkeden:local
     container_name: odk-server
+    # Allow the 30s gameserver shutdown deadline plus supervisor overhead.
+    stop_grace_period: 45s
+    environment:
+      DARKEDEN_DB_CONNECT_TIMEOUT_SECONDS: ${DARKEDEN_DB_CONNECT_TIMEOUT_SECONDS:-5}
+      DARKEDEN_DB_IO_TIMEOUT_SECONDS: ${DARKEDEN_DB_IO_TIMEOUT_SECONDS:-300}
     depends_on:
       odk-mysql:
         condition: service_healthy

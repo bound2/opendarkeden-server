@@ -56,6 +56,8 @@ BillingPlayerManager::BillingPlayerManager() {
 // destructor
 //////////////////////////////////////////////////////////////////////
 BillingPlayerManager::~BillingPlayerManager() noexcept {
+    stop();
+    join();
     __BEGIN_TRY
 
     SAFE_DELETE(m_pBillingPlayer);
@@ -69,7 +71,7 @@ BillingPlayerManager::~BillingPlayerManager() noexcept {
 void BillingPlayerManager::stop() {
     __BEGIN_TRY
 
-    throw UnsupportedError();
+    ManagedThread::stop();
 
     __END_CATCH
 }
@@ -107,7 +109,7 @@ void BillingPlayerManager::run() {
 
         bool bFirstConnection = true;
 
-        while (true) {
+        while (!stopRequested()) {
             usleep(100);
 
             // 연결되어 있지 않다면 연결을 시도한다.

@@ -12,7 +12,7 @@
 
 set -u
 
-VS_HOME=/home/darkeden/vs
+VS_HOME=${VS_HOME:-/home/darkeden/vs}
 BIN_DIR="$VS_HOME/bin"
 CONF_DIR="${CONF_DIR:-$VS_HOME/conf}"
 DB_WAIT_RETRIES="${DB_WAIT_RETRIES:-150}"
@@ -72,19 +72,42 @@ start_server() {
     names+=("$name")
 
     # Mirror the log file to the container output so `docker compose logs` works.
-    tail -F -n +1 "$logfile" 2>/dev/null | sed -u "s/^/[$name] /" &
+    tail --pid="${pids[-1]}" -F -n +1 "$logfile" 2>/dev/null | sed -u "s/^/[$name] /" &
+}
+
+is_alive() {
+    local state
+    state=$(sed -n 's/.*) \([A-Za-z]\).*/\1/p' "/proc/$1/stat" 2>/dev/null)
+    [ -n "$state" ] && [ "$state" != "Z" ]
 }
 
 shutdown_all() {
+    trap '' INT TERM
     log "stopping servers ..."
-    local pid
+    local pid i deadline result=0
+    # Keep login/shared services alive while the gameserver drains. Its own
+    # 30s deadline handles stuck I/O; this 35s supervisor bound is a backstop.
+    for i in "${!pids[@]}"; do
+        if [ "${names[$i]}" = gameserver ]; then
+            pid=${pids[$i]}
+            kill -TERM "$pid" 2>/dev/null || true
+            deadline=$((SECONDS + 35))
+            while is_alive "$pid" && (( SECONDS < deadline )); do sleep 0.1; done
+            if is_alive "$pid"; then
+                log "gameserver did not drain; forcing termination"
+                kill -KILL "$pid" 2>/dev/null || true
+            fi
+            wait "$pid" 2>/dev/null || result=$?
+        fi
+    done
     for pid in "${pids[@]}"; do
-        kill "$pid" 2>/dev/null
+        kill "$pid" 2>/dev/null || true
     done
     wait "${pids[@]}" 2>/dev/null
+    return "$result"
 }
 
-trap 'shutdown_all; exit 0' INT TERM
+trap 'shutdown_all; exit $?' INT TERM
 
 wait_for_db || exit 1
 
@@ -98,12 +121,6 @@ log "all servers started"
 
 # A child that already exited stays around as a zombie until it is waited for,
 # so `kill -0` is not enough - look at the process state instead.
-is_alive() {
-    local state
-    state=$(sed -n 's/.*) \([A-Za-z]\).*/\1/p' "/proc/$1/stat" 2>/dev/null)
-    [ -n "$state" ] && [ "$state" != "Z" ]
-}
-
 # Supervise: if any server exits, tear the rest down so docker notices.
 while true; do
     for i in "${!pids[@]}"; do

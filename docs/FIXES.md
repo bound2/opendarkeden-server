@@ -1,5 +1,35 @@
 # Fix log
 
+## Cooperative lifecycle and process shutdown gaps (2026-09-05)
+
+Adversarial review of PR #89 found unsynchronized start/stop publication,
+pool startup leaving its mutex locked after thread-construction failures,
+uncaught worker exceptions, and a container SIGTERM path that bypassed joins.
+The gameserver auxiliary workers could also outlive zone/database dependencies.
+`ManagedThread` now serializes lifecycle operations, retains worker failures,
+and requests process shutdown. The pool uses RAII and rolls back failed starts.
+All gameserver workers are stopped/joined before dependencies may be released;
+SIGTERM/SIGINT drain the main loop, and the supervisor keeps peer services alive
+until gameserver finishes. Idle UDP reception is nonblocking. MySQL options
+bound individual network operations; a 30-second watchdog gives stuck work a
+failed process exit, without destroying live worker state. Normal main exit
+reclaims the legacy singleton graph through the OS after joins instead of
+invoking its unaudited destructor ordering. This adds no world-save guarantee.
+Lifecycle, signal, supervisor and silent-MySQL-peer regression tests accompany
+the fixes. CMake checks actual C++20 library support; CI runs the pinned toolchain.
+> **Status:** fixed (codex/cpp20-jthread-lifecycle)
+
+## Zone workers could outlive their zone state during teardown (2026-09-04)
+
+Found while migrating `ZoneGroupThread` to `std::jthread`: the gameserver
+destructor deleted `g_pObjectManager` before `g_pThreadManager`, even though
+the zone workers continuously dereference zone state owned below the object
+manager. The zone pool's `stop()` was also an `UnsupportedError`, so teardown
+could either trip its exit-state assertion or let a worker observe freed state.
+The pool now requests cancellation for every zone, joins every worker, and is
+destroyed before the client, object, and database managers.
+> **Status:** fixed (codex/cpp20-jthread-lifecycle)
+
 ## SGModifyGuildMemberOK was never handled: `#ifdef __GAME_SERER__` (2026-08-31)
 
 Found while migrating the SG direction onto the dispatch table (task

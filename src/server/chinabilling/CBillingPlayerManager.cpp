@@ -43,6 +43,8 @@ CBillingPlayerManager::CBillingPlayerManager() {
 
 // destructor
 CBillingPlayerManager::~CBillingPlayerManager() noexcept {
+    stop();
+    join();
     SAFE_DELETE(m_pCBillingPlayer);
 }
 
@@ -50,7 +52,7 @@ CBillingPlayerManager::~CBillingPlayerManager() noexcept {
 void CBillingPlayerManager::stop() {
     __BEGIN_TRY
 
-    throw UnsupportedError();
+    ManagedThread::stop();
 
     __END_CATCH
 }
@@ -94,7 +96,7 @@ void CBillingPlayerManager::run() {
         const string& CBillingServerIP = g_pConfig->getProperty("ChinaBillingServerIP");
         uint CBillingServerPort = g_pConfig->getPropertyInt("ChinaBillingServerPort");
 
-        while (true) {
+        while (!stopRequested()) {
             usleep(100);
 
             // ���� �Ǿ� ���� �ʴٸ� ������ �õ��Ѵ�.

@@ -8,10 +8,10 @@
 #define __SHARED_SERVER_MANANGER_H__
 
 #include "Exception.h"
+#include "ManagedThread.h"
 #include "Mutex.h"
 #include "Packet.h"
 #include "Socket.h"
-#include "Thread.h"
 #include "Types.h"
 
 class SharedServerClient;
@@ -23,7 +23,7 @@ class SharedServerClient;
 // 연결 끊기면 다시 연결해야 된다. 될 때까지~~
 //////////////////////////////////////////////////////////////////////////////
 
-class SharedServerManager : public Thread {
+class SharedServerManager : public ManagedThread {
 public:
     SharedServerManager();
     ~SharedServerManager() noexcept;

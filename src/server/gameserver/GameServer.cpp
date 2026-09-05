@@ -108,6 +108,10 @@ GameServer::~GameServer()
 {
     __BEGIN_TRY
 
+    stop();
+    // Zone workers must stop while their zone and database dependencies are
+    // still alive.
+    SAFE_DELETE(g_pThreadManager);
     SAFE_DELETE(g_pClientManager);
     SAFE_DELETE(g_pObjectManager);
     SAFE_DELETE(g_pPacketValidator);
@@ -125,7 +129,6 @@ GameServer::~GameServer()
     SAFE_DELETE(g_pMPacketManager);
 #endif
     SAFE_DELETE(g_pGameServerInfoManager);
-    SAFE_DELETE(g_pThreadManager);
     SAFE_DELETE(g_pDatabaseManager);
 
     __END_CATCH_NO_RETHROW
@@ -291,6 +294,8 @@ void GameServer::start()
 void GameServer::stop()
 
 {
+    if (m_Stopped)
+        return;
     __BEGIN_TRY
 
     //
@@ -299,7 +304,22 @@ void GameServer::stop()
     // 가장 먼저 클라이언트 매니저를 삭제시킴으로써 더이상 새 접속을
     // 받지 않도록 한다.
     //
+    ServerShutdown::request();
     g_pClientManager->stop();
+    // Request every auxiliary stop before any join. All shared dependencies
+    // remain alive until BOTH auxiliary and zone workers have finished.
+    std::vector<ManagedThread*> workers{g_pLoginServerManager, g_pSharedServerManager, &GDRLairManager::Instance()};
+#ifdef __CONNECT_BILLING_SYSTEM__
+    workers.push_back(g_pBillingPlayerManager);
+#endif
+#ifdef __CONNECT_CBILLING_SYSTEM__
+    workers.push_back(g_pCBillingPlayerManager);
+#endif
+#ifdef __MOFUS__
+    workers.push_back(g_pMPlayerManager);
+#endif
+    for (auto* worker : workers)
+        worker->stop();
 
     //
     // stop thread manager
@@ -308,9 +328,22 @@ void GameServer::stop()
     // 않고 게임 서버에서 쫓아낸다. 이때 쓰레드 매니저의 하위 쓰레드풀에서
     // stop을 실행할때 적절하게 잘 되어야 한다.
     //
-    g_pThreadManager->stop();
-
     //
+    g_pThreadManager->stop();
+    for (auto* worker : workers) {
+        worker->join();
+        try {
+            worker->rethrowFailure();
+        } catch (Throwable& error) {
+            cerr << worker->getName() << ": " << error.toString() << endl;
+        } catch (const std::exception& error) {
+            cerr << worker->getName() << ": " << error.what() << endl;
+        } catch (...) {
+            cerr << worker->getName() << ": unknown worker failure" << endl;
+        }
+    }
+    m_Stopped = true;
+
     // stop object manager
     //
     // 이제 모든 사용자들의 접속이 종료되었으므로, 남은 존 및 여러 가지 게임

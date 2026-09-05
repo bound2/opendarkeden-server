@@ -25,10 +25,10 @@ conventions.
 - Ratchet numbers (below) may only go **down**. Re-measure with the given
   command before and after a change that claims progress; commit the updated
   number with the change.
-- All tests run **locally** (`make test` once Phase 1 lands). CI is
-  deliberately the *last* phase — GitHub Actions minutes are exhausted, and
-  nothing here depends on CI existing. Until then the discipline is: run the
-  suite before every push.
+- Run the suite locally before every push (`make dev-test` with the pinned
+  toolchain). The C++20 workflow also runs the suite and production builds on
+  master pushes/merges only; PRs are verified locally to conserve minutes.
+  DB-backed integration CI remains deferred.
 
 ## Goals / non-goals
 
@@ -718,7 +718,7 @@ live client.
 Runs as ongoing background work; every extraction is independently mergeable
 and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
 
-- [ ] **3.1 `Outcome<Events, Rejection>` result type.** C++17 template in
+- [ ] **3.1 `Outcome<Events, Rejection>` result type.** C++20 template in
   `de-kernel` mirroring sidecar's `kernel.domain.Outcome`: gameplay mutations
   return `Ok(events)` or `Rejected(reason)`; exceptions reserved for
   programming/config errors. New/refactored domain code uses it; the
@@ -1078,7 +1078,7 @@ gating; `Zone.cpp` under 2,000 lines.
   > recorded inline in 1.4 where it was written. Ongoing discipline, not a
   > one-shot: new finds keep landing there.
 
-- [x] **5.4 Language standard: C++11 → C++20 default, C++17 compatibility.**
+- [x] **5.4 Language standard: C++11 → C++20 required.**
   Assessed 2026-08-30. No open task was *blocked* on the standard, but 3.1
   `Outcome` wants `std::variant` + `[[nodiscard]]` (an unchecked rejection
   becomes a compiler warning instead of a convention), the packet layer
@@ -1112,15 +1112,17 @@ gating; `Zone.cpp` under 2,000 lines.
   architecture/build evidence before adoption; concepts become useful only at
   focused boundaries such as the packet stream and factory contracts described
   in `docs/TOOLCHAIN.md`.
-  > **Status:** done (2026-09-04) — C++20 is the default project standard
-  > (`CMAKE_CXX_EXTENSIONS=OFF`); the fully verified C++17 build remains
-  > selectable with `-DCMAKE_CXX_STANDARD=17` as a transition/rollback lane.
+  > **Status:** done (2026-09-04) — C++20 is the required project standard
+  > (`CMAKE_CXX_EXTENSIONS=OFF`). The initially verified C++17 transition lane
+  > was retired deliberately when `std::jthread`/`std::stop_token` entered the
+  > production `ZoneGroupThread` lifecycle; non-20 configurations now fail at
+  > CMake configuration instead of failing partway through compilation.
   > Docker and development-volume builds pin
   > Zig 0.16.0/Clang 21.1.0, isolate build trees, output roots and compiler
-  > caches by Zig version, target, standard and build type, and
-  > pass the full test suite plus every production target under both C++17
-  > and C++20. Production Docker images were also built under both standards,
-  > and all three server binaries have complete runtime linkage. All dynamic
+  > caches by Zig version, target and build type. The migration was validated
+  > under both C++17 and C++20 before the rollback lane was retired; the
+  > production image now always builds C++20, and all three server binaries
+  > have complete runtime linkage. All dynamic
   > exception specifications are gone; legacy destructors that were declared
   > as potentially throwing retain that behavior with `noexcept(false)`.
   > `Outcome` uses
@@ -1128,20 +1130,32 @@ gating; `Zone.cpp` under 2,000 lines.
   > The runtime remains Ubuntu 20.04; its distro GCC is no longer the compiler.
   > Project-specific C++20 adoption priorities and guardrails are documented in
   > `docs/TOOLCHAIN.md` under “Where C++20 pays off in DarkEden.”
+  > The first adoption slice also makes thread status atomic, adds reusable
+  > cooperative-worker lifecycle tests, and gives the zone thread pool a real
+  > stop-all-then-join-all shutdown path. `GameServer` destroys that pool before
+  > zone/database dependencies, preventing workers from observing freed state.
+  > Adversarial-review follow-up (2026-09-05): all gameserver auxiliary workers
+  > now use the managed backend too; startup rollback, concurrent lifecycle
+  > operations, and worker failure reporting have regression tests. SIGTERM
+  > drains the client loop and joins every worker, with a 30-second failed-exit
+  > deadline for blocked work. Main then lets the OS reclaim the legacy graph
+  > rather than invoking unaudited singleton destructors; no new world-save
+  > guarantee is implied. MySQL operations have finite timeout options.
+  > CMake probes the C++20 library and a pinned-Zig workflow tests/builds master.
   - Owner: ratchet R7, held at 0.
 
 ---
 
 ## Phase 6 — CI (deliberately last; blocked on GitHub Actions minutes)
 
-Everything above runs locally by design. When Actions minutes are available
-again:
+The C++20 lifecycle work now has a pinned-Zig Debug test and production-build
+workflow. Execution still depends on Actions minutes being available. The
+remaining broader CI rollout below is deferred:
 
-- [ ] **6.1 Build + test workflow.** Extend beyond the current
-  `format-check.yml`: debug build + `make test` (unit tier; no DB). Note
-  sidecar's hard-won Actions economics: CI on master pushes only, PRs verified
-  locally before opening, no jar/binary artifacts uploaded per-run.
-  > **Status:** blocked (no Actions minutes)
+- [x] **6.1 Build + test workflow.** Pinned Zig Debug contract/lifecycle tests,
+  all production targets, and the production image; master pushes/merges only.
+  > **Status:** done — `.github/workflows/cpp20.yml`; running the jobs still
+  > requires available Actions minutes. Local verification remains mandatory.
 
 - [ ] **6.2 Integration tier in CI.** MySQL service container + `initdb/`
   schema for the repository integration tests.
@@ -1163,8 +1177,9 @@ again:
   (`client/Client/Packet/{Gpackets,Cpackets,Lpackets,Rpackets,Types,Upackets}`);
   server `Core` handlers still contain `#ifdef __GAME_CLIENT__` vestiges of
   the shared origin.
-- Existing `test*` directories are ad-hoc standalone test servers, not unit
-  tests; current CI is clang-format only.
+- At this inventory date, existing `test*` directories were ad-hoc standalone
+  test servers and CI was clang-format only. The current `tests/` suite and
+  C++20 workflow were added subsequently.
 - Sidecar reference (local clone at `../sidecar`): module split
   `sidecar-kernel` ← `sidecar-core` ← `sidecar-app`; enforcement vocabulary in
   `sidecar-kernel/src/test/java/.../kernel/arch/ArchitectureRules.java`;

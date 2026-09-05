@@ -97,22 +97,18 @@ For the fast development-volume build:
 docker build -f Dockerfile.dev -t darkeden-dev .
 make dev-test
 make dev-build
-
-# Exercise the transitional C++17 compatibility lane with:
-CXX_STANDARD=17 make dev-test
-CXX_STANDARD=17 make dev-build
 ```
 
-The production image uses the same compiler and defaults to C++20:
+The production image uses the same compiler and requires C++20:
 
 ```bash
 docker build -t darkeden:local .
-docker build --build-arg CXX_STANDARD=17 -t darkeden:cxx17 .
 ```
 
 Both image builds accept `--build-arg ZIG_VERSION=...` for an intentional
-toolchain update. The current tree is verified under C++17 and C++20; C++17 is
-a transition/rollback lane, not the language level new design should target.
+toolchain update. The current tree requires C++20; the former C++17 rollback
+lane was retired when cooperative `std::jthread` ownership entered the zone
+tick.
 
 For a manually installed Zig toolchain, the equivalent direct CMake commands
 are:
@@ -126,7 +122,7 @@ cmake --build build-zig -j
 Zig is located as `$ZIG`, else `zig` on `$PATH`, else `python3 -m ziglang`
 (the PyPI `ziglang` package ships the full toolchain).
 
-`tools/devbuild.sh` gives every Zig version, target, C++ standard and build type
+`tools/devbuild.sh` gives every Zig version, target and build type
 its own CMake tree, output root, ccache directory and Zig cache directory. Run
 `tools/devbuild.sh output-dir` with the same environment to print that lane's
 artifact root. For manual builds, use one build tree and output root per
@@ -223,11 +219,9 @@ The value is that new/refactored code can use a stronger vocabulary at the
 places where this codebase currently relies on conventions, raw buffer pairs,
 macros and polling loops.
 
-The current tree still builds as C++17 to provide a transition and rollback
-lane. The items below are C++20 adoption work: each slice must either retire
-that lane deliberately or hide the new facility behind a small compatibility
-boundary. Do not spread project-wide `#if __cplusplus` branches merely to keep
-both modes alive.
+The project now requires C++20. The first production use is cooperative zone
+worker shutdown; new facilities should still be adopted at focused boundaries
+instead of through tree-wide style conversions.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|
@@ -240,22 +234,57 @@ both modes alive.
 
 ### Structured thread lifetime and cancellation
 
-The base `Thread` class manually wraps `pthread_create`/`pthread_join`, exposes
-a status field, and has a default `stop()` that throws `UnsupportedError`.
-Several derived services run `while (true)` and periodically call `usleep` or
-`sleep`; `ZoneGroupThread` does this in the main gameplay tick.
+The legacy `Thread` backend remains for services outside the gameserver
+migration. Gameserver zone, login-link, shared-link, GDR, and enabled
+billing/mofus workers now opt into `ManagedThread`, which owns a
+`CooperativeThread` backed by `std::jthread`.
 
 `std::jthread` owns the join operation and propagates a `std::stop_token` to
 the worker. A stop-aware condition-variable wait can wake immediately during
 shutdown instead of waiting for the next polling interval. Where only a state
 change is needed, `std::atomic::wait`/`notify_*` can avoid a mutex and repeated
-wakeups. This would make orderly process shutdown testable and remove a class
-of use-after-free and stuck-join failures.
+wakeups. Cancellation is cooperative: it cannot interrupt arbitrary C++ code,
+a held mutex, or a synchronous library call.
 
-This should be migrated from the leaves inward: start with an isolated polling
-service such as `SMSServiceThread`, establish request-stop/join ownership, and
-only then change the `ZoneGroupThread` tick loop. The gameplay tick cadence and
-the existing lock around `ZoneGroup` must remain unchanged in the first slice.
+`ZoneGroupThread` retains its one-millisecond wait and existing group lock.
+Start/stop operations are serialized, stop-before-start permanently cancels
+the worker, and an in-progress join does not prevent another caller requesting
+stop. Worker exceptions are retained for reporting after join and request a
+failed process shutdown. Pool startup rolls back already-started workers on
+any exception; shutdown requests all stops before joining. Derived destructors
+must join before their members disappear; a base destructor alone is too late.
+
+SIGTERM/SIGINT only store a lock-free atomic request, using operations permitted
+in [C++ signal handlers](https://eel.is/c++draft/support.signal). The main client
+loop returns, all zone and auxiliary workers are requested to stop and joined,
+then main flushes its status message and calls `_Exit`. The OS reclaims the
+legacy singleton graph: its destructor dependency order is not fully audited,
+so normal process shutdown deliberately does not invoke that graph. Explicit
+`GameServer` destruction also joins workers before releasing dependencies.
+Joining workers does **not** provide a new world-save/transaction guarantee.
+
+MySQL connections default to a five-second connect timeout and 300-second
+read/write timeouts, allowing longer normal-service queries. Operators can set
+`DARKEDEN_DB_CONNECT_TIMEOUT_SECONDS` and `DARKEDEN_DB_IO_TIMEOUT_SECONDS` to
+positive integer seconds (Compose forwards them). These are per-operation
+limits with [client retry semantics](https://dev.mysql.com/doc/c-api/8.0/en/mysql-options.html),
+not an overall query or shutdown time guarantee. Stop is checked between zone
+connection setup operations. The login-link UDP socket is nonblocking so idle
+traffic cannot prevent shutdown. A separate watchdog starts before server
+initialization and allows 30 seconds after a signal/error/shutdown request;
+if I/O or gameplay code stays blocked, it exits the whole process with failure
+without freeing memory underneath live workers. The container supervisor keeps
+login/shared alive while gameserver drains, enforces a 35-second backstop, and
+Compose has a 45-second stop grace period.
+
+Regression tests exercise concurrent lifecycle calls, worker errors, pool
+rollback and stop/join ordering, dependency lifetime, signals, a stuck worker,
+a silent MySQL peer, and the real `docker/start.sh` with stand-in processes.
+The pinned-Zig CI job runs these tests and builds all production targets and
+the production image only on master pushes/merges. PRs and feature-branch
+commits use local verification to conserve Actions minutes. CMake probes the
+required library facilities, so an
+unsupported toolchain fails at configuration instead of deep in compilation.
 
 ### Type-safe packet buffers
 

@@ -32,9 +32,10 @@ LoginServerManager::LoginServerManager() : m_pDatagramSocket(NULL) {
     m_Mutex.setName("LoginServerManager");
 
     // create datagram server socket
-    while (true) {
+    while (!ServerShutdown::isRequested()) {
         try {
             m_pDatagramSocket = new DatagramSocket(g_pConfig->getPropertyInt("GameServerUDPPort"));
+            SocketAPI::setsocketnonblocking_ex(m_pDatagramSocket->getSOCKET(), true);
             break;
         } catch (BindException& be) {
             SAFE_DELETE(m_pDatagramSocket);
@@ -43,6 +44,9 @@ LoginServerManager::LoginServerManager() : m_pDatagramSocket(NULL) {
             sleep(1);
         }
     }
+
+    if (m_pDatagramSocket == NULL)
+        throw Error("shutdown requested during UDP listener startup");
 
     //	m_pDatagramSocket = new DatagramSocket(g_pConfig->getPropertyInt("GameServerUDPPort"));
 
@@ -53,6 +57,8 @@ LoginServerManager::LoginServerManager() : m_pDatagramSocket(NULL) {
 // destructor
 //////////////////////////////////////////////////////////////////////
 LoginServerManager::~LoginServerManager() noexcept {
+    stop();
+    join();
     __BEGIN_TRY
 
     SAFE_DELETE(m_pDatagramSocket);
@@ -66,7 +72,7 @@ LoginServerManager::~LoginServerManager() noexcept {
 void LoginServerManager::stop() {
     __BEGIN_TRY
 
-    throw UnsupportedError(__PRETTY_FUNCTION__);
+    ManagedThread::stop();
 
     __END_CATCH
 }
@@ -98,7 +104,7 @@ void LoginServerManager::run() {
         Timeval dummyQueryTime;
         getCurrentTime(dummyQueryTime);
 
-        while (true) {
+        while (!stopRequested()) {
             usleep(1000); // FIX: 降低 CPU 占用率，从 100 微秒改为 1000 微秒（1ms）
 
             Datagram* pDatagram = NULL;

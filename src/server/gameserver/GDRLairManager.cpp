@@ -83,7 +83,7 @@ void GDRLairManager::run() {
     Timeval dummyQueryTime;
     getCurrentTime(dummyQueryTime);
 
-    while (true) {
+    while (!stopRequested()) {
         Timeval currentTime;
         getCurrentTime(currentTime);
 

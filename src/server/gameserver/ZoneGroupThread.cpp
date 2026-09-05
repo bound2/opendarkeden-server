@@ -38,6 +38,10 @@ ZoneGroupThread::ZoneGroupThread(ZoneGroup* pZoneGroup)
 
 {
     __BEGIN_TRY
+
+    stop();
+    join();
+
     __END_CATCH_NO_RETHROW
 }
 
@@ -62,6 +66,8 @@ void ZoneGroupThread::run()
     if (g_pConfig->hasKey("DB_PORT"))
         port = g_pConfig->getPropertyInt("DB_PORT");
 
+    if (stopRequested())
+        return;
     Connection* pConnection = new Connection(host, db, user, password, port);
     g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
     cout << "******************************************************" << endl;
@@ -76,6 +82,8 @@ void ZoneGroupThread::run()
     if (g_pConfig->hasKey("UI_DB_PORT"))
         dist_port = g_pConfig->getPropertyInt("UI_DB_PORT");
 
+    if (stopRequested())
+        return;
     Connection* pDistConnection = new Connection(dist_host, dist_db, dist_user, dist_password, dist_port);
     g_pDatabaseManager->addDistConnection(((int)(long)Thread::self()), pDistConnection);
     cout << "******************************************************" << endl;
@@ -93,12 +101,15 @@ void ZoneGroupThread::run()
     getCurrentTime(dummyQueryTime);
 
     try {
-        while (true) {
+        while (!stopRequested()) {
             //		beginProfileEx("ZGT_MAIN");
             try {
                 beginProfileExNoTry("ZGT_MAIN");
 
-                usleep(1000); // FIX: 原注释说 0.001秒 = 1000微秒，但代码写的是 100 微秒，已修正
+                if (!pauseFor(std::chrono::milliseconds(1))) {
+                    endProfileExNoCatch("ZGT_MAIN");
+                    break;
+                }
 
                 __ENTER_CRITICAL_SECTION((*m_pZoneGroup))
 

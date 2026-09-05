@@ -11,16 +11,16 @@
 
 #include "Exception.h"
 #include "MJob.h"
+#include "ManagedThread.h"
 #include "Mutex.h"
 #include "Socket.h"
-#include "Thread.h"
 #include "Types.h"
 
 
 /////////////////////////////////////////////////////////////////////////////
 // class MPlayerManager
 /////////////////////////////////////////////////////////////////////////////
-class MPlayerManager : public Thread {
+class MPlayerManager : public ManagedThread {
 public:
     // typedefinition for MJob
     typedef deque<MJob*> DequeMJob;
