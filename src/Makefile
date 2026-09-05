@@ -60,8 +60,7 @@ cleanall :
 #	$(MAKE) -C util cleanall
 
 cleanbin :
-	rm -rf $(BINDIR)/gameserver $(BINDIR)/loginserver $(BINDIR)/gameclient \
-			$(BINDIR)/updateserver $(BINDIR)/updateclient
+	rm -rf $(BINDIR)/gameserver $(BINDIR)/loginserver $(BINDIR)/gameclient
 
 cleanlib :
 	rm -rf $(LIBDIR)/*.a $(LIBDIR)/st*

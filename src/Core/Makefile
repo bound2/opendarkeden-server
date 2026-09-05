@@ -33,7 +33,7 @@ CORE_OBJS = WarInfo.o RaceWarInfo.o GuildWarInfo.o LevelWarInfo.o BloodBibleBonu
 			Properties.o Resource.o ResourceManager.o \
 			ServerSocket.o Socket.o SocketAPI.o SocketImpl.o \
 			SocketInputStream.o SocketOutputStream.o StringStream.o \
-			Update.o UpdateManager.o InventoryInfo.o InventorySlotInfo.o \
+			InventoryInfo.o InventorySlotInfo.o \
 			RideMotorcycleInfo.o RideMotorcycleSlotInfo.o \
 			GearSlotInfo.o GearInfo.o ExtraInfo.o \
 			ExtraSlotInfo.o PCItemInfo.o SubItemInfo.o \
@@ -614,7 +614,7 @@ SRCS = $(CORE_SRCS) $(LC_PACKET_SRC) $(LG_PACKET_SRC) $(CL_PACKET_SRC) $(GL_PACK
 #----------------------------------------------------------------------
 # General Rules
 #----------------------------------------------------------------------
-.SUFFIXES    : .cpp .o .gs.o .ls.o .us.o .ss.o
+.SUFFIXES    : .cpp .o .gs.o .ls.o .ss.o
 
 CC       = g++
 DEFS     = -D__LINUX__ -D_REENTRANT
@@ -638,26 +638,15 @@ COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CCFLAGS) $(TARGET_ARCH) $(DEFS) $(INCL
 .cpp.ls.o :
 	$(CC) $(CCFLAGS) $(DEFS) -D__LOGIN_SERVER__ $(INCLUDES) -I$(LSDIR) -o $*.ls.o $<
 
-.cpp.us.o :
-	$(CC) $(CCFLAGS) $(DEFS) -D__UPDATE_SERVER__ $(INCLUDES) -o $*.us.o $<
-
 .cpp.ss.o :
 	$(CC) $(CCFLAGS) $(DEFS) -D__SHARED_SERVER__ -I$(SSDIR) $(INCLUDES) -o $*.ss.o $<
-
-
-#----------------------------------------------------------------------
-# Packet Library for Updateserver 
-#----------------------------------------------------------------------
-US_PACKET_OBJS = PacketFactoryManager.us.o PacketIDSet.us.o PacketValidator.us.o
-US_PACKET_SRCS = $(US_PACKET_OBJS:.us.o=.cpp)
-US_PACKET_LIB  = $(LIBDIR)/libUpdateServerPackets.a
 
 
 #----------------------------------------------------------------------
 # All Targets
 #----------------------------------------------------------------------
 #TARGETS = $(CORE_LIB) $(LS_PACKET_LIB) $(GS_PACKET_LIB) $(LCC_PACKET_LIB) 
-#SRCS = $(CORE_SRCS) $(LS_PACKET_SRCS) $(GS_PACKET_SRCS) $(LCC_PACKET_SRCS) $(US_PACKET_SRCS) $(SS_PACKET_SRCS)
+#SRCS = $(CORE_SRCS) $(LS_PACKET_SRCS) $(GS_PACKET_SRCS) $(LCC_PACKET_SRCS) $(SS_PACKET_SRCS)
 TARGETS = $(CORE_LIB) $(LS_PACKET_LIB) $(GS_PACKET_LIB) $(SS_PACKET_LIB)
 
 #----------------------------------------------------------------------
@@ -702,9 +691,6 @@ $(GS_PACKET_LIB) : $(GS_LIB_OBJS)
 	ar rc $@ $^
 
 $(LCC_PACKET_LIB) : $(LCC_PACKET_OBJS)
-	ar rc $@ $^
-
-$(US_PACKET_LIB) : $(US_PACKET_OBJS)
 	ar rc $@ $^
 
 clean :

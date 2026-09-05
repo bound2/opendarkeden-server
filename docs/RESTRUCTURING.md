@@ -57,7 +57,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
-| R1 | `g_p*` global-singleton extern declarations | 338 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
+| R1 | `g_p*` global-singleton extern declarations | 337 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `CreatureUtil.cpp` and `TradeManager.cpp` hold SQL that compiles and runs; the rest are listed under 3.2 "What remains".) |
 | R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 81 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
@@ -697,10 +697,9 @@ visibility can't express.
   >    — all three relic packet dirs are now **deleted** (`Upackets`/
   >    `TOpackets` with the dead `ClientManager.cpp` phone-home beacon;
   >    `Rpackets` in the follow-up, closing `factory_exceptions.txt` to
-  >    zero entries). `src/server/updateserver/` still references the
-  >    deleted headers but is built by no target; deleting that dead
-  >    server tree is an open decision (`theoneserver/` was deleted on
-  >    2026-09-05, see "Legacy service cleanup").
+  >    zero entries). The two dead server trees that still referenced
+  >    the deleted headers, `theoneserver/` and `updateserver/`, were
+  >    deleted on 2026-09-05 (see "Legacy service cleanup").
   > 8. **Core's gameserver include leak is gone**: with the splits above,
   >    nothing Core compiles needs a gameserver header, so the PUBLIC
   >    `src/server/gameserver[/item]` exports on `Core` and the private
@@ -1229,12 +1228,46 @@ remaining broader CI rollout below is deferred:
   > or installations. The tree remains recoverable from git history
   > (`git show <this commit>^:src/server/theoneserver/`).
 
+- [x] **Remove `updateserver`.**
+  > **Status:** Removed on 2026-09-05. Deleted `src/server/updateserver/`
+  > (the TCP patch-distribution daemon `UpdateServer`/`UpdateServerPlayer`,
+  > `main.cpp`, and ~7,000 lines of one-off patch-manifest generators —
+  > `update.cpp`, `update2.cpp`, `p.cpp`, `p21.cpp`, `semiup.cpp`,
+  > `info.cpp`, `fuck.cpp` — that are not valid C++ and were never in any
+  > object list), `src/server/old_update.tar` (a 2000s-era tarball of the
+  > same tree), `conf/updateserver.conf`, and the Core patch-manifest
+  > classes `Update.{h,cpp}` / `UpdateManager.{h,cpp}` whose only consumer
+  > was this daemon (dropped from `tests/arch/kernel_files.txt`; they held
+  > no packet factory, so the wire inventory is unchanged). `UpdateDef.h`
+  > stays: `Resource` uses its size typedefs. Also removed the
+  > `UpdateServerDatabase` CMake target — a fourth copy of `database/`
+  > compiled under `__UPDATE_SERVER__`, which no source in `database/`
+  > tested and no executable linked — plus the `.us.o` suffix rules, the
+  > `libUpdateServerPackets.a`/`libUpdateServerDatabase.a` recipes and
+  > the `updateserver` clean hooks in the legacy Makefiles. The
+  > `__UPDATE_SERVER__`/`__UPDATE_CLIENT__` `PlayerStatus` enum branches
+  > are gone; they were `#elif` alternatives to the game/login/shared
+  > branches, so no supported build's enum values move.
+  >
+  > **Audit:** the daemon served the launcher's file-patch protocol
+  > (`Upackets`: `CUBeginUpdate`/`CURequest`/`CUEndUpdate`/`UCUpdateList`)
+  > over its own TCP port from `PatchDir`, versioned by `PatchVersion`.
+  > `Upackets` was deleted in commit `25f25ee6`, so the tree had not
+  > compiled since; it was already commented out of the legacy
+  > `src/server/Makefile` `all` target, and no CMake target, Docker
+  > startup, or `docker/conf` entry referenced it. The loginserver's
+  > `CLVersionCheck` still enforces the client version independently.
+  > R1: 338 → 337 (the tree's `g_pConfig` extern); R3/R5 unchanged. The
+  > ratchet regression scan now also rejects `updateserver`/`Upackets`/
+  > `__UPDATE_SERVER__`/`__UPDATE_CLIENT__` in source and build files.
+
 ## Appendix — measured inventory (2026-08-29)
 
 - ~502k LOC across 4,271 C++ files. `Core` 149k (1,410 packet-prefixed files
   in its root), `gameserver` 120k, `skill` 103k / 1,031 files, `item` 51k,
-  `quest` 23k (Lua-integrated). The legacy `chinabilling` and `theoneserver`
-  trees counted here were deleted on 2026-09-05 (see "Legacy service cleanup").
+  `quest` 23k (Lua-integrated). The legacy `chinabilling`, `theoneserver` and
+  `updateserver` trees counted here were deleted on 2026-09-05 (see "Legacy
+  service cleanup").
 - 433 packet types in `src/Core/Packet.h`
   (`grep -cE 'PACKET_(GC|CG|CL|LC|GL|LG|GS|SG|GG)[A-Z_]* *[,=]' src/Core/Packet.h`).
 - Wire encryption: per-session encrypt code reorders field read/write order

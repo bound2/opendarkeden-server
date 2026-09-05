@@ -56,7 +56,6 @@ all : $(BINDIR) $(SERVER_CORE_LIB)
 	$(MAKE) -C gameserver
 	$(MAKE) -C loginserver
 	$(MAKE) -C sharedserver
-	# $(MAKE) -C updateserver
 
 server : $(SERVER_CORE_LIB)
 
@@ -79,7 +78,6 @@ clean :
 	$(MAKE) -C database clean
 	$(MAKE) -C loginserver clean
 	$(MAKE) -C gameserver clean
-	$(MAKE) -C updateserver clean
 	$(MAKE) -C sharedserver clean
 	rm -rf *.o
 
@@ -102,7 +100,6 @@ cleanall :
 	$(MAKE) -C database cleanall
 	$(MAKE) -C loginserver cleanall
 	$(MAKE) -C gameserver cleanall
-	$(MAKE) -C updateserver cleanall
 	$(MAKE) -C sharedserver cleanall
 	rm -rf *.o $(SERVER_CORE_LIB)
 

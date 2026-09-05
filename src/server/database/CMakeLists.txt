@@ -36,10 +36,3 @@ target_include_directories(LoginServerDatabase PUBLIC ${CMAKE_CURRENT_SOURCE_DIR
 add_library(SharedServerDatabase STATIC ${DATABASE_SOURCES})
 target_compile_definitions(SharedServerDatabase PRIVATE __SHARED_SERVER__)
 target_include_directories(SharedServerDatabase PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-# ============================================================================
-# UpdateServer 专用 Database 库
-# ============================================================================
-add_library(UpdateServerDatabase STATIC ${DATABASE_SOURCES})
-target_compile_definitions(UpdateServerDatabase PRIVATE __UPDATE_SERVER__)
-target_include_directories(UpdateServerDatabase PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

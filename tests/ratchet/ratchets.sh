@@ -34,7 +34,7 @@ check_ratchet() {
 
 # --- R1: g_p* global-singleton extern declarations -------------------------
 R1=$(grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R1 "global singleton externs" 338 "$R1"
+check_ratchet R1 "global singleton externs" 337 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
@@ -88,19 +88,19 @@ check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
 R7=$(grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' | wc -l)
 check_ratchet R7 "files with parenthesized throw syntax" 0 "$R7"
 
-# --- Removed China billing / theoneserver must not return -----------------
+# --- Removed China billing / theoneserver / updateserver must not return --
 # Historical build logs and documentation are not build inputs.
-if grep -riE 'chinabilling|cbilling|theoneserver|TOpackets' src \
+if grep -riE 'chinabilling|cbilling|theoneserver|TOpackets|updateserver|Upackets|__UPDATE_(SERVER|CLIENT)__' src \
     --include='*.cpp' --include='*.h' --include='*.hpp' \
     --include='CMakeLists.txt' --include='*.cmake' --include='Makefile'; then
-    echo "[FAIL] obsolete China billing / theoneserver references remain in source/build files"
+    echo "[FAIL] obsolete China billing / theoneserver / updateserver references remain in source/build files"
     fail=1
 else
     scan_status=$?
     if [ "$scan_status" -eq 1 ]; then
-        echo "[OK]   no obsolete China billing / theoneserver source/build references"
+        echo "[OK]   no obsolete China billing / theoneserver / updateserver source/build references"
     else
-        echo "[FAIL] could not scan for obsolete China billing / theoneserver references"
+        echo "[FAIL] could not scan for obsolete China billing / theoneserver / updateserver references"
         fail=1
     fi
 fi
