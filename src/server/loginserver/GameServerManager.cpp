@@ -10,6 +10,8 @@
 
 #include <unistd.h>
 
+#include <chrono>
+
 #include "DB.h"
 #include "Datagram.h"
 #include "DatagramPacket.h"
@@ -17,6 +19,8 @@
 #include "LogClient.h"
 #include "PacketDispatcher.h"
 #include "Properties.h"
+#include "ServerShutdown.h"
+#include "SocketAPI.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -25,9 +29,14 @@ GameServerManager::GameServerManager() : m_pDatagramSocket(NULL) {
     __BEGIN_TRY
 
     // create datagram server socket
-    while (true) {
+    while (!ServerShutdown::isRequested()) {
         try {
             m_pDatagramSocket = new DatagramSocket(g_pConfig->getPropertyInt("LoginServerUDPPort"));
+            // A blocking recvfrom() would hold the worker inside the kernel
+            // for as long as the game servers stay quiet, so a shutdown
+            // request could not be observed. recvfrom_ex() maps EWOULDBLOCK
+            // to "no datagram", which is what the loop below already expects.
+            SocketAPI::setsocketnonblocking_ex(m_pDatagramSocket->getSOCKET(), true);
             break;
         } catch (BindException& be) {
             SAFE_DELETE(m_pDatagramSocket);
@@ -36,6 +45,9 @@ GameServerManager::GameServerManager() : m_pDatagramSocket(NULL) {
         }
     }
 
+    if (m_pDatagramSocket == NULL)
+        throw Error("shutdown requested during UDP listener startup");
+
     __END_CATCH
 }
 
@@ -43,6 +55,11 @@ GameServerManager::GameServerManager() : m_pDatagramSocket(NULL) {
 // destructor
 //////////////////////////////////////////////////////////////////////
 GameServerManager::~GameServerManager() noexcept {
+    // The worker touches m_pDatagramSocket, so it must be joined before the
+    // socket below is destroyed. A base destructor would run too late.
+    stop();
+    join();
+
     __BEGIN_TRY
 
     if (m_pDatagramSocket != NULL) {
@@ -59,7 +76,7 @@ GameServerManager::~GameServerManager() noexcept {
 void GameServerManager::stop() {
     __BEGIN_TRY
 
-    throw UnsupportedError();
+    ManagedThread::stop();
 
     __END_CATCH
 }
@@ -80,7 +97,7 @@ void GameServerManager::run() {
         Connection* pConnection = new Connection(host, db, user, password, port);
         g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
 
-        while (true) {
+        while (!stopRequested()) {
             Datagram* pDatagram = NULL;
             DatagramPacket* pDatagramPacket = NULL;
 
@@ -148,7 +165,9 @@ void GameServerManager::run() {
                 delete pDatagramPacket;
                 delete pDatagram;
             }
-            usleep(1000); // FIX: 降低 CPU 占用率
+            // Stop-aware idle: a shutdown request wakes this immediately
+            // instead of costing another polling interval.
+            pauseFor(std::chrono::milliseconds(1));
         }
 
         cout << "GameServerManager thread exiting... " << endl;

@@ -572,7 +572,6 @@ DWORD GDRLairEntrance::heartbeat(Timeval currentTime) {
     int limit = g_pVariableManager->getVariable(GDR_LAIR_PC_LIMIT);
     // 0�̸� �ο� ������
     if (limit != 0 && pPM->getSize() >= limit) {
-        pZone->getZoneGroup()->unlock();
         return GDR_LAIR_ICEPOLE;
     }
 
@@ -689,7 +688,6 @@ DWORD GDRLairIcepole::heartbeat(Timeval currentTime) {
         Creature* pCreature = itr->second;
 
         if (abs((int)(pCreature->getX()) - 78) < 13 && abs((int)(pCreature->getY()) - 89) < 13) {
-            pZone->getZoneGroup()->unlock();
             return GDR_LAIR_SCENE_1;
         }
     }

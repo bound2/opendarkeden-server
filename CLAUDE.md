@@ -298,10 +298,20 @@ known violations are listed at the end, not silently fixed.
 - **`SharedServerManager` thread** — TCP link to the sharedserver;
   dispatches **SG** packets on its own thread under its own `m_Mutex`.
 - **`BillingPlayerManager`, `MPlayerManager` (mofus), `GDRLairManager`** —
-  auxiliary threads with their own loops. (`SMSServiceThread` exists but is
-  not started. The obsolete China billing integration has been removed.)
+  auxiliary threads with their own loops. (`SMSServiceThread` is a
+  `ManagedThread` too, but `GameServer::start()` never starts it; its queue is
+  only filled by `CGSMSSendHandler`. The obsolete China billing integration
+  has been removed.)
 
-The gameserver workers above use `ManagedThread` (`std::jthread`). Start and
+The loginserver and sharedserver follow the same contract. The loginserver's
+main thread runs `ClientManager::run()` and its `GameServerManager` worker
+owns the UDP link to the game servers; the sharedserver's main thread runs
+`HeartbeatManager::run()` and its `GameServerManager` worker owns the TCP
+listener plus `GuildManager::heartbeat()`. Each worker registers its own DB
+`Connection` keyed by `Thread::self()` where it needs one.
+
+Every worker in all three processes uses `ManagedThread` (`std::jthread`);
+it is the only remaining subclass of the legacy `Thread`. Start and
 stop are serialized; stop-before-start is terminal, and join allows a
 concurrent stop request. Derived destructors must stop/join before destroying
 members. SIGTERM/SIGINT request process shutdown; main exits its client loop,
@@ -322,6 +332,15 @@ does this at most (not all — see Known violations) of its zone-mutation
 sites. Note `Zone::m_Mutex` is a **different, narrower** lock some
 main-thread heartbeats take (war/ctf via `pZone->lock()`); holding it does
 NOT exclude the zone-group tick and does not satisfy this rule.
+
+`__ENTER_CRITICAL_SECTION` / `__LEAVE_CRITICAL_SECTION` delimit a **block**
+owned by a scoped `CriticalSection` guard (`src/Core/Exception.h`), so the lock
+is released on every exit — end of block, `return`, `goto`/`continue` out of it,
+and any thrown type. Consequently a hand-written `x.unlock()` inside a section
+is a **double unlock** of a non-recursive mutex: to run work unlocked, use
+`__CRITICAL_SECTION_LOCK.unlock()` / `.lock()`, the guard's own name.
+`tests/tools/critical_section_audit.pl` fails on a hand-written one; it runs
+in ctest as `critical_section_audit`, alongside `ratchets` and `arch_includes`.
 
 This is mutex-guarded ownership, not pure thread-affinity: the guarded
 region is the contract. Under `DE_OWNERSHIP_CHECKS` — defined only for

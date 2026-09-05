@@ -9,6 +9,8 @@
 // include files
 #include "LoginServer.h"
 
+#include <exception>
+
 #include "Assert.h"
 #include "ClientManager.h"
 #include "GameServerGroupInfoManager.h"
@@ -18,6 +20,7 @@
 #include "ItemDestroyer.h"
 #include "PacketFactoryManager.h"
 #include "PacketValidator.h"
+#include "ServerShutdown.h"
 #include "UserInfoManager.h"
 #include "ZoneGroupInfoManager.h"
 #include "ZoneInfoManager.h"
@@ -257,22 +260,34 @@ void LoginServer::start() {
 //
 // stop login server
 //
-// stop 순서에 유의하도록 하자. 가장 영향을 많이 주는 매니저부터
-// stop 시켜야 한다. 만일 반대의 순서로 stop 시킬 경우 null pointer
-// 같은 현상이 발생할 수 있다.
+// Mind the stop order: the manager with the widest reach goes first.
+// Stopping in the opposite order can leave another manager dereferencing
+// something that is already gone.
 //
 //////////////////////////////////////////////////////////////////////
 void LoginServer::stop() {
+    if (m_Stopped)
+        return;
     __BEGIN_TRY
 
-    // 나중에 이 부분을 코멘트화해야 한다.
-    throw UnsupportedError();
-
-    // 가장 먼저 클라이언트 매니저를 삭제시킴으로써 더이상 새 접속을 받지 않도록 한다.
+    // Stop the client manager first so no further connection is accepted.
+    ServerShutdown::request();
     g_pClientManager->stop();
 
-    //
+    // Request the stop before joining, then join while every manager the
+    // worker uses (config, database, packet factory) is still alive.
     g_pGameServerManager->stop();
+    g_pGameServerManager->join();
+    try {
+        g_pGameServerManager->rethrowFailure();
+    } catch (Throwable& error) {
+        cerr << "GameServerManager: " << error.toString() << endl;
+    } catch (const std::exception& error) {
+        cerr << "GameServerManager: " << error.what() << endl;
+    } catch (...) {
+        cerr << "GameServerManager: unknown worker failure" << endl;
+    }
+    m_Stopped = true;
 
     // login 서버에서는 빌링을 빼기로 한다.
     // 애드빌 요청. by bezz 2003.04.22

@@ -9,9 +9,9 @@
 
 #include "Exception.h"
 #include "GameServerPlayer.h"
+#include "ManagedThread.h"
 #include "Mutex.h"
 #include "ServerSocket.h"
-#include "Thread.h"
 #include "Timeval.h"
 #include "Types.h"
 
@@ -22,7 +22,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-class GameServerManager : public Thread {
+class GameServerManager : public ManagedThread {
 public:
     GameServerManager();
     ~GameServerManager() noexcept;
@@ -34,7 +34,7 @@ public:
     // initialize
     void init();
 
-    void run();
+    void run() override;
 
     // broadcast packet to all players
     void broadcast(Packet* pPacket);

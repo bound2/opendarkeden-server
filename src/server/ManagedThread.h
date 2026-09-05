@@ -55,9 +55,8 @@ public:
         setStatus(EXIT);
     }
 
-    void detach() override {
-        throw UnsupportedError("managed worker must remain owned");
-    }
+    // No detach(): the legacy pthread-style surface is gone, so a worker
+    // cannot be separated from the object whose state it uses.
     void rethrowFailure() const {
         m_Worker.rethrowFailure();
     }

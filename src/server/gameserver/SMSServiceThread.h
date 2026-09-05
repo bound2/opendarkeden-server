@@ -6,8 +6,8 @@
 
 #include "DB.h"
 #include "Exception.h"
+#include "ManagedThread.h"
 #include "Mutex.h"
-#include "Thread.h"
 #include "Types.h"
 
 class SMSServiceThread;
@@ -27,17 +27,24 @@ private:
     string m_Message;
 };
 
-class SMSServiceThread : public Thread {
+class SMSServiceThread : public ManagedThread {
 public:
-    ~SMSServiceThread() noexcept override = default;
+    // The worker drains m_MessageQueue and owns m_pConnection, so it must be
+    // joined before those members are destroyed. A base destructor would run
+    // too late. (In the deployed gameserver this never runs: the process
+    // exits with _Exit rather than unwinding the legacy singleton graph.)
+    ~SMSServiceThread() noexcept override {
+        stop();
+        join();
+    }
 
     static SMSServiceThread& Instance() {
         static SMSServiceThread theInstance;
         return theInstance;
     }
 
-    void run();
-    string getName() const {
+    void run() override;
+    string getName() const override {
         return "SMSServiceThread";
     }
 

@@ -166,21 +166,14 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
                 pPlayer->sendPacket(&gcModifyInformation);
 
                 // 메시지를 보낸다.
-                // NOTE: this runs inside __ENTER_CRITICAL_SECTION, and a SQL
-                // failure here escapes as the const char* END_DB rethrows,
-                // which __LEAVE_CRITICAL_SECTION's catch (Throwable&) does not
-                // match — so g_pPCFinder is not unlocked on that path. It was
-                // unlocked before this seam, when the exception crossed the
-                // boundary as a SQLQueryException and END_DB sat outside.
-                // Unobservable today: nothing up this thread catches a
-                // const char* (SharedServerClient::processCommand takes three
-                // Throwable subclasses, SharedServerManager::run takes
-                // Throwable&, start_routine takes nothing), so the process
-                // terminates before the lock matters — and setGoldEx above
-                // already reaches CharacterRepository::tinysave, which throws
-                // the same const char* from inside this same section. The
-                // general fix belongs in __LEAVE_CRITICAL_SECTION and wants
-                // its own round; see docs/RESTRUCTURING.md.
+                // NOTE: this runs inside __ENTER_CRITICAL_SECTION and a SQL failure
+                // here escapes as the const char* END_DB rethrows, which is not a
+                // Throwable. That used to leave g_pPCFinder locked: the old
+                // __LEAVE_CRITICAL_SECTION released the lock from a catch (Throwable&)
+                // clause the const char* walked straight past. The section is now
+                // closed by a scoped guard, so the lock is released whatever type is
+                // thrown. The dangling const char* itself — END_DB throws msg.c_str()
+                // from a local string — is a separate defect and still open.
                 vector<string> queued = messages.loadMessages(pCreature->getName());
 
                 for (size_t m = 0; m < queued.size(); m++) {

@@ -48,73 +48,10 @@ SocketOutputStream::~SocketOutputStream() noexcept {
 
 
 //////////////////////////////////////////////////////////////////////
-//
-// write data to stream (output buffer)
-//
-// *Notes*
-//
-// ( ( m_Head = m_Tail + 1 ) ||
-//   ( ( m_Head == 0 ) && ( m_Tail == m_BufferLen - 1 ) )
-//
-// �� �� ���� full �� �����Ѵٴ� ���� ���� ����. ����, ������ ��
-// ������ ũ��� �׻� 1 �� ����� �Ѵٴ� ���!
-//
+// write data to stream (legacy pointer/length entry point)
 //////////////////////////////////////////////////////////////////////
 uint SocketOutputStream::write(const char* buf, uint len) {
-    __BEGIN_TRY
-
-    // ���� ������ �� ������ ����Ѵ�.
-    // (!) m_Head > m_Tail�� ��쿡 m_Head - m_Tail - 1 �� �����ߴ�. by sigi. 2002.9.16
-    // �ٵ� buffer_resize�� �� ���� �Ͼ��. �ٸ��� ������ �ִµ� �ϴ� ��
-    // ã�����Ƿ�.. back. by sigi. 2002.9.23
-    // �׽�Ʈ �غ��ϱ�.. �������̾���. ������ buffer resize�� ����� �Ͼ�� ������ ����?
-    // �ٽ� ����. by sigi. 2002.9.27
-    uint nFree = ((m_Head <= m_Tail) ? m_BufferLen - m_Tail + m_Head - 1 : m_Head - m_Tail - 1);
-    // m_Tail - m_Head - 1 );
-
-    // ������ �ϴ� ����Ÿ�� ũ�Ⱑ �� ������ ũ�⸦ �ʰ��� ��� ���۸� ������Ų��.
-    if (len >= nFree)
-        resize(len - nFree + 1);
-
-    if (m_Head <= m_Tail) { // normal order
-
-        //
-        //    H   T
-        // 0123456789
-        // ...abcd...
-        //
-
-        if (m_Head == 0) {
-            nFree = m_BufferLen - m_Tail - 1;
-            memcpy(&m_Buffer[m_Tail], buf, len);
-
-        } else {
-            nFree = m_BufferLen - m_Tail;
-            if (len <= nFree)
-                memcpy(&m_Buffer[m_Tail], buf, len);
-            else {
-                memcpy(&m_Buffer[m_Tail], buf, nFree);
-                memcpy(m_Buffer, &buf[nFree], len - nFree);
-            }
-        }
-
-    } else { // reversed order
-
-        //
-        //     T  H
-        // 0123456789
-        // abcd...efg
-        //
-
-        memcpy(&m_Buffer[m_Tail], buf, len);
-    }
-
-    // advance m_Tail
-    m_Tail = (m_Tail + len) % m_BufferLen;
-
-    return len;
-
-    __END_CATCH
+    return write(std::span<const std::byte>(reinterpret_cast<const std::byte*>(buf), len));
 }
 
 

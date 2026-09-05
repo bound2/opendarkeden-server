@@ -121,7 +121,6 @@ Creature* SubInventoryItemPosition::findCreature()
     if (pTargetCreature == NULL) {
         filelog("ItemError.log", "SubInventoryItemPosition:getItem() : 해당하는 Creature가 없습니다.");
 
-        g_pPCFinder->unlock();
         return NULL;
     }
 

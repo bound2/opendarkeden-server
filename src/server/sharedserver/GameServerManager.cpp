@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include <algorithm>
+#include <chrono>
 
 #include "Assert.h"
 #include "DB.h"
@@ -16,6 +17,7 @@
 #include "GuildManager.h"
 #include "Packet.h"
 #include "Properties.h"
+#include "ServerShutdown.h"
 #include "Socket.h"
 #include "SocketAPI.h"
 
@@ -32,7 +34,7 @@ GameServerManager::GameServerManager() : m_pServerSocket(NULL), m_SocketID(INVAL
 
     try {
         // create  server socket
-        while (true) {
+        while (!ServerShutdown::isRequested()) {
             try {
                 m_pServerSocket = new ServerSocket(g_pConfig->getPropertyInt("TCPPort"));
                 break;
@@ -42,6 +44,9 @@ GameServerManager::GameServerManager() : m_pServerSocket(NULL), m_SocketID(INVAL
                 sleep(1);
             }
         }
+
+        if (m_pServerSocket == NULL)
+            throw Error("shutdown requested during TCP listener startup");
 
         m_pServerSocket->setNonBlocking();
 
@@ -60,7 +65,13 @@ GameServerManager::GameServerManager() : m_pServerSocket(NULL), m_SocketID(INVAL
 // destructor
 //////////////////////////////////////////////////////////////////////////////
 
-GameServerManager::~GameServerManager() noexcept {}
+GameServerManager::~GameServerManager() noexcept {
+    // The worker owns the listening socket and the per-descriptor player
+    // table, so it must be joined before those members go away. A base
+    // destructor would run too late.
+    stop();
+    join();
+}
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -99,9 +110,11 @@ void GameServerManager::run() {
         Timeval dummyQueryTime;
         getCurrentTime(dummyQueryTime);
 
-        while (true) {
+        while (!stopRequested()) {
             try {
-                usleep(1000); // FIX: 降低 CPU 占用率
+                // Stop-aware idle: a shutdown request wakes this immediately
+                // instead of costing another polling interval.
+                pauseFor(std::chrono::milliseconds(1));
 
                 select();
 

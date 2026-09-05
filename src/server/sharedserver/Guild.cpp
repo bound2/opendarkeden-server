@@ -413,7 +413,6 @@ bool Guild::load() noexcept(false) {
 
         if (pResult->getRowCount() != 1) {
             SAFE_DELETE(pStmt);
-            m_Mutex.unlock();
 
             return false;
         }
@@ -550,7 +549,6 @@ GuildMember* Guild::getMember(const string& name) const noexcept(false) {
 
     if (itr == m_Members.end()) {
         // cout << "Guild::getMember() : NoSuchMember" << endl;
-        m_Mutex.unlock();
 
         return NULL;
     }
@@ -598,7 +596,6 @@ void Guild::addMember(GuildMember* pMember) noexcept(false) {
     itr = m_Members.find(pMember->getName());
 
     if (itr != m_Members.end()) {
-        m_Mutex.unlock();
         throw DuplicatedException();
     }
 
@@ -636,7 +633,6 @@ void Guild::deleteMember(const string& name) noexcept(false) {
 
     if (itr == m_Members.end()) {
         cerr << "Guild::deleteMember() : NoSuchElementException" << endl;
-        m_Mutex.unlock();
 
         return;
     }
@@ -676,7 +672,6 @@ void Guild::modifyMember(GuildMember& Member) noexcept(false) {
 
     if (itr == m_Members.end()) {
         cerr << "Guild::modifyMember() : NoSuchElementException" << endl;
-        m_Mutex.unlock();
 
         return;
     }
@@ -733,7 +728,6 @@ void Guild::addCurrentMember(const string& name) noexcept(false) {
     __ENTER_CRITICAL_SECTION(m_Mutex) // �ٸ� ���ؽ� �ᵵ �� ���ѵ�.. ������..
 
     if (m_CurrentMembers.end() != find(m_CurrentMembers.begin(), m_CurrentMembers.end(), name)) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -742,7 +736,6 @@ void Guild::addCurrentMember(const string& name) noexcept(false) {
     // Guild Member ��ü�� �α׿��� �����Ѵ�.
     GuildMember* pGuildMember = getMember_NOLOCKED(name);
     if (pGuildMember == NULL) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -761,7 +754,6 @@ void Guild::deleteCurrentMember(const string& name) noexcept(false) {
     list<string>::iterator itr = find(m_CurrentMembers.begin(), m_CurrentMembers.end(), name);
 
     if (m_CurrentMembers.end() == itr) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -770,7 +762,6 @@ void Guild::deleteCurrentMember(const string& name) noexcept(false) {
     // Guild Member ��ü�� �α׿����� �����Ѵ�.
     GuildMember* pGuildMember = getMember_NOLOCKED(name);
     if (pGuildMember == NULL) {
-        m_Mutex.unlock();
         return;
     }
 

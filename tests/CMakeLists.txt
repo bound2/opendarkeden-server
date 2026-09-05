@@ -36,6 +36,7 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_encrypter_test.cpp
     packet_exchange_test.cpp
     wire_layout_test.cpp
+    wire_types_test.cpp
     xml_parse_test.cpp
 )
 
@@ -198,7 +199,9 @@ add_executable(managed_thread_tests EXCLUDE_FROM_ALL
 target_link_libraries(managed_thread_tests PRIVATE ServerCore de-kernel gtest_main Threads::Threads)
 add_dependencies(wire_tests managed_thread_tests)
 add_test(NAME managed_thread_tests COMMAND managed_thread_tests)
-set_tests_properties(managed_thread_tests PROPERTIES TIMEOUT 15)
+# Headroom for the stop-aware-wait tests: a regression there sits out a
+# five-second polling interval per case instead of waking immediately.
+set_tests_properties(managed_thread_tests PROPERTIES TIMEOUT 30)
 
 # War-system Schedule/Scheduler and the VSDateTime clock they run on —
 # ported from the deleted gameserver/test and gameserver/testAlone cppunit
@@ -219,6 +222,20 @@ add_test(NAME scheduler_tests COMMAND scheduler_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(scheduler_tests PROPERTIES TIMEOUT 30)
 
+# RAII critical sections (src/Core/Exception.h). Exception.h is a kernel
+# header, so the test includes it directly; de-kernel is linked only for
+# Throwable's out-of-line dependencies (StringStream).
+add_executable(critical_section_tests EXCLUDE_FROM_ALL
+    critical_section_test.cpp
+)
+target_include_directories(critical_section_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+)
+target_link_libraries(critical_section_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests critical_section_tests)
+add_test(NAME critical_section_tests COMMAND critical_section_tests)
+set_tests_properties(critical_section_tests PROPERTIES TIMEOUT 30)
+
 add_executable(shutdown_probe EXCLUDE_FROM_ALL support/shutdown_probe.cpp)
 target_include_directories(shutdown_probe PRIVATE ${CMAKE_SOURCE_DIR}/src/server)
 target_link_libraries(shutdown_probe PRIVATE Threads::Threads)
@@ -226,7 +243,27 @@ add_dependencies(wire_tests shutdown_probe)
 add_test(NAME shutdown_supervisor COMMAND bash
     ${CMAKE_CURRENT_SOURCE_DIR}/shutdown_supervisor_test.sh
     $<TARGET_FILE:shutdown_probe> ${CMAKE_SOURCE_DIR}/docker/start.sh)
-set_tests_properties(shutdown_supervisor PROPERTIES TIMEOUT 50)
+# Two scenarios, each paying start.sh's 6s of staged startup, and the second
+# also waiting out the supervisor's 8s bound on a server that ignores SIGTERM.
+set_tests_properties(shutdown_supervisor PROPERTIES TIMEOUT 90)
+
+# Call-site diagnostics (docs/TOOLCHAIN.md, "Diagnostics without location
+# macros"): Assert/ProtocolAssert and the __END_CATCH stack trace, now carried
+# by std::source_location instead of __FILE__/__LINE__/__PRETTY_FUNCTION__.
+# Assert.h and Exception.h are de-kernel sources, so this links nothing else.
+# A failing assert appends to assertion_failed.log in the working directory,
+# hence the build-tree WORKING_DIRECTORY (same reason as scheduler_tests).
+add_executable(diagnostics_tests EXCLUDE_FROM_ALL
+    diagnostics_test.cpp
+)
+target_include_directories(diagnostics_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+)
+target_link_libraries(diagnostics_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests diagnostics_tests)
+add_test(NAME diagnostics_tests COMMAND diagnostics_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(diagnostics_tests PROPERTIES TIMEOUT 30)
 
 add_executable(database_timeout_tests EXCLUDE_FROM_ALL database_timeout_test.cpp)
 target_link_libraries(database_timeout_tests PRIVATE Database ServerCore de-kernel ${MYSQL_LIBRARY} gtest_main Threads::Threads)
@@ -248,3 +285,19 @@ add_test(
     COMMAND perl ${CMAKE_SOURCE_DIR}/tests/arch/check_includes.pl
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
+
+# Critical-section audit (src/Core/Exception.h). The __ENTER/__LEAVE block is
+# owned by a scoped CriticalSection guard, so a hand-written x.unlock() inside
+# one now unlocks a non-recursive pthread mutex twice - undefined behaviour, and
+# invisible in a diff. This fails on that, on a __LEAVE_CRITICAL_SECTION whose
+# argument disagrees with its __ENTER's, on an unclosed section, and on finding
+# no sections at all (a wrong working directory must not read as a pass). It
+# scans ./src, hence WORKING_DIRECTORY at the repo root. Perl, like tests/arch/ -
+# the dev image ships it and has no python3. -q drops the informational lines;
+# the ERROR lines and the verdict always print.
+add_test(
+    NAME critical_section_audit
+    COMMAND perl ${CMAKE_SOURCE_DIR}/tests/tools/critical_section_audit.pl -q
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+set_tests_properties(critical_section_audit PROPERTIES TIMEOUT 60)

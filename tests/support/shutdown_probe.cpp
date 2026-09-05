@@ -1,4 +1,5 @@
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -29,12 +30,23 @@ int main(int argc, char** argv) {
         return 0;
     }
     std::string name = std::filesystem::path(argv[0]).filename();
+    // Test hook: the stand-ins named in SHUTDOWN_PROBE_HANG ignore SIGTERM, so
+    // the supervisor's bounded wait and SIGKILL backstop get exercised.
+    const char* hang = std::getenv("SHUTDOWN_PROBE_HANG");
+    const bool ignoreTerm =
+        hang != nullptr && (" " + std::string(hang) + " ").find(" " + name + " ") != std::string::npos;
     struct sigaction action {};
-    action.sa_handler = ServerShutdown::request;
+    if (ignoreTerm)
+        action.sa_handler = SIG_IGN;
+    else
+        action.sa_handler = ServerShutdown::request;
     sigemptyset(&action.sa_mask);
     if (sigaction(SIGTERM, &action, nullptr) != 0)
         return 2;
     std::ofstream(name + ".ready") << "ready\n";
+    if (ignoreTerm)
+        for (;;)
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
     CooperativeThread worker;
     worker.start([](std::stop_token token) {
         while (!token.stop_requested())

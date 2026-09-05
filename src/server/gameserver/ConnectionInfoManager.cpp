@@ -92,7 +92,6 @@ void ConnectionInfoManager::addConnectionInfo(ConnectionInfo* pConnectionInfo) {
 
         itr->second = pConnectionInfo;
 
-        m_Mutex.unlock();
 
         return;
     }

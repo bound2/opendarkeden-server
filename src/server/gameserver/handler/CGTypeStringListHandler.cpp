@@ -200,7 +200,7 @@ void CGTypeStringListHandler::executeApartForce(CGTypeStringList* pPacket, Playe
     Creature* pTargetCreature = g_pPCFinder->getCreature_LOCKED(PartnerName);
     if (pTargetCreature != NULL) {
         if (!pTargetCreature->isPC()) {
-            g_pPCFinder->unlock();
+            __CRITICAL_SECTION_LOCK.unlock();
             pPlayer->sendPacket(&gcQuitDialog);
             return;
         }

@@ -1915,7 +1915,6 @@ void CGSayHandler::opkick(GamePlayer* pGamePlayer, string msg, int i) {
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
-        g_pPCFinder->unlock();
         return;
     }
 
@@ -1956,7 +1955,6 @@ void CGSayHandler::opmute(GamePlayer* pGamePlayer, string msg, int i) {
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
-        g_pPCFinder->unlock();
         return;
     }
 
@@ -2034,7 +2032,6 @@ void CGSayHandler::opdenychat(GamePlayer* pGamePlayer, string msg, int i) {
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
-        g_pPCFinder->unlock();
         return;
     }
 
@@ -2086,7 +2083,6 @@ void CGSayHandler::opfreezing(GamePlayer* pGamePlayer, string msg, int i) {
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
-        g_pPCFinder->unlock();
         return;
     }
 
@@ -2141,7 +2137,6 @@ void CGSayHandler::opinfo(GamePlayer* pGamePlayer, string msg, int i) {
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(Name);
     if (pTargetCreature == NULL) {
-        g_pPCFinder->unlock();
         return;
     }
 
@@ -2355,7 +2350,6 @@ void CGSayHandler::optrace(GamePlayer* pGamePlayer, string msg, int i) {
     }
 
     if (pTargetCreature == NULL) {
-        g_pPCFinder->unlock();
         return;
     }
 
@@ -2963,7 +2957,6 @@ void CGSayHandler::oprecall(GamePlayer* pGamePlayer, string msg, int i) {
         pTCreature = g_pPCFinder->getCreature_LOCKED(Name);
 
         if (pTCreature == NULL) {
-            g_pPCFinder->unlock();
             return;
         }
 
@@ -2987,7 +2980,6 @@ void CGSayHandler::oprecall(GamePlayer* pGamePlayer, string msg, int i) {
             if (pTargetCreature != NULL) {
                 // ���� �׾��ִ� ���� ������ �� �� ����.
                 if (pTargetCreature->isEffect(Effect::EFFECT_CLASS_COMA)) {
-                    g_pPCFinder->unlock();
                     return;
                 }
 
@@ -3031,7 +3023,6 @@ void CGSayHandler::oprecall(GamePlayer* pGamePlayer, string msg, int i) {
                     if (eClass != Effect::EFFECT_CLASS_MAX && !pTargetCreature->isFlag(eClass)) {
                         if (!pTargetCreature->isPC() ||
                             dynamic_cast<PlayerCreature*>(pTargetCreature)->getGuildID() != pPC->getGuildID()) {
-                            g_pPCFinder->unlock();
                             return;
                         }
 
@@ -4787,14 +4778,12 @@ void CGSayHandler::oplog(GamePlayer* pPlayer, string msg, int i) {
 
     pTargetCreature = g_pPCFinder->getCreature_LOCKED(name);
     if (pTargetCreature == NULL) {
-        g_pPCFinder->unlock();
         return;
     }
 
     GamePlayer* pTargetGamePlayer = dynamic_cast<GamePlayer*>(pTargetCreature->getPlayer());
 
     if (pTargetGamePlayer == NULL) {
-        g_pPCFinder->unlock();
         return;
     }
 

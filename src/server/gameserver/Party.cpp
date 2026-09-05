@@ -459,7 +459,6 @@ void Party::deleteMember(const string& name)
         // cerr << "Party::deleteMember() : NoSuchElementException" << endl;
         // throw NoSuchElementException("Party::deleteMember() : NoSuchElementException");
 
-        m_Mutex.unlock();
         return;
     }
 
@@ -487,7 +486,6 @@ bool Party::hasMember(const string& name) const
     if (itr == m_MemberMap.end()) {
         // cout << "Party::hasMember() : END" << endl;
 
-        m_Mutex.unlock();
         return false;
     }
 
@@ -785,7 +783,7 @@ int Party::shareAttrExp(Creature* pLeader, int amount, int STRMultiplier, int DE
     // cout << "원래 경험치 : " << amount << endl;
 
     if (nMemberSize == 1) {
-        m_Mutex.unlock();
+        __CRITICAL_SECTION_LOCK.unlock();
 
         Assert(pLeader->isSlayer());
         Slayer* pLeaderSlayer = dynamic_cast<Slayer*>(pLeader);
@@ -938,7 +936,7 @@ int Party::shareVampireExp(Creature* pLeader, int amount, ModifyInfo& LeaderModi
     // cout << "원래 경험치 : " << amount << endl;
 
     if (nMemberSize == 1) {
-        m_Mutex.unlock();
+        __CRITICAL_SECTION_LOCK.unlock();
 
         Assert(pLeader->isVampire());
         Vampire* pLeaderVampire = dynamic_cast<Vampire*>(pLeader);
@@ -1052,7 +1050,7 @@ int Party::shareOustersExp(Creature* pLeader, int amount, ModifyInfo& LeaderModi
     // cout << "원래 경험치 : " << amount << endl;
 
     if (nMemberSize == 1) {
-        m_Mutex.unlock();
+        __CRITICAL_SECTION_LOCK.unlock();
 
         Assert(pLeader->isOusters());
         Ousters* pLeaderOusters = dynamic_cast<Ousters*>(pLeader);
@@ -1178,7 +1176,7 @@ void Party::shareRankExp(Creature* pLeader, int otherLevel)
     // cout << "원래 경험치 : " << amount << endl;
 
     if (nMemberSize == 1) {
-        m_Mutex.unlock();
+        __CRITICAL_SECTION_LOCK.unlock();
 
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pLeader);
 
@@ -1288,7 +1286,7 @@ void Party::shareAdvancementExp(Creature* pLeader, int amount)
     // cout << "원래 경험치 : " << amount << endl;
 
     if (nMemberSize == 1) {
-        m_Mutex.unlock();
+        __CRITICAL_SECTION_LOCK.unlock();
 
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pLeader);
 
@@ -1363,7 +1361,6 @@ void Party::shareRevealer(Creature* pCaster, int Duration)
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -1435,7 +1432,6 @@ void Party::shareActivation(Creature* pCaster, int Duration)
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -1492,7 +1488,6 @@ void Party::shareGnomesWhisper(Creature* pCaster, int Duration, int SkillLevel)
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -1550,7 +1545,6 @@ void Party::shareHolyArmor(Creature* pCaster, int DefBonus, int SkillLevel)
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -1614,7 +1608,6 @@ bool Party::shareWaterElementalHeal(Creature* pCaster, int HealPoint)
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return false;
     }
 
@@ -1689,7 +1682,6 @@ void Party::shareGDRLairEnter(Creature* pLeader)
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -1748,7 +1740,6 @@ void Party::shareDetectHidden(Creature* pCaster, int Duration)
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -1806,7 +1797,6 @@ void Party::shareDetectInvisibility(Creature* pCaster, int Duration)
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -1864,7 +1854,6 @@ void Party::shareExpansion(Creature* pCaster, int Duration, int Percent)
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -1941,7 +1930,6 @@ void Party::dissectCorpse(Creature* pDissecter, MonsterCorpse* pCorpse) {
     }
 
     if (MemberList.size() == 1) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -2087,7 +2075,6 @@ bool PartyManager::createParty(int ID, Creature::CreatureClass CClass)
     // 중첩되는 파티를 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(ID);
     if (itr != m_PartyMap.end()) {
-        m_Mutex.unlock();
         return false;
     }
 
@@ -2136,7 +2123,6 @@ bool PartyManager::addPartyMember(int ID, Creature* pCreature) {
 
         // 의미가 있는 체크일까...-_-
         if (pNewParty->getSize() >= PARTY_MAX_SIZE) {
-            m_Mutex.unlock();
             return false;
         }
 
@@ -2146,7 +2132,6 @@ bool PartyManager::addPartyMember(int ID, Creature* pCreature) {
         Assert(pParty != NULL);
 
         if (pParty->getSize() >= PARTY_MAX_SIZE) {
-            m_Mutex.unlock();
             return false;
         }
 
@@ -2170,7 +2155,6 @@ bool PartyManager::deletePartyMember(int ID, Creature* pCreature)
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(ID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return false;
     }
 
@@ -2260,7 +2244,6 @@ int LocalPartyManager::getAdjacentMemberSize(int PartyID, Creature* pLeader) con
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return 0;
     }
 
@@ -2289,7 +2272,6 @@ int LocalPartyManager::shareAttrExp(int PartyID, Creature* pLeader, int amount, 
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return 0;
     }
 
@@ -2317,7 +2299,6 @@ int LocalPartyManager::shareVampireExp(int PartyID, Creature* pLeader, int amoun
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return 0;
     }
 
@@ -2345,7 +2326,6 @@ int LocalPartyManager::shareOustersExp(int PartyID, Creature* pLeader, int amoun
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return 0;
     }
 
@@ -2373,7 +2353,6 @@ int LocalPartyManager::shareRankExp(int PartyID, Creature* pLeader, int amount) 
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return 0;
     }
 
@@ -2399,7 +2378,6 @@ void LocalPartyManager::shareRevealer(int PartyID, Creature* pCaster, int Durati
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -2423,7 +2401,6 @@ void LocalPartyManager::shareDetectHidden(int PartyID, Creature* pCaster, int Du
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -2447,7 +2424,6 @@ void LocalPartyManager::shareDetectInvisibility(int PartyID, Creature* pCaster, 
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -2471,7 +2447,6 @@ void LocalPartyManager::shareExpansion(int PartyID, Creature* pCaster, int Durat
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -2495,7 +2470,6 @@ void LocalPartyManager::shareActivation(int PartyID, Creature* pCaster, int Dura
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -2519,7 +2493,6 @@ void LocalPartyManager::shareGnomesWhisper(int PartyID, Creature* pCaster, int D
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -2543,7 +2516,6 @@ void LocalPartyManager::shareHolyArmor(int PartyID, Creature* pCaster, int DefBo
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -2569,7 +2541,6 @@ bool LocalPartyManager::shareWaterElementalHeal(int PartyID, Creature* pCaster, 
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return false;
     }
 
@@ -2595,7 +2566,6 @@ void LocalPartyManager::shareGDRLairEnter(int PartyID, Creature* pLeader)
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return;
     }
 
@@ -2619,7 +2589,6 @@ int LocalPartyManager::shareAdvancementExp(int PartyID, Creature* pLeader, int a
     // 해당하는 파티가 있는지 찾아본다.
     unordered_map<int, Party*>::const_iterator itr = m_PartyMap.find(PartyID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return 0;
     }
 
@@ -2694,14 +2663,12 @@ bool GlobalPartyManager::canAddMember(int ID)
 
     unordered_map<int, Party*>::iterator itr = m_PartyMap.find(ID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
         return false;
     }
 
     Party* pParty = itr->second;
 
     if (pParty->getSize() >= PARTY_MAX_SIZE) {
-        m_Mutex.unlock();
         return false;
     }
 
@@ -2722,8 +2689,6 @@ bool GlobalPartyManager::addPartyMember(int ID, Creature* pCreature) {
     // 먼저 해당파티를 찾아서 피티원의 숫자를 확인한다.
     unordered_map<int, Party*>::iterator itr = m_PartyMap.find(ID);
     if (itr == m_PartyMap.end()) {
-        m_Mutex.unlock();
-
         // cerr << "GlobalPartyManager::addPartyMember() : NoSuchElementException" << endl;
         // throw NoSuchElementException("GlobalPartyManager::addPartyMember() : NoSuchElementException");
 
@@ -2734,8 +2699,6 @@ bool GlobalPartyManager::addPartyMember(int ID, Creature* pCreature) {
     Party* pParty = itr->second;
 
     if (pParty->getSize() >= PARTY_MAX_SIZE) {
-        m_Mutex.unlock();
-
         // cout << "파티 맥스 사이즈를 초과" << endl;
         // cout << "GlobalPartyManager::addPartyMember() : END" << endl;
         return false;
@@ -2819,7 +2782,6 @@ bool GlobalPartyManager::deletePartyMember(int ID, Creature* pCreature)
         // throw NoSuchElementException("GlobalPartyManager::deletePartyMember() : NoSuchElementException");
 
         // 외부에서 NoSuch처리도 안하는데 -_-; by sigi. 2002.5.9
-        m_Mutex.unlock();
         return false;
     }
 
@@ -2894,7 +2856,6 @@ bool GlobalPartyManager::expelPartyMember(int ID, Creature* pExpeller, const str
         // 외부에서 NoSuch처리도 안하는데 -_-; by sigi. 2002.5.9
         // throw NoSuchElementException("GlobalPartyManager::expelPartyMember() : NoSuchElementException");
 
-        m_Mutex.unlock();
         return false;
     }
 
@@ -2902,8 +2863,6 @@ bool GlobalPartyManager::expelPartyMember(int ID, Creature* pExpeller, const str
 
     // 추방하는 놈이 이 파티에 있는지 검사해야 한다.
     if (!pParty->hasMember(pExpeller->getName())) {
-        m_Mutex.unlock();
-
         // 에러인데...?
         // cout << "추방하는 놈이 파티에 존재하지 않음" << endl;
         // cout << "GlobalPartyManager::expelPartyMember() : END" << endl;
@@ -2912,8 +2871,6 @@ bool GlobalPartyManager::expelPartyMember(int ID, Creature* pExpeller, const str
 
     // 추방당할 놈이 파티에 존재하는지를 체크해야 한다.
     if (!pParty->hasMember(ExpelleeName)) {
-        m_Mutex.unlock();
-
         // 에러인데...?
         // cout << "추방당하는 놈이 파티에 존재하지 않음" << endl;
         // cout << "GlobalPartyManager::expelPartyMember() : END" << endl;
@@ -2990,7 +2947,6 @@ void GlobalPartyManager::refreshFamilyPay(int ID) {
     if (itr == m_PartyMap.end()) {
         cerr << "GlobalPartyManager::refreshFamilyPay() : NoSuchElementException" << endl;
 
-        m_Mutex.unlock();
         return;
     }
 

@@ -12,7 +12,7 @@
 // include files
 #include "DatagramSocket.h"
 #include "Exception.h"
-#include "Thread.h"
+#include "ManagedThread.h"
 #include "Types.h"
 
 class Datagram;
@@ -22,13 +22,14 @@ class DatagramPacket;
 //
 // class GameServerManager;
 //
-// 게임 서버와의 통신을 전담하는 쓰레드이다.
+// Worker thread dedicated to communication with the game servers.
 //
-// 내부에 데이터그램 서버소켓을 하나 가지고 블로킹 기반으로 동작한다.
+// It owns a single datagram server socket. The socket is nonblocking, so an
+// idle link cannot keep the worker from observing a shutdown request.
 //
 //////////////////////////////////////////////////////////////////////
 
-class GameServerManager : public Thread {
+class GameServerManager : public ManagedThread {
 public:
     // constructor
     GameServerManager();
@@ -40,10 +41,10 @@ public:
     void init() {}
 
     // stop thread
-    void stop();
+    void stop() override;
 
     // main method
-    void run();
+    void run() override;
 
     void sendDatagram(Datagram* pDatagram);
     void sendPacket(string host, uint port, DatagramPacket* pPacket);

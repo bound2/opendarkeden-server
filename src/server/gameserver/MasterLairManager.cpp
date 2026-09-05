@@ -127,14 +127,11 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (pCreature->isDM() || pCreature->isGOD()) {
-        m_Mutex.unlock();
-
         goto ENTER_OK;
     }
 
     if (m_Event != EVENT_WAITING_PLAYER && m_Event != EVENT_MINION_COMBAT && m_Event != EVENT_MASTER_COMBAT) {
         // cout << "[" << (int)m_pZone->getZoneID() << "] MasterLairManager: 지금은 들어갈 수 없는 모드" << endl;
-        m_Mutex.unlock();
         return false;
     }
 
@@ -151,7 +148,6 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
             if (pPassEffect->getZoneID() == m_pZone->getZoneID()) {
                 // cout << "[" << (int)m_pZone->getZoneID() << "] MasterLairManager: " << pCreature->getName().c_str()
                 // << " has EffectPass" << endl;
-                m_Mutex.unlock();
 
                 goto ENTER_OK;
             }
@@ -163,7 +159,6 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
             // cout << "[" << (int)m_pZone->getZoneID() << "] MMasterLairManager: " << pCreature->getName().c_str() << "
             // can't enter more" << endl;
 
-            m_Mutex.unlock();
             return false;
         }
     }
@@ -173,7 +168,6 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
         // cout << "[" << (int)m_pZone->getZoneID() << "] MasterLairManager: Not WAITING_PLAYER: "
         //	<< m_pZone->getPCManager()->getSize() << " / " << m_nPassPlayer << "/" << m_nMaxPassPlayer << endl;
 
-        m_Mutex.unlock();
         return false;
     }
 
@@ -183,7 +177,6 @@ bool MasterLairManager::enterCreature(Creature* pCreature)
         // cout << "[" << (int)m_pZone->getZoneID() << "] MasterLairManager: Already Maximum Players: "
         //<< m_pZone->getPCManager()->getSize() << " / " << m_nPassPlayer << "/" << m_nMaxPassPlayer << endl;
 
-        m_Mutex.unlock();
         return false;
     }
 
@@ -264,7 +257,6 @@ bool MasterLairManager::leaveCreature(Creature* pCreature)
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (pCreature->isDM() || pCreature->isGOD()) {
-        m_Mutex.unlock();
         return true;
     }
 

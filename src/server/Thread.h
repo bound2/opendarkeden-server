@@ -117,12 +117,6 @@ public:
     // ex> Thread t;
     //     Thread::Join ( t );
     static void join(const Thread& t);
-    static void join(const Thread* t);
-    static void join(const Thread& t, void* retval);
-    static void join(const Thread* t, void* retval);
-
-    // 쓰레드를 Detached 모드로 바꾼다.
-    virtual void detach();
 
     // 현재 쓰레드들 종료한다. 즉 특정 쓰레드를 종료시킨다는 말이 아니라,
     // 이 메쏘드를 수행하는 쓰레드를 종료시킨다는 말이다. 이때, 특정

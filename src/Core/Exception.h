@@ -20,6 +20,8 @@
 
 #include <list>
 
+#include <source_location>
+
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -49,6 +51,15 @@ public:
     // add function name to throwable object's function stack
     void addStack(const string& stackname) {
         m_Stacks.push_front(stackname);
+    }
+
+    // add the caller's function to the stack, without a location macro at the
+    // call site: the defaulted std::source_location captures the enclosing
+    // function, which is what __END_CATCH used to pass by hand as
+    // __PRETTY_FUNCTION__. Under Clang both produce the same text, so the
+    // stack trace format is unchanged.
+    void addStack(const std::source_location& loc = std::source_location::current()) {
+        m_Stacks.push_front(loc.function_name());
     }
 
     // return debug string - throwable object's function stack trace
@@ -111,64 +122,138 @@ private:
 #define __END_CATCH ((void)0);
 #define __END_CATCH_NO_RETHROW ((void)0);
 #else
+// t.addStack() takes the enclosing function from its defaulted
+// std::source_location, so these macros no longer forward __PRETTY_FUNCTION__.
 #define __BEGIN_TRY try {
-#define __END_CATCH                      \
-    }                                    \
-    catch (Throwable & t) {              \
-        t.addStack(__PRETTY_FUNCTION__); \
-        throw;                           \
+#define __END_CATCH         \
+    }                       \
+    catch (Throwable & t) { \
+        t.addStack();       \
+        throw;              \
     }
-#define __END_CATCH_NO_RETHROW           \
-    }                                    \
-    catch (Throwable & t) {              \
-        t.addStack(__PRETTY_FUNCTION__); \
+#define __END_CATCH_NO_RETHROW \
+    }                          \
+    catch (Throwable & t) {    \
+        t.addStack();          \
     }
 #endif
 
-// END_CATCH for method definitions
-// #define __END_CATCH } catch (Throwable & t) { t.addStack(__PRETTY_FUNCTION__); throw; }
 
-// Verbose END_CATCH with logging
-// #define __END_CATCH } catch (Throwable & t) { cout << "\nCAUGHT Exception IN END_CATCH MACRO...\n[" <<
-// __PRETTY_FUNCTION__ << "]\n>>> " << t.toString() << endl; t.addStack(__PRETTY_FUNCTION__); throw; }
-
-
-/*
 //--------------------------------------------------------------------------------
-//
-//	#define __BEGIN_TRY \
-//				try {
-//	#define __END_CATCH \
-//				} catch (Throwable & t) { \
-//					t.addStack((func)); \
-//					throw; \
-//				}
-//
 //
 // critical section
 //
+// __ENTER_CRITICAL_SECTION(x) and __LEAVE_CRITICAL_SECTION(x) delimit a block
+// that holds x for the whole of its extent. Ownership belongs to a scoped
+// guard object, so the lock is released on every exit from the block: falling
+// off the end, return, a goto or continue that leaves it, and a thrown object
+// of any type. The previous hand-written "catch (Throwable&) { unlock(); }"
+// released it only for Throwable, so a std::exception (bad_alloc,
+// out_of_range) left the mutex held, and a return skipped the unlock unless
+// the author remembered to write one by hand.
+//
+// x may be any BasicLockable: it only has to expose lock() and unlock().
+// Mutex, Zone, ZoneGroup, PCFinder and ObjectRegistry all qualify. The guard
+// calls exactly those two members and nothing else, so ZoneGroup keeps
+// recording its owning thread for the DE_OWNERSHIP_CHECKS tripwire.
+//
+// x is evaluated once, at __ENTER_CRITICAL_SECTION, and the guard holds its
+// address from then on. The argument of __LEAVE_CRITICAL_SECTION is unused and
+// kept only so both ends of a block stay readable.
+//
+// Never call x.unlock() by hand inside the block: the guard would unlock a
+// second time when it is destroyed, and unlocking an already unlocked
+// non-recursive pthread mutex is undefined. To run work outside the lock while
+// staying inside the block, use the guard, which tracks ownership:
+//
+//     __CRITICAL_SECTION_LOCK.unlock();   // release early
+//     ... work that must not hold the lock ...
+//     __CRITICAL_SECTION_LOCK.lock();     // optional: take it again
+//
+// tests/critical_section_test.cpp pins this behaviour;
+// tests/tools/critical_section_audit.pl reports manual lock/unlock calls that
+// slipped back inside a block.
+//
 //--------------------------------------------------------------------------------
-*/
+
+template <typename Lockable> class CriticalSection {
+public:
+    explicit CriticalSection(Lockable& lockable) : m_pLockable(&lockable), m_Owns(false) {
+        // Lock before the guard owns anything, as the old macro did: if lock()
+        // throws there is no guard yet and nothing is unlocked.
+        m_pLockable->lock();
+        m_Owns = true;
+    }
+
+    ~CriticalSection() {
+        if (!m_Owns)
+            return;
+
+        m_Owns = false;
+
+        try {
+            m_pLockable->unlock();
+        } catch (...) {
+            // A destructor must not throw. unlock() fails only on a
+            // programming error (releasing a mutex this thread does not hold),
+            // and letting that escape while another exception is already in
+            // flight would call std::terminate and lose the original
+            // diagnostic. Mutex::~Mutex swallows the same failure.
+        }
+    }
+
+    CriticalSection(const CriticalSection&) = delete;
+    CriticalSection& operator=(const CriticalSection&) = delete;
+
+    // Release the lock before the end of the block. The destructor then does
+    // nothing, so an early release can never unlock twice.
+    void unlock() {
+        if (m_Owns) {
+            m_Owns = false;
+            m_pLockable->unlock();
+        }
+    }
+
+    // Take the lock again inside the same block.
+    void lock() {
+        if (!m_Owns) {
+            m_pLockable->lock();
+            m_Owns = true;
+        }
+    }
+
+    bool ownsLock() const {
+        return m_Owns;
+    }
+
+private:
+    Lockable* m_pLockable;
+    bool m_Owns;
+};
+
+// Name of the guard that __ENTER_CRITICAL_SECTION declares. Deliberately
+// public: it is the only supported way to drop or retake the lock inside a
+// critical section.
+#define __CRITICAL_SECTION_LOCK deCriticalSectionLock
+
 #define __ENTER_CRITICAL_SECTION(mutex) \
-    mutex.lock();                       \
-    try {
-#define __LEAVE_CRITICAL_SECTION(mutex) \
-    }                                   \
-    catch (Throwable & t) {             \
-        mutex.unlock();                 \
-        throw;                          \
-    }                                   \
-    mutex.unlock();
+    {                                   \
+        CriticalSection __CRITICAL_SECTION_LOCK{mutex};
+
+#define __LEAVE_CRITICAL_SECTION(mutex) }
 
 //--------------------------------------------------------------------------------
 //
 // cout debugging
 //
 //--------------------------------------------------------------------------------
-#if defined(NDEBUG) || defined(__WIN32__)
+// Only the console form survives: this build defines __LINUX__ (or __APPLE__),
+// never __WIN32__, __WIN_CONSOLE__ or __MFC__, so the Windows and MFC branches
+// were dead code referencing a port that no longer exists.
+#if defined(NDEBUG)
 #define __BEGIN_DEBUG ((void)0);
 #define __END_DEBUG ((void)0);
-#elif defined(__LINUX__) || defined(__APPLE__) || defined(__WIN_CONSOLE__)
+#else
 #define __BEGIN_DEBUG try {
 #define __END_DEBUG                   \
     }                                 \
@@ -179,14 +264,6 @@ private:
     catch (exception & e) {           \
         cout << e.what() << endl;     \
         throw;                        \
-    }
-#elif defined(__MFC__)
-#define __BEGIN_DEBUG try {
-#define __END_DEBUG                  \
-    }                                \
-    catch (Throwable & t) {          \
-        AfxMessageBox(t.toString()); \
-        throw;                       \
     }
 #endif
 

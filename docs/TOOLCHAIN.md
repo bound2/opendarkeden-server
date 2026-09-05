@@ -225,7 +225,7 @@ instead of through tree-wide style conversions.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|
-| P0 | `std::jthread`, `std::stop_token`, atomic wait/notify | `Thread`, `ZoneGroupThread`, `SMSServiceThread`, `NetmarbleGuildRegisterThread` | Cooperative shutdown and owned joins instead of unsupported `stop()`, `while (true)` and sleep polling |
+| P0 | `std::jthread`, `std::stop_token`, atomic wait/notify | `ManagedThread` (every worker in all three servers) | Cooperative shutdown and owned joins instead of unsupported `stop()`, `while (true)` and sleep polling — done |
 | P0 | `std::span`, concepts, `std::endian`, `std::bit_cast` | `SocketInputStream`, `SocketOutputStream`, packet codecs | Bound buffer lengths to their data and reject unsafe wire types at compile time |
 | P1 | `constexpr`/`consteval` metadata and concepts | `AllPacketFactories.inc`, `PacketIDSet`, packet factory classes | Detect duplicate IDs, invalid sizes and incomplete registrations during compilation |
 | P1 | `std::source_location` | `Assert.h`, `Exception.h`, DB/error macros | Preserve call-site diagnostics without compiler-specific macros or repeated file/line plumbing |
@@ -234,10 +234,15 @@ instead of through tree-wide style conversions.
 
 ### Structured thread lifetime and cancellation
 
-The legacy `Thread` backend remains for services outside the gameserver
-migration. Gameserver zone, login-link, shared-link, GDR, and enabled
-billing/mofus workers now opt into `ManagedThread`, which owns a
-`CooperativeThread` backed by `std::jthread`.
+`ManagedThread` is now the only subclass of the legacy `Thread`, so every
+worker in all three server processes uses it: gameserver zone, login-link,
+shared-link, GDR, SMS and enabled billing/mofus workers, the loginserver's
+`GameServerManager` (UDP game-server link) and the sharedserver's
+`GameServerManager` (TCP game-server link).
+`ManagedThread` owns a `CooperativeThread` backed by `std::jthread`. What is
+left of the legacy base is `start()`/`stop()`/`join()`/`run()`, the status
+enum and `Thread::self()` (the key for per-thread database connections); the
+pthread-only `detach()` and the unused static `join()` overloads are gone.
 
 `std::jthread` owns the join operation and propagates a `std::stop_token` to
 the worker. A stop-aware condition-variable wait can wake immediately during
@@ -255,9 +260,13 @@ any exception; shutdown requests all stops before joining. Derived destructors
 must join before their members disappear; a base destructor alone is too late.
 
 SIGTERM/SIGINT only store a lock-free atomic request, using operations permitted
-in [C++ signal handlers](https://eel.is/c++draft/support.signal). The main client
-loop returns, all zone and auxiliary workers are requested to stop and joined,
-then main flushes its status message and calls `_Exit`. The OS reclaims the
+in [C++ signal handlers](https://eel.is/c++draft/support.signal). All three
+processes now install that handler and share the same teardown: the main loop
+(gameserver `ClientManager`, loginserver `ClientManager`, sharedserver
+`HeartbeatManager`) returns, every worker is requested to stop and joined,
+then main flushes its status message and calls `_Exit` with a failure code if
+any step failed. `LoginServer::stop()`/`SharedServer::stop()` are idempotent
+and no longer throw `UnsupportedError`. The OS reclaims the
 legacy singleton graph: its destructor dependency order is not fully audited,
 so normal process shutdown deliberately does not invoke that graph. Explicit
 `GameServer` destruction also joins workers before releasing dependencies.
@@ -269,17 +278,21 @@ read/write timeouts, allowing longer normal-service queries. Operators can set
 positive integer seconds (Compose forwards them). These are per-operation
 limits with [client retry semantics](https://dev.mysql.com/doc/c-api/8.0/en/mysql-options.html),
 not an overall query or shutdown time guarantee. Stop is checked between zone
-connection setup operations. The login-link UDP socket is nonblocking so idle
-traffic cannot prevent shutdown. A separate watchdog starts before server
-initialization and allows 30 seconds after a signal/error/shutdown request;
-if I/O or gameplay code stays blocked, it exits the whole process with failure
-without freeing memory underneath live workers. The container supervisor keeps
-login/shared alive while gameserver drains, enforces a 35-second backstop, and
-Compose has a 45-second stop grace period.
+connection setup operations. Both ends of the login link use a nonblocking UDP
+socket so idle traffic cannot prevent shutdown. A separate watchdog starts
+before server initialization in each process and allows 30 seconds after a
+signal/error/shutdown request; if I/O or gameplay code stays blocked, it exits
+the whole process with failure without freeing memory underneath live workers,
+naming the process that gave up. The container supervisor keeps
+login/shared alive while gameserver drains, enforces a 35-second backstop, then
+gives login/shared 8 seconds of their own before SIGKILL — 43 seconds in total,
+inside Compose's 45-second stop grace period.
 
 Regression tests exercise concurrent lifecycle calls, worker errors, pool
 rollback and stop/join ordering, dependency lifetime, signals, a stuck worker,
-a silent MySQL peer, and the real `docker/start.sh` with stand-in processes.
+stop-aware waits waking without sitting out their polling interval, a silent
+MySQL peer, and the real `docker/start.sh` with stand-in processes — both when
+they all drain and when one login/shared stand-in ignores SIGTERM.
 The pinned-Zig CI job runs these tests and builds all production targets and
 the production image only on master pushes/merges. PRs and feature-branch
 commits use local verification to conserve Actions minutes. CMake probes the
@@ -288,25 +301,80 @@ unsupported toolchain fails at configuration instead of deep in compilation.
 
 ### Type-safe packet buffers
 
-The socket streams currently expose raw pointer-plus-length overloads and
-unconstrained `read<T>`/`write<T>` templates that copy `sizeof(T)` bytes. Any
-accidentally passed pointer, padded class, platform-sized integer or other
-non-wire type therefore compiles. The earlier misaligned-access fix proved
-that this hot path benefits from making representation rules explicit.
+Done for the stream layer; the packet codecs above it are unchanged.
 
-Use `std::span<std::byte>`/`std::span<const std::byte>` for buffer regions and
-a `WireScalar` concept for the scalar overloads. That concept should permit
-only the fixed-width, trivially-copyable types approved by the protocol.
-`std::endian` can document the existing byte order, while `std::bit_cast`
-provides representation conversion without aliasing violations. These tools
-do not perform byte swapping or bounds validation automatically; the codec
-must still check sizes and preserve the deployed client's byte order.
+`SocketInputStream::read<T>` and `SocketOutputStream::write<T>` copy
+`sizeof(T)` bytes of an object's representation out of / into the socket ring
+buffer, so whatever compiles *defines* the protocol. Before this change a
+pointer, a `std::string`, a padded class or a platform-sized integer (`long`
+and `size_t` are 8 bytes on the Linux server and 4 on the Win32 client) all
+compiled silently. `src/Core/WireTypes.h` now states the rule once as a
+`de::WireScalar` concept, and both templates are constrained by it.
 
-Migrate one packet family at a time behind the existing stream API. Every
-slice must keep the wire-layout inventory, per-code encryption goldens and
-round-trip tests byte-identical. Packet safety is the highest-value C++20 use
-because a compile-time rejection is much cheaper than diagnosing a corrupted
-live session.
+The accept list came from evidence rather than taste: every `T` that
+instantiates the two templates across de-kernel and all three servers was
+enumerated first, with a throwaway deprecated-probe build. It is `bool`,
+`char`, `signed char`, `unsigned char`, `short`, `unsigned short`, `int`,
+`unsigned int` and `std::uint64_t`. That covers every `Types.h` field alias,
+since `BYTE`/`WORD`/`DWORD` are `unsigned char`/`unsigned short`/`unsigned
+int`. Pointers, arrays, class types, floating point, enumerations and
+signed 64-bit in every spelling are rejected — trivially copyable
+aggregates included, because "can be memcpy'd" is not the question the
+wire asks.
+
+One caveat is unavoidable, and the header spells it out. The Exchange packets
+(`CGExchangeBuy`, `GCExchangeBuy`, `GCExchangeList`) write their listing id as
+a `uint64_t`, so that has to stay admitted — and on the LP64 server
+`std::uint64_t` **is** `unsigned long`, so `unsigned long` and `size_t` are
+admitted with it and a stray `write(size_t)` still compiles here while it
+would be four bytes on the client. Signed 64-bit is not admitted, and that is
+what keeps plain `long` out; its only instantiation sites were the dead
+`readEncrypt(long&)` / `writeEncrypt(long)` overloads, now removed. The test
+asserts this split relative to `std::uint64_t` rather than to a spelling, so
+it states the intent on a platform where the two differ.
+
+Constraining alone would have been a hazard rather than a fix: with
+`write<T>` constrained away, `write(someCharPointer)` would have found
+`write(const string&)` through a user-defined conversion and put a
+*different* byte sequence on the wire. Each template therefore has an
+unconstrained sibling whose only statement is a `static_assert`, so a
+rejected type is a named compile error instead.
+
+The buffer paths gained `read` / `peek(std::span<std::byte>)` and
+`write(std::span<const std::byte>)`. The `read` and `write` spans carry the
+implementation, and are defined **inline in the headers** so the scalar
+templates keep handing their `memcpy` a compile-time-constant `sizeof(T)`:
+at `-O2` a four-byte field is still the single load/store the section above
+describes, not a call with a runtime length. (`peek` stays out of line --
+nothing calls it with a constant size.) The
+`char*` / `const char*` plus `uint` signatures are kept for the existing call
+sites and forward to them, so the hundreds of callers and the exceptions they
+rely on (`InvalidProtocolException` for a zero-length request,
+`InsufficientDataException` for a short buffer) are unchanged. The scalar
+templates forward as well, which removes the hand-copied second version of
+the ring-buffer walk — the copy the misaligned-access fix above had to patch
+separately.
+
+`std::endian` states the deployed byte order once, as a `static_assert` in
+`WireTypes.h`: the wire format is the little-endian in-memory representation,
+no packet swaps bytes, and none is introduced here. `std::bit_cast` is
+deliberately **not** used. The aliasing casts it would replace are already
+gone (that is what the five `memcpy` sites above are), and the remaining
+pointer conversion is to `std::byte*`, which may legally alias any object,
+whereas `bit_cast` would add a copy through a temporary array in a hot path.
+
+`tests/wire_types_test.cpp` pins both lists with `static_assert`s, round-trips
+every admitted scalar and a span buffer through real loopback sockets, and
+drives a 16-byte ring buffer so the wrap-around branch and its split copy
+actually run. The wire-layout inventory and every golden are unchanged, which
+is what establishes that no packet moved.
+
+What remains: the codecs above the stream still read and write field by
+field with no declarative layout; packet sizes are still hand-maintained
+(`writePacket` only *warns* when `getPacketSize()` disagrees with the bytes
+written); and string fields still carry hand-written length prefixes, which
+is why `CGExchangeBuy` needs a comment telling the next author not to pass a
+`std::string` to `write` — something the concept now enforces.
 
 ### Compile-time packet metadata
 
@@ -324,12 +392,34 @@ and the encrypted wire format.
 
 ### Diagnostics without location macros
 
-`Assert.h`, `Exception.h` and the database helpers pass `__FILE__`, `__LINE__`
-and `__PRETTY_FUNCTION__` through macros. A defaulted
-`std::source_location::current()` parameter captures the caller in an ordinary
-function, preserves richer function names, and makes the diagnostic path
-unit-testable. This is a low-risk first use of a C++20-only library feature;
-the public logging format should remain stable during the migration.
+Done for the call-site diagnostics. `Assert.h` declares `assertionFailed()` /
+`protocolAssertionFailed()`, ordinary functions whose last parameter defaults
+to `std::source_location::current()`; `Assert(expr)` and `ProtocolAssert(expr)`
+remain macros only because the diagnostic needs the unevaluated `#expr` text
+and must evaluate the expression exactly once. `Throwable::addStack()` has the
+same defaulted parameter, so `__END_CATCH` / `__END_CATCH_NO_RETHROW` no longer
+forward `__PRETTY_FUNCTION__`, and `END_DB` / `END_DB_EX` in
+`src/server/database/DB.h` take the enclosing function the same way. Under
+Clang `source_location::function_name()` is the text `__PRETTY_FUNCTION__`
+produced, so `assertion_failed.log`, `protocol_assertion_failed.log`,
+`DBError.log` and `getStackTrace()` are byte-identical to before; the historical
+quirks (no separator between the function name and the expression, function
+names only in the stack trace) are preserved deliberately. Because
+`std::source_location` is portable, the dead `__WIN32__` / `__WIN_CONSOLE__` /
+`__MFC__` branches of `Assert`, `__BEGIN_DEBUG` and `__END_DEBUG` are gone.
+`Assert1.h` - a near-duplicate included by ~116 files - is now a one-line
+forwarder to `Assert.h`, and its never-compiled twin `Assert1.cpp` (a copy of
+the old implementation, in no build list) is deleted.
+`tests/diagnostics_test.cpp` pins the message layout, the reported
+file/line/function and the stack-trace format.
+
+No `__FILE__` or `__LINE__` use is left in `src/`. What remains is 81 direct
+`__PRETTY_FUNCTION__` uses in 38 files - mostly
+`throw UnsupportedError(__PRETTY_FUNCTION__)` in unimplemented virtual stubs,
+plus one direct `addStack` call in `GamePlayer.cpp` and one in
+`src/Core/SocketAPI.cpp`. Those are ordinary call sites rather than location
+plumbing: none of them costs a macro layer, so converting them is a separate,
+optional sweep.
 
 ### Explicit coordination and bounded work
 
@@ -339,6 +429,26 @@ bounded producer/consumer queue. These primitives are preferable to adding
 another sleep-and-check loop, but they should follow an ownership audit: a new
 primitive cannot make shared gameplay state safe if its owner and lock scope
 are unclear.
+
+The 463 critical sections in `src/` are now RAII. `__ENTER_CRITICAL_SECTION(x)`
+declares a scoped `CriticalSection` guard (`src/Core/Exception.h`) over any
+BasicLockable — `Mutex`, `Zone`, `ZoneGroup`, `PCFinder`, `ObjectRegistry` — and
+`__LEAVE_CRITICAL_SECTION` closes that block; the guard calls exactly `lock()`
+and `unlock()`, so `ZoneGroup` keeps its `DE_OWNERSHIP_CHECKS` owner record. The
+pair previously expanded to a bare `x.lock()` plus a
+`catch (Throwable&) { x.unlock(); throw; }` tail, which released the lock only
+for `Throwable`: a `std::bad_alloc`, a `std::out_of_range`, or the `const char*`
+that `END_DB` rethrows walked past it holding the mutex, and a `return` inside
+the section skipped the unlock entirely unless the author wrote one by hand.
+Because the guard tracks ownership, hand-written `x.unlock()` inside a section
+is now a double unlock and is forbidden; release early through
+`__CRITICAL_SECTION_LOCK.unlock()` (and `.lock()` to retake it) instead.
+`tests/critical_section_tests` pins the exits, and the ctest entry
+`critical_section_audit` (`tests/tools/critical_section_audit.pl`) fails the
+build on a hand-written unlock or a
+`__LEAVE_CRITICAL_SECTION` whose argument does not match its `__ENTER`'s. This
+removes a lock-leak class; it does not change which thread owns which state, so
+the ownership violations listed in CLAUDE.md remain open.
 
 ### Safer collection traversal
 

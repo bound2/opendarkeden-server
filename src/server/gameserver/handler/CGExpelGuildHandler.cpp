@@ -128,7 +128,6 @@ void CGExpelGuildHandler::execute(CGExpelGuild* pPacket, Player* pPlayer)
 
         pTargetCreature = g_pPCFinder->getCreature_LOCKED(TargetGuildMaster);
         if (pTargetCreature == NULL) {
-            g_pPCFinder->unlock();
             return;
         }
         GCModifyInformation gcModifyInformation2;

@@ -17,6 +17,7 @@
 #include "Profile.h"
 #include "Properties.h"
 #include "ReconnectLoginInfoManager.h"
+#include "ServerShutdown.h"
 #include "Timeval.h"
 
 #ifdef __THAILAND_SERVER__
@@ -98,7 +99,9 @@ void ClientManager::start() {
 void ClientManager::stop() {
     __BEGIN_TRY
 
-    throw UnsupportedError("stopping manager not supported.");
+    // The loop below runs on the main thread; a signal handler only stores
+    // the request, and run() returns on its next turn.
+    ServerShutdown::request();
 
     __END_CATCH
 }
@@ -126,7 +129,7 @@ void ClientManager::run() {
     Timeval dummyQueryTime;
     getCurrentTime(dummyQueryTime);
 
-    while (true) {
+    while (!ServerShutdown::isRequested()) {
         usleep(1000); // FIX: 降低 CPU 占用率，从 100 微秒改为 1000 微秒（1ms）
 
         beginProfileEx("LS_MAIN");

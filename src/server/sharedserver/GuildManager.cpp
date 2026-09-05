@@ -394,8 +394,6 @@ Guild* GuildManager::getGuild(GuildID_t id) noexcept(false) {
     unordered_map<GuildID_t, Guild*>::iterator itr = m_Guilds.find(id);
 
     if (itr == m_Guilds.end()) {
-        m_Mutex.unlock();
-
         return NULL;
     }
 

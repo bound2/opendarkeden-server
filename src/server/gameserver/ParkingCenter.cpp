@@ -135,7 +135,6 @@ void ParkingCenter::deleteMotorcycleBox(ItemID_t keyTargetID) {
         // cerr << "ParkingCenter::deleteMotorcycleBox() : NoSuchElementException" << endl;
         // throw NoSuchElementException();
 
-        m_Mutex.unlock();
         return;
     }
 
@@ -197,7 +196,6 @@ MotorcycleBox* ParkingCenter::getMotorcycleBox(ItemID_t keyTargetID) const {
             // cerr << "ParkingCenter::getMotorcycleBox() : NoSuchElementException" << endl;
             // throw NoSuchElementException();
 
-            m_Mutex.unlock();
             return NULL;
         }
 

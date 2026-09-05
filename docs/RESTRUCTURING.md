@@ -57,7 +57,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
-| R1 | `g_p*` global-singleton extern declarations | 333 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
+| R1 | `g_p*` global-singleton extern declarations | 332 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `CreatureUtil.cpp` and `TradeManager.cpp` hold SQL that compiles and runs; the rest are listed under 3.2 "What remains".) |
 | R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 74 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
@@ -846,14 +846,16 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   days ahead of the handler's QUIT_GUILD_PENALTY_TERM.
   >
   > **Three one-line Core defects every seam inherits — owed a Core
-  > round, not fixed:** `END_DB` throws `msg.c_str()` of a local string
-  > (the message dangles; no test can read it); `__LEAVE_CRITICAL_SECTION`
-  > releases only on `Throwable&`, so a repository call inside a critical
-  > section leaves its mutex held on failure (masked today because
-  > nothing catches the `const char*` before the process terminates);
+  > round; one now fixed:** `END_DB` throws `msg.c_str()` of a local
+  > string (the message dangles; no test can read it) — open;
+  > `__LEAVE_CRITICAL_SECTION` released only on `Throwable&`, so a
+  > repository call inside a critical section left its mutex held on
+  > failure (masked because nothing catches the `const char*` before the
+  > process terminates) — **fixed 2026-09-05**, the section is now a
+  > scoped guard that releases on any exit (`docs/FIXES.md`);
   > `SAFE_DELETE(pStmt)` sits inside every seam's try, so a
   > non-SQLQueryException throw (`bad_alloc`, `OutOfBoundException`)
-  > leaks the Statement.
+  > leaks the Statement — open.
   >
   > **What remains.** Of R2's eight files only two hold SQL that
   > compiles and runs: `CreatureUtil.cpp` (124 live statements, the
@@ -1142,6 +1144,20 @@ gating; `Zone.cpp` under 2,000 lines.
   > rather than invoking unaudited singleton destructors; no new world-save
   > guarantee is implied. MySQL operations have finite timeout options.
   > CMake probes the C++20 library and a pinned-Zig workflow tests/builds master.
+  > Extended to the other two processes (2026-09-05): the loginserver and
+  > sharedserver `GameServerManager` workers and `SMSServiceThread` moved off
+  > the legacy `Thread` too, and the never-compiled
+  > `NetmarbleGuildRegisterThread` (in no CMake target, its every call site
+  > commented out) was deleted rather than migrated, so `ManagedThread` is now
+  > its only subclass and the pthread-only `detach()` and unused static
+  > `join()` overloads are gone. R1: 333 -> 332. Both processes install the
+  > SIGTERM/SIGINT handler, end their main loop on the request, stop and join
+  > their worker while its dependencies are alive, and `_Exit` with the
+  > failure code under their own 30-second watchdog. The loginserver's UDP
+  > listener became nonblocking so an idle link cannot hold the worker inside
+  > `recvfrom`. `docker/start.sh` now bounds the login/shared drain at 8
+  > seconds after the gameserver's 35, staying inside Compose's 45-second
+  > grace period, and the shutdown watchdog now names the process it kills.
   - Owner: ratchet R7, held at 0.
 
 ---

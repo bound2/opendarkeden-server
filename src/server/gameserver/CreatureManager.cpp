@@ -109,7 +109,6 @@ if (itr == m_Creatures.end()) {
     //  오히려.. 처리가 안된게 있어서 문제가 되는 부분도 있었다.
     //   EventMorph에서 Zone::deletePC()에서 NoSuch..가 뜨는 경우가 있다면..
     //  암튼 속도 문제로 인해서 제거
-    m_Mutex.unlock();
     return; // by sigi 2002.5.2
 }
 

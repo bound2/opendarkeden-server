@@ -11,6 +11,86 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Critical sections leaked their lock on non-Throwable exits (2026-09-05)
+
+Found while making `__ENTER_CRITICAL_SECTION`/`__LEAVE_CRITICAL_SECTION` RAII.
+The pair expanded to a bare `mutex.lock()` and a
+`catch (Throwable&) { mutex.unlock(); throw; }` tail, so the lock survived any
+exit the tail did not cover. Three defect shapes, all in the 463 sections under
+`src/`:
+
+- **`return` inside a section with no hand-written unlock.** Three live sites:
+  `PCFinder::addNPC` (duplicate NPC name) and `PCFinder::deleteNPC` (unknown
+  name) return holding `PCFinder::m_Mutex`, the lock every cross-thread SG/LG/GG
+  handler takes through `getCreature_LOCKED`; `MPlayerManager::processResult`
+  returns holding it from the `default:` branch of its error-code switch, on the
+  mofus thread. `Mutex::lock()` detects a same-thread relock and throws `Error`,
+  so the first symptom is a `SELF DEAD LOCK` line in `MutexError.log`; another
+  thread blocks instead. The other 107 early returns unlocked by hand.
+- **Non-`Throwable` exceptions.** `std::bad_alloc`, `std::out_of_range` and the
+  `const char*` that `END_DB` rethrows do not match `catch (Throwable&)`, so any
+  of them crossing a section boundary left the mutex held. The `const char*`
+  case was already recorded in a comment in `SGDeleteGuildOKHandler.cpp`, which
+  said the general fix belonged in `__LEAVE_CRITICAL_SECTION`. (`END_DB` throwing
+  `msg.c_str()` from a local `string` — a dangling pointer — is a separate
+  defect and is still open.)
+- **Double unlock.** `Guild::addMember` and its sharedserver twin do
+  `m_Mutex.unlock(); throw DuplicatedException();` inside a section; the
+  `Throwable` tail then unlocked the same non-recursive pthread mutex a second
+  time, which is undefined behaviour.
+
+The section is now a block guarded by a scoped `CriticalSection` object, so the
+lock is released on every exit — end of block, `return`, `goto`/`continue` out
+of it, and any thrown type. The 120 hand-written unlocks inside sections were
+removed (114) or routed through the guard (6, where work deliberately ran
+unlocked before the return). `tests/critical_section_tests` pins the exits and
+`tests/tools/critical_section_audit.pl` fails the class on sight.
+> **Status:** fixed (cpp20/raii-critical-sections)
+
+## loginserver and sharedserver could not be shut down (2026-09-05)
+
+Found while extending PR #89's cooperative lifecycle to the other two server
+processes. Neither `main()` installed a signal handler, so SIGTERM took the
+default disposition and killed the process outright — no worker join, no
+socket drain, no chance for the loop to finish its turn. There was no
+graceful path either: `LoginServer::stop()` and `SharedServer::stop()` both
+began with `throw UnsupportedError()` (the sub-manager stops after it were
+dead code), `ClientManager::stop()`/`HeartbeatManager::stop()` threw the
+same, and the `GameServerManager` workers derived from the legacy pthread
+`Thread`, whose `stop()` also throws — their `while (true)` loops had no exit
+at all. The loginserver's UDP listener compounded it: the socket was left
+blocking, so the worker sat inside `recvfrom` for as long as the game servers
+stayed quiet. The container supervisor's unbounded final `wait` matched the
+old behaviour (login/shared died instantly), so it too had to be bounded once
+they started draining. Every worker now uses `ManagedThread`, both mains
+install the SIGTERM/SIGINT handler and the named 30-second failed-exit
+watchdog, `stop()` is idempotent and joins before dependencies are released,
+and `docker/start.sh` gives login/shared 8 seconds before SIGKILL.
+> **Status:** fixed (cpp20/login-shared-managed-threads)
+
+## sharedserver keep-alive query runs every tick, not hourly (2026-09-05)
+
+Found while migrating `sharedserver/GameServerManager::run()`. Its
+connection keep-alive reschedules with `dummyQueryTime.tv_sec = (60 + rand()
+% 30) * 60;` — a plain assignment where the gameserver's `LoginServerManager`,
+`SharedServerManager`, `SMSServiceThread` and the loginserver's
+`ClientManager` all use `+=`. The absolute deadline therefore lands about an
+hour after the epoch, is always in the past, and `executeDummyQuery()` fires
+on every pass of a loop that now turns roughly every millisecond. Left alone
+here deliberately: the lifecycle migration changed no thread's actual work.
+> **Status:** open
+
+## Self-initialised pointer in sharedserver processOutputs() (2026-09-05)
+
+`GameServerManager::processOutputs()` writes `GameServerPlayer*
+pGameServerPlayer = pGameServerPlayer;` inside the socket-error branch,
+shadowing the live outer pointer with one initialised from itself, and then
+`delete`s it. Clang reports it (`-Wuninitialized`) on every build. The same
+file never initialises `m_pGameServerPlayers[nMaxGameServers]`, so its
+unwritten slots are indeterminate rather than NULL — the `m_MinFD`/`m_MaxFD`
+window is what keeps the loops off them today.
+> **Status:** open
+
 ## Cooperative lifecycle and process shutdown gaps (2026-09-05)
 
 Adversarial review of PR #89 found unsynchronized start/stop publication,
