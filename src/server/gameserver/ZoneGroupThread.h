@@ -16,8 +16,8 @@
 #include <stop_token>
 
 // include files
-#include "CooperativeThread.h"
 #include "Exception.h"
+#include "ManagedThread.h"
 #include "Thread.h"
 #include "Types.h"
 #include "ZoneGroup.h"
@@ -32,18 +32,13 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-class ZoneGroupThread : public Thread {
+class ZoneGroupThread : public ManagedThread {
 public:
     // constructor
     ZoneGroupThread(ZoneGroup* pZoneGroup);
 
     // destructor
     ~ZoneGroupThread() noexcept;
-
-    void start() override;
-    void stop() override;
-    void join() override;
-    void detach() override;
 
     // main method
     void run() override;
@@ -61,14 +56,7 @@ public:
     }
 
 private:
-    void run(std::stop_token stopToken);
-
     ZoneGroup* m_pZoneGroup;
-    std::mutex m_StopMutex;
-    std::condition_variable_any m_StopCondition;
-
-    // Keep this last: its destructor joins before the state above is torn down.
-    CooperativeThread m_Worker;
 };
 
 #endif

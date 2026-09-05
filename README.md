@@ -58,6 +58,12 @@ build arguments can select Debug:
 BUILD_TYPE=Debug docker compose up -d --build
 ```
 
+`docker compose down` requests gameserver shutdown first and keeps the
+login/shared processes alive until its workers finish. Gameserver has a
+30-second shutdown deadline; Compose allows 45 seconds before killing the
+container. A deadline expiry is a failed, forced exit, not a completed drain.
+This joins workers but does not introduce a full world-save operation.
+
 ### Start the servers by hand
 
 Set `command: ["sleep","infinity"]` on the `odk-server` service, then:

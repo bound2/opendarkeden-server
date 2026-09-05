@@ -11,6 +11,14 @@
 
 using namespace std::chrono_literals;
 
+TEST(CooperativeThreadTest, SelfJoinFailureIsRetainedAndOwnerCanStillJoin) {
+    CooperativeThread worker;
+    worker.start([&](std::stop_token) { worker.join(); });
+    worker.join();
+    EXPECT_THROW(worker.rethrowFailure(), std::system_error);
+    EXPECT_FALSE(worker.joinable());
+}
+
 TEST(CooperativeThreadTest, DestructorRequestsStopAndJoins) {
     std::promise<void> started;
     std::future<void> ready = started.get_future();

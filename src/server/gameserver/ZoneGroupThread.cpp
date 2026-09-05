@@ -45,64 +45,11 @@ ZoneGroupThread::ZoneGroupThread(ZoneGroup* pZoneGroup)
     __END_CATCH_NO_RETHROW
 }
 
-void ZoneGroupThread::start() {
-    if (getStatus() != Thread::READY)
-        throw ThreadException("invalid thread's status");
-
-    setStatus(Thread::RUNNING);
-
-    try {
-        m_Worker.start([this](std::stop_token stopToken) {
-            try {
-                run(stopToken);
-            } catch (...) {
-                setStatus(Thread::EXIT);
-                throw;
-            }
-
-            setStatus(Thread::EXIT);
-        });
-    } catch (...) {
-        setStatus(Thread::READY);
-        throw;
-    }
-
-    setTID(m_Worker.nativeHandle());
-}
-
-void ZoneGroupThread::stop() {
-    if (getStatus() == Thread::EXIT)
-        return;
-
-    if (!m_Worker.joinable()) {
-        setStatus(Thread::EXIT);
-        return;
-    }
-
-    setStatus(Thread::EXITING);
-    m_Worker.requestStop();
-}
-
-void ZoneGroupThread::join() {
-    m_Worker.join();
-    setStatus(Thread::EXIT);
-}
-
-void ZoneGroupThread::detach() {
-    throw UnsupportedError("ZoneGroupThread owns and joins its worker");
-}
-
 //////////////////////////////////////////////////////////////////////////////
 // 쓰레드 메쏘드들은 최상위로 사용되므로 __BEGIN_TRY와 __END_CATCH
 // 를 할 필요가 없다. 즉 모든 예외를 잡아서 처리해야 한다는 소리.
 //////////////////////////////////////////////////////////////////////////////
 void ZoneGroupThread::run()
-
-{
-    run(std::stop_token());
-}
-
-void ZoneGroupThread::run(std::stop_token stopToken)
 
 {
     __BEGIN_DEBUG
@@ -119,6 +66,8 @@ void ZoneGroupThread::run(std::stop_token stopToken)
     if (g_pConfig->hasKey("DB_PORT"))
         port = g_pConfig->getPropertyInt("DB_PORT");
 
+    if (stopRequested())
+        return;
     Connection* pConnection = new Connection(host, db, user, password, port);
     g_pDatabaseManager->addConnection((int)(long)Thread::self(), pConnection);
     cout << "******************************************************" << endl;
@@ -133,6 +82,8 @@ void ZoneGroupThread::run(std::stop_token stopToken)
     if (g_pConfig->hasKey("UI_DB_PORT"))
         dist_port = g_pConfig->getPropertyInt("UI_DB_PORT");
 
+    if (stopRequested())
+        return;
     Connection* pDistConnection = new Connection(dist_host, dist_db, dist_user, dist_password, dist_port);
     g_pDatabaseManager->addDistConnection(((int)(long)Thread::self()), pDistConnection);
     cout << "******************************************************" << endl;
@@ -150,16 +101,12 @@ void ZoneGroupThread::run(std::stop_token stopToken)
     getCurrentTime(dummyQueryTime);
 
     try {
-        while (!stopToken.stop_requested()) {
+        while (!stopRequested()) {
             //		beginProfileEx("ZGT_MAIN");
             try {
                 beginProfileExNoTry("ZGT_MAIN");
 
-                std::unique_lock<std::mutex> stopLock(m_StopMutex);
-                m_StopCondition.wait_for(stopLock, stopToken, std::chrono::milliseconds(1), [] { return false; });
-                stopLock.unlock();
-
-                if (stopToken.stop_requested()) {
+                if (!pauseFor(std::chrono::milliseconds(1))) {
                     endProfileExNoCatch("ZGT_MAIN");
                     break;
                 }

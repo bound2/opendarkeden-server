@@ -63,11 +63,6 @@ CCACHE_VOLUME=${DEVBUILD_CCACHE_VOLUME:-darkeden-ccache}
 ZIG_CACHE_VOLUME=${DEVBUILD_ZIG_CACHE_VOLUME:-darkeden-zig-cache}
 BUILD_TYPE=${BUILD_TYPE:-Debug}
 
-if [ "${CXX_STANDARD:-20}" != "20" ]; then
-    echo "DarkEden requires CXX_STANDARD=20 (got '$CXX_STANDARD')" >&2
-    exit 2
-fi
-
 # Git Bash mangles absolute paths in docker arguments unless this is set.
 export MSYS_NO_PATHCONV=1
 
@@ -78,6 +73,11 @@ repo_mount=$(cd "$repo_root" && { pwd -W 2>/dev/null || pwd; })
 
 command=${1:-test}
 shift || true
+
+if [[ "$command" = test || "$command" = build ]] && [ "${CXX_STANDARD:-20}" != "20" ]; then
+    echo "DarkEden requires CXX_STANDARD=20 (got '$CXX_STANDARD')" >&2
+    exit 2
+fi
 
 if [ "$command" = "clean" ]; then
     # A worktree that overrides only its workspace volume must not wipe the
@@ -143,7 +143,8 @@ done
 # 2.7 GB of build trees, lib/, bin/, .git) never crosses the mount.
 sync_in='rsync -a --delete --exclude=.git \
     /repo/cmake /repo/src /repo/tests /repo/third_party /repo/data \
-    /repo/CMakeLists.txt /repo/Makefile /work/'
+    /repo/CMakeLists.txt /repo/Makefile /work/ &&
+    mkdir -p /work/docker && rsync -a --checksum /repo/docker/start.sh /work/docker/'
 
 # Copy generated test data back so a re-record shows up as a normal diff.
 # --checksum because the container clock and the mount can disagree on mtime.

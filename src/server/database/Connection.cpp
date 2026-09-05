@@ -9,7 +9,25 @@
 // include files
 #include "Connection.h"
 
+#include <charconv>
+#include <cstdlib>
+#include <cstring>
+
 #include "Statement.h"
+
+namespace {
+unsigned int timeoutOption(const char* name, unsigned int fallback) {
+    const char* text = std::getenv(name);
+    if (text == nullptr)
+        return fallback;
+    unsigned int seconds = 0;
+    const char* end = text + std::strlen(text);
+    const auto result = std::from_chars(text, end, seconds);
+    if (result.ec != std::errc() || result.ptr != end || seconds == 0)
+        throw SQLConnectException(string(name) + " must be a positive number of seconds");
+    return seconds;
+}
+} // namespace
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -134,6 +152,14 @@ void Connection::connect()
     //--------------------------------------------------
     // 에러가 생기는지 체크해야 함...
     //--------------------------------------------------
+    // Bound synchronous MySQL calls. These are per-operation limits, not a
+    // total shutdown deadline (the gameserver watchdog enforces that).
+    const unsigned int connectSeconds = timeoutOption("DARKEDEN_DB_CONNECT_TIMEOUT_SECONDS", 5);
+    const unsigned int ioSeconds = timeoutOption("DARKEDEN_DB_IO_TIMEOUT_SECONDS", 300);
+    if (mysql_options(&m_Mysql, MYSQL_OPT_CONNECT_TIMEOUT, &connectSeconds) != 0 ||
+        mysql_options(&m_Mysql, MYSQL_OPT_READ_TIMEOUT, &ioSeconds) != 0 ||
+        mysql_options(&m_Mysql, MYSQL_OPT_WRITE_TIMEOUT, &ioSeconds) != 0)
+        throw SQLConnectException(mysql_error(&m_Mysql));
     m_bConnected = (mysql_real_connect(&m_Mysql, m_Host.c_str(), m_User.c_str(), m_Password.c_str(), m_Database.c_str(),
                                        m_Port, 0, 0) != NULL);
     // cout << "Connection Calls~~~" << endl;

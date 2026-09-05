@@ -34,7 +34,8 @@ MPlayerManager::MPlayerManager()
 MPlayerManager::~MPlayerManager() noexcept
 
 {
-    // no owning members to clean; keep noexcept
+    stop();
+    join();
 }
 
 // stop thread. unsupport
@@ -43,7 +44,7 @@ void MPlayerManager::stop()
 {
     __BEGIN_TRY
 
-    throw UnsupportedError();
+    ManagedThread::stop();
 
     __END_CATCH
 }
@@ -69,7 +70,7 @@ void MPlayerManager::run() {
     Timeval dummyQueryTime;
     getCurrentTime(dummyQueryTime);
 
-    while (1) {
+    while (!stopRequested()) {
         usleep(100);
 
         // Fetch a job if none is currently running.

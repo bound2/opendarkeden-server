@@ -16,6 +16,7 @@
 
 #include "Assert.h"
 #include "LogClient.h"
+#include "ManagedThread.h"
 #include "Thread.h"
 
 //////////////////////////////////////////////////
@@ -45,13 +46,10 @@ private:
 //////////////////////////////////////////////////////////////////////
 ThreadPool::ThreadPool()
 
-{
-    __BEGIN_TRY
+    {__BEGIN_TRY
 
-    m_Mutex.setName("ThreadPool");
 
-    __END_CATCH
-}
+         __END_CATCH}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -65,7 +63,7 @@ ThreadPool::~ThreadPool()
 
     stop();
 
-    std::lock_guard<Mutex> lock(m_Mutex);
+    std::lock_guard lock(m_Mutex);
 
     /*
     list<Thread*>::iterator itr = m_Threads.begin();
@@ -115,21 +113,32 @@ void ThreadPool::start()
     //////////////////////////////////////////////////
     // enter critical section
     //////////////////////////////////////////////////
-    m_Mutex.lock();
+    std::lock_guard lock(m_Mutex);
 
-    for (list<Thread*>::iterator itr = m_Threads.begin(); itr != m_Threads.end(); itr++) {
-        // start threads
-        Assert(*itr != NULL);
-        (*itr)->start();
+    try {
+        for (list<Thread*>::iterator itr = m_Threads.begin(); itr != m_Threads.end(); itr++) {
+            // start threads
+            Assert(*itr != NULL);
+            (*itr)->start();
 
-        string msg = "== " + (*itr)->getName() + " has been started == ";
-        log(LOG_DEBUG_MSG, "", "", msg);
+            string msg = "== " + (*itr)->getName() + " has been started == ";
+            log(LOG_DEBUG_MSG, "", "", msg);
+        }
+
+        //////////////////////////////////////////////////
+        // leave critical section
+        //////////////////////////////////////////////////
+    } catch (...) {
+        // Arm the process deadline before rollback can wait on blocked work.
+        ServerShutdown::fail();
+        // Also stop unstarted members: the pool is terminal after a failed
+        // startup, and no successfully started worker may escape rollback.
+        for (Thread* thread : m_Threads)
+            thread->stop();
+        for (Thread* thread : m_Threads)
+            thread->join();
+        throw;
     }
-
-    //////////////////////////////////////////////////
-    // leave critical section
-    //////////////////////////////////////////////////
-    m_Mutex.unlock();
 
     __END_CATCH
 }
@@ -144,7 +153,7 @@ void ThreadPool::stop()
 {
     __BEGIN_TRY
 
-    std::lock_guard<Mutex> lock(m_Mutex);
+    std::lock_guard lock(m_Mutex);
 
     // Request every stop before joining any worker so zone groups wind down
     // concurrently instead of serially extending shutdown.
@@ -155,6 +164,21 @@ void ThreadPool::stop()
 
     for (Thread* thread : m_Threads)
         thread->join();
+
+    for (Thread* thread : m_Threads) {
+        auto* managed = dynamic_cast<ManagedThread*>(thread);
+        if (managed == nullptr)
+            continue;
+        try {
+            managed->rethrowFailure();
+        } catch (Throwable& error) {
+            cerr << thread->getName() << ": " << error.toString() << endl;
+        } catch (const std::exception& error) {
+            cerr << thread->getName() << ": " << error.what() << endl;
+        } catch (...) {
+            cerr << thread->getName() << ": unknown worker failure" << endl;
+        }
+    }
 
     __END_CATCH
 }
@@ -171,7 +195,7 @@ void ThreadPool::addThread(Thread* thread)
     //////////////////////////////////////////////////
     // enter critical section
     //////////////////////////////////////////////////
-    m_Mutex.lock();
+    std::lock_guard lock(m_Mutex);
 
     // 쓰레드는 널이 아니어야 한다.
     Assert(thread != NULL);
@@ -185,7 +209,6 @@ void ThreadPool::addThread(Thread* thread)
     //////////////////////////////////////////////////
     // leave critical section
     //////////////////////////////////////////////////
-    m_Mutex.unlock();
 
     __END_CATCH
 }
@@ -200,7 +223,7 @@ void ThreadPool::deleteThread(TID tid) {
     //////////////////////////////////////////////////
     // enter critical section
     //////////////////////////////////////////////////
-    m_Mutex.lock();
+    std::lock_guard lock(m_Mutex);
 
     // function object로 특정 TID를 가진 쓰레드 객체가 담긴 노드를 담은
     // iterator를 찾아낸다.
@@ -232,7 +255,6 @@ void ThreadPool::deleteThread(TID tid) {
         //////////////////////////////////////////////////
         // leave critical section
         //////////////////////////////////////////////////
-        m_Mutex.unlock();
 
         throw NoSuchElementException(buf.toString());
     }
@@ -240,7 +262,6 @@ void ThreadPool::deleteThread(TID tid) {
     //////////////////////////////////////////////////
     // leave critical section
     //////////////////////////////////////////////////
-    m_Mutex.unlock();
 
     __END_CATCH
 }
@@ -257,7 +278,7 @@ Thread* ThreadPool::getThread(TID tid) {
     //////////////////////////////////////////////////
     // enter critical section
     //////////////////////////////////////////////////
-    m_Mutex.lock();
+    std::lock_guard lock(m_Mutex);
 
     list<Thread*>::iterator itr = find_if(m_Threads.begin(), m_Threads.end(), isSameTID(tid));
 
@@ -275,7 +296,6 @@ Thread* ThreadPool::getThread(TID tid) {
         //////////////////////////////////////////////////
         // leave critical section
         //////////////////////////////////////////////////
-        m_Mutex.unlock();
 
         throw NoSuchElementException(buf.toString());
     }
@@ -283,7 +303,6 @@ Thread* ThreadPool::getThread(TID tid) {
     //////////////////////////////////////////////////
     // leave critical section
     //////////////////////////////////////////////////
-    m_Mutex.unlock();
 
     return thread;
 

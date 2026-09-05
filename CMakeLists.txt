@@ -69,6 +69,29 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")
 # ============================================================================
 find_package(Threads REQUIRED)
 
+include(CheckCXXSourceCompiles)
+set(CMAKE_REQUIRED_LIBRARIES Threads::Threads)
+check_cxx_source_compiles("
+    #include <thread>
+    #include <stop_token>
+    #include <condition_variable>
+    #include <mutex>
+    #include <chrono>
+    int main() {
+        std::jthread worker([](std::stop_token token) {
+            std::mutex mutex;
+            std::condition_variable_any wake;
+            std::unique_lock lock(mutex);
+            wake.wait_for(lock, token, std::chrono::milliseconds(1), [] { return false; });
+        });
+        worker.request_stop();
+    }
+" DARKEDEN_HAS_COOPERATIVE_THREADS)
+unset(CMAKE_REQUIRED_LIBRARIES)
+if(NOT DARKEDEN_HAS_COOPERATIVE_THREADS)
+    message(FATAL_ERROR "DarkEden needs a C++20 standard library with std::jthread, std::stop_token and stop-aware condition_variable_any. Use the pinned Zig toolchain: docker build -f Dockerfile.dev -t darkeden-dev . then make dev-test.")
+endif()
+
 # MySQL
 if(APPLE)
     find_path(MYSQL_INCLUDE_DIR mysql/mysql.h

@@ -10,6 +10,7 @@
 #include "DB.h"
 #include "IncomingPlayerManager.h"
 #include "Properties.h"
+#include "ServerShutdown.h"
 #include "ServerSocket.h"
 #include "Socket.h"
 #include "ThreadManager.h"
@@ -88,7 +89,7 @@ void ClientManager::stop()
     __BEGIN_TRY
 
     // To be implemented later using signals.
-    throw UnsupportedError(__PRETTY_FUNCTION__);
+    ServerShutdown::request();
 
     __END_CATCH
 }
@@ -113,7 +114,7 @@ void ClientManager::run()
     getCurrentTime(userGatewayTime);
     userGatewayTime.tv_sec += 10;
 
-    while (true) {
+    while (!ServerShutdown::isRequested()) {
         // ofstream file("ClientManager.txt", ios::out | ios::app);
         // StringStream msg;
 

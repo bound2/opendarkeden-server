@@ -108,6 +108,7 @@ GameServer::~GameServer()
 {
     __BEGIN_TRY
 
+    stop();
     // Zone workers must stop while their zone and database dependencies are
     // still alive.
     SAFE_DELETE(g_pThreadManager);
@@ -293,6 +294,8 @@ void GameServer::start()
 void GameServer::stop()
 
 {
+    if (m_Stopped)
+        return;
     __BEGIN_TRY
 
     //
@@ -301,12 +304,22 @@ void GameServer::stop()
     // 가장 먼저 클라이언트 매니저를 삭제시킴으로써 더이상 새 접속을
     // 받지 않도록 한다.
     //
-    try {
-        g_pClientManager->stop();
-    } catch (UnsupportedError&) {
-        // ClientManager::run executes on this calling thread, so reaching
-        // here already means its accept loop has unwound.
-    }
+    ServerShutdown::request();
+    g_pClientManager->stop();
+    // Request every auxiliary stop before any join. All shared dependencies
+    // remain alive until BOTH auxiliary and zone workers have finished.
+    std::vector<ManagedThread*> workers{g_pLoginServerManager, g_pSharedServerManager, &GDRLairManager::Instance()};
+#ifdef __CONNECT_BILLING_SYSTEM__
+    workers.push_back(g_pBillingPlayerManager);
+#endif
+#ifdef __CONNECT_CBILLING_SYSTEM__
+    workers.push_back(g_pCBillingPlayerManager);
+#endif
+#ifdef __MOFUS__
+    workers.push_back(g_pMPlayerManager);
+#endif
+    for (auto* worker : workers)
+        worker->stop();
 
     //
     // stop thread manager
@@ -317,6 +330,19 @@ void GameServer::stop()
     //
     //
     g_pThreadManager->stop();
+    for (auto* worker : workers) {
+        worker->join();
+        try {
+            worker->rethrowFailure();
+        } catch (Throwable& error) {
+            cerr << worker->getName() << ": " << error.toString() << endl;
+        } catch (const std::exception& error) {
+            cerr << worker->getName() << ": " << error.what() << endl;
+        } catch (...) {
+            cerr << worker->getName() << ": unknown worker failure" << endl;
+        }
+    }
+    m_Stopped = true;
 
     // stop object manager
     //

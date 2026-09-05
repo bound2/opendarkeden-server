@@ -56,13 +56,18 @@ The project uses clang-format with a `.clang-format` configuration file.
 ### Tests
 
 ```bash
-# Build and run the wire-contract test suite (local only — no CI tier yet)
+# Build and run the contract suite with a C++20-capable compiler AND library
 make test
 
 # Same suite, but built inside the container off a local workspace. On a
 # Windows host this is the one to use — see "Building in the container" below.
 make dev-test
 ```
+
+Prefer the pinned Zig container. Ubuntu 20.04's distro GCC 9 lacks the
+required library facilities; CMake checks `jthread`, `stop_token`, and
+stop-aware condition-variable waits at configure time. The C++20 workflow
+now runs the Debug suite and production builds on PRs and master pushes.
 
 #### Building in the container
 
@@ -273,6 +278,16 @@ known violations are listed at the end, not silently fixed.
   not started, and `CBillingPlayerManager`'s start is compiled out —
   `__CONNECT_CBILLING_SYSTEM__` is commented out in
   `chinabilling/CBillingInfo.h` — so it never runs either.)
+
+The gameserver workers above use `ManagedThread` (`std::jthread`). Start and
+stop are serialized; stop-before-start is terminal, and join allows a
+concurrent stop request. Derived destructors must stop/join before destroying
+members. SIGTERM/SIGINT request process shutdown; main exits its client loop,
+requests every worker to stop, and joins them while dependencies remain alive.
+The process then uses `_Exit` to reclaim the legacy singleton graph without
+running its unaudited destructors. This does not add a world-save operation.
+A 30-second watchdog forces a nonzero exit if startup, I/O, or a heartbeat
+prevents shutdown. See `docs/TOOLCHAIN.md` for the full contract.
 
 ### The mutation rule
 

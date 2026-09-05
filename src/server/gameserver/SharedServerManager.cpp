@@ -42,6 +42,8 @@ SharedServerManager::SharedServerManager()
 SharedServerManager::~SharedServerManager() noexcept
 
 {
+    stop();
+    join();
     __BEGIN_TRY
 
     SAFE_DELETE(m_pSharedServerClient);
@@ -57,7 +59,7 @@ void SharedServerManager::stop()
 {
     __BEGIN_TRY
 
-    throw UnsupportedError(__PRETTY_FUNCTION__);
+    ManagedThread::stop();
 
     __END_CATCH
 }
@@ -86,7 +88,7 @@ void SharedServerManager::run()
         Timeval dummyQueryTime;
         getCurrentTime(dummyQueryTime);
 
-        while (true) {
+        while (!stopRequested()) {
             usleep(1000); // FIX: 降低 CPU 占用率
 
             // 연결되어 있지 않다면 연결을 시도한다.

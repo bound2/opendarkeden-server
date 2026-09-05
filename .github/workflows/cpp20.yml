@@ -1,0 +1,25 @@
+name: C++20 build and tests
+
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  zig-cpp20:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build pinned Zig development image
+        run: docker build -f Dockerfile.dev -t darkeden-dev .
+      - name: Debug contract and lifecycle tests
+        run: bash tools/devbuild.sh test
+      - name: Compile every production target
+        run: bash tools/devbuild.sh build
+      - name: Build production image
+        run: docker compose -f docker/docker-compose.yml build odk-server
