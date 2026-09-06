@@ -1723,7 +1723,10 @@ void CGSayHandler::opsave(GamePlayer* pGamePlayer, string msg, int i) {
     // that __END_DEBUG_EX below swallowed (logging it to packet_exception.txt).
     // The seam converts it to END_DB's const char*, which that catch does not
     // match, so it is swallowed here instead (the text is in DBError.log now).
-    int maxZoneGroupID = 0; // an empty table read as 0 before (atoi of NULL)
+    // On an empty table the old code atoi'd the NULL field the MAX() row
+    // carries — undefined behaviour, a null dereference on glibc. The seam
+    // answers false and the 0 below stands, so the loop runs zero times.
+    int maxZoneGroupID = 0;
     try {
         defaultZoneInfoRepository().loadMaxZoneGroupID(maxZoneGroupID);
     } catch (const char*) {

@@ -288,10 +288,14 @@ public:
     // does", contradicting the sentence just before it. On a duplicate
     // name one returns false and the other returns a value.
     virtual bool loadSlayerPlayerID(const std::string& name, std::string& playerID) = 0;
-    // The same lookup in its THIRD spelling — CGSayHandler's GM ban
+    // The same lookup in its other spelling — CGSayHandler's GM ban
     // command writes "where" in lower case: same statement, different
-    // bytes, so a spelling enum (CGSay round, 2026-09-06). The plain
-    // method above is the whisper spelling and delegates.
+    // bytes, so a spelling enum (CGSay round, 2026-09-06). Two spellings,
+    // not three: an earlier note here counted loadSlayerAccount's
+    // two-column read as a third, which the note above it says is a
+    // different statement. The plain method above is the whisper
+    // spelling and delegates, so a whisper failure's DBError.log line
+    // now names the two-argument overload.
     virtual bool loadSlayerPlayerID(SlayerPlayerIDSpelling spelling, const std::string& name,
                                     std::string& playerID) = 0;
     // CGSayHandler's guild-master checks (same round): the six Slayer

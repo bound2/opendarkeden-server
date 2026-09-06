@@ -40,7 +40,7 @@
 // check, a crash report), one by billing.
 //
 // The CGSay round (2026-09-06) added the GM commands' bookkeeping from
-// CGSayHandler: the UserIPInfo ServerID read (opinfo), the online-player
+// CGSayHandler: the UserIPInfo ServerID read (opfind), the online-player
 // count (opuser, dist connection), the account ban (opdeny — a Player
 // WRITE, Access='DENY', on the DARKEDEN connection as written), and the
 // two GM-typed report tables BugReportLog and CrashLog (the latter a
@@ -193,7 +193,7 @@ public:
     virtual bool loadLastLogoutDate(const std::string& playerID, std::string& lastLogoutDate) = 0;
 
     // --- the GM commands (CGSayHandler) ---------------------------------------
-    // opinfo: "SELECT ServerID FROM UserIPInfo where Name='%s'" (lower-case
+    // opfind: "SELECT ServerID FROM UserIPInfo where Name='%s'" (lower-case
     // where) through getInt; false when no row (the caller tested
     // getRowCount() != 0).
     virtual bool loadUserServerID(const std::string& name, int& serverID) = 0;
@@ -202,8 +202,9 @@ public:
     // executeQueryString (no arguments) and getInt.
     virtual int countPlayersOnline() = 0;
     // opdeny: "UPDATE Player set Access='DENY' where PlayerID ='%s'" — on
-    // the DARKEDEN connection, not the dist one the other Player
-    // statements use, as written.
+    // the DARKEDEN connection, where every other Player statement in this
+    // seam goes through the dist connection (asked for as "PLAYER_DB", or
+    // "USERINFO" in loadPlayerLocation — both the same socket), as written.
     virtual void denyAccount(const std::string& playerID) = 0;
     // The GM bug_report command: "INSERT INTO BugReportLog(PlayerID, Name,
     // ReportTime, ReportLog) VALUES ('%s', '%s', now(), '%s')" — the caller

@@ -907,9 +907,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > relocation, not an extraction; `handler/CGSayHandler.cpp` (1 live,
   > 2 commented out — its other thirteen moved in the CGSay round; what
   > stays is `opnotice`'s INSERT into `quick1001` on a hard-coded remote
-  > BBS host with credentials in the source, through a Connection it
-  > opens itself rather than DatabaseManager, which no seam of this
-  > shape can take); `item/EventBall.cpp` (7 live, 2 commented out; its tables are
+  > BBS host, through a Connection it opens itself rather than
+  > DatabaseManager — outside the seams' convention, and worth a decision
+  > of its own for two reasons that are not about seams: the host,
+  > database, user and **password are literals in the source**, and the
+  > GM's chat text is interpolated into the statement **unquoted and
+  > unescaped**); `item/EventBall.cpp` (7 live, 2 commented out; its tables are
   > not in `initdb/` and the file is in no CMakeLists — never compiled);
   > files
   > whose only `executeQuery` is commented out (five `mission/` files,

@@ -72,7 +72,10 @@ public:
     // ItemDesc) VALUES (" << 'name', << 'datetime', << 'desc' << ")", which
     // renders the same bytes as this "('%s','%s','%s')" format; the datetime
     // is the text the caller formatted, the description the item's
-    // toString(), interpolated raw as before.
+    // toString(), interpolated raw as before. The chain went through
+    // executeQueryString (no length cap); this goes through executeQuery's
+    // 2048-byte buffer — an item description is a few hundred bytes at
+    // most, so the cap is not reachable, noted because it is new.
     virtual void insertOpCreateLog(const std::string& opName, const std::string& dateTime,
                                    const std::string& itemDesc) = 0;
     virtual void insertMoneyTraceLog(const std::string& preOwner, const std::string& owner, const std::string& logType,

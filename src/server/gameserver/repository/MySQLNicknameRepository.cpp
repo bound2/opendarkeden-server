@@ -32,11 +32,14 @@ namespace {
 //  - The id-0 custom slot stores a single space, never an empty string
 //    (the client renders '' as no slot), and is created with INSERT IGNORE
 //    so re-login of a character that already has one is a no-op.
-//  - Plain inserts omit NickIndex and take the column default; only the
-//    id-0 slot insert writes it (as 0) explicitly.
+//  - Plain inserts omit NickIndex and take the column default; the id-0
+//    slot insert and the GM forced slot's REPLACE (id 100) write it (as 0)
+//    explicitly.
 //  - Time is write-only bookkeeping (now() on insert); nothing reads it.
-//  - Nickname strings get exactly the getDBString escaping above; owner
-//    names are interpolated raw, as the call sites always did.
+//  - Nickname strings get exactly the getDBString escaping above — except
+//    the GM forced slot's REPLACE, whose text the GM command interpolated
+//    raw and which is kept raw; owner names are interpolated raw, as the
+//    call sites always did.
 class MySQLNicknameRepository : public NicknameRepository {
 public:
     vector<NicknameRecord> load(const string& ownerName) {
