@@ -318,11 +318,11 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-            pStmt->executeQuery("INSERT IGNORE INTO UserIPInfo (Name, IP, Port, ServerID) VALUES ( '%s', %lu, %u, %d )",
+            pStmt->executeQuery("INSERT IGNORE INTO UserIPInfo (Name, IP, Port, ServerID) VALUES ( '%s', %u, %u, %d )",
                                 name.c_str(), ip, port, serverID);
 
             if (pStmt->getAffectedRowCount() == 0) {
-                pStmt->executeQuery("UPDATE UserIPInfo Set IP=%lu, Port=%u WHERE Name='%s'", ip, port, name.c_str());
+                pStmt->executeQuery("UPDATE UserIPInfo Set IP=%u, Port=%u WHERE Name='%s'", ip, port, name.c_str());
             }
 
             SAFE_DELETE(pStmt);

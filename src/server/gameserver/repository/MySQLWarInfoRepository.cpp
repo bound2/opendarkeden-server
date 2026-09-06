@@ -7,11 +7,10 @@ namespace {
 // quarantined HERE, per docs/RESTRUCTURING.md 3.2:
 //  - Every statement is byte-for-byte the inline original: the castle
 //    save's "GuildID=%d" unspaced list vs the sweeper writes'
-//    "OwnerRace = %d" spaced ones; the SweeperOwnerInfo UPDATE's %ld
-//    for an int OwnerRace (the 4-byte-through-8-byte conversion family
-//    documented in MySQLCharacterRepository.cpp; the ABI leaves the high
-//    half of a register-passed int undefined, so "benign" is codegen,
-//    not contract — the value is 0..3 and the literal is the original's,
+//    "OwnerRace = %d" spaced ones; the SweeperOwnerInfo UPDATE fed its int
+//    OwnerRace to %ld until the 2026-09-06 width fix retyped it to %d
+//    (the conversion family documented in MySQLCharacterRepository.cpp;
+//    the value is 0..3 and the bytes MySQL receives are the same,
 //    so behaviour is unchanged either way) and %d for a uint
 //    SweeperType; the master-lair SELECT that names 25 columns.
 //  - CastleInfoManager::tinysave applies a caller-composed SET fragment
@@ -395,7 +394,7 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
-                "UPDATE SweeperOwnerInfo SET OwnerRace = %ld, SweeperSafeType = %d WHERE SweeperType = %d", ownerRace,
+                "UPDATE SweeperOwnerInfo SET OwnerRace = %d, SweeperSafeType = %d WHERE SweeperType = %d", ownerRace,
                 safeType, itemType);
             SAFE_DELETE(pStmt);
         }

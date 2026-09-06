@@ -152,11 +152,11 @@ public:
     virtual void deleteUserIP(const std::string& name) = 0;
     virtual void deleteUserIPsOfServer(int serverID) = 0;
     // CGPortCheckHandler: "INSERT IGNORE INTO UserIPInfo (Name, IP, Port,
-    // ServerID) VALUES ( '%s', %lu, %u, %d )" and, when that changed no row,
-    // "UPDATE UserIPInfo Set IP=%lu, Port=%u WHERE Name='%s'" on the same
-    // Statement — as written, including the DWORD ip through "%lu" (one of
-    // the conversions the 3.2 DWORD bullet in docs/RESTRUCTURING.md covers)
-    // and the config's int ServerID through "%d". The handler swallowed a
+    // ServerID) VALUES ( '%s', %u, %u, %d )" and, when that changed no row,
+    // "UPDATE UserIPInfo Set IP=%u, Port=%u WHERE Name='%s'" on the same
+    // Statement — as written except that the DWORD ip's "%lu" became "%u"
+    // in the 2026-09-06 width fix (the 3.2 DWORD bullet in
+    // docs/RESTRUCTURING.md) — and the config's int ServerID through "%d". The handler swallowed a
     // SQLQueryException from either statement; it now swallows the seam's
     // const char* instead, which means END_DB writes a DBError.log line
     // where before nothing was logged.

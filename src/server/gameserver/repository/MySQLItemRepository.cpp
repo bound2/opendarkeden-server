@@ -12,8 +12,10 @@ namespace {
 //    schedule's "Count = Count + 1" / "Count = Count - 1" against
 //    UniqueItemInfo's "CurrentNumber=CurrentNumber+1" and
 //    ResurrectItemCount's "Count=Count+1".
-//  - Four varargs mismatches the originals had are kept: Item::destroy's
-//    DELETE streams an ItemID_t (DWORD) through "%lu",
+//  - Three varargs mismatches the originals had are kept, and one is not:
+//    Item::destroy's DELETE streamed an ItemID_t (DWORD) through "%lu"
+//    and now feeds it to "%u" (the 2026-09-06 width fix, see
+//    MySQLCharacterRepository.cpp);
 //    GlobalItemPositionLoader's SELECT the same type through "%d",
 //    bWinPrize's two DWORDs go through "%d", and the trace log's
 //    ItemType_t (WORD, promoted to int) through "%u". MySQLCharacterRepository.cpp
@@ -355,7 +357,7 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-            pStmt->executeQuery("DELETE FROM %s WHERE ItemID = %lu", tableName.c_str(), itemID);
+            pStmt->executeQuery("DELETE FROM %s WHERE ItemID = %u", tableName.c_str(), itemID);
 
             deleted = pStmt->getAffectedRowCount() != 0;
 

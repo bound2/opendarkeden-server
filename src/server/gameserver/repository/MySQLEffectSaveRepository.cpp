@@ -9,24 +9,20 @@ namespace {
 //    the thirteen classes did NOT agree on spacing, so the format strings
 //    are per-table data rather than one template: "VALUES('%s', ..." vs
 //    the "VALUES ('%s', ..." of CanEnterGDRLair and EnemyErase;
-//    EffectMute's "YearTime=%ld" and "OwnerID='%s'" where the others
+//    EffectMute's "YearTime=%u" and "OwnerID='%s'" where the others
 //    space around "="; the force scrolls' "(OwnerID, RemainTime )" and
-//    "VALUES('%s',%lu)"; and the force-scroll loads' "SELECt" (a typo
+//    "VALUES('%s',%u)"; and the force-scroll loads' "SELECt" (a typo
 //    MySQL accepts — keywords are case-insensitive).
-//  - The varargs conversions are the originals': the Turn_t (DWORD)
-//    year time and remain turn through %ld/%lu — the 4-byte-through-
-//    8-byte-conversion latent bug documented in
-//    MySQLCharacterRepository.cpp; a member call spends the first two
-//    register slots on this and the format string, leaving four for
-//    varargs, and every DWORD in this seam lands in one of those, so
-//    GCC's zero-extension keeps it benign. Only
-//    EffectYellowPoisonToCreature passes a fifth vararg, on the stack,
-//    and it is the int OldSight through %d on the INSERT and the char*
-//    owner name through %s on the UPDATE — both exact at their own
-//    width. The time_t DayTime goes through %ld, which is exact.
-//    Preserved, not fixed. A DWORD can never print more than 4294967295
-//    this way, which is exactly the int(10) unsigned columns' maximum:
-//    no value from this seam is ever clamped.
+//  - The varargs conversions are the arguments' own widths since the
+//    2026-09-06 width fix: the Turn_t (DWORD) year time and remain turn
+//    through %u (the originals fed them to %ld/%lu — the
+//    4-byte-through-8-byte family documented in
+//    MySQLCharacterRepository.cpp; here every DWORD sat in a register
+//    slot, so GCC's zero-extension had kept it benign) and the time_t
+//    DayTime still through %ld, which is exact for it. The bytes MySQL
+//    receives are the same for every value; a DWORD prints at most
+//    4294967295, exactly the int(10) unsigned columns' maximum, so no
+//    value from this seam is ever clamped.
 //  - The remain turn the force scrolls store is computed from
 //    timediff(m_Deadline, now), and Timeval.cpp's timediff returns the
 //    ABSOLUTE difference. A scroll saved after its deadline has passed
@@ -66,48 +62,47 @@ struct DeadlineSpec {
 
 const DeadlineSpec DEADLINE_SPECS[DEADLINE_EFFECT_TABLE_MAX] = {
     // EFFECT_TABLE_AFTERMATH
-    {"INSERT INTO EffectAftermath (OwnerID , YearTime, DayTime) VALUES('%s', %ld, %ld)",
+    {"INSERT INTO EffectAftermath (OwnerID , YearTime, DayTime) VALUES('%s', %u, %ld)",
      "DELETE FROM EffectAftermath WHERE OwnerID = '%s'",
-     "UPDATE EffectAftermath SET YearTime = %ld, DayTime = %ld WHERE OwnerID = '%s'",
+     "UPDATE EffectAftermath SET YearTime = %u, DayTime = %ld WHERE OwnerID = '%s'",
      "SELECT DayTime FROM EffectAftermath WHERE OwnerID = '%s'"},
     // EFFECT_TABLE_KILL_AFTERMATH
-    {"INSERT INTO EffectKillAftermath (OwnerID , YearTime, DayTime) VALUES('%s', %ld, %ld)",
+    {"INSERT INTO EffectKillAftermath (OwnerID , YearTime, DayTime) VALUES('%s', %u, %ld)",
      "DELETE FROM EffectKillAftermath WHERE OwnerID = '%s'",
-     "UPDATE EffectKillAftermath SET YearTime = %ld, DayTime = %ld WHERE OwnerID = '%s'",
+     "UPDATE EffectKillAftermath SET YearTime = %u, DayTime = %ld WHERE OwnerID = '%s'",
      "SELECT DayTime FROM EffectKillAftermath WHERE OwnerID = '%s'"},
     // EFFECT_TABLE_MUTE
-    {"INSERT INTO EffectMute (OwnerID , YearTime, DayTime) VALUES('%s', %ld, %ld)",
-     "DELETE FROM EffectMute WHERE OwnerID = '%s'",
-     "UPDATE EffectMute SET YearTime=%ld, DayTime=%ld WHERE OwnerID='%s'",
+    {"INSERT INTO EffectMute (OwnerID , YearTime, DayTime) VALUES('%s', %u, %ld)",
+     "DELETE FROM EffectMute WHERE OwnerID = '%s'", "UPDATE EffectMute SET YearTime=%u, DayTime=%ld WHERE OwnerID='%s'",
      "SELECT DayTime FROM EffectMute WHERE OwnerID='%s'"},
     // EFFECT_TABLE_CAN_ENTER_GDR_LAIR
-    {"INSERT INTO CanEnterGDRLair (OwnerID , YearTime, DayTime) VALUES ('%s', %ld, %ld)",
+    {"INSERT INTO CanEnterGDRLair (OwnerID , YearTime, DayTime) VALUES ('%s', %u, %ld)",
      "DELETE FROM CanEnterGDRLair WHERE OwnerID = '%s'",
-     "UPDATE CanEnterGDRLair SET YearTime = %ld, DayTime = %ld WHERE OwnerID = '%s'",
+     "UPDATE CanEnterGDRLair SET YearTime = %u, DayTime = %ld WHERE OwnerID = '%s'",
      "SELECT DayTime FROM CanEnterGDRLair WHERE OwnerID = '%s'"},
     // EFFECT_TABLE_RESTORE: the same three columns, spaced its own way
-    // (" VALUES('%s' , " and "YearTime = %ld,DayTime").
-    {"INSERT INTO EffectRestore (OwnerID, YearTime, DayTime) VALUES('%s' , %ld , %ld)",
+    // (" VALUES('%s' , " and "YearTime = %u,DayTime").
+    {"INSERT INTO EffectRestore (OwnerID, YearTime, DayTime) VALUES('%s' , %u , %ld)",
      "DELETE FROM EffectRestore WHERE OwnerID = '%s'",
-     "UPDATE EffectRestore SET YearTime = %ld,DayTime = %ld WHERE OwnerID = '%s'",
+     "UPDATE EffectRestore SET YearTime = %u,DayTime = %ld WHERE OwnerID = '%s'",
      "SELECT DayTime FROM EffectRestore WHERE OwnerID = '%s'"},
 };
 
 const DeadlineSpec REMAIN_SPECS[REMAIN_EFFECT_TABLE_MAX] = {
     // EFFECT_TABLE_SAFE_FORCE_SCROLL
-    {"INSERT INTO EffectSafeForceScroll (OwnerID, RemainTime ) VALUES('%s',%lu)",
+    {"INSERT INTO EffectSafeForceScroll (OwnerID, RemainTime ) VALUES('%s',%u)",
      "DELETE FROM EffectSafeForceScroll WHERE OwnerID = '%s'",
-     "UPDATE EffectSafeForceScroll SET RemainTime = %lu WHERE OwnerID = '%s'",
+     "UPDATE EffectSafeForceScroll SET RemainTime = %u WHERE OwnerID = '%s'",
      "SELECt RemainTime FROM EffectSafeForceScroll WHERE OwnerID = '%s'"},
     // EFFECT_TABLE_BEHEMOTH_FORCE_SCROLL
-    {"INSERT INTO EffectBehemothForceScroll (OwnerID, RemainTime ) VALUES('%s',%lu)",
+    {"INSERT INTO EffectBehemothForceScroll (OwnerID, RemainTime ) VALUES('%s',%u)",
      "DELETE FROM EffectBehemothForceScroll WHERE OwnerID = '%s'",
-     "UPDATE EffectBehemothForceScroll SET RemainTime = %lu WHERE OwnerID = '%s'",
+     "UPDATE EffectBehemothForceScroll SET RemainTime = %u WHERE OwnerID = '%s'",
      "SELECt RemainTime FROM EffectBehemothForceScroll WHERE OwnerID = '%s'"},
     // EFFECT_TABLE_CARNELIAN_FORCE_SCROLL
-    {"INSERT INTO EffectCarnelianForceScroll (OwnerID, RemainTime ) VALUES('%s',%lu)",
+    {"INSERT INTO EffectCarnelianForceScroll (OwnerID, RemainTime ) VALUES('%s',%u)",
      "DELETE FROM EffectCarnelianForceScroll WHERE OwnerID = '%s'",
-     "UPDATE EffectCarnelianForceScroll SET RemainTime = %lu WHERE OwnerID = '%s'",
+     "UPDATE EffectCarnelianForceScroll SET RemainTime = %u WHERE OwnerID = '%s'",
      "SELECt RemainTime FROM EffectCarnelianForceScroll WHERE OwnerID = '%s'"},
 };
 
@@ -133,29 +128,29 @@ const CreatureEffectSpec CREATURE_EFFECT_SPECS[CREATURE_EFFECT_TABLE_MAX] = {
     // CREATURE_EFFECT_BLOOD_DRAIN: the only one of the four already
     // parameterized in its class, so these four literals are copied from
     // its live executeQuery calls rather than rebuilt from a StringStream.
-    {"INSERT INTO EffectBloodDrain (OwnerID , YearTime, DayTime, Level) VALUES('%s', %ld, %ld, %d)",
+    {"INSERT INTO EffectBloodDrain (OwnerID , YearTime, DayTime, Level) VALUES('%s', %u, %ld, %d)",
      "DELETE FROM EffectBloodDrain WHERE OwnerID = '%s'",
-     "UPDATE EffectBloodDrain SET YearTime=%ld, DayTime=%ld, Level=%d WHERE OwnerID='%s'",
+     "UPDATE EffectBloodDrain SET YearTime=%u, DayTime=%ld, Level=%d WHERE OwnerID='%s'",
      "SELECT DayTime, Level FROM EffectBloodDrain WHERE OwnerID='%s'", SHAPE_LEVEL},
     // CREATURE_EFFECT_FLARE
-    {"INSERT INTO EffectFlare(OwnerID , YearTime, DayTime, OldSight) VALUES('%s' , %ld , %ld,%d)",
+    {"INSERT INTO EffectFlare(OwnerID , YearTime, DayTime, OldSight) VALUES('%s' , %u , %ld,%d)",
      "DELETE FROM EffectFlare WHERE OwnerID = '%s'",
-     "UPDATE EffectFlare SET YearTime = %ld, DayTime = %ld, OldSight = %d WHERE OwnerID = '%s'",
+     "UPDATE EffectFlare SET YearTime = %u, DayTime = %ld, OldSight = %d WHERE OwnerID = '%s'",
      "SELECT YearTime, DayTime, OldSight FROM EffectFlare WHERE OwnerID = '%s'", SHAPE_OLD_SIGHT},
     // CREATURE_EFFECT_LIGHT: EffectFlare's four statements with the table
     // name swapped — the two classes' StringStream chains are identical
     // token for token.
-    {"INSERT INTO EffectLight(OwnerID , YearTime, DayTime, OldSight) VALUES('%s' , %ld , %ld,%d)",
+    {"INSERT INTO EffectLight(OwnerID , YearTime, DayTime, OldSight) VALUES('%s' , %u , %ld,%d)",
      "DELETE FROM EffectLight WHERE OwnerID = '%s'",
-     "UPDATE EffectLight SET YearTime = %ld, DayTime = %ld, OldSight = %d WHERE OwnerID = '%s'",
+     "UPDATE EffectLight SET YearTime = %u, DayTime = %ld, OldSight = %d WHERE OwnerID = '%s'",
      "SELECT YearTime, DayTime, OldSight FROM EffectLight WHERE OwnerID = '%s'", SHAPE_OLD_SIGHT},
     // CREATURE_EFFECT_YELLOW_POISON_TO_CREATURE: note the INSERT's single
     // " , " after the owner and bare "," between the three numbers, where
     // EffectFlare's spaces both separators.
     {"INSERT INTO EffectYellowPoisonToCreature(OwnerID , YearTime, DayTime, Level, OldSight) VALUES('%s' , "
-     "%ld,%ld,%d,%d)",
+     "%u,%ld,%d,%d)",
      "DELETE FROM EffectYellowPoisonToCreature WHERE OwnerID = '%s'",
-     "UPDATE EffectYellowPoisonToCreature SET YearTime = %ld, DayTime = %ld, Level = %d, OldSight = %d WHERE "
+     "UPDATE EffectYellowPoisonToCreature SET YearTime = %u, DayTime = %ld, Level = %d, OldSight = %d WHERE "
      "OwnerID = '%s'",
      "SELECT YearTime, DayTime, Level, OldSight FROM EffectYellowPoisonToCreature WHERE OwnerID = '%s'",
      SHAPE_LEVEL_SIGHT},
@@ -273,7 +268,7 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
-                "INSERT INTO EnemyErase (OwnerID , YearTime, DayTime, EnemyName) VALUES ('%s', %ld, %ld, '%s')",
+                "INSERT INTO EnemyErase (OwnerID , YearTime, DayTime, EnemyName) VALUES ('%s', %u, %ld, '%s')",
                 ownerName.c_str(), yearTime, dayTime, enemyName.c_str());
             SAFE_DELETE(pStmt);
         }
@@ -300,7 +295,7 @@ public:
             // keyed on OwnerID alone — rewrites every EnemyErase row the
             // owner has (see the quirk notes above)
             pStmt->executeQuery(
-                "UPDATE EnemyErase SET YearTime = %ld, DayTime = %ld, EnemyName = '%s' WHERE OwnerID = '%s'", yearTime,
+                "UPDATE EnemyErase SET YearTime = %u, DayTime = %ld, EnemyName = '%s' WHERE OwnerID = '%s'", yearTime,
                 dayTime, enemyName.c_str(), ownerName.c_str());
             SAFE_DELETE(pStmt);
         }

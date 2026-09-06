@@ -138,7 +138,7 @@ Vampire::~Vampire()
         getShapeInfo(flag, color);
 
         char pField[128];
-        sprintf(pField, "Shape=%ld, CoatColor=%d", flag, color[PCVampireInfo::VAMPIRE_COLOR_COAT]);
+        sprintf(pField, "Shape=%u, CoatColor=%d", flag, color[PCVampireInfo::VAMPIRE_COLOR_COAT]);
 
         // cout << "SAVE = " << pField << endl;
 
@@ -2118,7 +2118,7 @@ void Vampire::setGoldEx(Gold_t gold)
 
     // by sigi. 2002.5.15
     char pField[80];
-    sprintf(pField, "Gold=%ld", m_Gold);
+    sprintf(pField, "Gold=%u", m_Gold);
     tinysave(pField);
 
     __END_CATCH
@@ -2631,7 +2631,7 @@ void Vampire::saveInitialRank(void)
     */
 
     char pField[80];
-    sprintf(pField, "`Rank`=%d, RankExp=%lu, RankGoalExp=%lu", getRank(), getRankExp(), getRankGoalExp());
+    sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
     tinysave(pField);
     setRankExpSaveCount(0);
     /*

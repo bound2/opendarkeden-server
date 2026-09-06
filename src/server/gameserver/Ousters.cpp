@@ -1912,7 +1912,7 @@ void Ousters::setGoldEx(Gold_t gold)
 
     // by sigi. 2002.5.15
     char pField[80];
-    sprintf(pField, "Gold=%ld", m_Gold);
+    sprintf(pField, "Gold=%u", m_Gold);
     tinysave(pField);
 
     __END_CATCH
@@ -2293,7 +2293,7 @@ void Ousters::saveInitialRank(void)
         setRankGoalExp(NextGoalExp);
     */
     char pField[80];
-    sprintf(pField, "`Rank`=%d, RankExp=%lu, RankGoalExp=%lu", getRank(), getRankExp(), getRankGoalExp());
+    sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
     tinysave(pField);
     setRankExpSaveCount(0);
 }

@@ -50,7 +50,7 @@ void testMaxMemory() {
     for (int i = 1; i < 2048; i++) {
         char* p = new char[mem];
 
-        sprintf(str, "0x%08X = %04d0 M", p, i);
+        sprintf(str, "%p = %04d0 M", (void*)p, i);
 
         cout << str << endl;
     }

@@ -5,8 +5,9 @@
 // INSERT and the zone SELECT) are format strings here; every streamed
 // expression maps to the conversion StringStream used for its type
 // (DWORD/WORD "%u", int "%d", text as is), so the bytes on the wire are
-// the same. The tinysave and save literals keep their "%ld" for the DWORD
-// ids exactly as written; AR's create INSERT was already a parameterized
+// the same. The tinysave and save literals fed the DWORD ids to "%ld" as
+// written until the 2026-09-06 width fix retyped every such conversion to
+// "%u" (see MySQLCharacterRepository.cpp); AR's create INSERT was already a parameterized
 // statement and is verbatim. The guns carry an eighth literal, the
 // saveBullet UPDATE, and four Num-only items (Pupa, Larva, ComposMei, Potion)
 // a ninth, their destroy() DELETE, Key a tenth, setNewMotorcycle's Target
@@ -69,9 +70,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO RingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE RingObject SET %s WHERE ItemID=%ld",
-        "UPDATE RingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE RingObject SET %s WHERE ItemID=%u",
+        "UPDATE RingObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM RingInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -96,9 +97,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO BraceletObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE BraceletObject SET %s WHERE ItemID=%ld",
-        "UPDATE BraceletObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE BraceletObject SET %s WHERE ItemID=%u",
+        "UPDATE BraceletObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM BraceletInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, "
         "ReqAbility,ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, "
@@ -123,9 +124,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO NecklaceObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE NecklaceObject SET %s WHERE ItemID=%ld",
-        "UPDATE NecklaceObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE NecklaceObject SET %s WHERE ItemID=%u",
+        "UPDATE NecklaceObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM NecklaceInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -150,9 +151,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO CoatObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u,  %d, %d)",
-        "UPDATE CoatObject SET %s WHERE ItemID=%ld",
-        "UPDATE CoatObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE CoatObject SET %s WHERE ItemID=%u",
+        "UPDATE CoatObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM CoatInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -177,9 +178,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO TrouserObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE TrouserObject SET %s WHERE ItemID=%ld",
-        "UPDATE TrouserObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE TrouserObject SET %s WHERE ItemID=%u",
+        "UPDATE TrouserObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM TrouserInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -204,9 +205,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO ShoesObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE ShoesObject SET %s WHERE ItemID=%ld",
-        "UPDATE ShoesObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE ShoesObject SET %s WHERE ItemID=%u",
+        "UPDATE ShoesObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM ShoesInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -231,9 +232,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO GloveObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE GloveObject SET %s WHERE ItemID=%ld",
-        "UPDATE GloveObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel = %d WHERE ItemID=%ld",
+        "UPDATE GloveObject SET %s WHERE ItemID=%u",
+        "UPDATE GloveObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel = %d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM GloveInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -258,9 +259,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO HelmObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE HelmObject SET %s WHERE ItemID=%ld",
-        "UPDATE HelmObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE HelmObject SET %s WHERE ItemID=%u",
+        "UPDATE HelmObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM HelmInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -285,9 +286,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO ShieldObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE ShieldObject SET %s WHERE ItemID=%ld",
-        "UPDATE ShieldObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE ShieldObject SET %s WHERE ItemID=%u",
+        "UPDATE ShieldObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM ShieldInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -312,9 +313,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampireRingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE VampireRingObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampireRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE VampireRingObject SET %s WHERE ItemID=%u",
+        "UPDATE VampireRingObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM VampireRingInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -339,9 +340,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampireBraceletObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
         "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE VampireBraceletObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampireBraceletObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE VampireBraceletObject SET %s WHERE ItemID=%u",
+        "UPDATE VampireBraceletObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM VampireBraceletInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -366,9 +367,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampireNecklaceObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
         "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE VampireNecklaceObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampireNecklaceObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE VampireNecklaceObject SET %s WHERE ItemID=%u",
+        "UPDATE VampireNecklaceObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM VampireNecklaceInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -393,9 +394,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersRingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE OustersRingObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE OustersRingObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersRingObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersRingInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -420,9 +421,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersCoatObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE OustersCoatObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersCoatObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE OustersCoatObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersCoatObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersCoatInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -447,9 +448,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersCircletObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
         "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE OustersCircletObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersCircletObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE OustersCircletObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersCircletObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersCircletInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -474,9 +475,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersPendentObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
         "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE OustersPendentObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersPendentObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE OustersPendentObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersPendentObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersPendentInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -501,9 +502,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersBootsObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE OustersBootsObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersBootsObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE OustersBootsObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersBootsObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersBootsInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -528,9 +529,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampireCoatObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE VampireCoatObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampireCoatObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE VampireCoatObject SET %s WHERE ItemID=%u",
+        "UPDATE VampireCoatObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM VampireCoatInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeCrashPercent, NextOptionRatio, NextItemType FROM VampireCoatInfo",
@@ -554,9 +555,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersStoneObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE OustersStoneObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersStoneObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE OustersStoneObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersStoneObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersStoneInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio, "
@@ -581,9 +582,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampireEarringObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
         "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE VampireEarringObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampireEarringObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE VampireEarringObject SET %s WHERE ItemID=%u",
+        "UPDATE VampireEarringObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT ifnull(MAX(ItemType),0) FROM VampireEarringInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -608,9 +609,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampireWeaponObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE VampireWeaponObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampireWeaponObject SET ObjectID=%ld, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE VampireWeaponObject SET %s WHERE ItemID=%u",
+        "UPDATE VampireWeaponObject SET ObjectID=%u, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM VampireWeaponInfo",
         "SELECT "
         "ItemType,Name,EName,Price,Volume,Weight,Ratio,Durability,minDamage,maxDamage,Speed,ReqAbility,ItemLevel, "
@@ -636,9 +637,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersChakramObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
         "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE OustersChakramObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersChakramObject SET ObjectID=%ld, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE OustersChakramObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersChakramObject SET ObjectID=%u, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersChakramInfo",
         "SELECT "
         "ItemType,Name,EName,Price,Volume,Weight,Ratio,Durability,minDamage,maxDamage,Speed,ReqAbility,ItemLevel, "
@@ -664,9 +665,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersWristletObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
         "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE OustersWristletObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersWristletObject SET ObjectID=%ld, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE OustersWristletObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersWristletObject SET ObjectID=%u, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersWristletInfo",
         "SELECT "
         "ItemType,Name,EName,Price,Volume,Weight,Ratio,Durability,minDamage,maxDamage,Speed,ReqAbility,ItemLevel, "
@@ -692,9 +693,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO SwordObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE SwordObject SET %s WHERE ItemID=%ld",
-        "UPDATE SwordObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "UPDATE SwordObject SET %s WHERE ItemID=%u",
+        "UPDATE SwordObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM SwordInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, MaxSilver, "
         "Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
@@ -719,9 +720,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO BladeObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE BladeObject SET %s WHERE ItemID=%ld",
-        "UPDATE BladeObject SET ObjectID=%ld, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "UPDATE BladeObject SET %s WHERE ItemID=%u",
+        "UPDATE BladeObject SET ObjectID=%u, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM BladeInfo",
         "SELECT "
         "ItemType,Name,EName,Price,Volume,Weight,Ratio,Durability,minDamage,maxDamage,MaxSilver,Speed,ReqAbility,"
@@ -747,9 +748,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO CrossObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE CrossObject SET %s WHERE ItemID=%ld",
-        "UPDATE CrossObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%d, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "UPDATE CrossObject SET %s WHERE ItemID=%u",
+        "UPDATE CrossObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%d, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM CrossInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, MPBonus, "
         "MaxSilver, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
@@ -774,9 +775,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO MaceObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE MaceObject SET %s WHERE ItemID=%ld",
-        "UPDATE MaceObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "UPDATE MaceObject SET %s WHERE ItemID=%u",
+        "UPDATE MaceObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, Silver=%d, Grade=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM MaceInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, MPBonus, "
         "MaxSilver, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
@@ -800,10 +801,10 @@ const GearSpec kGear[] = {
     // AR (GEAR_AR)
     {
         "INSERT INTO ARObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, Durability, "
-        "BulletCount, Grade, ItemFlag) VALUES(%ld, %ld, %d, '%s', %d, %ld, %d, %d, '%s', %d, %d, %d, %d)",
-        "UPDATE ARObject SET %s WHERE ItemID=%ld",
-        "UPDATE ARObject SET ObjectID = %ld, ItemType = %d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "BulletCount, Grade, ItemFlag) VALUES(%u, %u, %d, '%s', %d, %u, %d, %d, '%s', %d, %d, %d, %d)",
+        "UPDATE ARObject SET %s WHERE ItemID=%u",
+        "UPDATE ARObject SET ObjectID = %u, ItemType = %d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM ARInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, ToHitBonus, "
         "`Range`, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
@@ -828,9 +829,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO SGObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, BulletCount, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d, %d)",
-        "UPDATE SGObject SET %s, BulletCount=%d WHERE ItemID=%ld",
-        "UPDATE SGObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "UPDATE SGObject SET %s, BulletCount=%d WHERE ItemID=%u",
+        "UPDATE SGObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM SGInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, ToHitBonus, "
         "`Range`, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
@@ -855,9 +856,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO SMGObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, BulletCount, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d, %d)",
-        "UPDATE SMGObject SET %s, BulletCount=%d WHERE ItemID=%ld",
-        "UPDATE SMGObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "UPDATE SMGObject SET %s, BulletCount=%d WHERE ItemID=%u",
+        "UPDATE SMGObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM SMGInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, ToHitBonus, "
         "`Range`, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
@@ -866,7 +867,7 @@ const GearSpec kGear[] = {
         "BulletCount, Silver, Grade, ItemFlag FROM SMGObject WHERE OwnerID = '%s' AND Storage IN(0, 1, 2, 3, 4, 9)",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y,OptionType, Durability, EnchantLevel, "
         "BulletCount, Silver, ItemFlag FROM SMGObject WHERE Storage = %d AND StorageID = %u",
-        "UPDATE SMGObject SET BulletCount = %d WHERE ItemID = %ld",
+        "UPDATE SMGObject SET BulletCount = %d WHERE ItemID = %u",
         NULL,
         NULL,
         NULL,
@@ -882,9 +883,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO SRObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, BulletCount, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d,  %d)",
-        "UPDATE SRObject SET %s, BulletCount=%d WHERE ItemID=%ld",
-        "UPDATE SRObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%ld",
+        "UPDATE SRObject SET %s, BulletCount=%d WHERE ItemID=%u",
+        "UPDATE SRObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, EnchantLevel=%d, BulletCount=%d, Silver=%d, Grade=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM SRInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, minDamage, maxDamage, ToHitBonus, "
         "`Range`, Speed, ReqAbility, ItemLevel, CriticalBonus, DefaultOption, UpgradeRatio, UpgradeCrashPercent, "
@@ -909,9 +910,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO EventItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE EventItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE EventItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE EventItemObject SET %s WHERE ItemID=%u",
+        "UPDATE EventItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM EventItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM EventItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventItemObject WHERE OwnerID "
@@ -934,9 +935,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO EventTreeObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE EventTreeObject SET %s WHERE ItemID=%ld",
-        "UPDATE EventTreeObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE EventTreeObject SET %s WHERE ItemID=%u",
+        "UPDATE EventTreeObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM EventTreeInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM EventTreeInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventTreeObject WHERE OwnerID "
@@ -959,9 +960,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO LuckyBagObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE LuckyBagObject SET %s WHERE ItemID=%ld",
-        "UPDATE LuckyBagObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE LuckyBagObject SET %s WHERE ItemID=%u",
+        "UPDATE LuckyBagObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM LuckyBagInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM LuckyBagInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM LuckyBagObject WHERE OwnerID "
@@ -984,9 +985,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO MoonCardObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE MoonCardObject SET %s WHERE ItemID=%ld",
-        "UPDATE MoonCardObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE MoonCardObject SET %s WHERE ItemID=%u",
+        "UPDATE MoonCardObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM MoonCardInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM MoonCardInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM MoonCardObject WHERE OwnerID "
@@ -1009,9 +1010,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO EventETCObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE EventETCObject SET %s WHERE ItemID=%ld",
-        "UPDATE EventETCObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE EventETCObject SET %s WHERE ItemID=%u",
+        "UPDATE EventETCObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM EventETCInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, `Function` FROM EventETCInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventETCObject WHERE OwnerID "
@@ -1034,9 +1035,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO ResurrectItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
         "ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE ResurrectItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE ResurrectItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, Num=%d WHERE ItemID=%ld",
+        "UPDATE ResurrectItemObject SET %s WHERE ItemID=%u",
+        "UPDATE ResurrectItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM ResurrectItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, ResurrectType FROM ResurrectItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM ResurrectItemObject WHERE "
@@ -1059,9 +1060,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO DyePotionObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE DyePotionObject SET %s WHERE ItemID=%ld",
-        "UPDATE DyePotionObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE DyePotionObject SET %s WHERE ItemID=%u",
+        "UPDATE DyePotionObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM DyePotionInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, FunctionFlag, FunctionValue FROM DyePotionInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM DyePotionObject WHERE OwnerID "
@@ -1084,9 +1085,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO EventStarObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE EventStarObject SET %s WHERE ItemID=%ld",
-        "UPDATE EventStarObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE EventStarObject SET %s WHERE ItemID=%u",
+        "UPDATE EventStarObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM EventStarInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, FunctionFlag, FunctionValue FROM EventStarInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EventStarObject WHERE OwnerID "
@@ -1109,9 +1110,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO EffectItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE EffectItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE EffectItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE EffectItemObject SET %s WHERE ItemID=%u",
+        "UPDATE EffectItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM EffectItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, EffectClass, TimeSec FROM EffectItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM EffectItemObject WHERE "
@@ -1134,9 +1135,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO PetEnchantItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
         "ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE PetEnchantItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE PetEnchantItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, Num=%d WHERE ItemID=%ld",
+        "UPDATE PetEnchantItemObject SET %s WHERE ItemID=%u",
+        "UPDATE PetEnchantItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM PetEnchantItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, `Function`, FunctionGrade FROM PetEnchantItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM PetEnchantItemObject WHERE "
@@ -1159,9 +1160,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO ETCObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, %u, "
         "%u, '%s', %d, %u, %d, %d,%d)",
-        "UPDATE ETCObject SET %s WHERE ItemID=%ld",
-        "UPDATE ETCObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d  "
-        "WHERE ItemID=%ld",
+        "UPDATE ETCObject SET %s WHERE ItemID=%u",
+        "UPDATE ETCObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, Num=%d  "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM ETCInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM ETCInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM ETCObject WHERE OwnerID = '%s' AND "
@@ -1184,9 +1185,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO SerumObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES "
         "(%u,%u,%u,'%s',%d, %u, %d,%d,%d)",
-        "UPDATE SerumObject SET %s WHERE ItemID=%ld",
-        "UPDATE SerumObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
-        "WHERE ItemID=%ld",
+        "UPDATE SerumObject SET %s WHERE ItemID=%u",
+        "UPDATE SerumObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM SerumInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, SerumEffect FROM SerumInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM SerumObject WHERE OwnerID = '%s' AND "
@@ -1209,9 +1210,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampireETCObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES "
         "(%u,%u,%u,'%s',%d, %u, %d,%d,%d)",
-        "UPDATE VampireETCObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampireETCObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE VampireETCObject SET %s WHERE ItemID=%u",
+        "UPDATE VampireETCObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM VampireETCInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, ReqAbility FROM VampireETCInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM VampireETCObject WHERE OwnerID = '%s' "
@@ -1234,9 +1235,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO WaterObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES "
         "(%u,%u,%u,'%s',%d, %u, %d,%d,%d)",
-        "UPDATE WaterObject SET %s WHERE ItemID=%ld",
-        "UPDATE WaterObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
-        "WHERE ItemID=%ld",
+        "UPDATE WaterObject SET %s WHERE ItemID=%u",
+        "UPDATE WaterObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM WaterInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM WaterInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM WaterObject WHERE OwnerID = '%s' AND "
@@ -1258,10 +1259,10 @@ const GearSpec kGear[] = {
     // HolyWater (GEAR_HOLY_WATER)
     {
         "INSERT INTO HolyWaterObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES "
-        "(%ld, %ld, %d, '%s', %d, %ld, %d, %d, %d)",
-        "UPDATE HolyWaterObject SET %s WHERE ItemID=%ld",
-        "UPDATE HolyWaterObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld ,X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "(%u, %u, %d, '%s', %d, %u, %d, %d, %d)",
+        "UPDATE HolyWaterObject SET %s WHERE ItemID=%u",
+        "UPDATE HolyWaterObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u ,X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM HolyWaterInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, minDamage, maxDamage FROM HolyWaterInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM HolyWaterObject WHERE OwnerID = '%s' "
@@ -1282,11 +1283,11 @@ const GearSpec kGear[] = {
     },
     // Magazine (GEAR_MAGAZINE)
     {
-        "INSERT INTO MagazineObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%ld, "
-        "%ld, %d, '%s', %d, %ld, %d, %d, %d)",
-        "UPDATE MagazineObject SET %s WHERE ItemID=%ld",
-        "UPDATE MagazineObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "INSERT INTO MagazineObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, "
+        "%u, %d, '%s', %d, %u, %d, %d, %d)",
+        "UPDATE MagazineObject SET %s WHERE ItemID=%u",
+        "UPDATE MagazineObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM MagazineInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, ItemLevel, MaxBullets, MaxSilverBullets, Vivid, "
         "GunType-1 FROM MagazineInfo",
@@ -1308,11 +1309,11 @@ const GearSpec kGear[] = {
     },
     // Pupa (GEAR_PUPA)
     {
-        "INSERT INTO PupaObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%ld, %ld, "
-        "%d, '%s', %d, %ld, %d, %d, %d)",
-        "UPDATE PupaObject SET %s WHERE ItemID=%ld",
-        "UPDATE PupaObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
-        "WHERE ItemID=%ld",
+        "INSERT INTO PupaObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, %u, "
+        "%d, '%s', %d, %u, %d, %d, %d)",
+        "UPDATE PupaObject SET %s WHERE ItemID=%u",
+        "UPDATE PupaObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM PupaInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Effect FROM PupaInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM PupaObject WHERE OwnerID = '%s' AND "
@@ -1320,7 +1321,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM PupaObject WHERE Storage = %d AND "
         "StorageID = %u",
         NULL,
-        "DELETE FROM %s WHERE ItemID = %ld",
+        "DELETE FROM %s WHERE ItemID = %u",
         NULL,
         NULL,
         NULL,
@@ -1333,11 +1334,11 @@ const GearSpec kGear[] = {
     },
     // Larva (GEAR_LARVA)
     {
-        "INSERT INTO LarvaObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%ld, "
-        "%ld, %d, '%s', %d, %ld, %d, %d, %d)",
-        "UPDATE LarvaObject SET %s WHERE ItemID=%ld",
-        "UPDATE LarvaObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
-        "WHERE ItemID=%ld",
+        "INSERT INTO LarvaObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, "
+        "%u, %d, '%s', %d, %u, %d, %d, %d)",
+        "UPDATE LarvaObject SET %s WHERE ItemID=%u",
+        "UPDATE LarvaObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM LarvaInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Effect FROM LarvaInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM LarvaObject WHERE OwnerID = '%s' AND "
@@ -1345,7 +1346,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM LarvaObject WHERE Storage = %d AND "
         "StorageID = %u",
         NULL,
-        "DELETE FROM %s WHERE ItemID = %ld",
+        "DELETE FROM %s WHERE ItemID = %u",
         NULL,
         NULL,
         NULL,
@@ -1358,11 +1359,11 @@ const GearSpec kGear[] = {
     },
     // ComposMei (GEAR_COMPOS_MEI)
     {
-        "INSERT INTO ComposMeiObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%ld, "
-        "%ld, %d, '%s', %d, %ld, %d, %d, %d)",
-        "UPDATE ComposMeiObject SET %s WHERE ItemID=%ld",
-        "UPDATE ComposMeiObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "INSERT INTO ComposMeiObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, "
+        "%u, %d, '%s', %d, %u, %d, %d, %d)",
+        "UPDATE ComposMeiObject SET %s WHERE ItemID=%u",
+        "UPDATE ComposMeiObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM ComposMeiInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Effect FROM ComposMeiInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM ComposMeiObject WHERE OwnerID = '%s' "
@@ -1370,7 +1371,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM ComposMeiObject WHERE Storage = %d AND "
         "StorageID = %u",
         NULL,
-        "DELETE FROM %s WHERE ItemID = %ld",
+        "DELETE FROM %s WHERE ItemID = %u",
         NULL,
         NULL,
         NULL,
@@ -1383,11 +1384,11 @@ const GearSpec kGear[] = {
     },
     // Potion (GEAR_POTION)
     {
-        "INSERT INTO PotionObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%ld, "
-        "%ld, %d, '%s', %d, %ld, %d, %d, %d)",
-        "UPDATE PotionObject SET %s WHERE ItemID=%ld",
-        "UPDATE PotionObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "INSERT INTO PotionObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, "
+        "%u, %d, '%s', %d, %u, %d, %d, %d)",
+        "UPDATE PotionObject SET %s WHERE ItemID=%u",
+        "UPDATE PotionObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM PotionInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, ItemLevel, Effect FROM PotionInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM PotionObject WHERE OwnerID = '%s' AND "
@@ -1395,7 +1396,7 @@ const GearSpec kGear[] = {
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM PotionObject WHERE Storage = %d AND "
         "StorageID = %u",
         NULL,
-        "DELETE FROM %s WHERE ItemID = %ld",
+        "DELETE FROM %s WHERE ItemID = %u",
         NULL,
         NULL,
         NULL,
@@ -1408,11 +1409,11 @@ const GearSpec kGear[] = {
     },
     // Skull (GEAR_SKULL)
     {
-        "INSERT INTO SkullObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES (%ld, "
-        "%ld, %d, '%s', %d, %ld, %d, %d, %d)",
-        "UPDATE SkullObject SET %s WHERE ItemID=%ld",
-        "UPDATE SkullObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
-        "WHERE ItemID=%ld",
+        "INSERT INTO SkullObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES (%u, "
+        "%u, %d, '%s', %d, %u, %d, %d, %d)",
+        "UPDATE SkullObject SET %s WHERE ItemID=%u",
+        "UPDATE SkullObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM SkullInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, ItemLevel FROM SkullInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM SkullObject WHERE OwnerID = '%s' AND "
@@ -1435,9 +1436,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO BombObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, %u, "
         "%u, '%s', %d, %u, %d, %d,%d)",
-        "UPDATE BombObject SET %s WHERE ItemID=%ld",
-        "UPDATE BombObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
-        "WHERE ItemID=%ld",
+        "UPDATE BombObject SET %s WHERE ItemID=%u",
+        "UPDATE BombObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM BombInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, minDamage, maxDamage FROM BombInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM BombObject WHERE OwnerID = '%s' AND "
@@ -1460,9 +1461,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO BombMaterialObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES "
         "(%u, %u, %u, '%s', %d, %u, %d, %d,%d)",
-        "UPDATE BombMaterialObject SET %s WHERE ItemID=%ld",
-        "UPDATE BombMaterialObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE BombMaterialObject SET %s WHERE ItemID=%u",
+        "UPDATE BombMaterialObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM BombMaterialInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM BombMaterialInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM BombMaterialObject WHERE OwnerID = '%s' "
@@ -1485,9 +1486,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO MineObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num) VALUES(%u, %u, "
         "%u, '%s', %d, %u, %d, %d,%d)",
-        "UPDATE MineObject SET %s WHERE ItemID=%ld",
-        "UPDATE MineObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, Num=%d "
-        "WHERE ItemID=%ld",
+        "UPDATE MineObject SET %s WHERE ItemID=%u",
+        "UPDATE MineObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, Num=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM MineInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, minDamage, maxDamage FROM MineInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num FROM MineObject WHERE OwnerID = '%s' AND "
@@ -1510,9 +1511,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO QuestItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d)",
-        "UPDATE QuestItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE QuestItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d "
-        "WHERE ItemID=%ld",
+        "UPDATE QuestItemObject SET %s WHERE ItemID=%u",
+        "UPDATE QuestItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM QuestItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, BonusRatio FROM QuestItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag FROM QuestItemObject WHERE OwnerID = "
@@ -1535,9 +1536,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO SMSItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d)",
-        "UPDATE SMSItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE SMSItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d WHERE "
-        "ItemID=%ld",
+        "UPDATE SMSItemObject SET %s WHERE ItemID=%u",
+        "UPDATE SMSItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d WHERE "
+        "ItemID=%u",
         "SELECT MAX(ItemType) FROM SMSItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Charge FROM SMSItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag FROM SMSItemObject WHERE OwnerID = '%s' "
@@ -1560,9 +1561,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO SubInventoryObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d)",
-        "UPDATE SubInventoryObject SET %s WHERE ItemID=%ld",
-        "UPDATE SubInventoryObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d "
-        "WHERE ItemID=%ld",
+        "UPDATE SubInventoryObject SET %s WHERE ItemID=%u",
+        "UPDATE SubInventoryObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM SubInventoryInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Width, Height FROM SubInventoryInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag FROM SubInventoryObject WHERE OwnerID = "
@@ -1585,9 +1586,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO TrapItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d)",
-        "UPDATE TrapItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE TrapItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d "
-        "WHERE ItemID=%ld",
+        "UPDATE TrapItemObject SET %s WHERE ItemID=%u",
+        "UPDATE TrapItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM TrapItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, `Function`, Parameter FROM TrapItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag FROM TrapItemObject WHERE OwnerID = "
@@ -1610,9 +1611,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO EventGiftBoxObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y) VALUES(%u, "
         "%u, %u, '%s', %d, %u, %d, %d)",
-        "UPDATE EventGiftBoxObject SET %s WHERE ItemID=%ld",
-        "UPDATE EventGiftBoxObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d "
-        "WHERE ItemID=%ld",
+        "UPDATE EventGiftBoxObject SET %s WHERE ItemID=%u",
+        "UPDATE EventGiftBoxObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM EventGiftBoxInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM EventGiftBoxInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM EventGiftBoxObject WHERE OwnerID = '%s' AND "
@@ -1635,9 +1636,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO LearningItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y) VALUES(%u, "
         "%u, %u, '%s', %d, %u, %d, %d)",
-        "UPDATE LearningItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE LearningItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%s, StorageID=%ld, X=%d, Y=%d "
-        "WHERE ItemID=%ld",
+        "UPDATE LearningItemObject SET %s WHERE ItemID=%u",
+        "UPDATE LearningItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%s, StorageID=%u, X=%d, Y=%d "
+        "WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM LearningItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, SkillType FROM LearningItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y FROM LearningItemObject WHERE OwnerID = '%s' AND "
@@ -1660,9 +1661,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO MixingItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE MixingItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE MixingItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%d WHERE ItemID=%ld",
+        "UPDATE MixingItemObject SET %s WHERE ItemID=%u",
+        "UPDATE MixingItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM MixingItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Target-1, Type-1, SlayerLevel, VampireLevel, "
         "OustersLevel FROM MixingItemInfo",
@@ -1686,9 +1687,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO PetFoodObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d, %d)",
-        "UPDATE PetFoodObject SET %s WHERE ItemID=%ld",
-        "UPDATE PetFoodObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Num=%u WHERE ItemID=%ld",
+        "UPDATE PetFoodObject SET %s WHERE ItemID=%u",
+        "UPDATE PetFoodObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Num=%u WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM PetFoodInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Target, PetHP, TameRatio FROM PetFoodInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Num, ItemFlag FROM PetFoodObject WHERE OwnerID = "
@@ -1711,9 +1712,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO KeyObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Target) VALUES(%u, %u, "
         "%u, '%s', %d, %u, %d, %d, %u)",
-        "UPDATE KeyObject SET %s WHERE ItemID=%ld",
-        "UPDATE KeyObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Target=%d WHERE ItemID=%ld",
+        "UPDATE KeyObject SET %s WHERE ItemID=%u",
+        "UPDATE KeyObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Target=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM KeyInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, OptionType, TargetType FROM KeyInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Target FROM KeyObject WHERE OwnerID = '%s' AND "
@@ -1722,7 +1723,7 @@ const GearSpec kGear[] = {
         "StorageID = %u",
         NULL,
         NULL,
-        "UPDATE KeyObject SET Target=%lu WHERE ItemID=%lu",
+        "UPDATE KeyObject SET Target=%u WHERE ItemID=%u",
         NULL,
         NULL,
         NULL,
@@ -1736,9 +1737,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersSummonItemObject (ItemID,ObjectID,ItemType,OwnerID, Storage,StorageID,X,Y, Charge) VALUES "
         "(%u,%u,%u,'%s',%d,%u,%d,%d,%d)",
-        "UPDATE OustersSummonItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersSummonItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, Charge=%d WHERE ItemID=%ld",
+        "UPDATE OustersSummonItemObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersSummonItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, Charge=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersSummonItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, MaxCharge, Effect FROM OustersSummonItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Charge FROM OustersSummonItemObject WHERE "
@@ -1761,9 +1762,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO SlayerPortalItemObject (ItemID,ObjectID,ItemType,OwnerID, Storage,StorageID,X,Y, Charge) VALUES "
         "(%u,%u,%u,'%s',%d,%u,%d,%d,%d)",
-        "UPDATE SlayerPortalItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE SlayerPortalItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, Charge=%d WHERE ItemID=%ld",
+        "UPDATE SlayerPortalItemObject SET %s WHERE ItemID=%u",
+        "UPDATE SlayerPortalItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, Charge=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM SlayerPortalItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, MaxCharge, ReqAbility FROM SlayerPortalItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Charge FROM SlayerPortalItemObject WHERE OwnerID "
@@ -1786,9 +1787,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO MoneyObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Amount, Num ) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %u, %d)",
-        "UPDATE MoneyObject SET %s, Amount=%ld WHERE ItemID=%ld",
-        "UPDATE MoneyObject SET ObjectID=%ld ,ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Amount=%ld,Num=%d WHERE ItemID=%ld",
+        "UPDATE MoneyObject SET %s, Amount=%u WHERE ItemID=%u",
+        "UPDATE MoneyObject SET ObjectID=%u ,ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Amount=%u,Num=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM MoneyInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM MoneyInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Amount, Num FROM MoneyObject WHERE OwnerID = "
@@ -1811,9 +1812,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO CoupleRingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, "
         "Name, PartnerItemID) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', '%s', %u)",
-        "UPDATE CoupleRingObject SET %s WHERE ItemID=%ld",
-        "UPDATE CoupleRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Name = '%s', PartnerItemID=%ld WHERE ItemID=%ld",
+        "UPDATE CoupleRingObject SET %s WHERE ItemID=%u",
+        "UPDATE CoupleRingObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Name = '%s', PartnerItemID=%u WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM CoupleRingInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM CoupleRingInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Name, PartnerItemID FROM "
@@ -1823,7 +1824,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
-        "SELECT count(*) from CoupleRingObject where ItemID=%ld and Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT count(*) from CoupleRingObject where ItemID=%u and Storage IN(0, 1, 2, 3, 4, 9)",
         NULL,
         NULL,
         NULL,
@@ -1836,9 +1837,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampireCoupleRingObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, "
         "OptionType, Name, PartnerItemID) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', '%s', %u)",
-        "UPDATE VampireCoupleRingObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampireCoupleRingObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, Name='%s', PartnerItemID=%ld WHERE ItemID=%ld",
+        "UPDATE VampireCoupleRingObject SET %s WHERE ItemID=%u",
+        "UPDATE VampireCoupleRingObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, Name='%s', PartnerItemID=%u WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM VampireCoupleRingInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM VampireCoupleRingInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Name, PartnerItemID FROM "
@@ -1848,7 +1849,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
-        "SELECT count(*) from VampireCoupleRingObject where ItemID=%ld and Storage IN(0, 1, 2, 3, 4, 9)",
+        "SELECT count(*) from VampireCoupleRingObject where ItemID=%u and Storage IN(0, 1, 2, 3, 4, 9)",
         NULL,
         NULL,
         NULL,
@@ -1861,9 +1862,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampirePortalItemObject (ItemID,ObjectID,ItemType,OwnerID, Storage,StorageID,X,Y, "
         "Charge,TargetZID,TargetX,TargetY) VALUES (%u,%u,%u,'%s',%d,%u,%d,%d,%d,%d,%d,%d)",
-        "UPDATE VampirePortalItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampirePortalItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, Charge=%d, TargetZID=%d, TargetX=%d, TargetY=%d WHERE ItemID=%ld",
+        "UPDATE VampirePortalItemObject SET %s WHERE ItemID=%u",
+        "UPDATE VampirePortalItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, Charge=%d, TargetZID=%d, TargetX=%d, TargetY=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM VampirePortalItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, MaxCharge, ReqAbility FROM VampirePortalItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, Charge, TargetZID, TargetX, TargetY FROM "
@@ -1886,9 +1887,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO VampireAmuletObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %d, %d)",
-        "UPDATE VampireAmuletObject SET %s WHERE ItemID=%ld",
-        "UPDATE VampireAmuletObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE VampireAmuletObject SET %s WHERE ItemID=%u",
+        "UPDATE VampireAmuletObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM VampireAmuletInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -1913,9 +1914,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO CoreZapObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %d, %d)",
-        "UPDATE CoreZapObject SET %s WHERE ItemID=%ld",
-        "UPDATE CoreZapObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Grade=%d WHERE ItemID=%ld",
+        "UPDATE CoreZapObject SET %s WHERE ItemID=%u",
+        "UPDATE CoreZapObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Grade=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM CoreZapInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, OptionClass FROM CoreZapInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Grade, ItemFlag FROM CoreZapObject "
@@ -1937,10 +1938,10 @@ const GearSpec kGear[] = {
     // Belt (GEAR_BELT)
     {
         "INSERT INTO BeltObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, "
-        "Durability, Grade, ItemFlag) VALUES(%ld, %ld, %d, '%s', %d, %ld, %d, %d, '%s', %d, %d, %d)",
-        "UPDATE BeltObject SET %s WHERE ItemID=%ld",
-        "UPDATE BeltObject SET ObjectID=%ld, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "Durability, Grade, ItemFlag) VALUES(%u, %u, %d, '%s', %d, %u, %d, %d, '%s', %d, %d, %d)",
+        "UPDATE BeltObject SET %s WHERE ItemID=%u",
+        "UPDATE BeltObject SET ObjectID=%u, ItemType=%d, OwnerID= '%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM BeltInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, PocketCount, "
         "ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, "
@@ -1953,7 +1954,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
-        "DELETE FROM BeltObject WHERE ItemID = %ld",
+        "DELETE FROM BeltObject WHERE ItemID = %u",
         NULL,
         NULL,
         NULL,
@@ -1965,9 +1966,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO OustersArmsbandObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
         "OptionType, Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE OustersArmsbandObject SET %s WHERE ItemID=%ld",
-        "UPDATE OustersArmsbandObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE OustersArmsbandObject SET %s WHERE ItemID=%u",
+        "UPDATE OustersArmsbandObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM OustersArmsbandInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, "
         "PocketCount,ReqAbility, ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, "
@@ -1980,7 +1981,7 @@ const GearSpec kGear[] = {
         NULL,
         NULL,
         NULL,
-        "DELETE FROM OustersArmsbandObject WHERE ItemID = %ld",
+        "DELETE FROM OustersArmsbandObject WHERE ItemID = %u",
         NULL,
         NULL,
         NULL,
@@ -1992,9 +1993,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO MittenObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE MittenObject SET %s WHERE ItemID=%ld",
-        "UPDATE MittenObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE MittenObject SET %s WHERE ItemID=%u",
+        "UPDATE MittenObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM MittenInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -2018,9 +2019,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO ShoulderArmorObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE ShoulderArmorObject SET %s WHERE ItemID=%ld",
-        "UPDATE ShoulderArmorObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE ShoulderArmorObject SET %s WHERE ItemID=%u",
+        "UPDATE ShoulderArmorObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM ShoulderArmorInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio "
@@ -2044,9 +2045,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO PersonaObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u, %d, %d)",
-        "UPDATE PersonaObject SET %s WHERE ItemID=%ld",
-        "UPDATE PersonaObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE PersonaObject SET %s WHERE ItemID=%u",
+        "UPDATE PersonaObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d, Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM PersonaInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, DefaultOption, UpgradeCrashPercent, NextOptionRatio, NextItemType FROM PersonaInfo",
@@ -2069,9 +2070,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO DermisObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, Grade, "
         "ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %d, %d)",
-        "UPDATE DermisObject SET %s WHERE ItemID=%ld",
-        "UPDATE DermisObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE DermisObject SET %s WHERE ItemID=%u",
+        "UPDATE DermisObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM DermisInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Defense, Protection, ReqAbility, ItemLevel, "
         "DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio FROM "
@@ -2095,9 +2096,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO FasciaObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, Grade, "
         "ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %d, %d)",
-        "UPDATE FasciaObject SET %s WHERE ItemID=%ld",
-        "UPDATE FasciaObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE FasciaObject SET %s WHERE ItemID=%u",
+        "UPDATE FasciaObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM FasciaInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Defense, Protection, ReqAbility, ItemLevel, "
         "DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio FROM "
@@ -2121,9 +2122,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO CarryingReceiverObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, "
         "OptionType, Grade, ItemFlag) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %d, %d)",
-        "UPDATE CarryingReceiverObject SET %s WHERE ItemID=%ld",
-        "UPDATE CarryingReceiverObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, "
-        "Y=%d, OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE CarryingReceiverObject SET %s WHERE ItemID=%u",
+        "UPDATE CarryingReceiverObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, "
+        "Y=%d, OptionType='%s', Grade=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM CarryingReceiverInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Defense, Protection, ReqAbility, ItemLevel, "
         "DefaultOption, UpgradeRatio, UpgradeCrashPercent, NextOptionRatio, NextItemType, DowngradeRatio FROM "
@@ -2147,9 +2148,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO BloodBibleObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, Durability) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %u)",
-        "UPDATE BloodBibleObject SET %s WHERE ItemID=%ld",
-        "UPDATE BloodBibleObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Durability=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE BloodBibleObject SET %s WHERE ItemID=%u",
+        "UPDATE BloodBibleObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Durability=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM BloodBibleInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel FROM BloodBibleInfo",
@@ -2172,9 +2173,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO CastleSymbolObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, Durability ) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %u)",
-        "UPDATE CastleSymbolObject SET %s WHERE ItemID=%ld",
-        "UPDATE CastleSymbolObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Durability=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE CastleSymbolObject SET %s WHERE ItemID=%u",
+        "UPDATE CastleSymbolObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Durability=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM CastleSymbolInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel FROM CastleSymbolInfo",
@@ -2197,9 +2198,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO SweeperObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, Durability) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %u)",
-        "UPDATE SweeperObject SET %s WHERE ItemID=%ld",
-        "UPDATE SweeperObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Durability=%d, EnchantLevel=%d WHERE ItemID=%ld",
+        "UPDATE SweeperObject SET %s WHERE ItemID=%u",
+        "UPDATE SweeperObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Durability=%d, EnchantLevel=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM SweeperInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel FROM SweeperInfo",
@@ -2222,9 +2223,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO RelicObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, Durability) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %u)",
-        "UPDATE RelicObject SET %s WHERE ItemID=%ld",
-        "UPDATE RelicObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "Durability=%d, EnchantLevel=%d  WHERE ItemID=%ld",
+        "UPDATE RelicObject SET %s WHERE ItemID=%u",
+        "UPDATE RelicObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "Durability=%d, EnchantLevel=%d  WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM RelicInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability, Defense, Protection, ReqAbility, "
         "ItemLevel, RelicType, ZoneID, XCoord, YCoord, MonsterType FROM RelicInfo",
@@ -2247,9 +2248,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO MotorcycleObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType, "
         "Durability) VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s', %u)",
-        "UPDATE MotorcycleObject SET %s WHERE ItemID=%ld",
-        "UPDATE MotorcycleObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s', Durability=%d WHERE ItemID=%ld",
+        "UPDATE MotorcycleObject SET %s WHERE ItemID=%u",
+        "UPDATE MotorcycleObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s', Durability=%d WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM MotorcycleInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio, Durability FROM MotorcycleInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType, Durability FROM MotorcycleObject "
@@ -2272,9 +2273,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO CodeSheetObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, OptionType) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, '%s')",
-        "UPDATE CodeSheetObject SET %s WHERE ItemID=%ld",
-        "UPDATE CodeSheetObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
-        "OptionType='%s' WHERE ItemID=%ld",
+        "UPDATE CodeSheetObject SET %s WHERE ItemID=%u",
+        "UPDATE CodeSheetObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
+        "OptionType='%s' WHERE ItemID=%u",
         "SELECT MAX(ItemType) FROM CodeSheetInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight FROM CodeSheetInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, OptionType FROM CodeSheetObject WHERE OwnerID = "
@@ -2297,9 +2298,9 @@ const GearSpec kGear[] = {
     {
         "INSERT INTO WarItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y) VALUES(%u, %u, "
         "%u, '%s', %d, %u, %d, %d)",
-        "UPDATE WarItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE WarItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d WHERE "
-        "ItemID=%ld",
+        "UPDATE WarItemObject SET %s WHERE ItemID=%u",
+        "UPDATE WarItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d WHERE "
+        "ItemID=%u",
         "SELECT MAX(ItemType) FROM WarItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM WarItemInfo",
         NULL,
@@ -2319,10 +2320,10 @@ const GearSpec kGear[] = {
     // PetItem (GEAR_PET_ITEM)
     {
         "INSERT INTO PetItemObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag) VALUES "
-        "(%lu, %u, %u, '%s', %u, %u, %u, %u, %u)",
-        "UPDATE PetItemObject SET %s WHERE ItemID=%ld",
-        "UPDATE PetItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d WHERE "
-        "ItemID=%ld",
+        "(%u, %u, %u, '%s', %u, %u, %u, %u, %u)",
+        "UPDATE PetItemObject SET %s WHERE ItemID=%u",
+        "UPDATE PetItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d WHERE "
+        "ItemID=%u",
         "SELECT MAX(ItemType) FROM PetItemInfo",
         "SELECT ItemType, Name, EName, Price, Volume, Weight, Ratio FROM PetItemInfo",
         "SELECT ItemID, ObjectID, ItemType, Storage, StorageID, X, Y, ItemFlag, PetCreatureType, PetLevel, PetExp, "
@@ -2338,13 +2339,13 @@ const GearSpec kGear[] = {
         NULL,
         "INSERT INTO PetItemObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag, "
         "PetCreatureType, PetLevel, PetExp, PetHP, PetAttr, PetAttrLevel, PetOption, FoodType, CanGamble, CanCutHead, "
-        "CanAttack, LastFeedTime) VALUES (%lu, %u, %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, "
+        "CanAttack, LastFeedTime) VALUES (%u, %u, %u, '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, "
         "%u, %u, '%s')",
-        "UPDATE PetItemObject SET ObjectID=%ld, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%ld, X=%d, Y=%d, "
+        "UPDATE PetItemObject SET ObjectID=%u, ItemType=%d, OwnerID='%s', Storage=%d, StorageID=%u, X=%d, Y=%d, "
         "PetCreatureType=%u, PetLevel=%u, PetAttr=%u, PetAttrLevel=%u, PetExp=%u, PetHP=%u, FoodType=%u, CanGamble=%u, "
-        "CanCutHead=%u, CanAttack=%u, LastFeedTime='%s', Nickname='%s' WHERE ItemID=%ld",
+        "CanCutHead=%u, CanAttack=%u, LastFeedTime='%s', Nickname='%s' WHERE ItemID=%u",
         "UPDATE PetItemObject SET PetCreatureType=%u, PetLevel=%u, PetAttr=%u, PetAttrLevel=%u, PetExp=%u, PetHP=%u, "
-        "FoodType=%u, CanGamble=%u, CanCutHead=%u, CanAttack=%u, LastFeedTime='%s', Nickname='%s' WHERE ItemID=%ld",
+        "FoodType=%u, CanGamble=%u, CanCutHead=%u, CanAttack=%u, LastFeedTime='%s', Nickname='%s' WHERE ItemID=%u",
         GEAR_INFO_BASIC,
         PET_ITEM_OBJECT,
     },
@@ -2375,7 +2376,7 @@ struct MotorcycleRedeemSpec {
 
 const MotorcycleRedeemSpec kMotorcycleRedeemSpecs[REDEEM_SPELLING_MAX] = {
     // REDEEM_SPELLING_HANDLER — CGUseItemFromInventoryHandler, CGUsePotionFromQuickSlotHandler
-    {"SELECT ItemID, ItemType, OptionType, Durability FROM MotorcycleObject WHERE ItemID=%lu",
+    {"SELECT ItemID, ItemType, OptionType, Durability FROM MotorcycleObject WHERE ItemID=%u",
      "INSERT INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, "
      "Durability) Values (%d, %d, %d, '', %d, %d, %d, %d, '', %d)"},
     // REDEEM_SPELLING_QUEST_ACTION — quest/ActionRedeemMotorcycle
@@ -4018,8 +4019,8 @@ public:
         return rows;
     }
 
-    // Key::setNewMotorcycle — the Target UPDATE with the new motorcycle's id ("%lu"
-    // for both DWORDs, as written; the original discarded the Result). Refuses
+    // Key::setNewMotorcycle — the Target UPDATE with the new motorcycle's id ("%u"
+    // for both DWORDs, retyped from "%lu" in the width fix; the original discarded the Result). Refuses
     // tables without the literal.
     void saveKeyTarget(GearTable table, ItemID_t targetID, ItemID_t itemID) {
         if (spec(table).saveTarget == NULL) {
@@ -4203,7 +4204,7 @@ public:
     }
 
     // Money: the plain columns plus Amount (a DWORD; "%u" in the INSERT as the chain
-    // streamed it, "%ld" in the UPDATE and tinysave as written) and Num; the loads
+    // streamed it, "%u" in the UPDATE and tinysave — retyped from "%ld") and Num; the loads
     // read Amount through getDWORD and Num through getBYTE (owner only: the zone
     // SELECT names no Num). Money's tinysave writes Amount too, so it is its own.
     void insertMoney(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
@@ -4308,7 +4309,7 @@ public:
     }
 
     // The couple rings: the plain columns plus OptionType and Name (text) and
-    // PartnerItemID (an ItemID_t; "%u" in the INSERT, "%ld" in the UPDATE as
+    // PartnerItemID (an ItemID_t; "%u" in the INSERT, "%u" in the UPDATE — retyped from "%ld" — as
     // written); the UPDATE writes no OptionType. Their zone SELECT is the plain
     // shape (loadPlainItemInZone serves it).
     void insertCoupleRing(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
@@ -4374,7 +4375,7 @@ public:
     }
 
     // <Class>::hasPartnerItem — the count(*) of the partner ring's row in an
-    // owner's storage ("%ld" fed the DWORD as written). True when a row came back
+    // owner's storage ("%u" fed the DWORD, retyped from "%ld"). True when a row came back
     // (count(*) always sends one), false otherwise, as the original's
     // pResult->next() branch; the count itself goes out through `count`. Refuses
     // tables without the literal.
@@ -4612,7 +4613,7 @@ public:
     }
 
     // Belt's and OustersArmsband's destroy(): "DELETE FROM <Class>Object WHERE ItemID =
-    // %ld" (the table in the literal, "%ld" fed the DWORD as written). False when no
+    // %u" (the table in the literal, "%u" fed the DWORD, retyped from "%ld"). False when no
     // row went, true otherwise, as the original's getAffectedRowCount() branch.
     // Refuses tables without the literal.
     bool destroyGearObject(GearTable table, ItemID_t itemID) {
@@ -4991,14 +4992,14 @@ public:
     }
 
     // The motorcycle-redeem statements (see the header). The probe's literal is
-    // the one all three call sites wrote — the DWORD through "%lu" as written.
+    // the one all three call sites wrote — the DWORD through "%u", retyped from "%lu".
     bool motorcycleExists(ItemID_t itemID) {
         bool exists = false;
         Statement* pStmt = NULL;
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery("SELECT ItemID FROM MotorcycleObject WHERE ItemID=%lu", itemID);
+            Result* pResult = pStmt->executeQuery("SELECT ItemID FROM MotorcycleObject WHERE ItemID=%u", itemID);
 
             exists = pResult->next();
 

@@ -26,12 +26,12 @@ namespace {
 //    the UNSIGNED column under the non-strict sql_mode — unreachable for
 //    skill data in practice); the WORD-typed type and level members
 //    (SkillType_t, ExpLevel_t) promote to int, so %d is exact for them;
-//    and the time_t NextTime through %d — stack-passed in all three
-//    INSERTs (vararg 5 or 7 of a variadic member function), where
-//    va_arg reads the low 32 bits of the 8-byte slot and still advances
-//    the whole slot, so the arguments after it land correctly. The
-//    whole value until 2038. Preserved bit-for-bit, not fixed — the DB
-//    layer's conversion cleanup is deliberate follow-up work.
+//    and the time_t NextTime through %ld since the 2026-09-06 width fix
+//    (the originals read it through %d — stack-passed in all three
+//    INSERTs, where va_arg took the low 32 bits of the 8-byte slot and
+//    still advanced the whole slot, so the arguments after it landed
+//    correctly and the value was whole until 2038). The bytes MySQL
+//    receives are the same for any date this side of 2038.
 //  - An UPDATE/DELETE for a row that does not exist matches zero rows,
 //    silently; nothing checks it, exactly like the inline code.
 //  - Owner names are interpolated raw (no escaping), as the call sites
@@ -129,7 +129,7 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO SkillSave (OwnerID , SkillType , SkillLevel , SkillExp , Delay , "
-                                "CastingTime , NextTime) VALUES ( '%s', %d, %d, %d, %d, %d, %d )",
+                                "CastingTime , NextTime) VALUES ( '%s', %d, %d, %d, %d, %d, %ld )",
                                 ownerName.c_str(), record.skillType, record.skillLevel, record.skillExp, record.delay,
                                 record.castingTime, record.nextTime);
             SAFE_DELETE(pStmt);
@@ -143,7 +143,7 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery("INSERT INTO VampireSkillSave (OwnerID, SkillType, Delay, CastingTime, NextTime) "
-                                "VALUES ( '%s', %d, %d, %d, %d )",
+                                "VALUES ( '%s', %d, %d, %d, %ld )",
                                 ownerName.c_str(), record.skillType, record.delay, record.castingTime, record.nextTime);
             SAFE_DELETE(pStmt);
         }
@@ -158,7 +158,7 @@ public:
             // SkillLevel comes LAST in this table's insert — the column
             // list and the value list agree, so it lands correctly.
             pStmt->executeQuery("INSERT INTO OustersSkillSave (OwnerID, SkillType, Delay, CastingTime, NextTime, "
-                                "SkillLevel) VALUES ( '%s', %d, %d, %d, %d, %d )",
+                                "SkillLevel) VALUES ( '%s', %d, %d, %d, %ld, %d )",
                                 ownerName.c_str(), record.skillType, record.delay, record.castingTime, record.nextTime,
                                 record.skillLevel);
             SAFE_DELETE(pStmt);

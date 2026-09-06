@@ -2301,7 +2301,7 @@ void saveDissectionItem(Creature* pCreature, Item* pTreasure, int x, int y)
     case Item::ITEM_CLASS_SWEEPER: {
         char query[128];
 
-        sprintf(query, "ObjectID = %lu, Storage=%u, StorageID=%u, X=%u, Y=%u", pTreasure->getObjectID(), STORAGE_ZONE,
+        sprintf(query, "ObjectID = %u, Storage=%u, StorageID=%u, X=%u, Y=%u", pTreasure->getObjectID(), STORAGE_ZONE,
                 pCreature->getZone()->getZoneID(), x, y);
         pTreasure->tinysave(query);
     } break;

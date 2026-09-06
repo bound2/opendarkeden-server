@@ -134,8 +134,8 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
             char sCommand[200];
             string worldName =
                 g_pGameWorldInfoManager->getGameWorldInfo(g_pConfig->getPropertyInt("WorldID"))->getName();
-            sprintf(sCommand, "*allworld *command NotifyWin %s(%s) %lu", pCreature->getName().c_str(),
-                    worldName.c_str(), pPC->getLottoRewardID());
+            sprintf(sCommand, "*allworld *command NotifyWin %s(%s) %u", pCreature->getName().c_str(), worldName.c_str(),
+                    pPC->getLottoRewardID());
             CGSayHandler::opworld(NULL, sCommand, 0, false);
 
         } else {

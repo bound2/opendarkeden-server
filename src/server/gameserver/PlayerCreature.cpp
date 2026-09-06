@@ -918,7 +918,7 @@ void PlayerCreature::increaseRankExp(RankExp_t Point) {
 
     if (m_pRank->increaseExp(Point)) {
         char pField[80];
-        sprintf(pField, "`Rank`=%u, RankExp=%lu, RankGoalExp=%lu", getRank(), getRankExp(), getRankGoalExp());
+        sprintf(pField, "`Rank`=%u, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
         tinysave(pField);
         setRankExpSaveCount(0);
 
@@ -937,7 +937,7 @@ void PlayerCreature::increaseRankExp(RankExp_t Point) {
         WORD rankExpSaveCount = getRankExpSaveCount();
         if (rankExpSaveCount > RANK_EXP_SAVE_PERIOD) {
             char pField[80];
-            sprintf(pField, "RankExp=%lu, RankGoalExp=%lu", getRankExp(), getRankGoalExp());
+            sprintf(pField, "RankExp=%u, RankGoalExp=%u", getRankExp(), getRankGoalExp());
             tinysave(pField);
 
             rankExpSaveCount = 0;

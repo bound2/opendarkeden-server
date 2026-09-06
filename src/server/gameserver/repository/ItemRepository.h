@@ -17,8 +17,9 @@
 // driver getter the inline code called (getInt → int, getString →
 // std::string); write parameters are typed to the expression each caller
 // streamed, so the varargs bytes reaching the format strings are
-// unchanged (an ItemID_t still goes through "%lu" in the delete and
-// "%d" in the position read, as before).
+// unchanged (an ItemID_t goes through "%u" in the delete — retyped from
+// the original's "%lu" in the 2026-09-06 width fix — and "%d" in the
+// position read, as before).
 //
 // Not enclosed: the item-object tables' own INSERT/UPDATE/SELECT paths in
 // gameserver/item/ (their own round); the two other

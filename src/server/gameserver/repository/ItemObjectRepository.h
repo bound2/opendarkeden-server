@@ -188,17 +188,19 @@
 // varargs bytes are unchanged: the create INSERT was a StringStream chain
 // (DWORD/WORD through "%u", int through "%d"; AR's was already a
 // parameterized statement and is verbatim), the save UPDATE and tinysave
-// keep their "%ld" for the DWORD ids exactly as written.
+// feed the DWORD ids to "%u" — retyped from the originals' "%ld" in the
+// 2026-09-06 width fix, which every seam records (see
+// MySQLCharacterRepository.cpp); the bytes MySQL receives are the same.
 //
 // The motorcycle-redeem statements (2026-09-06) live here too, because they
 // are the MotorcycleObject table's: the three call sites that summon a
 // parked motorcycle by its key — CGUseItemFromInventoryHandler,
 // CGUsePotionFromQuickSlotHandler and quest/ActionRedeemMotorcycle — each
 // ran the same three statements against it outside the item classes. An
-// existence probe on the key's Target ("SELECT ItemID ... WHERE ItemID=%lu",
-// the DWORD through "%lu" as written, identical in all three files); a
+// existence probe on the key's Target ("SELECT ItemID ... WHERE ItemID=%u",
+// the DWORD through "%u" — retyped from "%lu" — identical in all three files); a
 // four-column read of the row to rebuild the object from (ItemID, ItemType,
-// OptionType, Durability) — the handlers spell it "WHERE ItemID=%lu", the
+// OptionType, Durability) — the handlers spell it "WHERE ItemID=%u" (retyped from "%lu"), the
 // quest action streamed "where ItemID = " and the id through a StringStream,
 // which renders a DWORD with "%u", so that spelling is the format with "%u";
 // and, when the row was missing, an INSERT of a fresh row with an empty
@@ -233,7 +235,7 @@
 // statement (the redeem round deleted the pStmt/pResult they assigned
 // to, so leaving them verbatim would have made them wrong — the policy
 // in docs/RESTRUCTURING.md 3.2); the action's copy fed both DWORDs to
-// %d where the handler's fed %lu, which the comment there records.
+// %d where the handler's fed %lu — both retyped to %u since — which the comment there records.
 
 enum GearTable {
     GEAR_RING,
@@ -1211,7 +1213,7 @@ struct MotorcycleRedeemRow {
 };
 
 // Which call site's bytes the redeem read and insert send: the two handlers'
-// ("WHERE ItemID=%lu"; "INSERT INTO") or the quest action's ("where ItemID =
+// ("WHERE ItemID=%u"; "INSERT INTO") or the quest action's ("where ItemID =
 // %u", the StringStream rendering; "INSERT IGNORE INTO"). See the header
 // comment.
 enum MotorcycleRedeemSpelling { REDEEM_SPELLING_HANDLER, REDEEM_SPELLING_QUEST_ACTION, REDEEM_SPELLING_MAX };
@@ -1440,8 +1442,8 @@ public:
                            int storage, StorageID_t storageID, int x, int y, ItemID_t target, ItemID_t itemID) = 0;
     virtual std::vector<KeyObjectRow> loadKeyOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<KeyZoneObjectRow> loadKeyInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
-    // Key::setNewMotorcycle — "UPDATE KeyObject SET Target=%lu WHERE ItemID=%lu" with the
-    // new motorcycle's id (both DWORDs through "%lu" as written). Refuses other tables.
+    // Key::setNewMotorcycle — "UPDATE KeyObject SET Target=%u WHERE ItemID=%u" with the
+    // new motorcycle's id (both DWORDs through "%u", retyped from "%lu"). Refuses other tables.
     virtual void saveKeyTarget(GearTable table, ItemID_t targetID, ItemID_t itemID) = 0;
 
     // OustersSummonItem and SlayerPortalItem (see GearObjectKind): the plain columns
@@ -1455,8 +1457,8 @@ public:
     virtual std::vector<ChargeObjectRow> loadChargeItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
     // Money (see GearObjectKind): the plain columns plus Amount (a DWORD; the
-    // UPDATE and tinysave feed it to "%ld" as written) and Num; tinysaveMoney is
-    // "SET %s, Amount=%ld".
+    // UPDATE and tinysave feed it to "%u", retyped from "%ld") and Num; tinysaveMoney is
+    // "SET %s, Amount=%u".
     virtual void insertMoney(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                              const std::string& ownerID, int storage, StorageID_t storageID, int x, int y, DWORD amount,
                              int num) = 0;
@@ -1468,8 +1470,8 @@ public:
     virtual std::vector<MoneyZoneObjectRow> loadMoneyInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
     // The couple rings (see GearObjectKind): the plain columns plus OptionType, Name
-    // and PartnerItemID in the INSERT, Name and PartnerItemID in the UPDATE ("%ld"
-    // fed the DWORD as written); the owner load; and hasPartnerItem's count(*) —
+    // and PartnerItemID in the INSERT, Name and PartnerItemID in the UPDATE ("%u"
+    // fed the DWORD, retyped from "%ld"); the owner load; and hasPartnerItem's count(*) —
     // true with the count when a row came back, false otherwise. The zone load is
     // loadPlainItemInZone.
     virtual void insertCoupleRing(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
@@ -1552,7 +1554,7 @@ public:
                                                                       ZoneID_t zoneID) = 0;
     // The motorcycle-redeem statements (see the header comment). These name
     // MotorcycleObject alone, so they take no table.
-    // "SELECT ItemID FROM MotorcycleObject WHERE ItemID=%lu" — true when a row
+    // "SELECT ItemID FROM MotorcycleObject WHERE ItemID=%u" — true when a row
     // came back. One spelling in all three files.
     virtual bool motorcycleExists(ItemID_t itemID) = 0;
     // The four-column read; true and the row when it exists, false otherwise
@@ -1596,7 +1598,7 @@ public:
     virtual std::vector<WarItemZoneObjectRow> loadWarItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
     // Belt::destroy and OustersArmsband::destroy — "DELETE FROM <Class>Object WHERE ItemID =
-    // %ld"; false when no row went, true otherwise. Refuses tables without the literal.
+    // %u" (retyped from "%ld"); false when no row went, true otherwise. Refuses tables without the literal.
     virtual bool destroyGearObject(GearTable table, ItemID_t itemID) = 0;
 };
 

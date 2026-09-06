@@ -24,16 +24,15 @@ namespace {
 //  - The `Rank` backticks are LOAD-BEARING on MySQL 8: RANK became a
 //    reserved word in 8.0.2, and this project supports 5.7 or 8. The
 //    5.7-based integration tier cannot catch their removal.
-//  - Wide exp values ride the same varargs slots as before — and that
-//    is a LATENT BUG, not a benign quirk: DWORD (4-byte) arguments are
-//    read through %lu/%ld (8-byte) conversions. It works today because
-//    GCC's codegen zero-extends when pushing stack varargs, but the ABI
-//    leaves the upper bytes of sub-eightbyte stack slots unspecified —
-//    clang at -O0 demonstrably reads garbage for every stack-passed
-//    %lu/%ld field (args 5+; saveSlayerExps passes 20). The extraction
-//    preserves the behavior bit-for-bit under either compiler; fixing
-//    the conversions to %u is deliberate follow-up work, not a silent
-//    edit here.
+//  - The exp/fame/rank saves' DWORD arguments go through %u — the
+//    argument's own width — since the 2026-09-06 width fix. The
+//    originals read them through %lu/%ld (8-byte conversions on 4-byte
+//    arguments), which worked under GCC's zero-extending codegen and
+//    read garbage under the pinned Clang toolchain for every
+//    stack-passed field (args 5+; saveSlayerExps passes 20): a Fame of
+//    777 landed as 4294967295. The bytes MySQL receives are identical
+//    for every value a DWORD can hold; the extraction had kept the
+//    conversions bit-for-bit, and this is the follow-up it named.
 //  - An UPDATE for a name with no row matches zero rows, silently, and
 //    affected-rows may be 0 when nothing changed (no CLIENT_FOUND_ROWS)
 //    — nothing here checks it, exactly like the inline code.
@@ -499,10 +498,10 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
             pStmt->executeQuery(
-                "UPDATE Slayer SET STRGoalExp=%lu, DEXGoalExp=%lu, INTGoalExp=%lu, BladeGoalExp=%lu, SwordGoalExp=%lu, "
-                "GunGoalExp=%lu, EnchantGoalExp=%lu, HealGoalExp=%lu, ETCGoalExp=%lu, Alignment=%d, Fame=%ld, "
+                "UPDATE Slayer SET STRGoalExp=%u, DEXGoalExp=%u, INTGoalExp=%u, BladeGoalExp=%u, SwordGoalExp=%u, "
+                "GunGoalExp=%u, EnchantGoalExp=%u, HealGoalExp=%u, ETCGoalExp=%u, Alignment=%d, Fame=%u, "
                 "`Rank`=%d, "
-                "RankGoalExp=%lu, AdvancementClass=%u, AdvancementGoalExp=%d, AdvancedSTR=%u, AdvancedDEX=%u, "
+                "RankGoalExp=%u, AdvancementClass=%u, AdvancementGoalExp=%d, AdvancedSTR=%u, AdvancedDEX=%u, "
                 "AdvancedINT=%u, Bonus=%u WHERE Name='%s'",
                 record.strGoalExp, record.dexGoalExp, record.intGoalExp, record.bladeGoalExp, record.swordGoalExp,
                 record.gunGoalExp, record.enchantGoalExp, record.healGoalExp, record.etcGoalExp, record.alignment,
@@ -525,7 +524,7 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("UPDATE Vampire SET Alignment=%d, Fame=%d, GoalExp=%lu%s, `Rank`=%d, RankGoalExp=%lu, "
+            pStmt->executeQuery("UPDATE Vampire SET Alignment=%d, Fame=%d, GoalExp=%u%s, `Rank`=%d, RankGoalExp=%u, "
                                 "AdvancementClass=%u, AdvancementGoalExp=%d WHERE Name='%s'",
                                 record.alignment, record.fame, record.goalExp, silverDam, record.rank,
                                 record.rankGoalExp, record.advancementClass, record.advancementGoalExp,
@@ -540,8 +539,8 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("UPDATE Ousters SET Alignment=%d, Fame=%d, GoalExp=%lu, SilverDamage = %d, `Rank`=%d, "
-                                "RankGoalExp=%lu, AdvancementClass=%u, AdvancementGoalExp=%d WHERE Name='%s'",
+            pStmt->executeQuery("UPDATE Ousters SET Alignment=%d, Fame=%d, GoalExp=%u, SilverDamage = %d, `Rank`=%d, "
+                                "RankGoalExp=%u, AdvancementClass=%u, AdvancementGoalExp=%d WHERE Name='%s'",
                                 record.alignment, record.fame, record.goalExp, record.silverDamage, record.rank,
                                 record.rankGoalExp, record.advancementClass, record.advancementGoalExp,
                                 ownerName.c_str());

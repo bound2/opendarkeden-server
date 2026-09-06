@@ -90,7 +90,7 @@ void BloodBible::tinysave(const char* field) const
 
     char query[255];
 
-    sprintf(query, "UPDATE BloodBibleObject SET %s WHERE ItemID=%ld", field, m_ItemID);
+    sprintf(query, "UPDATE BloodBibleObject SET %s WHERE ItemID=%u", field, m_ItemID);
     defaultItemObjectRepository().tinysaveGear(GEAR_BLOOD_BIBLE, field, m_ItemID);
     filelog("WarLog.txt", "%s", query);
 

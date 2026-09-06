@@ -805,8 +805,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > - **Integration tier over fakes**: `mysql_repository_tests`
   >   (tests/integration/, `make integration-test`, needs docker) runs
   >   the real impls against MySQL 5.7 loaded with `initdb/` and the
-  >   production sql_mode; 194 tests, 11 of them failing on the pinned
-  >   toolchain (see the DWORD bullet below). A quirk is replayed there
+  >   production sql_mode; 194 tests, all green since the width fix
+  >   (see the DWORD bullet below). A quirk is replayed there
   >   before it is written down — the first rounds' fakes documented three
   >   behaviours the server refuted. Only the six pilot-era seams keep a
   >   fake (tests/support/). A seam whose callers are compiled out still
@@ -853,19 +853,31 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   eight-column SELECT; CodeSheet's zone SELECT names columns its
   >   table lacks.
   > - DWORD fields through `%lu`/`%ld` (exp saves, item ids, Key.Target)
-  >   work only by GCC codegen; preserved bit-for-bit. **Under the pinned
-  >   Zig/Clang 21 toolchain they do not work (found 2026-09-06):** the
-  >   integration tier on unmodified master fails 11 of its 169 tests
-  >   (`CharacterMySQL.SlayerExpsTailLandsInFull` and ten `ItemObjectMySQL`
-  >   round-trips) because a 32-bit argument read through a 64-bit
-  >   conversion takes whatever the upper half of the register holds — a
-  >   Fame of 777 lands as 4294967295 (clamped by the unsigned column), an
-  >   UPDATE keyed by `ItemID=%ld` matches no row (Fame_t and Exp_t are
-  >   both DWORD). This is the shipped binary's
-  >   behaviour, not a test artefact; the fix (retyping each such
-  >   conversion to the argument's width — a byte change, so it gets its
-  >   own PR with the tier pinning the before/after) is owed and not part
-  >   of any extraction round.
+  >   worked only by GCC codegen and were preserved bit-for-bit by the
+  >   extraction rounds. **Under the pinned Zig/Clang 21 toolchain they
+  >   did not work (found 2026-09-06):** the integration tier on
+  >   unmodified master failed 11 of its 169 tests
+  >   (`CharacterMySQL.SlayerExpsTailLandsInFull` and ten
+  >   `ItemObjectMySQL` round-trips) because a 32-bit argument read
+  >   through a 64-bit conversion takes whatever the upper half of the
+  >   register holds — a Fame of 777 landed as 4294967295 (clamped by
+  >   the unsigned column), an UPDATE keyed by `ItemID=%ld` matched no
+  >   row (Fame_t and Exp_t are both DWORD). **Fixed the same day**
+  >   (`fix/varargs-width-conversions`): every conversion is now the
+  >   argument's own width — `%u` for the DWORD/WORD/BYTE arguments,
+  >   `%d` for the one int fed `%ld`, `%ld` for the `time_t` DayTime and
+  >   NextTime that were exact or that `%d` had been truncating — 449
+  >   conversions across seven seam impls and 48 `sprintf`-built tinysave
+  >   fragments, messages and one pointer print in game code. The bytes
+  >   MySQL receives are
+  >   identical for every value the argument can hold, so this is a
+  >   byte change in the source and not on the wire. To keep it fixed,
+  >   `Statement::executeQuery` now carries `__attribute__((format(printf,
+  >   2, 3)))` and the build compiles with `-Wformat` instead of
+  >   `-Wno-format`; the tree is warning-free under it. The one class it
+  >   cannot see is a format reached through a pointer (the per-table
+  >   spec rows in the ItemObject, EffectSave and ComebackEvent seams);
+  >   those were retyped by hand and the tier pins them.
   > - GuildUnionOffer's PK is OwnerGuildID alone, so an ESCAPE insert
   >   over a standing JOIN/QUIT row throws out of CGQuitUnionHandler.
   > - ActionShowGuildDialog gates guild creation on a hardcoded seven
