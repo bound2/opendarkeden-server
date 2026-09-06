@@ -3587,8 +3587,9 @@ TEST_F(ItemMySQL, EventQuestRewardRecordIsInsertedWithNameAndAccount) {
 }
 
 // CGDissectionCorpseHandler's black-star cap: the sum of Num over the
-// ItemType 0 rows of EventStarObject, other types left out; the table is
-// seeded, so the test measures against what stands before it adds rows.
+// ItemType 0 rows of EventStarObject, other types left out. initdb/ leaves
+// the table empty, but the ItemObject round-trip tests write to it too,
+// so the test measures against what stands before it adds rows.
 TEST_F(ItemMySQL, BlackStarCountSumsTheTypeZeroRowsOnly) {
     int before = -1;
     ASSERT_TRUE(defaultItemRepository().loadBlackStarCount(before));
@@ -6364,10 +6365,13 @@ TEST_F(PlayRecordMySQL, MiniGameScoreReadReportsTheRowOrNone) {
 }
 
 // CGSubmitScoreHandler: the UPDATE replaces a standing (type, level) row
-// whose Score is GREATER than the submitted one — lower is better on this
-// board — and only that one (LIMIT 1); a higher submission changes nothing,
+// whose Score is GREATER than the submitted one (whether that means the
+// board keeps low scores or is simply inverted is not knowable from the
+// server: the live read has no ORDER BY, and the two commented-out reads
+// in the tree order opposite ways); a higher submission changes nothing,
 // another level's row is never touched, and with no row there is nothing
-// to update (the statement never inserts).
+// to update (the statement never inserts). LIMIT 1 is not pinned: the
+// test never seeds two beatable rows for one (type, level).
 TEST_F(PlayRecordMySQL, MiniGameScoreReplacesOnlyAWorseRowOfTheSameTypeAndLevel) {
     PlayRecordRepository& repository = defaultPlayRecordRepository();
     execSQL("INSERT INTO MiniGameScores (Name, Type, Level, Score) VALUES ('it-scorer', 120, 5, 999)");

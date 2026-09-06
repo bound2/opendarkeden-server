@@ -24,8 +24,12 @@
 // (CGSayHandler's and mission/MiniGameQuestStatus.cpp's MiniGameScores
 // reads are commented out; the latter calls sendGCMiniGameScores, a
 // caller of this seam); and TradeManager's TradeLog INSERT, which
-// concatenates an unbounded trade summary that executeQuery's 2048-byte
-// format buffer could not carry — it waits for a DB-layer change.
+// concatenates an unbounded trade summary and sends it through
+// executeQueryString (no length cap). Moving it as-is would mean a seam
+// method that takes an assembled statement, which the 3.2 convention
+// (parameterized executeQuery, never concatenation) rules out; the
+// parameterized path's 2048-byte buffer could not carry a large trade's
+// summary, so it waits for an uncapped parameterized path.
 
 // One GQuestSave row for an owner, plus the server-side age of the save
 // (unix_timestamp(now()) - unix_timestamp(Time)).

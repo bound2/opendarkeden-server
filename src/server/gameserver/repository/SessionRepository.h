@@ -35,7 +35,9 @@
 // update-then-insert on the dist connection) and CrashReportLog
 // (CGCrashReportHandler's INSERT). They are here rather than in a seam of
 // their own because they are keyed by the session's account or character
-// and written from the same connect-path handlers as the rest.
+// and written by the client's own handlers — two on the connect path
+// (port check, IP request), two later in the session (the periodic time
+// check, a crash report), one by billing.
 //
 // Not enclosed: CGSayHandler's UserIPInfo read ("SELECT ServerID FROM
 // UserIPInfo where Name='%s'") and its "SELECT Count(*) FROM Player
@@ -46,8 +48,12 @@
 // src/server/PaySystem.cpp's PCRoomUserInfo statements (ServerCore, every
 // caller under the disabled __PAY_SYSTEM_* macros); the loginserver's
 // LoginPlayerManager sweep and its copy of addLogoutPlayerData (the
-// gameserver's copy was dead and is deleted); and the unbuilt
-// src/server/IncomingPlayerManager.cpp fork that still carries the sweep.
+// gameserver's copy was dead and is deleted). The list is scoped to this
+// seam's tables and columns; the loginserver's other Player.LogOn writes
+// (LoginPlayer, CLLoginHandler, CLReconnectLoginHandler) are that
+// binary's. (An earlier entry here named an unbuilt
+// src/server/IncomingPlayerManager.cpp; that file was deleted on
+// 2026-09-05.)
 
 // CGConnectHandler's account read. The columns are named in the order
 // the statement selects them, and each is typed to the driver getter
@@ -176,8 +182,12 @@ public:
     // ("PLAYER_DB"): "SELECT LastLogoutDate FROM Player WHERE PlayerID='%s'"
     // — the datetime as the text getString returns; false when no row.
     // CommonBillingPacket.cpp is compiled into the loginserver too
-    // (LoginServerBilling), which does not link this seam: its call sits
-    // under __GAME_SERVER__ there, and its two callers are gameserver-only.
+    // (LoginServerBilling), which does not link this seam, so its call
+    // sits under __GAME_SERVER__. Of setExpire_Date's two callers in
+    // BillingPlayer.cpp one is under __GAME_SERVER__ and the other
+    // (sendPayCheck) is not — it is dead in the loginserver only because
+    // that build hardcodes isPlaying = true above it; see the comment
+    // there.
     virtual bool loadLastLogoutDate(const std::string& playerID, std::string& lastLogoutDate) = 0;
 
     // --- the per-server user count (USERINFO connection) -------------------

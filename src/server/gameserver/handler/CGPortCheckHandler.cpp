@@ -53,9 +53,10 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
         /*
         try {
             // 다시 한번 시도
-            // (an older retry of the UPDATE that recordUserIP now runs when the
-            // INSERT IGNORE changed no row; this copy fed the DWORD to %ld and
-            // the uint to %d where the live one feeds %lu and %u)
+            // (an older retry that re-ran the UPDATE alone, feeding the DWORD to
+            // %ld and the uint to %d where the live one feeds %lu and %u; the
+            // UPDATE is now the second half of recordUserIP, which is what a
+            // retry would call today)
             defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port,
                                                    g_pConfig->getPropertyInt("ServerID"));
 
