@@ -32,10 +32,10 @@ void EventRefreshHolyLandPlayer::activate()
     unordered_map<ZoneGroupID_t, ZoneGroup*>::const_iterator itr = zoneGroups.begin();
 
     for (; itr != zoneGroups.end(); ++itr) {
-        const unordered_map<ZoneID_t, Zone*>& zones = itr->second->getZones();
-        unordered_map<ZoneID_t, Zone*>::const_iterator zItr = zones.begin();
+        const std::shared_ptr<const ZoneGroup::ZoneMap> zones = itr->second->getZones();
+        unordered_map<ZoneID_t, Zone*>::const_iterator zItr = zones->begin();
 
-        for (; zItr != zones.end(); ++zItr) {
+        for (; zItr != zones->end(); ++zItr) {
             //			cout << zItr->second->getZoneID() << " 존 update" << endl;
             zItr->second->setRefreshHolyLandPlayer(true);
         }

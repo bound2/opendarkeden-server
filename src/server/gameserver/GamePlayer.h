@@ -17,6 +17,7 @@
 #include "Packet.h"
 #include "PaySystem.h"
 #include "Player.h"
+#include "PlayerMailbox.h"
 #include "PlayerStatus.h"
 #include "SocketEncryptInputStream.h"
 #include "SocketEncryptOutputStream.h"
@@ -87,6 +88,13 @@ public:
     // set creature pointer
     void setCreature(Creature* pCreature) {
         m_pCreature = pCreature;
+    }
+
+    // Commands other threads posted for this player (PlayerMailbox.h);
+    // drained by whichever manager owns the player, abandoned by the
+    // destructor. Thread-safe to post to from anywhere.
+    de::PlayerCommandMailbox& mailbox() {
+        return m_Mailbox;
     }
 
     // return recent N-th packet
@@ -254,6 +262,8 @@ private:
 private:
     // creature
     Creature* m_pCreature;
+
+    de::PlayerCommandMailbox m_Mailbox;
 
     // previous packet queue
     deque<Packet*> m_PacketHistory;

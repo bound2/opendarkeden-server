@@ -339,8 +339,11 @@ prevents shutdown. See `docs/TOOLCHAIN.md` for the full contract.
 held.** The group's own `ZoneGroupThread` holds it for its entire tick;
 any other thread must take it explicitly, e.g.
 `__ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))` — `GDRLairManager`
-does this at most (not all — see Known violations) of its zone-mutation
-sites. Note `Zone::m_Mutex` is a **different, narrower** lock some
+does this at every site that touches zone-group state. Its
+`addEffect_LOCKING`/`deleteEffect_LOCKING` calls need no group mutex: they
+go to the zone's separate locked effect manager, which the tick services
+only under `Zone::m_MutexEffect`, the one sub-lock designed for cross-thread
+adds. Note `Zone::m_Mutex` is a **different, narrower** lock some
 main-thread heartbeats take (war/ctf via `pZone->lock()`); holding it does
 NOT exclude the zone-group tick and does not satisfy this rule.
 
@@ -376,37 +379,94 @@ gateways, not a full guarantee.
   player creatures through `g_pPCFinder` under **its** critical section
   (`getCreature_LOCKED`), then use `pPlayer->sendPacket(...)` — sending
   to a player's socket is the main legitimate cross-thread operation.
+- Anything beyond sending — gold, guild id, kick flags, a zone broadcast —
+  goes through the player's **mailbox** (`src/server/Mailbox.h`, owned by
+  `GamePlayer`): `de::postToPlayer(name, command[, ifGone[, scope]])`
+  (`src/server/gameserver/PlayerMailbox.h`) finds the player under the
+  PCFinder lock and queues the command; the manager that owns the player
+  drains it from the one place it processes its players, each tick, before
+  the player's own packets. The box belongs to the player rather than to a
+  group because a player's owner changes over its life (the main thread's
+  `IncomingPlayerManager` during login and zone transfer, a
+  `ZonePlayerManager` on a zone thread in between) and the creature's zone
+  pointer does not say which — it is set as soon as the character loads and
+  stays on the old zone during a transfer. So the box follows the player and
+  keeps posting order across group changes. The zone manager, under the group
+  mutex, runs everything (for a player whose creature is in another
+  group's zone, the listing mismatch it already logs as ZPMCheck, only the
+  player-scoped ones); the main thread runs only `Scope::Player` commands (the kick flags), because the
+  zone the creature points at is ticking elsewhere — `Scope::Zone` commands
+  wait, in order, for a zone thread. A player who logs out with commands
+  pending runs their `ifGone` handlers instead (`~GamePlayer`, right after
+  the PCFinder removal, so exactly one of command/`ifGone` runs), for the
+  handlers whose offline branch matters, like charging a guild fee in the
+  database. Commands capture by value only; a `Guild*`/`GuildMember*` may be
+  deleted before they run. Commands run without the PCFinder lock, so they
+  may post to other players. `ZoneGroup` has a box of its own
+  (`ZoneGroup::post()`, drained at the top of the tick under the group
+  mutex) for group-level work from other threads; its producer is dynamic
+  zone recycling, which hands an instance's `init()` to the group that
+  owns it.
+- Tables that every thread reads and one thread occasionally extends — a
+  group's zone map, the `ZoneInfoManager` lookups — are published
+  copy-on-write through `de::Snapshot` (`src/server/Snapshot.h`): readers
+  load an immutable `shared_ptr<const T>` without waiting on a writer and
+  may iterate it for a whole tick; a writer copies, changes and swaps the
+  pointer under a leaf mutex held for nothing else. That is what lets a
+  zone thread create a dynamic zone in another group's map while that
+  group iterates it. The writer mutex is held while the change runs, so a
+  change must be pure work on the copy (the current ones are map inserts
+  and erases); the snapshot protects the table, not the objects it points
+  to, which stay raw pointers with their old lifetime rules.
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 
 ### Known violations (documented, not yet fixed)
 
-- SG/LG/GG handlers **mutate** creature/guild state (e.g.
-  `SGAddGuildMemberOKHandler` rewrites guild membership on the
-  `SharedServerManager` thread) holding only the `PCFinder` lock. The
-  `PCFinder` lock serializes lookup/removal, but NOT against the zone
-  thread concurrently mutating the same creature under the group mutex.
-  Long-standing data race; fixing it means routing these mutations
-  through the owning group's mutex or a per-group command queue (Phase 3
-  work).
+- ~~SG/LG/GG handlers **mutate** creature state holding only the `PCFinder`
+  lock~~ — **fixed** for the creature side: the six guild handlers and
+  `LGKickCharacter` post their gold / guild-id / kick-flag / zone-broadcast
+  work through `de::postToPlayer` (see "Cross-thread communication"). Now
+  the guild side is closed as far as the maps and flags go: `GuildManager`
+  and `Guild` lock their maps on both sides; `Guild::getMembers()` no
+  longer hands the live member map to a zone-thread reader (it is
+  `getMembers_NOLOCKED()` for the writer thread, readers copy the names
+  under the guild mutex, and the delete-guild handler empties the map
+  through `retireAllMembers()` under it); the per-member rank / log-on /
+  server flags and the member counters are atomics, with the rank change
+  and its counter update under the mutex together. Object lifetime is
+  handled by not freeing: `getGuild()` and `getMember()` return raw
+  pointers after releasing their locks, so a deleted guild or member is
+  retired (`GuildManager::m_RetiredGuilds`, `Guild::m_RetiredMembers`) and
+  stays readable, stale, until the managers are destroyed — the whole-table
+  `clear()` a sharedserver resync triggers retires too, never frees. Still open: a zone thread reading
+  a retired member sees its last rank, and `Guild` scalar fields (name,
+  master, state, intro) are plain members written on the
+  `SharedServerManager` thread.
 - `EventMorph.cpp` mutates `Tile` contents directly
   (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
   assert cannot see such call sites — the assert covers the gateway
   methods only.
-- **Cross-group `ZoneGroup::addZone()` race**: `DynamicZone.cpp` (reached
-  from `CGSelectWayPointHandler` / `ActionEnterQuestZone` on the
-  *requesting player's* zone thread) inserts the new zone into the
-  **template zone's** group — generally a different group — while that
-  group's own thread iterates `m_Zones` in its heartbeat
-  (`unordered_map` rehash-during-iteration). Ungated by the assert
-  (`addZone` is not a gateway); the fix is a deferred handoff to the
-  owning thread, and simply taking the target group's mutex risks a
-  lock-ordering deadlock while the caller holds its own group's.
-- `GDRLairManager` locks correctly at most sites but not all:
-  `GDRLairIcepole::start`, `GDRLairScene6::start` (iterates the zone's
-  PCManager and registers objects) and `GDRLairEnding::start` mutate zone
-  state from the GDR thread without the group mutex. None hits a gated
-  gateway, so the assert stays blind to them.
+- ~~Cross-group `ZoneGroup::addZone()` race~~ — **fixed**: `DynamicZone.cpp`
+  (reached from `CGSelectWayPointHandler` / `ActionEnterQuestZone` on the
+  *requesting player's* zone thread) still inserts the new zone into the
+  template zone's group from that thread, but the group's zone map and
+  the `ZoneInfoManager` tables are now `de::Snapshot`s, so the iterating
+  heartbeat and every concurrent `getZone()` keep the map they loaded; a
+  recycled instance's `init()` is posted to the owning group
+  (`ZoneGroup::post()`); `DynamicZoneGroup` serialises selection/creation
+  under its own mutex and the instance status flag is atomic. Still not
+  gated by the assert (`addZone` is not a gateway), but no longer needs
+  to be.
+- ~~`GDRLairManager` locks correctly at most sites but not all~~ — **fixed**:
+  `GDRLairIcepole::start`, `GDRLairScene6::start` and `GDRLairEnding::start`
+  now take the owning group's mutex around their PCManager walks, effect
+  sweeps, inventory and registry writes, the same explicit
+  `__ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))` the file's other
+  sites use. None hits a gated gateway, so the assert still cannot see a
+  regression there. (The file's `addEffect_LOCKING` calls are not
+  violations: that path is served by the zone's locked effect manager
+  under `Zone::m_MutexEffect` on both sides.)
 - ~~Packets pipelined behind `CGReady` drained on the main thread after
   `GPS_NORMAL` opened the validator gate, reaching the gateways with no
   group mutex~~ — **fixed**: `GamePlayer::processCommand` stops the

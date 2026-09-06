@@ -11,6 +11,10 @@
 
 #ifdef __GAME_SERVER__
 
+#include <string>
+#include <utility>
+#include <vector>
+
 #include "Assert1.h"
 #include "DB.h"
 #include "GCModifyGuildMemberInfo.h"
@@ -20,9 +24,9 @@
 #include "Guild.h"
 #include "GuildManager.h"
 #include "GuildUnion.h"
-#include "PCFinder.h"
 #include "Player.h"
 #include "PlayerCreature.h"
+#include "PlayerMailbox.h"
 #include "Properties.h"
 #include "ResurrectLocationManager.h"
 #include "Zone.h"
@@ -59,147 +63,119 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
 
     // 길드 활동 중인 상태에서의 해체인지 대기 중인 상태에서의 해체인지 구별한다.
     if (pGuild->getState() == Guild::GUILD_STATE_ACTIVE) {
-        HashMapGuildMember& Members = pGuild->getMembers();
-        HashMapGuildMemberItor itr = Members.begin();
+        // Take the members out under the guild mutex -- a zone thread may
+        // be copying the member list at this moment (CGSelectGuild) -- and
+        // work from the returned names. The GuildMember objects and the
+        // Guild itself are retired, never freed here: readers hold raw
+        // pointers to both across the lock (see Guild::m_RetiredMembers,
+        // GuildManager::m_RetiredGuilds).
+        const std::vector<std::pair<std::string, GuildMemberRank_t>> members = pGuild->retireAllMembers();
 
-        for (; itr != Members.end(); itr++) {
-            GuildMember* pGuildMember = itr->second;
+        for (size_t i = 0; i < members.size(); i++) {
+            const std::string& memberName = members[i].first;
 
-            // 접속해 있으면
-            __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-
-            Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuildMember->getName());
-            if (pCreature != NULL && pCreature->isPC()) {
-                Player* pPlayer = pCreature->getPlayer();
-                Assert(pPlayer != NULL);
-
-                PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
-                Assert(pPlayerCreature != NULL);
-
+            // If the member is online, reset its guild id on the owning zone
+            // thread (PlayerMailbox.h). Nothing from this handler is
+            // captured by pointer: the member and the guild are retired
+            // below, before the command runs.
+            // That also means the guild is unregistered one tick before the
+            // member's guild id is reset (the old code reset it first); the
+            // readers of a creature's guild id all null-check the lookup
+            // (GuildMissing.log), so the window shows as a stale badge, not
+            // a crash.
+            de::postToPlayer(memberName, [](PlayerCreature& pc, Player& player) {
                 // Slayer, Vampire 의 길드 아이디를 바꾼다.
-                if (pPlayerCreature->isSlayer()) {
-                    pPlayerCreature->setGuildID(99); // 슬레이어 가입안한 상태의 길드 ID
+                if (pc.isSlayer()) {
+                    pc.setGuildID(99); // 슬레이어 가입안한 상태의 길드 ID
 
                     // 클라이언트에 길드 아이디가 바꼈음을 알린다.
                     GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
-                    gcModifyGuildMemberInfo.setGuildID(pPlayerCreature->getGuildID());
+                    gcModifyGuildMemberInfo.setGuildID(pc.getGuildID());
                     gcModifyGuildMemberInfo.setGuildName("");
                     gcModifyGuildMemberInfo.setGuildMemberRank(GuildMember::GUILDMEMBER_RANK_DENY);
-                    pPlayer->sendPacket(&gcModifyGuildMemberInfo);
-                } else if (pPlayerCreature->isVampire()) {
-                    pPlayerCreature->setGuildID(0); // 뱀파이어 가입안한 상태의 길드 ID
+                    player.sendPacket(&gcModifyGuildMemberInfo);
+                } else if (pc.isVampire()) {
+                    pc.setGuildID(0); // 뱀파이어 가입안한 상태의 길드 ID
 
                     // 클라이언트에 길드 아이디가 바꼈음을 알린다.
                     GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
-                    gcModifyGuildMemberInfo.setGuildID(pPlayerCreature->getGuildID());
+                    gcModifyGuildMemberInfo.setGuildID(pc.getGuildID());
                     gcModifyGuildMemberInfo.setGuildName("");
                     gcModifyGuildMemberInfo.setGuildMemberRank(GuildMember::GUILDMEMBER_RANK_DENY);
-                    pPlayer->sendPacket(&gcModifyGuildMemberInfo);
-                } else if (pPlayerCreature->isOusters()) {
-                    pPlayerCreature->setGuildID(66); // 아우스터즈 가입안한 상태의 길드 ID
+                    player.sendPacket(&gcModifyGuildMemberInfo);
+                } else if (pc.isOusters()) {
+                    pc.setGuildID(66); // 아우스터즈 가입안한 상태의 길드 ID
 
                     // 클라이언트에 길드 아이디가 바꼈음을 알린다.
                     GCModifyGuildMemberInfo gcModifyGuildMemberInfo;
-                    gcModifyGuildMemberInfo.setGuildID(pPlayerCreature->getGuildID());
+                    gcModifyGuildMemberInfo.setGuildID(pc.getGuildID());
                     gcModifyGuildMemberInfo.setGuildName("");
                     gcModifyGuildMemberInfo.setGuildMemberRank(GuildMember::GUILDMEMBER_RANK_DENY);
-                    pPlayer->sendPacket(&gcModifyGuildMemberInfo);
+                    player.sendPacket(&gcModifyGuildMemberInfo);
                 }
 
                 // 주위에 클라이언트에 길드 아이디가 바꼈음을 알린다.
                 GCOtherModifyInfo gcOtherModifyInfo;
-                gcOtherModifyInfo.setObjectID(pCreature->getObjectID());
-                gcOtherModifyInfo.addShortData(MODIFY_GUILDID, pPlayerCreature->getGuildID());
+                gcOtherModifyInfo.setObjectID(pc.getObjectID());
+                gcOtherModifyInfo.addShortData(MODIFY_GUILDID, pc.getGuildID());
 
-                Zone* pZone = pCreature->getZone();
+                Zone* pZone = pc.getZone();
                 Assert(pZone != NULL);
 
-                pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcOtherModifyInfo, pCreature);
-            }
-
-            __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
-
-            // Guild Member 객체를 삭제한다.
-            SAFE_DELETE(pGuildMember);
+                pZone->broadcastPacket(pc.getX(), pc.getY(), &gcOtherModifyInfo, &pc);
+            });
         }
 
-        // 길드 멤버 맵을 삭제한다.
-        Members.clear();
-
-        // 길드 매니저에서 길드를 삭제한다.
+        // 길드 매니저에서 길드를 삭제한다 (retired, not freed).
         g_pGuildManager->deleteGuild(pGuild->getID());
-
-        // 길드 객체를 삭제한다.
-        SAFE_DELETE(pGuild);
     } else if (pGuild->getState() == Guild::GUILD_STATE_WAIT) {
-        HashMapGuildMember& Members = pGuild->getMembers();
-        HashMapGuildMemberItor itr = Members.begin();
+        const std::vector<std::pair<std::string, GuildMemberRank_t>> members = pGuild->retireAllMembers();
 
-        MessageRepository& messages = defaultMessageRepository();
+        for (size_t i = 0; i < members.size(); i++) {
+            const std::string& memberName = members[i].first;
 
-        for (; itr != Members.end(); itr++) {
-            GuildMember* pGuildMember = itr->second;
-
-            // 접속해 있으면
-            __ENTER_CRITICAL_SECTION((*g_pPCFinder))
-
-            Creature* pCreature = g_pPCFinder->getCreature_LOCKED(pGuildMember->getName());
-            if (pCreature != NULL && pCreature->isPC()) {
-                Player* pPlayer = pCreature->getPlayer();
-                Assert(pPlayer != NULL);
-
-                PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
-                Assert(pPlayerCreature != NULL);
-
+            // If the member is online, refund the fee on the owning zone
+            // thread (PlayerMailbox.h); the rank is captured by value
+            // taken from the returned list, not a live member. The
+            // message repository is looked up inside the command so the
+            // SQL runs on the zone thread's own connection. A SQL failure
+            // there surfaces as the const char* END_DB rethrows -- not a
+            // Throwable -- which the mailbox drain logs without stopping
+            // the tick; the dangling const char* itself (END_DB throws
+            // msg.c_str() from a local string) is a separate open defect.
+            const GuildMemberRank_t rank = members[i].second;
+            de::postToPlayer(memberName, [rank](PlayerCreature& pc, Player& player) {
                 // 등록비를 환불한다.
-                Gold_t Gold = pPlayerCreature->getGold();
-                if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER) {
+                Gold_t Gold = pc.getGold();
+                if (rank == GuildMember::GUILDMEMBER_RANK_MASTER) {
                     Gold = min((uint64_t)(Gold + RETURN_SLAYER_MASTER_GOLD), (uint64_t)2000000000);
-                } else if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
+                } else if (rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
                     Gold = min((uint64_t)(Gold + RETURN_SLAYER_SUBMASTER_GOLD), (uint64_t)2000000000);
                 }
 
-                pPlayerCreature->setGoldEx(Gold);
+                pc.setGoldEx(Gold);
 
                 GCModifyInformation gcModifyInformation;
                 gcModifyInformation.addLongData(MODIFY_GOLD, Gold);
-                pPlayer->sendPacket(&gcModifyInformation);
+                player.sendPacket(&gcModifyInformation);
 
                 // 메시지를 보낸다.
-                // NOTE: this runs inside __ENTER_CRITICAL_SECTION and a SQL failure
-                // here escapes as the const char* END_DB rethrows, which is not a
-                // Throwable. That used to leave g_pPCFinder locked: the old
-                // __LEAVE_CRITICAL_SECTION released the lock from a catch (Throwable&)
-                // clause the const char* walked straight past. The section is now
-                // closed by a scoped guard, so the lock is released whatever type is
-                // thrown. The dangling const char* itself — END_DB throws msg.c_str()
-                // from a local string — is a separate defect and still open.
-                vector<string> queued = messages.loadMessages(pCreature->getName());
+                MessageRepository& messages = defaultMessageRepository();
+                vector<string> queued = messages.loadMessages(pc.getName());
 
                 for (size_t m = 0; m < queued.size(); m++) {
                     GCSystemMessage message;
                     message.setMessage(queued[m]);
-                    pPlayer->sendPacket(&message);
+                    player.sendPacket(&message);
                 }
 
-                messages.deleteMessages(pCreature->getName());
-            }
-
-            __LEAVE_CRITICAL_SECTION((*g_pPCFinder))
-
-            // 길드 멤버 객체를 삭제한다.
-            SAFE_DELETE(pGuildMember);
+                messages.deleteMessages(pc.getName());
+            });
         }
 
-        // 길드 멤버 해쉬 맵을 지운다.
-        Members.clear();
-
-        // 길드 매니저에서 길드를 삭제한다.
+        // 길드 매니저에서 길드를 삭제한다 (retired, not freed).
         g_pGuildManager->deleteGuild(pGuild->getID());
         GuildUnionManager::Instance().removeMasterGuild(pGuild->getID());
-
-        // 길드 객체를 삭제한다.
-        SAFE_DELETE(pGuild);
     }
 
 #endif

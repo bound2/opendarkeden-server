@@ -5,6 +5,8 @@
 #ifndef __DYNAMIC_ZONE_H__
 #define __DYNAMIC_ZONE_H__
 
+#include <atomic>
+
 #include "Timeval.h"
 #include "Types.h"
 
@@ -44,21 +46,29 @@ public:
     ZoneID_t getZoneID() const {
         return m_ZoneID;
     }
+    // The instance's Zone once makeDynamicZone() has built it; null before.
+    Zone* getZone() const {
+        return m_pZone;
+    }
     void setZoneID(ZoneID_t zoneID) {
         m_ZoneID = zoneID;
     }
 
+    // Written by the zone's own thread when the instance empties and is
+    // recycled, read by whichever zone thread is choosing an instance for a
+    // player (DynamicZoneGroup::getAvailableDynamicZone): an atomic flag,
+    // not a locked one, since a stale READY only costs a second look.
     int getStatus() const {
-        return m_Status;
+        return m_Status.load(std::memory_order_acquire);
     }
     void setStatus(int status) {
-        m_Status = status;
+        m_Status.store(status, std::memory_order_release);
     }
 
 protected:
     ZoneID_t m_TemplateZoneID;
     ZoneID_t m_ZoneID;
-    int m_Status;
+    std::atomic<int> m_Status{DYNAMIC_ZONE_STATUS_READY};
     Zone* m_pZone;
     Timeval m_Deadline;
 };

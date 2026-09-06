@@ -7,6 +7,7 @@
 #include "ZoneGroup.h"
 
 #include <cstdlib>
+#include <exception>
 
 #include "Assert.h"
 #include "Profile.h"
@@ -54,8 +55,8 @@ ZoneGroup::~ZoneGroup()
 {
     __BEGIN_TRY
 
-    // 해쉬맵안에 있는 모든 pair 들을 삭제한다.
-    m_Zones.clear();
+    // 해쉬맵안에 있는 모든 pair 들을 삭제한다. The Snapshot member frees the
+    // published map with the object; nothing to clear by hand.
 
     __END_CATCH_NO_RETHROW
 }
@@ -213,6 +214,40 @@ void ZoneGroup::processPlayers()
 
 
 //////////////////////////////////////////////////////////////////////////////
+// Run the commands other threads posted for this group. Called by the
+// ZoneGroupThread at the top of its tick, with the group mutex held, so a
+// command sees the same ownership guarantees as a CG handler. One failing
+// command is logged, not fatal: the others still run and the tick goes on.
+//////////////////////////////////////////////////////////////////////////////
+std::size_t ZoneGroup::drainMailbox() {
+    assertOwned();
+
+    if (m_Mailbox.empty())
+        return 0;
+
+    std::size_t ran = m_Mailbox.drain(
+        [](std::function<void()>& command) { command(); },
+        [this] {
+            try {
+                throw;
+            } catch (Throwable& t) {
+                filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: %s", (unsigned)m_ZoneGroupID,
+                        t.toString().c_str());
+            } catch (std::exception& e) {
+                filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: %s", (unsigned)m_ZoneGroupID, e.what());
+            } catch (...) {
+                filelog("errorLog.txt", "ZoneGroup %u mailbox command failed: unknown exception",
+                        (unsigned)m_ZoneGroupID);
+            }
+        });
+    if (ran > kMailboxDepthWarning)
+        filelog("errorLog.txt", "ZoneGroup %u mailbox drained %u commands in one tick: a producer outran the tick",
+                (unsigned)m_ZoneGroupID, (unsigned)ran);
+    return ran;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
 // process all npc, monsters, ... in zones
 //////////////////////////////////////////////////////////////////////////////
 void ZoneGroup::heartbeat()
@@ -226,7 +261,8 @@ void ZoneGroup::heartbeat()
     //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     // now process each zones' NPCs, MOBs, weather, quest, ...
-    for (unordered_map<ZoneID_t, Zone*>::iterator itr = m_Zones.begin(); itr != m_Zones.end(); itr++) {
+    const std::shared_ptr<const ZoneMap> zones = m_Zones.load();
+    for (ZoneMap::const_iterator itr = zones->begin(); itr != zones->end(); itr++) {
         Zone* pZone = itr->second;
         pZone->heartbeat();
     }
@@ -252,7 +288,8 @@ void ZoneGroup::makeZoneUserInfo(GMServerInfo& gmServerInfo)
     // vstime.start();
 
     // now process each zones' NPCs, MOBs, weather, quest, ...
-    for (unordered_map<ZoneID_t, Zone*>::iterator itr = m_Zones.begin(); itr != m_Zones.end(); itr++) {
+    const std::shared_ptr<const ZoneMap> zones = m_Zones.load();
+    for (ZoneMap::const_iterator itr = zones->begin(); itr != zones->end(); itr++) {
         Zone* pZone = itr->second;
 
         gmServerInfo.addZoneUserData(pZone->getZoneID(), pZone->getPCCount());
@@ -272,14 +309,15 @@ void ZoneGroup::addZone(Zone* pZone)
 {
     __BEGIN_TRY
 
-    // 일단 같은 아이디의 존이 있는지 체크해본다.
-    unordered_map<ZoneID_t, Zone*>::iterator itr = m_Zones.find(pZone->getZoneID());
-
-    if (itr != m_Zones.end())
-        // 똑같은 아이디가 이미 존재한다는 소리다. - -;
-        throw Error("duplicated zone id");
-
-    m_Zones[pZone->getZoneID()] = pZone;
+    // 일단 같은 아이디의 존이 있는지 체크해본다. The insert is a copy-on-write
+    // publish (see m_Zones), so a reader on another thread -- this group's
+    // own heartbeat included -- keeps iterating the map it loaded.
+    m_Zones.update([pZone](ZoneMap& zones) {
+        if (zones.find(pZone->getZoneID()) != zones.end())
+            // 똑같은 아이디가 이미 존재한다는 소리다. - -;
+            throw Error("duplicated zone id");
+        zones[pZone->getZoneID()] = pZone;
+    });
 
     __END_CATCH
 }
@@ -290,20 +328,12 @@ void ZoneGroup::addZone(Zone* pZone)
 void ZoneGroup::deleteZone(ZoneID_t zoneID) {
     __BEGIN_TRY
 
-    unordered_map<ZoneID_t, Zone*>::iterator itr = m_Zones.find(zoneID);
-
-    if (itr != m_Zones.end()) {
-        // 존을 삭제한다.
-        SAFE_DELETE(itr->second);
-
-        // pair를 삭제한다.
-        m_Zones.erase(itr);
-    } else {
-        // 그런 존 아이디를 찾을 수 없었을 때
-        StringStream msg;
-        msg << "ZoneID : " << zoneID;
-        throw NoSuchElementException(msg.toString());
-    }
+    // Unpublishing first only keeps NEW readers from finding the zone; one
+    // that loaded the old snapshot still holds the raw Zone* and is not
+    // protected by the delete coming second. Safe only while no such
+    // reader can exist -- this function has no live caller.
+    Zone* pZone = removeZone(zoneID);
+    SAFE_DELETE(pZone);
 
     __END_CATCH
 }
@@ -315,23 +345,19 @@ void ZoneGroup::deleteZone(ZoneID_t zoneID) {
 Zone* ZoneGroup::removeZone(ZoneID_t zoneID) {
     __BEGIN_TRY
 
-    unordered_map<ZoneID_t, Zone*>::iterator itr = m_Zones.find(zoneID);
-
-    if (itr != m_Zones.end()) {
-        // 존을 삭제한다.
-        // SAFE_DELETE(itr->second);
+    return m_Zones.update([zoneID](ZoneMap& zones) {
+        ZoneMap::iterator itr = zones.find(zoneID);
+        if (itr == zones.end()) {
+            // 그런 존 아이디를 찾을 수 없었을 때
+            StringStream msg;
+            msg << "ZoneID : " << zoneID;
+            throw NoSuchElementException(msg.toString());
+        }
+        // pair를 삭제한다. delete하지 않고 node만 지워준다.
         Zone* pZone = itr->second;
-
-        // pair를 삭제한다.
-        m_Zones.erase(itr);
-
+        zones.erase(itr);
         return pZone;
-    } else {
-        // 그런 존 아이디를 찾을 수 없었을 때
-        StringStream msg;
-        msg << "ZoneID : " << zoneID;
-        throw NoSuchElementException(msg.toString());
-    }
+    });
 
     return NULL;
 
@@ -346,9 +372,10 @@ Zone* ZoneGroup::getZone(ZoneID_t zoneID) const {
 
     Zone* pZone = NULL;
 
-    unordered_map<ZoneID_t, Zone*>::const_iterator itr = m_Zones.find(zoneID);
+    const std::shared_ptr<const ZoneMap> zones = m_Zones.load();
+    ZoneMap::const_iterator itr = zones->find(zoneID);
 
-    if (itr != m_Zones.end()) {
+    if (itr != zones->end()) {
         pZone = itr->second;
     } else {
         // 그런 존 아이디를 찾을 수 없었을 때
@@ -370,9 +397,10 @@ Zone* ZoneGroup::getCombatZone(ZoneID_t zoneID) const
 
     __BEGIN_TRY
 
-    unordered_map<ZoneID_t, Zone*>::const_iterator itr = m_Zones.find(zoneID);
+    const std::shared_ptr<const ZoneMap> zones = m_Zones.load();
+    ZoneMap::const_iterator itr = zones->find(zoneID);
 
-    if (itr != m_Zones.end()) {
+    if (itr != zones->end()) {
         pZone = itr->second;
         return pZone;
     }
@@ -388,9 +416,10 @@ void ZoneGroup::initLoadValue() {
 
     __BEGIN_TRY
 
-    unordered_map<ZoneID_t, Zone*>::const_iterator itr = m_Zones.begin();
+    const std::shared_ptr<const ZoneMap> zones = m_Zones.load();
+    ZoneMap::const_iterator itr = zones->begin();
 
-    while (itr != m_Zones.end()) {
+    while (itr != zones->end()) {
         pZone = itr->second;
 
         pZone->initLoadValue();
@@ -408,9 +437,10 @@ ZoneGroup::getLoadValue() const {
 
     __BEGIN_TRY
 
-    unordered_map<ZoneID_t, Zone*>::const_iterator itr = m_Zones.begin();
+    const std::shared_ptr<const ZoneMap> zones = m_Zones.load();
+    ZoneMap::const_iterator itr = zones->begin();
 
-    while (itr != m_Zones.end()) {
+    while (itr != zones->end()) {
         pZone = itr->second;
 
         loadValue += pZone->getLoadValue();
