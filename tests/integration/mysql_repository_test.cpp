@@ -2332,10 +2332,12 @@ TEST_F(ComebackEventMySQL, HandOutReadsTheDateTextsAndTheStampsWriteToday) {
     EXPECT_FALSE(repository.hasUnclaimedItem("itaccount")); // the zone's predicate agrees
     ASSERT_TRUE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
     EXPECT_EQ("0000-00-00", recvPremium); // the other stamp is untouched
+    EXPECT_TRUE(repository.hasUnclaimedPremiumItem("itaccount"));
     repository.markMainPremiumItemReceived("itaccount");
     ASSERT_TRUE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
     EXPECT_EQ(today, recvPremium);
     EXPECT_EQ("2005-01-02", pay);
+    EXPECT_FALSE(repository.hasUnclaimedPremiumItem("itaccount")); // the zone's predicate agrees
 
     execSQL("INSERT INTO Event200501Recommend (PlayerID, Recommender) VALUES ('itaccount', 'friend')");
     ASSERT_TRUE(repository.loadRecommendRow("itaccount", uniqueID, recv));
@@ -2378,6 +2380,7 @@ TEST_F(ComebackEventMySQL, DonationsAreRecordedPositionallyAndCountedPerNameAndW
     EXPECT_EQ("it-acct", queryScalar("SELECT PlayerID" + guild));
     EXPECT_EQ("4", queryScalar("SELECT WorldID" + guild));
     EXPECT_EQ("99", queryScalar("SELECT Amount" + guild));
+    EXPECT_EQ("1", queryScalar("SELECT DonationDateTime > '2026-01-01'" + guild));
 }
 
 // --- BulletinBoardObject against real MySQL -------------------------------

@@ -9,7 +9,9 @@
 // Event200501Main and Event200501Recommend, keyed by the ACCOUNT id
 // (PlayerID), not the character name, and — since the event-handler round
 // (2026-09-06) — the New Year donation event's DonationPersonal200501 and
-// DonationGuild200501, keyed by the CHARACTER name plus a world id.
+// DonationGuild200501, which the handler counts by CHARACTER name plus
+// world id (neither table has a key; the only index on each starts with
+// PlayerID, so those counts match no index prefix — as before).
 //
 // The zone asks the three predicates below when a character enters a
 // zone, to nag the player about unclaimed event items (the Zone
@@ -23,7 +25,8 @@
 //
 // Not enclosed: the loginserver's CLLoginHandler.cpp reads and stamps
 // Event200501Main with its own inline SQL — another binary, its own
-// seam. No other SQL in the tree names these four tables.
+// seam. No other server source names these four tables in SQL (the
+// schema in initdb/ and this seam's tests do).
 //
 // Every statement goes through the thread's "dist" connection
 // (getDistConnection("PLAYER_DB") — the name is ignored; it is the

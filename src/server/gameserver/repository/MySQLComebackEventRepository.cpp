@@ -5,7 +5,7 @@ namespace {
 
 // MySQL implementation of the comeback-event seam. The legacy quirks
 // are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The three SELECTs are byte-for-byte the Zone.cpp originals; the
+//  - The three predicate SELECTs are byte-for-byte the Zone.cpp originals; the
 //    zero-date comparisons ('0000-00-00') are why the production
 //    sql_mode drops NO_ZERO_DATE.
 //  - getDistConnection("PLAYER_DB") IGNORES its name argument — it is
@@ -20,8 +20,10 @@ namespace {
 //  - The event-handler round's statements (2026-09-06) are byte-for-byte
 //    CGGetEventItemHandler's and CGDonationMoneyHandler's, on the same
 //    dist connection. Each handler ran its statements on one Statement
-//    per block and never freed it — every hand-out and every donation
-//    leaked one to four Statements; each call here frees its own.
+//    per block and never freed it — every hand-out request leaked one
+//    Statement, every completed donation exactly three (the personal and
+//    guild INSERT blocks are mutually exclusive) and a donation of an
+//    unknown type one; each call here frees its own.
 //  - The recommend stamp quotes its int ('%d'), the donation INSERTs are
 //    positional — both kept as written (see the header).
 class MySQLComebackEventRepository : public ComebackEventRepository {
@@ -127,12 +129,49 @@ public:
         END_DB(pStmt)
     }
 
+    // The handler assigned each count only when next() answered and kept its
+    // 0 otherwise — an aggregate always answers, so the branch is kept for
+    // shape, not reach. Written out twice rather than through a helper so
+    // that END_DB's DBError.log line names the method the handler called.
     int countPersonalDonations(const string& name, int worldID) {
-        return count("SELECT COUNT(*) FROM DonationPersonal200501 WHERE Name = '%s' AND WorldID = %d", name, worldID);
+        int result = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT COUNT(*) FROM DonationPersonal200501 WHERE Name = '%s' AND WorldID = %d",
+                                    name.c_str(), worldID);
+
+            if (pResult->next()) {
+                result = pResult->getInt(1);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return result;
     }
 
     int countGuildDonations(const string& name, int worldID) {
-        return count("SELECT COUNT(*) FROM DonationGuild200501 WHERE Name = '%s' AND WorldID = %d", name, worldID);
+        int result = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT COUNT(*) FROM DonationGuild200501 WHERE Name = '%s' AND WorldID = %d", name.c_str(), worldID);
+
+            if (pResult->next()) {
+                result = pResult->getInt(1);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return result;
     }
 
     void insertPersonalDonation(const string& playerID, const string& name, int worldID, Gold_t gold) {
@@ -177,29 +216,6 @@ public:
     }
 
 private:
-    // The two COUNT(*) literals reach executeQuery through this pointer; the
-    // handler assigned the count only when next() answered and kept its 0
-    // otherwise — an aggregate always answers, so the branch is kept for
-    // shape, not reach.
-    static int count(const char* format, const string& name, int worldID) {
-        int result = 0;
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-            Result* pResult = pStmt->executeQuery(format, name.c_str(), worldID);
-
-            if (pResult->next()) {
-                result = pResult->getInt(1);
-            }
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-
-        return result;
-    }
-
     // The three predicate literals reach executeQuery through this pointer
     // rather than in place — executeQuery carries no printf format
     // attribute (see Statement.h), so nothing is lost to -Wformat.
