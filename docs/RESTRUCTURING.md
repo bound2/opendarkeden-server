@@ -59,7 +59,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 332 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `CreatureUtil.cpp` and `TradeManager.cpp` hold SQL that compiles and runs; the rest are listed under 3.2 "What remains".) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 73 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 71 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,790 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -743,7 +743,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > **Status:** in progress (2026-09-06) — 32 seams under
   > `src/server/gameserver/repository/` (interface `*Repository.h`, impl
   > `MySQL*Repository.cpp`, reached through `default*Repository()`
-  > accessors, never `g_p*` externs). R2 104→8 and R3 317→73 since the
+  > accessors, never `g_p*` externs). R2 104→8 and R3 317→71 since the
   > pilot; every extraction is one branch and one PR
   > (`restructuring/*-repositor{y,ies}`, #18 through #85, then
   > `restructuring/motorcycle-redeem`). The per-round
@@ -796,7 +796,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > - **Integration tier over fakes**: `mysql_repository_tests`
   >   (tests/integration/, `make integration-test`, needs docker) runs
   >   the real impls against MySQL 5.7 loaded with `initdb/` and the
-  >   production sql_mode; 169 tests. A quirk is replayed there before
+  >   production sql_mode; 170 tests. A quirk is replayed there before
   >   it is written down — the first rounds' fakes documented three
   >   behaviours the server refuted. Only the six pilot-era seams keep a
   >   fake (tests/support/). A seam whose callers are compiled out still
@@ -871,8 +871,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > leaks the Statement — open.
   >
   > **What remains.** Of R2's eight files only two hold SQL that
-  > compiles and runs: `CreatureUtil.cpp` (124 live statements, the
-  > character-deletion purge — milestone-sized) and `TradeManager.cpp`
+  > compiles and runs: `CreatureUtil.cpp` (118 live statements and 10
+  > commented out, the character-deletion purge — milestone-sized) and
+  > `TradeManager.cpp`
   > (one TradeLog INSERT of unbounded length through
   > `executeQueryString`; the 2048-byte `executeQuery` buffer would turn
   > a large trade's log into a new failure after the gold moved, so it
@@ -886,11 +887,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > counts; every table below is in `initdb/` unless said otherwise):
   > `exchange/ExchangeDB.cpp` (27) is the Exchange feature's own DB
   > access class — a seam in all but directory, so moving it is a
-  > relocation, not an extraction; `handler/CGSayHandler.cpp` (16,
-  > incl. a third spelling of the Slayer name→PlayerID lookup and
-  > `UPDATE Player set Access='DENY'`) waits for the god-file work;
-  > `item/EventBall.cpp` (9; its tables are not in `initdb/` and the
-  > class is not registered); the two 2005 event handlers
+  > relocation, not an extraction; `handler/CGSayHandler.cpp` (14 live,
+  > 2 commented out; incl. a third spelling of the Slayer name→PlayerID
+  > lookup and `UPDATE Player set Access='DENY'`) waits for the god-file
+  > work; `item/EventBall.cpp` (7 live, 2 commented out; its tables are
+  > not in `initdb/` and the file is in no CMakeLists — never compiled);
+  > the two 2005 event handlers
   > `CGGetEventItemHandler` (6, Event200501Main/Recommend) and
   > `CGDonationMoneyHandler` (6, Donation*200501); the `quest/` actions
   > (ActionRedistributeAttr 2, ActionGiveSpecialEventItem 2 on the
@@ -902,13 +904,19 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > CGDissectionCorpse, CGCrashReport, CGBuyStoreItem);
   > `billing/CommonBillingPacket.cpp` (1, Player.LastLogoutDate); files
   > whose only `executeQuery` is commented out (five `mission/` files,
-  > EffectBloodyWall, EffectGrayDarkness, SiegeWar, and since the
-  > motorcycle round CGUseItemFromInventoryHandler and
-  > ActionRedeemMotorcycle, whose live statements moved); outside it,
-  > `src/server/PaySystem.cpp` (16, the disabled PC-room pay system) and
-  > the loginserver and sharedserver copies (CLDeletePCHandler's
-  > per-character purge, the sharedserver's Guild*.cpp), which are
-  > other binaries and get their own seams.
+  > EffectBloodyWall, EffectGrayDarkness, SiegeWar); outside it,
+  > `src/server/PaySystem.cpp` (16; ServerCore, compiled into the
+  > gameserver — the three `__PAY_SYSTEM_*` macros are commented out,
+  > but `__NETMARBLE_SERVER__` is not defined either, so
+  > `GamePlayer::loginPayPlay` falls through to `PaySystem::loginPayPlay`
+  > and EffectLoveChain reaches its Player read, and
+  > ActionGiveAccountEventItem calls `isPayPlayingPeriodPersonal`
+  > directly — live, not disabled), ServerCore's live
+  > `GameServerInfoManager.cpp` (5) and `GameWorldInfoManager.cpp` (1),
+  > and the loginserver's 21 and the sharedserver's 10 files (among
+  > them CLDeletePCHandler's and ItemDestroyer's per-character purges,
+  > the sharedserver's Guild*.cpp), which are other binaries and get
+  > their own seams.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

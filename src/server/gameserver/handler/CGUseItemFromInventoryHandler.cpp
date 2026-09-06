@@ -1130,16 +1130,8 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
                 targetID = pMotorcycle->getItemID();
 
                 // targetID¸¦ DB¿¡µµ update½ÃÄÑ¾ß ÇÑ´Ù.
-                BEGIN_DB
-                {
-                    pStmt   = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                    pResult = pStmt->executeQuery(
-                                "UPDATE KeyObject SET Target=%lu WHERE ItemID=%lu",
-                                            targetID, pKey->getItemID());
-
-                    SAFE_DELETE(pStmt);
-                }
-                END_DB(pStmt)
+                // (the KeyObject Target UPDATE is ItemObjectRepository::saveKeyTarget now)
+                defaultItemObjectRepository().saveKeyTarget(GEAR_KEY, targetID, pKey->getItemID());
 
                 // log
                 filelog("motorcycle.txt", "[SetTargetID] Owner = %s, KeyID = %lu, Key's targetID = %lu, MotorcycleID =
@@ -1281,7 +1273,6 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
         _GCCannotUse.setObjectID(pPacket->getObjectID());
         pGamePlayer->sendPacket(&_GCCannotUse);
 
-        SAFE_DELETE(pStmt);
         return;
     }
     */

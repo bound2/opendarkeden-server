@@ -2384,8 +2384,11 @@ const MotorcycleRedeemSpec kMotorcycleRedeemSpecs[REDEEM_SPELLING_MAX] = {
      "Durability) Values (%d, %d, %d, '', %d, %d, %d, %d, '', %d)"},
 };
 
+static_assert(sizeof(kMotorcycleRedeemSpecs) / sizeof(kMotorcycleRedeemSpecs[0]) == REDEEM_SPELLING_MAX,
+              "one MotorcycleRedeemSpec per spelling");
+
 const MotorcycleRedeemSpec& redeemSpec(MotorcycleRedeemSpelling spelling) {
-    if (spelling < 0 || spelling >= REDEEM_SPELLING_MAX) {
+    if (spelling >= REDEEM_SPELLING_MAX) {
         throw Error("ItemObjectRepository: unknown MotorcycleRedeemSpelling");
     }
     return kMotorcycleRedeemSpecs[spelling];

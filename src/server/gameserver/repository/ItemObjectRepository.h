@@ -212,15 +212,28 @@
 // and their 300-durability default for a missing row. The Key::setNewMotorcycle
 // call the callers make between the probe and the read is the seam's
 // saveKeyTarget through the item class; it is not part of these three.
+// One transport detail the quest action's read changes: it went through
+// executeQueryString, which has no length cap; the seam's format goes
+// through executeQuery's 2048-byte buffer. The statement is under 100
+// bytes, so the cap cannot be reached — noted because it is a new
+// failure mode on that path in principle.
 //
-// Not enclosed: EventBall, the one item file with SQL left (it has no tables
-// and is not registered), and the
-// loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
-// holds only the registry calls, no SQL. The two commented-out blocks in
-// CGUseItemFromInventoryHandler and ActionRedeemMotorcycle that inline an
-// older "UPDATE KeyObject SET Target" (the statement saveKeyTarget carries)
-// are self-contained history and were left as they are; ratchet R3 keeps
-// counting those two files for them.
+// Not enclosed: EventBall, the one item file with SQL left (it has no
+// tables in initdb/ and is in no CMakeLists — never compiled); the
+// loaders' storage-placement logic (stays with the class); and the
+// character-deletion purge's per-table "DELETE FROM <Class>Object WHERE
+// OwnerID = ..." sweep in gameserver/CreatureUtil.cpp (its own,
+// milestone-sized round), which the loginserver's ItemDestroyer.cpp and
+// CLDeletePCHandler.cpp repeat for their binary. So this seam owns every
+// MotorcycleObject and KeyObject statement in the gameserver EXCEPT that
+// purge's two deletes. ItemInfoManager.cpp holds only the registry calls,
+// no SQL. The two commented-out blocks in CGUseItemFromInventoryHandler
+// and ActionRedeemMotorcycle that inlined an older flow around the
+// KeyObject Target UPDATE now name saveKeyTarget where they wrote the
+// statement (the redeem round deleted the pStmt/pResult they assigned
+// to, so leaving them verbatim would have made them wrong — the policy
+// in docs/RESTRUCTURING.md 3.2); the action's copy fed both DWORDs to
+// %d where the handler's fed %lu, which the comment there records.
 
 enum GearTable {
     GEAR_RING,
@@ -1548,8 +1561,11 @@ public:
     virtual bool loadMotorcycleForRedeem(MotorcycleRedeemSpelling spelling, ItemID_t itemID,
                                          MotorcycleRedeemRow& row) = 0;
     // The fresh-row INSERT (empty OwnerID and OptionType in the literal); the
-    // parameters are typed as the call sites' variables were, every one to a
-    // "%d" (three of them DWORDs, as written).
+    // parameters are typed as the call sites' arguments were — the locals'
+    // ItemID_t / ItemType_t / Durability_t, getObjectID()'s ObjectID_t,
+    // getZoneID()'s ZoneID_t, TPOINT's ints, and the STORAGE_ZONE enumerator
+    // as the int it promotes to — every one to a "%d" (three of them DWORDs,
+    // as written).
     virtual void insertRedeemedMotorcycle(MotorcycleRedeemSpelling spelling, ItemID_t itemID, ObjectID_t objectID,
                                           ItemType_t itemType, int storage, ZoneID_t zoneID, int x, int y,
                                           Durability_t durability) = 0;

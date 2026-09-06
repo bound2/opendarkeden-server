@@ -141,16 +141,9 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
                     targetID = pMotorcycle->getItemID();
 
                     // targetID를 DB에도 update시켜야 한다.
-                    BEGIN_DB
-                    {
-                        pStmt   = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                        pResult = pStmt->executeQuery(
-                                    "UPDATE KeyObject SET Target=%d WHERE ItemID=%d",
-                                                targetID, pKey->getItemID());
-
-                        SAFE_DELETE(pStmt);
-                    }
-                    END_DB(pStmt)
+                    // (the KeyObject Target UPDATE is ItemObjectRepository::saveKeyTarget now;
+                    // this copy fed the two DWORDs to %d where the handler's fed %lu)
+                    defaultItemObjectRepository().saveKeyTarget(GEAR_KEY, targetID, pKey->getItemID());
 
                     // 밑에서 pMotorcycle을 사용해도 되겠지만, 기존 코드 안 건드릴려고 여기서 지운다.
                     SAFE_DELETE(pMotorcycle);*/
