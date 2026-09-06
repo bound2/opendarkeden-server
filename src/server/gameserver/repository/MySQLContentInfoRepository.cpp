@@ -3,33 +3,19 @@
 
 namespace {
 
-// MySQL implementation of the content-info seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original except the two
-//    backslash-continued literals (MonsterInfoManager::load's 35-column
-//    SELECT and SkillInfoManager::load's mixed-case "Select ... from"),
-//    whose leaked indentation tabs collapse to single spaces — the same
-//    deliberate whitespace-run change MySQLCharacterRepository.cpp made,
-//    and the only byte change in this seam. Kept as they were: the
-//    reload SELECT's double space before "FROM" (a StringStream joined
-//    "NormalRegen " to " FROM MonsterInfo") and its appended
-//    " WHERE MType=<n>" rendered through "%d" (a WORD, promoted), the
-//    SkillBalance backticks around `RequireSkill` and `Condition`
-//    (CONDITION is reserved), Script's ORDER BY ScriptID (the one load
-//    here with an order), and the NPC SELECT's two shapes (by zone, or
-//    by zone and race).
+// MySQL implementation of ContentInfoRepository.
+//  - The SkillBalance SELECT backticks `RequireSkill` and `Condition`
+//    (CONDITION is reserved); Script's load is the one with an ORDER BY
+//    (ScriptID); the NPC SELECT has two shapes (by zone, or by zone and
+//    race).
 //  - The MAX probes return false on the NULL an empty table yields (see
-//    MySQLBalanceInfoRepository.cpp); MonsterInfoManager::load probed
-//    with executeQueryString, the others with executeQuery — identical
-//    bytes either way.
-//  - Domain and MagicDomain come back through getBYTE, as before; the
-//    other integers through getInt, text through getString ("" for NULL
-//    — MonsterInfo's text columns and Script's are nullable). getInt is
-//    atoi(getField()) and crashes on a NULL: 21 of MonsterInfo's integer
-//    columns are nullable, and the loaders read them unconditionally —
-//    load() always did for every row; reload now does too where the
-//    inline loop skipped rows of an unknown MType. The shipped seed has
-//    no NULL in MonsterInfo.
+//    MySQLBalanceInfoRepository.cpp).
+//  - Domain and MagicDomain come back through getBYTE, the other integers
+//    through getInt, text through getString ("" for NULL — MonsterInfo's
+//    text columns and Script's are nullable). getInt is atoi(getField())
+//    and crashes on a NULL: 21 of MonsterInfo's integer columns are
+//    nullable and the loaders read every row unconditionally. The shipped
+//    seed has no NULL in MonsterInfo.
 class MySQLContentInfoRepository : public ContentInfoRepository {
 public:
     bool loadMaxMonsterType(int& maxType) {

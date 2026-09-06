@@ -3,33 +3,17 @@
 
 namespace {
 
-// MySQL implementation of the item bookkeeping seam. The legacy quirks
-// are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original, including
-//    TimeLimitItems' lower-case "from"/"where"/"and", the trace logs'
-//    "( %u,'%s',..." spacing and their SQL-side now(), and the two
-//    spacings of the same increment: EventItemCount's and the reward
-//    schedule's "Count = Count + 1" / "Count = Count - 1" against
-//    UniqueItemInfo's "CurrentNumber=CurrentNumber+1" and
-//    ResurrectItemCount's "Count=Count+1".
-//  - Three varargs mismatches the originals had are kept, and one is not:
-//    Item::destroy's DELETE streamed an ItemID_t (DWORD) through "%lu"
-//    and now feeds it to "%u" (the 2026-09-06 width fix, see
-//    MySQLCharacterRepository.cpp);
-//    GlobalItemPositionLoader's SELECT the same type through "%d",
-//    bWinPrize's two DWORDs go through "%d", and the trace log's
-//    ItemType_t (WORD, promoted to int) through "%u". MySQLCharacterRepository.cpp
-//    calls this family a latent bug, not a benign quirk: at stack-passed
-//    vararg positions clang -O0 has been seen to read garbage. The
-//    mismatched arguments here sit at positions 2-3, register-passed on
-//    the SysV ABI, which is why they have never misbehaved; still latent.
-//  - The two per-class item-object operations take the TABLE NAME as a
+// MySQL implementation of ItemRepository.
+//  - The trace logs stamp their time SQL-side (now()).
+//  - GlobalItemPositionLoader's SELECT and bWinPrize's UPDATE feed DWORDs
+//    to "%d": a value with the high bit set prints negative.
+//  - The per-class item-object operations take the TABLE NAME as a
 //    parameter and interpolate it raw through "%s". GlobalItemPositionLoader
 //    and ConcreteItem::getObjectTableName() pick it from Item's
 //    ItemObjectTableName[] table; Corpse::getObjectTableName() returns ""
-//    (pre-existing, a destroy on a corpse would emit "DELETE FROM  WHERE").
-//    Never user text either way.
-//  - Names and dates are interpolated raw, as before.
+//    (a destroy on a corpse would emit "DELETE FROM  WHERE"). Never user
+//    text either way.
+//  - Names and dates are interpolated raw.
 class MySQLItemRepository : public ItemRepository {
 public:
     void insertOpCreateLog(const string& opName, const string& dateTime, const string& itemDesc) {
@@ -396,7 +380,6 @@ public:
         return found;
     }
 
-    // The lower-case "from" and the upper-case "FROM" are the originals'.
     DWORD countItemRows(const string& tableName) {
         DWORD count = 0;
         Statement* pStmt = NULL;
@@ -414,7 +397,7 @@ public:
     }
 
     // MAX() over an empty table is one NULL row; the callers only ask after
-    // countItemRows() said the table is non-empty, as the originals did.
+    // countItemRows() said the table is non-empty.
     DWORD loadMaxItemID(const string& tableName) {
         DWORD maxItemID = 0;
         Statement* pStmt = NULL;

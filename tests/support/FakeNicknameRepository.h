@@ -17,8 +17,7 @@
 //  - load() returns rows in nID-ASCENDING order — the real SELECT carries
 //    no ORDER BY, but the secondary index IDX_OwnerID carries the primary
 //    key (nID, OwnerID) as its suffix, so the ref scan returns nID order
-//    (pinned by the MySQL integration tier; this comment originally said
-//    "insertion order" — falsified there).
+//    (pinned by the MySQL integration tier).
 //  - Nickname is varchar(22) latin1 with STRICT_TRANS_TABLES off: stored
 //    values silently truncate to 22 bytes.
 class FakeNicknameRepository : public NicknameRepository {

@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     set_new_handler(memoryError);
 
     // Bind every packet id the loginserver receives to its handler before
-    // any thread can receive one (docs/RESTRUCTURING.md task 2.3).
+    // any thread can receive one.
     registerLoginServerPacketHandlers();
 
     if (argc < 3) {

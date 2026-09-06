@@ -3,29 +3,17 @@
 
 namespace {
 
-// MySQL implementation of the comeback-event seam. The legacy quirks
-// are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The three predicate SELECTs are byte-for-byte the Zone.cpp originals; the
-//    zero-date comparisons ('0000-00-00') are why the production
-//    sql_mode drops NO_ZERO_DATE.
+// MySQL implementation of ComebackEventRepository.
+//  - The zero-date comparisons ('0000-00-00') in the predicates are why
+//    the production sql_mode drops NO_ZERO_DATE.
 //  - getDistConnection("PLAYER_DB") IGNORES its name argument — it is
-//    the thread's second connection to the same DARKEDEN schema. Kept,
-//    as the original used it.
-//  - Zone.cpp ran the three queries on ONE statement inside ONE
-//    BEGIN_DB, sending a dialog packet between them, and never freed
-//    the statement. Three calls now, each freeing its statement; a
-//    failure in the second or third still escapes after the earlier
-//    dialogs were sent, exactly as before.
-//  - The account id is interpolated raw, as before.
-//  - The event-handler round's statements (2026-09-06) are byte-for-byte
-//    CGGetEventItemHandler's and CGDonationMoneyHandler's, on the same
-//    dist connection. Each handler ran its statements on one Statement
-//    per block and never freed it — every hand-out request leaked one
-//    Statement, every completed donation exactly three (the personal and
-//    guild INSERT blocks are mutually exclusive) and a donation of an
-//    unknown type one; each call here frees its own.
-//  - The recommend stamp quotes its int ('%d'), the donation INSERTs are
-//    positional — both kept as written (see the header).
+//    the thread's second connection to the same DARKEDEN schema.
+//  - The zone asks the three predicates one call at a time, sending a
+//    dialog packet between them; a failure in the second or third
+//    escapes after the earlier dialogs were sent.
+//  - The account id and names are interpolated raw.
+//  - The recommend stamp quotes its int ('%d'); the donation INSERTs are
+//    positional (see the header).
 class MySQLComebackEventRepository : public ComebackEventRepository {
 public:
     bool loadMainRecvItemDate(const string& playerID, string& recvItemDate) {
@@ -129,10 +117,9 @@ public:
         END_DB(pStmt)
     }
 
-    // The handler assigned each count only when next() answered and kept its
-    // 0 otherwise — an aggregate always answers, so the branch is kept for
-    // shape, not reach. Written out twice rather than through a helper so
-    // that END_DB's DBError.log line names the method the handler called.
+    // An aggregate always answers, so the next() branch cannot miss.
+    // Written out twice rather than through a helper so that END_DB's
+    // DBError.log line names the method the handler called.
     int countPersonalDonations(const string& name, int worldID) {
         int result = 0;
         Statement* pStmt = NULL;

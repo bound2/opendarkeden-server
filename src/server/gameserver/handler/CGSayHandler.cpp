@@ -1719,13 +1719,10 @@ void CGSayHandler::opsave(GamePlayer* pGamePlayer, string msg, int i) {
 
     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_SAVE_YOUR_DATA));
 
-    // The read ran with no BEGIN_DB: a SQL failure was a SQLQueryException
-    // that __END_DEBUG_EX below swallowed (logging it to packet_exception.txt).
-    // The seam converts it to END_DB's const char*, which that catch does not
-    // match, so it is swallowed here instead (the text is in DBError.log now).
-    // On an empty table the old code atoi'd the NULL field the MAX() row
-    // carries — undefined behaviour, a null dereference on glibc. The seam
-    // answers false and the 0 below stands, so the loop runs zero times.
+    // A SQL failure arrives as END_DB's const char*, which __END_DEBUG_EX
+    // below does not match, so it is swallowed here (the text is in
+    // DBError.log). On an empty table the read answers false and the 0
+    // below stands, so the loop runs zero times.
     int maxZoneGroupID = 0;
     try {
         defaultZoneInfoRepository().loadMaxZoneGroupID(maxZoneGroupID);
@@ -2249,10 +2246,7 @@ void CGSayHandler::opuser(GamePlayer* pGamePlayer, string msg, int i) {
 
         if (pGamePlayer == NULL) return;
 
-    // Ran with no BEGIN_DB; see opsave for the failure path reproduced here.
-    // (An older line asked for the connection through the int overload,
-    // getConnection((int)(long)Thread::self()); the live one is the dist
-    // connection, which the seam keeps.)
+    // A SQL failure is swallowed here; see opsave.
     int GroupCount = 0;
 
     try {
@@ -4678,11 +4672,7 @@ void CGSayHandler::opsoulchain(GamePlayer* pPlayer, string msg, int i) {
     packet.setSkillType(SKILL_SOUL_CHAIN);
     packet.setTargetName(Name);
 
-    // The GM command feeds a synthetic packet straight to the handler
-    // (packets carry no execute() since task 2.3). NOTE: this call had
-    // been broken at runtime between the CG dispatch migration and this
-    // commit — the base default threw — caught by the compiler the
-    // moment the base method was deleted.
+    // The GM command feeds a synthetic packet straight to the handler.
     CGSkillToNamedHandler::execute(&packet, pPlayer);
 
     __END_DEBUG_EX __END_CATCH

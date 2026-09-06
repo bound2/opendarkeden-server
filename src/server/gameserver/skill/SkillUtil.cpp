@@ -284,7 +284,7 @@ Damage_t computeDamage(Creature* pCreature, Creature* pTargetCreature, int Criti
 double computeFinalDamage(Damage_t minDamage, Damage_t maxDamage, Damage_t realDamage, Protection_t Protection,
                           bool bCritical) {
     // minDamage/maxDamage are unused by the current formula; the parameters
-    // stay for the many call sites. The math lives in de-core (task 3.3).
+    // stay for the many call sites. The math lives in de-core.
     return decore::finalDamage(realDamage, Protection, bCritical);
 }
 
@@ -739,7 +739,7 @@ void computeCriticalBonus(Ousters* pOusters, SkillType_t skillType, Damage_t& Da
 
 RankExp_t computeRankExp(int myLevel, int otherLevel) // by sigi. 2002.12.31
 {
-    // The formula lives in de-core (task 3.3); this adapter only supplies
+    // The formula lives in de-core; this adapter only supplies
     // the two server-configured percentages.
     return decore::rankExp(myLevel, otherLevel, g_pVariableManager->getVariable(RANK_EXP_GAIN_PERCENT),
                            g_pVariableManager->getPremiumExpBonusPercent());
@@ -2921,7 +2921,7 @@ MP_t decreaseConsumeMP(Vampire* pVampire, SkillInfo* pSkillInfo) {
     Assert(pVampire != NULL);
     Assert(pSkillInfo != NULL);
 
-    // The INT-discount bracket table lives in de-core (task 3.3).
+    // The INT-discount bracket table lives in de-core.
     return decore::vampireSkillConsumeMP(pSkillInfo->getConsumeMP(), pSkillInfo->getLevel(), pVampire->getINT());
 }
 
@@ -3153,7 +3153,7 @@ Range_t computeSkillRange(SkillSlot* pSkillSlot, SkillInfo* pSkillInfo) {
 // (OX,OY)¿Í (TX,TY) »çÀÌÀÇ °Å¸®¸¦ ±¸ÇÑ´Ù.
 //////////////////////////////////////////////////////////////////////////////
 Range_t getDistance(ZoneCoord_t Ox, ZoneCoord_t Oy, ZoneCoord_t Tx, ZoneCoord_t Ty) {
-    // Pure geometry — lives in de-core (task 3.3).
+    // Pure geometry — lives in de-core.
     return decore::tileDistance(Ox, Oy, Tx, Ty);
 }
 

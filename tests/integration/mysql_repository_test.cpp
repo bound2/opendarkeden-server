@@ -323,7 +323,7 @@ TEST_F(FriendMySQL, EveryWriteRaisesToo) {
     }
     EXPECT_TRUE(refused) << "deleteFriend succeeded, so FriendList now exists";
 
-    // The three the first draft left uncovered. insertBlacklisted and
+    // The remaining three. insertBlacklisted and
     // hasBlacklisted are the only statements CG_ADD_FRIEND_BLACK
     // reaches, and deleteMessages is the one the IsHave flag gates, so
     // without these a table-adder would get no signal from that whole
@@ -670,7 +670,7 @@ TEST_F(CoupleMySQL, TheThreeDeletesDifferInWhatTheyMatchNotInWhatTheyMean) {
     repository.deletePairing(MALE, "it-mike", FEMALE, "it-fay", 0);
     // The DELETEs filter on Race; the count probes do NOT. So the
     // race-1 row survives the delete AND still answers the probe. That
-    // asymmetry is the inline code's and is kept: isCouple() and
+    // asymmetry is deliberate: isCouple() and
     // hasCouple() see a pairing in ANY race, while removeCouple() only
     // removes the one matching the character's own.
     EXPECT_EQ(1, repository.countPairing(MALE, "it-mike", FEMALE, "it-fay"));
@@ -1573,9 +1573,8 @@ TEST_F(SkillSaveMySQL, LoadReturnsEveryRowIncludingDuplicateTypes) {
 TEST_F(SkillSaveMySQL, LoadOrderObservedOnThe57TierIsInsertionOrderNotSkillTypeOrder) {
     // An OBSERVATION, not a contract: no ORDER BY and no primary key, so
     // the row order is whatever access path the optimizer picks. The
-    // first draft asserted SkillType-ascending order (reasoning from the
-    // (OwnerID, SkillType) secondary index) and the real MySQL 5.7
-    // FALSIFIED it: on this tier's near-empty table — where the WHERE
+    // (OwnerID, SkillType) secondary index suggests SkillType-ascending
+    // order, but on this tier's near-empty table — where the WHERE
     // matches essentially every row and the index does not cover the
     // SELECT — the rows come back in insertion order, a scan in
     // hidden-row-id order. A populated table, or MySQL 8 (supported, but
@@ -6690,8 +6689,8 @@ TEST_F(PlayRecordMySQL, LottoCountIsReplacedThenAddedToPerPlayerAndType) {
 }
 
 // CreatureUtil's gold medal: the table is not in initdb/, so the INSERT
-// fails on the shipped schema — the pre-existing bug the header records,
-// pinned here as the const char* END_DB throws.
+// fails on the shipped schema — the bug the header records, pinned here
+// as the const char* END_DB throws.
 TEST_F(PlayRecordMySQL, GoldMedalInsertFailsOnTheShippedSchema) {
     EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() "
                                "AND table_name = 'GoldMedalCount'"));
@@ -7102,7 +7101,7 @@ TEST(ExpTableMySQL, ExpTablesLoadByNamedColumnsWithAndWithoutACondition) {
 
     EXPECT_FALSE(repository.loadExpTable("Level", "GoalExp", "AccumExp", "AdvancementClassEXPInfo", "").empty());
     // STRBalanceInfo.AccumExp exceeds INT_MAX in the top rows; the row's int
-    // (getInt = atoi) truncates exactly as the original's getInt did.
+    // (getInt = atoi) truncates.
     EXPECT_FALSE(repository.loadExpTable("Level", "GoalExp", "AccumExp", "STRBalanceInfo", "").empty());
 }
 
@@ -7199,7 +7198,7 @@ TEST_F(GuildMySQL, TheThreeMembershipProbesEachReadTheirOwnColumns) {
 
     // One row, read through three different column lists. The handlers
     // read their columns POSITIONALLY, so what matters is that each
-    // projection hands back the field its own handler used to take.
+    // projection hands back the field its own handler reads.
     repository.insertMember(31007, "it-probe", 4);
     repository.setMemberRankAndExpireDate(5, "1260901", "it-probe");
 

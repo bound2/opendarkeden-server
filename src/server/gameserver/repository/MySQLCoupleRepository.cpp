@@ -9,16 +9,12 @@ namespace {
 // is ordered to match, so fieldName(sex) is the column holding a
 // character of that sex and counterFieldName(sex) is the partner's.
 //
-// The indexing is unchanged, including its missing bounds check: a Sex
-// outside {FEMALE, MALE} would read past the array ([2]) or before it
-// ([1 - 2] = [-1]). No PlayerCreature can hold such a value today —
-// the DB-load path feeds a string to the three race classes, which
-// accept only Sex2String[MALE]/[FEMALE] and throw
-// InvalidProtocolException otherwise, and the create packet derives
-// the sex from a single bit — so this is a defensive gap, not a
-// reachable hazard. Task 3.2 moves statements without changing what
-// they do, so no clamp is added; it is inherited from CoupleManager
-// and belongs to whichever round decides to bound it.
+// There is no bounds check: a Sex outside {FEMALE, MALE} would read past
+// the array ([2]) or before it ([1 - 2] = [-1]). No PlayerCreature can
+// hold such a value — the DB-load path feeds a string to the three race
+// classes, which accept only Sex2String[MALE]/[FEMALE] and throw
+// InvalidProtocolException otherwise, and the create packet derives the
+// sex from a single bit.
 const char* const SEX_FIELD_NAME[] = {
     "FemalePartnerName",
     "MalePartnerName",
@@ -32,24 +28,14 @@ const char* counterFieldName(Sex sex) {
     return SEX_FIELD_NAME[1 - (int)sex];
 }
 
-// MySQL implementation of the couple seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original: the
-//    lower-case "where" and "and" in the probes, the upper-case WHERE in
-//    removeCouple's DELETE against the lower-case one in
-//    removeCoupleForce's, the space before the closing paren of the
-//    INSERT's column list, and the unspaced "'%s','%s',%u, now()".
-//  - The column NAMES are interpolated through %s, so they are part of
-//    the varargs like any other string. They come from the table above
-//    and never from a caller, so no caller can put SQL in an identifier
-//    position for any in-range Sex — which, per the note above, is
-//    every Sex a PlayerCreature can hold.
-//  - Race streams as the (uint) cast the call sites applied, through
-//    "%u"; names are interpolated raw (no escaping), as before.
-//  - The count(*) probes always return a row, so next() cannot fail on
-//    a live connection; each returns 0 if it ever did, which the callers
-//    read as "not a couple" — the same answer the inline code's
-//    unmodified bRet gave.
+// MySQL implementation of CoupleRepository.
+//  - The column NAMES are interpolated through %s. They come from the
+//    table above and never from a caller, so no caller can put SQL in an
+//    identifier position.
+//  - Names are interpolated raw (no escaping).
+//  - The count(*) probes always return a row, so next() cannot fail on a
+//    live connection; each returns 0 if it ever did, which the callers
+//    read as "not a couple".
 class MySQLCoupleRepository : public CoupleRepository {
 public:
     int countPairingWithPartner(Sex sex, const string& name, const string& partnerName) {
@@ -152,12 +138,9 @@ public:
 
 private:
     // The two-column probe both isCouple overloads run, spelled once.
-    // One consequence of sharing the BEGIN_DB block: END_DB logs
-    // __PRETTY_FUNCTION__, so a SQL failure from either probe now names
-    // this helper rather than the two distinguishable CoupleManager
-    // frames it used to. Log text only — nothing catches the rethrown
-    // const char* before or after — but an operator reading DBError.log
-    // can no longer tell the name probe from the creature probe.
+    // END_DB logs __PRETTY_FUNCTION__, so a SQL failure from either probe
+    // names this helper: an operator reading DBError.log cannot tell the
+    // name probe from the creature probe.
     static int countOf(const char* ownColumn, const string& ownName, const char* partnerColumn,
                        const string& partnerName) {
         int count = 0;

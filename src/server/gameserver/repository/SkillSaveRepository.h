@@ -8,27 +8,23 @@
 
 #include "Types.h"
 
-// Persistence seam for the three learned-skill tables (task 3.2):
-// SkillSave (slayer), VampireSkillSave and OustersSkillSave. One row per
+// The three learned-skill tables: SkillSave (slayer), VampireSkillSave
+// and OustersSkillSave. One row per
 // (OwnerID, SkillType); the tables are KEYLESS — a non-unique index only
 // — so nothing stops a second row for the same skill, and the loaders
 // have to cope (the vampire/ousters loaders skip a type they already
 // hold; the slayer loader does not, but Slayer::addSkill drops the
 // duplicate slot itself — first row wins either way).
 //
-// Two record families per table, on purpose:
+// Two record families per table:
 //  - the *Row structs are what load() returns: every field typed to the
-//    driver getter the inline code called (getInt → int), so the race
-//    class performs the same narrowing it always did when it hands the
-//    value to a slot setter;
+//    driver getter used for it (getInt → int); the race class narrows
+//    when it hands the value to a slot setter;
 //  - the *Record structs are what the slot classes persist: every field
-//    typed to the slot MEMBER it came from, so the varargs bytes reaching
-//    the format strings are unchanged.
+//    typed to the slot MEMBER it came from.
 //
-// This seam does not enclose the per-character purges: the gameserver's
-// CharacterPurgeRepository (since the CreatureUtil round) and the
-// loginserver's CLDeletePCHandler DELETE all three tables as part of
-// their multi-table character deletion.
+// The character-deletion purge (CharacterPurgeRepository) DELETEs all
+// three tables.
 
 // --- what load() returns ---------------------------------------------------
 
@@ -63,12 +59,7 @@ struct OustersSkillRow {
 
 // --- what the slot classes persist ------------------------------------------
 
-// nextTime is the slot's m_runTime.tv_sec — a time_t (8 bytes on the
-// deployed x86-64 build) that the format strings have always read
-// through %d. That reads the low half of the stack/register slot, which
-// holds the whole value for any timestamp below 2^31 — fine until 2038,
-// and preserved as-is (the widening/narrowing conversions in this DB
-// layer are a follow-up, see MySQLCharacterRepository.cpp).
+// nextTime is the slot's m_runTime.tv_sec, a time_t.
 struct SlayerSkillRecord {
     SkillType_t skillType;
     ExpLevel_t skillLevel;
@@ -105,7 +96,7 @@ public:
     virtual std::vector<OustersSkillRow> loadOustersSkills(const std::string& ownerName) = 0;
 
     // The slot's create(): a new row. Nothing checks for an existing one
-    // (keyless table), exactly like the inline INSERT.
+    // (keyless table).
     virtual void insertSlayerSkill(const std::string& ownerName, const SlayerSkillRecord& record) = 0;
     virtual void insertVampireSkill(const std::string& ownerName, const VampireSkillRecord& record) = 0;
     virtual void insertOustersSkill(const std::string& ownerName, const OustersSkillRecord& record) = 0;
@@ -127,8 +118,7 @@ public:
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLSkillSaveRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLSkillSaveRepository.cpp.
 SkillSaveRepository& defaultSkillSaveRepository();
 
 #endif

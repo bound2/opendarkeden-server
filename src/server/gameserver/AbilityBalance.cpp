@@ -2,8 +2,8 @@
 // Filename    : AbilityBalance.cpp
 // Written By  : 김성민
 // Description :
-// Per-creature stat derivation. Since task 3.3 the actual formulas live as
-// pure functions in de-core (src/domain/Formulas.cpp), where they are unit
+// Per-creature stat derivation. The actual formulas live as pure
+// functions in de-core (src/domain/Formulas.cpp), where they are unit
 // tested; these entry points only gather the inputs (weapon family, domain
 // level, balance ratios from VariableManager, the Hardcore config flag) and
 // delegate. Balance changes belong in de-core, next to their tests.

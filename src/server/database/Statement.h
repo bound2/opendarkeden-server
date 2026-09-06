@@ -42,10 +42,10 @@ public:
 
     // SQL ���� �޾Ƽ� �����Ѵ�.
     // The format attribute lets -Wformat check every literal-format call
-    // against its arguments (the 2026-09-06 width fix: a 32-bit argument
-    // read through %ld/%lu takes garbage upper bits under Clang). Formats
-    // reached through a pointer, such as a per-table spec row, are not
-    // checked; keep those retyped by hand.
+    // against its arguments: a 32-bit argument read through %ld/%lu takes
+    // garbage upper bits under Clang. Formats reached through a pointer,
+    // such as a per-table spec row, are not checked; keep those typed by
+    // hand.
     Result* executeQuery(const char*, ...) __attribute__((format(printf, 2, 3)));
     Result* executeQueryString(const string& sqlStatement);
 

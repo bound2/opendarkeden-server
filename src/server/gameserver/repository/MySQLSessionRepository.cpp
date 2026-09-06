@@ -3,27 +3,22 @@
 
 namespace {
 
-// MySQL implementation of the session seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original, including the
-//    boot sweep's lower-case "from", the mixed spacing of "LogOn='GAME'"
-//    against "LogOn = 'LOGOFF'", the UserStatus INSERT's "Values" and its
-//    INSERT IGNORE, and the lotto INSERT's positional VALUES list.
-//  - Connections as before: Player, PCRoomUserInfo and PCRoomLottoObject
-//    through the dist connection ("PLAYER_DB" — the name is ignored by
+// MySQL implementation of SessionRepository.
+//  - The UserStatus INSERT is an INSERT IGNORE; the lotto INSERT is
+//    positional.
+//  - Connections: Player, PCRoomUserInfo, PCRoomLottoObject,
+//    SpeedHackPlayer and the LastLogoutDate read through the dist
+//    connection ("PLAYER_DB" — the name is ignored by
 //    DatabaseManager::getDistConnection, which returns the thread's
 //    second socket to the same DARKEDEN schema), UserStatus through the
-//    USERINFO connection, GuildMember, UserIPInfo and CrashReportLog
-//    through DARKEDEN, SpeedHackPlayer and the LastLogoutDate read through
-//    the dist connection as their handlers wrote it.
+//    USERINFO connection, GuildMember, UserIPInfo, CrashReportLog,
+//    BugReportLog, CrashLog and the account ban through DARKEDEN.
 //  - recordUserIP and recordSpeedHack each run a second statement on the
-//    same Statement when the first changed no row, exactly as their
-//    handlers did (getAffectedRowCount() == 0).
+//    same Statement when the first changed no row
+//    (getAffectedRowCount() == 0).
 //  - The uint SpecialEventCount and the uint user count stream through
-//    "%d", the DWORD PC-room id and BYTE race through "%u" — the callers'
-//    conversions, kept.
-//  - SpecialEventCount comes back through getDWORD, as before.
-//  - Names and ids are interpolated raw, as before.
+//    "%d"; SpecialEventCount comes back through getDWORD.
+//  - Names and ids are interpolated raw.
 class MySQLSessionRepository : public SessionRepository {
 public:
     void markGuildMemberLoggedOff(const string& name) {

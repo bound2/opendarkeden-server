@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     cout << ">>> RANDOMIZATION INITIALIZATION SUCCESS..." << endl;
 
     // Bind every packet id the gameserver receives to its handler before any
-    // receive a packet (docs/RESTRUCTURING.md task 2.3).
+    // thread can receive a packet.
     registerGameServerPacketHandlers();
     cout << ">>> PACKET DISPATCH TABLE REGISTERED..." << endl;
 

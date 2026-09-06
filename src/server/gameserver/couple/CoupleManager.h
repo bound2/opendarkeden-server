@@ -7,13 +7,9 @@
 
 class PlayerCreature;
 
-// The Sex-to-column mapping this class used to publish moved into
-// repository/MySQLCoupleRepository.cpp along with the statements that
-// used it: "MalePartnerName" and "FemalePartnerName" are SQL
-// identifiers, and a seam whose whole point is to own the SQL should
-// own them too rather than leave a second copy here to drift.
-// Nothing outside CoupleManager.cpp ever called getFieldName or
-// getCounterFieldName.
+// The Sex-to-column mapping ("MalePartnerName" / "FemalePartnerName")
+// lives in repository/MySQLCoupleRepository.cpp with the statements that
+// use it.
 
 class CoupleManager {
 public:

@@ -3,20 +3,14 @@
 
 namespace {
 
-// MySQL implementation of the play-record seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original: the saved
-//    quest DELETE quotes its numeric key ("QuestID='%u'"), the REPLACE
-//    writes the save time SQL-side (now()) and so does the head-count
-//    INSERT, and the score read is "LIMIT 1" with no ORDER BY — whichever
-//    row the optimizer hands back first, not a top score.
+// MySQL implementation of PlayRecordRepository.
+//  - The saved-quest DELETE quotes its numeric key ("QuestID='%u'"); the
+//    REPLACE and the head-count INSERT stamp their time SQL-side (now());
+//    the score read is "LIMIT 1" with no ORDER BY — whichever row the
+//    optimizer hands back first, not a top score.
 //  - The saved-quest load computes the save's age in SQL
-//    (unix_timestamp(now()) - unix_timestamp(Time)) and the caller reads
-//    it through getInt, as before.
-//  - The writes stream a DWORD quest id and a BYTE status through "%u"
-//    (promoted), and BYTE levels and a uint count through "%u" — the same
-//    conversions the callers had.
-//  - Names are interpolated raw, as before.
+//    (unix_timestamp(now()) - unix_timestamp(Time)), read through getInt.
+//  - Names are interpolated raw.
 class MySQLPlayRecordRepository : public PlayRecordRepository {
 public:
     vector<SavedQuestRow> loadSavedQuests(const string& owner) {
@@ -139,7 +133,7 @@ public:
     }
 
     // The CreatureUtil event tallies (see the header): the dist connection
-    // under the names the originals used, which DatabaseManager ignores.
+    // under names DatabaseManager ignores.
     void insertGoldMedal(const string& playerID) {
         Statement* pStmt = NULL;
 

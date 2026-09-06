@@ -1,8 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : SharedPacketDispatch.cpp
-// Description : the sharedserver composition root (docs/RESTRUCTURING.md
-//               task 2.3): every GS (game -> shared) packet id is bound
-//               to its handler here.
+// Description : the sharedserver composition root: every GS (game ->
+//               shared) packet id is bound to its handler here.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "SharedPacketDispatch.h"

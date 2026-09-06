@@ -3,32 +3,16 @@
 
 namespace {
 
-// MySQL implementation of the friend-list seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original. The spacing
-//    splits three and three, not by what the statement does: spaced
-//    "Owner_Name = '%s'" in friendExists, loadFriends and loadMessages;
-//    unspaced in hasBlacklisted, deleteFriend and deleteMessages. Three
-//    of the six WHEREs have a conjunction and all three spell it "and"
-//    in lower case. The INSERTs disagree too — unspaced
-//    "FriendHistory(HistoryMessage, ...)" against spaced
-//    "FriendList (Friend_Name, ...)" — and the spool projection is
-//    "HistoryMessage,Friend_Name" with no space after its comma.
+// MySQL implementation of FriendRepository.
 //  - The two add-friend probes SELECT columns nobody reads: the callers
-//    only ask whether next() returned a row. The projections are kept as
-//    written rather than reduced.
-//  - Names and messages are interpolated raw, as before. A message
-//    containing a quote breaks its INSERT, which is the inline
-//    behaviour.
+//    only ask whether a row came back.
+//  - Names and messages are interpolated raw. A message containing a
+//    quote breaks its INSERT.
 //  - See FriendRepository.h: neither table exists in the shipped schema,
-//    so every one of these statements raises. The bytes are still the
-//    bytes.
-//  - Like every other seam here, SAFE_DELETE sits inside the try, so a
-//    throw that is not a SQLQueryException leaks the Statement (and the
-//    Result and MYSQL_RES it owns). The two vector loaders add one such
-//    path the inline code did not have: push_back can raise bad_alloc.
-//    Theoretical, and the ordinary leak the round closes is a different
-//    and reachable one — but "leaks on no path" would be too strong.
+//    so every one of these statements raises.
+//  - SAFE_DELETE sits inside the try, so a throw that is not a
+//    SQLQueryException (push_back's bad_alloc in the vector loaders)
+//    leaks the Statement and the Result it owns.
 class MySQLFriendRepository : public FriendRepository {
 public:
     void insertFriend(const string& friendName, const string& ownerName) {

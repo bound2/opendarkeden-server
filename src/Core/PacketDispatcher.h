@@ -1,9 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : PacketDispatcher.h
 // Description : packet-id -> handler dispatch table, filled in at each
-//               app's composition root (docs/RESTRUCTURING.md task 2.3).
-//               Replaces the per-packet virtual execute(): the kernel
-//               keeps the wire classes, the app owns which handler runs.
+//               app's composition root. The kernel keeps the wire
+//               classes, the app owns which handler runs.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __PACKET_DISPATCHER_H__
@@ -33,11 +32,9 @@ private:
 };
 
 // Registration helpers for the composition roots: bind packet class Cls
-// to Cls##Handler::execute, preserving the exact call the packet's own
-// execute() used to make before task 2.3. The _NOPLAYER form is for
-// handlers that take only the packet (the inter-server directions).
-// The id comes from the factory's compile-time metadata (PacketMeta.h),
-// so registration no longer constructs a throwaway packet to ask for it.
+// to Cls##Handler::execute. The _NOPLAYER form is for handlers that take
+// only the packet (the inter-server directions). The id comes from the
+// factory's compile-time metadata (PacketMeta.h).
 #define DE_REGISTER_PACKET_HANDLER(Cls)                                           \
     {                                                                             \
         struct Thunk {                                                            \

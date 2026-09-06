@@ -6,12 +6,9 @@
 
 #include "Types.h"
 
-// Persistence seam for the quest-info, quest-reward, event-quest-advance and
-// event-quest-looting tables (task 3.2): what the mission/ managers read when an
-// NPC is created or a player logs in, plus the one row EventQuestAdvance writes.
-// Every statement here is a copy of its mission/*.cpp original, byte for byte,
-// whitespace and all; the legacy quirks are quarantined HERE, per
-// docs/RESTRUCTURING.md 3.2.
+// The quest-info, quest-reward, event-quest-advance and event-quest-looting
+// tables: what the mission/ managers read when an NPC is created or a player
+// logs in, plus the one row EventQuestAdvance writes.
 //
 // The catalogues come in pairs. SimpleQuestInfoManager reads the nine columns of
 // MonsterKillQuestInfo for one NPC; EventQuestInfoManager reads the same table and
@@ -20,21 +17,13 @@
 // wrapping it. SimpleQuestRewardManager reads ItemRewardInfo and
 // SlayerWeaponRewardInfo, whose six columns are identical, into one row type.
 //
-// Reads are typed to the driver getter the inline code called: every numeric
-// column came back through getInt — the callers cast into their own typedefs and
-// turn EventQuest and IsChief into bool with a `!= 0` (or `== 0 ? false : true`)
-// of their own — and OptionType through getString. The one non-column expression,
-// EventQuestLootingInfo's "LootingType-1", stays in the SELECT.
+// Every numeric column is read through getInt — the callers cast into their own
+// typedefs and turn EventQuest and IsChief into bool themselves — and OptionType
+// through getString. The one non-column expression, EventQuestLootingInfo's
+// "LootingType-1", is part of the SELECT.
 //
-// The per-owner "DELETE FROM EventQuestAdvance WHERE OwnerID='%s'" that the
-// character-deletion purge runs is CharacterPurgeRepository's (the last
-// statement of its list), not this seam's.
-//
-// Not enclosed: the five mission/ files whose only executeQuery text sits inside
-// commented-out blocks (QuestInfoManager, RewardClassInfoManager, ItemRewardInfo,
-// EventQuestRewardManager, MiniGameQuestStatus). They hold no live statement, so
-// there is nothing to move; ratchet R3 keeps counting them until the dead text
-// goes, which is a separate decision.
+// The per-owner DELETE FROM EventQuestAdvance that the character-deletion purge
+// runs is CharacterPurgeRepository's.
 
 // The six columns every quest-info SELECT starts with.
 struct QuestHeadRow {
@@ -151,20 +140,18 @@ public:
     virtual std::vector<EventMiniGameQuestRow> loadEventMiniGameQuestsOfNPC(const std::string& npcName) = 0;
 
     // EventQuestAdvance::save — the UPDATE, false when no row went (the caller
-    // then runs the INSERT IGNORE, as it did).
+    // then runs the INSERT IGNORE).
     virtual bool updateEventQuestAdvance(uint status, const std::string& ownerName, uint questLevel) = 0;
     virtual void insertEventQuestAdvance(uint questLevel, const std::string& ownerName, uint status) = 0;
 
     // EventQuestAdvanceManager::load — every advance row the owner has.
     virtual std::vector<EventQuestAdvanceRow> loadEventQuestAdvances(const std::string& ownerName) = 0;
 
-    // EventQuestLootingManager::load — the whole catalogue; the original built no
-    // arguments, so this one keeps executeQueryString.
+    // EventQuestLootingManager::load — the whole catalogue.
     virtual std::vector<EventQuestLootingRow> loadEventQuestLootingInfos() = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in MySQLQuestInfoRepository.cpp.
-// An accessor function rather than a g_p* extern: ratchet R1 counts those.
 QuestInfoRepository& defaultQuestInfoRepository();
 
 #endif

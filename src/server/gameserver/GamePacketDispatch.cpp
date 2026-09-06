@@ -1,9 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GamePacketDispatch.cpp
-// Description : the gameserver composition root (docs/RESTRUCTURING.md
-//               task 2.3): every packet id the gameserver receives from
-//               clients is bound to its handler here, instead of each
-//               packet class carrying a virtual execute(). All CG
+// Description : the gameserver composition root: every packet id the
+//               gameserver receives from clients is bound to its handler
+//               here. All CG
 //               packets (keep alphabetical), plus the handful of GC
 //               packets the live client sends server-ward.
 //////////////////////////////////////////////////////////////////////////////

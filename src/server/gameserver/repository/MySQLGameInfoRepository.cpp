@@ -3,17 +3,12 @@
 
 namespace {
 
-// MySQL implementation of the game-info seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original — the
-//    trailing space of "SELECT SkillType, Parent FROM SkillTreeInfo ",
-//    the `Rank` backticks of RankBonusInfo (RANK is reserved on MySQL 8
-//    — load-bearing there, untestable on the 5.7 tier), the name
-//    tables' inline 'BASIC'/'EVENT' filters (data in the literal, not
-//    a parameter — kept, as four distinct statements).
-//  - The MAX probes return false on the NULL a MAX() over an empty
-//    table yields — the inline code would have atoi(NULL)'d it (see
-//    MySQLBalanceInfoRepository.cpp).
+// MySQL implementation of GameInfoRepository.
+//  - RankBonusInfo's SELECT backticks `Rank` (RANK is reserved on MySQL
+//    8); the name tables' 'BASIC'/'EVENT' filters are in the literals,
+//    four distinct statements.
+//  - The MAX probes return false on the NULL a MAX() over an empty table
+//    yields (see MySQLBalanceInfoRepository.cpp).
 //  - None of the loads has an ORDER BY. SkillTreeInfo is KEYLESS and its
 //    loader relies on rows of the same SkillType arriving adjacent
 //    (it opens a new SkillParentInfo whenever the type changes); the
@@ -21,8 +16,7 @@ namespace {
 //    optimizer's choice, not a contract (see
 //    MySQLSkillSaveRepository.cpp) — a clustered scan of a keyless
 //    InnoDB table returns insertion order today.
-//  - Names and option lists come back through getString ("" for NULL),
-//    as before.
+//  - Names and option lists come back through getString ("" for NULL).
 const char* const MONSTER_NAME_QUERIES[MONSTER_NAME_LIST_MAX] = {
     "SELECT Name FROM FirstNameInfo WHERE MonsterType='BASIC'",  // MONSTER_NAMES_FIRST_BASIC
     "SELECT Name FROM MiddleNameInfo WHERE MonsterType='BASIC'", // MONSTER_NAMES_MIDDLE_BASIC
@@ -207,8 +201,8 @@ public:
         return rows;
     }
 
-    // --- the config tables the second round added -------------------------
-    // Byte-for-byte the originals again: DarkLightInfo's " , "-spaced
+    // --- the config tables -------------------------------------------------
+    // Spellings as the callers had them: DarkLightInfo's " , "-spaced
     // column list, CastleSkillInfo's mixed-case "Select ... from",
     // GoodsListInfo's "Limited+0" (the enum ordinal) and "Kind<>'SET'"
     // filter, NicknameIndex's inline 'LEVEL' filter. GoodsListInfo is

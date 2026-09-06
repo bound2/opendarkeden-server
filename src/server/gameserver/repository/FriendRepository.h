@@ -6,47 +6,30 @@
 
 #include "Types.h"
 
-// Persistence seam for the friend-list feature's two tables (task 3.2):
-// FriendList, the mutual roster with a per-entry blacklist flag, and
-// FriendHistory, the offline message spool. Both are keyed by character
-// NAME, not by account.
+// The friend-list feature's two tables: FriendList, the mutual roster
+// with a per-entry blacklist flag, and FriendHistory, the offline message
+// spool. Both are keyed by character NAME, not by account.
 //
-// ================== READ THIS BEFORE USING THIS SEAM ==================
+// ======================= READ THIS BEFORE USING =======================
 //
-// NEITHER TABLE EXISTS. initdb/DARKEDEN.sql defines 374 tables and
-// neither FriendList nor FriendHistory is among them, in this schema or
-// in USERINFO.sql. No other code in the tree references either table:
-// these statements, which came from GCFriendChattingHandler, are the
-// only ones. So every method here raises
-// against the shipped schema, and it always has.
+// NEITHER TABLE EXISTS. initdb/DARKEDEN.sql defines neither FriendList
+// nor FriendHistory, and nor does USERINFO.sql. These statements (from
+// GCFriendChattingHandler) are the only code that references them, so
+// every method here raises against the shipped schema.
 //
-// That is not a defect this round introduced or is fixing — task 3.2
-// moves statements without changing what they do — but it decides what
-// the seam can honestly promise. It promises the statements are the
-// original bytes. It cannot promise they work, and the integration tier
-// pins the failure rather than a success it cannot reach.
-//
-// The consequence is worth stating where a reader will meet it:
 // GCFriendChatting is dispatched server-side from
 // GamePlayer::processCommand, whose catch (...) turns anything into a
 // DisconnectException. END_DB converts the driver's SQLQueryException to
 // a const char*, which nothing between here and there catches. So a
 // client that opens its friend list is disconnected.
 //
-// Whoever adds the tables should expect the integration tier's
-// FriendMySQL cases to start failing, and should replace them with the
-// success-path assertions they were always meant to be. Note the limit
-// of that tripwire: it fires only if the columns added match the names
-// these statements guess at. A table with any name or type mismatch
-// still raises, every assertion stays green, and the tripwire silently
-// stops working. Note the tier
-// covers six of these nine methods, not all of them: insertBlacklisted,
-// hasBlacklisted and deleteMessages have no case, so adding the tables
-// gives no signal from those three.
-//
-// Nothing else in the tree touches either table, so there is no
-// "not enclosed" list to keep — which is itself only true because the
-// tables do not exist for anything else to touch.
+// The integration tier's FriendMySQL cases pin that failure. Whoever adds
+// the tables should expect them to start failing and replace them with
+// success-path assertions. That tripwire fires only if the columns added
+// match the names these statements use; a table with any name or type
+// mismatch still raises and every assertion stays green. The tier covers
+// six of the nine methods: insertBlacklisted, hasBlacklisted and
+// deleteMessages have no case.
 // =====================================================================
 
 // A HAZARD IN THIS INTERFACE, stated because nothing catches it. The
@@ -83,9 +66,7 @@ public:
     virtual void insertFriend(const std::string& friendName, const std::string& ownerName) = 0;
     virtual void insertBlacklisted(const std::string& friendName, const std::string& ownerName) = 0;
 
-    // The two probes the add-friend request makes. Both select columns
-    // their caller never reads — it only asks whether a row came back —
-    // so both are kept as bool and the projections stay as written.
+    // The two probes the add-friend request makes: whether a row exists.
     virtual bool friendExists(const std::string& ownerName, const std::string& friendName) = 0;
     // Note the asymmetry: this one is asked with the OTHER character as
     // owner, because it answers "has the person I am adding blacklisted
@@ -105,8 +86,7 @@ public:
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLFriendRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLFriendRepository.cpp.
 FriendRepository& defaultFriendRepository();
 
 #endif

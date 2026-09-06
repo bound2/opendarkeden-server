@@ -8,9 +8,9 @@
 
 #include "Types.h"
 
-// Persistence seam for the effects that survive a logout (task 3.2): the
-// thirteen one-table-per-effect saves the Effect*.cpp classes run from
-// their create()/destroy()/save() overrides and their *Loader::load().
+// The effects that survive a logout: the thirteen one-table-per-effect
+// saves the Effect*.cpp classes run from their create()/destroy()/save()
+// overrides and their *Loader::load().
 // Four shapes of table:
 //  - DEADLINE tables (YearTime, DayTime): EffectAftermath,
 //    EffectKillAftermath, EffectMute, CanEnterGDRLair, EffectRestore.
@@ -39,17 +39,13 @@
 // keyless in the strongest sense: its CREATE TABLE carries no index at
 // all, not even the OwnerID one the other twelve have.
 //
-// The per-character purges — the gameserver's in
-// CharacterPurgeRepository (since the CreatureUtil round), the
-// loginserver's in CLDeletePCHandler — DELETE from EIGHT of these
-// tables (EffectAftermath, EffectBloodDrain, EffectFlare, EffectLight,
-// EffectMute, EffectRestore, EffectYellowPoisonToCreature, EnemyErase) as
-// part of their multi-table character deletion — not enclosed here (an
-// earlier version of this line said three, which its own "other five"
-// arithmetic contradicted). Nothing purges the other five:
-// an EffectKillAftermath, CanEnterGDRLair or force-scroll row outlives
-// its character, and a name-reuser inherits it on first login (the same
-// quirk BloodBibleSignRepository documents for its table).
+// The character-deletion purge (CharacterPurgeRepository) DELETEs from
+// eight of these tables (EffectAftermath, EffectBloodDrain, EffectFlare,
+// EffectLight, EffectMute, EffectRestore, EffectYellowPoisonToCreature,
+// EnemyErase). Nothing purges the other five: an EffectKillAftermath,
+// CanEnterGDRLair or force-scroll row outlives its character, and a
+// name-reuser inherits it on first login (the same quirk
+// BloodBibleSignRepository documents for its table).
 
 enum DeadlineEffectTable {
     EFFECT_TABLE_AFTERMATH,
@@ -92,13 +88,11 @@ enum CreatureEffectTable {
 //  - EffectFlare and EffectLight select (YearTime, DayTime, OldSight):
 //    level stays 0.
 //  - EffectYellowPoisonToCreature selects all four.
-// level carries the driver call its loader made — getBYTE for
-// EffectBloodDrain, getInt for EffectYellowPoisonToCreature, which differ
-// above 255. Kept per table, not unified.
+// level is read through getBYTE for EffectBloodDrain and getInt for
+// EffectYellowPoisonToCreature, which differ above 255.
 // OldSight is named by three of the four SELECTs and read by NONE of the
-// loaders: all three hard-code the restored sight to 13 instead. The
-// column stays in the statements byte for byte, and the seam does not
-// fetch it — that read is a driver call the originals never made.
+// loaders, which hard-code the restored sight to 13 instead; the column
+// is selected but never fetched.
 struct CreatureEffectRow {
     DWORD yearTime;
     DWORD dayTime;
@@ -111,8 +105,7 @@ public:
 
     // --- deadline tables ------------------------------------------------
     // yearTime is the Turn_t getCurrentYearTime() produced, dayTime the
-    // effect's m_Deadline.tv_sec — the same expressions the inline SQL
-    // streamed, in the same types.
+    // effect's m_Deadline.tv_sec.
     virtual void insertDeadline(DeadlineEffectTable table, const std::string& ownerName, Turn_t yearTime,
                                 time_t dayTime) = 0;
     virtual void deleteDeadline(DeadlineEffectTable table, const std::string& ownerName) = 0;
@@ -139,23 +132,21 @@ public:
     virtual std::vector<EnemyEraseRow> loadEnemyErases(const std::string& ownerName) = 0;
 
     // --- per-creature tables --------------------------------------------
-    // level and oldSight are the (int) casts each caller streamed; a table
-    // whose statements name no such column ignores that argument. The
-    // callers pass 0 there, as the seam's own tests do.
+    // A table whose statements name no level or oldSight column ignores
+    // that argument; the callers pass 0 there.
     virtual void insertCreatureEffect(CreatureEffectTable table, const std::string& ownerName, Turn_t yearTime,
                                       time_t dayTime, int level, int oldSight) = 0;
     virtual void deleteCreatureEffect(CreatureEffectTable table, const std::string& ownerName) = 0;
     virtual void updateCreatureEffect(CreatureEffectTable table, const std::string& ownerName, Turn_t yearTime,
                                       time_t dayTime, int level, int oldSight) = 0;
-    // Every row the owner has, in the driver's order (no ORDER BY, as
-    // before); the loaders build one effect object per row.
+    // Every row the owner has, in the driver's order (no ORDER BY); the
+    // loaders build one effect object per row.
     virtual std::vector<CreatureEffectRow> loadCreatureEffects(CreatureEffectTable table,
                                                                const std::string& ownerName) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLEffectSaveRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLEffectSaveRepository.cpp.
 EffectSaveRepository& defaultEffectSaveRepository();
 
 #endif

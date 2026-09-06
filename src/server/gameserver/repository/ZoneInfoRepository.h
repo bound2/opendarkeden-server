@@ -6,37 +6,21 @@
 
 #include "Types.h"
 
-// Read-only seam for the zone CONFIGURATION tables (task 3.2, the Zone
-// milestone): ZoneGroupInfo, ZoneInfo, ZoneTriggers, EffectPKZoneRegen
-// and WayPointInfo — the data the gameserver reads while it bootstraps
-// its zone groups, zones, threads and per-zone effects, and never
-// writes. The config round added ZoneEffectInfo (one zone, one effect
-// class), ZoneInfo's MonsterList/EventMonsterList texts, and the
-// PKZoneInfo / EventZoneInfo / LevelWarZoneInfo tables.
-// Every row field is typed to the driver getter the inline code
-// called on that column (getInt → int, getString → std::string), so
-// each narrowing a caller performed when it stored the value still
-// happens there, on the same value.
-//
-// The quest round (2026-09-06) added ZoneTriggers' second read: the
-// trigger scripts of one rectangle, which quest/TriggerManager::load
-// runs when a zone builds a triggered portal (Zone::loadTriggeredPortal
-// reads the rectangles through loadTriggerRects, then asks for each
-// one's scripts). With that, no SQL on ZoneTriggers is left outside this
-// seam; the NPC-keyed sister table Triggers is ContentInfoRepository's.
-//
-// The loginserver and sharedserver read ZoneGroupInfo/ZoneInfo with
-// their own inline SELECTs (their own extraction). Every gameserver
-// MAX(ZoneGroupID) probe goes through loadMaxZoneGroupID: EffectShutDown's
-// two since the info round, ConnectionInfoManager's since its own, and
-// CGSayHandler's opsave since the CGSay round (2026-09-06) — an earlier
-// version of this line still listed the last two as not enclosed.
+// Read-only access to the zone CONFIGURATION tables: ZoneGroupInfo,
+// ZoneInfo (including its MonsterList/EventMonsterList texts),
+// ZoneTriggers, EffectPKZoneRegen, WayPointInfo, ZoneEffectInfo (one
+// zone, one effect class) and the PKZoneInfo / EventZoneInfo /
+// LevelWarZoneInfo tables — the data the gameserver reads while it
+// bootstraps its zone groups, zones, threads and per-zone effects, and
+// never writes. Every row field is typed to the driver getter used for
+// that column (getInt → int, getString → std::string); callers narrow
+// from there. The NPC-keyed sister table Triggers is
+// ContentInfoRepository's.
 
 // ZoneInfoManager::load — the 17 columns of a ZoneInfo row, in SELECT
 // order. The SELECT spells three columns differently from the schema
 // (OwnerID, SMPFilename, SSIFilename vs OwnerId, SmpFileName,
-// SsiFileName): MySQL column names are case-insensitive, so it
-// resolves; kept verbatim.
+// SsiFileName); MySQL column names are case-insensitive, so it resolves.
 struct ZoneInfoRow {
     int zoneID;
     int zoneGroupID;
@@ -82,8 +66,7 @@ struct ZoneRectRow {
 };
 
 // ZoneTriggers' scripts for one rectangle (quest/TriggerManager::load):
-// TriggerID through getInt, the four texts through getString. The
-// caller trim()s the texts itself, as before.
+// TriggerID through getInt, the four texts through getString, untrimmed.
 struct ZoneTriggerRow {
     int triggerID;
     std::string triggerType;
@@ -168,14 +151,10 @@ class ZoneInfoRepository {
 public:
     virtual ~ZoneInfoRepository() {}
 
-    // ZoneEffectInfo rectangles of one effect class in a zone: the seven-column
-    // literal EffectOnBridgeLoader and six skill loaders share (AcidSwamp,
-    // ContinualBloodyWall, GreenPoison, IceField, Prominence, YellowPoison — all
-    // callers now). BloodyWall and GrayDarkness only mention the table inside
-    // commented-out loaders, so they are not callers.
+    // ZoneEffectInfo rectangles of one effect class in a zone (the
+    // seven-column read EffectOnBridgeLoader and the skill loaders share).
     virtual std::vector<ZoneEffectRow> loadZoneEffectRects(ZoneID_t zoneID, int effectID) = 0;
-    // EffectDarknessLoader's own statement: the same table, four columns, and a
-    // "%u" for the zone id where the seven-column one has "%d".
+    // EffectDarknessLoader's own statement: the same table, four columns.
     virtual std::vector<ZoneEffectBoundsRow> loadZoneEffectBounds(ZoneID_t zoneID, int effectID) = 0;
 
     // ZoneInfo's MonsterList / EventMonsterList texts for a zone
@@ -187,13 +166,12 @@ public:
     virtual std::vector<EventZoneRow> loadEventZones() = 0;
     virtual std::vector<LevelWarZoneRow> loadLevelWarZones() = 0;
 
-    // ZoneGroupInfo.ZoneGroupID for every group. ZoneGroupManager::load
-    // asks for them ORDER BY ZoneGroupID; makeDefaultLoadInfo and
-    // ThreadManager::init do not — two distinct statements, kept.
+    // ZoneGroupInfo.ZoneGroupID for every group, ORDER BY ZoneGroupID or
+    // unordered.
     virtual std::vector<int> loadZoneGroupIDs(bool orderedByID) = 0;
 
-    // ZoneInfo.ZoneID of every zone in a group; ORDER BY ZoneID for
-    // ZoneGroupManager::load, unordered for makeDefaultLoadInfo.
+    // ZoneInfo.ZoneID of every zone in a group, ORDER BY ZoneID or
+    // unordered.
     virtual std::vector<int> loadZoneIDsOfGroup(int zoneGroupID, bool orderedByID) = 0;
 
     // Every ZoneInfo row (ZoneInfoManager::load).
@@ -204,9 +182,8 @@ public:
 
     // ZoneTriggers rectangles of a zone (Zone::loadTriggeredPortal).
     virtual std::vector<ZoneRectRow> loadTriggerRects(ZoneID_t zoneID) = 0;
-    // The scripts of one ZoneTriggers rectangle (quest/TriggerManager::load):
-    // "... WHERE ZoneID=%d AND X1=%d AND Y1=%d AND X2=%d AND Y2=%d", every
-    // value an int as the caller passed it (it cast its ZoneID_t to int).
+    // The scripts of one ZoneTriggers rectangle (quest/TriggerManager::load),
+    // keyed by zone and the four corner coordinates.
     virtual std::vector<ZoneTriggerRow> loadZoneTriggers(int zoneID, int left, int top, int right, int bottom) = 0;
 
     // EffectPKZoneRegen rectangles of a zone (Zone::loadEffect).
@@ -218,14 +195,12 @@ public:
     // Every WayPointInfo row (WayPointManager::load).
     virtual std::vector<WayPointRow> loadAllWayPoints() = 0;
 
-    // MAX(ZoneGroupID) — the group count EffectShutDown iterates; false on
-    // an empty table (one NULL row, which the inline code atoi(NULL)'d).
+    // MAX(ZoneGroupID); false on an empty table (one NULL row).
     virtual bool loadMaxZoneGroupID(int& maxZoneGroupID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLZoneInfoRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLZoneInfoRepository.cpp.
 ZoneInfoRepository& defaultZoneInfoRepository();
 
 #endif

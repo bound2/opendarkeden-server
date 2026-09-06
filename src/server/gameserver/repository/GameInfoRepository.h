@@ -4,29 +4,23 @@
 #include <string>
 #include <vector>
 
-// Read-only seam for the small game-info tables the gameserver loads
-// once at boot (task 3.2): the skill tree (SkillTreeInfo), the rank
-// bonuses (RankBonusInfo), the pet types (PetTypeInfo), the game
-// server groups (GameServerGroupInfo), the blood-bible bonuses
-// (BloodBibleBonusInfo) and the monster name parts (FirstNameInfo,
-// MiddleNameInfo, LastNameInfo). The config round added the
-// whole-table boot reads: WeatherInfo, GSStringPool, ShopTemplate,
-// NicknameIndex ('LEVEL' rows), ItemMineInfo, ItemGradeRatioInfo,
-// GoodsListInfo (on the dist connection), DefaultOptionSetInfo,
-// DarkLightInfo, CastleSkillInfo, CastleShrineInfo and LogUserInfo; the
-// item round added the option tables OptionInfoManager loads (OptionInfo,
-// OptionClassInfo, RareEnchantInfo, PetEnchantOptionRatioInfo).
-// Every field is typed to the driver getter the inline code called
-// (getInt → int, getString → std::string), so each caller's narrowing
-// still happens at the caller on the same value.
+// Read-only access to the small game-info tables the gameserver loads
+// once at boot: the skill tree (SkillTreeInfo), the rank bonuses
+// (RankBonusInfo), the pet types (PetTypeInfo), the game server groups
+// (GameServerGroupInfo), the blood-bible bonuses (BloodBibleBonusInfo),
+// the monster name parts (FirstNameInfo, MiddleNameInfo, LastNameInfo),
+// the whole-table config reads (WeatherInfo, GSStringPool, ShopTemplate,
+// NicknameIndex 'LEVEL' rows, ItemMineInfo, ItemGradeRatioInfo,
+// GoodsListInfo on the dist connection, DefaultOptionSetInfo,
+// DarkLightInfo, CastleSkillInfo, CastleShrineInfo, LogUserInfo) and the
+// option tables OptionInfoManager loads (OptionInfo, OptionClassInfo,
+// RareEnchantInfo, PetEnchantOptionRatioInfo). Every field is typed to
+// the driver getter used for it (getInt → int, getString → std::string);
+// callers narrow from there.
 //
 // The MAX probes the loaders use to size their arrays are exposed as
-// bools for the reason BalanceInfoRepository.h gives: MAX() over an
-// empty table is one NULL row, which the inline code would have
-// atoi(NULL)'d.
-//
-// The loginserver and sharedserver load GameServerGroupInfo with their
-// own code — their own extractions.
+// bools: MAX() over an empty table is one NULL row, and the probe answers
+// false rather than handing back a NULL field.
 
 struct SkillParentRow {
     int skillType;
@@ -71,7 +65,7 @@ enum MonsterNameList {
     MONSTER_NAME_LIST_MAX
 };
 
-// --- the config tables the second round added ------------------------------
+// --- the config tables ------------------------------------------------------
 
 struct WeatherRow {
     int month;
@@ -163,9 +157,7 @@ struct CastleShrineRow {
     int holyMonsterType;
 };
 
-// OptionInfo's 19 columns in SELECT order. The original assembled the
-// SELECT from StringStream pieces and ran it through executeQueryString;
-// the joined bytes are the literal the seam runs.
+// OptionInfo's 19 columns in SELECT order.
 struct OptionInfoRow {
     int optionType;
     std::string name;
@@ -220,7 +212,7 @@ public:
     virtual std::vector<RareEnchantRow> loadRareEnchantInfos() = 0;
     virtual std::vector<PetEnchantOptionRatioRow> loadPetEnchantOptionRatios() = 0;
 
-    // The whole-table config reads of the second round, one per table.
+    // The whole-table config reads, one per table.
     virtual std::vector<WeatherRow> loadWeather() = 0;
     virtual std::vector<StringPoolRow> loadStrings() = 0;
     virtual std::vector<ShopTemplateRow> loadShopTemplates() = 0;
@@ -254,21 +246,13 @@ public:
     // optimizer's choice, not a contract).
     virtual std::vector<std::string> loadMonsterNames(MonsterNameList list) = 0;
 
-    // The shop quest actions' per-NPC read (quest round, 2026-09-06):
-    // "SELECT ID from ShopTemplate where NPCID = %d" — one literal, written
-    // identically by ActionPrepareShop, ActionRegenShop and
-    // ActionRegenEventShop, so one method; the NPCID is the int the action
-    // read from its property buffer. Returns the IDs through getInt in the
-    // ORDER-BY-less order the SELECT gives them; each action appends them
-    // to its list in that order, as before. With this, every ShopTemplate
-    // statement in the tree is in this seam (the whole-table read above
-    // and this one).
+    // The ShopTemplate IDs of one NPC (the shop quest actions), in the
+    // ORDER-BY-less order the SELECT gives them.
     virtual std::vector<int> loadShopTemplateIDsOfNPC(int npcID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLGameInfoRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLGameInfoRepository.cpp.
 GameInfoRepository& defaultGameInfoRepository();
 
 #endif

@@ -129,8 +129,8 @@ public:
     // library never needs the PetItem definition. The ObjectID must stay a
     // LIVE lookup at write() time — ObjectIDs are zone-local and reassigned
     // on every zone entry, and a freshly created item has none until it is
-    // registered (caching here shipped stale ids and asserted on unregistered
-    // items; see the 2.4 review).
+    // registered (a cached id would go stale and assert on an unregistered
+    // item).
     void setPetItem(PetItem* pPetItem);
     PetItem* getPetItem() const {
         return m_pPetItem;

@@ -493,7 +493,7 @@ void GamePlayer::processCommand(bool Option) {
                 // Packets a client pipelined behind CGReady must not keep
                 // draining here: they would dispatch on the main thread and
                 // reach the Zone mutation gateways with no group mutex held
-                // (a real, client-triggerable race — task 3.4 review). Stop;
+                // (a client-triggerable race). Stop;
                 // the zone thread's ZonePlayerManager drains the remainder on
                 // its next tick.
                 if (!Option && getPlayerStatus() == GPS_NORMAL)

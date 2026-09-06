@@ -311,25 +311,17 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
         pGamePlayer->setPayPlayValue(payType, payPlayDate, payPlayHours, payPlayFlag, familyPayPlayDate);
 #endif
 
-        // NOTE: nothing left in this try can raise a SQLQueryException.
-        // Each repository call converts its own inside END_DB and
-        // rethrows a const char*, which this catch does not match, and
-        // everything else in the block is in-memory work. The one
-        // candidate, PaySystem::loginPayPlay, sits under
-        // __PAY_SYSTEM_LOGIN__ / __PAY_SYSTEM_FREE_LIMIT__, and all
-        // three pay-system macros are commented out in PaySystem.h —
-        // which docs/RESTRUCTURING.md already records. The catch is
-        // kept because it costs nothing and would matter again if a DB
-        // call were added here, not because it has anything to catch.
+        // NOTE: nothing in this try can raise a SQLQueryException. Each
+        // repository call converts its own inside END_DB and rethrows a
+        // const char*, which this catch does not match, and everything
+        // else in the block is in-memory work (PaySystem::loginPayPlay
+        // sits under pay-system macros that PaySystem.h comments out).
+        // The catch is kept because it would matter again if a DB call
+        // were added here.
         //
-        // What the const char* does instead: it matches no handler
-        // between here and GamePlayer::processCommand's catch (...),
-        // which turns anything into the same DisconnectException it
-        // turned the Error into. Two observables move rather than one.
-        // New: a DBError.log entry, which the hand-rolled conversion
-        // never wrote. Gone: __END_DEBUG's catch (Throwable&) printed
-        // the Error's text to stdout on the way past, and a const char*
-        // matches neither of its handlers.
+        // The const char* matches no handler between here and
+        // GamePlayer::processCommand's catch (...), which turns it into a
+        // DisconnectException; the SQL failure itself is in DBError.log.
     } catch (SQLQueryException& sqe) {
         throw Error(sqe.toString());
     }

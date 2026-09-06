@@ -3,56 +3,35 @@
 
 namespace {
 
-// MySQL implementation of the persisted-effect seam. The legacy quirks
-// are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte what its Effect*.cpp emitted, and
-//    the thirteen classes did NOT agree on spacing, so the format strings
-//    are per-table data rather than one template: "VALUES('%s', ..." vs
-//    the "VALUES ('%s', ..." of CanEnterGDRLair and EnemyErase;
-//    EffectMute's "YearTime=%u" and "OwnerID='%s'" where the others
-//    space around "="; the force scrolls' "(OwnerID, RemainTime )" and
-//    "VALUES('%s',%u)"; and the force-scroll loads' "SELECt" (a typo
-//    MySQL accepts — keywords are case-insensitive).
-//  - The varargs conversions are the arguments' own widths since the
-//    2026-09-06 width fix: the Turn_t (DWORD) year time and remain turn
-//    through %u (the originals fed them to %ld/%lu — the
-//    4-byte-through-8-byte family documented in
-//    MySQLCharacterRepository.cpp; here every DWORD sat in a register
-//    slot, so GCC's zero-extension had kept it benign) and the time_t
-//    DayTime still through %ld, which is exact for it. The bytes MySQL
-//    receives are the same for every value; a DWORD prints at most
-//    4294967295, exactly the int(10) unsigned columns' maximum, so no
-//    value from this seam is ever clamped.
+// MySQL implementation of EffectSaveRepository.
+//  - The format strings are per-table data rather than one template
+//    because the tables' spellings differ (spacing, "SELECt" in the
+//    force-scroll loads — keywords are case-insensitive).
+//  - The Turn_t (DWORD) year time and remain turn go through %u, the
+//    time_t DayTime through %ld. A DWORD prints at most 4294967295,
+//    exactly the int(10) unsigned columns' maximum, so no value is ever
+//    clamped.
 //  - The remain turn the force scrolls store is computed from
 //    timediff(m_Deadline, now), and Timeval.cpp's timediff returns the
 //    ABSOLUTE difference. A scroll saved after its deadline has passed
-//    therefore stores the time elapsed SINCE expiry as its "remaining"
-//    time, and the loader would resurrect it with that much left. The
-//    save paths run only while the effect is alive, so this is not
-//    reached in practice; documented, not pinned.
+//    would store the time elapsed SINCE expiry as its "remaining" time;
+//    the save paths run only while the effect is alive, so this is not
+//    reached in practice.
 //  - All eight tables are keyless (OwnerID index only) EXCEPT
 //    EffectKillAftermath, whose OwnerID is the PRIMARY KEY: its insert
 //    raises ER_DUP_ENTRY (1062) for an owner that already has a row,
-//    where the other seven silently accumulate a duplicate. Pinned by
-//    the integration tier.
+//    where the other seven silently accumulate a duplicate.
 //  - EnemyErase keys its DELETE on (OwnerID, EnemyName) but its UPDATE on
 //    OwnerID alone: a save() of one enemy-erase effect rewrites EVERY
-//    EnemyErase row the owner has to that effect's enemy. Pinned.
+//    EnemyErase row the owner has to that effect's enemy.
 //  - The loads have no ORDER BY; the deadline/enemy loaders consume every
-//    row and the remain loaders only the first, so order is immaterial
-//    except for which duplicate a remain load returns — the optimizer's
-//    choice (see MySQLSkillSaveRepository.cpp), not a contract.
+//    row and the remain loaders only the first, so which duplicate a
+//    remain load returns is the optimizer's choice.
 //  - An UPDATE/DELETE with no matching row is a silent no-op; owner and
-//    enemy names are interpolated raw. As before.
-//  - EffectRestore and the four per-creature tables built their
-//    statements with StringStream and ran them through the uncapped
-//    executeQueryString; here they are format strings through
-//    executeQuery, whose 2048-byte buffer throws an Error past the cap.
-//    OwnerID is a varchar(10) and the widest of these statements renders
-//    under 200 bytes, so the cap is unreachable — the same reasoning
-//    the earlier rounds recorded. EffectBloodDrain was already
-//    parameterized (its StringStream copies sit commented out beside the
-//    live calls) and keeps the overload it had.
+//    enemy names are interpolated raw.
+//  - Every statement goes through executeQuery's 2048-byte format
+//    buffer; OwnerID is a varchar(10) and the widest statement renders
+//    under 200 bytes, so the cap is unreachable.
 struct DeadlineSpec {
     const char* insert;
     const char* remove;

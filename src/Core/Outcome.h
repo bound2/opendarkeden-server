@@ -2,7 +2,7 @@
 //
 // Filename   : Outcome.h
 //
-// The result type for gameplay mutations (docs/RESTRUCTURING.md task 3.1):
+// The result type for gameplay mutations:
 // domain code returns Ok(events) or Rejected(reason) instead of using
 // exceptions for control flow. Exceptions stay reserved for programming and
 // configuration errors, which is why accessing the wrong side throws.
