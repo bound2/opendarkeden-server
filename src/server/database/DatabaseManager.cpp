@@ -48,6 +48,11 @@ void DatabaseManager::setUserInfoConnection(Connection* pConnection) {
     m_pUserInfoConnection = pConnection;
 }
 
+void DatabaseManager::setWorldDefaultConnection(Connection* pConnection) {
+    SAFE_DELETE(m_pWorldDefaultConnection);
+    m_pWorldDefaultConnection = pConnection;
+}
+
 void DatabaseManager::init() {
     __BEGIN_TRY
 

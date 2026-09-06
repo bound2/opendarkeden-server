@@ -152,6 +152,20 @@ public:
         END_DB(pStmt)
     }
 
+    void incrementEventItemCount2(Race_t race, int itemIndex) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+
+            pStmt->executeQuery("UPDATE EventItemCount2 SET Count = Count + 1 WHERE Race = %d AND ItemIndex = %d", race,
+                                itemIndex);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     vector<UniqueItemRow> loadUniqueItems() {
         vector<UniqueItemRow> rows;
         Statement* pStmt = NULL;

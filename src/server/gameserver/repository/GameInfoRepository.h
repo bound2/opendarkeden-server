@@ -253,6 +253,17 @@ public:
     // returns them (the manager indexes them by position — the
     // optimizer's choice, not a contract).
     virtual std::vector<std::string> loadMonsterNames(MonsterNameList list) = 0;
+
+    // The shop quest actions' per-NPC read (quest round, 2026-09-06):
+    // "SELECT ID from ShopTemplate where NPCID = %d" — one literal, written
+    // identically by ActionPrepareShop, ActionRegenShop and
+    // ActionRegenEventShop, so one method; the NPCID is the int the action
+    // read from its property buffer. Returns the IDs through getInt in the
+    // ORDER-BY-less order the SELECT gives them; each action appends them
+    // to its list in that order, as before. With this, every ShopTemplate
+    // statement in the tree is in this seam (the whole-table read above
+    // and this one).
+    virtual std::vector<int> loadShopTemplateIDsOfNPC(int npcID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in

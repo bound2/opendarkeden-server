@@ -20,6 +20,11 @@
 // The MAX probes are exposed as bools for the reason
 // BalanceInfoRepository.h gives: MAX() over an empty table is one NULL
 // row, which the inline code would have atoi(NULL)'d.
+//
+// The quest round (2026-09-06) added the NPC trigger scripts (Triggers):
+// quest/TriggerManager::load(name) reads an NPC's rows when the NPC is
+// created. The sister table ZoneTriggers is ZoneInfoRepository's. With
+// that, no SQL on Triggers is left outside this seam.
 
 // MonsterInfoManager::load — the 35 columns of its SELECT, in order.
 struct MonsterInfoRow {
@@ -166,6 +171,14 @@ struct VariableRow {
     int attr2;
 };
 
+// One Triggers row of an NPC, in SELECT order.
+struct NPCTriggerRow {
+    int triggerID;
+    std::string triggerType;
+    std::string conditions;
+    std::string actions;
+};
+
 class ContentInfoRepository {
 public:
     virtual ~ContentInfoRepository() {}
@@ -189,6 +202,12 @@ public:
 
     // --- NPC scripts, ordered by ScriptID ----------------------------------------
     virtual std::vector<ScriptRow> loadScripts() = 0;
+
+    // --- NPC trigger scripts (quest/TriggerManager::load(name)) ------------------
+    // "SELECT TriggerID, TriggerType, Conditions, Actions FROM Triggers WHERE NPC =
+    // '%s'"; TriggerID through getInt, the three texts through getString. The
+    // caller trim()s the texts itself, as before.
+    virtual std::vector<NPCTriggerRow> loadNPCTriggers(const std::string& npcName) = 0;
 
     // --- monster-AI directive sets -----------------------------------------------
     virtual bool loadMaxDirectiveSetID(int& maxID) = 0;

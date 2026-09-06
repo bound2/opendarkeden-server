@@ -283,6 +283,19 @@ public:
     virtual bool loadVampire(const std::string& ownerName, VampireLoadRecord& record) = 0;
     virtual bool loadOusters(const std::string& ownerName, OustersLoadRecord& record) = 0;
 
+    // quest/ActionRedistributeAttr (quest round, 2026-09-06): the vampire's
+    // attribute-redistribution counter, a column the load SELECT does not
+    // name. "SELECT RedistributeAttr FROM Vampire WHERE Name='%s'" — false
+    // when the vampire has no row (the caller tested getRowCount() == 0 and
+    // throws its own Error), the int through getInt otherwise; and
+    // "UPDATE Vampire SET RedistributeAttr = %d WHERE Name='%s'" with the
+    // caller's count + 1 as the int it computed. The other Vampire-table
+    // SQL outside this seam: CreatureUtil.cpp's SEX and Active='INACTIVE'
+    // updates (the deletion purge), CGSayHandler's Level read, and the
+    // loginserver's and sharedserver's own statements — their own rounds.
+    virtual bool loadVampireRedistributeAttr(const std::string& name, int& redistributeAttr) = 0;
+    virtual void saveVampireRedistributeAttr(int redistributeAttr, const std::string& name) = 0;
+
     // The periodic save() row update — vitals and position.
     virtual void saveSlayerVitals(const std::string& ownerName, const SlayerVitalsRecord& record) = 0;
     virtual void saveVampireVitals(const std::string& ownerName, const VampireVitalsRecord& record) = 0;

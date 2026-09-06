@@ -58,6 +58,7 @@
 #include "repository/SMSAddressRepository.h"
 #include "repository/SessionRepository.h"
 #include "repository/SkillSaveRepository.h"
+#include "repository/SpecialEventRepository.h"
 #include "repository/StashRepository.h"
 #include "repository/SystemAvailabilityRepository.h"
 #include "repository/WarInfoRepository.h"
@@ -1292,6 +1293,29 @@ TEST_F(CharacterMySQL, LoadSlayerFindsTheTwinRowEveryCharacterGetsAtCreation) {
     EXPECT_EQ(0, record.swordLevel);
 }
 
+// quest/ActionRedistributeAttr's counter: read false for a vampire with no
+// row, read the column's value otherwise, and the save scoped to the name.
+TEST_F(CharacterMySQL, VampireRedistributeAttrIsReadAndSavedPerName) {
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    PlayerFixture other = PlayerFixtures::lowLevelVampire();
+    vampire.persist();
+    other.persist();
+    execSQL("UPDATE Vampire SET RedistributeAttr = 7 WHERE Name = '" + vampire.name + "'");
+    execSQL("UPDATE Vampire SET RedistributeAttr = 2 WHERE Name = '" + other.name + "'");
+
+    int value = -1;
+    EXPECT_FALSE(defaultCharacterRepository().loadVampireRedistributeAttr("itnobody", value));
+    EXPECT_EQ(-1, value); // a miss leaves the out-parameter alone
+    ASSERT_TRUE(defaultCharacterRepository().loadVampireRedistributeAttr(vampire.name, value));
+    EXPECT_EQ(7, value);
+
+    defaultCharacterRepository().saveVampireRedistributeAttr(value + 1, vampire.name);
+    EXPECT_EQ("8", queryScalar("SELECT RedistributeAttr FROM Vampire WHERE Name = '" + vampire.name + "'"));
+    EXPECT_EQ("2", queryScalar("SELECT RedistributeAttr FROM Vampire WHERE Name = '" + other.name + "'"));
+    ASSERT_TRUE(defaultCharacterRepository().loadVampireRedistributeAttr(vampire.name, value));
+    EXPECT_EQ(8, value);
+}
+
 // --- SkillSave / VampireSkillSave / OustersSkillSave against real MySQL ---
 // Like CharacterRepository, a seam with NO fake tier: these tests are the
 // net. Every inserted column is read back through the load, every
@@ -2120,6 +2144,25 @@ TEST_F(ZoneInfoMySQL, TriggersRegenRectsAndWayPointsAreScopedToTheZoneAndRace) {
     EXPECT_EQ(3, triggers[0].right);
     EXPECT_EQ(4, triggers[0].bottom);
 
+    // quest/TriggerManager's follow-up read of one rectangle's scripts: the
+    // five columns, scoped to the zone AND all four coordinates (the other
+    // zone's 9,9,9,9 row and a same-zone row at another rectangle stay out).
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, TriggerType, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, "
+            "CounterActions) VALUES (31002, 'MONSTER', 31000, 1, 2, 3, 5, ' c2 ', 'a2', 'ca2')");
+    std::vector<ZoneTriggerRow> scripts = defaultZoneInfoRepository().loadZoneTriggers(IT_ZONE, 1, 2, 3, 4);
+    ASSERT_EQ(1u, scripts.size());
+    EXPECT_EQ(31000, scripts[0].triggerID);
+    EXPECT_EQ("QUEST", scripts[0].triggerType); // the column's default
+    EXPECT_EQ("", scripts[0].conditions);
+    scripts = defaultZoneInfoRepository().loadZoneTriggers(IT_ZONE, 1, 2, 3, 5);
+    ASSERT_EQ(1u, scripts.size());
+    EXPECT_EQ(31002, scripts[0].triggerID);
+    EXPECT_EQ("MONSTER", scripts[0].triggerType);
+    EXPECT_EQ(" c2 ", scripts[0].conditions); // untrimmed: the caller trims
+    EXPECT_EQ("a2", scripts[0].actions);
+    EXPECT_EQ("ca2", scripts[0].counterActions);
+    EXPECT_TRUE(defaultZoneInfoRepository().loadZoneTriggers(IT_ZONE_2, 1, 2, 3, 4).empty());
+
     std::vector<ZoneRectRow> regens = defaultZoneInfoRepository().loadPKZoneRegenRects(IT_ZONE);
     ASSERT_EQ(1u, regens.size());
     EXPECT_EQ(5, regens[0].left);
@@ -2452,6 +2495,27 @@ TEST(ConfigLoadersMySQL, WeatherAndGradeTablesHaveTheirFixedRowCounts) {
     ASSERT_EQ(10u, grades.size());
     for (size_t r = 0; r < grades.size(); r++)
         EXPECT_TRUE(grades[r].grade >= 1 && grades[r].grade <= 10);
+}
+
+// The shop actions' per-NPC read: only the NPC's rows, and nothing for an
+// NPC without rows. The SELECT has no ORDER BY, so the order the actions
+// append the ids in is the optimizer's choice (the table's only index is
+// the unique key on ID); the test checks membership, not order.
+TEST(ConfigLoadersMySQL, ShopTemplateIDsAreReadPerNPC) {
+    execSQL("DELETE FROM ShopTemplate WHERE ID >= 31000");
+    execSQL("INSERT INTO ShopTemplate (ID, ShopType, ItemClass, MinItemType, MaxItemType, MinOptionLevel, "
+            "MaxOptionLevel, NPCID) VALUES (31001, 1, 2, 3, 4, 5, 6, 31000)");
+    execSQL("INSERT INTO ShopTemplate (ID, ShopType, ItemClass, MinItemType, MaxItemType, MinOptionLevel, "
+            "MaxOptionLevel, NPCID) VALUES (31000, 1, 2, 3, 4, 5, 6, 31000)");
+    execSQL("INSERT INTO ShopTemplate (ID, ShopType, ItemClass, MinItemType, MaxItemType, MinOptionLevel, "
+            "MaxOptionLevel, NPCID) VALUES (31002, 1, 2, 3, 4, 5, 6, 31001)");
+
+    std::vector<int> ids = defaultGameInfoRepository().loadShopTemplateIDsOfNPC(31000);
+    ASSERT_EQ(2u, ids.size());
+    EXPECT_TRUE((ids[0] == 31000 && ids[1] == 31001) || (ids[0] == 31001 && ids[1] == 31000))
+        << ids[0] << " " << ids[1];
+    EXPECT_TRUE(defaultGameInfoRepository().loadShopTemplateIDsOfNPC(31002).empty());
+    execSQL("DELETE FROM ShopTemplate WHERE ID >= 31000");
 }
 
 TEST(ConfigLoadersMySQL, EveryWholeTableConfigListIsNonEmpty) {
@@ -3484,6 +3548,21 @@ TEST_F(ItemMySQL, TimeLimitItemsAreLoadedByOwnerAndStatusAndUpdatedByOwnerClassA
     ASSERT_EQ(1u, rows.size());
     EXPECT_EQ(31001, rows[0].itemID);
     EXPECT_EQ(1u, repository.loadTimeLimitItems("it-other", 0).size());
+}
+
+// quest/ActionGiveCommonEventItem's counter: (Race, ItemIndex)-keyed, the
+// race a BYTE. Race 250 is outside the game's three races; its rows are
+// this test's and are removed by value.
+TEST_F(ItemMySQL, EventItemCount2IncrementsOnlyItsRaceAndIndex) {
+    execSQL("DELETE FROM EventItemCount2 WHERE Race = 250");
+    execSQL("INSERT INTO EventItemCount2 (Race, ItemIndex, Count) VALUES (250, 1, 5)");
+    execSQL("INSERT INTO EventItemCount2 (Race, ItemIndex, Count) VALUES (250, 2, 5)");
+
+    defaultItemRepository().incrementEventItemCount2((Race_t)250, 1);
+
+    EXPECT_EQ("6", queryScalar("SELECT Count FROM EventItemCount2 WHERE Race=250 AND ItemIndex=1"));
+    EXPECT_EQ("5", queryScalar("SELECT Count FROM EventItemCount2 WHERE Race=250 AND ItemIndex=2"));
+    execSQL("DELETE FROM EventItemCount2 WHERE Race = 250");
 }
 
 TEST_F(ItemMySQL, EventCountersIncrementOnlyTheirRowExceptTheKeylessResurrectCount) {
@@ -5655,6 +5734,41 @@ TEST_F(ItemObjectMySQL, MotorcycleRedeemProbesReadsAndInsertsInBothSpellings) {
     EXPECT_EQ("3", queryScalar("SELECT COUNT(*) FROM MotorcycleObject WHERE ItemID >= 31000"));
 }
 
+// --- SpecialEvent against real MySQL -----------------------------------------
+// The one seam that goes through DatabaseManager::getConnection(int) — the
+// world-default connection main() hands it. Rows are keyed by account id.
+
+class SpecialEventMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM SpecialEvent WHERE Name LIKE 'it-%'");
+    }
+};
+
+TEST_F(SpecialEventMySQL, CountIsReadPerAccountAndResetOnlyForThatAccount) {
+    execSQL("INSERT INTO SpecialEvent (Name, Count) VALUES ('it-acct', 3)");
+    execSQL("INSERT INTO SpecialEvent (Name, Count) VALUES ('it-other', 4)");
+
+    int count = -1;
+    EXPECT_FALSE(defaultSpecialEventRepository().loadCount("it-nobody", count));
+    EXPECT_EQ(-1, count); // a miss leaves the out-parameter alone
+    ASSERT_TRUE(defaultSpecialEventRepository().loadCount("it-acct", count));
+    EXPECT_EQ(3, count);
+
+    defaultSpecialEventRepository().resetCount("it-acct");
+    EXPECT_EQ("0", queryScalar("SELECT Count FROM SpecialEvent WHERE Name = 'it-acct'"));
+    EXPECT_EQ("4", queryScalar("SELECT Count FROM SpecialEvent WHERE Name = 'it-other'"));
+    ASSERT_TRUE(defaultSpecialEventRepository().loadCount("it-acct", count));
+    EXPECT_EQ(0, count); // a zeroed row still reads as present: the action
+                         // would hand out nothing, but not say "not joined"
+}
+
 // --- the quest catalogues against real MySQL -------------------------------
 // The mission/ managers load these at NPC creation and at login. The tables are
 // seeded; each test writes its own rows (QuestIDs from 31000 up, NPC 'it-npc')
@@ -5863,6 +5977,7 @@ protected:
         execSQL("DELETE FROM SkillBalance WHERE Type >= 31000");
         execSQL("DELETE FROM NPC WHERE ZoneID >= 31000");
         execSQL("DELETE FROM Script WHERE ScriptID >= 31000");
+        execSQL("DELETE FROM Triggers WHERE TriggerID >= 31000");
         execSQL("DELETE FROM DirectiveSet WHERE ID >= 31000");
         execSQL("DELETE FROM AttrInfo WHERE attrID >= 31000");
     }
@@ -6040,6 +6155,35 @@ TEST_F(ContentInfoMySQL, NPCsAreScopedToTheZoneAndOptionallyTheRace) {
 
     EXPECT_TRUE(repository.loadNPCsOfRace(31000, 3).empty());
     EXPECT_EQ(1u, repository.loadNPCs(31001).size());
+}
+
+// quest/TriggerManager::load(name): an NPC's Triggers rows, four columns,
+// texts untrimmed (the caller trims), other NPCs' rows left out.
+TEST_F(ContentInfoMySQL, NPCTriggersAreScopedToTheNPC) {
+    execSQL("INSERT INTO Triggers (TriggerID, TriggerType, NPC, Conditions, Actions) "
+            "VALUES (31000, 'NPC', 'it-npc', ' c0 ', 'a0')");
+    execSQL("INSERT INTO Triggers (TriggerID, TriggerType, NPC, Conditions, Actions) "
+            "VALUES (31001, 'QUEST', 'it-npc', 'c1', 'a1')");
+    execSQL("INSERT INTO Triggers (TriggerID, TriggerType, NPC, Conditions, Actions) "
+            "VALUES (31002, 'NPC', 'it-other', 'c2', 'a2')");
+
+    std::vector<NPCTriggerRow> rows = defaultContentInfoRepository().loadNPCTriggers("it-npc");
+    ASSERT_EQ(2u, rows.size());
+    int seen = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].triggerID == 31000) {
+            EXPECT_EQ("NPC", rows[r].triggerType);
+            EXPECT_EQ(" c0 ", rows[r].conditions);
+            EXPECT_EQ("a0", rows[r].actions);
+            seen++;
+        } else if (rows[r].triggerID == 31001) {
+            EXPECT_EQ("QUEST", rows[r].triggerType);
+            EXPECT_EQ("c1", rows[r].conditions);
+            seen++;
+        }
+    }
+    EXPECT_EQ(2, seen);
+    EXPECT_TRUE(defaultContentInfoRepository().loadNPCTriggers("it-nobody").empty());
 }
 
 TEST_F(ContentInfoMySQL, ScriptsComeBackOrderedByScriptID) {
@@ -6931,6 +7075,10 @@ int main(int argc, char** argv) {
     // tier loads initdb/USERINFO.sql next to DARKEDEN.sql.
     std::string userInfoDb = env("IT_DB_USERINFO_DB", "USERINFO");
     g_pDatabaseManager->setUserInfoConnection(new Connection(host, userInfoDb, user, password, port));
+    // The WorldDBInfo row-0 connection the SpecialEvent seam reaches through
+    // getConnection(int) — same server and schema here, as in the shipped
+    // seeds (initdb's WorldDBInfo row 0 names the DARKEDEN schema).
+    g_pDatabaseManager->setWorldDefaultConnection(new Connection(host, db, user, password, port));
 
     return RUN_ALL_TESTS();
 }

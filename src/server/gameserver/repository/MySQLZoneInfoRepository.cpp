@@ -164,6 +164,36 @@ public:
         return rows;
     }
 
+    // quest/TriggerManager::load(zoneid, left, top, right, bottom).
+    vector<ZoneTriggerRow> loadZoneTriggers(int zoneID, int left, int top, int right, int bottom) {
+        vector<ZoneTriggerRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT TriggerID, TriggerType, Conditions, Actions, CounterActions FROM "
+                                    "ZoneTriggers WHERE ZoneID=%d AND X1=%d AND Y1=%d AND X2=%d AND Y2=%d",
+                                    zoneID, left, top, right, bottom);
+
+            while (pResult->next()) {
+                uint i = 0;
+                ZoneTriggerRow row;
+                row.triggerID = pResult->getInt(++i);
+                row.triggerType = pResult->getString(++i);
+                row.conditions = pResult->getString(++i);
+                row.actions = pResult->getString(++i);
+                row.counterActions = pResult->getString(++i);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
     vector<ZoneRectRow> loadPKZoneRegenRects(ZoneID_t zoneID) {
         vector<ZoneRectRow> rows;
         Statement* pStmt = NULL;

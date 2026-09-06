@@ -658,6 +658,26 @@ public:
 
         return rows;
     }
+
+    // The three shop actions' per-NPC read (see the header).
+    vector<int> loadShopTemplateIDsOfNPC(int npcID) {
+        vector<int> ids;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT ID from ShopTemplate where NPCID = %d", npcID);
+
+            while (pResult->next()) {
+                ids.push_back(pResult->getInt(1));
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return ids;
+    }
 };
 
 } // namespace

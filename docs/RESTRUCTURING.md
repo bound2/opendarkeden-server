@@ -59,7 +59,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 332 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `CreatureUtil.cpp` and `TradeManager.cpp` hold SQL that compiles and runs; the rest are listed under 3.2 "What remains".) |
-| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 71 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
+| R3 | Files with inline SQL outside `database/` and `gameserver/repository/` | 64 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v 'server/gameserver/repository/' \| wc -l` (`repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet. Textual — see the comment policy under 3.2. Counts unbuilt files and other binaries too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,790 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -740,13 +740,14 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   quarantined and documented *there*, never leaked into domain types. Order
   of attack: `PlayerCreature`/`Slayer`/`Vampire`/`Ousters` persistence first
   (biggest testability win), then Zone, then the long tail. Ratchets R2/R3.
-  > **Status:** in progress (2026-09-06) — 32 seams under
+  > **Status:** in progress (2026-09-06) — 33 seams under
   > `src/server/gameserver/repository/` (interface `*Repository.h`, impl
   > `MySQL*Repository.cpp`, reached through `default*Repository()`
-  > accessors, never `g_p*` externs). R2 104→8 and R3 317→71 since the
+  > accessors, never `g_p*` externs). R2 104→8 and R3 317→64 since the
   > pilot; every extraction is one branch and one PR
   > (`restructuring/*-repositor{y,ies}`, #18 through #85, then
-  > `restructuring/motorcycle-redeem`). The per-round
+  > `restructuring/motorcycle-redeem` and
+  > `restructuring/quest-action-statements`). The per-round
   > narrative — what moved, what the two adversarial reviews caught, the
   > byte-fidelity checks, the test list — lives in those PR descriptions
   > and commit messages, not here. Each repository header carries its
@@ -771,7 +772,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > account and GuildMember rows), `WarInfo` (shrines, castles, sweepers,
   > schedules, histories, reinforcement, race-war limits), `FlagWar`,
   > `RegenZone`, `BulletinBoard`, `ComebackEvent`, `MofusPoint`,
-  > `SystemAvailability`.
+  > `SystemAvailability`, `SpecialEvent` (the one seam on the
+  > world-default connection — `getConnection(int)`, see its header).
   >
   > **Conventions the rounds settled** (each one cost a review finding):
   > - Statements move **byte-for-byte**, quirks included (backticked
@@ -796,8 +798,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > - **Integration tier over fakes**: `mysql_repository_tests`
   >   (tests/integration/, `make integration-test`, needs docker) runs
   >   the real impls against MySQL 5.7 loaded with `initdb/` and the
-  >   production sql_mode; 170 tests. A quirk is replayed there before
-  >   it is written down — the first rounds' fakes documented three
+  >   production sql_mode; 175 tests, 11 of them failing on the pinned
+  >   toolchain (see the DWORD bullet below). A quirk is replayed there
+  >   before it is written down — the first rounds' fakes documented three
   >   behaviours the server refuted. Only the six pilot-era seams keep a
   >   fake (tests/support/). A seam whose callers are compiled out still
   >   gets a test: the compiler will never check them.
@@ -894,11 +897,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > not in `initdb/` and the file is in no CMakeLists — never compiled);
   > the two 2005 event handlers
   > `CGGetEventItemHandler` (6, Event200501Main/Recommend) and
-  > `CGDonationMoneyHandler` (6, Donation*200501); the `quest/` actions
-  > (ActionRedistributeAttr 2, ActionGiveSpecialEventItem 2 on the
-  > thread-keyed connection, ActionGiveCommonEventItem 1, the three
-  > shop actions' identical ShopTemplate read) and `quest/TriggerManager`
-  > (2); the small handler tables (`CGPortCheckHandler` 2 and
+  > `CGDonationMoneyHandler` (6, Donation*200501); the small handler
+  > tables (`CGPortCheckHandler` 2 and
   > `CGRequestIPHandler` 1 on UserIPInfo, `CGVerifyTimeHandler` 2 on
   > SpeedHackPlayer, and one each in CGSubmitScore, CGLotterySelect,
   > CGDissectionCorpse, CGCrashReport, CGBuyStoreItem);

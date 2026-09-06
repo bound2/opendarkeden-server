@@ -138,6 +138,7 @@ add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLQuestItemRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLRankBonusRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLSMSAddressRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLSpecialEventRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLSessionRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLSkillSaveRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLStashRepository.cpp

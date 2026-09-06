@@ -18,6 +18,13 @@
 // each narrowing a caller performed when it stored the value still
 // happens there, on the same value.
 //
+// The quest round (2026-09-06) added ZoneTriggers' second read: the
+// trigger scripts of one rectangle, which quest/TriggerManager::load
+// runs when a zone builds a triggered portal (Zone::loadTriggeredPortal
+// reads the rectangles through loadTriggerRects, then asks for each
+// one's scripts). With that, no SQL on ZoneTriggers is left outside this
+// seam; the NPC-keyed sister table Triggers is ContentInfoRepository's.
+//
 // The loginserver and sharedserver read ZoneGroupInfo/ZoneInfo with
 // their own inline SELECTs (their own extraction), and the
 // MAX(ZoneGroupID) probes in ConnectionInfoManager and CGSayHandler are
@@ -71,6 +78,17 @@ struct ZoneRectRow {
     int top;
     int right;
     int bottom;
+};
+
+// ZoneTriggers' scripts for one rectangle (quest/TriggerManager::load):
+// TriggerID through getInt, the four texts through getString. The
+// caller trim()s the texts itself, as before.
+struct ZoneTriggerRow {
+    int triggerID;
+    std::string triggerType;
+    std::string conditions;
+    std::string actions;
+    std::string counterActions;
 };
 
 // WayPointInfo's X/Y (the per-zone, per-race query).
@@ -185,6 +203,10 @@ public:
 
     // ZoneTriggers rectangles of a zone (Zone::loadTriggeredPortal).
     virtual std::vector<ZoneRectRow> loadTriggerRects(ZoneID_t zoneID) = 0;
+    // The scripts of one ZoneTriggers rectangle (quest/TriggerManager::load):
+    // "... WHERE ZoneID=%d AND X1=%d AND Y1=%d AND X2=%d AND Y2=%d", every
+    // value an int as the caller passed it (it cast its ZoneID_t to int).
+    virtual std::vector<ZoneTriggerRow> loadZoneTriggers(int zoneID, int left, int top, int right, int bottom) = 0;
 
     // EffectPKZoneRegen rectangles of a zone (Zone::loadEffect).
     virtual std::vector<ZoneRectRow> loadPKZoneRegenRects(ZoneID_t zoneID) = 0;

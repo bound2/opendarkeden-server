@@ -79,6 +79,12 @@ public:
     virtual void incrementLuckyBagCount(int bagKind) = 0;
     virtual void incrementGiftBoxCount(int boxKind) = 0;
     virtual void incrementEventItemCount(uint itemClass, uint itemType) = 0;
+    // quest/ActionGiveCommonEventItem (quest round, 2026-09-06): the
+    // per-race, per-index counter of the 2005 common event —
+    // "UPDATE EventItemCount2 SET Count = Count + 1 WHERE Race = %d AND ItemIndex
+    // = %d", the caller's Race_t (a BYTE) and int through "%d" as written. Its
+    // only statement in the tree.
+    virtual void incrementEventItemCount2(Race_t race, int itemIndex) = 0;
 
     // --- unique items ---------------------------------------------------------
     virtual std::vector<UniqueItemRow> loadUniqueItems() = 0;

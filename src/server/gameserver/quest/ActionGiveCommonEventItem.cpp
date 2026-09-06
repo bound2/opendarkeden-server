@@ -7,7 +7,6 @@
 
 #include <list>
 
-#include "DB.h"
 #include "GCCreateItem.h"
 #include "GCNPCResponse.h"
 #include "Inventory.h"
@@ -21,6 +20,7 @@
 #include "Vampire.h"
 #include "VariableManager.h"
 #include "Zone.h"
+#include "repository/ItemRepository.h"
 
 
 struct EVENT_ITEM_TEMPLATE {
@@ -297,14 +297,7 @@ void ActionGiveCommonEventItem::execute(Creature* pCreature1, Creature* pCreatur
             pPlayer->sendPacket(&gcCreateItem);
         }
 
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("UPDATE EventItemCount2 SET Count = Count + 1 WHERE Race = %d AND ItemIndex = %d",
-                                pPC->getRace(), itemIndex);
-        }
-        END_DB(pStmt)
+        defaultItemRepository().incrementEventItemCount2(pPC->getRace(), itemIndex);
     }
 
     // 대화창 닫기

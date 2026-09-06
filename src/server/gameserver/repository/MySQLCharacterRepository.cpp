@@ -192,6 +192,38 @@ public:
         return found;
     }
 
+    bool loadVampireRedistributeAttr(const string& name, int& redistributeAttr) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT RedistributeAttr FROM Vampire WHERE Name='%s'", name.c_str());
+
+            if (pResult->next()) {
+                redistributeAttr = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    void saveVampireRedistributeAttr(int redistributeAttr, const string& name) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE Vampire SET RedistributeAttr = %d WHERE Name='%s'", redistributeAttr,
+                                name.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     bool loadVampire(const string& ownerName, VampireLoadRecord& record) {
         bool found = false;
         Statement* pStmt = NULL;

@@ -40,6 +40,11 @@ public:
     // getUserInfoConnection(). Takes ownership like init() does and
     // frees a previously set one (defined in the .cpp for SAFE_DELETE).
     void setUserInfoConnection(Connection* pConnection);
+    // Same purpose for the world-default connection getConnection(int)
+    // falls through to in the gameserver (init() opens it from the
+    // WorldDBInfo row with WorldID = 0); the SpecialEvent seam is its one
+    // gameserver user.
+    void setWorldDefaultConnection(Connection* pConnection);
     void executeDummyQuery(Connection* pConnection);
 
     //--------------------------------------------------------------------
