@@ -9,9 +9,11 @@
 #include <netinet/in.h>
 
 #include "Assert.h"
-#include "DB.h"
 #include "Properties.h"
 #include "VSDateTime.h"
+#ifdef __GAME_SERVER__
+#include "repository/SessionRepository.h"
+#endif
 
 void CommonBillingPacket::test() {
     __BEGIN_TRY
@@ -229,19 +231,19 @@ void CommonBillingPacket::setExpire_Date(const string& PlayerID) {
     __BEGIN_TRY
 
     // Format BillingInfo::Result for sending.
-    ::Result* pResult = NULL;
-    Statement* pStmt = NULL;
-
     int year = 0, month, day, hour, min; //, sec;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+    // This file is compiled into BOTH binaries (GameServerBilling and
+    // LoginServerBilling, billing/CMakeLists.txt). The read goes through
+    // the gameserver's Session seam, which the loginserver does not link;
+    // setExpire_Date's two callers in BillingPlayer.cpp sit under
+    // __GAME_SERVER__, so the loginserver build never calls this and its
+    // copy takes the year == 0 branch below.
+#ifdef __GAME_SERVER__
+    {
+        string pat;
 
-        pResult = pStmt->executeQuery("SELECT LastLogoutDate FROM Player WHERE PlayerID='%s'", PlayerID.c_str());
-
-        if (pResult->next()) {
-            string pat = pResult->getString(1);
-
+        if (defaultSessionRepository().loadLastLogoutDate(PlayerID, pat)) {
             // 0123456789012345678
             // YYYY-MM-DD HH:MM:SS
             if (pat.size() == 19) {
@@ -253,10 +255,8 @@ void CommonBillingPacket::setExpire_Date(const string& PlayerID) {
                 // sec   = atoi( pat.substr(16,2).c_str() );
             }
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
+#endif
 
     // Convert "YYYYMMDDHH" into a human-friendly timestamp for logging.
     if (year == 0) {

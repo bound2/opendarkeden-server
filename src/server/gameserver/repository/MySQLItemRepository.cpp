@@ -152,6 +152,42 @@ public:
         END_DB(pStmt)
     }
 
+    void insertEventQuestRewardRecord(const string& name, DWORD rewardID, const string& accountID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+
+            pStmt->executeQuery("INSERT INTO EventQuestRewardRecord (PlayerID, RewardID, Time, RealPlayerID) "
+                                "VALUES ( '%s', %d, now(), '%s' )",
+                                name.c_str(), rewardID, accountID.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    bool loadBlackStarCount(int& count) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT ifnull(sum(Num),0) FROM `EventStarObject` WHERE `ItemType`=0;");
+
+            if (pResult->next()) {
+                count = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
     void incrementEventItemCount2(Race_t race, int itemIndex) {
         Statement* pStmt = NULL;
 

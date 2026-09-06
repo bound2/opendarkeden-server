@@ -27,11 +27,21 @@
 // its three GuildMember LogOn = 1 writes are loadPlayerSession,
 // markPlayerLoggedOn and markGuildMemberLoggedOn below.
 //
-// Not enclosed: CGPortCheckHandler's UserIPInfo upsert,
-// CGRequestIPHandler's and CGSayHandler's UserIPInfo reads — all
-// handler-directory files (R3); CGSayHandler's and
-// billing/CommonBillingPacket.cpp's Player.LogOn / LastLogoutDate reads,
-// and CGSayHandler's "UPDATE Player set Access='DENY'" — a Player WRITE
+// The handler-bookkeeping round (2026-09-06) added what the connected
+// client's handlers record about it: CGPortCheckHandler's UserIPInfo
+// upsert and CGRequestIPHandler's read of it, the billing
+// LastLogoutDate read (CommonBillingPacket::setExpire_Date), and the two
+// client-report tables — SpeedHackPlayer (CGVerifyTimeHandler's
+// update-then-insert on the dist connection) and CrashReportLog
+// (CGCrashReportHandler's INSERT). They are here rather than in a seam of
+// their own because they are keyed by the session's account or character
+// and written from the same connect-path handlers as the rest.
+//
+// Not enclosed: CGSayHandler's UserIPInfo read ("SELECT ServerID FROM
+// UserIPInfo where Name='%s'") and its "SELECT Count(*) FROM Player
+// where LogOn='GAME' OR LogOn='LOGON'" — a handler-directory file (R3)
+// that waits for the god-file work; CGSayHandler's
+// "UPDATE Player set Access='DENY'" — a Player WRITE
 // to a column this seam does not name, which the list missed twice;
 // src/server/PaySystem.cpp's PCRoomUserInfo statements (ServerCore, every
 // caller under the disabled __PAY_SYSTEM_* macros); the loginserver's
@@ -133,6 +143,42 @@ public:
     // --- per-character IP records (DARKEDEN) -------------------------------
     virtual void deleteUserIP(const std::string& name) = 0;
     virtual void deleteUserIPsOfServer(int serverID) = 0;
+    // CGPortCheckHandler: "INSERT IGNORE INTO UserIPInfo (Name, IP, Port,
+    // ServerID) VALUES ( '%s', %lu, %u, %d )" and, when that changed no row,
+    // "UPDATE UserIPInfo Set IP=%lu, Port=%u WHERE Name='%s'" on the same
+    // Statement — as written, including the DWORD ip through "%lu" (one of
+    // the conversions the 3.2 DWORD bullet in docs/RESTRUCTURING.md covers)
+    // and the config's int ServerID through "%d". The handler swallowed a
+    // SQLQueryException from either statement; it now swallows the seam's
+    // const char* instead, which means END_DB writes a DBError.log line
+    // where before nothing was logged.
+    virtual void recordUserIP(const std::string& name, DWORD ip, uint port, int serverID) = 0;
+    // CGRequestIPHandler: "SELECT IP, Port FROM UserIPInfo WHERE Name='%s'",
+    // both columns through getDWORD as before; false when there is no row
+    // (the handler keeps its NoSuchElementException).
+    virtual bool loadUserIP(const std::string& name, DWORD& ip, DWORD& port) = 0;
+
+    // --- what the client reports about itself (dist and DARKEDEN) ------------
+    // CGVerifyTimeHandler, on the dist connection ("PLAYER_DB"): the
+    // per-account speed-hack counter — an UPDATE of IP/NAME/WorldID/
+    // ServerGroupID/Date=now()/Count+1, then, when it changed no row, an
+    // INSERT IGNORE of a first row with Count 1, on the same Statement. The
+    // world and server-group ids arrive as the ints the handler cast them to.
+    virtual void recordSpeedHack(const std::string& playerID, const std::string& ip, const std::string& name,
+                                 int worldID, int serverGroupID) = 0;
+    // CGCrashReportHandler (DARKEDEN): the crash report row, ReportTime =
+    // now(), the packet's WORD version through "%u" as written; the seven
+    // texts are interpolated raw, as before.
+    virtual void insertCrashReport(const std::string& playerID, const std::string& name,
+                                   const std::string& executableTime, WORD version, const std::string& address,
+                                   const std::string& message, const std::string& os, const std::string& callStack) = 0;
+    // CommonBillingPacket::setExpire_Date, on the dist connection
+    // ("PLAYER_DB"): "SELECT LastLogoutDate FROM Player WHERE PlayerID='%s'"
+    // — the datetime as the text getString returns; false when no row.
+    // CommonBillingPacket.cpp is compiled into the loginserver too
+    // (LoginServerBilling), which does not link this seam: its call sits
+    // under __GAME_SERVER__ there, and its two callers are gameserver-only.
+    virtual bool loadLastLogoutDate(const std::string& playerID, std::string& lastLogoutDate) = 0;
 
     // --- the per-server user count (USERINFO connection) -------------------
     // True when a row was updated; the caller inserts otherwise.

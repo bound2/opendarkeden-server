@@ -10,7 +10,6 @@
 #include <cstdio>
 
 #include "Assert.h"
-#include "DB.h"
 #include "GCCreateItem.h"
 #include "GCModifyInformation.h"
 #include "GCMyStoreInfo.h"
@@ -26,6 +25,7 @@
 #include "Store.h"
 #include "VariableManager.h"
 #include "Zone.h"
+#include "repository/PlayRecordRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -184,21 +184,10 @@ void CGBuyStoreItemHandler::execute(CGBuyStoreItem* pPacket, Player* pPlayer)
         remainMoneyTraceLog(pPC->getName(), pStorePC->getName(), ITEM_LOG_TRADE, DETAIL_TRADE, price);
     }
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("INSERT INTO TradeLog (Timeline, Name1, IP1, Name2, IP2, Content) VALUES ('%s', '%s', "
-                            "'%s', '%s', '%s', 'Store:[%s(%s)]\n%s\n----\nBuy:[%s(%s)]\nGOLD:%u\n')",
-                            VSDateTime::currentDateTime().toString().c_str(), pStorePC->getName().c_str(),
-                            pStorePC->getPlayer()->getSocket()->getHost().c_str(), pPC->getName().c_str(),
-                            pPC->getPlayer()->getSocket()->getHost().c_str(), pStorePC->getName().c_str(),
-                            pStorePC->getPlayer()->getID().c_str(), pItem->toString().c_str(), pPC->getName().c_str(),
-                            pPC->getPlayer()->getID().c_str(), price);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt);
+    defaultPlayRecordRepository().logStoreTrade(
+        VSDateTime::currentDateTime().toString(), pStorePC->getName(), pStorePC->getPlayer()->getSocket()->getHost(),
+        pStorePC->getPlayer()->getID(), pPC->getName(), pPC->getPlayer()->getSocket()->getHost(),
+        pPC->getPlayer()->getID(), pItem->toString(), price);
 
     GCCreateItem gcCreateItem;
     makeGCCreateItem(&gcCreateItem, pItem, emptyPos.x, emptyPos.y);

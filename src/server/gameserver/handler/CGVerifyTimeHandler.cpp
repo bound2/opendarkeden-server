@@ -8,12 +8,12 @@
 
 #ifdef __GAME_SERVER__
 #include "Assert.h"
-#include "DB.h"
 #include "GamePlayer.h"
 #include "Ousters.h"
 #include "Properties.h"
 #include "Slayer.h"
 #include "Vampire.h"
+#include "repository/SessionRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -71,28 +71,14 @@ void CGVerifyTimeHandler::saveSpeedHackPlayer(Player* pPlayer) {
     /////////////////////////////////////////////////////////
     // 디비에 관련 정보를 넣는다.
     /////////////////////////////////////////////////////////
-    Statement* pStmt = NULL;
-
     try {
         static WorldID_t WorldID = g_pConfig->getPropertyInt("WorldID");
         static ServerGroupID_t ServerGroupID = g_pConfig->getPropertyInt("ServerID");
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-            pStmt->executeQuery("UPDATE SpeedHackPlayer SET IP = '%s', NAME = '%s', WorldID = %d, ServerGroupID = %d, "
-                                "Date = now(), Count = Count + 1 WHERE PlayerID = '%s'",
-                                IP.c_str(), Name.c_str(), (int)WorldID, (int)ServerGroupID, ID.c_str());
-
-            if (pStmt->getAffectedRowCount() == 0) {
-                pStmt->executeQuery("INSERT IGNORE INTO SpeedHackPlayer( PlayerID, IP, Name, WorldID, ServerGroupID, "
-                                    "Date, Count ) VALUES ( '%s', '%s', '%s', %d, %d, now(), 1 )",
-                                    ID.c_str(), IP.c_str(), Name.c_str(), (int)WorldID, (int)ServerGroupID);
-            }
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        // The UPDATE and, when it changed no row, the INSERT IGNORE — one
+        // seam call. A SQL failure leaves it as END_DB's const char*, which
+        // the catch below never matched (it was a const char* here too).
+        defaultSessionRepository().recordSpeedHack(ID, IP, Name, (int)WorldID, (int)ServerGroupID);
     } catch (Throwable& t) {
         filelog("SpeedHackLogError.log", "%s", t.toString().c_str());
     }

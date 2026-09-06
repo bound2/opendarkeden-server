@@ -15,15 +15,17 @@
 // writes' parameters to the members/expressions each caller streamed,
 // so the varargs bytes reaching the format strings are unchanged.
 //
+// The handler-bookkeeping round (2026-09-06) added CGSubmitScoreHandler's
+// MiniGameScores UPDATE and CGBuyStoreItemHandler's single-item TradeLog
+// INSERT (the store-purchase trade log).
+//
 // Not enclosed: the character-deletion sweeps of GQuestSave in
-// CreatureUtil.cpp and the loginserver's CLDeletePCHandler.cpp; the
-// MiniGameScores UPDATE in CGSubmitScoreHandler (CGSayHandler's and
-// mission/MiniGameQuestStatus.cpp's reads are commented out; the latter
-// calls sendGCMiniGameScores, a caller of this seam); TradeManager's
-// TradeLog INSERT, which concatenates an unbounded trade summary that
-// executeQuery's 2048-byte format buffer could not carry — it waits for
-// a DB-layer change; and CGBuyStoreItemHandler's already-parameterized
-// single-item TradeLog INSERT (a handler-directory file).
+// CreatureUtil.cpp and the loginserver's CLDeletePCHandler.cpp
+// (CGSayHandler's and mission/MiniGameQuestStatus.cpp's MiniGameScores
+// reads are commented out; the latter calls sendGCMiniGameScores, a
+// caller of this seam); and TradeManager's TradeLog INSERT, which
+// concatenates an unbounded trade summary that executeQuery's 2048-byte
+// format buffer could not carry — it waits for a DB-layer change.
 
 // One GQuestSave row for an owner, plus the server-side age of the save
 // (unix_timestamp(now()) - unix_timestamp(Time)).
@@ -51,6 +53,31 @@ public:
     // The first row LIMIT 1 happens to return for a type and level — there
     // is no ORDER BY, so "first" is the optimizer's choice. False when none.
     virtual bool loadMiniGameScore(BYTE gameType, BYTE level, std::string& name, int& score) = 0;
+    // CGSubmitScoreHandler: "UPDATE MiniGameScores SET Name='%s', Score=%u,
+    // Time=now() WHERE Type=%u AND Level=%u AND Score>%u LIMIT 1" — the
+    // packet's WORD score twice (the new value and the bar the standing row
+    // must be above) and its BYTE type and level, every one through "%u" as
+    // written. With no ORDER BY, which of several beatable rows the LIMIT 1
+    // overwrites is the optimizer's choice; and the statement never
+    // INSERTs, so a (type, level) with no seeded row never records a score.
+    // Both as before.
+    virtual void recordMiniGameScore(const std::string& name, WORD score, BYTE gameType, BYTE level) = 0;
+
+    // --- trade log (CGBuyStoreItemHandler) ----------------------------------
+    // The store-purchase TradeLog row. The Content column's text is the
+    // literal's — "Store:[<name>(<account>)]\n<item>\n----\nBuy:[<name>(<account>)]
+    // \nGOLD:<price>\n" — with the store's and the buyer's names appearing
+    // in it a second time after their Name1/Name2 columns; the seam writes
+    // each name into both places. Timeline is the text the handler
+    // formatted (VSDateTime::currentDateTime().toString()); price is the
+    // Gold_t through "%u" as written. Interpolated raw, as before, and
+    // still subject to executeQuery's 2048-byte format buffer — one item's
+    // toString() fits, which is why this INSERT could move and
+    // TradeManager's could not.
+    virtual void logStoreTrade(const std::string& timeline, const std::string& storeName, const std::string& storeHost,
+                               const std::string& storeAccountID, const std::string& buyerName,
+                               const std::string& buyerHost, const std::string& buyerAccountID,
+                               const std::string& itemText, Gold_t price) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in

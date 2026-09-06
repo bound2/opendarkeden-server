@@ -3448,6 +3448,8 @@ protected:
         execSQL("DELETE FROM ItemTraceLog WHERE OwnerID LIKE 'it-%'");
         execSQL("DELETE FROM MoneyTraceLog WHERE OwnerID LIKE 'it-%'");
         execSQL("DELETE FROM EventQuestRewardSchedule WHERE RewardID >= 31000");
+        execSQL("DELETE FROM EventQuestRewardRecord WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM EventStarObject WHERE ItemID >= 31000");
         execSQL("DELETE FROM UniqueItemInfo WHERE ItemClass >= 250");
         execSQL("DELETE FROM TimeLimitItems WHERE OwnerID LIKE 'it-%'");
         execSQL("DELETE FROM CardCount WHERE CARDKIND >= 31000");
@@ -3571,6 +3573,37 @@ TEST_F(ItemMySQL, EventItemCount2IncrementsOnlyItsRaceAndIndex) {
     EXPECT_EQ("6", queryScalar("SELECT Count FROM EventItemCount2 WHERE Race=250 AND ItemIndex=1"));
     EXPECT_EQ("5", queryScalar("SELECT Count FROM EventItemCount2 WHERE Race=250 AND ItemIndex=2"));
     execSQL("DELETE FROM EventItemCount2 WHERE Race = 250");
+}
+
+// CGLotterySelectHandler: the win record — the character name in PlayerID,
+// the account id in RealPlayerID, the DWORD reward id, a server-side Time.
+TEST_F(ItemMySQL, EventQuestRewardRecordIsInsertedWithNameAndAccount) {
+    defaultItemRepository().insertEventQuestRewardRecord("it-char", 31000, "it-acct");
+    const std::string where = " FROM EventQuestRewardRecord WHERE PlayerID = 'it-char'";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
+    EXPECT_EQ("31000", queryScalar("SELECT RewardID" + where));
+    EXPECT_EQ("it-acct", queryScalar("SELECT RealPlayerID" + where));
+    EXPECT_EQ("1", queryScalar("SELECT Time > '2026-01-01'" + where));
+}
+
+// CGDissectionCorpseHandler's black-star cap: the sum of Num over the
+// ItemType 0 rows of EventStarObject, other types left out; the table is
+// seeded, so the test measures against what stands before it adds rows.
+TEST_F(ItemMySQL, BlackStarCountSumsTheTypeZeroRowsOnly) {
+    int before = -1;
+    ASSERT_TRUE(defaultItemRepository().loadBlackStarCount(before));
+    EXPECT_EQ(atoi(queryScalar("SELECT ifnull(sum(Num),0) FROM EventStarObject WHERE ItemType=0").c_str()), before);
+
+    execSQL("INSERT INTO EventStarObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
+            "ItemFlag) VALUES (31000, 1, 0, 'it-owner', 0, 0, 0, 0, 3, 0)");
+    execSQL("INSERT INTO EventStarObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
+            "ItemFlag) VALUES (31001, 2, 0, 'it-owner', 0, 0, 0, 0, 4, 0)");
+    execSQL("INSERT INTO EventStarObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
+            "ItemFlag) VALUES (31002, 3, 1, 'it-owner', 0, 0, 0, 0, 9, 0)"); // other type
+
+    int after = -1;
+    ASSERT_TRUE(defaultItemRepository().loadBlackStarCount(after));
+    EXPECT_EQ(before + 7, after);
 }
 
 TEST_F(ItemMySQL, EventCountersIncrementOnlyTheirRowExceptTheKeylessResurrectCount) {
@@ -6272,6 +6305,7 @@ protected:
         execSQL("DELETE FROM GQuestSave WHERE OwnerID LIKE 'it-%'");
         execSQL("DELETE FROM HeadCount WHERE Name LIKE 'it-%'");
         execSQL("DELETE FROM MiniGameScores WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM TradeLog WHERE Name1 LIKE 'it-%'");
     }
 };
 
@@ -6329,6 +6363,43 @@ TEST_F(PlayRecordMySQL, MiniGameScoreReadReportsTheRowOrNone) {
     EXPECT_FALSE(repository.loadMiniGameScore(120, 6, name, score)); // other level
 }
 
+// CGSubmitScoreHandler: the UPDATE replaces a standing (type, level) row
+// whose Score is GREATER than the submitted one — lower is better on this
+// board — and only that one (LIMIT 1); a higher submission changes nothing,
+// another level's row is never touched, and with no row there is nothing
+// to update (the statement never inserts).
+TEST_F(PlayRecordMySQL, MiniGameScoreReplacesOnlyAWorseRowOfTheSameTypeAndLevel) {
+    PlayRecordRepository& repository = defaultPlayRecordRepository();
+    execSQL("INSERT INTO MiniGameScores (Name, Type, Level, Score) VALUES ('it-scorer', 120, 5, 999)");
+    execSQL("INSERT INTO MiniGameScores (Name, Type, Level, Score) VALUES ('it-scorer', 120, 6, 999)");
+
+    repository.recordMiniGameScore("it-new", 500, 120, 5);
+    EXPECT_EQ("it-new", queryScalar("SELECT Name FROM MiniGameScores WHERE Type=120 AND Level=5"));
+    EXPECT_EQ("500", queryScalar("SELECT Score FROM MiniGameScores WHERE Type=120 AND Level=5"));
+    EXPECT_EQ("it-scorer", queryScalar("SELECT Name FROM MiniGameScores WHERE Type=120 AND Level=6"));
+
+    repository.recordMiniGameScore("it-worse", 700, 120, 5); // 500 > 700 is false
+    EXPECT_EQ("it-new", queryScalar("SELECT Name FROM MiniGameScores WHERE Type=120 AND Level=5"));
+
+    repository.recordMiniGameScore("it-new", 1, 120, 7); // no row for this level
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM MiniGameScores WHERE Type=120 AND Level=7"));
+}
+
+// CGBuyStoreItemHandler: the store-purchase TradeLog row, the two names in
+// their columns AND inside the Content text, the price at the end of it.
+TEST_F(PlayRecordMySQL, StoreTradeIsLoggedWithBothNamesInTheContent) {
+    defaultPlayRecordRepository().logStoreTrade("2026-09-06 10:00:00", "it-store", "10.0.0.1", "it-acct1", "it-buyer",
+                                                "10.0.0.2", "it-acct2", "ITEM(31000)", 123);
+    const std::string where = " FROM TradeLog WHERE Name1 = 'it-store'";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
+    EXPECT_EQ("2026-09-06 10:00:00", queryScalar("SELECT Timeline" + where));
+    EXPECT_EQ("it-buyer", queryScalar("SELECT Name2" + where));
+    EXPECT_EQ("10.0.0.1", queryScalar("SELECT IP1" + where));
+    EXPECT_EQ("10.0.0.2", queryScalar("SELECT IP2" + where));
+    EXPECT_EQ("Store:[it-store(it-acct1)]\nITEM(31000)\n----\nBuy:[it-buyer(it-acct2)]\nGOLD:123\n",
+              queryScalar("SELECT Content" + where));
+}
+
 // --- the session cluster against real MySQL ----------------------------------
 // Session end, the boot sweep, the PC-room lotto and the NetMarble user
 // count. Player/PCRoom rows go through the dist connection (same schema),
@@ -6349,6 +6420,8 @@ protected:
         execSQL("DELETE FROM PCRoomUserInfo WHERE PlayerID LIKE 'it-%'");
         execSQL("DELETE FROM PCRoomLottoObject WHERE PlayerID LIKE 'it-%'");
         execSQL("DELETE FROM UserIPInfo WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM SpeedHackPlayer WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM CrashReportLog WHERE PlayerID LIKE 'it-%'");
         execSQL("DELETE FROM USERINFO.UserStatus WHERE ServerID >= 31000");
     }
 };
@@ -6555,6 +6628,84 @@ TEST_F(SessionMySQL, UserStatusIsUpdatedOrInsertedOnTheUserInfoDatabase) {
     // tier's non-strict sql_mode, not stored. Pinned as observed.
     EXPECT_TRUE(repository.updateUserStatus(300, 120, 31000));
     EXPECT_EQ("127", queryScalar("SELECT CurrentUser FROM USERINFO.UserStatus WHERE WorldID=120 AND ServerID=31000"));
+}
+
+// CGPortCheckHandler / CGRequestIPHandler: the first record of a character
+// is the INSERT IGNORE; a second record for the same name changes no row
+// there and so takes the UPDATE; the read hands back both columns through
+// getDWORD and is false for a name without a row.
+TEST_F(SessionMySQL, UserIPIsInsertedThenUpdatedAndReadBack) {
+    SessionRepository& repository = defaultSessionRepository();
+    DWORD ip = 0, port = 0;
+
+    EXPECT_FALSE(repository.loadUserIP("it-nobody", ip, port));
+
+    repository.recordUserIP("it-char", 0x0100007fu, 9858, 31000);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name = 'it-char'"));
+    EXPECT_EQ("31000", queryScalar("SELECT ServerID FROM UserIPInfo WHERE Name = 'it-char'"));
+    ASSERT_TRUE(repository.loadUserIP("it-char", ip, port));
+    EXPECT_EQ(0x0100007fu, ip);
+    EXPECT_EQ(9858u, port);
+
+    // The UPDATE path: IP and Port move, ServerID is not in the UPDATE.
+    repository.recordUserIP("it-char", 0x0200007fu, 9859, 31001);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name = 'it-char'"));
+    EXPECT_EQ("31000", queryScalar("SELECT ServerID FROM UserIPInfo WHERE Name = 'it-char'"));
+    ASSERT_TRUE(repository.loadUserIP("it-char", ip, port));
+    EXPECT_EQ(0x0200007fu, ip);
+    EXPECT_EQ(9859u, port);
+}
+
+// CGVerifyTimeHandler: the first sighting of an account takes the INSERT
+// IGNORE (the UPDATE changed no row) with Count 1; the next takes the
+// UPDATE, moving IP/NAME/WorldID/ServerGroupID and counting up; another
+// account's row is untouched.
+TEST_F(SessionMySQL, SpeedHackIsInsertedOnFirstSightThenCountedUp) {
+    SessionRepository& repository = defaultSessionRepository();
+    execSQL("INSERT INTO SpeedHackPlayer (PlayerID, IP, Name, WorldID, ServerGroupID, Date, Count) "
+            "VALUES ('it-other', '1.1.1.1', 'Slayer:o', 1, 1, now(), 5)");
+
+    repository.recordSpeedHack("it-acct", "10.0.0.1", "Slayer:it-char", 2, 3);
+    EXPECT_EQ("1", queryScalar("SELECT Count FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("10.0.0.1", queryScalar("SELECT IP FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("2", queryScalar("SELECT WorldID FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+
+    repository.recordSpeedHack("it-acct", "10.0.0.2", "Vampire:it-char2", 4, 5);
+    EXPECT_EQ("2", queryScalar("SELECT Count FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("10.0.0.2", queryScalar("SELECT IP FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("Vampire:it-char2", queryScalar("SELECT Name FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("4", queryScalar("SELECT WorldID FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("5", queryScalar("SELECT ServerGroupID FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("5", queryScalar("SELECT Count FROM SpeedHackPlayer WHERE PlayerID = 'it-other'"));
+}
+
+// CGCrashReportHandler: one row per report, ReportTime server-side, the
+// WORD version and the texts landing in their columns.
+TEST_F(SessionMySQL, CrashReportRowIsInsertedWithItsColumns) {
+    defaultSessionRepository().insertCrashReport("it-acct", "it-char", "2026-09-06 10:00:00", 1234, "0x0040", "boom",
+                                                 "WinXP", "a\\nb");
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("it-char", queryScalar("SELECT Name FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("1234", queryScalar("SELECT Version FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("0x0040", queryScalar("SELECT Address FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("boom", queryScalar("SELECT Message FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("WinXP", queryScalar("SELECT OS FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("2026-09-06 10:00:00",
+              queryScalar("SELECT ExecutableTime FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("1", queryScalar("SELECT ReportTime > '2026-01-01' FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+}
+
+// CommonBillingPacket::setExpire_Date: the LastLogoutDate text of an
+// account through the dist connection; false for an account without a row.
+TEST_F(SessionMySQL, LastLogoutDateIsReadAsTextForAnAccount) {
+    std::string date = "untouched";
+    EXPECT_FALSE(defaultSessionRepository().loadLastLogoutDate("it-nobody", date));
+    EXPECT_EQ("untouched", date);
+
+    execSQL("INSERT INTO Player (PlayerID, LastLogoutDate) VALUES ('it-acct', '2026-09-05 23:59:58')");
+    ASSERT_TRUE(defaultSessionRepository().loadLastLogoutDate("it-acct", date));
+    EXPECT_EQ("2026-09-05 23:59:58", date);
 }
 
 // --- the ExpTable template's generic balance read ---------------------------

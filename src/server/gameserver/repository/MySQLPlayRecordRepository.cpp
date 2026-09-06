@@ -105,6 +105,38 @@ public:
 
         return found;
     }
+
+    void recordMiniGameScore(const string& name, WORD score, BYTE gameType, BYTE level) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE MiniGameScores SET Name='%s', Score=%u, Time=now() WHERE Type=%u AND "
+                                "Level=%u AND Score>%u LIMIT 1",
+                                name.c_str(), score, gameType, level, score);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void logStoreTrade(const string& timeline, const string& storeName, const string& storeHost,
+                       const string& storeAccountID, const string& buyerName, const string& buyerHost,
+                       const string& buyerAccountID, const string& itemText, Gold_t price) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO TradeLog (Timeline, Name1, IP1, Name2, IP2, Content) VALUES ('%s', '%s', "
+                                "'%s', '%s', '%s', 'Store:[%s(%s)]\n%s\n----\nBuy:[%s(%s)]\nGOLD:%u\n')",
+                                timeline.c_str(), storeName.c_str(), storeHost.c_str(), buyerName.c_str(),
+                                buyerHost.c_str(), storeName.c_str(), storeAccountID.c_str(), itemText.c_str(),
+                                buyerName.c_str(), buyerAccountID.c_str(), price);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
 };
 
 } // namespace

@@ -16,7 +16,6 @@
 #include "CombatInfoManager.h"
 #include "Corpse.h"
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "Effect.h"
 #include "EffectFlagInsert.h"
 #include "EffectHasSlayerRelic.h"
@@ -57,6 +56,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneUtil.h"
 #include "ctf/FlagManager.h"
+#include "repository/ItemRepository.h"
 #include "war/WarSystem.h"
 #endif // __GAME_SERVER__
 
@@ -386,90 +386,87 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
 
             if (pTreasure->getItemClass() == Item::ITEM_CLASS_EVENT_STAR && pTreasure->getItemType() == 0) {
                 // cout << "검은별 출현" << endl;
-                Statement* pStmt = NULL;
-                Result* pResult = NULL;
+                int BlackStarNumber = 0;
 
                 try {
-                    pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                    pResult =
-                        pStmt->executeQuery("SELECT ifnull(sum(Num),0) FROM `EventStarObject` WHERE `ItemType`=0;");
-
-                    if (pResult->getRowCount() != 1) {
-                        SAFE_DELETE(pStmt);
+                    if (!defaultItemRepository().loadBlackStarCount(BlackStarNumber)) {
                         throw ProtocolException("Fail to load data from DB");
                     }
+                } catch (const char*) {
+                    // A SQL failure crosses the seam as END_DB's const char*.
+                    // This block caught the SQLQueryException and rethrew it
+                    // as an Error, which the handler's outer catch (Throwable&)
+                    // swallows; a const char* would not be swallowed, so the
+                    // conversion is kept. The SQL text is not available here
+                    // any more (END_DB's message dangles — a known Core
+                    // defect); it is in DBError.log.
+                    throw Error("CGDissectionCorpseHandler: the black-star count read failed, see DBError.log");
+                }
 
-                    if (pResult->next()) {
-                        int BlackStarNumber = pResult->getInt(1);
-                        if (BlackStarNumber >= 7)
-                            cout << "검은별이 10개 넘었습니다" << endl;
-                        else {
-                            (pZone->getObjectRegistry()).registerObject(pTreasure);
+                {
+                    if (BlackStarNumber >= 7)
+                        cout << "검은별이 10개 넘었습니다" << endl;
+                    else {
+                        (pZone->getObjectRegistry()).registerObject(pTreasure);
 
-                            TPOINT pt = pZone->addItem(pTreasure, ZoneX, ZoneY);
-                            if (pt.x != -1) {
-                                if (pItem->getItemType() == MONSTER_CORPSE) {
-                                    MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
+                        TPOINT pt = pZone->addItem(pTreasure, ZoneX, ZoneY);
+                        if (pt.x != -1) {
+                            if (pItem->getItemType() == MONSTER_CORPSE) {
+                                MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
 
-                                    // 몬스터 시체에서 나온 아이템이라면 우선권 이펙트를 붙여주어야 한다.
-                                    // 혹시라도 기존의 이펙트가 있다면 삭제해주고,
-                                    // 새로이 이펙트를 더한다.
-                                    const string& HostName = pMonsterCorpse->getHostName();
-                                    int HostPartyID = pMonsterCorpse->getHostPartyID();
+                                // 몬스터 시체에서 나온 아이템이라면 우선권 이펙트를 붙여주어야 한다.
+                                // 혹시라도 기존의 이펙트가 있다면 삭제해주고,
+                                // 새로이 이펙트를 더한다.
+                                const string& HostName = pMonsterCorpse->getHostName();
+                                int HostPartyID = pMonsterCorpse->getHostPartyID();
 
-                                    bool isPrecedence = true;
-                                    if (pTreasure->getItemClass() == Item::ITEM_CLASS_EVENT_ITEM &&
-                                        pTreasure->getItemType() == 3) {
-                                        isPrecedence = false;
-                                    }
+                                bool isPrecedence = true;
+                                if (pTreasure->getItemClass() == Item::ITEM_CLASS_EVENT_ITEM &&
+                                    pTreasure->getItemType() == 3) {
+                                    isPrecedence = false;
+                                }
 
-                                    // by sigi. 2002.12.12
-                                    if (isPrecedence && (!HostName.empty() || HostPartyID != 0)) {
-                                        EffectPrecedence* pEffectPrecedence = new EffectPrecedence(pTreasure);
-                                        pEffectPrecedence->setDeadline(100);
-                                        pEffectPrecedence->setHostName(HostName);
-                                        pEffectPrecedence->setHostPartyID(HostPartyID);
-                                        EffectManager& rEffectManager = pTreasure->getEffectManager();
-                                        rEffectManager.deleteEffect(Effect::EFFECT_CLASS_PRECEDENCE);
-                                        rEffectManager.addEffect(pEffectPrecedence);
-                                        pTreasure->setFlag(Effect::EFFECT_CLASS_PRECEDENCE);
-                                    }
+                                // by sigi. 2002.12.12
+                                if (isPrecedence && (!HostName.empty() || HostPartyID != 0)) {
+                                    EffectPrecedence* pEffectPrecedence = new EffectPrecedence(pTreasure);
+                                    pEffectPrecedence->setDeadline(100);
+                                    pEffectPrecedence->setHostName(HostName);
+                                    pEffectPrecedence->setHostPartyID(HostPartyID);
+                                    EffectManager& rEffectManager = pTreasure->getEffectManager();
+                                    rEffectManager.deleteEffect(Effect::EFFECT_CLASS_PRECEDENCE);
+                                    rEffectManager.addEffect(pEffectPrecedence);
+                                    pTreasure->setFlag(Effect::EFFECT_CLASS_PRECEDENCE);
+                                }
 
-                                    // 만약 해골이라면 주위에다가 시체에서 목을 제거하라고 패킷을 날려주어야 한다.
-                                    if (pTreasure->getItemClass() == Item::ITEM_CLASS_SKULL) {
-                                        // 목 자르기~~ by sigi
-                                        pMonsterCorpse->removeHead();
+                                // 만약 해골이라면 주위에다가 시체에서 목을 제거하라고 패킷을 날려주어야 한다.
+                                if (pTreasure->getItemClass() == Item::ITEM_CLASS_SKULL) {
+                                    // 목 자르기~~ by sigi
+                                    pMonsterCorpse->removeHead();
 
-                                        GCRemoveCorpseHead _GCRemoveCorpseHead;
-                                        _GCRemoveCorpseHead.setObjectID(pItem->getObjectID());
-                                        // pZone->broadcastPacket(pt.x, pt.y, &_GCRemoveCorpseHead);
-                                        pZone->broadcastPacket(ZoneX, ZoneY,
-                                                               &_GCRemoveCorpseHead); // 원래 시체 좌표 by sigi
+                                    GCRemoveCorpseHead _GCRemoveCorpseHead;
+                                    _GCRemoveCorpseHead.setObjectID(pItem->getObjectID());
+                                    // pZone->broadcastPacket(pt.x, pt.y, &_GCRemoveCorpseHead);
+                                    pZone->broadcastPacket(ZoneX, ZoneY,
+                                                           &_GCRemoveCorpseHead); // 원래 시체 좌표 by sigi
 
-                                        if (pCreature->getPartyID() != 0 && HostPartyID == pCreature->getPartyID()) {
-                                            Party* pParty =
-                                                pCreature->getLocalPartyManager()->getParty(pCreature->getPartyID());
-                                            if (pParty != NULL) {
-                                                pParty->dissectCorpse(pCreature, pMonsterCorpse);
-                                            }
+                                    if (pCreature->getPartyID() != 0 && HostPartyID == pCreature->getPartyID()) {
+                                        Party* pParty =
+                                            pCreature->getLocalPartyManager()->getParty(pCreature->getPartyID());
+                                        if (pParty != NULL) {
+                                            pParty->dissectCorpse(pCreature, pMonsterCorpse);
                                         }
                                     }
                                 }
-
-                                // 기존의 ItemID를 그대로 유지한다.
-                                // ItemID가 0이면.. create()할때 다시 ItemID를 받는다.
-                                // by sigi. 2002.10.28
-                                pTreasure->create("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y,
-                                                  pTreasure->getItemID());
-                            } else {
-                                SAFE_DELETE(pTreasure);
                             }
+
+                            // 기존의 ItemID를 그대로 유지한다.
+                            // ItemID가 0이면.. create()할때 다시 ItemID를 받는다.
+                            // by sigi. 2002.10.28
+                            pTreasure->create("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y, pTreasure->getItemID());
+                        } else {
+                            SAFE_DELETE(pTreasure);
                         }
                     }
-                    SAFE_DELETE(pStmt);
-                } catch (SQLQueryException& sqe) {
-                    SAFE_DELETE(pStmt);
-                    throw Error(sqe.toString());
                 }
             } else if (pTreasure->isFlagItem()) {
                 // 깃발은 바로 인벤토리로 넣어준다.

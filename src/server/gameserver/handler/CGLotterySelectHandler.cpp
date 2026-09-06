@@ -11,7 +11,6 @@
 #include <cstdio>
 
 #include "CGSay.h"
-#include "DB.h"
 #include "GCCreateItem.h"
 #include "GCDeleteInventoryItem.h"
 #include "GCNoticeEvent.h"
@@ -32,6 +31,7 @@
 #include "ZoneGroupManager.h"
 #include "mission/EventQuestAdvance.h"
 #include "mission/QuestManager.h"
+#include "repository/ItemRepository.h"
 
 #endif // __GAME_SERVER__
 
@@ -120,19 +120,8 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
             // Reset lotto flag; non-winning paths handled elsewhere.
             pPC->setLotto(false);
 
-            Statement* pStmt = NULL;
-
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-                pStmt->executeQuery("INSERT INTO EventQuestRewardRecord (PlayerID, RewardID, Time, RealPlayerID) "
-                                    "VALUES ( '%s', %d, now(), '%s' )",
-                                    pCreature->getName().c_str(), pPC->getLottoRewardID(),
-                                    pPC->getPlayer()->getID().c_str());
-
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
+            defaultItemRepository().insertEventQuestRewardRecord(pCreature->getName(), pPC->getLottoRewardID(),
+                                                                 pPC->getPlayer()->getID());
 
             // Broadcast win to current map (and globally later).
             GCNotifyWin gcNW;

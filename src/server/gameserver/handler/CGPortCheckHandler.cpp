@@ -13,7 +13,7 @@
 #include "Properties.h"
 
 #ifdef __GAME_SERVER__
-#include "DB.h"
+#include "repository/SessionRepository.h"
 
 #endif
 
@@ -38,45 +38,35 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
 
     // cout << "CGPortCheck: [" << IP << "] " << host.c_str() << ":" << port << endl;
 
-    Statement* pStmt = NULL;
-
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        // The INSERT IGNORE and, when it changed no row, the UPDATE — one
+        // seam call, same two statements on one Statement as before.
+        defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port, g_pConfig->getPropertyInt("ServerID"));
 
-        pStmt->executeQuery("INSERT IGNORE INTO UserIPInfo (Name, IP, Port, ServerID) VALUES ( '%s', %lu, %u, %d )",
-                            pPacket->getPCName().c_str(), IP, port, g_pConfig->getPropertyInt("ServerID"));
+        // log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
 
-        if (pStmt->getAffectedRowCount() == 0) {
-            // 다시 한번 시도
-            pStmt->executeQuery("UPDATE UserIPInfo Set IP=%lu, Port=%u WHERE Name='%s'", IP, port,
-                                pPacket->getPCName().c_str());
-
-            // log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
-        }
-
-        SAFE_DELETE(pStmt);
-
-    } catch (SQLQueryException&) {
+    } catch (const char*) {
+        // A SQL failure crosses the seam as END_DB's const char* (the
+        // SQLQueryException this caught before is converted inside the
+        // seam, which also writes the DBError.log line the handler never
+        // wrote). Swallowed, as before.
         /*
         try {
             // 다시 한번 시도
-            pStmt->executeQuery( "UPDATE UserIPInfo Set IP=%ld, Port=%d WHERE Name='%s'",
-                                    IP,
-                                    port,
-                                    pPacket->getPCName().c_str());
+            // (an older retry of the UPDATE that recordUserIP now runs when the
+            // INSERT IGNORE changed no row; this copy fed the DWORD to %ld and
+            // the uint to %d where the live one feeds %lu and %u)
+            defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port,
+                                                   g_pConfig->getPropertyInt("ServerID"));
 
             //log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
 
-            SAFE_DELETE(pStmt);
+        } catch (const char*) {
 
-        } catch (SQLQueryException & sqe) {	//se) {
-
-            SAFE_DELETE(pStmt);
             // 무시한다.
             //throw ProtocolException("Duplicated IPInfo");
         }
         */
-        SAFE_DELETE(pStmt);
     }
 #else
             cout

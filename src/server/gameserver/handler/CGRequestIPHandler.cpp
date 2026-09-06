@@ -8,11 +8,11 @@
 
 #ifdef __GAME_SERVER__
 #include "Creature.h"
-#include "DB.h"
 #include "GCRequestFailed.h"
 #include "GCRequestedIP.h"
 #include "GamePlayer.h"
 #include "PCFinder.h"
+#include "repository/SessionRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -29,20 +29,15 @@ void CGRequestIPHandler::execute(CGRequestIP* pPacket, Player* pPlayer)
 
     try {
         // UserIPInfo 테이블에서 사용자 IP를 쿼리 한다.
-        Statement* pStmt = NULL;
+        {
+            DWORD ip = 0;
+            DWORD port = 0;
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult =
-                pStmt->executeQuery("SELECT IP, Port FROM UserIPInfo WHERE Name='%s'", pPacket->getName().c_str());
-
-            if (pResult->getRowCount() == 0) {
-                SAFE_DELETE(pStmt);
+            if (!defaultSessionRepository().loadUserIP(pPacket->getName(), ip, port)) {
                 throw NoSuchElementException("요청한 ID의 IP정보가 없음다.");
             } else {
-                pResult->next();
-                IP_t IP = pResult->getDWORD(1);
-                uint Port = pResult->getDWORD(2);
+                IP_t IP = ip;
+                uint Port = port;
                 // cout << "Requested IP : " << IP	<< endl;
 
                 GCRequestedIP gcRequestedIP;
@@ -50,11 +45,8 @@ void CGRequestIPHandler::execute(CGRequestIP* pPacket, Player* pPlayer)
                 gcRequestedIP.setPort(Port);
                 gcRequestedIP.setName(pPacket->getName().c_str());
                 pPlayer->sendPacket(&gcRequestedIP);
-
-                SAFE_DELETE(pStmt);
             }
         }
-        END_DB(pStmt)
     }
     // catch (NoSuchElementException & nsee)
     catch (Throwable& t) {

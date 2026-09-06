@@ -74,6 +74,21 @@ public:
     // bWinPrize: decrements one still-open schedule row (Count > 0, Time
     // past); true when a row changed. The DWORDs stream through "%d".
     virtual bool takeEventQuestReward(DWORD rewardID, DWORD questLevel) = 0;
+    // CGLotterySelectHandler (handler-bookkeeping round, 2026-09-06): the
+    // record of a scratch win — "INSERT INTO EventQuestRewardRecord (PlayerID,
+    // RewardID, Time, RealPlayerID) VALUES ( '%s', %d, now(), '%s' )". The
+    // PlayerID column gets the CHARACTER name and RealPlayerID the account
+    // id, as the handler wrote them; the DWORD reward id through "%d".
+    virtual void insertEventQuestRewardRecord(const std::string& name, DWORD rewardID,
+                                              const std::string& accountID) = 0;
+    // CGDissectionCorpseHandler (same round): the 2002 children's-day black
+    // star cap — "SELECT ifnull(sum(Num),0) FROM `EventStarObject` WHERE
+    // `ItemType`=0;" (backticks and trailing semicolon as written) through
+    // getInt. An aggregate always answers one row, so this returns true; it
+    // returns bool anyway because the handler tested getRowCount() != 1 and
+    // throws its ProtocolException on false, and that path is kept as
+    // written even though nothing reaches it.
+    virtual bool loadBlackStarCount(int& count) = 0;
     virtual void incrementResurrectItemCount() = 0;
     virtual void incrementCardCount(int cardKind) = 0;
     virtual void incrementLuckyBagCount(int bagKind) = 0;
