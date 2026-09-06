@@ -840,7 +840,19 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   eight-column SELECT; CodeSheet's zone SELECT names columns its
   >   table lacks.
   > - DWORD fields through `%lu`/`%ld` (exp saves, item ids, Key.Target)
-  >   work only by GCC codegen; preserved bit-for-bit.
+  >   work only by GCC codegen; preserved bit-for-bit. **Under the pinned
+  >   Zig/Clang 21 toolchain they do not work (found 2026-09-06):** the
+  >   integration tier on unmodified master fails 11 of 169 tests
+  >   (`CharacterMySQL.SlayerExpsTailLandsInFull` and ten `ItemObjectMySQL`
+  >   round-trips) because a 32-bit argument read through a 64-bit
+  >   conversion takes whatever the upper half of the register holds — a
+  >   Fame of 777 lands as 4294967295 (clamped by the unsigned column), an
+  >   UPDATE keyed by `ItemID=%ld` matches no row (Fame_t and Exp_t are
+  >   both DWORD). This is the shipped binary's
+  >   behaviour, not a test artefact; the fix (retyping each such
+  >   conversion to the argument's width — a byte change, so it gets its
+  >   own PR with the tier pinning the before/after) is owed and not part
+  >   of any extraction round.
   > - GuildUnionOffer's PK is OwnerGuildID alone, so an ESCAPE insert
   >   over a standing JOIN/QUIT row throws out of CGQuitUnionHandler.
   > - ActionShowGuildDialog gates guild creation on a hardcoded seven
