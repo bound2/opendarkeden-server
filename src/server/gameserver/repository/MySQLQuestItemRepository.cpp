@@ -3,25 +3,16 @@
 
 namespace {
 
-// MySQL implementation of the quest-item seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The SQL is byte-for-byte what GQuestInventory.cpp and the two
-//    GQuestGive*Element.cpp emitted (the three inserts were already the
-//    same literal).
+// MySQL implementation of QuestItemRepository. Quirks:
 //  - removeOne's "LIMIT 1" is load-bearing: the table stores one row
 //    per item INSTANCE (auto-increment ItemID, never read), so taking
 //    one item of a type the owner holds twice must leave the other.
-//    Pinned by the integration tier.
 //  - ItemType is tinyint unsigned; the %u conversion prints the WORD
 //    ItemType_t promoted to int, so a type above 255 would be clamped
 //    by the column under the non-strict sql_mode. Not reached by the
 //    quest item ids in use.
 //  - The load has no ORDER BY and the class keeps a list in whatever
 //    order arrives; not a contract.
-//  - Two of the three original callers (GQuestInventory::load and
-//    ::removeOne) leaked their Statement on the success path; the seam
-//    frees it — a per-call leak fixed knowingly, as in the earlier
-//    rounds.
 class MySQLQuestItemRepository : public QuestItemRepository {
 public:
     vector<int> loadItemTypes(const string& ownerName) {

@@ -8,8 +8,8 @@
 
 #include "repository/BloodBibleSignRepository.h"
 
-// In-memory BloodBibleSignRepository for domain tests
-// (docs/RESTRUCTURING.md 3.2). The production interface is READ-ONLY —
+// In-memory BloodBibleSignRepository for domain tests. The production
+// interface is READ-ONLY —
 // nothing in the gameserver writes the table — so the fake's addRow()
 // stands in for the out-of-band process that grants signs. Mirrors the
 // MySQL implementation's contract:

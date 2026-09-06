@@ -3,18 +3,15 @@
 
 namespace {
 
-// MySQL implementation of the RankBonusData persistence seam. The legacy
-// schema quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
+// MySQL implementation of RankBonusRepository. Quirks:
 //  - OwnerID is the character *name* (varchar(10)), not a numeric id —
 //    denormalized; a character rename orphans these rows.
 //  - The table has NO primary or unique key, only KEY (OwnerID, Type):
 //    the plain INSERT can never hit a duplicate error, and re-learning a
 //    bonus that was never cleaned up stores a second identical row.
 //    loadTypes() surfaces such duplicates; deleteOne() removes them all.
-//  - Type is stored as int(11) and interpolated with %d, as the call
-//    sites always did.
-//  - Owner names are interpolated raw (no escaping), as the call sites
-//    always did.
+//  - Type is stored as int(11) and interpolated with %d.
+//  - Owner names are interpolated raw (no escaping).
 class MySQLRankBonusRepository : public RankBonusRepository {
 public:
     vector<DWORD> loadTypes(const string& ownerName) {

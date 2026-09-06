@@ -39,24 +39,19 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
     // cout << "CGPortCheck: [" << IP << "] " << host.c_str() << ":" << port << endl;
 
     try {
-        // The INSERT IGNORE and, when it changed no row, the UPDATE — one
-        // seam call, same two statements on one Statement as before.
+        // INSERT IGNORE and, when that changed no row, the UPDATE.
         defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port, g_pConfig->getPropertyInt("ServerID"));
 
         // log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
 
     } catch (const char*) {
-        // A SQL failure crosses the seam as END_DB's const char* (the
-        // SQLQueryException this caught before is converted inside the
-        // seam, which also writes the DBError.log line the handler never
-        // wrote). Swallowed, as before.
+        // A SQL failure arrives as END_DB's const char*, already logged
+        // to DBError.log; swallowed.
         /*
         try {
             // 다시 한번 시도
-            // (an older retry that re-ran the UPDATE alone, feeding the DWORD to
-            // %ld and the uint to %d where the live one feeds %lu and %u; the
-            // UPDATE is now the second half of recordUserIP, which is what a
-            // retry would call today)
+            // (an older retry that re-ran the UPDATE alone; the UPDATE is
+            // the second half of recordUserIP)
             defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port,
                                                    g_pConfig->getPropertyInt("ServerID"));
 

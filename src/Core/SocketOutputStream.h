@@ -252,13 +252,9 @@ inline uint SocketOutputStream::write(std::span<const std::byte> src) {
 // write a scalar to the output buffer
 //
 // The ring-buffer walk (and the resize rule that keeps at least one
-// byte free, so head == tail can only ever mean "empty") now lives in
+// byte free, so head == tail can only ever mean "empty") lives in
 // the write(std::span<const std::byte>) definition just above --
-// inline, so sizeof(T) still reaches its memcpy as a constant. This
-// template used to carry a second, hand-copied version of the same
-// walk -- the copy whose T*
-// cast at an arbitrary buffer offset tripped UBSan and was changed to
-// memcpy (docs/TOOLCHAIN.md section 2). Behaviour is unchanged.
+// inline, so sizeof(T) still reaches its memcpy as a constant.
 //
 // reinterpret_cast to std::byte* is not an aliasing violation:
 // std::byte (like char) may alias any object. std::bit_cast would need

@@ -8,9 +8,9 @@
 
 #include "repository/RankBonusRepository.h"
 
-// In-memory RankBonusRepository for domain tests (docs/RESTRUCTURING.md
-// 3.2). Mirrors the MySQL implementation's contract (empirically pinned
-// by the MySQL integration tier in tests/integration/):
+// In-memory RankBonusRepository for domain tests. Mirrors the MySQL
+// implementation's contract (empirically pinned by the MySQL integration
+// tier in tests/integration/):
 //  - The table has NO primary or unique key: insert() of the same
 //    (owner, type) twice stores two rows, and loadTypes() surfaces both.
 //  - loadTypes() returns Type ASCENDING regardless of insertion order:

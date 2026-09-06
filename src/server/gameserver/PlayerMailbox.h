@@ -81,8 +81,7 @@ using PlayerCommandMailbox = Mailbox<PostedPlayerCommand>;
 //
 //  * The command runs later, on the owner's next pass over the player, and
 //    only if the player is still logged in then. A player that logged out
-//    in between is skipped, exactly as the old code skipped a player it
-//    could not find -- unless `ifGone` is given, which then runs in its
+//    in between is skipped -- unless `ifGone` is given, which then runs in its
 //    place (on the thread that destroys the player), for the handlers whose
 //    offline branch does something material, like charging a fee in the
 //    database instead of in memory. Exactly one of the two ever runs: the

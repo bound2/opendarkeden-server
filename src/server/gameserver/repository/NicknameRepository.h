@@ -6,10 +6,9 @@
 
 #include "NicknameRecord.h"
 
-// Persistence seam for the NicknameBook table — the task 3.2 pilot
-// repository. Game logic talks to this interface; the MySQL implementation
-// lives with the app wiring (MySQLNicknameRepository.cpp) and quarantines
-// the legacy schema quirks there, never in domain types.
+// The NicknameBook table. The MySQL implementation
+// (MySQLNicknameRepository.cpp) keeps the legacy schema quirks out of the
+// domain types.
 class NicknameRepository {
 public:
     virtual ~NicknameRepository() {}
@@ -26,20 +25,15 @@ public:
     // Rename an existing row in place.
     virtual void updateNickname(const std::string& ownerName, WORD id, const std::string& nickname) = 0;
 
-    // CGSayHandler's GM forced-nickname commands (CGSay round, 2026-09-06):
-    // the id-100 slot. "REPLACE INTO NicknameBook (nID, OwnerID, NickType,
-    // Nickname, NickIndex, Time) VALUES (100, '%s', %u, '%s', 0, now())" — the
-    // type is the caller's NicknameInfo enumerator through "%u" — and
-    // "DELETE FROM NicknameBook WHERE OwnerID='%s' AND nID=100". The nickname
-    // is interpolated raw here (the other writes go through getDBString),
-    // as written.
+    // The GM forced-nickname slot, id 100: REPLACE the row (NickIndex 0,
+    // Time now()) or delete it. The nickname is interpolated unescaped
+    // here, where the other writes go through getDBString.
     virtual void replaceForcedNickname(const std::string& ownerName, BYTE type, const std::string& nickname) = 0;
     virtual void deleteForcedNickname(const std::string& ownerName) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLNicknameRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLNicknameRepository.cpp.
 NicknameRepository& defaultNicknameRepository();
 
 #endif

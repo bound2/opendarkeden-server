@@ -16,8 +16,8 @@ struct GoodsRecord {
     int num;
 };
 
-// Persistence seam for the GoodsListObject table (task 3.2): items bought
-// on the game's website, waiting to be picked up in-game. Reached through
+// The GoodsListObject table: items bought on the game's website, waiting
+// to be picked up in-game. Reached through
 // the second per-thread connection — see the connection quirk on the
 // MySQL implementation.
 class GoodsRepository {
@@ -38,8 +38,7 @@ public:
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLGoodsRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLGoodsRepository.cpp.
 GoodsRepository& defaultGoodsRepository();
 
 #endif

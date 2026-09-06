@@ -3,28 +3,18 @@
 
 namespace {
 
-// MySQL implementation of the guild seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original: the `Rank`
-//    backticks (RANK is reserved on MySQL 8), the spaced "GuildMember( ... )
-//    VALUES ( ... )" inserts against the unspaced union ones, the quoted
-//    numeric keys in the union reads ("UnionID='%u'", "OwnerGuildID='%u'"),
-//    the lower-case "and" in the union-member DELETE and the escape-penalty
-//    read, "count(*)" against "COUNT(*)", the five-slot attacker OR, and
-//    the DATE_FORMAT(Offertime,'%%y%%m%%d') read (the doubled %% survives
-//    the format pass as a literal %). The membership probes add four
-//    more: their column ORDER differs per call site (`Rank`, ExpireDate
-//    / GuildID, `Rank`, ExpireDate / GuildID, ExpireDate,`Rank` — note
-//    the missing space in the last), and CGRegistGuildHandler's member
-//    DELETE omits the spaces around the "=" that Guild::destroy's has.
-//  - Ids stream as before: GuildID_t (WORD) and the BYTE rank/type/race/
-//    state through "%d" in the GuildInfo/GuildMember statements, through
-//    "%u" in the union and offer statements; the union id is a uint.
+// MySQL implementation of the guild repository.
+//  - `Rank` is backticked because RANK is reserved on MySQL 8. The
+//    DATE_FORMAT(Offertime,'%%y%%m%%d') read doubles its %% so a literal
+//    % survives the format pass.
+//  - GuildID_t (WORD) and the BYTE rank/type/race/state go through "%d"
+//    in the GuildInfo/GuildMember statements and "%u" in the union and
+//    offer statements; the union id is a uint.
 //  - GuildMember.Name and GuildUnionOffer.OwnerGuildID are primary keys, so
 //    the "exactly one row" loads and the single-row offer reads see at most
 //    one row; the loads return false on none.
-//  - Names, dates and intros are interpolated raw (the callers pass intros
-//    through Guild::correctString first), as before.
+//  - Names, dates and intros are interpolated unescaped (the callers pass
+//    intros through Guild::correctString first).
 // memberExists and loadMemberGuildID are the same statement asked two
 // ways, so the literal is written once.
 const char* const MEMBER_GUILD_ID_SQL = "SELECT GuildID FROM GuildMember WHERE Name = '%s'";
@@ -181,9 +171,7 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // Three columns selected, one read — exactly as the handler
-            // did. GuildID and `Rank` belong to a policy that is
-            // commented out there, not to this answer.
+            // Three columns selected, one read.
             Result* pResult = pStmt->executeQuery(
                 "SELECT GuildID, ExpireDate,`Rank` FROM GuildMember WHERE Name = '%s'", name.c_str());
 
@@ -238,7 +226,6 @@ public:
     }
 
     void deleteMemberSpelled(GuildMemberDeleteSpelling spelling, const string& name) {
-        // Byte-for-byte what each call site wrote; see GuildRepository.h.
         static const char* const DELETE_MEMBER_SQL[GUILD_MEMBER_DELETE_SPELLING_MAX] = {
             "DELETE FROM GuildMember WHERE Name = '%s'",
             "DELETE FROM GuildMember WHERE Name='%s'",
@@ -468,7 +455,7 @@ public:
             Result* pResult = pStmt->executeQuery(
                 "SELECT GuildID FROM GuildInfo WHERE GuildName = '%s' AND GuildState IN ( 0, 1 )", guildName.c_str());
 
-            // Row count only; the selected GuildID was never read.
+            // Row count only; the selected GuildID is not read.
             inUse = pResult->getRowCount() != 0;
 
             SAFE_DELETE(pStmt);
@@ -731,7 +718,6 @@ public:
     }
 
     int countUnionMembersSpelled(UnionStatementSpelling spelling, uint unionID) {
-        // Byte-for-byte what each handler wrote; see GuildRepository.h.
         static const char* const COUNT_SQL[UNION_SQL_SPELLING_MAX] = {
             "SELECT count(*) FROM GuildUnionMember WHERE UnionID='%u'",
             "SELECT count(*) FROM `GuildUnionMember` WHERE `UnionID`='%u'",

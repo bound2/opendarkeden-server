@@ -1,31 +1,22 @@
-// MySQL-backed ItemObjectRepository (task 3.2, the item milestone). One
-// method set per object shape; the table — and the class's exact literal,
-// copy-paste whitespace and all — comes from the spec row the GearTable
-// enum indexes. The two StringStream chains of the originals (the create
-// INSERT and the zone SELECT) are format strings here; every streamed
-// expression maps to the conversion StringStream used for its type
-// (DWORD/WORD "%u", int "%d", text as is), so the bytes on the wire are
-// the same. The tinysave and save literals fed the DWORD ids to "%ld" as
-// written until the 2026-09-06 width fix retyped every such conversion to
-// "%u" (see MySQLCharacterRepository.cpp); AR's create INSERT was already a parameterized
-// statement and is verbatim. The guns carry an eighth literal, the
-// saveBullet UPDATE, and four Num-only items (Pupa, Larva, ComposMei, Potion)
-// a ninth, their destroy() DELETE, Key a tenth, setNewMotorcycle's Target
-// UPDATE, the couple rings an eleventh, hasPartnerItem's count(*) SELECT, and
-// Belt and OustersArmsband a twelfth, their destroy() DELETE by ItemID, and the
-// four war items a thirteenth, the DELETE their creature loader runs in place of
-// an owner SELECT (NULL for every other table). Six tables carry no zone literal at all — their
-// <Class>Loader::load(Zone*) holds no SQL (WarItem's creature loader holds none
-// either, so it has no owner literal) — and the gear zone load, which the three
-// of them that are GEAR_OBJECT would otherwise pass, checks the literal and
-// refuses them rather than formatting a NULL. The spec row also
-// records which object shape and which Info shape the class's tables
-// have; every loader checks them, so a call with the wrong loader fails
-// loudly instead of misreading the columns silently. GEAR_INFO_UNSET and
-// GEAR_OBJECT_UNSET are their enums' zeros, so a spec row that forgets a
-// kind is refused by every shape-checked method rather than read as the
-// standard shape (tinysaveGear consults the kind only to refuse the
-// GUN_OBJECT tables; loadMaxGearType never consults it).
+// MySQL-backed ItemObjectRepository. One method set per object shape; the
+// table — and the class's exact literal, copy-paste whitespace and all —
+// comes from the spec row the GearTable enum indexes. Streamed expressions
+// map to the conversion for their type (DWORD/WORD "%u", int "%d", text as
+// is). Beyond the seven common statements the spec row has slots for the
+// guns' saveBullet UPDATE, the destroy() DELETEs (Pupa, Larva, ComposMei,
+// Potion by table name; Belt and OustersArmsband by ItemID), Key's Target
+// UPDATE, the couple rings' count(*), the war items' delete-by-owner (in
+// place of an owner SELECT) and PetItem's with-info variants — NULL for
+// every other table. Six tables carry no zone literal because their
+// <Class>Loader::load(Zone*) holds no SQL (WarItem's creature loader holds
+// none either, so it has no owner literal); the loads check the literal and
+// refuse them rather than formatting a NULL. The spec row also records the
+// class's object shape and Info shape; every loader checks them, so a call
+// with the wrong loader fails loudly instead of misreading the columns
+// silently. GEAR_INFO_UNSET and GEAR_OBJECT_UNSET are their enums' zeros, so
+// a spec row that forgets a kind is refused by every shape-checked method
+// rather than read as the standard shape (tinysaveGear consults the kind
+// only to refuse the GUN_OBJECT tables; loadMaxGearType never consults it).
 
 #include <cstdarg>
 #include <cstdio>
@@ -2364,11 +2355,8 @@ void requireInfoKind(GearTable table, GearInfoKind kind, const char* loader) {
 }
 
 // The motorcycle-redeem read and insert, per spelling
-// (MotorcycleRedeemSpelling): the two handlers' bytes first, the quest
-// action's second. The action's read was a StringStream chain
-// ("... where ItemID = " << targetID); a DWORD streams through "%u", so that
-// is the format here. The action's insert differs from the handlers' only in
-// its IGNORE.
+// (MotorcycleRedeemSpelling): the handlers' text first, the quest action's
+// second. The action's insert differs from the handlers' only in its IGNORE.
 struct MotorcycleRedeemSpec {
     const char* read;
     const char* insert;
@@ -2466,7 +2454,7 @@ void requireFlagZone(GearTable table, const char* method) {
 
 // VampireAmulet's two loads read gear's twelve and eleven columns; only its
 // INSERT and UPDATE lack Durability, so the gear owner load serves AMULET_OBJECT
-// too (the zone load has its own guard since CodeSheet joined it).
+// too (the zone load has its own guard: CodeSheet's zone SELECT is gear's).
 void requireGearLoad(GearTable table, const char* method) {
     GearObjectKind kind = spec(table).objectKind;
     if (kind != GEAR_OBJECT && kind != AMULET_OBJECT) {
@@ -2544,9 +2532,8 @@ template <class Row> void readInfoHead(Result* pResult, uint& i, Row& row) {
     row.durability = pResult->getInt(++i);
 }
 
-// The war items' create built its statement with a StringStream and ran it
-// through executeQueryString, uncapped; three of the four then logged the text
-// (Relic's did not). Formatting it here keeps both paths: vsnprintf sizes the
+// The war items' create runs through executeQueryString, uncapped, and three
+// of the four classes log the text (Relic does not). vsnprintf sizes the
 // buffer first, so nothing truncates.
 string formatStatement(const char* format, ...) {
     va_list args;
@@ -2665,13 +2652,12 @@ template <class Row> void readSilverWeaponInfoTail(Result* pResult, uint& i, Row
 class MySQLItemObjectRepository : public ItemObjectRepository {
 public:
     void insertDummySentinelRow(DummyObjectTable table) {
-        // Byte-for-byte EventShutdown's three; see ItemObjectRepository.h
-        // for why they are positional and why they never compile here.
+        // EventShutdown's three; see ItemObjectRepository.h for why they
+        // are positional and why they never compile here.
         //
         // executeQueryString, not executeQuery, and deliberately: these
         // carry no arguments, so the format pass would only expose them
-        // to its 2048-byte cap for nothing. The bytes are the same. It
-        // is the one method here that does this; leave it that way.
+        // to its 2048-byte cap for nothing.
         static const char* const DUMMY_SQL[DUMMY_OBJECT_TABLE_MAX] = {
             "INSERT INTO LarvaObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')",
             "INSERT INTO SkullObject VALUES('2147483647','2147483647','1','asdfasdfa','0','8000','0','2','1')",
@@ -3028,7 +3014,7 @@ public:
 
     // The two gun shapes name BulletCount, Silver and EnchantLevel in different
     // orders; each value is read at its table's ordinal into the field its
-    // column names, as the inline setters did.
+    // column names.
     template <class Row> void readGunTail(GearTable table, Result* pResult, uint& i, Row& row) {
         if (spec(table).objectKind == AR_GUN_OBJECT) {
             row.bulletCount = pResult->getInt(++i);
@@ -3401,8 +3387,8 @@ public:
     }
 
     // The four Num-only items with their own destroy(): the DELETE with the
-    // class's table name as its %s. The original returned false when no row
-    // went and true otherwise, including after a caught DB error.
+    // class's table name as its %s. False when no row went, true otherwise,
+    // including after a caught DB error.
     bool destroyItemObject(GearTable table, const string& objectTableName, ItemID_t itemID) {
         if (spec(table).destroy == NULL) {
             throw Error("ItemObjectRepository: destroyItemObject called for a table without a destroy literal");
@@ -3929,8 +3915,8 @@ public:
         return rows;
     }
 
-    // Key: the plain columns plus Target (an ItemID_t; "%u" in the INSERT as the
-    // chain streamed it, "%d" in the UPDATE as written; getDWORD in both loads).
+    // Key: the plain columns plus Target (an ItemID_t; "%u" in the INSERT, "%d"
+    // in the UPDATE; getDWORD in both loads).
     void insertKey(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
                    int storage, StorageID_t storageID, int x, int y, ItemID_t target) {
         requireObjectKind(table, KEY_OBJECT, "insertKey");
@@ -4019,9 +4005,8 @@ public:
         return rows;
     }
 
-    // Key::setNewMotorcycle — the Target UPDATE with the new motorcycle's id ("%u"
-    // for both DWORDs, retyped from "%lu" in the width fix; the original discarded the Result). Refuses
-    // tables without the literal.
+    // Key::setNewMotorcycle — the Target UPDATE with the new motorcycle's id.
+    // Refuses tables without the literal.
     void saveKeyTarget(GearTable table, ItemID_t targetID, ItemID_t itemID) {
         if (spec(table).saveTarget == NULL) {
             throw Error("ItemObjectRepository: saveKeyTarget called for a table without a Target literal");
@@ -4203,9 +4188,8 @@ public:
         return rows;
     }
 
-    // Money: the plain columns plus Amount (a DWORD; "%u" in the INSERT as the chain
-    // streamed it, "%u" in the UPDATE and tinysave — retyped from "%ld") and Num; the loads
-    // read Amount through getDWORD and Num through getBYTE (owner only: the zone
+    // Money: the plain columns plus Amount (a DWORD) and Num; the loads read
+    // Amount through getDWORD and Num through getBYTE (owner only: the zone
     // SELECT names no Num). Money's tinysave writes Amount too, so it is its own.
     void insertMoney(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType, const string& ownerID,
                      int storage, StorageID_t storageID, int x, int y, DWORD amount, int num) {
@@ -4309,9 +4293,8 @@ public:
     }
 
     // The couple rings: the plain columns plus OptionType and Name (text) and
-    // PartnerItemID (an ItemID_t; "%u" in the INSERT, "%u" in the UPDATE — retyped from "%ld" — as
-    // written); the UPDATE writes no OptionType. Their zone SELECT is the plain
-    // shape (loadPlainItemInZone serves it).
+    // PartnerItemID (an ItemID_t); the UPDATE writes no OptionType. Their zone
+    // SELECT is the plain shape (loadPlainItemInZone serves it).
     void insertCoupleRing(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                           const string& ownerID, int storage, StorageID_t storageID, int x, int y,
                           const string& optionField, const string& name, ItemID_t partnerItemID) {
@@ -4375,9 +4358,8 @@ public:
     }
 
     // <Class>::hasPartnerItem — the count(*) of the partner ring's row in an
-    // owner's storage ("%u" fed the DWORD, retyped from "%ld"). True when a row came back
-    // (count(*) always sends one), false otherwise, as the original's
-    // pResult->next() branch; the count itself goes out through `count`. Refuses
+    // owner's storage. True when a row came back (count(*) always sends one),
+    // false otherwise; the count itself goes out through `count`. Refuses
     // tables without the literal.
     bool loadCoupleRingPartnerCount(GearTable table, ItemID_t partnerItemID, int& count) {
         if (spec(table).partnerCount == NULL) {
@@ -4404,11 +4386,11 @@ public:
     }
 
     // VampirePortalItem: the charge columns plus TargetZID, TargetX, TargetY
-    // (getWORD; "%d" for the (int)-cast WORDs as written). The owner load reads
-    // eleven columns; the zone load reads the same eleven getters over its
-    // eight-column SELECT, as the original did, so its first row throws
-    // getField's OutOfBoundException (logged to ResultBug.log) with the Statement
-    // unreleased — the original's behaviour, kept for its own fix.
+    // (getWORD; "%d" for the (int)-cast WORDs). The owner load reads eleven
+    // columns; the zone load reads the same eleven getters over its
+    // eight-column SELECT, so its first row throws getField's
+    // OutOfBoundException (logged to ResultBug.log) with the Statement
+    // unreleased. A long-standing bug, left for its own fix.
     void insertVampirePortal(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                              const string& ownerID, int storage, StorageID_t storageID, int x, int y, int charge,
                              int targetZoneID, int targetX, int targetY) {
@@ -4613,8 +4595,7 @@ public:
     }
 
     // Belt's and OustersArmsband's destroy(): "DELETE FROM <Class>Object WHERE ItemID =
-    // %u" (the table in the literal, "%u" fed the DWORD, retyped from "%ld"). False when no
-    // row went, true otherwise, as the original's getAffectedRowCount() branch.
+    // %u" (the table in the literal). False when no row went, true otherwise.
     // Refuses tables without the literal.
     bool destroyGearObject(GearTable table, ItemID_t itemID) {
         if (spec(table).destroyByID == NULL) {
@@ -4741,9 +4722,8 @@ public:
     // INSERT with Durability last and no OptionType, Grade or ItemFlag; a nine-column
     // UPDATE; a creature loader that only deletes the owner's rows (the thirteenth
     // spec slot); and a nine-column zone SELECT read entirely through getInt.
-    // Returns the statement it ran: three of the four classes log it to WarLog.txt,
-    // as their create did with the string it had built. The literal is formatted
-    // here and executed through executeQueryString, the path the originals took.
+    // Returns the statement it ran: three of the four classes log it to WarLog.txt.
+    // The literal is formatted here and executed through executeQueryString.
     string insertWarItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                          const string& ownerID, int storage, StorageID_t storageID, int x, int y,
                          Durability_t durability) {
@@ -4876,10 +4856,10 @@ public:
         return rows;
     }
 
-    // WarItem's create logged the statement it ran to WarLog.txt, as the war items'
-    // does, so it needs the text back: this formats the plain INSERT into a string and
-    // runs it through executeQueryString, the path the original took. The other plain
-    // tables (EventGiftBox, LearningItem) use insertPlainItem and ignore no return.
+    // WarItem's create logs the statement it ran to WarLog.txt, so it needs the
+    // text back: this formats the plain INSERT into a string and runs it through
+    // executeQueryString. The other plain tables (EventGiftBox, LearningItem) use
+    // insertPlainItem.
     string insertPlainItemLogged(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                  const string& ownerID, int storage, StorageID_t storageID, int x, int y) {
         requireObjectKind(table, PLAIN_OBJECT, "insertPlainItemLogged");
@@ -4991,8 +4971,8 @@ public:
         return rows;
     }
 
-    // The motorcycle-redeem statements (see the header). The probe's literal is
-    // the one all three call sites wrote — the DWORD through "%u", retyped from "%lu".
+    // The motorcycle-redeem statements (see the header). The probe has one
+    // spelling.
     bool motorcycleExists(ItemID_t itemID) {
         bool exists = false;
         Statement* pStmt = NULL;
@@ -5160,9 +5140,8 @@ public:
 
     // PetItem (PET_ITEM_OBJECT): its create and save each run one of two statements —
     // without the pet's columns when the item carries no PetInfo, with them when it
-    // does — and savePetInfo writes the pet columns alone. Every argument keeps the
-    // type the caller passed (the ids and PetExp unsigned, the byte- and word-wide pet
-    // fields promoted to int, as they were), so the varargs bytes are unchanged.
+    // does — and savePetInfo writes the pet columns alone. The ids and PetExp are
+    // unsigned; the byte- and word-wide pet fields are promoted to int.
     void insertPetItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                        const string& ownerID, int storage, StorageID_t storageID, int x, int y, int createType) {
         requireObjectKind(table, PET_ITEM_OBJECT, "insertPetItem");

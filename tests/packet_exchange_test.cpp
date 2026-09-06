@@ -5,8 +5,7 @@
 //               Exchange packets (CG/GCExchangeList, CG/GCExchangeBuy).
 //
 //               These four were found divergent between the server and
-//               client repos by the docs/RESTRUCTURING.md 1.4 cross-check:
-//               the two hand-maintained copies disagreed on string
+//               client repos: the two hand-maintained copies disagreed on string
 //               framing and on getPacketSize() vs write(). The tests
 //               here pin the RECONCILED contract:
 //

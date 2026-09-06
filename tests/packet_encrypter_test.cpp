@@ -181,7 +181,7 @@ ENCRYPTER_PACKET_TESTS(CGSkillToObject)
 // — yet getPacketSize() still counts it, so the size over-reports the body
 // by szObjectID. It is deliberately left unset here so the fixture
 // documents that it is not on the wire; if someone puts it back, the
-// golden moves. Logged in docs/RESTRUCTURING.md 1.2.
+// golden moves.
 void fill(CGUseItemFromInventory& p) {
     p.setObjectID(0xFB0C1D2E);
     p.setX(0x93);
@@ -275,8 +275,7 @@ ENCRYPTER_PACKET_TESTS(CGAddZoneToInventory)
 
 // Five fields go through the shuffle; m_TargetY is written after it,
 // unshuffled. m_InventoryItemObjectID is not on the wire at all, but
-// getPacketSize() still counts it (over-reports by szObjectID). Logged in
-// docs/RESTRUCTURING.md 1.2.
+// getPacketSize() still counts it (over-reports by szObjectID).
 void fill(CGSkillToInventory& p) {
     p.setSkillType(0x8D7E);
     p.setObjectID(0xCEDFE0F1);
@@ -372,7 +371,7 @@ ENCRYPTER_PACKET_TESTS(GCAddInstalledMineToZone)
 // the server-side read() is out of step with what the server sends. The
 // server only ever WRITES this GC packet, so the wire contract is write();
 // that is what the golden pins. No loopback round-trip: it cannot pass
-// until read() is fixed or deleted. Logged in docs/RESTRUCTURING.md 1.2.
+// until read() is fixed or deleted.
 void fill(GCDropItemToZone& p) {
     fillItemBase(p);
     p.setDropPetOID(0x47586970);

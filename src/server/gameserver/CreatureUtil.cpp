@@ -2081,12 +2081,9 @@ void giveGoldMedal(PlayerCreature* pPC) {
         GCSystemMessage gcSM;
         gcSM.setMessage("삿돤錤듕쏜탬寧철.");
         pGamePlayer->sendPacket(&gcSM);
-        // An older flow here kept a per-account counter instead — an UPDATE
-        // of GoldMedalCount+1, a REPLACE when nothing changed, then a
-        // read-back sent as GCNoticeEvent NOTICE_EVENT_GOLD_MEDALS — on the
-        // same Statement as the INSERT above. It was commented out before
-        // the INSERT moved to PlayRecordRepository::insertGoldMedal and has
-        // no seam method; the shape is the lotto counter's (addLotto).
+        // An older, disabled flow kept a per-account GoldMedalCount and
+        // sent it back as GCNoticeEvent NOTICE_EVENT_GOLD_MEDALS; the
+        // lotto counter below (addLotto) has that shape.
     }
 
     __END_CATCH
@@ -2099,9 +2096,6 @@ void giveLotto(PlayerCreature* pPC, BYTE type, uint num) {
     Assert(pGamePlayer != NULL);
 
     {
-        // (A commented-out copy of giveGoldMedal's INSERT and effect sat
-        // here before the statements moved to the seam; the live flow is
-        // the lotto counter alone.)
         int count = 0;
 
         if (defaultPlayRecordRepository().addLotto(pGamePlayer->getID(), type, num, count)) {

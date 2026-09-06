@@ -6,14 +6,11 @@
 
 #include "Types.h"
 
-// Persistence seam for the GQuestItemObject table (task 3.2): the
-// per-character bag of quest items — one row per item instance (an
-// auto-increment ItemID the server never reads, an ItemType, the
-// OwnerID). Written by GQuestInventory and by the two quest elements
-// that hand items out (GQuestGiveQuestItemElement,
-// GQuestGiveEventQuestItemElement); purged with the character by
-// CharacterPurgeRepository (gameserver) / CLDeletePCHandler (loginserver)
-// — not enclosed here.
+// The GQuestItemObject table: the per-character bag of quest items —
+// one row per item instance (an auto-increment ItemID the server never
+// reads, an ItemType, the OwnerID). Purged with the character by
+// CharacterPurgeRepository (gameserver) / CLDeletePCHandler
+// (loginserver).
 class QuestItemRepository {
 public:
     virtual ~QuestItemRepository() {}
@@ -31,8 +28,7 @@ public:
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLQuestItemRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLQuestItemRepository.cpp.
 QuestItemRepository& defaultQuestItemRepository();
 
 #endif

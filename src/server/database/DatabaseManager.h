@@ -42,11 +42,9 @@ public:
     void setUserInfoConnection(Connection* pConnection);
     // Same purpose for the world-default connection getConnection(int)
     // falls through to in the gameserver (init() opens it from the
-    // WorldDBInfo row with WorldID = 0); the SpecialEvent seam is its one
-    // gameserver user. Frees a previously set one like the setter above,
-    // but unlike m_pUserInfoConnection the destructor does not free this
-    // member (pre-existing; init()'s own world connection leaks the same
-    // way), so the last one set is never deleted.
+    // WorldDBInfo row with WorldID = 0). Frees a previously set one like
+    // the setter above, but the destructor does not free this member, so
+    // the last one set is never deleted.
     void setWorldDefaultConnection(Connection* pConnection);
     void executeDummyQuery(Connection* pConnection);
 

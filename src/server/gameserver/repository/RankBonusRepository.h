@@ -6,21 +6,19 @@
 
 #include "Types.h"
 
-// Persistence seam for the RankBonusData table (task 3.2). A row is just
-// (OwnerID, Type): the point/rank values are re-derived from
-// RankBonusInfoManager on load, never stored. The character-deletion sweeps
-// DELETE from this table as part of their multi-table purge — the
-// gameserver's in CharacterPurgeRepository (since the CreatureUtil round),
-// the loginserver's still inline in CLDeletePCHandler.cpp; neither is
-// enclosed here.
+// The RankBonusData table. A row is just (OwnerID, Type): the point/rank
+// values are re-derived from RankBonusInfoManager on load, never stored.
+// The character-deletion sweeps (CharacterPurgeRepository here, the
+// loginserver's CLDeletePCHandler) DELETE from this table as part of
+// their multi-table purge.
 class RankBonusRepository {
 public:
     virtual ~RankBonusRepository() {}
 
     // Every stored Type for a character, Type ascending: the query has no
     // ORDER BY, but the covering index (OwnerID, Type) fully serves it, so
-    // InnoDB's index scan returns Type order deterministically (pinned by
-    // the MySQL integration tier). The table has no unique key, so
+    // InnoDB's index scan returns Type order deterministically. The
+    // table has no unique key, so
     // duplicates can come back; the in-memory book dedups.
     virtual std::vector<DWORD> loadTypes(const std::string& ownerName) = 0;
 
@@ -36,8 +34,7 @@ public:
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLRankBonusRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLRankBonusRepository.cpp.
 RankBonusRepository& defaultRankBonusRepository();
 
 #endif

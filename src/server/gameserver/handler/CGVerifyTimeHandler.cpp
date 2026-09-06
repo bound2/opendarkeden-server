@@ -75,9 +75,9 @@ void CGVerifyTimeHandler::saveSpeedHackPlayer(Player* pPlayer) {
         static WorldID_t WorldID = g_pConfig->getPropertyInt("WorldID");
         static ServerGroupID_t ServerGroupID = g_pConfig->getPropertyInt("ServerID");
 
-        // The UPDATE and, when it changed no row, the INSERT IGNORE — one
-        // seam call. A SQL failure leaves it as END_DB's const char*, which
-        // the catch below never matched (it was a const char* here too).
+        // The UPDATE and, when it changed no row, the INSERT IGNORE. A SQL
+        // failure is END_DB's const char*, which the catch below does not
+        // match.
         defaultSessionRepository().recordSpeedHack(ID, IP, Name, (int)WorldID, (int)ServerGroupID);
     } catch (Throwable& t) {
         filelog("SpeedHackLogError.log", "%s", t.toString().c_str());

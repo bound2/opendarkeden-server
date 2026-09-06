@@ -9,7 +9,7 @@
 
 #include "repository/NicknameRepository.h"
 
-// In-memory NicknameRepository for domain tests (docs/RESTRUCTURING.md 3.2).
+// In-memory NicknameRepository for domain tests.
 // Mirrors the MySQL implementation's contract:
 //  - PRIMARY KEY (nID, OwnerID): insert() on an existing (owner, id) THROWS,
 //    like the real plain INSERT's duplicate-key error; only

@@ -4,14 +4,11 @@
 
 namespace {
 
-// MySQL implementation of the SpecialEvent seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
+// MySQL implementation of SpecialEventRepository. Quirks:
 //  - Both statements ask DatabaseManager for the connection through the
-//    int overload with the thread id, exactly as the action wrote it.
-//    That resolves to the WorldDBInfo row-0 connection, not the
-//    thread's DARKEDEN one; see the header for why that is kept.
-//  - The read tests next(): one row per Name (the primary key), so it
-//    answers what the action's getRowCount() == 0 answered.
+//    int overload with the thread id. That resolves to the WorldDBInfo
+//    row-0 connection, not the thread's DARKEDEN one; see the header.
+//  - The read tests next(): one row per Name (the primary key).
 class MySQLSpecialEventRepository : public SpecialEventRepository {
 public:
     bool loadCount(const string& accountID, int& count) {

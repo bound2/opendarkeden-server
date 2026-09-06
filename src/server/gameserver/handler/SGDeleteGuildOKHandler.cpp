@@ -79,7 +79,7 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
             // captured by pointer: the member and the guild are retired
             // below, before the command runs.
             // That also means the guild is unregistered one tick before the
-            // member's guild id is reset (the old code reset it first); the
+            // member's guild id is reset; the
             // readers of a creature's guild id all null-check the lookup
             // (GuildMissing.log), so the window shows as a stale badge, not
             // a crash.

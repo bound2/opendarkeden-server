@@ -3,67 +3,39 @@
 
 namespace {
 
-// MySQL implementation of the character-row persistence seam. The legacy
-// quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The emitted SQL is byte-for-byte what the inline code produced,
-//    spacing included: the Slayer vitals keep their "CurrentHP=%d"
-//    printf spacing, Vampire/Ousters keep the "CurrentHP = 12" spacing
-//    their StringStreams emitted (the streams themselves were replaced
-//    with format strings carrying the same bytes — repository SQL uses
-//    the parameterized executeQuery form, never string concatenation).
+// MySQL implementation of the character-row repository.
 //  - Vampire saveExps writes SilverDamage ONLY when it is non-zero: the
-//    original composed an optional ",SilverDamage = %d" fragment into a
-//    %s slot, and a zero value leaves the column untouched — this save
-//    cannot reset a vampire's silver damage. Ousters writes it
-//    unconditionally. Slayer has no SilverDamage at all.
+//    ",SilverDamage = %d" fragment is composed into a %s slot, so a zero
+//    value leaves the column untouched — this save cannot reset a
+//    vampire's silver damage. Ousters writes it unconditionally. Slayer
+//    has no SilverDamage at all.
 //  - tinysave's SET fragment is caller-composed raw SQL (sprintf'd
-//    "Column=value" strings from ~400 sites), applied verbatim.
-//    Slayer's WHERE spells the column NAME, the others Name — purely
-//    cosmetic (MySQL column identifiers are case-insensitive), kept
-//    only for byte-fidelity.
+//    "Column=value" strings), applied verbatim. Slayer's WHERE spells the
+//    column NAME, the others Name — cosmetic, MySQL column identifiers
+//    are case-insensitive.
 //  - The `Rank` backticks are LOAD-BEARING on MySQL 8: RANK became a
 //    reserved word in 8.0.2, and this project supports 5.7 or 8. The
 //    5.7-based integration tier cannot catch their removal.
-//  - The exp/fame/rank saves' DWORD arguments go through %u — the
-//    argument's own width — since the 2026-09-06 width fix. The
-//    originals read them through %lu/%ld (8-byte conversions on 4-byte
-//    arguments), which worked under GCC's zero-extending codegen and
-//    read garbage under the pinned Clang toolchain for every
-//    stack-passed field (args 5+; saveSlayerExps passes 20): a Fame of
-//    777 landed as 4294967295. The bytes MySQL receives are identical
-//    for every value a DWORD can hold; the extraction had kept the
-//    conversions bit-for-bit, and this is the follow-up it named.
 //  - An UPDATE for a name with no row matches zero rows, silently, and
-//    affected-rows may be 0 when nothing changed (no CLIENT_FOUND_ROWS)
-//    — nothing here checks it, exactly like the inline code.
-//  - Character names are interpolated raw (no escaping), as the call
-//    sites always did.
+//    affected-rows may be 0 when nothing changed (no CLIENT_FOUND_ROWS);
+//    nothing here checks it.
+//  - Character names are interpolated raw (no escaping).
 //  - The load SELECTs are POSITIONAL: the loaders read column N of the
-//    result, so the column list's order is the contract and is kept
-//    verbatim — including `Rank` (see above), the un-spaced
-//    "Sex,MasterEffectColor" token and the INTE spelling (INT is a
-//    MySQL type keyword). The one deliberate byte change: the original
-//    literals were backslash-continued across source lines and leaked
-//    their indentation tabs into the SQL text; each whitespace run (a
-//    space followed by the tabs, or the tabs alone) is a single space
-//    here. Whitespace between tokens, immaterial to the parser.
-//  - The loaders apply the record AFTER this method returns, so the
-//    race classes' setters now run outside the BEGIN_DB/END_DB try —
-//    inert, since none of them raise the SQLQueryException it catches —
-//    and the Statement is freed before they run, so a setter throwing
-//    (setSex's InvalidProtocolException, the skill loop's Assert) no
-//    longer leaks it. The one real delta: a driver exception mid-read
-//    now applies nothing to the creature instead of the columns read so
-//    far — unreachable with a fixed column count.
+//    result, so the column list's order is the contract — including
+//    `Rank` (see above), the un-spaced "Sex,MasterEffectColor" token and
+//    the INTE spelling (INT is a MySQL type keyword).
+//  - The loaders apply the record after the load returns, so the race
+//    classes' setters run outside the BEGIN_DB/END_DB try and after the
+//    Statement is freed. A driver exception mid-read applies nothing to
+//    the creature.
 //  - The loads filter on Active = 'ACTIVE': an INACTIVE row (a character
 //    deleted while the login server handed it over) loads as "no row".
 //    Name is the primary key, so at most one row can match.
-//  - Every selected column is read with the driver getter the inline
-//    code used on it — getInt (atoi of the field text) for nearly all,
-//    getBYTE for StashNum and the vampire/ousters Competence pair,
-//    getString for the enum/varchar columns. Out-of-int-range unsigned
+//  - Every selected column is read with getInt (atoi of the field text)
+//    except StashNum and the vampire/ousters Competence pair (getBYTE)
+//    and the enum/varchar columns (getString). Out-of-int-range unsigned
 //    values (Fame, Gold, GoalExp are int(10) unsigned) come back through
-//    atoi exactly as they always did.
+//    atoi.
 class MySQLCharacterRepository : public CharacterRepository {
 public:
     bool loadSlayer(const string& ownerName, SlayerLoadRecord& record) {
@@ -176,7 +148,7 @@ public:
     }
 
     // The two spellings of the name-to-account lookup, indexed by
-    // SlayerPlayerIDSpelling: CGWhisperHandler's and CGSayHandler's opdeny's.
+    // SlayerPlayerIDSpelling.
     bool loadSlayerPlayerID(SlayerPlayerIDSpelling spelling, const string& name, string& playerID) {
         static const char* const kSpellings[PLAYERID_SPELLING_MAX] = {
             "SELECT PlayerID FROM Slayer WHERE Name='%s'", // PLAYERID_SPELLING_WHISPER
@@ -465,8 +437,6 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // the format string carries the exact spacing the old
-            // StringStream emitted
             pStmt->executeQuery("UPDATE Vampire SET CurrentHP = %d, HP = %d, SilverDamage = %d, ZoneID = %d, "
                                 "XCoord = %d, YCoord = %d WHERE Name = '%s'",
                                 record.currentHP, record.maxHP, record.silverDamage, record.zoneID, record.x, record.y,
@@ -481,8 +451,6 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // the format string carries the exact spacing the old
-            // StringStream emitted
             pStmt->executeQuery("UPDATE Ousters SET CurrentHP = %d, HP = %d, CurrentMP = %d, MP = %d, ZoneID = %d, "
                                 "XCoord = %d, YCoord = %d WHERE Name = '%s'",
                                 record.currentHP, record.maxHP, record.currentMP, record.maxMP, record.zoneID, record.x,
@@ -566,9 +534,8 @@ public:
     }
 
 private:
-    // The two Level reads reach executeQuery through this pointer (executeQuery
-    // carries no printf format attribute, see Statement.h). END_DB's
-    // DBError.log line names this helper rather than the caller's method.
+    // Both Level reads go through this helper, so END_DB's DBError.log line
+    // names it rather than the calling method.
     static bool loadLevel(const char* format, const string& name, int& level) {
         bool found = false;
         Statement* pStmt = NULL;

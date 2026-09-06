@@ -235,14 +235,10 @@ inline uint SocketInputStream::read(std::span<std::byte> dst) {
 //
 // read a scalar from the input buffer
 //
-// The ring-buffer walk now lives in the read(std::span<std::byte>)
+// The ring-buffer walk lives in the read(std::span<std::byte>)
 // definition just above -- inline, so sizeof(T) still reaches its
-// memcpy as a constant. This template used to carry a second,
-// hand-copied version of the
-// same walk -- the copy whose T* cast at an arbitrary buffer offset
-// tripped UBSan and was changed to memcpy (docs/TOOLCHAIN.md section
-// 2). Behaviour is unchanged: sizeof(T) is never 0 and &buf is never
-// null, so neither extra guard in the span overload can fire here.
+// memcpy as a constant. sizeof(T) is never 0 and &buf is never null, so
+// neither guard in the span overload can fire here.
 //
 // reinterpret_cast to std::byte* is not an aliasing violation: std::byte
 // (like char) may alias any object. std::bit_cast would need a second

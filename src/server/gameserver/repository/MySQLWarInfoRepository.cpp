@@ -3,58 +3,39 @@
 
 namespace {
 
-// MySQL implementation of the race-war seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original: the castle
-//    save's "GuildID=%d" unspaced list vs the sweeper writes'
-//    "OwnerRace = %d" spaced ones; the SweeperOwnerInfo UPDATE fed its int
-//    OwnerRace to %ld until the 2026-09-06 width fix retyped it to %d
-//    (the conversion family documented in MySQLCharacterRepository.cpp;
-//    the value is 0..3 and the bytes MySQL receives are the same,
-//    so behaviour is unchanged either way) and %d for a uint
-//    SweeperType; the master-lair SELECT that names 25 columns.
-//  - CastleInfoManager::tinysave applies a caller-composed SET fragment
-//    verbatim — the same quarantine as CharacterRepository::tinysave;
-//    the fragment is raw SQL text built by the castle handlers.
+// MySQL implementation of the race-war repository.
+//  - tinysaveCastle and tinysaveWarSchedule splice a caller-composed SET
+//    fragment in verbatim; the fragment is raw SQL text built by the
+//    callers.
 //  - The MAX(Type) probe on SweeperBonusInfo returns false on the NULL
-//    an empty table yields (see MySQLBalanceInfoRepository.cpp); both
-//    SweeperBonusManager entry points re-run it before their rows read,
-//    as the originals did.
+//    an empty table yields; both SweeperBonusManager entry points run it
+//    before their rows read.
 //  - LevelWarHistory has no primary or unique key (two non-unique
-//    indexes only); its INSERT writes the "Old" sweeper
-//    columns at war start and the UPDATE fills the "new" ones at war
-//    end, keyed on (Level, LevelWarID) — a start time formatted as text
-//    by the caller. A restart between the two leaves a half row.
+//    indexes only); its INSERT writes the "Old" sweeper columns at war
+//    start and the UPDATE fills the "new" ones at war end, keyed on
+//    (Level, LevelWarID) — a start time formatted as text by the caller.
+//    A restart between the two leaves a half row.
 //  - SweeperOwnerInfo's UPDATE keys on SweeperType alone (the table's
 //    PK); the reads filter by ZoneID.
-//  - The war histories divide the same way LevelWarHistory does: a row
-//    written at war start and filled in at war end. GuildWarHistory's
-//    start is an INSERT IGNORE keyed on its WarID and its end updates
-//    WHERE WarID; RaceWarHistory's start is a PLAIN INSERT and its end
-//    updates WHERE RaceWarID — a start time the caller formatted as
-//    text — so a repeated start leaves a second row there where the
-//    guild war drops it, and the update then rewrites both. Preserved.
+//  - The war histories divide the same way: a row written at war start
+//    and filled in at war end. GuildWarHistory's start is an INSERT
+//    IGNORE keyed on its WarID and its end updates WHERE WarID;
+//    RaceWarHistory's start is a PLAIN INSERT and its end updates WHERE
+//    RaceWarID — a start time the caller formatted as text — so a
+//    repeated start leaves a second row there where the guild war drops
+//    it, and the update then rewrites both.
 //  - The RaceWarPCLimit totals arrive through getInt on a SUM() column;
-//    the caller assigned them to uints, and still does.
-//  - The reinforcement statements pass the config's int ServerID and a
-//    WORD GuildID through "%u", and the DWORD WarID through "%u" as
-//    well: the originals' conversions, kept.
-//  - SiegeWar's six statements asked for the connection by the name
-//    "Darkeden" where every other site writes "DARKEDEN".
-//    DatabaseManager::getConnection(const string&) never looks at the
-//    name — it keys the lookup on Thread::self() and falls back to the
-//    default connection — so the two spellings selected the same
-//    socket; the seam writes "DARKEDEN" like its neighbours.
-//  - WarSchedule's INSERT IGNORE and REPLACE were written with a
-//    backslash-continued source line, which splices the next line's four
-//    leading TABS into the literal right before "VALUES". They are kept:
-//    the seam writes them as an explicit "\t\t\t\t" so clang-format
-//    cannot reflow them away, and the bytes MySQL receives are the same.
-//  - War::initWarIDRegistry called next() on both probes without
-//    checking it and read column 1 through getDWORD. Kept: a COUNT(*)
-//    always answers with one row, and the MAX probe runs only after the
-//    count came back non-zero, so neither read can meet an empty result.
-//  - Names and fragments are interpolated raw, as before.
+//    the caller assigns them to uints.
+//  - The reinforcement statements pass the config's int ServerID, a WORD
+//    GuildID and the DWORD WarID through "%u".
+//  - WarSchedule's INSERT IGNORE and REPLACE carry four TABS in the
+//    literal right before "VALUES", written as an explicit "\t\t\t\t" so
+//    clang-format cannot reflow them away.
+//  - countWarSchedules and loadMaxWarID read column 1 through getDWORD
+//    without checking next(): a COUNT(*) always answers with one row,
+//    and the MAX probe runs only after the count came back non-zero, so
+//    neither read can meet an empty result.
+//  - Names and fragments are interpolated unescaped.
 class MySQLWarInfoRepository : public WarInfoRepository {
 public:
     vector<ShrineRow> loadShrines() {
@@ -801,8 +782,7 @@ public:
             while (pResult->next()) {
                 RaceWarPCListRow row;
                 row.name = pResult->getString(1);
-                // Column 1, not 2 — the inline loop's own indexing. See
-                // WarInfoRepository.h.
+                // Column 1, not 2: the Name column. See WarInfoRepository.h.
                 row.race = pResult->getInt(1);
                 rows.push_back(row);
             }

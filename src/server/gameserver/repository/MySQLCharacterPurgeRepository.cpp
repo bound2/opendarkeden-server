@@ -3,19 +3,10 @@
 
 namespace {
 
-// MySQL implementation of the character-purge seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - kPurgeStatements is deletePC's list in deletePC's order, every
-//    literal byte for byte (generated from the original text, not
-//    retyped): the Active updates keep "Name = '%s'" with spaces, the
-//    four bookkeeping deletes before the objects keep "OwnerID = '%s'"
-//    with spaces, the 81 object deletes and GQuestSave keep the same
-//    spaced form their concatenation produced, the fifteen effect deletes
-//    keep their lower-case "where OwnerID='%s'", and the last three keep
-//    "WHERE OwnerID='%s'".
-//  - One Statement for the whole list, as before; no transaction, as
-//    before — a failure at statement N leaves 1..N-1 applied.
-//  - The name is interpolated raw into every statement, as before.
+// MySQL implementation of the character purge.
+//  - kPurgeStatements runs in array order on one Statement, with no
+//    transaction: a failure at statement N leaves 1..N-1 applied.
+//  - The name is interpolated raw into every statement.
 const char* const kPurgeStatements[] = {
     "UPDATE Slayer SET Active='INACTIVE' WHERE Name = '%s'",
     "UPDATE Vampire SET Active='INACTIVE' WHERE Name = '%s'",

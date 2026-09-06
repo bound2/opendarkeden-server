@@ -3,18 +3,12 @@
 
 namespace {
 
-// MySQL implementation of the regen-zone seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The SELECT is byte-for-byte the RegenZoneManager.cpp original
-//    (load and reload issued the identical statement).
+// MySQL implementation of RegenZoneRepository. Quirks:
 //  - No ORDER BY; ID is the primary key, so a clustered scan returns
 //    ID order today — the optimizer's choice, not a contract (see
 //    MySQLSkillSaveRepository.cpp). The callers key everything by ID.
 //  - Owner is tinyint unsigned defaulting to 3 (unowned); the callers
 //    Assert(Owner < 4) on what they read.
-//  - Neither original caller freed its Statement (a leak per boot and
-//    per reload); the seam does — fixed knowingly, as in earlier
-//    rounds.
 class MySQLRegenZoneRepository : public RegenZoneRepository {
 public:
     vector<RegenZoneRow> loadPositions() {

@@ -393,13 +393,10 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                         throw ProtocolException("Fail to load data from DB");
                     }
                 } catch (const char*) {
-                    // A SQL failure crosses the seam as END_DB's const char*.
-                    // This block caught the SQLQueryException and rethrew it
-                    // as an Error, which the handler's outer catch (Throwable&)
-                    // swallows; a const char* would not be swallowed, so the
-                    // conversion is kept. The SQL text is not available here
-                    // any more (END_DB's message dangles — a known Core
-                    // defect); it is in DBError.log.
+                    // A SQL failure arrives as END_DB's const char*, which the
+                    // handler's outer catch (Throwable&) would not swallow, so
+                    // it is rethrown as an Error. The SQL text is in DBError.log
+                    // (END_DB's own message dangles).
                     throw Error("CGDissectionCorpseHandler: the black-star count read failed, see DBError.log");
                 }
 

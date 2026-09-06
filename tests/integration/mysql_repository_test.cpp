@@ -1,11 +1,8 @@
-// MySQL-backed integration tier for the task 3.2 repositories
-// (docs/RESTRUCTURING.md): runs the REAL MySQL implementations against a
-// throwaway MySQL 5.7 loaded with the initdb/ schema and the production
-// sql_mode. This is the authority the fakes in tests/support/ are
-// corrected against — every quirk a fake pins is pinned HERE first,
-// against the actual server (the 2026-09-01 adversarial review of PR #31
-// falsified three fake-pinned claims exactly because no tier like this
-// existed).
+// MySQL-backed integration tier for the gameserver repositories: runs the
+// REAL MySQL implementations against a throwaway MySQL 5.7 loaded with the
+// initdb/ schema and the production sql_mode. This is the authority the
+// fakes in tests/support/ are corrected against — every quirk a fake pins
+// is pinned HERE first, against the actual server.
 //
 // Not part of the default ctest suite: it needs a database, which
 // tests/integration/mysql_test.sh provides (a handrolled container
@@ -195,13 +192,11 @@ TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
 // --- system-availability flags against real MySQL --------------------------
 
 TEST(SystemAvailabilityMySQL, TheBootReadTakesTheFirstTwoColumnsOfASelectStar) {
-    // This is the only thing that will ever catch the hazard the seam's
-    // header names. The statement is "SELECT *" and the caller reads
-    // columns 1 and 2 POSITIONALLY, so a column inserted before them would
-    // silently reassign every system flag. Both of that seam's callers are
-    // compiled out of this build, so the compiler will never notice; an
-    // earlier draft of this round declined to write this test on the
-    // grounds that the callers are dead, which got the argument backwards.
+    // The statement is "SELECT *" and the caller reads columns 1 and 2
+    // POSITIONALLY, so a column inserted before them would silently
+    // reassign every system flag. Both callers are compiled out of this
+    // build, so the compiler will never notice; this test is the only
+    // thing that would.
     SystemAvailabilityRepository& repository = defaultSystemAvailabilityRepository();
 
     execSQL("DELETE FROM SystemAvailabilities WHERE SystemKind >= 31000");
@@ -216,7 +211,7 @@ TEST(SystemAvailabilityMySQL, TheBootReadTakesTheFirstTwoColumnsOfASelectStar) {
             seen = true;
             // 7, not 1: the caller turns this into a bool for most systems
             // but reads it as an integer for the three limit rows, so the
-            // seam must hand back the column rather than a flag.
+            // repository must hand back the column rather than a flag.
             EXPECT_EQ(7, rows[r].available);
         }
     }
@@ -370,7 +365,7 @@ protected:
     }
     static void clean() {
         execSQL("DELETE FROM FlagPolePosition WHERE ZoneID >= 31000");
-        // The seam's own wipe is unconditional, so the tier owns the
+        // The repository's wipe is unconditional, so the tier owns the
         // whole table for the run. (Name LIKE 'it-%' would scope it, as
         // the FlagWarHistory line below does; owning the table is what
         // lets the wipe test seed a row it does not own.)
@@ -434,7 +429,7 @@ TEST_F(FlagWarMySQL, ThePerFlagTallyIsCheckedBeforeInsertBecauseNothingEnforcesI
     // (Name, ItemID) is an INDEX, not a unique constraint, so the
     // database would happily take a second identical row. That is
     // exactly why the caller probes first, and why the probe is part of
-    // the seam rather than a detail of the handler.
+    // the repository rather than a detail of the handler.
     repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 4242);
     EXPECT_EQ("2", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ItemID=4242"));
 }
@@ -465,15 +460,12 @@ TEST_F(FlagWarMySQL, TheHistoryRollUpIsRefusedByOnlyFullGroupByAndTheWipeTakesEv
     // rethrows, so a failure raising some other type would fail here
     // rather than quietly validating the claim.
     //
-    // What this CANNOT do is read the message, and the reason is worth
-    // recording: END_DB builds a local std::string and throws
-    // msg.c_str(), so the pointer dangles the moment the catch block
-    // exits. Asserting on the 1055 text here read an empty string.
-    // That is a project-wide defect in the macro, not this seam's —
-    // every repository in the tree rethrows the same way — and it
-    // belongs with the __LEAVE_CRITICAL_SECTION fix in a Core round.
-    // The MySQL error text does reach DBError.log, which END_DB
-    // writes before throwing.
+    // What this CANNOT do is read the message: END_DB builds a local
+    // std::string and throws msg.c_str(), so the pointer dangles the
+    // moment the catch block exits (asserting on the 1055 text here reads
+    // an empty string). That is a defect in the macro itself — every
+    // repository in the tree rethrows the same way. The MySQL error text
+    // does reach DBError.log, which END_DB writes before throwing.
     bool refused = false;
     try {
         repository.loadFlagWarStatTotals();
@@ -553,7 +545,7 @@ TEST_F(MofusMySQL, TheFirstSaveInsertsAndEveryLaterOneAccumulates) {
     ASSERT_TRUE(repository.loadPowerPoint("it-mofus", point));
     EXPECT_EQ(-8, point);
 
-    // The live shape the round's callers actually produce: a FIRST save
+    // The live shape the callers actually produce: a FIRST save
     // that is a spend, which creates the row already negative. That is
     // CGUsePowerPointHandler's -300 against a character who has never
     // received a mofus credit.
@@ -687,8 +679,8 @@ TEST_F(CoupleMySQL, TheThreeDeletesDifferInWhatTheyMatchNotInWhatTheyMean) {
 
     // The counter-column form reaches the same row from one character
     // plus a partner NAME. Its only textual difference from the above is
-    // a lower-case "where", which no assertion here can see: like the
-    // guild delete spellings, that mapping is held by review.
+    // a lower-case "where", which no assertion here can see (MySQL
+    // cannot tell the spellings apart).
     repository.deletePairingWithPartner(MALE, "it-mike", "it-fay", 1);
     EXPECT_EQ(0, repository.countPairingsOf(MALE, "it-mike"));
 
@@ -802,15 +794,14 @@ TEST_F(GoldMySQL, OperationsAgainstMissingRowsAreSilentNoOps) {
 }
 
 // --- character-row saves against real MySQL -------------------------------
-// CharacterRepository is a write-only seam with NO fake tier (maintainer's
-// call — integration over fakes), so these tests carry the load: every
-// written column is asserted with a distinct sentinel so argument
-// transpositions cannot survive, and every dispatch branch is exercised.
-// Known holes, stated honestly: the `Rank` backticks (load-bearing only
-// on MySQL 8, where RANK is reserved — this tier runs 5.7) and the
-// tinysave WHERE-casing byte-fidelity (immaterial to MySQL) are not
-// testable here; a signature break surfaces in the gameserver build, not
-// in the default ctest suite (nothing there compiles this seam).
+// CharacterRepository is write-only and has NO fake tier, so these tests
+// carry the load: every written column is asserted with a distinct
+// sentinel so argument transpositions cannot survive, and every dispatch
+// branch is exercised. Known holes: the `Rank` backticks (load-bearing
+// only on MySQL 8, where RANK is reserved — this tier runs 5.7) and the
+// tinysave WHERE-casing (immaterial to MySQL) are not testable here; a
+// signature break surfaces in the gameserver build, not in the default
+// ctest suite (nothing there compiles this repository).
 
 class CharacterMySQL : public ::testing::Test {
 protected:
@@ -1045,7 +1036,7 @@ TEST_F(CharacterMySQL, OustersExpsAlwaysWriteSilverDamage) {
 }
 
 TEST_F(CharacterMySQL, TinysaveSlayerBranchHitsOnlyTheSlayerTable) {
-    // tinysave is the seam's only dispatching method (~400 call sites,
+    // tinysave is the repository's only dispatching method (~400 call sites,
     // including the absolute setGoldEx writes): every branch gets its
     // own test, each asserting the target row changed AND the twin row
     // did not.
@@ -1486,7 +1477,7 @@ TEST_F(CharacterPurgeMySQL, PurgeRetiresTheRaceRowsAndDeletesEveryOtherRowOfThat
 }
 
 // --- SkillSave / VampireSkillSave / OustersSkillSave against real MySQL ---
-// Like CharacterRepository, a seam with NO fake tier: these tests are the
+// Like CharacterRepository, a repository with NO fake tier: these tests are the
 // net. Every inserted column is read back through the load, every
 // update asserts both the columns it writes and the ones it must leave
 // alone, and the row order the ORDER-BY-less loads produce is pinned
@@ -1970,7 +1961,7 @@ TEST_F(CreatureEffectMySQL, LevelComesBackThroughEachTablesOwnGetter) {
 
     // EffectBloodDrain.Level is tinyint(3) unsigned, so the column caps the
     // value at 255 before its getBYTE ever sees it: the two getters cannot
-    // actually disagree, and the seam keeps each table's own anyway.
+    // actually disagree, and the repository keeps each table's own anyway.
     repository.insertCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, ousters.name, 1, 1700000001, 300, 0);
     EXPECT_EQ("255", columnOf("EffectBloodDrain", "Level", ousters.name));
     rows = repository.loadCreatureEffects(CREATURE_EFFECT_BLOOD_DRAIN, ousters.name);
@@ -2384,13 +2375,13 @@ TEST_F(MessageMySQL, TheThreeUnionNoticeSpellingsAreOneStatementWithThreeTexts) 
     // NOTE: this test proves the three spellings are EQUIVALENT. It cannot
     // prove the mapping is right — swap two enumerators and every
     // assertion below still passes, because MySQL cannot tell the
-    // spellings apart. That mapping is held by review.
+    // spellings apart.
     //
-    // The union handlers wrote this INSERT three ways — backticked or not,
+    // The union handlers issue this INSERT three ways — backticked or not,
     // with or without a space before the VALUES list. MySQL ignores both
-    // differences, so all three land the same shape of row; the seam keeps
-    // them apart because task 3.2 preserves bytes, not because they behave
-    // differently. This test is what says so.
+    // differences, so all three land the same shape of row; the
+    // repository keeps them apart to send each caller's exact bytes, not
+    // because they behave differently. This test is what says so.
     repository.insertUnionNotice(UNION_NOTICE_PLAIN, slayer.name, "plain");
     repository.insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, slayer.name, "quoted spaced");
     repository.insertUnionNotice(UNION_NOTICE_QUOTED, slayer.name, "quoted");
@@ -2611,8 +2602,8 @@ TEST_F(RegenZoneMySQL, LoadPositionsReturnsEveryColumnInSelectPosition) {
 // shape (a maximum exists, the rows stay within it, the lists are not
 // empty — exactly what the boot-time loaders require) rather than on
 // rows they insert. The one write-free quirk worth pinning is the MAX()
-// probe over nothing: MySQL answers with one NULL row, which the inline
-// code would have atoi(NULL)'d; the seam reports "no maximum".
+// probe over nothing: MySQL answers with one NULL row; the repository
+// reports "no maximum".
 
 TEST(BalanceInfoMySQL, EveryLadderHasAMaximumAndItsRowsStayWithinIt) {
     BalanceInfoRepository& repository = defaultBalanceInfoRepository();
@@ -2736,7 +2727,7 @@ TEST(GameInfoMySQL, EveryMonsterNameListIsNonEmpty) {
     }
 }
 
-// --- the config loaders of the second game-info round ---------------------
+// --- the remaining config loaders ----------------------------------------
 // All read-only, all shipped seeded: the tests assert the shape the boot
 // requires (the weather and grade tables' exact row counts, the others
 // non-empty and internally consistent) plus the two per-zone reads
@@ -3011,10 +3002,9 @@ protected:
 };
 
 TEST_F(NicknameMySQL, LoadReturnsNIDAscendingNotInsertionOrder) {
-    // The pilot's fake documented "insertion order" for this ORDER-BY-less
-    // SELECT; flagged in the PR #31 review as unverified. Reality: the
-    // secondary index IDX_OwnerID carries the primary key (nID, OwnerID)
-    // as its suffix, so the ref scan returns nID ascending.
+    // The SELECT has no ORDER BY, but the secondary index IDX_OwnerID
+    // carries the primary key (nID, OwnerID) as its suffix, so the ref
+    // scan returns nID ascending, not insertion order.
     PlayerFixture ousters = PlayerFixtures::midLevelOusters();
     ousters.persist();
 
@@ -3057,7 +3047,7 @@ TEST_F(NicknameMySQL, ForcedNicknameIsReplacedInPlaceAndDeletedAlone) {
 }
 
 // --- the race-war cluster against real MySQL -------------------------------
-// Seven war files, one seam mixing boot-time reads with runtime writes.
+// One repository mixing boot-time reads with runtime writes.
 // Every table is seeded; the tests work on rows they insert (ids from
 // 31000 up where the column allows it, 250 up for the BYTE-typed sweeper
 // bonus Type) and clean them in SetUp/TearDown.
@@ -3589,9 +3579,9 @@ TEST_F(WarInfoMySQL, TheParticipantListReadTakesItsRaceFromTheNameColumn) {
             numeric = rows[r].race;
     }
 
-    // The Race column holds 1 and 2. The loader reports 0 and 7, because the
-    // inline read this seam preserves hands getInt column 1 — Name — and
-    // getInt is atoi. The caller then uses that value to index a
+    // The Race column holds 1 and 2. The loader reports 0 and 7, because it
+    // hands getInt column 1 — Name — and getInt is atoi. The caller then
+    // uses that value to index a
     // three-element array: "itrw1" parses to 0 and merely lands in the
     // wrong bucket, while "7abc" parses to 7 and writes outside the array.
     // Pinned, not fixed: correcting it is a behaviour change of its own.
@@ -3709,11 +3699,11 @@ TEST_F(WarInfoMySQL, MasterLairRowsCarryAllTwentyFiveColumns) {
 }
 
 // --- the item bookkeeping cluster against real MySQL --------------------
-// Seven item files, one seam plus four option-table loads on the game-info
-// seam. The tests work on rows they insert (ids from 31000 up; ItemClass
-// 250 for UniqueItemInfo's tinyint key; 'it-' owners) and clean them in
+// ItemRepository plus four option-table loads on GameInfoRepository. The
+// tests work on rows they insert (ids from 31000 up; ItemClass 250 for
+// UniqueItemInfo's tinyint key; 'it-' owners) and clean them in
 // SetUp/TearDown. PotionObject stands in for the per-class item-object
-// tables whose NAME the seam takes as data.
+// tables whose NAME the repository takes as data.
 
 class ItemMySQL : public ::testing::Test {
 protected:
@@ -3979,7 +3969,7 @@ TEST_F(ItemMySQL, ItemRowCountAndHighestIdAreReadFromTheNamedObjectTable) {
     EXPECT_EQ(before + 2, (int)repository.countItemRows("PotionObject"));
 
     // The dump's own rows (if any) sit below the test ids, so the two inserts
-    // decide the maximum; the scalar read pins the seam against the table.
+    // decide the maximum; the scalar read pins the repository against the table.
     DWORD highest = repository.loadMaxItemID("PotionObject");
     EXPECT_EQ(queryScalar("SELECT MAX(ItemID) FROM PotionObject"), std::to_string(highest));
     EXPECT_EQ(31007u, highest);
@@ -5670,8 +5660,8 @@ TEST_F(ItemObjectMySQL, WarItemRowsRoundTripAndTheirCreatureLoaderDeletesTheOwne
         const std::string id = std::to_string(31000 + i);
         const std::string zoneId = std::to_string(31100 + i);
 
-        // The owner's row, and a zone row belonging to somebody else. The seam returns
-        // the statement it ran - the text BloodBible, CastleSymbol and Sweeper log.
+        // The owner's row, and a zone row belonging to somebody else. The repository
+        // returns the statement it ran - the text BloodBible, CastleSymbol and Sweeper log.
         const std::string sql = repository.insertWarItem(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, 10);
         EXPECT_EQ("INSERT INTO " + name + " (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, " +
                       (table == GEAR_CASTLE_SYMBOL ? "Durability )" : "Durability)") + " VALUES(" + id +
@@ -5823,8 +5813,8 @@ TEST_F(ItemObjectMySQL, MotorcycleCodeSheetAndWarItemRowsRoundTripThroughTheirCo
         EXPECT_EQ("2,3", owned[0].optionField);
 
         // Its zone SELECT names Durability, EnchantLevel and ItemFlag, which
-        // CodeSheetObject does not have: the statement failed against this schema
-        // before the seam and fails the same way through it (END_DB rethrows).
+        // CodeSheetObject does not have: the statement fails against this schema
+        // (END_DB rethrows).
         EXPECT_ANY_THROW(repository.loadGearInZone(GEAR_CODE_SHEET, 5, 31000));
 
         repository.tinysaveGear(GEAR_CODE_SHEET, "X=9", 31000);
@@ -5843,7 +5833,7 @@ TEST_F(ItemObjectMySQL, MotorcycleCodeSheetAndWarItemRowsRoundTripThroughTheirCo
     // WarItem: the plain statements, but no loader holds SQL - so neither load serves it.
     {
         const std::string where = " FROM WarItemObject WHERE ItemID=";
-        // The seam returns the statement it ran; WarItem's create logs it to WarLog.txt.
+        // The repository returns the statement it ran; WarItem's create logs it to WarLog.txt.
         const std::string sql = repository.insertPlainItemLogged(GEAR_WAR_ITEM, 31000, 77, 3, "it-owner", 1, 5, 2, 4);
         EXPECT_EQ("INSERT INTO WarItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y) "
                   "VALUES(31000, 77, 3, 'it-owner', 1, 5, 2, 4)",
@@ -6046,8 +6036,8 @@ TEST_F(ItemObjectMySQL, MotorcycleRedeemProbesReadsAndInsertsInBothSpellings) {
 
     // The quest-action spelling is INSERT IGNORE: a second row for the same id
     // is swallowed and the standing row is untouched. The handler spelling
-    // has no IGNORE, so the same duplicate is a SQL failure crossing the seam
-    // as END_DB's const char*.
+    // has no IGNORE, so the same duplicate is a SQL failure thrown as
+    // END_DB's const char*.
     repository.insertRedeemedMotorcycle(REDEEM_SPELLING_QUEST_ACTION, 31000, 78, 4, 5, 32, 14, 15, 301);
     EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + "31000"));
     EXPECT_EQ("300", queryScalar("SELECT Durability" + where + "31000"));
@@ -6067,7 +6057,7 @@ TEST_F(ItemObjectMySQL, MotorcycleRedeemProbesReadsAndInsertsInBothSpellings) {
 }
 
 // --- SpecialEvent against real MySQL -----------------------------------------
-// The one seam that goes through DatabaseManager::getConnection(int) — the
+// The one repository that goes through DatabaseManager::getConnection(int) — the
 // world-default connection main() hands it. Rows are keyed by account id.
 
 class SpecialEventMySQL : public ::testing::Test {
@@ -6709,10 +6699,9 @@ TEST_F(PlayRecordMySQL, GoldMedalInsertFailsOnTheShippedSchema) {
 }
 
 // CreatureUtil's underworld kill record (its only caller sits under
-// __UNDERWORLD__, which no build defines, so this seam method is the first
-// time the statement is compiled at all — and the tier the only thing that
-// runs it): the two ids, the account and the character, KillTime
-// server-side.
+// __UNDERWORLD__, which no build defines, so this tier is the only thing
+// that runs the statement): the two ids, the account and the character,
+// KillTime server-side.
 TEST_F(PlayRecordMySQL, UnderworldKillIsRecordedWithItsIdsAndNames) {
     defaultPlayRecordRepository().insertUnderworldKill(2, 3, "it-acct", "it-char");
     const std::string where = " FROM UnderworldEvent WHERE PlayerID = 'it-acct'";
@@ -6780,10 +6769,10 @@ TEST_F(SessionMySQL, TheWhisperLocationReadReachesTheSameRowsAsThePlayerDbName) 
 
     // This is the point of the test. loadPlayerLocation asks
     // getDistConnection for "USERINFO" where every other Player
-    // statement asks for "PLAYER_DB"; the round claims the name is
-    // ignored and both reach the same socket. A write through the
-    // PLAYER_DB-named path landing in the row the USERINFO-named path
-    // reads is what actually establishes that.
+    // statement asks for "PLAYER_DB"; DatabaseManager ignores the name
+    // and both reach the same socket. A write through the PLAYER_DB-named
+    // path landing in the row the USERINFO-named path reads is what
+    // establishes that.
     execSQL("UPDATE Player SET LogOn='LOGOFF' WHERE PlayerID='it-where'");
     ASSERT_TRUE(repository.markPlayerLoggedOn("it-where")) << "the LOGOFF row was not claimed";
     ASSERT_TRUE(repository.loadPlayerLocation("it-where", serverGroupID, logOn));
@@ -7087,8 +7076,8 @@ TEST_F(SessionMySQL, GMCommandsReadServerIDCountOnlineDenyAndLogReports) {
 }
 
 // --- the ExpTable template's generic balance read ---------------------------
-// SomethingGrowingUp.h's ExpTable::load names its table and columns; the seam
-// formats "SELECT %s, %s, %s FROM %s %s" from them. The seeded RankEXPInfo,
+// SomethingGrowingUp.h's ExpTable::load names its table and columns; the
+// repository formats "SELECT %s, %s, %s FROM %s %s" from them. The seeded RankEXPInfo,
 // AdvancementClassEXPInfo and the attribute balance tables stand in.
 
 TEST(ExpTableMySQL, ExpTablesLoadByNamedColumnsWithAndWithoutACondition) {
@@ -7266,11 +7255,11 @@ TEST_F(GuildMySQL, BothSpellingsOfTheMemberDeleteRemoveTheRow) {
     repository.deleteMemberSpelled(GUILD_MEMBER_DELETE_UNSPACED, "it-del2");
     EXPECT_FALSE(repository.loadMember("it-del2", row));
 
-    // deleteMember() IS the spaced spelling, delegating. Worth stating
-    // what this test cannot do: whitespace around "=" is not part of the
-    // parsed statement, so no assertion here can tell the two literals
-    // apart, and a swapped enumerator would pass. The mapping is held by
-    // review; what is pinned is that neither spelling is malformed.
+    // deleteMember() IS the spaced spelling, delegating. What this test
+    // cannot do: whitespace around "=" is not part of the parsed
+    // statement, so no assertion here can tell the two literals apart, and
+    // a swapped enumerator would pass. What is pinned is that neither
+    // spelling is malformed.
     repository.insertMember(31009, "it-del3", 2);
     repository.deleteMember("it-del3");
     EXPECT_FALSE(repository.loadMember("it-del3", row));
@@ -7457,7 +7446,7 @@ TEST_F(GuildMySQL, UnionMemberCountsAgreeAcrossSpellingsAndTheInfoDeleteSparesTh
     repository.insertUnionMember(unionID, 31001);
     repository.insertUnionMember(unionID, 31002);
 
-    // Three spellings of one count: COUNT(*) (the seam's own), and the
+    // Three spellings of one count: COUNT(*) (the repository's own), and the
     // handlers' lowercase count(*) plain and backticked.
     EXPECT_EQ(2, repository.countUnionMembers(unionID));
     EXPECT_EQ(2, repository.countUnionMembersSpelled(UNION_SQL_PLAIN, unionID));
@@ -7504,7 +7493,7 @@ TEST_F(GuildMySQL, TheEscapeOfferIsAPositionalRowThatTheTenDayCountFinds) {
     EXPECT_EQ(1, repository.countRecentEscapes(31002));
     EXPECT_EQ(1, repository.countOffers(31002));
 
-    // It is an ordinary offer row, so the seam's own sweeper clears it.
+    // It is an ordinary offer row, so the repository's sweeper clears it.
     repository.deleteOffers(31002);
     EXPECT_EQ(0, repository.countOffers(31002));
 }
@@ -7608,11 +7597,11 @@ int main(int argc, char** argv) {
     g_pDatabaseManager = new DatabaseManager();
     g_pDatabaseManager->addConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
     g_pDatabaseManager->addDistConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
-    // The USERINFO database the session seam writes UserStatus to; the
+    // The USERINFO database SessionRepository writes UserStatus to; the
     // tier loads initdb/USERINFO.sql next to DARKEDEN.sql.
     std::string userInfoDb = env("IT_DB_USERINFO_DB", "USERINFO");
     g_pDatabaseManager->setUserInfoConnection(new Connection(host, userInfoDb, user, password, port));
-    // The WorldDBInfo row-0 connection the SpecialEvent seam reaches through
+    // The WorldDBInfo row-0 connection SpecialEventRepository reaches through
     // getConnection(int) — same server and schema here, as in the shipped
     // seeds (initdb's WorldDBInfo row 0 names the DARKEDEN schema).
     g_pDatabaseManager->setWorldDefaultConnection(new Connection(host, db, user, password, port));

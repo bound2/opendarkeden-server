@@ -235,15 +235,11 @@ void CommonBillingPacket::setExpire_Date(const string& PlayerID) {
 
     // This file is compiled into BOTH binaries (GameServerBilling and
     // LoginServerBilling, billing/CMakeLists.txt). The read goes through
-    // the gameserver's Session seam, which the loginserver does not link,
-    // so it sits under __GAME_SERVER__. setExpire_Date has two callers in
-    // BillingPlayer.cpp: the one in sendPayLogin is inside an
-    // #ifdef __GAME_SERVER__ block; the one in sendPayCheck is NOT — it is
-    // compiled into the loginserver and is dead there only because that
-    // build's #else hardcodes isPlaying = true just above it. So the
-    // loginserver's copy of this function is unreachable today, and if
-    // that ever changed it would take the year == 0 branch below rather
-    // than read the database.
+    // the gameserver's SessionRepository, which the loginserver does not
+    // link, so it sits under __GAME_SERVER__. The loginserver's copy of
+    // this function is unreachable (its only non-#ifdef caller, sendPayCheck,
+    // hardcodes isPlaying = true above it); if that ever changed it would
+    // take the year == 0 branch below rather than read the database.
 #ifdef __GAME_SERVER__
     {
         string pat;
