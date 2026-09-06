@@ -11,8 +11,9 @@
 // auto-increment ItemID the server never reads, an ItemType, the
 // OwnerID). Written by GQuestInventory and by the two quest elements
 // that hand items out (GQuestGiveQuestItemElement,
-// GQuestGiveEventQuestItemElement); purged with the character in
-// CreatureUtil.cpp / CLDeletePCHandler (not enclosed here).
+// GQuestGiveEventQuestItemElement); purged with the character by
+// CharacterPurgeRepository (gameserver) / CLDeletePCHandler (loginserver)
+// — not enclosed here.
 class QuestItemRepository {
 public:
     virtual ~QuestItemRepository() {}

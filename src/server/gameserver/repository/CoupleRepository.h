@@ -34,9 +34,10 @@
 //
 // Not enclosed: the two "DELETE FROM CoupleInfo WHERE <column>='%s'"
 // pairs that erase a deleted character's pairings from BOTH columns at
-// once — CreatureUtil.cpp's and the loginserver's CLDeletePCHandler.cpp.
-// Those name their columns literally rather than by sex, and the
-// loginserver copy is a different binary; they join their own rounds.
+// once. Those name their columns literally rather than by sex; the
+// gameserver's pair is in the character purge (CharacterPurgeRepository,
+// since the CreatureUtil round), the loginserver's CLDeletePCHandler.cpp
+// copy is a different binary and joins its own round.
 class CoupleRepository {
 public:
     virtual ~CoupleRepository() {}

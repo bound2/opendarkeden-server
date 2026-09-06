@@ -222,11 +222,11 @@
 // tables in initdb/ and is in no CMakeLists — never compiled); the
 // loaders' storage-placement logic (stays with the class); and the
 // character-deletion purge's per-table "DELETE FROM <Class>Object WHERE
-// OwnerID = ..." sweep in gameserver/CreatureUtil.cpp (its own,
-// milestone-sized round), which the loginserver's ItemDestroyer.cpp and
-// CLDeletePCHandler.cpp repeat for their binary. So this seam owns every
-// MotorcycleObject and KeyObject statement in the gameserver EXCEPT that
-// purge's two deletes. ItemInfoManager.cpp holds only the registry calls,
+// OwnerID = ..." sweep, which is CharacterPurgeRepository's since the
+// CreatureUtil round (81 object tables in one ordered list) and which the
+// loginserver's ItemDestroyer.cpp and CLDeletePCHandler.cpp repeat for
+// their binary. So this seam owns every MotorcycleObject and KeyObject
+// statement in the gameserver EXCEPT that purge's two deletes. ItemInfoManager.cpp holds only the registry calls,
 // no SQL. The two commented-out blocks in CGUseItemFromInventoryHandler
 // and ActionRedeemMotorcycle that inlined an older flow around the
 // KeyObject Target UPDATE now name saveKeyTarget where they wrote the

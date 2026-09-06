@@ -9,9 +9,10 @@
 // Persistence seam for the RankBonusData table (task 3.2). A row is just
 // (OwnerID, Type): the point/rank values are re-derived from
 // RankBonusInfoManager on load, never stored. The character-deletion sweeps
-// (gameserver CreatureUtil.cpp, loginserver CLDeletePCHandler.cpp) still
-// DELETE from this table inline as part of their multi-table purge; they
-// are separate flows and join their own extraction later.
+// DELETE from this table as part of their multi-table purge — the
+// gameserver's in CharacterPurgeRepository (since the CreatureUtil round),
+// the loginserver's still inline in CLDeletePCHandler.cpp; neither is
+// enclosed here.
 class RankBonusRepository {
 public:
     virtual ~RankBonusRepository() {}

@@ -39,10 +39,12 @@
 // keyless in the strongest sense: its CREATE TABLE carries no index at
 // all, not even the OwnerID one the other twelve have.
 //
-// The per-character purges in CreatureUtil.cpp and the loginserver's
-// CLDeletePCHandler DELETE from only THREE of these tables
-// (EffectAftermath, EffectMute, EnemyErase) as part of their multi-table
-// character deletion — not enclosed here. Nothing purges the other five:
+// The per-character purges — the gameserver's in
+// CharacterPurgeRepository (since the CreatureUtil round), the
+// loginserver's in CLDeletePCHandler — DELETE from only THREE of these
+// tables (EffectAftermath, EffectMute, EnemyErase) as part of their
+// multi-table character deletion — not enclosed here. Nothing purges the
+// other five:
 // an EffectKillAftermath, CanEnterGDRLair or force-scroll row outlives
 // its character, and a name-reuser inherits it on first login (the same
 // quirk BloodBibleSignRepository documents for its table).

@@ -740,7 +740,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   quarantined and documented *there*, never leaked into domain types. Order
   of attack: `PlayerCreature`/`Slayer`/`Vampire`/`Ousters` persistence first
   (biggest testability win), then Zone, then the long tail. Ratchets R2/R3.
-  > **Status:** in progress (2026-09-06) — 33 seams under
+  > **Status:** in progress (2026-09-06) — 34 seams under
   > `src/server/gameserver/repository/` (interface `*Repository.h`, impl
   > `MySQL*Repository.cpp`, reached through `default*Repository()`
   > accessors, never `g_p*` externs). R2 104→8 and R3 317→53 since the
@@ -749,7 +749,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `restructuring/motorcycle-redeem` and
   > `restructuring/quest-action-statements` and
   > `restructuring/handler-bookkeeping` and
-  > `restructuring/comeback-event-handlers`). The per-round
+  > `restructuring/comeback-event-handlers` and
+  > `restructuring/creatureutil-purge`). The per-round
   > narrative — what moved, what the two adversarial reviews caught, the
   > byte-fidelity checks, the test list — lives in those PR descriptions
   > and commit messages, not here. Each repository header carries its
@@ -775,7 +776,10 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > schedules, histories, reinforcement, race-war limits), `FlagWar`,
   > `RegenZone`, `BulletinBoard`, `ComebackEvent`, `MofusPoint`,
   > `SystemAvailability`, `SpecialEvent` (the one seam on the
-  > world-default connection — `getConnection(int)`, see its header).
+  > world-default connection — `getConnection(int)`, see its header),
+  > `CharacterPurge` (deletePC's 109-statement character-deletion list,
+  > one method, one Statement, in the original order — every table on
+  > it is another seam's, and those headers say so).
   >
   > **Conventions the rounds settled** (each one cost a review finding):
   > - Statements move **byte-for-byte**, quirks included (backticked
@@ -800,7 +804,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > - **Integration tier over fakes**: `mysql_repository_tests`
   >   (tests/integration/, `make integration-test`, needs docker) runs
   >   the real impls against MySQL 5.7 loaded with `initdb/` and the
-  >   production sql_mode; 185 tests, 11 of them failing on the pinned
+  >   production sql_mode; 190 tests, 11 of them failing on the pinned
   >   toolchain (see the DWORD bullet below). A quirk is replayed there
   >   before it is written down — the first rounds' fakes documented three
   >   behaviours the server refuted. Only the six pilot-era seams keep a
@@ -840,6 +844,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   and indexes a three-element array with it.
   > - `GoodsRepository::takeOne` on a Num=0 row raises
   >   ER_DATA_OUT_OF_RANGE and leaves the purchase stuck.
+  > - `giveGoldMedal`'s `INSERT INTO GoldMedalCount` names a table
+  >   `initdb/` does not create, so every gold-medal award fails as a
+  >   SQL error (PlayRecordRepository::insertGoldMedal, pinned).
   > - LearningItem's UPDATE says `Storage=%s` for an int;
   >   VampirePortalItem's zone loader reads eleven getters over an
   >   eight-column SELECT; CodeSheet's zone SELECT names columns its
@@ -875,15 +882,19 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > non-SQLQueryException throw (`bad_alloc`, `OutOfBoundException`)
   > leaks the Statement — open.
   >
-  > **What remains.** Of R2's eight files only two hold SQL that
-  > compiles and runs: `CreatureUtil.cpp` (118 live statements and 10
-  > commented out, the character-deletion purge — milestone-sized) and
-  > `TradeManager.cpp`
+  > **What remains.** Of R2's eight files only one holds SQL that
+  > compiles and runs: `TradeManager.cpp`
   > (one TradeLog INSERT of unbounded length through
   > `executeQueryString`; the 2048-byte `executeQuery` buffer would turn
   > a large trade's log into a new failure after the gold moved, so it
   > waits for an uncapped parameterized path in the DB layer).
-  > `SMSServiceThread.cpp` compiles but its thread is never started;
+  > `CreatureUtil.cpp`'s 118 live statements moved in the CreatureUtil
+  > round (the purge to `CharacterPurgeRepository`, the rest to the
+  > Character and PlayRecord seams); it stays on R2 and R3 for the
+  > fully commented-out `addOlympicStat` body alone, which declares its
+  > own Statement inside the comment and so is left as it is under the
+  > comment policy. `SMSServiceThread.cpp` compiles but its thread is
+  > never started;
   > `EventMonsterNameManager`, `GameServerInfoManager` (a stale third
   > copy), `GameWorldInfoManager` (a stale fork of ServerCore's live
   > loader), `MoonCardUtil` and `Vampire_backup` are in no CMakeLists

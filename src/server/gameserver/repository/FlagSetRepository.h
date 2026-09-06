@@ -10,7 +10,8 @@
 //
 // The row is normally created by the loginserver at character creation
 // (CLCreatePCHandler, with a race-specific default pattern) and purged
-// with the character (CreatureUtil.cpp / CLDeletePCHandler) — neither
+// with the character (the gameserver's CharacterPurgeRepository since the
+// CreatureUtil round, the loginserver's CLDeletePCHandler) — neither
 // is enclosed here. The gameserver's own create() is the newbie-item
 // path's fallback.
 class FlagSetRepository {

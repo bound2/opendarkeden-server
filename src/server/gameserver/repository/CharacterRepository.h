@@ -276,10 +276,12 @@ public:
     // spelling of the same lookup lives in CGSayHandler's GM ban
     // command — "SELECT PlayerID FROM Slayer where Name='%s'", with a
     // lower-case where. Nor is it alone: CGSayHandler also reads
-    // "SELECT Fame, BladeLevel, ... FROM Slayer", and CreatureUtil.cpp
-    // carries "SELECT Race FROM Slayer where Name='%s'" plus its SEX
-    // and Active='INACTIVE' updates. The loginserver's Slayer
-    // statements are a different binary. All join their own rounds.
+    // "SELECT Fame, BladeLevel, ... FROM Slayer". CreatureUtil's
+    // "SELECT Race FROM Slayer where Name='%s'" and its SEX updates are
+    // this seam's now (loadSlayerRaceText, saveSex, below); its
+    // Active='INACTIVE' updates are the character purge's
+    // (CharacterPurgeRepository). The loginserver's Slayer statements are
+    // a different binary.
     virtual bool loadVampire(const std::string& ownerName, VampireLoadRecord& record) = 0;
     virtual bool loadOusters(const std::string& ownerName, OustersLoadRecord& record) = 0;
 
@@ -293,13 +295,34 @@ public:
     // SQL in the tree, whole-tree grep: in OTHER seams, StashRepository's
     // StashNum / StashGold updates and GoldRepository's race-table
     // statements (the table name chosen at runtime, Vampire among them);
-    // loose in the gameserver, CreatureUtil.cpp's SEX and Active='INACTIVE'
-    // updates (the deletion purge, next to a commented-out DELETE) and
-    // CGSayHandler's Level read; commented out, Vampire::saveExps's old
+    // in the character purge (CharacterPurgeRepository, since the
+    // CreatureUtil round), the Active='INACTIVE' update (next to a
+    // commented-out DELETE); loose in the gameserver, CGSayHandler's Level
+    // read; commented out, Vampire::saveExps's old
     // inline UPDATE block; unbuilt, Vampire_backup.cpp's five; and the
     // loginserver's and sharedserver's own statements — their own rounds.
     virtual bool loadVampireRedistributeAttr(const std::string& name, int& redistributeAttr) = 0;
     virtual void saveVampireRedistributeAttr(int redistributeAttr, const std::string& name) = 0;
+
+    // CreatureUtil's GM-command lookups (CreatureUtil round, 2026-09-06):
+    // getRaceFromDB — "SELECT Race FROM Slayer where Name='%s'", the Race
+    // column as the text getString returns ('SLAYER' / 'VAMPIRE' / ...; the
+    // caller maps it to its enum, anything else to ousters); false when the
+    // name has no Slayer row. Note it reads the SLAYER table for every race:
+    // that table is the character index, every character has a row there.
+    virtual bool loadSlayerRaceText(const std::string& name, std::string& raceText) = 0;
+    // getGuildIDFromDB — "SELECT GuildID FROM %s where Name='%s'" on the
+    // race's table (the caller's if-chain chose Slayer / Vampire / else
+    // Ousters; it now maps to CharacterRace the same way and the table name
+    // is chosen here); the int through getInt, the caller casts to
+    // GuildID_t and applies its 0 / 99 / 66 rule; false when no row.
+    virtual bool loadGuildID(const std::string& name, CharacterRace race, int& guildID) = 0;
+    // changeSexEx — "UPDATE Slayer SET SEX='%s' WHERE Name='%s'" then the
+    // same on Vampire, both on one Statement as written (the character has
+    // a row in Slayer, the index, and in its own race table; the Ousters
+    // table is not written, so an ousters' Ousters.SEX stays — as before).
+    // The text is the caller's Sex2String entry.
+    virtual void saveSex(const std::string& name, const std::string& sexText) = 0;
 
     // The periodic save() row update — vitals and position.
     virtual void saveSlayerVitals(const std::string& ownerName, const SlayerVitalsRecord& record) = 0;

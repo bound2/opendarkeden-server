@@ -561,6 +561,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLSystemAvailabilityRepository.cpp
     repository/MySQLZoneInfoRepository.cpp
     repository/MySQLCharacterRepository.cpp
+    repository/MySQLCharacterPurgeRepository.cpp
     repository/MySQLGoldRepository.cpp
     repository/MySQLGoodsRepository.cpp
     repository/MySQLGuildRepository.cpp

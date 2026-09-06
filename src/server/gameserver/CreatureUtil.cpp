@@ -17,7 +17,6 @@
 #include "CGSay.h"
 #include "CastleInfoManager.h"
 #include "CombatInfoManager.h"
-#include "DB.h"
 #include "Effect.h"
 #include "EffectAftermath.h"
 #include "EffectGnomesWhisper.h"
@@ -64,6 +63,9 @@
 #include "ZoneGroupManager.h"
 #include "couple/PartnerWaitingManager.h"
 #include "ctf/FlagManager.h"
+#include "repository/CharacterPurgeRepository.h"
+#include "repository/CharacterRepository.h"
+#include "repository/PlayRecordRepository.h"
 #include "skill/Sniping.h"
 #include "skill/SummonGroundElemental.h"
 
@@ -1505,15 +1507,10 @@ bool getRaceFromDB(const string& Name, Race_t& race)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    {
+        string Race;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT Race FROM Slayer where Name='%s'", Name.c_str());
-
-        if (pResult->next()) {
-            string Race = pResult->getString(1);
-
+        if (defaultCharacterRepository().loadSlayerRaceText(Name, Race)) {
             if (Race == "SLAYER") {
                 race = RACE_SLAYER;
             } else if (Race == "VAMPIRE") {
@@ -1521,13 +1518,9 @@ bool getRaceFromDB(const string& Name, Race_t& race)
             } else
                 race = RACE_OUSTERS;
         } else {
-            SAFE_DELETE(pStmt);
             return false;
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     return true;
 
@@ -1539,35 +1532,27 @@ bool getGuildIDFromDB(const string& Name, Race_t race, GuildID_t& guildID)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        string table;
+    {
+        CharacterRace table;
         if (race == RACE_SLAYER)
-            table = "Slayer";
+            table = CHARACTER_RACE_SLAYER;
         else if (race == RACE_VAMPIRE)
-            table = "Vampire";
+            table = CHARACTER_RACE_VAMPIRE;
         else
-            table = "Ousters";
+            table = CHARACTER_RACE_OUSTERS;
 
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT GuildID FROM %s where Name='%s'", table.c_str(), Name.c_str());
+        int guildIDValue = 0;
 
-        if (pResult->next()) {
-            guildID = (GuildID_t)pResult->getInt(1);
+        if (defaultCharacterRepository().loadGuildID(Name, table, guildIDValue)) {
+            guildID = (GuildID_t)guildIDValue;
 
             if (guildID == 0 || guildID == 99 || guildID == 66) {
-                SAFE_DELETE(pStmt);
                 return false;
             }
         } else {
-            SAFE_DELETE(pStmt);
             return false;
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     return true;
 
@@ -1663,19 +1648,7 @@ int changeSexEx(PlayerCreature* pPC) {
 
     // 여기까지 왔다는건 성전환 성공이다. DB업데이트
     // 성전환 성공이면 아우스터즈일리는 절대 없으므로 슬레이어와 뱀파이어 테이블 모두 정보가 있다.
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE Slayer SET SEX='%s' WHERE Name='%s'", Sex2String[pPC->getSex()].c_str(),
-                            pPC->getName().c_str());
-        pStmt->executeQuery("UPDATE Vampire SET SEX='%s' WHERE Name='%s'", Sex2String[pPC->getSex()].c_str(),
-                            pPC->getName().c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultCharacterRepository().saveSex(pPC->getName(), Sex2String[pPC->getSex()]);
 
     return 0;
 }
@@ -1953,19 +1926,11 @@ void giveUnderworldGift(Creature* pCreature) {
 
     string PlayerID = pPlayer->getID();
 
-    Statement* pStmt = NULL;
-
     filelog("Underworld.log", "[%s:%s] 언더월드 예매권에 당첨되었습니다.", PlayerID.c_str(), PlayerName.c_str());
 
     try {
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-            pStmt->executeQuery("INSERT INTO UnderworldEvent (WorldID, ServerID, PlayerID, CharacterID, KillTime) "
-                                "VALUES (%u, %u, '%s', '%s', now())",
-                                g_pConfig->getPropertyInt("WorldID"), g_pConfig->getPropertyInt("ServerID"),
-                                PlayerID.c_str(), PlayerName.c_str());
-        }
-        END_DB(pStmt)
+        defaultPlayRecordRepository().insertUnderworldKill(g_pConfig->getPropertyInt("WorldID"),
+                                                           g_pConfig->getPropertyInt("ServerID"), PlayerID, PlayerName);
     } catch (Throwable& t) {
         filelog("Underworld.log", "DB에 업데이트를 실패했습니다. : %s", t.toString().c_str());
     }
@@ -2109,40 +2074,20 @@ void giveGoldMedal(PlayerCreature* pPC) {
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPC->getPlayer());
     Assert(pGamePlayer != NULL);
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
-        pStmt->executeQuery("INSERT INTO GoldMedalCount (PlayerID, getTime) VALUES ('%s', now())",
-                            pGamePlayer->getID().c_str());
+    {
+        defaultPlayRecordRepository().insertGoldMedal(pGamePlayer->getID());
         addSimpleCreatureEffect(pPC, Effect::EFFECT_CLASS_GOLD_MEDAL, 10, true);
 
         GCSystemMessage gcSM;
         gcSM.setMessage("삿돤錤듕쏜탬寧철.");
         pGamePlayer->sendPacket(&gcSM);
-        /*		pStmt->executeQuery("UPDATE GoldMedalCount SET GoldMedalCount=GoldMedalCount+1 WHERE PlayerID='%s'",
-                        pGamePlayer->getID().c_str());
-
-                if ( pStmt->getAffectedRowCount() < 1 )
-                {
-                    pStmt->executeQuery("REPLACE INTO GoldMedalCount (PlayerID,GoldMedalCount) VALUES ('%s',1)",
-                            pGamePlayer->getID().c_str());
-                }
-
-                Result* pResult = pStmt->executeQuery("SELECT GoldMedalCount FROM GoldMedalCount WHERE PlayerID='%s'",
-                        pGamePlayer->getID().c_str());
-
-                if ( pResult->next() )
-                {
-                    GCNoticeEvent gcNE;
-                    gcNE.setCode(NOTICE_EVENT_GOLD_MEDALS);
-                    gcNE.setParameter(pResult->getInt(1));
-                    pGamePlayer->sendPacket(&gcNE);
-                }
-        */
-        SAFE_DELETE(pStmt);
+        // An older flow here kept a per-account counter instead — an UPDATE
+        // of GoldMedalCount+1, a REPLACE when nothing changed, then a
+        // read-back sent as GCNoticeEvent NOTICE_EVENT_GOLD_MEDALS — on the
+        // same Statement as the INSERT above. It was commented out before
+        // the INSERT moved to PlayRecordRepository::insertGoldMedal and has
+        // no seam method; the shape is the lotto counter's (addLotto).
     }
-    END_DB(pStmt);
 
     __END_CATCH
 }
@@ -2153,39 +2098,20 @@ void giveLotto(PlayerCreature* pPC, BYTE type, uint num) {
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPC->getPlayer());
     Assert(pGamePlayer != NULL);
 
-    Statement* pStmt = NULL;
+    {
+        // (A commented-out copy of giveGoldMedal's INSERT and effect sat
+        // here before the statements moved to the seam; the live flow is
+        // the lotto counter alone.)
+        int count = 0;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
-        /*		pStmt->executeQuery("INSERT INTO GoldMedalCount (PlayerID, getTime) VALUES ('%s', now())",
-                        pGamePlayer->getID().c_str());
-                addSimpleCreatureEffect(pPC, Effect::EFFECT_CLASS_GOLD_MEDAL, 10);
-
-                GCSystemMessage gcSM;
-                gcSM.setMessage( "아테네 금메달을 1개 획득했습니다. 넷마블 이벤트 페이지에서 상품을 확인하세요." );
-                pGamePlayer->sendPacket( &gcSM );*/
-        pStmt->executeQuery("UPDATE EventLotto SET count=count+%u WHERE PlayerID='%s' AND Type=%u", num,
-                            pGamePlayer->getID().c_str(), type);
-
-        if (pStmt->getAffectedRowCount() < 1) {
-            pStmt->executeQuery("REPLACE INTO EventLotto (PlayerID,Type,count) VALUES ('%s',%u,%u)",
-                                pGamePlayer->getID().c_str(), type, num);
-        }
-
-        Result* pResult = pStmt->executeQuery("SELECT count FROM EventLotto WHERE PlayerID='%s' AND Type=%u",
-                                              pGamePlayer->getID().c_str(), type);
-
-        if (pResult->next()) {
+        if (defaultPlayRecordRepository().addLotto(pGamePlayer->getID(), type, num, count)) {
             char buffer[256];
-            sprintf(buffer, "삶땡꽈튿鑒綠댐돕%d몸.圈玖코휭헝꽝옘바렘寮女.", pResult->getInt(1));
+            sprintf(buffer, "삶땡꽈튿鑒綠댐돕%d몸.圈玖코휭헝꽝옘바렘寮女.", count);
             GCSystemMessage gcSM;
             gcSM.setMessage(buffer);
             pGamePlayer->sendPacket(&gcSM);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt);
 
     __END_CATCH
 }
@@ -2238,177 +2164,12 @@ void addOlympicStat(PlayerCreature* pPC, BYTE type, uint num) {
 void deletePC(PlayerCreature* pPC) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        ////////////////////////////////////////////////////////////
-        // 일단 슬레이어 테이블에는 확실히 존재한다.
-        ////////////////////////////////////////////////////////////
-        //		pStmt->executeQuery("DELETE FROM Slayer WHERE Name = '%s'", pPC->getName().c_str());
-        pStmt->executeQuery("UPDATE Slayer SET Active='INACTIVE' WHERE Name = '%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 뱀파이어 테이블을 지운다.
-        ////////////////////////////////////////////////////////////
-        //		pStmt->executeQuery("DELETE FROM Vampire WHERE Name = '%s'", pPC->getName().c_str());
-        pStmt->executeQuery("UPDATE Vampire SET Active='INACTIVE' WHERE Name = '%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 아우스터스 테이블을 지운다.
-        ////////////////////////////////////////////////////////////
-        //		pStmt->executeQuery("DELETE FROM Ousters WHERE Name = '%s'", pPC->getName().c_str());
-        pStmt->executeQuery("UPDATE Ousters SET Active='INACTIVE' WHERE Name = '%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 슬레이어 스킬을 지운다.
-        ////////////////////////////////////////////////////////////
-        pStmt->executeQuery("DELETE FROM SkillSave WHERE OwnerID = '%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 뱀파이어 스킬을 지워준다.
-        ////////////////////////////////////////////////////////////
-        pStmt->executeQuery("DELETE FROM VampireSkillSave WHERE OwnerID = '%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 아우스터즈 스킬을 지워준다.
-        ////////////////////////////////////////////////////////////
-        pStmt->executeQuery("DELETE FROM OustersSkillSave WHERE OwnerID = '%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 계급 보너스를 지워준다.
-        ////////////////////////////////////////////////////////////
-        pStmt->executeQuery("DELETE FROM RankBonusData WHERE OwnerID = '%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 아이템을 깡그리 지운다.
-        ////////////////////////////////////////////////////////////
-        string ownerID = pPC->getName();
-        pStmt->executeQueryString("DELETE FROM ARObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM BeltObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM BladeObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM BloodBibleObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM BombMaterialObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM BombObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM BraceletObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM CastleSymbolObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM CoatObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM CrossObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM ETCObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM EventETCObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM EventGiftBoxObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM EventStarObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM EventTreeObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM GloveObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM HelmObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM HolyWaterObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM KeyObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM LearningItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM MaceObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM MagazineObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM MineObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM MoneyObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM MotorcycleObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM NecklaceObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM PotionObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM QuestItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM RelicObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM SGObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM SMGObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM SRObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM SerumObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM ShieldObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM ShoesObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM SkullObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM SlayerPortalItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM SwordObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM TrouserObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM RingObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM CoupleRingObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampireAmuletObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampireBraceletObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampireCoatObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampireETCObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampireEarringObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampireNecklaceObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampirePortalItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampireRingObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampireWeaponObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM VampireCoupleRingObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM WaterObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM EventItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM DyePotionObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM ResurrectItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM MixingItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersArmsbandObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersBootsObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersChakramObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersCircletObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersCoatObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersPendentObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersRingObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersStoneObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersWristletObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM LarvaObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM PupaObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM ComposMeiObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM OustersSummonItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM EffectItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM CodeSheetObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM MoonCardObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM SweeperObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM PetItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM PetFoodObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM PetEnchantItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM LuckyBagObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM SMSItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM CoreZapObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM GQuestItemObject WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM GQuestSave WHERE OwnerID = '" + ownerID + "'");
-        pStmt->executeQueryString("DELETE FROM TrapItemObject WHERE OwnerID = '" + ownerID + "'");
-
-        ////////////////////////////////////////////////////////////
-        // 커플일 경우 커플 목록에서 지워준다.
-        ////////////////////////////////////////////////////////////
-        pStmt->executeQuery("DELETE FROM CoupleInfo WHERE FemalePartnerName='%s'", ownerID.c_str());
-        pStmt->executeQuery("DELETE FROM CoupleInfo WHERE MalePartnerName='%s'", ownerID.c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 남아 있는 이펙트들도 지운다.
-        ////////////////////////////////////////////////////////////
-        pStmt->executeQuery("DELETE FROM EffectAcidTouch where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectAftermath where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectBloodDrain where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectDetectHidden where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectFlare where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectLight where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectParalysis where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectPoison where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectPoisonousHands where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectProtectionFromParalysis where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectProtectionFromPoison where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectRestore where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectYellowPoisonToCreature where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EffectMute where OwnerID='%s'", pPC->getName().c_str());
-        pStmt->executeQuery("DELETE FROM EnemyErase where OwnerID='%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 플래그 셋도 삭제해 준다.
-        ////////////////////////////////////////////////////////////
-        pStmt->executeQuery("DELETE FROM FlagSet WHERE OwnerID='%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 시간제한 아이템도 삭제해 준다.
-        ////////////////////////////////////////////////////////////
-        pStmt->executeQuery("DELETE FROM TimeLimitItems WHERE OwnerID='%s'", pPC->getName().c_str());
-
-        ////////////////////////////////////////////////////////////
-        // 이벤트 정보도 삭제해 준다.
-        ////////////////////////////////////////////////////////////
-        pStmt->executeQuery("DELETE FROM EventQuestAdvance WHERE OwnerID='%s'", pPC->getName().c_str());
-    }
-    END_DB(pStmt);
+    // The 109 statements that retire a character's rows — the three race
+    // tables' Active='INACTIVE' updates, the skill saves and rank bonus, the
+    // 81 item-object tables, GQuestSave, CoupleInfo, the persisted effects,
+    // FlagSet, TimeLimitItems and EventQuestAdvance — run in that order on one
+    // Statement in CharacterPurgeRepository::purgeCharacter.
+    defaultCharacterPurgeRepository().purgeCharacter(pPC->getName());
 
     __END_CATCH
 }

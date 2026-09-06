@@ -17,10 +17,22 @@
 //
 // The handler-bookkeeping round (2026-09-06) added CGSubmitScoreHandler's
 // MiniGameScores UPDATE and CGBuyStoreItemHandler's single-item TradeLog
-// INSERT (the store-purchase trade log).
+// INSERT (the store-purchase trade log). The CreatureUtil round (same
+// day) added the per-account event tallies CreatureUtil kept: the gold
+// medal INSERT (GoldMedalCount — a table initdb/ does not create, so the
+// statement fails on the shipped schema, pinned by the tier), the lotto
+// counter (EventLotto: UPDATE, REPLACE when nothing changed, then a
+// read-back, on one Statement) and the underworld kill record
+// (UnderworldEvent — its one caller sits under __UNDERWORLD__, which no
+// build defines). The first two go through the dist connection asked for
+// as "USERINFO" (the name is ignored — see MySQLGoodsRepository.cpp: it
+// is the thread's second socket to the same DARKEDEN schema, NOT the
+// USERINFO database), the third through the dist connection as
+// "PLAYER_DB"; all as written.
 //
-// Not enclosed: the character-deletion sweeps of GQuestSave in
-// CreatureUtil.cpp and the loginserver's CLDeletePCHandler.cpp
+// Not enclosed: the character-deletion sweeps of GQuestSave — the
+// gameserver's in CharacterPurgeRepository (since the CreatureUtil
+// round), the loginserver's in CLDeletePCHandler.cpp
 // (CGSayHandler's and mission/MiniGameQuestStatus.cpp's MiniGameScores
 // reads are commented out; the latter calls sendGCMiniGameScores, a
 // caller of this seam); and TradeManager's TradeLog INSERT, which
@@ -82,6 +94,26 @@ public:
                                const std::string& storeAccountID, const std::string& buyerName,
                                const std::string& buyerHost, const std::string& buyerAccountID,
                                const std::string& itemText, Gold_t price) = 0;
+
+    // --- event tallies (CreatureUtil) -----------------------------------------
+    // giveGoldMedal: "INSERT INTO GoldMedalCount (PlayerID, getTime) VALUES
+    // ('%s', now())" — the table is not in initdb/, so on the shipped schema
+    // this throws END_DB's const char* every time (pre-existing; the caller
+    // never caught it either).
+    virtual void insertGoldMedal(const std::string& playerID) = 0;
+    // giveLotto: "UPDATE EventLotto SET count=count+%u WHERE PlayerID='%s'
+    // AND Type=%u", then when that changed no row "REPLACE INTO EventLotto
+    // (PlayerID,Type,count) VALUES ('%s',%u,%u)", then "SELECT count FROM
+    // EventLotto WHERE PlayerID='%s' AND Type=%u" — one Statement; the BYTE
+    // type and uint num through "%u" as written. True with the count when
+    // the read-back answered (it always does after the REPLACE); the caller
+    // shows the count.
+    virtual bool addLotto(const std::string& playerID, BYTE type, uint num, int& count) = 0;
+    // giveUnderworldGift: "INSERT INTO UnderworldEvent (WorldID, ServerID,
+    // PlayerID, CharacterID, KillTime) VALUES (%u, %u, '%s', '%s', now())" —
+    // the two config ints through "%u" as written.
+    virtual void insertUnderworldKill(int worldID, int serverID, const std::string& playerID,
+                                      const std::string& characterName) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in

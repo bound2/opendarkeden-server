@@ -33,6 +33,7 @@
 #include "repository/BalanceInfoRepository.h"
 #include "repository/BloodBibleSignRepository.h"
 #include "repository/BulletinBoardRepository.h"
+#include "repository/CharacterPurgeRepository.h"
 #include "repository/CharacterRepository.h"
 #include "repository/ComebackEventRepository.h"
 #include "repository/ContentInfoRepository.h"
@@ -1314,6 +1315,127 @@ TEST_F(CharacterMySQL, VampireRedistributeAttrIsReadAndSavedPerName) {
     EXPECT_EQ("2", queryScalar("SELECT RedistributeAttr FROM Vampire WHERE Name = '" + other.name + "'"));
     ASSERT_TRUE(defaultCharacterRepository().loadVampireRedistributeAttr(vampire.name, value));
     EXPECT_EQ(8, value);
+}
+
+// CreatureUtil's GM lookups: the Race text comes from the SLAYER row
+// whatever the race (the character index), the guild id from the race's
+// own table, and the sex write lands in Slayer AND Vampire (never Ousters);
+// a second character's rows are untouched, a name without rows is false.
+TEST_F(CharacterMySQL, RaceTextGuildIDAndSexGoThroughTheRaceTables) {
+    CharacterRepository& repository = defaultCharacterRepository();
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    PlayerFixture other = PlayerFixtures::lowLevelVampire();
+    vampire.persist();
+    other.persist();
+    execSQL("UPDATE Slayer SET Race = 'VAMPIRE', GuildID = 7, Sex = 'MALE' WHERE Name = '" + vampire.name + "'");
+    execSQL("UPDATE Vampire SET GuildID = 5, Sex = 'MALE' WHERE Name = '" + vampire.name + "'");
+    execSQL("UPDATE Slayer SET Sex = 'MALE' WHERE Name = '" + other.name + "'");
+
+    std::string race = "untouched";
+    EXPECT_FALSE(repository.loadSlayerRaceText("itnobody", race));
+    EXPECT_EQ("untouched", race);
+    ASSERT_TRUE(repository.loadSlayerRaceText(vampire.name, race));
+    EXPECT_EQ("VAMPIRE", race);
+
+    int guildID = -1;
+    ASSERT_TRUE(repository.loadGuildID(vampire.name, CHARACTER_RACE_VAMPIRE, guildID));
+    EXPECT_EQ(5, guildID);
+    ASSERT_TRUE(repository.loadGuildID(vampire.name, CHARACTER_RACE_SLAYER, guildID));
+    EXPECT_EQ(7, guildID);
+    guildID = -1;
+    EXPECT_FALSE(repository.loadGuildID(vampire.name, CHARACTER_RACE_OUSTERS, guildID)); // no Ousters row
+    EXPECT_EQ(-1, guildID);
+
+    repository.saveSex(vampire.name, "FEMALE");
+    EXPECT_EQ("FEMALE", queryScalar("SELECT Sex FROM Slayer WHERE Name = '" + vampire.name + "'"));
+    EXPECT_EQ("FEMALE", queryScalar("SELECT Sex FROM Vampire WHERE Name = '" + vampire.name + "'"));
+    EXPECT_EQ("MALE", queryScalar("SELECT Sex FROM Slayer WHERE Name = '" + other.name + "'"));
+}
+
+// --- the character purge against real MySQL ----------------------------------
+// One method, 109 statements. The test seeds rows for two names in a
+// sample of the tables from every stretch of the list (the race tables, a
+// skill save, the rank bonus, two object tables, GQuestSave, CoupleInfo in
+// both partner columns, two effect tables, FlagSet, TimeLimitItems,
+// EventQuestAdvance), purges one name and checks the other is whole.
+
+class CharacterPurgeMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        const char* byName[] = {"Slayer", "Vampire", "Ousters"};
+        for (size_t i = 0; i < 3; i++)
+            execSQL(std::string("DELETE FROM ") + byName[i] + " WHERE Name LIKE 'it-p%'");
+        const char* byOwner[] = {"SkillSave",       "RankBonusData", "ARObject", "BeltObject",     "GQuestSave",
+                                 "EffectAcidTouch", "EnemyErase",    "FlagSet",  "TimeLimitItems", "EventQuestAdvance"};
+        for (size_t i = 0; i < sizeof(byOwner) / sizeof(byOwner[0]); i++)
+            execSQL(std::string("DELETE FROM ") + byOwner[i] + " WHERE OwnerID LIKE 'it-p%'");
+        execSQL("DELETE FROM CoupleInfo WHERE MalePartnerName LIKE 'it-p%' OR FemalePartnerName LIKE 'it-p%'");
+    }
+    static void seed(const std::string& name, int id) {
+        const std::string n = "'" + name + "'";
+        const std::string i = std::to_string(id);
+        execSQL("INSERT INTO Slayer (Name, Active) VALUES (" + n + ", 'ACTIVE')");
+        execSQL("INSERT INTO Vampire (Name, Active) VALUES (" + n + ", 'ACTIVE')");
+        execSQL("INSERT INTO Ousters (Name, Active) VALUES (" + n + ", 'ACTIVE')");
+        execSQL("INSERT INTO SkillSave (OwnerID, SkillType) VALUES (" + n + ", 1)");
+        execSQL("INSERT INTO RankBonusData (OwnerID, Type) VALUES (" + n + ", 1)");
+        execSQL("INSERT INTO ARObject (ItemID, OwnerID) VALUES (" + i + ", " + n + ")");
+        execSQL("INSERT INTO BeltObject (ItemID, OwnerID) VALUES (" + i + ", " + n + ")");
+        execSQL("INSERT INTO GQuestSave (QuestID, OwnerID) VALUES (" + i + ", " + n + ")");
+        execSQL("INSERT INTO CoupleInfo (MalePartnerName, FemalePartnerName) VALUES (" + n + ", 'x')");
+        execSQL("INSERT INTO CoupleInfo (MalePartnerName, FemalePartnerName) VALUES ('y', " + n + ")");
+        execSQL("INSERT INTO EffectAcidTouch (OwnerID) VALUES (" + n + ")");
+        execSQL("INSERT INTO EnemyErase (OwnerID) VALUES (" + n + ")");
+        execSQL("INSERT INTO FlagSet (OwnerID) VALUES (" + n + ")");
+        execSQL("INSERT INTO TimeLimitItems (OwnerID, ItemID) VALUES (" + n + ", " + i + ")");
+        execSQL("INSERT INTO EventQuestAdvance (OwnerID, QuestLevel) VALUES (" + n + ", 1)");
+    }
+    static std::string rowsOf(const std::string& name) {
+        const std::string n = "'" + name + "'";
+        return queryScalar("SELECT (SELECT COUNT(*) FROM SkillSave WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM RankBonusData WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM ARObject WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM BeltObject WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM GQuestSave WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM CoupleInfo WHERE MalePartnerName = " + n +
+                           " OR FemalePartnerName = " + n +
+                           ") + (SELECT COUNT(*) FROM EffectAcidTouch WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM EnemyErase WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM FlagSet WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM TimeLimitItems WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM EventQuestAdvance WHERE OwnerID = " + n + ")");
+    }
+};
+
+TEST_F(CharacterPurgeMySQL, PurgeRetiresTheRaceRowsAndDeletesEveryOtherRowOfThatNameOnly) {
+    seed("it-purge", 31000);
+    seed("it-pkeep", 31001);
+    ASSERT_EQ("12", rowsOf("it-purge"));
+    ASSERT_EQ("12", rowsOf("it-pkeep"));
+
+    defaultCharacterPurgeRepository().purgeCharacter("it-purge");
+
+    // The race rows stay, flipped to INACTIVE — all three, whatever the race.
+    EXPECT_EQ("INACTIVE", queryScalar("SELECT Active FROM Slayer WHERE Name = 'it-purge'"));
+    EXPECT_EQ("INACTIVE", queryScalar("SELECT Active FROM Vampire WHERE Name = 'it-purge'"));
+    EXPECT_EQ("INACTIVE", queryScalar("SELECT Active FROM Ousters WHERE Name = 'it-purge'"));
+    EXPECT_EQ("0", rowsOf("it-purge"));
+
+    // The other name is whole.
+    EXPECT_EQ("ACTIVE", queryScalar("SELECT Active FROM Slayer WHERE Name = 'it-pkeep'"));
+    EXPECT_EQ("ACTIVE", queryScalar("SELECT Active FROM Vampire WHERE Name = 'it-pkeep'"));
+    EXPECT_EQ("ACTIVE", queryScalar("SELECT Active FROM Ousters WHERE Name = 'it-pkeep'"));
+    EXPECT_EQ("12", rowsOf("it-pkeep"));
+
+    // A name with no rows anywhere purges without complaint (every statement
+    // simply matches nothing).
+    EXPECT_NO_THROW(defaultCharacterPurgeRepository().purgeCharacter("it-pnone"));
 }
 
 // --- SkillSave / VampireSkillSave / OustersSkillSave against real MySQL ---
@@ -6389,6 +6511,8 @@ protected:
         execSQL("DELETE FROM HeadCount WHERE Name LIKE 'it-%'");
         execSQL("DELETE FROM MiniGameScores WHERE Name LIKE 'it-%'");
         execSQL("DELETE FROM TradeLog WHERE Name1 LIKE 'it-%'");
+        execSQL("DELETE FROM EventLotto WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM UnderworldEvent WHERE PlayerID LIKE 'it-%'");
     }
 };
 
@@ -6473,6 +6597,46 @@ TEST_F(PlayRecordMySQL, MiniGameScoreReplacesOnlyAWorseRowOfTheSameTypeAndLevel)
 
 // CGBuyStoreItemHandler: the store-purchase TradeLog row, the two names in
 // their columns AND inside the Content text, the price at the end of it.
+// CreatureUtil's lotto counter: the first add of a (player, type) takes the
+// REPLACE (the UPDATE changed no row) and reads back num; the next takes
+// the UPDATE and reads back the sum; another type is its own row.
+TEST_F(PlayRecordMySQL, LottoCountIsReplacedThenAddedToPerPlayerAndType) {
+    PlayRecordRepository& repository = defaultPlayRecordRepository();
+    int count = -1;
+
+    ASSERT_TRUE(repository.addLotto("it-acct", 3, 2, count));
+    EXPECT_EQ(2, count);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM EventLotto WHERE PlayerID = 'it-acct'"));
+    ASSERT_TRUE(repository.addLotto("it-acct", 3, 5, count));
+    EXPECT_EQ(7, count);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM EventLotto WHERE PlayerID = 'it-acct'"));
+    ASSERT_TRUE(repository.addLotto("it-acct", 4, 1, count));
+    EXPECT_EQ(1, count);
+    EXPECT_EQ("7", queryScalar("SELECT count FROM EventLotto WHERE PlayerID = 'it-acct' AND Type = 3"));
+}
+
+// CreatureUtil's gold medal: the table is not in initdb/, so the INSERT
+// fails on the shipped schema — the pre-existing bug the header records,
+// pinned here as the const char* END_DB throws.
+TEST_F(PlayRecordMySQL, GoldMedalInsertFailsOnTheShippedSchema) {
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() "
+                               "AND table_name = 'GoldMedalCount'"));
+    EXPECT_THROW(defaultPlayRecordRepository().insertGoldMedal("it-acct"), const char*);
+}
+
+// CreatureUtil's underworld kill record (its caller is compiled out; the
+// compiler never checks it, so the tier does): the two ids, the account and
+// the character, KillTime server-side.
+TEST_F(PlayRecordMySQL, UnderworldKillIsRecordedWithItsIdsAndNames) {
+    defaultPlayRecordRepository().insertUnderworldKill(2, 3, "it-acct", "it-char");
+    const std::string where = " FROM UnderworldEvent WHERE PlayerID = 'it-acct'";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
+    EXPECT_EQ("2", queryScalar("SELECT WorldID" + where));
+    EXPECT_EQ("3", queryScalar("SELECT ServerID" + where));
+    EXPECT_EQ("it-char", queryScalar("SELECT CharacterID" + where));
+    EXPECT_EQ("1", queryScalar("SELECT KillTime > '2026-01-01'" + where));
+}
+
 TEST_F(PlayRecordMySQL, StoreTradeIsLoggedWithBothNamesInTheContent) {
     defaultPlayRecordRepository().logStoreTrade("2026-09-06 10:00:00", "it-store", "10.0.0.1", "it-acct1", "it-buyer",
                                                 "10.0.0.2", "it-acct2", "ITEM(31000)", 123);

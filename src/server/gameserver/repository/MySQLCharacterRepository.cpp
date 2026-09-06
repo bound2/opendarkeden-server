@@ -224,6 +224,61 @@ public:
         END_DB(pStmt)
     }
 
+    bool loadSlayerRaceText(const string& name, string& raceText) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT Race FROM Slayer where Name='%s'", name.c_str());
+
+            if (pResult->next()) {
+                raceText = pResult->getString(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool loadGuildID(const string& name, CharacterRace race, int& guildID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT GuildID FROM %s where Name='%s'", characterRaceTable(race), name.c_str());
+
+            if (pResult->next()) {
+                guildID = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    void saveSex(const string& name, const string& sexText) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+
+            pStmt->executeQuery("UPDATE Slayer SET SEX='%s' WHERE Name='%s'", sexText.c_str(), name.c_str());
+            pStmt->executeQuery("UPDATE Vampire SET SEX='%s' WHERE Name='%s'", sexText.c_str(), name.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     bool loadVampire(const string& ownerName, VampireLoadRecord& record) {
         bool found = false;
         Statement* pStmt = NULL;

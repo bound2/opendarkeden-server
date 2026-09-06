@@ -25,10 +25,10 @@
 //    typed to the slot MEMBER it came from, so the varargs bytes reaching
 //    the format strings are unchanged.
 //
-// This seam does not enclose the per-character purges: CreatureUtil.cpp
-// and the loginserver's CLDeletePCHandler DELETE all three tables inline
-// as part of their multi-table character deletion — that flow is
-// extracted with its own repository.
+// This seam does not enclose the per-character purges: the gameserver's
+// CharacterPurgeRepository (since the CreatureUtil round) and the
+// loginserver's CLDeletePCHandler DELETE all three tables as part of
+// their multi-table character deletion.
 
 // --- what load() returns ---------------------------------------------------
 

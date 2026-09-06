@@ -137,6 +137,64 @@ public:
         }
         END_DB(pStmt)
     }
+
+    // The CreatureUtil event tallies (see the header): the dist connection
+    // under the names the originals used, which DatabaseManager ignores.
+    void insertGoldMedal(const string& playerID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
+            pStmt->executeQuery("INSERT INTO GoldMedalCount (PlayerID, getTime) VALUES ('%s', now())",
+                                playerID.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    bool addLotto(const string& playerID, BYTE type, uint num, int& count) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
+            pStmt->executeQuery("UPDATE EventLotto SET count=count+%u WHERE PlayerID='%s' AND Type=%u", num,
+                                playerID.c_str(), type);
+
+            if (pStmt->getAffectedRowCount() < 1) {
+                pStmt->executeQuery("REPLACE INTO EventLotto (PlayerID,Type,count) VALUES ('%s',%u,%u)",
+                                    playerID.c_str(), type, num);
+            }
+
+            Result* pResult = pStmt->executeQuery("SELECT count FROM EventLotto WHERE PlayerID='%s' AND Type=%u",
+                                                  playerID.c_str(), type);
+
+            if (pResult->next()) {
+                count = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    void insertUnderworldKill(int worldID, int serverID, const string& playerID, const string& characterName) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt->executeQuery("INSERT INTO UnderworldEvent (WorldID, ServerID, PlayerID, CharacterID, KillTime) "
+                                "VALUES (%u, %u, '%s', '%s', now())",
+                                worldID, serverID, playerID.c_str(), characterName.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
 };
 
 } // namespace
