@@ -750,7 +750,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `restructuring/quest-action-statements` and
   > `restructuring/handler-bookkeeping` and
   > `restructuring/comeback-event-handlers` and
-  > `restructuring/creatureutil-purge`). The per-round
+  > `restructuring/creatureutil-purge` and
+  > `restructuring/cgsay-statements`). The per-round
   > narrative — what moved, what the two adversarial reviews caught, the
   > byte-fidelity checks, the test list — lives in those PR descriptions
   > and commit messages, not here. Each repository header carries its
@@ -804,7 +805,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > - **Integration tier over fakes**: `mysql_repository_tests`
   >   (tests/integration/, `make integration-test`, needs docker) runs
   >   the real impls against MySQL 5.7 loaded with `initdb/` and the
-  >   production sql_mode; 190 tests, 11 of them failing on the pinned
+  >   production sql_mode; 194 tests, 11 of them failing on the pinned
   >   toolchain (see the DWORD bullet below). A quirk is replayed there
   >   before it is written down — the first rounds' fakes documented three
   >   behaviours the server refuted. Only the six pilot-era seams keep a
@@ -903,10 +904,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > counts; every table below is in `initdb/` unless said otherwise):
   > `exchange/ExchangeDB.cpp` (27) is the Exchange feature's own DB
   > access class — a seam in all but directory, so moving it is a
-  > relocation, not an extraction; `handler/CGSayHandler.cpp` (14 live,
-  > 2 commented out; incl. a third spelling of the Slayer name→PlayerID
-  > lookup and `UPDATE Player set Access='DENY'`) waits for the god-file
-  > work; `item/EventBall.cpp` (7 live, 2 commented out; its tables are
+  > relocation, not an extraction; `handler/CGSayHandler.cpp` (1 live,
+  > 2 commented out — its other thirteen moved in the CGSay round; what
+  > stays is `opnotice`'s INSERT into `quick1001` on a hard-coded remote
+  > BBS host with credentials in the source, through a Connection it
+  > opens itself rather than DatabaseManager, which no seam of this
+  > shape can take); `item/EventBall.cpp` (7 live, 2 commented out; its tables are
   > not in `initdb/` and the file is in no CMakeLists — never compiled);
   > files
   > whose only `executeQuery` is commented out (five `mission/` files,

@@ -245,6 +245,22 @@ struct OustersExpsRecord {
     Exp_t advancementGoalExp;
 };
 
+// Which caller's bytes loadSlayerPlayerID sends: CGWhisperHandler's
+// "WHERE Name='%s'" or CGSayHandler's opdeny "where Name='%s'".
+enum SlayerPlayerIDSpelling { PLAYERID_SPELLING_WHISPER, PLAYERID_SPELLING_OPDENY, PLAYERID_SPELLING_MAX };
+
+// CGSayHandler's guild-master check: "SELECT Fame, BladeLevel, SwordLevel,
+// GunLevel, HealLevel, EnchantLevel FROM Slayer WHERE Name = '%s'", every
+// column through getInt.
+struct SlayerMasterStatsRow {
+    int fame;
+    int bladeLevel;
+    int swordLevel;
+    int gunLevel;
+    int healLevel;
+    int enchantLevel;
+};
+
 class CharacterRepository {
 public:
     virtual ~CharacterRepository() {}
@@ -272,11 +288,20 @@ public:
     // does", contradicting the sentence just before it. On a duplicate
     // name one returns false and the other returns a value.
     virtual bool loadSlayerPlayerID(const std::string& name, std::string& playerID) = 0;
-    // Not enclosed, and this header had no such list before. A THIRD
-    // spelling of the same lookup lives in CGSayHandler's GM ban
-    // command — "SELECT PlayerID FROM Slayer where Name='%s'", with a
-    // lower-case where. Nor is it alone: CGSayHandler also reads
-    // "SELECT Fame, BladeLevel, ... FROM Slayer". CreatureUtil's
+    // The same lookup in its THIRD spelling — CGSayHandler's GM ban
+    // command writes "where" in lower case: same statement, different
+    // bytes, so a spelling enum (CGSay round, 2026-09-06). The plain
+    // method above is the whisper spelling and delegates.
+    virtual bool loadSlayerPlayerID(SlayerPlayerIDSpelling spelling, const std::string& name,
+                                    std::string& playerID) = 0;
+    // CGSayHandler's guild-master checks (same round): the six Slayer
+    // columns the GM command compares, and one race's Level — each through
+    // getInt, the caller narrowing into Fame_t / SkillLevel_t / Level_t;
+    // false when the name has no row in that table.
+    virtual bool loadSlayerMasterStats(const std::string& name, SlayerMasterStatsRow& row) = 0;
+    virtual bool loadVampireLevel(const std::string& name, int& level) = 0;
+    virtual bool loadOustersLevel(const std::string& name, int& level) = 0;
+    // Not enclosed, and this header had no such list before. CreatureUtil's
     // "SELECT Race FROM Slayer where Name='%s'" and its SEX updates are
     // this seam's now (loadSlayerRaceText, saveSex, below); its
     // Active='INACTIVE' updates are the character purge's

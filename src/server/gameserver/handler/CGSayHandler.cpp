@@ -106,6 +106,11 @@
 #include "item/SlayerPortalItem.h"
 #include "mission/MonsterKillQuestStatus.h"
 #include "mission/QuestManager.h"
+#include "repository/CharacterRepository.h"
+#include "repository/ItemRepository.h"
+#include "repository/NicknameRepository.h"
+#include "repository/SessionRepository.h"
+#include "repository/ZoneInfoRepository.h"
 #include "skill/Sniping.h"
 #include "war/RaceWarLimiter.h"
 #include "war/WarScheduler.h"
@@ -415,18 +420,8 @@ void CGSayHandler::opExecute(Creature* pCreature, GamePlayer* pGamePlayer, strin
         if ((j = report.find_first_of('\\')) != string::npos)
             report[j] = '_';
 
-        Statement* pStmt = NULL;
-
         try {
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pStmt->executeQuery("INSERT INTO BugReportLog(PlayerID, Name, ReportTime, ReportLog) VALUES "
-                                    "('%s', '%s', now(), '%s')",
-                                    pGamePlayer->getID().c_str(), pCreature->getName().c_str(), report.c_str());
-
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
+            defaultSessionRepository().insertBugReport(pGamePlayer->getID(), pCreature->getName(), report);
             // ���� �̻��Ѱ� ������ ��������
         } catch (...) {
             filelog("bugreport.log", "%s", msg.c_str());
@@ -451,20 +446,9 @@ void CGSayHandler::opExecute(Creature* pCreature, GamePlayer* pGamePlayer, strin
         cout << Address << endl;
         cout << Message << endl;
 
-        Statement* pStmt = NULL;
-
         try {
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pStmt->executeQuery("INSERT INTO CrashLog (PlayerID, Name, ReportTime, ExecutableTime, Version, "
-                                    "Address, Message) VALUES "
-                                    "('%s', '%s', now(), '%s', '%s', '%s', '%s')",
-                                    pGamePlayer->getID().c_str(), pCreature->getName().c_str(), ExecutableTime.c_str(),
-                                    Version.c_str(), Address.c_str(), Message.c_str());
-
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
+            defaultSessionRepository().insertCrashLog(pGamePlayer->getID(), pCreature->getName(), ExecutableTime,
+                                                      Version, Address, Message);
             // ���� �̻��Ѱ� ������ ��������
         } catch (...) {
             filelog("CrashReport.log", "%s", msg.c_str());
@@ -1628,30 +1612,20 @@ void CGSayHandler::opguild(string msg, int i, Creature* pCreature) {
             return;
         }
 
-        Statement* pStmt = NULL;
-        Result* pResult = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
+        {
             if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-                pResult = pStmt->executeQuery("SELECT Fame, BladeLevel, SwordLevel, GunLevel, HealLevel, EnchantLevel "
-                                              "FROM Slayer WHERE Name = '%s'",
-                                              master.c_str());
-                int i = 0;
+                SlayerMasterStatsRow stats;
 
-                if (!pResult->next()) {
-                    SAFE_DELETE(pStmt);
+                if (!defaultCharacterRepository().loadSlayerMasterStats(master, stats)) {
                     return;
                 }
 
-                Fame_t Fame = pResult->getInt(++i);
-                SkillLevel_t BladeLevel = pResult->getInt(++i);
-                SkillLevel_t SwordLevel = pResult->getInt(++i);
-                SkillLevel_t GunLevel = pResult->getInt(++i);
-                SkillLevel_t HealLevel = pResult->getInt(++i);
-                SkillLevel_t EnchantLevel = pResult->getInt(++i);
-
+                Fame_t Fame = stats.fame;
+                SkillLevel_t BladeLevel = stats.bladeLevel;
+                SkillLevel_t SwordLevel = stats.swordLevel;
+                SkillLevel_t GunLevel = stats.gunLevel;
+                SkillLevel_t HealLevel = stats.healLevel;
+                SkillLevel_t EnchantLevel = stats.enchantLevel;
                 SkillDomainType_t highestDomain;
                 SkillLevel_t maxLevel;
 
@@ -1676,8 +1650,6 @@ void CGSayHandler::opguild(string msg, int i, Creature* pCreature) {
                 }
 
                 if (maxLevel < REQUIRE_SLAYER_MASTER_SKILL_DOMAIN_LEVEL) {
-                    SAFE_DELETE(pStmt);
-
                     GCSystemMessage msg;
                     msg.setMessage("Master Level Limit Error");
                     pGamePlayer->sendPacket(&msg);
@@ -1686,8 +1658,6 @@ void CGSayHandler::opguild(string msg, int i, Creature* pCreature) {
                 }
 
                 if (Fame < REQUIRE_SLAYER_MASTER_FAME[highestDomain]) {
-                    SAFE_DELETE(pStmt);
-
                     GCSystemMessage msg;
                     msg.setMessage("Master Fame Limit Error");
                     pGamePlayer->sendPacket(&msg);
@@ -1695,17 +1665,14 @@ void CGSayHandler::opguild(string msg, int i, Creature* pCreature) {
                     return;
                 }
             } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                pResult = pStmt->executeQuery("SELECT Level FROM Vampire WHERE Name = '%s'", master.c_str());
+                int level = 0;
 
-                if (!pResult->next()) {
-                    SAFE_DELETE(pStmt);
+                if (!defaultCharacterRepository().loadVampireLevel(master, level)) {
                     return;
                 }
 
-                Level_t Level = pResult->getInt(1);
+                Level_t Level = level;
                 if (Level < REQUIRE_VAMPIRE_MASTER_LEVEL) {
-                    SAFE_DELETE(pStmt);
-
                     GCSystemMessage msg;
                     msg.setMessage("Master Level Limit Error");
                     pGamePlayer->sendPacket(&msg);
@@ -1713,17 +1680,14 @@ void CGSayHandler::opguild(string msg, int i, Creature* pCreature) {
                     return;
                 }
             } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-                pResult = pStmt->executeQuery("SELECT Level FROM Ousters WHERE Name = '%s'", master.c_str());
+                int level = 0;
 
-                if (!pResult->next()) {
-                    SAFE_DELETE(pStmt);
+                if (!defaultCharacterRepository().loadOustersLevel(master, level)) {
                     return;
                 }
 
-                Level_t Level = pResult->getInt(1);
+                Level_t Level = level;
                 if (Level < REQUIRE_OUSTERS_MASTER_LEVEL) {
-                    SAFE_DELETE(pStmt);
-
                     GCSystemMessage msg;
                     msg.setMessage("Master Level Limit Error");
                     pGamePlayer->sendPacket(&msg);
@@ -1731,14 +1695,9 @@ void CGSayHandler::opguild(string msg, int i, Creature* pCreature) {
                     return;
                 }
             } else {
-                SAFE_DELETE(pStmt);
                 return;
             }
-
-            SAFE_DELETE(pStmt);
         }
-        END_DB(pStmt)
-
         GSModifyGuildMember gsPacket;
         gsPacket.setGuildID(pGuild->getID());
         gsPacket.setName(master);
@@ -1760,21 +1719,24 @@ void CGSayHandler::opsave(GamePlayer* pGamePlayer, string msg, int i) {
 
     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_SAVE_YOUR_DATA));
 
-    Statement* pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    // The read ran with no BEGIN_DB: a SQL failure was a SQLQueryException
+    // that __END_DEBUG_EX below swallowed (logging it to packet_exception.txt).
+    // The seam converts it to END_DB's const char*, which that catch does not
+    // match, so it is swallowed here instead (the text is in DBError.log now).
+    int maxZoneGroupID = 0; // an empty table read as 0 before (atoi of NULL)
+    try {
+        defaultZoneInfoRepository().loadMaxZoneGroupID(maxZoneGroupID);
+    } catch (const char*) {
+        return;
+    }
 
-    Result* pResult = pStmt->executeQueryString("SELECT MAX(ZoneGroupID) FROM ZoneGroupInfo");
-
-    pResult->next();
-
-    BYTE GroupCount = pResult->getInt(1) + 1;
-
+    BYTE GroupCount = maxZoneGroupID + 1;
     for (int i = 1; i < GroupCount; i++) {
         ZoneGroup* pZoneGroup = NULL;
 
         try {
             pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
         } catch (NoSuchElementException&) {
-            SAFE_DELETE(pStmt);
             throw Error("Critical Error : ZoneInfoManager���л᲻����.");
         }
 
@@ -1783,8 +1745,6 @@ void CGSayHandler::opsave(GamePlayer* pGamePlayer, string msg, int i) {
         pZonePlayerManager->broadcastPacket(&gcSystemMessage);
         pZonePlayerManager->save();
     }
-
-    SAFE_DELETE(pStmt);
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -2103,21 +2063,17 @@ void CGSayHandler::opdeny(GamePlayer* pGamePlayer, string msg, int i) {
         size_t j = msg.find_first_of(' ', i + 1);
     string Name = msg.substr(j + 1, msg.size() - j - 1).c_str();
 
-    Statement* pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-    Result* pResult = pStmt->executeQuery("SELECT PlayerID FROM Slayer where Name='%s'", Name.c_str());
-
+    // Both statements ran with no BEGIN_DB (see opsave for what that means
+    // for the failure path; the same swallow is reproduced here).
     string PlayerID;
 
-    if (pResult->next()) {
-        string PlayerID = pResult->getString(1);
-
-        Statement* pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt2->executeQuery("UPDATE Player set Access='DENY' where PlayerID ='%s'", PlayerID.c_str());
-        SAFE_DELETE(pStmt2);
+    try {
+        if (defaultCharacterRepository().loadSlayerPlayerID(PLAYERID_SPELLING_OPDENY, Name, PlayerID)) {
+            defaultSessionRepository().denyAccount(PlayerID);
+        }
+    } catch (const char*) {
+        return;
     }
-
-    SAFE_DELETE(pStmt);
-
     __END_DEBUG_EX __END_CATCH
 }
 
@@ -2198,16 +2154,20 @@ void CGSayHandler::opfind(GamePlayer* pGamePlayer, string msg, int i) {
     size_t j = msg.find_first_of(' ', i + 1);
     string Name = msg.substr(j + 1, msg.size() - j - 1).c_str();
 
-    Statement* pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-    Result* pResult = pStmt->executeQuery("SELECT ServerID FROM UserIPInfo where Name='%s'", Name.c_str());
+    // Ran with no BEGIN_DB; see opsave for the failure path reproduced here.
+    int serverID = 0;
+    bool found = false;
+
+    try {
+        found = defaultSessionRepository().loadUserServerID(Name, serverID);
+    } catch (const char*) {
+        return;
+    }
 
     static WorldID_t WorldID = g_pConfig->getPropertyInt("WorldID");
 
-    if (pResult->getRowCount() != 0) {
-        pResult->next();
-
-        ServerID_t ServerID = pResult->getInt(1);
-
+    if (found) {
+        ServerID_t ServerID = serverID;
         string ServerName = g_pGameServerGroupInfoManager->getGameServerGroupInfo(ServerID, WorldID)->getGroupName();
 
         char msg[100];
@@ -2228,9 +2188,6 @@ void CGSayHandler::opfind(GamePlayer* pGamePlayer, string msg, int i) {
         gcSystemMessage.setMessage(msg);
         pGamePlayer->sendPacket(&gcSystemMessage);
     }
-
-
-    SAFE_DELETE(pStmt);
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -2289,14 +2246,17 @@ void CGSayHandler::opuser(GamePlayer* pGamePlayer, string msg, int i) {
 
         if (pGamePlayer == NULL) return;
 
-    Statement* pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-    // Statement* pStmt = g_pDatabaseManager->getConnection( (int)(long)Thread::self() )->createStatement();
-    Result* pResult = pStmt->executeQueryString("SELECT Count(*) FROM Player where LogOn='GAME' OR LogOn='LOGON'");
+    // Ran with no BEGIN_DB; see opsave for the failure path reproduced here.
+    // (An older line asked for the connection through the int overload,
+    // getConnection((int)(long)Thread::self()); the live one is the dist
+    // connection, which the seam keeps.)
+    int GroupCount = 0;
 
-    pResult->next();
-
-    int GroupCount = pResult->getInt(1);
-
+    try {
+        GroupCount = defaultSessionRepository().countPlayersOnline();
+    } catch (const char*) {
+        return;
+    }
     //	StringStream msg;
     //	msg << "���� ���� ������ : " << GroupCount << "��";
 
@@ -2306,8 +2266,6 @@ void CGSayHandler::opuser(GamePlayer* pGamePlayer, string msg, int i) {
     GCSystemMessage gcSystemMessage;
     gcSystemMessage.setMessage(msg);
     pGamePlayer->sendPacket(&gcSystemMessage);
-
-    SAFE_DELETE(pStmt);
 
     __END_DEBUG_EX __END_CATCH
 }
@@ -2837,18 +2795,8 @@ void CGSayHandler::opcreate(GamePlayer* pGamePlayer, string msg, int i) {
 
 
         // �α׸� �����.
-        Statement* pStmt = NULL;
-        BEGIN_DB {
-            StringStream sql;
-            sql << "INSERT INTO OpCreate (OpName, DateTime, ItemDesc) VALUES (" << "'" << pCreature->getName() << "',"
-                << "'" << VSDateTime::currentDateTime().toString() << "'," << "'" << pItem->toString() << "'" << ")";
-
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQueryString(sql.toString());
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt);
-
+        defaultItemRepository().insertOpCreateLog(pCreature->getName(), VSDateTime::currentDateTime().toString(),
+                                                  pItem->toString());
         if (pItem != NULL && pItem->isTraceItem()) {
             remainTraceLog(pItem, "GOD", pCreature->getName(), ITEM_LOG_CREATE, DETAIL_COMMAND);
         }
@@ -4399,18 +4347,7 @@ void CGSayHandler::opcommand(GamePlayer* pGamePlayer, string msg, int i) {
             gcSystemMessage.setMessage("��ͼ�ϣ��޷��ҵ��ý�ɫ.");
         } else {
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pTargetCreature);
-            Statement* pStmt;
-
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pStmt->executeQuery(
-                    "REPLACE INTO NicknameBook (nID, OwnerID, NickType, Nickname, NickIndex, Time) VALUES "
-                    "(100, '%s', %u, '%s', 0, now())",
-                    pPC->getName().c_str(), NicknameInfo::NICK_CUSTOM_FORCED, nick.c_str());
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
-
+            defaultNicknameRepository().replaceForcedNickname(pPC->getName(), NicknameInfo::NICK_CUSTOM_FORCED, nick);
             NicknameBook* pNickbook = pPC->getNicknameBook();
             NicknameInfo* pNick = pNickbook->getNicknameInfo(100);
             SAFE_DELETE(pNick);
@@ -4453,16 +4390,7 @@ void CGSayHandler::opcommand(GamePlayer* pGamePlayer, string msg, int i) {
             if (pNick == NULL) {
                 gcSystemMessage.setMessage("û�н���ɾ����ǿ��ģʽ.");
             } else {
-                Statement* pStmt;
-
-                BEGIN_DB {
-                    pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                    pStmt->executeQuery("DELETE FROM NicknameBook WHERE OwnerID='%s' AND nID=100",
-                                        pPC->getName().c_str());
-                    SAFE_DELETE(pStmt);
-                }
-                END_DB(pStmt)
-
+                defaultNicknameRepository().deleteForcedNickname(pPC->getName());
                 if (pPC->getNickname() == pNick) {
                     pPC->setNickname(NULL);
                     GCModifyNickname gcMN;

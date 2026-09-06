@@ -39,12 +39,14 @@
 // (port check, IP request), two later in the session (the periodic time
 // check, a crash report), one by billing.
 //
-// Not enclosed: CGSayHandler's UserIPInfo read ("SELECT ServerID FROM
-// UserIPInfo where Name='%s'") and its "SELECT Count(*) FROM Player
-// where LogOn='GAME' OR LogOn='LOGON'" — a handler-directory file (R3)
-// that waits for the god-file work; CGSayHandler's
-// "UPDATE Player set Access='DENY'" — a Player WRITE
-// to a column this seam does not name, which the list missed twice;
+// The CGSay round (2026-09-06) added the GM commands' bookkeeping from
+// CGSayHandler: the UserIPInfo ServerID read (opinfo), the online-player
+// count (opuser, dist connection), the account ban (opdeny — a Player
+// WRITE, Access='DENY', on the DARKEDEN connection as written), and the
+// two GM-typed report tables BugReportLog and CrashLog (the latter a
+// sibling of CrashReportLog with the version as text).
+//
+// Not enclosed:
 // src/server/PaySystem.cpp's PCRoomUserInfo statements (ServerCore, every
 // caller under the disabled __PAY_SYSTEM_* macros); the loginserver's
 // LoginPlayerManager sweep and its copy of addLogoutPlayerData (the
@@ -189,6 +191,29 @@ public:
     // that build hardcodes isPlaying = true above it; see the comment
     // there.
     virtual bool loadLastLogoutDate(const std::string& playerID, std::string& lastLogoutDate) = 0;
+
+    // --- the GM commands (CGSayHandler) ---------------------------------------
+    // opinfo: "SELECT ServerID FROM UserIPInfo where Name='%s'" (lower-case
+    // where) through getInt; false when no row (the caller tested
+    // getRowCount() != 0).
+    virtual bool loadUserServerID(const std::string& name, int& serverID) = 0;
+    // opuser, on the dist connection ("PLAYER_DB"): "SELECT Count(*) FROM
+    // Player where LogOn='GAME' OR LogOn='LOGON'" through
+    // executeQueryString (no arguments) and getInt.
+    virtual int countPlayersOnline() = 0;
+    // opdeny: "UPDATE Player set Access='DENY' where PlayerID ='%s'" — on
+    // the DARKEDEN connection, not the dist one the other Player
+    // statements use, as written.
+    virtual void denyAccount(const std::string& playerID) = 0;
+    // The GM bug_report command: "INSERT INTO BugReportLog(PlayerID, Name,
+    // ReportTime, ReportLog) VALUES ('%s', '%s', now(), '%s')" — the caller
+    // replaces the first quote and the first backslash in the text with '_'
+    // before calling (its own escaping, kept there).
+    virtual void insertBugReport(const std::string& playerID, const std::string& name, const std::string& report) = 0;
+    // The GM CrashReport command: CrashLog (not CrashReportLog), every value
+    // text, ReportTime = now().
+    virtual void insertCrashLog(const std::string& playerID, const std::string& name, const std::string& executableTime,
+                                const std::string& version, const std::string& address, const std::string& message) = 0;
 
     // --- the per-server user count (USERINFO connection) -------------------
     // True when a row was updated; the caller inserts otherwise.

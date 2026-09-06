@@ -30,6 +30,18 @@ namespace {
 //  - Names and dates are interpolated raw, as before.
 class MySQLItemRepository : public ItemRepository {
 public:
+    void insertOpCreateLog(const string& opName, const string& dateTime, const string& itemDesc) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO OpCreate (OpName, DateTime, ItemDesc) VALUES ('%s','%s','%s')",
+                                opName.c_str(), dateTime.c_str(), itemDesc.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     void insertItemTraceLog(const ItemTraceRecord& record) {
         Statement* pStmt = NULL;
 

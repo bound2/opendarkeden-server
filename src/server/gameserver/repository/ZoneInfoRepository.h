@@ -26,10 +26,11 @@
 // seam; the NPC-keyed sister table Triggers is ContentInfoRepository's.
 //
 // The loginserver and sharedserver read ZoneGroupInfo/ZoneInfo with
-// their own inline SELECTs (their own extraction), and the
-// MAX(ZoneGroupID) probes in ConnectionInfoManager and CGSayHandler are
-// not enclosed here either (EffectShutDown's two went through
-// loadMaxZoneGroupID in the info round).
+// their own inline SELECTs (their own extraction). Every gameserver
+// MAX(ZoneGroupID) probe goes through loadMaxZoneGroupID: EffectShutDown's
+// two since the info round, ConnectionInfoManager's since its own, and
+// CGSayHandler's opsave since the CGSay round (2026-09-06) — an earlier
+// version of this line still listed the last two as not enclosed.
 
 // ZoneInfoManager::load — the 17 columns of a ZoneInfo row, in SELECT
 // order. The SELECT spells three columns differently from the schema

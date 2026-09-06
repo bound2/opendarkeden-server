@@ -91,6 +91,30 @@ public:
         END_DB(pStmt)
     }
 
+    void replaceForcedNickname(const string& ownerName, BYTE type, const string& nickname) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("REPLACE INTO NicknameBook (nID, OwnerID, NickType, Nickname, NickIndex, Time) VALUES "
+                                "(100, '%s', %u, '%s', 0, now())",
+                                ownerName.c_str(), type, nickname.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void deleteForcedNickname(const string& ownerName) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("DELETE FROM NicknameBook WHERE OwnerID='%s' AND nID=100", ownerName.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     void updateNickname(const string& ownerName, WORD id, const string& nickname) {
         Statement* pStmt = NULL;
 

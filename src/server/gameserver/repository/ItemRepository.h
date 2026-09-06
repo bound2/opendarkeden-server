@@ -67,6 +67,14 @@ public:
 
     // --- trace logs ---------------------------------------------------------
     virtual void insertItemTraceLog(const ItemTraceRecord& record) = 0;
+    // CGSayHandler's opcreate (CGSay round, 2026-09-06): the GM item-creation
+    // log — a StringStream chain "INSERT INTO OpCreate (OpName, DateTime,
+    // ItemDesc) VALUES (" << 'name', << 'datetime', << 'desc' << ")", which
+    // renders the same bytes as this "('%s','%s','%s')" format; the datetime
+    // is the text the caller formatted, the description the item's
+    // toString(), interpolated raw as before.
+    virtual void insertOpCreateLog(const std::string& opName, const std::string& dateTime,
+                                   const std::string& itemDesc) = 0;
     virtual void insertMoneyTraceLog(const std::string& preOwner, const std::string& owner, const std::string& logType,
                                      const std::string& detailType, int amount) = 0;
 

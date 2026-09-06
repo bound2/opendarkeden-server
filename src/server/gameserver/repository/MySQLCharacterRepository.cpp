@@ -173,12 +173,25 @@ public:
     }
 
     bool loadSlayerPlayerID(const string& name, string& playerID) {
+        return loadSlayerPlayerID(PLAYERID_SPELLING_WHISPER, name, playerID);
+    }
+
+    // The two spellings of the name-to-account lookup, indexed by
+    // SlayerPlayerIDSpelling: CGWhisperHandler's and CGSayHandler's opdeny's.
+    bool loadSlayerPlayerID(SlayerPlayerIDSpelling spelling, const string& name, string& playerID) {
+        static const char* const kSpellings[PLAYERID_SPELLING_MAX] = {
+            "SELECT PlayerID FROM Slayer WHERE Name='%s'", // PLAYERID_SPELLING_WHISPER
+            "SELECT PlayerID FROM Slayer where Name='%s'", // PLAYERID_SPELLING_OPDENY
+        };
+        if (spelling >= PLAYERID_SPELLING_MAX) {
+            throw Error("CharacterRepository: unknown SlayerPlayerIDSpelling");
+        }
         bool found = false;
         Statement* pStmt = NULL;
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery("SELECT PlayerID FROM Slayer WHERE Name='%s'", name.c_str());
+            Result* pResult = pStmt->executeQuery(kSpellings[spelling], name.c_str());
 
             if (pResult->next()) {
                 playerID = pResult->getString(1);
@@ -222,6 +235,43 @@ public:
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
+    }
+
+    bool loadSlayerMasterStats(const string& name, SlayerMasterStatsRow& row) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT Fame, BladeLevel, SwordLevel, GunLevel, HealLevel, EnchantLevel "
+                                    "FROM Slayer WHERE Name = '%s'",
+                                    name.c_str());
+
+            if (pResult->next()) {
+                int i = 0;
+                row.fame = pResult->getInt(++i);
+                row.bladeLevel = pResult->getInt(++i);
+                row.swordLevel = pResult->getInt(++i);
+                row.gunLevel = pResult->getInt(++i);
+                row.healLevel = pResult->getInt(++i);
+                row.enchantLevel = pResult->getInt(++i);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    bool loadVampireLevel(const string& name, int& level) {
+        return loadLevel("SELECT Level FROM Vampire WHERE Name = '%s'", name, level);
+    }
+
+    bool loadOustersLevel(const string& name, int& level) {
+        return loadLevel("SELECT Level FROM Ousters WHERE Name = '%s'", name, level);
     }
 
     bool loadSlayerRaceText(const string& name, string& raceText) {
@@ -514,6 +564,30 @@ public:
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
+    }
+
+private:
+    // The two Level reads reach executeQuery through this pointer (executeQuery
+    // carries no printf format attribute, see Statement.h). END_DB's
+    // DBError.log line names this helper rather than the caller's method.
+    static bool loadLevel(const char* format, const string& name, int& level) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(format, name.c_str());
+
+            if (pResult->next()) {
+                level = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
     }
 };
 

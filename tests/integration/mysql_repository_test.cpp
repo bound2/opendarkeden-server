@@ -1353,6 +1353,52 @@ TEST_F(CharacterMySQL, RaceTextGuildIDAndSexGoThroughTheRaceTables) {
     EXPECT_EQ("MALE", queryScalar("SELECT Sex FROM Slayer WHERE Name = '" + other.name + "'"));
 }
 
+// CGSayHandler's guild-master checks: the six Slayer columns, one race's
+// Level from its own table, each false for a name without a row there;
+// and the opdeny spelling of the account lookup reaching the same row as
+// the whisper spelling.
+TEST_F(CharacterMySQL, GuildMasterStatsLevelsAndTheOpdenySpellingReadTheirTables) {
+    CharacterRepository& repository = defaultCharacterRepository();
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    PlayerFixture ousters = PlayerFixtures::midLevelOusters();
+    slayer.persist();
+    vampire.persist();
+    ousters.persist();
+    execSQL("UPDATE Slayer SET Fame = 777, BladeLevel = 1, SwordLevel = 2, GunLevel = 3, HealLevel = 4, "
+            "EnchantLevel = 5, PlayerID = 'it-acct' WHERE Name = '" +
+            slayer.name + "'");
+    execSQL("UPDATE Vampire SET Level = 66 WHERE Name = '" + vampire.name + "'");
+    execSQL("UPDATE Ousters SET Level = 77 WHERE Name = '" + ousters.name + "'");
+
+    SlayerMasterStatsRow stats;
+    EXPECT_FALSE(repository.loadSlayerMasterStats("itnobody", stats));
+    ASSERT_TRUE(repository.loadSlayerMasterStats(slayer.name, stats));
+    EXPECT_EQ(777, stats.fame);
+    EXPECT_EQ(1, stats.bladeLevel);
+    EXPECT_EQ(2, stats.swordLevel);
+    EXPECT_EQ(3, stats.gunLevel);
+    EXPECT_EQ(4, stats.healLevel);
+    EXPECT_EQ(5, stats.enchantLevel);
+
+    int level = -1;
+    // (a persisted slayer has a Vampire row too — creation writes both, as the fixture does)
+    EXPECT_FALSE(repository.loadVampireLevel("itnobody", level));
+    ASSERT_TRUE(repository.loadVampireLevel(vampire.name, level));
+    EXPECT_EQ(66, level);
+    EXPECT_FALSE(repository.loadOustersLevel(vampire.name, level)); // no Ousters row for a vampire
+    ASSERT_TRUE(repository.loadOustersLevel(ousters.name, level));
+    EXPECT_EQ(77, level);
+
+    std::string playerID;
+    ASSERT_TRUE(repository.loadSlayerPlayerID(PLAYERID_SPELLING_OPDENY, slayer.name, playerID));
+    EXPECT_EQ("it-acct", playerID);
+    playerID = "";
+    ASSERT_TRUE(repository.loadSlayerPlayerID(PLAYERID_SPELLING_WHISPER, slayer.name, playerID));
+    EXPECT_EQ("it-acct", playerID);
+    EXPECT_FALSE(repository.loadSlayerPlayerID(PLAYERID_SPELLING_OPDENY, "itnobody", playerID));
+}
+
 // --- the character purge against real MySQL ----------------------------------
 // One method, 109 statements. The test seeds rows for two names in a
 // sample of the tables from every stretch of the list (the race tables, a
@@ -2982,6 +3028,34 @@ TEST_F(NicknameMySQL, LoadReturnsNIDAscendingNotInsertionOrder) {
     EXPECT_EQ(10001, records[1].id);
 }
 
+// CGSayHandler's forced nickname: REPLACE creates the id-100 row with
+// NickIndex 0 and a server-side Time, a second REPLACE overwrites it in
+// place (still one row), the other rows of the owner are untouched, and
+// the DELETE removes id 100 alone.
+TEST_F(NicknameMySQL, ForcedNicknameIsReplacedInPlaceAndDeletedAlone) {
+    PlayerFixture ousters = PlayerFixtures::midLevelOusters();
+    ousters.persist();
+    NicknameRepository& repository = defaultNicknameRepository();
+    repository.insert(ousters.name, 7, NicknameInfo::NICK_CUSTOM, "kept");
+
+    repository.replaceForcedNickname(ousters.name, NicknameInfo::NICK_CUSTOM_FORCED, "forced one");
+    const std::string forced = " FROM NicknameBook WHERE OwnerID = '" + ousters.name + "' AND nID = 100";
+    EXPECT_EQ("forced one", queryScalar("SELECT Nickname" + forced));
+    EXPECT_EQ(std::to_string((int)NicknameInfo::NICK_CUSTOM_FORCED), queryScalar("SELECT NickType" + forced));
+    EXPECT_EQ("0", queryScalar("SELECT NickIndex" + forced));
+    EXPECT_EQ("1", queryScalar("SELECT Time > '2026-01-01'" + forced));
+
+    repository.replaceForcedNickname(ousters.name, NicknameInfo::NICK_CUSTOM_FORCED, "forced two");
+    EXPECT_EQ("forced two", queryScalar("SELECT Nickname" + forced));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + forced));
+    EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM NicknameBook WHERE OwnerID = '" + ousters.name + "'"));
+
+    repository.deleteForcedNickname(ousters.name);
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*)" + forced));
+    EXPECT_EQ("kept",
+              queryScalar("SELECT Nickname FROM NicknameBook WHERE OwnerID = '" + ousters.name + "' AND nID = 7"));
+}
+
 // --- the race-war cluster against real MySQL -------------------------------
 // Seven war files, one seam mixing boot-time reads with runtime writes.
 // Every table is seeded; the tests work on rows they insert (ids from
@@ -3651,6 +3725,7 @@ protected:
     }
     static void clean() {
         execSQL("DELETE FROM ItemTraceLog WHERE OwnerID LIKE 'it-%'");
+        execSQL("DELETE FROM OpCreate WHERE OpName LIKE 'it-%'");
         execSQL("DELETE FROM MoneyTraceLog WHERE OwnerID LIKE 'it-%'");
         execSQL("DELETE FROM EventQuestRewardSchedule WHERE RewardID >= 31000");
         execSQL("DELETE FROM EventQuestRewardRecord WHERE PlayerID LIKE 'it-%'");
@@ -3665,6 +3740,16 @@ protected:
         execSQL("DELETE FROM PotionObject WHERE ItemID >= 31000");
     }
 };
+
+// CGSayHandler's opcreate log: the three texts in their columns (DateTime
+// is a varchar the caller formats, not a server-side time).
+TEST_F(ItemMySQL, OpCreateLogRowCarriesTheThreeTexts) {
+    defaultItemRepository().insertOpCreateLog("it-gm", "2026-09-06 10:00:00", "Sword(31000)");
+    const std::string where = " FROM OpCreate WHERE OpName = 'it-gm'";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
+    EXPECT_EQ("2026-09-06 10:00:00", queryScalar("SELECT DateTime" + where));
+    EXPECT_EQ("Sword(31000)", queryScalar("SELECT ItemDesc" + where));
+}
 
 TEST_F(ItemMySQL, TraceLogsAreInsertedWithTheirEnumTextsAndAServerSideTime) {
     ItemTraceRecord record;
@@ -6675,6 +6760,8 @@ protected:
         execSQL("DELETE FROM UserIPInfo WHERE Name LIKE 'it-%'");
         execSQL("DELETE FROM SpeedHackPlayer WHERE PlayerID LIKE 'it-%'");
         execSQL("DELETE FROM CrashReportLog WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM BugReportLog WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM CrashLog WHERE PlayerID LIKE 'it-%'");
         execSQL("DELETE FROM USERINFO.UserStatus WHERE ServerID >= 31000");
     }
 };
@@ -6959,6 +7046,44 @@ TEST_F(SessionMySQL, LastLogoutDateIsReadAsTextForAnAccount) {
     execSQL("INSERT INTO Player (PlayerID, LastLogoutDate) VALUES ('it-acct', '2026-09-05 23:59:58')");
     ASSERT_TRUE(defaultSessionRepository().loadLastLogoutDate("it-acct", date));
     EXPECT_EQ("2026-09-05 23:59:58", date);
+}
+
+// CGSayHandler's GM bookkeeping: the UserIPInfo ServerID read (false for
+// an unknown name), the online count over LogOn = 'GAME' or 'LOGON' only,
+// the ban flipping Access to DENY for that account alone, and the two
+// GM-typed report rows.
+TEST_F(SessionMySQL, GMCommandsReadServerIDCountOnlineDenyAndLogReports) {
+    SessionRepository& repository = defaultSessionRepository();
+
+    int serverID = -1;
+    EXPECT_FALSE(repository.loadUserServerID("it-nobody", serverID));
+    EXPECT_EQ(-1, serverID);
+    execSQL("INSERT INTO UserIPInfo (Name, IP, Port, ServerID) VALUES ('it-char', 1, 2, 31000)");
+    ASSERT_TRUE(repository.loadUserServerID("it-char", serverID));
+    EXPECT_EQ(31000, serverID);
+
+    const int before = repository.countPlayersOnline();
+    execSQL("INSERT INTO Player (PlayerID, LogOn) VALUES ('it-a1', 'GAME')");
+    execSQL("INSERT INTO Player (PlayerID, LogOn) VALUES ('it-a2', 'LOGON')");
+    execSQL("INSERT INTO Player (PlayerID, LogOn) VALUES ('it-a3', 'LOGOFF')");
+    EXPECT_EQ(before + 2, repository.countPlayersOnline());
+
+    repository.denyAccount("it-a1");
+    EXPECT_EQ("DENY", queryScalar("SELECT Access FROM Player WHERE PlayerID = 'it-a1'"));
+    EXPECT_EQ("ALLOW", queryScalar("SELECT Access FROM Player WHERE PlayerID = 'it-a2'"));
+
+    repository.insertBugReport("it-a1", "it-char", "it broke");
+    EXPECT_EQ("it broke", queryScalar("SELECT ReportLog FROM BugReportLog WHERE PlayerID = 'it-a1'"));
+    EXPECT_EQ("it-char", queryScalar("SELECT Name FROM BugReportLog WHERE PlayerID = 'it-a1'"));
+    EXPECT_EQ("1", queryScalar("SELECT ReportTime > '2026-01-01' FROM BugReportLog WHERE PlayerID = 'it-a1'"));
+
+    repository.insertCrashLog("it-a1", "it-char", "2026-09-06 10:00:00", "12", "0x0040", "boom");
+    const std::string crash = " FROM CrashLog WHERE PlayerID = 'it-a1'";
+    EXPECT_EQ("2026-09-06 10:00:00", queryScalar("SELECT ExecutableTime" + crash));
+    EXPECT_EQ("12", queryScalar("SELECT Version" + crash));
+    EXPECT_EQ("0x0040", queryScalar("SELECT Address" + crash));
+    EXPECT_EQ("boom", queryScalar("SELECT Message" + crash));
+    EXPECT_EQ("1", queryScalar("SELECT ReportTime > '2026-01-01'" + crash));
 }
 
 // --- the ExpTable template's generic balance read ---------------------------

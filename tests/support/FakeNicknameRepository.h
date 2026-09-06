@@ -62,6 +62,26 @@ public:
             itr->second.nickname = truncateToColumn(nickname);
     }
 
+    // The GM forced slot, id 100: REPLACE overwrites or creates the row with
+    // NickIndex 0; DELETE removes it if present.
+    void replaceForcedNickname(const std::string& ownerName, BYTE type, const std::string& nickname) {
+        Rows::iterator itr = find(ownerName, 100);
+        if (itr != m_Rows.end())
+            m_Rows.erase(itr);
+        NicknameRecord record;
+        record.id = 100;
+        record.type = type;
+        record.nickname = truncateToColumn(nickname);
+        record.index = 0;
+        m_Rows.push_back(std::make_pair(key(ownerName, 100), record));
+    }
+
+    void deleteForcedNickname(const std::string& ownerName) {
+        Rows::iterator itr = find(ownerName, 100);
+        if (itr != m_Rows.end())
+            m_Rows.erase(itr);
+    }
+
 private:
     typedef std::pair<std::string, WORD> RowKey;
     typedef std::vector<std::pair<RowKey, NicknameRecord>> Rows;

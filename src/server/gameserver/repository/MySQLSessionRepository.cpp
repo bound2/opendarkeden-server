@@ -389,6 +389,86 @@ public:
         END_DB(pStmt)
     }
 
+    bool loadUserServerID(const string& name, int& serverID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT ServerID FROM UserIPInfo where Name='%s'", name.c_str());
+
+            if (pResult->next()) {
+                serverID = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    int countPlayersOnline() {
+        int count = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            Result* pResult =
+                pStmt->executeQueryString("SELECT Count(*) FROM Player where LogOn='GAME' OR LogOn='LOGON'");
+
+            if (pResult->next()) {
+                count = pResult->getInt(1);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return count;
+    }
+
+    void denyAccount(const string& playerID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE Player set Access='DENY' where PlayerID ='%s'", playerID.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void insertBugReport(const string& playerID, const string& name, const string& report) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO BugReportLog(PlayerID, Name, ReportTime, ReportLog) VALUES "
+                                "('%s', '%s', now(), '%s')",
+                                playerID.c_str(), name.c_str(), report.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void insertCrashLog(const string& playerID, const string& name, const string& executableTime, const string& version,
+                        const string& address, const string& message) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO CrashLog (PlayerID, Name, ReportTime, ExecutableTime, Version, "
+                                "Address, Message) VALUES "
+                                "('%s', '%s', now(), '%s', '%s', '%s', '%s')",
+                                playerID.c_str(), name.c_str(), executableTime.c_str(), version.c_str(),
+                                address.c_str(), message.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     bool loadLastLogoutDate(const string& playerID, string& lastLogoutDate) {
         bool found = false;
         Statement* pStmt = NULL;
