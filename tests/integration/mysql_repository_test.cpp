@@ -1319,7 +1319,8 @@ TEST_F(CharacterMySQL, VampireRedistributeAttrIsReadAndSavedPerName) {
 
 // CreatureUtil's GM lookups: the Race text comes from the SLAYER row
 // whatever the race (the character index), the guild id from the race's
-// own table, and the sex write lands in Slayer AND Vampire (never Ousters);
+// own table, and the sex write lands in Slayer AND Vampire (the caller never
+// reaches it for an ousters);
 // a second character's rows are untouched, a name without rows is false.
 TEST_F(CharacterMySQL, RaceTextGuildIDAndSexGoThroughTheRaceTables) {
     CharacterRepository& repository = defaultCharacterRepository();
@@ -6595,8 +6596,6 @@ TEST_F(PlayRecordMySQL, MiniGameScoreReplacesOnlyAWorseRowOfTheSameTypeAndLevel)
     EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM MiniGameScores WHERE Type=120 AND Level=7"));
 }
 
-// CGBuyStoreItemHandler: the store-purchase TradeLog row, the two names in
-// their columns AND inside the Content text, the price at the end of it.
 // CreatureUtil's lotto counter: the first add of a (player, type) takes the
 // REPLACE (the UPDATE changed no row) and reads back num; the next takes
 // the UPDATE and reads back the sum; another type is its own row.
@@ -6624,9 +6623,11 @@ TEST_F(PlayRecordMySQL, GoldMedalInsertFailsOnTheShippedSchema) {
     EXPECT_THROW(defaultPlayRecordRepository().insertGoldMedal("it-acct"), const char*);
 }
 
-// CreatureUtil's underworld kill record (its caller is compiled out; the
-// compiler never checks it, so the tier does): the two ids, the account and
-// the character, KillTime server-side.
+// CreatureUtil's underworld kill record (its only caller sits under
+// __UNDERWORLD__, which no build defines, so this seam method is the first
+// time the statement is compiled at all — and the tier the only thing that
+// runs it): the two ids, the account and the character, KillTime
+// server-side.
 TEST_F(PlayRecordMySQL, UnderworldKillIsRecordedWithItsIdsAndNames) {
     defaultPlayRecordRepository().insertUnderworldKill(2, 3, "it-acct", "it-char");
     const std::string where = " FROM UnderworldEvent WHERE PlayerID = 'it-acct'";
@@ -6637,6 +6638,8 @@ TEST_F(PlayRecordMySQL, UnderworldKillIsRecordedWithItsIdsAndNames) {
     EXPECT_EQ("1", queryScalar("SELECT KillTime > '2026-01-01'" + where));
 }
 
+// CGBuyStoreItemHandler: the store-purchase TradeLog row, the two names in
+// their columns AND inside the Content text, the price at the end of it.
 TEST_F(PlayRecordMySQL, StoreTradeIsLoggedWithBothNamesInTheContent) {
     defaultPlayRecordRepository().logStoreTrade("2026-09-06 10:00:00", "it-store", "10.0.0.1", "it-acct1", "it-buyer",
                                                 "10.0.0.2", "it-acct2", "ITEM(31000)", 123);

@@ -10,7 +10,7 @@ namespace {
 //    retyped): the Active updates keep "Name = '%s'" with spaces, the
 //    four bookkeeping deletes before the objects keep "OwnerID = '%s'"
 //    with spaces, the 81 object deletes and GQuestSave keep the same
-//    spaced form their concatenation produced, the sixteen effect deletes
+//    spaced form their concatenation produced, the fifteen effect deletes
 //    keep their lower-case "where OwnerID='%s'", and the last three keep
 //    "WHERE OwnerID='%s'".
 //  - One Statement for the whole list, as before; no transaction, as

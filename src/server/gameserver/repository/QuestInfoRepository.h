@@ -26,6 +26,10 @@
 // of their own — and OptionType through getString. The one non-column expression,
 // EventQuestLootingInfo's "LootingType-1", stays in the SELECT.
 //
+// The per-owner "DELETE FROM EventQuestAdvance WHERE OwnerID='%s'" that the
+// character-deletion purge runs is CharacterPurgeRepository's (the last
+// statement of its list), not this seam's.
+//
 // Not enclosed: the five mission/ files whose only executeQuery text sits inside
 // commented-out blocks (QuestInfoManager, RewardClassInfoManager, ItemRewardInfo,
 // EventQuestRewardManager, MiniGameQuestStatus). They hold no live statement, so

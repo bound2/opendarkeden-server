@@ -14,26 +14,37 @@
 // (all three, whatever the character's race — the row is left, not
 // deleted; a commented-out DELETE beside each says the older flow
 // deleted it); the three SkillSave tables and RankBonusData; the 81
-// <Class>Object tables; GQuestSave; CoupleInfo by either partner column;
-// the fifteen persisted Effect* tables and EnemyErase (lower-case
-// "where", written as "where OwnerID='%s'" with no spaces); FlagSet,
-// TimeLimitItems and EventQuestAdvance. Every literal is byte for byte
-// the original; the 82 that were built by string concatenation
-// ("... OwnerID = '" + ownerID + "'") are the same bytes as a "'%s'"
-// format with the name, which is how this seam writes them — the one
-// transport difference is that those 82 now pass through executeQuery's
-// 2048-byte format buffer (a character name is at most 20 bytes).
+// <Class>Object tables with GQuestSave among them (the 88th statement,
+// between GQuestItemObject and TrapItemObject); CoupleInfo by either
+// partner column; fourteen Effect* tables and EnemyErase (lower-case
+// "where", written as "where OwnerID='%s'" with no spaces) — seven of
+// those Effect tables (AcidTouch, DetectHidden, Paralysis, Poison,
+// PoisonousHands, ProtectionFromParalysis, ProtectionFromPoison) are
+// written by nothing else in the tree, so the purge deletes from tables
+// nothing fills; FlagSet, TimeLimitItems and EventQuestAdvance. Every
+// literal is byte for byte the original; the 82 that were built by
+// string concatenation ("... OwnerID = '" + ownerID + "'") are the same
+// bytes as a "'%s'" format with the name, which is how this seam writes
+// them — the one transport difference is that those 82 now pass through
+// executeQuery's 2048-byte format buffer (the Name columns are
+// varchar(10); the 20-byte maxNameLength in PlayerTypes.h governs the
+// account name, and nothing caps a character name but the column).
 //
-// Every table on the list belongs to another seam's scope (the item
-// objects to ItemObjectRepository, the skill saves to SkillSaveRepository,
-// and so on); those headers each say their purge DELETE lives here. The
-// purge is one operation in the game's eyes, so it is one method in one
-// seam rather than a hundred calls across twelve.
+// Most tables on the list are another seam's (the item objects
+// ItemObjectRepository's, the skill saves SkillSaveRepository's, and so
+// on), and eleven of those headers say their purge DELETE lives here.
+// EventQuestAdvance is QuestInfoRepository's, which does not mention the
+// purge; the seven Effect tables above are no seam's. The purge is one
+// operation in the game's eyes, so it is one method in one seam rather
+// than a hundred calls across those.
 //
 // Not enclosed: the loginserver's per-character purges in
 // CLDeletePCHandler.cpp and ItemDestroyer.cpp, which repeat much of this
 // list for that binary — their own seam. No other gameserver code runs
-// these deletes.
+// the purge; single statements on the same tables do run elsewhere in
+// their own seams (RankBonusRepository's per-owner DELETE is the same
+// bytes as the seventh statement here; FlagSet, EffectSave and the war
+// items' loaders delete by owner too).
 //
 // Pre-existing and preserved: the three Active updates and every DELETE
 // key on the character NAME (Name / OwnerID / the CoupleInfo partner

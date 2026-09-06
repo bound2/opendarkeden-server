@@ -318,10 +318,10 @@ public:
     // GuildID_t and applies its 0 / 99 / 66 rule; false when no row.
     virtual bool loadGuildID(const std::string& name, CharacterRace race, int& guildID) = 0;
     // changeSexEx — "UPDATE Slayer SET SEX='%s' WHERE Name='%s'" then the
-    // same on Vampire, both on one Statement as written (the character has
-    // a row in Slayer, the index, and in its own race table; the Ousters
-    // table is not written, so an ousters' Ousters.SEX stays — as before).
-    // The text is the caller's Sex2String entry.
+    // same on Vampire, both on one Statement as written (the caller
+    // returns before reaching this for anything but a slayer or a vampire,
+    // which is why the Ousters table has no statement here). The text is
+    // the caller's Sex2String entry.
     virtual void saveSex(const std::string& name, const std::string& sexText) = 0;
 
     // The periodic save() row update — vitals and position.

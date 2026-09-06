@@ -41,10 +41,12 @@
 //
 // The per-character purges — the gameserver's in
 // CharacterPurgeRepository (since the CreatureUtil round), the
-// loginserver's in CLDeletePCHandler — DELETE from only THREE of these
-// tables (EffectAftermath, EffectMute, EnemyErase) as part of their
-// multi-table character deletion — not enclosed here. Nothing purges the
-// other five:
+// loginserver's in CLDeletePCHandler — DELETE from EIGHT of these
+// tables (EffectAftermath, EffectBloodDrain, EffectFlare, EffectLight,
+// EffectMute, EffectRestore, EffectYellowPoisonToCreature, EnemyErase) as
+// part of their multi-table character deletion — not enclosed here (an
+// earlier version of this line said three, which its own "other five"
+// arithmetic contradicted). Nothing purges the other five:
 // an EffectKillAftermath, CanEnterGDRLair or force-scroll row outlives
 // its character, and a name-reuser inherits it on first login (the same
 // quirk BloodBibleSignRepository documents for its table).
