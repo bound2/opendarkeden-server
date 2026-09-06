@@ -8,7 +8,6 @@
 
 #ifdef __GAME_SERVER__
 #include "Assert.h"
-#include "DB.h"
 #include "EffectDonation200501.h"
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
@@ -19,6 +18,7 @@
 #include "PlayerCreature.h"
 #include "Properties.h"
 #include "VariableManager.h"
+#include "repository/ComebackEventRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -78,50 +78,18 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
     pPlayer->sendPacket(&gcModifyInformation);
 
     // 지금까지의 기부 회수를 구한다.
-    {
-        Statement* pStmt = NULL;
-        Result* pResult = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-            pResult =
-                pStmt->executeQuery("SELECT COUNT(*) FROM DonationPersonal200501 WHERE Name = '%s' AND WorldID = %d",
-                                    pCreature->getName().c_str(), affectWorldID);
-
-            if (pResult->next()) {
-                sumBeforePersonal = pResult->getInt(1);
-            }
-
-            pResult = pStmt->executeQuery("SELECT COUNT(*) FROM DonationGuild200501 WHERE Name = '%s' AND WorldID = %d",
-                                          pCreature->getName().c_str(), affectWorldID);
-
-            if (pResult->next()) {
-                sumBeforeGuild = pResult->getInt(1);
-            }
-        }
-        END_DB(pStmt)
-    }
+    sumBeforePersonal = defaultComebackEventRepository().countPersonalDonations(pCreature->getName(), affectWorldID);
+    sumBeforeGuild = defaultComebackEventRepository().countGuildDonations(pCreature->getName(), affectWorldID);
 
     // 기부 내용을 데이터 베이스에 기록한다.
     {
-        Statement* pStmt = NULL;
-
         if (pPacket->getDonationType() == DONATION_TYPE_200501_PERSONAL) {
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-                pStmt->executeQuery("INSERT INTO DonationPersonal200501 VALUES ( '%s', '%s', %d, %u, now() )",
-                                    pGamePlayer->getID().c_str(), pCreature->getName().c_str(), affectWorldID,
-                                    pPacket->getGold());
-            }
-            END_DB(pStmt)
+            defaultComebackEventRepository().insertPersonalDonation(pGamePlayer->getID(), pCreature->getName(),
+                                                                    affectWorldID, pPacket->getGold());
         } else if (pPacket->getDonationType() == DONATION_TYPE_200501_GUILD) {
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-                pStmt->executeQuery("INSERT INTO DonationGuild200501 VALUES ( %u, '%s', '%s', '%s', %d, %u, now() )",
-                                    pPC->getGuildID(), pPC->getGuildName().c_str(), pGamePlayer->getID().c_str(),
-                                    pCreature->getName().c_str(), affectWorldID, pPacket->getGold());
-            }
-            END_DB(pStmt)
+            defaultComebackEventRepository().insertGuildDonation(pPC->getGuildID(), pPC->getGuildName(),
+                                                                 pGamePlayer->getID(), pCreature->getName(),
+                                                                 affectWorldID, pPacket->getGold());
         } else {
             return;
         }
@@ -129,19 +97,12 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
 
     // 지금까지의 기부 회수를 구한다.
     {
-        Statement* pStmt = NULL;
-        Result* pResult = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-            pResult =
-                pStmt->executeQuery("SELECT COUNT(*) FROM DonationPersonal200501 WHERE Name = '%s' AND WorldID = %d",
-                                    pCreature->getName().c_str(), affectWorldID);
-
+        {
             Packet* pNicknamePacket = NULL;
 
-            if (pResult->next()) {
-                sumAfterPersonal = pResult->getInt(1);
+            {
+                sumAfterPersonal =
+                    defaultComebackEventRepository().countPersonalDonations(pCreature->getName(), affectWorldID);
 
                 // 닉 네임을 추가해야되는 경우
                 if (sumAfterPersonal == 1 && sumBeforePersonal != sumAfterPersonal) {
@@ -165,11 +126,9 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
                 }
             }
 
-            pResult = pStmt->executeQuery("SELECT COUNT(*) FROM DonationGuild200501 WHERE Name = '%s' AND WorldID = %d",
-                                          pCreature->getName().c_str(), affectWorldID);
-
-            if (pResult->next()) {
-                sumAfterGuild = pResult->getInt(1);
+            {
+                sumAfterGuild =
+                    defaultComebackEventRepository().countGuildDonations(pCreature->getName(), affectWorldID);
 
                 // 닉 네임을 추가해야되는 경우
                 if (sumAfterGuild == 1 && sumBeforeGuild != sumAfterGuild) {
@@ -198,7 +157,6 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
                 SAFE_DELETE(pNicknamePacket);
             }
         }
-        END_DB(pStmt)
     }
 
 

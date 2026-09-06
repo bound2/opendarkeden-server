@@ -2273,6 +2273,8 @@ protected:
     virtual void SetUp() {
         execSQL("DELETE FROM Event200501Main WHERE PlayerID = 'itaccount'");
         execSQL("DELETE FROM Event200501Recommend WHERE PlayerID = 'itaccount'");
+        execSQL("DELETE FROM DonationPersonal200501 WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM DonationGuild200501 WHERE Name LIKE 'it-%'");
     }
 };
 
@@ -2299,6 +2301,83 @@ TEST_F(ComebackEventMySQL, ThePredicatesFollowTheZeroDateColumns) {
     EXPECT_TRUE(repository.hasUnclaimedRecommendItem("itaccount"));
     execSQL("UPDATE Event200501Recommend SET RecvItemDate = '2005-01-04' WHERE PlayerID = 'itaccount'");
     EXPECT_FALSE(repository.hasUnclaimedRecommendItem("itaccount"));
+}
+
+// CGGetEventItemHandler's hand-out: the date columns come back as the text
+// the handler compares to '0000-00-00' (the zero default first, then what
+// each stamp wrote — today's date, since the stamps write now() into a
+// DATE column); each read is false for an account without a row, and the
+// recommend read takes a row by PlayerID while its stamp keys on UniqueID.
+TEST_F(ComebackEventMySQL, HandOutReadsTheDateTextsAndTheStampsWriteToday) {
+    ComebackEventRepository& repository = defaultComebackEventRepository();
+    std::string recv, pay, recvPremium;
+    int uniqueID = -1;
+
+    EXPECT_FALSE(repository.loadMainRecvItemDate("itaccount", recv));
+    EXPECT_FALSE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
+    EXPECT_FALSE(repository.loadRecommendRow("itaccount", uniqueID, recv));
+    EXPECT_EQ(-1, uniqueID);
+
+    execSQL("INSERT INTO Event200501Main (PlayerID, PayPremiumDate) VALUES ('itaccount', '2005-01-02')");
+    ASSERT_TRUE(repository.loadMainRecvItemDate("itaccount", recv));
+    EXPECT_EQ("0000-00-00", recv);
+    ASSERT_TRUE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
+    EXPECT_EQ("2005-01-02", pay);
+    EXPECT_EQ("0000-00-00", recvPremium);
+
+    const std::string today = queryScalar("SELECT CURDATE()");
+    repository.markMainItemReceived("itaccount");
+    ASSERT_TRUE(repository.loadMainRecvItemDate("itaccount", recv));
+    EXPECT_EQ(today, recv);
+    EXPECT_FALSE(repository.hasUnclaimedItem("itaccount")); // the zone's predicate agrees
+    ASSERT_TRUE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
+    EXPECT_EQ("0000-00-00", recvPremium); // the other stamp is untouched
+    repository.markMainPremiumItemReceived("itaccount");
+    ASSERT_TRUE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
+    EXPECT_EQ(today, recvPremium);
+    EXPECT_EQ("2005-01-02", pay);
+
+    execSQL("INSERT INTO Event200501Recommend (PlayerID, Recommender) VALUES ('itaccount', 'friend')");
+    ASSERT_TRUE(repository.loadRecommendRow("itaccount", uniqueID, recv));
+    EXPECT_EQ("0000-00-00", recv);
+    EXPECT_EQ(atoi(queryScalar("SELECT UniqueID FROM Event200501Recommend WHERE PlayerID = 'itaccount'").c_str()),
+              uniqueID);
+    repository.markRecommendItemReceived(uniqueID);
+    ASSERT_TRUE(repository.loadRecommendRow("itaccount", uniqueID, recv));
+    EXPECT_EQ(today, recv);
+    EXPECT_FALSE(repository.hasUnclaimedRecommendItem("itaccount"));
+}
+
+// CGDonationMoneyHandler's record: the two positional INSERTs land every
+// value in the column its position names, the counts are scoped to the
+// name AND the world id (a row of the same name in another world is not
+// counted), and a name with no rows counts 0.
+TEST_F(ComebackEventMySQL, DonationsAreRecordedPositionallyAndCountedPerNameAndWorld) {
+    ComebackEventRepository& repository = defaultComebackEventRepository();
+
+    EXPECT_EQ(0, repository.countPersonalDonations("it-char", 4));
+    EXPECT_EQ(0, repository.countGuildDonations("it-char", 4));
+
+    repository.insertPersonalDonation("it-acct", "it-char", 4, 1234567u);
+    repository.insertPersonalDonation("it-acct", "it-char", 5, 1u); // another world
+    repository.insertGuildDonation(31000, "it-guild", "it-acct", "it-char", 4, 99u);
+
+    EXPECT_EQ(1, repository.countPersonalDonations("it-char", 4));
+    EXPECT_EQ(1, repository.countPersonalDonations("it-char", 5));
+    EXPECT_EQ(1, repository.countGuildDonations("it-char", 4));
+    EXPECT_EQ(0, repository.countGuildDonations("it-char", 5));
+
+    const std::string personal = " FROM DonationPersonal200501 WHERE Name = 'it-char' AND WorldID = 4";
+    EXPECT_EQ("it-acct", queryScalar("SELECT PlayerID" + personal));
+    EXPECT_EQ("1234567", queryScalar("SELECT Amount" + personal));
+    EXPECT_EQ("1", queryScalar("SELECT DonationDateTime > '2026-01-01'" + personal));
+
+    const std::string guild = " FROM DonationGuild200501 WHERE Name = 'it-char'";
+    EXPECT_EQ("31000", queryScalar("SELECT GuildID" + guild));
+    EXPECT_EQ("it-guild", queryScalar("SELECT GuildName" + guild));
+    EXPECT_EQ("it-acct", queryScalar("SELECT PlayerID" + guild));
+    EXPECT_EQ("4", queryScalar("SELECT WorldID" + guild));
+    EXPECT_EQ("99", queryScalar("SELECT Amount" + guild));
 }
 
 // --- BulletinBoardObject against real MySQL -------------------------------
