@@ -5576,6 +5576,85 @@ TEST_F(ItemObjectMySQL, PetItemRowsRoundTripWithAndWithoutTheirPetColumns) {
     EXPECT_NO_THROW(repository.loadFlagItemInZone(GEAR_QUEST_ITEM, 5, 31000));
 }
 
+// The motorcycle-redeem statements: the probe, the four-column read in both
+// spellings, and the fresh-row insert in both. A row this test does not own
+// (31100) stays untouched by every step, so the reads and inserts are shown
+// scoped to the id they were given, and the REDEEM_SPELLING_QUEST_ACTION
+// insert's IGNORE is shown to matter: the handler spelling refuses a
+// duplicate key, the quest-action spelling swallows it.
+TEST_F(ItemObjectMySQL, MotorcycleRedeemProbesReadsAndInsertsInBothSpellings) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+    const std::string where = " FROM MotorcycleObject WHERE ItemID=";
+
+    // Seed a row this test does not own; nothing below may touch it.
+    execSQL("INSERT INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, "
+            "OptionType, Durability) VALUES (31100, 5, 2, 'it-owner', 5, 9, 1, 1, '7', 44)");
+
+    EXPECT_FALSE(repository.motorcycleExists(31000));
+    EXPECT_TRUE(repository.motorcycleExists(31100));
+
+    MotorcycleRedeemRow row;
+    row.itemID = -1;
+    EXPECT_FALSE(repository.loadMotorcycleForRedeem(REDEEM_SPELLING_HANDLER, 31000, row));
+    EXPECT_FALSE(repository.loadMotorcycleForRedeem(REDEEM_SPELLING_QUEST_ACTION, 31000, row));
+    EXPECT_EQ(-1, row.itemID); // a miss leaves the row alone
+
+    // The handler spelling's insert: an empty OwnerID and OptionType in the
+    // literal, every number through "%d".
+    repository.insertRedeemedMotorcycle(REDEEM_SPELLING_HANDLER, 31000, 77, 3, 5, 31, 12, 13, 300);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where + "31000"));
+    EXPECT_EQ("", queryScalar("SELECT OwnerID" + where + "31000"));
+    EXPECT_EQ("", queryScalar("SELECT OptionType" + where + "31000"));
+    EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + "31000"));
+    EXPECT_EQ("3", queryScalar("SELECT ItemType" + where + "31000"));
+    EXPECT_EQ("5", queryScalar("SELECT Storage" + where + "31000"));
+    EXPECT_EQ("31", queryScalar("SELECT StorageID" + where + "31000"));
+    EXPECT_EQ("12", queryScalar("SELECT X" + where + "31000"));
+    EXPECT_EQ("13", queryScalar("SELECT Y" + where + "31000"));
+    EXPECT_EQ("300", queryScalar("SELECT Durability" + where + "31000"));
+    EXPECT_TRUE(repository.motorcycleExists(31000));
+
+    // Both read spellings reach the same row through their own columns.
+    for (int spelling = 0; spelling < REDEEM_SPELLING_MAX; spelling++) {
+        MotorcycleRedeemRow read;
+        ASSERT_TRUE(repository.loadMotorcycleForRedeem((MotorcycleRedeemSpelling)spelling, 31000, read))
+            << "spelling " << spelling;
+        EXPECT_EQ(31000, read.itemID);
+        EXPECT_EQ(3, read.itemType);
+        EXPECT_EQ("", read.optionField);
+        EXPECT_EQ(300, read.durability);
+
+        MotorcycleRedeemRow seeded;
+        ASSERT_TRUE(repository.loadMotorcycleForRedeem((MotorcycleRedeemSpelling)spelling, 31100, seeded))
+            << "spelling " << spelling;
+        EXPECT_EQ(31100, seeded.itemID);
+        EXPECT_EQ(2, seeded.itemType);
+        EXPECT_EQ("7", seeded.optionField);
+        EXPECT_EQ(44, seeded.durability);
+    }
+
+    // The quest-action spelling is INSERT IGNORE: a second row for the same id
+    // is swallowed and the standing row is untouched. The handler spelling
+    // has no IGNORE, so the same duplicate is a SQL failure crossing the seam
+    // as END_DB's const char*.
+    repository.insertRedeemedMotorcycle(REDEEM_SPELLING_QUEST_ACTION, 31000, 78, 4, 5, 32, 14, 15, 301);
+    EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + "31000"));
+    EXPECT_EQ("300", queryScalar("SELECT Durability" + where + "31000"));
+    EXPECT_THROW(repository.insertRedeemedMotorcycle(REDEEM_SPELLING_HANDLER, 31000, 78, 4, 5, 32, 14, 15, 301),
+                 const char*);
+
+    // The quest-action spelling inserts a fresh id like the handler one does.
+    repository.insertRedeemedMotorcycle(REDEEM_SPELLING_QUEST_ACTION, 31001, 79, 4, 5, 32, 14, 15, 301);
+    EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + "31001"));
+    EXPECT_EQ("", queryScalar("SELECT OwnerID" + where + "31001"));
+    EXPECT_EQ("301", queryScalar("SELECT Durability" + where + "31001"));
+
+    // The row this test does not own is as seeded.
+    EXPECT_EQ("5", queryScalar("SELECT ObjectID" + where + "31100"));
+    EXPECT_EQ("44", queryScalar("SELECT Durability" + where + "31100"));
+    EXPECT_EQ("3", queryScalar("SELECT COUNT(*) FROM MotorcycleObject WHERE ItemID >= 31000"));
+}
+
 // --- the quest catalogues against real MySQL -------------------------------
 // The mission/ managers load these at NPC creation and at login. The tables are
 // seeded; each test writes its own rows (QuestIDs from 31000 up, NPC 'it-npc')

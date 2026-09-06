@@ -190,10 +190,37 @@
 // parameterized statement and is verbatim), the save UPDATE and tinysave
 // keep their "%ld" for the DWORD ids exactly as written.
 //
+// The motorcycle-redeem statements (2026-09-06) live here too, because they
+// are the MotorcycleObject table's: the three call sites that summon a
+// parked motorcycle by its key — CGUseItemFromInventoryHandler,
+// CGUsePotionFromQuickSlotHandler and quest/ActionRedeemMotorcycle — each
+// ran the same three statements against it outside the item classes. An
+// existence probe on the key's Target ("SELECT ItemID ... WHERE ItemID=%lu",
+// the DWORD through "%lu" as written, identical in all three files); a
+// four-column read of the row to rebuild the object from (ItemID, ItemType,
+// OptionType, Durability) — the handlers spell it "WHERE ItemID=%lu", the
+// quest action streamed "where ItemID = " and the id through a StringStream,
+// which renders a DWORD with "%u", so that spelling is the format with "%u";
+// and, when the row was missing, an INSERT of a fresh row with an empty
+// OwnerID and OptionType — "INSERT INTO" in the handlers, "INSERT IGNORE
+// INTO" in the quest action, otherwise the same bytes, every value including
+// the three DWORDs through "%d" as written. Same statement, different
+// bytes, so the read and the insert take a spelling enum; the probe has one
+// spelling and takes none. The row is typed to the getters the callers
+// called (getInt for the three numbers, getString for OptionType); the
+// callers keep their narrowing into ItemID_t / ItemType_t / Durability_t
+// and their 300-durability default for a missing row. The Key::setNewMotorcycle
+// call the callers make between the probe and the read is the seam's
+// saveKeyTarget through the item class; it is not part of these three.
+//
 // Not enclosed: EventBall, the one item file with SQL left (it has no tables
 // and is not registered), and the
 // loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
-// holds only the registry calls, no SQL.
+// holds only the registry calls, no SQL. The two commented-out blocks in
+// CGUseItemFromInventoryHandler and ActionRedeemMotorcycle that inline an
+// older "UPDATE KeyObject SET Target" (the statement saveKeyTarget carries)
+// are self-contained history and were left as they are; ratchet R3 keeps
+// counting those two files for them.
 
 enum GearTable {
     GEAR_RING,
@@ -1159,6 +1186,23 @@ struct CodeSheetObjectRow {
     std::string optionField;
 };
 
+// The motorcycle-redeem read: the four columns the summon call sites rebuild a
+// parked motorcycle from, through the getters they called (getInt for the
+// numbers, getString for OptionType — the callers parse it into option types
+// themselves).
+struct MotorcycleRedeemRow {
+    int itemID;
+    int itemType;
+    std::string optionField;
+    int durability;
+};
+
+// Which call site's bytes the redeem read and insert send: the two handlers'
+// ("WHERE ItemID=%lu"; "INSERT INTO") or the quest action's ("where ItemID =
+// %u", the StringStream rendering; "INSERT IGNORE INTO"). See the header
+// comment.
+enum MotorcycleRedeemSpelling { REDEEM_SPELLING_HANDLER, REDEEM_SPELLING_QUEST_ACTION, REDEEM_SPELLING_MAX };
+
 // MotorcycleInfo: the eight head columns alone.
 struct DurabilityInfoRow {
     int itemType;
@@ -1493,6 +1537,22 @@ public:
     virtual std::vector<MotorcycleObjectRow> loadMotorcycleOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<MotorcycleZoneObjectRow> loadMotorcycleInZone(GearTable table, int storage,
                                                                       ZoneID_t zoneID) = 0;
+    // The motorcycle-redeem statements (see the header comment). These name
+    // MotorcycleObject alone, so they take no table.
+    // "SELECT ItemID FROM MotorcycleObject WHERE ItemID=%lu" — true when a row
+    // came back. One spelling in all three files.
+    virtual bool motorcycleExists(ItemID_t itemID) = 0;
+    // The four-column read; true and the row when it exists, false otherwise
+    // (the callers tested next() or getRowCount() <= 0 — the same thing for a
+    // primary-key read).
+    virtual bool loadMotorcycleForRedeem(MotorcycleRedeemSpelling spelling, ItemID_t itemID,
+                                         MotorcycleRedeemRow& row) = 0;
+    // The fresh-row INSERT (empty OwnerID and OptionType in the literal); the
+    // parameters are typed as the call sites' variables were, every one to a
+    // "%d" (three of them DWORDs, as written).
+    virtual void insertRedeemedMotorcycle(MotorcycleRedeemSpelling spelling, ItemID_t itemID, ObjectID_t objectID,
+                                          ItemType_t itemType, int storage, ZoneID_t zoneID, int x, int y,
+                                          Durability_t durability) = 0;
 
     // CodeSheet (see GearObjectKind): the plain INSERT and UPDATE plus OptionType and
     // an owner load of eight columns; its zone SELECT is gear's, so loadGearInZone

@@ -43,6 +43,7 @@
 #include "item/OustersArmsband.h"
 #include "item/Potion.h"
 #include "item/Pupa.h"
+#include "repository/ItemObjectRepository.h"
 
 bool UseYellowCandy(PlayerCreature* pPC, Item* pItem) {
     if (pPC->isFlag(Effect::EFFECT_CLASS_PLEASURE_EXPLOSION))
@@ -251,9 +252,6 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 // 기존에 아이템이 생성되어 있는지를 확인한다.
                 ItemID_t targetID = dynamic_cast<Key*>(pBeltItem)->getTarget();
 
-                Statement* pStmt = NULL;
-                Result* pResult = NULL;
-
                 if (targetID == 0) {
                     Key* pKey = dynamic_cast<Key*>(pBeltItem);
                     Assert(pKey != NULL);
@@ -263,20 +261,12 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                 } else {
                     // 한번 모터사이클이랑 키랑 연결됐는데 모터사이클을 누가 자꾸 지우나보다.
                     // 키에 연결된 모터사이클이 실제로 디비에 있는지 체크하고 없으면 새로 만들어서 넣어준다.
-                    BEGIN_DB {
-                        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                        pResult = pStmt->executeQuery("SELECT ItemID FROM MotorcycleObject WHERE ItemID=%lu", targetID);
+                    if (!defaultItemObjectRepository().motorcycleExists(targetID)) {
+                        Key* pKey = dynamic_cast<Key*>(pBeltItem);
+                        Assert(pKey != NULL);
 
-                        if (!pResult->next()) {
-                            Key* pKey = dynamic_cast<Key*>(pBeltItem);
-                            Assert(pKey != NULL);
-
-                            targetID = pKey->setNewMotorcycle(pSlayer);
-                        }
-
-                        SAFE_DELETE(pStmt);
+                        targetID = pKey->setNewMotorcycle(pSlayer);
                     }
-                    END_DB(pStmt);
                 }
                 // 필살 방어 코드 -_-;
                 if (targetID == 0) {
@@ -330,29 +320,23 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
 
                     return;
                 }
-                BEGIN_DB {
-                    pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                    pResult = pStmt->executeQuery(
-                        "SELECT ItemID, ItemType, OptionType, Durability FROM MotorcycleObject WHERE ItemID=%lu",
-                        targetID);
+                {
+                    MotorcycleRedeemRow redeemRow;
+                    bool bFound = defaultItemObjectRepository().loadMotorcycleForRedeem(REDEEM_SPELLING_HANDLER,
+                                                                                        targetID, redeemRow);
 
                     ItemID_t itemID;
                     ItemType_t itemType;
                     list<OptionType_t> optionTypes;
                     Durability_t durability;
 
-                    bool bFound = false;
+                    if (bFound) {
+                        itemID = redeemRow.itemID;
+                        itemType = redeemRow.itemType;
 
-                    if (pResult->next()) {
-                        bFound = true;
+                        setOptionTypeFromField(optionTypes, redeemRow.optionField);
 
-                        itemID = pResult->getInt(1);
-                        itemType = pResult->getInt(2);
-
-                        string optionField = pResult->getString(3);
-                        setOptionTypeFromField(optionTypes, optionField);
-
-                        durability = pResult->getInt(4);
+                        durability = redeemRow.durability;
                     } else {
                         itemID = targetID;
                         itemType = 0;
@@ -387,11 +371,9 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                     } else {
                         if (!bFound) {
                             // by sigi. 2002.10.14
-                            pStmt->executeQuery("INSERT INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, "
-                                                "Storage, StorageID, X, Y, OptionType, Durability) Values (%d, %d, %d, "
-                                                "'', %d, %d, %d, %d, '', %d)",
-                                                itemID, pMotorcycle->getObjectID(), itemType, STORAGE_ZONE,
-                                                pZone->getZoneID(), pt.x, pt.y, durability);
+                            defaultItemObjectRepository().insertRedeemedMotorcycle(
+                                REDEEM_SPELLING_HANDLER, itemID, pMotorcycle->getObjectID(), itemType, STORAGE_ZONE,
+                                pZone->getZoneID(), pt.x, pt.y, durability);
                         }
 
                         // 오토바이를 Parking Center에 등록한다.
@@ -413,10 +395,7 @@ void CGUsePotionFromQuickSlotHandler::execute(CGUsePotionFromQuickSlot* pPacket,
                     GCCannotUse _GCCannotUse;
                     _GCCannotUse.setObjectID(pPacket->getObjectID());
                     pGamePlayer->sendPacket(&_GCCannotUse);
-
-                    SAFE_DELETE(pStmt);
                 }
-                END_DB(pStmt);
 
                 return;
             }

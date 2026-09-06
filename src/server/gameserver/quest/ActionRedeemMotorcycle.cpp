@@ -8,7 +8,6 @@
 
 #include "Belt.h"
 #include "Creature.h"
-#include "DB.h"
 #include "GCNPCResponse.h"
 #include "GamePlayer.h"
 #include "Item.h"
@@ -19,6 +18,7 @@
 #include "Vampire.h"
 #include "Zone.h"
 #include "item/Key.h"
+#include "repository/ItemObjectRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,9 +121,6 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
 
     try {
         // 키가 맞다면 키의 타겟이 되는 아이템의 아이템 ID를 얻어낸다.
-        Statement* pStmt = NULL;
-        Result* pResult = NULL;
-
         // targetID가 0인 경우는.. targetID(motorcycleObject의 ItemID)가 설정이 안된 경우다.
         // 이 때는 임시로 targetID를 key의 ItemID와 같게 하면 된다...고 본다.
         // targetID가 motorcycle의 itemID로 들어가기 때문에..
@@ -160,20 +157,12 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
         } else {
             // 한번 모터사이클이랑 키랑 연결됐는데 모터사이클을 누가 자꾸 지우나보다.
             // 키에 연결된 모터사이클이 실제로 디비에 있는지 체크하고 없으면 새로 만들어서 넣어준다.
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pResult = pStmt->executeQuery("SELECT ItemID FROM MotorcycleObject WHERE ItemID=%lu", targetID);
+            if (!defaultItemObjectRepository().motorcycleExists(targetID)) {
+                Key* pKey = dynamic_cast<Key*>(pItem);
+                Assert(pKey != NULL);
 
-                if (!pResult->next()) {
-                    Key* pKey = dynamic_cast<Key*>(pItem);
-                    Assert(pKey != NULL);
-
-                    targetID = pKey->setNewMotorcycle(pSlayer);
-                }
-
-                SAFE_DELETE(pStmt);
+                targetID = pKey->setNewMotorcycle(pSlayer);
             }
-            END_DB(pStmt);
         }
 
 
@@ -240,17 +229,14 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
         string optionType;
         Durability_t durability;
 
-        BEGIN_DB {
-            StringStream sql;
-            sql << "SELECT ItemID, ItemType, OptionType, Durability "
-                << "FROM MotorcycleObject where ItemID = " << targetID;
-
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pResult = pStmt->executeQueryString(sql.toString());
+        {
+            MotorcycleRedeemRow redeemRow;
+            bool bRowFound = defaultItemObjectRepository().loadMotorcycleForRedeem(REDEEM_SPELLING_QUEST_ACTION,
+                                                                                   targetID, redeemRow);
 
             // by sigi. 2002.10.14
             // 결과물이 없다면 모터사이클이 없는 거쥐.
-            if (pResult->getRowCount() <= 0) {
+            if (!bRowFound) {
                 bFound = false;
 
                 itemID = targetID;
@@ -260,12 +246,10 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
             } else {
                 bFound = true;
 
-                pResult->next();
-
-                itemID = pResult->getInt(1);
-                itemType = pResult->getInt(2);
-                optionType = pResult->getString(3);
-                durability = pResult->getInt(4);
+                itemID = redeemRow.itemID;
+                itemType = redeemRow.itemType;
+                optionType = redeemRow.optionField;
+                durability = redeemRow.durability;
             }
 
 
@@ -294,11 +278,9 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
 
             // by sigi. 2002.10.14
             if (!bFound) {
-                pStmt->executeQuery(
-                    "INSERT IGNORE INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, "
-                    "Y, OptionType, Durability) Values (%d, %d, %d, '', %d, %d, %d, %d, '', %d)",
-                    itemID, pMotorcycle->getObjectID(), itemType, STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y,
-                    durability);
+                defaultItemObjectRepository().insertRedeemedMotorcycle(
+                    REDEEM_SPELLING_QUEST_ACTION, itemID, pMotorcycle->getObjectID(), itemType, STORAGE_ZONE,
+                    pZone->getZoneID(), pt.x, pt.y, durability);
             }
 
             // 모터사이클을 뻑킹 센터에 등록해준다.
@@ -314,10 +296,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
 
             bFound = true;
             //}
-
-            SAFE_DELETE(pStmt);
         }
-        END_DB(pStmt)
 
     } catch (Throwable& t) { // by sigi. 2002.12.25
         filelog("motorError.txt", "%s - itemID=%d, motorItemID=%d", t.toString().c_str(), (int)pItem->getItemID(),

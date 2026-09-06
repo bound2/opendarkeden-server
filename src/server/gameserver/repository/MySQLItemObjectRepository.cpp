@@ -2362,6 +2362,35 @@ void requireInfoKind(GearTable table, GearInfoKind kind, const char* loader) {
     }
 }
 
+// The motorcycle-redeem read and insert, per spelling
+// (MotorcycleRedeemSpelling): the two handlers' bytes first, the quest
+// action's second. The action's read was a StringStream chain
+// ("... where ItemID = " << targetID); a DWORD streams through "%u", so that
+// is the format here. The action's insert differs from the handlers' only in
+// its IGNORE.
+struct MotorcycleRedeemSpec {
+    const char* read;
+    const char* insert;
+};
+
+const MotorcycleRedeemSpec kMotorcycleRedeemSpecs[REDEEM_SPELLING_MAX] = {
+    // REDEEM_SPELLING_HANDLER — CGUseItemFromInventoryHandler, CGUsePotionFromQuickSlotHandler
+    {"SELECT ItemID, ItemType, OptionType, Durability FROM MotorcycleObject WHERE ItemID=%lu",
+     "INSERT INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, "
+     "Durability) Values (%d, %d, %d, '', %d, %d, %d, %d, '', %d)"},
+    // REDEEM_SPELLING_QUEST_ACTION — quest/ActionRedeemMotorcycle
+    {"SELECT ItemID, ItemType, OptionType, Durability FROM MotorcycleObject where ItemID = %u",
+     "INSERT IGNORE INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, OptionType, "
+     "Durability) Values (%d, %d, %d, '', %d, %d, %d, %d, '', %d)"},
+};
+
+const MotorcycleRedeemSpec& redeemSpec(MotorcycleRedeemSpelling spelling) {
+    if (spelling < 0 || spelling >= REDEEM_SPELLING_MAX) {
+        throw Error("ItemObjectRepository: unknown MotorcycleRedeemSpelling");
+    }
+    return kMotorcycleRedeemSpecs[spelling];
+}
+
 void requireObjectKind(GearTable table, GearObjectKind kind, const char* method) {
     if (spec(table).objectKind != kind) {
         throw Error(string("ItemObjectRepository: ") + method + " called for a table with another object shape");
@@ -4956,6 +4985,63 @@ public:
         END_DB(pStmt)
 
         return rows;
+    }
+
+    // The motorcycle-redeem statements (see the header). The probe's literal is
+    // the one all three call sites wrote — the DWORD through "%lu" as written.
+    bool motorcycleExists(ItemID_t itemID) {
+        bool exists = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT ItemID FROM MotorcycleObject WHERE ItemID=%lu", itemID);
+
+            exists = pResult->next();
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return exists;
+    }
+
+    bool loadMotorcycleForRedeem(MotorcycleRedeemSpelling spelling, ItemID_t itemID, MotorcycleRedeemRow& row) {
+        const MotorcycleRedeemSpec& s = redeemSpec(spelling);
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(s.read, itemID);
+
+            if (pResult->next()) {
+                found = true;
+                row.itemID = pResult->getInt(1);
+                row.itemType = pResult->getInt(2);
+                row.optionField = pResult->getString(3);
+                row.durability = pResult->getInt(4);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    void insertRedeemedMotorcycle(MotorcycleRedeemSpelling spelling, ItemID_t itemID, ObjectID_t objectID,
+                                  ItemType_t itemType, int storage, ZoneID_t zoneID, int x, int y,
+                                  Durability_t durability) {
+        const MotorcycleRedeemSpec& s = redeemSpec(spelling);
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery(s.insert, itemID, objectID, itemType, storage, zoneID, x, y, durability);
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
     }
 
     // CodeSheet (CODE_SHEET_OBJECT): the plain INSERT plus OptionType (nine columns),
