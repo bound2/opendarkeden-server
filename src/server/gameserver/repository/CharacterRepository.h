@@ -290,8 +290,13 @@ public:
     // throws its own Error), the int through getInt otherwise; and
     // "UPDATE Vampire SET RedistributeAttr = %d WHERE Name='%s'" with the
     // caller's count + 1 as the int it computed. The other Vampire-table
-    // SQL outside this seam: CreatureUtil.cpp's SEX and Active='INACTIVE'
-    // updates (the deletion purge), CGSayHandler's Level read, and the
+    // SQL in the tree, whole-tree grep: in OTHER seams, StashRepository's
+    // StashNum / StashGold updates and GoldRepository's race-table
+    // statements (the table name chosen at runtime, Vampire among them);
+    // loose in the gameserver, CreatureUtil.cpp's SEX and Active='INACTIVE'
+    // updates (the deletion purge, next to a commented-out DELETE) and
+    // CGSayHandler's Level read; commented out, Vampire::saveExps's old
+    // inline UPDATE block; unbuilt, Vampire_backup.cpp's five; and the
     // loginserver's and sharedserver's own statements — their own rounds.
     virtual bool loadVampireRedistributeAttr(const std::string& name, int& redistributeAttr) = 0;
     virtual void saveVampireRedistributeAttr(int redistributeAttr, const std::string& name) = 0;

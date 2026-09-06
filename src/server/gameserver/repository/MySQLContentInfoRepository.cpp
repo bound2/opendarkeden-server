@@ -347,6 +347,32 @@ public:
         END_DB(pStmt)
     }
 
+    // quest/TriggerManager::load(name) — the NPC's Triggers rows.
+    vector<NPCTriggerRow> loadNPCTriggers(const string& npcName) {
+        vector<NPCTriggerRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery(
+                "SELECT TriggerID, TriggerType, Conditions, Actions FROM Triggers WHERE NPC = '%s'", npcName.c_str());
+
+            while (pResult->next()) {
+                NPCTriggerRow row;
+                row.triggerID = pResult->getInt(1);
+                row.triggerType = pResult->getString(2);
+                row.conditions = pResult->getString(3);
+                row.actions = pResult->getString(4);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
 private:
     // The single MAX() row; false when the aggregate is NULL.
     static bool loadMax(const char* query, int& maxValue) {
@@ -427,32 +453,6 @@ private:
             row.taxingCastleZoneID = pResult->getInt(++i);
             rows.push_back(row);
         }
-    }
-
-    // quest/TriggerManager::load(name) — the NPC's Triggers rows.
-    vector<NPCTriggerRow> loadNPCTriggers(const string& npcName) {
-        vector<NPCTriggerRow> rows;
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery(
-                "SELECT TriggerID, TriggerType, Conditions, Actions FROM Triggers WHERE NPC = '%s'", npcName.c_str());
-
-            while (pResult->next()) {
-                NPCTriggerRow row;
-                row.triggerID = pResult->getInt(1);
-                row.triggerType = pResult->getString(2);
-                row.conditions = pResult->getString(3);
-                row.actions = pResult->getString(4);
-                rows.push_back(row);
-            }
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-
-        return rows;
     }
 };
 

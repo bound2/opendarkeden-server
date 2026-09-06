@@ -16,8 +16,9 @@
 // g_pDatabaseManager->getConnection((int)(long)Thread::self()) — the
 // int overload, not the string one every other gameserver statement
 // uses. That overload keys on WorldID, not thread id (DatabaseManager.h
-// says so in its note: "the main DB server's world id is 0 by
-// convention"); the gameserver never fills m_WorldConnections, so the
+// says so in its note — in Korean; translated, "the main DB server's
+// world id is agreed to be 0, and queries to it pass 0"); the gameserver
+// never fills m_WorldConnections, so the
 // lookup falls through to m_pWorldDefaultConnection — the connection
 // init() opened from the WorldDBInfo row with WorldID = 0. In the
 // shipped seeds that row points at the same DARKEDEN schema, but it is

@@ -2145,10 +2145,18 @@ TEST_F(ZoneInfoMySQL, TriggersRegenRectsAndWayPointsAreScopedToTheZoneAndRace) {
     EXPECT_EQ(4, triggers[0].bottom);
 
     // quest/TriggerManager's follow-up read of one rectangle's scripts: the
-    // five columns, scoped to the zone AND all four coordinates (the other
-    // zone's 9,9,9,9 row and a same-zone row at another rectangle stay out).
+    // five columns, scoped to the zone AND all four coordinates — a
+    // same-zone row differing in exactly one coordinate is seeded for each
+    // of X1, Y1, X2 and Y2, so dropping any one clause would return two rows
+    // (and the other zone's 9,9,9,9 row stays out).
     execSQL("INSERT INTO ZoneTriggers (TriggerID, TriggerType, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, "
             "CounterActions) VALUES (31002, 'MONSTER', 31000, 1, 2, 3, 5, ' c2 ', 'a2', 'ca2')");
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, TriggerType, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, "
+            "CounterActions) VALUES (31003, 'MONSTER', 31000, 0, 2, 3, 4, '', '', '')");
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, TriggerType, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, "
+            "CounterActions) VALUES (31004, 'MONSTER', 31000, 1, 0, 3, 4, '', '', '')");
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, TriggerType, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, "
+            "CounterActions) VALUES (31005, 'MONSTER', 31000, 1, 2, 0, 4, '', '', '')");
     std::vector<ZoneTriggerRow> scripts = defaultZoneInfoRepository().loadZoneTriggers(IT_ZONE, 1, 2, 3, 4);
     ASSERT_EQ(1u, scripts.size());
     EXPECT_EQ(31000, scripts[0].triggerID);

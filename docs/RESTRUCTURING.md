@@ -845,7 +845,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > - DWORD fields through `%lu`/`%ld` (exp saves, item ids, Key.Target)
   >   work only by GCC codegen; preserved bit-for-bit. **Under the pinned
   >   Zig/Clang 21 toolchain they do not work (found 2026-09-06):** the
-  >   integration tier on unmodified master fails 11 of 169 tests
+  >   integration tier on unmodified master fails 11 of its 169 tests
   >   (`CharacterMySQL.SlayerExpsTailLandsInFull` and ten `ItemObjectMySQL`
   >   round-trips) because a 32-bit argument read through a 64-bit
   >   conversion takes whatever the upper half of the register holds — a
