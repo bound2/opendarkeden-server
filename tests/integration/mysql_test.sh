@@ -18,11 +18,13 @@
 # Run from the repository root: bash tests/integration/mysql_test.sh
 # (or `make integration-test`). Needs docker and the darkeden-dev image,
 # like tools/devbuild.sh itself. DEVBUILD_WORK_VOLUME is honored the same
-# way — worktrees keep their own volume.
+# way — worktrees keep their own volume. DEVBUILD_IT_NET and DEVBUILD_IT_DB
+# name the private network and the MySQL container, so two checkouts can
+# run the tier at the same time without tearing each other's fixture down.
 set -euo pipefail
 
-NET=darkeden-it-net
-DB=darkeden-it-mysql
+NET=${DEVBUILD_IT_NET:-darkeden-it-net}
+DB=${DEVBUILD_IT_DB:-darkeden-it-mysql}
 MYSQL_IMAGE=mysql/mysql-server:5.7
 DEV_IMAGE=darkeden-dev
 WORK_VOLUME=${DEVBUILD_WORK_VOLUME:-darkeden-work}
