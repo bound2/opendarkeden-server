@@ -22,7 +22,8 @@
 //
 // The character NAME is interpolated raw into every statement (Name /
 // OwnerID / the CoupleInfo partner columns). The loginserver has its own
-// per-character purges (CLDeletePCHandler.cpp, ItemDestroyer.cpp).
+// per-character purge (LoginCharacterPurgeRepository), which covers six
+// more object tables and MofusPowerPoint.
 class CharacterPurgeRepository {
 public:
     virtual ~CharacterPurgeRepository() {}

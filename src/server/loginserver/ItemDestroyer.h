@@ -11,7 +11,6 @@
 // include files
 #include "Exception.h"
 #include "Types.h"
-#include "database/DB.h"
 
 class ItemDestroyer {
 public:
