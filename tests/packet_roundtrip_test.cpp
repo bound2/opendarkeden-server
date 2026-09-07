@@ -250,3 +250,34 @@ TEST(PacketFramingTest, sequenceIncrementsPerPacket) {
 }
 
 } // namespace
+
+#include "GCSkillInfo.h"
+#include "OustersSkillInfo.h"
+
+TEST(GCSkillInfoTest, oustersLevelIsIncludedInFrameSize) {
+    for (int count : {0, 1, 2, 120}) {
+        GCSkillInfo packet;
+        packet.setPCType(PC_OUSTERS);
+        auto* skills = new OustersSkillInfo();
+        skills->setListNum(count);
+        for (int i = 0; i < count; ++i) {
+            auto* skill = new SubOustersSkillInfo();
+            skill->setSkillType(246 + i);
+            skill->setExpLevel(1);
+            skill->setSkillTurn(5);
+            skill->setCastingTime(3);
+            skills->addListElement(skill);
+        }
+        packet.addListElement(skills);
+        const auto body = writeBody(packet, 0);
+        const auto frame = writeFramed(packet, 0);
+        const unsigned expectedSize = 4 + 12 * count;
+        ASSERT_EQ(expectedSize, body.size());
+        EXPECT_EQ(expectedSize, packet.getPacketSize());
+        ASSERT_EQ(expectedSize + 7, frame.size());
+        const unsigned declaredSize = frame[2] | (frame[3] << 8) | (frame[4] << 16) | (frame[5] << 24);
+        EXPECT_EQ(expectedSize, declaredSize);
+        EXPECT_EQ(12u, SubOustersSkillInfo::getMaxSize());
+        EXPECT_GE(OustersSkillInfo::getMaxSize(), skills->getSize());
+    }
+}
