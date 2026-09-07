@@ -142,7 +142,8 @@ boundary — cross-runtime `type_info` matching is exactly where libc++abi and
 libsupc++ mixing goes wrong, and it fails by silently falling through to
 `catch (...)` rather than by crashing. With xerces gone, every remaining
 external dependency (libmysqlclient, lua, zlib) exposes a C API and carries no
-C++ ABI. **Re-introducing a C++-API dependency reopens this.**
+C++ ABI, and so does the vendored argon2 (`third_party/argon2`, compiled as C
+by the same Zig driver). **Re-introducing a C++-API dependency reopens this.**
 
 ### What it buys
 

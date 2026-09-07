@@ -21,7 +21,8 @@
 # Prerequisite: this project must have no C++-API external dependency, since
 # `zig c++` links libc++ rather than libstdc++. That became true when
 # xerces-c was replaced by the vendored tinyxml2; libmysqlclient, lua and
-# zlib are all C APIs and carry no C++ ABI.
+# zlib are all C APIs and carry no C++ ABI, as does the vendored argon2
+# (compiled as C, so the project enables both languages).
 # ============================================================================
 
 set(CMAKE_SYSTEM_NAME Linux)

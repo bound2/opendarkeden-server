@@ -7,20 +7,24 @@
 #include "CLRegisterPlayer.h"
 
 #ifdef __LOGIN_SERVER__
+#include <exception>
+
 #include "Assert1.h"
 #include "DB.h"
 #include "GameServerGroupInfoManager.h"
 #include "LCRegisterPlayerError.h"
 #include "LCRegisterPlayerOK.h"
 #include "LoginPlayer.h"
+#include "PasswordHash.h"
 #include "Properties.h"
 #endif
 
 #ifdef __LOGIN_SERVER__
 namespace {
 
-// Every string in the registration packet is interpolated into SQL text
-// verbatim, so anything that could break out of a quoted literal is refused.
+// Every string in the registration packet except the password (only its
+// argon2 hash reaches SQL) is interpolated into SQL text verbatim, so
+// anything that could break out of a quoted literal is refused.
 bool containsSqlMetaCharacter(const string& s) {
     return s.find_first_of("'\\\";") != string::npos;
 }
@@ -84,11 +88,6 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
             throw string("Password field is empty");
         }
 
-        if (containsSqlMetaCharacter(pPacket->getPassword())) {
-            lcRegisterPlayerError.setErrorID(ETC_ERROR);
-            throw string("Invalid Password");
-        }
-
         if (pPacket->getPassword().size() < 6) {
             lcRegisterPlayerError.setErrorID(SMALL_PASSWORD_LENGTH);
             throw string("too small password length");
@@ -128,6 +127,20 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
     // Insert into the database.
     //----------------------------------------------------------------------
 
+    //----------------------------------------------------------------------
+    // Hash the password before touching the database. Only the hash is
+    // stored; CLLoginHandler verifies logins against it in C++.
+    //----------------------------------------------------------------------
+    string hashedPassword;
+    try {
+        hashedPassword = de::password::hash(pPacket->getPassword());
+    } catch (const std::exception& e) {
+        lcRegisterPlayerError.setErrorID(ETC_ERROR);
+        pLoginPlayer->sendPacket(&lcRegisterPlayerError);
+        filelog("loginfail.txt", "Password hashing failed, PlayerID : %s : %s", pPacket->getID().c_str(), e.what());
+        throw DisconnectException("password hashing failed");
+    }
+
     Statement* pStmt = NULL;
     Result* pResult = NULL;
 
@@ -152,24 +165,16 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
 
         //--------------------------------------------------------------------------------
         // Insert the new player row.
-        //
-        // The password must be stored the way CLLoginHandler compares it:
-        // OLD_PASSWORD() when DB_VERSION starts with '4', otherwise plain text
-        // (the Password column is varchar(16), which cannot hold a PASSWORD()
-        // hash anyway).
         //--------------------------------------------------------------------------------
-        const bool bOldPasswordHash = g_pConfig->hasKey("DB_VERSION") && g_pConfig->getProperty("DB_VERSION")[0] == '4';
-
         pResult = pStmt->executeQuery(
             "INSERT INTO Player (PlayerID , Password , Name , Sex , SSN , Telephone , Cellular , Zipcode , Address , "
-            "Nation , Email , Homepage , Profile , Pub) VALUES ('%s' , %s('%s') , '%s' , '%s' , '%s' , '%s' , "
+            "Nation , Email , Homepage , Profile , Pub) VALUES ('%s' , '%s' , '%s' , '%s' , '%s' , '%s' , "
             "'%s' , '%s' , '%s' , %d , '%s' , '%s' , '%s' , '%s')",
-            pPacket->getID().c_str(), bOldPasswordHash ? "OLD_PASSWORD" : "", pPacket->getPassword().c_str(),
-            pPacket->getName().c_str(), Sex2String[pPacket->getSex()].c_str(), pPacket->getSSN().c_str(),
-            pPacket->getTelephone().c_str(), pPacket->getCellular().c_str(), pPacket->getZipCode().c_str(),
-            pPacket->getAddress().c_str(), (int)pPacket->getNation(), pPacket->getEmail().c_str(),
-            pPacket->getHomepage().c_str(), pPacket->getProfile().c_str(),
-            (pPacket->getPublic() == true) ? "PUBLIC" : "PRIVATE");
+            pPacket->getID().c_str(), hashedPassword.c_str(), pPacket->getName().c_str(),
+            Sex2String[pPacket->getSex()].c_str(), pPacket->getSSN().c_str(), pPacket->getTelephone().c_str(),
+            pPacket->getCellular().c_str(), pPacket->getZipCode().c_str(), pPacket->getAddress().c_str(),
+            (int)pPacket->getNation(), pPacket->getEmail().c_str(), pPacket->getHomepage().c_str(),
+            pPacket->getProfile().c_str(), (pPacket->getPublic() == true) ? "PUBLIC" : "PRIVATE");
 
         // After successful insert, send LCRegisterPlayerOK to the client.
         Assert(pResult == NULL);

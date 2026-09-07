@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(DarkEden VERSION 1.0 LANGUAGES CXX)
+project(DarkEden VERSION 1.0 LANGUAGES C CXX)
 
 # ============================================================================
 # 全局设置
@@ -159,6 +159,25 @@ endif()
 add_library(tinyxml2 STATIC third_party/tinyxml2/tinyxml2.cpp)
 target_include_directories(tinyxml2 PUBLIC third_party/tinyxml2)
 set_target_properties(tinyxml2 PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+# Password hashing: vendored argon2 reference implementation
+# (third_party/argon2, pinned at 20190702, C API). ref.c is the portable
+# fill; the SSE build (opt.c) is deliberately not vendored so one source set
+# serves every Zig target. Always optimized: a Debug loginserver would
+# otherwise spend seconds per login in an -O0 memory-hard function, and
+# there is nothing to debug in the library itself.
+add_library(argon2 STATIC
+    third_party/argon2/src/argon2.c
+    third_party/argon2/src/core.c
+    third_party/argon2/src/encoding.c
+    third_party/argon2/src/ref.c
+    third_party/argon2/src/thread.c
+    third_party/argon2/src/blake2/blake2b.c
+)
+target_include_directories(argon2 PUBLIC third_party/argon2/include)
+target_compile_options(argon2 PRIVATE -O2)
+target_link_libraries(argon2 PUBLIC Threads::Threads)
+set_target_properties(argon2 PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # ============================================================================
 # 包含目录（全局）

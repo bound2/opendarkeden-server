@@ -106,6 +106,36 @@ use DARKEDEN;
 update GameServerInfo set IP = '192.168.0.16';
 ```
 
+### Accounts and passwords
+
+`initdb/DARKEDEN.sql` ships two development accounts, each with characters:
+
+| Account  | Password |
+|----------|----------|
+| `111111` | `111111` |
+| `222222` | `222222` |
+
+Passwords are stored as argon2id hashes in `Player.Password` (the
+loginserver's `PasswordHash` module, over the vendored `third_party/argon2`),
+never in plain text. Registering from the client creates a hashed account.
+To set or reset a password by hand, hash it with `bin/hashpw` (the password
+is read from stdin so it stays out of shell history) and store the result:
+
+```sh
+docker exec -i odk-server ./hashpw <<< 'new-password'
+```
+
+```SQL
+UPDATE DARKEDEN.Player SET Password = '$argon2id$v=19$...' WHERE PlayerID = 'someone';
+```
+
+An existing database needs the column widened once
+(`initdb/migrations/001-argon2-password-column.sql`). Its rows can keep
+their old plaintext value: the loginserver still accepts it and rewrites the
+row as a hash on that account's next successful login, so nobody is locked
+out. `bin/hashpw --verify '<stored value>'` checks a password against a
+stored value.
+
 ### Pack pre-built binaries into an image
 
 `Dockerfile.pub` packages an already-compiled `bin/` directory instead of

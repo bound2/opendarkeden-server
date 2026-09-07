@@ -84,8 +84,9 @@ the container, the Windows mount costs ~160x on `stat` and ~145x on reads
 versus the container's own filesystem, and since every translation unit opens
 dozens of headers the build becomes I/O bound: a full build took ~20 minutes
 at ~20% CPU on 8 cores. `tools/devbuild.sh` syncs the build *inputs*
-(`cmake/`, `src/`, `tests/`, `third_party/`, `data/`, `docker/start.sh` and
-the top-level CMake/Makefile — ~37 MB) into a container volume, builds there
+(`cmake/`, `src/`, `tests/`, `third_party/`, `data/`, `initdb/`,
+`docker/start.sh` and the top-level CMake/Makefile — ~41 MB) into a
+container volume, builds there
 with Ninja and ccache, and copies only generated test data back. Same build: **~3.5 minutes at ~95% CPU**, and a no-op rebuild in
 seconds instead of minutes.
 
@@ -123,6 +124,11 @@ root.
   config, which defines __GAME_CLIENT__=1.)
 - `docs/RESTRUCTURING.md` is the living restructuring plan; update task
   `> **Status:**` lines in the same commit as the work.
+- `tests/password_hash_test.cpp` pins the loginserver's argon2id password
+  hashing (`src/server/loginserver/PasswordHash.cpp`) against upstream
+  argon2's own vectors, and reads `initdb/DARKEDEN.sql` to check that every
+  seed `Player` row ships a current hash of its documented password. A new
+  seed account must be added to the test's map with its password.
 
 ## Project Architecture
 
@@ -240,6 +246,11 @@ Databases:
 - `DARKEDEN` - Main game database
 - `USERINFO` - User account database
 
+Account passwords live in `Player.Password` as argon2id hashes. A database
+created before that change needs `initdb/migrations/001-argon2-password-column.sql`
+run once; its plaintext rows are rehashed by the loginserver on each
+account's next login. `bin/hashpw` hashes a password for a manual `UPDATE`.
+
 Load schema with (`initdb/a-setup.sql` creates both databases and the
 `elcastle` user; the docker compose setup applies all three automatically):
 ```bash
@@ -259,6 +270,8 @@ re-introducing a C++-API dependency is a problem under the Zig toolchain):
 
 XML parsing uses the vendored **tinyxml2** (10.0.0) in `third_party/tinyxml2`,
 wrapped by `SXml` in Core; xerces-c is no longer needed (`docs/TOOLCHAIN.md` §1).
+Password hashing uses the vendored **argon2** reference implementation
+(20190702, C API) in `third_party/argon2`; nothing to install for it.
 
 Install on Ubuntu/Debian:
 ```bash
