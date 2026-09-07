@@ -34,6 +34,7 @@
 #include "CGSay.h"
 #include "CGWhisper.h"
 #include "GCMoveOK.h"
+#include "GCShopList.h"
 #include "TestStreams.h"
 
 using wiretest::expectGolden;
@@ -279,5 +280,52 @@ TEST(GCSkillInfoTest, oustersLevelIsIncludedInFrameSize) {
         EXPECT_EQ(expectedSize, declaredSize);
         EXPECT_EQ(12u, SubOustersSkillInfo::getMaxSize());
         EXPECT_GE(OustersSkillInfo::getMaxSize(), skills->getSize());
+    }
+}
+
+TEST(GCShopListTest, shopTypeIsIncludedInFrameSize) {
+    // Beginner-zone Dennis sends a full rack with one option per item.
+    // Populate wire fields directly: live Item objects belong to gameserver.
+    for (BYTE count : {0, 1, SHOP_RACK_INDEX_MAX}) {
+        for (BYTE shopType : {0, 1}) {
+            Loopback fixture;
+            fixture.setCodes(0);
+            auto& out = fixture.out();
+            out.write(ObjectID_t(10194));
+            out.write(ShopVersion_t(100));
+            out.write(ShopRackType_t(1));
+            out.write(count);
+            for (BYTE i = 0; i < count; ++i) {
+                out.write(i);
+                out.write(ObjectID_t(10204 + i));
+                out.write(BYTE(11));
+                out.write(ItemType_t(0));
+                out.write(BYTE(1));
+                out.write(OptionType_t(0));
+                out.write(Durability_t(1500));
+                out.write(Silver_t(0));
+                out.write(Grade_t(4));
+                out.write(EnchantLevel_t(0));
+            }
+            out.write(MarketCond_t(25));
+            out.write(MarketCond_t(100));
+            out.write(shopType);
+            const unsigned expectedSize = 15 + 21 * count;
+            ASSERT_EQ(expectedSize, out.length());
+            fixture.pump(expectedSize);
+            GCShopList packet;
+            packet.read(fixture.in());
+            ASSERT_EQ(0u, fixture.in().length());
+            EXPECT_EQ(shopType, packet.getNPCShopType());
+
+            const auto body = writeBody(packet, 0);
+            const auto frame = writeFramed(packet, 0);
+            ASSERT_EQ(expectedSize, body.size());
+            EXPECT_EQ(expectedSize, packet.getPacketSize());
+            ASSERT_EQ(expectedSize + 7, frame.size());
+            const unsigned declaredSize = frame[2] | (frame[3] << 8) | (frame[4] << 16) | (frame[5] << 24);
+            EXPECT_EQ(expectedSize, declaredSize);
+            EXPECT_EQ(shopType, frame.back());
+        }
     }
 }

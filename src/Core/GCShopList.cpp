@@ -169,6 +169,7 @@ PacketSize_t GCShopList::getPacketSize() const
     }
 
     size += szMarketCond + szMarketCond;
+    size += szBYTE; // shop type, written after the market conditions
 
     return size;
 }
