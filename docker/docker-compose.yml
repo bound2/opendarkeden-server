@@ -22,7 +22,7 @@ services:
     environment:
         MYSQL_ROOT_PASSWORD: 123456
     restart: on-failure
-    command: mysqld --sql_mode="ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION"
+    command: mysqld --sql_mode="ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION" --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     healthcheck:
       # The entrypoint only listens on TCP once the initdb scripts are done,
       # so this also tells us the DARKEDEN/USERINFO dumps have been imported.

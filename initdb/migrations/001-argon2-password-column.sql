@@ -1,0 +1,12 @@
+-- Widen Player.Password so it can hold an argon2id encoded hash (97
+-- characters with the loginserver's parameters). A fresh install gets this
+-- from initdb/DARKEDEN.sql; run this once against an existing DARKEDEN
+-- database:
+--
+--   mysql -h 127.0.0.1 -u elcastle -D DARKEDEN -p < initdb/migrations/001-argon2-password-column.sql
+--
+-- Existing rows keep their plaintext value. The loginserver still accepts
+-- it and rewrites the row as an argon2id hash on that account's next
+-- successful login, so no account is locked out and no plaintext survives
+-- past one login. bin/hashpw prints a hash for setting a password by hand.
+ALTER TABLE `Player` MODIFY `Password` varchar(255) NOT NULL DEFAULT '';

@@ -40,6 +40,17 @@ set(LOGINSERVER_SOURCES
     ReconnectLoginInfoManager.cpp
 )
 
+# Argon2id hashing and verification of account passwords; shared by the
+# loginserver, the hashpw tool and tests/password_hash_test.cpp.
+add_library(PasswordHash STATIC PasswordHash.cpp)
+target_include_directories(PasswordHash PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(PasswordHash PUBLIC argon2)
+
+# Operator tool: prints the argon2id hash of a password read from stdin for
+# the Player.Password column, or checks a password against a stored value.
+add_executable(hashpw tools/hashpw.cpp)
+target_link_libraries(hashpw PRIVATE PasswordHash)
+
 add_executable(loginserver ${LOGINSERVER_SOURCES})
 
 # 编译定义
@@ -74,6 +85,7 @@ target_link_libraries(loginserver PRIVATE
     # The wire archive itself (task 2.4) — also reached transitively through
     # Core/LoginServerPackets, named here so the layering is visible.
     de-kernel
+    PasswordHash
     ${MYSQL_LIBRARY}
     Threads::Threads
     ${EXTRA_LIBS}

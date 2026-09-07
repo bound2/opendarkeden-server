@@ -169,6 +169,17 @@ void Connection::connect()
         throw SQLConnectException(mysql_error(&m_Mysql));
     }
 
+    // Pin the session to the tables' character set. Left to the handshake,
+    // the 8.0 client library asks for a collation MySQL 5.7 does not know and
+    // the server silently drops the session to latin1, after which text is
+    // passed through as raw bytes rather than transcoded.
+    if (mysql_set_character_set(&m_Mysql, "utf8mb4") != 0) {
+        const string error = mysql_error(&m_Mysql);
+        mysql_close(&m_Mysql);
+        m_bConnected = false;
+        throw SQLConnectException(error);
+    }
+
     __END_CATCH
 }
 

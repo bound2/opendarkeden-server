@@ -28,5 +28,9 @@ tests/arch/*.pl text eol=lf
 # the container.
 tests/tools/*.pl text eol=lf
 tools/*.sh text eol=lf
+tools/*.pl text eol=lf
+# The dumps are imported by the MySQL containers and checked by the ratchet
+# script inside the dev container; keep them LF like the other inputs above.
+initdb/*.sql text eol=lf
 cmake/zig-* text eol=lf
 Dockerfile.pub.dockerignore text eol=lf

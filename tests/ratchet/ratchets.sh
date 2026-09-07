@@ -106,6 +106,23 @@ else
     fi
 fi
 
+# --- Every dump table is InnoDB in utf8mb4 --------------------------------
+# The servers pin their session to utf8mb4 (database/Connection.cpp); a table
+# in another character set would silently transcode or truncate what they
+# store. The dumps must create both databases and all tables that way. The
+# trailing [[:space:]]* tolerates the CR of a CRLF checkout synced into the
+# container (grep's ERE has no \r escape).
+if grep -nE '^\) ENGINE=' initdb/*.sql |
+    grep -vE 'ENGINE=InnoDB( AUTO_INCREMENT=[0-9]+)? DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;[[:space:]]*$'; then
+    echo "[FAIL] a dump table is not InnoDB + utf8mb4 + utf8mb4_unicode_ci (see above)"
+    fail=1
+elif grep -nE 'latin1|CHARSET=utf8;|SET NAMES utf8 |character_set_client = utf8 ' initdb/*.sql; then
+    echo "[FAIL] a dump still names latin1 or three-byte utf8 (see above)"
+    fail=1
+else
+    echo "[OK]   every dump table is InnoDB + utf8mb4_unicode_ci"
+fi
+
 # --- Generated factory list is fresh ---------------------------------------
 # The generator only writes to $OUT, so point it at a scratch copy of the
 # tree's file rather than overwriting the tracked one: an interrupt (Ctrl-C,

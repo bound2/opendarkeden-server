@@ -300,6 +300,22 @@ add_dependencies(wire_tests database_timeout_tests)
 add_test(NAME database_timeout_tests COMMAND database_timeout_tests)
 set_tests_properties(database_timeout_tests PROPERTIES TIMEOUT 20)
 
+# Account password hashing (src/server/loginserver/PasswordHash.cpp) over the
+# vendored argon2 (third_party/argon2). Upstream's own known-answer vectors
+# pin the vendored library; the seed-account case reads initdb/DARKEDEN.sql
+# (tools/devbuild.sh syncs initdb/ for it) and pins the shipped hashes.
+add_executable(password_hash_tests EXCLUDE_FROM_ALL
+    password_hash_test.cpp
+)
+target_compile_definitions(password_hash_tests PRIVATE
+    PASSWORD_TEST_INITDB_DIR="${CMAKE_SOURCE_DIR}/initdb"
+)
+target_link_libraries(password_hash_tests PRIVATE PasswordHash gtest_main Threads::Threads)
+add_dependencies(wire_tests password_hash_tests)
+add_test(NAME password_hash_tests COMMAND password_hash_tests)
+# A dozen 64 MiB argon2id computations; generous for a loaded CI runner.
+set_tests_properties(password_hash_tests PROPERTIES TIMEOUT 120)
+
 add_test(
     NAME ratchets
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/ratchet/ratchets.sh

@@ -70,6 +70,8 @@
 #ifdef __LOGIN_SERVER__
 #include <time.h>
 
+#include <exception>
+
 #include <sys/time.h>
 
 #include "Assert1.h"
@@ -80,6 +82,7 @@
 #include "LCLoginError.h"
 #include "LCLoginOK.h"
 #include "LoginPlayer.h"
+#include "PasswordHash.h"
 #include "Properties.h"
 #include "UserInfoManager.h"
 #include "gameserver/billing/BillingPlayerManager.h"
@@ -94,6 +97,49 @@ bool isAdultByBirthday(const string& birthday);
 void addLoginPlayerData(const string& ID, const string& ip, const string& SSN, const string& zipcode);
 
 bool isBlockIP(const string& ip);
+
+#ifdef __LOGIN_SERVER__
+namespace {
+
+// Rewrites the account's stored password as a fresh argon2id hash. A failure
+// is logged and otherwise ignored: the password was already accepted against
+// the stored value, and the next login retries.
+void storePasswordHash(Statement* pStmt, const string& ID, const string& password) {
+    try {
+        const string hashed = de::password::hash(password);
+        pStmt->executeQuery("UPDATE Player SET Password = '%s' WHERE PlayerID = '%s'", hashed.c_str(), ID.c_str());
+    } catch (const std::exception& e) {
+        filelog("loginfail.txt", "Password rehash failed, PlayerID : %s : %s", ID.c_str(), e.what());
+    }
+}
+
+// A hash of a throwaway string under the current parameters. It is verified
+// in place of a missing row so that an unknown account costs the same time
+// as a wrong password and the two cannot be told apart by reply latency.
+constexpr const char* kDecoyHash =
+    "$argon2id$v=19$m=65536,t=3,p=1$lCuWLGlkLo6TwTznmqikVg$73WRQ/vIrr1aYRbsplMBD4KT9aNOiTeTJr3EjQRIVS8";
+
+// Checks the password against the Player row. Returns false for an unknown
+// account as well as a wrong password, so the caller answers both alike. A
+// legacy plaintext row, or a hash under older parameters, is rewritten as a
+// current hash on success.
+bool checkStoredPassword(Statement* pStmt, const string& ID, const string& password) {
+    Result* pResult = pStmt->executeQuery("SELECT Password FROM Player WHERE PlayerID = '%s'", ID.c_str());
+    if (!pResult->next()) {
+        de::password::verify(kDecoyHash, password);
+        return false;
+    }
+
+    const de::password::Verify verdict = de::password::verify(pResult->getString(1), password);
+    if (verdict == de::password::Verify::Rejected)
+        return false;
+    if (verdict == de::password::Verify::AcceptedRehash)
+        storePasswordHash(pStmt, ID, password);
+    return true;
+}
+
+} // namespace
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -241,9 +287,8 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
         ////////////////////////////////////////////////////////////
         bool bError = false;
 
+        // Only the ID reaches SQL text; the password is verified in C++.
         if (ID.find_first_of("'\\", 0) < ID.size())
-            bError = true;
-        if (PASSWORD.find_first_of("'\\", 0) < PASSWORD.size())
             bError = true;
 
         if (bError) {
@@ -259,6 +304,7 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
 
         pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
         Result* pResult = NULL;
+        bool bPasswordOK = true;
 
         // BINARY를 붙이면. 대소문자 구분을 하게 된다.
         // 지금까지는 대소문자 관계없이 login할 수 있었는데..
@@ -278,27 +324,19 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
                 "PayPlayFlag, FamilyPayPlayDate FROM Player WHERE PlayerID = '%s'",
                 ID.c_str());
         } else {
-            if (g_pConfig->hasKey("DB_VERSION") && g_pConfig->getProperty("DB_VERSION")[0] == '4') {
-                pResult =
-                    pStmt->executeQuery("SELECT PlayerID, SSN, CurrentServerGroupID, LogOn, Access, ZipCode, LoginIP, "
-                                        "PayType, PayPlayDate, PayPlayHours, PayPlayFlag, FamilyPayPlayDate FROM "
-                                        "Player WHERE PlayerID = '%s' AND Password = OLD_PASSWORD('%s')",
-                                        ID.c_str(), PASSWORD.c_str());
-            } else {
-                pResult = pStmt->executeQuery(
-                    //				"SELECT PlayerID, SSN, CurrentServerGroupID, LogOn, Access, ZipCode, LoginIP,
-                    // MacAddress,PayType, PayPlayDate, PayPlayHours, PayPlayFlag, FamilyPayPlayDate FROM Player WHERE
-                    // PlayerID = '%s' AND Password = PASSWORD('%s')",
-                    "SELECT PlayerID, SSN, CurrentServerGroupID, LogOn, Access, ZipCode, LoginIP, PayType, "
-                    "PayPlayDate, PayPlayHours, PayPlayFlag, FamilyPayPlayDate FROM Player WHERE PlayerID = '%s' AND "
-                    "Password = '%s'",
-                    ID.c_str(), PASSWORD.c_str());
-            }
+            // The stored value is an argon2 hash (or, for rows written before
+            // hashing, the plaintext), so it is checked in C++ rather than in
+            // the WHERE clause.
+            bPasswordOK = checkStoredPassword(pStmt, ID, PASSWORD);
+
+            pResult = pStmt->executeQuery("SELECT PlayerID, SSN, CurrentServerGroupID, LogOn, Access, ZipCode, "
+                                          "LoginIP, PayType, PayPlayDate, PayPlayHours, PayPlayFlag, "
+                                          "FamilyPayPlayDate FROM Player WHERE PlayerID = '%s'",
+                                          ID.c_str());
         }
 
-        // by sigi. 2002.10.30
-        // Player가 없다 : 없고 넷마블이 아닌 경우
-        bool bNoPlayer = ((pResult->getRowCount() == 0) && !bFreePass);
+        // An unknown ID and a wrong password get the same answer.
+        bool bNoPlayer = ((pResult->getRowCount() == 0 || !bPasswordOK) && !bFreePass);
 
         // 쿼리 결과 ROW 의 개수가 0 이라는 뜻은
         // invalid ID or Password 라는 뜻이다.
@@ -979,15 +1017,14 @@ bool CLLoginHandler::checkFreePass(CLLogin* pPacket, Player* pPlayer)
                 pStmt->executeQuery("SELECT Password FROM Player WHERE PlayerID = '%s'", pPacket->getID().c_str());
 
             if (pResult->next()) {
-                string password = pResult->getString(1);
+                const de::password::Verify verdict =
+                    de::password::verify(pResult->getString(1), pPacket->getPassword());
 
-                if (password == pPacket->getPassword()) {
-                    // cout << "password OK" << endl;
+                if (verdict != de::password::Verify::Rejected) {
+                    if (verdict == de::password::Verify::AcceptedRehash)
+                        storePasswordHash(pStmt, pPacket->getID(), pPacket->getPassword());
                     SAFE_DELETE(pStmt);
                     return true;
-                } else {
-                    // By tiancaiamao: for debug, comment it!!!
-                    cout << "password wrong: " << password << " != " << pPacket->getPassword().c_str() << endl;
                 }
             } else {
                 // cout << "ID wrong: " << pPacket->getID().c_str() << endl;
@@ -999,17 +1036,27 @@ bool CLLoginHandler::checkFreePass(CLLogin* pPacket, Player* pPlayer)
                 // SpecialEventCount 칼럼은 2로 세팅해준다. 즉, 이벤트 아이템을 이미준걸로 생각
                 // 예약가입 한 넘들 한테만 아이템 준다.
                 // 2003.04.30 by bezz, DEW
+                string hashed;
+                try {
+                    hashed = de::password::hash(pPacket->getPassword());
+                } catch (const std::exception& e) {
+                    filelog("loginfail.txt", "Password hashing failed, PlayerID : %s : %s", pPacket->getID().c_str(),
+                            e.what());
+                    SAFE_DELETE(pStmt);
+                    return false;
+                }
+
                 pStmt->executeQuery(
                     "INSERT IGNORE INTO Player (PlayerID, Password, Name, SSN, SpecialEventCount, Event, "
                     "creation_date) Values ('%s', '%s', '%s', '123456-1122339', 2, 0, CURDATE())",
-                    pPacket->getID().c_str(), pPacket->getPassword().c_str(), pPacket->getID().c_str());
+                    pPacket->getID().c_str(), hashed.c_str(), pPacket->getID().c_str());
 
                 // string  connectIP  = pPlayer->getSocket()->getHost();
                 //  LoginPlayerData 에 IP 정보를 남기므로 필요없다. by bezz 2003.04.21
                 // pStmt->executeQuery("INSERT IGNORE INTO PlayerIPList (PlayerID) Values('%s')",
                 //						pPacket->getID().c_str());
 
-
+                SAFE_DELETE(pStmt);
                 return true;
             }
 
