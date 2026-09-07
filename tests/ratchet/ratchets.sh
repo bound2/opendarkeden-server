@@ -54,7 +54,7 @@ check_ratchet R2 "gameserver-root files with inline SQL" 8 "$R2"
 # only a directory is excluded.)
 R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' |
     grep -v '/repository/' | wc -l)
-check_ratchet R3 "files with inline SQL outside database/, repository/" 53 "$R3"
+check_ratchet R3 "files with inline SQL outside database/, repository/" 51 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------
 R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)
