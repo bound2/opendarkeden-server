@@ -6,7 +6,7 @@
 
 #include "ResurrectLocationManager.h"
 
-#include "DB.h"
+#include "repository/SharedConfigRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // global variable
@@ -40,39 +40,29 @@ void ResurrectLocationManager::init() {
 void ResurrectLocationManager::load() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<SharedResurrectLocationRow> rows = defaultSharedConfigRepository().loadResurrectLocations();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT ZoneID, SResurrectZoneID, SResurrectX, SResurrectY, VResurrectZoneID, "
-                                      "VResurrectX, VResurrectY FROM ZoneInfo");
-
-        if (pResult->getRowCount() == 0) {
-            cerr << "ResurrectLocationManager::load() : TABLE DOES NOT EXIST!" << endl;
-            throw "ResurrectLocationManager::load() : TABLE DOES NOT EXIST!";
-        }
-
-        while (pResult->next()) {
-            ZoneID_t ID = 0;
-            ZONE_COORD slayer_coord;
-            ZONE_COORD vampire_coord;
-
-            ID = pResult->getInt(1);
-            slayer_coord.id = pResult->getInt(2);
-            slayer_coord.x = pResult->getInt(3);
-            slayer_coord.y = pResult->getInt(4);
-            vampire_coord.id = pResult->getInt(5);
-            vampire_coord.x = pResult->getInt(6);
-            vampire_coord.y = pResult->getInt(7);
-
-            addSlayerPosition(ID, slayer_coord);
-            addVampirePosition(ID, vampire_coord);
-        }
-
-        SAFE_DELETE(pStmt);
+    if (rows.empty()) {
+        cerr << "ResurrectLocationManager::load() : TABLE DOES NOT EXIST!" << endl;
+        throw "ResurrectLocationManager::load() : TABLE DOES NOT EXIST!";
     }
-    END_DB(pStmt)
+
+    for (size_t i = 0; i < rows.size(); i++) {
+        ZoneID_t ID = 0;
+        ZONE_COORD slayer_coord;
+        ZONE_COORD vampire_coord;
+
+        ID = rows[i].zoneID;
+        slayer_coord.id = rows[i].slayerZoneID;
+        slayer_coord.x = rows[i].slayerX;
+        slayer_coord.y = rows[i].slayerY;
+        vampire_coord.id = rows[i].vampireZoneID;
+        vampire_coord.x = rows[i].vampireX;
+        vampire_coord.y = rows[i].vampireY;
+
+        addSlayerPosition(ID, slayer_coord);
+        addVampirePosition(ID, vampire_coord);
+    }
 
     __END_CATCH
 }

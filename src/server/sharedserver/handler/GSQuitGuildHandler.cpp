@@ -12,7 +12,6 @@
 
 #ifdef __SHARED_SERVER__
 
-#include "DB.h"
 #include "GameServerManager.h"
 #include "Guild.h"
 #include "GuildManager.h"
@@ -20,6 +19,7 @@
 #include "SGDeleteGuildOK.h"
 #include "SGQuitGuildOK.h"
 #include "StringPool.h"
+#include "repository/SharedGuildRepository.h"
 
 #endif
 
@@ -49,8 +49,6 @@ void GSQuitGuildHandler::execute(GSQuitGuild* pPacket, Player* pPlayer)
     if (pGuildMember == NULL)
         return;
 
-    Statement* pStmt = NULL;
-
     // 길드 탈퇴 로그를 남긴다.
     GuildMemberRank_t rank = pGuildMember->getRank();
     if (rank == GuildMember::GUILDMEMBER_RANK_NORMAL || rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
@@ -67,24 +65,14 @@ void GSQuitGuildHandler::execute(GSQuitGuild* pPacket, Player* pPlayer)
         if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
             return;
 
-        // DB 의 Slayer, Vampire, Ousters 테이블의 길드 아이디를 바꾼다.
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-                pStmt->executeQuery("UPDATE Slayer SET GuildID = 99 WHERE Name = '%s'",
-                                    pGuildMember->getName().c_str());
-            } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                pStmt->executeQuery("UPDATE Vampire SET GuildID = 0 WHERE Name = '%s'",
-                                    pGuildMember->getName().c_str());
-            } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-                pStmt->executeQuery("UPDATE Ousters SET GuildID = 66 WHERE Name = '%s'",
-                                    pGuildMember->getName().c_str());
-            }
-
-            SAFE_DELETE(pStmt);
+        // The character row loses its guild id.
+        if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
+            defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 99, pGuildMember->getName());
+        } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
+            defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 0, pGuildMember->getName());
+        } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
+            defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 66, pGuildMember->getName());
         }
-        END_DB(pStmt)
 
         // Guild Member 를 leave 시킨다.
         pGuildMember->leave();
@@ -106,43 +94,33 @@ void GSQuitGuildHandler::execute(GSQuitGuild* pPacket, Player* pPlayer)
             filelog("GuildBroken.log", "GuildID: %d, GuildName: %s, MemberCount: %d, Quit: %s", pGuild->getID(),
                     pGuild->getName().c_str(), pGuild->getActiveMemberCount(), pPacket->getName().c_str());
 
-            // 길드 멤버 expire and delete
+            // The guild breaks up: every remaining member's character row
+            // loses its guild id and gets a message, the roster row is
+            // expired. The Ousters row is set to 0 here, not 66.
             HashMapGuildMember& Members = pGuild->getMembers();
             HashMapGuildMemberItor itr = Members.begin();
 
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            for (; itr != Members.end(); itr++) {
+                GuildMember* pGuildMember = itr->second;
 
-                for (; itr != Members.end(); itr++) {
-                    GuildMember* pGuildMember = itr->second;
-
-                    if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-                        pStmt->executeQuery("UPDATE Slayer SET GuildID = 99 WHERE Name = '%s'",
-                                            pGuildMember->getName().c_str());
-                        pStmt->executeQuery("INSERT INTO Messages (Receiver, Message ) VALUES ('%s', '%s' )",
-                                            pGuildMember->getName().c_str(), g_pStringPool->c_str(STRID_TEAM_BROKEN));
-                    } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                        pStmt->executeQuery("UPDATE Vampire SET GuildID = 0 WHERE Name = '%s'",
-                                            pGuildMember->getName().c_str());
-                        pStmt->executeQuery("INSERT INTO Messages (Receiver, Message ) VALUES ('%s', '%s' )",
-                                            pGuildMember->getName().c_str(), g_pStringPool->c_str(STRID_CLAN_BROKEN));
-                    } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-                        pStmt->executeQuery("UPDATE Ousters SET GuildID = 0 WHERE Name = '%s'",
-                                            pGuildMember->getName().c_str());
-                        pStmt->executeQuery("INSERT INTO Messages (Receiver, Message ) VALUES ('%s', '%s' )",
-                                            pGuildMember->getName().c_str(), g_pStringPool->c_str(STRID_CLAN_BROKEN));
-                    }
-
-                    // 길드 멤버를 expire 시킨다.
-                    pGuildMember->expire();
-
-                    // 길드 멤버를 삭제
-                    SAFE_DELETE(pGuildMember);
+                if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
+                    defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 99, pGuildMember->getName());
+                    defaultSharedGuildRepository().insertMessage(SHARED_MESSAGE_SQL_COMPACT, pGuildMember->getName(),
+                                                                 g_pStringPool->c_str(STRID_TEAM_BROKEN));
+                } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
+                    defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 0, pGuildMember->getName());
+                    defaultSharedGuildRepository().insertMessage(SHARED_MESSAGE_SQL_COMPACT, pGuildMember->getName(),
+                                                                 g_pStringPool->c_str(STRID_CLAN_BROKEN));
+                } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
+                    defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 0, pGuildMember->getName());
+                    defaultSharedGuildRepository().insertMessage(SHARED_MESSAGE_SQL_COMPACT, pGuildMember->getName(),
+                                                                 g_pStringPool->c_str(STRID_CLAN_BROKEN));
                 }
 
-                SAFE_DELETE(pStmt);
+                pGuildMember->expire();
+
+                SAFE_DELETE(pGuildMember);
             }
-            END_DB(pStmt)
 
             Members.clear();
 
@@ -161,59 +139,49 @@ void GSQuitGuildHandler::execute(GSQuitGuild* pPacket, Player* pPlayer)
         }
     } else if (pGuild->getState() == Guild::GUILD_STATE_WAIT) {
         if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER) {
-            ////////////////////////////////////////////////////////////
-            // 길드를 취소 시킨다.
-            // 길드 멤버 expire and delete
-            ////////////////////////////////////////////////////////////
+            // The guild registration is cancelled: every member is expired,
+            // the master and the submaster get their fee back with a
+            // message.
             HashMapGuildMember& Members = pGuild->getMembers();
             HashMapGuildMemberItor itr = Members.begin();
 
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            for (; itr != Members.end(); itr++) {
+                GuildMember* pGuildMember = itr->second;
 
-                for (; itr != Members.end(); itr++) {
-                    GuildMember* pGuildMember = itr->second;
+                bool bKnownRace = false;
+                string Message = "";
+                Gold_t Gold = 0;
 
-                    string Table = "";
-                    string Message = "";
-                    Gold_t Gold = 0;
-
-                    if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-                        Table = "Slayer";
-                        Message = g_pStringPool->getString(STRID_TEAM_CANCEL);
-                    } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                        Table = "Vampire";
-                        Message = g_pStringPool->getString(STRID_CLAN_CANCEL);
-                    } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-                        Table = "Ousters";
-                        Message = g_pStringPool->getString(STRID_CLAN_CANCEL);
-                    }
-                    if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
-                        Gold = RETURN_SLAYER_MASTER_GOLD;
-                    else if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER)
-                        Gold = RETURN_SLAYER_SUBMASTER_GOLD;
-
-                    if (!Table.empty() && !Message.empty() && Gold != 0) {
-                        // 메시지를 넣는다.
-                        pStmt->executeQuery("INSERT INTO Messages (Receiver, Message ) VALUES ('%s', '%s' )",
-                                            pGuildMember->getName().c_str(), Message.c_str());
-
-                        // 등록비를 환불한다. 게임 플레이중인 캐릭터는 DB 데이타랑 gameserver에 있는 데이타랑 다를수도
-                        // 있기때문에 이렇게 하면 안되는데, 다시 게임 서버에서 새로 업데이트 한다.
-                        pStmt->executeQuery("UPDATE %s SET Gold = Gold + %d WHERE Name = '%s'", Table.c_str(),
-                                            (int)Gold, pGuildMember->getName().c_str());
-                    }
-
-                    // 길드 멤버를 expire 시킨다.
-                    pGuildMember->expire();
-
-                    // 길드 멤버를 삭제
-                    SAFE_DELETE(pGuildMember);
+                if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
+                    bKnownRace = true;
+                    Message = g_pStringPool->getString(STRID_TEAM_CANCEL);
+                } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
+                    bKnownRace = true;
+                    Message = g_pStringPool->getString(STRID_CLAN_CANCEL);
+                } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
+                    bKnownRace = true;
+                    Message = g_pStringPool->getString(STRID_CLAN_CANCEL);
                 }
 
-                SAFE_DELETE(pStmt);
+                if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
+                    Gold = RETURN_SLAYER_MASTER_GOLD;
+                else if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER)
+                    Gold = RETURN_SLAYER_SUBMASTER_GOLD;
+
+                if (bKnownRace && !Message.empty() && Gold != 0) {
+                    defaultSharedGuildRepository().insertMessage(SHARED_MESSAGE_SQL_COMPACT, pGuildMember->getName(),
+                                                                 Message);
+                    // The refund goes to the row in the database; a character
+                    // in play carries its own gold in the gameserver, which
+                    // writes it back later.
+                    defaultSharedGuildRepository().addCharacterGold(pGuild->getRace(), (int)Gold,
+                                                                    pGuildMember->getName());
+                }
+
+                pGuildMember->expire();
+
+                SAFE_DELETE(pGuildMember);
             }
-            END_DB(pStmt)
 
             Members.clear();
 

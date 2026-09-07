@@ -23,6 +23,8 @@ set(SHAREDSERVER_SOURCES
     SharedServer.cpp
     main.cpp
     StringPool.cpp
+    repository/MySQLSharedConfigRepository.cpp
+    repository/MySQLSharedGuildRepository.cpp
 )
 
 add_executable(sharedserver ${SHAREDSERVER_SOURCES})

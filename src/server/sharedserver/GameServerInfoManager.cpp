@@ -7,7 +7,7 @@
 #include "GameServerInfoManager.h"
 
 #include "Properties.h"
-#include "database/DB.h"
+#include "repository/SharedConfigRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class GameServerInfoManager member methods
@@ -52,59 +52,46 @@ void GameServerInfoManager::init() {
 void GameServerInfoManager::load() {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
+    SharedConfigRepository& repo = defaultSharedConfigRepository();
 
     WorldID_t WorldID = g_pConfig->getPropertyInt("WorldID");
 
-    // 먼저 MAX SERVER GROUP ID를 읽어들여야 한다.
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT MAX(GroupID) FROM GameServerInfo WHERE WorldID = %d", WorldID);
-
-        if (pResult->getRowCount() == 0) {
-            throw Error("GameServerInfo TABLE does not exist!");
-        }
-
-        pResult->next();
-        m_MaxServerGroupID = pResult->getInt(1) + 1;
-
-        SAFE_DELETE(pStmt);
+    // The table is sized from this world's largest GroupID; a world with
+    // no servers is a startup error.
+    int maxGroupID = 0;
+    if (!repo.loadMaxGameServerGroupID(WorldID, maxGroupID)) {
+        throw Error("GameServerInfo TABLE does not exist!");
     }
-    END_DB(pStmt)
+
+    m_MaxServerGroupID = maxGroupID + 1;
 
     m_pGameServerInfos = new HashMapGameServerInfo[m_MaxServerGroupID];
 
     cout << "MAX SERVER GROUP = " << m_MaxServerGroupID << endl;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-            "SELECT ServerID, Nickname , IP , TCPPort , UDPPort, GroupID, Stat, WorldID FROM GameServerInfo");
+    // Every world's servers are read; only this world's are kept.
+    vector<SharedGameServerRow> rows = repo.loadGameServers();
 
-        while (pResult->next()) {
-            int i = 0;
-            if (pResult->getInt(8) == WorldID) {
-                GameServerInfo* pGameServerInfo = new GameServerInfo();
+    for (size_t i = 0; i < rows.size(); i++) {
+        const SharedGameServerRow& row = rows[i];
 
-                pGameServerInfo->setServerID(pResult->getInt(++i));
-                pGameServerInfo->setNickname(pResult->getString(++i));
-                pGameServerInfo->setIP(pResult->getString(++i));
-                pGameServerInfo->setTCPPort(pResult->getInt(++i));
-                pGameServerInfo->setUDPPort(pResult->getInt(++i));
-                pGameServerInfo->setWorldID(WorldID);
+        if (row.worldID == WorldID) {
+            GameServerInfo* pGameServerInfo = new GameServerInfo();
 
-                ServerGroupID_t ServerGroupID = pResult->getInt(++i);
-                pGameServerInfo->setGroupID(ServerGroupID);
+            pGameServerInfo->setServerID(row.serverID);
+            pGameServerInfo->setNickname(row.nickname);
+            pGameServerInfo->setIP(row.ip);
+            pGameServerInfo->setTCPPort(row.tcpPort);
+            pGameServerInfo->setUDPPort(row.udpPort);
+            pGameServerInfo->setWorldID(WorldID);
 
-                pGameServerInfo->setServerStat((ServerStatus)pResult->getInt(++i));
+            ServerGroupID_t ServerGroupID = row.groupID;
+            pGameServerInfo->setGroupID(ServerGroupID);
+            pGameServerInfo->setServerStat((ServerStatus)row.stat);
 
-                addGameServerInfo(pGameServerInfo, ServerGroupID);
-            }
+            addGameServerInfo(pGameServerInfo, ServerGroupID);
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

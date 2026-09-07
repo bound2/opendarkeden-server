@@ -4,7 +4,7 @@
 
 #include "StringPool.h"
 
-#include "DB.h"
+#include "repository/SharedConfigRepository.h"
 
 StringPool::StringPool() noexcept(false){__BEGIN_TRY __END_CATCH}
 
@@ -29,23 +29,14 @@ void StringPool::load() noexcept(false) {
 
     clear();
 
-    Statement* pStmt = NULL;
+    vector<SharedStringRow> rows = defaultSharedConfigRepository().loadStrings();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    for (size_t i = 0; i < rows.size(); i++) {
+        uint strID = rows[i].id;
+        string str = rows[i].text;
 
-        Result* pResult = pStmt->executeQuery("SELECT ID, String FROM SSStringPool");
-
-        while (pResult->next()) {
-            int i = 0;
-
-            uint strID = pResult->getInt(++i);
-            string str = pResult->getString(++i);
-
-            addString(strID, str);
-        }
+        addString(strID, str);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

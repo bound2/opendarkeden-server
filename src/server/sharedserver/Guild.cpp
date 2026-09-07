@@ -8,8 +8,8 @@
 
 #include <algorithm>
 
-#include "DB.h"
 #include "StringStream.h"
+#include "repository/SharedGuildRepository.h"
 
 #ifdef __SHARED_SERVER__
 #include "GuildInfo2.h"
@@ -35,39 +35,23 @@ GuildMember::GuildMember() noexcept {
 void GuildMember::create() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    SharedGuildRepository& repo = defaultSharedGuildRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT GuildID FROM GuildMember WHERE Name = '%s'", m_Name.c_str());
-
-        if (pResult->getRowCount() != 0) {
-            // �̹� ��� �����ϹǷ� �����͸� �����ش�.(��, ����
-            // �ٸ� ��忡 ���� ���� �ִ�)
-            if (m_Rank == GUILDMEMBER_RANK_WAIT) {
-                pStmt->executeQuery("UPDATE GuildMember SET GuildID = %d, `Rank` = %d, ExpireDate = '', "
-                                    "RequestDateTime = '%s' WHERE Name = '%s'",
-                                    m_GuildID, m_Rank, getRequestDateTime().c_str(), m_Name.c_str());
-            } else {
-                pStmt->executeQuery(
-                    "UPDATE GuildMember SET GuildID = %d, `Rank` = %d, ExpireDate = '' WHERE Name = '%s'", m_GuildID,
-                    m_Rank, m_Name.c_str());
-            }
+    // A name that already has a row (a member of another guild, or one
+    // who left) is re-pointed at this guild; otherwise a row is inserted.
+    if (repo.memberExists(m_Name)) {
+        if (m_Rank == GUILDMEMBER_RANK_WAIT) {
+            repo.rejoinWaitingMember(m_GuildID, m_Rank, getRequestDateTime(), m_Name);
         } else {
-            if (m_Rank == GUILDMEMBER_RANK_WAIT) {
-                pStmt->executeQuery(
-                    "INSERT INTO GuildMember( GuildID, Name, `Rank`, RequestDateTime ) VALUES ( %d, '%s', %d, '%s' )",
-                    m_GuildID, m_Name.c_str(), m_Rank, getRequestDateTime().c_str());
-            } else {
-                pStmt->executeQuery("INSERT INTO GuildMember( GuildID, Name, `Rank` ) VALUES ( %d, '%s', %d )",
-                                    m_GuildID, m_Name.c_str(), m_Rank);
-            }
+            repo.rejoinMember(m_GuildID, m_Rank, m_Name);
         }
-
-        SAFE_DELETE(pStmt);
+    } else {
+        if (m_Rank == GUILDMEMBER_RANK_WAIT) {
+            repo.insertWaitingMember(m_GuildID, m_Name, m_Rank, getRequestDateTime());
+        } else {
+            repo.insertMember(m_GuildID, m_Name, m_Rank);
+        }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -76,31 +60,15 @@ void GuildMember::create() noexcept(false) {
 bool GuildMember::load() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    SharedGuildMemberRow row;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT GuildID, Name, `Rank`, LogOn FROM GuildMember WHERE Name = '%s'",
-                                      m_Name.c_str());
+    if (!defaultSharedGuildRepository().loadMember(m_Name, row))
+        return false;
 
-        if (pResult->getRowCount() != 1) {
-            SAFE_DELETE(pStmt);
-            return false;
-        }
-
-        pResult->next();
-
-        m_GuildID = pResult->getInt(1);
-        m_Name = pResult->getString(2);
-        m_Rank = pResult->getInt(3);
-        m_bLogOn = pResult->getInt(4);
-
-        //		m_ServerID  = g_pConfig->getPropertyInt("ServerID");
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    m_GuildID = row.guildID;
+    m_Name = row.name;
+    m_Rank = row.rank;
+    m_bLogOn = row.logOn;
 
     return true;
 
@@ -111,17 +79,7 @@ bool GuildMember::load() noexcept(false) {
 void GuildMember::save() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE GuildMember SET GuildID = %d, `Rank` = %d WHERE Name = '%s'", m_GuildID, m_Rank,
-                            m_Name.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().saveMember(m_GuildID, m_Rank, m_Name);
 
     __END_CATCH
 }
@@ -130,16 +88,7 @@ void GuildMember::save() noexcept(false) {
 void GuildMember::destroy() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("DELETE FROM GuildMember WHERE Name = '%s'", m_Name.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().deleteMember(m_Name);
 
     __END_CATCH
 }
@@ -147,24 +96,14 @@ void GuildMember::destroy() noexcept(false) {
 void GuildMember::expire() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    // Today's date as the ExpireDate text.
+    time_t daytime = time(0);
+    tm Timec;
+    localtime_r(&daytime, &Timec);
+    char ExpireDate[8];
+    sprintf(ExpireDate, "%03d%02d%02d", Timec.tm_year, Timec.tm_mon, Timec.tm_mday);
 
-    BEGIN_DB {
-        // ���� �ǽð� ��¥�� ���Ѵ�.
-        time_t daytime = time(0);
-        tm Timec;
-        localtime_r(&daytime, &Timec);
-        char ExpireDate[8];
-        sprintf(ExpireDate, "%03d%02d%02d", Timec.tm_year, Timec.tm_mon, Timec.tm_mday);
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE GuildMember SET `Rank` = %d, ExpireDate = '%s' WHERE Name = '%s'",
-                            GUILDMEMBER_RANK_DENY, ExpireDate, m_Name.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().setMemberRankAndExpireDate(GUILDMEMBER_RANK_DENY, ExpireDate, m_Name);
 
     __END_CATCH
 }
@@ -172,24 +111,14 @@ void GuildMember::expire() noexcept(false) {
 void GuildMember::leave() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    // Today's date as the ExpireDate text.
+    time_t daytime = time(0);
+    tm Timec;
+    localtime_r(&daytime, &Timec);
+    char ExpireDate[8];
+    sprintf(ExpireDate, "%03d%02d%02d", Timec.tm_year, Timec.tm_mon, Timec.tm_mday);
 
-    BEGIN_DB {
-        // ���� �ǽð� ��¥�� ���Ѵ�.
-        time_t daytime = time(0);
-        tm Timec;
-        localtime_r(&daytime, &Timec);
-        char ExpireDate[8];
-        sprintf(ExpireDate, "%03d%02d%02d", Timec.tm_year, Timec.tm_mon, Timec.tm_mday);
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE GuildMember SET `Rank` = %d, ExpireDate = '%s' WHERE Name = '%s'",
-                            GUILDMEMBER_RANK_LEAVE, ExpireDate, m_Name.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().setMemberRankAndExpireDate(GUILDMEMBER_RANK_LEAVE, ExpireDate, m_Name);
 
     __END_CATCH
 }
@@ -198,19 +127,9 @@ void GuildMember::leave() noexcept(false) {
 void GuildMember::saveIntro(const string& intro) noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt;
-
     string modifyIntro = Guild::correctString(intro);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE GuildMember SET Intro = '%s' WHERE Name = '%s'", modifyIntro.c_str(),
-                            m_Name.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().saveMemberIntro(modifyIntro, m_Name);
 
     __END_CATCH
 }
@@ -219,22 +138,9 @@ void GuildMember::saveIntro(const string& intro) noexcept(false) {
 string GuildMember::getIntro() const noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt;
-    Result* pResult;
-
     string intro = "";
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT Intro FROM GuildMember WHERE Name = '%s'", m_Name.c_str());
-
-        if (pResult->next()) {
-            intro = pResult->getString(1);
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().loadMemberIntro(m_Name, intro);
 
     return intro;
 
@@ -372,24 +278,21 @@ Guild::~Guild() noexcept {
 void Guild::create() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    string correctIntro = correctString(m_Intro);
+    SharedGuildRecord record;
+    record.id = m_ID;
+    record.name = m_Name;
+    record.type = m_Type;
+    record.race = m_Race;
+    record.state = m_State;
+    record.serverGroupID = m_ServerGroupID;
+    record.zoneID = m_ZoneID;
+    record.master = m_Master;
+    record.date = m_Date;
+    record.intro = correctString(m_Intro);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery(
-            "INSERT INTO GuildInfo ( GuildID, GuildName, GuildType, GuildRace, GuildState, ServerGroupID, GuildZoneID, "
-            "Master, Date, Intro ) VALUES ( %d, '%s', %d, %d, %d, %d, %d, '%s', '%s', '%s' )",
-            m_ID, m_Name.c_str(), m_Type, m_Race, m_State, m_ServerGroupID, m_ZoneID, m_Master.c_str(), m_Date.c_str(),
-            correctIntro.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().insertGuild(record);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -400,37 +303,21 @@ void Guild::create() noexcept(false) {
 bool Guild::load() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    SharedGuildRow row;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT GuildName, GuildType, GuildRace, GuildState, ServerGroupID, GuildZoneID, "
-                                      "Master, Date FROM GuildInfo WHERE GuildID = %d",
-                                      m_ID);
+    if (!defaultSharedGuildRepository().loadGuild(m_ID, row))
+        return false;
 
-        if (pResult->getRowCount() != 1) {
-            SAFE_DELETE(pStmt);
-
-            return false;
-        }
-
-        pResult->next();
-
-        m_Name = pResult->getString(1);
-        m_Type = pResult->getInt(2);
-        m_Race = pResult->getInt(3);
-        m_State = pResult->getInt(4);
-        m_ServerGroupID = pResult->getInt(5);
-        m_ZoneID = pResult->getInt(6);
-        m_Master = pResult->getString(7);
-        m_Date = pResult->getString(8);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    m_Name = row.name;
+    m_Type = row.type;
+    m_Race = row.race;
+    m_State = row.state;
+    m_ServerGroupID = row.serverGroupID;
+    m_ZoneID = row.zoneID;
+    m_Master = row.master;
+    m_Date = row.date;
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -443,21 +330,20 @@ bool Guild::load() noexcept(false) {
 void Guild::save() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    SharedGuildRecord record;
+    record.id = m_ID;
+    record.name = m_Name;
+    record.type = m_Type;
+    record.race = m_Race;
+    record.state = m_State;
+    record.serverGroupID = m_ServerGroupID;
+    record.zoneID = m_ZoneID;
+    record.master = m_Master;
+    record.date = m_Date;
 
-        pStmt->executeQuery("UPDATE GuildInfo SET GuildName = '%s', GuildType = %d, GuildRace = %d, GuildState = %d, "
-                            "ServerGroupID = %d, GuildZoneID = %d, Master = '%s', Date = '%s' WHERE GuildID = %d",
-                            m_Name.c_str(), m_Type, m_Race, m_State, m_ServerGroupID, m_ZoneID, m_Master.c_str(),
-                            m_Date.c_str(), m_ID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().saveGuild(record);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -468,19 +354,9 @@ void Guild::save() noexcept(false) {
 void Guild::destroy() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("DELETE FROM GuildInfo WHERE GuildID = %d", m_ID);
-        pStmt->executeQuery("DELETE FROM GuildUnionMember WHERE OwnerGuildID = %d", m_ID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().deleteGuild(m_ID);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -494,18 +370,9 @@ void Guild::saveIntro(const string& intro) noexcept(false) {
 
     m_Intro = intro;
 
-    Statement* pStmt = NULL;
-
     string modifyIntro = Guild::correctString(intro);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE GuildInfo SET Intro = '%s' WHERE GuildID = %u", modifyIntro.c_str(), m_ID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().saveGuildIntro(modifyIntro, m_ID);
 
     __END_CATCH
 }
@@ -513,16 +380,7 @@ void Guild::saveIntro(const string& intro) noexcept(false) {
 void Guild::tinysave(const char* field) const noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        pStmt->executeQuery("UPDATE GuildInfo SET %s WHERE GuildID = %u", field, m_ID);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().updateGuildFields(field, m_ID);
 
     __END_CATCH
 }
