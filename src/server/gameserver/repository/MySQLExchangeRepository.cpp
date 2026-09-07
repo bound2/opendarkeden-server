@@ -1,11 +1,3 @@
-//////////////////////////////////////////////////////////////////////////////
-// Filename : ExchangeDB.cpp
-// Written by : Exchange System
-// Description : Database access layer implementation for Exchange System
-//////////////////////////////////////////////////////////////////////////////
-
-#include "ExchangeDB.h"
-
 #include <cstdlib>
 #include <iomanip>
 #include <sstream>
@@ -17,6 +9,7 @@
 #include "DatabaseManager.h"
 #include "GCExchangeList.h" // For ExchangeListing definition
 #include "StringStream.h"
+#include "repository/ExchangeRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Helper functions
@@ -124,14 +117,40 @@ int64_t toInt64(const string& str) {
     return strtoll(str.c_str(), NULL, 10);
 }
 
-} // anonymous namespace
+// MySQL implementation of ExchangeRepository (see the header for the
+// connections, the transaction pair and the escaping).
+class MySQLExchangeRepository : public ExchangeRepository {
+public:
+    int64_t createListing(const ExchangeListing& listing);
+    bool cancelListing(int64_t listingID);
+    bool expireListing(int64_t listingID);
+    bool markListingSold(int64_t listingID, const string& buyerAccount, const string& buyerPlayer);
+    vector<ExchangeListing> getListings(int16_t serverID, uint8_t status, int page, int pageSize);
+    ExchangeListing* getListing(int64_t listingID);
+    vector<ExchangeListing> getSellerListings(const string& sellerAccount, uint8_t status);
+    vector<ExchangeListing> getExpiredListings();
+
+    int64_t createOrder(const ExchangeOrder& order);
+    bool markOrderDelivered(int64_t orderID);
+    vector<ExchangeOrder> getBuyerOrders(const string& buyerPlayer, uint8_t status);
+    vector<ExchangeOrder> getSellerOrders(const string& sellerPlayer, uint8_t status);
+
+    bool adjustPoints(const string& account, int delta, int& balanceAfter, uint8_t reason, int64_t refListingID,
+                      int64_t refOrderID, const string& idempotencyKey);
+    int getPointBalance(const string& account);
+    bool hasIdempotencyKey(const string& idempotencyKey);
+
+    bool beginTransaction();
+    bool commit();
+    bool rollback();
+};
 
 //////////////////////////////////////////////////////////////////////////////
 // Listing operations
 //////////////////////////////////////////////////////////////////////////////
 
 // Create a new listing record
-int64_t ExchangeDB::createListing(const ExchangeListing& listing) {
+int64_t MySQLExchangeRepository::createListing(const ExchangeListing& listing) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -180,7 +199,7 @@ int64_t ExchangeDB::createListing(const ExchangeListing& listing) {
 }
 
 // Cancel a listing (mark as CANCELLED)
-bool ExchangeDB::cancelListing(int64_t listingID) {
+bool MySQLExchangeRepository::cancelListing(int64_t listingID) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -207,7 +226,7 @@ bool ExchangeDB::cancelListing(int64_t listingID) {
 }
 
 // Mark listing as expired
-bool ExchangeDB::expireListing(int64_t listingID) {
+bool MySQLExchangeRepository::expireListing(int64_t listingID) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -233,7 +252,8 @@ bool ExchangeDB::expireListing(int64_t listingID) {
 }
 
 // Mark listing as sold and set buyer info
-bool ExchangeDB::markListingSold(int64_t listingID, const string& buyerAccount, const string& buyerPlayer) {
+bool MySQLExchangeRepository::markListingSold(int64_t listingID, const string& buyerAccount,
+                                              const string& buyerPlayer) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -263,7 +283,7 @@ bool ExchangeDB::markListingSold(int64_t listingID, const string& buyerAccount, 
 }
 
 // Query listings with pagination and filters
-vector<ExchangeListing> ExchangeDB::getListings(int16_t serverID, uint8_t status, int page, int pageSize) {
+vector<ExchangeListing> MySQLExchangeRepository::getListings(int16_t serverID, uint8_t status, int page, int pageSize) {
     vector<ExchangeListing> listings;
 
     __BEGIN_TRY
@@ -337,7 +357,7 @@ vector<ExchangeListing> ExchangeDB::getListings(int16_t serverID, uint8_t status
 }
 
 // Get a specific listing by ID
-ExchangeListing* ExchangeDB::getListing(int64_t listingID) {
+ExchangeListing* MySQLExchangeRepository::getListing(int64_t listingID) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -405,7 +425,7 @@ ExchangeListing* ExchangeDB::getListing(int64_t listingID) {
 }
 
 // Get seller's listings
-vector<ExchangeListing> ExchangeDB::getSellerListings(const string& sellerAccount, uint8_t status) {
+vector<ExchangeListing> MySQLExchangeRepository::getSellerListings(const string& sellerAccount, uint8_t status) {
     vector<ExchangeListing> listings;
 
     __BEGIN_TRY
@@ -476,7 +496,7 @@ vector<ExchangeListing> ExchangeDB::getSellerListings(const string& sellerAccoun
 }
 
 // Get expired listings for maintenance scan
-vector<ExchangeListing> ExchangeDB::getExpiredListings() {
+vector<ExchangeListing> MySQLExchangeRepository::getExpiredListings() {
     vector<ExchangeListing> listings;
 
     __BEGIN_TRY
@@ -554,7 +574,7 @@ vector<ExchangeListing> ExchangeDB::getExpiredListings() {
 //////////////////////////////////////////////////////////////////////////////
 
 // Create a new order
-int64_t ExchangeDB::createOrder(const ExchangeOrder& order) {
+int64_t MySQLExchangeRepository::createOrder(const ExchangeOrder& order) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -589,7 +609,7 @@ int64_t ExchangeDB::createOrder(const ExchangeOrder& order) {
 }
 
 // Mark order as delivered
-bool ExchangeDB::markOrderDelivered(int64_t orderID) {
+bool MySQLExchangeRepository::markOrderDelivered(int64_t orderID) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -615,7 +635,7 @@ bool ExchangeDB::markOrderDelivered(int64_t orderID) {
 }
 
 // Get buyer's orders
-vector<ExchangeOrder> ExchangeDB::getBuyerOrders(const string& buyerPlayer, uint8_t status) {
+vector<ExchangeOrder> MySQLExchangeRepository::getBuyerOrders(const string& buyerPlayer, uint8_t status) {
     vector<ExchangeOrder> orders;
 
     __BEGIN_TRY
@@ -661,7 +681,7 @@ vector<ExchangeOrder> ExchangeDB::getBuyerOrders(const string& buyerPlayer, uint
 }
 
 // Get seller's fulfilled orders
-vector<ExchangeOrder> ExchangeDB::getSellerOrders(const string& sellerPlayer, uint8_t status) {
+vector<ExchangeOrder> MySQLExchangeRepository::getSellerOrders(const string& sellerPlayer, uint8_t status) {
     vector<ExchangeOrder> orders;
 
     __BEGIN_TRY
@@ -712,8 +732,8 @@ vector<ExchangeOrder> ExchangeDB::getSellerOrders(const string& sellerPlayer, ui
 //////////////////////////////////////////////////////////////////////////////
 
 // Adjust point balance with ledger record
-bool ExchangeDB::adjustPoints(const string& account, int delta, int& balanceAfter, uint8_t reason, int64_t refListingID,
-                              int64_t refOrderID, const string& idempotencyKey) {
+bool MySQLExchangeRepository::adjustPoints(const string& account, int delta, int& balanceAfter, uint8_t reason,
+                                           int64_t refListingID, int64_t refOrderID, const string& idempotencyKey) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -790,7 +810,7 @@ bool ExchangeDB::adjustPoints(const string& account, int delta, int& balanceAfte
 }
 
 // Get current point balance
-int ExchangeDB::getPointBalance(const string& account) {
+int MySQLExchangeRepository::getPointBalance(const string& account) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -818,7 +838,7 @@ int ExchangeDB::getPointBalance(const string& account) {
 }
 
 // Check if idempotency key exists
-bool ExchangeDB::hasIdempotencyKey(const string& idempotencyKey) {
+bool MySQLExchangeRepository::hasIdempotencyKey(const string& idempotencyKey) {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -850,7 +870,7 @@ bool ExchangeDB::hasIdempotencyKey(const string& idempotencyKey) {
 //////////////////////////////////////////////////////////////////////////////
 
 // Begin cross-database transaction
-bool ExchangeDB::beginTransaction() {
+bool MySQLExchangeRepository::beginTransaction() {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -876,7 +896,7 @@ bool ExchangeDB::beginTransaction() {
 }
 
 // Commit transaction
-bool ExchangeDB::commit() {
+bool MySQLExchangeRepository::commit() {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -902,7 +922,7 @@ bool ExchangeDB::commit() {
 }
 
 // Rollback transaction
-bool ExchangeDB::rollback() {
+bool MySQLExchangeRepository::rollback() {
     __BEGIN_TRY
 
     Statement* pStmt = NULL;
@@ -925,4 +945,11 @@ bool ExchangeDB::rollback() {
     __END_CATCH
 
     return false;
+}
+
+} // namespace
+
+ExchangeRepository& defaultExchangeRepository() {
+    static MySQLExchangeRepository instance;
+    return instance;
 }

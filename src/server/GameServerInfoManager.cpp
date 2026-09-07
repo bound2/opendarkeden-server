@@ -6,7 +6,7 @@
 
 #include "GameServerInfoManager.h"
 
-#include "database/DB.h"
+#include "repository/ServerInfoRepository.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class GameServerInfoManager member methods
@@ -66,45 +66,25 @@ void GameServerInfoManager::load() {
     // clear GameServerInfos
     // clear();
 
-    Statement* pStmt = NULL;
+    ServerInfoRepository& repo = defaultServerInfoRepository();
 
-    // 먼저 MAX SERVER GROUP ID를 읽어들여야 한다.
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQueryString("SELECT MAX(GroupID) FROM GameServerInfo");
-
-        if (pResult->getRowCount() == 0) {
-            cerr << "GameServerInfo TABLE does not exist!" << endl;
-            throw Error("GameServerInfo TABLE does not exist!");
-        }
-
-        pResult->next();
-        m_MaxServerGroupID = pResult->getInt(1) + 1;
-
-        SAFE_DELETE(pStmt);
+    // The tables are sized from the largest GroupID and WorldID; an
+    // empty table is a startup error.
+    int maxGroupID = 0;
+    if (!repo.loadMaxServerGroupID(maxGroupID)) {
+        cerr << "GameServerInfo TABLE does not exist!" << endl;
+        throw Error("GameServerInfo TABLE does not exist!");
     }
-    END_DB(pStmt)
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQueryString("SELECT MAX(WorldID) FROM GameServerInfo");
+    m_MaxServerGroupID = maxGroupID + 1;
 
-        if (pResult->getRowCount() == 0) {
-            cerr << "GameServerInfo TABLE does not exist!" << endl;
-            throw Error("GameServerInfo TABLE does not exist!");
-        }
-
-        pResult->next();
-        m_MaxWorldID = pResult->getInt(1) + 2;
-
-        SAFE_DELETE(pStmt);
+    int maxWorldID = 0;
+    if (!repo.loadMaxWorldID(maxWorldID)) {
+        cerr << "GameServerInfo TABLE does not exist!" << endl;
+        throw Error("GameServerInfo TABLE does not exist!");
     }
-    END_DB(pStmt)
 
-    /*
-m_pTiles = new Tile* [ m_Width ];
-for (uint i = 0 ; i < m_Width ; i++) m_pTiles[i] = new Tile [m_Height];
-*/
+    m_MaxWorldID = maxWorldID + 2;
 
     m_pGameServerInfos = new HashMapGameServerInfo*[m_MaxWorldID];
 
@@ -113,86 +93,62 @@ for (uint i = 0 ; i < m_Width ; i++) m_pTiles[i] = new Tile [m_Height];
 
     cout << "MAX SERVER GROUP = " << m_MaxServerGroupID << endl;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQueryString(
-            "SELECT ServerID, Nickname , IP , TCPPort , UDPPort, WorldID, GroupID, Stat FROM GameServerInfo");
+    vector<ServerInfoRow> servers = repo.loadServers();
 
-        while (pResult->next()) {
-            GameServerInfo* pGameServerInfo = new GameServerInfo();
+    for (size_t i = 0; i < servers.size(); i++) {
+        const ServerInfoRow& row = servers[i];
+        GameServerInfo* pGameServerInfo = new GameServerInfo();
 
-            pGameServerInfo->setServerID(pResult->getInt(1));
-            pGameServerInfo->setNickname(pResult->getString(2));
-            pGameServerInfo->setIP(pResult->getString(3));
-            pGameServerInfo->setTCPPort(pResult->getInt(4));
-            pGameServerInfo->setUDPPort(pResult->getInt(5));
+        pGameServerInfo->setServerID(row.serverID);
+        pGameServerInfo->setNickname(row.nickname);
+        pGameServerInfo->setIP(row.ip);
+        pGameServerInfo->setTCPPort(row.tcpPort);
+        pGameServerInfo->setUDPPort(row.udpPort);
 
-            WorldID_t WorldID = pResult->getInt(6);
-            pGameServerInfo->setWorldID(WorldID);
+        WorldID_t WorldID = row.worldID;
+        pGameServerInfo->setWorldID(WorldID);
 
-            ServerGroupID_t ServerGroupID = pResult->getInt(7);
-            pGameServerInfo->setGroupID(ServerGroupID);
+        ServerGroupID_t ServerGroupID = row.groupID;
+        pGameServerInfo->setGroupID(ServerGroupID);
 
-            pGameServerInfo->setServerStat((ServerStatus)pResult->getInt(8));
-            addGameServerInfo(pGameServerInfo, ServerGroupID, WorldID);
-        }
-
-        SAFE_DELETE(pStmt);
+        pGameServerInfo->setServerStat((ServerStatus)row.stat);
+        addGameServerInfo(pGameServerInfo, ServerGroupID, WorldID);
     }
-    END_DB(pStmt)
 
     ///////////////////////////////////////////////////////////////////////////////
-    // PK Server 세팅하기
-    // DB의 PKServerList 테이블에서 읽어서 세팅한다.
-    // PKServerList 는 플레이어(login) DB 에 있다.
+    // The non-PK servers, from the player (login) database.
     ///////////////////////////////////////////////////////////////////////////////
-    BEGIN_DB {
-        // PKServerList 는 플레이어(login) DB 에 있다.
-        pStmt = g_pDatabaseManager->getDistConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQueryString("SELECT WorldID, ServerGroupID FROM NonPKServerList");
+    vector<ServerInfoNonPKRow> nonPK = repo.loadNonPKServers();
 
-        while (pResult->next()) {
-            WorldID_t worldID = pResult->getInt(1);
-            ServerGroupID_t serverGroupID = pResult->getInt(2);
+    for (size_t i = 0; i < nonPK.size(); i++) {
+        WorldID_t worldID = nonPK[i].worldID;
+        ServerGroupID_t serverGroupID = nonPK[i].serverGroupID;
 
-            GameServerInfo* pGameServerInfo = getGameServerInfo(1, serverGroupID, worldID);
+        GameServerInfo* pGameServerInfo = getGameServerInfo(1, serverGroupID, worldID);
 
-            pGameServerInfo->setNonPKServer();
+        pGameServerInfo->setNonPKServer();
 
-            cout << "WorldID:" << (int)worldID << " ServerGroupID:" << (int)serverGroupID << " NonPK set" << endl;
-        }
-
-        SAFE_DELETE(pStmt);
+        cout << "WorldID:" << (int)worldID << " ServerGroupID:" << (int)serverGroupID << " NonPK set" << endl;
     }
-    END_DB(pStmt)
 
     ///////////////////////////////////////////////////////////////////////////////
-    // Castle Stat 로딩
-    // 이 서버에서 어떤 서버의 전쟁 결과에 따라 바뀌는지
+    // Which server's war results this server's castles follow, from the
+    // player (login) database.
     ///////////////////////////////////////////////////////////////////////////////
-    BEGIN_DB {
-        // 플레이어(login) DB 에 있다.
-        pStmt = g_pDatabaseManager->getDistConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQueryString("SELECT WorldID, ServerGroupID, FollowServerID FROM CastleStatInfo");
+    vector<ServerInfoCastleStatRow> castleStats = repo.loadCastleStats();
 
-        while (pResult->next()) {
-            WorldID_t worldID = pResult->getInt(1);
-            ServerGroupID_t serverGroupID = pResult->getInt(2);
-            ServerGroupID_t followServerID = pResult->getInt(3);
+    for (size_t i = 0; i < castleStats.size(); i++) {
+        WorldID_t worldID = castleStats[i].worldID;
+        ServerGroupID_t serverGroupID = castleStats[i].serverGroupID;
+        ServerGroupID_t followServerID = castleStats[i].followServerID;
 
-            GameServerInfo* pGameServerInfo = getGameServerInfo(1, serverGroupID, worldID);
+        GameServerInfo* pGameServerInfo = getGameServerInfo(1, serverGroupID, worldID);
 
-            pGameServerInfo->setCastleFollowingServerID(followServerID);
+        pGameServerInfo->setCastleFollowingServerID(followServerID);
 
-            cout << "WorldID:" << (int)worldID << " ServerGroupID:" << (int)serverGroupID << " follows"
-                 << (int)followServerID << endl;
-        }
-
-        SAFE_DELETE(pStmt);
+        cout << "WorldID:" << (int)worldID << " ServerGroupID:" << (int)serverGroupID << " follows"
+             << (int)followServerID << endl;
     }
-    END_DB(pStmt)
-
 
     __END_CATCH
 }

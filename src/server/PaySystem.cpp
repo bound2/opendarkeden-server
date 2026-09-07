@@ -21,7 +21,7 @@
 
 #include "Properties.h"
 #include "Thread.h"
-#include "database/DB.h"
+#include "repository/PayPlayRepository.h"
 
 //---------------------------------------------------------------------------
 // How often should we check (seconds)?
@@ -339,130 +339,73 @@ bool PaySystem::updatePayPlayTime(const string& playerID, const VSDateTime& curr
 bool PaySystem::loginPayPlayPCRoom(const string& ip, const string& playerID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    PayPlayRepository& repo = defaultPayPlayRepository();
 
-    // Statement* pStmt = NULL;
-    // cout << "[loginPayPlayPCRoom] from = " << ip.c_str() << ", " << playerID.c_str() << endl;
+    // The room this client IP belongs to. A SQL failure anywhere below
+    // is noted in paySystem.txt and leaves as END_DB's const char*, except
+    // the occupant INSERT, whose failure is noted and ignored.
+    try {
+        PayPlayPCRoomRow room;
 
-    BEGIN_DB {
-        try {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-        } catch (Throwable& t) {
-            filelog("paySystem.txt", "%s", t.toString().c_str());
-            throw;
-        }
+        if (repo.loadPCRoomByIP(ip, room)) {
+            setPCRoomID(room.id);
+            setPayType((PayType)room.payType);
+            setPayStartAvailableDateTime(room.payStartDate);
+            setPayPlayAvailableDateTime(room.payPlayDate);
+            setPayPlayAvailableHours(room.payPlayHours);
+            setPayPlayFlag(room.payPlayFlag);
+            m_UserLimit = room.userLimit;
+            m_UserMax = room.userMax;
 
-        try {
-            pResult = pStmt->executeQuery(
-                "SELECT r.ID, r.PayType, r.PayStartDate, r.PayPlayDate, r.PayPlayHours, r.PayPlayFlag, r.UserLimit, "
-                "r.UserMax FROM PCRoomInfo r, PCRoomIPInfo p WHERE p.IP='%s' AND p.ID=r.ID",
-                ip.c_str());
-        } catch (Throwable& t) {
-            filelog("paySystem.txt", "%s", t.toString().c_str());
-            throw;
-        }
-
-        if (pResult != NULL && pResult->next()) {
-            uint i = 0;
-
-            setPCRoomID(pResult->getInt(++i));
-            setPayType((PayType)pResult->getInt(++i));
-            setPayStartAvailableDateTime(pResult->getString(++i));
-            setPayPlayAvailableDateTime(pResult->getString(++i));
-            setPayPlayAvailableHours(pResult->getInt(++i));
-            setPayPlayFlag(pResult->getInt(++i));
-            m_UserLimit = pResult->getInt(++i);
-            m_UserMax = pResult->getInt(++i);
-
-            // Legacy post-pay logic
+            // A post-paid room plays until its date.
             if (m_PayType == PAY_TYPE_POST) {
                 VSDateTime currentDateTime(VSDate::currentDate(), VSTime::currentTime());
-
-                // Do not allow usage after the limited date.
                 if (currentDateTime <= m_PayPlayAvailableDateTime) {
                     setPayPlayType(PAY_PLAY_TYPE_PCROOM);
                     m_bPCRoomPlay = true;
                     return true;
                 }
-
                 return false;
             }
 
-            // m_UserMax = max((unsigned int)5, m_UserMax);
-            // m_UserMax = min((unsigned int)12, m_UserMax);
             m_UserMax = 15; // Max 15 people per PC room
 
-            pResult = pStmt->executeQuery("SELECT count(*) from PCRoomUserInfo WHERE ID=%d", m_PCRoomID);
+            uint users = repo.loadPCRoomUserCount(m_PCRoomID);
 
-            if (pResult->next()) {
-                uint users = pResult->getInt(1);
+            setPayPlayType(PAY_PLAY_TYPE_PCROOM);
 
-                setPayPlayType(PAY_PLAY_TYPE_PCROOM);
-                bool bAvailable = checkPayPlayAvailable();
+            bool bAvailable = checkPayPlayAvailable();
 
-                //
-                // [PC-room user limits]
-                //
-                // Period: must stay under UserLimit.
-                // Time: must stay under UserMax (rough safeguard).
-                //
-                if (m_PayType == PAY_TYPE_PERIOD && users >= m_UserLimit ||
-                    m_PayType == PAY_TYPE_TIME && users >= m_UserMax) {
-                    // cout << "[PayPCRoom] User Limit Exceed!" << endl;
-                    SAFE_DELETE(pStmt);
+            // The room is full for its pay type.
+            if (m_PayType == PAY_TYPE_PERIOD && users >= m_UserLimit ||
+                m_PayType == PAY_TYPE_TIME && users >= m_UserMax) {
+                return false;
+            }
 
-                    return false;
+            if (bAvailable) {
+                try {
+                    repo.insertPCRoomUser(m_PCRoomID, playerID);
+                } catch (const char*) {
+                    filelog("paySystem.txt", "%s",
+                            "PaySystem::loginPayPlayPCRoom : occupant insert failed, see DBError.log");
                 }
 
-                // If available..
-                if (bAvailable) {
-                    // Tentatively insert the user.
-                    try {
-                        pStmt->executeQuery("INSERT IGNORE INTO PCRoomUserInfo(ID, PlayerID) VALUES(%d, '%s')",
-                                            m_PCRoomID, playerID.c_str());
-                    } catch (SQLQueryException& se) {
-                        filelog("paySystem.txt", "%s", se.toString().c_str());
-                        // 그냥 넘어갈까
-                    }
+                // Counted again with this player in; over the limit, the
+                // row goes away again.
+                users = repo.loadPCRoomUserCount(m_PCRoomID);
 
-                    // Check the user count after insertion.
-                    pResult = pStmt->executeQuery("SELECT count(*) from PCRoomUserInfo WHERE ID=%d", m_PCRoomID);
-
-                    if (pResult->next()) {
-                        users = pResult->getInt(1);
-
-                        // If PC-room user limits are exceeded...
-                        if (m_PayType == PAY_TYPE_PERIOD && users >= m_UserLimit ||
-                            m_PayType == PAY_TYPE_TIME && users >= m_UserMax) {
-                            // Remove the row we just inserted.
-                            pStmt->executeQuery("DELETE FROM PCRoomUserInfo WHERE PlayerID='%s'", playerID.c_str());
-
-                            // cout << "[PayPCRoom] User Limit Exceed2!" << endl;
-
-                            // Not allowed.
-                            SAFE_DELETE(pStmt);
-
-                            return false;
-                        } else {
-                            // 정상적인 경우
-                            SAFE_DELETE(pStmt);
-
-                            m_bPCRoomPlay = true;
-
-                            return true;
-                        }
-                    }
+                if (m_PayType == PAY_TYPE_PERIOD && users >= m_UserLimit ||
+                    m_PayType == PAY_TYPE_TIME && users >= m_UserMax) {
+                    repo.deletePCRoomUser(playerID);
+                    return false;
+                } else {
+                    m_bPCRoomPlay = true;
+                    return true;
                 }
             }
         }
-
-        SAFE_DELETE(pStmt);
-    }
-    catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
-
-        filelog("paySystem.txt", "%s", sqe.toString().c_str());
+    } catch (const char*) {
+        filelog("paySystem.txt", "%s", "PaySystem::loginPayPlayPCRoom : SQL error, see DBError.log");
         throw;
     }
 
@@ -477,21 +420,13 @@ bool PaySystem::loginPayPlayPCRoom(const string& ip, const string& playerID) {
 void PaySystem::logoutPayPlayPCRoom(const string& playerID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     if (m_PayPlayType == PAY_PLAY_TYPE_PCROOM) {
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-            // Remove the row we inserted earlier.
-            pStmt->executeQuery("DELETE FROM PCRoomUserInfo WHERE PlayerID='%s'", playerID.c_str());
-
-            SAFE_DELETE(pStmt);
-            //} END_DB(pStmt);
-        }
-        catch (SQLQueryException& sqe) {
-            SAFE_DELETE(pStmt);
-            filelog("paySystem.txt", "%s", sqe.toString().c_str());
+        // The occupant row the login inserted; a SQL failure is noted in
+        // paySystem.txt and leaves as END_DB's const char*.
+        try {
+            defaultPayPlayRepository().deletePCRoomUser(playerID);
+        } catch (const char*) {
+            filelog("paySystem.txt", "%s", "PaySystem::logoutPayPlayPCRoom : SQL error, see DBError.log");
             throw;
         }
     }
@@ -593,8 +528,6 @@ bool PaySystem::loginPayPlay(PayType payType, const string& payPlayDate, int pay
 // login PayPlay
 //---------------------------------------------------------------------------
 bool PaySystem::loginPayPlay(const string& ip, const string& playerID) {
-    Statement* pStmt = NULL;
-
     __BEGIN_TRY
 
     // If already logged in, reuse the session.
@@ -606,41 +539,28 @@ bool PaySystem::loginPayPlay(const string& ip, const string& playerID) {
 
 
     if (!m_bSetPersonValue) {
-        BEGIN_DB {
-            // pStmt = g_pDatabaseManager->getConnection((int)(long)Thread::self())->createStatement();
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+        // The account's pay-play columns; a missing row refuses the
+        // login, a SQL failure is noted in paySystem.txt and leaves as
+        // END_DB's const char*.
+        PayPlayAccountRow account;
+        bool bFound = false;
 
-            Result* pResult = pStmt->executeQuery("SELECT PayType, PayPlayDate, PayPlayHours, PayPlayFlag, "
-                                                  "FamilyPayPlayDate FROM Player WHERE PlayerID='%s'",
-                                                  playerID.c_str());
-
-            if (pResult->getRowCount() == 0) {
-                SAFE_DELETE(pStmt);
-
-                // cout << "No PlayerID" << endl;
-                return false;
-            }
-
-            pResult->next();
-
-            setPayType((PayType)pResult->getInt(1));
-
-            setPayPlayAvailableDateTime(pResult->getString(2));
-            setPayPlayAvailableHours(pResult->getInt(3));
-            setPayPlayFlag(pResult->getInt(4));
-
-            setFamilyPayPlayAvailableDateTime(pResult->getString(5));
-
-            SAFE_DELETE(pStmt);
-
-            //} END_DB(pStmt)
-        }
-        catch (SQLQueryException& sqe) {
-            SAFE_DELETE(pStmt);
-
-            filelog("paySystem.txt", "%s", sqe.toString().c_str());
+        try {
+            bFound = defaultPayPlayRepository().loadAccountPayPlay(playerID, account);
+        } catch (const char*) {
+            filelog("paySystem.txt", "%s", "PaySystem::loginPayPlay : SQL error, see DBError.log");
             throw;
         }
+
+        if (!bFound) {
+            return false;
+        }
+
+        setPayType((PayType)account.payType);
+        setPayPlayAvailableDateTime(account.payPlayDate);
+        setPayPlayAvailableHours(account.payPlayHours);
+        setPayPlayFlag(account.payPlayFlag);
+        setFamilyPayPlayAvailableDateTime(account.familyPayPlayDate);
     }
 
     /*
@@ -778,18 +698,7 @@ void PaySystem::clearPayPlayDateTime(const string& playerID) {
 
     m_PayPlayAvailableHours = 0;
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        // pStmt = g_pDatabaseManager->getConnection((int)(long)Thread::self())->createStatement();
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-        pStmt->executeQuery("UPDATE Player SET PayPlayHours=0, PayPlayDate='2002-11-18 00:00:00' WHERE PlayerID='%s'",
-                            playerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultPayPlayRepository().clearAccountPayPlay(playerID);
 
     __END_CATCH
 }
@@ -803,17 +712,7 @@ void PaySystem::decreasePayPlayTime(const string& playerID, uint mm) {
 
     m_PayPlayAvailableHours -= mm;
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        // pStmt = g_pDatabaseManager->getConnection((int)(long)Thread::self())->createStatement();
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-        pStmt->executeQuery("UPDATE Player SET PayPlayHours=PayPlayHours-%d WHERE PlayerID='%s'", mm, playerID.c_str());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultPayPlayRepository().decreaseAccountPayPlayHours(mm, playerID);
 
     __END_CATCH
 }
@@ -826,24 +725,12 @@ void PaySystem::decreasePayPlayTimePCRoom(uint mm) {
 
     m_PayPlayAvailableHours -= mm;
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        // pStmt = g_pDatabaseManager->getConnection((int)(long)Thread::self())->createStatement();
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-        pStmt->executeQuery("UPDATE PCRoomInfo SET PayPlayHours=PayPlayHours-%d WHERE ID=%d", mm, m_PCRoomID);
-
-        Result* pResult = pStmt->executeQuery("SELECT PayPlayHours FROM PCRoomInfo WHERE ID=%d", m_PCRoomID);
-
-        if (pResult->next()) {
-            m_PayPlayAvailableHours = pResult->getInt(1);
-        }
-
-        SAFE_DELETE(pStmt);
+    // The room's hours go down and the column is read back as the new
+    // available hours.
+    int remaining = 0;
+    if (defaultPayPlayRepository().decreasePCRoomPayPlayHours(mm, m_PCRoomID, remaining)) {
+        m_PayPlayAvailableHours = remaining;
     }
-    END_DB(pStmt)
-
 
     __END_CATCH
 }
@@ -856,30 +743,15 @@ void PaySystem::increasePayPlayTimePCRoom(uint mm) {
 
     VSDate vsDate = VSDate::currentDate();
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    // The room's minutes for this month, added to the month's row or
+    // opening it.
+    PayPlayRepository& repo = defaultPayPlayRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-        pResult =
-            pStmt->executeQuery("SELECT PayPlayMinute FROM PCRoomPayList WHERE PCRoomID=%d AND Year=%d AND Month=%d",
-                                m_PCRoomID, vsDate.year(), vsDate.month());
-
-        if (pResult->next()) {
-            pStmt->executeQuery(
-                "UPDATE PCRoomPayList SET PayPlayMinute=PayPlayMinute+%d WHERE PCRoomID=%d AND Year=%d AND Month=%d",
-                mm, m_PCRoomID, vsDate.year(), vsDate.month());
-        } else {
-            pStmt->executeQuery(
-                "INSERT INTO PCRoomPayList (PCRoomID, Year, Month, PayPlayMinute) VALUES (%d, %d, %d, %d)", m_PCRoomID,
-                vsDate.year(), vsDate.month(), mm);
-        }
-
-        SAFE_DELETE(pStmt);
+    if (repo.hasPCRoomPayMonth(m_PCRoomID, vsDate.year(), vsDate.month())) {
+        repo.addPCRoomPayMinutes(mm, m_PCRoomID, vsDate.year(), vsDate.month());
+    } else {
+        repo.insertPCRoomPayMonth(m_PCRoomID, vsDate.year(), vsDate.month(), mm);
     }
-    END_DB(pStmt)
-
 
     __END_CATCH
 }
@@ -887,29 +759,17 @@ void PaySystem::increasePayPlayTimePCRoom(uint mm) {
 bool PaySystem::isPayPlayingPeriodPersonal(const string& PlayerID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-
     bool isPayPlay = false;
 
-    BEGIN_DB {
-        // pStmt = g_pDatabaseManager->getConnection((int)(long)Thread::self())->createStatement();
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-
-        Result* pResult = pStmt->executeQuery("SELECT PayType=0 or PayPlayDate > now() FROM Player WHERE PlayerID='%s'",
-                                              PlayerID.c_str());
-
-        if (pResult->next()) {
-            isPayPlay = pResult->getInt(1) == 1;
+    // A SQL failure is noted in paySystem.txt and leaves as END_DB's
+    // const char*.
+    try {
+        int flag = 0;
+        if (defaultPayPlayRepository().loadAccountPayPlaying(PlayerID, flag)) {
+            isPayPlay = flag == 1;
         }
-
-        SAFE_DELETE(pStmt);
-
-        //} END_DB(pStmt)
-    }
-    catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
-
-        filelog("paySystem.txt", "%s", sqe.toString().c_str());
+    } catch (const char*) {
+        filelog("paySystem.txt", "%s", "PaySystem::isPayPlayingPeriodPersonal : SQL error, see DBError.log");
         throw;
     }
 
@@ -926,68 +786,44 @@ bool PaySystem::isPayPlayingPeriodPersonal(const string& PlayerID) {
 bool PaySystem::isPlayInPayPCRoom(const string& ip, const string& playerID) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    // The room this client IP belongs to; a SQL failure is noted in
+    // paySystem.txt and leaves as END_DB's const char*.
+    PayPlayPCRoomPeriodRow room;
+    bool bFound = false;
 
-    BEGIN_DB {
-        try {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-        } catch (Throwable& t) {
-            filelog("paySystem.txt", "%s", t.toString().c_str());
-            throw;
-        }
-
-        try {
-            pResult = pStmt->executeQuery("SELECT r.ID, r.PayType, r.PayStartDate, r.PayPlayDate, r.PayPlayHours FROM "
-                                          "PCRoomInfo r, PCRoomIPInfo p WHERE p.IP='%s' AND p.ID=r.ID",
-                                          ip.c_str());
-        } catch (Throwable& t) {
-            filelog("paySystem.txt", "%s", t.toString().c_str());
-            throw;
-        }
-
-        if (pResult != NULL && pResult->next()) {
-            uint i = 0;
-
-            ObjectID_t pcRoomID = (ObjectID_t)pResult->getInt(++i);
-            PayType payType = (PayType)pResult->getInt(++i);
-            VSDateTime payStartAvailableDateTime(pResult->getString(++i));
-            VSDateTime payPlayAvailableDateTime(pResult->getString(++i));
-            int payPlayAvailableHours = pResult->getInt(++i);
-
-            VSDateTime currentDateTime(VSDate::currentDate(), VSTime::currentTime());
-
-            // Legacy post-pay logic
-            if (payType == PAY_TYPE_POST) {
-                VSDateTime currentDateTime(VSDate::currentDate(), VSTime::currentTime());
-
-                // Do not allow after the limited date.
-                if (currentDateTime <= payPlayAvailableDateTime)
-                    return true;
-
-                return false;
-            }
-
-            // Determine if this PC room is allowed for paid use.
-            bool bAvailable =
-                (payType == PAY_TYPE_FREE) ||
-                ((currentDateTime >= payStartAvailableDateTime) && (currentDateTime <= payPlayAvailableDateTime)) ||
-                (payPlayAvailableHours > 0);
-
-            // If allowed, record the PC-room ID.
-            if (bAvailable)
-                m_PCRoomID = pcRoomID;
-
-            return bAvailable;
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
-
-        filelog("paySystem.txt", "%s", sqe.toString().c_str());
+    try {
+        bFound = defaultPayPlayRepository().loadPCRoomPeriodByIP(ip, room);
+    } catch (const char*) {
+        filelog("paySystem.txt", "%s", "PaySystem::isPlayInPayPCRoom : SQL error, see DBError.log");
         throw;
+    }
+
+    if (bFound) {
+        ObjectID_t pcRoomID = (ObjectID_t)room.id;
+        PayType payType = (PayType)room.payType;
+        VSDateTime payStartAvailableDateTime(room.payStartDate);
+        VSDateTime payPlayAvailableDateTime(room.payPlayDate);
+        int payPlayAvailableHours = room.payPlayHours;
+
+        VSDateTime currentDateTime(VSDate::currentDate(), VSTime::currentTime());
+
+        // A post-paid room plays until its date.
+        if (payType == PAY_TYPE_POST) {
+            VSDateTime currentDateTime(VSDate::currentDate(), VSTime::currentTime());
+            if (currentDateTime <= payPlayAvailableDateTime)
+                return true;
+            return false;
+        }
+
+        bool bAvailable =
+            (payType == PAY_TYPE_FREE) ||
+            ((currentDateTime >= payStartAvailableDateTime) && (currentDateTime <= payPlayAvailableDateTime)) ||
+            (payPlayAvailableHours > 0);
+
+        if (bAvailable)
+            m_PCRoomID = pcRoomID;
+
+        return bAvailable;
     }
 
     return false;

@@ -59,7 +59,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 332 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `TradeManager.cpp` holds SQL that compiles and runs; `CreatureUtil.cpp` keeps a commented-out block; the rest are listed under 3.2 "What remains".) |
-| R3 | Files with inline SQL outside `database/` and any `repository/` | 23 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (`gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
+| R3 | Files with inline SQL outside `database/` and any `repository/` | 19 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (`gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,790 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -743,7 +743,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > **Status:** in progress (2026-09-06) — 34 seams under
   > `src/server/gameserver/repository/` (interface `*Repository.h`, impl
   > `MySQL*Repository.cpp`, reached through `default*Repository()`
-  > accessors, never `g_p*` externs). R2 104→8 and R3 317→23 since the
+  > accessors, never `g_p*` externs). R2 104→8 and R3 317→19 since the
   > pilot; every extraction is one branch and one PR
   > (`restructuring/*-repositor{y,ies}`, #18 through #85, then
   > `restructuring/motorcycle-redeem` and
@@ -780,7 +780,16 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > world-default connection — `getConnection(int)`, see its header),
   > `CharacterPurge` (deletePC's 109-statement character-deletion list,
   > one method, one Statement, in the original order — every table on
-  > it is another seam's, and those headers say so). In the loginserver,
+  > it is another seam's, and those headers say so); `Exchange` (the
+  > Exchange feature's own access class relocated under the convention:
+  > ExchangeListing, ExchangeOrder, the AccountPoint / PointLedger
+  > statements that ask for a USERINFO connection and reach DARKEDEN,
+  > and the transaction pair — the header says what each does against
+  > the shipped schema). In ServerCore, under `src/server/repository/`
+  > and compiled into all three binaries: `PayPlay` (PaySystem's Player
+  > pay-play columns and the PC-room tables, on the dist connection) and
+  > `ServerInfo` (GameServerInfo with its NonPKServerList and
+  > CastleStatInfo flags, and WorldInfo). In the loginserver,
   > under `src/server/loginserver/repository/` with a `Login` prefix
   > (the integration binary links every impl, so names must not
   > collide with the gameserver's): `LoginCharacterPurge`
@@ -938,9 +947,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > and never compiled (no `file(GLOB)` exists anywhere). Deleting them
   > is a separate decision. Under R3, in the gameserver (live statement
   > counts; every table below is in `initdb/` unless said otherwise):
-  > `exchange/ExchangeDB.cpp` (27) is the Exchange feature's own DB
-  > access class — a seam in all but directory, so moving it is a
-  > relocation, not an extraction; `handler/CGSayHandler.cpp` (1 live,
+  > `handler/CGSayHandler.cpp` (1 live,
   > 2 commented out — its other thirteen moved in the CGSay round; what
   > stays is `opnotice`'s INSERT into `quick1001` on a hard-coded remote
   > BBS host, through a Connection it opens itself rather than
@@ -952,16 +959,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > not in `initdb/` and the file is in no CMakeLists — never compiled);
   > files
   > whose only `executeQuery` is commented out (five `mission/` files,
-  > EffectBloodyWall, EffectGrayDarkness, SiegeWar); outside it,
-  > `src/server/PaySystem.cpp` (16; ServerCore, compiled into the
-  > gameserver — the three `__PAY_SYSTEM_*` macros are commented out,
-  > but `__NETMARBLE_SERVER__` is not defined either, so
-  > `GamePlayer::loginPayPlay` falls through to `PaySystem::loginPayPlay`
-  > and EffectLoveChain reaches its Player read, and
-  > ActionGiveAccountEventItem calls `isPayPlayingPeriodPersonal`
-  > directly — live, not disabled), ServerCore's live
-  > `GameServerInfoManager.cpp` (5) and `GameWorldInfoManager.cpp` (1),
-  > and the loginserver's `LoginPlayer.cpp`, whose only remaining
+  > EffectBloodyWall, EffectGrayDarkness, SiegeWar); outside it, only
+  > the loginserver's `LoginPlayer.cpp`, whose only remaining
   > `executeQuery` is the fully commented-out `addLogoutPlayerData`
   > body, which declares its own Statement and so stays under the
   > comment policy.

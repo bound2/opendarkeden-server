@@ -34,7 +34,7 @@ void CGExchangeListHandler::execute(CGExchangeList* pPacket, Player* pPlayer) {
     // Clamp the client-supplied paging before anything uses it.
     //
     // The page size bounds two separate things: the SQL LIMIT in
-    // ExchangeDB::getListings, and the size of the reply. GCExchangeList
+    // defaultExchangeRepository().getListings, and the size of the reply. GCExchangeList
     // declares its maximum packet size for kMaxListingsPerPage listings
     // (see GCExchangeListFactory::getPacketMaxSize), so a larger page would
     // build a reply the client discards as oversized.
@@ -46,7 +46,7 @@ void CGExchangeListHandler::execute(CGExchangeList* pPacket, Player* pPlayer) {
         pageSize = maxPageSize;
 
     // Pages are 1-based. The upper bound keeps the OFFSET that
-    // ExchangeDB::getListings computes as (page - 1) * pageSize from
+    // defaultExchangeRepository().getListings computes as (page - 1) * pageSize from
     // overflowing int.
     int page = pPacket->getPage();
     if (page < 1)
