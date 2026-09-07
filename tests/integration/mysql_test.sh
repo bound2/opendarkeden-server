@@ -52,7 +52,8 @@ docker run -d --name "$DB" --network "$NET" \
     -v "$repo_mount/initdb/USERINFO.sql":/docker-entrypoint-initdb.d/1b-USERINFO.sql:ro \
     -v "$repo_mount/initdb/a-setup.sql":/docker-entrypoint-initdb.d/2-a-setup.sql:ro \
     -e MYSQL_ROOT_PASSWORD=123456 \
-    "$MYSQL_IMAGE" mysqld --sql_mode="$SQL_MODE" >/dev/null
+    "$MYSQL_IMAGE" mysqld --sql_mode="$SQL_MODE" \
+    --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci >/dev/null
 
 echo "--- waiting for the schema import"
 for _ in $(seq 1 90); do

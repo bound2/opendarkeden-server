@@ -62,6 +62,14 @@ destroyed it.
 Converting `data/*.xml` to UTF-8 is **not** done here. It is a data change,
 and it would need the client's expectations checked alongside it.
 
+The database dumps went the other way: `initdb/*.sql` create every table in
+`utf8mb4`, the servers pin their MySQL session to `utf8mb4`
+(`src/server/database/Connection.cpp`), and the EUC-KR/GBK text the dumps
+carried as latin1 mojibake was re-encoded to real UTF-8 with
+`tools/reencode_legacy_dump.pl`. Under the old latin1 session the database
+was a byte store — whatever the client sent came back unchanged — so the
+wire and the database now agree on UTF-8.
+
 ### Evidence
 
 `tests/xml_parse_test.cpp` pins the parsed shape of all four files against

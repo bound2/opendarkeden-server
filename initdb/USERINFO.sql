@@ -7,7 +7,7 @@
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -19,7 +19,7 @@
 -- Current Database: `USERINFO`
 --
 
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `USERINFO` /*!40100 DEFAULT CHARACTER SET latin1 */;
+CREATE DATABASE /*!32312 IF NOT EXISTS*/ `USERINFO` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci */;
 
 USE `USERINFO`;
 
@@ -29,7 +29,7 @@ USE `USERINFO`;
 
 DROP TABLE IF EXISTS `LoginData`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `LoginData` (
   `Year` int(11) NOT NULL DEFAULT '0',
   `Month` tinyint(3) NOT NULL DEFAULT '0',
@@ -65,7 +65,7 @@ CREATE TABLE `LoginData` (
   `Area17` int(11) NOT NULL DEFAULT '0',
   `Area18` int(11) NOT NULL DEFAULT '0',
   `AreaETC` int(11) NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -83,7 +83,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `LoginPlayerData`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `LoginPlayerData` (
   `PlayerID` varchar(10) NOT NULL DEFAULT '',
   `SSN` varchar(20) NOT NULL DEFAULT '',
@@ -94,7 +94,7 @@ CREATE TABLE `LoginPlayerData` (
   KEY `IDX_LoginPlayerData2` (`PlayerID`),
   KEY `IDX_DATE` (`Date`),
   KEY `LoginPlayerData_IP` (`IP`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -112,7 +112,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `LogoutPlayerData`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `LogoutPlayerData` (
   `PlayerID` varchar(10) NOT NULL DEFAULT '',
   `SSN` varchar(20) NOT NULL DEFAULT '',
@@ -122,7 +122,7 @@ CREATE TABLE `LogoutPlayerData` (
   `IP` varchar(15) NOT NULL DEFAULT '',
   KEY `IDX_LogoutPlayerData2` (`PlayerID`),
   KEY `IDX_DATE` (`Date`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -140,7 +140,7 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `UserStat`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `UserStat` (
   `Year` int(11) NOT NULL DEFAULT '0',
   `Month` int(11) NOT NULL DEFAULT '0',
@@ -183,7 +183,7 @@ CREATE TABLE `UserStat` (
   `BillingPlayerCount` int(11) NOT NULL DEFAULT '0',
   KEY `IDX_UserStat` (`Year`,`Month`,`Day`,`Hour`,`Minute`,`TotalUser`,`PlayerCount`),
   KEY `UserStat_2` (`Year`,`Month`,`Day`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -202,12 +202,12 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `UserStatus`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `UserStatus` (
   `WorldID` tinyint(10) NOT NULL DEFAULT '0',
   `CurrentUser` tinyint(3) NOT NULL DEFAULT '0',
   `ServerID` int(10) unsigned NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -232,7 +232,7 @@ CREATE TABLE `AccountPoint` (
   `PointBalance` INT(10) UNSIGNED NOT NULL DEFAULT '0',
   `UpdatedAt` DATETIME NOT NULL,
   PRIMARY KEY (`Account`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -264,7 +264,7 @@ CREATE TABLE `PointLedger` (
   PRIMARY KEY (`LedgerID`),
   UNIQUE KEY `UNQ_Ledger_IdempotencyKey` (`IdempotencyKey`),
   KEY `IDX_Ledger_Account_CreatedAt` (`Account`,`CreatedAt`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --

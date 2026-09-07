@@ -242,6 +242,19 @@ The project requires MySQL 5.7 or 8 with specific SQL mode settings:
 set @@global.sql_mode = 'ONLY_FULL_GROUP_BY,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 ```
 
+Text is UTF-8 end to end. Both databases and every table are InnoDB in
+`utf8mb4` / `utf8mb4_unicode_ci` (`tests/ratchet/ratchets.sh` fails on any
+other engine or charset in `initdb/`), the MySQL containers run
+`--character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci`, and
+every server pins its session to `utf8mb4` right after connecting
+(`src/server/database/Connection.cpp`). The pin matters: the 8.0 client
+library asks MySQL 5.7 for a collation it does not know, and the server then
+silently drops the session to latin1 and passes text through as raw bytes.
+The dumps' legacy EUC-KR and GBK text was re-encoded to real UTF-8 with
+`tools/reencode_legacy_dump.pl` (the script documents how each literal's
+language was decided; 24 symbol-art couple names that decode in no encoding
+were left as they were).
+
 Databases:
 - `DARKEDEN` - Main game database
 - `USERINFO` - User account database
