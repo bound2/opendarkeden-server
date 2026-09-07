@@ -111,6 +111,7 @@ set_tests_properties(repository_tests PROPERTIES TIMEOUT 60)
 add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     integration/mysql_repository_test.cpp
     integration/mysql_login_purge_repository_test.cpp
+    integration/mysql_loginserver_repository_test.cpp
     integration/mysql_sharedserver_repository_test.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBalanceInfoRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBloodBibleSignRepository.cpp
@@ -146,7 +147,10 @@ add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLSkillSaveRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLStashRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLWarInfoRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/repository/MySQLLoginAccountRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/loginserver/repository/MySQLLoginCharacterPurgeRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/repository/MySQLLoginCharacterRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/repository/MySQLLoginConfigRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/sharedserver/repository/MySQLSharedConfigRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/sharedserver/repository/MySQLSharedGuildRepository.cpp
 )

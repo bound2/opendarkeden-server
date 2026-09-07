@@ -10,13 +10,13 @@
 #include <exception>
 
 #include "Assert1.h"
-#include "DB.h"
 #include "GameServerGroupInfoManager.h"
 #include "LCRegisterPlayerError.h"
 #include "LCRegisterPlayerOK.h"
 #include "LoginPlayer.h"
 #include "PasswordHash.h"
 #include "Properties.h"
+#include "repository/LoginAccountRepository.h"
 #endif
 
 #ifdef __LOGIN_SERVER__
@@ -141,140 +141,94 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
         throw DisconnectException("password hashing failed");
     }
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    LoginAccountRepository& repo = defaultLoginAccountRepository();
 
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        //--------------------------------------------------------------------------------
-        // Check for duplicate PlayerID.
-        //--------------------------------------------------------------------------------
-        pResult = pStmt->executeQuery("SELECT PlayerID FROM Player WHERE PlayerID = '%s'", pPacket->getID().c_str());
-
-        if (pResult->getRowCount() != 0) {
+        if (repo.accountExists(pPacket->getID())) {
             lcRegisterPlayerError.setErrorID(ALREADY_REGISTER_ID);
             throw DuplicatedException("that ID already exists");
         }
 
-        //--------------------------------------------------------------------------------
-        // The SSN used to be checked for uniqueness here. The client no longer
-        // collects a national ID number and sends a fixed placeholder, so a
-        // uniqueness check would reject every account after the first.
-        //--------------------------------------------------------------------------------
+        LoginNewAccount account;
+        account.playerID = pPacket->getID();
+        account.password = hashedPassword;
+        account.name = pPacket->getName();
+        account.sex = Sex2String[pPacket->getSex()];
+        account.ssn = pPacket->getSSN();
+        account.telephone = pPacket->getTelephone();
+        account.cellular = pPacket->getCellular();
+        account.zipCode = pPacket->getZipCode();
+        account.address = pPacket->getAddress();
+        account.nation = (int)pPacket->getNation();
+        account.email = pPacket->getEmail();
+        account.homepage = pPacket->getHomepage();
+        account.profile = pPacket->getProfile();
+        account.pub = (pPacket->getPublic() == true) ? "PUBLIC" : "PRIVATE";
 
-        //--------------------------------------------------------------------------------
-        // Insert the new player row.
-        //--------------------------------------------------------------------------------
-        pResult = pStmt->executeQuery(
-            "INSERT INTO Player (PlayerID , Password , Name , Sex , SSN , Telephone , Cellular , Zipcode , Address , "
-            "Nation , Email , Homepage , Profile , Pub) VALUES ('%s' , '%s' , '%s' , '%s' , '%s' , '%s' , "
-            "'%s' , '%s' , '%s' , %d , '%s' , '%s' , '%s' , '%s')",
-            pPacket->getID().c_str(), hashedPassword.c_str(), pPacket->getName().c_str(),
-            Sex2String[pPacket->getSex()].c_str(), pPacket->getSSN().c_str(), pPacket->getTelephone().c_str(),
-            pPacket->getCellular().c_str(), pPacket->getZipCode().c_str(), pPacket->getAddress().c_str(),
-            (int)pPacket->getNation(), pPacket->getEmail().c_str(), pPacket->getHomepage().c_str(),
-            pPacket->getProfile().c_str(), (pPacket->getPublic() == true) ? "PUBLIC" : "PRIVATE");
+        repo.insertAccount(account);
 
-        // After successful insert, send LCRegisterPlayerOK to the client.
-        Assert(pResult == NULL);
-        Assert(pStmt->getAffectedRowCount() == 1);
+        // The new account is logged on at once.
+        repo.markLoggedOnAfterRegister(pLoginPlayer->getSocket()->getHost(), g_pConfig->getPropertyInt("LoginServerID"),
+                                       pPacket->getID());
 
-        // The client goes on to the world list exactly as after CLLogin, so
-        // mark the account logged on the way CLLoginHandler does; the
-        // disconnect path only clears LogOn when it is 'LOGON'.
-        pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGON', LoginIP = '%s', CurrentLoginServerID=%d, "
-                            "LastLoginDate=now() WHERE PlayerID = '%s'",
-                            pLoginPlayer->getSocket()->getHost().c_str(), g_pConfig->getPropertyInt("LoginServerID"),
-                            pPacket->getID().c_str());
-
-        // Retrieve current world/group IDs for the new user.
-        pResult = pStmt->executeQuery("SELECT CurrentWorldID, CurrentServerGroupID FROM Player WHERE PlayerID = '%s'",
-                                      pPacket->getID().c_str());
-
-        if (pResult->getRowCount() == 0) {
+        int currentWorldID = 0;
+        int currentServerGroupID = 0;
+        if (!repo.loadCurrentLocation(LOGIN_LOCATION_SQL_UPPER, pPacket->getID(), currentWorldID,
+                                      currentServerGroupID)) {
             lcRegisterPlayerError.setErrorID(ETC_ERROR);
             throw SQLQueryException("the new player row could not be read back after the insert");
         }
 
-        WorldID_t WorldID = 0;
-        ServerGroupID_t ServerGroupID = 0;
-
-        // next() is true when a row was fetched; the old check had this
-        // inverted and turned every successful registration into ETC_ERROR.
-        if (!pResult->next())
-            throw SQLQueryException("the new player row could not be fetched after the insert");
-
-        WorldID = pResult->getInt(1);
-        ServerGroupID = pResult->getInt(2);
+        WorldID_t WorldID = currentWorldID;
+        ServerGroupID_t ServerGroupID = currentServerGroupID;
 
         pLoginPlayer->setServerGroupID(ServerGroupID);
 
         LCRegisterPlayerOK lcRegisterPlayerOK;
-
         lcRegisterPlayerOK.setGroupName(
             g_pGameServerGroupInfoManager->getGameServerGroupInfo(ServerGroupID, WorldID)->getGroupName());
-
-        // The client does not collect a real national ID any more, so the
-        // adult flag cannot be derived from the SSN. CLLoginHandler's client
-        // side already ignores the flag and decides gore level from the
-        // teen-version option alone; report the same thing here.
         lcRegisterPlayerOK.setAdult(true);
-
         pLoginPlayer->sendPacket(&lcRegisterPlayerOK);
 
-        // Remember the ID: the session is now logged in as the new account.
         pLoginPlayer->setID(pPacket->getID());
-
-        // Registration succeeded; wait for the world/PC list requests.
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
-
-        SAFE_DELETE(pStmt);
     } catch (DuplicatedException& de) {
-        SAFE_DELETE(pStmt);
-
-        //--------------------------------------------------------------------------------
-        // Report the registration failure.
-        //--------------------------------------------------------------------------------
         pLoginPlayer->sendPacket(&lcRegisterPlayerError);
 
-        //--------------------------------------------------------------------------------
-        // Count the failure; too many failures end the session.
-        //--------------------------------------------------------------------------------
         uint nFailed = pLoginPlayer->getFailureCount() + 1;
-
         if (nFailed > 3)
             throw DisconnectException("too many failure");
-
         pLoginPlayer->setFailureCount(nFailed);
 
         // Registration failed; wait for another CLRegisterPlayer.
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
-
     } catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
-
-        //--------------------------------------------------------------------------------
-        // Report the registration failure.
-        //--------------------------------------------------------------------------------
+        // The handler's own throw above: the row could not be read back.
         lcRegisterPlayerError.setErrorID(ETC_ERROR);
-
         pLoginPlayer->sendPacket(&lcRegisterPlayerError);
 
-        //--------------------------------------------------------------------------------
-        // Count the failure; too many failures end the session.
-        //--------------------------------------------------------------------------------
         uint nFailed = pLoginPlayer->getFailureCount() + 1;
-
         if (nFailed > 3)
             throw DisconnectException("too many failure");
+        pLoginPlayer->setFailureCount(nFailed);
 
+        // Registration failed; wait for another CLRegisterPlayer.
+        pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); answered like the case
+        // above.
+        lcRegisterPlayerError.setErrorID(ETC_ERROR);
+        pLoginPlayer->sendPacket(&lcRegisterPlayerError);
+
+        uint nFailed = pLoginPlayer->getFailureCount() + 1;
+        if (nFailed > 3)
+            throw DisconnectException("too many failure");
         pLoginPlayer->setFailureCount(nFailed);
 
         // Registration failed; wait for another CLRegisterPlayer.
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
     }
-
     __END_DEBUG
 
 #endif

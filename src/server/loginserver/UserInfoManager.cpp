@@ -9,11 +9,7 @@
 // include files
 #include "UserInfoManager.h"
 
-#include "database/Connection.h"
-#include "database/DB.h"
-#include "database/DatabaseManager.h"
-#include "database/Result.h"
-#include "database/Statement.h"
+#include "repository/LoginConfigRepository.h"
 
 //----------------------------------------------------------------------
 // constructor
@@ -66,48 +62,38 @@ void UserInfoManager::init() noexcept(false) {
 void UserInfoManager::load() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    LoginConfigRepository& repo = defaultLoginConfigRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT MAX(WorldID) FROM GameServerGroupInfo");
-
-        if (pResult->getRowCount() == 0) {
-            throw Error("GameServerGroupInfo TABLE does not exist!");
-        }
-
-        pResult->next();
-        m_MaxWorldID = pResult->getInt(1) + 2;
-
-        SAFE_DELETE(pStmt);
+    // The table is sized from the largest WorldID; an empty table is a
+    // startup error.
+    int maxWorldID = 0;
+    if (!repo.loadMaxGameServerGroupWorldID(maxWorldID)) {
+        throw Error("GameServerGroupInfo TABLE does not exist!");
     }
-    END_DB(pStmt)
+
+    m_MaxWorldID = maxWorldID + 2;
 
     m_UserInfos = new HashMapUserInfo[m_MaxWorldID];
 
+    vector<LoginGameServerGroupIDRow> rows;
 
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT WorldID, GroupID FROM GameServerGroupInfo");
-
-        while (pResult->next()) {
-            UserInfo* pUserInfo = new UserInfo();
-            WorldID_t WorldID = pResult->getInt(1);
-            pUserInfo->setWorldID(WorldID);
-            pUserInfo->setServerGroupID(pResult->getInt(2));
-            pUserInfo->setUserNum(0);
-            addUserInfo(pUserInfo);
-        }
-
-    } catch (SQLQueryException& sqe) {
-        // �ʻ� ����!
-        delete pStmt;
-
-        throw Error(sqe.toString());
+        rows = repo.loadGameServerGroupIDs();
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); rethrown as the Error the
+        // startup path expects.
+        throw Error("UserInfoManager::load : SQL error, see DBError.log");
     }
 
-    // �ʻ� ����!
-    delete pStmt;
+    for (size_t i = 0; i < rows.size(); i++) {
+        UserInfo* pUserInfo = new UserInfo();
+        WorldID_t WorldID = rows[i].worldID;
+        pUserInfo->setWorldID(WorldID);
+        pUserInfo->setServerGroupID(rows[i].groupID);
+        pUserInfo->setUserNum(0);
+        addUserInfo(pUserInfo);
+    }
 
     __END_CATCH
 }

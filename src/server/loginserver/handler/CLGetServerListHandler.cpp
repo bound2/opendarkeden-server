@@ -8,13 +8,13 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
-#include "DB.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameServerInfoManager.h"
 #include "LCServerList.h"
 #include "LoginPlayer.h"
 #include "ServerGroupInfo.h"
 #include "UserInfoManager.h"
+#include "repository/LoginAccountRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -89,23 +89,15 @@ void CLGetServerListHandler::execute(CLGetServerList* pPacket, Player* pPlayer)
 
         LCServerList lcServerList;
 
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            Result* pResult =
-                pStmt->executeQuery("SELECT CurrentWorldID, CurrentServerGroupID FROM Player where PlayerID='%s'",
-                                    pLoginPlayer->getID().c_str());
-
-            if (pResult->next()) {
-                lcServerList.setCurrentServerGroupID(pResult->getInt(1));
-                lcServerList.setCurrentServerGroupID(pResult->getInt(2));
-            }
-
-            SAFE_DELETE(pStmt); // by sigi
+        // The account's current world and group. Both values land in the
+        // server group field, the second overwriting the first.
+        int currentWorldID = 0;
+        int currentServerGroupID = 0;
+        if (defaultLoginAccountRepository().loadCurrentLocation(LOGIN_LOCATION_SQL_LOWER, pLoginPlayer->getID(),
+                                                                currentWorldID, currentServerGroupID)) {
+            lcServerList.setCurrentServerGroupID(currentWorldID);
+            lcServerList.setCurrentServerGroupID(currentServerGroupID);
         }
-        END_DB(pStmt) // by sigi
 
         for (int k = 0; k < GroupNum; k++) {
             lcServerList.addListElement(aServerGroupInfo[k]);

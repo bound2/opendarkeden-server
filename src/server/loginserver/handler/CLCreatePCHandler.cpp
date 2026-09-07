@@ -12,12 +12,12 @@
 #include <list>
 
 #include "Assert.h"
-#include "DB.h"
 #include "GameServerInfoManager.h"
 #include "LCCreatePCError.h"
 #include "LCCreatePCOK.h"
 #include "LoginPlayer.h"
 #include "PCSlayerInfo.h"
+#include "repository/LoginCharacterRepository.h"
 #endif
 
 bool isAvailableID(const char* pID);
@@ -53,15 +53,11 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
     Assert(pPlayer != NULL);
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
     LCCreatePCError lcCreatePCError;
     WorldID_t WorldID = pLoginPlayer->getWorldID();
-
+    LoginCharacterRepository& repo = defaultLoginCharacterRepository();
 
     try {
-        pStmt = g_pDatabaseManager->getConnection(WorldID)->createStatement();
-
         // 시스템에서 사용하거나, 금지된 이름은 아닌기 검증한다.
         // NONE, ZONE***, INV***, QUICK...
         // string text = pPacket->getName();
@@ -107,37 +103,16 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
 #endif
 
 
-        // 이미 존재하는 캐릭터 이름이 아닌지 검증한다.
-        ///*
-        pResult = pStmt->executeQuery("SELECT Name FROM Slayer WHERE Name = '%s'", pPacket->getName().c_str());
-        if (pResult->getRowCount() != 0) {
+        // The name must be free and the slot empty.
+        if (repo.slayerNameExists(WorldID, pPacket->getName())) {
             lcCreatePCError.setErrorID(ALREADY_REGISTER_ID);
-            throw DuplicatedException("이미 존재하는 아이디입니다.");
+            throw DuplicatedException("that ID already exists.");
         }
 
-        // 해당 슬랏에 캐릭터가 이미 있지는 않은지 검증한다.
-        pResult = pStmt->executeQuery("SELECT Name FROM Slayer WHERE PlayerID ='%s' and Slot ='%s' AND Active='ACTIVE'",
-                                      pLoginPlayer->getID().c_str(), Slot2String[pPacket->getSlot()].c_str());
-        if (pResult->getRowCount() != 0) {
+        if (repo.slotOccupied(WorldID, pLoginPlayer->getID(), Slot2String[pPacket->getSlot()])) {
             lcCreatePCError.setErrorID(ALREADY_REGISTER_ID);
-            throw DuplicatedException("이미 존재하는 아이디입니다.");
+            throw DuplicatedException("that ID already exists.");
         }
-        //*/
-        // 두 쿼리를 하나로. 2002. 7. 13 by sigi. 이거 안좋다. - -;
-        /*
-        pResult = pStmt->executeQuery("SELECT Name FROM Slayer WHERE Name='%s' OR PlayerID='%s' AND Slot='%s'",
-                                            pPacket->getName().c_str(),
-                                            pLoginPlayer->getID().c_str(),
-                                            Slot2String[pPacket->getSlot()].c_str() );
-
-        if (pResult->getRowCount() != 0)
-        {
-            lcCreatePCError.setErrorID(ALREADY_REGISTER_ID);
-            throw DuplicatedException("이미 존재하는 아이디입니다.");
-        }
-        */
-
-
         // 잘못된 능력치를 가지고 캐릭터를 생성하려 하는 것은 아닌지 검증한다.
 
 
@@ -162,35 +137,33 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
         static int GoalExpOusters = -1;
         static int RankGoalExpOusters = -1;
 
+        // The level-1 goals are read once per process and cached in the
+        // statics; a missing row leaves the -1.
+        int goalExp = 0;
+
         if (RankGoalExpSlayer == -1) {
-            pResult = pStmt->executeQuery("SELECT GoalExp FROM RankEXPInfo WHERE Level=1 AND RankType=0");
-            if (pResult->next())
-                RankGoalExpSlayer = pResult->getInt(1);
+            if (repo.loadRankGoalExp(WorldID, 0, goalExp))
+                RankGoalExpSlayer = goalExp;
         }
 
-        if (GoalExpVampire == -1) // by sigi. 2002.12.20
-        {
-            pResult = pStmt->executeQuery("SELECT GoalExp FROM VampEXPBalanceInfo WHERE Level=1");
-            if (pResult->next())
-                GoalExpVampire = pResult->getInt(1);
+        if (GoalExpVampire == -1) {
+            if (repo.loadVampireGoalExp(WorldID, goalExp))
+                GoalExpVampire = goalExp;
         }
 
         if (GoalExpOusters == -1) {
-            pResult = pStmt->executeQuery("SELECT GoalExp FROM OustersEXPBalanceInfo WHERE Level=1");
-            if (pResult->next())
-                GoalExpOusters = pResult->getInt(1);
+            if (repo.loadOustersGoalExp(WorldID, goalExp))
+                GoalExpOusters = goalExp;
         }
 
         if (RankGoalExpVampire == -1) {
-            pResult = pStmt->executeQuery("SELECT GoalExp FROM RankEXPInfo WHERE Level=1 AND RankType=1");
-            if (pResult->next())
-                RankGoalExpVampire = pResult->getInt(1);
+            if (repo.loadRankGoalExp(WorldID, 1, goalExp))
+                RankGoalExpVampire = goalExp;
         }
 
         if (RankGoalExpOusters == -1) {
-            pResult = pStmt->executeQuery("SELECT GoalExp FROM RankEXPInfo WHERE Level=1 AND RankType=2");
-            if (pResult->next())
-                RankGoalExpOusters = pResult->getInt(1);
+            if (repo.loadRankGoalExp(WorldID, 2, goalExp))
+                RankGoalExpOusters = goalExp;
         }
 
         if (pPacket->getRace() == RACE_SLAYER) {
@@ -238,7 +211,6 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
         }
 
         if (bInvalidAttr) {
-            SAFE_DELETE(pStmt);
             throw InvalidProtocolException("CLCreatePCHandler::too large character attribute");
         }
 
@@ -266,46 +238,44 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
             0,
         };
 
+        // The attribute tables are read once per level and cached in the
+        // static arrays; a missing row leaves the cached zero.
+        int value = 0;
+
         nSTRGoalExp = STRGoalExp[nSTR];
         if (nSTRGoalExp == 0) {
-            pResult = pStmt->executeQuery("SELECT GoalExp FROM STRBalanceInfo WHERE Level = %d", nSTR);
-            if (pResult->next())
-                nSTRGoalExp = STRGoalExp[nSTR] = pResult->getInt(1);
+            if (repo.loadAttrGoalExp(WorldID, LOGIN_ATTR_TABLE_STR, nSTR, value))
+                nSTRGoalExp = STRGoalExp[nSTR] = value;
         }
 
         nSTRExp = STRAccumExp[nSTR - 1];
         if (nSTRExp == 0) {
-            pResult = pStmt->executeQuery("SELECT AccumExp FROM STRBalanceInfo WHERE Level = %d", nSTR - 1);
-            if (pResult->next())
-                nSTRExp = STRAccumExp[nSTR - 1] = pResult->getInt(1);
+            if (repo.loadAttrAccumExp(WorldID, LOGIN_ATTR_TABLE_STR, nSTR - 1, value))
+                nSTRExp = STRAccumExp[nSTR - 1] = value;
         }
 
         nDEXGoalExp = DEXGoalExp[nDEX];
         if (nDEXGoalExp == 0) {
-            pResult = pStmt->executeQuery("SELECT GoalExp FROM DEXBalanceInfo WHERE Level = %d", nDEX);
-            if (pResult->next())
-                nDEXGoalExp = DEXGoalExp[nDEX] = pResult->getInt(1);
+            if (repo.loadAttrGoalExp(WorldID, LOGIN_ATTR_TABLE_DEX, nDEX, value))
+                nDEXGoalExp = DEXGoalExp[nDEX] = value;
         }
 
         nDEXExp = DEXAccumExp[nDEX - 1];
         if (nDEXExp == 0) {
-            pResult = pStmt->executeQuery("SELECT AccumExp FROM DEXBalanceInfo WHERE Level = %d", nDEX - 1);
-            if (pResult->next())
-                nDEXExp = DEXAccumExp[nDEX - 1] = pResult->getInt(1);
+            if (repo.loadAttrAccumExp(WorldID, LOGIN_ATTR_TABLE_DEX, nDEX - 1, value))
+                nDEXExp = DEXAccumExp[nDEX - 1] = value;
         }
 
         nINTGoalExp = INTGoalExp[nINT];
         if (nINTGoalExp == 0) {
-            pResult = pStmt->executeQuery("SELECT GoalExp FROM INTBalanceInfo WHERE Level = %d", nINT);
-            if (pResult->next())
-                nINTGoalExp = INTGoalExp[nINT] = pResult->getInt(1);
+            if (repo.loadAttrGoalExp(WorldID, LOGIN_ATTR_TABLE_INT, nINT, value))
+                nINTGoalExp = INTGoalExp[nINT] = value;
         }
 
         nINTExp = INTAccumExp[nINT - 1];
         if (nINTExp == 0) {
-            pResult = pStmt->executeQuery("SELECT AccumExp FROM INTBalanceInfo WHERE Level = %d", nINT - 1);
-            if (pResult->next())
-                nINTExp = INTAccumExp[nINT - 1] = pResult->getInt(1);
+            if (repo.loadAttrAccumExp(WorldID, LOGIN_ATTR_TABLE_INT, nINT - 1, value))
+                nINTExp = INTAccumExp[nINT - 1] = value;
         }
 
         // 일단 복장은 없고.. 남/녀 구분만..
@@ -319,73 +289,6 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
         Color_t PantsColor = 0;
         Color_t WeaponColor = 0;
         Color_t ShieldColor = 0;
-
-        /*
-        StringStream slayerSQL;
-        slayerSQL << "INSERT INTO Slayer ("
-            << " Race, Name, PlayerID, Slot, ServerGroupID, Active,"
-            << " Sex, HairStyle, HairColor, SkinColor, Phone, "
-            << " STR, STRExp, STRGoalExp, DEX, DEXExp, DEXGoalExp, INTE, INTExp, INTGoalExp, HP, CurrentHP, MP,
-        CurrentMP,"
-            << " ZoneID, XCoord, YCoord, Sight, Gold, Alignment,"
-            << " Shape, HelmetColor, JacketColor, PantsColor, WeaponColor, ShieldColor,"
-            << " creation_date) VALUES ('"
-            << "SLAYER" << "', '"
-            << pPacket->getName() << "', '"
-            << pLoginPlayer->getID() << "', '"
-            << Slot2String[pPacket->getSlot()] << "', "
-            << (int)CurrentServerGroupID << " , "
-            << "'ACTIVE', '"
-            << Sex2String[pPacket->getSex()] << "', '"
-            << HairStyle2String[pPacket->getHairStyle()] << "', "
-            << (int)pPacket->getHairColor() << ", "
-            << (int)pPacket->getSkinColor() << ", '"
-            << (int)0 << "', "
-            << (int)pPacket->getSTR() << ", "
-            << nSTRExp << ", "
-            << nSTRGoalExp << ", "
-            << (int)pPacket->getDEX() << ", "
-            << nDEXExp << ", "
-            << nDEXGoalExp << ", "
-            << (int)pPacket->getINT() << ", "
-            << nINTExp << ", "
-            << nINTGoalExp << ", "
-            << (int)pPacket->getSTR()*2 << ","
-            << (int)pPacket->getSTR()*2 << ","
-            << (int)pPacket->getINT()*2 << ","
-            << (int)pPacket->getINT()*2 << ","
-            << "2101, 65, 45, 13, 0, 7500, "
-            << slayerShape << ", "
-            << (int)HelmetColor << ", "
-            << (int)JacketColor << ", "
-            << (int)PantsColor << ", "
-            << (int)WeaponColor << ", "
-            << (int)ShieldColor << ", "
-            << "now() "
-            << ")";
-
-        StringStream vampireSQL;
-        vampireSQL << "INSERT INTO Vampire ("
-            << " Name, PlayerID, Slot, ServerGroupID, Active,"
-            << " Sex, HairColor, SkinColor,"
-            << " STR, DEX, INTE, HP, CurrentHP,"
-            << " ZoneID, XCoord, YCoord, Sight, Alignment, Exp, GoalExp, Shape) VALUES ('"
-            << pPacket->getName() << "', '"
-            << pLoginPlayer->getID() << "', '"
-            << Slot2String[pPacket->getSlot()] << "', "
-            << (int)CurrentServerGroupID << " , "
-            << "'ACTIVE', '"
-            << Sex2String[pPacket->getSex()] << "', "
-            << (int)pPacket->getHairColor() << ", "
-            << (int)pPacket->getSkinColor() << ", "
-            << "20, 20, 20, 50, 50, "
-            << "2020, 233, 55, 13, 7500, 0, 125, "
-            << vampireShape
-            << ")";
-
-        pStmt->executeQuery(slayerSQL.toString());
-        pStmt->executeQuery(vampireSQL.toString());
-        */
 
         // 캐릭터 생성시에 뱀파이어를 선택할 수 있다.
         // by sigi. 2002.10.31
@@ -406,69 +309,89 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
             return;
         }
 
-        pStmt->executeQuery(
-            "INSERT INTO Slayer (Race, Name, PlayerID, Slot, ServerGroupID, Active, Sex, HairStyle, HairColor, "
-            "SkinColor, Phone, STR, STRExp, STRGoalExp, DEX, DEXExp, DEXGoalExp, INTE, INTExp, INTGoalExp, `Rank`, "
-            "RankExp, RankGoalExp, HP, CurrentHP, MP, CurrentMP, ZoneID, XCoord, YCoord, Sight, Gold, Alignment, "
-            "Shape, HelmetColor, JacketColor, PantsColor, WeaponColor, ShieldColor, creation_date) VALUES ('%s', '%s', "
-            "'%s', '%s', %d, 'ACTIVE', '%s', '%s', %d, %d, 0, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, "
-            "%d, %d, 2101, 65, 45, 13, 0, 7500, %d, %d, %d, %d, %d, %d, now())",
-            race.c_str(), pPacket->getName().c_str(), pLoginPlayer->getID().c_str(),
-            Slot2String[pPacket->getSlot()].c_str(), (int)CurrentServerGroupID, Sex2String[pPacket->getSex()].c_str(),
-            HairStyle2String[pPacket->getHairStyle()].c_str(), (int)pPacket->getHairColor(),
-            (int)pPacket->getSkinColor(), (int)pPacket->getSTR(), nSTRExp, nSTRGoalExp, (int)pPacket->getDEX(), nDEXExp,
-            nDEXGoalExp, (int)pPacket->getINT(), nINTExp, nINTGoalExp, 1, 0, RankGoalExpSlayer,
-            (int)pPacket->getSTR() * 2, (int)pPacket->getSTR() * 2, (int)pPacket->getINT() * 2,
-            (int)pPacket->getINT() * 2, slayerShape, (int)HelmetColor, (int)JacketColor, (int)PantsColor,
-            (int)WeaponColor, (int)ShieldColor);
+        LoginNewSlayer slayer;
+        slayer.race = race;
+        slayer.name = pPacket->getName();
+        slayer.playerID = pLoginPlayer->getID();
+        slayer.slot = Slot2String[pPacket->getSlot()];
+        slayer.serverGroupID = (int)CurrentServerGroupID;
+        slayer.sex = Sex2String[pPacket->getSex()];
+        slayer.hairStyle = HairStyle2String[pPacket->getHairStyle()];
+        slayer.hairColor = (int)pPacket->getHairColor();
+        slayer.skinColor = (int)pPacket->getSkinColor();
+        slayer.str = (int)pPacket->getSTR();
+        slayer.strExp = nSTRExp;
+        slayer.strGoalExp = nSTRGoalExp;
+        slayer.dex = (int)pPacket->getDEX();
+        slayer.dexExp = nDEXExp;
+        slayer.dexGoalExp = nDEXGoalExp;
+        slayer.inte = (int)pPacket->getINT();
+        slayer.intExp = nINTExp;
+        slayer.intGoalExp = nINTGoalExp;
+        slayer.rank = 1;
+        slayer.rankExp = 0;
+        slayer.rankGoalExp = RankGoalExpSlayer;
+        slayer.hp = (int)pPacket->getSTR() * 2;
+        slayer.currentHP = (int)pPacket->getSTR() * 2;
+        slayer.mp = (int)pPacket->getINT() * 2;
+        slayer.currentMP = (int)pPacket->getINT() * 2;
+        slayer.shape = slayerShape;
+        slayer.helmetColor = (int)HelmetColor;
+        slayer.jacketColor = (int)JacketColor;
+        slayer.pantsColor = (int)PantsColor;
+        slayer.weaponColor = (int)WeaponColor;
+        slayer.shieldColor = (int)ShieldColor;
 
-        // 생성 위치 변경. by sigi. 2002.10.31
-        // 아우스터스로의 종족간 변신이 없으므로 둘중에 하나만 만든다.
-        // 근데 왠지 종족간 변신이 들어갈지도 모른다는 불길한 예간이 들고
-        // 항상 그런 예감들은 맞아 왔기때문에 언젠가 이 주석을 보고 둘다 풀어주는게....으아~~
+        repo.insertSlayer(WorldID, slayer);
+
+        // Every character has a Slayer row; a Vampire or Ousters row
+        // besides, by race.
         if (pPacket->getRace() != RACE_OUSTERS) {
-            pStmt->executeQuery(
-                "INSERT INTO Vampire ( Name, PlayerID, Slot, ServerGroupID, Active, Sex, SkinColor, STR, DEX, INTE, "
-                "HP, CurrentHP, ZoneID, XCoord, YCoord, Sight, Alignment, Exp, GoalExp, `Rank`, RankExp, RankGoalExp, "
-                "Shape, CoatColor) VALUES ( '%s', '%s', '%s', %d, 'ACTIVE', '%s', %d, 20, 20, 20, 50, 50, 1003, 62, "
-                "64, 13, 7500, 0, %d, 1, 0, %d, %d, 377 )",
-                pPacket->getName().c_str(), pLoginPlayer->getID().c_str(), Slot2String[pPacket->getSlot()].c_str(),
-                (int)CurrentServerGroupID, Sex2String[pPacket->getSex()].c_str(), (int)pPacket->getSkinColor(),
-                GoalExpVampire, // by sigi. 2002.12.20
-                RankGoalExpVampire, vampireShape);
+            LoginNewVampire vampire;
+            vampire.name = pPacket->getName();
+            vampire.playerID = pLoginPlayer->getID();
+            vampire.slot = Slot2String[pPacket->getSlot()];
+            vampire.serverGroupID = (int)CurrentServerGroupID;
+            vampire.sex = Sex2String[pPacket->getSex()];
+            vampire.skinColor = (int)pPacket->getSkinColor();
+            vampire.goalExp = GoalExpVampire;
+            vampire.rankGoalExp = RankGoalExpVampire;
+            vampire.shape = vampireShape;
+
+            repo.insertVampire(WorldID, vampire);
         } else {
-            pStmt->executeQuery("INSERT INTO Ousters ( Name, PlayerID, Slot, ServerGroupID, Active, Sex, STR, DEX, "
-                                "INTE, BONUS, HP, CurrentHP, MP, CurrentMP, ZoneID, XCoord, YCoord, Sight, Alignment, "
-                                "Exp, GoalExp, `Rank`, RankExp, RankGoalExp, CoatColor, HairColor, ArmColor, "
-                                "BootsColor ) Values ( '%s', '%s', '%s', %d, 'ACTIVE', 'FEMALE', %d, %d, %d, 0, 50, "
-                                "50, 50, 50, 1311, 24, 73, 13, 7500, 0, %d, 1, 0,	%d, 377, %d, 377, 377 )",
-                                pPacket->getName().c_str(), pLoginPlayer->getID().c_str(),
-                                Slot2String[pPacket->getSlot()].c_str(), (int)CurrentServerGroupID,
-                                (int)pPacket->getSTR(), (int)pPacket->getDEX(), (int)pPacket->getINT(), GoalExpOusters,
-                                RankGoalExpOusters, (int)pPacket->getHairColor());
+            LoginNewOusters ousters;
+            ousters.name = pPacket->getName();
+            ousters.playerID = pLoginPlayer->getID();
+            ousters.slot = Slot2String[pPacket->getSlot()];
+            ousters.serverGroupID = (int)CurrentServerGroupID;
+            ousters.str = (int)pPacket->getSTR();
+            ousters.dex = (int)pPacket->getDEX();
+            ousters.inte = (int)pPacket->getINT();
+            ousters.goalExp = GoalExpOusters;
+            ousters.rankGoalExp = RankGoalExpOusters;
+            ousters.hairColor = (int)pPacket->getHairColor();
+
+            repo.insertOusters(WorldID, ousters);
         }
 
         if (pPacket->getRace() == RACE_SLAYER) {
-            pStmt->executeQuery("INSERT IGNORE INTO FlagSet (OwnerID, FlagData) VALUES ('%s','11110010001')",
-                                pPacket->getName().c_str());
+            repo.insertFlagSet(WorldID, pPacket->getName(), LOGIN_FLAGSET_SLAYER);
         } else {
-            pStmt->executeQuery("INSERT IGNORE INTO FlagSet (OwnerID, FlagData) VALUES ('%s','00000000001')",
-                                pPacket->getName().c_str());
+            repo.insertFlagSet(WorldID, pPacket->getName(), LOGIN_FLAGSET_OTHER);
         }
 
-        // 클라이언트에게 PC 생성 성공 패킷을 날린다.
         LCCreatePCOK lcCreatePCOK;
         pLoginPlayer->sendPacket(&lcCreatePCOK);
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
-
-        SAFE_DELETE(pStmt);
     } catch (DuplicatedException& de) {
-        SAFE_DELETE(pStmt);
-        pLoginPlayer->sendPacket(&lcCreatePCError); // 클라이언트에게 PC 생성 실패 패킷을 날린다.
-    } catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
+        pLoginPlayer->sendPacket(&lcCreatePCError); // tell the client the creation failed
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); the client gets the
+        // failure packet with ETC_ERROR.
         lcCreatePCError.setErrorID(ETC_ERROR);
-        pLoginPlayer->sendPacket(&lcCreatePCError); // 클라이언트에게 PC 생성 실패 패킷을 날린다.
+        pLoginPlayer->sendPacket(&lcCreatePCError); // tell the client the creation failed
     }
 
 #endif

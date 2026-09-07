@@ -8,11 +8,11 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
-#include "DB.h"
 #include "GameWorldInfoManager.h"
 #include "LCWorldList.h"
 #include "LoginPlayer.h"
 #include "WorldInfo.h"
+#include "repository/LoginAccountRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -58,21 +58,10 @@ void CLGetWorldListHandler::execute(CLGetWorldList* pPacket, Player* pPlayer)
 
         LCWorldList lcWorldList;
 
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            Result* pResult = pStmt->executeQuery("SELECT CurrentWorldID FROM Player where PlayerID='%s'",
-                                                  pLoginPlayer->getID().c_str());
-
-            if (pResult->next()) {
-                lcWorldList.setCurrentWorldID(pResult->getInt(1));
-            }
-
-            SAFE_DELETE(pStmt); // by sigi
+        int currentWorldID = 0;
+        if (defaultLoginAccountRepository().loadCurrentWorld(pLoginPlayer->getID(), currentWorldID)) {
+            lcWorldList.setCurrentWorldID(currentWorldID);
         }
-        END_DB(pStmt) // by sigi
 
         for (int k = 1; k < Num + 1; k++) {
             lcWorldList.addListElement(aWorldInfo[k]);

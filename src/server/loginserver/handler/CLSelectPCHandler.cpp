@@ -8,7 +8,6 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
-#include "DB.h"
 #include "GameServerInfo.h"
 #include "GameServerInfoManager.h"
 #include "GameServerManager.h"
@@ -20,6 +19,8 @@
 #include "ZoneGroupInfoManager.h"
 #include "ZoneInfoManager.h"
 #include "gameserver/billing/BillingInfo.h"
+#include "repository/LoginAccountRepository.h"
+#include "repository/LoginCharacterRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -134,58 +135,28 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
         throw DisconnectException("invalid player status");
 
     // PC �� ������ ����Ÿ���̽��κ��� ���� �´�.
-    Statement* pStmt = NULL;
-    Statement* pStmt1 = NULL; // (!)
-    Result* pResult;
     WorldID_t WorldID = pLoginPlayer->getWorldID();
 
     try {
-        pStmt1 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement(); // (!)
-        pStmt = g_pDatabaseManager->getConnection((int)WorldID)->createStatement();
-
-        //----------------------------------------------------------------------
-        // PC �� ���������� �÷����� ���� ���̵� �����´�.
-        //----------------------------------------------------------------------
-
-        // �����̾� Ȥ�� �����̾� ���̺����� ���� ������ ��Ƽ��
-        // ĳ���͸� ã�´�.
-        /*
-        pResult = pStmt->executeQuery(
-            "SELECT ZoneID, Slot FROM %s WHERE Name = '%s' AND PlayerID = '%s' AND Active = 'ACTIVE'",
-            pPacket->getPCType() == PC_SLAYER ? "Slayer" : "Vampire" ,
-            pPacket->getPCName().c_str() ,
-            pLoginPlayer->getID().c_str()
-        );
-        */
-
         bool isSlayer = (pPacket->getPCType() == PC_SLAYER);
         bool isVampire = (pPacket->getPCType() == PC_VAMPIRE);
 
+        LoginRaceTable table = LOGIN_RACE_TABLE_OUSTERS;
         if (isSlayer) {
-            pResult = pStmt->executeQuery(
-                "SELECT ZoneID, Slot, GREATEST(SwordLevel,BladeLevel,GunLevel,EnchantLevel,HealLevel), Competence FROM "
-                "Slayer WHERE Name = '%s' AND PlayerID = '%s' AND Active = 'ACTIVE'",
-                pPacket->getPCName().c_str(), pLoginPlayer->getID().c_str());
+            table = LOGIN_RACE_TABLE_SLAYER;
         } else if (isVampire) {
-            pResult = pStmt->executeQuery("SELECT ZoneID, Slot, Level, Competence FROM Vampire WHERE Name = '%s' AND "
-                                          "PlayerID = '%s' AND Active = 'ACTIVE'",
-                                          pPacket->getPCName().c_str(), pLoginPlayer->getID().c_str());
-        } else {
-            pResult = pStmt->executeQuery("SELECT ZoneID, Slot, Level, Competence FROM Ousters WHERE Name = '%s' AND "
-                                          "PlayerID = '%s' AND Active = 'ACTIVE'",
-                                          pPacket->getPCName().c_str(), pLoginPlayer->getID().c_str());
+            table = LOGIN_RACE_TABLE_VAMPIRE;
         }
 
-        // �׷� PC�� ���� ���
-        if (pResult->getRowCount() != 1) {
-            SAFE_DELETE(pStmt);
+        // The ACTIVE character of that name on this account.
+        LoginSelectRow pc;
+        if (!defaultLoginCharacterRepository().loadCharacterForSelect(WorldID, table, pPacket->getPCName(),
+                                                                      pLoginPlayer->getID(), pc)) {
             throw InvalidProtocolException("no such PC exist.");
         }
 
-        pResult->next();
-
-        ZoneID_t zoneID = pResult->getWORD(1);
-        string slotStr = pResult->getString(2);
+        ZoneID_t zoneID = pc.zoneID;
+        string slotStr = pc.slot;
 
         // �ɷ�ġ üũ. by sigi. 2002.11.22
         if (bCheckATTR) {
@@ -193,25 +164,23 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
             if (isSlayer) {
                 static int slayerSum = g_pConfig->getPropertyInt("FreePlaySlayerDomainSum");
 
-                int DomainSUM = pResult->getInt(3);
+                int DomainSUM = pc.level;
 
                 if (DomainSUM > slayerSum) {
                     LCSelectPCError lcSelectPCError;
                     lcSelectPCError.setCode(SELECT_PC_CANNOT_PLAY_BY_ATTR);
                     pLoginPlayer->sendPacket(&lcSelectPCError);
-                    SAFE_DELETE(pStmt);
                     return;
                 }
             } else {
                 static int vampireLevel = g_pConfig->getPropertyInt("FreePlayVampireLevel");
 
-                int Level = pResult->getInt(3);
+                int Level = pc.level;
 
                 if (Level > vampireLevel) {
                     LCSelectPCError lcSelectPCError;
                     lcSelectPCError.setCode(SELECT_PC_CANNOT_PLAY_BY_ATTR);
                     pLoginPlayer->sendPacket(&lcSelectPCError);
-                    SAFE_DELETE(pStmt);
                     return;
                 }
             }
@@ -228,8 +197,8 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
             cout << "WorldID:" << (int)(pLoginPlayer->getWorldID())
                  << " ServerGroupID:" << (int)(pLoginPlayer->getServerGroupID()) << endl;
 
-            int playerLevel = pResult->getInt(3);
-            int competence = pResult->getInt(4);
+            int playerLevel = pc.level;
+            int competence = pc.competence;
 
             // 40 ���� ���� ���� �÷��̾�� �� �� ����.
             // ��ڴ� �����Ѵ�.
@@ -237,14 +206,12 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
                 LCSelectPCError lcSelectPCError;
                 lcSelectPCError.setCode(SELECT_PC_CANNOT_PLAY_BY_ATTR);
                 pLoginPlayer->sendPacket(&lcSelectPCError);
-                SAFE_DELETE(pStmt);
                 return;
             }
         }
         //////////////////////////////////////////////////////////////////////////////////////
 
         if (slotStr.size() != 5) {
-            SAFE_DELETE(pStmt);
             throw InvalidProtocolException("no slot exist.");
         }
 
@@ -330,37 +297,22 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
         //			g_pGameServerManager->sendPacket(pGameServerInfo->getIP() , 3335 , &lgIncomingConnection);
 
         // ���������� ������ slot ���. by sigi. 2002.5.6
-        pStmt1->executeQuery( // (!)
-                              // pStmt->executeQuery(
-            "UPDATE Player Set CurrentWorldID = %d, CurrentServerGroupID = %d, LastSlot = %d WHERE PlayerID = '%s'",
-            WorldID, pLoginPlayer->getServerGroupID(), slot, pLoginPlayer->getID().c_str());
+        // The slot the account played last, on the account row; the group
+        // on all three race rows of the name.
+        defaultLoginAccountRepository().setCurrentLocation(WorldID, pLoginPlayer->getServerGroupID(), slot,
+                                                           pLoginPlayer->getID());
 
-        pStmt->executeQuery("UPDATE Slayer Set ServerGroupID = %d WHERE Name='%s'", pLoginPlayer->getServerGroupID(),
-                            pPacket->getPCName().c_str());
-        pStmt->executeQuery("UPDATE Vampire Set ServerGroupID = %d WHERE Name='%s'", pLoginPlayer->getServerGroupID(),
-                            pPacket->getPCName().c_str());
-        pStmt->executeQuery("UPDATE Ousters Set ServerGroupID = %d WHERE Name='%s'", pLoginPlayer->getServerGroupID(),
-                            pPacket->getPCName().c_str());
-
-        SAFE_DELETE(pStmt);
-        SAFE_DELETE(pStmt1); //(!)
-
-        // cout << "CLSelectPC SendPacket to Server IP : " << pGameServerInfo->getIP() << endl;
-    } catch (SQLQueryException& sqe) {
-        // cout << sqe.toString() << endl;
-
-        SAFE_DELETE(pStmt);
-        SAFE_DELETE(pStmt1); //(!)
-
-        throw DisconnectException(sqe.toString());
+        defaultLoginCharacterRepository().setCharacterServerGroup(WorldID, pLoginPlayer->getServerGroupID(),
+                                                                  pPacket->getPCName());
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); the client is dropped.
+        throw DisconnectException("CLSelectPCHandler : SQL error, see DBError.log");
     } catch (NoSuchElementException& nsee) {
         StringStream msg;
 
         msg << "Critical Error : data intergrity broken at ZoneInfo - ZoneGroupInfo - GameServerInfo : "
             << nsee.toString();
-
-        SAFE_DELETE(pStmt);
-        SAFE_DELETE(pStmt1); //(!)
 
         throw Error(msg.toString());
     }

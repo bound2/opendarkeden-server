@@ -59,7 +59,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 332 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `TradeManager.cpp` holds SQL that compiles and runs; `CreatureUtil.cpp` keeps a commented-out block; the rest are listed under 3.2 "What remains".) |
-| R3 | Files with inline SQL outside `database/` and any `repository/` | 41 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (`gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
+| R3 | Files with inline SQL outside `database/` and any `repository/` | 23 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (`gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
 | R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,790 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
@@ -743,7 +743,7 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > **Status:** in progress (2026-09-06) — 34 seams under
   > `src/server/gameserver/repository/` (interface `*Repository.h`, impl
   > `MySQL*Repository.cpp`, reached through `default*Repository()`
-  > accessors, never `g_p*` externs). R2 104→8 and R3 317→41 since the
+  > accessors, never `g_p*` externs). R2 104→8 and R3 317→23 since the
   > pilot; every extraction is one branch and one PR
   > (`restructuring/*-repositor{y,ies}`, #18 through #85, then
   > `restructuring/motorcycle-redeem` and
@@ -786,7 +786,17 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > collide with the gameserver's): `LoginCharacterPurge`
   > (CLDeletePCHandler's ownership check, Slayer retirement, DeleteChar
   > record and 112-statement purge on the per-world connection, plus
-  > ItemDestroyer's uncalled 41-table sweep). In the sharedserver, under
+  > ItemDestroyer's uncalled 41-table sweep); `LoginAccount` (the Player
+  > row through a session — the three login projections, the LogOn /
+  > LoginIP / server-id writes that answer whether a row changed, the
+  > current world, group and slot, the stored password hash,
+  > registration — with TestClientUser, WebLogin, IPBlockInfo,
+  > Event200501Main, PrivateAgreementRemain, PCRoomUserInfo and the
+  > USERINFO.LoginPlayerData record); `LoginCharacter` (the race tables
+  > as the character list, creation with its balance-table probes,
+  > selection, the FlagSet preset, all on the per-world connection);
+  > `LoginConfig` (GameServerGroupInfo in both projections, ZoneInfo,
+  > ZoneGroupInfo, ClientVersion). In the sharedserver, under
   > `src/server/sharedserver/repository/` with a `Shared` prefix:
   > `SharedGuild` (its own Guild/GuildManager persistence — GuildInfo,
   > GuildMember, the guild's GuildUnionMember rows and the
@@ -951,8 +961,10 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > ActionGiveAccountEventItem calls `isPayPlayingPeriodPersonal`
   > directly — live, not disabled), ServerCore's live
   > `GameServerInfoManager.cpp` (5) and `GameWorldInfoManager.cpp` (1),
-  > and the loginserver's remaining 19 files, another binary with its
-  > own seams.
+  > and the loginserver's `LoginPlayer.cpp`, whose only remaining
+  > `executeQuery` is the fully commented-out `addLogoutPlayerData`
+  > body, which declares its own Statement and so stays under the
+  > comment policy.
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).

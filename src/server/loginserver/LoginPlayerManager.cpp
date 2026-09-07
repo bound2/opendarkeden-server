@@ -14,7 +14,6 @@
 #include <algorithm>
 
 #include "Assert.h"
-#include "DB.h"
 #include "LogClient.h"
 #include "LoginPlayer.h"
 #include "Properties.h"
@@ -22,6 +21,7 @@
 #include "Socket.h"
 #include "SocketAPI.h"
 #include "gameserver/billing/BillingInfo.h"
+#include "repository/LoginAccountRepository.h"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -115,37 +115,24 @@ void LoginPlayerManager::init() {
     //--------------------------------------------------------------------------------
     // Player.LogOn 를 정리해준다.
     //--------------------------------------------------------------------------------
-    Statement* pStmt = NULL;
-    Statement* pStmt2 = NULL;
+    // Every account this login server left LOGON is logged off, and its
+    // PC-room record dropped.
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt2 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        LoginAccountRepository& repo = defaultLoginAccountRepository();
+        int loginServerID = g_pConfig->getPropertyInt("LoginServerID");
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT PlayerID from Player WHERE LogOn = 'LOGON' AND CurrentLoginServerID=%d",
-                                g_pConfig->getPropertyInt("LoginServerID"));
+        vector<string> ids = repo.loadLoggedOnAccounts(loginServerID);
 
-        // 겜방에서 놀던애들 정리해준다.
-        // 빌링~ by sigi 2002.5.31
-        while (pResult->next()) {
-            string playerID = pResult->getString(1);
-
-            // cout << "delete from PCRoomUserInfo " << playerID.c_str() << endl;
-
-            pStmt2->executeQuery("DELETE FROM PCRoomUserInfo WHERE PlayerID='%s'", playerID.c_str());
-
-            // cout << "delete ok" << endl;
+        for (size_t i = 0; i < ids.size(); i++) {
+            repo.deletePCRoomUser(ids[i]);
         }
 
-        pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGOFF' WHERE LogOn = 'LOGON' AND CurrentLoginServerID=%d",
-                            g_pConfig->getPropertyInt("LoginServerID"));
-
-        SAFE_DELETE(pStmt);
-        SAFE_DELETE(pStmt2);
-    } catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
-        SAFE_DELETE(pStmt2);
-        throw Error(sqe.toString());
+        repo.logOffAllOnServer(loginServerID);
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); rethrown as the Error the
+        // startup path expects.
+        throw Error("LoginPlayerManager::init : SQL error, see DBError.log");
     }
 
     __END_CATCH

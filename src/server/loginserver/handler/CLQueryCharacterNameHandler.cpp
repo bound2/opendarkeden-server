@@ -8,13 +8,10 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert.h"
-#include "Connection.h"
-#include "DatabaseManager.h"
 #include "GameWorldInfoManager.h"
 #include "LCQueryResultCharacterName.h"
 #include "LoginPlayer.h"
-#include "Result.h"
-#include "Statement.h"
+#include "repository/LoginCharacterRepository.h"
 #endif
 
 bool isAvailableID(const char* pID);
@@ -36,74 +33,26 @@ void CLQueryCharacterNameHandler::execute(CLQueryCharacterName* pPacket, Player*
 
     Assert(WorldID <= g_pGameWorldInfoManager->getSize());
 
-    Statement* pStmt = NULL;
+    // A SQL failure leaves as END_DB's const char*, the way the
+    // SQLQueryException did.
+    bool bExists = defaultLoginCharacterRepository().slayerNameExists(WorldID, pPacket->getCharacterName());
 
-    try {
-        pStmt = g_pDatabaseManager->getConnection(WorldID)->createStatement();
+    LCQueryResultCharacterName lcQueryResultCharacterName;
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT Name FROM Slayer WHERE Name = '%s'", pPacket->getCharacterName().c_str());
+    lcQueryResultCharacterName.setCharacterName(pPacket->getCharacterName());
 
-        LCQueryResultCharacterName lcQueryResultCharacterName;
+    lcQueryResultCharacterName.setExist(bExists);
 
-        // cout << "Query Result : " << pPacket->getCharacterName() << " is ";
-
-        lcQueryResultCharacterName.setCharacterName(pPacket->getCharacterName());
-
-        if (pResult->getRowCount() == 0) {
-            lcQueryResultCharacterName.setExist(false);
-
-            // cout << "not ";
-
-        } else {
-            lcQueryResultCharacterName.setExist(true);
-        }
-
-        //--------------------------------------------------------------------------------
-        // 운영자와 관련된 이름은 아닌지 검증한다.
-        //--------------------------------------------------------------------------------
-        // by sigi
-        if (!isAvailableID(pPacket->getCharacterName().c_str())) {
-            lcQueryResultCharacterName.setExist(true);
-        }
-
-        /*
-        string text = pPacket->getCharacterName();
-
-        list<string> InvalidTokenList;
-        InvalidTokenList.push_back("관리자");
-        InvalidTokenList.push_back("도우미");
-        InvalidTokenList.push_back("담당자");
-        InvalidTokenList.push_back("운영");
-        InvalidTokenList.push_back("기획자");
-        InvalidTokenList.push_back("개발자");
-        InvalidTokenList.push_back("테스터");
-        InvalidTokenList.push_back("직원");
-        list<string>::const_iterator itr = InvalidTokenList.begin();
-        for (; itr != InvalidTokenList.end(); itr++)
-        {
-            if (text.find(*itr) != string::npos)
-            {
-                lcQueryResultCharacterName.setExist(false);
-            }
-        }
-        */
-
-        // cout << "exist..." << endl;
-
-        pLoginPlayer->sendPacket(&lcQueryResultCharacterName);
-
-        // 쿼리가 여러 번 올 수 있으므로, 여전히 LWFRP 이다.
-        // 문제는 누군가가 프로그램을 짜서 DOS 공격을 할 수 있으므로,
-        // 최소 시간을 둬야 한다는 점이다.
-        pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
-
-        SAFE_DELETE(pStmt);
-        // delete pStmt;		// 2002.1.16 by sigi
-    } catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
-        throw;
+    // A name reserved for staff is reported as taken.
+    if (!isAvailableID(pPacket->getCharacterName().c_str())) {
+        lcQueryResultCharacterName.setExist(true);
     }
+
+    pLoginPlayer->sendPacket(&lcQueryResultCharacterName);
+
+    // The client may query several names; the status stays where the
+    // character list is expected next.
+    pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
 
 #endif
 
