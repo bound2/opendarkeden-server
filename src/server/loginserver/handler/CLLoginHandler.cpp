@@ -75,8 +75,6 @@
 #include <sys/time.h>
 
 #include "Assert1.h"
-#include "DB.h"
-#include "DatabaseManager.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameServerInfoManager.h"
 #include "LCLoginError.h"
@@ -86,6 +84,7 @@
 #include "Properties.h"
 #include "UserInfoManager.h"
 #include "gameserver/billing/BillingPlayerManager.h"
+#include "repository/LoginAccountRepository.h"
 #include "types/ServerType.h"
 
 #endif
@@ -101,16 +100,19 @@ bool isBlockIP(const string& ip);
 #ifdef __LOGIN_SERVER__
 namespace {
 
-// Rewrites the account's stored password as a fresh argon2id hash. A failure
-// is logged and otherwise ignored: the password was already accepted against
-// the stored value, and the next login retries.
-void storePasswordHash(Statement* pStmt, const string& ID, const string& password) {
+// Rewrites the account's stored password as a fresh argon2id hash. A hashing
+// failure is logged and otherwise ignored: the password was already accepted
+// against the stored value, and the next login retries. A SQL failure leaves
+// as END_DB's const char*.
+void storePasswordHash(const string& ID, const string& password) {
+    string hashed;
     try {
-        const string hashed = de::password::hash(password);
-        pStmt->executeQuery("UPDATE Player SET Password = '%s' WHERE PlayerID = '%s'", hashed.c_str(), ID.c_str());
+        hashed = de::password::hash(password);
     } catch (const std::exception& e) {
         filelog("loginfail.txt", "Password rehash failed, PlayerID : %s : %s", ID.c_str(), e.what());
+        return;
     }
+    defaultLoginAccountRepository().updatePassword(hashed, ID);
 }
 
 // A hash of a throwaway string under the current parameters. It is verified
@@ -123,18 +125,18 @@ constexpr const char* kDecoyHash =
 // account as well as a wrong password, so the caller answers both alike. A
 // legacy plaintext row, or a hash under older parameters, is rewritten as a
 // current hash on success.
-bool checkStoredPassword(Statement* pStmt, const string& ID, const string& password) {
-    Result* pResult = pStmt->executeQuery("SELECT Password FROM Player WHERE PlayerID = '%s'", ID.c_str());
-    if (!pResult->next()) {
+bool checkStoredPassword(const string& ID, const string& password) {
+    string stored;
+    if (!defaultLoginAccountRepository().loadPasswordHash(ID, stored)) {
         de::password::verify(kDecoyHash, password);
         return false;
     }
 
-    const de::password::Verify verdict = de::password::verify(pResult->getString(1), password);
+    const de::password::Verify verdict = de::password::verify(stored, password);
     if (verdict == de::password::Verify::Rejected)
         return false;
     if (verdict == de::password::Verify::AcceptedRehash)
-        storePasswordHash(pStmt, ID, password);
+        storePasswordHash(ID, password);
     return true;
 }
 
@@ -156,7 +158,6 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
     // cout << pPacket->toString().c_str() << endl;
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
-    Statement* pStmt = NULL;
 
     // 좌우 공백 제거. by sigi. 2002.12.6
     pPacket->setID(trim(pPacket->getID()));
@@ -220,16 +221,8 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
             pPacket->setID(ID);
         }
 
-        //		cout << "테스트 클라이언트" << endl;
-        BEGIN_DB {
-            // 증거를 남긴다.
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT INTO TestClientUser (PlayerID, IP, LoginDate) VALUES ('%s', '%s', now())",
-                                ID.c_str(), connectIP.c_str());
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
+        // The test client's login is recorded.
+        defaultLoginAccountRepository().insertTestClientUser(ID, connectIP);
     }
     // 넷마블에서 접속하는 경우
     else {
@@ -302,46 +295,29 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
             return;
         }
 
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = NULL;
+        // The account row, in the projection the login kind reads; a web
+        // login and a NetMarble free pass skip the password.
+        LoginAccountRepository& repo = defaultLoginAccountRepository();
+        LoginAccountRow account;
+        bool bFound = false;
         bool bPasswordOK = true;
 
-        // BINARY를 붙이면. 대소문자 구분을 하게 된다.
-        // 지금까지는 대소문자 관계없이 login할 수 있었는데..
-        // 이게 빌링시스템쪽에서 문제가 돼서 수정했다. by sigi. 2002.12.20
-        // BINARY PlayerID='%s'였는데.. 그냥 PlayerID를 다시 읽어와서 쓰는게 나을거 같아서..
         if (bWebLogin) {
-            pResult = pStmt->executeQuery(
-                "SELECT PlayerID, SSN, CurrentServerGroupID, LogOn, Access, LoginIP, PayType, PayPlayDate, "
-                "PayPlayHours, PayPlayFlag, FamilyPayPlayDate FROM Player WHERE PlayerID = '%s'",
-                ID.c_str());
-        } else if (bFreePass) // by sigi. 2002.10.23
-        {
-            pResult = pStmt->executeQuery(
-                //				"SELECT PlayerID, CurrentServerGroupID, LogOn, Access, LoginIP, MacAddress,PayType,
-                // PayPlayDate, PayPlayHours, PayPlayFlag, FamilyPayPlayDate FROM Player WHERE PlayerID = '%s'",
-                "SELECT PlayerID, CurrentServerGroupID, LogOn, Access, LoginIP, PayType, PayPlayDate, PayPlayHours, "
-                "PayPlayFlag, FamilyPayPlayDate FROM Player WHERE PlayerID = '%s'",
-                ID.c_str());
+            bFound = repo.loadAccountForWebLogin(ID, account);
+        } else if (bFreePass) {
+            bFound = repo.loadAccountForFreePass(ID, account);
         } else {
-            // The stored value is an argon2 hash (or, for rows written before
-            // hashing, the plaintext), so it is checked in C++ rather than in
-            // the WHERE clause.
-            bPasswordOK = checkStoredPassword(pStmt, ID, PASSWORD);
+            bPasswordOK = checkStoredPassword(ID, PASSWORD);
 
-            pResult = pStmt->executeQuery("SELECT PlayerID, SSN, CurrentServerGroupID, LogOn, Access, ZipCode, "
-                                          "LoginIP, PayType, PayPlayDate, PayPlayHours, PayPlayFlag, "
-                                          "FamilyPayPlayDate FROM Player WHERE PlayerID = '%s'",
-                                          ID.c_str());
+            bFound = repo.loadAccount(ID, account);
         }
 
         // An unknown ID and a wrong password get the same answer.
-        bool bNoPlayer = ((pResult->getRowCount() == 0 || !bPasswordOK) && !bFreePass);
+        bool bNoPlayer = ((!bFound || !bPasswordOK) && !bFreePass);
 
         // 쿼리 결과 ROW 의 개수가 0 이라는 뜻은
         // invalid ID or Password 라는 뜻이다.
-        if (bNoPlayer) // pResult->getRowCount() == 0)
-        {
+        if (bNoPlayer) {
             // cout << "no Result : " << ID.c_str() << endl;
             //			cout << "플레이어 없음" << endl;
             LCLoginError lcLoginError;
@@ -355,7 +331,6 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
             //			cout << "실패 회수 " << nFailed << endl;
 
             if (nFailed > 3) {
-                SAFE_DELETE(pStmt);
                 throw DisconnectException("too many failure");
             }
 
@@ -363,94 +338,57 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
             pLoginPlayer->setPlayerStatus(LPS_BEGIN_SESSION);
 
             return;
-        }
-        // 쿼리 결과가 있다는 말은
-        // 올바른 ID와 패스워드라는 말이다...
-        else {
-            int i = 0;
-
+        } else {
             if (bWebLogin) {
-                pResult->next();
-
-                pPacket->setID(pResult->getString(++i));
-                ID = pPacket->getID(); // by sigi. 2002.12.21
-                SSN = pResult->getString(++i);
-                CurrentServerGroupID = pResult->getInt(++i);
-                logon = pResult->getString(++i);
-                access = pResult->getString(++i);
+                pPacket->setID(account.playerID);
+                ID = pPacket->getID();
+                SSN = account.ssn;
+                CurrentServerGroupID = account.currentServerGroupID;
+                logon = account.logOn;
+                access = account.access;
                 zipcode = "000-000";
-                lastIP = pResult->getString(++i);
-                payType = (PayType)pResult->getInt(++i);
-                payPlayDate = pResult->getString(++i);
-                payPlayHours = pResult->getInt(++i);
-                payPlayFlag = pResult->getInt(++i);
-                familyPayPlayDate = pResult->getString(++i);
-
+                lastIP = account.loginIP;
+                payType = (PayType)account.payType;
+                payPlayDate = account.payPlayDate;
+                payPlayHours = account.payPlayHours;
+                payPlayFlag = account.payPlayFlag;
+                familyPayPlayDate = account.familyPayPlayDate;
             } else if (bFreePass) {
-                // 넷마블인 경우에.. 계정이 없다면.. 바로 생성해야 한다.
-                if (pResult->getRowCount() == 0) {
-                    /*
-                    cout << "NetMarble New Player: " << ID.c_str() << endl;
-
-                    pStmt->executeQuery("INSERT INTO Player (PlayerID, Password, Name, SSN, Event) Values ('%s', '%s',
-                    '%s', '123456-1122339', 0)", ID.c_str(), PASSWORD.c_str(), ID.c_str());
-
-                    CurrentServerGroupID = 0;
-                    logon                = "LOGOFF";
-                    access               = "ALLOW";
-                    zipcode				=  "000-000";
-                    lastIP               = "255.255.255.255";
-                    payType              = PAY_TYPE_PERIOD;
-                    payPlayDate          = "2002-07-15 00:00:00";
-                    payPlayHours         = 0;
-                    payPlayFlag          = 0;
-                    */
-
-                    // checkFreePass()에서 추가하므로 있어야 한다.
+                if (!bFound) {
+                    // A NetMarble account that checkFreePass did not create.
                     LCLoginError lcLoginError;
                     lcLoginError.setErrorID(ETC_ERROR);
                     pLoginPlayer->sendPacket(&lcLoginError);
                     pLoginPlayer->setPlayerStatus(LPS_BEGIN_SESSION);
                     filelog("loginfail.txt", "Error Code: ETC_ERROR, 4, PlayerID : %s", pPacket->getID().c_str());
-                    SAFE_DELETE(pStmt);
                 } else {
-                    // cout << "NetMarble Player: " << ID.c_str() << endl;
-
-                    pResult->next();
-
-                    pPacket->setID(pResult->getString(++i));
-                    ID = pPacket->getID(); // by sigi. 2002.12.21
-                    CurrentServerGroupID = pResult->getInt(++i);
-                    logon = pResult->getString(++i);
-                    access = pResult->getString(++i);
+                    pPacket->setID(account.playerID);
+                    ID = pPacket->getID();
+                    CurrentServerGroupID = account.currentServerGroupID;
+                    logon = account.logOn;
+                    access = account.access;
                     zipcode = "000-000";
-                    lastIP = pResult->getString(++i);
-                    //					/*inthesky*/lastMacAddress    = pResult->getString(++i);
-                    payType = (PayType)pResult->getInt(++i);
-                    payPlayDate = pResult->getString(++i);
-                    payPlayHours = pResult->getInt(++i);
-                    payPlayFlag = pResult->getInt(++i);
-                    familyPayPlayDate = pResult->getString(++i);
+                    lastIP = account.loginIP;
+                    payType = (PayType)account.payType;
+                    payPlayDate = account.payPlayDate;
+                    payPlayHours = account.payPlayHours;
+                    payPlayFlag = account.payPlayFlag;
+                    familyPayPlayDate = account.familyPayPlayDate;
                 }
             } else {
-                // cout << "Normal Player: " << ID.c_str() << endl;
-
-                pResult->next();
-
-                pPacket->setID(pResult->getString(++i));
-                ID = pPacket->getID(); // by sigi. 2002.12.21
-                SSN = pResult->getString(++i);
-                CurrentServerGroupID = pResult->getInt(++i);
-                logon = pResult->getString(++i);
-                access = pResult->getString(++i);
-                zipcode = pResult->getString(++i);
-                lastIP = pResult->getString(++i);
-                //				/*inthesky*/lastMacAddress	 = pResult->getString(++i);
-                payType = (PayType)pResult->getInt(++i);
-                payPlayDate = pResult->getString(++i);
-                payPlayHours = pResult->getInt(++i);
-                payPlayFlag = pResult->getInt(++i);
-                familyPayPlayDate = pResult->getString(++i);
+                pPacket->setID(account.playerID);
+                ID = pPacket->getID();
+                SSN = account.ssn;
+                CurrentServerGroupID = account.currentServerGroupID;
+                logon = account.logOn;
+                access = account.access;
+                zipcode = account.zipCode;
+                lastIP = account.loginIP;
+                payType = (PayType)account.payType;
+                payPlayDate = account.payPlayDate;
+                payPlayHours = account.payPlayHours;
+                payPlayFlag = account.payPlayFlag;
+                familyPayPlayDate = account.familyPayPlayDate;
             }
 
             pLoginPlayer->setServerGroupID(CurrentServerGroupID);
@@ -462,7 +400,6 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
                 pLoginPlayer->sendPacket(&lcLoginError);
                 pLoginPlayer->setPlayerStatus(LPS_BEGIN_SESSION);
                 filelog("loginfail.txt", "Error Code: ETC_ERROR, 5, PlayerID : %s", pPacket->getID().c_str());
-                SAFE_DELETE(pStmt);
                 return;
             }
 
@@ -486,7 +423,6 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
                 lcLoginError.setErrorID(CHILDGUARD_DENYED);
                 pLoginPlayer->sendPacket(&lcLoginError);
                 pLoginPlayer->setPlayerStatus(LPS_BEGIN_SESSION);
-                SAFE_DELETE(pStmt);
 
                 return;
 
@@ -506,7 +442,6 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
                 pLoginPlayer->sendPacket(&lcLoginError);
                 pLoginPlayer->setPlayerStatus(LPS_BEGIN_SESSION);
                 filelog("loginfail.txt", "Error Code: NOT_PAY_ACCOUNT, 6, PlayerID : %s", pPacket->getID().c_str());
-                SAFE_DELETE(pStmt);
                 return;
 			}
 #elif defined(__PAY_SYSTEM_FREE_LIMIT__)
@@ -545,11 +480,9 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
                     uint nFailed = pLoginPlayer->getFailureCount();
 
                     if (nFailed > 3) {
-                        SAFE_DELETE(pStmt);
                         throw DisconnectException("too many failure");
                     }
 
-                    SAFE_DELETE(pStmt);
                     pLoginPlayer->setFailureCount(nFailed);
                     pLoginPlayer->setPlayerStatus(LPS_BEGIN_SESSION);
                     return;
@@ -602,7 +535,6 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
 
                 pLoginPlayer->sendLGKickCharacter();
 
-                SAFE_DELETE(pStmt);
                 return;
 			}
 
@@ -612,54 +544,14 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
 			{
                 __BEGIN_DEBUG
 
-                /*
-                if (bSameIP)
-                {
-                    // 로그인에 성공했으면, LogOn 정보를 LOGOFF 에서 LOGON 으로 변경한다.
-                    pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGON' WHERE PlayerID = '%s'",ID.c_str());
-                }
-                else
-                {
-                */
-                // LOGOFF인 경우만 LOGON으로 바꾼다.
-                // by sigi. 2002.5.15
-                //					pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGON', LoginIP = '%s',MacAddress =
-                //'%s', CurrentLoginServerID=%d, LastLoginDate=now() WHERE PlayerID = '%s' AND
-                // LogOn='LOGOFF'",connectIP.c_str(), connectMAC.c_str(),g_pConfig->getPropertyInt("LoginServerID"),
-                // ID.c_str());
-                pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGON', LoginIP = '%s', CurrentLoginServerID=%d, "
-                                    "LastLoginDate=now() WHERE PlayerID = '%s' AND LogOn='LOGOFF'",
-                                    connectIP.c_str(), g_pConfig->getPropertyInt("LoginServerID"), ID.c_str());
-                int affectedRowCount = pStmt->getAffectedRowCount();
+                // Only a LOGOFF row flips to LOGON; a row that did not
+                // change is held by another session.
+                bool bLoggedOn = repo.markLoggedOn(connectIP, g_pConfig->getPropertyInt("LoginServerID"), ID);
+                int affectedRowCount = bLoggedOn ? 1 : 0;
 
-                // 최근 접속 IP를 5개까지 남긴다. IP Table은 별도로 기록한다.
-                // LoginPlayerData 에 IP를 남기므로 필요없다. by bezz 2003.04.21
-                // pStmt->executeQuery("UPDATE PlayerIPList SET IP1=IP2, Date1=Date2, IP2=IP3, Date2=Date3, IP3=IP4,
-                // Date3=Date4, IP4=IP5, Date4=Date5, IP5='%s', Date5=now() WHERE PlayerID='%s'",connectIP.c_str(),
-                // ID.c_str());
-
-                // if (pStmt->getAffectedRowCount()==0)
-                //{
-                //	pStmt->executeQuery("INSERT IGNORE INTO PlayerIPList (PlayerID) Values('%s')",
-                //							ID.c_str());
-                // }
-
-                // LogOn이 LOGOFF가 아니거나.
-                // PlayerID가 없거나.. -_-
                 if (affectedRowCount == 0) {
-                    // 다른 LoginServer에 이미 접속되어 있는지 확인하고
-                    // 이미 있다면 그 Player를 kick하고
-                    // 여기서 접속할 수 있게 설정해야 한다.
-
-                    // 일단 다 막는다. 뭔가 문제가 있어서 LogOn 상태는 허용시켜놓은것 같은데
-                    // 문제가 생기면 다시 푼다. by bezz 2003.07.07
-
-                    // LogOn 상태는 일단 허용시켜 본다.
-                    // pStmt->executeQuery("UPDATE Player SET LoginIP = '%s', CurrentLoginServerID=%d,
-                    // LastLoginDate=now() WHERE PlayerID = '%s' AND LogOn='LOGON'",connectIP.c_str(),
-                    // g_pConfig->getPropertyInt("LoginServerID"), ID.c_str());
-
-                    // if (pStmt->getAffectedRowCount()==0)
+                    // Another login server may already hold the account;
+                    // for now every such login is refused.
                     //{
                     LCLoginError lcLoginError;
                     // lcLoginError.setMessage("already connected");
@@ -668,7 +560,6 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
                     filelog("loginfail.txt", "Error Code: ALREADY_CONNECTED, 8, PlayerID : %s",
                             pPacket->getID().c_str());
 
-                    SAFE_DELETE(pStmt);
                     pLoginPlayer->setPlayerStatus(LPS_BEGIN_SESSION);
 
                     return;
@@ -773,24 +664,13 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
                 if (lcLoginOK.getLastDays() > 1000)
                     filelog("PayPlayDateLog.txt", "UserID : %s , LastDays : %ld", ID.c_str(), lcLoginOK.getLastDays());
 
-                // 컴백 이벤트 관련
                 {
-                    pResult = pStmt->executeQuery(
-                        "SELECT PlayerID FROM Event200501Main WHERE PlayerID = '%s' AND RecvPremiumDate = '0000-00-00'",
-                        pLoginPlayer->getID().c_str());
-
-                    if (pResult->next()) {
-                        // 컴백 이벤트 대상자다.
-                        // 프리미엄 7일을 넣어주자
-                        pStmt->executeQuery("UPDATE Player SET PayPlayDate = IF (PayPlayDate < NOW(), NOW() + INTERVAL "
-                                            "7 DAY, PayPlayDate + INTERVAL 7 DAY ) WHERE PlayerID = '%s'",
-                                            pLoginPlayer->getID().c_str());
-
-                        // 컴백 이벤트 프리미엄 7일을 받았다고 넣어주자
-                        pStmt->executeQuery("UPDATE Event200501Main SET RecvPremiumDate = NOW() WHERE PlayerID = '%s'",
-                                            pLoginPlayer->getID().c_str());
-
-                        // 클라이언트에 이벤트 대상자라고 알리기
+                    // The comeback event: an account that has not yet
+                    // received its premium week gets seven days of pay-play
+                    // and is told so.
+                    if (repo.hasUnclaimedPremiumEvent(pLoginPlayer->getID())) {
+                        repo.extendPayPlayByWeek(pLoginPlayer->getID());
+                        repo.markPremiumEventReceived(pLoginPlayer->getID());
                         lcLoginOK.setLastDays(0xfffd);
                     }
                 }
@@ -799,10 +679,7 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
 
 #ifdef __NETMARBLE_SERVER__
                 // 넷마블 사용자 약관 동의 여부 체크
-                pResult = pStmt->executeQuery("SELECT PlayerID FROM PrivateAgreementRemain WHERE PlayerID = '%s'",
-                                              pLoginPlayer->getID().c_str());
-
-                if (pResult->next()) {
+                if (repo.hasPrivateAgreementRemaining(pLoginPlayer->getID())) {
                     pLoginPlayer->setAgree(false);
                     cout << "false - " << pLoginPlayer->getID() << endl;
                 } else {
@@ -853,12 +730,11 @@ CurrentServerGroupID == 7 ) {
                 pLoginPlayer->sendPacket(&lcLoginOK);
                 pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
 			}
-        } // end of if (pResult->getRowCount() == 0) else
-
-        SAFE_DELETE(pStmt);
-    } catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
-        throw Error(sqe.toString());
+        } // end of if (bNoPlayer) else
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); rethrown as an Error.
+        throw Error("CLLoginHandler : SQL error, see DBError.log");
     }
 
     // 다른 곳에서도 필요한 코드라서. 함수로 뺏당. by sigi. 2002.5.8
@@ -914,43 +790,12 @@ bool isAdultByBirthday(const string& birthday) {
 //////////////////////////////////////////////////////////////////////////////
 void addLoginPlayerData(const string& ID, const string& ip, const string& SSN, const string& zipcode) {
 #ifdef __LOGIN_SERVER__
+    // The per-login statistics row: account, address, and the current
+    // date and time as two texts. SSN and zipcode are no longer recorded.
+    // A SQL failure leaves as END_DB's const char*.
+    string currentDT = VSDateTime::currentDateTime().toDateTime();
 
-    Statement* pStmt2 = NULL;
-
-    // [홍창봐라]
-    // 밑에꺼 말고..
-    // UPDATE Player Set LoginFlagDay=1, LoginFlagWeek=1, LoginFlagMonth=1 WHERE PlayerID='%s'
-    // 이 정도로만 해놔도 괜찮지 않을까..
-    // 시간을 넣어서 쓸 필요가 있는지 확인이 필요하겠지?
-    // 누구의 최근 접속 시간 같은걸 UserInfo에서 뽑아서 쓰는가?
-    // 근데 이거 SSN은 왜 넣노? 나이 통계도 뽑나?
-    // 글고. DARKEDEN이랑 DB는 분리된채로 두는게 나을까?
-    // 근무시간이 다르니 답답하군.
-
-    // 유저 통계 관련 정보를 입력한다.
-    BEGIN_DB {
-        // 먼저 현재 시간을 얻어낸다.
-        int year, month, day, hour, minute, second;
-        getCurrentTimeEx(year, month, day, hour, minute, second);
-        string currentDT = VSDateTime::currentDateTime().toDateTime();
-
-        StringStream sql;
-        /*
-        sql << "INSERT INTO LoginPlayerData (Year,Month,Day,Hour,Minute,Second,PlayerID,SSN,ZipCode,Date,Time) VALUES ("
-            << year << "," << month << "," << day << "," << hour << "," << minute << "," << second << ",'"
-            << ID << "','" << SSN << "','" << zipcode << "','"
-            << currentDT.substr(0, 10 ).c_str() << "','" << currentDT.substr(11 ).c_str() << "')";
-        */
-        sql << "INSERT INTO LoginPlayerData (PlayerID,IP,Date,Time) VALUES ('" << ID << "','" << ip << "','"
-            << currentDT.substr(0, 10).c_str() << "','" << currentDT.substr(11).c_str() << "')";
-
-        pStmt2 = g_pDatabaseManager->getUserInfoConnection()->createStatement();
-        pStmt2->executeQueryString(sql.toString());
-
-        SAFE_DELETE(pStmt2); // 2002.1.16 by sigi
-    }
-    END_DB(pStmt2)
-
+    defaultLoginAccountRepository().insertLoginRecord(ID, ip, currentDT.substr(0, 10), currentDT.substr(11));
 #endif
 }
 
@@ -1001,75 +846,44 @@ bool CLLoginHandler::checkFreePass(CLLogin* pPacket, Player* pPlayer)
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
-    // LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
-
-    // key_code를 분석해서
-    // DB의 그 ID의 key_code와 비교한다.
-    // 같으면 true
-    Statement* pStmt = NULL;
-
+    // The NetMarble password is checked against the stored hash; an
+    // account with no row is created on the spot with the hashed
+    // password. A SQL failure leaves as END_DB's const char*.
     try {
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = NULL;
+        LoginAccountRepository& repo = defaultLoginAccountRepository();
 
-            pResult =
-                pStmt->executeQuery("SELECT Password FROM Player WHERE PlayerID = '%s'", pPacket->getID().c_str());
-
-            if (pResult->next()) {
-                const de::password::Verify verdict =
-                    de::password::verify(pResult->getString(1), pPacket->getPassword());
-
-                if (verdict != de::password::Verify::Rejected) {
-                    if (verdict == de::password::Verify::AcceptedRehash)
-                        storePasswordHash(pStmt, pPacket->getID(), pPacket->getPassword());
-                    SAFE_DELETE(pStmt);
-                    return true;
-                }
-            } else {
-                // cout << "ID wrong: " << pPacket->getID().c_str() << endl;
-                //  원래는 안되는건데..
-                //  새 사용자는 무조건 추가한다고 넷마블해서 그래 하라네. 헐~~~
-                cout << "NetMarble New Player: " << pPacket->getID().c_str() << endl;
-
-                // 여기까지 오면 무조건 넷마블이라고 본다.
-                // SpecialEventCount 칼럼은 2로 세팅해준다. 즉, 이벤트 아이템을 이미준걸로 생각
-                // 예약가입 한 넘들 한테만 아이템 준다.
-                // 2003.04.30 by bezz, DEW
-                string hashed;
-                try {
-                    hashed = de::password::hash(pPacket->getPassword());
-                } catch (const std::exception& e) {
-                    filelog("loginfail.txt", "Password hashing failed, PlayerID : %s : %s", pPacket->getID().c_str(),
-                            e.what());
-                    SAFE_DELETE(pStmt);
-                    return false;
-                }
-
-                pStmt->executeQuery(
-                    "INSERT IGNORE INTO Player (PlayerID, Password, Name, SSN, SpecialEventCount, Event, "
-                    "creation_date) Values ('%s', '%s', '%s', '123456-1122339', 2, 0, CURDATE())",
-                    pPacket->getID().c_str(), hashed.c_str(), pPacket->getID().c_str());
-
-                // string  connectIP  = pPlayer->getSocket()->getHost();
-                //  LoginPlayerData 에 IP 정보를 남기므로 필요없다. by bezz 2003.04.21
-                // pStmt->executeQuery("INSERT IGNORE INTO PlayerIPList (PlayerID) Values('%s')",
-                //						pPacket->getID().c_str());
-
-                SAFE_DELETE(pStmt);
+        string stored;
+        if (repo.loadPasswordHash(pPacket->getID(), stored)) {
+            const de::password::Verify verdict = de::password::verify(stored, pPacket->getPassword());
+            if (verdict != de::password::Verify::Rejected) {
+                if (verdict == de::password::Verify::AcceptedRehash)
+                    storePasswordHash(pPacket->getID(), pPacket->getPassword());
                 return true;
             }
+        } else {
+            // A new NetMarble user is always admitted. SpecialEventCount
+            // starts at 2, as if the event item had already been given.
+            cout << "NetMarble New Player: " << pPacket->getID().c_str() << endl;
 
+            string hashed;
+            try {
+                hashed = de::password::hash(pPacket->getPassword());
+            } catch (const std::exception& e) {
+                filelog("loginfail.txt", "Password hashing failed, PlayerID : %s : %s", pPacket->getID().c_str(),
+                        e.what());
+                return false;
+            }
 
-            SAFE_DELETE(pStmt);
+            repo.insertNetMarbleAccount(pPacket->getID(), hashed);
+
+            return true;
         }
-        END_DB(pStmt)
     } catch (Throwable& t) {
         return false;
     }
 
-
 #endif
+
     __END_DEBUG_EX __END_CATCH
 
         return false;
@@ -1077,80 +891,54 @@ bool CLLoginHandler::checkFreePass(CLLogin* pPacket, Player* pPlayer)
 
 bool isBlockIP(const string& ip) {
 #ifdef __LOGIN_SERVER__
+    size_t i = ip.find_first_of('.', 0);
+    size_t j = ip.find_first_of('.', i + 1);
+    size_t k = ip.find_first_of('.', j + 1);
 
-    Statement* pStmt = NULL;
+    /*
+     * ip = 61.78.53.228
+     * classA = 61
+     * classB = 61.78
+     * classC = 61.78.53
+     */
+    string classA = ip.substr(0, i);
+    string classB = ip.substr(0, j);
+    string classC = ip.substr(0, k);
 
-    BEGIN_DB {
-        size_t i = ip.find_first_of('.', 0);
-        size_t j = ip.find_first_of('.', i + 1);
-        size_t k = ip.find_first_of('.', j + 1);
+    // Every block entry under one of the three prefixes; an entry whose
+    // class is not 0, 1 or 2 blocks outright. A SQL failure leaves as
+    // END_DB's const char*.
+    vector<LoginIPBlockRow> blocks = defaultLoginAccountRepository().loadIPBlocks(classA, classB, classC);
 
-        /*
-         * ip = 61.78.53.228
-         * classA = 61
-         * classB = 61.78
-         * classC = 61.78.53
-         */
-        string classA = ip.substr(0, i);
-        string classB = ip.substr(0, j);
-        string classC = ip.substr(0, k);
-        //		int classD    = atoi(ip.substr(k+1, ip.size()-k-1).c_str());
+    for (size_t n = 0; n < blocks.size(); n++) {
+        int ipClass = blocks[n].ipClass;
+        int first = blocks[n].first;
+        int last = blocks[n].last;
+        int index;
 
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        Result* pResult = pStmt->executeQuery("SELECT class, first, last FROM IPBlockInfo WHERE	(IP = '%s' AND "
-                                              "class=1) OR (IP = '%s' AND class=2) OR (IP = '%s')",
-                                              classA.c_str(), classB.c_str(), classC.c_str());
-
-        while (pResult->next()) {
-            int ipClass = pResult->getInt(1);
-            int first = pResult->getInt(2);
-            int last = pResult->getInt(3);
-            int index;
-
-            switch (ipClass) {
-            // classC 가 맞고 범위가 지정된 경우
-            case 0:
-                index = atoi(ip.substr(k + 1, ip.size() - k - 1).c_str());
-                break;
-            // classA 가 맞고 범위가 지정된 경우
-            case 1:
-                index = atoi(ip.substr(i + 1, j - i - 1).c_str());
-                break;
-            // classB 가 맞고 범위가 지정된 경우
-            case 2:
-                index = atoi(ip.substr(j + 1, k - j - 1).c_str());
-                break;
-            default:
-                index = -1;
-                break;
-            }
-
-            if (index < 0)
-                return true;
-
-            if (index >= first && index <= last)
-                return true;
-
-            /*			if (ipClass == 0 )
-                        {
-                            if (classD >= first && classD <= last )
-                            {
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            return true;
-                        }*/
+        switch (ipClass) {
+        case 0:
+            index = atoi(ip.substr(k + 1, ip.size() - k - 1).c_str());
+            break;
+        case 1:
+            index = atoi(ip.substr(i + 1, j - i - 1).c_str());
+            break;
+        case 2:
+            index = atoi(ip.substr(j + 1, k - j - 1).c_str());
+            break;
+        default:
+            index = -1;
+            break;
         }
 
-        SAFE_DELETE(pStmt); // 2002.1.16 by sigi
+        if (index < 0)
+            return true;
+
+        if (index >= first && index <= last)
+            return true;
     }
-    END_DB(pStmt)
 
     return false;
-
 #endif
 }
 
@@ -1164,79 +952,56 @@ bool CLLoginHandler::checkWebLogin(CLLogin* pPacket, Player* pPlayer) {
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
-    Statement* pStmt = NULL;
-
+    // The web login key must match the one the site stored for the
+    // account, and be at most five minutes old. A SQL failure leaves as
+    // END_DB's const char*.
     try {
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = NULL;
+        LoginAccountRepository& repo = defaultLoginAccountRepository();
 
-            pResult = pStmt->executeQuery("SELECT LoginKey, CreateTime, now() FROM WebLogin WHERE PlayerID = '%s'",
-                                          pPacket->getID().c_str());
+        string key;
+        string createTime;
+        string nowText;
 
-            if (pResult->next()) {
-                string key = pResult->getString(1);
-                VSDateTime vsCreate(pResult->getString(2));
-                VSDateTime vsNow(pResult->getString(3));
+        if (repo.loadWebLoginKey(pPacket->getID(), key, createTime, nowText)) {
+            VSDateTime vsCreate(createTime);
+            VSDateTime vsNow(nowText);
 
-                // cout << "PlayerID: " << pPacket->getID().c_str() << endl;
-                // cout << "*DB)     Key: " << key.c_str() << ", create: " << vsCreate.toString().c_str() << ", now:" <<
-                // vsNow.toString().c_str() << endl; cout << "*Packet) Key: " << pPacket->getPassword() << endl;
-
-                // check key
-                if (key != pPacket->getPassword()) {
-                    // cout << "키가 틀림 : " << pPacket->getPassword() << endl;
-                    LCLoginError lcLoginError;
-                    lcLoginError.setErrorID(INVALID_ID_PASSWORD);
-                    pLoginPlayer->sendPacket(&lcLoginError);
-                    filelog("loginfail.txt", "Error Code: INVALID_ID_PASSWORD, 10, PlayerID : %s",
-                            pPacket->getID().c_str());
-                    filelog("keydiff.txt", "db key: %s, packet key: %s, Player ID: %s", key.c_str(),
-                            pPacket->getPassword().c_str(), pPacket->getID().c_str());
-
-                    SAFE_DELETE(pStmt);
-                    cout << "33333" << endl;
-                    return false;
-                }
-
-                // check date time.
-                if (vsCreate.secsTo(vsNow) > 300) {
-                    LCLoginError lcLoginError;
-                    lcLoginError.setErrorID(KEY_EXPIRED);
-                    pLoginPlayer->sendPacket(&lcLoginError);
-                    filelog("loginfail.txt", "Error Code: KEY_EXPIRED, 12, PlayerID : %s", pPacket->getID().c_str());
-
-                    SAFE_DELETE(pStmt);
-                    return false;
-                }
-
-                // 일부 체크에서.. FreePass로 넘어가게 된다.
-                pLoginPlayer->setFreePass(true);
-
-                // 키를 지운다.
-                pStmt->executeQuery("DELETE FROM WebLogin WHERE PlayerID = '%s'", pPacket->getID().c_str());
-            } else {
-                // cout << "키가 없다 : " << pPacket->getID() << endl;
-                //  키가 없다.
+            if (key != pPacket->getPassword()) {
                 LCLoginError lcLoginError;
-                lcLoginError.setErrorID(NOT_FOUND_KEY);
+                lcLoginError.setErrorID(INVALID_ID_PASSWORD);
                 pLoginPlayer->sendPacket(&lcLoginError);
-                filelog("loginfail.txt", "Error Code: NOT_FOUND_KEY, 11, PlayerID : %s", pPacket->getID().c_str());
-
-                SAFE_DELETE(pStmt);
-                // cout << "4" << endl;
+                filelog("loginfail.txt", "Error Code: INVALID_ID_PASSWORD, 10, PlayerID : %s",
+                        pPacket->getID().c_str());
+                filelog("keydiff.txt", "db key: %s, packet key: %s, Player ID: %s", key.c_str(),
+                        pPacket->getPassword().c_str(), pPacket->getID().c_str());
+                cout << "33333" << endl;
                 return false;
             }
 
-            SAFE_DELETE(pStmt);
+            if (vsCreate.secsTo(vsNow) > 300) {
+                LCLoginError lcLoginError;
+                lcLoginError.setErrorID(KEY_EXPIRED);
+                pLoginPlayer->sendPacket(&lcLoginError);
+                filelog("loginfail.txt", "Error Code: KEY_EXPIRED, 12, PlayerID : %s", pPacket->getID().c_str());
+                return false;
+            }
+
+            pLoginPlayer->setFreePass(true);
+
+            repo.deleteWebLoginKey(pPacket->getID());
+        } else {
+            LCLoginError lcLoginError;
+            lcLoginError.setErrorID(NOT_FOUND_KEY);
+            pLoginPlayer->sendPacket(&lcLoginError);
+            filelog("loginfail.txt", "Error Code: NOT_FOUND_KEY, 11, PlayerID : %s", pPacket->getID().c_str());
+            return false;
         }
-        END_DB(pStmt)
     } catch (Throwable& t) {
-        // cout << "5" << endl;
         return false;
     }
 
 #endif
+
     __END_CATCH
 
     return true;

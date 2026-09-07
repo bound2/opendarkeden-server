@@ -8,8 +8,6 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
-#include "DB.h"
-#include "DatabaseManager.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameServerInfoManager.h"
 #include "GameWorldInfoManager.h"
@@ -22,6 +20,7 @@
 #include "Shape.h"
 #include "UserInfo.h"
 #include "UserInfoManager.h"
+#include "repository/LoginAccountRepository.h"
 
 #endif
 
@@ -60,20 +59,6 @@ void CLSelectWorldHandler::execute(CLSelectWorld* pPacket, Player* pPlayer)
     // if (WorldID==2) throw DisconnectException();
 
     pLoginPlayer->setWorldID(WorldID);
-
-    Statement* pStmt = NULL;
-
-    /*	BEGIN_DB
-        {
-            pStmt    = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            //cout << "PlayerID: " << pLoginPlayer->getID() << endl;
-            pStmt->executeQuery("UPDATE Player set CurrentWorldID = %d WHERE PlayerID = '%s'", WorldID ,
-       pLoginPlayer->getID().c_str());
-
-            SAFE_DELETE(pStmt); // by sigi
-        }
-        END_DB(pStmt)*/
 
     try {
         int GroupNum = g_pGameServerGroupInfoManager->getSize(WorldID);
@@ -137,20 +122,10 @@ void CLSelectWorldHandler::execute(CLSelectWorld* pPacket, Player* pPlayer)
 
         LCServerList lcServerList;
 
-        pStmt = NULL;
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            Result* pResult = pStmt->executeQuery("SELECT CurrentServerGroupID FROM Player where PlayerID='%s'",
-                                                  pLoginPlayer->getID().c_str());
-
-            if (pResult->next()) {
-                lcServerList.setCurrentServerGroupID(pResult->getInt(1));
-            }
-
-            SAFE_DELETE(pStmt); // by sigi -_-
+        int currentServerGroupID = 0;
+        if (defaultLoginAccountRepository().loadCurrentServerGroup(pLoginPlayer->getID(), currentServerGroupID)) {
+            lcServerList.setCurrentServerGroupID(currentServerGroupID);
         }
-        END_DB(pStmt) // by sigi T_T
 
         for (int k = 0; k < GroupNum; k++) {
             lcServerList.addListElement(aServerGroupInfo[k]);

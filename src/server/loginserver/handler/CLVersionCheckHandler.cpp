@@ -8,10 +8,10 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
-#include "DB.h"
 #include "LCVersionCheckError.h"
 #include "LCVersionCheckOK.h"
 #include "LoginPlayer.h"
+#include "repository/LoginConfigRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -31,50 +31,20 @@ void CLVersionCheckHandler::execute(CLVersionCheck* pPacket, Player* pPlayer)
     Assert(pPlayer != NULL);
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    //----------------------------------------------------------------------
+    // *CAUTION*
+    // The ClientVersion row must match the version the launcher/patcher distributes.
+    //----------------------------------------------------------------------
 
-    BEGIN_DB {
-        //----------------------------------------------------------------------
-        // *CAUTION*
-        // The ClientVersion row must match the version the launcher/patcher distributes.
-        //----------------------------------------------------------------------
+    // An empty table means a client that never updated; the row is read
+    // and otherwise unused.
+    int version = 0;
+    bool bHasVersion = defaultLoginConfigRepository().loadClientVersion(version);
+    Assert(bHasVersion);
+    pPacket->getVersion();
 
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT Version FROM ClientVersion");
-
-        // ���� ��� ROW �� ������ 0 �̶�� ����
-        // Update���� ���� Ŭ���̾�Ʈ�̴�.
-        // ���� ���α׷��� �簡�� �ϰ� ������Ʈ�� �ϰ� �ؾ�
-        // �Ѵ�.
-        Assert(pResult->getRowCount() != 0);
-        pResult->next();
-
-        /* Version info intentionally unused; simply acknowledge latest record */
-        pResult->getInt(1);
-        pPacket->getVersion();
-
-        /*
-        if (Version == ClientVersion)
-        {
-            // �α��� ������ �˷��ش�.
-            LCVersionCheckOK lcVersionCheckOK;
-            pLoginPlayer->sendPacket(&lcVersionCheckOK);
-        }
-        else
-        {
-            LCVersionCheckError lcVersionCheckError;
-            pLoginPlayer->sendPacket(&lcVersionCheckError);
-            //pLoginPlayer->disconnect(DISCONNECTED);
-        }
-        */
-
-        LCVersionCheckOK lcVersionCheckOK;
-        pLoginPlayer->sendPacket(&lcVersionCheckOK);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    LCVersionCheckOK lcVersionCheckOK;
+    pLoginPlayer->sendPacket(&lcVersionCheckOK);
 
 #endif
 

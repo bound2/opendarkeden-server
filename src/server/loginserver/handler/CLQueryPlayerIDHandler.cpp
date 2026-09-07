@@ -8,12 +8,9 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
-#include "Connection.h"
-#include "DatabaseManager.h"
 #include "LCQueryResultPlayerID.h"
 #include "LoginPlayer.h"
-#include "Result.h"
-#include "Statement.h"
+#include "repository/LoginAccountRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -31,44 +28,21 @@ void CLQueryPlayerIDHandler::execute(CLQueryPlayerID* pPacket, Player* pPlayer)
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
-    Statement* pStmt;
+    // A SQL failure leaves as END_DB's const char*, the way the
+    // SQLQueryException did.
+    bool bExists = defaultLoginAccountRepository().accountNameExists(pPacket->getPlayerID());
 
-    try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+    LCQueryResultPlayerID lcQueryResultPlayerID;
 
-        Result* pResult =
-            pStmt->executeQuery("SELECT Name FROM Player WHERE PlayerID = '%s'", pPacket->getPlayerID().c_str());
+    lcQueryResultPlayerID.setPlayerID(pPacket->getPlayerID());
 
-        LCQueryResultPlayerID lcQueryResultPlayerID;
+    lcQueryResultPlayerID.setExist(bExists);
 
-        // cout << "Query Result : " << pPacket->getPlayerID() << " is ";
+    pLoginPlayer->sendPacket(&lcQueryResultPlayerID);
 
-        lcQueryResultPlayerID.setPlayerID(pPacket->getPlayerID());
-
-        if (pResult->getRowCount() == 0) {
-            lcQueryResultPlayerID.setExist(false);
-
-            // cout << "not ";
-
-        } else {
-            lcQueryResultPlayerID.setExist(true);
-        }
-
-        // cout << "exist..." << endl;
-
-        pLoginPlayer->sendPacket(&lcQueryResultPlayerID);
-
-        // 쿼리가 여러 번 올 수 있으므로, 여전히 LWFRP 이다.
-        // 문제는 누군가가 프로그램을 짜서 DOS 공격을 할 수 있으므로,
-        // 최소 시간을 둬야 한다는 점이다.
-        pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
-
-        SAFE_DELETE(pStmt);
-        // delete pStmt;		// 2002.1.16 by sigi
-    } catch (SQLQueryException& sqe) {
-        SAFE_DELETE(pStmt);
-        throw;
-    }
+    // The client may query several ids; the status stays where the
+    // registration is expected next.
+    pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
 
 #endif
 

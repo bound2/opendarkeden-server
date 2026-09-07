@@ -38,7 +38,10 @@ set(LOGINSERVER_SOURCES
     main.cpp
     ItemDestroyer.cpp
     ReconnectLoginInfoManager.cpp
+    repository/MySQLLoginAccountRepository.cpp
     repository/MySQLLoginCharacterPurgeRepository.cpp
+    repository/MySQLLoginCharacterRepository.cpp
+    repository/MySQLLoginConfigRepository.cpp
 )
 
 # Argon2id hashing and verification of account passwords; shared by the

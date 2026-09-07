@@ -8,13 +8,12 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
-#include "DB.h"
-#include "DatabaseManager.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameServerInfoManager.h"
 #include "LCPCList.h"
 #include "LoginPlayer.h"
 #include "OptionInfo.h"
+#include "repository/LoginAccountRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -36,32 +35,17 @@ void CLChangeServerHandler::execute(CLChangeServer* pPacket, Player* pPlayer)
     ServerGroupID_t CurrentServerGroupID = pPacket->getServerGroupID();
     pLoginPlayer->setServerGroupID(CurrentServerGroupID);
 
-    Statement* pStmt = NULL;
-
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        //----------------------------------------------------------------------
-        // 이제 LCPCList 패킷을 만들어서 보내자
-        //----------------------------------------------------------------------
         LCPCList lcPCList;
-
         pLoginPlayer->makePCList(lcPCList);
         pLoginPlayer->sendPacket(&lcPCList);
         pLoginPlayer->setPlayerStatus(LPS_PC_MANAGEMENT);
 
-        pStmt->executeQuery("UPDATE Player set CurrentServerGroupID = %d WHERE PlayerID = '%s'",
-                            (int)pPacket->getServerGroupID(), pLoginPlayer->getID().c_str());
-
-        // 쿼리 결과 및 쿼리문 객체를 삭제한다.
-        SAFE_DELETE(pStmt);
-    } catch (SQLQueryException& sce) {
-        // cout << sce.toString() << endl;
-
-        // 쿼리 결과 및 쿼리문 객체를 삭제한다.
-        SAFE_DELETE(pStmt);
-
-        throw DisconnectException(sce.toString());
+        defaultLoginAccountRepository().setCurrentServerGroup((int)pPacket->getServerGroupID(), pLoginPlayer->getID());
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles).
+        throw DisconnectException("CLChangeServerHandler : SQL error, see DBError.log");
     }
 
 #endif

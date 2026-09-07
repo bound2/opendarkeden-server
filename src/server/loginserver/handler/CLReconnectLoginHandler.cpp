@@ -8,7 +8,6 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
-#include "DB.h"
 #include "GCDisconnect.h"
 #include "GameServerInfoManager.h"
 #include "LCPCList.h"
@@ -16,6 +15,7 @@
 #include "OptionInfo.h"
 #include "Properties.h"
 #include "ReconnectLoginInfoManager.h"
+#include "repository/LoginAccountRepository.h"
 
 #endif
 
@@ -111,39 +111,33 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
 
     ServerGroupID_t CurrentServerGroupID = 0;
 
-    Statement* pGStmt = NULL;
-    Result* pGResult = NULL;
-
     // 빌링~ by sigi. 2002.5.31
     PayType payType;
     string payPlayDate;
     uint payPlayHours;
     uint payPlayFlag;
 
-
     try {
-        pGStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pGResult = pGStmt->executeQuery("SELECT CurrentWorldID, CurrentServerGroupID, LogOn, Access, PayType, "
-                                        "PayPlayDate, PayPlayHours, PayPlayFlag FROM Player WHERE PlayerID = '%s'",
-                                        PlayerID.c_str());
+        LoginAccountRepository& repo = defaultLoginAccountRepository();
 
-        // 로그인 여부를 체크한다.
-        pGResult->next();
+        // An account with no row cannot reconnect.
+        LoginReconnectRow account;
+        if (!repo.loadAccountForReconnect(PlayerID, account)) {
+            throw SQLQueryException("ReconnectLogin verify failed: no such player");
+        }
 
-        WorldID_t CurrentWorldID = pGResult->getInt(1);
-
-        CurrentServerGroupID = pGResult->getInt(2);
+        WorldID_t CurrentWorldID = account.currentWorldID;
+        CurrentServerGroupID = account.currentServerGroupID;
 
         pLoginPlayer->setWorldID(CurrentWorldID);
         pLoginPlayer->setServerGroupID(CurrentServerGroupID);
 
-        string logon = pGResult->getString(3);
+        string logon = account.logOn;
 
-        payType = (PayType)(pGResult->getInt(5));
-        payPlayDate = pGResult->getString(6);
-        payPlayHours = pGResult->getInt(7);
-        payPlayFlag = pGResult->getInt(8);
-
+        payType = (PayType)(account.payType);
+        payPlayDate = account.payPlayDate;
+        payPlayHours = account.payPlayHours;
+        payPlayFlag = account.payPlayFlag;
 
         if (logon == "GAME" || logon == "LOGON") {
             string msg = "ReconnectLogin verify failed: LogOn = ";
@@ -152,36 +146,15 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
             throw SQLQueryException(msg);
         }
 
-        if (logon == "LOGOFF") // || logon == "GAME") // by sigi. 2002.5.15
-        {
-            Statement* pStmt = NULL;
-            try {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-                /// LogOn이 'LOGOFF'인 경우만 LOGON으로 설정한다. by sigi. 2002.5.15
-                pStmt->executeQuery(
-                    "UPDATE Player SET LogOn='LOGON', CurrentLoginServerID=%d WHERE PlayerID='%s' AND LogOn='LOGOFF'",
-                    g_pConfig->getPropertyInt("LoginServerID"), PlayerID.c_str());
-
-                // 이미 'LOGON'이었던 경우
-                // PlayerID가 없는 경우..
-                if (pStmt->getAffectedRowCount() == 0) {
-                    // cout << endl << "+-----------------------+" << endl << "|    Deny Multi Login   |" << endl <<
-                    // "+-----------------------+" << endl << endl;
-
-                    throw SQLQueryException("Deny MultiLogin");
-                }
-
-                SAFE_DELETE(pStmt);
-            } catch (SQLQueryException& sqe) {
-                SAFE_DELETE(pStmt);
-                throw;
+        if (logon == "LOGOFF") {
+            // LogOn flips to LOGON for a LOGOFF row; a row that did not
+            // change belongs to a session already logged on.
+            if (!repo.markLoggedOnForReconnect(g_pConfig->getPropertyInt("LoginServerID"), PlayerID)) {
+                throw SQLQueryException("Deny MultiLogin");
             }
         }
 
-        string access = pGResult->getString(4);
-
-        //		if (access == "DENY" || access == "WAIT") {
+        string access = account.access;
         if (access != "ALLOW") {
             throw SQLQueryException("ReconnectLogin verify failed ");
         }
@@ -196,45 +169,24 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
 
 #ifdef __PAY_SYSTEM_LOGIN__
         string connectIP = pLoginPlayer->getSocket()->getHost();
-        // 빌링 by sigi. 2002.5.31
         if (!pLoginPlayer->loginPayPlay(payType, payPlayDate, payPlayHours, payPlayFlag, connectIP, PlayerID)) {
-            SAFE_DELETE(pGStmt);
             throw InvalidProtocolException("Pay First!");
         }
 #elif defined(__PAY_SYSTEM_FREE_LIMIT__)
         string connectIP = pLoginPlayer->getSocket()->getHost();
-        // 빌링 by sigi. 2002.5.31
         if (pLoginPlayer->loginPayPlay(payType, payPlayDate, payPlayHours, payPlayFlag, connectIP, PlayerID)) {
-            // Reconnect했는데 PayPlay가 가능하다는 것은..
-            // BillingPlay가 아니고 PayPlay로 게임을 했다는 의미이다.
-            // by sigi. 2002.11.22
-            // 로그인 서버에서 billing 연결 부분 빼기로 했다.
-            // 애드빌 요청 사항. by bezz 2003.04.22
-            // #ifdef __CONNECT_BILLING_SYSTEM__
-            // pLoginPlayer->setBillingLoginVerified();
-            // pLoginPlayer->setBillingUserStatus("XX");
-            // #endif
         } else {
-            //// BillingPlay로 게임을 했었다는 의미이다.
-            // by sigi. 2002.11.22
-            // 로그인 서버에서 billing 연결 부분 빼기로 했다.
-            // 애드빌 요청 사항. by bezz 2003.04.22
-            // #ifdef __CONNECT_BILLING_SYSTEM__
-            // pLoginPlayer->setBillingLoginVerified();
-            // pLoginPlayer->setBillingUserStatus("HO");
-            // #endif
         }
 #else // elif defined(__PAY_SYSTEM_ZONE__)
         pLoginPlayer->setPayPlayValue(payType, payPlayDate, payPlayHours, payPlayFlag);
 #endif
-
-
-        SAFE_DELETE(pGStmt);
     } catch (SQLQueryException& sce) {
-        // cout << sce.toString() << endl;
-        //  쿼리 결과 및 쿼리문 객체를 삭제한다.
-        SAFE_DELETE(pGStmt);
+        // The handler's own verification failures above.
         throw DisconnectException(sce.toString());
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); the client is dropped.
+        throw DisconnectException("CLReconnectLoginHandler : SQL error, see DBError.log");
     }
 
     // cout << "CLReconnectLogin : ReconnectLoginInfo verified" << endl;

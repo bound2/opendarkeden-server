@@ -9,7 +9,6 @@
 #include "LoginPlayer.h"
 
 #include "Assert.h"
-#include "DB.h"
 #include "GameServerInfoManager.h"
 #include "GameServerManager.h"
 #include "LCLoginError.h"
@@ -24,6 +23,8 @@
 #include "PacketValidator.h"
 #include "Profile.h"
 #include "gameserver/billing/BillingPlayerManager.h"
+#include "repository/LoginAccountRepository.h"
+#include "repository/LoginCharacterRepository.h"
 
 // by sigi. 2002.11.12
 const int defaultLoginPlayerInputStreamSize = 1024;
@@ -327,38 +328,19 @@ void LoginPlayer::disconnect(bool bDisconnected) {
     // '이미 접속 중'인 경우에..
     // 캐릭 접속 해제를 기다리는 경우는 ID가 설정될 수 있으므로 아니다
     if (m_ID != "NONE") {
-        Statement* pStmt = NULL;
-        // Result*    pResult = NULL;
-
         try {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // query해서 안 쓰길래.. 날렸땅.. by sigi. 2002.5.7
-            //	pResult = pStmt->executeQuery( "SELECT LogOn FROM Player WHERE PlayerID='%s'" , m_ID.c_str() );
-
-            // 로그온이어야 한다.
-            //	pResult->next();
-            //	string logon = pResult->getString(1);
-            // cout << "logon = " << logon << endl;
-            // Assert( logon == "LOGON" );
-
-            // LogOn이 'LOGON'인 경우만 'LOGOFF'로 변경한다. by sigi. 2002.5.15
-            // 로그오프로 변경한다.
-            pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGOFF' WHERE PlayerID='%s' AND LogOn='LOGON'",
-                                m_ID.c_str());
+            defaultLoginAccountRepository().markLoggedOff(m_ID);
 
 #if defined(__PAY_SYSTEM_LOGIN__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-            bool bClear = false;        // 유료 정보 완전 제거
-            bool bDecreaseTime = false; // 사용 시간 감소 - loginserver에서는 무시하자.
+            bool bClear = false;        // drop the paid-play state entirely
+            bool bDecreaseTime = false; // the login server does not count play time down
             logoutPayPlay(m_ID, bClear, bDecreaseTime);
 #endif
-
-            // cout << m_ID << " : LOGOFF" << endl;
-
-            SAFE_DELETE(pStmt);
-        } catch (SQLQueryException& sqe) {
-            filelog("DBError.log", "%s", sqe.toString().c_str());
-            SAFE_DELETE(pStmt);
-            throw Error(sqe.toString());
+        } catch (const char*) {
+            // A SQL failure arrives as END_DB's const char*, already logged
+            // to DBError.log (its own message dangles); rethrown as the
+            // Error the callers expect.
+            throw Error("LoginPlayer::disconnect : SQL error, see DBError.log");
         }
     }
 
@@ -398,38 +380,19 @@ void LoginPlayer::disconnect_nolog(bool bDisconnected) {
     // '이미 접속 중'인 경우에..
     // 캐릭 접속 해제를 기다리는 경우는 ID가 설정될 수 있으므로 아니다
     if (m_ID != "NONE") {
-        Statement* pStmt = NULL;
-        // Result*    pResult = NULL;
-
         try {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // query해서 안 쓰길래.. 날렸땅.. by sigi. 2002.5.7
-            //	pResult = pStmt->executeQuery( "SELECT LogOn FROM Player WHERE PlayerID='%s'" , m_ID.c_str() );
-
-            // 로그온이어야 한다.
-            //	pResult->next();
-            //	string logon = pResult->getString(1);
-            // cout << "logon = " << logon << endl;
-            // Assert( logon == "LOGON" );
-
-            // LogOn이 'LOGON'인 경우만 'LOGOFF'로 변경한다. by sigi. 2002.5.15
-            // 로그오프로 변경한다.
-            pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGOFF' WHERE PlayerID='%s' AND LogOn='LOGON'",
-                                m_ID.c_str());
+            defaultLoginAccountRepository().markLoggedOff(m_ID);
 
 #if defined(__PAY_SYSTEM_LOGIN__) || defined(__PAY_SYSTEM_FREE_LIMIT__)
-            bool bClear = false;        // 유료 정보 완전 제거
-            bool bDecreaseTime = false; // 사용 시간 감소 - loginserver에서는 무시하자.
+            bool bClear = false;        // drop the paid-play state entirely
+            bool bDecreaseTime = false; // the login server does not count play time down
             logoutPayPlay(m_ID, bClear, bDecreaseTime);
 #endif
-
-            // cout << m_ID << " : LOGOFF" << endl;
-
-            SAFE_DELETE(pStmt);
-        } catch (SQLQueryException& sqe) {
-            filelog("DBError.log", "%s", sqe.toString().c_str());
-            SAFE_DELETE(pStmt);
-            throw Error(sqe.toString());
+        } catch (const char*) {
+            // A SQL failure arrives as END_DB's const char*, already logged
+            // to DBError.log (its own message dangles); rethrown as the
+            // Error the callers expect.
+            throw Error("LoginPlayer::disconnect : SQL error, see DBError.log");
         }
     }
 
@@ -522,9 +485,6 @@ void LoginPlayer::sendLGKickCharacter() {
     // Game서버로 캐릭터를 제거해달라는 message를 보낸다.
     LGKickCharacter lgKickCharacter;
 
-    Statement* pStmt = NULL;
-    Statement* pStmt1 = NULL;
-
     string characterName = getLastCharacterName();
     int serverID, serverGroupID, worldID, lastSlot;
 
@@ -536,67 +496,48 @@ void LoginPlayer::sendLGKickCharacter() {
     // WorldID, ServerID, LastSlot을 얻어내자.
     //----------------------------------------------------------------------
     if (!isSetWorldGroupID()) {
-        BEGIN_DB {
-            pStmt1 = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt1->executeQuery(
-                "SELECT CurrentWorldID, CurrentServerGroupID, LastSlot FROM Player where PlayerID='%s'",
-                getID().c_str());
+        int currentWorldID = 0;
+        int currentServerGroupID = 0;
+        int currentLastSlot = 0;
 
-            if (pResult->next()) {
-                serverID = 1; // 현재는 무조건 1이다.
-                worldID = pResult->getInt(1);
-                serverGroupID = pResult->getInt(2);
-                lastSlot = pResult->getInt(3);
+        if (defaultLoginAccountRepository().loadLastLocation(getID(), currentWorldID, currentServerGroupID,
+                                                             currentLastSlot)) {
+            serverID = 1; // always 1 for now
+            worldID = currentWorldID;
+            serverGroupID = currentServerGroupID;
+            lastSlot = currentLastSlot;
 
-                setWorldID(worldID);
-                setGroupID(serverGroupID);
-                setLastSlot(lastSlot);
-
-                setWorldGroupID(true); // 값이 설정됐다는 의미.
-                                       // 다음에 다시 Query 안 할려고
-            }
-
-            SAFE_DELETE(pStmt1);
+            setWorldID(worldID);
+            setGroupID(serverGroupID);
+            setLastSlot(lastSlot);
+            setWorldGroupID(true); // the values are now set
         }
-        END_DB(pStmt1)
     } else {
-        // 기존에 저장된 값을 그대로 쓴다.
-        serverID = 1; // 현재는 무조건 1이다.
+        serverID = 1; // always 1 for now
         worldID = getWorldID();
         serverGroupID = getGroupID();
     }
 
-
     //----------------------------------------------------------------------
-    // Slot에 대응되는 캐릭터 이름을 알아낸다.
+    // The character in the last slot, when the caller did not name one.
     //----------------------------------------------------------------------
     if (characterName.size() == 0) {
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection(m_WorldID)->createStatement();
-            Result* pResult = pStmt->executeQuery("SELECT Name from Slayer where PlayerID='%s' AND Slot='SLOT%d'",
-                                                  getID().c_str(), lastSlot);
+        string name;
 
-            if (pResult->next()) {
-                characterName = pResult->getString(1);
+        if (defaultLoginCharacterRepository().loadSlayerNameInSlot(m_WorldID, getID(), lastSlot, name)) {
+            characterName = name;
+            setLastCharacterName(characterName);
+        } else {
+            cout << "No CharacterName" << endl;
 
-                setLastCharacterName(characterName);
-            } else {
-                cout << "No CharacterName" << endl;
-                // LoginError(이미 접속 중)
-                LCLoginError lcLoginError;
-                lcLoginError.setErrorID(ALREADY_CONNECTED);
-                sendPacket(&lcLoginError);
-                setPlayerStatus(LPS_BEGIN_SESSION);
+            LCLoginError lcLoginError;
+            lcLoginError.setErrorID(ALREADY_CONNECTED);
+            sendPacket(&lcLoginError);
 
-                setID("NONE"); // disconnect에서 LOGOFF로 설정되지 않게 하기 위해서
-
-                SAFE_DELETE(pStmt);
-                return;
-            }
-
-            SAFE_DELETE(pStmt);
+            setPlayerStatus(LPS_BEGIN_SESSION);
+            setID("NONE"); // keeps disconnect() from writing LOGOFF
+            return;
         }
-        END_DB(pStmt)
     }
 
     //----------------------------------------------------------------------
@@ -655,42 +596,24 @@ void LoginPlayer::sendLGKickCharacter() {
 //////////////////////////////////////////////////////////////////////
 void LoginPlayer::sendLCLoginOK() {
     try {
-        // cout << "Send LCLoginOK" << endl;
-
-        Statement* pStmt = NULL;
-
         string connectIP = getSocket()->getHost();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        // LogOn flips to LOGON; a row that did not change belongs to a
+        // session already logged on.
+        if (!defaultLoginAccountRepository().setLoggedOn(getID())) {
+            filelog("MultiLogin.log", "Multiple login attempt suspected : [%s:%s]", getID().c_str(), connectIP.c_str());
 
-            pStmt->executeQuery("UPDATE Player SET LogOn = 'LOGON' WHERE PlayerID = '%s'", getID().c_str());
-            if (pStmt->getAffectedRowCount() == 0) {
-                filelog("MultiLogin.log", "멀티 로그인 접속 시도로 예상됨 : [%s:%s]", getID().c_str(),
-                        connectIP.c_str());
-                LCLoginError lcLoginError;
-                // lcLoginError.setMessage("already connected");
-                lcLoginError.setErrorID(ALREADY_CONNECTED);
-                sendPacket(&lcLoginError);
+            LCLoginError lcLoginError;
+            lcLoginError.setErrorID(ALREADY_CONNECTED);
+            sendPacket(&lcLoginError);
 
-                SAFE_DELETE(pStmt);
-                setPlayerStatus(LPS_BEGIN_SESSION);
-
-                return;
-            }
-
-            pStmt->executeQuery("UPDATE Player SET LoginIP = '%s' WHERE PlayerID = '%s'", connectIP.c_str(),
-                                getID().c_str());
-
-            SAFE_DELETE(pStmt)
+            setPlayerStatus(LPS_BEGIN_SESSION);
+            return;
         }
-        END_DB(pStmt)
 
+        defaultLoginAccountRepository().setLoginIP(connectIP, getID());
 
-        // Player table의 Login을 LOGON으로 바꾼다.
         LCLoginOK lcLoginOK;
-
-        // 이 전에 LoginPlayer에 저장해둔다.
         lcLoginOK.setAdult(isAdult());
         lcLoginOK.setLastDays(0xffff);
 
@@ -698,9 +621,7 @@ void LoginPlayer::sendLCLoginOK() {
 
         setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
 
-        // 사용자 접속했다고 기록
         addLoginPlayerData(m_ID, connectIP, m_SSN, m_Zipcode);
-
     } catch (Throwable& t) {
         filelog("loginOKError.txt", "%s", t.toString().c_str());
         throw;
@@ -791,230 +712,132 @@ void addLogoutPlayerData(Player* pPlayer) {
 }
 
 void LoginPlayer::makePCList(LCPCList& lcPCList) {
-    Statement* pStmt = NULL;
-    Statement* pStmt2 = NULL;
-    Result* pResult1 = NULL;
-    Result* pResult2 = NULL;
-
     WorldID_t WorldID = getWorldID();
+    LoginCharacterRepository& repo = defaultLoginCharacterRepository();
 
     try {
-        pStmt = g_pDatabaseManager->getConnection(WorldID)->createStatement();
-        pStmt2 = g_pDatabaseManager->getConnection(WorldID)->createStatement();
+        // Every ACTIVE Slayer row of the account is a character; its Race
+        // column says which table holds the rest.
+        vector<LoginSlayerListRow> slayers = repo.loadSlayerList(WorldID, getID());
 
-        //----------------------------------------------------------------------
-        // 우선 슬레이어 테이블을 검색해서, Active 한 슬레이어 정보를 로딩한다.
-        // 클라이언트로 전송해야 할 정보는 다음과 같다.
-        //
-        //    - 이름
-        //    - 슬랏번호
-        //    - 성별
-        //    - 헤어스타일 : 슬레이어 전용
-        //    - 머리색
-        //    - 피부색
-        //    - 입고있는옷정보 : 슬레이어 전용, 머리/상의/하의의 색상정보
-        //    - 능력치 : STR,DEX,CON
-        //    - HP/MP 의 현재 및 최대 : 뱀파이어는 MP 없음
-        //    - 기술과 그 경험치 : 슬레이어전용
-        //    - 갖고 있는 돈
-        //    - 존의 아이디
-        //
-        //----------------------------------------------------------------------
-        pResult1 = pStmt->executeQuery(
-            "SELECT Race, Name, Slot, Sex, HairColor, SkinColor, AdvancementClass, STR, STRExp, DEX, DEXExp, INTE, "
-            "INTExp, HP, CurrentHP, MP, CurrentMP, Fame, BladeLevel, SwordLevel, GunLevel, HealLevel, EnchantLevel, "
-            "ETCLevel, Alignment, Shape, HelmetColor, JacketColor, PantsColor, WeaponColor, ShieldColor, `Rank` FROM "
-            "Slayer WHERE PlayerID = '%s' AND Active = 'ACTIVE'",
-            getID().c_str());
-
-        // 복장 flag. by sigi. 2002.6.18
         DWORD shape;
         Color_t colors[PCSlayerInfo::SLAYER_COLOR_MAX];
         Color_t colorsVamp[PCVampireInfo::VAMPIRE_COLOR_MAX];
 
-        while (pResult1->next()) {
-            uint i = 0;
-            string race = pResult1->getString(++i);
-            string name = pResult1->getString(++i);
+        for (size_t n = 0; n < slayers.size(); n++) {
+            const LoginSlayerListRow& s = slayers[n];
+            string race = s.race;
+            string name = s.name;
 
             if (race == "SLAYER") {
-                // 슬레이어 PCInfo 객체를 생성한다.
                 PCSlayerInfo* pPCSlayerInfo = new PCSlayerInfo();
 
-                // 각 필드값을 지정한다.
                 pPCSlayerInfo->setName(name);
-                pPCSlayerInfo->setSlot(pResult1->getString(++i));
-                pPCSlayerInfo->setSex(pResult1->getString(++i));
+                pPCSlayerInfo->setSlot(s.slot);
+                pPCSlayerInfo->setSex(s.sex);
                 pPCSlayerInfo->setHairStyle(HAIR_STYLE1);
-                pPCSlayerInfo->setHairColor(pResult1->getInt(++i));
-                pPCSlayerInfo->setSkinColor(pResult1->getInt(++i));
-                pPCSlayerInfo->setAdvancementLevel(pResult1->getInt(++i));
-                pPCSlayerInfo->setSTR(pResult1->getInt(++i));
-                pPCSlayerInfo->setSTRExp(pResult1->getInt(++i));
-                pPCSlayerInfo->setDEX(pResult1->getInt(++i));
-                pPCSlayerInfo->setDEXExp(pResult1->getInt(++i));
-                pPCSlayerInfo->setINT(pResult1->getInt(++i));
-                pPCSlayerInfo->setINTExp(pResult1->getInt(++i));
-                pPCSlayerInfo->setHP(pResult1->getInt(++i), pResult1->getInt(++i));
-                pPCSlayerInfo->setMP(pResult1->getInt(++i), pResult1->getInt(++i));
-                pPCSlayerInfo->setFame(pResult1->getInt(++i));
+                pPCSlayerInfo->setHairColor(s.hairColor);
+                pPCSlayerInfo->setSkinColor(s.skinColor);
+                pPCSlayerInfo->setAdvancementLevel(s.advancementClass);
+                pPCSlayerInfo->setSTR(s.str);
+                pPCSlayerInfo->setSTRExp(s.strExp);
+                pPCSlayerInfo->setDEX(s.dex);
+                pPCSlayerInfo->setDEXExp(s.dexExp);
+                pPCSlayerInfo->setINT(s.inte);
+                pPCSlayerInfo->setINTExp(s.intExp);
+                pPCSlayerInfo->setHP(s.hp, s.currentHP);
+                pPCSlayerInfo->setMP(s.mp, s.currentMP);
+                pPCSlayerInfo->setFame(s.fame);
 
                 for (int j = 0; j < SKILL_DOMAIN_VAMPIRE; j++) {
-                    pPCSlayerInfo->setSkillDomainLevel((SkillDomain)j, (SkillLevel_t)pResult1->getInt(++i));
+                    pPCSlayerInfo->setSkillDomainLevel((SkillDomain)j, (SkillLevel_t)s.domainLevel[j]);
                 }
 
-                pPCSlayerInfo->setAlignment(pResult1->getInt(++i));
+                pPCSlayerInfo->setAlignment(s.alignment);
 
-                // 복장 정보를 flag로 대체한다. by sigi. 2002.6.18
-                shape = pResult1->getDWORD(++i);
+                shape = s.shape;
 
                 colors[PCSlayerInfo::SLAYER_COLOR_HAIR] = pPCSlayerInfo->getHairColor();
                 colors[PCSlayerInfo::SLAYER_COLOR_SKIN] = pPCSlayerInfo->getSkinColor();
-                colors[PCSlayerInfo::SLAYER_COLOR_HELMET] = pResult1->getInt(++i);
-                colors[PCSlayerInfo::SLAYER_COLOR_JACKET] = pResult1->getInt(++i);
-                colors[PCSlayerInfo::SLAYER_COLOR_PANTS] = pResult1->getInt(++i);
-                colors[PCSlayerInfo::SLAYER_COLOR_WEAPON] = pResult1->getInt(++i);
-                colors[PCSlayerInfo::SLAYER_COLOR_SHIELD] = pResult1->getInt(++i);
+                colors[PCSlayerInfo::SLAYER_COLOR_HELMET] = s.helmetColor;
+                colors[PCSlayerInfo::SLAYER_COLOR_JACKET] = s.jacketColor;
+                colors[PCSlayerInfo::SLAYER_COLOR_PANTS] = s.pantsColor;
+                colors[PCSlayerInfo::SLAYER_COLOR_WEAPON] = s.weaponColor;
+                colors[PCSlayerInfo::SLAYER_COLOR_SHIELD] = s.shieldColor;
 
                 pPCSlayerInfo->setShapeInfo(shape, colors);
-
-                pPCSlayerInfo->setRank(pResult1->getInt(++i));
+                pPCSlayerInfo->setRank(s.rank);
 
                 lcPCList.setPCInfo(pPCSlayerInfo->getSlot(), pPCSlayerInfo);
             } else if (race == "VAMPIRE") {
-                //----------------------------------------------------------------------
-                // 이제 뱀파이어 테이블을 검색해서 LCPCList 패킷에 집어넣자..
-                // 클라이언트로 전송해야 할 정보는 다음과 같다.
-                //
-                //    - Name
-                //    - Slot
-                //    - Sex
-                //    - BatColor
-                //    - SkinColor
-                //    - 상의/하의의 색상정보
-                //    - 능력치 : STR,DEX,CON
-                //    - CurrentHP/MaxHP
-                //    - Gold
-                //    - ZoneID
-                //
-                //----------------------------------------------------------------------
+                LoginVampireListRow v;
 
-                pResult2 = pStmt2->executeQuery(
-                    "SELECT Name, Slot, Sex, BatColor, SkinColor, AdvancementClass, STR, DEX, INTE, HP, CurrentHP, "
-                    "`Rank`, GoalExp, Level, Bonus, Fame, Alignment, Shape, CoatColor FROM Vampire WHERE PlayerID = "
-                    "'%s' AND Active = 'ACTIVE' AND Name='%s'",
-                    getID().c_str(), name.c_str());
-
-                if (pResult2->getRowCount() == 0) {
+                if (!repo.loadVampireListRow(WorldID, getID(), name, v)) {
                     throw DisconnectException("No Vampire");
                 }
 
-                pResult2->next();
-
-                // 뱀파이어 PCInfo 객체를 생성한다.
                 PCVampireInfo* pPCVampireInfo = new PCVampireInfo();
 
-                // 각 필드값을 지정한다.
-                uint i = 0;
+                pPCVampireInfo->setName(v.name);
+                pPCVampireInfo->setSlot(v.slot);
+                pPCVampireInfo->setSex(v.sex);
+                pPCVampireInfo->setBatColor(v.batColor);
+                pPCVampireInfo->setSkinColor(v.skinColor);
+                pPCVampireInfo->setAdvancementLevel(v.advancementClass);
+                pPCVampireInfo->setSTR(v.str);
+                pPCVampireInfo->setDEX(v.dex);
+                pPCVampireInfo->setINT(v.inte);
+                pPCVampireInfo->setHP(v.hp, v.currentHP);
+                pPCVampireInfo->setRank(v.rank);
+                pPCVampireInfo->setExp(v.goalExp);
+                pPCVampireInfo->setLevel(v.level);
+                pPCVampireInfo->setBonus(v.bonus);
+                pPCVampireInfo->setFame(v.fame);
+                pPCVampireInfo->setAlignment(v.alignment);
 
-                pPCVampireInfo->setName(pResult2->getString(++i));
-                pPCVampireInfo->setSlot(pResult2->getString(++i));
+                shape = v.shape;
+                colorsVamp[0] = v.coatColor;
 
-                string sex = pResult2->getString(++i);
-                pPCVampireInfo->setSex(sex);
-                pPCVampireInfo->setBatColor(pResult2->getInt(++i));
-                pPCVampireInfo->setSkinColor(pResult2->getInt(++i));
-                pPCVampireInfo->setAdvancementLevel(pResult2->getInt(++i));
-                pPCVampireInfo->setSTR(pResult2->getInt(++i));
-                pPCVampireInfo->setDEX(pResult2->getInt(++i));
-                pPCVampireInfo->setINT(pResult2->getInt(++i));
-                pPCVampireInfo->setHP(pResult2->getInt(++i), pResult2->getInt(++i));
-                pPCVampireInfo->setRank(pResult2->getInt(++i));
-                pPCVampireInfo->setExp(pResult2->getInt(++i));
-                pPCVampireInfo->setLevel(pResult2->getInt(++i));
-                pPCVampireInfo->setBonus(pResult2->getInt(++i));
-                pPCVampireInfo->setFame(pResult2->getInt(++i));
-                pPCVampireInfo->setAlignment(pResult2->getInt(++i));
-
-                // 복장 정보 읽어오기 최적화. by sigi. 2002.6.19
-                shape = pResult2->getDWORD(++i);
-
-                colorsVamp[0] = pResult2->getInt(++i); // CoatColor
                 pPCVampireInfo->setShapeInfo(shape, colorsVamp);
 
                 lcPCList.setPCInfo(pPCVampireInfo->getSlot(), pPCVampireInfo);
             } else {
-                //----------------------------------------------------------------------
-                // 이제 아우스터즈 테이블을 검색해서 LCPCList 패킷에 집어넣자..
-                // 클라이언트로 전송해야 할 정보는 다음과 같다.
-                //
-                //    - Name
-                //    - Slot
-                //    - Sex
-                //    - HairColor
-                //    - SkinColor
-                //    - 상의/하의의 색상정보
-                //    - 능력치 : STR,DEX,CON
-                //    - CurrentHP/MaxHP
-                //    - Gold
-                //    - ZoneID
-                //
-                //----------------------------------------------------------------------
+                LoginOustersListRow o;
 
-                pResult2 = pStmt2->executeQuery(
-                    "SELECT Name, Slot, Sex, AdvancementClass, STR, DEX, INTE, HP, CurrentHP, `Rank`, Exp, Level, "
-                    "Bonus, SkillBonus, Fame, Alignment, CoatType, ArmType, CoatColor, HairColor, ArmColor, BootsColor "
-                    "FROM Ousters WHERE PlayerID = '%s' AND Active = 'ACTIVE' AND Name='%s'",
-                    getID().c_str(), name.c_str());
-
-                if (pResult2->getRowCount() == 0) {
+                if (!repo.loadOustersListRow(WorldID, getID(), name, o)) {
                     throw DisconnectException("No Ousters");
                 }
 
-                pResult2->next();
-
-                // 아우스터즈 PCInfo 객체를 생성한다.
                 PCOustersInfo* pPCOustersInfo = new PCOustersInfo();
 
-                // 각 필드값을 지정한다.
-                uint i = 0;
-
-                pPCOustersInfo->setName(pResult2->getString(++i));
-                pPCOustersInfo->setSlot(pResult2->getString(++i));
-
-                string sex = pResult2->getString(++i);
-                pPCOustersInfo->setSex(sex);
-                pPCOustersInfo->setAdvancementLevel(pResult2->getInt(++i));
-                pPCOustersInfo->setSTR(pResult2->getInt(++i));
-                pPCOustersInfo->setDEX(pResult2->getInt(++i));
-                pPCOustersInfo->setINT(pResult2->getInt(++i));
-                pPCOustersInfo->setHP(pResult2->getInt(++i), pResult2->getInt(++i));
-                pPCOustersInfo->setRank(pResult2->getInt(++i));
-                pPCOustersInfo->setExp(pResult2->getInt(++i));
-                pPCOustersInfo->setLevel(pResult2->getInt(++i));
-                pPCOustersInfo->setBonus(pResult2->getInt(++i));
-                pPCOustersInfo->setSkillBonus(pResult2->getInt(++i));
-                pPCOustersInfo->setFame(pResult2->getInt(++i));
-                pPCOustersInfo->setAlignment(pResult2->getInt(++i));
-                pPCOustersInfo->setCoatType((OustersCoatType)pResult2->getInt(++i));
-                pPCOustersInfo->setArmType((OustersArmType)pResult2->getInt(++i));
-                pPCOustersInfo->setCoatColor(pResult2->getInt(++i));
-                pPCOustersInfo->setHairColor(pResult2->getInt(++i));
-                pPCOustersInfo->setArmColor(pResult2->getInt(++i));
-                pPCOustersInfo->setBootsColor(pResult2->getInt(++i));
+                pPCOustersInfo->setName(o.name);
+                pPCOustersInfo->setSlot(o.slot);
+                pPCOustersInfo->setSex(o.sex);
+                pPCOustersInfo->setAdvancementLevel(o.advancementClass);
+                pPCOustersInfo->setSTR(o.str);
+                pPCOustersInfo->setDEX(o.dex);
+                pPCOustersInfo->setINT(o.inte);
+                pPCOustersInfo->setHP(o.hp, o.currentHP);
+                pPCOustersInfo->setRank(o.rank);
+                pPCOustersInfo->setExp(o.exp);
+                pPCOustersInfo->setLevel(o.level);
+                pPCOustersInfo->setBonus(o.bonus);
+                pPCOustersInfo->setSkillBonus(o.skillBonus);
+                pPCOustersInfo->setFame(o.fame);
+                pPCOustersInfo->setAlignment(o.alignment);
+                pPCOustersInfo->setCoatType((OustersCoatType)o.coatType);
+                pPCOustersInfo->setArmType((OustersArmType)o.armType);
+                pPCOustersInfo->setCoatColor(o.coatColor);
+                pPCOustersInfo->setHairColor(o.hairColor);
+                pPCOustersInfo->setArmColor(o.armColor);
+                pPCOustersInfo->setBootsColor(o.bootsColor);
 
                 lcPCList.setPCInfo(pPCOustersInfo->getSlot(), pPCOustersInfo);
             }
         }
-
-        // 쿼리 결과 및 쿼리문 객체를 삭제한다.
-        SAFE_DELETE(pStmt);
-        SAFE_DELETE(pStmt2);
-    } catch (SQLQueryException& sce) {
-        // 쿼리 결과 및 쿼리문 객체를 삭제한다.
-        SAFE_DELETE(pStmt);
-        SAFE_DELETE(pStmt2);
-
-        throw DisconnectException(sce.toString());
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); the client is dropped.
+        throw DisconnectException("LoginPlayer::makePCList : SQL error, see DBError.log");
     }
 }

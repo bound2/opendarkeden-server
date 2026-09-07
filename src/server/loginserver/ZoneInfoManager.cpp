@@ -9,10 +9,7 @@
 // include files
 #include "ZoneInfoManager.h"
 
-#include "database/Connection.h"
-#include "database/DatabaseManager.h"
-#include "database/Result.h"
-#include "database/Statement.h"
+#include "repository/LoginConfigRepository.h"
 
 //----------------------------------------------------------------------
 // constructor
@@ -58,28 +55,23 @@ void ZoneInfoManager::init() {
 void ZoneInfoManager::load() {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    vector<LoginZoneRow> rows;
 
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT ZoneID , ZoneGroupID FROM ZoneInfo");
-
-        while (pResult->next()) {
-            ZoneInfo* pZoneInfo = new ZoneInfo();
-            pZoneInfo->setZoneID(pResult->getWORD(1));
-            pZoneInfo->setZoneGroupID(pResult->getWORD(2));
-            addZoneInfo(pZoneInfo);
-        }
-
-    } catch (SQLQueryException& sqe) {
-        // 필살 삭제!
-        delete pStmt;
-
-        throw Error(sqe.toString());
+        rows = defaultLoginConfigRepository().loadZones();
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); rethrown as the Error the
+        // startup path expects.
+        throw Error("ZoneInfoManager::load : SQL error, see DBError.log");
     }
 
-    // 필살 삭제!
-    delete pStmt;
+    for (size_t i = 0; i < rows.size(); i++) {
+        ZoneInfo* pZoneInfo = new ZoneInfo();
+        pZoneInfo->setZoneID(rows[i].zoneID);
+        pZoneInfo->setZoneGroupID(rows[i].zoneGroupID);
+        addZoneInfo(pZoneInfo);
+    }
 
     __END_CATCH
 }
