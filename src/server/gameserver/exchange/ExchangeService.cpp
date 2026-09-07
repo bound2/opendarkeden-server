@@ -139,7 +139,8 @@ vector<ExchangeListing> ExchangeService::getListings(int16_t serverID, int page,
                                                      const string& sellerFilter) {
     // For now, use the basic DB function
     // In production, we'd want to add filtering at DB level for performance
-    vector<ExchangeListing> allListings = ExchangeDB::getListings(serverID, LISTING_STATUS_ACTIVE, page, pageSize);
+    vector<ExchangeListing> allListings =
+        defaultExchangeRepository().getListings(serverID, LISTING_STATUS_ACTIVE, page, pageSize);
 
     // Apply additional filters (in-memory for now)
     vector<ExchangeListing> filtered;
@@ -171,7 +172,7 @@ int ExchangeService::getListingsCount(int16_t serverID, uint8_t itemClass, uint1
 }
 
 ExchangeListing* ExchangeService::getListing(int64_t listingID) {
-    return ExchangeDB::getListing(listingID);
+    return defaultExchangeRepository().getListing(listingID);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -243,7 +244,7 @@ pair<bool, string> ExchangeService::createListing(PlayerCreature* pSeller, Item*
     createItemSnapshot(pItem, listing);
 
     // Save to database
-    int64_t listingID = ExchangeDB::createListing(listing);
+    int64_t listingID = defaultExchangeRepository().createListing(listing);
     if (listingID <= 0) {
         return make_pair(false, formatError(EXCHANGE_FAIL_DATABASE_ERROR));
     }
@@ -252,7 +253,7 @@ pair<bool, string> ExchangeService::createListing(PlayerCreature* pSeller, Item*
     // Note: The item will be saved with STORAGE_EXCHANGE type
     if (!moveItemToExchangeStorage(pSeller, pItem)) {
         // Rollback listing creation
-        ExchangeDB::cancelListing(listingID);
+        defaultExchangeRepository().cancelListing(listingID);
         return make_pair(false, formatError(EXCHANGE_FAIL_STORAGE_FULL));
     }
 
@@ -265,7 +266,7 @@ pair<bool, string> ExchangeService::cancelListing(PlayerCreature* pSeller, int64
     }
 
     // Get listing
-    ExchangeListing* pListing = ExchangeDB::getListing(listingID);
+    ExchangeListing* pListing = defaultExchangeRepository().getListing(listingID);
     if (!pListing) {
         return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_FOUND));
     }
@@ -282,7 +283,7 @@ pair<bool, string> ExchangeService::cancelListing(PlayerCreature* pSeller, int64
     }
 
     // Mark as cancelled in DB
-    if (!ExchangeDB::cancelListing(listingID)) {
+    if (!defaultExchangeRepository().cancelListing(listingID)) {
         return make_pair(false, formatError(EXCHANGE_FAIL_DATABASE_ERROR));
     }
 
@@ -293,7 +294,7 @@ pair<bool, string> ExchangeService::cancelListing(PlayerCreature* pSeller, int64
 }
 
 vector<ExchangeListing> ExchangeService::getSellerListings(const string& sellerAccount, uint8_t status) {
-    return ExchangeDB::getSellerListings(sellerAccount, status);
+    return defaultExchangeRepository().getSellerListings(sellerAccount, status);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -307,12 +308,12 @@ pair<bool, string> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t l
     }
 
     // Check idempotency
-    if (!idempotencyKey.empty() && ExchangeDB::hasIdempotencyKey(idempotencyKey)) {
+    if (!idempotencyKey.empty() && defaultExchangeRepository().hasIdempotencyKey(idempotencyKey)) {
         return make_pair(false, formatError(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT));
     }
 
     // Get listing
-    ExchangeListing* pListing = ExchangeDB::getListing(listingID);
+    ExchangeListing* pListing = defaultExchangeRepository().getListing(listingID);
     if (!pListing) {
         return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_FOUND));
     }
@@ -345,13 +346,13 @@ pair<bool, string> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t l
     int totalCost = price + tax;
 
     // Check buyer balance
-    int buyerBalance = ExchangeDB::getPointBalance(buyerAccount);
+    int buyerBalance = defaultExchangeRepository().getPointBalance(buyerAccount);
     if (buyerBalance < totalCost) {
         return make_pair(false, formatError(EXCHANGE_FAIL_INSUFFICIENT_POINTS));
     }
 
     // Begin transaction
-    if (!ExchangeDB::beginTransaction()) {
+    if (!defaultExchangeRepository().beginTransaction()) {
         return make_pair(false, formatError(EXCHANGE_FAIL_TRANSACTION_ERROR));
     }
 
@@ -360,16 +361,17 @@ pair<bool, string> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t l
     try {
         // Deduct points from buyer
         int buyerBalanceAfter;
-        if (!ExchangeDB::adjustPoints(buyerAccount, -totalCost, buyerBalanceAfter, POINT_REASON_BUY, listingID, 0,
-                                      _makeLedgerKey(autoKey, "_buy"))) {
+        if (!defaultExchangeRepository().adjustPoints(buyerAccount, -totalCost, buyerBalanceAfter, POINT_REASON_BUY,
+                                                      listingID, 0, _makeLedgerKey(autoKey, "_buy"))) {
             throw string("Failed to deduct buyer points");
         }
 
         // Add points to seller (after tax)
         int sellerIncome = price - tax;
         int sellerBalanceAfter;
-        if (!ExchangeDB::adjustPoints(pListing->sellerAccount, sellerIncome, sellerBalanceAfter, POINT_REASON_SALE,
-                                      listingID, 0, _makeLedgerKey(autoKey, "_sale"))) {
+        if (!defaultExchangeRepository().adjustPoints(pListing->sellerAccount, sellerIncome, sellerBalanceAfter,
+                                                      POINT_REASON_SALE, listingID, 0,
+                                                      _makeLedgerKey(autoKey, "_sale"))) {
             throw string("Failed to add seller points");
         }
 
@@ -387,18 +389,18 @@ pair<bool, string> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t l
         order.deliveredAt = "";
         order.cancelledAt = "";
 
-        int64_t orderID = ExchangeDB::createOrder(order);
+        int64_t orderID = defaultExchangeRepository().createOrder(order);
         if (orderID <= 0) {
             throw string("Failed to create order");
         }
 
         // Mark listing as sold
-        if (!ExchangeDB::markListingSold(listingID, buyerAccount, buyerPlayer)) {
+        if (!defaultExchangeRepository().markListingSold(listingID, buyerAccount, buyerPlayer)) {
             throw string("Failed to mark listing sold");
         }
 
         // Commit transaction
-        if (!ExchangeDB::commit()) {
+        if (!defaultExchangeRepository().commit()) {
             throw string("Failed to commit transaction");
         }
 
@@ -406,17 +408,17 @@ pair<bool, string> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t l
 
     } catch (const string& error) {
         // Rollback on error
-        ExchangeDB::rollback();
+        defaultExchangeRepository().rollback();
         return make_pair(false, formatError(EXCHANGE_FAIL_TRANSACTION_ERROR, error));
     }
 }
 
 vector<ExchangeOrder> ExchangeService::getBuyerOrders(const string& buyerPlayer, uint8_t status) {
-    return ExchangeDB::getBuyerOrders(buyerPlayer, status);
+    return defaultExchangeRepository().getBuyerOrders(buyerPlayer, status);
 }
 
 vector<ExchangeOrder> ExchangeService::getSellerOrders(const string& sellerPlayer, uint8_t status) {
-    return ExchangeDB::getSellerOrders(sellerPlayer, status);
+    return defaultExchangeRepository().getSellerOrders(sellerPlayer, status);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -498,7 +500,7 @@ pair<bool, string> ExchangeService::claimItem(PlayerCreature* pPlayer, int64_t o
         // For now, we'll mark the order as delivered
         // The actual item transfer should be handled by the item manager
 
-        if (!ExchangeDB::markOrderDelivered(orderOrListingID)) {
+        if (!defaultExchangeRepository().markOrderDelivered(orderOrListingID)) {
             return make_pair(false, formatError(EXCHANGE_FAIL_DATABASE_ERROR));
         }
 
@@ -536,14 +538,14 @@ pair<bool, string> ExchangeService::claimItem(PlayerCreature* pPlayer, int64_t o
 //////////////////////////////////////////////////////////////////////////////
 
 int ExchangeService::getPointBalance(const string& account) {
-    return ExchangeDB::getPointBalance(account);
+    return defaultExchangeRepository().getPointBalance(account);
 }
 
 pair<bool, int> ExchangeService::adjustPoints(const string& account, int delta, uint8_t reason, int64_t refListingID,
                                               int64_t refOrderID, const string& idempotencyKey) {
     int balanceAfter;
-    bool success =
-        ExchangeDB::adjustPoints(account, delta, balanceAfter, reason, refListingID, refOrderID, idempotencyKey);
+    bool success = defaultExchangeRepository().adjustPoints(account, delta, balanceAfter, reason, refListingID,
+                                                            refOrderID, idempotencyKey);
 
     return make_pair(success, success ? balanceAfter : -1);
 }
@@ -557,7 +559,7 @@ void ExchangeService::scanExpiredListings() {
 
     // Scan for expired active listings
     // In production, use indexed query on ExpireAt column
-    vector<ExchangeListing> expiredListings = ExchangeDB::getExpiredListings();
+    vector<ExchangeListing> expiredListings = defaultExchangeRepository().getExpiredListings();
 
     filelog("ExchangeService.log", "Scanning for expired listings, found %d expired", expiredListings.size());
 
@@ -569,7 +571,7 @@ void ExchangeService::scanExpiredListings() {
         // This will:
         // 1. Set listing status to EXPIRED
         // 2. Allow seller to reclaim the item
-        ExchangeDB::expireListing(listing.listingID);
+        defaultExchangeRepository().expireListing(listing.listingID);
     }
 
     __END_CATCH

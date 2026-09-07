@@ -9,10 +9,7 @@
 // include files
 #include "GameWorldInfoManager.h"
 
-#include "database/Connection.h"
-#include "database/DatabaseManager.h"
-#include "database/Result.h"
-#include "database/Statement.h"
+#include "repository/ServerInfoRepository.h"
 
 //----------------------------------------------------------------------
 // constructor
@@ -61,35 +58,30 @@ void GameWorldInfoManager::load() {
     // clear GameWorldInfos
     clear();
 
-    Statement* pStmt = NULL;
+    vector<ServerInfoWorldRow> rows;
 
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQueryString("SELECT ID, Name, Stat FROM WorldInfo");
+        rows = defaultServerInfoRepository().loadWorlds();
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); rethrown as the Error the
+        // startup path expects.
+        throw Error("GameWorldInfoManager::load : SQL error, see DBError.log");
+    }
 
+    try {
         cout << "Loading GameWorldInfoManager...." << endl;
 
-        while (pResult->next()) {
-            // cout << "TICK" << endl;
+        for (size_t i = 0; i < rows.size(); i++) {
             GameWorldInfo* pGameWorldInfo = new GameWorldInfo();
-            pGameWorldInfo->setID(pResult->getInt(1));
-            pGameWorldInfo->setName(pResult->getString(2));
-            pGameWorldInfo->setStatus((WorldStatus)pResult->getInt(3));
+            pGameWorldInfo->setID(rows[i].id);
+            pGameWorldInfo->setName(rows[i].name);
+            pGameWorldInfo->setStatus((WorldStatus)rows[i].stat);
             addGameWorldInfo(pGameWorldInfo);
         }
+
         cout << "End GameWorldInfoManager Load" << endl;
-
-        // 필살 삭제!
-        SAFE_DELETE(pStmt);
-
-    } catch (SQLQueryException& sqe) {
-        // 필살 삭제!
-        SAFE_DELETE(pStmt);
-
-        throw Error(sqe.toString());
-
     } catch (Throwable& t) {
-        SAFE_DELETE(pStmt);
         cout << t.toString() << endl;
     }
 

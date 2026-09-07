@@ -602,7 +602,7 @@ set(GAMESERVER_MAIN_SOURCES
 # ============================================================================
 set(EXCHANGE_SOURCES
     exchange/ExchangeService.cpp
-    exchange/ExchangeDB.cpp
+    repository/MySQLExchangeRepository.cpp
 )
 
 # ============================================================================

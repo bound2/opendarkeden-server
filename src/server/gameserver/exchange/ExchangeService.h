@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "ExchangeDB.h"
+#include "repository/ExchangeRepository.h"
 
 using namespace std;
 

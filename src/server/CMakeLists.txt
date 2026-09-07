@@ -21,6 +21,8 @@ set(SERVER_CORE_SOURCES
     PacketProfile.cpp
     GameServerInfoManager.cpp
     PaySystem.cpp
+    repository/MySQLPayPlayRepository.cpp
+    repository/MySQLServerInfoRepository.cpp
 )
 
 add_library(ServerCore STATIC ${SERVER_CORE_SOURCES})
