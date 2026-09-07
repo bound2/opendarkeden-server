@@ -13,7 +13,11 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - name: Build pinned Zig development image
+        run: docker build -f Dockerfile.dev -t darkeden-dev .
       - name: Debug contract and lifecycle tests
         run: bash tools/devbuild.sh test
       - name: Compile every production target
         run: bash tools/devbuild.sh build
+      - name: Build production image
+        run: docker compose -f docker/docker-compose.yml build odk-server
