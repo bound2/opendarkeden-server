@@ -286,14 +286,10 @@ void GuildManager::deleteGuild(GuildID_t id) {
 */
 #endif
 
-    // Retire, don't free (see m_RetiredGuilds): the handler that called us
-    // used to SAFE_DELETE the guild right after this returned.
+    // Retire, don't free (see m_RetiredGuilds): other threads may still
+    // hold the pointer.
     m_RetiredGuilds.push_back(itr->second);
     m_Guilds.erase(itr);
-
-    // The sharedserver-only DB purge of the guild's rows lived here under
-    // __SHARED_SERVER__, which no build of this file defines. Gone with its
-    // SQL.
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 

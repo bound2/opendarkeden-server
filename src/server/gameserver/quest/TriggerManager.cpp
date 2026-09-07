@@ -9,10 +9,11 @@
 #include <stdio.h>
 
 #include "Assert.h"
-#include "DB.h"
 #include "Properties.h"
 #include "ScriptManager.h"
 #include "TriggerParser.h"
+#include "repository/ContentInfoRepository.h"
+#include "repository/ZoneInfoRepository.h"
 
 class isSameTriggerID {
 public:
@@ -52,42 +53,30 @@ void TriggerManager::load(const string& name)
 {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
     //	TriggerParser parser;
 
-    BEGIN_DB {
-        StringStream sql;
+    vector<NPCTriggerRow> rows = defaultContentInfoRepository().loadNPCTriggers(name);
 
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery(
-            "SELECT TriggerID, TriggerType, Conditions, Actions FROM Triggers WHERE NPC = '%s'", name.c_str());
+    for (vector<NPCTriggerRow>::const_iterator it = rows.begin(); it != rows.end(); ++it) {
+        Trigger* pTrigger = new Trigger();
 
-        while (pResult->next()) {
-            Trigger* pTrigger = new Trigger();
+        pTrigger->setTriggerID(it->triggerID);
 
-            pTrigger->setTriggerID(pResult->getInt(1));
+        // cout << "Trigger[" << pTrigger->getTriggerID() << "] loading > ";
+        // cout << "CONDITIONS:\n" << trim(it->conditions) << endl;
+        // cout << "ACTIONS:\n" << trim(it->actions) << endl;
 
-            // cout << "Trigger[" << pTrigger->getTriggerID() << "] loading > ";
-            // cout << "CONDITIONS:\n" << trim(pResult->getString(3)) << endl;
-            // cout << "ACTIONS:\n" << trim(pResult->getString(4)) << endl;
+        pTrigger->setTriggerType(trim(it->triggerType));
+        pTrigger->setConditions(trim(it->conditions));
+        pTrigger->setActions(trim(it->actions));
 
-            pTrigger->setTriggerType(trim(pResult->getString(2)));
-            pTrigger->setConditions(trim(pResult->getString(3)));
-            pTrigger->setActions(trim(pResult->getString(4)));
+        addTrigger(pTrigger);
 
-            addTrigger(pTrigger);
+        //			parser.parseTrigger(trim(it->triggerType), trim(it->conditions),
+        // trim(it->actions));
 
-            //			parser.parseTrigger(trim(pResult->getString(2)), trim(pResult->getString(3)),
-            // trim(pResult->getString(4)));
-
-            // cout << "Trigger[" << pTrigger->getTriggerID() << "] loaded" <<  endl;
-        }
-
-        SAFE_DELETE(pStmt);
+        // cout << "Trigger[" << pTrigger->getTriggerID() << "] loaded" <<  endl;
     }
-    END_DB(pStmt)
 
     //	XMLTree* pXML = parser.getResult();
     //	if ( pXML != NULL )
@@ -105,36 +94,24 @@ void TriggerManager::load(const string& name)
 void TriggerManager::load(ZoneID_t zoneid, int left, int top, int right, int bottom) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    vector<ZoneTriggerRow> rows = defaultZoneInfoRepository().loadZoneTriggers((int)zoneid, left, top, right, bottom);
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT TriggerID, TriggerType, Conditions, Actions, CounterActions FROM "
-                                      "ZoneTriggers WHERE ZoneID=%d AND X1=%d AND Y1=%d AND X2=%d AND Y2=%d",
-                                      (int)zoneid, left, top, right, bottom);
+    for (vector<ZoneTriggerRow>::const_iterator it = rows.begin(); it != rows.end(); ++it) {
+        Trigger* pTrigger = new Trigger();
 
-        while (pResult->next()) {
-            uint i = 0;
-            Trigger* pTrigger = new Trigger();
+        pTrigger->setTriggerID(it->triggerID);
 
-            pTrigger->setTriggerID(pResult->getInt(++i));
+        // printf("ZoneTrigger[%d] loading > \n", (int)pTrigger->getTriggerID());
 
-            // printf("ZoneTrigger[%d] loading > \n", (int)pTrigger->getTriggerID());
+        pTrigger->setTriggerType(trim(it->triggerType));
+        pTrigger->setConditions(trim(it->conditions));
+        pTrigger->setActions(trim(it->actions));
+        pTrigger->setCounterActions(trim(it->counterActions));
 
-            pTrigger->setTriggerType(trim(pResult->getString(++i)));
-            pTrigger->setConditions(trim(pResult->getString(++i)));
-            pTrigger->setActions(trim(pResult->getString(++i)));
-            pTrigger->setCounterActions(trim(pResult->getString(++i)));
+        // printf("ZoneTrigger[%d] loaded > \n", (int)pTrigger->getTriggerID());
 
-            // printf("ZoneTrigger[%d] loaded > \n", (int)pTrigger->getTriggerID());
-
-            addTrigger(pTrigger);
-        }
-
-        delete pStmt;
+        addTrigger(pTrigger);
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

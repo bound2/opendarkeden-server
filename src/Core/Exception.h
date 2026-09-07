@@ -55,9 +55,8 @@ public:
 
     // add the caller's function to the stack, without a location macro at the
     // call site: the defaulted std::source_location captures the enclosing
-    // function, which is what __END_CATCH used to pass by hand as
-    // __PRETTY_FUNCTION__. Under Clang both produce the same text, so the
-    // stack trace format is unchanged.
+    // function. Under Clang its function_name() is the __PRETTY_FUNCTION__
+    // text, so the stack trace format matches the macro form.
     void addStack(const std::source_location& loc = std::source_location::current()) {
         m_Stacks.push_front(loc.function_name());
     }

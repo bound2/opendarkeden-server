@@ -188,7 +188,7 @@ void CGPickupMoneyHandler::execute(CGPickupMoney* pPacket, Player* pPlayer)
                     // pItem->save("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
                     //  item저장 최적화. by sigi. 2002.5.13
                     char pField[80];
-                    sprintf(pField, "Storage=%d, StorageID=%lu, X=%d, Y=%d", STORAGE_ZONE, pZone->getZoneID(), pt.x,
+                    sprintf(pField, "Storage=%d, StorageID=%u, X=%d, Y=%d", STORAGE_ZONE, pZone->getZoneID(), pt.x,
                             pt.y);
                     pItem->tinysave(pField);
 

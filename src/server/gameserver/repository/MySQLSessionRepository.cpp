@@ -3,22 +3,22 @@
 
 namespace {
 
-// MySQL implementation of the session seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original, including the
-//    boot sweep's lower-case "from", the mixed spacing of "LogOn='GAME'"
-//    against "LogOn = 'LOGOFF'", the UserStatus INSERT's "Values" and its
-//    INSERT IGNORE, and the lotto INSERT's positional VALUES list.
-//  - Connections as before: Player, PCRoomUserInfo and PCRoomLottoObject
-//    through the dist connection ("PLAYER_DB" — the name is ignored by
+// MySQL implementation of SessionRepository.
+//  - The UserStatus INSERT is an INSERT IGNORE; the lotto INSERT is
+//    positional.
+//  - Connections: Player, PCRoomUserInfo, PCRoomLottoObject,
+//    SpeedHackPlayer and the LastLogoutDate read through the dist
+//    connection ("PLAYER_DB" — the name is ignored by
 //    DatabaseManager::getDistConnection, which returns the thread's
 //    second socket to the same DARKEDEN schema), UserStatus through the
-//    USERINFO connection, GuildMember and UserIPInfo through DARKEDEN.
+//    USERINFO connection, GuildMember, UserIPInfo, CrashReportLog,
+//    BugReportLog, CrashLog and the account ban through DARKEDEN.
+//  - recordUserIP and recordSpeedHack each run a second statement on the
+//    same Statement when the first changed no row
+//    (getAffectedRowCount() == 0).
 //  - The uint SpecialEventCount and the uint user count stream through
-//    "%d", the DWORD PC-room id and BYTE race through "%u" — the callers'
-//    conversions, kept.
-//  - SpecialEventCount comes back through getDWORD, as before.
-//  - Names and ids are interpolated raw, as before.
+//    "%d"; SpecialEventCount comes back through getDWORD.
+//  - Names and ids are interpolated raw.
 class MySQLSessionRepository : public SessionRepository {
 public:
     void markGuildMemberLoggedOff(const string& name) {
@@ -305,6 +305,185 @@ public:
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)
+    }
+
+    void recordUserIP(const string& name, DWORD ip, uint port, int serverID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+
+            pStmt->executeQuery("INSERT IGNORE INTO UserIPInfo (Name, IP, Port, ServerID) VALUES ( '%s', %u, %u, %d )",
+                                name.c_str(), ip, port, serverID);
+
+            if (pStmt->getAffectedRowCount() == 0) {
+                pStmt->executeQuery("UPDATE UserIPInfo Set IP=%u, Port=%u WHERE Name='%s'", ip, port, name.c_str());
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    bool loadUserIP(const string& name, DWORD& ip, DWORD& port) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT IP, Port FROM UserIPInfo WHERE Name='%s'", name.c_str());
+
+            if (pResult->next()) {
+                ip = pResult->getDWORD(1);
+                port = pResult->getDWORD(2);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    void recordSpeedHack(const string& playerID, const string& ip, const string& name, int worldID, int serverGroupID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+
+            pStmt->executeQuery("UPDATE SpeedHackPlayer SET IP = '%s', NAME = '%s', WorldID = %d, ServerGroupID = %d, "
+                                "Date = now(), Count = Count + 1 WHERE PlayerID = '%s'",
+                                ip.c_str(), name.c_str(), worldID, serverGroupID, playerID.c_str());
+
+            if (pStmt->getAffectedRowCount() == 0) {
+                pStmt->executeQuery("INSERT IGNORE INTO SpeedHackPlayer( PlayerID, IP, Name, WorldID, ServerGroupID, "
+                                    "Date, Count ) VALUES ( '%s', '%s', '%s', %d, %d, now(), 1 )",
+                                    playerID.c_str(), ip.c_str(), name.c_str(), worldID, serverGroupID);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void insertCrashReport(const string& playerID, const string& name, const string& executableTime, WORD version,
+                           const string& address, const string& message, const string& os, const string& callStack) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO CrashReportLog (PlayerID, Name, ReportTime, ExecutableTime, Version, "
+                                "Address, Message, OS, CallStack) VALUES "
+                                "('%s', '%s', now(), '%s', %u, '%s', '%s', '%s', '%s')",
+                                playerID.c_str(), name.c_str(), executableTime.c_str(), version, address.c_str(),
+                                message.c_str(), os.c_str(), callStack.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    bool loadUserServerID(const string& name, int& serverID) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult = pStmt->executeQuery("SELECT ServerID FROM UserIPInfo where Name='%s'", name.c_str());
+
+            if (pResult->next()) {
+                serverID = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    int countPlayersOnline() {
+        int count = 0;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            Result* pResult =
+                pStmt->executeQueryString("SELECT Count(*) FROM Player where LogOn='GAME' OR LogOn='LOGON'");
+
+            if (pResult->next()) {
+                count = pResult->getInt(1);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return count;
+    }
+
+    void denyAccount(const string& playerID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE Player set Access='DENY' where PlayerID ='%s'", playerID.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void insertBugReport(const string& playerID, const string& name, const string& report) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO BugReportLog(PlayerID, Name, ReportTime, ReportLog) VALUES "
+                                "('%s', '%s', now(), '%s')",
+                                playerID.c_str(), name.c_str(), report.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void insertCrashLog(const string& playerID, const string& name, const string& executableTime, const string& version,
+                        const string& address, const string& message) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO CrashLog (PlayerID, Name, ReportTime, ExecutableTime, Version, "
+                                "Address, Message) VALUES "
+                                "('%s', '%s', now(), '%s', '%s', '%s', '%s')",
+                                playerID.c_str(), name.c_str(), executableTime.c_str(), version.c_str(),
+                                address.c_str(), message.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    bool loadLastLogoutDate(const string& playerID, string& lastLogoutDate) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+
+            Result* pResult =
+                pStmt->executeQuery("SELECT LastLogoutDate FROM Player WHERE PlayerID='%s'", playerID.c_str());
+
+            if (pResult->next()) {
+                lastLogoutDate = pResult->getString(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
     }
 
     bool updateUserStatus(uint currentUser, int worldID, int serverID) {

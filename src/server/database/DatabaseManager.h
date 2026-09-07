@@ -40,6 +40,12 @@ public:
     // getUserInfoConnection(). Takes ownership like init() does and
     // frees a previously set one (defined in the .cpp for SAFE_DELETE).
     void setUserInfoConnection(Connection* pConnection);
+    // Same purpose for the world-default connection getConnection(int)
+    // falls through to in the gameserver (init() opens it from the
+    // WorldDBInfo row with WorldID = 0). Frees a previously set one like
+    // the setter above, but the destructor does not free this member, so
+    // the last one set is never deleted.
+    void setWorldDefaultConnection(Connection* pConnection);
     void executeDummyQuery(Connection* pConnection);
 
     //--------------------------------------------------------------------

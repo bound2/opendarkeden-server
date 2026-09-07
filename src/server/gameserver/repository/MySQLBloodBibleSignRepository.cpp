@@ -3,19 +3,17 @@
 
 namespace {
 
-// MySQL implementation of the BloodBibleSignObject persistence seam. The
-// legacy schema quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
+// MySQL implementation of BloodBibleSignRepository. Quirks:
 //  - OwnerID is the character *name* (varchar(10)) — denormalized; a
 //    character rename orphans these rows.
 //  - ItemType is a tinyint widened into ItemType_t (WORD) on read.
 //  - Duplicate ItemType rows are possible (the key is the auto-increment
-//    ItemID) and are surfaced as-is, exactly as the inline loop did.
-//  - The character-deletion purges (gameserver CreatureUtil.cpp,
+//    ItemID) and are surfaced as-is.
+//  - The character-deletion purges (gameserver CharacterPurgeRepository,
 //    loginserver CLDeletePCHandler.cpp) never touch this table: a
 //    deleted character's signs persist and are re-read by any later
 //    character taking the same name.
-//  - Owner names are interpolated raw (no escaping), as the call site
-//    always did.
+//  - Owner names are interpolated raw (no escaping).
 class MySQLBloodBibleSignRepository : public BloodBibleSignRepository {
 public:
     vector<ItemType_t> loadItemTypes(const string& ownerName) {

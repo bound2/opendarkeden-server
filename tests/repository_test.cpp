@@ -154,8 +154,7 @@ TEST(NicknameRepositoryContract, LoadReturnsNIDAscendingNotInsertionOrder) {
     // The real SELECT has no ORDER BY, but the secondary index IDX_OwnerID
     // carries the primary key (nID, OwnerID) as its suffix, so the ref
     // scan returns nID ascending — pinned against real MySQL by the
-    // integration tier. (This test originally asserted insertion order;
-    // the 2026-09-01 review round falsified that.)
+    // integration tier.
     FakeNicknameRepository repository;
     repository.insert("Hyanggi", 10001, NicknameInfo::NICK_CUSTOM, "second-id-first");
     repository.insert("Hyanggi", 10000, NicknameInfo::NICK_CUSTOM, "first-id-second");

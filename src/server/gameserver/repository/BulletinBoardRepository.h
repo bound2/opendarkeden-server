@@ -6,17 +6,15 @@
 
 #include "Types.h"
 
-// Persistence seam for the BulletinBoardObject table (task 3.2, the
-// Zone milestone): the player-written notice "corpses" placed in a
-// zone, persisted so they outlive a restart. Rows are keyed by server
-// AND zone; the message text is already escaped by the caller (the
-// free function correctString in ZoneUtil.cpp, not Guild::correctString
-// — same logic) and the time limit is a datetime text the
-// caller formats.
+// The BulletinBoardObject table: the player-written notice "corpses"
+// placed in a zone, persisted so they outlive a restart. Rows are keyed
+// by server AND zone; the message text is already escaped by the caller
+// (the free function correctString in ZoneUtil.cpp) and the time limit
+// is a datetime text the caller formats.
 //
-// What loadForZone() returns — each field typed to the driver getter
-// the inline code called: ID/X/Y/Type through getInt, Message and
-// TimeLimit through getString (the caller parses TimeLimit).
+// What loadForZone() returns, each field typed to the driver getter
+// used: ID/X/Y/Type through getInt, Message and TimeLimit through
+// getString (the caller parses TimeLimit).
 struct BulletinBoardRow {
     int id;
     int x;
@@ -30,8 +28,7 @@ class BulletinBoardRepository {
 public:
     virtual ~BulletinBoardRepository() {}
 
-    // A new notice. Returns the affected-row count (uint, as the driver
-    // reports it) — the caller logs a
+    // A new notice. Returns the affected-row count; the caller logs a
     // zero (the auto-increment ID is never read back).
     virtual uint insert(int serverID, ZoneID_t zoneID, int x, int y, const std::string& message, uint type,
                         const std::string& timeLimit) = 0;
@@ -44,8 +41,7 @@ public:
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLBulletinBoardRepository.cpp. An accessor function rather than a
-// g_p* extern: ratchet R1 counts those.
+// MySQLBulletinBoardRepository.cpp.
 BulletinBoardRepository& defaultBulletinBoardRepository();
 
 #endif

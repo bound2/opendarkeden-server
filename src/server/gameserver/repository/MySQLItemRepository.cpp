@@ -3,33 +3,31 @@
 
 namespace {
 
-// MySQL implementation of the item bookkeeping seam. The legacy quirks
-// are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original, including
-//    TimeLimitItems' lower-case "from"/"where"/"and", the trace logs'
-//    "( %u,'%s',..." spacing and their SQL-side now(), and the two
-//    spacings of the same increment: EventItemCount's and the reward
-//    schedule's "Count = Count + 1" / "Count = Count - 1" against
-//    UniqueItemInfo's "CurrentNumber=CurrentNumber+1" and
-//    ResurrectItemCount's "Count=Count+1".
-//  - Four varargs mismatches the originals had are kept: Item::destroy's
-//    DELETE streams an ItemID_t (DWORD) through "%lu",
-//    GlobalItemPositionLoader's SELECT the same type through "%d",
-//    bWinPrize's two DWORDs go through "%d", and the trace log's
-//    ItemType_t (WORD, promoted to int) through "%u". MySQLCharacterRepository.cpp
-//    calls this family a latent bug, not a benign quirk: at stack-passed
-//    vararg positions clang -O0 has been seen to read garbage. The
-//    mismatched arguments here sit at positions 2-3, register-passed on
-//    the SysV ABI, which is why they have never misbehaved; still latent.
-//  - The two per-class item-object operations take the TABLE NAME as a
+// MySQL implementation of ItemRepository.
+//  - The trace logs stamp their time SQL-side (now()).
+//  - GlobalItemPositionLoader's SELECT and bWinPrize's UPDATE feed DWORDs
+//    to "%d": a value with the high bit set prints negative.
+//  - The per-class item-object operations take the TABLE NAME as a
 //    parameter and interpolate it raw through "%s". GlobalItemPositionLoader
 //    and ConcreteItem::getObjectTableName() pick it from Item's
 //    ItemObjectTableName[] table; Corpse::getObjectTableName() returns ""
-//    (pre-existing, a destroy on a corpse would emit "DELETE FROM  WHERE").
-//    Never user text either way.
-//  - Names and dates are interpolated raw, as before.
+//    (a destroy on a corpse would emit "DELETE FROM  WHERE"). Never user
+//    text either way.
+//  - Names and dates are interpolated raw.
 class MySQLItemRepository : public ItemRepository {
 public:
+    void insertOpCreateLog(const string& opName, const string& dateTime, const string& itemDesc) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO OpCreate (OpName, DateTime, ItemDesc) VALUES ('%s','%s','%s')",
+                                opName.c_str(), dateTime.c_str(), itemDesc.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
     void insertItemTraceLog(const ItemTraceRecord& record) {
         Statement* pStmt = NULL;
 
@@ -146,6 +144,56 @@ public:
 
             pStmt->executeQuery("UPDATE EventItemCount SET Count = Count + 1 WHERE ItemClass=%u AND ItemType=%u",
                                 itemClass, itemType);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void insertEventQuestRewardRecord(const string& name, DWORD rewardID, const string& accountID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+
+            pStmt->executeQuery("INSERT INTO EventQuestRewardRecord (PlayerID, RewardID, Time, RealPlayerID) "
+                                "VALUES ( '%s', %d, now(), '%s' )",
+                                name.c_str(), rewardID, accountID.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    bool loadBlackStarCount(int& count) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT ifnull(sum(Num),0) FROM `EventStarObject` WHERE `ItemType`=0;");
+
+            if (pResult->next()) {
+                count = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    void incrementEventItemCount2(Race_t race, int itemIndex) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+
+            pStmt->executeQuery("UPDATE EventItemCount2 SET Count = Count + 1 WHERE Race = %d AND ItemIndex = %d", race,
+                                itemIndex);
 
             SAFE_DELETE(pStmt);
         }
@@ -293,7 +341,7 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
 
-            pStmt->executeQuery("DELETE FROM %s WHERE ItemID = %lu", tableName.c_str(), itemID);
+            pStmt->executeQuery("DELETE FROM %s WHERE ItemID = %u", tableName.c_str(), itemID);
 
             deleted = pStmt->getAffectedRowCount() != 0;
 
@@ -332,7 +380,6 @@ public:
         return found;
     }
 
-    // The lower-case "from" and the upper-case "FROM" are the originals'.
     DWORD countItemRows(const string& tableName) {
         DWORD count = 0;
         Statement* pStmt = NULL;
@@ -350,7 +397,7 @@ public:
     }
 
     // MAX() over an empty table is one NULL row; the callers only ask after
-    // countItemRows() said the table is non-empty, as the originals did.
+    // countItemRows() said the table is non-empty.
     DWORD loadMaxItemID(const string& tableName) {
         DWORD maxItemID = 0;
         Statement* pStmt = NULL;

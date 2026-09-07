@@ -1,5 +1,5 @@
 // formula_test.cpp — pins the pure balance formulas in de-core
-// (src/domain/Formulas.cpp, docs/RESTRUCTURING.md task 3.3).
+// (src/domain/Formulas.cpp).
 //
 // These values ARE the game balance: every expectation below was computed
 // from the formulas as they shipped, including their narrow-integer

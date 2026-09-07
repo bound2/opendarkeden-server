@@ -151,10 +151,6 @@ void CGWhisperHandler::execute(CGWhisper* pPacket, Player* pPlayer)
                         pGamePlayer->sendPacket(&gcWhisperFailed);
                     }
                 }
-                // This catch already swallowed everything, so the seam's
-                // const char* is caught exactly as the driver's
-                // SQLQueryException was. Unlike the mofus round, nothing
-                // had to change here.
             } catch (...) { /* write log plz */
             }
         }

@@ -8,7 +8,6 @@
 
 #ifdef __GAME_SERVER__
 #include "Assert.h"
-#include "DB.h"
 #include "GCCreateItem.h"
 #include "GCNPCResponse.h"
 #include "GamePlayer.h"
@@ -20,6 +19,7 @@
 #include "PacketUtil.h"
 #include "PlayerCreature.h"
 #include "Zone.h"
+#include "repository/ComebackEventRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -54,18 +54,12 @@ void CGGetEventItemHandler::executeCombackItem(CGGetEventItem* pPacket, Player* 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Assert(pGamePlayer != NULL);
 
-    Statement* pStmt = NULL;
-
     static int i = 0;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT RecvItemDate FROM Event200501Main WHERE PlayerID = '%s'",
-                                              pGamePlayer->getID().c_str());
+    {
+        string RecvItemDate;
 
-        if (pResult->next()) {
-            string RecvItemDate = pResult->getString(1);
-
+        if (defaultComebackEventRepository().loadMainRecvItemDate(pGamePlayer->getID(), RecvItemDate)) {
             if (RecvItemDate == "0000-00-00") {
                 // 아이템 주자~
                 Creature* pCreature = pGamePlayer->getCreature();
@@ -182,8 +176,7 @@ void CGGetEventItemHandler::executeCombackItem(CGGetEventItem* pPacket, Player* 
 
 
                 // 가져갔다고 DB 에 기록한다.
-                pStmt->executeQuery("UPDATE Event200501Main SET RecvItemDate = now() WHERE PlayerID = '%s'",
-                                    pGamePlayer->getID().c_str());
+                defaultComebackEventRepository().markMainItemReceived(pGamePlayer->getID());
 
                 // 클라이언트에 수령했다는 메시지를 보낸다.
                 GCNPCResponse response;
@@ -216,7 +209,6 @@ void CGGetEventItemHandler::executeCombackItem(CGGetEventItem* pPacket, Player* 
             return;
         }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -228,18 +220,11 @@ void CGGetEventItemHandler::executeCombackPremiumItem(CGGetEventItem* pPacket, P
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Assert(pGamePlayer != NULL);
 
-    Statement* pStmt = NULL;
+    {
+        string PayPremiumDate;
+        string RecvItemDate;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT PayPremiumDate, RecvPremiumItemDate FROM Event200501Main WHERE PlayerID = '%s'",
-                                pGamePlayer->getID().c_str());
-
-        if (pResult->next()) {
-            string PayPremiumDate = pResult->getString(1);
-            string RecvItemDate = pResult->getString(2);
-
+        if (defaultComebackEventRepository().loadMainPremiumDates(pGamePlayer->getID(), PayPremiumDate, RecvItemDate)) {
             if (PayPremiumDate == "0000-00-00") {
                 GCNPCResponse response;
                 response.setCode(NPC_RESPONSE_SHOW_COMMON_MESSAGE_DIALOG);
@@ -393,8 +378,7 @@ void CGGetEventItemHandler::executeCombackPremiumItem(CGGetEventItem* pPacket, P
                 pPC->sendTimeLimitItemInfo();
 
                 // 가져갔다고 DB 에 기록한다.
-                pStmt->executeQuery("UPDATE Event200501Main SET RecvPremiumItemDate = now() WHERE PlayerID = '%s'",
-                                    pGamePlayer->getID().c_str());
+                defaultComebackEventRepository().markMainPremiumItemReceived(pGamePlayer->getID());
 
                 // 클라이언트에 수령했다는 메시지를 보낸다.
                 GCNPCResponse response;
@@ -418,7 +402,6 @@ void CGGetEventItemHandler::executeCombackPremiumItem(CGGetEventItem* pPacket, P
             return;
         }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }
@@ -430,20 +413,13 @@ void CGGetEventItemHandler::executeCombackRecommendItem(CGGetEventItem* pPacket,
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPlayer);
     Assert(pGamePlayer != NULL);
 
-    Statement* pStmt = NULL;
-
     static int i = 0;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT UniqueID, RecvItemDate FROM Event200501Recommend WHERE PlayerID = '%s'",
-                                pGamePlayer->getID().c_str());
+    {
+        int UniqueID = 0;
+        string RecvItemDate;
 
-        if (pResult->next()) {
-            int UniqueID = pResult->getInt(1);
-            string RecvItemDate = pResult->getString(2);
-
+        if (defaultComebackEventRepository().loadRecommendRow(pGamePlayer->getID(), UniqueID, RecvItemDate)) {
             if (RecvItemDate == "0000-00-00") {
                 // 아이템 주자~
                 Creature* pCreature = pGamePlayer->getCreature();
@@ -559,8 +535,7 @@ void CGGetEventItemHandler::executeCombackRecommendItem(CGGetEventItem* pPacket,
                 pPlayer->sendPacket(&gcCI);
 
                 // 가져갔다고 DB 에 기록한다.
-                pStmt->executeQuery("UPDATE Event200501Recommend SET RecvItemDate = now() WHERE UniqueID = '%d'",
-                                    UniqueID);
+                defaultComebackEventRepository().markRecommendItemReceived(UniqueID);
 
                 // 클라이언트에 수령했다는 메시지를 보낸다.
                 GCNPCResponse response;
@@ -584,7 +559,6 @@ void CGGetEventItemHandler::executeCombackRecommendItem(CGGetEventItem* pPacket,
             return;
         }
     }
-    END_DB(pStmt)
 
     __END_CATCH
 }

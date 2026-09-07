@@ -138,7 +138,7 @@ Vampire::~Vampire()
         getShapeInfo(flag, color);
 
         char pField[128];
-        sprintf(pField, "Shape=%ld, CoatColor=%d", flag, color[PCVampireInfo::VAMPIRE_COLOR_COAT]);
+        sprintf(pField, "Shape=%u, CoatColor=%d", flag, color[PCVampireInfo::VAMPIRE_COLOR_COAT]);
 
         // cout << "SAVE = " << pField << endl;
 
@@ -820,16 +820,13 @@ void Vampire::addSkill(SkillType_t SkillType)
         pVampireSkillSlot->setName(m_Name);
         pVampireSkillSlot->setSkillType(SkillType);
         // A freshly learned skill starts with no run-time lock and a ZERO
-        // interval. The old code seeded the interval from SkillBalance's
-        // MaxDelay (2.0 s for e.g. Bloody Nail and Violent Phantom), and
-        // that seed leaked to the client: GCSkillInfo sends the slot
-        // interval on every login and zone change, the client keeps any
-        // delay of 1.8 s or more as a per-cast cooldown, and it holds that
-        // value until the next refresh — so a skill learned mid-session
-        // stuttered for the rest of the session even after the server-side
-        // interval healed. Seeding zero matches the healed steady state:
-        // the first successful cast installs the real per-cast formula
-        // delay (setRunTime(delay)) and persists it, exactly as before.
+        // interval. Do not seed it from SkillBalance's MaxDelay (2.0 s for
+        // e.g. Bloody Nail and Violent Phantom): GCSkillInfo sends the slot
+        // interval on every login and zone change, and the client keeps any
+        // delay of 1.8 s or more as a per-cast cooldown until the next
+        // refresh, so a skill learned mid-session would stutter for the rest
+        // of the session. The first successful cast installs the real
+        // per-cast formula delay (setRunTime(delay)) and persists it.
         pVampireSkillSlot->setRunTime(0);
         pVampireSkillSlot->setInterval(0);
         pVampireSkillSlot->create(m_Name);
@@ -2118,7 +2115,7 @@ void Vampire::setGoldEx(Gold_t gold)
 
     // by sigi. 2002.5.15
     char pField[80];
-    sprintf(pField, "Gold=%ld", m_Gold);
+    sprintf(pField, "Gold=%u", m_Gold);
     tinysave(pField);
 
     __END_CATCH
@@ -2631,7 +2628,7 @@ void Vampire::saveInitialRank(void)
     */
 
     char pField[80];
-    sprintf(pField, "`Rank`=%d, RankExp=%lu, RankGoalExp=%lu", getRank(), getRankExp(), getRankGoalExp());
+    sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
     tinysave(pField);
     setRankExpSaveCount(0);
     /*

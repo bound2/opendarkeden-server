@@ -6,7 +6,7 @@
 
 #include "repository/StashRepository.h"
 
-// In-memory StashRepository for domain tests (docs/RESTRUCTURING.md 3.2).
+// In-memory StashRepository for domain tests.
 // Models the stash columns of the three race tables plus an audit log of
 // the write attempts. Mirrors the MySQL implementation's contract
 // (empirically pinned by the MySQL integration tier in tests/integration/):

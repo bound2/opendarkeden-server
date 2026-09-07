@@ -41,7 +41,12 @@ public:
     Result* executeQuery();
 
     // SQL ���� �޾Ƽ� �����Ѵ�.
-    Result* executeQuery(const char*, ...);
+    // The format attribute lets -Wformat check every literal-format call
+    // against its arguments: a 32-bit argument read through %ld/%lu takes
+    // garbage upper bits under Clang. Formats reached through a pointer,
+    // such as a per-table spec row, are not checked; keep those typed by
+    // hand.
+    Result* executeQuery(const char*, ...) __attribute__((format(printf, 2, 3)));
     Result* executeQueryString(const string& sqlStatement);
 
     // get SQL statement

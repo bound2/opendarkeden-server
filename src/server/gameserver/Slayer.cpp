@@ -187,8 +187,8 @@ Slayer::~Slayer()
         getShapeInfo(flag, color);
 
         char pField[128];
-        sprintf(pField, "Shape=%ld, HelmetColor=%d, JacketColor=%d, PantsColor=%d, WeaponColor=%d, ShieldColor=%d",
-                flag, color[PCSlayerInfo::SLAYER_COLOR_HELMET], color[PCSlayerInfo::SLAYER_COLOR_JACKET],
+        sprintf(pField, "Shape=%u, HelmetColor=%d, JacketColor=%d, PantsColor=%d, WeaponColor=%d, ShieldColor=%d", flag,
+                color[PCSlayerInfo::SLAYER_COLOR_HELMET], color[PCSlayerInfo::SLAYER_COLOR_JACKET],
                 color[PCSlayerInfo::SLAYER_COLOR_PANTS], color[PCSlayerInfo::SLAYER_COLOR_WEAPON],
                 color[PCSlayerInfo::SLAYER_COLOR_SHIELD]);
 
@@ -2721,7 +2721,7 @@ void Slayer::setGoldEx(Gold_t gold)
     tinysave(sql.toString());
     */
     char pField[80];
-    sprintf(pField, "Gold = %ld", m_Gold);
+    sprintf(pField, "Gold = %u", m_Gold);
     tinysave(pField);
 
     __END_DEBUG
@@ -3501,7 +3501,7 @@ void Slayer::saveInitialRank(void)
         setRankGoalExp(NextGoalExp);
     */
     char pField[80];
-    sprintf(pField, "`Rank`=%d, RankExp=%lu, RankGoalExp=%lu", getRank(), getRankExp(), getRankGoalExp());
+    sprintf(pField, "`Rank`=%d, RankExp=%u, RankGoalExp=%u", getRank(), getRankExp(), getRankGoalExp());
     tinysave(pField);
     setRankExpSaveCount(0);
 
@@ -3978,7 +3978,7 @@ void Slayer::divideAttrExp(AttrKind kind, Damage_t damage, ModifyInfo& modifyInf
 
     if (++m_AttrExpSaveCount > ATTR_EXP_SAVE_PERIOD) {
         char pField[256];
-        sprintf(pField, "STRGoalExp=%ld, DEXGoalExp=%ld, INTGoalExp=%ld", getSTRGoalExp(), getDEXGoalExp(),
+        sprintf(pField, "STRGoalExp=%u, DEXGoalExp=%u, INTGoalExp=%u", getSTRGoalExp(), getDEXGoalExp(),
                 getINTGoalExp());
 
         tinysave(pField);
@@ -3993,7 +3993,7 @@ void Slayer::divideAttrExp(AttrKind kind, Damage_t damage, ModifyInfo& modifyInf
             checkNewbieTransportToGuild(this);
 
         char pField[256];
-        sprintf(pField, "STR=%d, DEX=%d, INTE=%d, STRGoalExp=%ld, DEXGoalExp=%ld, INTGoalExp=%ld",
+        sprintf(pField, "STR=%d, DEX=%d, INTE=%d, STRGoalExp=%u, DEXGoalExp=%u, INTGoalExp=%u",
                 //							getSTR(ATTR_BASIC), getDEX(ATTR_BASIC), getINT(ATTR_BASIC), getSTRGoalExp(),
                 // getDEXGoalExp(), getINTGoalExp();
                 m_pAttrs[ATTR_KIND_STR]->getLevel(), m_pAttrs[ATTR_KIND_DEX]->getLevel(),

@@ -1,8 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : SkillOutputFormulas.h
 // Description :
-// de-core: the per-skill computeOutput formulas (docs/RESTRUCTURING.md task
-// 3.3), transplanted verbatim from skill/SkillFormula.cpp. Each function
+// de-core: the per-skill computeOutput formulas. Each function
 // carries the name of the skill class whose computeOutput it is; the
 // gameserver keeps those member functions as one-line adapters that
 // delegate here (skill/SkillFormula.cpp).
@@ -24,8 +23,7 @@
 // damages, commented-out history) are preserved on purpose. The legacy
 // comments arrived as double-encoded mojibake (EUC-KR — and GBK for the
 // 2007 Chinese-era additions — read as Latin-1, re-saved as UTF-8); they
-// were machine-recovered through that chain and translated to English
-// (2026-09-01), code untouched (verified by a comment-stripped diff).
+// were machine-recovered through that chain and translated to English.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __DECORE_SKILL_OUTPUT_FORMULAS_H__

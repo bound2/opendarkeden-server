@@ -7,7 +7,7 @@
 
 #include "repository/GoodsRepository.h"
 
-// In-memory GoodsRepository for domain tests (docs/RESTRUCTURING.md 3.2).
+// In-memory GoodsRepository for domain tests.
 // addPurchase() stands in for the website writing a purchase row. Mirrors
 // the MySQL implementation's contract (empirically pinned by the MySQL
 // integration tier in tests/integration/):

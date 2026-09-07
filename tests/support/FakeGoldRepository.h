@@ -7,7 +7,7 @@
 
 #include "repository/GoldRepository.h"
 
-// In-memory GoldRepository for domain tests (docs/RESTRUCTURING.md 3.2).
+// In-memory GoldRepository for domain tests.
 // Models the Gold column of the three race tables. Mirrors the MySQL
 // implementation's contract (empirically pinned by the MySQL integration
 // tier in tests/integration/):

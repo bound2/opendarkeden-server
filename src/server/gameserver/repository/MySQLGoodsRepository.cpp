@@ -3,8 +3,7 @@
 
 namespace {
 
-// MySQL implementation of the GoodsListObject persistence seam. The legacy
-// schema quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
+// MySQL implementation of GoodsRepository. Quirks:
 //  - getDistConnection("PLAYER_DB") IGNORES its name argument
 //    (DatabaseManager.cpp: a bare per-thread lookup, name-based routing
 //    commented out): it returns the thread's second connection, built
@@ -24,13 +23,10 @@ namespace {
 //    (1690) — an expression error independent of strict mode — leaving
 //    the row untouched. The SQLQueryException escapes through END_DB
 //    (as a const char*), GoodsInventory::popItem never erases the entry,
-//    and the purchase is re-delivered on the next load: a pre-existing
-//    stuck-item bug this seam documents rather than silently fixes.
+//    and the purchase is re-delivered on the next load: a stuck-item bug.
 //  - The row id is a bigint but is carried and interpolated as a string,
-//    unquoted (%s straight into the numeric comparison), exactly as the
-//    call site always did.
-//  - PlayerID and character names are interpolated raw (no escaping), as
-//    the call site always did.
+//    unquoted (%s straight into the numeric comparison).
+//  - PlayerID and character names are interpolated raw (no escaping).
 class MySQLGoodsRepository : public GoodsRepository {
 public:
     vector<GoodsRecord> loadPending(int world, const string& playerID, const string& characterName) {

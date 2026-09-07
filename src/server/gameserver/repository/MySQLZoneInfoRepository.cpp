@@ -3,27 +3,18 @@
 
 namespace {
 
-// MySQL implementation of the zone-configuration seam. The legacy
-// quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original, including
-//    the two spellings of the same read: the group list with and
-//    without ORDER BY, the zone list with and without ORDER BY. Which
-//    one a caller gets is its own choice (ZoneGroupManager::load wants
-//    deterministic bootstrap order; the load-balancer's
-//    makeDefaultLoadInfo and ThreadManager::init never cared).
-//  - The unordered variants have no ORDER BY, so their row order is the
-//    optimizer's choice (see MySQLSkillSaveRepository.cpp) — both
-//    tables have a primary key on the selected column, so a clustered
-//    scan returns key order today; not a contract.
+// MySQL implementation of ZoneInfoRepository.
+//  - The group list and the zone list each come in an ORDER BY and an
+//    unordered variant (ZoneGroupManager::load wants deterministic
+//    bootstrap order; the load-balancer's makeDefaultLoadInfo and
+//    ThreadManager::init do not care). The unordered variants' row order
+//    is the optimizer's choice — both tables have a primary key on the
+//    selected column, so a clustered scan returns key order today.
 //  - ZoneInfoManager's SELECT spells SMPFilename/SSIFilename where the
 //    schema has SmpFileName/SsiFileName; MySQL resolves column names
-//    case-insensitively. Kept verbatim.
-//  - Zone ids reach the WHERE clauses through the same conversions as
-//    before: %d for ZoneTriggers (the caller's ZoneID_t promotes to
-//    int), %u for EffectPKZoneRegen and WayPointInfo; the way-point
-//    race is the RACE_OUSTERS enum through %d.
+//    case-insensitively.
 //  - ZoneTriggers' coordinate columns are int unsigned but the loaders
-//    read them through getInt, exactly as before.
+//    read them through getInt.
 class MySQLZoneInfoRepository : public ZoneInfoRepository {
 public:
     vector<int> loadZoneGroupIDs(bool orderedByID) {
@@ -154,6 +145,36 @@ public:
                 row.top = pResult->getInt(2);
                 row.right = pResult->getInt(3);
                 row.bottom = pResult->getInt(4);
+                rows.push_back(row);
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return rows;
+    }
+
+    // quest/TriggerManager::load(zoneid, left, top, right, bottom).
+    vector<ZoneTriggerRow> loadZoneTriggers(int zoneID, int left, int top, int right, int bottom) {
+        vector<ZoneTriggerRow> rows;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            Result* pResult =
+                pStmt->executeQuery("SELECT TriggerID, TriggerType, Conditions, Actions, CounterActions FROM "
+                                    "ZoneTriggers WHERE ZoneID=%d AND X1=%d AND Y1=%d AND X2=%d AND Y2=%d",
+                                    zoneID, left, top, right, bottom);
+
+            while (pResult->next()) {
+                uint i = 0;
+                ZoneTriggerRow row;
+                row.triggerID = pResult->getInt(++i);
+                row.triggerType = pResult->getString(++i);
+                row.conditions = pResult->getString(++i);
+                row.actions = pResult->getString(++i);
+                row.counterActions = pResult->getString(++i);
                 rows.push_back(row);
             }
 

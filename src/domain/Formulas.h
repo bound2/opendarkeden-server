@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : Formulas.h
 // Description :
-// de-core: pure balance formulas (docs/RESTRUCTURING.md task 3.3).
+// de-core: pure balance formulas.
 //
 // Every function here is a pure function of its arguments: no globals, no
 // game-object types, no server-type macros, no includes outside the C++
@@ -138,7 +138,7 @@ int vampireSkillConsumeMP(int originalMP, int magicLevel, int intStat);
 // uint, so the magic-ratio expressions now evaluate signed where the
 // originals were unsigned — provably identical results (every operand fits
 // in int; the original's final (int) cast made the values equal by
-// two's-complement), verified in the 3.3 adversarial review.
+// two's-complement).
 //////////////////////////////////////////////////////////////////////////////
 
 // Melee hit chance. involvesMonster is true when either combatant is a

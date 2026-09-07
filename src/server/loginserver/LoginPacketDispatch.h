@@ -3,7 +3,7 @@
 // Description : registers every packet handler the loginserver receives
 //               (CL from clients, GL datagrams from gameservers) in the
 //               PacketDispatcher table. Call once from main() before any
-//               player thread starts (docs/RESTRUCTURING.md task 2.3).
+//               player thread starts.
 //////////////////////////////////////////////////////////////////////////////
 
 #ifndef __LOGIN_PACKET_DISPATCH_H__

@@ -3,25 +3,21 @@
 
 namespace {
 
-// MySQL implementation of the stash-column persistence seam. The legacy
-// quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
+// MySQL implementation of StashRepository. Quirks:
 //  - Every save writes the Slayer table UNCONDITIONALLY, then Ousters if
-//    the character is an Ousters, else Vampire. That is exactly what the
-//    inline SQL did: slayers and vampires share one character name across
-//    the Slayer+Vampire rows, ousters across Slayer+Ousters; the Slayer
-//    UPDATE for a name with no Slayer row matches zero rows and is a
-//    silent no-op.
-//  - Gold_t is a DWORD but the value is streamed as (int), as the call
-//    sites always did: a stash above 2^31-1 gold would emit a NEGATIVE
-//    literal, which the UNSIGNED StashGold column then clamps to 0
-//    (warning 1264) under the project's non-strict sql_mode — the
-//    balance would be destroyed, not stored negative. Unreachable with
-//    the current MAX_MONEY cap (2,000,000,000), preserved anyway.
-//  - The integrity-check read (loadStashGold) targets ONE table — the
-//    character's own — with uppercase NAME in its WHERE, byte-for-byte
-//    the query the race classes ran inline.
-//  - Character names are interpolated raw (no escaping), as the call
-//    sites always did.
+//    the character is an Ousters, else Vampire: slayers and vampires
+//    share one character name across the Slayer+Vampire rows, ousters
+//    across Slayer+Ousters; the Slayer UPDATE for a name with no Slayer
+//    row matches zero rows and is a silent no-op.
+//  - Gold_t is a DWORD but the value is streamed as (int): a stash above
+//    2^31-1 gold would emit a NEGATIVE literal, which the UNSIGNED
+//    StashGold column then clamps to 0 (warning 1264) under the project's
+//    non-strict sql_mode — the balance would be destroyed, not stored
+//    negative. Unreachable with the current MAX_MONEY cap
+//    (2,000,000,000).
+//  - The integrity-check read (loadStashGold) targets ONE table, the
+//    character's own.
+//  - Character names are interpolated raw (no escaping).
 class MySQLStashRepository : public StashRepository {
 public:
     void saveStashNum(const string& ownerName, bool isOusters, BYTE num) {
@@ -29,8 +25,6 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            // format strings carry the exact spacing (and lowercase
-            // "set") the old StringStreams emitted
             pStmt->executeQuery("UPDATE Slayer set StashNum = %d WHERE Name = '%s'", (int)num, ownerName.c_str());
             if (!isOusters)
                 pStmt->executeQuery("UPDATE Vampire set StashNum = %d WHERE Name = '%s'", (int)num, ownerName.c_str());

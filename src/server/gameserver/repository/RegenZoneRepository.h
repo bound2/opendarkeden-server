@@ -3,8 +3,8 @@
 
 #include <vector>
 
-// Read-only seam for the RegenZonePosition table (task 3.2, the Zone
-// milestone): the race-war regen towers — where each stands and which
+// Read-only access to the RegenZonePosition table: the race-war regen
+// towers — where each stands and which
 // race currently owns it. The gameserver reads the table at boot
 // (RegenZoneManager::load builds the towers) and on a race-war reload
 // (RegenZoneManager::reload re-applies the owners); nothing in this
@@ -28,8 +28,7 @@ public:
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLRegenZoneRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLRegenZoneRepository.cpp.
 RegenZoneRepository& defaultRegenZoneRepository();
 
 #endif

@@ -3,21 +3,15 @@
 
 namespace {
 
-// MySQL implementation of the queued-message seam. The legacy quirks
-// are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The SQL is byte-for-byte the original at each call site.
-//    insertMessage() carries Zone.cpp / ZonePlayerManager.cpp's
-//    spelling, the "( Receiver, Message ) VALUES ( '%s', '%s')" spacing
-//    included; insertUnionNotice() carries the union handlers' three
-//    other spellings of the same INSERT, one spec row each. See
-//    MessageRepository.h for why they are kept apart.
+// MySQL implementation of MessageRepository.
+//  - insertUnionNotice() carries the union handlers' three spellings of
+//    the INSERT, one spec row each (see MessageRepository.h).
 //  - Keyless table: a receiver can hold any number of rows, and the
 //    DELETE takes them all.
-//  - Zone::addPC ran the SELECT and the DELETE on ONE statement
-//    inside ONE BEGIN_DB: a failing DELETE escaped after the messages
-//    had already been sent. Two calls now, same visible sequence.
-//  - Receiver and message text are interpolated raw, as before — the
-//    message is a string-pool entry, not player input.
+//  - Zone::addPC loads, sends, then deletes: a failing DELETE escapes
+//    after the messages have already been sent.
+//  - Receiver and message text are interpolated raw — the message is a
+//    string-pool entry, not player input.
 class MySQLMessageRepository : public MessageRepository {
 public:
     vector<string> loadMessages(const string& receiver) {

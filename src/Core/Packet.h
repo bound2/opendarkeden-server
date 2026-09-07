@@ -554,8 +554,8 @@ public:
         // the server no longer has the packet (its factory registration is
         // commented out in PacketFactoryManager.cpp) but MUST keep the
         // enumerator, or every id below it shifts by one relative to the
-        // client. Dropping it silently broke the whole Exchange block
-        // (found by tests/tools/wire_inventory_diff.sh, 2026-08-30).
+        // client. Dropping it silently breaks the whole Exchange block
+        // (tests/tools/wire_inventory_diff.sh catches it).
         PACKET_GC_USE_SKILLCARD_OK, //   485 by viva
 
         // Exchange System Packets

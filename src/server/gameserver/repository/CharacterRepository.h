@@ -6,25 +6,20 @@
 #include "CharacterRace.h"
 #include "Types.h"
 
-// Persistence seam for the character row (task 3.2): the load() SELECT
-// each race class runs at login, the periodic vitals/position save, the
-// exp/fame/rank tail save, and the caller-composed tinysave fragments.
-// The race tables carry different columns, so the records are per-race;
-// each field mirrors the ORIGINAL EXPRESSION's type. For the writes that
-// is the member/getter type, or int where the inline SQL applied an
-// explicit (int) cast — so the varargs bytes reaching the format strings
-// are unchanged. For the loads it is the driver getter the inline code
-// called on that column — int for getInt, BYTE for getBYTE, std::string
-// for getString — so every narrowing the race class performed when it
-// handed the value to a setter still happens THERE, on the same value,
-// and the record adds no conversion of its own.
+// The character row: the load() SELECT each race class runs at login, the
+// periodic vitals/position save, the exp/fame/rank tail save, and the
+// caller-composed tinysave fragments. The race tables carry different
+// columns, so the records are per-race. Load fields are typed to the
+// driver getter used for the column (int for getInt, BYTE for getBYTE,
+// std::string for getString); any narrowing happens in the race class
+// when it hands the value to a setter. Write fields carry the member type
+// the caller streams, or int where the caller casts.
 
-// Slayer load(): the 54 columns of the Slayer row, in SELECT order.
-// Every column the SELECT names is surfaced, including the ones the
-// loader then overrides or ignores: sight (overridden to 13 right after
-// it is applied) and reward (the reward flow that consumed it is dead —
-// the column is selected, never acted on). phone is the raw varchar(7);
-// the loader atoi()s it, as it always did.
+// Slayer load(): the 54 columns of the Slayer row, in SELECT order. Every
+// selected column is surfaced, including ones the loader then overrides
+// or ignores: sight (overridden to 13 right after it is applied) and
+// reward (selected, never acted on). phone is the raw varchar(7); the
+// loader atoi()s it.
 struct SlayerLoadRecord {
     std::string name;
     int advancementClass;
@@ -83,12 +78,11 @@ struct SlayerLoadRecord {
 };
 
 // Vampire load(): the 33 columns of the Vampire row, in SELECT order.
-// stashNum, competence and competenceShape were read through getBYTE
-// (the slayer reads Competence through getInt); the columns are tinyint
-// unsigned, so the narrower getter loses nothing — the type is kept so
-// the loader's ">= 4 → 3" clamp compares what it always compared.
-// reward: dead flow, as for the slayer. No MP columns; SilverDamage
-// instead.
+// stashNum, competence and competenceShape are read through getBYTE (the
+// slayer reads Competence through getInt); the columns are tinyint
+// unsigned, so nothing is lost, and the loader's ">= 4 → 3" clamp
+// compares the BYTE. reward: selected, never acted on. No MP columns;
+// SilverDamage instead.
 struct VampireLoadRecord {
     std::string name;
     int advancementClass;
@@ -220,8 +214,7 @@ struct SlayerExpsRecord {
     Attr_t advancedAttrBonus;
 };
 
-// Vampire saveExps(): SilverDamage is written ONLY when non-zero — the
-// implementation preserves the conditional-fragment quirk.
+// Vampire saveExps(): SilverDamage is written ONLY when non-zero.
 struct VampireExpsRecord {
     Alignment_t alignment;
     Fame_t fame;
@@ -245,43 +238,73 @@ struct OustersExpsRecord {
     Exp_t advancementGoalExp;
 };
 
+// Two callers send loadSlayerPlayerID's statement with different bytes
+// ("WHERE Name='%s'" for the whisper lookup, lower-case "where" for the GM
+// ban); the enum selects which text is sent.
+enum SlayerPlayerIDSpelling { PLAYERID_SPELLING_WHISPER, PLAYERID_SPELLING_OPDENY, PLAYERID_SPELLING_MAX };
+
+// The GM guild-master check: Fame, BladeLevel, SwordLevel, GunLevel,
+// HealLevel, EnchantLevel of one Slayer row, every column through getInt.
+struct SlayerMasterStatsRow {
+    int fame;
+    int bladeLevel;
+    int swordLevel;
+    int gunLevel;
+    int healLevel;
+    int enchantLevel;
+};
+
 class CharacterRepository {
 public:
     virtual ~CharacterRepository() {}
 
     // The login-time load: the character's ACTIVE row from its own race
-    // table. Returns false when there is none (the name has no row, or
-    // the row is INACTIVE — the login server may have deleted the
-    // character while it was handed over); on true, record carries
-    // every selected column.
+    // table. False when there is none (the name has no row, or the row is
+    // INACTIVE — the login server may have deleted the character while it
+    // was handed over); on true, record carries every selected column.
     virtual bool loadSlayer(const std::string& ownerName, SlayerLoadRecord& record) = 0;
-    // CGConnectHandler's connect-time probe, which exists to take the
-    // character's race from the DATABASE rather than trusting the type
-    // the client sent. False unless EXACTLY one row: that caller treats
-    // none and several alike, logging to connectDB_BUG.txt and throwing
-    // ProtocolException. Every character has a Slayer row whatever its
-    // race, which is why one probe covers all three.
+    // The connect-time probe that takes the character's race from the
+    // database rather than the type the client sent. False unless EXACTLY
+    // one row; the caller treats none and several alike (logs to
+    // connectDB_BUG.txt and throws ProtocolException). Every character has
+    // a Slayer row whatever its race, so one probe covers all three.
     virtual bool loadSlayerAccount(const std::string& name, std::string& playerID, std::string& race) = 0;
-    // CGWhisperHandler's own name-to-account lookup. NOT the same
-    // statement as loadSlayerAccount: one column instead of two, and
-    // "Name='%s'" unspaced where that one has "Name = '%s'". It also
-    // answers on the FIRST row rather than requiring exactly one,
-    // because that caller only wants an account to look up. So they are
-    // kept apart because BOTH the bytes and the answer differ — an
-    // earlier version of this comment said "not because the meaning
-    // does", contradicting the sentence just before it. On a duplicate
-    // name one returns false and the other returns a value.
+    // Name-to-account lookup (the whisper spelling). Answers on the FIRST
+    // row rather than requiring exactly one, so on a duplicate name this
+    // returns a value where loadSlayerAccount returns false.
     virtual bool loadSlayerPlayerID(const std::string& name, std::string& playerID) = 0;
-    // Not enclosed, and this header had no such list before. A THIRD
-    // spelling of the same lookup lives in CGSayHandler's GM ban
-    // command — "SELECT PlayerID FROM Slayer where Name='%s'", with a
-    // lower-case where. Nor is it alone: CGSayHandler also reads
-    // "SELECT Fame, BladeLevel, ... FROM Slayer", and CreatureUtil.cpp
-    // carries "SELECT Race FROM Slayer where Name='%s'" plus its SEX
-    // and Active='INACTIVE' updates. The loginserver's Slayer
-    // statements are a different binary. All join their own rounds.
+    // The same lookup with the spelling chosen; the overload above is the
+    // whisper spelling and delegates here.
+    virtual bool loadSlayerPlayerID(SlayerPlayerIDSpelling spelling, const std::string& name,
+                                    std::string& playerID) = 0;
+    // The GM guild-master checks: the six Slayer columns, and one race's
+    // Level, each through getInt (the caller narrows into Fame_t /
+    // SkillLevel_t / Level_t); false when the name has no row in that
+    // table.
+    virtual bool loadSlayerMasterStats(const std::string& name, SlayerMasterStatsRow& row) = 0;
+    virtual bool loadVampireLevel(const std::string& name, int& level) = 0;
+    virtual bool loadOustersLevel(const std::string& name, int& level) = 0;
     virtual bool loadVampire(const std::string& ownerName, VampireLoadRecord& record) = 0;
     virtual bool loadOusters(const std::string& ownerName, OustersLoadRecord& record) = 0;
+
+    // The vampire's attribute-redistribution counter, a column the load
+    // SELECT does not name. The read is false when the vampire has no row;
+    // the write stores the int the caller computed.
+    virtual bool loadVampireRedistributeAttr(const std::string& name, int& redistributeAttr) = 0;
+    virtual void saveVampireRedistributeAttr(int redistributeAttr, const std::string& name) = 0;
+
+    // Slayer.Race as the text getString returns ('SLAYER' / 'VAMPIRE' /
+    // ...); false when the name has no Slayer row. Reads the SLAYER table
+    // for every race: that table is the character index.
+    virtual bool loadSlayerRaceText(const std::string& name, std::string& raceText) = 0;
+    // GuildID from the race's table, through getInt; the caller casts to
+    // GuildID_t and applies its 0 / 99 / 66 rule. False when no row.
+    virtual bool loadGuildID(const std::string& name, CharacterRace race, int& guildID) = 0;
+    // "UPDATE Slayer SET SEX='%s' WHERE Name='%s'" then the same on
+    // Vampire, on one Statement. The Ousters table has no statement here;
+    // the caller returns before reaching this for anything but a slayer or
+    // a vampire. The text is the caller's Sex2String entry.
+    virtual void saveSex(const std::string& name, const std::string& sexText) = 0;
 
     // The periodic save() row update — vitals and position.
     virtual void saveSlayerVitals(const std::string& ownerName, const SlayerVitalsRecord& record) = 0;
@@ -295,17 +318,15 @@ public:
     virtual void saveVampireExps(const std::string& ownerName, const VampireExpsRecord& record) = 0;
     virtual void saveOustersExps(const std::string& ownerName, const OustersExpsRecord& record) = 0;
 
-    // tinysave: applies a caller-composed "Column=value, ..." SET
-    // fragment to the character's own race table. The fragment is raw
-    // SQL text built by dozens of call sites (sprintf into char[80]
-    // buffers) — a legacy quirk this seam quarantines but cannot yet
-    // retire; narrowing it to typed columns is later work.
+    // tinysave: applies a caller-composed "Column=value, ..." SET fragment
+    // to the character's own race table. The fragment is raw SQL text
+    // built by dozens of call sites (sprintf into char[80] buffers) and is
+    // interpolated unescaped.
     virtual void tinysave(const std::string& ownerName, CharacterRace race, const std::string& fieldFragment) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLCharacterRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLCharacterRepository.cpp.
 CharacterRepository& defaultCharacterRepository();
 
 #endif

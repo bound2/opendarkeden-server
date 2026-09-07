@@ -3,20 +3,14 @@
 
 namespace {
 
-// MySQL implementation of the quest-info seam. The legacy quirks are quarantined
-// HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every literal is byte-for-byte the mission/*.cpp original, including
-//    SimpleQuestInfoManager's "WHERE NPC = '%s'" (spaces around the equals sign)
-//    against the event manager's and the reward manager's "WHERE NPC='%s'".
-//  - The NPC and owner names are interpolated raw, as before.
+// MySQL implementation of QuestInfoRepository.
+//  - The NPC and owner names are interpolated raw.
 //  - EventQuestLootingInfo's SELECT computes LootingType-1 in SQL; the row keeps
-//    that value under `lootingType`, and the statement takes no arguments, so it
-//    goes out through executeQueryString exactly as it did.
-//  - Every numeric column is read through getInt, the getter the inline code
-//    called, whatever the column's width; the callers do their own casting.
-//  - EventQuestAdvance's save ran its UPDATE and, when no row went, an
-//    INSERT IGNORE, both on one Statement. Here each is its own method, so each
-//    makes its own Statement; the caller keeps the branch.
+//    that value under `lootingType`.
+//  - Every numeric column is read through getInt whatever the column's width;
+//    the callers do their own casting.
+//  - EventQuestAdvance's save is an UPDATE and, when no row went, an INSERT
+//    IGNORE; the caller holds the branch.
 class MySQLQuestInfoRepository : public QuestInfoRepository {
 public:
     vector<MonsterKillQuestRow> loadMonsterKillQuestsOfNPC(const string& npcName) {

@@ -14,13 +14,13 @@
 #include <vector>
 
 #include "Creature.h"
-#include "DB.h"
 #include "GamePlayer.h"
 #include "ItemFactoryManager.h"
 #include "LogClient.h"
 #include "NPC.h"
 #include "OptionInfo.h"
 #include "ShopTemplate.h"
+#include "repository/GameInfoRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
@@ -60,21 +60,12 @@ void ActionRegenEventShop::read(PropertyBuffer& propertyBuffer)
     try {
         // read NPC id
         int NPCID = propertyBuffer.getPropertyInt("NPCID");
-        Statement* pStmt = NULL;
-        Result* pResult = NULL;
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pResult = pStmt->executeQuery("SELECT ID from ShopTemplate where NPCID = %d", NPCID);
-
-            while (pResult->next()) {
-                ShopTemplateID_t id = pResult->getInt(1);
-                addListElement(id);
-            }
-
-            delete pStmt;
+        vector<int> templateIDs = defaultGameInfoRepository().loadShopTemplateIDsOfNPC(NPCID);
+        for (vector<int>::const_iterator it = templateIDs.begin(); it != templateIDs.end(); ++it) {
+            ShopTemplateID_t id = *it;
+            addListElement(id);
         }
-        END_DB(pStmt)
 
         // 상점 업데이트 주기를 읽어들인다. (초 단위)
         int nSecond = propertyBuffer.getPropertyInt("Period");

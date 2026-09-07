@@ -6,20 +6,19 @@
 
 #include "Types.h"
 
-// Seam for the content tables the gameserver loads at boot (task 3.2):
-// the monsters (MonsterInfo), the skill balance (SkillBalance), the NPCs
-// of a zone (NPC), the NPC dialogue scripts (Script), the monster-AI
-// directive sets (DirectiveSet) and the tunable variables (AttrInfo —
-// also written back by VariableManager::setVariable on every call: the
-// GM `opset` path and the defaults set at init()/load()). Rows are typed
-// to the driver getter
-// the inline code called (getInt → int, getBYTE → BYTE, getString →
-// std::string); the one write's parameters to the expressions the caller
-// streamed.
+// The content tables the gameserver loads at boot: the monsters
+// (MonsterInfo), the skill balance (SkillBalance), the NPCs of a zone
+// (NPC), the NPC dialogue scripts (Script), the NPC trigger scripts
+// (Triggers; the sister table ZoneTriggers is ZoneInfoRepository's), the
+// monster-AI directive sets (DirectiveSet) and the tunable variables
+// (AttrInfo — also written back by VariableManager::setVariable on every
+// call: the GM `opset` path and the defaults set at init()/load()). Rows
+// are typed to the driver getter used for each column (getInt → int,
+// getBYTE → BYTE, getString → std::string).
 //
-// The MAX probes are exposed as bools for the reason
-// BalanceInfoRepository.h gives: MAX() over an empty table is one NULL
-// row, which the inline code would have atoi(NULL)'d.
+// The MAX probes are exposed as bools: MAX() over an empty table is one
+// NULL row, and the probe answers false rather than handing back a NULL
+// field.
 
 // MonsterInfoManager::load — the 35 columns of its SELECT, in order.
 struct MonsterInfoRow {
@@ -166,6 +165,14 @@ struct VariableRow {
     int attr2;
 };
 
+// One Triggers row of an NPC, in SELECT order.
+struct NPCTriggerRow {
+    int triggerID;
+    std::string triggerType;
+    std::string conditions;
+    std::string actions;
+};
+
 class ContentInfoRepository {
 public:
     virtual ~ContentInfoRepository() {}
@@ -174,8 +181,7 @@ public:
     virtual bool loadMaxMonsterType(int& maxType) = 0;
     virtual std::vector<MonsterInfoRow> loadMonsterInfos() = 0;
     virtual std::vector<MonsterSummonRow> loadMonsterSummonInfos() = 0;
-    // reload: every row, or the one row of a type (the original appended
-    // " WHERE MType=<type>" to the same text).
+    // reload: every row, or the one row of a type.
     virtual std::vector<MonsterReloadRow> loadMonsterInfosForReload() = 0;
     virtual std::vector<MonsterReloadRow> loadMonsterInfoForReload(MonsterType_t monsterType) = 0;
 
@@ -190,6 +196,10 @@ public:
     // --- NPC scripts, ordered by ScriptID ----------------------------------------
     virtual std::vector<ScriptRow> loadScripts() = 0;
 
+    // --- NPC trigger scripts (quest/TriggerManager::load(name)) ------------------
+    // TriggerID through getInt, the three texts through getString, untrimmed.
+    virtual std::vector<NPCTriggerRow> loadNPCTriggers(const std::string& npcName) = 0;
+
     // --- monster-AI directive sets -----------------------------------------------
     virtual bool loadMaxDirectiveSetID(int& maxID) = 0;
     virtual std::vector<DirectiveSetRow> loadDirectiveSets() = 0;
@@ -197,13 +207,12 @@ public:
     // --- tunable variables (AttrInfo) ----------------------------------------------
     virtual bool loadMaxAttrID(int& maxAttrID) = 0;
     virtual std::vector<VariableRow> loadVariables() = 0;
-    // VariableManager::setVariable — (value, (int)vt) as streamed.
+    // VariableManager::setVariable.
     virtual void saveVariable(int value, int attrID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLContentInfoRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLContentInfoRepository.cpp.
 ContentInfoRepository& defaultContentInfoRepository();
 
 #endif

@@ -3,20 +3,14 @@
 
 namespace {
 
-// MySQL implementation of the play-record seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original: the saved
-//    quest DELETE quotes its numeric key ("QuestID='%u'"), the REPLACE
-//    writes the save time SQL-side (now()) and so does the head-count
-//    INSERT, and the score read is "LIMIT 1" with no ORDER BY — whichever
-//    row the optimizer hands back first, not a top score.
+// MySQL implementation of PlayRecordRepository.
+//  - The saved-quest DELETE quotes its numeric key ("QuestID='%u'"); the
+//    REPLACE and the head-count INSERT stamp their time SQL-side (now());
+//    the score read is "LIMIT 1" with no ORDER BY — whichever row the
+//    optimizer hands back first, not a top score.
 //  - The saved-quest load computes the save's age in SQL
-//    (unix_timestamp(now()) - unix_timestamp(Time)) and the caller reads
-//    it through getInt, as before.
-//  - The writes stream a DWORD quest id and a BYTE status through "%u"
-//    (promoted), and BYTE levels and a uint count through "%u" — the same
-//    conversions the callers had.
-//  - Names are interpolated raw, as before.
+//    (unix_timestamp(now()) - unix_timestamp(Time)), read through getInt.
+//  - Names are interpolated raw.
 class MySQLPlayRecordRepository : public PlayRecordRepository {
 public:
     vector<SavedQuestRow> loadSavedQuests(const string& owner) {
@@ -104,6 +98,96 @@ public:
         END_DB(pStmt)
 
         return found;
+    }
+
+    void recordMiniGameScore(const string& name, WORD score, BYTE gameType, BYTE level) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("UPDATE MiniGameScores SET Name='%s', Score=%u, Time=now() WHERE Type=%u AND "
+                                "Level=%u AND Score>%u LIMIT 1",
+                                name.c_str(), score, gameType, level, score);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void logStoreTrade(const string& timeline, const string& storeName, const string& storeHost,
+                       const string& storeAccountID, const string& buyerName, const string& buyerHost,
+                       const string& buyerAccountID, const string& itemText, Gold_t price) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("INSERT INTO TradeLog (Timeline, Name1, IP1, Name2, IP2, Content) VALUES ('%s', '%s', "
+                                "'%s', '%s', '%s', 'Store:[%s(%s)]\n%s\n----\nBuy:[%s(%s)]\nGOLD:%u\n')",
+                                timeline.c_str(), storeName.c_str(), storeHost.c_str(), buyerName.c_str(),
+                                buyerHost.c_str(), storeName.c_str(), storeAccountID.c_str(), itemText.c_str(),
+                                buyerName.c_str(), buyerAccountID.c_str(), price);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    // The CreatureUtil event tallies (see the header): the dist connection
+    // under names DatabaseManager ignores.
+    void insertGoldMedal(const string& playerID) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
+            pStmt->executeQuery("INSERT INTO GoldMedalCount (PlayerID, getTime) VALUES ('%s', now())",
+                                playerID.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    bool addLotto(const string& playerID, BYTE type, uint num, int& count) {
+        bool found = false;
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("USERINFO")->createStatement();
+            pStmt->executeQuery("UPDATE EventLotto SET count=count+%u WHERE PlayerID='%s' AND Type=%u", num,
+                                playerID.c_str(), type);
+
+            if (pStmt->getAffectedRowCount() < 1) {
+                pStmt->executeQuery("REPLACE INTO EventLotto (PlayerID,Type,count) VALUES ('%s',%u,%u)",
+                                    playerID.c_str(), type, num);
+            }
+
+            Result* pResult = pStmt->executeQuery("SELECT count FROM EventLotto WHERE PlayerID='%s' AND Type=%u",
+                                                  playerID.c_str(), type);
+
+            if (pResult->next()) {
+                count = pResult->getInt(1);
+                found = true;
+            }
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+
+        return found;
+    }
+
+    void insertUnderworldKill(int worldID, int serverID, const string& playerID, const string& characterName) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
+            pStmt->executeQuery("INSERT INTO UnderworldEvent (WorldID, ServerID, PlayerID, CharacterID, KillTime) "
+                                "VALUES (%u, %u, '%s', '%s', now())",
+                                worldID, serverID, playerID.c_str(), characterName.c_str());
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
     }
 };
 

@@ -109,7 +109,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         // pPrevItem->save(pSlayer->getName(), STORAGE_BELT, pBelt->getItemID(), SlotID, 0);
                         //  item저장 최적화. by sigi. 2002.5.13
                         char pField[80];
-                        sprintf(pField, "Num=%d, Storage=%d, StorageID=%lu, X=%d", MaxStack, STORAGE_BELT,
+                        sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", MaxStack, STORAGE_BELT,
                                 pBelt->getItemID(), SlotID);
                         pPrevItem->tinysave(pField);
 
@@ -129,7 +129,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         // pPrevItem->save(pSlayer->getName(), STORAGE_BELT , pBelt->getItemID(), SlotID, 0);
                         //  item저장 최적화. by sigi. 2002.5.13
                         char pField[80];
-                        sprintf(pField, "Num=%d, Storage=%d, StorageID=%lu, X=%d", pPrevItem->getNum(), STORAGE_BELT,
+                        sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", pPrevItem->getNum(), STORAGE_BELT,
                                 pBelt->getItemID(), SlotID);
                         pPrevItem->tinysave(pField);
 
@@ -156,7 +156,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
 
                     // pItem->save(pSlayer->getName(), STORAGE_BELT , pBelt->getItemID(), SlotID, 0);
                     //  item저장 최적화. by sigi. 2002.5.13
-                    sprintf(pField, "Storage=%d, StorageID=%lu, X=%d", STORAGE_BELT, pBelt->getItemID(), SlotID);
+                    sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pBelt->getItemID(), SlotID);
                     pItem->tinysave(pField);
 
 
@@ -172,7 +172,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                 // pItem->save(pSlayer->getName(), STORAGE_BELT, pBelt->getItemID(), SlotID, 0);
                 //  item저장 최적화. by sigi. 2002.5.13
                 char pField[80];
-                sprintf(pField, "Storage=%d, StorageID=%lu, X=%d", STORAGE_BELT, pBelt->getItemID(), SlotID);
+                sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pBelt->getItemID(), SlotID);
                 pItem->tinysave(pField);
 
                 Success = true;
@@ -256,7 +256,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         // pPrevItem->save(pOusters->getName(), STORAGE_BELT, pArmsband->getItemID(), SlotID, 0);
                         //  item저장 최적화. by sigi. 2002.5.13
                         char pField[80];
-                        sprintf(pField, "Num=%d, Storage=%d, StorageID=%lu, X=%d", MaxStack, STORAGE_BELT,
+                        sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", MaxStack, STORAGE_BELT,
                                 pArmsband->getItemID(), SlotID);
                         pPrevItem->tinysave(pField);
 
@@ -276,7 +276,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                         // pPrevItem->save(pOusters->getName(), STORAGE_BELT , pArmsband->getItemID(), SlotID, 0);
                         //  item저장 최적화. by sigi. 2002.5.13
                         char pField[80];
-                        sprintf(pField, "Num=%d, Storage=%d, StorageID=%lu, X=%d", pPrevItem->getNum(), STORAGE_BELT,
+                        sprintf(pField, "Num=%d, Storage=%d, StorageID=%u, X=%d", pPrevItem->getNum(), STORAGE_BELT,
                                 pArmsband->getItemID(), SlotID);
                         pPrevItem->tinysave(pField);
 
@@ -303,7 +303,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
 
                     // pItem->save(pOusters->getName(), STORAGE_BELT , pArmsband->getItemID(), SlotID, 0);
                     //  item저장 최적화. by sigi. 2002.5.13
-                    sprintf(pField, "Storage=%d, StorageID=%lu, X=%d", STORAGE_BELT, pArmsband->getItemID(), SlotID);
+                    sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pArmsband->getItemID(), SlotID);
                     pItem->tinysave(pField);
 
 
@@ -319,7 +319,7 @@ void CGAddMouseToQuickSlotHandler::execute(CGAddMouseToQuickSlot* pPacket, Playe
                 // pItem->save(pOusters->getName(), STORAGE_BELT, pArmsband->getItemID(), SlotID, 0);
                 //  item저장 최적화. by sigi. 2002.5.13
                 char pField[80];
-                sprintf(pField, "Storage=%d, StorageID=%lu, X=%d", STORAGE_BELT, pArmsband->getItemID(), SlotID);
+                sprintf(pField, "Storage=%d, StorageID=%u, X=%d", STORAGE_BELT, pArmsband->getItemID(), SlotID);
                 pItem->tinysave(pField);
 
                 Success = true;

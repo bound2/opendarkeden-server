@@ -109,14 +109,14 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                 sprintf(strValue, "%s", g_pStringPool->getString(STRID_FREE).c_str());
             } else if (race == RACE_SLAYER) {
                 char gold[15];
-                sprintf(gold, "%lu", value);
+                sprintf(gold, "%u", value);
                 string sGold(gold);
                 convertCommaString(sGold);
                 //				sprintf( strValue, "%s 레이", sGold.c_str() );
                 sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_REI)).c_str());
             } else {
                 char gold[15];
-                sprintf(gold, "%lu", value);
+                sprintf(gold, "%u", value);
                 string sGold(gold);
                 convertCommaString(sGold);
                 //				sprintf( strValue, "%s 겔드", sGold.c_str() );
@@ -217,7 +217,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             Gold_t price = g_pVariableManager->getVariable(VAMPIRE_REDISTRIBUTE_ATTR_PRICE);
 
             char gold[15];
-            sprintf(gold, "%lu", price);
+            sprintf(gold, "%u", price);
 
             string sGold(gold);
             convertCommaString(sGold);
@@ -236,7 +236,7 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     value = 0;
 
                 char gold[15];
-                sprintf(gold, "%lu", value);
+                sprintf(gold, "%u", value);
                 string sGold(gold);
                 convertCommaString(sGold);
 

@@ -61,10 +61,9 @@ void CGTryJoinGuildHandler::execute(CGTryJoinGuild* pPacket, Player* pPlayer)
 
     // 다른 길드 소속인지 체크
     //
-    // The statement still selects GuildID and `Rank`; this handler only
-    // ever read ExpireDate, so that is all the seam hands back. The two
-    // commented-out reads below name the columns it would need for the
-    // disabled DENY policy further down.
+    // The statement selects GuildID, ExpireDate and `Rank`; only
+    // ExpireDate is handed back. The two commented-out reads below name
+    // the columns the disabled DENY policy further down would need.
     string ExpireDate;
 
     if (defaultGuildRepository().loadMemberExpireDate(pCreature->getName(), ExpireDate)) {

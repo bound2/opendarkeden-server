@@ -293,7 +293,7 @@ void CGMixItemHandler::executeMix(CGMixItem* pPacket, Player* pPlayer, Item* pIt
 
     pTargetItem1->tinysave(query);
 
-    sprintf(query, "%ld", pTargetItem1->getItemID());
+    sprintf(query, "%u", pTargetItem1->getItemID());
 
     pInventory->deleteItem(pTargetItem2->getObjectID());
     if (pTargetItem2->isTraceItem()) {

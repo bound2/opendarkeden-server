@@ -1247,8 +1247,7 @@ void GDRLairScene6::start() {
 
     // The reward loop walks the zone's PCManager and writes inventories and
     // the zone's object registry; all zone-group state, and this is the GDR
-    // thread, so the group mutex is held from here (it used to be taken
-    // only for the transport at the end).
+    // thread, so the group mutex is held from here.
     __ENTER_CRITICAL_SECTION((*(pZone->getZoneGroup())))
 
     // ���� ����

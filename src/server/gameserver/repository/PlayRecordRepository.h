@@ -6,24 +6,18 @@
 
 #include "Types.h"
 
-// Seam for the per-player play records (task 3.2): a player's saved
-// quest states (GQuestSave — loaded at login, REPLACEd on every status
-// change, deleted when a quest is erased), the head-count log a
-// half-hourly event writes (HeadCount) and the minigame score board a
-// packet reads (MiniGameScores). Reads are typed to the driver getter
-// the inline code called (getInt → int, getString → std::string); the
-// writes' parameters to the members/expressions each caller streamed,
-// so the varargs bytes reaching the format strings are unchanged.
+// Per-player play records: a player's saved quest states (GQuestSave —
+// loaded at login, REPLACEd on every status change, deleted when a quest
+// is erased), the head-count log a half-hourly event writes (HeadCount),
+// the minigame score board (MiniGameScores), the store-purchase trade log
+// (TradeLog) and the per-account event tallies (GoldMedalCount,
+// EventLotto, UnderworldEvent). Reads are typed to the driver getter used
+// for each column (getInt → int, getString → std::string).
 //
-// Not enclosed: the character-deletion sweeps of GQuestSave in
-// CreatureUtil.cpp and the loginserver's CLDeletePCHandler.cpp; the
-// MiniGameScores UPDATE in CGSubmitScoreHandler (CGSayHandler's and
-// mission/MiniGameQuestStatus.cpp's reads are commented out; the latter
-// calls sendGCMiniGameScores, a caller of this seam); TradeManager's
-// TradeLog INSERT, which concatenates an unbounded trade summary that
-// executeQuery's 2048-byte format buffer could not carry — it waits for
-// a DB-layer change; and CGBuyStoreItemHandler's already-parameterized
-// single-item TradeLog INSERT (a handler-directory file).
+// Connections: the event tallies go through the thread's dist connection
+// (DatabaseManager ignores the name asked for and hands back the second
+// per-thread socket to the same DARKEDEN schema); everything else through
+// the DARKEDEN connection.
 
 // One GQuestSave row for an owner, plus the server-side age of the save
 // (unix_timestamp(now()) - unix_timestamp(Time)).
@@ -39,9 +33,8 @@ public:
 
     // --- saved quests (GQuestManager / GQuestStatus) -----------------------
     virtual std::vector<SavedQuestRow> loadSavedQuests(const std::string& owner) = 0;
-    // GQuestStatus::save — (m_QuestID, owner, m_Status) as streamed.
     virtual void replaceSavedQuest(DWORD questID, const std::string& owner, BYTE status) = 0;
-    // GQuestManager::eraseQuest — the id goes through a quoted '%u'.
+    // The id goes through a quoted '%u'.
     virtual void deleteSavedQuest(const std::string& owner, DWORD questID) = 0;
 
     // --- head-count log (EventHeadCount::activate) -------------------------
@@ -51,11 +44,43 @@ public:
     // The first row LIMIT 1 happens to return for a type and level — there
     // is no ORDER BY, so "first" is the optimizer's choice. False when none.
     virtual bool loadMiniGameScore(BYTE gameType, BYTE level, std::string& name, int& score) = 0;
+    // UPDATE ... WHERE Type AND Level AND Score>score LIMIT 1: with no ORDER
+    // BY, which of several beatable rows is overwritten is the optimizer's
+    // choice, and the statement never INSERTs, so a (type, level) with no
+    // seeded row never records a score.
+    virtual void recordMiniGameScore(const std::string& name, WORD score, BYTE gameType, BYTE level) = 0;
+
+    // --- trade log (CGBuyStoreItemHandler) ----------------------------------
+    // The store-purchase TradeLog row. The Content column's text is
+    // "Store:[<name>(<account>)]\n<item>\n----\nBuy:[<name>(<account>)]
+    // \nGOLD:<price>\n", so the store's and the buyer's names appear in it a
+    // second time after their Name1/Name2 columns. Every text is
+    // interpolated unescaped, and the whole statement must fit
+    // executeQuery's 2048-byte format buffer (one item's toString() does).
+    virtual void logStoreTrade(const std::string& timeline, const std::string& storeName, const std::string& storeHost,
+                               const std::string& storeAccountID, const std::string& buyerName,
+                               const std::string& buyerHost, const std::string& buyerAccountID,
+                               const std::string& itemText, Gold_t price) = 0;
+
+    // --- event tallies (CreatureUtil) -----------------------------------------
+    // INSERT INTO GoldMedalCount (PlayerID, getTime). The table is not in
+    // initdb/, so on the shipped schema this throws END_DB's const char*
+    // every time; the caller does not catch it.
+    virtual void insertGoldMedal(const std::string& playerID) = 0;
+    // UPDATE EventLotto count=count+num for (player, type); REPLACE a fresh
+    // row when that changed nothing; then read the count back, all on one
+    // Statement. True with the count when the read-back answered (it always
+    // does after the REPLACE).
+    virtual bool addLotto(const std::string& playerID, BYTE type, uint num, int& count) = 0;
+    // INSERT INTO UnderworldEvent (WorldID, ServerID, PlayerID, CharacterID,
+    // KillTime=now()). Its one caller sits under __UNDERWORLD__, which no
+    // build defines.
+    virtual void insertUnderworldKill(int worldID, int serverID, const std::string& playerID,
+                                      const std::string& characterName) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLPlayRecordRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLPlayRecordRepository.cpp.
 PlayRecordRepository& defaultPlayRecordRepository();
 
 #endif

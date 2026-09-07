@@ -8,7 +8,6 @@
 
 #include <stdio.h>
 
-#include "DB.h"
 #include "GCModifyInformation.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
@@ -17,6 +16,7 @@
 #include "Vampire.h"
 #include "VariableManager.h"
 #include "Zone.h"
+#include "repository/CharacterRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -94,20 +94,11 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
 
     // 레벨 나누기 2만큼의 능력치만 보너스 포인트로 전환할 수 있다.
     // 그러므로 이미 그 한계를 다 채우지는 않았는지 검사한다.
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
     int RedistributedAttr = 0;
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult =
-            pStmt->executeQuery("SELECT RedistributeAttr FROM Vampire WHERE Name='%s'", pVampire->getName().c_str());
-
-        if (pResult->getRowCount() == 0) {
+    {
+        if (!defaultCharacterRepository().loadVampireRedistributeAttr(pVampire->getName(), RedistributedAttr)) {
             cerr << "ActionRedistributeAttr : No Vampire Record On Table" << endl;
             throw Error("ActionRedistributeAttr : No Vampire Record On Table");
-        } else {
-            pResult->next();
-            RedistributedAttr = pResult->getInt(1);
         }
 
         if (RedistributedAttr >= pVampire->getLevel()) {
@@ -122,13 +113,9 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
             GCSystemMessage gcSM;
             gcSM.setMessage(g_pStringPool->getString(STRID_TRANS_BONUS_POINT));
             pPlayer->sendPacket(&gcSM);
-            SAFE_DELETE(pStmt);
             return;
         }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     // 능력치를 변경하기에 앞서 기존의 능력치를 저장한다.
     VAMPIRE_RECORD prev;
@@ -222,13 +209,7 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
     pPlayer->sendPacket(&gcMI);
 
     // 변환한 능력치의 양을 저장해야 한다.
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQuery("UPDATE Vampire SET RedistributeAttr = %d WHERE Name='%s'", RedistributedAttr + 1,
-                            pVampire->getName().c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultCharacterRepository().saveVampireRedistributeAttr(RedistributedAttr + 1, pVampire->getName());
 
     __END_CATCH
 }

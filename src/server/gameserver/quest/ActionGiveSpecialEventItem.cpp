@@ -10,7 +10,6 @@
 
 #include <list>
 
-#include "DB.h"
 #include "GCCreateItem.h"
 #include "GCNPCResponse.h"
 #include "GCSystemMessage.h"
@@ -21,9 +20,9 @@
 #include "ItemUtil.h"
 #include "PlayerCreature.h"
 #include "StringPool.h"
-#include "Thread.h"
 #include "Zone.h"
 #include "item/Key.h"
+#include "repository/SpecialEventRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -58,16 +57,11 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
     GCNPCResponse okpkt;
     pPlayer->sendPacket(&okpkt);
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
     int count = -1;
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection((int)(long)Thread::self())->createStatement();
-        pResult = pStmt->executeQuery("SELECT Count FROM SpecialEvent WHERE Name='%s'", pPlayer->getID().c_str());
-
+    {
         // �ش� �ο찡 ���ٴ� ���� �� ����� �̺�Ʈ �������� ���� �ڰ��� ���ٴ� ���� ���Ѵ�.
-        if (pResult->getRowCount() == 0) {
+        if (!defaultSpecialEventRepository().loadCount(pPlayer->getID(), count)) {
             //			StringStream buf;
             //			buf << pPlayer->getID() << " ���� ���� ���� �̺�Ʈ�� �������� �����̽��ϴ�.";
 
@@ -78,16 +72,9 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
             gcSystemMessage.setMessage(buf);
             pPlayer->sendPacket(&gcSystemMessage);
 
-            SAFE_DELETE(pStmt);
             return;
         }
-
-        pResult->next();
-        count = pResult->getInt(1);
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
 
     // ī��Ʈ�� 0���϶�� ���� �� ����� �̹� ��������
     // �޾Ҵٴ� ���� �ǹ��Ѵ�.
@@ -260,12 +247,7 @@ void ActionGiveSpecialEventItem::execute(Creature* pCreature1, Creature* pCreatu
     }
 
     msg << "Deleting SpecialEvent Count, ";
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection((int)(long)Thread::self())->createStatement();
-        pStmt->executeQuery("UPDATE SpecialEvent SET Count = 0 WHERE Name='%s'", pPlayer->getID().c_str());
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSpecialEventRepository().resetCount(pPlayer->getID());
     msg << "Finished\n";
 
     filelog("SpecialEvent.log", "%s", msg.toString().c_str());

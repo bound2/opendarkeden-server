@@ -1,11 +1,8 @@
-// MySQL-backed integration tier for the task 3.2 repositories
-// (docs/RESTRUCTURING.md): runs the REAL MySQL implementations against a
-// throwaway MySQL 5.7 loaded with the initdb/ schema and the production
-// sql_mode. This is the authority the fakes in tests/support/ are
-// corrected against — every quirk a fake pins is pinned HERE first,
-// against the actual server (the 2026-09-01 adversarial review of PR #31
-// falsified three fake-pinned claims exactly because no tier like this
-// existed).
+// MySQL-backed integration tier for the gameserver repositories: runs the
+// REAL MySQL implementations against a throwaway MySQL 5.7 loaded with the
+// initdb/ schema and the production sql_mode. This is the authority the
+// fakes in tests/support/ are corrected against — every quirk a fake pins
+// is pinned HERE first, against the actual server.
 //
 // Not part of the default ctest suite: it needs a database, which
 // tests/integration/mysql_test.sh provides (a handrolled container
@@ -33,6 +30,7 @@
 #include "repository/BalanceInfoRepository.h"
 #include "repository/BloodBibleSignRepository.h"
 #include "repository/BulletinBoardRepository.h"
+#include "repository/CharacterPurgeRepository.h"
 #include "repository/CharacterRepository.h"
 #include "repository/ComebackEventRepository.h"
 #include "repository/ContentInfoRepository.h"
@@ -58,6 +56,7 @@
 #include "repository/SMSAddressRepository.h"
 #include "repository/SessionRepository.h"
 #include "repository/SkillSaveRepository.h"
+#include "repository/SpecialEventRepository.h"
 #include "repository/StashRepository.h"
 #include "repository/SystemAvailabilityRepository.h"
 #include "repository/WarInfoRepository.h"
@@ -193,13 +192,11 @@ TEST_F(StashMySQL, GoldAboveIntMaxClampsToZeroDestroyingTheBalance) {
 // --- system-availability flags against real MySQL --------------------------
 
 TEST(SystemAvailabilityMySQL, TheBootReadTakesTheFirstTwoColumnsOfASelectStar) {
-    // This is the only thing that will ever catch the hazard the seam's
-    // header names. The statement is "SELECT *" and the caller reads
-    // columns 1 and 2 POSITIONALLY, so a column inserted before them would
-    // silently reassign every system flag. Both of that seam's callers are
-    // compiled out of this build, so the compiler will never notice; an
-    // earlier draft of this round declined to write this test on the
-    // grounds that the callers are dead, which got the argument backwards.
+    // The statement is "SELECT *" and the caller reads columns 1 and 2
+    // POSITIONALLY, so a column inserted before them would silently
+    // reassign every system flag. Both callers are compiled out of this
+    // build, so the compiler will never notice; this test is the only
+    // thing that would.
     SystemAvailabilityRepository& repository = defaultSystemAvailabilityRepository();
 
     execSQL("DELETE FROM SystemAvailabilities WHERE SystemKind >= 31000");
@@ -214,7 +211,7 @@ TEST(SystemAvailabilityMySQL, TheBootReadTakesTheFirstTwoColumnsOfASelectStar) {
             seen = true;
             // 7, not 1: the caller turns this into a bool for most systems
             // but reads it as an integer for the three limit rows, so the
-            // seam must hand back the column rather than a flag.
+            // repository must hand back the column rather than a flag.
             EXPECT_EQ(7, rows[r].available);
         }
     }
@@ -326,7 +323,7 @@ TEST_F(FriendMySQL, EveryWriteRaisesToo) {
     }
     EXPECT_TRUE(refused) << "deleteFriend succeeded, so FriendList now exists";
 
-    // The three the first draft left uncovered. insertBlacklisted and
+    // The remaining three. insertBlacklisted and
     // hasBlacklisted are the only statements CG_ADD_FRIEND_BLACK
     // reaches, and deleteMessages is the one the IsHave flag gates, so
     // without these a table-adder would get no signal from that whole
@@ -368,7 +365,7 @@ protected:
     }
     static void clean() {
         execSQL("DELETE FROM FlagPolePosition WHERE ZoneID >= 31000");
-        // The seam's own wipe is unconditional, so the tier owns the
+        // The repository's wipe is unconditional, so the tier owns the
         // whole table for the run. (Name LIKE 'it-%' would scope it, as
         // the FlagWarHistory line below does; owning the table is what
         // lets the wipe test seed a row it does not own.)
@@ -432,7 +429,7 @@ TEST_F(FlagWarMySQL, ThePerFlagTallyIsCheckedBeforeInsertBecauseNothingEnforcesI
     // (Name, ItemID) is an INDEX, not a unique constraint, so the
     // database would happily take a second identical row. That is
     // exactly why the caller probes first, and why the probe is part of
-    // the seam rather than a detail of the handler.
+    // the repository rather than a detail of the handler.
     repository.insertFlagStat("it-acc1", "it-carl", 1, 7, 4242);
     EXPECT_EQ("2", queryScalar("SELECT count(*) FROM FlagWarStat WHERE Name='it-carl' AND ItemID=4242"));
 }
@@ -463,15 +460,12 @@ TEST_F(FlagWarMySQL, TheHistoryRollUpIsRefusedByOnlyFullGroupByAndTheWipeTakesEv
     // rethrows, so a failure raising some other type would fail here
     // rather than quietly validating the claim.
     //
-    // What this CANNOT do is read the message, and the reason is worth
-    // recording: END_DB builds a local std::string and throws
-    // msg.c_str(), so the pointer dangles the moment the catch block
-    // exits. Asserting on the 1055 text here read an empty string.
-    // That is a project-wide defect in the macro, not this seam's —
-    // every repository in the tree rethrows the same way — and it
-    // belongs with the __LEAVE_CRITICAL_SECTION fix in a Core round.
-    // The MySQL error text does reach DBError.log, which END_DB
-    // writes before throwing.
+    // What this CANNOT do is read the message: END_DB builds a local
+    // std::string and throws msg.c_str(), so the pointer dangles the
+    // moment the catch block exits (asserting on the 1055 text here reads
+    // an empty string). That is a defect in the macro itself — every
+    // repository in the tree rethrows the same way. The MySQL error text
+    // does reach DBError.log, which END_DB writes before throwing.
     bool refused = false;
     try {
         repository.loadFlagWarStatTotals();
@@ -551,7 +545,7 @@ TEST_F(MofusMySQL, TheFirstSaveInsertsAndEveryLaterOneAccumulates) {
     ASSERT_TRUE(repository.loadPowerPoint("it-mofus", point));
     EXPECT_EQ(-8, point);
 
-    // The live shape the round's callers actually produce: a FIRST save
+    // The live shape the callers actually produce: a FIRST save
     // that is a spend, which creates the row already negative. That is
     // CGUsePowerPointHandler's -300 against a character who has never
     // received a mofus credit.
@@ -676,7 +670,7 @@ TEST_F(CoupleMySQL, TheThreeDeletesDifferInWhatTheyMatchNotInWhatTheyMean) {
     repository.deletePairing(MALE, "it-mike", FEMALE, "it-fay", 0);
     // The DELETEs filter on Race; the count probes do NOT. So the
     // race-1 row survives the delete AND still answers the probe. That
-    // asymmetry is the inline code's and is kept: isCouple() and
+    // asymmetry is deliberate: isCouple() and
     // hasCouple() see a pairing in ANY race, while removeCouple() only
     // removes the one matching the character's own.
     EXPECT_EQ(1, repository.countPairing(MALE, "it-mike", FEMALE, "it-fay"));
@@ -685,8 +679,8 @@ TEST_F(CoupleMySQL, TheThreeDeletesDifferInWhatTheyMatchNotInWhatTheyMean) {
 
     // The counter-column form reaches the same row from one character
     // plus a partner NAME. Its only textual difference from the above is
-    // a lower-case "where", which no assertion here can see: like the
-    // guild delete spellings, that mapping is held by review.
+    // a lower-case "where", which no assertion here can see (MySQL
+    // cannot tell the spellings apart).
     repository.deletePairingWithPartner(MALE, "it-mike", "it-fay", 1);
     EXPECT_EQ(0, repository.countPairingsOf(MALE, "it-mike"));
 
@@ -800,15 +794,14 @@ TEST_F(GoldMySQL, OperationsAgainstMissingRowsAreSilentNoOps) {
 }
 
 // --- character-row saves against real MySQL -------------------------------
-// CharacterRepository is a write-only seam with NO fake tier (maintainer's
-// call — integration over fakes), so these tests carry the load: every
-// written column is asserted with a distinct sentinel so argument
-// transpositions cannot survive, and every dispatch branch is exercised.
-// Known holes, stated honestly: the `Rank` backticks (load-bearing only
-// on MySQL 8, where RANK is reserved — this tier runs 5.7) and the
-// tinysave WHERE-casing byte-fidelity (immaterial to MySQL) are not
-// testable here; a signature break surfaces in the gameserver build, not
-// in the default ctest suite (nothing there compiles this seam).
+// CharacterRepository is write-only and has NO fake tier, so these tests
+// carry the load: every written column is asserted with a distinct
+// sentinel so argument transpositions cannot survive, and every dispatch
+// branch is exercised. Known holes: the `Rank` backticks (load-bearing
+// only on MySQL 8, where RANK is reserved — this tier runs 5.7) and the
+// tinysave WHERE-casing (immaterial to MySQL) are not testable here; a
+// signature break surfaces in the gameserver build, not in the default
+// ctest suite (nothing there compiles this repository).
 
 class CharacterMySQL : public ::testing::Test {
 protected:
@@ -1043,7 +1036,7 @@ TEST_F(CharacterMySQL, OustersExpsAlwaysWriteSilverDamage) {
 }
 
 TEST_F(CharacterMySQL, TinysaveSlayerBranchHitsOnlyTheSlayerTable) {
-    // tinysave is the seam's only dispatching method (~400 call sites,
+    // tinysave is the repository's only dispatching method (~400 call sites,
     // including the absolute setGoldEx writes): every branch gets its
     // own test, each asserting the target row changed AND the twin row
     // did not.
@@ -1292,8 +1285,199 @@ TEST_F(CharacterMySQL, LoadSlayerFindsTheTwinRowEveryCharacterGetsAtCreation) {
     EXPECT_EQ(0, record.swordLevel);
 }
 
+// quest/ActionRedistributeAttr's counter: read false for a vampire with no
+// row, read the column's value otherwise, and the save scoped to the name.
+TEST_F(CharacterMySQL, VampireRedistributeAttrIsReadAndSavedPerName) {
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    PlayerFixture other = PlayerFixtures::lowLevelVampire();
+    vampire.persist();
+    other.persist();
+    execSQL("UPDATE Vampire SET RedistributeAttr = 7 WHERE Name = '" + vampire.name + "'");
+    execSQL("UPDATE Vampire SET RedistributeAttr = 2 WHERE Name = '" + other.name + "'");
+
+    int value = -1;
+    EXPECT_FALSE(defaultCharacterRepository().loadVampireRedistributeAttr("itnobody", value));
+    EXPECT_EQ(-1, value); // a miss leaves the out-parameter alone
+    ASSERT_TRUE(defaultCharacterRepository().loadVampireRedistributeAttr(vampire.name, value));
+    EXPECT_EQ(7, value);
+
+    defaultCharacterRepository().saveVampireRedistributeAttr(value + 1, vampire.name);
+    EXPECT_EQ("8", queryScalar("SELECT RedistributeAttr FROM Vampire WHERE Name = '" + vampire.name + "'"));
+    EXPECT_EQ("2", queryScalar("SELECT RedistributeAttr FROM Vampire WHERE Name = '" + other.name + "'"));
+    ASSERT_TRUE(defaultCharacterRepository().loadVampireRedistributeAttr(vampire.name, value));
+    EXPECT_EQ(8, value);
+}
+
+// CreatureUtil's GM lookups: the Race text comes from the SLAYER row
+// whatever the race (the character index), the guild id from the race's
+// own table, and the sex write lands in Slayer AND Vampire (the caller never
+// reaches it for an ousters);
+// a second character's rows are untouched, a name without rows is false.
+TEST_F(CharacterMySQL, RaceTextGuildIDAndSexGoThroughTheRaceTables) {
+    CharacterRepository& repository = defaultCharacterRepository();
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    PlayerFixture other = PlayerFixtures::lowLevelVampire();
+    vampire.persist();
+    other.persist();
+    execSQL("UPDATE Slayer SET Race = 'VAMPIRE', GuildID = 7, Sex = 'MALE' WHERE Name = '" + vampire.name + "'");
+    execSQL("UPDATE Vampire SET GuildID = 5, Sex = 'MALE' WHERE Name = '" + vampire.name + "'");
+    execSQL("UPDATE Slayer SET Sex = 'MALE' WHERE Name = '" + other.name + "'");
+
+    std::string race = "untouched";
+    EXPECT_FALSE(repository.loadSlayerRaceText("itnobody", race));
+    EXPECT_EQ("untouched", race);
+    ASSERT_TRUE(repository.loadSlayerRaceText(vampire.name, race));
+    EXPECT_EQ("VAMPIRE", race);
+
+    int guildID = -1;
+    ASSERT_TRUE(repository.loadGuildID(vampire.name, CHARACTER_RACE_VAMPIRE, guildID));
+    EXPECT_EQ(5, guildID);
+    ASSERT_TRUE(repository.loadGuildID(vampire.name, CHARACTER_RACE_SLAYER, guildID));
+    EXPECT_EQ(7, guildID);
+    guildID = -1;
+    EXPECT_FALSE(repository.loadGuildID(vampire.name, CHARACTER_RACE_OUSTERS, guildID)); // no Ousters row
+    EXPECT_EQ(-1, guildID);
+
+    repository.saveSex(vampire.name, "FEMALE");
+    EXPECT_EQ("FEMALE", queryScalar("SELECT Sex FROM Slayer WHERE Name = '" + vampire.name + "'"));
+    EXPECT_EQ("FEMALE", queryScalar("SELECT Sex FROM Vampire WHERE Name = '" + vampire.name + "'"));
+    EXPECT_EQ("MALE", queryScalar("SELECT Sex FROM Slayer WHERE Name = '" + other.name + "'"));
+}
+
+// CGSayHandler's guild-master checks: the six Slayer columns, one race's
+// Level from its own table, each false for a name without a row there;
+// and the opdeny spelling of the account lookup reaching the same row as
+// the whisper spelling.
+TEST_F(CharacterMySQL, GuildMasterStatsLevelsAndTheOpdenySpellingReadTheirTables) {
+    CharacterRepository& repository = defaultCharacterRepository();
+    PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
+    PlayerFixture vampire = PlayerFixtures::midLevelVampire();
+    PlayerFixture ousters = PlayerFixtures::midLevelOusters();
+    slayer.persist();
+    vampire.persist();
+    ousters.persist();
+    execSQL("UPDATE Slayer SET Fame = 777, BladeLevel = 1, SwordLevel = 2, GunLevel = 3, HealLevel = 4, "
+            "EnchantLevel = 5, PlayerID = 'it-acct' WHERE Name = '" +
+            slayer.name + "'");
+    execSQL("UPDATE Vampire SET Level = 66 WHERE Name = '" + vampire.name + "'");
+    execSQL("UPDATE Ousters SET Level = 77 WHERE Name = '" + ousters.name + "'");
+
+    SlayerMasterStatsRow stats;
+    EXPECT_FALSE(repository.loadSlayerMasterStats("itnobody", stats));
+    ASSERT_TRUE(repository.loadSlayerMasterStats(slayer.name, stats));
+    EXPECT_EQ(777, stats.fame);
+    EXPECT_EQ(1, stats.bladeLevel);
+    EXPECT_EQ(2, stats.swordLevel);
+    EXPECT_EQ(3, stats.gunLevel);
+    EXPECT_EQ(4, stats.healLevel);
+    EXPECT_EQ(5, stats.enchantLevel);
+
+    int level = -1;
+    // (a persisted slayer has a Vampire row too — creation writes both, as the fixture does)
+    EXPECT_FALSE(repository.loadVampireLevel("itnobody", level));
+    ASSERT_TRUE(repository.loadVampireLevel(vampire.name, level));
+    EXPECT_EQ(66, level);
+    EXPECT_FALSE(repository.loadOustersLevel(vampire.name, level)); // no Ousters row for a vampire
+    ASSERT_TRUE(repository.loadOustersLevel(ousters.name, level));
+    EXPECT_EQ(77, level);
+
+    std::string playerID;
+    ASSERT_TRUE(repository.loadSlayerPlayerID(PLAYERID_SPELLING_OPDENY, slayer.name, playerID));
+    EXPECT_EQ("it-acct", playerID);
+    playerID = "";
+    ASSERT_TRUE(repository.loadSlayerPlayerID(PLAYERID_SPELLING_WHISPER, slayer.name, playerID));
+    EXPECT_EQ("it-acct", playerID);
+    EXPECT_FALSE(repository.loadSlayerPlayerID(PLAYERID_SPELLING_OPDENY, "itnobody", playerID));
+}
+
+// --- the character purge against real MySQL ----------------------------------
+// One method, 109 statements. The test seeds rows for two names in a
+// sample of the tables from every stretch of the list (the race tables, a
+// skill save, the rank bonus, two object tables, GQuestSave, CoupleInfo in
+// both partner columns, two effect tables, FlagSet, TimeLimitItems,
+// EventQuestAdvance), purges one name and checks the other is whole.
+
+class CharacterPurgeMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        const char* byName[] = {"Slayer", "Vampire", "Ousters"};
+        for (size_t i = 0; i < 3; i++)
+            execSQL(std::string("DELETE FROM ") + byName[i] + " WHERE Name LIKE 'it-p%'");
+        const char* byOwner[] = {"SkillSave",       "RankBonusData", "ARObject", "BeltObject",     "GQuestSave",
+                                 "EffectAcidTouch", "EnemyErase",    "FlagSet",  "TimeLimitItems", "EventQuestAdvance"};
+        for (size_t i = 0; i < sizeof(byOwner) / sizeof(byOwner[0]); i++)
+            execSQL(std::string("DELETE FROM ") + byOwner[i] + " WHERE OwnerID LIKE 'it-p%'");
+        execSQL("DELETE FROM CoupleInfo WHERE MalePartnerName LIKE 'it-p%' OR FemalePartnerName LIKE 'it-p%'");
+    }
+    static void seed(const std::string& name, int id) {
+        const std::string n = "'" + name + "'";
+        const std::string i = std::to_string(id);
+        execSQL("INSERT INTO Slayer (Name, Active) VALUES (" + n + ", 'ACTIVE')");
+        execSQL("INSERT INTO Vampire (Name, Active) VALUES (" + n + ", 'ACTIVE')");
+        execSQL("INSERT INTO Ousters (Name, Active) VALUES (" + n + ", 'ACTIVE')");
+        execSQL("INSERT INTO SkillSave (OwnerID, SkillType) VALUES (" + n + ", 1)");
+        execSQL("INSERT INTO RankBonusData (OwnerID, Type) VALUES (" + n + ", 1)");
+        execSQL("INSERT INTO ARObject (ItemID, OwnerID) VALUES (" + i + ", " + n + ")");
+        execSQL("INSERT INTO BeltObject (ItemID, OwnerID) VALUES (" + i + ", " + n + ")");
+        execSQL("INSERT INTO GQuestSave (QuestID, OwnerID) VALUES (" + i + ", " + n + ")");
+        execSQL("INSERT INTO CoupleInfo (MalePartnerName, FemalePartnerName) VALUES (" + n + ", 'x')");
+        execSQL("INSERT INTO CoupleInfo (MalePartnerName, FemalePartnerName) VALUES ('y', " + n + ")");
+        execSQL("INSERT INTO EffectAcidTouch (OwnerID) VALUES (" + n + ")");
+        execSQL("INSERT INTO EnemyErase (OwnerID) VALUES (" + n + ")");
+        execSQL("INSERT INTO FlagSet (OwnerID) VALUES (" + n + ")");
+        execSQL("INSERT INTO TimeLimitItems (OwnerID, ItemID) VALUES (" + n + ", " + i + ")");
+        execSQL("INSERT INTO EventQuestAdvance (OwnerID, QuestLevel) VALUES (" + n + ", 1)");
+    }
+    static std::string rowsOf(const std::string& name) {
+        const std::string n = "'" + name + "'";
+        return queryScalar("SELECT (SELECT COUNT(*) FROM SkillSave WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM RankBonusData WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM ARObject WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM BeltObject WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM GQuestSave WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM CoupleInfo WHERE MalePartnerName = " + n +
+                           " OR FemalePartnerName = " + n +
+                           ") + (SELECT COUNT(*) FROM EffectAcidTouch WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM EnemyErase WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM FlagSet WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM TimeLimitItems WHERE OwnerID = " + n +
+                           ") + (SELECT COUNT(*) FROM EventQuestAdvance WHERE OwnerID = " + n + ")");
+    }
+};
+
+TEST_F(CharacterPurgeMySQL, PurgeRetiresTheRaceRowsAndDeletesEveryOtherRowOfThatNameOnly) {
+    seed("it-purge", 31000);
+    seed("it-pkeep", 31001);
+    ASSERT_EQ("12", rowsOf("it-purge"));
+    ASSERT_EQ("12", rowsOf("it-pkeep"));
+
+    defaultCharacterPurgeRepository().purgeCharacter("it-purge");
+
+    // The race rows stay, flipped to INACTIVE — all three, whatever the race.
+    EXPECT_EQ("INACTIVE", queryScalar("SELECT Active FROM Slayer WHERE Name = 'it-purge'"));
+    EXPECT_EQ("INACTIVE", queryScalar("SELECT Active FROM Vampire WHERE Name = 'it-purge'"));
+    EXPECT_EQ("INACTIVE", queryScalar("SELECT Active FROM Ousters WHERE Name = 'it-purge'"));
+    EXPECT_EQ("0", rowsOf("it-purge"));
+
+    // The other name is whole.
+    EXPECT_EQ("ACTIVE", queryScalar("SELECT Active FROM Slayer WHERE Name = 'it-pkeep'"));
+    EXPECT_EQ("ACTIVE", queryScalar("SELECT Active FROM Vampire WHERE Name = 'it-pkeep'"));
+    EXPECT_EQ("ACTIVE", queryScalar("SELECT Active FROM Ousters WHERE Name = 'it-pkeep'"));
+    EXPECT_EQ("12", rowsOf("it-pkeep"));
+
+    // A name with no rows anywhere purges without complaint (every statement
+    // simply matches nothing).
+    EXPECT_NO_THROW(defaultCharacterPurgeRepository().purgeCharacter("it-pnone"));
+}
+
 // --- SkillSave / VampireSkillSave / OustersSkillSave against real MySQL ---
-// Like CharacterRepository, a seam with NO fake tier: these tests are the
+// Like CharacterRepository, a repository with NO fake tier: these tests are the
 // net. Every inserted column is read back through the load, every
 // update asserts both the columns it writes and the ones it must leave
 // alone, and the row order the ORDER-BY-less loads produce is pinned
@@ -1389,9 +1573,8 @@ TEST_F(SkillSaveMySQL, LoadReturnsEveryRowIncludingDuplicateTypes) {
 TEST_F(SkillSaveMySQL, LoadOrderObservedOnThe57TierIsInsertionOrderNotSkillTypeOrder) {
     // An OBSERVATION, not a contract: no ORDER BY and no primary key, so
     // the row order is whatever access path the optimizer picks. The
-    // first draft asserted SkillType-ascending order (reasoning from the
-    // (OwnerID, SkillType) secondary index) and the real MySQL 5.7
-    // FALSIFIED it: on this tier's near-empty table — where the WHERE
+    // (OwnerID, SkillType) secondary index suggests SkillType-ascending
+    // order, but on this tier's near-empty table — where the WHERE
     // matches essentially every row and the index does not cover the
     // SELECT — the rows come back in insertion order, a scan in
     // hidden-row-id order. A populated table, or MySQL 8 (supported, but
@@ -1777,7 +1960,7 @@ TEST_F(CreatureEffectMySQL, LevelComesBackThroughEachTablesOwnGetter) {
 
     // EffectBloodDrain.Level is tinyint(3) unsigned, so the column caps the
     // value at 255 before its getBYTE ever sees it: the two getters cannot
-    // actually disagree, and the seam keeps each table's own anyway.
+    // actually disagree, and the repository keeps each table's own anyway.
     repository.insertCreatureEffect(CREATURE_EFFECT_BLOOD_DRAIN, ousters.name, 1, 1700000001, 300, 0);
     EXPECT_EQ("255", columnOf("EffectBloodDrain", "Level", ousters.name));
     rows = repository.loadCreatureEffects(CREATURE_EFFECT_BLOOD_DRAIN, ousters.name);
@@ -2120,6 +2303,33 @@ TEST_F(ZoneInfoMySQL, TriggersRegenRectsAndWayPointsAreScopedToTheZoneAndRace) {
     EXPECT_EQ(3, triggers[0].right);
     EXPECT_EQ(4, triggers[0].bottom);
 
+    // quest/TriggerManager's follow-up read of one rectangle's scripts: the
+    // five columns, scoped to the zone AND all four coordinates — a
+    // same-zone row differing in exactly one coordinate is seeded for each
+    // of X1, Y1, X2 and Y2, so dropping any one clause would return two rows
+    // (and the other zone's 9,9,9,9 row stays out).
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, TriggerType, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, "
+            "CounterActions) VALUES (31002, 'MONSTER', 31000, 1, 2, 3, 5, ' c2 ', 'a2', 'ca2')");
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, TriggerType, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, "
+            "CounterActions) VALUES (31003, 'MONSTER', 31000, 0, 2, 3, 4, '', '', '')");
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, TriggerType, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, "
+            "CounterActions) VALUES (31004, 'MONSTER', 31000, 1, 0, 3, 4, '', '', '')");
+    execSQL("INSERT INTO ZoneTriggers (TriggerID, TriggerType, ZoneID, X1, Y1, X2, Y2, Conditions, Actions, "
+            "CounterActions) VALUES (31005, 'MONSTER', 31000, 1, 2, 0, 4, '', '', '')");
+    std::vector<ZoneTriggerRow> scripts = defaultZoneInfoRepository().loadZoneTriggers(IT_ZONE, 1, 2, 3, 4);
+    ASSERT_EQ(1u, scripts.size());
+    EXPECT_EQ(31000, scripts[0].triggerID);
+    EXPECT_EQ("QUEST", scripts[0].triggerType); // the column's default
+    EXPECT_EQ("", scripts[0].conditions);
+    scripts = defaultZoneInfoRepository().loadZoneTriggers(IT_ZONE, 1, 2, 3, 5);
+    ASSERT_EQ(1u, scripts.size());
+    EXPECT_EQ(31002, scripts[0].triggerID);
+    EXPECT_EQ("MONSTER", scripts[0].triggerType);
+    EXPECT_EQ(" c2 ", scripts[0].conditions); // untrimmed: the caller trims
+    EXPECT_EQ("a2", scripts[0].actions);
+    EXPECT_EQ("ca2", scripts[0].counterActions);
+    EXPECT_TRUE(defaultZoneInfoRepository().loadZoneTriggers(IT_ZONE_2, 1, 2, 3, 4).empty());
+
     std::vector<ZoneRectRow> regens = defaultZoneInfoRepository().loadPKZoneRegenRects(IT_ZONE);
     ASSERT_EQ(1u, regens.size());
     EXPECT_EQ(5, regens[0].left);
@@ -2164,13 +2374,13 @@ TEST_F(MessageMySQL, TheThreeUnionNoticeSpellingsAreOneStatementWithThreeTexts) 
     // NOTE: this test proves the three spellings are EQUIVALENT. It cannot
     // prove the mapping is right — swap two enumerators and every
     // assertion below still passes, because MySQL cannot tell the
-    // spellings apart. That mapping is held by review.
+    // spellings apart.
     //
-    // The union handlers wrote this INSERT three ways — backticked or not,
+    // The union handlers issue this INSERT three ways — backticked or not,
     // with or without a space before the VALUES list. MySQL ignores both
-    // differences, so all three land the same shape of row; the seam keeps
-    // them apart because task 3.2 preserves bytes, not because they behave
-    // differently. This test is what says so.
+    // differences, so all three land the same shape of row; the
+    // repository keeps them apart to send each caller's exact bytes, not
+    // because they behave differently. This test is what says so.
     repository.insertUnionNotice(UNION_NOTICE_PLAIN, slayer.name, "plain");
     repository.insertUnionNotice(UNION_NOTICE_QUOTED_SPACED, slayer.name, "quoted spaced");
     repository.insertUnionNotice(UNION_NOTICE_QUOTED, slayer.name, "quoted");
@@ -2222,6 +2432,8 @@ protected:
     virtual void SetUp() {
         execSQL("DELETE FROM Event200501Main WHERE PlayerID = 'itaccount'");
         execSQL("DELETE FROM Event200501Recommend WHERE PlayerID = 'itaccount'");
+        execSQL("DELETE FROM DonationPersonal200501 WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM DonationGuild200501 WHERE Name LIKE 'it-%'");
     }
 };
 
@@ -2248,6 +2460,86 @@ TEST_F(ComebackEventMySQL, ThePredicatesFollowTheZeroDateColumns) {
     EXPECT_TRUE(repository.hasUnclaimedRecommendItem("itaccount"));
     execSQL("UPDATE Event200501Recommend SET RecvItemDate = '2005-01-04' WHERE PlayerID = 'itaccount'");
     EXPECT_FALSE(repository.hasUnclaimedRecommendItem("itaccount"));
+}
+
+// CGGetEventItemHandler's hand-out: the date columns come back as the text
+// the handler compares to '0000-00-00' (the zero default first, then what
+// each stamp wrote — today's date, since the stamps write now() into a
+// DATE column); each read is false for an account without a row, and the
+// recommend read takes a row by PlayerID while its stamp keys on UniqueID.
+TEST_F(ComebackEventMySQL, HandOutReadsTheDateTextsAndTheStampsWriteToday) {
+    ComebackEventRepository& repository = defaultComebackEventRepository();
+    std::string recv, pay, recvPremium;
+    int uniqueID = -1;
+
+    EXPECT_FALSE(repository.loadMainRecvItemDate("itaccount", recv));
+    EXPECT_FALSE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
+    EXPECT_FALSE(repository.loadRecommendRow("itaccount", uniqueID, recv));
+    EXPECT_EQ(-1, uniqueID);
+
+    execSQL("INSERT INTO Event200501Main (PlayerID, PayPremiumDate) VALUES ('itaccount', '2005-01-02')");
+    ASSERT_TRUE(repository.loadMainRecvItemDate("itaccount", recv));
+    EXPECT_EQ("0000-00-00", recv);
+    ASSERT_TRUE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
+    EXPECT_EQ("2005-01-02", pay);
+    EXPECT_EQ("0000-00-00", recvPremium);
+
+    const std::string today = queryScalar("SELECT CURDATE()");
+    repository.markMainItemReceived("itaccount");
+    ASSERT_TRUE(repository.loadMainRecvItemDate("itaccount", recv));
+    EXPECT_EQ(today, recv);
+    EXPECT_FALSE(repository.hasUnclaimedItem("itaccount")); // the zone's predicate agrees
+    ASSERT_TRUE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
+    EXPECT_EQ("0000-00-00", recvPremium); // the other stamp is untouched
+    EXPECT_TRUE(repository.hasUnclaimedPremiumItem("itaccount"));
+    repository.markMainPremiumItemReceived("itaccount");
+    ASSERT_TRUE(repository.loadMainPremiumDates("itaccount", pay, recvPremium));
+    EXPECT_EQ(today, recvPremium);
+    EXPECT_EQ("2005-01-02", pay);
+    EXPECT_FALSE(repository.hasUnclaimedPremiumItem("itaccount")); // the zone's predicate agrees
+
+    execSQL("INSERT INTO Event200501Recommend (PlayerID, Recommender) VALUES ('itaccount', 'friend')");
+    ASSERT_TRUE(repository.loadRecommendRow("itaccount", uniqueID, recv));
+    EXPECT_EQ("0000-00-00", recv);
+    EXPECT_EQ(atoi(queryScalar("SELECT UniqueID FROM Event200501Recommend WHERE PlayerID = 'itaccount'").c_str()),
+              uniqueID);
+    repository.markRecommendItemReceived(uniqueID);
+    ASSERT_TRUE(repository.loadRecommendRow("itaccount", uniqueID, recv));
+    EXPECT_EQ(today, recv);
+    EXPECT_FALSE(repository.hasUnclaimedRecommendItem("itaccount"));
+}
+
+// CGDonationMoneyHandler's record: the two positional INSERTs land every
+// value in the column its position names, the counts are scoped to the
+// name AND the world id (a row of the same name in another world is not
+// counted), and a name with no rows counts 0.
+TEST_F(ComebackEventMySQL, DonationsAreRecordedPositionallyAndCountedPerNameAndWorld) {
+    ComebackEventRepository& repository = defaultComebackEventRepository();
+
+    EXPECT_EQ(0, repository.countPersonalDonations("it-char", 4));
+    EXPECT_EQ(0, repository.countGuildDonations("it-char", 4));
+
+    repository.insertPersonalDonation("it-acct", "it-char", 4, 1234567u);
+    repository.insertPersonalDonation("it-acct", "it-char", 5, 1u); // another world
+    repository.insertGuildDonation(31000, "it-guild", "it-acct", "it-char", 4, 99u);
+
+    EXPECT_EQ(1, repository.countPersonalDonations("it-char", 4));
+    EXPECT_EQ(1, repository.countPersonalDonations("it-char", 5));
+    EXPECT_EQ(1, repository.countGuildDonations("it-char", 4));
+    EXPECT_EQ(0, repository.countGuildDonations("it-char", 5));
+
+    const std::string personal = " FROM DonationPersonal200501 WHERE Name = 'it-char' AND WorldID = 4";
+    EXPECT_EQ("it-acct", queryScalar("SELECT PlayerID" + personal));
+    EXPECT_EQ("1234567", queryScalar("SELECT Amount" + personal));
+    EXPECT_EQ("1", queryScalar("SELECT DonationDateTime > '2026-01-01'" + personal));
+
+    const std::string guild = " FROM DonationGuild200501 WHERE Name = 'it-char'";
+    EXPECT_EQ("31000", queryScalar("SELECT GuildID" + guild));
+    EXPECT_EQ("it-guild", queryScalar("SELECT GuildName" + guild));
+    EXPECT_EQ("it-acct", queryScalar("SELECT PlayerID" + guild));
+    EXPECT_EQ("4", queryScalar("SELECT WorldID" + guild));
+    EXPECT_EQ("99", queryScalar("SELECT Amount" + guild));
+    EXPECT_EQ("1", queryScalar("SELECT DonationDateTime > '2026-01-01'" + guild));
 }
 
 // --- BulletinBoardObject against real MySQL -------------------------------
@@ -2309,8 +2601,8 @@ TEST_F(RegenZoneMySQL, LoadPositionsReturnsEveryColumnInSelectPosition) {
 // shape (a maximum exists, the rows stay within it, the lists are not
 // empty — exactly what the boot-time loaders require) rather than on
 // rows they insert. The one write-free quirk worth pinning is the MAX()
-// probe over nothing: MySQL answers with one NULL row, which the inline
-// code would have atoi(NULL)'d; the seam reports "no maximum".
+// probe over nothing: MySQL answers with one NULL row; the repository
+// reports "no maximum".
 
 TEST(BalanceInfoMySQL, EveryLadderHasAMaximumAndItsRowsStayWithinIt) {
     BalanceInfoRepository& repository = defaultBalanceInfoRepository();
@@ -2434,7 +2726,7 @@ TEST(GameInfoMySQL, EveryMonsterNameListIsNonEmpty) {
     }
 }
 
-// --- the config loaders of the second game-info round ---------------------
+// --- the remaining config loaders ----------------------------------------
 // All read-only, all shipped seeded: the tests assert the shape the boot
 // requires (the weather and grade tables' exact row counts, the others
 // non-empty and internally consistent) plus the two per-zone reads
@@ -2452,6 +2744,27 @@ TEST(ConfigLoadersMySQL, WeatherAndGradeTablesHaveTheirFixedRowCounts) {
     ASSERT_EQ(10u, grades.size());
     for (size_t r = 0; r < grades.size(); r++)
         EXPECT_TRUE(grades[r].grade >= 1 && grades[r].grade <= 10);
+}
+
+// The shop actions' per-NPC read: only the NPC's rows, and nothing for an
+// NPC without rows. The SELECT has no ORDER BY, so the order the actions
+// append the ids in is the optimizer's choice (the table's only index is
+// the unique key on ID); the test checks membership, not order.
+TEST(ConfigLoadersMySQL, ShopTemplateIDsAreReadPerNPC) {
+    execSQL("DELETE FROM ShopTemplate WHERE ID >= 31000");
+    execSQL("INSERT INTO ShopTemplate (ID, ShopType, ItemClass, MinItemType, MaxItemType, MinOptionLevel, "
+            "MaxOptionLevel, NPCID) VALUES (31001, 1, 2, 3, 4, 5, 6, 31000)");
+    execSQL("INSERT INTO ShopTemplate (ID, ShopType, ItemClass, MinItemType, MaxItemType, MinOptionLevel, "
+            "MaxOptionLevel, NPCID) VALUES (31000, 1, 2, 3, 4, 5, 6, 31000)");
+    execSQL("INSERT INTO ShopTemplate (ID, ShopType, ItemClass, MinItemType, MaxItemType, MinOptionLevel, "
+            "MaxOptionLevel, NPCID) VALUES (31002, 1, 2, 3, 4, 5, 6, 31001)");
+
+    std::vector<int> ids = defaultGameInfoRepository().loadShopTemplateIDsOfNPC(31000);
+    ASSERT_EQ(2u, ids.size());
+    EXPECT_TRUE((ids[0] == 31000 && ids[1] == 31001) || (ids[0] == 31001 && ids[1] == 31000))
+        << ids[0] << " " << ids[1];
+    EXPECT_TRUE(defaultGameInfoRepository().loadShopTemplateIDsOfNPC(31002).empty());
+    execSQL("DELETE FROM ShopTemplate WHERE ID >= 31000");
 }
 
 TEST(ConfigLoadersMySQL, EveryWholeTableConfigListIsNonEmpty) {
@@ -2688,10 +3001,9 @@ protected:
 };
 
 TEST_F(NicknameMySQL, LoadReturnsNIDAscendingNotInsertionOrder) {
-    // The pilot's fake documented "insertion order" for this ORDER-BY-less
-    // SELECT; flagged in the PR #31 review as unverified. Reality: the
-    // secondary index IDX_OwnerID carries the primary key (nID, OwnerID)
-    // as its suffix, so the ref scan returns nID ascending.
+    // The SELECT has no ORDER BY, but the secondary index IDX_OwnerID
+    // carries the primary key (nID, OwnerID) as its suffix, so the ref
+    // scan returns nID ascending, not insertion order.
     PlayerFixture ousters = PlayerFixtures::midLevelOusters();
     ousters.persist();
 
@@ -2705,8 +3017,36 @@ TEST_F(NicknameMySQL, LoadReturnsNIDAscendingNotInsertionOrder) {
     EXPECT_EQ(10001, records[1].id);
 }
 
+// CGSayHandler's forced nickname: REPLACE creates the id-100 row with
+// NickIndex 0 and a server-side Time, a second REPLACE overwrites it in
+// place (still one row), the other rows of the owner are untouched, and
+// the DELETE removes id 100 alone.
+TEST_F(NicknameMySQL, ForcedNicknameIsReplacedInPlaceAndDeletedAlone) {
+    PlayerFixture ousters = PlayerFixtures::midLevelOusters();
+    ousters.persist();
+    NicknameRepository& repository = defaultNicknameRepository();
+    repository.insert(ousters.name, 7, NicknameInfo::NICK_CUSTOM, "kept");
+
+    repository.replaceForcedNickname(ousters.name, NicknameInfo::NICK_CUSTOM_FORCED, "forced one");
+    const std::string forced = " FROM NicknameBook WHERE OwnerID = '" + ousters.name + "' AND nID = 100";
+    EXPECT_EQ("forced one", queryScalar("SELECT Nickname" + forced));
+    EXPECT_EQ(std::to_string((int)NicknameInfo::NICK_CUSTOM_FORCED), queryScalar("SELECT NickType" + forced));
+    EXPECT_EQ("0", queryScalar("SELECT NickIndex" + forced));
+    EXPECT_EQ("1", queryScalar("SELECT Time > '2026-01-01'" + forced));
+
+    repository.replaceForcedNickname(ousters.name, NicknameInfo::NICK_CUSTOM_FORCED, "forced two");
+    EXPECT_EQ("forced two", queryScalar("SELECT Nickname" + forced));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + forced));
+    EXPECT_EQ("2", queryScalar("SELECT COUNT(*) FROM NicknameBook WHERE OwnerID = '" + ousters.name + "'"));
+
+    repository.deleteForcedNickname(ousters.name);
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*)" + forced));
+    EXPECT_EQ("kept",
+              queryScalar("SELECT Nickname FROM NicknameBook WHERE OwnerID = '" + ousters.name + "' AND nID = 7"));
+}
+
 // --- the race-war cluster against real MySQL -------------------------------
-// Seven war files, one seam mixing boot-time reads with runtime writes.
+// One repository mixing boot-time reads with runtime writes.
 // Every table is seeded; the tests work on rows they insert (ids from
 // 31000 up where the column allows it, 250 up for the BYTE-typed sweeper
 // bonus Type) and clean them in SetUp/TearDown.
@@ -3238,9 +3578,9 @@ TEST_F(WarInfoMySQL, TheParticipantListReadTakesItsRaceFromTheNameColumn) {
             numeric = rows[r].race;
     }
 
-    // The Race column holds 1 and 2. The loader reports 0 and 7, because the
-    // inline read this seam preserves hands getInt column 1 — Name — and
-    // getInt is atoi. The caller then uses that value to index a
+    // The Race column holds 1 and 2. The loader reports 0 and 7, because it
+    // hands getInt column 1 — Name — and getInt is atoi. The caller then
+    // uses that value to index a
     // three-element array: "itrw1" parses to 0 and merely lands in the
     // wrong bucket, while "7abc" parses to 7 and writes outside the array.
     // Pinned, not fixed: correcting it is a behaviour change of its own.
@@ -3358,11 +3698,11 @@ TEST_F(WarInfoMySQL, MasterLairRowsCarryAllTwentyFiveColumns) {
 }
 
 // --- the item bookkeeping cluster against real MySQL --------------------
-// Seven item files, one seam plus four option-table loads on the game-info
-// seam. The tests work on rows they insert (ids from 31000 up; ItemClass
-// 250 for UniqueItemInfo's tinyint key; 'it-' owners) and clean them in
+// ItemRepository plus four option-table loads on GameInfoRepository. The
+// tests work on rows they insert (ids from 31000 up; ItemClass 250 for
+// UniqueItemInfo's tinyint key; 'it-' owners) and clean them in
 // SetUp/TearDown. PotionObject stands in for the per-class item-object
-// tables whose NAME the seam takes as data.
+// tables whose NAME the repository takes as data.
 
 class ItemMySQL : public ::testing::Test {
 protected:
@@ -3374,8 +3714,11 @@ protected:
     }
     static void clean() {
         execSQL("DELETE FROM ItemTraceLog WHERE OwnerID LIKE 'it-%'");
+        execSQL("DELETE FROM OpCreate WHERE OpName LIKE 'it-%'");
         execSQL("DELETE FROM MoneyTraceLog WHERE OwnerID LIKE 'it-%'");
         execSQL("DELETE FROM EventQuestRewardSchedule WHERE RewardID >= 31000");
+        execSQL("DELETE FROM EventQuestRewardRecord WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM EventStarObject WHERE ItemID >= 31000");
         execSQL("DELETE FROM UniqueItemInfo WHERE ItemClass >= 250");
         execSQL("DELETE FROM TimeLimitItems WHERE OwnerID LIKE 'it-%'");
         execSQL("DELETE FROM CardCount WHERE CARDKIND >= 31000");
@@ -3386,6 +3729,16 @@ protected:
         execSQL("DELETE FROM PotionObject WHERE ItemID >= 31000");
     }
 };
+
+// CGSayHandler's opcreate log: the three texts in their columns (DateTime
+// is a varchar the caller formats, not a server-side time).
+TEST_F(ItemMySQL, OpCreateLogRowCarriesTheThreeTexts) {
+    defaultItemRepository().insertOpCreateLog("it-gm", "2026-09-06 10:00:00", "Sword(31000)");
+    const std::string where = " FROM OpCreate WHERE OpName = 'it-gm'";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
+    EXPECT_EQ("2026-09-06 10:00:00", queryScalar("SELECT DateTime" + where));
+    EXPECT_EQ("Sword(31000)", queryScalar("SELECT ItemDesc" + where));
+}
 
 TEST_F(ItemMySQL, TraceLogsAreInsertedWithTheirEnumTextsAndAServerSideTime) {
     ItemTraceRecord record;
@@ -3486,6 +3839,53 @@ TEST_F(ItemMySQL, TimeLimitItemsAreLoadedByOwnerAndStatusAndUpdatedByOwnerClassA
     EXPECT_EQ(1u, repository.loadTimeLimitItems("it-other", 0).size());
 }
 
+// quest/ActionGiveCommonEventItem's counter: (Race, ItemIndex)-keyed, the
+// race a BYTE. Race 250 is outside the game's three races; its rows are
+// this test's and are removed by value.
+TEST_F(ItemMySQL, EventItemCount2IncrementsOnlyItsRaceAndIndex) {
+    execSQL("DELETE FROM EventItemCount2 WHERE Race = 250");
+    execSQL("INSERT INTO EventItemCount2 (Race, ItemIndex, Count) VALUES (250, 1, 5)");
+    execSQL("INSERT INTO EventItemCount2 (Race, ItemIndex, Count) VALUES (250, 2, 5)");
+
+    defaultItemRepository().incrementEventItemCount2((Race_t)250, 1);
+
+    EXPECT_EQ("6", queryScalar("SELECT Count FROM EventItemCount2 WHERE Race=250 AND ItemIndex=1"));
+    EXPECT_EQ("5", queryScalar("SELECT Count FROM EventItemCount2 WHERE Race=250 AND ItemIndex=2"));
+    execSQL("DELETE FROM EventItemCount2 WHERE Race = 250");
+}
+
+// CGLotterySelectHandler: the win record — the character name in PlayerID,
+// the account id in RealPlayerID, the DWORD reward id, a server-side Time.
+TEST_F(ItemMySQL, EventQuestRewardRecordIsInsertedWithNameAndAccount) {
+    defaultItemRepository().insertEventQuestRewardRecord("it-char", 31000, "it-acct");
+    const std::string where = " FROM EventQuestRewardRecord WHERE PlayerID = 'it-char'";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
+    EXPECT_EQ("31000", queryScalar("SELECT RewardID" + where));
+    EXPECT_EQ("it-acct", queryScalar("SELECT RealPlayerID" + where));
+    EXPECT_EQ("1", queryScalar("SELECT Time > '2026-01-01'" + where));
+}
+
+// CGDissectionCorpseHandler's black-star cap: the sum of Num over the
+// ItemType 0 rows of EventStarObject, other types left out. initdb/ leaves
+// the table empty, but the ItemObject round-trip tests write to it too,
+// so the test measures against what stands before it adds rows.
+TEST_F(ItemMySQL, BlackStarCountSumsTheTypeZeroRowsOnly) {
+    int before = -1;
+    ASSERT_TRUE(defaultItemRepository().loadBlackStarCount(before));
+    EXPECT_EQ(atoi(queryScalar("SELECT ifnull(sum(Num),0) FROM EventStarObject WHERE ItemType=0").c_str()), before);
+
+    execSQL("INSERT INTO EventStarObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
+            "ItemFlag) VALUES (31000, 1, 0, 'it-owner', 0, 0, 0, 0, 3, 0)");
+    execSQL("INSERT INTO EventStarObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
+            "ItemFlag) VALUES (31001, 2, 0, 'it-owner', 0, 0, 0, 0, 4, 0)");
+    execSQL("INSERT INTO EventStarObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, Num, "
+            "ItemFlag) VALUES (31002, 3, 1, 'it-owner', 0, 0, 0, 0, 9, 0)"); // other type
+
+    int after = -1;
+    ASSERT_TRUE(defaultItemRepository().loadBlackStarCount(after));
+    EXPECT_EQ(before + 7, after);
+}
+
 TEST_F(ItemMySQL, EventCountersIncrementOnlyTheirRowExceptTheKeylessResurrectCount) {
     execSQL("INSERT INTO CardCount (CARDKIND, CARDCOUNT) VALUES (31000, 5)");
     execSQL("INSERT INTO CardCount (CARDKIND, CARDCOUNT) VALUES (31001, 5)");
@@ -3568,7 +3968,7 @@ TEST_F(ItemMySQL, ItemRowCountAndHighestIdAreReadFromTheNamedObjectTable) {
     EXPECT_EQ(before + 2, (int)repository.countItemRows("PotionObject"));
 
     // The dump's own rows (if any) sit below the test ids, so the two inserts
-    // decide the maximum; the scalar read pins the seam against the table.
+    // decide the maximum; the scalar read pins the repository against the table.
     DWORD highest = repository.loadMaxItemID("PotionObject");
     EXPECT_EQ(queryScalar("SELECT MAX(ItemID) FROM PotionObject"), std::to_string(highest));
     EXPECT_EQ(31007u, highest);
@@ -5259,8 +5659,8 @@ TEST_F(ItemObjectMySQL, WarItemRowsRoundTripAndTheirCreatureLoaderDeletesTheOwne
         const std::string id = std::to_string(31000 + i);
         const std::string zoneId = std::to_string(31100 + i);
 
-        // The owner's row, and a zone row belonging to somebody else. The seam returns
-        // the statement it ran - the text BloodBible, CastleSymbol and Sweeper log.
+        // The owner's row, and a zone row belonging to somebody else. The repository
+        // returns the statement it ran - the text BloodBible, CastleSymbol and Sweeper log.
         const std::string sql = repository.insertWarItem(table, 31000 + i, 77, 3, "it-owner", 1, 5, 2, 4, 10);
         EXPECT_EQ("INSERT INTO " + name + " (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y, " +
                       (table == GEAR_CASTLE_SYMBOL ? "Durability )" : "Durability)") + " VALUES(" + id +
@@ -5412,8 +5812,8 @@ TEST_F(ItemObjectMySQL, MotorcycleCodeSheetAndWarItemRowsRoundTripThroughTheirCo
         EXPECT_EQ("2,3", owned[0].optionField);
 
         // Its zone SELECT names Durability, EnchantLevel and ItemFlag, which
-        // CodeSheetObject does not have: the statement failed against this schema
-        // before the seam and fails the same way through it (END_DB rethrows).
+        // CodeSheetObject does not have: the statement fails against this schema
+        // (END_DB rethrows).
         EXPECT_ANY_THROW(repository.loadGearInZone(GEAR_CODE_SHEET, 5, 31000));
 
         repository.tinysaveGear(GEAR_CODE_SHEET, "X=9", 31000);
@@ -5432,7 +5832,7 @@ TEST_F(ItemObjectMySQL, MotorcycleCodeSheetAndWarItemRowsRoundTripThroughTheirCo
     // WarItem: the plain statements, but no loader holds SQL - so neither load serves it.
     {
         const std::string where = " FROM WarItemObject WHERE ItemID=";
-        // The seam returns the statement it ran; WarItem's create logs it to WarLog.txt.
+        // The repository returns the statement it ran; WarItem's create logs it to WarLog.txt.
         const std::string sql = repository.insertPlainItemLogged(GEAR_WAR_ITEM, 31000, 77, 3, "it-owner", 1, 5, 2, 4);
         EXPECT_EQ("INSERT INTO WarItemObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID , X, Y) "
                   "VALUES(31000, 77, 3, 'it-owner', 1, 5, 2, 4)",
@@ -5574,6 +5974,120 @@ TEST_F(ItemObjectMySQL, PetItemRowsRoundTripWithAndWithoutTheirPetColumns) {
     EXPECT_THROW(repository.destroyGearObject(GEAR_PET_ITEM, 31000), Error);
     // The ItemFlag-only zone load still serves the tables it always did.
     EXPECT_NO_THROW(repository.loadFlagItemInZone(GEAR_QUEST_ITEM, 5, 31000));
+}
+
+// The motorcycle-redeem statements: the probe, the four-column read in both
+// spellings, and the fresh-row insert in both. A row this test does not own
+// (31100) stays untouched by every step, so the reads and inserts are shown
+// scoped to the id they were given, and the REDEEM_SPELLING_QUEST_ACTION
+// insert's IGNORE is shown to matter: the handler spelling refuses a
+// duplicate key, the quest-action spelling swallows it.
+TEST_F(ItemObjectMySQL, MotorcycleRedeemProbesReadsAndInsertsInBothSpellings) {
+    ItemObjectRepository& repository = defaultItemObjectRepository();
+    const std::string where = " FROM MotorcycleObject WHERE ItemID=";
+
+    // Seed a row this test does not own; nothing below may touch it.
+    execSQL("INSERT INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, "
+            "OptionType, Durability) VALUES (31100, 5, 2, 'it-owner', 5, 9, 1, 1, '7', 44)");
+
+    EXPECT_FALSE(repository.motorcycleExists(31000));
+    EXPECT_TRUE(repository.motorcycleExists(31100));
+
+    MotorcycleRedeemRow row;
+    row.itemID = -1;
+    EXPECT_FALSE(repository.loadMotorcycleForRedeem(REDEEM_SPELLING_HANDLER, 31000, row));
+    EXPECT_FALSE(repository.loadMotorcycleForRedeem(REDEEM_SPELLING_QUEST_ACTION, 31000, row));
+    EXPECT_EQ(-1, row.itemID); // a miss leaves the row alone
+
+    // The handler spelling's insert: an empty OwnerID and OptionType in the
+    // literal, every number through "%d".
+    repository.insertRedeemedMotorcycle(REDEEM_SPELLING_HANDLER, 31000, 77, 3, 5, 31, 12, 13, 300);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where + "31000"));
+    EXPECT_EQ("", queryScalar("SELECT OwnerID" + where + "31000"));
+    EXPECT_EQ("", queryScalar("SELECT OptionType" + where + "31000"));
+    EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + "31000"));
+    EXPECT_EQ("3", queryScalar("SELECT ItemType" + where + "31000"));
+    EXPECT_EQ("5", queryScalar("SELECT Storage" + where + "31000"));
+    EXPECT_EQ("31", queryScalar("SELECT StorageID" + where + "31000"));
+    EXPECT_EQ("12", queryScalar("SELECT X" + where + "31000"));
+    EXPECT_EQ("13", queryScalar("SELECT Y" + where + "31000"));
+    EXPECT_EQ("300", queryScalar("SELECT Durability" + where + "31000"));
+    EXPECT_TRUE(repository.motorcycleExists(31000));
+
+    // Both read spellings reach the same row through their own columns.
+    for (int spelling = 0; spelling < REDEEM_SPELLING_MAX; spelling++) {
+        MotorcycleRedeemRow read;
+        ASSERT_TRUE(repository.loadMotorcycleForRedeem((MotorcycleRedeemSpelling)spelling, 31000, read))
+            << "spelling " << spelling;
+        EXPECT_EQ(31000, read.itemID);
+        EXPECT_EQ(3, read.itemType);
+        EXPECT_EQ("", read.optionField);
+        EXPECT_EQ(300, read.durability);
+
+        MotorcycleRedeemRow seeded;
+        ASSERT_TRUE(repository.loadMotorcycleForRedeem((MotorcycleRedeemSpelling)spelling, 31100, seeded))
+            << "spelling " << spelling;
+        EXPECT_EQ(31100, seeded.itemID);
+        EXPECT_EQ(2, seeded.itemType);
+        EXPECT_EQ("7", seeded.optionField);
+        EXPECT_EQ(44, seeded.durability);
+    }
+
+    // The quest-action spelling is INSERT IGNORE: a second row for the same id
+    // is swallowed and the standing row is untouched. The handler spelling
+    // has no IGNORE, so the same duplicate is a SQL failure thrown as
+    // END_DB's const char*.
+    repository.insertRedeemedMotorcycle(REDEEM_SPELLING_QUEST_ACTION, 31000, 78, 4, 5, 32, 14, 15, 301);
+    EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + "31000"));
+    EXPECT_EQ("300", queryScalar("SELECT Durability" + where + "31000"));
+    EXPECT_THROW(repository.insertRedeemedMotorcycle(REDEEM_SPELLING_HANDLER, 31000, 78, 4, 5, 32, 14, 15, 301),
+                 const char*);
+
+    // The quest-action spelling inserts a fresh id like the handler one does.
+    repository.insertRedeemedMotorcycle(REDEEM_SPELLING_QUEST_ACTION, 31001, 79, 4, 5, 32, 14, 15, 301);
+    EXPECT_EQ("79", queryScalar("SELECT ObjectID" + where + "31001"));
+    EXPECT_EQ("", queryScalar("SELECT OwnerID" + where + "31001"));
+    EXPECT_EQ("301", queryScalar("SELECT Durability" + where + "31001"));
+
+    // The row this test does not own is as seeded.
+    EXPECT_EQ("5", queryScalar("SELECT ObjectID" + where + "31100"));
+    EXPECT_EQ("44", queryScalar("SELECT Durability" + where + "31100"));
+    EXPECT_EQ("3", queryScalar("SELECT COUNT(*) FROM MotorcycleObject WHERE ItemID >= 31000"));
+}
+
+// --- SpecialEvent against real MySQL -----------------------------------------
+// The one repository that goes through DatabaseManager::getConnection(int) — the
+// world-default connection main() hands it. Rows are keyed by account id.
+
+class SpecialEventMySQL : public ::testing::Test {
+protected:
+    virtual void SetUp() {
+        clean();
+    }
+    virtual void TearDown() {
+        clean();
+    }
+    static void clean() {
+        execSQL("DELETE FROM SpecialEvent WHERE Name LIKE 'it-%'");
+    }
+};
+
+TEST_F(SpecialEventMySQL, CountIsReadPerAccountAndResetOnlyForThatAccount) {
+    execSQL("INSERT INTO SpecialEvent (Name, Count) VALUES ('it-acct', 3)");
+    execSQL("INSERT INTO SpecialEvent (Name, Count) VALUES ('it-other', 4)");
+
+    int count = -1;
+    EXPECT_FALSE(defaultSpecialEventRepository().loadCount("it-nobody", count));
+    EXPECT_EQ(-1, count); // a miss leaves the out-parameter alone
+    ASSERT_TRUE(defaultSpecialEventRepository().loadCount("it-acct", count));
+    EXPECT_EQ(3, count);
+
+    defaultSpecialEventRepository().resetCount("it-acct");
+    EXPECT_EQ("0", queryScalar("SELECT Count FROM SpecialEvent WHERE Name = 'it-acct'"));
+    EXPECT_EQ("4", queryScalar("SELECT Count FROM SpecialEvent WHERE Name = 'it-other'"));
+    ASSERT_TRUE(defaultSpecialEventRepository().loadCount("it-acct", count));
+    EXPECT_EQ(0, count); // a zeroed row still reads as present: the action
+                         // would hand out nothing, but not say "not joined"
 }
 
 // --- the quest catalogues against real MySQL -------------------------------
@@ -5784,6 +6298,7 @@ protected:
         execSQL("DELETE FROM SkillBalance WHERE Type >= 31000");
         execSQL("DELETE FROM NPC WHERE ZoneID >= 31000");
         execSQL("DELETE FROM Script WHERE ScriptID >= 31000");
+        execSQL("DELETE FROM Triggers WHERE TriggerID >= 31000");
         execSQL("DELETE FROM DirectiveSet WHERE ID >= 31000");
         execSQL("DELETE FROM AttrInfo WHERE attrID >= 31000");
     }
@@ -5963,6 +6478,35 @@ TEST_F(ContentInfoMySQL, NPCsAreScopedToTheZoneAndOptionallyTheRace) {
     EXPECT_EQ(1u, repository.loadNPCs(31001).size());
 }
 
+// quest/TriggerManager::load(name): an NPC's Triggers rows, four columns,
+// texts untrimmed (the caller trims), other NPCs' rows left out.
+TEST_F(ContentInfoMySQL, NPCTriggersAreScopedToTheNPC) {
+    execSQL("INSERT INTO Triggers (TriggerID, TriggerType, NPC, Conditions, Actions) "
+            "VALUES (31000, 'NPC', 'it-npc', ' c0 ', 'a0')");
+    execSQL("INSERT INTO Triggers (TriggerID, TriggerType, NPC, Conditions, Actions) "
+            "VALUES (31001, 'QUEST', 'it-npc', 'c1', 'a1')");
+    execSQL("INSERT INTO Triggers (TriggerID, TriggerType, NPC, Conditions, Actions) "
+            "VALUES (31002, 'NPC', 'it-other', 'c2', 'a2')");
+
+    std::vector<NPCTriggerRow> rows = defaultContentInfoRepository().loadNPCTriggers("it-npc");
+    ASSERT_EQ(2u, rows.size());
+    int seen = 0;
+    for (size_t r = 0; r < rows.size(); r++) {
+        if (rows[r].triggerID == 31000) {
+            EXPECT_EQ("NPC", rows[r].triggerType);
+            EXPECT_EQ(" c0 ", rows[r].conditions);
+            EXPECT_EQ("a0", rows[r].actions);
+            seen++;
+        } else if (rows[r].triggerID == 31001) {
+            EXPECT_EQ("QUEST", rows[r].triggerType);
+            EXPECT_EQ("c1", rows[r].conditions);
+            seen++;
+        }
+    }
+    EXPECT_EQ(2, seen);
+    EXPECT_TRUE(defaultContentInfoRepository().loadNPCTriggers("it-nobody").empty());
+}
+
 TEST_F(ContentInfoMySQL, ScriptsComeBackOrderedByScriptID) {
     execSQL("INSERT INTO Script (ScriptID, OwnerID, Subject, Content) VALUES (31001, 'it-owner', 's1**s2', 'c1')");
     execSQL("INSERT INTO Script (ScriptID, OwnerID, Subject, Content) VALUES (31000, 'it-owner', 's0', 'c0**c1')");
@@ -6041,6 +6585,9 @@ protected:
         execSQL("DELETE FROM GQuestSave WHERE OwnerID LIKE 'it-%'");
         execSQL("DELETE FROM HeadCount WHERE Name LIKE 'it-%'");
         execSQL("DELETE FROM MiniGameScores WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM TradeLog WHERE Name1 LIKE 'it-%'");
+        execSQL("DELETE FROM EventLotto WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM UnderworldEvent WHERE PlayerID LIKE 'it-%'");
     }
 };
 
@@ -6098,6 +6645,87 @@ TEST_F(PlayRecordMySQL, MiniGameScoreReadReportsTheRowOrNone) {
     EXPECT_FALSE(repository.loadMiniGameScore(120, 6, name, score)); // other level
 }
 
+// CGSubmitScoreHandler: the UPDATE replaces a standing (type, level) row
+// whose Score is GREATER than the submitted one (whether that means the
+// board keeps low scores or is simply inverted is not knowable from the
+// server: the live read has no ORDER BY, and the two commented-out reads
+// in the tree order opposite ways); a higher submission changes nothing,
+// another level's row is never touched, and with no row there is nothing
+// to update (the statement never inserts). LIMIT 1 is not pinned: the
+// test never seeds two beatable rows for one (type, level).
+TEST_F(PlayRecordMySQL, MiniGameScoreReplacesOnlyAWorseRowOfTheSameTypeAndLevel) {
+    PlayRecordRepository& repository = defaultPlayRecordRepository();
+    execSQL("INSERT INTO MiniGameScores (Name, Type, Level, Score) VALUES ('it-scorer', 120, 5, 999)");
+    execSQL("INSERT INTO MiniGameScores (Name, Type, Level, Score) VALUES ('it-scorer', 120, 6, 999)");
+
+    repository.recordMiniGameScore("it-new", 500, 120, 5);
+    EXPECT_EQ("it-new", queryScalar("SELECT Name FROM MiniGameScores WHERE Type=120 AND Level=5"));
+    EXPECT_EQ("500", queryScalar("SELECT Score FROM MiniGameScores WHERE Type=120 AND Level=5"));
+    EXPECT_EQ("it-scorer", queryScalar("SELECT Name FROM MiniGameScores WHERE Type=120 AND Level=6"));
+
+    repository.recordMiniGameScore("it-worse", 700, 120, 5); // 500 > 700 is false
+    EXPECT_EQ("it-new", queryScalar("SELECT Name FROM MiniGameScores WHERE Type=120 AND Level=5"));
+
+    repository.recordMiniGameScore("it-new", 1, 120, 7); // no row for this level
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM MiniGameScores WHERE Type=120 AND Level=7"));
+}
+
+// CreatureUtil's lotto counter: the first add of a (player, type) takes the
+// REPLACE (the UPDATE changed no row) and reads back num; the next takes
+// the UPDATE and reads back the sum; another type is its own row.
+TEST_F(PlayRecordMySQL, LottoCountIsReplacedThenAddedToPerPlayerAndType) {
+    PlayRecordRepository& repository = defaultPlayRecordRepository();
+    int count = -1;
+
+    ASSERT_TRUE(repository.addLotto("it-acct", 3, 2, count));
+    EXPECT_EQ(2, count);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM EventLotto WHERE PlayerID = 'it-acct'"));
+    ASSERT_TRUE(repository.addLotto("it-acct", 3, 5, count));
+    EXPECT_EQ(7, count);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM EventLotto WHERE PlayerID = 'it-acct'"));
+    ASSERT_TRUE(repository.addLotto("it-acct", 4, 1, count));
+    EXPECT_EQ(1, count);
+    EXPECT_EQ("7", queryScalar("SELECT count FROM EventLotto WHERE PlayerID = 'it-acct' AND Type = 3"));
+}
+
+// CreatureUtil's gold medal: the table is not in initdb/, so the INSERT
+// fails on the shipped schema — the bug the header records, pinned here
+// as the const char* END_DB throws.
+TEST_F(PlayRecordMySQL, GoldMedalInsertFailsOnTheShippedSchema) {
+    EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() "
+                               "AND table_name = 'GoldMedalCount'"));
+    EXPECT_THROW(defaultPlayRecordRepository().insertGoldMedal("it-acct"), const char*);
+}
+
+// CreatureUtil's underworld kill record (its only caller sits under
+// __UNDERWORLD__, which no build defines, so this tier is the only thing
+// that runs the statement): the two ids, the account and the character,
+// KillTime server-side.
+TEST_F(PlayRecordMySQL, UnderworldKillIsRecordedWithItsIdsAndNames) {
+    defaultPlayRecordRepository().insertUnderworldKill(2, 3, "it-acct", "it-char");
+    const std::string where = " FROM UnderworldEvent WHERE PlayerID = 'it-acct'";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
+    EXPECT_EQ("2", queryScalar("SELECT WorldID" + where));
+    EXPECT_EQ("3", queryScalar("SELECT ServerID" + where));
+    EXPECT_EQ("it-char", queryScalar("SELECT CharacterID" + where));
+    EXPECT_EQ("1", queryScalar("SELECT KillTime > '2026-01-01'" + where));
+}
+
+// CGBuyStoreItemHandler: the store-purchase TradeLog row, the two names in
+// their columns AND inside the Content text, the price at the end of it.
+TEST_F(PlayRecordMySQL, StoreTradeIsLoggedWithBothNamesInTheContent) {
+    defaultPlayRecordRepository().logStoreTrade("2026-09-06 10:00:00", "it-store", "10.0.0.1", "it-acct1", "it-buyer",
+                                                "10.0.0.2", "it-acct2", "ITEM(31000)", 123);
+    const std::string where = " FROM TradeLog WHERE Name1 = 'it-store'";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
+    EXPECT_EQ("2026-09-06 10:00:00", queryScalar("SELECT Timeline" + where));
+    EXPECT_EQ("it-buyer", queryScalar("SELECT Name2" + where));
+    EXPECT_EQ("10.0.0.1", queryScalar("SELECT IP1" + where));
+    EXPECT_EQ("10.0.0.2", queryScalar("SELECT IP2" + where));
+    EXPECT_EQ("Store:[it-store(it-acct1)]\nITEM(31000)\n----\nBuy:[it-buyer(it-acct2)]\nGOLD:123\n",
+              queryScalar("SELECT Content" + where));
+}
+
 // --- the session cluster against real MySQL ----------------------------------
 // Session end, the boot sweep, the PC-room lotto and the NetMarble user
 // count. Player/PCRoom rows go through the dist connection (same schema),
@@ -6118,6 +6746,10 @@ protected:
         execSQL("DELETE FROM PCRoomUserInfo WHERE PlayerID LIKE 'it-%'");
         execSQL("DELETE FROM PCRoomLottoObject WHERE PlayerID LIKE 'it-%'");
         execSQL("DELETE FROM UserIPInfo WHERE Name LIKE 'it-%'");
+        execSQL("DELETE FROM SpeedHackPlayer WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM CrashReportLog WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM BugReportLog WHERE PlayerID LIKE 'it-%'");
+        execSQL("DELETE FROM CrashLog WHERE PlayerID LIKE 'it-%'");
         execSQL("DELETE FROM USERINFO.UserStatus WHERE ServerID >= 31000");
     }
 };
@@ -6136,10 +6768,10 @@ TEST_F(SessionMySQL, TheWhisperLocationReadReachesTheSameRowsAsThePlayerDbName) 
 
     // This is the point of the test. loadPlayerLocation asks
     // getDistConnection for "USERINFO" where every other Player
-    // statement asks for "PLAYER_DB"; the round claims the name is
-    // ignored and both reach the same socket. A write through the
-    // PLAYER_DB-named path landing in the row the USERINFO-named path
-    // reads is what actually establishes that.
+    // statement asks for "PLAYER_DB"; DatabaseManager ignores the name
+    // and both reach the same socket. A write through the PLAYER_DB-named
+    // path landing in the row the USERINFO-named path reads is what
+    // establishes that.
     execSQL("UPDATE Player SET LogOn='LOGOFF' WHERE PlayerID='it-where'");
     ASSERT_TRUE(repository.markPlayerLoggedOn("it-where")) << "the LOGOFF row was not claimed";
     ASSERT_TRUE(repository.loadPlayerLocation("it-where", serverGroupID, logOn));
@@ -6326,9 +6958,125 @@ TEST_F(SessionMySQL, UserStatusIsUpdatedOrInsertedOnTheUserInfoDatabase) {
     EXPECT_EQ("127", queryScalar("SELECT CurrentUser FROM USERINFO.UserStatus WHERE WorldID=120 AND ServerID=31000"));
 }
 
+// CGPortCheckHandler / CGRequestIPHandler: the first record of a character
+// is the INSERT IGNORE; a second record for the same name changes no row
+// there and so takes the UPDATE; the read hands back both columns through
+// getDWORD and is false for a name without a row.
+TEST_F(SessionMySQL, UserIPIsInsertedThenUpdatedAndReadBack) {
+    SessionRepository& repository = defaultSessionRepository();
+    DWORD ip = 0, port = 0;
+
+    EXPECT_FALSE(repository.loadUserIP("it-nobody", ip, port));
+
+    repository.recordUserIP("it-char", 0x0100007fu, 9858, 31000);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name = 'it-char'"));
+    EXPECT_EQ("31000", queryScalar("SELECT ServerID FROM UserIPInfo WHERE Name = 'it-char'"));
+    ASSERT_TRUE(repository.loadUserIP("it-char", ip, port));
+    EXPECT_EQ(0x0100007fu, ip);
+    EXPECT_EQ(9858u, port);
+
+    // The UPDATE path: IP and Port move, ServerID is not in the UPDATE.
+    repository.recordUserIP("it-char", 0x0200007fu, 9859, 31001);
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM UserIPInfo WHERE Name = 'it-char'"));
+    EXPECT_EQ("31000", queryScalar("SELECT ServerID FROM UserIPInfo WHERE Name = 'it-char'"));
+    ASSERT_TRUE(repository.loadUserIP("it-char", ip, port));
+    EXPECT_EQ(0x0200007fu, ip);
+    EXPECT_EQ(9859u, port);
+}
+
+// CGVerifyTimeHandler: the first sighting of an account takes the INSERT
+// IGNORE (the UPDATE changed no row) with Count 1; the next takes the
+// UPDATE, moving IP/NAME/WorldID/ServerGroupID and counting up; another
+// account's row is untouched.
+TEST_F(SessionMySQL, SpeedHackIsInsertedOnFirstSightThenCountedUp) {
+    SessionRepository& repository = defaultSessionRepository();
+    execSQL("INSERT INTO SpeedHackPlayer (PlayerID, IP, Name, WorldID, ServerGroupID, Date, Count) "
+            "VALUES ('it-other', '1.1.1.1', 'Slayer:o', 1, 1, now(), 5)");
+
+    repository.recordSpeedHack("it-acct", "10.0.0.1", "Slayer:it-char", 2, 3);
+    EXPECT_EQ("1", queryScalar("SELECT Count FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("10.0.0.1", queryScalar("SELECT IP FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("2", queryScalar("SELECT WorldID FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+
+    repository.recordSpeedHack("it-acct", "10.0.0.2", "Vampire:it-char2", 4, 5);
+    EXPECT_EQ("2", queryScalar("SELECT Count FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("10.0.0.2", queryScalar("SELECT IP FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("Vampire:it-char2", queryScalar("SELECT Name FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("4", queryScalar("SELECT WorldID FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("5", queryScalar("SELECT ServerGroupID FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM SpeedHackPlayer WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("5", queryScalar("SELECT Count FROM SpeedHackPlayer WHERE PlayerID = 'it-other'"));
+}
+
+// CGCrashReportHandler: one row per report, ReportTime server-side, the
+// WORD version and the texts landing in their columns.
+TEST_F(SessionMySQL, CrashReportRowIsInsertedWithItsColumns) {
+    defaultSessionRepository().insertCrashReport("it-acct", "it-char", "2026-09-06 10:00:00", 1234, "0x0040", "boom",
+                                                 "WinXP", "a\\nb");
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*) FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("it-char", queryScalar("SELECT Name FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("1234", queryScalar("SELECT Version FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("0x0040", queryScalar("SELECT Address FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("boom", queryScalar("SELECT Message FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("WinXP", queryScalar("SELECT OS FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("2026-09-06 10:00:00",
+              queryScalar("SELECT ExecutableTime FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+    EXPECT_EQ("1", queryScalar("SELECT ReportTime > '2026-01-01' FROM CrashReportLog WHERE PlayerID = 'it-acct'"));
+}
+
+// CommonBillingPacket::setExpire_Date: the LastLogoutDate text of an
+// account through the dist connection; false for an account without a row.
+TEST_F(SessionMySQL, LastLogoutDateIsReadAsTextForAnAccount) {
+    std::string date = "untouched";
+    EXPECT_FALSE(defaultSessionRepository().loadLastLogoutDate("it-nobody", date));
+    EXPECT_EQ("untouched", date);
+
+    execSQL("INSERT INTO Player (PlayerID, LastLogoutDate) VALUES ('it-acct', '2026-09-05 23:59:58')");
+    ASSERT_TRUE(defaultSessionRepository().loadLastLogoutDate("it-acct", date));
+    EXPECT_EQ("2026-09-05 23:59:58", date);
+}
+
+// CGSayHandler's GM bookkeeping: the UserIPInfo ServerID read (false for
+// an unknown name), the online count over LogOn = 'GAME' or 'LOGON' only,
+// the ban flipping Access to DENY for that account alone, and the two
+// GM-typed report rows.
+TEST_F(SessionMySQL, GMCommandsReadServerIDCountOnlineDenyAndLogReports) {
+    SessionRepository& repository = defaultSessionRepository();
+
+    int serverID = -1;
+    EXPECT_FALSE(repository.loadUserServerID("it-nobody", serverID));
+    EXPECT_EQ(-1, serverID);
+    execSQL("INSERT INTO UserIPInfo (Name, IP, Port, ServerID) VALUES ('it-char', 1, 2, 31000)");
+    ASSERT_TRUE(repository.loadUserServerID("it-char", serverID));
+    EXPECT_EQ(31000, serverID);
+
+    const int before = repository.countPlayersOnline();
+    execSQL("INSERT INTO Player (PlayerID, LogOn) VALUES ('it-a1', 'GAME')");
+    execSQL("INSERT INTO Player (PlayerID, LogOn) VALUES ('it-a2', 'LOGON')");
+    execSQL("INSERT INTO Player (PlayerID, LogOn) VALUES ('it-a3', 'LOGOFF')");
+    EXPECT_EQ(before + 2, repository.countPlayersOnline());
+
+    repository.denyAccount("it-a1");
+    EXPECT_EQ("DENY", queryScalar("SELECT Access FROM Player WHERE PlayerID = 'it-a1'"));
+    EXPECT_EQ("ALLOW", queryScalar("SELECT Access FROM Player WHERE PlayerID = 'it-a2'"));
+
+    repository.insertBugReport("it-a1", "it-char", "it broke");
+    EXPECT_EQ("it broke", queryScalar("SELECT ReportLog FROM BugReportLog WHERE PlayerID = 'it-a1'"));
+    EXPECT_EQ("it-char", queryScalar("SELECT Name FROM BugReportLog WHERE PlayerID = 'it-a1'"));
+    EXPECT_EQ("1", queryScalar("SELECT ReportTime > '2026-01-01' FROM BugReportLog WHERE PlayerID = 'it-a1'"));
+
+    repository.insertCrashLog("it-a1", "it-char", "2026-09-06 10:00:00", "12", "0x0040", "boom");
+    const std::string crash = " FROM CrashLog WHERE PlayerID = 'it-a1'";
+    EXPECT_EQ("2026-09-06 10:00:00", queryScalar("SELECT ExecutableTime" + crash));
+    EXPECT_EQ("12", queryScalar("SELECT Version" + crash));
+    EXPECT_EQ("0x0040", queryScalar("SELECT Address" + crash));
+    EXPECT_EQ("boom", queryScalar("SELECT Message" + crash));
+    EXPECT_EQ("1", queryScalar("SELECT ReportTime > '2026-01-01'" + crash));
+}
+
 // --- the ExpTable template's generic balance read ---------------------------
-// SomethingGrowingUp.h's ExpTable::load names its table and columns; the seam
-// formats "SELECT %s, %s, %s FROM %s %s" from them. The seeded RankEXPInfo,
+// SomethingGrowingUp.h's ExpTable::load names its table and columns; the
+// repository formats "SELECT %s, %s, %s FROM %s %s" from them. The seeded RankEXPInfo,
 // AdvancementClassEXPInfo and the attribute balance tables stand in.
 
 TEST(ExpTableMySQL, ExpTablesLoadByNamedColumnsWithAndWithoutACondition) {
@@ -6353,7 +7101,7 @@ TEST(ExpTableMySQL, ExpTablesLoadByNamedColumnsWithAndWithoutACondition) {
 
     EXPECT_FALSE(repository.loadExpTable("Level", "GoalExp", "AccumExp", "AdvancementClassEXPInfo", "").empty());
     // STRBalanceInfo.AccumExp exceeds INT_MAX in the top rows; the row's int
-    // (getInt = atoi) truncates exactly as the original's getInt did.
+    // (getInt = atoi) truncates.
     EXPECT_FALSE(repository.loadExpTable("Level", "GoalExp", "AccumExp", "STRBalanceInfo", "").empty());
 }
 
@@ -6450,7 +7198,7 @@ TEST_F(GuildMySQL, TheThreeMembershipProbesEachReadTheirOwnColumns) {
 
     // One row, read through three different column lists. The handlers
     // read their columns POSITIONALLY, so what matters is that each
-    // projection hands back the field its own handler used to take.
+    // projection hands back the field its own handler reads.
     repository.insertMember(31007, "it-probe", 4);
     repository.setMemberRankAndExpireDate(5, "1260901", "it-probe");
 
@@ -6506,11 +7254,11 @@ TEST_F(GuildMySQL, BothSpellingsOfTheMemberDeleteRemoveTheRow) {
     repository.deleteMemberSpelled(GUILD_MEMBER_DELETE_UNSPACED, "it-del2");
     EXPECT_FALSE(repository.loadMember("it-del2", row));
 
-    // deleteMember() IS the spaced spelling, delegating. Worth stating
-    // what this test cannot do: whitespace around "=" is not part of the
-    // parsed statement, so no assertion here can tell the two literals
-    // apart, and a swapped enumerator would pass. The mapping is held by
-    // review; what is pinned is that neither spelling is malformed.
+    // deleteMember() IS the spaced spelling, delegating. What this test
+    // cannot do: whitespace around "=" is not part of the parsed
+    // statement, so no assertion here can tell the two literals apart, and
+    // a swapped enumerator would pass. What is pinned is that neither
+    // spelling is malformed.
     repository.insertMember(31009, "it-del3", 2);
     repository.deleteMember("it-del3");
     EXPECT_FALSE(repository.loadMember("it-del3", row));
@@ -6697,7 +7445,7 @@ TEST_F(GuildMySQL, UnionMemberCountsAgreeAcrossSpellingsAndTheInfoDeleteSparesTh
     repository.insertUnionMember(unionID, 31001);
     repository.insertUnionMember(unionID, 31002);
 
-    // Three spellings of one count: COUNT(*) (the seam's own), and the
+    // Three spellings of one count: COUNT(*) (the repository's own), and the
     // handlers' lowercase count(*) plain and backticked.
     EXPECT_EQ(2, repository.countUnionMembers(unionID));
     EXPECT_EQ(2, repository.countUnionMembersSpelled(UNION_SQL_PLAIN, unionID));
@@ -6744,7 +7492,7 @@ TEST_F(GuildMySQL, TheEscapeOfferIsAPositionalRowThatTheTenDayCountFinds) {
     EXPECT_EQ(1, repository.countRecentEscapes(31002));
     EXPECT_EQ(1, repository.countOffers(31002));
 
-    // It is an ordinary offer row, so the seam's own sweeper clears it.
+    // It is an ordinary offer row, so the repository's sweeper clears it.
     repository.deleteOffers(31002);
     EXPECT_EQ(0, repository.countOffers(31002));
 }
@@ -6848,10 +7596,14 @@ int main(int argc, char** argv) {
     g_pDatabaseManager = new DatabaseManager();
     g_pDatabaseManager->addConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
     g_pDatabaseManager->addDistConnection((int)(long)Thread::self(), new Connection(host, db, user, password, port));
-    // The USERINFO database the session seam writes UserStatus to; the
+    // The USERINFO database SessionRepository writes UserStatus to; the
     // tier loads initdb/USERINFO.sql next to DARKEDEN.sql.
     std::string userInfoDb = env("IT_DB_USERINFO_DB", "USERINFO");
     g_pDatabaseManager->setUserInfoConnection(new Connection(host, userInfoDb, user, password, port));
+    // The WorldDBInfo row-0 connection SpecialEventRepository reaches through
+    // getConnection(int) — same server and schema here, as in the shipped
+    // seeds (initdb's WorldDBInfo row 0 names the DARKEDEN schema).
+    g_pDatabaseManager->setWorldDefaultConnection(new Connection(host, db, user, password, port));
 
     return RUN_ALL_TESTS();
 }

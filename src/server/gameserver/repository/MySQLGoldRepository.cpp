@@ -3,8 +3,7 @@
 
 namespace {
 
-// MySQL implementation of the carried-gold persistence seam. The legacy
-// quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
+// MySQL implementation of GoldRepository. Quirks:
 //  - The writes are RELATIVE — Gold = Gold ± delta — so the database
 //    arithmetic runs against whatever the row holds, not the in-memory
 //    balance. The gameplay clamps (MAX_MONEY / zero) were applied by the
@@ -14,22 +13,14 @@ namespace {
 //    ROW's balance (reachable only through integrity drift, since the
 //    caller clamps against memory) raises ER_DATA_OUT_OF_RANGE (1690)
 //    and leaves the row untouched — same failure shape as
-//    GoodsRepository::takeOne, pinned by the integration tier. An
+//    GoodsRepository::takeOne. An
 //    increase clamps at the column maximum only via the caller's
 //    MAX_MONEY (2,000,000,000) cap.
-//  - The delta is a Gold_t (DWORD) marshalled through %u, exactly as the
-//    call sites always did.
+//  - The delta is a Gold_t (DWORD) marshalled through %u.
 //  - Every operation targets ONLY the character's own race table (unlike
-//    the stash writes, which fan out to Slayer + the race's own table);
-//    WHERE uses uppercase NAME in the two relative writes and the
-//    integrity read, and mixed-case Name in the clamped one —
-//    byte-for-byte the inline queries, and identical to MySQL either way.
-//  - decreaseGoldClamped keeps its spacing quirks too: the space after
-//    IF, the one before the comma in "Gold ," and the one before the
-//    closing paren.
+//    the stash writes, which fan out to Slayer + the race's own table).
 //  - An UPDATE for a name with no row matches zero rows, silently.
-//  - Character names are interpolated raw (no escaping), as the call
-//    sites always did.
+//  - Character names are interpolated raw (no escaping).
 class MySQLGoldRepository : public GoldRepository {
 public:
     void increaseGold(const string& ownerName, CharacterRace race, Gold_t delta) {

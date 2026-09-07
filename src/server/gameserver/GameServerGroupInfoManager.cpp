@@ -94,12 +94,9 @@ void GameServerGroupInfoManager::load()
 
     m_GameServerGroupInfos = new HashMapGameServerGroupInfo[m_MaxWorldID];
 
-    // The rows query used to sit in a hand-written try that turned a
-    // SQLQueryException into an Error and swallowed any other Throwable
-    // with a cout. The seam now converts a SQL failure the way every
-    // repository does (DBError.log + a thrown const char*, see DB.h's
-    // END_DB), so only the Throwable arm is left to keep: a failure in
-    // addGameServerGroupInfo is still printed and swallowed.
+    // A SQL failure is converted inside the repository (DBError.log + a
+    // thrown const char*, see DB.h's END_DB) and escapes this try; a
+    // failure in addGameServerGroupInfo is printed and swallowed.
     try {
         vector<GameServerGroupRow> rows = defaultGameInfoRepository().loadGameServerGroups();
 

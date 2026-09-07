@@ -3,15 +3,14 @@
 
 #include <string>
 
-// Persistence seam for the FlagSet table (task 3.2): one row per
-// character holding its flag bits as a '0'/'1' text (FlagData,
-// varchar(24) — FLAG_SIZE_MAX bits). The FlagSet class owns the
-// bit<->text encoding; this seam moves the text.
+// The FlagSet table: one row per character holding its flag bits as a
+// '0'/'1' text (FlagData, varchar(24) — FLAG_SIZE_MAX bits). The FlagSet
+// class owns the bit<->text encoding; this repository moves the text.
 //
 // The row is normally created by the loginserver at character creation
 // (CLCreatePCHandler, with a race-specific default pattern) and purged
-// with the character (CreatureUtil.cpp / CLDeletePCHandler) — neither
-// is enclosed here. The gameserver's own create() is the newbie-item
+// with the character (CharacterPurgeRepository here, CLDeletePCHandler
+// in the loginserver). The gameserver's own create() is the newbie-item
 // path's fallback.
 class FlagSetRepository {
 public:
@@ -37,8 +36,7 @@ public:
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLFlagSetRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLFlagSetRepository.cpp.
 FlagSetRepository& defaultFlagSetRepository();
 
 #endif

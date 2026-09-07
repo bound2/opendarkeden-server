@@ -8,12 +8,12 @@
 
 #ifdef __GAME_SERVER__
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "GCMiniGameScores.h"
 #include "GamePlayer.h"
 #include "PacketUtil.h"
 #include "PlayerCreature.h"
 #include "mission/QuestManager.h"
+#include "repository/PlayRecordRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
@@ -39,21 +39,11 @@ void CGSubmitScoreHandler::execute(CGSubmitScore* pPacket, Player* pPlayer)
             PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pGamePlayer->getCreature());
             Assert(pPC != NULL);
 
-            Statement* pStmt = NULL;
-
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pStmt->executeQuery("UPDATE MiniGameScores SET Name='%s', Score=%u, Time=now() WHERE Type=%u AND "
-                                    "Level=%u AND Score>%u LIMIT 1",
-                                    pPC->getName().c_str(), pPacket->getScore(), pPacket->getGameType(),
-                                    pPacket->getLevel(), pPacket->getScore());
-                //						"INSERT INTO MiniGameScores (Name, Type, Level, Score, Time) VALUES
-                //('%s',%u,%u,%u,now())", pPC->getName().c_str(), 						pPacket->getGameType(),
-                // pPacket->getLevel(), pPacket->getScore();
-
-                SAFE_DELETE(pStmt);
-            }
-            END_DB(pStmt)
+            defaultPlayRecordRepository().recordMiniGameScore(pPC->getName(), pPacket->getScore(),
+                                                              pPacket->getGameType(), pPacket->getLevel());
+            //						"INSERT INTO MiniGameScores (Name, Type, Level, Score, Time) VALUES
+            //('%s',%u,%u,%u,now())", pPC->getName().c_str(), 						pPacket->getGameType(),
+            // pPacket->getLevel(), pPacket->getScore();
 
             if (pPacket->getLevel() == 2) {
                 pPC->getQuestManager()->submitMiniGameScore(pPacket->getGameType(), pPacket->getScore());

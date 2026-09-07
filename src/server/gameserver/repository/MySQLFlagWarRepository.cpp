@@ -3,38 +3,30 @@
 
 namespace {
 
-// MySQL implementation of the capture-the-flag seam. The legacy quirks
-// are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original, including the
-//    "Race-1" projection (FlagPolePosition.Race is an ENUM, so the
-//    arithmetic yields its 1-based index less one), the unspaced
-//    "VALUES ('%s','%s',%d,%d,%d)" lists, and the GROUP BY on
-//    "Name, ServerID" while PlayerID and Race are selected bare.
-//  - THAT GROUP BY IS BROKEN under the sql_mode this project requires.
-//    CLAUDE.md's setting removes NO_ZERO_DATE and STRICT_TRANS_TABLES
-//    but KEEPS ONLY_FULL_GROUP_BY, and PlayerID is not functionally
-//    dependent on (Name, ServerID) — FlagWarStat has no unique key at
-//    all — so MySQL raises error 1055 every time the statement is
-//    called. It is called only when the flag war is switched on, which
-//    ActiveFlagWar : 0 in both shipped configs prevents; and when it is
-//    called, the const char* END_DB rethrows escapes every
-//    Throwable-only catch up to main.cpp's catch (...), so the process
-//    exits. The statement is kept
-//    byte-for-byte anyway, because task 3.2 moves statements without
-//    fixing them; the integration tier pins the throw so the bug is
-//    recorded rather than rediscovered. Fixing it (adding PlayerID and
-//    Race to the GROUP BY, or wrapping them in ANY_VALUE) changes
-//    behaviour and belongs to its own round.
+// MySQL implementation of the capture-the-flag repository.
+//  - The flag-pole SELECT projects "Race-1": FlagPolePosition.Race is an
+//    ENUM, so the arithmetic yields its 1-based index less one.
+//  - The FlagWarStat roll-up GROUPs BY "Name, ServerID" while PlayerID
+//    and Race are selected bare. THAT IS BROKEN under the sql_mode this
+//    project requires: CLAUDE.md's setting keeps ONLY_FULL_GROUP_BY, and
+//    PlayerID is not functionally dependent on (Name, ServerID) —
+//    FlagWarStat has no unique key at all — so MySQL raises error 1055
+//    every time the statement is called. It is called only when the flag
+//    war is switched on, which ActiveFlagWar : 0 in both shipped configs
+//    prevents; and when it is called, the const char* END_DB rethrows
+//    escapes every Throwable-only catch up to main.cpp's catch (...), so
+//    the process exits. The integration tier pins the throw. Fixing it
+//    means adding PlayerID and Race to the GROUP BY, or wrapping them in
+//    ANY_VALUE.
 //  - ItemID reaches its two statements through "%d" although the column
-//    is bigint(20) unsigned and ItemID_t is a DWORD, exactly as the call
-//    sites always wrote it. An id above INT_MAX formats negative: the
-//    SELECT then matches nothing, and the INSERT writes ItemID = 0,
-//    clamped, because this project's sql_mode drops
+//    is bigint(20) unsigned and ItemID_t is a DWORD. An id above INT_MAX
+//    formats negative: the SELECT then matches nothing, and the INSERT
+//    writes ItemID = 0, clamped, because this project's sql_mode drops
 //    STRICT_TRANS_TABLES. Unreachable in practice — ids step by the
-//    server count from a per-class MAX(ItemID), so 2^31 rows in one
-//    item table would be needed — and the inline behaviour either way.
-//  - Names, player ids and the FlagWarID date text are interpolated raw
-//    (no escaping), as before.
+//    server count from a per-class MAX(ItemID), so 2^31 rows in one item
+//    table would be needed.
+//  - Names, player ids and the FlagWarID date text are interpolated
+//    unescaped.
 class MySQLFlagWarRepository : public FlagWarRepository {
 public:
     vector<FlagPoleRow> loadFlagPoles() {

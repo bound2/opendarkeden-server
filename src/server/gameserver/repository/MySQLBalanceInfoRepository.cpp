@@ -3,42 +3,23 @@
 
 namespace {
 
-// MySQL implementation of the balance-table seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - Every statement is byte-for-byte the inline original, and the
-//    originals did not agree on spelling, so the ladder statements are
-//    per-table data: "Select ... from" in mixed case for the five
-//    ladders and the rank/domain ones, "SELECT ... FROM" for the fame
-//    limits and the pet tables; a TRAILING SPACE after the table name
-//    on the three attribute ladders and none on the vampire/ousters
-//    ones; "WHERE RankType=%d" unspaced vs "WHERE DomainType = %d"
-//    spaced (both the domain MAX and its rows) but "WHERE DomainType=%d"
-//    unspaced for the fame MAX. Immaterial to the parser, kept for
-//    fidelity.
+// MySQL implementation of BalanceInfoRepository.
+//  - The ladder statements are per-table data because their spellings
+//    differ (keyword case, a trailing space after some table names,
+//    spacing around "="); immaterial to the parser.
 //  - The MAX probes: MySQL answers MAX() over an EMPTY table (or a
-//    WHERE that matches nothing) with ONE row whose value is NULL.
-//    The inline loaders tested getRowCount()==0 or !next() — never
-//    true — and then called getInt(1), i.e. atoi(NULL), on the NULL:
-//    an empty table crashed the boot instead of raising the "There is
-//    no data" Error the code intended. The seam reads the field raw and
-//    returns false on NULL, so the callers' throws now fire. A
-//    behavior change, made knowingly, on an unreachable-in-practice
-//    path (every one of these tables ships populated); pinned by the
-//    integration tier through a RankType no ladder has.
+//    WHERE that matches nothing) with ONE row whose value is NULL. The
+//    probe reads the field raw and returns false on NULL, so the callers'
+//    "There is no data" throws fire instead of a getInt (atoi) on NULL.
 //  - MAX(Level) is read through getInt like the rows, so a ladder whose
-//    top level does not fit an int would size its array from a
-//    truncated value — as before; the shipped ladders top out at 315.
-//  - The rank/domain/fame filters take the caller's int (the enum or
-//    loop index, exactly the expression the inline code streamed
-//    through %d).
-//  - AccumExp is bigint on all five ladders and is read through
-//    getInt (atoi), as before. The shipped ladders EXCEED int range
-//    (STRBalanceInfo tops out at 2431521747, the vampire and ousters
-//    ladders at 3344798380): atoi truncates the 64-bit strtol result
-//    to int, i.e. a negative value, which the caller's DWORD Exp_t
-//    turns back into the original number — lossless below 2^32 and
-//    exactly what the inline code did, so nothing changes; documented
-//    because the first draft claimed the data stayed within range.
+//    top level does not fit an int would size its array from a truncated
+//    value; the shipped ladders top out at 315.
+//  - AccumExp is bigint on all five ladders and is read through getInt
+//    (atoi). The shipped ladders EXCEED int range (STRBalanceInfo tops
+//    out at 2431521747, the vampire and ousters ladders at 3344798380):
+//    atoi truncates the 64-bit strtol result to int, i.e. a negative
+//    value, which the caller's DWORD Exp_t turns back into the original
+//    number — lossless below 2^32.
 struct LadderSpec {
     const char* max;
     const char* rows;

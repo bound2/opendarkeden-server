@@ -33,7 +33,7 @@ endif()
 # 警告设置
 set(WARNING_FLAGS 
     -Wall
-    -Wno-format 
+    -Wformat # kept on since the 2026-09-06 width fix; Statement::executeQuery carries the printf attribute
     -Wno-format-security
 )
 add_compile_options(${WARNING_FLAGS})

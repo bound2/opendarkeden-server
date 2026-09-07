@@ -6,8 +6,8 @@
 #include "CharacterRace.h"
 #include "Types.h"
 
-// Persistence seam for the stash columns (task 3.2). There is no stash
-// table: StashNum/StashGold are columns ON the three race tables
+// The stash columns. There is no stash table: StashNum/StashGold are
+// columns ON the three race tables
 // (Slayer/Vampire/Ousters), written outside the normal character save by
 // the immediate-persist stash operations. isOusters selects which second
 // table is written — the WRITES fan out (Slayer always, plus the race's
@@ -32,8 +32,7 @@ public:
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLStashRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLStashRepository.cpp.
 StashRepository& defaultStashRepository();
 
 #endif

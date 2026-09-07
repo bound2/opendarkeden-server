@@ -289,7 +289,7 @@ void saveItemInCorpse(Item* pItem, Corpse* pCorpse)
 
         pZone->registerObject(pItem);
 
-        sprintf(pField, "ObjectID = %lu, OwnerID='%d', Storage=%d, StorageID=%lu", pItem->getObjectID(),
+        sprintf(pField, "ObjectID = %u, OwnerID='%d', Storage=%d, StorageID=%u", pItem->getObjectID(),
                 (int)pZone->getZoneID(), (int)STORAGE_CORPSE, pCorpse->getObjectID());
 
         pItem->tinysave(pField);

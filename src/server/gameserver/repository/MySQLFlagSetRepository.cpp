@@ -3,20 +3,14 @@
 
 namespace {
 
-// MySQL implementation of the FlagSet seam. The legacy quirks are
-// quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - create() and save() and destroy() were StringStream-built; the
-//    format strings below carry the same bytes (the two spaces before
-//    the closing parenthesis of the INSERT included), following the
-//    repository rule that SQL is parameterized, never concatenated.
+// MySQL implementation of FlagSetRepository. Quirks:
 //  - OwnerID is the PRIMARY KEY: insert() raises ER_DUP_ENTRY (1062)
 //    for an owner that already has a row; insertEmptyIfMissing() is
-//    the INSERT IGNORE form and is a silent no-op then. Pinned by the
-//    integration tier.
+//    the INSERT IGNORE form and is a silent no-op then.
 //  - FlagData is varchar(24) and nullable; load() returns the text
 //    through getString, which turns a NULL into "" (Result::getString's
 //    NULL guard) — the FlagSet decoder then treats every bit as off.
-//  - Names are interpolated raw, as before.
+//  - Names are interpolated raw.
 class MySQLFlagSetRepository : public FlagSetRepository {
 public:
     void insert(const string& ownerName, const string& flagData) {

@@ -6,18 +6,16 @@
 
 #include "Types.h"
 
-// Persistence seam for the SMSAddressBook table (task 3.2): a
-// character's phone-number book, one row per entry keyed by
-// (eID, OwnerID). The SMSAddressBook class owns the in-memory map and
-// the eID allocation; this seam moves rows. Nothing purges the table
-// when a character is deleted (neither CreatureUtil.cpp nor the
-// loginserver's CLDeletePCHandler names it), so a name-reuser inherits
-// the previous owner's phone book.
+// The SMSAddressBook table: a character's phone-number book, one row
+// per entry keyed by (eID, OwnerID). The SMSAddressBook class owns the
+// in-memory map and the eID allocation; this repository moves rows.
+// Nothing purges the table when a character is deleted (neither
+// CharacterPurgeRepository nor the loginserver's CLDeletePCHandler names
+// it), so a name-reuser inherits the previous owner's phone book.
 //
-// What load() returns — each field typed to the driver getter the
-// inline code called: eID through getInt (the column is int unsigned;
-// the class stores it as DWORD after the int has been read), the three
-// texts through getString.
+// What load() returns, each field typed to the driver getter used: eID
+// through getInt (the column is int unsigned; the class stores it as
+// DWORD after the int has been read), the three texts through getString.
 struct SMSAddressRow {
     int eID;
     std::string characterName;
@@ -32,19 +30,15 @@ public:
     // Every entry the owner has.
     virtual std::vector<SMSAddressRow> load(const std::string& ownerName) = 0;
 
-    // SMSAddressBook::addAddressElement — a new entry. The eID is the
-    // element's DWORD id; the (eID, OwnerID) primary key refuses a
-    // repeat.
+    // A new entry. The (eID, OwnerID) primary key refuses a repeat.
     virtual void insert(const std::string& ownerName, DWORD eID, const std::string& characterName,
                         const std::string& customName, const std::string& number) = 0;
 
-    // SMSAddressBook::removeAddressElement.
     virtual void remove(const std::string& ownerName, DWORD eID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLSMSAddressRepository.cpp. An accessor function rather than a g_p*
-// extern: ratchet R1 counts those.
+// MySQLSMSAddressRepository.cpp.
 SMSAddressRepository& defaultSMSAddressRepository();
 
 #endif

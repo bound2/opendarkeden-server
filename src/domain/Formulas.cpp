@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : Formulas.cpp
 // Description :
-// Pure balance formulas, transplanted verbatim from AbilityBalance.cpp and
-// skill/SkillUtil.cpp (docs/RESTRUCTURING.md task 3.3). See Formulas.h.
+// Pure balance formulas, the math behind AbilityBalance.cpp and
+// skill/SkillUtil.cpp. See Formulas.h.
 //
 // The originals accumulate into the narrow wire typedefs (HP_t/Damage_t are
 // WORD, Speed_t/Range_t/Steal_t are BYTE), so extreme inputs wrap. That

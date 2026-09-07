@@ -1,15 +1,11 @@
 #include "DB.h"
 #include "repository/NicknameRepository.h"
 
-// Legacy ad-hoc SQL escaper, moved here from CGModifyNicknameHandler.cpp
-// (PetItem.cpp still declares it extern). The original accumulated into a
-// char[100] and, when input reached the boundary, wrote the escaped byte
-// and the terminator up to TWO bytes past the buffer — with client-
-// controlled input reaching it through CGModifyNickname (docs/FIXES.md).
-// This version emits byte-identical output for every input the old code
-// handled without overflowing and truncates cleanly at the same ~100-byte
-// horizon for the rest (the Nickname column is varchar(22) regardless).
-// Belongs in the database layer once more repositories need it.
+// Legacy ad-hoc SQL escaper (PetItem.cpp declares it extern). Client-
+// controlled input reaches it through CGModifyNickname. It truncates
+// cleanly at a ~100-byte horizon (the Nickname column is varchar(22)
+// regardless). Belongs in the database layer once more repositories need
+// it.
 string getDBString(const string& str) {
     string ret;
     ret.reserve(str.size() + 8);
@@ -25,18 +21,19 @@ string getDBString(const string& str) {
 
 namespace {
 
-// MySQL implementation of the NicknameBook persistence seam. The legacy
-// schema quirks are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
+// MySQL implementation of NicknameRepository. Quirks:
 //  - OwnerID is the character *name*, not a numeric id — denormalized; a
 //    character rename orphans these rows.
 //  - The id-0 custom slot stores a single space, never an empty string
 //    (the client renders '' as no slot), and is created with INSERT IGNORE
 //    so re-login of a character that already has one is a no-op.
-//  - Plain inserts omit NickIndex and take the column default; only the
-//    id-0 slot insert writes it (as 0) explicitly.
+//  - Plain inserts omit NickIndex and take the column default; the id-0
+//    slot insert and the GM forced slot's REPLACE (id 100) write it (as 0)
+//    explicitly.
 //  - Time is write-only bookkeeping (now() on insert); nothing reads it.
-//  - Nickname strings get exactly the getDBString escaping above; owner
-//    names are interpolated raw, as the call sites always did.
+//  - Nickname strings get the getDBString escaping above, except the GM
+//    forced slot's REPLACE, whose text is interpolated raw; owner names
+//    are interpolated raw everywhere.
 class MySQLNicknameRepository : public NicknameRepository {
 public:
     vector<NicknameRecord> load(const string& ownerName) {
@@ -86,6 +83,30 @@ public:
             pStmt->executeQuery("INSERT INTO NicknameBook (nID, OwnerID, NickType, Nickname, Time) "
                                 "VALUES (%u, '%s', %u, '%s', now())",
                                 id, ownerName.c_str(), type, getDBString(nickname).c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void replaceForcedNickname(const string& ownerName, BYTE type, const string& nickname) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("REPLACE INTO NicknameBook (nID, OwnerID, NickType, Nickname, NickIndex, Time) VALUES "
+                                "(100, '%s', %u, '%s', 0, now())",
+                                ownerName.c_str(), type, nickname.c_str());
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    void deleteForcedNickname(const string& ownerName) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQuery("DELETE FROM NicknameBook WHERE OwnerID='%s' AND nID=100", ownerName.c_str());
             SAFE_DELETE(pStmt);
         }
         END_DB(pStmt)

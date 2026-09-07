@@ -9,7 +9,7 @@
 
 #include "repository/NicknameRepository.h"
 
-// In-memory NicknameRepository for domain tests (docs/RESTRUCTURING.md 3.2).
+// In-memory NicknameRepository for domain tests.
 // Mirrors the MySQL implementation's contract:
 //  - PRIMARY KEY (nID, OwnerID): insert() on an existing (owner, id) THROWS,
 //    like the real plain INSERT's duplicate-key error; only
@@ -17,8 +17,7 @@
 //  - load() returns rows in nID-ASCENDING order — the real SELECT carries
 //    no ORDER BY, but the secondary index IDX_OwnerID carries the primary
 //    key (nID, OwnerID) as its suffix, so the ref scan returns nID order
-//    (pinned by the MySQL integration tier; this comment originally said
-//    "insertion order" — falsified there).
+//    (pinned by the MySQL integration tier).
 //  - Nickname is varchar(22) latin1 with STRICT_TRANS_TABLES off: stored
 //    values silently truncate to 22 bytes.
 class FakeNicknameRepository : public NicknameRepository {
@@ -60,6 +59,26 @@ public:
         Rows::iterator itr = find(ownerName, id);
         if (itr != m_Rows.end())
             itr->second.nickname = truncateToColumn(nickname);
+    }
+
+    // The GM forced slot, id 100: REPLACE overwrites or creates the row with
+    // NickIndex 0; DELETE removes it if present.
+    void replaceForcedNickname(const std::string& ownerName, BYTE type, const std::string& nickname) {
+        Rows::iterator itr = find(ownerName, 100);
+        if (itr != m_Rows.end())
+            m_Rows.erase(itr);
+        NicknameRecord record;
+        record.id = 100;
+        record.type = type;
+        record.nickname = truncateToColumn(nickname);
+        record.index = 0;
+        m_Rows.push_back(std::make_pair(key(ownerName, 100), record));
+    }
+
+    void deleteForcedNickname(const std::string& ownerName) {
+        Rows::iterator itr = find(ownerName, 100);
+        if (itr != m_Rows.end())
+            m_Rows.erase(itr);
     }
 
 private:

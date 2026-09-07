@@ -6,194 +6,47 @@
 
 #include "Types.h"
 
-// Persistence seam for the per-class item-object tables (task 3.2, the item
-// milestone): each item class owns an <Class>Object table and a <Class>Info
-// table and runs up to seven statements against them — the create INSERT,
-// the tinysave "SET %s", the save UPDATE, the info manager's MAX(ItemType)
-// and its column SELECT, the creature loader's owner SELECT and the zone
-// loader's zone SELECT (some classes have fewer: a loader that holds no SQL
-// leaves its slot NULL, and the four war items' creature loader deletes the
-// owner's rows instead of selecting them). The object statements' literals differ
-// per class only in the table name and in copy-paste whitespace quirks; the
-// Info SELECT comes in a handful of column shapes (GearInfoKind). So a family
-// shares one method set and selects its table — and its exact literal —
-// through an enum; the MySQL impl keeps every class's seven literals
-// byte-for-byte (the guns' eight: they add a saveBullet UPDATE; four Num-only
-// items' eight: they override destroy() with a DELETE; Key's eight:
-// setNewMotorcycle writes the new motorcycle's id into Target; the couple
-// rings' eight: hasPartnerItem counts the partner ring's row; Belt's and
-// OustersArmsband's eight: destroy() deletes by ItemID — each extra statement
-// has its own spec slot, NULL for the classes without it).
+// The per-class item-object tables. Each item class owns an <Class>Object
+// table and a <Class>Info table and runs up to seven statements against
+// them: the create INSERT, the tinysave "SET %s", the save UPDATE, the info
+// manager's MAX(ItemType) and its column SELECT, the creature loader's owner
+// SELECT and the zone loader's zone SELECT. Some classes have extra
+// statements (the guns' saveBullet UPDATE, Key's Target UPDATE, the couple
+// rings' partner count, the destroy() DELETEs, the war items' delete-by-owner
+// in place of an owner SELECT, PetItem's with-info variants) and some have
+// fewer (a loader with no SQL leaves its slot empty). The object statements
+// differ per class only in the table name and in whitespace quirks; the Info
+// SELECT comes in a handful of column shapes. So classes of one shape share
+// a method set and select their table through the GearTable enum; the MySQL
+// impl keeps every class's exact literal.
 //
-// The first family: the nine slayer gear classes with a Grade column: Ring,
-// Bracelet, Necklace, Coat, Trouser, Shoes, Glove, Helm, Shield. The second
-// family: the eight vampire and ousters gear classes of the same shape:
-// VampireRing, VampireBracelet, VampireNecklace, OustersRing, OustersCoat,
-// OustersCirclet, OustersPendent, OustersBoots. The third family: six classes
-// whose object statements are gear's but whose Info SELECT is not: VampireCoat
-// (16 columns, no UpgradeRatio / DowngradeRatio), OustersStone (20: gear plus
-// ElementalType, Elemental), VampireEarring (gear's 18 behind an
-// ifnull(MAX(ItemType),0)), VampireWeapon and OustersChakram (20 weapon
-// columns: minDamage, maxDamage, Speed, CriticalBonus in place of Defense,
-// Protection), OustersWristlet (22: weapon plus ElementalType, Elemental).
-// Each Info shape has its own row and loader; the MySQL impl records the
-// shape per table and refuses a loader of another shape, so a mismatch
-// throws instead of misreading the columns silently (a longer row would
-// drop its extra columns; a shorter one would throw getField's
-// OutOfBoundException with no hint which table).
-// The fourth family, the four silver weapons: Sword, Blade, Cross, Mace —
-// gear's INSERT, but a Silver column in the UPDATE (after EnchantLevel,
-// before Grade) and in both loads (owner: 13 columns, zone: 12), so a second
-// object shape with its own update / loads / rows; their Info SELECT has 21
-// columns (weapon plus MaxSilver after maxDamage), Cross's and Mace's 22 (an
-// MPBonus before MaxSilver). The spec records the object shape too, and the
-// update / load methods refuse a table of the other shape.
-// The fifth family, the four guns: AR, SG, SMG, SR — a BulletCount column in
-// the INSERT (before Grade), in the UPDATE (between EnchantLevel and Silver)
-// and in both loads (owner: 14 columns, zone: 13), plus an eighth statement,
-// the saveBullet UPDATE. SG, SMG and SR are one shape (GUN_OBJECT: their
-// tinysave writes BulletCount too, and the loads name EnchantLevel,
-// BulletCount, Silver); AR is another (AR_GUN_OBJECT: gear's tinysave, and
-// the loads name BulletCount, Silver, EnchantLevel). The loaders read each
-// column at its table's ordinal into the field it names. Their Info SELECT
-// has 22 columns: the weapon shape with ToHitBonus and `Range` after
-// maxDamage.
-// The sixth family, ten "Num + ItemFlag" items: EventItem, EventTree, LuckyBag,
-// MoonCard, EventETC, ResurrectItem, DyePotion, EventStar, EffectItem,
-// PetEnchantItem — no OptionType, Durability, Grade or EnchantLevel anywhere;
-// a Num column (a BYTE, cast (int) into the INSERT and UPDATE, read through
-// getBYTE in both loads) and ItemFlag. Owner and zone SELECT: nine columns.
-// Their Info SELECT is the seven-column basic shape (the head without
-// Durability) alone or with one or two class-specific columns after Ratio:
-// `Function`; ResurrectType; FunctionFlag, FunctionValue; EffectClass,
-// TimeSec; `Function`, FunctionGrade.
-// The seventh family, four "Num-only" items: ETC, Serum, VampireETC, Water —
-// the sixth family's INSERT and loads without their ItemFlag column, its
-// UPDATE unchanged: nine columns in the INSERT, eight in the UPDATE and eight
-// in both loads; no create type anywhere (ETCObject's table still has an
-// ItemFlag column, left at its default); tinysave is gear's. Their
-// Info SELECT is the basic shape alone (ETC, Water) or with one varchar
-// column after Ratio (Serum's SerumEffect, fed to parseEffect; VampireETC's
-// ReqAbility).
-// The eighth family, six more Num-only items whose create was already a
-// parameterized statement (verbatim): HolyWater, Magazine, Pupa, Larva,
-// ComposMei, Potion — the same object shape. Four of them (Pupa, Larva,
-// ComposMei, Potion) override destroy() with a DELETE naming the table as a
-// %s: a ninth literal, destroyItemObject. Their Info SELECT adds to the basic
-// head: minDamage, maxDamage (HolyWater); ItemLevel, MaxBullets,
-// MaxSilverBullets, Vivid, GunType-1 (Magazine); Effect, fed to parseEffect
-// (Pupa, Larva, ComposMei — the string shape); ItemLevel, Effect (Potion).
-// The ninth family, four Num-only items whose zone SELECT differs: Skull reads
-// Num through getDWORD (SKULL_OBJECT); Bomb, BombMaterial and Mine name no Num
-// column in it at all (BOMB_OBJECT, seven columns). Their INSERT, UPDATE,
-// tinysave and owner load are the Num-only ones (Skull's create was already
-// parameterized; the other three stream). Info: basic plus ItemLevel (Skull);
-// minDamage, maxDamage (Bomb, Mine); basic alone (BombMaterial).
-// The tenth family: four "ItemFlag-only" items — QuestItem, SMSItem, SubInventory,
-// TrapItem (FLAG_OBJECT: ids, Storage, StorageID, X, Y and ItemFlag; the UPDATE
-// writes no ItemFlag) — and two "plain" ones without even that column,
-// EventGiftBox and LearningItem (PLAIN_OBJECT: seven columns everywhere); both
-// share the seven-argument UPDATE. Info: basic plus one int column (BonusRatio,
-// Charge, SkillType) or two (Width, Height; `Function`, Parameter), each fed to
-// the class's own setters; EventGiftBox is basic alone.
-// The eleventh family, three shapes: MixingItem and PetFood take the Num + ItemFlag
-// INSERT and UPDATE but read Num through getInt in their loads (MIXING_ITEM_OBJECT:
-// nine columns in both; PET_FOOD_OBJECT: nine in the owner load, but its zone
-// SELECT names no Num — the ItemFlag-only zone shape); Key has a Target column
-// (an ItemID_t, getDWORD in both loads) in place of Num and ItemFlag (KEY_OBJECT);
-// OustersSummonItem and SlayerPortalItem a Charge column (an int) there, and
-// their zone load reads the same getters as the owner one (CHARGE_OBJECT). Info:
-// MixingItemInfo's eleven columns without Ratio (Target-1, Type-1 and the three
-// race levels after Weight); PetFoodInfo's basic plus three ints (Target, PetHP,
-// TameRatio); KeyInfo's basic plus two (OptionType, TargetType — the pair shape);
-// OustersSummonItemInfo's head plus MaxCharge, Effect (no Ratio);
-// SlayerPortalItemInfo's basic plus MaxCharge and the ReqAbility varchar (the
-// Potion shape, MaxCharge in its int).
-// The twelfth family, three more shapes: Money (MONEY_OBJECT: the plain columns
-// plus Amount — a DWORD, getDWORD in both loads — and Num, getBYTE in the owner
-// load and absent from the zone SELECT; its tinysave writes Amount too, so it is
-// its own); CoupleRing and VampireCoupleRing (COUPLE_RING_OBJECT: the plain
-// columns plus OptionType and Name as text and PartnerItemID through getDWORD in
-// the owner load, the UPDATE writing Name and PartnerItemID but no OptionType,
-// the zone SELECT the plain seven — loadPlainItemInZone serves it — and an
-// eleventh spec slot, hasPartnerItem's count(*)); VampirePortalItem
-// (VAMPIRE_PORTAL_OBJECT: the charge columns plus TargetZID, TargetX, TargetY
-// through getWORD; its zone load reads those eleven getters over an eight-column
-// SELECT and so throws on its first row, as it always did). Info: the basic shape
-// (Money, the couple rings) and the Potion shape (VampirePortalItem: MaxCharge,
-// ReqAbility).
-// The thirteenth family: VampireAmulet (AMULET_OBJECT: gear's two loads over an
-// INSERT and an UPDATE that name no Durability — eleven columns and ten SET columns —
-// with the standard Info shape); CoreZap (CORE_ZAP_OBJECT: the same INSERT, an
-// UPDATE with Grade alone, loads naming OptionType, Grade, ItemFlag (owner) and
-// OptionType, ItemFlag (zone); Info basic plus OptionClass); and Belt and
-// OustersArmsband — gear objects (GEAR_OBJECT; Belt's create was already a
-// parameterized statement, verbatim) whose Info adds PocketCount after
-// Protection (Belt read it and ItemLevel through getBYTE, the armsband through
-// getInt: two kinds, one row, one loader) and whose destroy() is a DELETE by
-// ItemID (destroyGearObject).
-// The fourteenth family, six classes whose <Class>Loader::load(Zone*) holds no
-// SQL at all: their spec rows carry no zone literal. Mitten, ShoulderArmor and
-// Persona are gear objects (Mitten's and ShoulderArmor's Info is gear's 18
-// columns, Persona's is VampireCoat's 16), so loadGearInZone would reach their
-// rows on shape alone: it checks the literal too and refuses them rather than
-// formatting a NULL. Dermis, Fascia and CarryingReceiver are
-// OPTION_GRADE_OBJECT — VampireAmulet's eleven-column INSERT and its UPDATE's
-// ten SET columns (eleven varargs), but an owner load of eleven columns, gear's
-// without Durability, and an Info SELECT of seventeen, gear's without
-// Durability too (GEAR_INFO_NO_DURABILITY); the gear loads refuse them on shape.
-// The fifteenth family, the four war items: BloodBible, CastleSymbol, Sweeper
-// and Relic (WAR_ITEM_OBJECT). Their INSERT names nine columns — the ids,
-// OwnerID, Storage, StorageID, X, Y and Durability last, no OptionType, Grade
-// or ItemFlag — their UPDATE nine (Durability and EnchantLevel among them) and
-// their zone SELECT nine, read entirely through getInt. Their creature loader
-// holds no SELECT at all: it deletes the owner's rows (a thirteenth spec slot,
-// deleteByOwner) because a row still standing there means the server went down.
-// Info: twelve columns, the head plus Defense, Protection, ReqAbility and
-// ItemLevel with no upgrade tail (GEAR_INFO_WAR), and Relic's seventeen — those
-// twelve plus RelicType, ZoneID, XCoord, YCoord, MonsterType, the last four of
-// which its InfoManager assigns to the info's members rather than through
-// setters (GEAR_INFO_RELIC).
-// The sixteenth family, the last three shapes: Motorcycle (MOTORCYCLE_OBJECT —
-// the gear INSERT without Grade and ItemFlag, ten columns; an UPDATE of nine SET
-// columns; an owner load of nine through gear's getters; a zone load of eight,
-// no OptionType there, every column getInt; Info the eight head columns alone,
-// GEAR_INFO_DURABILITY); CodeSheet (CODE_SHEET_OBJECT — the plain INSERT plus
-// OptionType, nine columns; an UPDATE of eight SET columns; an owner load of
-// eight; and gear's eleven-column zone SELECT, so loadGearInZone serves it while
-// loadGearOfOwner still refuses it; Info the six-column head alone,
-// GEAR_INFO_HEAD); and WarItem, a plain object (PLAIN_OBJECT, the basic Info
-// shape) whose three Loader::load overloads are all SQL-free stubs — its spec
-// row
-// carries neither an owner nor a zone literal, and both plain loads refuse it;
-// its create logs the statement it ran to WarLog.txt, so it takes
-// insertPlainItemLogged, which hands the text back.
-// The seventeenth family, PetItem alone (PET_ITEM_OBJECT): its create and its
-// save each run one of two statements — without the pet's own columns when the
-// item carries no PetInfo, with the twelve of them when it does — and
-// savePetInfo writes those columns alone, so the spec row carries three more
-// literals (insertWithInfo, updateWithInfo, savePetInfo, NULL for every other
-// table). Its owner SELECT names twenty-one columns and admits Storage 13
-// besides the usual list; its zone SELECT is the ItemFlag-only eight, so
-// loadFlagItemInZone serves it; Info is the basic seven.
+// Each table's spec row records its object shape (GearObjectKind) and its
+// Info shape (GearInfoKind). Every shape-checked method refuses a table of
+// another shape, so a mismatch throws instead of misreading the columns
+// silently (a longer row would drop its extra columns; a shorter one would
+// throw getField's OutOfBoundException with no hint which table). A table
+// whose loader has no SQL carries no literal for it, and the loads refuse
+// such a table rather than formatting a NULL.
 //
-// Reads are typed to the driver getter the inline code called: the owner
-// load read ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y
-// through getBYTE and the rest through getInt; the zone load read every
-// numeric column through getInt (and the INSERT-built zone SELECT names no
-// Grade column — it never did; the Num and Num-only families read Num through
-// getBYTE in both loads, see the sixth and seventh families). The info load is
-// getInt/getString per
-// column. Write parameters are typed to what each caller streamed, so the
-// varargs bytes are unchanged: the create INSERT was a StringStream chain
-// (DWORD/WORD through "%u", int through "%d"; AR's was already a
-// parameterized statement and is verbatim), the save UPDATE and tinysave
-// keep their "%ld" for the DWORD ids exactly as written.
+// Reads are typed to the driver getter used for each column: the owner load
+// reads ItemID/ObjectID/ItemType/StorageID through getDWORD, X/Y through
+// getBYTE and the rest through getInt; the zone load reads every numeric
+// column through getInt (and names no Grade column). Exceptions are noted on
+// the row structs. Write parameters are typed to what each caller passes:
+// DWORD/WORD through "%u", int through "%d", text as is.
 //
-// Not enclosed: EventBall, the one item file with SQL left (it has no tables
-// and is not registered), and the
-// loaders' storage-placement logic (stays with the class). ItemInfoManager.cpp
-// holds only the registry calls, no SQL.
+// The motorcycle-redeem statements live here too because they are the
+// MotorcycleObject table's: an existence probe on a key's Target, a
+// four-column read of the row to rebuild the object from (ItemID, ItemType,
+// OptionType, Durability) and, when the row is missing, an INSERT of a fresh
+// row with an empty OwnerID and OptionType. The read and the insert exist in
+// two spellings (the handlers' and the quest action's: "WHERE ItemID=%u"
+// versus "where ItemID = %u", "INSERT INTO" versus "INSERT IGNORE INTO"), so
+// they take a spelling enum; the probe has one spelling. The callers keep
+// their narrowing into ItemID_t / ItemType_t / Durability_t and their
+// 300-durability default for a missing row. Key::setNewMotorcycle, which
+// the callers make between the probe and the read, is saveKeyTarget through
+// the item class.
 
 enum GearTable {
     GEAR_RING,
@@ -1159,6 +1012,21 @@ struct CodeSheetObjectRow {
     std::string optionField;
 };
 
+// The motorcycle-redeem read: the four columns a parked motorcycle is rebuilt
+// from (getInt for the numbers, getString for OptionType, which the callers
+// parse into option types themselves).
+struct MotorcycleRedeemRow {
+    int itemID;
+    int itemType;
+    std::string optionField;
+    int durability;
+};
+
+// Which text the redeem read and insert send: the handlers' ("WHERE
+// ItemID=%u"; "INSERT INTO") or the quest action's ("where ItemID = %u";
+// "INSERT IGNORE INTO").
+enum MotorcycleRedeemSpelling { REDEEM_SPELLING_HANDLER, REDEEM_SPELLING_QUEST_ACTION, REDEEM_SPELLING_MAX };
+
 // MotorcycleInfo: the eight head columns alone.
 struct DurabilityInfoRow {
     int itemType;
@@ -1199,10 +1067,10 @@ struct PetItemObjectRow {
 
 // EventShutdown's egg-dummy-DB teardown seeds one sentinel row in each
 // of three object tables. These are NOT the named-column inserts the
-// rest of this seam carries: they are POSITIONAL, name no columns, and
-// quote every value including the numeric ones, so they depend on each
-// table's exact column order and count. The id is INT_MAX in both the
-// ItemID and ObjectID positions — a sentinel, not a real object.
+// rest of this repository carries: they are POSITIONAL, name no columns,
+// and quote every value including the numeric ones, so they depend on
+// each table's exact column order and count. The id is INT_MAX in both
+// the ItemID and ObjectID positions — a sentinel, not a real object.
 //
 // That path does not compile into the shipped gameserver: it sits
 // behind the "#else" of a
@@ -1234,9 +1102,9 @@ public:
                             int storage, StorageID_t storageID, int x, int y, const std::string& optionField,
                             Durability_t durability, int grade, int enchantLevel, ItemID_t itemID) = 0;
 
-    // <Class>InfoManager::load — MAX(ItemType) (getInt, as before: an empty
-    // Info table is one NULL row and atoi(NULL) crashed there too; VampireEarring's
-    // literal is ifnull(MAX(ItemType),0), so it reads 0 instead), then the rows.
+    // <Class>InfoManager::load — MAX(ItemType) through getInt (an empty Info
+    // table is one NULL row, and atoi(NULL) crashes; VampireEarring's literal is
+    // ifnull(MAX(ItemType),0), so it reads 0 instead), then the rows.
     virtual int loadMaxGearType(GearTable table) = 0;
     virtual std::vector<GearInfoRow> loadGearInfos(GearTable table) = 0;
     // The other Info shapes (see GearInfoKind); each refuses a table of another shape.
@@ -1273,7 +1141,7 @@ public:
     // <Class>Loader::load(Creature*) — the owner's rows in Storage IN(0, 1, 2, 3, 4, 9).
     // Both gear loads serve the AMULET_OBJECT table too: its SELECTs are gear's.
     virtual std::vector<GearObjectRow> loadGearOfOwner(GearTable table, const std::string& ownerName) = 0;
-    // <Class>Loader::load(Zone*) — `storage` is what the caller streamed ((int)STORAGE_ZONE).
+    // <Class>Loader::load(Zone*) — `storage` is the caller's (int)STORAGE_ZONE.
     // Serves CodeSheet too: its zone SELECT is gear's eleven columns. Refuses the
     // gear tables that carry no zone literal because their zone loader holds no SQL
     // (Mitten, ShoulderArmor, Persona); other shapes it refuses anyway.
@@ -1336,7 +1204,7 @@ public:
     virtual std::vector<NumOnlyZoneObjectRow> loadNumOnlyItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
     // <Class>::destroy of Pupa, Larva, ComposMei and Potion — "DELETE FROM %s" with the
     // class's object table name; false when no row went, true otherwise (also after
-    // a caught DB error, as the original fell through). Refuses tables without the literal.
+    // a caught DB error). Refuses tables without the literal.
     virtual bool destroyItemObject(GearTable table, const std::string& objectTableName, ItemID_t itemID) = 0;
     // Skull's zone load (Num through getDWORD) and the Bomb tables' (no Num column).
     virtual std::vector<SkullZoneObjectRow> loadSkullInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
@@ -1358,8 +1226,7 @@ public:
     // Serves PetFood and PetItem too: their zone SELECTs name the same eight columns.
     virtual std::vector<FlagZoneObjectRow> loadFlagItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
     // insertPlainItemLogged returns the statement it ran: WarItem's create logs it to
-    // WarLog.txt, as its own create logged the string it had built. The other plain
-    // tables use insertPlainItem.
+    // WarLog.txt. The other plain tables use insertPlainItem.
     virtual std::string insertPlainItemLogged(GearTable table, ItemID_t itemID, ObjectID_t objectID,
                                               ItemType_t itemType, const std::string& ownerID, int storage,
                                               StorageID_t storageID, int x, int y) = 0;
@@ -1375,7 +1242,7 @@ public:
     virtual std::vector<NumIntZoneObjectRow> loadNumIntItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
     // Key (see GearObjectKind): the plain columns plus Target — an ItemID_t, "%u" in
-    // the INSERT as the chain streamed it, "%d" in the UPDATE as written.
+    // the INSERT, "%d" in the UPDATE.
     virtual void insertKey(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                            const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                            ItemID_t target) = 0;
@@ -1383,8 +1250,8 @@ public:
                            int storage, StorageID_t storageID, int x, int y, ItemID_t target, ItemID_t itemID) = 0;
     virtual std::vector<KeyObjectRow> loadKeyOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<KeyZoneObjectRow> loadKeyInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
-    // Key::setNewMotorcycle — "UPDATE KeyObject SET Target=%lu WHERE ItemID=%lu" with the
-    // new motorcycle's id (both DWORDs through "%lu" as written). Refuses other tables.
+    // Key::setNewMotorcycle — "UPDATE KeyObject SET Target=%u WHERE ItemID=%u" with the
+    // new motorcycle's id. Refuses other tables.
     virtual void saveKeyTarget(GearTable table, ItemID_t targetID, ItemID_t itemID) = 0;
 
     // OustersSummonItem and SlayerPortalItem (see GearObjectKind): the plain columns
@@ -1397,9 +1264,8 @@ public:
     virtual std::vector<ChargeObjectRow> loadChargeItemOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<ChargeObjectRow> loadChargeItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
-    // Money (see GearObjectKind): the plain columns plus Amount (a DWORD; the
-    // UPDATE and tinysave feed it to "%ld" as written) and Num; tinysaveMoney is
-    // "SET %s, Amount=%ld".
+    // Money (see GearObjectKind): the plain columns plus Amount (a DWORD) and Num;
+    // tinysaveMoney is "SET %s, Amount=%u".
     virtual void insertMoney(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                              const std::string& ownerID, int storage, StorageID_t storageID, int x, int y, DWORD amount,
                              int num) = 0;
@@ -1411,10 +1277,9 @@ public:
     virtual std::vector<MoneyZoneObjectRow> loadMoneyInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
     // The couple rings (see GearObjectKind): the plain columns plus OptionType, Name
-    // and PartnerItemID in the INSERT, Name and PartnerItemID in the UPDATE ("%ld"
-    // fed the DWORD as written); the owner load; and hasPartnerItem's count(*) —
-    // true with the count when a row came back, false otherwise. The zone load is
-    // loadPlainItemInZone.
+    // and PartnerItemID in the INSERT, Name and PartnerItemID in the UPDATE; the
+    // owner load; and hasPartnerItem's count(*) — true with the count when a row
+    // came back, false otherwise. The zone load is loadPlainItemInZone.
     virtual void insertCoupleRing(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                   const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                                   const std::string& optionField, const std::string& name, ItemID_t partnerItemID) = 0;
@@ -1426,9 +1291,9 @@ public:
 
     // VampirePortalItem (see GearObjectKind): the charge columns plus the target
     // zone and coordinates (the callers cast their WORDs (int)); one row for both
-    // loads. loadVampirePortalInZone reads the row's eleven getters over the
-    // eight-column zone SELECT, as the original loader did: with any row present it
-    // throws OutOfBoundException from the ninth getter.
+    // loads. loadVampirePortalInZone reads the row's eleven getters over an
+    // eight-column zone SELECT: with any row present it throws
+    // OutOfBoundException from the ninth getter.
     virtual void insertVampirePortal(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                      const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                                      int charge, int targetZoneID, int targetX, int targetY) = 0;
@@ -1457,10 +1322,10 @@ public:
     virtual std::vector<CoreZapObjectRow> loadCoreZapOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<CoreZapZoneObjectRow> loadCoreZapInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
     virtual std::vector<OptionGradeObjectRow> loadOptionGradeOfOwner(GearTable table, const std::string& ownerName) = 0;
-    // PetItem (see GearObjectKind): create and save each run one of two statements,
-    // and savePetInfo writes the pet columns alone. Every argument keeps the type the
-    // caller passed — the ids and PetExp unsigned, the byte- and word-wide pet fields
-    // promoted to int, as they were — so the varargs bytes are unchanged.
+    // PetItem (see GearObjectKind): create and save each run one of two statements
+    // (with or without the pet's columns), and savePetInfo writes the pet columns
+    // alone. The ids and PetExp are unsigned; the byte- and word-wide pet fields
+    // are promoted to int.
     virtual void insertPetItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                                int createType) = 0;
@@ -1493,6 +1358,19 @@ public:
     virtual std::vector<MotorcycleObjectRow> loadMotorcycleOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<MotorcycleZoneObjectRow> loadMotorcycleInZone(GearTable table, int storage,
                                                                       ZoneID_t zoneID) = 0;
+    // The motorcycle-redeem statements (see the header comment). These name
+    // MotorcycleObject alone, so they take no table.
+    // "SELECT ItemID FROM MotorcycleObject WHERE ItemID=%u" — true when a row
+    // came back.
+    virtual bool motorcycleExists(ItemID_t itemID) = 0;
+    // The four-column read; true and the row when it exists, false otherwise.
+    virtual bool loadMotorcycleForRedeem(MotorcycleRedeemSpelling spelling, ItemID_t itemID,
+                                         MotorcycleRedeemRow& row) = 0;
+    // The fresh-row INSERT (empty OwnerID and OptionType in the literal). Every
+    // value goes through "%d", the three DWORDs included.
+    virtual void insertRedeemedMotorcycle(MotorcycleRedeemSpelling spelling, ItemID_t itemID, ObjectID_t objectID,
+                                          ItemType_t itemType, int storage, ZoneID_t zoneID, int x, int y,
+                                          Durability_t durability) = 0;
 
     // CodeSheet (see GearObjectKind): the plain INSERT and UPDATE plus OptionType and
     // an owner load of eight columns; its zone SELECT is gear's, so loadGearInZone
@@ -1509,7 +1387,7 @@ public:
     // and no OptionType, Grade or ItemFlag, a nine-column UPDATE, the DELETE their
     // creature loader runs in place of an owner SELECT, and a nine-column zone load.
     // insertWarItem returns the statement it ran: BloodBible, CastleSymbol and
-    // Sweeper log it to WarLog.txt, as their create logged the string it had built.
+    // Sweeper log it to WarLog.txt.
     virtual std::string insertWarItem(GearTable table, ItemID_t itemID, ObjectID_t objectID, ItemType_t itemType,
                                       const std::string& ownerID, int storage, StorageID_t storageID, int x, int y,
                                       Durability_t durability) = 0;
@@ -1519,13 +1397,13 @@ public:
     virtual void deleteWarItemsOfOwner(GearTable table, const std::string& ownerName) = 0;
     virtual std::vector<WarItemZoneObjectRow> loadWarItemInZone(GearTable table, int storage, ZoneID_t zoneID) = 0;
 
-    // Belt::destroy and OustersArmsband::destroy — "DELETE FROM <Class>Object WHERE ItemID =
-    // %ld"; false when no row went, true otherwise. Refuses tables without the literal.
+    // Belt::destroy and OustersArmsband::destroy — "DELETE FROM <Class>Object WHERE
+    // ItemID = %u"; false when no row went, true otherwise. Refuses tables without
+    // the literal.
     virtual bool destroyGearObject(GearTable table, ItemID_t itemID) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in MySQLItemObjectRepository.cpp.
-// An accessor function rather than a g_p* extern: ratchet R1 counts those.
 ItemObjectRepository& defaultItemObjectRepository();
 
 #endif

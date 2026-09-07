@@ -13,7 +13,7 @@
 #include "Properties.h"
 
 #ifdef __GAME_SERVER__
-#include "DB.h"
+#include "repository/SessionRepository.h"
 
 #endif
 
@@ -38,45 +38,31 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
 
     // cout << "CGPortCheck: [" << IP << "] " << host.c_str() << ":" << port << endl;
 
-    Statement* pStmt = NULL;
-
     try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        // INSERT IGNORE and, when that changed no row, the UPDATE.
+        defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port, g_pConfig->getPropertyInt("ServerID"));
 
-        pStmt->executeQuery("INSERT IGNORE INTO UserIPInfo (Name, IP, Port, ServerID) VALUES ( '%s', %lu, %u, %d )",
-                            pPacket->getPCName().c_str(), IP, port, g_pConfig->getPropertyInt("ServerID"));
+        // log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
 
-        if (pStmt->getAffectedRowCount() == 0) {
-            // 다시 한번 시도
-            pStmt->executeQuery("UPDATE UserIPInfo Set IP=%lu, Port=%u WHERE Name='%s'", IP, port,
-                                pPacket->getPCName().c_str());
-
-            // log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
-        }
-
-        SAFE_DELETE(pStmt);
-
-    } catch (SQLQueryException&) {
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged
+        // to DBError.log; swallowed.
         /*
         try {
             // 다시 한번 시도
-            pStmt->executeQuery( "UPDATE UserIPInfo Set IP=%ld, Port=%d WHERE Name='%s'",
-                                    IP,
-                                    port,
-                                    pPacket->getPCName().c_str());
+            // (an older retry that re-ran the UPDATE alone; the UPDATE is
+            // the second half of recordUserIP)
+            defaultSessionRepository().recordUserIP(pPacket->getPCName(), IP, port,
+                                                   g_pConfig->getPropertyInt("ServerID"));
 
             //log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
 
-            SAFE_DELETE(pStmt);
+        } catch (const char*) {
 
-        } catch (SQLQueryException & sqe) {	//se) {
-
-            SAFE_DELETE(pStmt);
             // 무시한다.
             //throw ProtocolException("Duplicated IPInfo");
         }
         */
-        SAFE_DELETE(pStmt);
     }
 #else
             cout

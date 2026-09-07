@@ -11,7 +11,6 @@
 #include <stdio.h>
 
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "DynamicZone.h"
 #include "Effect.h"
 #include "EffectAftermath.h"
@@ -81,6 +80,7 @@
 #include "item/SlayerPortalItem.h"
 #include "item/TrapItem.h"
 #include "item/VampirePortalItem.h"
+#include "repository/ItemObjectRepository.h"
 #include "skill/EffectSummonSylph.h"
 #include "skill/Skill.h"
 #include "skill/SkillUtil.h"
@@ -1099,9 +1099,6 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
     // ±âÁ¸¿¡ ¾ÆÀÌÅÛÀÌ »ý¼ºµÇ¾î ÀÖ´ÂÁö¸¦ È®ÀÎÇÑ´Ù.
     ItemID_t targetID = dynamic_cast<Key*>(pItem)->getTarget();
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
     // targetID°¡ 0ÀÎ °æ¿ì´Â.. targetID(motorcycleObjectÀÇ ItemID)°¡ ¼³Á¤ÀÌ ¾ÈµÈ °æ¿ì´Ù.
     // ÀÌ ¶§´Â ÀÓ½Ã·Î targetID¸¦ keyÀÇ ItemID¿Í °°°Ô ÇÏ¸é µÈ´Ù...°í º»´Ù.
     // targetID°¡ motorcycleÀÇ itemID·Î µé¾î°¡±â ¶§¹®¿¡..
@@ -1133,16 +1130,8 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
                 targetID = pMotorcycle->getItemID();
 
                 // targetID¸¦ DB¿¡µµ update½ÃÄÑ¾ß ÇÑ´Ù.
-                BEGIN_DB
-                {
-                    pStmt   = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                    pResult = pStmt->executeQuery(
-                                "UPDATE KeyObject SET Target=%lu WHERE ItemID=%lu",
-                                            targetID, pKey->getItemID());
-
-                    SAFE_DELETE(pStmt);
-                }
-                END_DB(pStmt)
+                // (the KeyObject Target UPDATE is ItemObjectRepository::saveKeyTarget now)
+                defaultItemObjectRepository().saveKeyTarget(GEAR_KEY, targetID, pKey->getItemID());
 
                 // log
                 filelog("motorcycle.txt", "[SetTargetID] Owner = %s, KeyID = %lu, Key's targetID = %lu, MotorcycleID =
@@ -1153,20 +1142,12 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
     } else {
         // ÇÑ¹ø ¸ðÅÍ»çÀÌÅ¬ÀÌ¶û Å°¶û ¿¬°áµÆ´Âµ¥ ¸ðÅÍ»çÀÌÅ¬À» ´©°¡ ÀÚ²Ù Áö¿ì³ªº¸´Ù.
         // Å°¿¡ ¿¬°áµÈ ¸ðÅÍ»çÀÌÅ¬ÀÌ ½ÇÁ¦·Î µðºñ¿¡ ÀÖ´ÂÁö Ã¼Å©ÇÏ°í ¾øÀ¸¸é »õ·Î ¸¸µé¾î¼­ ³Ö¾îÁØ´Ù.
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pResult = pStmt->executeQuery("SELECT ItemID FROM MotorcycleObject WHERE ItemID=%lu", targetID);
+        if (!defaultItemObjectRepository().motorcycleExists(targetID)) {
+            Key* pKey = dynamic_cast<Key*>(pItem);
+            Assert(pKey != NULL);
 
-            if (!pResult->next()) {
-                Key* pKey = dynamic_cast<Key*>(pItem);
-                Assert(pKey != NULL);
-
-                targetID = pKey->setNewMotorcycle(pSlayer);
-            }
-
-            SAFE_DELETE(pStmt);
+            targetID = pKey->setNewMotorcycle(pSlayer);
         }
-        END_DB(pStmt);
     }
 
 
@@ -1217,28 +1198,23 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
         return;
     }
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery(
-            "SELECT ItemID, ItemType, OptionType, Durability FROM MotorcycleObject WHERE ItemID=%lu", targetID);
+    {
+        MotorcycleRedeemRow redeemRow;
+        bool bFound =
+            defaultItemObjectRepository().loadMotorcycleForRedeem(REDEEM_SPELLING_HANDLER, targetID, redeemRow);
 
         ItemID_t itemID;
         ItemType_t itemType;
         list<OptionType_t> optionTypes;
         Durability_t durability;
 
-        bool bFound = false;
+        if (bFound) {
+            itemID = redeemRow.itemID;
+            itemType = redeemRow.itemType;
 
-        if (pResult->next()) {
-            bFound = true;
+            setOptionTypeFromField(optionTypes, redeemRow.optionField);
 
-            itemID = pResult->getInt(1);
-            itemType = pResult->getInt(2);
-
-            string optionField = pResult->getString(3);
-            setOptionTypeFromField(optionTypes, optionField);
-
-            durability = pResult->getInt(4);
+            durability = redeemRow.durability;
         } else {
             itemID = targetID;
             itemType = 0;
@@ -1273,11 +1249,9 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
         } else {
             if (!bFound) {
                 // by sigi. 2002.10.14
-                pStmt->executeQuery(
-                    "INSERT INTO MotorcycleObject (ItemID, ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, "
-                    "OptionType, Durability) Values (%d, %d, %d, '', %d, %d, %d, %d, '', %d)",
-                    itemID, pMotorcycle->getObjectID(), itemType, STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y,
-                    durability);
+                defaultItemObjectRepository().insertRedeemedMotorcycle(
+                    REDEEM_SPELLING_HANDLER, itemID, pMotorcycle->getObjectID(), itemType, STORAGE_ZONE,
+                    pZone->getZoneID(), pt.x, pt.y, durability);
             }
 
             // ¿ÀÅä¹ÙÀÌ¸¦ Parking Center¿¡ µî·ÏÇÑ´Ù.
@@ -1299,14 +1273,10 @@ void CGUseItemFromInventoryHandler::executeKeyItem(CGUseItemFromInventory* pPack
         _GCCannotUse.setObjectID(pPacket->getObjectID());
         pGamePlayer->sendPacket(&_GCCannotUse);
 
-        SAFE_DELETE(pStmt);
         return;
     }
     */
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt);
 #endif
     __END_DEBUG_EX __END_CATCH
 }

@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-// Read-only seam for the level/exp BALANCE tables (task 3.2): the
-// per-level exp ladders the gameserver loads once at boot and indexes
+// Read-only access to the level/exp BALANCE tables: the per-level exp
+// ladders the gameserver loads once at boot and indexes
 // by level — STR/DEX/INT (STRBalanceInfo, DEXBalanceInfo,
 // INTBalanceInfo), the vampire and ousters level ladders
 // (VampEXPBalanceInfo, OustersEXPBalanceInfo), the rank ladders
@@ -13,24 +13,15 @@
 // (SkillDomainInfo, one per DomainType), the fame limits (FameLimitInfo,
 // one per DomainType), and the pet ladders (PetExpInfo,
 // PetAttrBalanceInfo, PetAttrInfo). Every field is typed to the driver
-// getter the inline code called (getInt → int), so each caller's
-// narrowing (Level_t, Exp_t, SkillBonus_t, PetLevel_t, ...) still
-// happens at the caller on the same value.
+// getter used for it (getInt → int); callers narrow (Level_t, Exp_t,
+// SkillBonus_t, PetLevel_t, ...) from there.
 //
 // The level-indexed loaders (the five ladders, the rank, domain and
 // fame ladders) first ask for MAX(<key>) to size an array, then read
 // the rows; the three pet tables are read whole, no probe. Each MAX
 // probe is exposed as a bool: MySQL answers MAX() over an EMPTY table
-// with one row holding NULL, and the driver's getInt would then
-// atoi(NULL). The inline code's "no data" checks on those probes
-// (getRowCount()==0 / !next()) could therefore never fire — an empty
-// table crashed instead of throwing. The seam maps the NULL to "no
-// maximum" so the callers' intended throws fire; see the MySQL
-// implementation.
-//
-// The loginserver's CLCreatePCHandler reads single rows of several of
-// these tables inline, and the loginserver/sharedserver load
-// GameServerGroupInfo with their own code — their own extractions.
+// with one row holding NULL, and the probe maps that to "no maximum" so
+// the callers' throws fire instead of a getInt on a NULL field.
 
 enum LevelExpTable {
     LEVEL_EXP_TABLE_STR,
@@ -120,16 +111,15 @@ public:
 
     // SomethingGrowingUp.h's ExpTable::load — "SELECT %s, %s, %s FROM %s %s"
     // with the level, goal and accumulated-exp column names, the table and
-    // a trailing condition ("" leaves the original's trailing space). The
-    // identifiers are the ExpTable subclasses' constants, never user text.
+    // a trailing condition. The identifiers are the ExpTable subclasses'
+    // constants, never user text.
     virtual std::vector<ExpTableRow> loadExpTable(const std::string& levelField, const std::string& goalField,
                                                   const std::string& accumField, const std::string& table,
                                                   const std::string& condition) = 0;
 };
 
 // The process-wide MySQL-backed instance, wired in
-// MySQLBalanceInfoRepository.cpp. An accessor function rather than a
-// g_p* extern: ratchet R1 counts those.
+// MySQLBalanceInfoRepository.cpp.
 BalanceInfoRepository& defaultBalanceInfoRepository();
 
 #endif

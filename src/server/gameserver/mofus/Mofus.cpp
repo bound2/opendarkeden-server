@@ -13,17 +13,10 @@
 // external service, and the game must not fall over when its bookkeeping
 // does.
 //
-// The type that has to be caught to do that CHANGED with the move to the
-// seam, and getting it wrong would silently turn an ignored error into a
-// thrown one. These functions used to run their own statements, so a
-// failure arrived as the SQLQueryException the driver raises. Now each
-// repository call converts its own inside END_DB and rethrows a bare
-// const char*, which is what the swallow has to name. The
-// SQLQueryException catch is gone because nothing here can raise one any
-// more, and so is the catch (...) that freed the Statement before
-// rethrowing — its cleanup did not move into the repository, which
-// therefore leaks on a non-SQLQueryException path. Unreachable for
-// these statements, and recorded in the implementation.
+// The type the swallow has to name is the bare const char* each
+// repository call rethrows from END_DB after converting the driver's
+// SQLQueryException; catching SQLQueryException here would silently turn
+// an ignored error into a thrown one.
 //
 // What the swallow prevents is worse than an ignored error becoming a
 // thrown one, and it differs per caller. PlayerCreature::load calls

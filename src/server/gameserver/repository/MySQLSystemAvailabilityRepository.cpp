@@ -3,19 +3,16 @@
 
 namespace {
 
-// MySQL implementation of the system-availability seam. The legacy quirks
-// are quarantined HERE, per docs/RESTRUCTURING.md 3.2:
-//  - The read is "SELECT * FROM SystemAvailabilities", kept as written.
-//    The caller reads columns 1 and 2 positionally, so it depends on the
-//    table's column order; see the header.
-//  - The delete's value is quoted although SystemKind is int(11), because
-//    the call sites wrote it quoted. MySQL coerces, and the six
-//    statements this replaces are byte-identical to what "'%d'" formats
-//    for each of 0, 1, 4, 7, 9 and 888.
+// MySQL implementation of SystemAvailabilityRepository.
+//  - The read is "SELECT * FROM SystemAvailabilities"; columns 1 and 2
+//    are read positionally, so it depends on the table's column order
+//    (see the header).
+//  - The delete's value is quoted although SystemKind is int(11); MySQL
+//    coerces.
 //  - loadAll leaks its Statement if getInt raises OutOfBoundException on
 //    a short row: SAFE_DELETE sits inside the try and END_DB catches only
-//    SQLQueryException. Same shape as every seam here, not a regression,
-//    and unreachable against a two-column read of a three-column table.
+//    SQLQueryException. Unreachable against a two-column read of a
+//    three-column table.
 class MySQLSystemAvailabilityRepository : public SystemAvailabilityRepository {
 public:
     vector<SystemAvailabilityRow> loadAll() {

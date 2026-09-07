@@ -561,6 +561,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLSystemAvailabilityRepository.cpp
     repository/MySQLZoneInfoRepository.cpp
     repository/MySQLCharacterRepository.cpp
+    repository/MySQLCharacterPurgeRepository.cpp
     repository/MySQLGoldRepository.cpp
     repository/MySQLGoodsRepository.cpp
     repository/MySQLGuildRepository.cpp
@@ -573,6 +574,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLQuestItemRepository.cpp
     repository/MySQLRankBonusRepository.cpp
     repository/MySQLSMSAddressRepository.cpp
+    repository/MySQLSpecialEventRepository.cpp
     repository/MySQLSessionRepository.cpp
     repository/MySQLSkillSaveRepository.cpp
     repository/MySQLStashRepository.cpp

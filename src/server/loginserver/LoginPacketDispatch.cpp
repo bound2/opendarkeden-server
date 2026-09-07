@@ -1,12 +1,9 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : LoginPacketDispatch.cpp
-// Description : the loginserver composition root (docs/RESTRUCTURING.md
-//               task 2.3): every packet id the loginserver receives is
-//               bound to its handler here. CL rides the client TCP
-//               connection (LoginPlayer), GL rides the GameServerManager
-//               datagram socket. (CLAgreement turned out to be a dead
-//               packet - its id enum never existed - and was deleted
-//               in 2.4.)
+// Description : the loginserver composition root: every packet id the
+//               loginserver receives is bound to its handler here. CL
+//               rides the client TCP connection (LoginPlayer), GL rides
+//               the GameServerManager datagram socket.
 //////////////////////////////////////////////////////////////////////////////
 
 #include "LoginPacketDispatch.h"

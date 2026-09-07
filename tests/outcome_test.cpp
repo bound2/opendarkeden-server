@@ -1,5 +1,5 @@
-// Pins the Outcome<Events, Rejection> result type (docs/RESTRUCTURING.md
-// task 3.1): construction through the named factories, accessors, the
+// Pins the Outcome<Events, Rejection> result type: construction through
+// the named factories, accessors, the
 // throw-on-wrong-side contract, value/move semantics, rvalue move-out, and
 // the void specialization.
 
