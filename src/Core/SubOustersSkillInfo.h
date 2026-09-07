@@ -29,11 +29,11 @@ public:
 
     // get size of object
     uint getSize() const {
-        return szSkillType + szTurn + szTurn;
+        return szSkillType + szExpLevel + szTurn + szTurn;
     }
     // get max size of object
     static constexpr uint getMaxSize() {
-        return szSkillType + szTurn + szTurn;
+        return szSkillType + szExpLevel + szTurn + szTurn;
     }
 
     // get debug string
