@@ -111,6 +111,7 @@ set_tests_properties(repository_tests PROPERTIES TIMEOUT 60)
 add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     integration/mysql_repository_test.cpp
     integration/mysql_login_purge_repository_test.cpp
+    integration/mysql_sharedserver_repository_test.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBalanceInfoRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBloodBibleSignRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLBulletinBoardRepository.cpp
@@ -146,6 +147,8 @@ add_executable(mysql_repository_tests EXCLUDE_FROM_ALL
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLStashRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/repository/MySQLWarInfoRepository.cpp
     ${CMAKE_SOURCE_DIR}/src/server/loginserver/repository/MySQLLoginCharacterPurgeRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/sharedserver/repository/MySQLSharedConfigRepository.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/sharedserver/repository/MySQLSharedGuildRepository.cpp
 )
 target_include_directories(mysql_repository_tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/integration
@@ -153,6 +156,7 @@ target_include_directories(mysql_repository_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/server
     ${CMAKE_SOURCE_DIR}/src/server/gameserver
     ${CMAKE_SOURCE_DIR}/src/server/loginserver
+    ${CMAKE_SOURCE_DIR}/src/server/sharedserver
 )
 target_link_libraries(mysql_repository_tests PRIVATE
     Database

@@ -12,13 +12,13 @@
 
 #ifdef __SHARED_SERVER__
 
-#include "DB.h"
 #include "GameServerManager.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "Properties.h"
 #include "SGDeleteGuildOK.h"
 #include "SGExpelGuildMemberOK.h"
+#include "repository/SharedGuildRepository.h"
 
 #endif
 
@@ -53,24 +53,14 @@ void GSExpelGuildMemberHandler::execute(GSExpelGuildMember* pPacket, Player* pPl
     filelog("GuildExit.log", "GuildID: %d, GuildName: %s, Expel: %s, By: %s", pGuild->getID(),
             pGuild->getName().c_str(), pPacket->getName().c_str(), pPacket->getSender().c_str());
 
-    ///////////////////////////////////////////////////////////////////
-    //  DB에 Slayer, Vampire, Ousters 테이블의 GuildID 를 바꾼다.
-    ///////////////////////////////////////////////////////////////////
-    Statement* pStmt = NULL;
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-            pStmt->executeQuery("UPDATE Slayer SET GuildID = 99 WHERE Name = '%s'", pGuildMember->getName().c_str());
-        } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-            pStmt->executeQuery("UPDATE Vampire SET GuildID = 0 WHERE Name = '%s'", pGuildMember->getName().c_str());
-        } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-            pStmt->executeQuery("UPDATE Ousters SET GuildID = 66 WHERE Name = '%s'", pGuildMember->getName().c_str());
-        }
-
-        SAFE_DELETE(pStmt);
+    // The character row loses its guild id.
+    if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
+        defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 99, pGuildMember->getName());
+    } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
+        defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 0, pGuildMember->getName());
+    } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
+        defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 66, pGuildMember->getName());
     }
-    END_DB(pStmt)
 
     // Guild Member 를 expire 시킨다.
     pGuildMember->expire();
@@ -93,42 +83,27 @@ void GSExpelGuildMemberHandler::execute(GSExpelGuildMember* pPacket, Player* pPl
         filelog("GuildBroken.log", "GuildID: %d, GuildName: %s, MemberCount: %d, Expel: %s", pGuild->getID(),
                 pGuild->getName().c_str(), pGuild->getActiveMemberCount(), pPacket->getName().c_str());
 
-        // 길드 멤버 expire and delete
+        // Every remaining member is expelled: the character row loses its
+        // guild id, the roster row is expired, the object is freed.
         HashMapGuildMember& Members = pGuild->getMembers();
         HashMapGuildMemberItor itr = Members.begin();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+        for (; itr != Members.end(); itr++) {
+            GuildMember* pGuildMember = itr->second;
 
-            for (; itr != Members.end(); itr++) {
-                GuildMember* pGuildMember = itr->second;
-
-                ///////////////////////////////////////////////////////////////////
-                //  DB에 Slayer, Vampire, Ousters 테이블의 GuildID 를 바꾼다.
-                ///////////////////////////////////////////////////////////////////
-                if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-                    pStmt->executeQuery("UPDATE Slayer SET GuildID = 99 WHERE Name = '%s'",
-                                        pGuildMember->getName().c_str());
-                } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                    pStmt->executeQuery("UPDATE Vampire SET GuildID = 0 WHERE Name = '%s'",
-                                        pGuildMember->getName().c_str());
-                } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-                    pStmt->executeQuery("UPDATE Ousters SET GuildID = 66 WHERE Name = '%s'",
-                                        pGuildMember->getName().c_str());
-                }
-
-                // 길드 멤버를 expire 시킨다.
-                pGuildMember->expire();
-                // 완전히 DB에서 제거한다.
-                // pGuildMember->destroy();
-
-                // 길드 멤버를 삭제
-                SAFE_DELETE(pGuildMember);
+            if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
+                defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 99, pGuildMember->getName());
+            } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
+                defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 0, pGuildMember->getName());
+            } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
+                defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 66, pGuildMember->getName());
             }
 
-            SAFE_DELETE(pStmt);
+            pGuildMember->expire();
+            // pGuildMember->destroy();
+
+            SAFE_DELETE(pGuildMember);
         }
-        END_DB(pStmt)
 
         Members.clear();
 

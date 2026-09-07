@@ -14,13 +14,13 @@
 
 #include <stdio.h>
 
-#include "DB.h"
 #include "GameServerManager.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "Properties.h"
 #include "SGModifyGuildMemberOK.h"
 #include "StringPool.h"
+#include "repository/SharedGuildRepository.h"
 
 #endif
 
@@ -58,34 +58,23 @@ void GSModifyGuildMemberHandler::execute(GSModifyGuildMember* pPacket, Player* p
 
     if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_WAIT &&
         pPacket->getGuildMemberRank() == GuildMember::GUILDMEMBER_RANK_NORMAL) {
-        ///////////////////////////////////////////////////////////////////////////////////////
-        // 길드 멤버 가입을 승인한 경우, DB에 Slayer, Vampire, Ousters 테이블의 GuildID 를 바꾼다.
-        ///////////////////////////////////////////////////////////////////////////////////////
-        Statement* pStmt = NULL;
+        // A waiting member accepted into the guild: the character row is
+        // pointed at the guild and a message tells the character.
+        SharedGuildRepository& repo = defaultSharedGuildRepository();
 
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-                pStmt->executeQuery("UPDATE Slayer SET GuildID = %d WHERE Name = '%s'", pGuild->getID(),
-                                    pGuildMember->getName().c_str());
-                pStmt->executeQuery("INSERT INTO Messages (Receiver, Message ) VALUES ('%s', '%s' )",
-                                    pGuildMember->getName().c_str(), g_pStringPool->c_str(STRID_TEAM_JOIN_ACCEPT));
-            } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                pStmt->executeQuery("UPDATE Vampire SET GuildID = %d WHERE Name = '%s'", pGuild->getID(),
-                                    pGuildMember->getName().c_str());
-                pStmt->executeQuery("INSERT INTO Messages (Receiver, Message ) VALUES ('%s', '%s' )",
-                                    pGuildMember->getName().c_str(), g_pStringPool->c_str(STRID_CLAN_JOIN_ACCEPT));
-            } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-                pStmt->executeQuery("UPDATE Ousters SET GuildID = %d WHERE Name = '%s'", pGuild->getID(),
-                                    pGuildMember->getName().c_str());
-                pStmt->executeQuery("INSERT INTO Messages (Receiver, Message ) VALUES ('%s', '%s' )",
-                                    pGuildMember->getName().c_str(), g_pStringPool->c_str(STRID_CLAN_JOIN_ACCEPT));
-            }
-
-            SAFE_DELETE(pStmt);
+        if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
+            repo.setCharacterGuildID(pGuild->getRace(), pGuild->getID(), pGuildMember->getName());
+            repo.insertMessage(SHARED_MESSAGE_SQL_COMPACT, pGuildMember->getName(),
+                               g_pStringPool->c_str(STRID_TEAM_JOIN_ACCEPT));
+        } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
+            repo.setCharacterGuildID(pGuild->getRace(), pGuild->getID(), pGuildMember->getName());
+            repo.insertMessage(SHARED_MESSAGE_SQL_COMPACT, pGuildMember->getName(),
+                               g_pStringPool->c_str(STRID_CLAN_JOIN_ACCEPT));
+        } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
+            repo.setCharacterGuildID(pGuild->getRace(), pGuild->getID(), pGuildMember->getName());
+            repo.insertMessage(SHARED_MESSAGE_SQL_COMPACT, pGuildMember->getName(),
+                               g_pStringPool->c_str(STRID_CLAN_JOIN_ACCEPT));
         }
-        END_DB(pStmt)
 
         // Guild Member 정보를 변경한다.
         pGuild->modifyMemberRank(pGuildMember->getName(), pPacket->getGuildMemberRank());

@@ -12,13 +12,13 @@
 
 #ifdef __SHARED_SERVER__
 
-#include "DB.h"
 #include "GameServerManager.h"
 #include "Guild.h"
 #include "GuildManager.h"
 #include "SGAddGuildMemberOK.h"
 #include "SGModifyGuildOK.h"
 #include "StringPool.h"
+#include "repository/SharedGuildRepository.h"
 
 #endif
 
@@ -70,61 +70,41 @@ void GSAddGuildMemberHandler::execute(GSAddGuildMember* pPacket, Player* pPlayer
         for (; itr != Members.end(); itr++) {
             pGuildMember = itr->second;
 
-            ///////////////////////////////////////////////////////////////////////////
-            // DB에 Slayer, Vampire, Ousters 테이블의 GuildID를 바꾼다.
-            // DB에 Message를 추가한다.
-            ///////////////////////////////////////////////////////////////////////////
-            Statement* pStmt = NULL;
-            BEGIN_DB {
-                pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                pStmt->executeQuery("UPDATE GuildMember SET RequestDateTime=now() WHERE Name='%s'",
-                                    pGuildMember->getName().c_str());
+            // The member's character row is pointed at the guild and a
+            // message tells the character the guild was accepted; the
+            // master gets the master's wording.
+            SharedGuildRepository& repo = defaultSharedGuildRepository();
 
-                if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-                    pStmt->executeQuery("UPDATE Slayer SET GuildID = %d WHERE Name = '%s'", pGuild->getID(),
-                                        pGuildMember->getName().c_str());
+            repo.stampMemberRequestDateTime(pGuildMember->getName());
 
-                    if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
-                        pStmt->executeQuery("INSERT INTO Messages ( Receiver, Message ) VALUES ( '%s', '%s' )",
-                                            pGuildMember->getName().c_str(),
-                                            g_pStringPool->c_str(STRID_TEAM_REGISTRATION_ACCEPT));
-                    else {
-                        pStmt->executeQuery("INSERT INTO Messages ( Receiver, Message ) VALUES ( '%s', '%s' )",
-                                            pGuildMember->getName().c_str(),
-                                            g_pStringPool->c_str(STRID_TEAM_REGISTRATION_ACCEPT_2));
-                    }
-                } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                    pStmt->executeQuery("UPDATE Vampire SET GuildID = %d WHERE Name = '%s'", pGuild->getID(),
-                                        pGuildMember->getName().c_str());
-
-                    if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
-                        pStmt->executeQuery("INSERT INTO Messages ( Receiver, Message ) VALUES ( '%s', '%s' )",
-                                            pGuildMember->getName().c_str(),
-                                            g_pStringPool->c_str(STRID_CLAN_REGISTRATION_ACCEPT));
-                    else {
-                        pStmt->executeQuery("INSERT INTO Messages ( Receiver, Message ) VALUES ( '%s', '%s' )",
-                                            pGuildMember->getName().c_str(),
-                                            g_pStringPool->c_str(STRID_CLAN_REGISTRATION_ACCEPT_2));
-                    }
-                } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-                    pStmt->executeQuery("UPDATE Ousters SET GuildID = %d WHERE Name = '%s'", pGuild->getID(),
-                                        pGuildMember->getName().c_str());
-
-                    if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
-                        pStmt->executeQuery("INSERT INTO Messages ( Receiver, Message ) VALUES ( '%s', '%s' )",
-                                            pGuildMember->getName().c_str(),
-                                            g_pStringPool->c_str(STRID_CLAN_REGISTRATION_ACCEPT));
-                    else {
-                        pStmt->executeQuery("INSERT INTO Messages ( Receiver, Message ) VALUES ( '%s', '%s' )",
-                                            pGuildMember->getName().c_str(),
-                                            g_pStringPool->c_str(STRID_CLAN_REGISTRATION_ACCEPT_2));
-                    }
+            if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
+                repo.setCharacterGuildID(pGuild->getRace(), pGuild->getID(), pGuildMember->getName());
+                if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
+                    repo.insertMessage(SHARED_MESSAGE_SQL_SPACED, pGuildMember->getName(),
+                                       g_pStringPool->c_str(STRID_TEAM_REGISTRATION_ACCEPT));
+                else {
+                    repo.insertMessage(SHARED_MESSAGE_SQL_SPACED, pGuildMember->getName(),
+                                       g_pStringPool->c_str(STRID_TEAM_REGISTRATION_ACCEPT_2));
                 }
-
-
-                SAFE_DELETE(pStmt);
+            } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
+                repo.setCharacterGuildID(pGuild->getRace(), pGuild->getID(), pGuildMember->getName());
+                if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
+                    repo.insertMessage(SHARED_MESSAGE_SQL_SPACED, pGuildMember->getName(),
+                                       g_pStringPool->c_str(STRID_CLAN_REGISTRATION_ACCEPT));
+                else {
+                    repo.insertMessage(SHARED_MESSAGE_SQL_SPACED, pGuildMember->getName(),
+                                       g_pStringPool->c_str(STRID_CLAN_REGISTRATION_ACCEPT_2));
+                }
+            } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
+                repo.setCharacterGuildID(pGuild->getRace(), pGuild->getID(), pGuildMember->getName());
+                if (pGuildMember->getRank() == GuildMember::GUILDMEMBER_RANK_MASTER)
+                    repo.insertMessage(SHARED_MESSAGE_SQL_SPACED, pGuildMember->getName(),
+                                       g_pStringPool->c_str(STRID_CLAN_REGISTRATION_ACCEPT));
+                else {
+                    repo.insertMessage(SHARED_MESSAGE_SQL_SPACED, pGuildMember->getName(),
+                                       g_pStringPool->c_str(STRID_CLAN_REGISTRATION_ACCEPT_2));
+                }
             }
-            END_DB(pStmt)
         }
 
         pGuild->setState(Guild::GUILD_STATE_ACTIVE);

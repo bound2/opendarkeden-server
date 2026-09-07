@@ -6,21 +6,11 @@
 
 #include "GuildManager.h"
 
-#include "DB.h"
 #include "Guild.h"
 #include "Properties.h"
 #include "StringStream.h"
+#include "repository/SharedGuildRepository.h"
 
-#ifdef __GAME_SERVER__
-#include "CastleInfoManager.h"
-#include "GuildUnion.h"
-#include "PlayerCreature.h"
-#include "Zone.h"
-#include "ZoneGroupManager.h"
-#include "ZoneInfoManager.h"
-#include "ZoneUtil.h"
-#include "war/WarScheduler.h"
-#endif
 #ifdef __SHARED_SERVER__
 #include "GameServerManager.h"
 #include "SGExpelGuildMemberOK.h"
@@ -70,74 +60,40 @@ void GuildManager::init() noexcept(false) {
 
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    SharedGuildRepository& repo = defaultSharedGuildRepository();
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    BEGIN_DB {
-        // ��� ID�� �ִ밪�� ���س���, ���ο� ��尡 ����� �ִ밪����
-        // 1�� ���ؼ� �Ҵ��ϴ� ������� ��ȴ�. �׷��Ƿ� ���
-        // �Ŵ����� �ʱ�ȭ�� ��, ���� �����ϴ� ��� ID�� �ִ밪�� �о�鿩�д�.
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo");
-
-        // ���̺��� ����Ÿ�� �ϳ��� ���ٸ�, �ϴ� �ƽ� ���̵�� 1�� �������ش�.
-        pResult->next();
-
-        if (pResult->getInt(1) == 0) {
-            Guild::setMaxGuildID(g_pConfig->getPropertyInt("Dimension") * 10000 +
-                                 g_pConfig->getPropertyInt("WorldID") * 3000 + 100);
-        } else {
-            // get & set MaxGuildID
-            pResult = pStmt->executeQuery("SELECT MAX(GuildID) FROM GuildInfo");
-            pResult->next();
-            Guild::setMaxGuildID(pResult->getInt(1));
-        }
-
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo WHERE GuildRace = %d", Guild::GUILD_RACE_SLAYER);
-        pResult->next();
-
-        if (pResult->getInt(1) == 0) {
-            Guild::setMaxSlayerZoneID(Guild::getMaxSlayerZoneID() + 1);
-        } else {
-            // get & set MaxSlayerZoneID
-            pResult = pStmt->executeQuery("SELECT MAX(GuildZoneID) FROM GuildInfo WHERE GuildRace = %d",
-                                          Guild::GUILD_RACE_SLAYER);
-            pResult->next();
-            Guild::setMaxSlayerZoneID(max(pResult->getInt(1), Guild::getMaxSlayerZoneID() + 1));
-        }
-
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo WHERE GuildRace = %d", Guild::GUILD_RACE_VAMPIRE);
-        pResult->next();
-
-        if (pResult->getInt(1) == 0) {
-            Guild::setMaxVampireZoneID(Guild::getMaxVampireZoneID() + 1);
-        } else {
-            // get & set MaxVampireZoneID
-            pResult = pStmt->executeQuery("SELECT MAX(GuildZoneID) FROM GuildInfo WHERE GuildRace = %d",
-                                          Guild::GUILD_RACE_VAMPIRE);
-            pResult->next();
-            Guild::setMaxVampireZoneID(max(pResult->getInt(1), Guild::getMaxVampireZoneID() + 1));
-        }
-
-        pResult = pStmt->executeQuery("SELECT COUNT(*) FROM GuildInfo WHERE GuildRace = %d", Guild::GUILD_RACE_OUSTERS);
-        pResult->next();
-
-        if (pResult->getInt(1) == 0) {
-            Guild::setMaxOustersZoneID(Guild::getMaxOustersZoneID() + 1);
-        } else {
-            // get & set MaxOustersZoneID
-            pResult = pStmt->executeQuery("SELECT MAX(GuildZoneID) FROM GuildInfo WHERE GuildRace = %d",
-                                          Guild::GUILD_RACE_OUSTERS);
-            pResult->next();
-            Guild::setMaxOustersZoneID(max(pResult->getInt(1), Guild::getMaxOustersZoneID() + 1));
-        }
-
-        SAFE_DELETE(pStmt);
+    // New guild ids are handed out above the largest one in the table, so
+    // the manager reads that maximum once at startup. An empty table starts
+    // the numbering from the configured dimension and world.
+    if (repo.countGuilds() == 0) {
+        Guild::setMaxGuildID(g_pConfig->getPropertyInt("Dimension") * 10000 +
+                             g_pConfig->getPropertyInt("WorldID") * 3000 + 100);
+    } else {
+        Guild::setMaxGuildID(repo.loadMaxGuildID());
     }
-    END_DB(pStmt)
+
+    if (repo.countGuildsOfRace(Guild::GUILD_RACE_SLAYER) == 0) {
+        Guild::setMaxSlayerZoneID(Guild::getMaxSlayerZoneID() + 1);
+    } else {
+        Guild::setMaxSlayerZoneID(
+            max(repo.loadMaxGuildZoneIDOfRace(Guild::GUILD_RACE_SLAYER), Guild::getMaxSlayerZoneID() + 1));
+    }
+
+    if (repo.countGuildsOfRace(Guild::GUILD_RACE_VAMPIRE) == 0) {
+        Guild::setMaxVampireZoneID(Guild::getMaxVampireZoneID() + 1);
+    } else {
+        Guild::setMaxVampireZoneID(
+            max(repo.loadMaxGuildZoneIDOfRace(Guild::GUILD_RACE_VAMPIRE), Guild::getMaxVampireZoneID() + 1));
+    }
+
+    if (repo.countGuildsOfRace(Guild::GUILD_RACE_OUSTERS) == 0) {
+        Guild::setMaxOustersZoneID(Guild::getMaxOustersZoneID() + 1);
+    } else {
+        Guild::setMaxOustersZoneID(
+            max(repo.loadMaxGuildZoneIDOfRace(Guild::GUILD_RACE_OUSTERS), Guild::getMaxOustersZoneID() + 1));
+    }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -152,116 +108,57 @@ void GuildManager::init() noexcept(false) {
 void GuildManager::load() noexcept(false) {
     __BEGIN_TRY
 
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
+    SharedGuildRepository& repo = defaultSharedGuildRepository();
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    BEGIN_DB {
-        // ��� ������ DB�� ���� �о�´�.
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery("SELECT GuildID, GuildName, GuildType, GuildRace, GuildState, ServerGroupID, "
-                                      "GuildZoneID, Master, Date, Intro FROM GuildInfo WHERE GuildState IN ( %d, %d )",
-                                      Guild::GUILD_STATE_WAIT, Guild::GUILD_STATE_ACTIVE);
+    // Only the waiting and the active guilds are kept in memory.
+    vector<SharedGuildListRow> guilds = repo.loadGuildsInStates(Guild::GUILD_STATE_WAIT, Guild::GUILD_STATE_ACTIVE);
 
-        while (pResult->next()) {
-            GuildState_t state = pResult->getInt(5);
+    for (size_t i = 0; i < guilds.size(); i++) {
+        const SharedGuildListRow& row = guilds[i];
+        GuildState_t state = row.state;
 
-            // ���� ������ ��� ������� ���� Ȱ�� ���� ��常 �߰��Ѵ�.
-            if (state == Guild::GUILD_STATE_WAIT || state == Guild::GUILD_STATE_ACTIVE) {
-                Guild* pGuild = new Guild();
+        if (state == Guild::GUILD_STATE_WAIT || state == Guild::GUILD_STATE_ACTIVE) {
+            Guild* pGuild = new Guild();
 
-                pGuild->setID(pResult->getInt(1));
-                pGuild->setName(pResult->getString(2));
-                pGuild->setType(pResult->getInt(3));
-                pGuild->setRace(pResult->getInt(4));
-                pGuild->setState(state);
-                pGuild->setServerGroupID(pResult->getInt(6));
-                pGuild->setZoneID(pResult->getInt(7));
-                pGuild->setMaster(pResult->getString(8));
-                pGuild->setDate(pResult->getString(9));
-                pGuild->setIntro(pResult->getString(10));
+            pGuild->setID(row.id);
+            pGuild->setName(row.name);
+            pGuild->setType(row.type);
+            pGuild->setRace(row.race);
+            pGuild->setState(state);
+            pGuild->setServerGroupID(row.serverGroupID);
+            pGuild->setZoneID(row.zoneID);
+            pGuild->setMaster(row.master);
+            pGuild->setDate(row.date);
+            pGuild->setIntro(row.intro);
 
-                addGuild_NOBLOCKED(pGuild);
-                /*
-                #ifdef __GAME_SERVER__
-                                // ��尡 Active �̰� �� ���� ������ ����Ʈ�� �����Ѵٸ� ����Ʈ Zone�� �����.
-                                if ( pGuild->getServerGroupID() == g_pConfig->getPropertyInt("ServerID") && state ==
-                Guild::GUILD_STATE_ACTIVE )
-                                {
-                                    //////////////
-                                    // Zone Info
-                                    //////////////
-                                    ZoneInfo* pZoneInfo = new ZoneInfo();
-                                    pZoneInfo->setZoneID( pGuild->getZoneID() );
-                                    pZoneInfo->setZoneGroupID( 6 );
-                                    pZoneInfo->setZoneType( "NPC_SHOP" );
-                                    pZoneInfo->setZoneLevel( 0 );
-                                    pZoneInfo->setZoneAccessMode( "PUBLIC" );
-                                    pZoneInfo->setZoneOwnerID( "" );
-                                    pZoneInfo->setPayPlay( "" );
-                                    if ( pGuild->getRace() == Guild::GUILD_RACE_SLAYER )
-                                    {
-                                        pZoneInfo->setSMPFilename( "team_hdqrs.smp" );
-                                        pZoneInfo->setSSIFilename( "team_hdqrs.ssi" );
-                                        string Name = "team - " + pGuild->getName();
-                                        pZoneInfo->setFullName( Name );
-                                        pZoneInfo->setShortName( Name );
-                                    }
-                                    else if ( pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE )
-                                    {
-                                        pZoneInfo->setSMPFilename( "clan_hdqrs.smp" );
-                                        pZoneInfo->setSSIFilename( "clan_hdqrs.ssi" );
-                                        string Name = "clan - " + pGuild->getName();
-                                        pZoneInfo->setFullName( Name );
-                                        pZoneInfo->setShortName( Name );
-                                    }
-
-                                    g_pZoneInfoManager->addZoneInfo( pZoneInfo );
-
-                                    /////////
-                                    // Zone
-                                    /////////
-                                    Zone* pZone = new Zone( pGuild->getZoneID() );
-                                    Assert( pZone != NULL );
-
-                                    ZoneGroup* pZoneGroup = g_pZoneGroupManager->getZoneGroup(6);
-                                    Assert( pZoneGroup != NULL );
-
-                                    pZone->setZoneGroup( pZoneGroup );
-                                    pZoneGroup->addZone( pZone );
-                                    pZone->init();
-                                }
-                #endif
-                */
-            }
+            addGuild_NOBLOCKED(pGuild);
         }
-
-        // ��� ��� ������ DB�� ���� �о�´�.
-        pResult = pStmt->executeQuery(
-            "SELECT GuildID, Name, `Rank`, RequestDateTime, LogOn FROM GuildMember WHERE `Rank` IN ( 0, 1, 2, 3 )");
-
-        while (pResult->next()) {
-            GuildMember* pMember = new GuildMember();
-
-            pMember->setGuildID(pResult->getInt(1));
-            pMember->setName(pResult->getString(2));
-            pMember->setRank(pResult->getInt(3));
-
-            if (pMember->getRank() == GuildMember::GUILDMEMBER_RANK_WAIT)
-                pMember->setRequestDateTime(pResult->getString(4));
-
-            pMember->setLogOn(pResult->getInt(5));
-
-            Guild* pGuild = getGuild_NOBLOCKED(pMember->getGuildID());
-
-            if (pGuild != NULL)
-                pGuild->addMember(pMember);
-        }
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt)
+
+    // The roster: every member row whose guild is in memory joins it; a
+    // member of a guild that was not loaded is never attached or freed.
+    vector<SharedGuildMemberListRow> members = repo.loadActiveMembers();
+
+    for (size_t i = 0; i < members.size(); i++) {
+        const SharedGuildMemberListRow& row = members[i];
+        GuildMember* pMember = new GuildMember();
+
+        pMember->setGuildID(row.guildID);
+        pMember->setName(row.name);
+        pMember->setRank(row.rank);
+
+        if (pMember->getRank() == GuildMember::GUILDMEMBER_RANK_WAIT)
+            pMember->setRequestDateTime(row.requestDateTime);
+
+        pMember->setLogOn(row.logOn);
+
+        Guild* pGuild = getGuild_NOBLOCKED(pMember->getGuildID());
+
+        if (pGuild != NULL)
+            pGuild->addMember(pMember);
+    }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -310,71 +207,10 @@ void GuildManager::deleteGuild(GuildID_t id) noexcept(false) {
     if (itr == m_Guilds.end())
         throw NoSuchElementException();
 
-#ifdef __GAME_SERVER__
-
-    list<CastleInfo*> pGuildCastleInfoList = g_pCastleInfoManager->getGuildCastleInfos(id);
-
-    if (!pGuildCastleInfoList.empty()) {
-        // ���� ���� �ִ� ����.. ���뼺���� �ٲ���� �ȴ�.
-        list<CastleInfo*>::iterator itr = pGuildCastleInfoList.begin();
-        for (; itr != pGuildCastleInfoList.end(); itr++) {
-            if ((*itr)->getRace() == RACE_SLAYER)
-                g_pCastleInfoManager->modifyCastleOwner((*itr)->getZoneID(), RACE_SLAYER, 99);
-            else if ((*itr)->getRace() == RACE_VAMPIRE)
-                g_pCastleInfoManager->modifyCastleOwner((*itr)->getZoneID(), RACE_VAMPIRE, 0);
-            else
-                g_pCastleInfoManager->modifyCastleOwner((*itr)->getZoneID(), RACE_OUSTERS, 66);
-        }
-    }
-
-    {
-        const unordered_map<ZoneID_t, CastleInfo*>& castleInfos = g_pCastleInfoManager->getCastleInfos();
-
-        unordered_map<ZoneID_t, CastleInfo*>::const_iterator itr = castleInfos.begin();
-        unordered_map<ZoneID_t, CastleInfo*>::const_iterator endItr = castleInfos.end();
-
-        for (; itr != endItr; ++itr) {
-            Zone* pZone = getZoneByZoneID(itr->first);
-            if (pZone != NULL) {
-                WarScheduler* pWarScheduler = pZone->getWarScheduler();
-                if (pWarScheduler != NULL && pWarScheduler->hasSchedule(id)) {
-                    pWarScheduler->load();
-                }
-            }
-        }
-    }
-
-    // GuildUnion ������ �����ش�
-/*	{
-
-        // UnionManager->deleteGuild(xx);
-        GuildUnionManager::Instance().removeMasterGuild(id);
-    }
-*/
-#endif
-
     m_Guilds.erase(itr);
 
 #ifdef __SHARED_SERVER__
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-        // DB���� GuildInfo�� �����.
-        pStmt->executeQuery("DELETE FROM GuildInfo WHERE GuildID=%d", id);
-
-        // GuildMember�� �� �����.
-        pStmt->executeQuery("DELETE FROM GuildMember WHERE GuildID=%d", id);
-
-        // GuildUnionMember ���� ��带 �����
-        pStmt->executeQuery("DELETE FROM GuildUnionMember WHERE OwnerGuildID=%d", id);
-
-        pStmt->executeQuery("UPDATE WarScheduleInfo SET Status='CANCEL' WHERE AttackGuildID=%d", id);
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
+    defaultSharedGuildRepository().purgeGuild(id);
 #endif
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
@@ -570,206 +406,26 @@ string GuildManager::toString() const noexcept {
 }
 
 bool GuildManager::isGuildMaster(GuildID_t guildID, PlayerCreature* pPC) noexcept(false) {
-#ifdef __GAME_SERVER__
-    __BEGIN_TRY
-
-    Guild* pGuild = getGuild(guildID);
-
-    if (pGuild == NULL)
-        return false;
-
-    //	cout << "isGuildMaster : " << pGuild->getMaster() << ", " << pPC->getName() << endl;
-    return (pGuild->getMaster() == pPC->getName());
-
-    __END_CATCH
-#else
     return false;
-#endif
 }
 
 // ��尡 ���� ������?
 bool GuildManager::hasCastle(GuildID_t guildID) noexcept(false) {
-    __BEGIN_TRY
-
-    bool bHasCastle = false;
-
-#ifdef __GAME_SERVER__
-
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT count(*) FROM CastleInfo WHERE GuildID = %d", (int)guildID);
-
-        if (pResult->next()) {
-            int count = pResult->getInt(1);
-
-            if (count > 0) {
-                bHasCastle = true;
-            }
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-#endif
-
-    return bHasCastle;
-
-    __END_CATCH
+    return false;
 }
 
 // ��尡 ���� ������?
 bool GuildManager::hasCastle(GuildID_t guildID, ServerID_t& serverID, ZoneID_t& zoneID) noexcept(false) {
-    __BEGIN_TRY
-
-    bool bHasCastle = false;
-
-#ifdef __GAME_SERVER__
-
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT ServerID, ZoneID FROM CastleInfo WHERE GuildID = %d", (int)guildID);
-
-        if (pResult->next()) {
-            serverID = pResult->getInt(1);
-            zoneID = pResult->getInt(2);
-
-            bHasCastle = true;
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-#endif
-
-    return bHasCastle;
-
-    __END_CATCH
+    return false;
 }
 
 // ��尡 �����û�� �߳�?
 bool GuildManager::hasWarSchedule(GuildID_t guildID) noexcept(false) {
-    __BEGIN_TRY
-
-    bool bHasWarSchedule = false;
-
-#ifdef __GAME_SERVER__
-
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-#ifndef __OLD_GUILD_WAR__
-        Result* pResult =
-            pStmt->executeQuery("SELECT count(*) FROM WarScheduleInfo WHERE "
-                                "(AttackGuildID = %d OR AttackGuildID2 = %d OR AttackGuildID3 = %d OR AttackGuildID4 = "
-                                "%d OR AttackGuildID5 = %d) AND Status in ('WAIT', 'START')",
-                                (int)guildID, (int)guildID, (int)guildID, (int)guildID, (int)guildID);
-#else
-        Result* pResult = pStmt->executeQuery(
-            "SELECT count(*) FROM WarScheduleInfo WHERE AttackGuildID = %d AND Status<>'END'", (int)guildID);
-#endif
-
-        if (pResult->next()) {
-            int count = pResult->getInt(1);
-
-            if (count > 0) {
-                bHasWarSchedule = true;
-            }
-        }
-
-#ifndef __OLD_GUILD_WAR__
-        pResult = pStmt->executeQuery(
-            "SELECT count(*) FROM ReinforceRegisterInfo, WarScheduleInfo WHERE ReinforceRegisterInfo.WarID = "
-            "WarScheduleInfo.WarID AND WarScheduleInfo.Status in ('WAIT', 'START') AND "
-            "ReinforceRegisterInfo.ReinforceGuildID = %d AND ReinforceRegisterInfo.Status<>'DENY'",
-            (int)guildID);
-
-        if (pResult->next()) {
-            int count = pResult->getInt(1);
-
-            if (count > 0) {
-                bHasWarSchedule = true;
-            }
-        }
-#endif
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-#endif
-
-    return bHasWarSchedule;
-
-    __END_CATCH
+    return false;
 }
 
 bool GuildManager::hasActiveWar(GuildID_t guildID) noexcept(false) {
-    __BEGIN_TRY
-
-    bool bHasActiveWar = false;
-
-#ifdef __GAME_SERVER__
-
-    ServerID_t serverID;
-    ZoneID_t zoneID;
-
-    if (hasCastle(guildID, serverID, zoneID)) {
-        // ���� �����ϰ� �ִٸ� �� ���� ���� �ϴ� ��� ������ �ִ��� Ȯ���Ѵ�.
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery(
-                "SELECT count(*) FROM WarScheduleInfo WHERE ServerID = %u AND ZoneID = %u AND Status = 'START'",
-                serverID, zoneID);
-
-            if (pResult->next()) {
-                int count = pResult->getInt(1);
-
-                if (count > 0) {
-                    bHasActiveWar = true;
-                }
-            }
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-    } else {
-        // ���� �����ϰ� ���� �ʴٸ� �� ��尡 � ���� ����
-        // �ϴ� ��� ������ �ִ��� Ȯ���Ѵ�.
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            Result* pResult = pStmt->executeQuery(
-                "SELECT count(*) FROM WarScheduleInfo WHERE AttackGuildID = %d AND Status = 'START'", (int)guildID);
-
-            if (pResult->next()) {
-                int count = pResult->getInt(1);
-
-                if (count > 0) {
-                    bHasActiveWar = true;
-                }
-            }
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-    }
-
-#endif
-
-    return bHasActiveWar;
-
-    __END_CATCH
+    return false;
 }
 
 

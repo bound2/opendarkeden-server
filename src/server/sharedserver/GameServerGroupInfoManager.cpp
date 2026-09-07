@@ -9,11 +9,7 @@
 // include files
 #include "GameServerGroupInfoManager.h"
 
-#include "database/Connection.h"
-#include "database/DB.h"
-#include "database/DatabaseManager.h"
-#include "database/Result.h"
-#include "database/Statement.h"
+#include "repository/SharedConfigRepository.h"
 
 //----------------------------------------------------------------------
 // constructor
@@ -64,47 +60,39 @@ void GameServerGroupInfoManager::init() {
 void GameServerGroupInfoManager::load() {
     __BEGIN_TRY
 
-    Statement* pStmt;
+    SharedConfigRepository& repo = defaultSharedConfigRepository();
 
-    BEGIN_DB {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT MAX(WorldID) FROM GameServerGroupInfo");
-
-        if (pResult->getRowCount() == 0) {
-            throw Error("GameServerGroupInfo TABLE does not exist!");
-        }
-
-        pResult->next();
-        m_MaxWorldID = pResult->getInt(1) + 2;
-
-        SAFE_DELETE(pStmt);
+    // The table is sized from the largest WorldID; an empty table is a
+    // startup error.
+    int maxWorldID = 0;
+    if (!repo.loadMaxGameServerGroupWorldID(maxWorldID)) {
+        throw Error("GameServerGroupInfo TABLE does not exist!");
     }
-    END_DB(pStmt)
+
+    m_MaxWorldID = maxWorldID + 2;
 
     m_GameServerGroupInfos = new HashMapGameServerGroupInfo[m_MaxWorldID];
 
-    try {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT WorldID, GroupID, GroupName FROM GameServerGroupInfo");
+    vector<SharedGameServerGroupRow> rows;
 
-        while (pResult->next()) {
+    try {
+        rows = repo.loadGameServerGroups();
+    } catch (const char*) {
+        // A SQL failure arrives as END_DB's const char*, already logged to
+        // DBError.log (its own message dangles); rethrown as the Error the
+        // startup path expects.
+        throw Error("GameServerGroupInfoManager::load : SQL error, see DBError.log");
+    }
+
+    try {
+        for (size_t i = 0; i < rows.size(); i++) {
             GameServerGroupInfo* pGameServerGroupInfo = new GameServerGroupInfo();
-            WorldID_t WorldID = pResult->getInt(1);
+            WorldID_t WorldID = rows[i].worldID;
             pGameServerGroupInfo->setWorldID(WorldID);
-            pGameServerGroupInfo->setGroupID(pResult->getInt(2));
-            pGameServerGroupInfo->setGroupName(pResult->getString(3));
+            pGameServerGroupInfo->setGroupID(rows[i].groupID);
+            pGameServerGroupInfo->setGroupName(rows[i].groupName);
             addGameServerGroupInfo(pGameServerGroupInfo, WorldID);
         }
-
-        // 필살 삭제!
-        delete pStmt;
-
-    } catch (SQLQueryException& sqe) {
-        // 필살 삭제!
-        delete pStmt;
-
-        throw Error(sqe.toString());
-
     } catch (Throwable& t) {
         cout << t.toString() << endl;
     }
