@@ -431,3 +431,27 @@ add_test(NAME login_decision_tests COMMAND login_decision_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 # A handful of 64 MiB argon2id computations in the password cases.
 set_tests_properties(login_decision_tests PROPERTIES TIMEOUT 180)
+
+# The Exchange system's decisions (docs/RESTRUCTURING.md 3.1):
+# decideBuyListing() / decideCancelListing() / decideBuyerClaim() /
+# decideSellerClaim() return Outcome<..., ExchangeRejection>, so every
+# refusal, the precedence between them and the terms an accepted buy is
+# priced on are testable against a fake ExchangeRepository with no
+# database. formatExchangeError() is here too: its strings are what
+# GCExchangeBuy puts on the wire. ExchangeService itself is not linked -
+# it needs a PlayerCreature and an Item, which is why the decisions were
+# split out of it. de-kernel carries the ExchangeListing wire struct.
+add_executable(exchange_decision_tests EXCLUDE_FROM_ALL
+    exchange_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/exchange/ExchangeDecision.cpp
+)
+target_include_directories(exchange_decision_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/exchange
+)
+target_link_libraries(exchange_decision_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests exchange_decision_tests)
+add_test(NAME exchange_decision_tests COMMAND exchange_decision_tests)
+set_tests_properties(exchange_decision_tests PROPERTIES TIMEOUT 60)
