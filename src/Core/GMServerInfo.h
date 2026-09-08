@@ -55,8 +55,11 @@ public:
         return "GMServerInfo";
     }
 
+    // get packet's body size
+    // WorldID, ServerID and the zone count, then a ZoneID and a WORD
+    // user count for each zone.
     PacketSize_t getPacketSize() const {
-        return szWorldID + szBYTE + m_ZoneCount * (szBYTE + szDWORD);
+        return szWorldID + szBYTE + szBYTE + m_ZoneCount * (szZoneID + szWORD);
     }
 
     // get packet's debug string

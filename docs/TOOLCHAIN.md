@@ -401,14 +401,12 @@ hint now, not the frame length — writes the id and a placeholder size field,
 writes the body, then fills the size field in with the bytes the body produced
 and sets the datagram's own length to match. A body that outgrows the buffer
 grows it, rather than the write aborting half way through a partly filled
-datagram — the fate of every packet that declares too little, which is what
-`GLIncomingConnectionError` and `LGIncomingConnectionError` do: both write a
-player id their declared size does not count, so a peer was never told that
-its incoming connection had been refused. Drift is reported to
-`packetsizeerror.txt`, the same file the stream names, and the three packets
-that drift today (those two and `GMServerInfo`, whose declaration counts two
-header bytes and five per zone where it writes three and four) are logged
-there until their declarations are corrected. The receive side is unchanged
+datagram. Drift is reported to `packetsizeerror.txt`, the same file the
+stream names; every datagram packet's declaration agrees with its `write()`,
+and `tests/datagram_frame_test.cpp` pins that for the three whose layouts are
+least obvious (`GMServerInfo`'s per-zone table and the two
+`IncomingConnectionError` packets' pair of length-prefixed strings).
+The receive side is unchanged
 and still requires a datagram to hold exactly one packet of the length its
 header claims — the sender now satisfies that for a lying packet too.
 `tests/datagram_frame_test.cpp` pins the short and long lies, the byte image

@@ -29,6 +29,9 @@
 #include "DatagramPacket.h"
 #include "DatagramSocket.h"
 #include "Exception.h"
+#include "GLIncomingConnectionError.h"
+#include "GMServerInfo.h"
+#include "LGIncomingConnectionError.h"
 #include "Packet.h"
 #include "PacketFactoryManager.h"
 #include "Types.h"
@@ -87,6 +90,60 @@ void installPortCheckFactory() {
     if (g_pPacketFactoryManager == NULL) {
         g_pPacketFactoryManager = new PacketFactoryManager();
         g_pPacketFactoryManager->addFactory(new CGPortCheckFactory());
+    }
+}
+
+// Frames a packet and returns the body its write() produced. The size
+// field, the datagram's length and the packet's own getPacketSize() must
+// all name the same number of bytes, and that number must fit the body
+// size its factory advertises -- the receiver drops a datagram whose
+// size field exceeds the factory's maximum.
+std::vector<char> frameBody(const DatagramPacket& packet, PacketSize_t maxSize, const std::string& what) {
+    Datagram datagram;
+    datagram.write(&packet);
+
+    EXPECT_LE(szPacketHeader, datagram.getLength()) << what;
+    const uint measured = datagram.getLength() - szPacketHeader;
+
+    EXPECT_EQ((uint)packet.getPacketSize(), measured) << what;
+    EXPECT_EQ(measured, sizeField(datagram)) << what;
+    EXPECT_LE(measured, (uint)maxSize) << what;
+
+    const char* pBody = datagram.getData() + szPacketID + szPacketSize;
+    return std::vector<char>(pBody, pBody + measured);
+}
+
+// Reads a packet back from a buffer holding nothing but the body, so a
+// read() that consumes more than write() produced runs off the end of
+// the datagram rather than into a neighbouring field.
+void readBody(std::vector<char>& body, DatagramPacket& packet) {
+    Datagram datagram;
+    datagram.setData(body.data(), body.size());
+    packet.read(datagram);
+}
+
+// The two IncomingConnectionError packets are the same layout on two
+// packet ids, so they are pinned by one body.
+template <typename P> void expectIncomingConnectionErrorIsMeasured(PacketSize_t maxSize, const std::string& what) {
+    // Both writers reject a field of 128 bytes or more, so 127 and 127
+    // is the largest body either can put on the wire.
+    EXPECT_EQ(szBYTE + 127 + szBYTE + 127, (uint)maxSize) << what;
+
+    for (uint length : {1u, 40u, 127u}) {
+        const std::string message(length, 'm');
+        const std::string playerID(length, 'p');
+
+        P packet;
+        packet.setMessage(message);
+        packet.setPlayerID(playerID);
+
+        std::vector<char> body = frameBody(packet, maxSize, what + ", length " + std::to_string(length));
+        ASSERT_EQ(szBYTE + length + szBYTE + length, body.size()) << what << ", length " << length;
+
+        P rebuilt;
+        readBody(body, rebuilt);
+        EXPECT_EQ(message, rebuilt.getMessage()) << what << ", length " << length;
+        EXPECT_EQ(playerID, rebuilt.getPlayerID()) << what << ", length " << length;
     }
 }
 
@@ -154,6 +211,52 @@ TEST(DatagramFrameSize, ABodyLargerThanTheDeclaredSizeIsFramedWhole) {
         // allocation happened to hold.
         EXPECT_EQ(0x00, pBuffer[datagram.getLength() - 1]) << "declared " << declared;
     }
+}
+
+// GMServerInfo carries a variable-length zone table, so its declared
+// size is the one most easily left behind by an edit to write(). It goes
+// to the login server every ten seconds, which makes a drift here a
+// steady stream of report lines.
+TEST(DatagramDeclaredSize, GMServerInfoDeclaresItsZoneTable) {
+    // The zone count is a BYTE, so 255 zones is the largest table.
+    for (uint zones : {0u, 1u, 5u, 255u}) {
+        const std::string what = "zones " + std::to_string(zones);
+
+        GMServerInfo packet;
+        packet.setWorldID(3);
+        packet.setServerID(7);
+        for (uint i = 0; i < zones; i++)
+            packet.addZoneUserData((ZoneID_t)(1000 + i), 40 + i);
+
+        std::vector<char> body = frameBody(packet, GMServerInfoFactory::kMaxSize, what);
+
+        // WorldID, ServerID and the zone count, then a ZoneID and a WORD
+        // user count for each zone.
+        ASSERT_EQ(szWorldID + szBYTE + szBYTE + zones * (szZoneID + szWORD), body.size()) << what;
+
+        GMServerInfo rebuilt;
+        readBody(body, rebuilt);
+        EXPECT_EQ(3u, (uint)rebuilt.getWorldID()) << what;
+        EXPECT_EQ(7u, (uint)rebuilt.getServerID()) << what;
+        ASSERT_EQ(zones, (uint)rebuilt.getZoneUserCount()) << what;
+
+        for (uint i = 0; i < zones; i++) {
+            ZONEUSERDATA zoneUserData;
+            rebuilt.popZoneUserData(zoneUserData);
+            EXPECT_EQ((ZoneID_t)(1000 + i), zoneUserData.ZoneID) << what << ", zone " << i;
+            EXPECT_EQ((WORD)(40 + i), zoneUserData.UserNum) << what << ", zone " << i;
+        }
+    }
+}
+
+TEST(DatagramDeclaredSize, GLIncomingConnectionErrorDeclaresBothStrings) {
+    expectIncomingConnectionErrorIsMeasured<GLIncomingConnectionError>(GLIncomingConnectionErrorFactory::kMaxSize,
+                                                                       "GLIncomingConnectionError");
+}
+
+TEST(DatagramDeclaredSize, LGIncomingConnectionErrorDeclaresBothStrings) {
+    expectIncomingConnectionErrorIsMeasured<LGIncomingConnectionError>(LGIncomingConnectionErrorFactory::kMaxSize,
+                                                                       "LGIncomingConnectionError");
 }
 
 // The whole path, over a real UDP socket pair: a packet is framed,

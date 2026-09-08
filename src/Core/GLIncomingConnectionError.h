@@ -37,8 +37,9 @@ public:
     }
 
     // get packet's body size
+    // Two length-prefixed strings: the message, then the player id.
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_Message.size();
+        return szBYTE + m_Message.size() + szBYTE + m_PlayerID.size();
     }
 
     // get packet name
@@ -104,8 +105,6 @@ public:
     }
 
     // get packet's max body size
-    // *OPTIMIZATION HINT*
-    // const static GLIncomingConnectionErrorPacketMaxSize 를 정의, 리턴하라.
     // two length-prefixed strings, each capped at 127 by read()/write()
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;

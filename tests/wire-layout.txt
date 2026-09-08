@@ -448,7 +448,7 @@
 456	LCVersionCheckOK	0
 457	LCWorldList	853
 458	LGIncomingConnection	58
-459	LGIncomingConnectionError	129
+459	LGIncomingConnectionError	256
 460	LGIncomingConnectionOK	29
 461	LGKickCharacter	25
 469	SGAddGuildMemberOK	25

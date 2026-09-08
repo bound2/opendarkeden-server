@@ -37,8 +37,9 @@ public:
     }
 
     // get packet's body size
+    // Two length-prefixed strings: the message, then the player id.
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_Message.size();
+        return szBYTE + m_Message.size() + szBYTE + m_PlayerID.size();
     }
 
     // get packet name
@@ -86,7 +87,7 @@ class LGIncomingConnectionErrorFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_LG_INCOMING_CONNECTION_ERROR;
     static constexpr std::string_view kName = "LGIncomingConnectionError";
-    static constexpr PacketSize_t kMaxSize{szBYTE + 128};
+    static constexpr PacketSize_t kMaxSize{szBYTE + 127 + szBYTE + 127};
 
     // create packet
     Packet* createPacket() override {
@@ -104,8 +105,7 @@ public:
     }
 
     // get packet's max body size
-    // *OPTIMIZATION HINT*
-    // const static LGIncomingConnectionErrorPacketMaxSize 를 정의, 리턴하라.
+    // two length-prefixed strings, each capped at 127 by read()/write()
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }
