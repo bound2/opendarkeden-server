@@ -595,55 +595,6 @@ void MonsterManager::processCreatures()
             __END_PROFILE_MONSTER("MM_EFFECTMANAGER");
 
             if (pCreature->isAlive()) {
-                /*
-                Monster* pMonster = dynamic_cast<Monster*>(pCreature);
-
-                if (pMonster->isEnemyLimit())
-                {
-                    Zone* 		pZone 	= pMonster->getZone();
-                    ZoneCoord_t cx 		= pMonster->getX();
-                    ZoneCoord_t cy 		= pMonster->getY();
-                    ObjectID_t 	monsterID = pMonster->getObjectID();
-
-                    unordered_map< SpriteType_t , MonsterCounter *>::iterator itr =
-                m_Monsters.find(pMonster->getSpriteType());
-
-                    if (itr == m_Monsters.end())
-                    {
-                        //cerr << "MonsterManager::processCreatures() : NoSuchElementException" << endl;
-                        //throw NoSuchElementException("±×·± SpriteTypeÀ» °¡Áø ¸ó½ºÅÍ´Â Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.");
-                    }
-                    else
-                    {
-                        // ¸ó½ºÅÍÀÇ ¼ýÀÚ¸¦ ÁÙÀÎ´Ù.
-                        itr->second->deleteMonster();
-                    }
-
-
-                    // Å¸ÀÏ°ú ¸ó½ºÅÍ ¸Å´ÏÀú¿¡¼­ Å©¸®Ã³¸¦ »èÁ¦ÇÑ´Ù.
-                    Tile & tile = pZone->getTile(cx , cy);
-                    tile.deleteCreature(monsterID);
-
-                    SAFE_DELETE(pMonster);
-
-                    if (before == m_Creatures.end())
-                    {
-                        m_Creatures.erase(current);
-                        current = m_Creatures.begin();
-                    }
-                    else
-                    {
-                        m_Creatures.erase(current);
-                        current = before;
-                        current ++;
-                    }
-
-                    GCDeleteObject gcDeleteObject;
-                    gcDeleteObject.setObjectID(monsterID);
-
-                    pZone->broadcastPacket(cx, cy , &gcDeleteObject);
-                }
-            */
                 __BEGIN_PROFILE_MONSTER("MM_CREATURE_ACT");
                 pCreature->act(currentTime);
                 before = current++;
