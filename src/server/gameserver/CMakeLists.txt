@@ -71,6 +71,7 @@ set(GUILD_SOURCES
     Guild.cpp
     GuildManager.cpp
     GuildUnion.cpp
+    guild/GuildJoinDecision.cpp
 )
 
 # ============================================================================

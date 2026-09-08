@@ -760,7 +760,16 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > its detail), `CGExchangeBuyHandler` formats the wire text, and the
   > decisions that need only a repository and plain values live in
   > `src/server/gameserver/exchange/ExchangeDecision.{h,cpp}`
-  > (`tests/exchange_decision_test.cpp`). Wider adoption pending.
+  > (`tests/exchange_decision_test.cpp`). Second: the guild NPC's
+  > eligibility rules, where `decideGuildJoinAttempt`,
+  > `decideGuildRegistration`, `decideGuildJoinConfirm` and
+  > `decideGuildRequirements` answer with a race-independent
+  > `GuildJoinRejection` that `guildJoinResponseCode` maps to the
+  > `NPC_RESPONSE_*` code of the asking race, or to silence, in
+  > `src/server/gameserver/guild/GuildJoinDecision.{h,cpp}`
+  > (`tests/guild_join_decision_test.cpp`), leaving `CGTryJoinGuild`,
+  > `CGRegistGuild` and `CGJoinGuild` to read the creature and send the
+  > packets. Wider adoption pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).
 
