@@ -395,6 +395,26 @@ because the declared value still sizes the send buffers.
 long, both contiguously and with the size field split across the wrap point,
 and that an honest packet's frame is byte for byte what it was.
 
+The server-to-server UDP path follows the same rule. `Datagram::write` still
+sizes the datagram buffer from `getPacketSize()` — that value is a capacity
+hint now, not the frame length — writes the id and a placeholder size field,
+writes the body, then fills the size field in with the bytes the body produced
+and sets the datagram's own length to match. A body that outgrows the buffer
+grows it, rather than the write aborting half way through a partly filled
+datagram — the fate of every packet that declares too little, which is what
+`GLIncomingConnectionError` and `LGIncomingConnectionError` do: both write a
+player id their declared size does not count, so a peer was never told that
+its incoming connection had been refused. Drift is reported to
+`packetsizeerror.txt`, the same file the stream names, and the three packets
+that drift today (those two and `GMServerInfo`, whose declaration counts two
+header bytes and five per zone where it writes three and four) are logged
+there until their declarations are corrected. The receive side is unchanged
+and still requires a datagram to hold exactly one packet of the length its
+header claims — the sender now satisfies that for a lying packet too.
+`tests/datagram_frame_test.cpp` pins the short and long lies, the byte image
+of an honest packet's datagram, the growth path, and a real UDP loopback trip
+through the factory-backed receive side.
+
 Every byte is encrypted exactly once on its way out. `SocketOutputStream`
 encrypts what it has buffered before it sends it, and the client sockets are
 non-blocking, so a peer that has stopped reading makes a send take part of the
@@ -419,8 +439,6 @@ stream decrypts back to what was written.
 
 What remains: the codecs above the stream still read and write field by
 field with no declarative layout; packet sizes are still hand-maintained, and
-the datagram (UDP) path still frames from `getPacketSize()` because it
-allocates the whole datagram from that value before the body is written; and
 string fields still carry hand-written length prefixes, which is why
 `CGExchangeBuy` needs a comment telling the next author not to pass a
 `std::string` to `write` — something the concept now enforces.
