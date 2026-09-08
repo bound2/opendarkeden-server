@@ -63,8 +63,10 @@ void CGExchangeBuy::write(SocketOutputStream& oStream) const {
     // length prefix — a receiver could not frame it.
     //
     // The clamp to kMaxIdempotencyKey must be identical here and in
-    // getPacketSize(), because writePacket() puts getPacketSize() on the wire
-    // before calling write(); a mismatch desynchronises the stream.
+    // getPacketSize(). The size field on the wire is the number of bytes this
+    // function actually writes, so a mismatch no longer desynchronises the
+    // stream, but getPacketSize() is what the send buffers are sized from and
+    // what the framing diagnostic reports against, so it still has to be right.
     const uint8_t len =
         (uint8_t)(m_IdempotencyKey.length() > kMaxIdempotencyKey ? kMaxIdempotencyKey : m_IdempotencyKey.length());
     oStream.write(len);

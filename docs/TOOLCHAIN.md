@@ -378,11 +378,29 @@ drives a 16-byte ring buffer so the wrap-around branch and its split copy
 actually run. The wire-layout inventory and every golden are unchanged, which
 is what establishes that no packet moved.
 
+The length in a packet header is measured rather than declared.
+`writePacket` reserves the size field when it writes the header, writes the
+body, and then fills the field in with the number of bytes the body produced;
+`Packet::writeHeaderNBody`, which frames a packet into the buffers that are
+copied to many sockets, does the same. A reservation is tracked as a distance
+from the buffer head rather than as a pointer or a buffer index, so it
+survives both the ring buffer's wrap point — a field may straddle it, and is
+patched byte by byte — and a `resize()` triggered by the body itself, which
+moves the buffered bytes to the front of a larger allocation but keeps their
+order. A `getPacketSize()` that has drifted from `write()` therefore cannot
+put a wrong length on the wire; the disagreement is reported to
+`packetsizeerror.txt`, the file an undersized-buffer `resize()` already names,
+because the declared value still sizes the send buffers.
+`tests/wire_types_test.cpp` pins a packet that lies short and one that lies
+long, both contiguously and with the size field split across the wrap point,
+and that an honest packet's frame is byte for byte what it was.
+
 What remains: the codecs above the stream still read and write field by
-field with no declarative layout; packet sizes are still hand-maintained
-(`writePacket` only *warns* when `getPacketSize()` disagrees with the bytes
-written); and string fields still carry hand-written length prefixes, which
-is why `CGExchangeBuy` needs a comment telling the next author not to pass a
+field with no declarative layout; packet sizes are still hand-maintained, and
+the datagram (UDP) path still frames from `getPacketSize()` because it
+allocates the whole datagram from that value before the body is written; and
+string fields still carry hand-written length prefixes, which is why
+`CGExchangeBuy` needs a comment telling the next author not to pass a
 `std::string` to `write` — something the concept now enforces.
 
 ### Compile-time packet metadata

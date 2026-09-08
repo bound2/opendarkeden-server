@@ -21,6 +21,7 @@
 #include <span>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 #include <type_traits>
@@ -183,6 +184,16 @@ public:
     }
     SocketInputStream& in() {
         return *m_pIn;
+    }
+
+    // The two ends themselves, for tests that need to control the
+    // blocking mode or the socket buffer sizes rather than only move
+    // bytes across.
+    Socket& sender() {
+        return *m_pClientSocket;
+    }
+    Socket& receiver() {
+        return *m_pAcceptedSocket;
     }
 
     // Flush the writer, then fill the reader until it holds nBytes.
@@ -431,4 +442,156 @@ TEST(WireRingBuffer, SpanBuffersSurviveTheWrapAround) {
         ASSERT_EQ(0, memcmp(source, sink, sizeof(source))) << "read, round " << round;
         ASSERT_TRUE(loopback.in().isEmpty()) << "round " << round;
     }
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// The packet size on the wire
+//
+// writePacket() reserves the header's size field, writes the body, then
+// fills the field in with the number of bytes the body produced. These
+// pin that the field is measured rather than declared -- a packet whose
+// getPacketSize() disagrees with its write() must still be framed
+// correctly -- and that an honest packet's bytes did not move.
+//
+//////////////////////////////////////////////////////////////////////
+namespace {
+
+// A packet whose declared size can be made to disagree with what write()
+// emits, in either direction, by any amount.
+class DriftingPacket : public Packet {
+public:
+    DriftingPacket(uint bodySize, int declaredDrift) : m_BodySize(bodySize), m_DeclaredDrift(declaredDrift) {}
+
+    void read(SocketInputStream& iStream) {
+        throw UnsupportedError();
+    }
+
+    void write(SocketOutputStream& oStream) const {
+        for (uint i = 0; i < m_BodySize; i++)
+            oStream.write((BYTE)(0xA0 + i));
+    }
+
+    PacketID_t getPacketID() const {
+        return 0x4321;
+    }
+    PacketSize_t getPacketSize() const {
+        return (PacketSize_t)((int)m_BodySize + m_DeclaredDrift);
+    }
+    string getPacketName() const {
+        return "DriftingPacket";
+    }
+    string toString() const {
+        return "DriftingPacket";
+    }
+
+private:
+    uint m_BodySize;
+    int m_DeclaredDrift;
+};
+
+// The size field as the receiver reads it: little-endian, at the four
+// ring-buffer positions starting `at`, wrap included.
+unsigned int sizeFieldAt(const SocketOutputStream& oStream, uint at) {
+    const unsigned char* pBuffer = (const unsigned char*)oStream.getBuffer();
+    const uint capacity = (uint)oStream.capacity();
+    unsigned int size = 0;
+    for (uint i = 0; i < szPacketSize; i++)
+        size |= (unsigned int)pBuffer[(at + i) % capacity] << (8 * i);
+    return size;
+}
+
+} // namespace
+
+// A lie in either direction, on a buffer the frame fits in contiguously.
+TEST(PacketFrameSize, TheHeaderCarriesTheMeasuredBodyLength) {
+    const uint kBodySize = 9;
+
+    for (int drift : {-4, 0, 7}) {
+        DriftingPacket packet(kBodySize, drift);
+        SocketOutputStream oStream(NULL, 128);
+        oStream.writePacket(&packet);
+
+        ASSERT_EQ(szPacketHeader + kBodySize, oStream.length()) << "drift " << drift;
+        EXPECT_EQ(kBodySize, sizeFieldAt(oStream, szPacketID)) << "drift " << drift;
+
+        const unsigned char* pBuffer = (const unsigned char*)oStream.getBuffer();
+        for (uint i = 0; i < kBodySize; i++)
+            EXPECT_EQ(0xA0 + i, pBuffer[szPacketHeader + i]) << "drift " << drift << ", body byte " << i;
+    }
+}
+
+// An honest packet's frame is byte for byte what it always was: id,
+// size, sequence, body.
+TEST(PacketFrameSize, AnHonestPacketsFrameIsUnchanged) {
+    DriftingPacket packet(4, 0);
+    SocketOutputStream oStream(NULL, 128);
+    oStream.writePacket(&packet);
+
+    const unsigned char expected[] = {0x21, 0x43, 0x04, 0x00, 0x00, 0x00, 0x00, 0xA0, 0xA1, 0xA2, 0xA3};
+    ASSERT_EQ(sizeof(expected), oStream.length());
+    EXPECT_EQ(0, memcmp(expected, oStream.getBuffer(), sizeof(expected)));
+}
+
+// The size field split across the ring buffer's wrap point.
+//
+// Only a flush that could not send everything leaves the head in the
+// middle of the buffer -- a flush that completes resets head and tail to
+// zero, and resize() moves the buffered bytes to the front -- so the
+// fixture blocks the connection first: the sender is non-blocking, both
+// socket buffers are pinned small, the receiver never reads, and the
+// flush is given more than the link can swallow. Everything written after
+// that wraps, and the tail is then walked to the exact offset where only
+// the first of the size field's four bytes fits before the end.
+namespace {
+
+void expectStraddledSizeFieldCarriesBodyLength(int drift) {
+    const uint kCapacity = 1u << 21;
+    const uint kBlockingWrite = 1u << 20;
+    const uint kBodySize = 6;
+
+    SmallLoopback loopback(kCapacity);
+    loopback.sender().setNonBlocking(true);
+    loopback.sender().setSendBufferSize(4096);
+    loopback.receiver().setReceiveBufferSize(4096);
+
+    std::vector<char> filler(kBlockingWrite, 0x5A);
+    ASSERT_EQ(kBlockingWrite, loopback.out().write(filler.data(), (uint)filler.size()));
+    loopback.out().flush();
+
+    ASSERT_GT(loopback.out().length(), 0u) << "the whole write left the buffer; the ring cannot wrap";
+    const uint head = kBlockingWrite - loopback.out().length();
+    ASSERT_GT(head, 1024u) << "the flush sent nothing; the ring cannot wrap";
+
+    // Put the tail where writePacket's two id bytes end one byte short of
+    // the buffer's end, so the size field starts at the last byte.
+    const uint frameStart = kCapacity - 1 - szPacketID;
+    std::vector<char> spacer(frameStart - kBlockingWrite, 0x33);
+    ASSERT_EQ(spacer.size(), loopback.out().write(spacer.data(), (uint)spacer.size()));
+    ASSERT_EQ(kCapacity, (uint)loopback.out().capacity()) << "the buffer grew; the tail is no longer where it was put";
+
+    DriftingPacket packet(kBodySize, drift);
+    loopback.out().writePacket(&packet);
+
+    // One byte of the size field before the wrap, three after it.
+    const uint sizeFieldStart = kCapacity - 1;
+    EXPECT_EQ(kBodySize, sizeFieldAt(loopback.out(), sizeFieldStart)) << "drift " << drift;
+
+    const unsigned char* pBuffer = (const unsigned char*)loopback.out().getBuffer();
+    EXPECT_EQ(0x21, pBuffer[frameStart]);
+    EXPECT_EQ(0x43, pBuffer[frameStart + 1]);
+    // sequence byte, then the body, all past the wrap
+    EXPECT_EQ(0x00, pBuffer[(sizeFieldStart + szPacketSize) % kCapacity]);
+    for (uint i = 0; i < kBodySize; i++)
+        EXPECT_EQ(0xA0 + i, pBuffer[(sizeFieldStart + szPacketSize + 1 + i) % kCapacity])
+            << "drift " << drift << ", body byte " << i;
+
+    EXPECT_EQ(kCapacity, (uint)loopback.out().capacity()) << "the buffer grew while the frame was being written";
+}
+
+} // namespace
+
+TEST(PacketFrameSize, AStraddledSizeFieldCarriesTheMeasuredBodyLength) {
+    for (int drift : {-4, 0, 7})
+        expectStraddledSizeFieldCarriesBodyLength(drift);
 }
