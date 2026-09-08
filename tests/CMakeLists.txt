@@ -522,3 +522,27 @@ add_dependencies(wire_tests registration_tests)
 add_test(NAME registration_tests COMMAND registration_tests)
 # A handful of 64 MiB argon2id computations in the accepted cases.
 set_tests_properties(registration_tests PROPERTIES TIMEOUT 180)
+
+# The gameserver's guild join and registration decisions
+# (docs/RESTRUCTURING.md 3.1): decideGuildJoinAttempt,
+# decideGuildRegistration, decideGuildJoinConfirm and decideGuildRequirements
+# return Outcome<..., GuildJoinRejection> over a fake GuildRepository, so
+# every refusal, the precedence between them, the quit-penalty date
+# arithmetic and the response code each refusal carries to each race are
+# testable with no database. The handlers themselves are not linked - they
+# need a creature and a socket, which is why the decisions were split out of
+# them. de-kernel carries the type tables and the NPC response codes.
+add_executable(guild_join_decision_tests EXCLUDE_FROM_ALL
+    guild_join_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/guild/GuildJoinDecision.cpp
+)
+target_include_directories(guild_join_decision_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/guild
+)
+target_link_libraries(guild_join_decision_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests guild_join_decision_tests)
+add_test(NAME guild_join_decision_tests COMMAND guild_join_decision_tests)
+set_tests_properties(guild_join_decision_tests PROPERTIES TIMEOUT 60)

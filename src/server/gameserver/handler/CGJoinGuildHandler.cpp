@@ -1,4 +1,5 @@
-////////////////////////////////////////////////////////////////////////////// // Filename    : CGJoinGuildHandler.cpp
+//////////////////////////////////////////////////////////////////////////////
+// Filename    : CGJoinGuildHandler.cpp
 // Written By  :
 // Description :
 //////////////////////////////////////////////////////////////////////////////
@@ -21,6 +22,7 @@
 #include "SystemAvailabilitiesManager.h"
 #include "Vampire.h"
 #include "VariableManager.h"
+#include "guild/GuildJoinDecision.h"
 #include "repository/GuildRepository.h"
 
 #endif // __GAME_SERVER__
@@ -48,62 +50,17 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
     Player* pPlayer = pCreature->getPlayer();
     Assert(pPlayer != NULL);
 
-    // cout << pPacket->toString() << endl;
+    // The dialogue that led here has already made these checks, so a refusal
+    // means the client asked for something it was never offered. Nothing is
+    // sent back.
+    if (decideGuildJoinConfirm(defaultGuildRepository(), pCreature->getName(), time(0),
+                               g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM))
+            .isRejected())
+        return;
 
-    // 정상적인 과정을 거쳤다면 여기서 체크할때 걸리면 안된다.
-    // 그런 이유로 에러메시지를 클라이언트로 보내지 않는다.
-    // 다른 길드 소속인지 체크
-    //
-    // GuildID and Rank are read because the statement selects them, not
-    // because this handler uses them: the only code that ever did is the
-    // commented-out DENY policy below.
-    int GuildID = 0;
-    int Rank = 0;
-    string ExpireDate;
-
-    if (defaultGuildRepository().loadMemberGuildRankExpireDate(pCreature->getName(), GuildID, Rank, ExpireDate)) {
-        if (ExpireDate.size() == 7) {
-            time_t daytime = time(0);
-
-            tm Time;
-
-            Time.tm_year = atoi(ExpireDate.substr(0, 3).c_str());
-            Time.tm_mon = atoi(ExpireDate.substr(3, 2).c_str());
-            Time.tm_mday = atoi(ExpireDate.substr(5, 2).c_str());
-            Time.tm_hour = 0;
-            Time.tm_min = 0;
-            Time.tm_sec = 0;
-
-            //				if ( difftime( daytime, mktime(&Time) ) < 604800 )	// 실시간 7일이 지났는가?
-            if (difftime(daytime, mktime(&Time)) <
-                g_pVariableManager->getVariable(QUIT_GUILD_PENALTY_TERM) * 24 * 3600) // 실시간 7일이 지났는가?
-            {
-                /*					if (Rank==GuildMember::GUILDMEMBER_RANK_DENY
-                                        && GuildID != pPacket->getGuildID())
-                                    {
-                                        // rank4==추방/거부..인 애들은 다른 길드에는 들어갈 수 있다.
-                                        // 기존에 있던 GuildMember에서 제거한다.
-                                        defaultGuildRepository().deleteMember(pCreature->getName());
-                                    }
-                                    else
-                                    {
-                                        return;
-                                    }*/
-
-                // 실시간 7일이 지나지 않으면 가입할 수 없다. 무조건
-                // 2003. 6. 25 by bezz
-                return;
-            }
-        } else {
-            // 이미 다른 길드에 소속되어 있음
-            return;
-        }
-    }
-
-
-    // 스타팅 멤버로 가입할 경우
     if (pPacket->getGuildMemberRank() == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
-        // 길드가 이미 정식 길드로 등록되었는지 확인한다.
+        // A starting member may only join a guild that is still waiting for
+        // approval.
         Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
         if (pGuild == NULL)
             return;
@@ -111,67 +68,57 @@ void CGJoinGuildHandler::execute(CGJoinGuild* pPacket, Player* pPlayer)
         if (pGuild->getState() != Guild::GUILD_STATE_WAIT)
             return;
 
+        GuildJoinStats stats;
+        GuildJoinRequirements requirements;
+        bool playableRace = false;
+
         if (pCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
             Assert(pSlayer != NULL);
 
             SkillDomainType_t highest = pSlayer->getHighestSkillDomain();
 
-            // 등록 가능 여부 체크
-            if ((pSlayer->getGold() >= REQUIRE_SLAYER_SUBMASTER_GOLD) &&          // 등록비 5천만
-                (pSlayer->getFame() >= REQUIRE_SLAYER_SUBMASTER_FAME[highest]) && // 명성치
-                (pSlayer->getSkillDomainLevel(highest) >= REQUIRE_SLAYER_SUBMASTER_SKILL_DOMAIN_LEVEL) // 레벨 40 이상
-            ) {
-                GSAddGuildMember gsAddGuildMember;
-
-                gsAddGuildMember.setGuildID(pPacket->getGuildID());
-                gsAddGuildMember.setName(pSlayer->getName());
-                gsAddGuildMember.setGuildMemberRank(pPacket->getGuildMemberRank());
-                gsAddGuildMember.setGuildMemberIntro(pPacket->getGuildMemberIntro());
-                gsAddGuildMember.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
-
-                g_pSharedServerManager->sendPacket(&gsAddGuildMember);
-            }
-
+            playableRace = true;
+            stats.level = pSlayer->getSkillDomainLevel(highest);
+            stats.gold = pSlayer->getGold();
+            stats.fame = pSlayer->getFame();
+            requirements.level = REQUIRE_SLAYER_SUBMASTER_SKILL_DOMAIN_LEVEL;
+            requirements.gold = REQUIRE_SLAYER_SUBMASTER_GOLD;
+            requirements.fame = REQUIRE_SLAYER_SUBMASTER_FAME[highest];
+            requirements.checkFame = true;
         } else if (pCreature->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
             Assert(pVampire != NULL);
 
-            // 등록 가능 여부 체크
-            if ((pVampire->getGold() >= REQUIRE_VAMPIRE_SUBMASTER_GOLD) && // 등록비 5천만
-                (pVampire->getLevel() >= REQUIRE_VAMPIRE_SUBMASTER_LEVEL)  // 레벨 40 이상
-            ) {
-                GSAddGuildMember gsAddGuildMember;
-
-                gsAddGuildMember.setGuildID(pPacket->getGuildID());
-                gsAddGuildMember.setName(pVampire->getName());
-                gsAddGuildMember.setGuildMemberRank(pPacket->getGuildMemberRank());
-                gsAddGuildMember.setGuildMemberIntro(pPacket->getGuildMemberIntro());
-                gsAddGuildMember.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
-
-                g_pSharedServerManager->sendPacket(&gsAddGuildMember);
-            }
+            playableRace = true;
+            stats.level = pVampire->getLevel();
+            stats.gold = pVampire->getGold();
+            requirements.level = REQUIRE_VAMPIRE_SUBMASTER_LEVEL;
+            requirements.gold = REQUIRE_VAMPIRE_SUBMASTER_GOLD;
         } else if (pCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
             Assert(pOusters != NULL);
 
-            // 등록 가능 여부 체크
-            if ((pOusters->getGold() >= REQUIRE_OUSTERS_SUBMASTER_GOLD) && // 등록비 5천만
-                (pOusters->getLevel() >= REQUIRE_OUSTERS_SUBMASTER_LEVEL)  // 레벨 40 이상
-            ) {
-                GSAddGuildMember gsAddGuildMember;
+            playableRace = true;
+            stats.level = pOusters->getLevel();
+            stats.gold = pOusters->getGold();
+            requirements.level = REQUIRE_OUSTERS_SUBMASTER_LEVEL;
+            requirements.gold = REQUIRE_OUSTERS_SUBMASTER_GOLD;
+        }
 
-                gsAddGuildMember.setGuildID(pPacket->getGuildID());
-                gsAddGuildMember.setName(pOusters->getName());
-                gsAddGuildMember.setGuildMemberRank(pPacket->getGuildMemberRank());
-                gsAddGuildMember.setGuildMemberIntro(pPacket->getGuildMemberIntro());
-                gsAddGuildMember.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
+        if (playableRace && decideGuildRequirements(GUILD_JOIN_CONTEXT_CONFIRM, stats, requirements).isOk()) {
+            GSAddGuildMember gsAddGuildMember;
 
-                g_pSharedServerManager->sendPacket(&gsAddGuildMember);
-            }
+            gsAddGuildMember.setGuildID(pPacket->getGuildID());
+            gsAddGuildMember.setName(pCreature->getName());
+            gsAddGuildMember.setGuildMemberRank(pPacket->getGuildMemberRank());
+            gsAddGuildMember.setGuildMemberIntro(pPacket->getGuildMemberIntro());
+            gsAddGuildMember.setServerGroupID(g_pConfig->getPropertyInt("ServerID"));
+
+            g_pSharedServerManager->sendPacket(&gsAddGuildMember);
         }
     } else if (pPacket->getGuildMemberRank() == GuildMember::GUILDMEMBER_RANK_WAIT) {
-        // 길드 가입 신청, 대기 상태
+        // An ordinary application, which waits for the guild to accept it.
         GSAddGuildMember gsAddGuildMember;
 
         gsAddGuildMember.setGuildID(pPacket->getGuildID());

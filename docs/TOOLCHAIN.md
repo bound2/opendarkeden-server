@@ -238,7 +238,10 @@ character to route, or the reason the request was refused, instead of
 throwing an exception the same handler catches, and the gameserver's
 Exchange service, whose mutations answer with the listing, the purchase or
 the typed reason they were refused instead of a `pair<bool, string>` whose
-string is already English.
+string is already English. The gameserver's guild NPC follows it
+too: the join, registration and confirmation decisions answer with a
+race-independent rejection reason that the handlers map to the response code
+of the asking race, or to silence.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|
