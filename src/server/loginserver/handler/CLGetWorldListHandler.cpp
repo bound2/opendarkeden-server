@@ -7,6 +7,8 @@
 #include "CLGetWorldList.h"
 
 #ifdef __LOGIN_SERVER__
+#include <vector>
+
 #include "Assert1.h"
 #include "GameWorldInfoManager.h"
 #include "LCWorldList.h"
@@ -37,7 +39,8 @@ void CLGetWorldListHandler::execute(CLGetWorldList* pPacket, Player* pPlayer)
 
         // cout << "WorldNum : " << Num << endl;
 
-        WorldInfo* aWorldInfo[Num];
+        // Worlds are numbered from 1, so the table has one unused slot at 0.
+        std::vector<WorldInfo*> aWorldInfo(Num + 1, nullptr);
 
         for (int i = 1; i < Num + 1; i++) {
             WorldInfo* pWorldInfo = new WorldInfo();
