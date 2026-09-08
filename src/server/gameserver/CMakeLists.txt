@@ -68,6 +68,7 @@ set(ITEM_SOURCES
 # ============================================================================
 set(GUILD_SOURCES
     Party.cpp
+    party/PartyInviteDecision.cpp
     Guild.cpp
     GuildManager.cpp
     GuildUnion.cpp

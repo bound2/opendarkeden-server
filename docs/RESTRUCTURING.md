@@ -794,7 +794,15 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `src/server/gameserver/guild/GuildJoinDecision.{h,cpp}`
   > (`tests/guild_join_decision_test.cpp`), leaving `CGTryJoinGuild`,
   > `CGRegistGuild` and `CGJoinGuild` to read the creature and send the
-  > packets. Wider adoption pending.
+  > packets. Third: the party invite
+  > protocol, where `decidePartyInvite` answers a `PartyInviteEvents` naming
+  > the packet, its recipient and the party mutation, or a
+  > `PartyInviteRejection` naming the `GCPartyInvite` or `GCPartyError` code
+  > the requester gets, in
+  > `src/server/gameserver/party/PartyInviteDecision.{h,cpp}`
+  > (`tests/party_invite_decision_test.cpp`), leaving `CGPartyInviteHandler`
+  > to read the creatures, send the packets and drive the party managers.
+  > Wider adoption pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).
 

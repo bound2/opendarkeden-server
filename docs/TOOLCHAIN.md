@@ -241,7 +241,9 @@ the typed reason they were refused instead of a `pair<bool, string>` whose
 string is already English. The gameserver's guild NPC follows it
 too: the join, registration and confirmation decisions answer with a
 race-independent rejection reason that the handlers map to the response code
-of the asking race, or to silence.
+of the asking race, or to silence. So does its party invite protocol,
+whose decision answers the packet to send, its recipient and the party
+mutation to perform, or the refusal code the requester gets.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|

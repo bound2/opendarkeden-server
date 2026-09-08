@@ -547,3 +547,25 @@ target_link_libraries(guild_join_decision_tests PRIVATE de-kernel gtest_main Thr
 add_dependencies(wire_tests guild_join_decision_tests)
 add_test(NAME guild_join_decision_tests COMMAND guild_join_decision_tests)
 set_tests_properties(guild_join_decision_tests PROPERTIES TIMEOUT 60)
+
+# The gameserver's party invite protocol (docs/RESTRUCTURING.md 3.1):
+# decidePartyInvite returns Outcome<PartyInviteEvents, PartyInviteRejection>
+# over a recording fake topology, so every branch of every CGPartyInvite code,
+# the precedence between the refusals, the packet and recipient each answer
+# carries, and the queries a branch does and does not make are testable with
+# no zone and no party manager. The handler itself is not linked - it needs a
+# creature and a socket, which is why the decision was split out of it.
+# de-kernel carries the packet code tables.
+add_executable(party_invite_decision_tests EXCLUDE_FROM_ALL
+    party_invite_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/party/PartyInviteDecision.cpp
+)
+target_include_directories(party_invite_decision_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/party
+)
+target_link_libraries(party_invite_decision_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests party_invite_decision_tests)
+add_test(NAME party_invite_decision_tests COMMAND party_invite_decision_tests)
+set_tests_properties(party_invite_decision_tests PROPERTIES TIMEOUT 60)
