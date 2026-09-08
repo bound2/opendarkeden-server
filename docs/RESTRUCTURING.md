@@ -738,8 +738,13 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `tests/character_selection_test.cpp`) and `decideLogin`
   > (`src/server/loginserver/LoginDecision.{h,cpp}`,
   > `tests/login_decision_test.cpp`, which also covers the password check,
-  > the IP block and the web-login key beside it);
-  > wider adoption pending.
+  > the IP block and the web-login key beside it). First gameserver
+  > adopter: the Exchange service's mutations return
+  > `Outcome<…, ExchangeRejection>` (the typed `ExchangeResult` code plus
+  > its detail), `CGExchangeBuyHandler` formats the wire text, and the
+  > decisions that need only a repository and plain values live in
+  > `src/server/gameserver/exchange/ExchangeDecision.{h,cpp}`
+  > (`tests/exchange_decision_test.cpp`). Wider adoption pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).
 

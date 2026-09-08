@@ -50,12 +50,6 @@ string _addHoursToNow(int hours) {
     return string(buf);
 }
 
-string _toInt64String(int64_t value) {
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%lld", (long long)value);
-    return string(buf);
-}
-
 int16_t _getServerID() {
     // TODO: Get actual server ID from configuration
     // For now, return a default value
@@ -179,17 +173,20 @@ ExchangeListing* ExchangeService::getListing(int64_t listingID) {
 // Listing operations
 //////////////////////////////////////////////////////////////////////////////
 
-pair<bool, string> ExchangeService::createListing(PlayerCreature* pSeller, Item* pItem, int pricePoint,
-                                                  int durationHours) {
+Outcome<ExchangeListingCreated, ExchangeRejection> ExchangeService::createListing(PlayerCreature* pSeller, Item* pItem,
+                                                                                  int pricePoint, int durationHours) {
+    typedef Outcome<ExchangeListingCreated, ExchangeRejection> Result;
+
     // Validate inputs
     if (!pSeller) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_NOT_FOUND));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_ITEM_NOT_FOUND));
     }
     if (!pItem) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_NOT_FOUND));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_ITEM_NOT_FOUND));
     }
-    if (pricePoint < 1) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_INVALID_PRICE));
+    Outcome<void, ExchangeRejection> price = validateListingPrice(pricePoint);
+    if (price.isRejected()) {
+        return Result::Rejected(std::move(price).rejection());
     }
 
     // Get player info
@@ -200,12 +197,12 @@ pair<bool, string> ExchangeService::createListing(PlayerCreature* pSeller, Item*
     // Verify item ownership
     Inventory* pInv = pSeller->getInventory();
     if (!pInv || !pInv->hasItem(pItem->getObjectID())) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_OWNERSHIP));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_ITEM_OWNERSHIP));
     }
 
     // Check if item is tradeable
     if (!canTrade(pItem)) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_TRADEABLE));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_ITEM_TRADEABLE));
     }
 
     // Check exchange storage has space (conceptually - items stored by DB)
@@ -246,7 +243,7 @@ pair<bool, string> ExchangeService::createListing(PlayerCreature* pSeller, Item*
     // Save to database
     int64_t listingID = defaultExchangeRepository().createListing(listing);
     if (listingID <= 0) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_DATABASE_ERROR));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_DATABASE_ERROR));
     }
 
     // Move item to exchange storage
@@ -254,43 +251,35 @@ pair<bool, string> ExchangeService::createListing(PlayerCreature* pSeller, Item*
     if (!moveItemToExchangeStorage(pSeller, pItem)) {
         // Rollback listing creation
         defaultExchangeRepository().cancelListing(listingID);
-        return make_pair(false, formatError(EXCHANGE_FAIL_STORAGE_FULL));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_STORAGE_FULL));
     }
 
-    return make_pair(true, _toInt64String(listingID));
+    ExchangeListingCreated created;
+    created.listingID = listingID;
+    return Result::Ok(created);
 }
 
-pair<bool, string> ExchangeService::cancelListing(PlayerCreature* pSeller, int64_t listingID) {
+Outcome<void, ExchangeRejection> ExchangeService::cancelListing(PlayerCreature* pSeller, int64_t listingID) {
+    typedef Outcome<void, ExchangeRejection> Result;
+
     if (!pSeller) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_NOT_FOUND));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_ITEM_NOT_FOUND));
     }
 
-    // Get listing
-    ExchangeListing* pListing = defaultExchangeRepository().getListing(listingID);
-    if (!pListing) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_FOUND));
-    }
-
-    // Verify ownership
-    string playerName = pSeller->getName();
-    if (pListing->sellerPlayer != playerName) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_NOT_SELLER));
-    }
-
-    // Check status
-    if (pListing->status != LISTING_STATUS_ACTIVE) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE));
+    Result decision = decideCancelListing(defaultExchangeRepository(), pSeller->getName(), listingID);
+    if (decision.isRejected()) {
+        return decision;
     }
 
     // Mark as cancelled in DB
     if (!defaultExchangeRepository().cancelListing(listingID)) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_DATABASE_ERROR));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_DATABASE_ERROR));
     }
 
     // Note: Item remains in exchange storage until claimed
     // Seller needs to claim the item back
 
-    return make_pair(true, "");
+    return Result::Ok();
 }
 
 vector<ExchangeListing> ExchangeService::getSellerListings(const string& sellerAccount, uint8_t status) {
@@ -301,116 +290,98 @@ vector<ExchangeListing> ExchangeService::getSellerListings(const string& sellerA
 // Buying operations
 //////////////////////////////////////////////////////////////////////////////
 
-pair<bool, string> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t listingID,
-                                               const string& idempotencyKey) {
+Outcome<ExchangePurchase, ExchangeRejection> ExchangeService::buyListing(PlayerCreature* pBuyer, int64_t listingID,
+                                                                         const string& idempotencyKey) {
+    typedef Outcome<ExchangePurchase, ExchangeRejection> Result;
+
     if (!pBuyer) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_NOT_FOUND));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_ITEM_NOT_FOUND));
     }
 
-    // Check idempotency
-    if (!idempotencyKey.empty() && defaultExchangeRepository().hasIdempotencyKey(idempotencyKey)) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT));
-    }
-
-    // Get listing
-    ExchangeListing* pListing = defaultExchangeRepository().getListing(listingID);
-    if (!pListing) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_FOUND));
-    }
-
-    // Verify listing status
-    if (pListing->status != LISTING_STATUS_ACTIVE) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE));
-    }
-
-    // Verify server ID
-    if (pListing->serverID != _getServerID()) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE));
-    }
+    // Account and player are the same name here; the ledger is keyed by the
+    // account one and the listing carries the player one.
+    ExchangeBuyRequest request;
+    request.listingID = listingID;
+    request.buyerAccount = pBuyer->getName();
+    request.buyerPlayer = pBuyer->getName();
+    request.idempotencyKey = idempotencyKey;
+    request.serverID = _getServerID();
+    request.taxRate = m_TaxRate;
 
     // Check expiration
     // (DB should handle this, but double-check)
     // TODO: Parse expireAt and compare with current time
 
-    // Get buyer info
-    string buyerAccount = pBuyer->getName();
-    string buyerPlayer = pBuyer->getName();
-
-    // Verify not buying own listing
-    if (pListing->sellerPlayer == buyerPlayer) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE));
+    Outcome<ExchangePurchaseTerms, ExchangeRejection> decision = decideBuyListing(defaultExchangeRepository(), request);
+    if (decision.isRejected()) {
+        return Result::Rejected(std::move(decision).rejection());
     }
-
-    int price = pListing->pricePoint;
-    int tax = calculateTax(price);
-    int totalCost = price + tax;
-
-    // Check buyer balance
-    int buyerBalance = defaultExchangeRepository().getPointBalance(buyerAccount);
-    if (buyerBalance < totalCost) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_INSUFFICIENT_POINTS));
-    }
+    const ExchangePurchaseTerms terms = std::move(decision).events();
 
     // Begin transaction
     if (!defaultExchangeRepository().beginTransaction()) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_TRANSACTION_ERROR));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_TRANSACTION_ERROR));
     }
 
     string autoKey = idempotencyKey.empty() ? _generateIdempotencyKey() : idempotencyKey;
 
-    try {
-        // Deduct points from buyer
-        int buyerBalanceAfter;
-        if (!defaultExchangeRepository().adjustPoints(buyerAccount, -totalCost, buyerBalanceAfter, POINT_REASON_BUY,
-                                                      listingID, 0, _makeLedgerKey(autoKey, "_buy"))) {
-            throw string("Failed to deduct buyer points");
-        }
-
-        // Add points to seller (after tax)
-        int sellerIncome = price - tax;
-        int sellerBalanceAfter;
-        if (!defaultExchangeRepository().adjustPoints(pListing->sellerAccount, sellerIncome, sellerBalanceAfter,
-                                                      POINT_REASON_SALE, listingID, 0,
-                                                      _makeLedgerKey(autoKey, "_sale"))) {
-            throw string("Failed to add seller points");
-        }
-
-        // Create order
-        ExchangeOrder order;
-        order.orderID = 0;
-        order.listingID = listingID;
-        order.serverID = getServerID();
-        order.buyerAccount = buyerAccount;
-        order.buyerPlayer = buyerPlayer;
-        order.pricePoint = price;
-        order.taxAmount = tax;
-        order.status = ORDER_STATUS_PAID;
-        order.createdAt = _getCurrentTime();
-        order.deliveredAt = "";
-        order.cancelledAt = "";
-
-        int64_t orderID = defaultExchangeRepository().createOrder(order);
-        if (orderID <= 0) {
-            throw string("Failed to create order");
-        }
-
-        // Mark listing as sold
-        if (!defaultExchangeRepository().markListingSold(listingID, buyerAccount, buyerPlayer)) {
-            throw string("Failed to mark listing sold");
-        }
-
-        // Commit transaction
-        if (!defaultExchangeRepository().commit()) {
-            throw string("Failed to commit transaction");
-        }
-
-        return make_pair(true, _toInt64String(orderID));
-
-    } catch (const string& error) {
-        // Rollback on error
+    // Every step below is part of the one purchase: the first that fails
+    // takes back the ones before it and names itself in the rejection.
+    auto unwind = [](const char* detail) {
         defaultExchangeRepository().rollback();
-        return make_pair(false, formatError(EXCHANGE_FAIL_TRANSACTION_ERROR, error));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_TRANSACTION_ERROR, detail));
+    };
+
+    ExchangePurchase purchase;
+    purchase.listingID = listingID;
+    purchase.pricePoint = terms.pricePoint;
+    purchase.taxAmount = terms.taxAmount;
+    purchase.totalCost = terms.totalCost;
+    purchase.sellerIncome = terms.sellerIncome;
+
+    // Deduct points from buyer
+    if (!defaultExchangeRepository().adjustPoints(request.buyerAccount, -terms.totalCost, purchase.buyerBalanceAfter,
+                                                  POINT_REASON_BUY, listingID, 0, _makeLedgerKey(autoKey, "_buy"))) {
+        return unwind("Failed to deduct buyer points");
     }
+
+    // Add points to seller (after tax)
+    if (!defaultExchangeRepository().adjustPoints(terms.sellerAccount, terms.sellerIncome, purchase.sellerBalanceAfter,
+                                                  POINT_REASON_SALE, listingID, 0, _makeLedgerKey(autoKey, "_sale"))) {
+        return unwind("Failed to add seller points");
+    }
+
+    // Create order
+    ExchangeOrder order;
+    order.orderID = 0;
+    order.listingID = listingID;
+    order.serverID = getServerID();
+    order.buyerAccount = request.buyerAccount;
+    order.buyerPlayer = request.buyerPlayer;
+    order.pricePoint = terms.pricePoint;
+    order.taxAmount = terms.taxAmount;
+    order.status = ORDER_STATUS_PAID;
+    order.createdAt = _getCurrentTime();
+    order.deliveredAt = "";
+    order.cancelledAt = "";
+
+    int64_t orderID = defaultExchangeRepository().createOrder(order);
+    if (orderID <= 0) {
+        return unwind("Failed to create order");
+    }
+
+    // Mark listing as sold
+    if (!defaultExchangeRepository().markListingSold(listingID, request.buyerAccount, request.buyerPlayer)) {
+        return unwind("Failed to mark listing sold");
+    }
+
+    // Commit transaction
+    if (!defaultExchangeRepository().commit()) {
+        return unwind("Failed to commit transaction");
+    }
+
+    purchase.orderID = orderID;
+    return Result::Ok(purchase);
 }
 
 vector<ExchangeOrder> ExchangeService::getBuyerOrders(const string& buyerPlayer, uint8_t status) {
@@ -463,36 +434,25 @@ vector<ExchangeClaim> ExchangeService::prepareClaimList(PlayerCreature* pPlayer)
     return claims;
 }
 
-pair<bool, string> ExchangeService::claimItem(PlayerCreature* pPlayer, int64_t orderOrListingID, bool isBuyerClaim) {
+Outcome<void, ExchangeRejection> ExchangeService::claimItem(PlayerCreature* pPlayer, int64_t orderOrListingID,
+                                                            bool isBuyerClaim) {
+    typedef Outcome<void, ExchangeRejection> Result;
+
     if (!pPlayer) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_ITEM_NOT_FOUND));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_ITEM_NOT_FOUND));
     }
 
     // Check inventory space
     if (!checkInventorySpace(pPlayer)) {
-        return make_pair(false, formatError(EXCHANGE_FAIL_INVENTORY_FULL));
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_INVENTORY_FULL));
     }
 
     if (isBuyerClaim) {
         // Buyer claiming purchased item
-        // Find the specific order
-        vector<ExchangeOrder> orders = getBuyerOrders(pPlayer->getName(), ORDER_STATUS_PAID);
-        ExchangeOrder* pTargetOrder = NULL;
-        for (const auto& order : orders) {
-            if (order.orderID == orderOrListingID) {
-                pTargetOrder = const_cast<ExchangeOrder*>(&order);
-                break;
-            }
-        }
-
-        if (!pTargetOrder) {
-            return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_FOUND));
-        }
-
-        // Get listing
-        ExchangeListing* pListing = getListing(pTargetOrder->listingID);
-        if (!pListing) {
-            return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_FOUND));
+        Outcome<ExchangeBuyerClaim, ExchangeRejection> decision =
+            decideBuyerClaim(defaultExchangeRepository(), pPlayer->getName(), orderOrListingID);
+        if (decision.isRejected()) {
+            return Result::Rejected(std::move(decision).rejection());
         }
 
         // Load item from exchange storage
@@ -501,35 +461,25 @@ pair<bool, string> ExchangeService::claimItem(PlayerCreature* pPlayer, int64_t o
         // The actual item transfer should be handled by the item manager
 
         if (!defaultExchangeRepository().markOrderDelivered(orderOrListingID)) {
-            return make_pair(false, formatError(EXCHANGE_FAIL_DATABASE_ERROR));
+            return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_DATABASE_ERROR));
         }
 
         // TODO: Actually transfer item to player's inventory
         // This requires finding the item by ObjectID and moving it
 
-        return make_pair(true, "");
+        return Result::Ok();
 
     } else {
         // Seller claiming back cancelled/expired item
-        ExchangeListing* pListing = getListing(orderOrListingID);
-        if (!pListing) {
-            return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_FOUND));
-        }
-
-        // Verify ownership
-        if (pListing->sellerPlayer != pPlayer->getName()) {
-            return make_pair(false, formatError(EXCHANGE_FAIL_NOT_SELLER));
-        }
-
-        // Check status
-        if (pListing->status != LISTING_STATUS_CANCELLED && pListing->status != LISTING_STATUS_EXPIRED) {
-            return make_pair(false, formatError(EXCHANGE_FAIL_LISTING_NOT_AVAILABLE));
+        Result decision = decideSellerClaim(defaultExchangeRepository(), pPlayer->getName(), orderOrListingID);
+        if (decision.isRejected()) {
+            return decision;
         }
 
         // TODO: Load item from exchange storage and add to inventory
         // This requires item manager integration
 
-        return make_pair(true, "");
+        return Result::Ok();
     }
 }
 
@@ -541,13 +491,19 @@ int ExchangeService::getPointBalance(const string& account) {
     return defaultExchangeRepository().getPointBalance(account);
 }
 
-pair<bool, int> ExchangeService::adjustPoints(const string& account, int delta, uint8_t reason, int64_t refListingID,
-                                              int64_t refOrderID, const string& idempotencyKey) {
-    int balanceAfter;
-    bool success = defaultExchangeRepository().adjustPoints(account, delta, balanceAfter, reason, refListingID,
-                                                            refOrderID, idempotencyKey);
+Outcome<ExchangePointsAdjusted, ExchangeRejection> ExchangeService::adjustPoints(const string& account, int delta,
+                                                                                 uint8_t reason, int64_t refListingID,
+                                                                                 int64_t refOrderID,
+                                                                                 const string& idempotencyKey) {
+    typedef Outcome<ExchangePointsAdjusted, ExchangeRejection> Result;
 
-    return make_pair(success, success ? balanceAfter : -1);
+    ExchangePointsAdjusted adjusted;
+    if (!defaultExchangeRepository().adjustPoints(account, delta, adjusted.balanceAfter, reason, refListingID,
+                                                  refOrderID, idempotencyKey)) {
+        return Result::Rejected(ExchangeRejection(EXCHANGE_FAIL_UNKNOWN, "duplicate ledger key or balance below zero"));
+    }
+
+    return Result::Ok(adjusted);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -580,10 +536,6 @@ void ExchangeService::scanExpiredListings() {
 //////////////////////////////////////////////////////////////////////////////
 // Helper methods
 //////////////////////////////////////////////////////////////////////////////
-
-int ExchangeService::calculateTax(int price) {
-    return (price * m_TaxRate) / 100;
-}
 
 string ExchangeService::getCurrentTimestamp() {
     return _getCurrentTime();
@@ -668,68 +620,4 @@ int16_t ExchangeService::getServerID() {
 
 bool ExchangeService::checkInventorySpace(PlayerCreature* pPlayer) {
     return _checkInventorySpace(pPlayer);
-}
-
-string ExchangeService::formatError(ExchangeResult code, const string& detail) {
-    string error;
-
-    switch (code) {
-    case EXCHANGE_SUCCESS:
-        return "Success";
-
-    case EXCHANGE_FAIL_ITEM_NOT_FOUND:
-        error = "Item not found";
-        break;
-    case EXCHANGE_FAIL_ITEM_OWNERSHIP:
-        error = "You don't own this item";
-        break;
-    case EXCHANGE_FAIL_ITEM_TRADEABLE:
-        error = "This item cannot be traded";
-        break;
-    case EXCHANGE_FAIL_INVALID_PRICE:
-        error = "Invalid price";
-        break;
-    case EXCHANGE_FAIL_INSUFFICIENT_POINTS:
-        error = "Insufficient point balance";
-        break;
-    case EXCHANGE_FAIL_LISTING_NOT_FOUND:
-        error = "Listing not found";
-        break;
-    case EXCHANGE_FAIL_LISTING_NOT_AVAILABLE:
-        error = "Listing is no longer available";
-        break;
-    case EXCHANGE_FAIL_INVENTORY_FULL:
-        error = "Inventory is full";
-        break;
-    case EXCHANGE_FAIL_STORAGE_FULL:
-        error = "Exchange storage is full";
-        break;
-    case EXCHANGE_FAIL_NOT_SELLER:
-        error = "You are not the seller of this item";
-        break;
-    case EXCHANGE_FAIL_NOT_BUYER:
-        error = "You are not the buyer of this item";
-        break;
-    case EXCHANGE_FAIL_ALREADY_CLAIMED:
-        error = "Item already claimed";
-        break;
-    case EXCHANGE_FAIL_DATABASE_ERROR:
-        error = "Database error";
-        break;
-    case EXCHANGE_FAIL_TRANSACTION_ERROR:
-        error = "Transaction error";
-        break;
-    case EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT:
-        error = "Duplicate transaction";
-        break;
-    default:
-        error = "Unknown error";
-        break;
-    }
-
-    if (!detail.empty()) {
-        error += ": " + detail;
-    }
-
-    return error;
 }

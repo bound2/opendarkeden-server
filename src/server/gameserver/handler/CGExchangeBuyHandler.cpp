@@ -8,7 +8,7 @@
 #include "GCExchangeBuy.h"
 
 #ifdef __GAME_SERVER__
-#include <stdlib.h>
+#include <string>
 
 #include "../server/gameserver/exchange/ExchangeService.h"
 #include "GamePlayer.h"
@@ -29,18 +29,23 @@ void CGExchangeBuyHandler::execute(CGExchangeBuy* pPacket, Player* pPlayer) {
         return;
 
     // Call service to buy
-    pair<bool, string> result = ExchangeService::buyListing(pPC, pPacket->getListingID(), pPacket->getIdempotencyKey());
+    Outcome<ExchangePurchase, ExchangeRejection> result =
+        ExchangeService::buyListing(pPC, pPacket->getListingID(), pPacket->getIdempotencyKey());
 
     // Send response
     GCExchangeBuy gcPacket;
-    gcPacket.setSuccess(result.first);
-    gcPacket.setMessage(result.second);
 
-    if (result.first) {
-        // On success the service returns the new order id as a decimal string.
-        // The client parses m_OrderID out of this reply, so it has to be carried
-        // across; on failure the string is an error message and the id stays 0.
-        gcPacket.setOrderID((int64_t)strtoll(result.second.c_str(), NULL, 10));
+    if (result.isOk()) {
+        const ExchangePurchase& purchase = result.events();
+        gcPacket.setSuccess(true);
+        // The reply carries the new order id twice: in m_OrderID, and as the
+        // decimal string in m_Message, which is what the client reads.
+        gcPacket.setMessage(std::to_string(purchase.orderID));
+        gcPacket.setOrderID(purchase.orderID);
+    } else {
+        // A refusal puts the reason's text in m_Message and leaves the id 0.
+        gcPacket.setSuccess(false);
+        gcPacket.setMessage(result.rejection().message());
     }
 
     pPlayer->sendPacket(&gcPacket);
