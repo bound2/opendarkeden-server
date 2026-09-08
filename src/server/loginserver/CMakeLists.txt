@@ -26,6 +26,7 @@ set(LOGINSERVER_SOURCES
     handler/GLKickVerifyHandler.cpp
     handler/GMServerInfoHandler.cpp
     LoginPacketDispatch.cpp
+    CharacterCreation.cpp
     ClientManager.cpp
     UserInfoManager.cpp
     GameServerGroupInfoManager.cpp

@@ -330,6 +330,29 @@ add_test(NAME password_hash_tests COMMAND password_hash_tests)
 # A dozen 64 MiB argon2id computations; generous for a loaded CI runner.
 set_tests_properties(password_hash_tests PROPERTIES TIMEOUT 120)
 
+# The loginserver's character-creation decision (docs/RESTRUCTURING.md 3.1):
+# decideCreatePC() returns Outcome<CreatedCharacter, CreatePCRejection>, so
+# every rejection and the accepted rows are testable against a fake
+# LoginCharacterRepository with no database. Only de-kernel is linked (the
+# type tables, and filelog for the Ousters warning) — pulling the transport
+# or the login server's own state into the decision would break this link.
+# The Ousters warning appends to CreatePC.log in the working directory,
+# hence the build-tree WORKING_DIRECTORY (same reason as scheduler_tests).
+add_executable(character_creation_tests EXCLUDE_FROM_ALL
+    character_creation_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/CharacterCreation.cpp
+)
+target_include_directories(character_creation_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(character_creation_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests character_creation_tests)
+add_test(NAME character_creation_tests COMMAND character_creation_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(character_creation_tests PROPERTIES TIMEOUT 60)
+
 add_test(
     NAME ratchets
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/ratchet/ratchets.sh

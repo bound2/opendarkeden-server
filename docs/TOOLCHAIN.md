@@ -230,7 +230,11 @@ macros and polling loops.
 
 The project now requires C++20. The first production use is cooperative zone
 worker shutdown; new facilities should still be adopted at focused boundaries
-instead of through tree-wide style conversions.
+instead of through tree-wide style conversions. The `std::variant`-backed
+`Outcome<Events, Rejection>` is adopted the same way, one decision at a time:
+its first production caller is the loginserver's `decideCreatePC`, which
+returns the rows to write or the reason the creation was refused instead of
+throwing an exception the same handler catches.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|

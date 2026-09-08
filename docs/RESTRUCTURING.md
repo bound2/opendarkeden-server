@@ -729,7 +729,12 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > **Status:** in progress (2026-09-04) — `src/Core/Outcome.h` is a
   > `[[nodiscard]]` `std::variant`-backed kernel type with unit tests
   > (factories, accessors, throw-on-wrong-side, value/move semantics and
-  > non-default/move-only payloads); adoption by domain code pending.
+  > non-default/move-only payloads). First adopter: the loginserver's
+  > `decideCreatePC` (`src/server/loginserver/CharacterCreation.{h,cpp}`,
+  > `tests/character_creation_test.cpp`), which returns
+  > `Outcome<CreatedCharacter, CreatePCRejection>` and leaves
+  > `CLCreatePCHandler` to translate the rejection and write the rows;
+  > wider adoption pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).
 
