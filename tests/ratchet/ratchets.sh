@@ -38,7 +38,7 @@ check_ratchet R1 "global singleton externs" 332 "$R1"
 
 # --- R2: files with inline SQL in the gameserver root ----------------------
 R2=$(grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h 2>/dev/null | wc -l)
-check_ratchet R2 "gameserver-root files with inline SQL" 8 "$R2"
+check_ratchet R2 "gameserver-root files with inline SQL" 7 "$R2"
 
 # --- R3: files with inline SQL outside database/ and any repository/ -------
 # Repository impls are the sanctioned quarantine for SQL — R3 measures SQL
@@ -54,7 +54,7 @@ check_ratchet R2 "gameserver-root files with inline SQL" 8 "$R2"
 # only a directory is excluded.)
 R3=$(grep -rlE 'executeQuery' src --include='*.cpp' | grep -v 'server/database' |
     grep -v '/repository/' | wc -l)
-check_ratchet R3 "files with inline SQL outside database/, repository/" 19 "$R3"
+check_ratchet R3 "files with inline SQL outside database/, repository/" 18 "$R3"
 
 # --- R4: packet headers still carrying execute() on the packet -------------
 R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)
@@ -66,7 +66,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # them would jump the baseline without any new debt. Fold them in (with a
 # re-baseline note) when they become de-core extraction targets in 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5788 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5755 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
