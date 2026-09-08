@@ -29,8 +29,8 @@ class DatagramPacket;
 //
 // class Datagram;
 //
-// UDP �������κ��� �Է¹ްų� ����� ����Ÿ�� �����̴�.
-// �� Datagram�� ���� �� �Ǵ� ���� ���� �ּҸ� ������ �ִ�.
+// The data received from, or to be sent through, a UDP socket, together
+// with the peer address it came from or is going to.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -146,12 +146,22 @@ public:
 
     string toString() const;
 
-    // �ж��Ƿ���udp����
+    // true for the packet ids that are legitimate UDP packets
     bool isDatagram(PacketID_t packetID);
 
 private:
-    // buffer length
+    // Make room for at least len bytes in the internal buffer, keeping
+    // what it already holds. The buffer a packet is written into is sized
+    // from the packet's declared body size, which is only a hint, so a
+    // body that writes more than it declares grows the buffer instead of
+    // overrunning it.
+    void ensureCapacity(uint len);
+
+    // datagram length: the bytes that are sent, or that were received
     uint m_Length;
+
+    // allocated size of the internal buffer, never below m_Length
+    uint m_Capacity;
 
     // reading/writing offset
     uint m_InputOffset;

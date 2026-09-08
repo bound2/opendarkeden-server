@@ -31,6 +31,7 @@ endforeach()
 # explicitly.
 add_executable(wire_tests EXCLUDE_FROM_ALL
     support/TestStreams.cpp
+    datagram_frame_test.cpp
     outcome_test.cpp
     packet_roundtrip_test.cpp
     packet_encrypter_test.cpp
