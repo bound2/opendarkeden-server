@@ -47,10 +47,9 @@ set(CORE_SOURCES
     SXml.cpp
     # Uses the server-side Timeval — held out of the kernel (2.4 sort).
     TimeChecker.cpp
-    # The factory-backed receive paths split out of Datagram.cpp /
-    # SerialDatagram.cpp: they call PacketFactoryManager, which K2 bars
-    # from the kernel forever, so these two functions compile here and
-    # the rest of the framing is kernel.
+    # The factory-backed receive path split out of Datagram.cpp: it calls
+    # PacketFactoryManager, which K2 bars from the kernel forever, so this
+    # one function compiles here and the rest of the framing is kernel.
     DatagramFactoryRead.cpp
 )
 

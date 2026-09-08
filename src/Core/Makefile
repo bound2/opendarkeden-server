@@ -26,7 +26,7 @@ BILLINGDIR = $(GSDIR)/billing
 # Core Library
 #----------------------------------------------------------------------
 CORE_OBJS = WarInfo.o RaceWarInfo.o GuildWarInfo.o LevelWarInfo.o BloodBibleBonusInfo.o \
-			Assert.o Datagram.o SerialDatagram.o DatagramSocket.o FileAPI.o GameTime.o \
+			Assert.o Datagram.o DatagramSocket.o FileAPI.o GameTime.o \
 			ScriptParameter.o \
 			Player.o PCSlayerInfo.o PCVampireInfo.o PCSlayerInfo2.o \
 			PCVampireInfo2.o PCSlayerInfo3.o PCVampireInfo3.o \
