@@ -405,3 +405,29 @@ add_test(
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
 set_tests_properties(critical_section_audit PROPERTIES TIMEOUT 60)
+
+# The loginserver's login decision (docs/RESTRUCTURING.md 3.1): decideLogin()
+# returns Outcome<LoginAccepted, LoginRejection>, so every refusal, the
+# precedence between them and the content of the OK reply are testable
+# against a fake LoginAccountRepository with no database. PasswordHash is
+# linked because the password check runs against the real argon2id
+# implementation; de-kernel carries VSDateTime and filelog. Pulling the
+# transport or the login server's own state into the decision would break
+# this link. The refusal logs (keydiff.txt) and the days-left log
+# (PayPlayDateLog.txt) are appended in the working directory, hence the
+# build-tree WORKING_DIRECTORY (same reason as scheduler_tests).
+add_executable(login_decision_tests EXCLUDE_FROM_ALL
+    login_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/LoginDecision.cpp
+)
+target_include_directories(login_decision_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(login_decision_tests PRIVATE PasswordHash de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests login_decision_tests)
+add_test(NAME login_decision_tests COMMAND login_decision_tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+# A handful of 64 MiB argon2id computations in the password cases.
+set_tests_properties(login_decision_tests PROPERTIES TIMEOUT 180)
