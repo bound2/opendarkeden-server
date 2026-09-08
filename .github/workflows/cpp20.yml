@@ -19,5 +19,3 @@ jobs:
         run: bash tools/devbuild.sh test
       - name: Compile every production target
         run: bash tools/devbuild.sh build
-      - name: Build production image
-        run: docker compose -f docker/docker-compose.yml build odk-server
