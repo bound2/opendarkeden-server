@@ -3,17 +3,24 @@
 // Filename    : packet_meta_test.cpp
 // Description : Pins the compile-time packet metadata (PacketMeta.h).
 //
-// Three things are checked, and the first two fail the BUILD:
+// Four things are checked, and the first three fail the BUILD:
 //   1. every factory in the kernel satisfies de::PacketFactoryType, and
 //      the whole kernel folds into one FactoryList without a duplicate
 //      or out-of-range id -- the same fact wire_layout_test proves at
 //      run time, now proved while compiling;
-//   2. validateRegistry rejects each kind of bad table, so the assert in
+//   2. every kernel factory's name parses to a known link, and each
+//      prefix parses to the link it names;
+//   3. validateRegistry rejects each kind of bad table, so the assert in
 //      FactoryList is known to fire, not just known to compile;
-//   3. at run time, each factory's constexpr members agree with what its
+//   4. at run time, each factory's constexpr members agree with what its
 //      virtual getters and its packet report. The dispatcher now
 //      registers handlers by Factory::kPacketID, so the factory/packet id
 //      agreement is what keeps dispatch pointed at the same handlers.
+//
+// What this file cannot reach: the per-server registration lists and the
+// composition roots' DirectionSets are compiled only under a server macro,
+// which the test build never defines. Their checks fire in the production
+// builds.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -39,6 +46,9 @@ namespace {
 
 using de::PacketFactoryType;
 using de::packet::Concat;
+using de::packet::Direction;
+using de::packet::directionOf;
+using de::packet::DirectionSet;
 using de::packet::FactoryList;
 using de::packet::Meta;
 using de::packet::RegistryError;
@@ -99,13 +109,64 @@ struct UnnamedFactory : RuntimeIdFactory {
 };
 static_assert(!PacketFactoryType<UnnamedFactory>, "the name must be non-empty");
 
-// --- 2. the rules, on hand-built tables ---------------------------------
+// --- 2. the link every packet name states -------------------------------
 
-constexpr Meta a{1, 4, "A"};
-constexpr Meta b{2, 4, "B"};
-constexpr Meta aAgain{1, 8, "A2"};
-constexpr Meta tooHigh{static_cast<PacketID_t>(Packet::PACKET_MAX), 4, "High"};
-constexpr Meta unnamed{3, 4, ""};
+// One per prefix, so a mis-wired branch in the parser is caught by name.
+static_assert(directionOf("CGAttack") == Direction::CG);
+static_assert(directionOf("GCAttack") == Direction::GC);
+static_assert(directionOf("CLLogin") == Direction::CL);
+static_assert(directionOf("LCLoginOK") == Direction::LC);
+static_assert(directionOf("GLKickVerify") == Direction::GL);
+static_assert(directionOf("LGKickCharacter") == Direction::LG);
+static_assert(directionOf("GSAddGuild") == Direction::GS);
+static_assert(directionOf("SGAddGuildOK") == Direction::SG);
+static_assert(directionOf("GGCommand") == Direction::GG);
+// The lone GM packet: the gameserver's server-info datagram, which the
+// loginserver receives. It keeps its own link rather than folding into GL
+// so the parse stays a plain reading of the prefix.
+static_assert(directionOf("GMServerInfo") == Direction::GM);
+
+static_assert(directionOf("") == Direction::Unknown, "a name too short to carry a prefix");
+static_assert(directionOf("C") == Direction::Unknown);
+static_assert(directionOf("XYMistyped") == Direction::Unknown, "an unknown prefix names no link");
+static_assert(directionOf("gcLowercase") == Direction::Unknown, "the prefix is case-sensitive");
+
+// The factories carry it, and no kernel factory is left unclassified.
+// (KernelFactories would not compile if one were -- FactoryList's
+// KnownDirection check names the offending factory -- so this states the
+// same fact where a reader looks for it.)
+static_assert(de::packet::metaOf<CGAttackFactory>().direction == Direction::CG);
+static_assert(de::packet::metaOf<GMServerInfoFactory>().direction == Direction::GM);
+
+consteval bool everyKernelFactoryHasALink() {
+    for (const Meta& meta : KernelFactories::kMeta)
+        if (meta.direction == Direction::Unknown)
+            return false;
+    return true;
+}
+static_assert(everyKernelFactoryHasALink());
+
+// A DirectionSet answers only for the links it was given: this is what the
+// composition roots hand DE_REGISTER_PACKET_HANDLER.
+constexpr DirectionSet guildRequests{Direction::GS};
+static_assert(guildRequests.contains(Direction::GS));
+static_assert(!guildRequests.contains(Direction::SG), "the reply direction is not the request direction");
+static_assert(!guildRequests.contains(Direction::Unknown));
+constexpr DirectionSet clientAndDatagrams{Direction::CG, Direction::GC, Direction::GG, Direction::LG, Direction::SG};
+static_assert(clientAndDatagrams.contains(Direction::CG));
+static_assert(clientAndDatagrams.contains(Direction::SG));
+static_assert(!clientAndDatagrams.contains(Direction::CL));
+static_assert(!clientAndDatagrams.contains(Direction::GM));
+
+// --- 3. the rules, on hand-built tables ---------------------------------
+
+constexpr Meta a{1, 4, "CGA", Direction::CG};
+constexpr Meta b{2, 4, "GCB", Direction::GC};
+constexpr Meta aAgain{1, 8, "CGA2", Direction::CG};
+constexpr Meta tooHigh{static_cast<PacketID_t>(Packet::PACKET_MAX), 4, "CGHigh", Direction::CG};
+constexpr Meta unnamed{3, 4, "", Direction::Unknown};
+// What a mistyped kName produces: metaOf would derive exactly this.
+constexpr Meta mistyped{4, 4, "XYMistyped", directionOf("XYMistyped")};
 
 static_assert(validateRegistry(std::array<Meta, 0>{}).error == RegistryError::None);
 static_assert(validateRegistry(std::array{a, b}).error == RegistryError::None);
@@ -114,6 +175,8 @@ static_assert(validateRegistry(std::array{a, b, aAgain}).id == 1, "the verdict n
 static_assert(validateRegistry(std::array{a, tooHigh}).error == RegistryError::IdOutOfRange);
 static_assert(validateRegistry(std::array{a, tooHigh}).id == Packet::PACKET_MAX);
 static_assert(validateRegistry(std::array{a, unnamed}).error == RegistryError::EmptyName);
+static_assert(validateRegistry(std::array{a, mistyped}).error == RegistryError::UnknownDirection);
+static_assert(validateRegistry(std::array{a, mistyped}).id == 4, "the verdict names the unclassifiable packet");
 
 // Concat validates the joined table: two individually valid lists that
 // share an id are one invalid list. (Only the verdict is inspected here;
@@ -127,7 +190,7 @@ static_assert(Concat<Left, Right>::kMeta[1].id == CGMoveFactory::kPacketID);
 static_assert(validateRegistry(std::array{de::packet::metaOf<CGAttackFactory>(), de::packet::metaOf<CGAttackFactory>()})
                   .error == RegistryError::DuplicateId);
 
-// --- 3. constexpr members agree with the virtual getters ----------------
+// --- 4. constexpr members agree with the virtual getters ----------------
 
 struct Disagreement {
     std::string factory;
@@ -156,6 +219,42 @@ TEST(PacketMeta, ConstexprMembersAgreeWithVirtuals) {
     for (const Disagreement& d : disagreements)
         ADD_FAILURE() << d.factory << ": " << d.what;
     EXPECT_TRUE(disagreements.empty());
+}
+
+// Spells a Direction back out, so the round trip below reads the parser's
+// result against the name it came from and can print the packet that
+// disagrees. Deliberately a second, independent table.
+std::string_view spelling(Direction direction) {
+    switch (direction) {
+    case Direction::CG:
+        return "CG";
+    case Direction::GC:
+        return "GC";
+    case Direction::CL:
+        return "CL";
+    case Direction::LC:
+        return "LC";
+    case Direction::GL:
+        return "GL";
+    case Direction::LG:
+        return "LG";
+    case Direction::GS:
+        return "GS";
+    case Direction::SG:
+        return "SG";
+    case Direction::GG:
+        return "GG";
+    case Direction::GM:
+        return "GM";
+    case Direction::Unknown:
+        break;
+    }
+    return "??";
+}
+
+TEST(PacketMeta, EveryPacketNameStatesItsLink) {
+    for (const Meta& meta : KernelFactories::kMeta)
+        EXPECT_EQ(meta.name.substr(0, 2), spelling(meta.direction)) << "packet " << meta.name;
 }
 
 TEST(PacketMeta, ForEachVisitsInPackOrder) {

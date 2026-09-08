@@ -9,6 +9,7 @@
 #define __PACKET_DISPATCHER_H__
 
 #include "Packet.h"
+#include "PacketMeta.h"
 #include "Types.h"
 
 class Player;
@@ -33,26 +34,48 @@ private:
 
 // Registration helpers for the composition roots: bind packet class Cls
 // to Cls##Handler::execute. The _NOPLAYER form is for handlers that take
-// only the packet (the inter-server directions). The id comes from the
-// factory's compile-time metadata (PacketMeta.h).
-#define DE_REGISTER_PACKET_HANDLER(Cls)                                           \
-    {                                                                             \
-        struct Thunk {                                                            \
-            static void call(Packet* pPacket, Player* pPlayer) {                  \
-                Cls##Handler::execute(static_cast<Cls*>(pPacket), pPlayer);       \
-            }                                                                     \
-        };                                                                        \
-        PacketDispatcher::registerHandler(Cls##Factory::kPacketID, &Thunk::call); \
+// only the packet (the inter-server directions). The id and the link come
+// from the factory's compile-time metadata (PacketMeta.h).
+//
+// Both forms require the composition root to have stated, in scope, which
+// links its server accepts:
+//
+//     constexpr de::packet::DirectionSet kReceivedDirections{...};
+//
+// Registering a handler for a packet that rides any other link is a
+// compile error: that packet never arrives at this server, so the entry
+// would be dead and its id would shadow nothing.
+#define DE_REGISTER_PACKET_HANDLER(Cls)                                                           \
+    {                                                                                             \
+        static_assert(kReceivedDirections.contains(de::packet::directionOf(Cls##Factory::kName)), \
+                      "handler registered for a packet on a link this server does not receive");  \
+        struct Thunk {                                                                            \
+            static void call(Packet* pPacket, Player* pPlayer) {                                  \
+                Cls##Handler::execute(static_cast<Cls*>(pPacket), pPlayer);                       \
+            }                                                                                     \
+        };                                                                                        \
+        PacketDispatcher::registerHandler(Cls##Factory::kPacketID, &Thunk::call);                 \
     }
 
-#define DE_REGISTER_PACKET_HANDLER_NOPLAYER(Cls)                                  \
-    {                                                                             \
-        struct Thunk {                                                            \
-            static void call(Packet* pPacket, Player*) {                          \
-                Cls##Handler::execute(static_cast<Cls*>(pPacket));                \
-            }                                                                     \
-        };                                                                        \
-        PacketDispatcher::registerHandler(Cls##Factory::kPacketID, &Thunk::call); \
+#define DE_REGISTER_PACKET_HANDLER_NOPLAYER(Cls)                                                  \
+    {                                                                                             \
+        static_assert(kReceivedDirections.contains(de::packet::directionOf(Cls##Factory::kName)), \
+                      "handler registered for a packet on a link this server does not receive");  \
+        struct Thunk {                                                                            \
+            static void call(Packet* pPacket, Player*) {                                          \
+                Cls##Handler::execute(static_cast<Cls*>(pPacket));                                \
+            }                                                                                     \
+        };                                                                                        \
+        PacketDispatcher::registerHandler(Cls##Factory::kPacketID, &Thunk::call);                 \
+    }
+
+// Same check for the packets whose entry needs a hand-written function:
+// a handler with a different signature, or a deliberate ignore.
+#define DE_REGISTER_PACKET_HANDLER_FN(Cls, Fn)                                                    \
+    {                                                                                             \
+        static_assert(kReceivedDirections.contains(de::packet::directionOf(Cls##Factory::kName)), \
+                      "handler registered for a packet on a link this server does not receive");  \
+        PacketDispatcher::registerHandler(Cls##Factory::kPacketID, &(Fn));                        \
     }
 
 #endif

@@ -484,10 +484,44 @@ pins each rejection rule on hand-built tables, and checks at run time that every
 factory's constants agree with its virtuals and with the packet it creates —
 that last agreement is what keeps the dispatcher pointed at the same handlers.
 
+The link a packet rides is a fourth static fact, and it needs no per-factory
+edit: `de::packet::directionOf` is a `consteval` parse of the two-letter prefix
+every packet name already carries (`CG`/`GC`/`CL`/`LC`/`GL`/`LG`/`GS`/`SG`/`GG`,
+plus `GM` for the one server-info datagram a gameserver sends the loginserver),
+and `metaOf` records the result on `Meta`. A name whose prefix names no link is
+`Direction::Unknown`, which `validateRegistry` rejects; `FactoryList` also runs a
+per-factory `KnownDirection` check, so that failure's "in instantiation of
+`KnownDirection<XFactory>`" note names the factory, which is what a misspelled
+name needs, rather than the packet id, which is not the thing that is wrong.
+
+The direction is enforced where a packet is claimed, not where it is listed.
+Each composition root states the links its server accepts as a `constexpr
+de::packet::DirectionSet kReceivedDirections`, and `DE_REGISTER_PACKET_HANDLER` /
+`_NOPLAYER` / `_FN` `static_assert` that the packet being registered rides one of
+them: a handler bound to a packet the server never receives is a compile error,
+and a root that states no set does not compile at all. The registration lists
+keep their membership, because direction is not what decides whether a factory
+is looked up. Both servers do register packets they only ever send (242 `GC`
+factories on the gameserver, 17 `LC` on the loginserver), but the prefix cannot
+tell those from the ones that are read: the gameserver's client read path
+creates `GCFriendChatting` and the two personal-store `GC` packets through
+`PacketFactoryManager::createPacket`, and the loginserver creates
+`CGConnectSetKey` the same way. So the accepted sets are per server and wider
+than the naive reading — gameserver `CG GC GG LG SG`, loginserver `CG CL GL GM`,
+sharedserver `GS` — and each is written down beside the registrations it
+governs.
+
+`tests/packet_meta_test.cpp` pins the parse of every prefix, that no kernel
+factory is left unclassified, that `DirectionSet` answers only for the links it
+was given, and that an unclassifiable entry is rejected by `validateRegistry`
+naming its id. As with the registration lists, the composition roots' sets are
+compiled only under a server macro, so their `static_assert`s fire in the
+production builds, not in `make dev-test`.
+
 This complements rather than replaces the golden tests: compile-time checks
 prove internal consistency, while goldens prove compatibility with the client
 and the encrypted wire format. What is still open from the original item is
-per-packet direction and fixed/minimum size: the factories only know a maximum.
+fixed/minimum size: the factories only know a maximum.
 
 ### Diagnostics without location macros
 

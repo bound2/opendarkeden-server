@@ -183,6 +183,16 @@
 
 namespace {
 
+// The links the gameserver accepts, enforced on every registration below.
+// CG is the client link. GC is here because a handful of packets named for
+// the server -> client direction travel client -> server on the live wire
+// (GCFriendChatting, the personal-store pair and GCCannotUse; see the
+// registrations and the thunks below). LG, SG and GG arrive from the
+// loginserver, the sharedserver and the other gameservers.
+constexpr de::packet::DirectionSet kReceivedDirections{de::packet::Direction::CG, de::packet::Direction::GC,
+                                                       de::packet::Direction::GG, de::packet::Direction::LG,
+                                                       de::packet::Direction::SG};
+
 // CGPortCheckHandler::execute takes no player.
 void dispatchCGPortCheck(Packet* pPacket, Player*) {
     CGPortCheckHandler::execute(static_cast<CGPortCheck*>(pPacket));
@@ -354,16 +364,16 @@ void registerGameServerPacketHandlers() {
     DE_REGISTER_PACKET_HANDLER(CGWithdrawPet);
     DE_REGISTER_PACKET_HANDLER(CGWithdrawTax);
 
-    PacketDispatcher::registerHandler(CGPortCheckFactory::kPacketID, &dispatchCGPortCheck);
-    PacketDispatcher::registerHandler(CGStashListFactory::kPacketID, &dispatchCGStashList);
+    DE_REGISTER_PACKET_HANDLER_FN(CGPortCheck, dispatchCGPortCheck);
+    DE_REGISTER_PACKET_HANDLER_FN(CGStashList, dispatchCGStashList);
 
     // GC packets the gameserver really receives (see the thunks above).
     // GCFriendChatting is the one GC packet with a live server handler:
     // the friend system's requests ride it client -> server.
     DE_REGISTER_PACKET_HANDLER(GCFriendChatting);
-    PacketDispatcher::registerHandler(GCAddStoreItemFactory::kPacketID, &dispatchIgnore);
-    PacketDispatcher::registerHandler(GCRemoveStoreItemFactory::kPacketID, &dispatchIgnore);
-    PacketDispatcher::registerHandler(GCCannotUseFactory::kPacketID, &dispatchIgnore);
+    DE_REGISTER_PACKET_HANDLER_FN(GCAddStoreItem, dispatchIgnore);
+    DE_REGISTER_PACKET_HANDLER_FN(GCRemoveStoreItem, dispatchIgnore);
+    DE_REGISTER_PACKET_HANDLER_FN(GCCannotUse, dispatchIgnore);
 
     // SG (shared -> game), received on the SharedServerClient link.
     // SGModifyGuildMemberOK never ran before 2.3: its execute() was

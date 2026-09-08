@@ -32,6 +32,18 @@
 #include "GMServerInfo.h"
 #include "PacketDispatcher.h"
 
+namespace {
+
+// The links the loginserver accepts, enforced on every registration below.
+// CL is the client link; CG is here because the client opens every fresh
+// connection, this one included, with CGConnectSetKey. GL arrives from the
+// gameservers, and GM is the server-info datagram they send on the same
+// socket.
+constexpr de::packet::DirectionSet kReceivedDirections{de::packet::Direction::CG, de::packet::Direction::CL,
+                                                       de::packet::Direction::GL, de::packet::Direction::GM};
+
+} // namespace
+
 void registerLoginServerPacketHandlers() {
     // CG by name, but the client opens EVERY fresh connection with it -
     // including the login connection - to install the socket encrypt/hash

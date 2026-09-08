@@ -6,6 +6,8 @@
 //               constexpr members; PacketFactoryType names that contract,
 //               and FactoryList folds a pack of factories into a constexpr
 //               table whose duplicate or out-of-range ids fail compilation.
+//               The link a packet rides is parsed out of its name, so a
+//               name with no known two-letter prefix fails compilation too.
 //               Runtime creation stays virtual: PacketFactoryManager still
 //               owns one heap factory per id and PacketFactory::createPacket
 //               still allocates the packet.
@@ -18,6 +20,7 @@
 #include <concepts>
 #include <cstddef>
 
+#include <initializer_list>
 #include <string_view>
 #include <type_traits>
 
@@ -40,21 +43,91 @@ concept PacketFactoryType = std::derived_from<F, PacketFactory> && std::default_
 
 namespace packet {
 
+// The link a packet rides, named the way the protocol names it: the two
+// letters every packet name starts with, source first, where C is the
+// client, G a gameserver, L the loginserver and S the sharedserver. GM is
+// the one exception to that scheme: it prefixes the server-info datagram a
+// gameserver sends to the loginserver for the GM/monitor user counts.
+//
+// This is the packet's own fact -- which link it was defined for -- and not
+// a claim about who may receive it: a handful of GC packets travel
+// server-ward from the live client, and the client opens its loginserver
+// connection with a CG packet. Which links a server accepts is a separate
+// statement each composition root makes with DirectionSet.
+enum class Direction : unsigned char { Unknown, CG, GC, CL, LC, GL, LG, GS, SG, GG, GM };
+
+// Parses the leading two letters of a packet name. An unrecognised prefix
+// is Unknown, which no registration accepts.
+consteval Direction directionOf(std::string_view name) {
+    if (name.size() < 2)
+        return Direction::Unknown;
+    const std::string_view prefix = name.substr(0, 2);
+    if (prefix == "CG")
+        return Direction::CG;
+    if (prefix == "GC")
+        return Direction::GC;
+    if (prefix == "CL")
+        return Direction::CL;
+    if (prefix == "LC")
+        return Direction::LC;
+    if (prefix == "GL")
+        return Direction::GL;
+    if (prefix == "LG")
+        return Direction::LG;
+    if (prefix == "GS")
+        return Direction::GS;
+    if (prefix == "SG")
+        return Direction::SG;
+    if (prefix == "GG")
+        return Direction::GG;
+    if (prefix == "GM")
+        return Direction::GM;
+    return Direction::Unknown;
+}
+
+// The set of links one server accepts, stated at its composition root. One
+// bit per Direction, so the dispatcher's registration check is a bit test
+// the compiler folds away.
+class DirectionSet {
+public:
+    consteval DirectionSet(std::initializer_list<Direction> links) : m_Bits(0) {
+        for (Direction link : links)
+            m_Bits |= bitOf(link);
+    }
+
+    constexpr bool contains(Direction link) const {
+        return (m_Bits & bitOf(link)) != 0;
+    }
+
+private:
+    static constexpr unsigned bitOf(Direction link) {
+        return 1u << static_cast<unsigned>(link);
+    }
+
+    unsigned m_Bits;
+};
+
+static_assert(static_cast<unsigned>(Direction::GM) < 32, "DirectionSet holds one bit per Direction");
+
 struct Meta {
     PacketID_t id;
     PacketSize_t maxSize;
     std::string_view name;
+    // metaOf is the only production source of a Meta and always derives
+    // this from the name; the default keeps a hand-built table rejected
+    // until it says which link it means.
+    Direction direction = Direction::Unknown;
 };
 
 template <PacketFactoryType F> consteval Meta metaOf() {
-    return Meta{F::kPacketID, F::kMaxSize, F::kName};
+    return Meta{F::kPacketID, F::kMaxSize, F::kName, directionOf(F::kName)};
 }
 
 // Why a registration table is rejected. validateRegistry returns the first
 // violation together with the offending id rather than asserting, so the
 // tests pin each rule with a hand-built table and RegistryCheck can carry
 // the id into the compiler diagnostic.
-enum class RegistryError { None, IdOutOfRange, DuplicateId, EmptyName };
+enum class RegistryError { None, IdOutOfRange, DuplicateId, EmptyName, UnknownDirection };
 
 struct RegistryVerdict {
     RegistryError error = RegistryError::None;
@@ -68,6 +141,8 @@ template <std::size_t N> consteval RegistryVerdict validateRegistry(const std::a
             return {RegistryError::IdOutOfRange, meta.id};
         if (meta.name.empty())
             return {RegistryError::EmptyName, meta.id};
+        if (meta.direction == Direction::Unknown)
+            return {RegistryError::UnknownDirection, meta.id};
         if (seen[meta.id])
             return {RegistryError::DuplicateId, meta.id};
         seen[meta.id] = true;
@@ -85,6 +160,17 @@ template <RegistryError Error, PacketID_t Id> struct RegistryCheck {
     static constexpr bool ok = true;
 };
 
+// validateRegistry carries the packet id into its diagnostic, which is
+// what a wrong id needs. A name with no known link prefix needs the
+// factory instead, so it gets its own per-factory check: the failure's
+// "in instantiation of KnownDirection<XFactory>" note names the type.
+template <PacketFactoryType F> struct KnownDirection {
+    static_assert(directionOf(F::kName) != Direction::Unknown,
+                  "packet factory name does not begin with a known link prefix (CG/GC/CL/LC/GL/LG/GS/SG/GG/GM); "
+                  "the factory is this template's argument");
+    static constexpr bool ok = true;
+};
+
 // An ordered pack of factories with its metadata table validated while
 // compiling. forEach visits each factory type in pack order through a
 // std::type_identity tag, which is how PacketFactoryManager instantiates
@@ -95,6 +181,7 @@ template <PacketFactoryType... Factories> struct FactoryList {
     static constexpr RegistryVerdict kVerdict = validateRegistry(kMeta);
     // Naming ::ok forces the instantiation, so the check runs with the class.
     static_assert(RegistryCheck<kVerdict.error, kVerdict.id>::ok);
+    static_assert((KnownDirection<Factories>::ok && ... && true));
 
     template <typename Fn> static void forEach(Fn&& fn) {
         (fn(std::type_identity<Factories>{}), ...);
