@@ -9,7 +9,7 @@
 //
 //               The set is taken from the dispatcher's own gates
 //               (PacketValidator.cpp, __GAME_SERVER__ branch) and from
-//               the code that runs in that window. Eleven packets, each
+//               the code that runs in that window. Twelve packets, each
 //               with the reason it is here:
 //
 //               CGConnectSetKey  one of exactly two ids the
@@ -46,6 +46,10 @@
 //               GCPetInfo        sendPetInfo() immediately after
 //                                GCUpdateInfo in CGConnectHandler, for
 //                                every player, pet or no pet.
+//               GCSetPosition    what Zone::addPC sends once the zone
+//                                thread has placed the character: the
+//                                coordinates the client must adopt and
+//                                the facing direction.
 //               GCDisconnect     the two refusal paths in
 //                                CGConnectHandler (no ConnectionInfo
 //                                for the client IP; a key, name or
@@ -57,14 +61,14 @@
 //                                that sends a relogging client back to
 //                                the login server.
 //
-//               GCSetPosition and GCReconnect are deliberately absent:
-//               no server source constructs either, so neither can
-//               cross this socket. GCSystemMessage and GCNoticeEvent
+//               GCReconnect is deliberately absent: no server source
+//               constructs it, so it cannot cross this socket.
+//               GCSystemMessage and GCNoticeEvent
 //               are in-game notices — nothing in this window builds one
 //               (CGConnectHandler includes GCSystemMessage.h and never
 //               uses it).
 //
-//               None of the eleven calls readEncrypt/writeEncrypt, so
+//               None of the twelve calls readEncrypt/writeEncrypt, so
 //               goldens are recorded at encrypt code 0 only, as the
 //               login phase is. The golden test of every packet also
 //               asserts that its bytes do not vary with the code, so
@@ -122,6 +126,7 @@
 #include "GCDisconnect.h"
 #include "GCPetInfo.h"
 #include "GCReconnectLogin.h"
+#include "GCSetPosition.h"
 #include "GCSystemAvailabilities.h"
 #include "GCUpdateInfo.h"
 #include "NPCInfo.h"
@@ -306,6 +311,20 @@ HANDSHAKE_PACKET_TESTS(CGSetVampireHotKey)
 //////////////////////////////////////////////////////////////////////
 // GC — gameserver to client
 //////////////////////////////////////////////////////////////////////
+
+// The coordinates the zone settled on for the character, which need not
+// be the ones the client asked for, and the facing direction.
+void fill(GCSetPosition& p) {
+    p.setX(0x9C);
+    p.setY(0xAD);
+    p.setDir(0xBE);
+}
+void expectEqual(const GCSetPosition& a, const GCSetPosition& b) {
+    EXPECT_EQ(a.getX(), b.getX());
+    EXPECT_EQ(a.getY(), b.getY());
+    EXPECT_EQ(a.getDir(), b.getDir());
+}
+HANDSHAKE_PACKET_TESTS(GCSetPosition)
 
 void fill(GCDisconnect& p) {
     p.setMessage("gameserver refused the connect: session already expired");
