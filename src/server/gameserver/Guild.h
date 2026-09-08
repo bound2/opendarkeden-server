@@ -314,75 +314,66 @@ public: // DB methods
 
 
 public: // identity methods
+    // The integral fields are independent values, so each is its own atomic
+    // and is read and written relaxed: a reader gets some value the writer
+    // stored, never a torn one, and no field orders another.
     GuildID_t getID() const {
-        return m_ID;
+        return m_ID.load(std::memory_order_relaxed);
     }
     void setID(GuildID_t id) {
-        m_ID = id;
+        m_ID.store(id, std::memory_order_relaxed);
     }
 
-    string getName() const {
-        return m_Name;
-    }
-    void setName(const string& name) {
-        m_Name = name;
-    }
+    // The string fields are copied out of / into the object under m_Mutex.
+    // m_Mutex is not recursive, so none of these four getter/setter pairs may
+    // be called while this guild's m_Mutex is already held: code inside Guild
+    // that runs under the mutex touches the members directly.
+    string getName() const;
+    void setName(const string& name);
 
     GuildType_t getType() const {
-        return m_Type;
+        return m_Type.load(std::memory_order_relaxed);
     }
     void setType(GuildType_t type) {
-        m_Type = type;
+        m_Type.store(type, std::memory_order_relaxed);
     }
 
     GuildRace_t getRace() const {
-        return m_Race;
+        return m_Race.load(std::memory_order_relaxed);
     }
     void setRace(GuildRace_t race) {
-        m_Race = race;
+        m_Race.store(race, std::memory_order_relaxed);
     }
 
     GuildState_t getState() const {
-        return m_State;
+        return m_State.load(std::memory_order_relaxed);
     }
     void setState(GuildState_t state) {
-        m_State = state;
+        m_State.store(state, std::memory_order_relaxed);
     }
 
     ServerGroupID_t getServerGroupID() const {
-        return m_ServerGroupID;
+        return m_ServerGroupID.load(std::memory_order_relaxed);
     }
     void setServerGroupID(ServerGroupID_t serverGroupID) {
-        m_ServerGroupID = serverGroupID;
+        m_ServerGroupID.store(serverGroupID, std::memory_order_relaxed);
     }
 
     ZoneID_t getZoneID() const {
-        return m_ZoneID;
+        return m_ZoneID.load(std::memory_order_relaxed);
     }
     void setZoneID(ZoneID_t zoneID) {
-        m_ZoneID = zoneID;
+        m_ZoneID.store(zoneID, std::memory_order_relaxed);
     }
 
-    string getMaster() const {
-        return m_Master;
-    }
-    void setMaster(const string& master) {
-        m_Master = master;
-    }
+    string getMaster() const;
+    void setMaster(const string& master);
 
-    string getDate() const {
-        return m_Date;
-    }
-    void setDate(const string& Date) {
-        m_Date = Date;
-    }
+    string getDate() const;
+    void setDate(const string& Date);
 
-    string getIntro() const {
-        return m_Intro;
-    }
-    void setIntro(const string& intro) {
-        m_Intro = intro;
-    }
+    string getIntro() const;
+    void setIntro(const string& intro);
 
 #ifdef __SHARED_SERVER__
     void saveIntro(const string& intro);
@@ -478,16 +469,21 @@ public: // debug
     ///// Member data /////
 
 protected:
-    GuildID_t m_ID;                  // 길드 ID
-    string m_Name;                   // 길드 이름
-    GuildType_t m_Type;              // 길드 타입
-    GuildRace_t m_Race;              // 길드 종족
-    GuildState_t m_State;            // 길드 상태
-    ServerGroupID_t m_ServerGroupID; // 길드 존이 있는 서버 그룹 ID
-    ZoneID_t m_ZoneID;               // 길드 ZoneID
-    string m_Master;                 // 길드 마스터
-    string m_Date;                   // 길드 Expire, Regist Date
-    string m_Intro;                  // 길드 소개
+    // The identity fields are written by the SG handlers on the
+    // SharedServerManager thread and read by zone threads through
+    // GuildManager::getGuild(). The integral ones are atomics; the strings
+    // are guarded by m_Mutex, which the accessors above take for the length
+    // of the copy and nothing more.
+    std::atomic<GuildID_t> m_ID;                  // guild ID
+    string m_Name;                                // guild name, guarded by m_Mutex
+    std::atomic<GuildType_t> m_Type;              // guild type
+    std::atomic<GuildRace_t> m_Race;              // guild race
+    std::atomic<GuildState_t> m_State;            // guild state
+    std::atomic<ServerGroupID_t> m_ServerGroupID; // ID of the server group hosting the guild zone
+    std::atomic<ZoneID_t> m_ZoneID;               // guild zone ID
+    string m_Master;                              // guild master, guarded by m_Mutex
+    string m_Date;                                // guild expire / registration date, guarded by m_Mutex
+    string m_Intro;                               // guild introduction, guarded by m_Mutex
 
     HashMapGuildMember m_Members; // 길드 멤버 포인터 맵
     // Members removed from the map are parked here until the guild is

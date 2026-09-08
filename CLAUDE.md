@@ -460,15 +460,19 @@ gateways, not a full guarantee.
   under the guild mutex, and the delete-guild handler empties the map
   through `retireAllMembers()` under it); the per-member rank / log-on /
   server flags and the member counters are atomics, with the rank change
-  and its counter update under the mutex together. Object lifetime is
+  and its counter update under the mutex together. The guild's own scalar
+  fields are closed the same way: the integral ones (id, type, race, state,
+  server group, zone) are relaxed atomics, and the strings (name, master,
+  date, intro) are copied in and out under `Guild::m_Mutex`, which stays a
+  leaf — the string accessors take it and nothing else, so any other lock
+  may be held across a call, but the mutex is not recursive and code already
+  holding it touches the members directly instead. Object lifetime is
   handled by not freeing: `getGuild()` and `getMember()` return raw
   pointers after releasing their locks, so a deleted guild or member is
   retired (`GuildManager::m_RetiredGuilds`, `Guild::m_RetiredMembers`) and
   stays readable, stale, until the managers are destroyed — the whole-table
-  `clear()` a sharedserver resync triggers retires too, never frees. Still open: a zone thread reading
-  a retired member sees its last rank, and `Guild` scalar fields (name,
-  master, state, intro) are plain members written on the
-  `SharedServerManager` thread.
+  `clear()` a sharedserver resync triggers retires too, never frees. Still
+  open: a zone thread reading a retired member sees its last rank.
 - `EventMorph.cpp` mutates `Tile` contents directly
   (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
   assert cannot see such call sites — the assert covers the gateway

@@ -1111,7 +1111,10 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `de::postToPlayer` routes the six guild handlers' and
   > `LGKickCharacter`'s mutations through it; the
   > "cross-group communication via queues only" rule above now has its
-  > queue. The handlers' `Guild`/`GuildMember` writes stay open.
+  > queue. The handlers' `Guild`/`GuildMember` writes are covered too: the
+  > member maps and counters, the per-member flags, and the guild's own
+  > scalar fields — integral ones relaxed atomics, strings copied under the
+  > guild's leaf mutex.
   - Owner: the debug asserts.
 
 - [ ] **3.5 Globals → context (long tail).** No big-bang DI. Introduce a
