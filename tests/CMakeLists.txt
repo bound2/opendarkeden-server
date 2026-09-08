@@ -499,3 +499,26 @@ target_link_libraries(reconnect_decision_tests PRIVATE de-kernel gtest_main Thre
 add_dependencies(wire_tests reconnect_decision_tests)
 add_test(NAME reconnect_decision_tests COMMAND reconnect_decision_tests)
 set_tests_properties(reconnect_decision_tests PROPERTIES TIMEOUT 60)
+
+# The loginserver's account-registration decision (docs/RESTRUCTURING.md
+# 3.1): decideRegisterPlayer() returns Outcome<LoginNewAccount,
+# RegisterPlayerRefusal> over a fake LoginAccountRepository, so every
+# refusal, the precedence between them and the Player row an accepted
+# registration produces are testable with no database. PasswordHash is
+# linked because the decision hashes the password with the real argon2id;
+# de-kernel carries the type tables. Pulling the transport or the login
+# server's own state into the decision would break this link.
+add_executable(registration_tests EXCLUDE_FROM_ALL
+    registration_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/Registration.cpp
+)
+target_include_directories(registration_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(registration_tests PRIVATE PasswordHash de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests registration_tests)
+add_test(NAME registration_tests COMMAND registration_tests)
+# A handful of 64 MiB argon2id computations in the accepted cases.
+set_tests_properties(registration_tests PROPERTIES TIMEOUT 180)

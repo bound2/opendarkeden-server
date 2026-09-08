@@ -23,6 +23,9 @@ public:
     std::vector<LoginIPBlockRow> ipBlocks;
     std::set<std::string> unclaimedPremiumEvents;
     std::set<std::string> privateAgreementsRemaining;
+    // The ids and names registration's two probes find.
+    std::set<std::string> registeredIDs;
+    std::set<std::string> registeredNames;
 
     struct WebLoginKeyRow {
         std::string key;
@@ -55,6 +58,8 @@ public:
     std::vector<std::pair<std::string, std::string>> testClientUsers; // (playerID, ip)
     std::vector<std::string> loginRecords;
     std::vector<std::pair<std::string, std::string>> netMarbleAccounts; // (playerID, hash)
+    std::vector<LoginNewAccount> insertedAccounts;
+    std::vector<LoggedOn> markedLoggedOnAfterRegister;
 
     // --- how often the reads were made -------------------------------------
     int loadAccountCalls = 0;
@@ -66,6 +71,7 @@ public:
     int hasUnclaimedPremiumEventCalls = 0;
     int loadAccountForReconnectCalls = 0;
     int markLoggedOnForReconnectCalls = 0;
+    int accountExistsCalls = 0;
 
     // --- helpers -----------------------------------------------------------
     // An account that logs in cleanly: allowed, logged off, no pay plan.
@@ -251,17 +257,28 @@ public:
         return markLoggedOnForReconnectSucceeds;
     }
 
-    bool accountExists(const std::string&) {
-        return false;
+    // --- registration --------------------------------------------------------
+    bool accountExists(const std::string& playerID) {
+        accountExistsCalls++;
+        return registeredIDs.count(playerID) != 0;
     }
 
-    bool accountNameExists(const std::string&) {
-        return false;
+    bool accountNameExists(const std::string& playerID) {
+        return registeredNames.count(playerID) != 0;
     }
 
-    void insertAccount(const LoginNewAccount&) {}
+    void insertAccount(const LoginNewAccount& account) {
+        insertedAccounts.push_back(account);
+        registeredIDs.insert(account.playerID);
+    }
 
-    void markLoggedOnAfterRegister(const std::string&, int, const std::string&) {}
+    void markLoggedOnAfterRegister(const std::string& ip, int loginServerID, const std::string& playerID) {
+        LoggedOn call;
+        call.ip = ip;
+        call.loginServerID = loginServerID;
+        call.playerID = playerID;
+        markedLoggedOnAfterRegister.push_back(call);
+    }
 
 private:
     bool loadInto(const std::string& playerID, LoginAccountRow& row) {

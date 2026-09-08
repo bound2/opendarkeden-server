@@ -743,11 +743,17 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `decideCreatePC` (`src/server/loginserver/CharacterCreation.{h,cpp}`,
   > `tests/character_creation_test.cpp`), `decideSelectPC`
   > (`src/server/loginserver/CharacterSelection.{h,cpp}`,
-  > `tests/character_selection_test.cpp`) and `decideLogin`
+  > `tests/character_selection_test.cpp`), `decideLogin`
   > (`src/server/loginserver/LoginDecision.{h,cpp}`,
   > `tests/login_decision_test.cpp`, which also covers the password check,
-  > the IP block and the web-login key beside it). First gameserver
-  > adopter: the Exchange service's mutations return
+  > the IP block and the web-login key beside it), `decideDeletePC`
+  > (`CharacterDeletion.{h,cpp}`, `tests/character_deletion_test.cpp`),
+  > `decideReconnectLogin` (`ReconnectDecision.{h,cpp}`,
+  > `tests/reconnect_decision_test.cpp`) and `decideRegisterPlayer`
+  > (`Registration.{h,cpp}`, `tests/registration_test.cpp`) — every `CL*`
+  > handler whose decision reads account or character state; the two that
+  > refuse on world/server status (`CLSelectWorld`, `CLSelectServer`) still
+  > throw. First gameserver adopter: the Exchange service's mutations return
   > `Outcome<…, ExchangeRejection>` (the typed `ExchangeResult` code plus
   > its detail), `CGExchangeBuyHandler` formats the wire text, and the
   > decisions that need only a repository and plain values live in
