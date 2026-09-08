@@ -148,6 +148,15 @@ public:
         return m_Head == m_Tail;
     }
 
+    // How many of the buffered bytes, counted from the head, flush()
+    // has already encrypted. Nonzero only between a flush the socket
+    // could not take in full and the flush that sends the rest: those
+    // bytes go out as they stand, because the encryption key has
+    // already moved past them.
+    uint encryptedLength() const {
+        return m_Encrypted;
+    }
+
     // get debug string
     string toString() const {
         StringStream msg;
@@ -172,8 +181,20 @@ private:
     uint m_Head;
     uint m_Tail;
 
-    // �������
+    // How much of the buffer, starting at the head, is encrypted. A
+    // distance from the head rather than a buffer position, so it stays
+    // correct across resize(), which moves the buffered bytes to the
+    // front of a new allocation but keeps their order.
+    uint m_Encrypted;
+
+    // packet sequence number
     BYTE m_Sequence;
+
+    // Encrypt everything between the encrypted region and the tail, so
+    // that the whole buffer is ready for the socket. Called by flush()
+    // before it sends.
+    void encryptPending();
+
     // add by viva 2008-12-31
 public:
     WORD m_EncryptKey;
@@ -182,7 +203,11 @@ public:
         m_EncryptKey = EncryptKey;
         m_HashTable = HashTable;
     };
-    WORD EncryptData(WORD EncryptKey, char* buf, int len);
+    // The transform applied to the bytes on their way out, and the seam
+    // it is exercised through: it returns the key the next run of bytes
+    // continues from, so a run split by a short send still produces the
+    // bytes one unsplit run would have.
+    virtual WORD EncryptData(WORD EncryptKey, char* buf, int len);
     // end
 };
 

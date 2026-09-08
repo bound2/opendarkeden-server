@@ -395,6 +395,28 @@ because the declared value still sizes the send buffers.
 long, both contiguously and with the size field split across the wrap point,
 and that an honest packet's frame is byte for byte what it was.
 
+Every byte is encrypted exactly once on its way out. `SocketOutputStream`
+encrypts what it has buffered before it sends it, and the client sockets are
+non-blocking, so a peer that has stopped reading makes a send take part of the
+buffer and report zero for the rest. The stream therefore tracks how much of
+the buffer, counted from the head, is already encrypted; a flush encrypts only
+from there to the tail, and the bytes a short send left behind go out as they
+stand. That distinction matters because the key advances one step per byte: a
+second pass over the same bytes would run from a key that has moved on,
+producing bytes the receiver's single pass cannot undo and desynchronising its
+key for everything sent afterwards. Counting from the head rather than from a
+buffer position is what lets the mark survive `resize()`, which moves the
+buffered bytes to the front of a new allocation but keeps their order, and the
+wrap point, where a flush sends in two pieces and may be cut short in either
+of them. (The transform itself is currently disabled — `EncryptData` returns
+before its first statement, on both the sending and the receiving side — so
+today this is a latent fault rather than an observed one, and the bytes on the
+wire are unchanged either way.) `tests/wire_types_test.cpp` scripts a socket
+that accepts an exact number of bytes and then refuses, cuts a flush in a
+contiguous region and in each half of a wrapped one, grows the buffer between
+a cut and the flush that finishes it, and checks each time that the receiving
+stream decrypts back to what was written.
+
 What remains: the codecs above the stream still read and write field by
 field with no declarative layout; packet sizes are still hand-maintained, and
 the datagram (UDP) path still frames from `getPacketSize()` because it

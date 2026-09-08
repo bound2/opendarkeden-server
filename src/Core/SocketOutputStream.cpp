@@ -16,7 +16,7 @@
 // constructor
 //////////////////////////////////////////////////////////////////////
 SocketOutputStream::SocketOutputStream(Socket* sock, uint BufferLen)
-    : m_Socket(sock), m_Buffer(NULL), m_BufferLen(BufferLen), m_Head(0), m_Tail(0), m_Sequence(0) {
+    : m_Socket(sock), m_Buffer(NULL), m_BufferLen(BufferLen), m_Head(0), m_Tail(0), m_Encrypted(0), m_Sequence(0) {
     __BEGIN_TRY
 
     //	Assert( m_Socket != NULL );
@@ -77,6 +77,13 @@ uint SocketOutputStream::reserveField(uint len) {
 //////////////////////////////////////////////////////////////////////
 void SocketOutputStream::patchField(uint slot, std::span<const std::byte> src) {
     Assert(slot + (uint)src.size() <= length());
+
+    // A field must not be patched after the bytes it sits in have been
+    // encrypted, which would put plaintext into an encrypted region.
+    // Reservations are made and filled while a packet is written, and
+    // nothing flushes in between, so the field always sits past the
+    // encrypted region.
+    Assert(slot >= m_Encrypted);
 
     // The field can sit anywhere in the ring, wrap point included, so it
     // is walked byte by byte rather than split into two copies -- fields
@@ -140,125 +147,90 @@ void SocketOutputStream::writePacket(const Packet* pPacket) {
 
 
 //////////////////////////////////////////////////////////////////////
+// encrypt everything between the encrypted region and the tail
+//
+// The encrypted region always begins at the head, so this extends it to
+// cover the whole buffer. The key advances one step per byte, so a run
+// encrypted in several pieces -- which is what writes made after a
+// short send produce -- comes out as the bytes one unsplit run would
+// have produced, and the receiver's key chain undoes it in one pass.
+//////////////////////////////////////////////////////////////////////
+void SocketOutputStream::encryptPending() {
+    const uint nPlain = length() - m_Encrypted;
+
+    if (nPlain == 0)
+        return;
+
+    // The plaintext region can straddle the buffer's wrap point.
+    const uint position = (m_Head + m_Encrypted) % m_BufferLen;
+    const uint nBeforeWrap = m_BufferLen - position;
+    const uint nFirst = (nPlain < nBeforeWrap) ? nPlain : nBeforeWrap;
+
+    m_EncryptKey = EncryptData(m_EncryptKey, &m_Buffer[position], nFirst);
+
+    if (nFirst < nPlain)
+        m_EncryptKey = EncryptData(m_EncryptKey, &m_Buffer[0], nPlain - nFirst);
+
+    m_Encrypted += nPlain;
+}
+
+
+//////////////////////////////////////////////////////////////////////
 // flush stream (output buffer) to socket
+//
+// Each byte is encrypted exactly once, before its first send. That is
+// what the encrypted-byte count is for: a non-blocking socket whose
+// peer has stopped reading takes only part of the buffer and reports
+// zero for the rest, and the bytes left behind are already encrypted.
+// Encrypting them again would put bytes on the wire that the receiver's
+// key chain cannot undo -- neither those bytes nor anything sent after
+// them, since the key advances per byte.
+//
+// A send never spans the wrap point, so a buffer whose contents wrap
+// goes out in two calls, and a send that stops short anywhere in either
+// of them leaves the head, the tail and the encrypted-byte count
+// describing exactly what is left to send.
+//
+// Nothing throws NonBlockingIOException on this path: SocketAPI::send_ex
+// returns zero for EWOULDBLOCK and converts every other failure to
+// InvalidProtocolException, which propagates with the buffer state
+// already consistent.
 //////////////////////////////////////////////////////////////////////
 uint SocketOutputStream::flush() {
     __BEGIN_TRY
 
     Assert(m_Socket != NULL);
 
+    encryptPending();
+
     uint nFlushed = 0;
-    uint nSent = 0;
-    uint nLeft;
 
-    try {
-        if (m_Head < m_Tail) {
-            //
-            //    H   T
-            // 0123456789
-            // ...abcd...
-            //
+    while (m_Head != m_Tail) {
+        //
+        //    H   T          or          T  H
+        // 0123456789               0123456789
+        // ...abcd...               abcd...efg
+        //
+        const uint nContiguous = (m_Head < m_Tail) ? m_Tail - m_Head : m_BufferLen - m_Head;
 
-            nLeft = m_Tail - m_Head;
-            // add by viva 2008-12-31
-            if (nLeft > 0)
-                m_EncryptKey = EncryptData(m_EncryptKey, &m_Buffer[m_Head], nLeft);
+        const uint nSent = m_Socket->send(&m_Buffer[m_Head], nContiguous, MSG_NOSIGNAL);
 
-            while (nLeft > 0) {
-                nSent = m_Socket->send(&m_Buffer[m_Head], nLeft, MSG_NOSIGNAL);
+        // The socket cannot take any more for now. What is left stays
+        // buffered, and stays encrypted.
+        if (nSent == 0)
+            return nFlushed;
 
-                // NonBlockException����. by sigi.2002.5.17
-                if (nSent == 0)
-                    return 0;
+        Assert(nSent <= nContiguous);
 
-                nFlushed += nSent;
-                nLeft -= nSent;
-                m_Head += nSent;
-            }
-
-            Assert(nLeft == 0);
-
-        } else if (m_Head > m_Tail) {
-            //
-            //     T  H
-            // 0123456789
-            // abcd...efg
-            //
-
-            nLeft = m_BufferLen - m_Head;
-            // add by viva 2008-12-31
-            if (nLeft > 0)
-                m_EncryptKey = EncryptData(m_EncryptKey, &m_Buffer[m_Head], nLeft);
-            while (nLeft > 0) {
-                nSent = m_Socket->send(&m_Buffer[m_Head], nLeft, MSG_NOSIGNAL);
-
-                // NonBlockException����. by sigi.2002.5.17
-                if (nSent == 0)
-                    return 0;
-
-                nFlushed += nSent;
-                nLeft -= nSent;
-                m_Head += nSent;
-            }
-
-            Assert(m_Head == m_BufferLen);
-
-            m_Head = 0;
-
-            nLeft = m_Tail;
-            // add by viva 2008-12-31
-            if (nLeft > 0)
-                m_EncryptKey = EncryptData(m_EncryptKey, &m_Buffer[m_Head], nLeft);
-            while (nLeft > 0) {
-                nSent = m_Socket->send(&m_Buffer[m_Head], nLeft, MSG_NOSIGNAL);
-
-                // NonBlockException����. by sigi.2002.5.17
-                if (nSent == 0)
-                    return 0;
-
-                nFlushed += nSent;
-                nLeft -= nSent;
-                m_Head += nSent;
-            }
-
-            Assert(nLeft == 0);
-        }
-
-        if (m_Head != m_Tail) {
-            cout << "m_Head : " << m_Head << endl;
-            cout << "m_Tail : " << m_Tail << endl;
-            Assert(m_Head == m_Tail);
-        }
-
-    } catch (NonBlockingIOException&) {
-        // �Ϻθ� send�ǰ� ���� ���
-        // by sigi. 2002.9.27
-        if (nSent > 0) {
-            m_Head += nSent;
-        }
-
-        cerr << "SocketOutputStream NonBlockingIOException Check! " << endl;
-        throw NonBlockingIOException("SocketOutputStream NonBlockingIOException Check");
-    } catch (InvalidProtocolException& t) {
-        // �Ϻθ� send�ǰ� ���� ���
-        // by sigi. 2002.9.27
-        if (nSent > 0) {
-            m_Head += nSent;
-        }
-
-        cerr << "SocketOutputStream Exception Check! " << endl;
-        cerr << t.toString() << endl;
-        throw InvalidProtocolException("SocketOutputStream Exception Check");
+        nFlushed += nSent;
+        m_Head = (m_Head + nSent) % m_BufferLen;
+        m_Encrypted -= nSent;
     }
 
-    /*
-    ofstream file("flush.txt", ios::out | ios::app);
-    file << "flush send size: " << nFlushed << " left size : " << nLeft << endl;
-    file.close();
-    */
-
-    // ÷���� �ٽ�.. by sigi. 2002.9.26
+    // Empty: restart at the front of the buffer, so the next writes
+    // stay contiguous for as long as possible.
     m_Head = m_Tail = 0;
+    m_Encrypted = 0;
 
     return nFlushed;
 
@@ -316,7 +288,11 @@ void SocketOutputStream::resize(int size) {
     // ���� ���۸� �����Ѵ�.
     delete[] m_Buffer;
 
-    // ���� �� ���� ũ�⸦ �缳���Ѵ�.
+    // Point the stream at the new buffer.
+    //
+    // The bytes were copied in order and the head is back at the front,
+    // so the encrypted region -- a distance from the head -- still
+    // covers the same bytes and is left alone.
     m_Buffer = newBuffer;
     m_BufferLen = newBufferLen;
     m_Head = 0;

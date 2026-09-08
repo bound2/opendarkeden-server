@@ -131,9 +131,17 @@ static_assert(!de::WireScalar<ScopedEnum>);
 //////////////////////////////////////////////////////////////////////
 namespace {
 
-class SmallLoopback {
+// The stream types are template parameters so that a test can put its
+// own subclasses on the same pair of sockets -- the encrypting pair
+// below is what needs it.
+//
+// `inBufferSize` of zero means "the same as the writer's".
+// `pSendThrough`, when given, is the socket the output stream writes to
+// instead of the connected one: a decorator standing in front of it,
+// which the caller points at sender() once the fixture exists.
+template <class OutStream, class InStream> class LoopbackOn {
 public:
-    explicit SmallLoopback(uint bufferSize)
+    explicit LoopbackOn(uint bufferSize, uint inBufferSize = 0, Socket* pSendThrough = NULL)
         : m_pServerSocket(NULL), m_pClientSocket(NULL), m_pAcceptedSocket(NULL), m_pOut(NULL), m_pIn(NULL) {
         // A port range of its own, so a run alongside
         // TestStreams::Loopback does not fight it for ports.
@@ -147,23 +155,23 @@ public:
             }
         }
         if (m_pServerSocket == NULL)
-            throw std::runtime_error("SmallLoopback: could not bind any test port");
+            throw std::runtime_error("LoopbackOn: could not bind any test port");
 
         m_pClientSocket = new Socket("127.0.0.1", port);
         m_pClientSocket->connect();
         m_pAcceptedSocket = m_pServerSocket->accept();
         if (m_pAcceptedSocket == NULL)
-            throw std::runtime_error("SmallLoopback: accept() returned NULL");
+            throw std::runtime_error("LoopbackOn: accept() returned NULL");
 
         // Non-blocking: fill() must be able to report "nothing more yet"
         // instead of parking in recv().
         m_pAcceptedSocket->setNonBlocking(true);
 
-        m_pOut = new SocketOutputStream(m_pClientSocket, bufferSize);
-        m_pIn = new SocketInputStream(m_pAcceptedSocket, bufferSize);
+        m_pOut = new OutStream((pSendThrough != NULL) ? pSendThrough : m_pClientSocket, bufferSize);
+        m_pIn = new InStream(m_pAcceptedSocket, (inBufferSize != 0) ? inBufferSize : bufferSize);
     }
 
-    ~SmallLoopback() {
+    ~LoopbackOn() {
         delete m_pOut;
         delete m_pIn;
         closeQuietly(m_pClientSocket);
@@ -179,10 +187,10 @@ public:
         delete m_pServerSocket;
     }
 
-    SocketOutputStream& out() {
+    OutStream& out() {
         return *m_pOut;
     }
-    SocketInputStream& in() {
+    InStream& in() {
         return *m_pIn;
     }
 
@@ -229,9 +237,11 @@ private:
     ServerSocket* m_pServerSocket;
     Socket* m_pClientSocket;
     Socket* m_pAcceptedSocket;
-    SocketOutputStream* m_pOut;
-    SocketInputStream* m_pIn;
+    OutStream* m_pOut;
+    InStream* m_pIn;
 };
+
+using SmallLoopback = LoopbackOn<SocketOutputStream, SocketInputStream>;
 
 } // namespace
 
@@ -594,4 +604,285 @@ void expectStraddledSizeFieldCarriesBodyLength(int drift) {
 TEST(PacketFrameSize, AStraddledSizeFieldCarriesTheMeasuredBodyLength) {
     for (int drift : {-4, 0, 7})
         expectStraddledSizeFieldCarriesBodyLength(drift);
+}
+
+//////////////////////////////////////////////////////////////////////
+//
+// A flush the socket cut short
+//
+// flush() encrypts the buffered bytes before it sends them, and a
+// non-blocking socket whose peer has stopped reading takes only part of
+// what it is offered. The bytes left behind are already encrypted and
+// must go out as they stand: the key advances one step per byte, so a
+// second pass over them would produce bytes the receiver's single pass
+// cannot undo -- and, because the sender's key would then be ahead of
+// the receiver's, would take everything sent afterwards with them.
+//
+// The streams carry the transform but production keeps it switched off,
+// so the property is not visible on the wire there. The subclasses
+// below run it for real, on both ends, which is what makes a second
+// pass observable at all.
+//
+//////////////////////////////////////////////////////////////////////
+namespace {
+
+BYTE* testHashTable() {
+    static BYTE hashTable[512];
+    static const bool built = []() {
+        for (uint i = 0; i < 512; i++)
+            hashTable[i] = (BYTE)(i * 37u + 11u);
+        return true;
+    }();
+    (void)built;
+    return hashTable;
+}
+
+// The body the streams' own EncryptData carries: a per-byte XOR with
+// 0xCC and with a key stream that advances one step per byte. XOR is
+// its own inverse, so the receiver undoes it by running it again from
+// the same key -- and two passes on the sending side do not cancel,
+// because the second runs from a key that has moved on.
+WORD runTestTransform(WORD key, BYTE* pHashTable, char* buf, int len) {
+    for (int i = 0; i < len; i++)
+        buf[i] ^= (char)0xCC;
+
+    for (int i = 0; i < len; i++) {
+        buf[i] ^= (char)pHashTable[key];
+        if (++key == 512)
+            key = 0;
+    }
+
+    return key;
+}
+
+class EncryptingOutputStream : public SocketOutputStream {
+public:
+    EncryptingOutputStream(Socket* pSocket, uint bufferSize) : SocketOutputStream(pSocket, bufferSize) {
+        setKey(0, testHashTable());
+    }
+
+    WORD EncryptData(WORD key, char* buf, int len) override {
+        return runTestTransform(key, m_HashTable, buf, len);
+    }
+};
+
+class DecryptingInputStream : public SocketInputStream {
+public:
+    DecryptingInputStream(Socket* pSocket, uint bufferSize) : SocketInputStream(pSocket, bufferSize) {
+        setKey(0, testHashTable());
+    }
+
+    WORD EncryptData(WORD key, char* buf, int len) override {
+        return runTestTransform(key, m_HashTable, buf, len);
+    }
+};
+
+// A socket that passes on an exact, scripted number of bytes before it
+// starts reporting "cannot take any more" -- what a non-blocking socket
+// with a full send buffer reports. It stands in front of the connected
+// socket so the cut lands at a chosen position instead of wherever a
+// kernel buffer happened to fill up.
+class ScriptedSocket : public Socket {
+public:
+    ScriptedSocket() : Socket(new SocketImpl()), m_pReal(NULL), m_Allowance(0) {}
+
+    void attach(Socket* pReal) {
+        m_pReal = pReal;
+    }
+
+    // Bytes the sends may pass on from here, in total, before they
+    // report zero.
+    void allow(uint nBytes) {
+        m_Allowance = nBytes;
+    }
+
+    uint send(const void* buf, uint len, uint flags = 0) override {
+        if (m_pReal == NULL || m_Allowance == 0)
+            return 0;
+
+        const uint nOffered = (len < m_Allowance) ? len : m_Allowance;
+        const uint nSent = m_pReal->send(buf, nOffered, flags);
+        m_Allowance -= nSent;
+        return nSent;
+    }
+
+private:
+    Socket* m_pReal;
+    uint m_Allowance;
+};
+
+using EncryptedLoopback = LoopbackOn<EncryptingOutputStream, DecryptingInputStream>;
+
+// More than any of these tests write, so the socket takes everything.
+const uint kSendAll = 0xFFFFFFFFu;
+
+std::vector<char> pattern(uint length, uint seed) {
+    std::vector<char> data(length);
+    for (uint i = 0; i < length; i++)
+        data[i] = (char)(seed * 31u + i * 7u + (i >> 3));
+    return data;
+}
+
+// Read exactly nBytes back out of the receiving stream. Loopback
+// delivery is not instant, so fill() is polled until it stops making
+// progress, and a stall is a failure rather than a wait.
+std::vector<char> receiveExactly(DecryptingInputStream& iStream, uint nBytes) {
+    const int kMaxIdlePolls = 200; // ~1s
+    int idlePolls = 0;
+
+    while (iStream.length() < nBytes) {
+        const uint before = iStream.length();
+        iStream.fill();
+        if (iStream.length() == before) {
+            if (++idlePolls > kMaxIdlePolls) {
+                ADD_FAILURE() << "receiveExactly: stalled at " << iStream.length() << " of " << nBytes << " bytes";
+                return std::vector<char>();
+            }
+            usleep(5000);
+        } else {
+            idlePolls = 0;
+        }
+    }
+
+    std::vector<char> received(nBytes);
+    iStream.read(received.data(), nBytes);
+    return received;
+}
+
+// Leave the writer with its contents wrapped around the end of the ring
+// buffer and part of them already encrypted: most of a first write goes
+// out, which puts the head at 36 of the 64 bytes, and a second write
+// then runs past the end and puts the tail at 6. Returns everything
+// written.
+std::vector<char> writeUntilWrapped(EncryptedLoopback& loopback, ScriptedSocket& scripted) {
+    const std::vector<char> first = pattern(40, 2);
+    EXPECT_EQ(40u, loopback.out().write(first.data(), (uint)first.size()));
+
+    scripted.allow(36);
+    EXPECT_EQ(36u, loopback.out().flush());
+    EXPECT_EQ(4u, loopback.out().length());
+
+    const std::vector<char> second = pattern(30, 3);
+    EXPECT_EQ(30u, loopback.out().write(second.data(), (uint)second.size()));
+    EXPECT_EQ(64, loopback.out().capacity()) << "the buffer grew; the contents no longer wrap";
+    EXPECT_EQ(34u, loopback.out().length());
+
+    std::vector<char> all(first);
+    all.insert(all.end(), second.begin(), second.end());
+    return all;
+}
+
+} // namespace
+
+// The cut in a contiguous region.
+TEST(FlushShortSend, ACutInAContiguousRegionKeepsThePlaintext) {
+    ScriptedSocket scripted;
+    EncryptedLoopback loopback(64, 256, &scripted);
+    scripted.attach(&loopback.sender());
+
+    const std::vector<char> data = pattern(20, 1);
+    ASSERT_EQ(20u, loopback.out().write(data.data(), (uint)data.size()));
+
+    scripted.allow(8);
+    EXPECT_EQ(8u, loopback.out().flush());
+    ASSERT_EQ(12u, loopback.out().length()) << "the socket took everything; nothing was cut short";
+    EXPECT_EQ(12u, loopback.out().encryptedLength());
+
+    scripted.allow(kSendAll);
+    EXPECT_EQ(12u, loopback.out().flush());
+    EXPECT_TRUE(loopback.out().isEmpty());
+    EXPECT_EQ(0u, loopback.out().encryptedLength());
+
+    EXPECT_EQ(data, receiveExactly(loopback.in(), (uint)data.size()));
+}
+
+// The cut in the first half of a wrapped region: the head is at 36, so
+// the 28 bytes up to the end of the buffer go first, and the send stops
+// 10 bytes into them.
+TEST(FlushShortSend, ACutInTheFirstHalfOfAWrappedRegionKeepsThePlaintext) {
+    ScriptedSocket scripted;
+    EncryptedLoopback loopback(64, 256, &scripted);
+    scripted.attach(&loopback.sender());
+
+    const std::vector<char> data = writeUntilWrapped(loopback, scripted);
+
+    scripted.allow(10);
+    EXPECT_EQ(10u, loopback.out().flush());
+    ASSERT_EQ(24u, loopback.out().length());
+    EXPECT_EQ(24u, loopback.out().encryptedLength());
+
+    scripted.allow(kSendAll);
+    EXPECT_EQ(24u, loopback.out().flush());
+    EXPECT_TRUE(loopback.out().isEmpty());
+    EXPECT_EQ(0u, loopback.out().encryptedLength());
+
+    EXPECT_EQ(data, receiveExactly(loopback.in(), (uint)data.size()));
+}
+
+// The cut in the second half: 28 bytes reach the end of the buffer, the
+// send carries on from the front and stops 3 bytes into the remaining 6.
+TEST(FlushShortSend, ACutInTheSecondHalfOfAWrappedRegionKeepsThePlaintext) {
+    ScriptedSocket scripted;
+    EncryptedLoopback loopback(64, 256, &scripted);
+    scripted.attach(&loopback.sender());
+
+    const std::vector<char> data = writeUntilWrapped(loopback, scripted);
+
+    scripted.allow(31);
+    EXPECT_EQ(31u, loopback.out().flush());
+    ASSERT_EQ(3u, loopback.out().length());
+    EXPECT_EQ(3u, loopback.out().encryptedLength());
+
+    scripted.allow(kSendAll);
+    EXPECT_EQ(3u, loopback.out().flush());
+    EXPECT_TRUE(loopback.out().isEmpty());
+    EXPECT_EQ(0u, loopback.out().encryptedLength());
+
+    EXPECT_EQ(data, receiveExactly(loopback.in(), (uint)data.size()));
+}
+
+// A buffer growth between the cut and the flush that finishes the job.
+// resize() moves the buffered bytes to the front of a larger allocation
+// and keeps their order, so the count of encrypted bytes -- a distance
+// from the head -- still names the same bytes afterwards.
+TEST(FlushShortSend, ABufferGrowthAfterACutKeepsTheEncryptedBytesEncrypted) {
+    ScriptedSocket scripted;
+    EncryptedLoopback loopback(64, 512, &scripted);
+    scripted.attach(&loopback.sender());
+
+    std::vector<char> data = pattern(40, 4);
+    ASSERT_EQ(40u, loopback.out().write(data.data(), (uint)data.size()));
+
+    scripted.allow(36);
+    EXPECT_EQ(36u, loopback.out().flush());
+    ASSERT_EQ(4u, loopback.out().length());
+    ASSERT_EQ(4u, loopback.out().encryptedLength());
+
+    // One byte more than the free space, so the write grows the buffer.
+    const std::vector<char> more = pattern(59, 5);
+    ASSERT_EQ(59u, loopback.out().write(more.data(), (uint)more.size()));
+    data.insert(data.end(), more.begin(), more.end());
+
+    EXPECT_GT(loopback.out().capacity(), 64) << "the write did not grow the buffer";
+    EXPECT_EQ(63u, loopback.out().length());
+    EXPECT_EQ(4u, loopback.out().encryptedLength()) << "the growth lost track of what was already encrypted";
+
+    scripted.allow(kSendAll);
+    EXPECT_EQ(63u, loopback.out().flush());
+    EXPECT_TRUE(loopback.out().isEmpty());
+
+    EXPECT_EQ(data, receiveExactly(loopback.in(), (uint)data.size()));
+}
+
+// Nothing to send is not a short send: an empty buffer flushes to zero
+// bytes and leaves nothing encrypted behind it.
+TEST(FlushShortSend, AnEmptyBufferFlushesToNothing) {
+    ScriptedSocket scripted;
+    EncryptedLoopback loopback(64, 256, &scripted);
+    scripted.attach(&loopback.sender());
+
+    scripted.allow(kSendAll);
+    EXPECT_EQ(0u, loopback.out().flush());
+    EXPECT_TRUE(loopback.out().isEmpty());
+    EXPECT_EQ(0u, loopback.out().encryptedLength());
 }
