@@ -160,7 +160,11 @@ public:
         m_EncryptKey = EncryptKey;
         m_HashTable = HashTable;
     }
-    WORD EncryptData(WORD EncryptKey, char* buf, int len);
+    // The transform applied to the bytes as they arrive, and the seam it
+    // is exercised through. It undoes what the sending stream's
+    // EncryptData did, run for run: fill() applies it to each chunk the
+    // socket hands over, in arrival order, exactly once.
+    virtual WORD EncryptData(WORD EncryptKey, char* buf, int len);
     // end
 };
 
