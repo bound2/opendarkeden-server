@@ -127,7 +127,6 @@ BYTE Store::getItemIndex(ObjectID_t oid) const {
 }
 
 void Store::updateStoreInfo() {
-    //	cout << __PRETTY_FUNCTION__ << endl;
     for (BYTE index = 0; index < MAX_ITEM_NUM; ++index) {
         m_StoreItems[index].makeStoreItemInfo(m_StoreInfo.getStoreItemInfo(index));
     }

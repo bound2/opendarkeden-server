@@ -45,7 +45,7 @@ public:
         return SLAYER_CORPSE;
     }
     virtual void setItemType(ItemType_t itemType) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
 
     virtual string toString() const;

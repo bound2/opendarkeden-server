@@ -55,7 +55,7 @@ public:
 
     // save to database
     void save() {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
 
     // get vision info

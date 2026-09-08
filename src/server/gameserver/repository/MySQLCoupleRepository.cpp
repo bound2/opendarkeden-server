@@ -138,7 +138,7 @@ public:
 
 private:
     // The two-column probe both isCouple overloads run, spelled once.
-    // END_DB logs __PRETTY_FUNCTION__, so a SQL failure from either probe
+    // END_DB logs the enclosing function name, so a SQL failure from either probe
     // names this helper: an operator reading DBError.log cannot tell the
     // name probe from the creature probe.
     static int countOf(const char* ownColumn, const string& ownName, const char* partnerColumn,

@@ -12,6 +12,8 @@
 //   * __END_CATCH / __END_CATCH_NO_RETHROW still push the enclosing
 //     function onto Throwable's stack trace, and getStackTrace() still
 //     formats it as one indented function per line.
+//   * UnsupportedError() reports the enclosing function of the throw site
+//     as its message, so an unimplemented stub throws it with no argument.
 //
 // Both assert helpers append to a log file in the working directory, so
 // the ctest entry runs this from the build tree (see tests/CMakeLists.txt).
@@ -33,6 +35,7 @@ namespace {
 std::string g_innerFunction;
 std::string g_outerFunction;
 std::string g_swallowFunction;
+std::string g_stubFunction;
 
 void innerThrows() {
     __BEGIN_TRY
@@ -60,6 +63,21 @@ void swallows() {
 
     __END_CATCH_NO_RETHROW
 }
+
+// A free function and a virtual override in the shape of the unimplemented
+// stubs: nothing is passed at the throw site.
+void unsupportedStub() {
+    g_stubFunction = std::source_location::current().function_name();
+    throw UnsupportedError();
+}
+
+struct Stub {
+    virtual ~Stub() = default;
+    virtual void affect() {
+        g_stubFunction = std::source_location::current().function_name();
+        throw UnsupportedError();
+    }
+};
 
 } // namespace
 
@@ -150,4 +168,40 @@ TEST(Diagnostics, StackTraceCarriesFunctionNameOnly) {
 
     EXPECT_EQ(t.getStackTrace(), " B::g()\n  A::f()\n");
     EXPECT_EQ(t.getMessage(), "boom");
+}
+
+// An UnsupportedError thrown with no argument carries the enclosing function
+// of the throw site, the same text the stack trace uses for that function.
+TEST(Diagnostics, UnsupportedErrorNamesThrowSite) {
+    try {
+        unsupportedStub();
+        FAIL() << "unsupportedStub did not throw";
+    } catch (UnsupportedError& e) {
+        ASSERT_FALSE(g_stubFunction.empty());
+        EXPECT_EQ(e.getMessage(), g_stubFunction);
+        EXPECT_EQ(e.getName(), "UnsupportedError");
+    }
+}
+
+// The name is the stub's own, not the caller's - which is what makes the
+// message useful in an override that only exists to reject the call.
+TEST(Diagnostics, UnsupportedErrorNamesVirtualStub) {
+    Stub stub;
+
+    try {
+        stub.affect();
+        FAIL() << "Stub::affect did not throw";
+    } catch (UnsupportedError& e) {
+        ASSERT_FALSE(g_stubFunction.empty());
+        EXPECT_EQ(e.getMessage(), g_stubFunction);
+        EXPECT_NE(e.getMessage().find("affect"), std::string::npos) << e.getMessage();
+        EXPECT_EQ(e.getMessage().find("UnsupportedErrorNamesVirtualStub"), std::string::npos) << e.getMessage();
+    }
+}
+
+// A caller with something better to say still passes its own text.
+TEST(Diagnostics, UnsupportedErrorKeepsExplicitMessage) {
+    UnsupportedError e(std::string("storing an NPC inventory is not supported"));
+
+    EXPECT_EQ(e.getMessage(), "storing an NPC inventory is not supported");
 }

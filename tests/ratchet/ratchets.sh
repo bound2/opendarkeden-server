@@ -91,6 +91,18 @@ check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
 R7=$(grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' | wc -l)
 check_ratchet R7 "files with parenthesized throw syntax" 0 "$R7"
 
+# --- R8: __PRETTY_FUNCTION__ in code ---------------------------------------
+# Call-site diagnostics take the enclosing function from a defaulted
+# std::source_location parameter, so no source line needs the macro. The rule
+# is line-based and deliberately simple: a line whose first non-blank
+# characters are `//` is a comment and does not count (the comments that
+# explain the source_location/__PRETTY_FUNCTION__ equivalence are allowed to
+# say the name), every other matching line does. A block comment or a `//`
+# trailing real code is not recognised as a comment, so a new use cannot hide
+# behind one.
+R8=$(grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
+check_ratchet R8 "non-comment __PRETTY_FUNCTION__ lines" 0 "$R8"
+
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.

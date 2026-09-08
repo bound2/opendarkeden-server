@@ -33,20 +33,20 @@ public:
     }
 
     virtual void affect() {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
     virtual void affect(Creature* pCreature) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
     virtual void affect(Item* pItem) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
     virtual void affect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pTarget);
 
     virtual void unaffect();
     virtual void unaffect(Creature* pCreature);
     virtual void unaffect(Item* pItem = NULL) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
     virtual void unaffect(Zone* pZone, Zone* pTargetZone, ZoneCoord_t TargetX, ZoneCoord_t TargetY, Object* pTarget);
 

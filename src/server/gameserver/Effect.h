@@ -762,27 +762,27 @@ public:
     }
 
     virtual void affect() {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
     virtual void affect(Creature* pCreature) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
     virtual void affect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pTarget) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
     virtual void affect(Item* pItem) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
 
     virtual void unaffect(Item* pItem) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
     virtual void unaffect() = 0;
     virtual void unaffect(Creature* pCreature) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     } // ¿ø·¡´Â pure virtualÀÌ¾ú´Âµ¥ EffectRelicTable¶§¸Þ ¹Ù²å´Ù. by sigi
     virtual void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pTarget) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
 
 
