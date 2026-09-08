@@ -232,10 +232,13 @@ The project now requires C++20. The first production use is cooperative zone
 worker shutdown; new facilities should still be adopted at focused boundaries
 instead of through tree-wide style conversions. The `std::variant`-backed
 `Outcome<Events, Rejection>` is adopted the same way, one decision at a time:
-its production callers are the loginserver's `decideCreatePC` and
-`decideSelectPC`, which return the rows to write, or the character to route,
-or the reason the request was refused, instead of throwing an exception the
-same handler catches.
+its production callers are the loginserver's `decideCreatePC`,
+`decideSelectPC` and `decideLogin`, which return the rows to write, or the
+character to route, or the reason the request was refused, instead of
+throwing an exception the same handler catches, and the gameserver's
+Exchange service, whose mutations answer with the listing, the purchase or
+the typed reason they were refused instead of a `pair<bool, string>` whose
+string is already English.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|

@@ -598,9 +598,10 @@ set(GAMESERVER_MAIN_SOURCES
 )
 
 # ============================================================================
-# Exchange System 相关源文件
+# Exchange System source files
 # ============================================================================
 set(EXCHANGE_SOURCES
+    exchange/ExchangeDecision.cpp
     exchange/ExchangeService.cpp
     repository/MySQLExchangeRepository.cpp
 )

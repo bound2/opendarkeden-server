@@ -10,36 +10,14 @@
 #include <string>
 #include <vector>
 
+#include "ExchangeDecision.h"
+#include "Outcome.h"
 #include "repository/ExchangeRepository.h"
 
 using namespace std;
 
 class PlayerCreature;
 class Item;
-
-//////////////////////////////////////////////////////////////////////////////
-// Exchange Result Codes
-//////////////////////////////////////////////////////////////////////////////
-
-enum ExchangeResult {
-    EXCHANGE_SUCCESS,
-    EXCHANGE_FAIL_ITEM_NOT_FOUND,
-    EXCHANGE_FAIL_ITEM_OWNERSHIP,
-    EXCHANGE_FAIL_ITEM_TRADEABLE,
-    EXCHANGE_FAIL_INVALID_PRICE,
-    EXCHANGE_FAIL_INSUFFICIENT_POINTS,
-    EXCHANGE_FAIL_LISTING_NOT_FOUND,
-    EXCHANGE_FAIL_LISTING_NOT_AVAILABLE,
-    EXCHANGE_FAIL_INVENTORY_FULL,
-    EXCHANGE_FAIL_STORAGE_FULL,
-    EXCHANGE_FAIL_NOT_SELLER,
-    EXCHANGE_FAIL_NOT_BUYER,
-    EXCHANGE_FAIL_ALREADY_CLAIMED,
-    EXCHANGE_FAIL_DATABASE_ERROR,
-    EXCHANGE_FAIL_TRANSACTION_ERROR,
-    EXCHANGE_FAIL_IDEMPOTENCY_CONFLICT,
-    EXCHANGE_FAIL_UNKNOWN
-};
 
 //////////////////////////////////////////////////////////////////////////////
 // Exchange Claim Info
@@ -51,6 +29,33 @@ struct ExchangeClaim {
     int pricePoint;
     uint8_t type;   // 0=buyer claim, 1=seller claim
     uint8_t status; // Order status or Listing status
+};
+
+//////////////////////////////////////////////////////////////////////////////
+// What the mutating operations produce on the success side
+//////////////////////////////////////////////////////////////////////////////
+
+// The listing row a create wrote.
+struct ExchangeListingCreated {
+    int64_t listingID = 0;
+};
+
+// The order a buy wrote, and what it moved. The two balances are the ledger's
+// answers after each leg, so a caller can report them without a second read.
+struct ExchangePurchase {
+    int64_t orderID = 0;
+    int64_t listingID = 0;
+    int pricePoint = 0;
+    int taxAmount = 0;
+    int totalCost = 0;
+    int sellerIncome = 0;
+    int buyerBalanceAfter = 0;
+    int sellerBalanceAfter = 0;
+};
+
+// The ledger balance a point adjustment left behind.
+struct ExchangePointsAdjusted {
+    int balanceAfter = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -96,14 +101,14 @@ public:
     // Listing operations
     ////////////////////////////////////////////////////////////////////
 
-    // Create a new listing
-    // Returns: <success, errorMessage or listingID as string>
-    static pair<bool, string> createListing(PlayerCreature* pSeller, Item* pItem, int pricePoint,
-                                            int durationHours = 72);
+    // Create a new listing: the seller's item moves to exchange storage and
+    // the new listing id comes back.
+    [[nodiscard]] static Outcome<ExchangeListingCreated, ExchangeRejection>
+    createListing(PlayerCreature* pSeller, Item* pItem, int pricePoint, int durationHours = 72);
 
-    // Cancel a listing
-    // Returns: <success, errorMessage>
-    static pair<bool, string> cancelListing(PlayerCreature* pSeller, int64_t listingID);
+    // Withdraw one of the seller's own active listings. The item stays in
+    // exchange storage until the seller claims it back.
+    [[nodiscard]] static Outcome<void, ExchangeRejection> cancelListing(PlayerCreature* pSeller, int64_t listingID);
 
     // Get seller's listings
     static vector<ExchangeListing> getSellerListings(const string& sellerAccount,
@@ -113,9 +118,10 @@ public:
     // Buying operations
     ////////////////////////////////////////////////////////////////////
 
-    // Buy a listing
-    // Returns: <success, errorMessage or orderID as string>
-    static pair<bool, string> buyListing(PlayerCreature* pBuyer, int64_t listingID, const string& idempotencyKey);
+    // Buy a listing: points move both ways, the order is written and the
+    // listing is marked sold, all inside one repository transaction.
+    [[nodiscard]] static Outcome<ExchangePurchase, ExchangeRejection>
+    buyListing(PlayerCreature* pBuyer, int64_t listingID, const string& idempotencyKey);
 
     // Get buyer's orders
     static vector<ExchangeOrder> getBuyerOrders(const string& buyerPlayer, uint8_t status = ORDER_STATUS_PAID);
@@ -130,9 +136,11 @@ public:
     // Prepare claim list for a player (both buyer and seller items)
     static vector<ExchangeClaim> prepareClaimList(PlayerCreature* pPlayer);
 
-    // Claim item (for buyer: deliver order, for seller: return cancelled item)
-    // Returns: <success, errorMessage>
-    static pair<bool, string> claimItem(PlayerCreature* pPlayer, int64_t orderOrListingID, bool isBuyerClaim);
+    // Claim item (for buyer: deliver order, for seller: return cancelled item).
+    // Ok means the claim was permitted; the item transfer itself is still
+    // unimplemented on both branches.
+    [[nodiscard]] static Outcome<void, ExchangeRejection> claimItem(PlayerCreature* pPlayer, int64_t orderOrListingID,
+                                                                    bool isBuyerClaim);
 
     ////////////////////////////////////////////////////////////////////
     // Point operations
@@ -141,10 +149,12 @@ public:
     // Get point balance
     static int getPointBalance(const string& account);
 
-    // Adjust points with ledger record
-    // Returns: <success, newBalance or -1 if failed>
-    static pair<bool, int> adjustPoints(const string& account, int delta, uint8_t reason, int64_t refListingID = 0,
-                                        int64_t refOrderID = 0, const string& idempotencyKey = "");
+    // Adjust points with ledger record. The repository refuses a duplicate
+    // idempotency key and a balance that would go below zero with the same
+    // answer, so the rejection cannot name which of the two it was.
+    [[nodiscard]] static Outcome<ExchangePointsAdjusted, ExchangeRejection>
+    adjustPoints(const string& account, int delta, uint8_t reason, int64_t refListingID = 0, int64_t refOrderID = 0,
+                 const string& idempotencyKey = "");
 
     ////////////////////////////////////////////////////////////////////
     // Maintenance operations
@@ -176,9 +186,6 @@ private:
     // Helper methods
     ////////////////////////////////////////////////////////////////////
 
-    // Calculate tax amount
-    static int calculateTax(int price);
-
     // Get current timestamp string
     static string getCurrentTimestamp();
 
@@ -199,9 +206,6 @@ private:
 
     // Check if inventory has space
     static bool checkInventorySpace(PlayerCreature* pPlayer);
-
-    // Format error message
-    static string formatError(ExchangeResult code, const string& detail = "");
 
     // Static configuration
     static uint8_t m_TaxRate;
