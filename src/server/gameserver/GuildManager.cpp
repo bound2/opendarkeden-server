@@ -209,8 +209,7 @@ void GuildManager::addGuild(Guild* pGuild) {
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    unordered_map<GuildID_t, Guild*>::iterator itr = m_Guilds.find(pGuild->getID());
-    if (itr != m_Guilds.end())
+    if (m_Guilds.contains(pGuild->getID()))
         throw DuplicatedException();
     m_Guilds[pGuild->getID()] = pGuild;
 
@@ -225,8 +224,7 @@ void GuildManager::addGuild_NOBLOCKED(Guild* pGuild) {
 
     Assert(pGuild != NULL);
 
-    unordered_map<GuildID_t, Guild*>::iterator itr = m_Guilds.find(pGuild->getID());
-    if (itr != m_Guilds.end())
+    if (m_Guilds.contains(pGuild->getID()))
         throw DuplicatedException();
     m_Guilds[pGuild->getID()] = pGuild;
 
