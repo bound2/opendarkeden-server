@@ -173,7 +173,10 @@ case "$command" in
         target=${args[0]:-wire_tests}
         recorder=""
         [ "$record" = "1" ] && recorder='echo "--- recording goldens"; (cd '"$BUILD_DIR"' && UPDATE_GOLDENS=1 '"$OUTPUT_ROOT"'/bin/wire_tests >/dev/null);'
-        script="$sync_in && $configure >/dev/null && cmake --build $BUILD_DIR --target $target -j$JOBS && $recorder (cd $BUILD_DIR && ctest --output-on-failure); rc=\$?; $sync_out; exit \$rc"
+        # The recorder and ctest run as one group so that a failed build skips
+        # both: a bare `$recorder` ending in `;` would end the && chain and let
+        # ctest run a stale binary and report it green.
+        script="$sync_in && $configure >/dev/null && cmake --build $BUILD_DIR --target $target -j$JOBS && { $recorder (cd $BUILD_DIR && ctest --output-on-failure); }; rc=\$?; $sync_out; exit \$rc"
         ;;
     build)
         target=${args[0]:-}
