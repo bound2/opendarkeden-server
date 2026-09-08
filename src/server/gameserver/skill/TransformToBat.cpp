@@ -132,13 +132,12 @@ void TransformToBat::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordI
                 gcAddBat.setColor(pVampire->getBatColor());
                 pZone->broadcastPacket(x, y, &gcAddBat, pVampire);
 
-                // 타일에다 지웠다, 다시 더함으로서 무브모드를 바꿀 수 잇다.
-                tile.deleteCreature(pVampire->getObjectID());
-
-                Tile& newtile = pZone->getTile(pt.x, pt.y);
+                // A tile files a creature under its move mode, so the mode is changed by
+                // taking the creature off its tile and adding it again.
+                pZone->deleteCreatureFromTile(pVampire, x, y);
 
                 pVampire->setMoveMode(Creature::MOVE_MODE_FLYING);
-                newtile.addCreature(pVampire);
+                pZone->addCreatureToTile(pVampire, pt.x, pt.y);
                 pVampire->setXYDir(pt.x, pt.y, pVampire->getDir());
 
                 decreaseItemNum(pItem, pInventory, pVampire->getName(), STORAGE_INVENTORY, 0, X, Y);
@@ -221,15 +220,13 @@ void TransformToBat::execute(Monster* pMonster)
             pZone->broadcastPacket(x, y, &gcAddBat, pMonster);
 
 
-            // 타일에다 지웠다, 다시 더함으로서 무브모드를 바꿀 수 잇다.
-            Tile& tile = pZone->getTile(x, y);
-            tile.deleteCreature(pMonster->getObjectID());
+            // A tile files a creature under its move mode, so the mode is changed by
+            // taking the creature off its tile and adding it again.
+            pZone->deleteCreatureFromTile(pMonster, x, y);
 
             TPOINT pt = findSuitablePosition(pZone, x, y, Creature::MOVE_MODE_FLYING);
             pMonster->setMoveMode(Creature::MOVE_MODE_FLYING);
-            Tile& newtile = pZone->getTile(pt.x, pt.y);
-
-            newtile.addCreature(pMonster);
+            pZone->addCreatureToTile(pMonster, pt.x, pt.y);
             pMonster->setXYDir(pt.x, pt.y, pMonster->getDir());
 
         } else {

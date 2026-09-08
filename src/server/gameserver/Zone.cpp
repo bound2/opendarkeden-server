@@ -4458,6 +4458,55 @@ void Zone::replacePC(Creature* pFrom, Creature* pTo, ZoneCoord_t nx, ZoneCoord_t
 
 
 //--------------------------------------------------------------------------------
+// Put a creature on the tile at (x, y), and nothing else.
+//
+// The creature manager membership, the creature's own coordinates and move
+// mode, and every broadcast stay with the caller. A caller that puts a
+// creature into the zone as a whole wants addPC/addCreature instead; this is
+// for the two cases that live below them: re-adding a creature to a tile to
+// change the move mode it is filed under, and moving a creature between tiles
+// without disturbing the manager that owns it.
+//
+// bCheckEffect and bCheckPortal are handed to Tile::addCreature: they decide
+// whether the tile's effects (poison, darkness, trying position) are applied
+// to the creature, and whether a portal on the tile is activated for it.
+// Returns false when such a portal was activated, which has already carried
+// the creature on to the portal's destination.
+//--------------------------------------------------------------------------------
+bool Zone::addCreatureToTile(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y, bool bCheckEffect, bool bCheckPortal) {
+    if (m_pZoneGroup != NULL)
+        m_pZoneGroup->assertOwned();
+
+    Assert(pCreature != NULL);
+
+    return getTile(x, y).addCreature(pCreature, bCheckEffect, bCheckPortal);
+}
+
+
+//--------------------------------------------------------------------------------
+// Take a creature off the tile at (x, y), and nothing else.
+//
+// The counterpart of addCreatureToTile: no creature manager is touched, so a
+// creature removed this way is off the map but still owned by its manager,
+// still heartbeaten, and still reachable by name or id. That is what the
+// corpse paths want — dropping a dead player from the PC manager would stop
+// its effect manager's heartbeat. A caller that wants the creature out of the
+// zone entirely wants deleteCreature instead.
+//
+// A creature that is not on that tile is a no-op: Tile::deleteCreature swallows
+// the mismatch, logging it to tileError.txt when the tile is empty outright.
+//--------------------------------------------------------------------------------
+void Zone::deleteCreatureFromTile(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y) {
+    if (m_pZoneGroup != NULL)
+        m_pZoneGroup->assertOwned();
+
+    Assert(pCreature != NULL);
+
+    getTile(x, y).deleteCreature(pCreature->getObjectID());
+}
+
+
+//--------------------------------------------------------------------------------
 //
 //--------------------------------------------------------------------------------
 void Zone::deleteCreature(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y)

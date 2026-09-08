@@ -986,9 +986,8 @@ void MonsterManager::killCreature(Creature* pDeadCreature)
     gcAddEffect.setDuration(0);
     pZone->broadcastPacket(cx, cy, &gcAddEffect);
 
-    // ¸ó½ºÅÍ Á¦°Å
-    Tile& tile = m_pZone->getTile(cx, cy);
-    tile.deleteCreature(pDeadMonster->getObjectID());
+    // Take the monster off the map. The manager entry is dropped by the caller.
+    m_pZone->deleteCreatureFromTile(pDeadMonster, cx, cy);
 
     // DynamicZone ÀÏ°æ¿ìÀÇ Ã³¸®
     if (m_pZone->isDynamicZone()) {
@@ -2055,9 +2054,8 @@ void MonsterManager::deleteAllMonsters(bool bDeleteFromZone)
                 ZoneCoord_t cx = pCreature->getX();
                 ZoneCoord_t cy = pCreature->getY();
 
-                // Å¸ÀÏ¿¡¼­ Á¦°Å
-                Tile& tile = m_pZone->getTile(cx, cy);
-                tile.deleteCreature(pCreature->getObjectID());
+                // Take the monster off the map. The manager is emptied below.
+                m_pZone->deleteCreatureFromTile(pCreature, cx, cy);
 
                 // ÁÖº¯ÀÇ PCµé¿¡°Ô Å©¸®Ã³°¡ »ç¶óÁ³´Ù´Â »ç½ÇÀ» ºê·ÎµåÄ³½ºÆ®ÇÑ´Ù.
                 GCDeleteObject gcDeleteObject(pCreature->getObjectID());

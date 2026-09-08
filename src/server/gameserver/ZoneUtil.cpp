@@ -555,11 +555,11 @@ Dir_t knockbackCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t originX, Z
         pCreature->setY(ny);
 
         try {
-            // 이전 타일에서 크리쳐를 삭제한다.
-            rOriginTile.deleteCreature(pCreature->getObjectID());
+            // Take the creature off the tile it stood on.
+            pZone->deleteCreatureFromTile(pCreature, cx, cy);
 
-            // 새 타일에 크리쳐를 추가한다.
-            if (!rTargetTile.addCreature(pCreature)) {
+            // Put it on the new tile.
+            if (!pZone->addCreatureToTile(pCreature, nx, ny)) {
                 // Portal을 activate시킨 경우이다. by sigi. 2002.5.6
                 return dir;
             }
@@ -617,22 +617,21 @@ void addBurrowingCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, Zone
         pCreature->setFlag(Effect::EFFECT_CLASS_HIDE);
         Assert(pCreature->getMoveMode() == Creature::MOVE_MODE_WALKING);
 
-        Tile& oldTile = pZone->getTile(pCreature->getX(), pCreature->getY());
-        Tile& newTile = pZone->getTile(pt.x, pt.y);
-
         try {
-            oldTile.deleteCreature(pCreature->getObjectID());
+            pZone->deleteCreatureFromTile(pCreature, pCreature->getX(), pCreature->getY());
         } catch (Error& e) {
             filelog("assertTile.txt", "addBurrowingCreature : %s", e.toString().c_str());
             throw;
         }
 
+        // A tile files a creature under its move mode, so the mode is changed by
+        // taking the creature off its tile and adding it again.
         pCreature->setMoveMode(Creature::MOVE_MODE_BURROWING);
-        newTile.addCreature(pCreature);
+        pZone->addCreatureToTile(pCreature, pt.x, pt.y);
 
-        Assert(pCreature == newTile.getCreature(pCreature->getMoveMode()));
+        Assert(pCreature == pZone->getTile(pt.x, pt.y).getCreature(pCreature->getMoveMode()));
 
-        // 크리쳐의 좌표를 변경한다.
+        // Set the creature's coordinates.
         pCreature->setXYDir(pt.x, pt.y, pCreature->getDir());
 
         // scanPC(pCreature);
@@ -720,8 +719,6 @@ void addUnburrowCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, ZoneC
     if (pt.x != -1) {
         ZoneCoord_t oldX = pCreature->getX();
         ZoneCoord_t oldY = pCreature->getY();
-        Tile& oldTile = pZone->getTile(oldX, oldY);
-        Tile& newTile = pZone->getTile(pt.x, pt.y);
 
         // 이전 위치에서 숨었는데도 볼 수 있는 놈은 Delete object를 보낸다.
         GCDeleteObject gcDO;
@@ -731,20 +728,20 @@ void addUnburrowCreature(Zone* pZone, Creature* pCreature, ZoneCoord_t cx, ZoneC
         // DeleteObject packet을 보낸후 set.
         pCreature->removeFlag(Effect::EFFECT_CLASS_HIDE);
 
-        // 옛날 타일에서 크리쳐를 지우고,
-        // 새 타일에 무브모드를 바꿔서 추가한다.
+        // Take the creature off its old tile and add it to the new one with a
+        // changed move mode: a tile files a creature under its move mode.
         try {
-            oldTile.deleteCreature(pCreature->getObjectID());
+            pZone->deleteCreatureFromTile(pCreature, oldX, oldY);
         } catch (Error& e) {
             filelog("assertTile.txt", "addUnburrowCreature : %s", e.toString().c_str());
             throw;
         }
         pCreature->setMoveMode(Creature::MOVE_MODE_WALKING);
-        newTile.addCreature(pCreature);
+        pZone->addCreatureToTile(pCreature, pt.x, pt.y);
 
-        Assert(pCreature == newTile.getCreature(pCreature->getMoveMode()));
+        Assert(pCreature == pZone->getTile(pt.x, pt.y).getCreature(pCreature->getMoveMode()));
 
-        // 크리처의 좌표를 지정한다.
+        // Set the creature's coordinates.
         pCreature->setXYDir(pt.x, pt.y, dir);
 
         // scanPC(pCreature);
@@ -933,23 +930,20 @@ void addUntransformCreature(Zone* pZone, Creature* pCreature, bool bForce) {
             }
         }
 
-        // 기존 타일에서 크리쳐를 제거하고, 무브 모드를 바꿔준 다음에
-        // 새 타일에 추가한다.
-        Tile& oldTile = pZone->getTile(oldX, oldY);
-        Tile& newTile = pZone->getTile(pt.x, pt.y);
-
+        // Take the creature off its old tile, change its move mode, and add it to
+        // the new tile: a tile files a creature under its move mode.
         try {
-            oldTile.deleteCreature(pCreature->getObjectID());
+            pZone->deleteCreatureFromTile(pCreature, oldX, oldY);
         } catch (Error& e) {
             filelog("assertTile.txt", "addUntransformCreature : %s", e.toString().c_str());
             throw;
         }
         pCreature->setMoveMode(Creature::MOVE_MODE_WALKING);
-        newTile.addCreature(pCreature);
+        pZone->addCreatureToTile(pCreature, pt.x, pt.y);
 
-        Assert(pCreature == newTile.getCreature(pCreature->getMoveMode()));
+        Assert(pCreature == pZone->getTile(pt.x, pt.y).getCreature(pCreature->getMoveMode()));
 
-        // 크리쳐의 좌표를 지정해 준다.
+        // Set the creature's coordinates.
         pCreature->setXYDir(pt.x, pt.y, pCreature->getDir());
 
         // 크리쳐 클래스에 따라, 존에다 브로드캐스팅한다.
