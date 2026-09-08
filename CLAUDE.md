@@ -393,8 +393,8 @@ must not throw: an `AssertionError` is a `Throwable`, and the
 `catch (Throwable&)` blocks sitting on these very paths would swallow it,
 turning a detected race into a silently half-applied mutation. The check
 is armed by `ZoneGroupThread::run()`, so single-threaded startup/loading
-is exempt. Coverage is exactly the five `Zone` gateways
-`addPC` (both overloads)/`addCreature`/`deleteCreature`/`moveCreature`;
+is exempt. Coverage is exactly the six `Zone` gateways
+`addPC` (both overloads)/`replacePC`/`addCreature`/`deleteCreature`/`moveCreature`;
 `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/`deleteItem` and direct
 `Tile` writes are **not** gated — the assert is a tripwire on the main
 gateways, not a full guarantee.
@@ -473,10 +473,15 @@ gateways, not a full guarantee.
   stays readable, stale, until the managers are destroyed — the whole-table
   `clear()` a sharedserver resync triggers retires too, never frees. Still
   open: a zone thread reading a retired member sees its last rank.
-- `EventMorph.cpp` mutates `Tile` contents directly
-  (`tile.addCreature(...)`) below the `Zone` gateways, so the ownership
-  assert cannot see such call sites — the assert covers the gateway
-  methods only.
+- ~~`EventMorph.cpp` mutates `Tile` contents directly~~ — **fixed** for the
+  PC-swap sites: `EventMorph.cpp` and the two `skill/Restore.cpp` sites
+  rebuild a character as another race through `Zone::replacePC`, a gated
+  gateway. Still open, all below the gateways where the assert cannot see
+  them: `skill/TransformToBat.cpp` (2 sites) re-adds the *same* creature to
+  a new tile to change its move mode, touching no creature manager; and
+  `MonsterManager.cpp` (3 sites) and `PCManager.cpp` (1) call
+  `tile.deleteCreature(...)` on a dead creature with no matching add.
+  (`skill/Restore2.cpp` has the swap too but is in no build.)
 - ~~Cross-group `ZoneGroup::addZone()` race~~ — **fixed**: `DynamicZone.cpp`
   (reached from `CGSelectWayPointHandler` / `ActionEnterQuestZone` on the
   *requesting player's* zone thread) still inserts the new zone into the

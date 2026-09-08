@@ -126,7 +126,6 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             ZoneCoord_t x = pFromCreature->getX();
             ZoneCoord_t y = pFromCreature->getY();
             Dir_t dir = pFromCreature->getDir();
-            Tile& tile = pZone->getTile(x, y);
 
             // 곧 pFromCreature 즉, 원래의 뱀파이어 객체는 지워질 것이므로,
             // PCFinder에 들어가 있는 값은 쓰레기 값이 될 것이다.
@@ -301,19 +300,11 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             pNewSlayer->sendSlayerSkillInfo();
 
 
-            // 타일 및 존에서 기존 뱀파이어를 삭제하고, 새로운 슬레이어를 더한다.
-            tile.deleteCreature(pFromCreature->getObjectID());
-            pZone->deletePC(pFromCreature);
+            // Delete the old vampire from the tile and the zone and add the new slayer,
+            // on the nearest tile that will take it.
+            pZone->replacePC(pFromCreature, pNewSlayer, x, y, dir, true);
 
-            TPOINT pt = findSuitablePosition(pZone, x, y, Creature::MOVE_MODE_WALKING);
-            Tile& newtile = pZone->getTile(pt.x, pt.y);
-
-            newtile.addCreature(pNewSlayer);
-            pNewSlayer->setXYDir(pt.x, pt.y, dir);
-
-            pZone->addPC(pNewSlayer);
-
-            // 시야 update..
+            // Update the field of view.
             pZone->updateHiddenScan(pNewSlayer);
 
             _GCMorph1.setPCInfo2(pNewSlayer->getSlayerInfo2());
@@ -444,7 +435,6 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             ZoneCoord_t x = pFromCreature->getX();
             ZoneCoord_t y = pFromCreature->getY();
             Dir_t dir = pFromCreature->getDir();
-            Tile& tile = pZone->getTile(x, y);
 
             pNewSlayer->setXYDir(x, y, dir);
 
@@ -614,17 +604,9 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             // pFromGamePlayer->deleteEvent(Event::EVENT_CLASS_REGENERATION);
 
 
-            // 타일 및 존에서 기존 뱀파이어를 삭제하고, 새로운 슬레이어를 더한다.
-            tile.deleteCreature(pFromCreature->getObjectID());
-            pZone->deletePC(pFromCreature);
-
-            TPOINT pt = findSuitablePosition(pZone, x, y, Creature::MOVE_MODE_WALKING);
-            Tile& newtile = pZone->getTile(pt.x, pt.y);
-
-            newtile.addCreature(pNewSlayer);
-            pNewSlayer->setXYDir(pt.x, pt.y, dir);
-
-            pZone->addPC(pNewSlayer);
+            // Delete the old vampire from the tile and the zone and add the new slayer,
+            // on the nearest tile that will take it.
+            pZone->replacePC(pFromCreature, pNewSlayer, x, y, dir, true);
 
 
             GCDeleteObject _GCDeleteObject;
