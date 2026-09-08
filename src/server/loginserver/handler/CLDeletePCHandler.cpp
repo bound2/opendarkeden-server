@@ -10,6 +10,7 @@
 #include <cstdio>
 
 #include "Assert.h"
+#include "CharacterDeletion.h"
 #include "LCDeletePCError.h"
 #include "LCDeletePCOK.h"
 #include "LoginPlayer.h"
@@ -34,43 +35,51 @@ void CLDeletePCHandler::execute(CLDeletePC* pPacket, Player* pPlayer) {
     WorldID_t WorldID = pLoginPlayer->getWorldID();
     LoginCharacterPurgeRepository& repo = defaultLoginCharacterPurgeRepository();
 
+    DeletePCRequest request;
+    request.worldID = WorldID;
+    request.playerID = pPlayer->getID();
+    request.name = pPacket->getName();
+    request.slot = pPacket->getSlot();
+
     try {
-        // The character must exist as an ACTIVE Slayer row and belong to
-        // this account.
-        string id;
-        if (!repo.loadActiveSlayerOwner(WorldID, pPacket->getName(), id)) {
-            lcDeletePCError.setErrorID(NOT_FOUND_PLAYER);
-            throw InvalidProtocolException("no such slayer exist.");
-        }
+        Outcome<void, DeletePCRejection> outcome = decideDeletePC(request, repo);
 
-        if (id != pPlayer->getID()) {
-            filelog("DeletePC.log", "Illegal PC Delete : [%s:%s]", pPlayer->getID().c_str(),
-                    pPacket->getName().c_str());
-            throw InvalidProtocolException("illegal pc delete");
-        }
+        if (outcome.isRejected()) {
+            switch (outcome.rejection()) {
+            case DeletePCRejection::NoSuchCharacter:
+                lcDeletePCError.setErrorID(NOT_FOUND_PLAYER);
+                cout << "Fail to deletePC : no such slayer exist." << endl;
+                break;
 
-        // Retire the Slayer row of that name and slot.
-        if (!repo.retireSlayer(WorldID, pPacket->getName(), pPacket->getSlot())) {
-            lcDeletePCError.setErrorID(NOT_FOUND_ID);
-            throw InvalidProtocolException("no such slayer exist.");
+            case DeletePCRejection::NotTheOwner:
+                // The character list a session is given holds only its own
+                // characters, so a request for another account's is logged.
+                filelog("DeletePC.log", "Illegal PC Delete : [%s:%s]", request.playerID.c_str(), request.name.c_str());
+                cout << "Fail to deletePC : illegal pc delete" << endl;
+                break;
+
+            case DeletePCRejection::SlotMismatch:
+                lcDeletePCError.setErrorID(NOT_FOUND_ID);
+                cout << "Fail to deletePC : no such slayer exist." << endl;
+                break;
+            }
+
+            pLoginPlayer->sendPacket(&lcDeletePCError);
+            return;
         }
 
 #if !defined(__CHINA_SERVER__) && !defined(__THAILAND_SERVER__) && !defined(__NETMARBLE_SERVER__)
-        repo.recordDeletion(pLoginPlayer->getID(), WorldID, pPacket->getName());
+        repo.recordDeletion(request.playerID, WorldID, request.name);
 #endif
 
         // The Vampire and Ousters rows, the character's items, couple
         // entry, effects, flags, time-limited items, event and Mofus rows.
-        repo.purgeCharacterRows(WorldID, pPacket->getName(), pPacket->getSlot());
+        repo.purgeCharacterRows(WorldID, request.name, request.slot);
 
         LCDeletePCOK lcDeletePCOK;
         pLoginPlayer->sendPacket(&lcDeletePCOK);
 
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
-    } catch (InvalidProtocolException& ipe) {
-        cout << "Fail to deletePC : " << ipe.toString() << endl;
-
-        pLoginPlayer->sendPacket(&lcDeletePCError);
     } catch (const char*) {
         // A SQL failure arrives as END_DB's const char*, already logged to
         // DBError.log (its own message dangles). The client gets the

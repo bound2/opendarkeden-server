@@ -456,3 +456,24 @@ target_link_libraries(exchange_decision_tests PRIVATE de-kernel gtest_main Threa
 add_dependencies(wire_tests exchange_decision_tests)
 add_test(NAME exchange_decision_tests COMMAND exchange_decision_tests)
 set_tests_properties(exchange_decision_tests PROPERTIES TIMEOUT 60)
+
+# The loginserver's character-deletion decision (docs/RESTRUCTURING.md 3.1):
+# decideDeletePC() returns Outcome<void, DeletePCRejection> over a fake
+# LoginCharacterPurgeRepository, so the ownership check, the compare-and-set
+# retirement and the precedence between the refusals are testable with no
+# database. Only de-kernel is linked (the type tables) — pulling the
+# transport or the login server's own state into the decision would break
+# this link.
+add_executable(character_deletion_tests EXCLUDE_FROM_ALL
+    character_deletion_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/CharacterDeletion.cpp
+)
+target_include_directories(character_deletion_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(character_deletion_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests character_deletion_tests)
+add_test(NAME character_deletion_tests COMMAND character_deletion_tests)
+set_tests_properties(character_deletion_tests PROPERTIES TIMEOUT 60)
