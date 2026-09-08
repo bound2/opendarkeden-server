@@ -40,6 +40,7 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_gameserver_handshake_test.cpp
     packet_login_test.cpp
     packet_meta_test.cpp
+    packet_zone_scan_test.cpp
     wire_layout_test.cpp
     wire_types_test.cpp
     xml_parse_test.cpp

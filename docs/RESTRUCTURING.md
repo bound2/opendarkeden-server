@@ -159,6 +159,29 @@ before anything else moves. Everything later shelters under this pin.
   > `GCUpdateInfo`, `GCPetInfo` and `NicknameInfo` initialise every
   > member and `GCUpdateInfo::read` allocates the blood bible sign
   > record). `GCReconnect` is excluded: no server source constructs it.
+  > The **zone population scan is pinned** — the 18 packets
+  > `Zone::addPC` and the `Zone::scan()` it triggers send to build a
+  > player's view of a zone, plus the ones that later add or remove one
+  > object from it (`GCAddSlayer`, with a second golden for the
+  > pet-less / nickname-less / closed-store shape, `GCAddVampire`,
+  > `GCAddOusters`, `GCAddMonster`, `GCAddBurrowingCreature`,
+  > `GCAddBat`, `GCAddWolf`, `GCAddNPC`, the four corpse packets,
+  > `GCAddEffect`, `GCAddEffectToTile`, `GCAddVampirePortal`,
+  > `GCDeleteObject`, `GCDeleteEffectFromTile`, `GCFastMove`), have
+  > code-0 goldens, loopback round trips and size/factory-max pins
+  > (`tests/packet_zone_scan_test.cpp`), with eight open write/read
+  > disagreements stated as tests that flip when fixed
+  > (`PCSlayerInfo3::write` swallowing its name refusal, so the PC
+  > record underflows the size the packet declares; `GCAddEffect::read`
+  > consuming a leading flag byte `write` never emits;
+  > `PCVampireInfo3::getMaxSize` and `PCOustersInfo3::getMaxSize`
+  > omitting the four-byte alignment field their `getSize` counts;
+  > `PCVampireInfo3` truncating its WORD coat type to one byte; and the
+  > unbounded monster name, shop sign, pet nickname and portal
+  > owner, each of which outgrows the budget the receiver sizes its read
+  > buffer from). `GCSetPosition` is covered by the handshake pins,
+  > `GCAddNewItemToZone` and `GCAddInstalledMineToZone` by the encrypter
+  > pins.
   > Remaining non-encrypter GC/CG coverage outstanding.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
