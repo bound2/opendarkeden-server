@@ -41,6 +41,10 @@ void WorldInfo::read(SocketInputStream& iStream) {
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
     iStream.read(m_ID);
     iStream.read(szName);
+
+    if (szName > maxNameLength)
+        throw InvalidProtocolException("too long name length");
+
     iStream.read(m_Name, szName);
     iStream.read(m_Stat);
 
@@ -55,6 +59,9 @@ void WorldInfo::write(SocketOutputStream& oStream) const {
 
     BYTE szName = m_Name.size();
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    if (szName > maxNameLength)
+        throw InvalidProtocolException("too long name length");
+
     oStream.write(m_ID);
     oStream.write(szName);
     oStream.write(m_Name);

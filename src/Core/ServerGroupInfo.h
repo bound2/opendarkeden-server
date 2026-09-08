@@ -42,8 +42,12 @@ public:
     // ����ȭ��, �̸� ���� ������ ����Ѵ�.
     PacketSize_t getSize();
 
+    // The list packet's factory max budgets this many entries of a
+    // full-width name; LCServerList refuses one more.
+    static constexpr uint kMaxCount = 37;
+
     static constexpr uint getMaxSize() {
-        return (szBYTE + szBYTE + 20 + szBYTE) * 37;
+        return (szServerGroupID + szBYTE + maxNameLength + szBYTE) * kMaxCount;
     }
 
     // get packet's debug string
@@ -61,8 +65,9 @@ public:
     string getGroupName() const {
         return m_GroupName;
     }
+    // Truncates to the width the length prefix and the factory max allow.
     void setGroupName(string GroupName) {
-        m_GroupName = GroupName;
+        m_GroupName = (GroupName.size() > maxNameLength) ? GroupName.substr(0, maxNameLength) : GroupName;
     }
 
     // get / set Group Stat

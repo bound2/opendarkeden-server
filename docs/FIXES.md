@@ -11,6 +11,43 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Login-phase framing disagreements the CL/LC goldens found (2026-09-08)
+
+The three write/read disagreements task 1.2 stated as flip-tests in
+`tests/packet_login_test.cpp`. Each is now pinned as the refusal it
+produces; no valid packet's bytes moved and no golden changed.
+
+- **`PCSlayerInfo::read`/`write` swallowed the exceptions they raised.**
+  Both wrapped their whole body in `try { … } catch (Throwable& t) { cout … }`,
+  so the empty-name refusal that `PCVampireInfo` and `PCOustersInfo` let
+  escape was printed and discarded here. `write()` carried on and emitted
+  only the trailing advancement level while `getPacketSize()` still
+  counted the full record — and `writePacket()` had already put that
+  count on the wire, so the client read a body dozens of bytes short and
+  every packet after it in the stream was misframed. The exception now
+  leaves both functions.
+  > **Status:** fixed (wire/login-packet-disagreements)
+
+- **`LCRegisterPlayerOK`'s group name was bounded on neither side.** The
+  setter took any length, `write()` narrowed it to a BYTE prefix with no
+  check and `read()` accepted whatever length byte arrived, so an empty
+  name wrote a zero prefix and a 256-byte name wrapped its prefix to
+  zero — both undeliverable, because the stream's own string read rejects
+  a zero length. The setter now truncates to `maxNameLength`, matching
+  the width the factory max already budgeted, and both `read()` and
+  `write()` refuse an empty or over-long name.
+  > **Status:** fixed (wire/login-packet-disagreements)
+
+- **`LCWorldList` / `LCServerList` accepted more entries than the
+  factory max budgets.** Both budget 37 records of a 20-character name,
+  and nothing capped the list at fill time, so the 38th world or server
+  group in the login server's configuration made `getPacketSize()` exceed
+  the max the client sizes its read buffer from — a truncated packet, not
+  a caught error. `addListElement` now refuses the entry past the budget,
+  and `WorldInfo` / `ServerGroupInfo` truncate their name to the width
+  the budget allows, so the declared size can no longer outgrow the max.
+  > **Status:** fixed (wire/login-packet-disagreements)
+
 ## Critical sections leaked their lock on non-Throwable exits (2026-09-05)
 
 Found while making `__ENTER_CRITICAL_SECTION`/`__LEAVE_CRITICAL_SECTION` RAII.

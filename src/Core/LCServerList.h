@@ -68,7 +68,14 @@ public:
     }
 
     // add / delete / clear S List
+    // Takes ownership. Refuses an entry past the count the factory max
+    // budgets, so getPacketSize() can never outgrow the read buffer the
+    // receiver sizes from it; the refused entry is destroyed here.
     void addListElement(ServerGroupInfo* pServerGroupInfo) {
+        if (m_ServerGroupInfoList.size() >= ServerGroupInfo::kMaxCount) {
+            SAFE_DELETE(pServerGroupInfo);
+            throw InvalidProtocolException("too many server group infos");
+        }
         m_ServerGroupInfoList.push_back(pServerGroupInfo);
     }
 

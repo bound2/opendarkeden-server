@@ -28,7 +28,9 @@
 
 class CLLogin : public Packet {
 public:
-    CLLogin() : m_LoginMode(LOGIN_MODE_NORMAL) {
+    // The MAC bytes have no setter — read() is what fills them — and write()
+    // emits all six either way, so a constructed instance starts them at zero.
+    CLLogin() : m_bNetmarble(false), m_bAdult(false), m_cMacAddress{}, m_LoginMode(LOGIN_MODE_NORMAL) {
         m_strMacAddress = "";
     }
     virtual ~CLLogin(){};

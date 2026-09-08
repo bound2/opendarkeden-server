@@ -68,7 +68,14 @@ public:
     }
 
     // add / delete / clear S List
+    // Takes ownership. Refuses an entry past the count the factory max
+    // budgets, so getPacketSize() can never outgrow the read buffer the
+    // receiver sizes from it; the refused entry is destroyed here.
     void addListElement(WorldInfo* pWorldInfo) {
+        if (m_WorldInfoList.size() >= WorldInfo::kMaxCount) {
+            SAFE_DELETE(pWorldInfo);
+            throw InvalidProtocolException("too many world infos");
+        }
         m_WorldInfoList.push_back(pWorldInfo);
     }
 

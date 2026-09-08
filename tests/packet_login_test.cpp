@@ -53,12 +53,11 @@
 //               the string framing those two share with the rest of the
 //               login phase.
 //
-//               Three findings are stated below as tests that FAIL when
-//               the underlying packet is fixed, which is the signal to
-//               retire them:
-//               emptySlayerNameUnderflowsTheBody,
-//               groupNameLengthPrefixIsUnbounded and
-//               listCapacityIsThirtySevenEntries.
+//               Three framing rules the login phase used to leave open
+//               are pinned below, each as the refusal it now produces:
+//               everyPCRecordRefusesAnEmptyName,
+//               groupNameIsCappedAndNeverEmpty and, for both list
+//               packets, refusesEntriesPastTheFactoryBudget.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -677,43 +676,40 @@ void expectEqual(const LCRegisterPlayerOK& a, const LCRegisterPlayerOK& b) {
 }
 LOGIN_PACKET_TESTS(LCRegisterPlayerOK)
 
-// FINDING, stated as a test that fails once it is fixed.
-//
-// LCRegisterPlayerOK carries the one string field in the login phase
-// that neither side bounds: the setter takes any length, write()
-// narrows it to a BYTE with no check, and read() takes whatever length
-// byte arrives. Both ends of the range produce a packet the peer
-// refuses — an empty name writes a zero prefix, and a 256-byte name
-// wraps its prefix to zero — because the stream's own string read
-// rejects a zero length. So the registration confirmation is
-// undeliverable rather than misframed, and the 256-byte case also
-// leaves the whole name unread behind the rejected packet.
-//
-// The fix is the cap every other string field in this file has, applied
-// in write() and getPacketSize() together, plus write() refusing the
-// empty name as its neighbours do; then both cases below stop
-// round-tripping into a rejection and this test flips.
-TEST(LCRegisterPlayerOKTest, groupNameLengthPrefixIsUnbounded) {
+// The group name is bounded on both sides, like every other string field
+// in the login phase. The setter truncates, so a name of any length
+// reaches the wire inside the width a BYTE prefix and the factory max
+// allow; the empty name, which the stream's own string read rejects, is
+// refused before any bytes are produced rather than sent undeliverable.
+TEST(LCRegisterPlayerOKTest, groupNameIsCappedAndNeverEmpty) {
+    SocketEncryptOutputStream oStream(NULL);
+    LCRegisterPlayerOKFactory factory;
+
+    LCRegisterPlayerOK capped;
+    capped.setGroupName(std::string(256, 'g'));
+    capped.setAdult(true);
+    EXPECT_EQ(std::string(maxNameLength, 'g'), capped.getGroupName());
+
+    const std::vector<unsigned char> body = writeBody(capped, kPlainCode);
+    ASSERT_EQ((size_t)capped.getPacketSize(), body.size());
+    EXPECT_EQ((unsigned char)maxNameLength, body[0]);
+    EXPECT_LE(capped.getPacketSize(), factory.getPacketMaxSize());
+
+    LCRegisterPlayerOK dst;
+    roundTrip(capped, dst, kPlainCode);
+    expectEqual(capped, dst);
+
     LCRegisterPlayerOK empty;
     empty.setGroupName("");
     empty.setAdult(true);
-    const std::vector<unsigned char> emptyBody = writeBody(empty, kPlainCode);
-    ASSERT_EQ((size_t)empty.getPacketSize(), emptyBody.size());
-    EXPECT_EQ(0u, emptyBody[0]) << "write() no longer emits a zero length prefix — retire this test";
+    EXPECT_THROW(empty.write(oStream), InvalidProtocolException);
 
-    LCRegisterPlayerOK packet;
-    packet.setGroupName(std::string(256, 'g'));
-    packet.setAdult(true);
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    ASSERT_EQ((size_t)packet.getPacketSize(), body.size()) << "the byte count still agrees; the framing does not";
-    EXPECT_EQ(0u, body[0]) << "a 256-byte name no longer wraps its length prefix to zero — the cap has been "
-                              "added, so retire this test and pin the truncated name instead";
-
-    LCRegisterPlayerOK emptyDst;
-    EXPECT_THROW(roundTrip(empty, emptyDst, kPlainCode), InvalidProtocolException);
-
-    LCRegisterPlayerOK wrappedDst;
-    EXPECT_THROW(roundTrip(packet, wrappedDst, kPlainCode), InvalidProtocolException);
+    // A length byte past the cap cannot arrive from a peer either.
+    std::vector<unsigned char> image;
+    appendString(image, std::string(maxNameLength + 1, 'g'));
+    image.push_back(1);
+    LCRegisterPlayerOK oversized;
+    EXPECT_THROW(readImage(oversized, image), InvalidProtocolException);
 }
 
 void fill(LCSelectPCError& p) {
@@ -788,34 +784,50 @@ void expectEqual(LCWorldList& a, LCWorldList& b) {
 }
 LOGIN_PACKET_TESTS(LCWorldList)
 
-// FINDING, stated as a test that fails once it is fixed.
-//
-// Both list packets budget their factory max for exactly 37 entries of
-// a 20-character name and nothing caps the list at fill time, so the
-// 38th world or server group makes getPacketSize() exceed the max the
-// receiver sizes its read buffer from. The entry count is the login
-// server's configuration, not the client's, so nothing on the wire
-// prevents it.
-//
-// The fix is a cap on the list — then the 38-entry packet stops
-// exceeding the max and this test flips.
-TEST(LCWorldListTest, listCapacityIsThirtySevenEntries) {
+// The entry count of both list packets comes from the login server's
+// configuration, not from anything the client sends, so the cap has to
+// live at fill time: a full list of full-width entries is exactly the
+// factory max, and one more entry is refused instead of outgrowing the
+// read buffer the receiver sizes from that max. The record's own name is
+// truncated to the width the max budgets for it.
+TEST(LCWorldListTest, refusesEntriesPastTheFactoryBudget) {
     LCWorldListFactory factory;
-    const std::string maxName(20, 'w');
+    const std::string maxName(maxNameLength, 'w');
+
+    WorldInfo overlongName;
+    overlongName.setName(std::string(64, 'w'));
+    EXPECT_EQ(maxName, overlongName.getName());
 
     LCWorldList exactFit;
     exactFit.setCurrentWorldID(1);
-    for (int i = 0; i < 37; i++)
+    for (uint i = 0; i < WorldInfo::kMaxCount; i++)
         exactFit.addListElement(makeWorldInfo((WorldID_t)(i + 1), maxName, 0x8F));
     EXPECT_EQ(factory.getPacketMaxSize(), exactFit.getPacketSize())
-        << "37 full-width entries are exactly the factory max";
+        << "a full list of full-width entries is exactly the factory max";
 
-    LCWorldList oneTooMany;
-    oneTooMany.setCurrentWorldID(1);
-    for (int i = 0; i < 38; i++)
-        oneTooMany.addListElement(makeWorldInfo((WorldID_t)(i + 1), maxName, 0x8F));
-    EXPECT_GT(oneTooMany.getPacketSize(), factory.getPacketMaxSize())
-        << "the 38th entry no longer outgrows the read buffer — the list is capped, so retire this test";
+    EXPECT_THROW(exactFit.addListElement(makeWorldInfo(0x99, maxName, 0x8F)), InvalidProtocolException);
+    EXPECT_EQ((BYTE)WorldInfo::kMaxCount, exactFit.getListNum());
+    EXPECT_EQ(factory.getPacketMaxSize(), exactFit.getPacketSize());
+}
+
+TEST(LCServerListTest, refusesEntriesPastTheFactoryBudget) {
+    LCServerListFactory factory;
+    const std::string maxName(maxNameLength, 's');
+
+    ServerGroupInfo overlongName;
+    overlongName.setGroupName(std::string(64, 's'));
+    EXPECT_EQ(maxName, overlongName.getGroupName());
+
+    LCServerList exactFit;
+    exactFit.setCurrentServerGroupID(1);
+    for (uint i = 0; i < ServerGroupInfo::kMaxCount; i++)
+        exactFit.addListElement(makeServerGroupInfo((ServerGroupID_t)(i + 1), maxName, 0x8B));
+    EXPECT_EQ(factory.getPacketMaxSize(), exactFit.getPacketSize())
+        << "a full list of full-width entries is exactly the factory max";
+
+    EXPECT_THROW(exactFit.addListElement(makeServerGroupInfo(0x99, maxName, 0x8B)), InvalidProtocolException);
+    EXPECT_EQ((BYTE)ServerGroupInfo::kMaxCount, exactFit.getListNum());
+    EXPECT_EQ(factory.getPacketMaxSize(), exactFit.getPacketSize());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1040,10 +1052,20 @@ TEST(LCPCListTest, emptySlotsStillOccupyTheTypePrefix) {
                 *dynamic_cast<const PCVampireInfo*>(dst.getPCInfo(SLOT2)));
 }
 
-// A vampire or an ousters record refuses an empty name: the exception
-// leaves write() and the packet is never sent.
-TEST(LCPCListTest, vampireAndOustersRecordsRefuseAnEmptyName) {
+// All three records refuse an empty name the same way: the exception
+// leaves write() and the packet is never sent. A record that swallowed
+// it instead would emit a body dozens of bytes shorter than the count
+// writePacket() has already put on the wire, misframing everything the
+// client reads after it.
+TEST(LCPCListTest, everyPCRecordRefusesAnEmptyName) {
     SocketEncryptOutputStream oStream(NULL);
+
+    LCPCList slayer;
+    PCSlayerInfo* pSlayer = makeSlayerInfo();
+    pSlayer->setName("");
+    slayer.setPCInfo(SLOT1, pSlayer);
+    EXPECT_THROW(slayer.write(oStream), InvalidProtocolException);
+    EXPECT_THROW(writeBody(slayer, kPlainCode), InvalidProtocolException);
 
     LCPCList vampire;
     PCVampireInfo* pVampire = makeVampireInfo();
@@ -1058,29 +1080,26 @@ TEST(LCPCListTest, vampireAndOustersRecordsRefuseAnEmptyName) {
     EXPECT_THROW(ousters.write(oStream), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-//
-// PCSlayerInfo::write() wraps its whole body in a try block that
-// catches Throwable and prints it, so the empty-name refusal its two
-// sibling records let escape is swallowed here: write() carries on and
-// emits only the trailing advancement level. getPacketSize() still
-// counts the full record, and writePacket() has already put that count
-// on the wire, so the client reads a body that is dozens of bytes short
-// and every packet after it is misframed.
-//
-// The fix is to let the exception leave write(), as PCVampireInfo and
-// PCOustersInfo do; then no body is produced at all and this test
-// flips.
-TEST(LCPCListTest, emptySlayerNameUnderflowsTheBody) {
+// A slayer record's read() lets a bad length prefix out too, so a peer
+// cannot walk the rest of the record off a name that never fit.
+TEST(LCPCListTest, slayerRecordRefusesABadNameLengthOnTheWire) {
     LCPCList packet;
-    PCSlayerInfo* pSlayer = makeSlayerInfo();
-    pSlayer->setName("");
-    packet.setPCInfo(SLOT1, pSlayer);
+    fill(packet);
 
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_LT(body.size(), (size_t)packet.getPacketSize())
-        << "PCSlayerInfo::write() no longer swallows the empty-name refusal — retire this test";
-    EXPECT_EQ((size_t)(SLOT_MAX + szLevel), body.size()) << "only the type tags and the advancement level are emitted";
+    std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    ASSERT_GT(body.size(), (size_t)SLOT_MAX);
+
+    // The slot-1 record starts right after the three type tags, with the
+    // slayer name's length prefix.
+    ASSERT_EQ((unsigned char)std::string("GoldSlayer").size(), body[SLOT_MAX]);
+
+    body[SLOT_MAX] = 0;
+    LCPCList emptyName;
+    EXPECT_THROW(readImage(emptyName, body), InvalidProtocolException);
+
+    body[SLOT_MAX] = (unsigned char)(maxNameLength + 1);
+    LCPCList longName;
+    EXPECT_THROW(readImage(longName, body), InvalidProtocolException);
 }
 
 } // namespace

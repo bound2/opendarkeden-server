@@ -126,12 +126,14 @@ before anything else moves. Everything later shelters under this pin.
   > goldens (`tests/ratchet/encrypter_exceptions.txt` for the base
   > class). The **CL/LC direction is pinned** — all 33 login-phase
   > packets have code-0 goldens, loopback round trips and
-  > size/factory-max pins (`tests/packet_login_test.cpp`), with three
-  > open write/read disagreements stated as tests that flip when fixed
-  > (`PCSlayerInfo::write` swallowing its empty-name refusal, so
-  > `LCPCList`'s body underflows the size it declares;
-  > `LCRegisterPlayerOK`'s uncapped group name; `LCServerList` /
-  > `LCWorldList` accepting more entries than the factory max budgets).
+  > size/factory-max pins (`tests/packet_login_test.cpp`); the three
+  > write/read disagreements it found are fixed and pinned as the
+  > refusals they now produce (`PCSlayerInfo::write` lets its empty-name
+  > refusal escape like its two sibling records, so `LCPCList` can no
+  > longer emit a body shorter than the size it declares;
+  > `LCRegisterPlayerOK`'s group name is capped at `maxNameLength` and
+  > refused when empty; `LCServerList` / `LCWorldList` refuse an entry
+  > past the count their factory max budgets).
   > Remaining non-encrypter GC/CG coverage outstanding.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
