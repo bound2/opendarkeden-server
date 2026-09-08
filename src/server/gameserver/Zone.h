@@ -110,6 +110,8 @@ public:
     void pushPC(Creature* pCreature);
     void addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir);
     void addPC(Creature* pCreature);
+    void replacePC(Creature* pFrom, Creature* pTo, ZoneCoord_t nx, ZoneCoord_t ny, Dir_t dir,
+                   bool bFindSuitablePosition = false, bool bCheckEffect = true, bool bCheckPortal = true);
     void addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir);
     TPOINT addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCreature = true, Turn_t decayTurn = 0,
                    ObjectID_t DropPetOID = 0);

@@ -4414,6 +4414,48 @@ void Zone::addPC(Creature* pCreature)
     __END_CATCH
 }
 
+//--------------------------------------------------------------------------------
+// Replace a PC with another PC object
+//
+// Used when a character is rebuilt as a different race: pFrom is taken off the
+// tile it stands on and out of the PC manager, then pTo is put on the tile at
+// (nx, ny), given that position and dir, and put into the PC manager. The
+// destination may be the tile pFrom stood on.
+//
+// With bFindSuitablePosition set, (nx, ny) is only the starting point of a
+// search for the nearest tile that is free for pTo's move mode and carries no
+// portal. The search runs after pFrom has been removed, so the tile it vacated
+// is itself a candidate.
+//
+// bCheckEffect and bCheckPortal are handed to Tile::addCreature: they decide
+// whether the destination tile's effects (poison, darkness, trying position)
+// are applied to pTo, and whether a portal on that tile is activated for it.
+//
+// The caller keeps everything else: broadcasting the swap, sending the new
+// character's info, updating scans and disposing of pFrom.
+//--------------------------------------------------------------------------------
+void Zone::replacePC(Creature* pFrom, Creature* pTo, ZoneCoord_t nx, ZoneCoord_t ny, Dir_t dir,
+                     bool bFindSuitablePosition, bool bCheckEffect, bool bCheckPortal) {
+    if (m_pZoneGroup != NULL)
+        m_pZoneGroup->assertOwned();
+
+    Assert(pFrom != NULL);
+    Assert(pTo != NULL);
+
+    getTile(pFrom->getX(), pFrom->getY()).deleteCreature(pFrom->getObjectID());
+    deletePC(pFrom);
+
+    if (bFindSuitablePosition) {
+        TPOINT pt = findSuitablePosition(this, nx, ny, pTo->getMoveMode());
+        nx = pt.x;
+        ny = pt.y;
+    }
+
+    getTile(nx, ny).addCreature(pTo, bCheckEffect, bCheckPortal);
+    pTo->setXYDir(nx, ny, dir);
+    addPC(pTo);
+}
+
 
 //--------------------------------------------------------------------------------
 //

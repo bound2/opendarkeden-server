@@ -330,21 +330,11 @@ void EventMorph::activate()
 
     pZone->broadcastPacket(x, y, &gcEventMorphVampire2, pFromCreature);
 
-    Tile& tile = pZone->getTile(x, y);
+    // Take the slayer off its tile and put the vampire on that same tile,
+    // without applying the tile's effects or activating a portal on it.
+    pZone->replacePC(pFromCreature, pVampire, x, y, dir, false, false, false);
 
-    // Delete FromCreature from tile & PCManager
-    tile.deleteCreature(fromObjectID);
-    pZone->deletePC(pFromCreature);
-
-    // add toCreature
-    tile.addCreature(pVampire, false, false);
-    pZone->addPC(pVampire);
-
-    //	pZone->addPC(pVampire, x, y, pVampire->getDir());
-    //	pZone->deleteCreature(pFromCreature, x, y);
-    //	pZone->morphCreature(pFromCreature, pVampire);
-
-    // 시야 update..
+    // Update the field of view.
     pZone->updateHiddenScan(pVampire);
 
     // 뱀프 기술
