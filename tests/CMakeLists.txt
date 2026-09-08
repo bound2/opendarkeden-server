@@ -353,6 +353,27 @@ add_test(NAME character_creation_tests COMMAND character_creation_tests
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(character_creation_tests PROPERTIES TIMEOUT 60)
 
+# The loginserver's character-selection decision (docs/RESTRUCTURING.md 3.1):
+# decideSelectPC() returns Outcome<SelectedCharacter, SelectPCRejection> over a
+# fake LoginCharacterRepository and a fake SelectPCTopology, so every rejection
+# and the routing of an accepted selection are testable with neither a database
+# nor a game server. Only de-kernel is linked (the type tables) — pulling the
+# transport, the server-info managers or the login server's own state into the
+# decision would break this link.
+add_executable(character_selection_tests EXCLUDE_FROM_ALL
+    character_selection_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/CharacterSelection.cpp
+)
+target_include_directories(character_selection_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(character_selection_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests character_selection_tests)
+add_test(NAME character_selection_tests COMMAND character_selection_tests)
+set_tests_properties(character_selection_tests PROPERTIES TIMEOUT 60)
+
 add_test(
     NAME ratchets
     COMMAND bash ${CMAKE_SOURCE_DIR}/tests/ratchet/ratchets.sh

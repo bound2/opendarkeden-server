@@ -27,6 +27,7 @@ set(LOGINSERVER_SOURCES
     handler/GMServerInfoHandler.cpp
     LoginPacketDispatch.cpp
     CharacterCreation.cpp
+    CharacterSelection.cpp
     ClientManager.cpp
     UserInfoManager.cpp
     GameServerGroupInfoManager.cpp
