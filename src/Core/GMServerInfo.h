@@ -121,7 +121,9 @@ class GMServerInfoFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GM_SERVER_INFO;
     static constexpr std::string_view kName = "GMServerInfo";
-    static constexpr PacketSize_t kMaxSize{szWorldID + szBYTE + 255 * (szBYTE + szDWORD)};
+    // The zone count is a BYTE, so the largest table the layout can carry is
+    // 255 zones, each a ZoneID and a WORD user count.
+    static constexpr PacketSize_t kMaxSize{szWorldID + szBYTE + szBYTE + 255 * (szZoneID + szWORD)};
 
     // create packet
     Packet* createPacket() override {
