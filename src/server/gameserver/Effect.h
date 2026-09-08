@@ -780,7 +780,7 @@ public:
     virtual void unaffect() = 0;
     virtual void unaffect(Creature* pCreature) {
         throw UnsupportedError();
-    } // ¿ø·¡´Â pure virtualÀÌ¾ú´Âµ¥ EffectRelicTable¶§¸Þ ¹Ù²å´Ù. by sigi
+    } // Not pure virtual: EffectRelicTable needs a default.
     virtual void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pTarget) {
         throw UnsupportedError();
     }
