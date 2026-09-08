@@ -23,7 +23,7 @@
 
 class LCRegisterPlayerOK : public Packet {
 public:
-    LCRegisterPlayerOK(){};
+    LCRegisterPlayerOK() : m_isAdult(false) {}
     ~LCRegisterPlayerOK(){};
     // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
     void read(SocketInputStream& iStream);
@@ -53,8 +53,9 @@ public:
     string getGroupName() const {
         return m_GroupName;
     }
+    // Truncates to the width the length prefix and the factory max allow.
     void setGroupName(const string& GroupName) {
-        m_GroupName = GroupName;
+        m_GroupName = (GroupName.size() > maxNameLength) ? GroupName.substr(0, maxNameLength) : GroupName;
     }
 
     // get / set GoreLevel
@@ -94,7 +95,7 @@ class LCRegisterPlayerOKFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_LC_REGISTER_PLAYER_OK;
     static constexpr std::string_view kName = "LCRegisterPlayerOK";
-    static constexpr PacketSize_t kMaxSize{szBYTE + 20 + szBYTE};
+    static constexpr PacketSize_t kMaxSize{szBYTE + maxNameLength + szBYTE};
 
     // create packet
     Packet* createPacket() override {

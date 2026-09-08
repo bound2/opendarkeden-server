@@ -42,8 +42,12 @@ public:
     // ����ȭ��, �̸� ���� ������ ����Ѵ�.
     PacketSize_t getSize();
 
+    // The list packet's factory max budgets this many entries of a
+    // full-width name; LCWorldList refuses one more.
+    static constexpr uint kMaxCount = 37;
+
     static constexpr uint getMaxSize() {
-        return (szBYTE + szBYTE + 20 + szBYTE) * 37;
+        return (szWorldID + szBYTE + maxNameLength + szBYTE) * kMaxCount;
     }
 
     // get packet's debug string
@@ -61,8 +65,9 @@ public:
     string getName() const {
         return m_Name;
     }
+    // Truncates to the width the length prefix and the factory max allow.
     void setName(string Name) {
-        m_Name = Name;
+        m_Name = (Name.size() > maxNameLength) ? Name.substr(0, maxNameLength) : Name;
     }
 
     // get / set  Stat

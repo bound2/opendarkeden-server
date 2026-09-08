@@ -41,6 +41,10 @@ void ServerGroupInfo::read(SocketInputStream& iStream) {
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
     iStream.read(m_GroupID);
     iStream.read(szGroupName);
+
+    if (szGroupName > maxNameLength)
+        throw InvalidProtocolException("too long group name length");
+
     iStream.read(m_GroupName, szGroupName);
     iStream.read(m_Stat);
 
@@ -55,6 +59,9 @@ void ServerGroupInfo::write(SocketOutputStream& oStream) const {
 
     BYTE szGroupName = m_GroupName.size();
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    if (szGroupName > maxNameLength)
+        throw InvalidProtocolException("too long group name length");
+
     oStream.write(m_GroupID);
     oStream.write(szGroupName);
     oStream.write(m_GroupName);
