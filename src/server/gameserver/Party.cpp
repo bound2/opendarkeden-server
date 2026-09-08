@@ -8,6 +8,8 @@
 
 #include <list>
 
+#include <source_location>
+
 #include "CreatureUtil.h"
 #include "Effect.h"
 #include "EffectCanEnterGDRLair.h"
@@ -1906,7 +1908,7 @@ void Party::shareExpansion(Creature* pCaster, int Duration, int Percent)
 void Party::dissectCorpse(Creature* pDissecter, MonsterCorpse* pCorpse) {
     __BEGIN_TRY
 
-    cout << __PRETTY_FUNCTION__ << endl;
+    cout << std::source_location::current().function_name() << endl;
     if (getSize() != 2)
         return;
     cout << "dissectCorpse!" << endl;
@@ -1953,7 +1955,7 @@ void Party::dissectCorpse(Creature* pDissecter, MonsterCorpse* pCorpse) {
 void Party::eventPartyCrash() {
     __BEGIN_TRY
 
-    cout << __PRETTY_FUNCTION__ << endl;
+    cout << std::source_location::current().function_name() << endl;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 

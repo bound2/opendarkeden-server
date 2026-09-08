@@ -17,7 +17,6 @@ void StoreItemInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
     oStream.write(m_ItemExist);
-    //	cout << __PRETTY_FUNCTION__ << " exist : " << (int)m_ItemExist << endl;
 
     if (m_ItemExist != 0) {
         PCItemInfo::write(oStream);

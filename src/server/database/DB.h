@@ -18,10 +18,10 @@
 #define BEGIN_DB try
 #define BEGIN_DB_EX try
 
-// These two stay macros (they are catch clauses, not calls), but the enclosing
-// function name now comes from std::source_location::current() instead of
-// __PRETTY_FUNCTION__. Both are evaluated inside the enclosing function, and
-// under Clang they produce identical text, so DBError.log is unchanged.
+// These two stay macros (they are catch clauses, not calls); the enclosing
+// function name comes from std::source_location::current(), evaluated inside
+// that function. Under Clang it is the text __PRETTY_FUNCTION__ produces, so
+// DBError.log keeps its historical format.
 #define END_DB(STMT)                                                    \
     catch (SQLQueryException & sqe) {                                   \
         delete STMT;                                                    \

@@ -3,20 +3,22 @@
 
 #include <bitset>
 
+#include <source_location>
+
 #include "Exception.h"
 #include "GCSystemAvailabilities.h"
 #include "Types.h"
 
 #if defined(__CHINA_SERVER__) || defined(__THAILAND_SERVER__)
-#define SYSTEM_ASSERT(KIND)                       \
-    SystemAvailabilitiesManager::AssertAvailable( \
-        SystemAvailabilitiesManager::KIND,        \
-        string() + __PRETTY_FUNCTION__ +          \
+#define SYSTEM_ASSERT(KIND)                                          \
+    SystemAvailabilitiesManager::AssertAvailable(                    \
+        SystemAvailabilitiesManager::KIND,                           \
+        string() + std::source_location::current().function_name() + \
             " : 잘못된 클라이언트를 사용했거나 클라이언트와 서버의 정보가 맞지 않습니다.")
 #define SYSTEM_RETURN_IF_NOT(KIND)                                                                     \
     if (!SystemAvailabilitiesManager::getInstance()->isAvailable(SystemAvailabilitiesManager::KIND)) { \
         filelog("SystemAvailabilities.log",                                                            \
-                (string() + __PRETTY_FUNCTION__ +                                                      \
+                (string() + std::source_location::current().function_name() +                          \
                  " : 잘못된 클라이언트를 사용했거나 클라이언트와 서버의 정보가 맞지 않습니다.")        \
                     .c_str());                                                                         \
         return;                                                                                        \

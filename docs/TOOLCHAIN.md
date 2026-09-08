@@ -474,13 +474,24 @@ the old implementation, in no build list) is deleted.
 `tests/diagnostics_test.cpp` pins the message layout, the reported
 file/line/function and the stack-trace format.
 
-No `__FILE__` or `__LINE__` use is left in `src/`. What remains is 81 direct
-`__PRETTY_FUNCTION__` uses in 38 files - mostly
-`throw UnsupportedError(__PRETTY_FUNCTION__)` in unimplemented virtual stubs,
-plus one direct `addStack` call in `GamePlayer.cpp` and one in
-`src/Core/SocketAPI.cpp`. Those are ordinary call sites rather than location
-plumbing: none of them costs a macro layer, so converting them is a separate,
-optional sweep.
+No `__FILE__`, `__LINE__` or `__PRETTY_FUNCTION__` use is left in `src/` code.
+Ratchet R8 holds the count of non-comment lines naming the last of those at 0;
+the comments that explain the `source_location` equivalence still spell it, and
+the rule is line-based, so they do not count.
+
+`UnsupportedError` is what the unimplemented virtual stubs and the
+platform-specific stubs in `FileAPI.cpp` / `SocketAPI.cpp` throw, and its
+default constructor takes the enclosing function from a defaulted
+`std::source_location`: `throw UnsupportedError()` reports the stub's own name,
+with no argument at the throw site, so all ~90 of them are spelled the same
+way. The `const string&` constructor still serves the sites that pass their own
+text. The same defaulted parameter carries the direct `addStack()` call in
+`GamePlayer.cpp`, the two `Party.cpp` debug prints and the `SYSTEM_ASSERT` /
+`SYSTEM_RETURN_IF_NOT` message macros in
+`SystemAvailabilitiesManager.h` (compiled only under `__CHINA_SERVER__` /
+`__THAILAND_SERVER__`, which no build defines). Every one of those messages is
+the text the macro yields at the same point, so logs and stack traces are
+unchanged.
 
 ### Explicit coordination and bounded work
 

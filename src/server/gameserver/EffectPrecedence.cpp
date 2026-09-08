@@ -64,7 +64,7 @@ void EffectPrecedence::affect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object*
 {
     __BEGIN_TRY
 
-    throw UnsupportedError(__PRETTY_FUNCTION__);
+    throw UnsupportedError();
 
     __END_CATCH
 }

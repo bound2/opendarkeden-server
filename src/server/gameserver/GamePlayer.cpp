@@ -279,7 +279,7 @@ GamePlayer::~GamePlayer() noexcept {
         cerr << "GamePlayer::~GamePlayer() : " << nsee.toString() << endl;
         throw "GamePlayer::~GamePlayer() : NoSuchElementException";
     } catch (Throwable& t) {
-        t.addStack(__PRETTY_FUNCTION__);
+        t.addStack();
         throw;
     }
 

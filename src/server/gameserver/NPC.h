@@ -63,7 +63,7 @@ public:
 
     virtual bool load();
     virtual void save() const {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
 
     virtual string toString() const;

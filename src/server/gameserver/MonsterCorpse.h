@@ -42,7 +42,7 @@ public:
         return MONSTER_CORPSE;
     }
     virtual void setItemType(ItemType_t monsterType) {
-        throw UnsupportedError(__PRETTY_FUNCTION__);
+        throw UnsupportedError();
     }
 
     bool isNextTreasureHead() {

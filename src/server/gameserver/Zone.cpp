@@ -259,8 +259,6 @@ bool isPotentialEnemy(Monster* pMonster, Creature* pCreature) {
         Creature* pOwner = pMonster->getZone()->getCreature(pMonster->getOwnerObjectID());
         if (pOwner != NULL && pOwner->getCreatureClass() == pCreature->getCreatureClass() &&
             canAttack(pOwner, pCreature)) {
-            //			cout << __PRETTY_FUNCTION__ << pCreature->getName() << "is same race as owner" <<
-            // pOwner->getName() << endl;
             return false;
         }
 
@@ -5684,7 +5682,7 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                             pPlayer->sendPacket(&gcAddOustersCorpse);
                         } break;
                         case NPC_CORPSE: {
-                            throw UnsupportedError(__PRETTY_FUNCTION__);
+                            throw UnsupportedError();
                         } break;
                         case MONSTER_CORPSE: {
                             MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
@@ -6468,7 +6466,7 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                                     pPlayer->sendPacket(&gcAddOustersCorpse);
                                 } break;
                                 case NPC_CORPSE: {
-                                    throw UnsupportedError(__PRETTY_FUNCTION__);
+                                    throw UnsupportedError();
                                 } break;
                                 case MONSTER_CORPSE: {
                                     MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
@@ -7387,7 +7385,7 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
                                         makeGCAddOustersCorpse(&gcAddOustersCorpse, pOustersCorpse);
                                         pPlayer->sendPacket(&gcAddOustersCorpse);
                                     } else if (IType == NPC_CORPSE) {
-                                        throw UnsupportedError(__PRETTY_FUNCTION__);
+                                        throw UnsupportedError();
                                     } else if (MONSTER_CORPSE) {
                                         MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
                                         GCAddMonsterCorpse gcAddMonsterCorpse;

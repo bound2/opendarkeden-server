@@ -1060,7 +1060,7 @@ void SocketAPI::ioctlsocket_ex(SOCKET s, long cmd, ulong* argp) {
     __BEGIN_TRY
 
 #if defined(__LINUX__) || defined(__APPLE__)
-    throw UnsupportedError(__PRETTY_FUNCTION__);
+    throw UnsupportedError();
 #elif __WINDOWS__
     if (ioctlsocket(s, cmd, argp) == SOCKET_ERROR) {
         switch (WSAGetLastError()) {

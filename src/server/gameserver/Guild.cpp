@@ -262,6 +262,17 @@ bool GuildMember::isRequestDateTimeOut(const VSDateTime& currentDateTime) const
 // global variable initialization
 //////////////////////////////////////////////////////////////////////////////
 
+// The integral guild fields are read on zone threads while the
+// SharedServerManager thread writes them. A lock-based atomic would put a
+// hidden mutex on every one of those reads, so require the lock-free ones.
+static_assert(std::atomic<GuildID_t>::is_always_lock_free);
+static_assert(std::atomic<GuildType_t>::is_always_lock_free);
+static_assert(std::atomic<GuildRace_t>::is_always_lock_free);
+static_assert(std::atomic<GuildState_t>::is_always_lock_free);
+static_assert(std::atomic<ServerGroupID_t>::is_always_lock_free);
+static_assert(std::atomic<ZoneID_t>::is_always_lock_free);
+static_assert(std::atomic<GuildMemberRank_t>::is_always_lock_free);
+
 GuildID_t Guild::m_MaxGuildID = 0;
 ZoneID_t Guild::m_MaxSlayerZoneID = 10000;
 ZoneID_t Guild::m_MaxVampireZoneID = 20000;
@@ -277,6 +288,7 @@ Guild::Guild()
     m_ID = 0;
     m_Name = "";
     m_Type = 0;
+    m_Race = 0;
     m_State = 0;
     m_ServerGroupID = 0;
     m_ZoneID = 0;
@@ -424,6 +436,96 @@ void Guild::destroy()
 // compiles its own Guild.cpp). Gone with their SQL.
 
 
+//////////////////////////////////////////////////////////////////////////////
+// string identity fields: copied in and out under m_Mutex
+//
+// Each of these takes m_Mutex and nothing else, so the mutex stays a leaf and
+// a caller may hold any other lock across the call. m_Mutex is not recursive,
+// so none of them may be called from code that already holds this guild's
+// mutex; such code reads and writes the members directly.
+//////////////////////////////////////////////////////////////////////////////
+
+string Guild::getName() const {
+    string name;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    name = m_Name;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return name;
+}
+
+void Guild::setName(const string& name) {
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    m_Name = name;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+}
+
+string Guild::getMaster() const {
+    string master;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    master = m_Master;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return master;
+}
+
+void Guild::setMaster(const string& master) {
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    m_Master = master;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+}
+
+string Guild::getDate() const {
+    string date;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    date = m_Date;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return date;
+}
+
+void Guild::setDate(const string& Date) {
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    m_Date = Date;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+}
+
+string Guild::getIntro() const {
+    string intro;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    intro = m_Intro;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    return intro;
+}
+
+void Guild::setIntro(const string& intro) {
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    m_Intro = intro;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+}
+
+
 GuildMember* Guild::getMember(const string& name) const
 
 {
@@ -529,11 +631,7 @@ void Guild::addMember(GuildMember* pMember)
 
     Assert(pMember);
 
-    HashMapGuildMemberConstItor itr;
-
-    itr = m_Members.find(pMember->getName());
-
-    if (itr != m_Members.end()) {
+    if (m_Members.contains(pMember->getName())) {
         throw DuplicatedException();
     }
 
@@ -680,7 +778,7 @@ void Guild::addCurrentMember(const string& name) {
 
     __ENTER_CRITICAL_SECTION(m_Mutex) // 다른 뮤텍스 써도 될 듯한데.. 귀찮아..
 
-    if (m_CurrentMembers.end() != find(m_CurrentMembers.begin(), m_CurrentMembers.end(), name)) {
+    if (std::ranges::find(m_CurrentMembers, name) != m_CurrentMembers.end()) {
         return;
     }
 
@@ -704,7 +802,7 @@ void Guild::deleteCurrentMember(const string& name) {
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    list<string>::iterator itr = find(m_CurrentMembers.begin(), m_CurrentMembers.end(), name);
+    list<string>::iterator itr = std::ranges::find(m_CurrentMembers, name);
 
     if (m_CurrentMembers.end() == itr) {
         return;
@@ -865,10 +963,25 @@ string Guild::toString() const
 {
     __BEGIN_TRY
 
+    string name;
+    string master;
+    string date;
+
+    __ENTER_CRITICAL_SECTION(m_Mutex)
+
+    name = m_Name;
+    master = m_Master;
+    date = m_Date;
+
+    __LEAVE_CRITICAL_SECTION(m_Mutex)
+
+    // The atomics are loaded after the strings were copied, so a concurrent
+    // writer can leave the line describing two moments of the guild. That is
+    // enough for a diagnostic dump.
     StringStream msg;
-    msg << " GuildID = " << m_ID << " GuildName = " << m_Name << " GuildType = " << (int)m_Type
-        << " GuildState = " << (int)m_State << " ServerGroupID = " << (int)m_ServerGroupID
-        << " GuildZoneID = " << (int)m_ZoneID << " Master = " << m_Master << " Date = " << m_Date << "\n";
+    msg << " GuildID = " << getID() << " GuildName = " << name << " GuildType = " << (int)getType()
+        << " GuildState = " << (int)getState() << " ServerGroupID = " << (int)getServerGroupID()
+        << " GuildZoneID = " << (int)getZoneID() << " Master = " << master << " Date = " << date << "\n";
 
     return msg.toString();
 

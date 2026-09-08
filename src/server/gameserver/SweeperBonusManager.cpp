@@ -135,7 +135,7 @@ void SweeperBonusManager::save()
 {
     __BEGIN_TRY
 
-    throw UnsupportedError(__PRETTY_FUNCTION__);
+    throw UnsupportedError();
 
     __END_CATCH
 }

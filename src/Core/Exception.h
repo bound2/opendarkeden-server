@@ -122,7 +122,7 @@ private:
 #define __END_CATCH_NO_RETHROW ((void)0);
 #else
 // t.addStack() takes the enclosing function from its defaulted
-// std::source_location, so these macros no longer forward __PRETTY_FUNCTION__.
+// std::source_location, so these macros carry no location plumbing of their own.
 #define __BEGIN_TRY try {
 #define __END_CATCH         \
     }                       \
@@ -914,7 +914,11 @@ public:
 //////////////////////////////////////////////////////////////////////
 class UnsupportedError : public Error {
 public:
-    UnsupportedError() : Error() {}
+    // The message is the enclosing function of the throw site, captured by
+    // the defaulted std::source_location. Under Clang function_name() is the
+    // same text __PRETTY_FUNCTION__ produces, so the message reads like the
+    // function names in a stack trace.
+    UnsupportedError(const std::source_location& loc = std::source_location::current()) : Error(loc.function_name()) {}
     UnsupportedError(const string& msg) : Error(msg) {}
     string getName() const {
         return "UnsupportedError";

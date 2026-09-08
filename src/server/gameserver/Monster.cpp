@@ -95,8 +95,6 @@ bool Monster::isRealEnemy(Creature* pEnemy)
     if (m_OwnerObjectID != 0) {
         Creature* pOwner = m_pZone->getCreature(m_OwnerObjectID);
         if (pOwner != NULL && pOwner->getCreatureClass() == pEnemy->getCreatureClass() && canAttack(pOwner, pEnemy)) {
-            //			cout << __PRETTY_FUNCTION__ << pEnemy->getName() << "is same class as owner" <<
-            // pOwner->getName() << endl;
             return false;
         }
 
@@ -1069,7 +1067,7 @@ void Monster::addEnemy(Creature* pCreature)
 
         // 전사 먼저 공격
         case ATTACK_FIGHTER: {
-            throw UnsupportedError(__PRETTY_FUNCTION__);
+            throw UnsupportedError();
 
             // 일단 추가한다.
             m_Enemies.push_back(pCreature->getObjectID());
@@ -1085,7 +1083,7 @@ void Monster::addEnemy(Creature* pCreature)
 
         // 성직자 먼저 공격
         case ATTACK_PRIEST: {
-            throw UnsupportedError(__PRETTY_FUNCTION__);
+            throw UnsupportedError();
 
             // 일단 추가한다.
             m_Enemies.push_back(pCreature->getObjectID());
@@ -1101,7 +1099,7 @@ void Monster::addEnemy(Creature* pCreature)
 
         // 건너 먼저 공격
         case ATTACK_GUNNER: {
-            throw UnsupportedError(__PRETTY_FUNCTION__);
+            throw UnsupportedError();
 
             // 일단 추가한다.
             m_Enemies.push_back(pCreature->getObjectID());
@@ -1558,8 +1556,6 @@ bool Monster::isEnemyToAttack(Creature* pCreature) const {
         Creature* pOwner = m_pZone->getCreature(m_OwnerObjectID);
         if (pOwner != NULL && pOwner->getCreatureClass() == pCreature->getCreatureClass() &&
             canAttack(pOwner, pCreature)) {
-            //			cout << __PRETTY_FUNCTION__ << pCreature->getName() << "is same race as owner " <<
-            // pOwner->getName() << endl;
             return false;
         }
 
