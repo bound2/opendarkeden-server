@@ -118,10 +118,23 @@ decideCreatePC(const CreatePCRequest& request, LoginCharacterRepository& reposit
         return Result::Rejected(CreatePCRejection::DisallowedCharacters);
 #endif
 
-    // The name must be free and the slot empty.
+    // The name must be free.
     if (repository.slayerNameExists(request.worldID, request.name))
         return Result::Rejected(CreatePCRejection::NameTaken);
 
+    // The slot and hair style index Slot2String and HairStyle2String, which
+    // have one entry per enumerator and none to spare. CLCreatePC::read
+    // refuses a byte outside either range, so nothing off the wire arrives
+    // here out of range; this repeats the check for callers that build a
+    // request without going through the packet, and keeps the decision
+    // total over the values its request type can hold.
+    if (request.slot < (int)SLOT1 || request.slot >= (int)SLOT_MAX)
+        return Result::Rejected(CreatePCRejection::InvalidSlot);
+
+    if (request.hairStyle < (int)HAIR_STYLE1 || request.hairStyle > (int)HAIR_STYLE3)
+        return Result::Rejected(CreatePCRejection::InvalidHairStyle);
+
+    // The slot must be empty.
     if (repository.slotOccupied(request.worldID, request.playerID, Slot2String[request.slot]))
         return Result::Rejected(CreatePCRejection::SlotOccupied);
 

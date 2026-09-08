@@ -57,10 +57,11 @@ public:
     // *OPTIMIZATION HINT*
     // const static CLCreatePCPacketSize 를 정의, 리턴하라.
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_Name.size()                     // 이름
-               + szSlot                                   // 슬랏
-               + szBYTE                                   // 슬레이어 플래그(3 bit)
-               + szAttr * 3 + szColor * SLAYER_COLOR_MAX; // 색깔 정보
+        return szBYTE + m_Name.size()                    // name
+               + szSlot                                  // slot
+               + szBYTE                                  // slayer flags (3 bits)
+               + szAttr * 3 + szColor * SLAYER_COLOR_MAX // attributes and colours
+               + szRace;                                 // race
     }
 
     // get packet's name

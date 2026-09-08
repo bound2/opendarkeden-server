@@ -91,11 +91,17 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
                 lcCreatePCError.setErrorID(ETC_ERROR);
                 break;
 
+            // The three below mean the client is not speaking the protocol,
+            // so the connection is dropped rather than answered with an
+            // error packet: the creation screen cannot produce any of them.
             case CreatePCRejection::InvalidAttributes:
-                // Attributes the creation screen cannot produce mean the
-                // client is not speaking the protocol, so the connection is
-                // dropped rather than answered with an error packet.
                 throw InvalidProtocolException("CLCreatePCHandler::too large character attribute");
+
+            case CreatePCRejection::InvalidSlot:
+                throw InvalidProtocolException("CLCreatePCHandler::slot out of range");
+
+            case CreatePCRejection::InvalidHairStyle:
+                throw InvalidProtocolException("CLCreatePCHandler::hair style out of range");
             }
 
             pLoginPlayer->sendPacket(&lcCreatePCError); // tell the client the creation failed

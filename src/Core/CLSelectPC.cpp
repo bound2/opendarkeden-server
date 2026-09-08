@@ -27,10 +27,16 @@ void CLSelectPC::read(SocketInputStream& iStream)
     // read pc type
     BYTE pcType;
     iStream.read(pcType);
-    m_PCType = PCType(pcType);
 
-    if (m_PCType != PC_SLAYER && m_PCType != PC_VAMPIRE && m_PCType != PC_OUSTERS)
-        throw InvalidProtocolException("invalid pc type");
+    // PC_OUSTERS is the last PCType (the enum has no count enumerator) and
+    // PCType2String has one entry per type. The byte is checked before it
+    // becomes a PCType: an enum object holding a value outside its
+    // enumeration is undefined to load, so a comparison placed after the
+    // assignment could not be reached with the input it exists to refuse.
+    if (pcType > (BYTE)PC_OUSTERS)
+        throw InvalidProtocolException("pc type out of range");
+
+    m_PCType = PCType(pcType);
 
     __END_CATCH
 }

@@ -9,10 +9,10 @@
 
 #include "repository/LoginCharacterRepository.h"
 
-// In-memory LoginCharacterRepository for the character-creation tests.
-// Only the probes and inserts creation uses carry behaviour; the
-// selection and character-list reads are present to satisfy the
-// interface and answer "no row".
+// In-memory LoginCharacterRepository for the character-creation and
+// character-selection tests. The probes and inserts creation uses and the
+// selection read carry behaviour; the character-list reads are present to
+// satisfy the interface and answer "no row".
 //
 // The balance tables answer from maps that start empty, which is the
 // real "no such row" case: the loaders leave the caller's value
@@ -32,6 +32,24 @@ public:
     std::map<std::pair<int, int>, int> attrGoalExp;
     std::map<std::pair<int, int>, int> attrAccumExp;
 
+    // --- what a selection finds -------------------------------------------
+    // (table, playerID, name) -> the ACTIVE row of that character. A key
+    // that is absent is the "no such PC" case.
+    typedef std::pair<std::string, std::string> AccountAndName;
+    std::map<std::pair<int, AccountAndName>, LoginSelectRow> selectableCharacters;
+
+    // Adds a selectable character, filling every column the selection
+    // reads.
+    void addSelectableCharacter(LoginRaceTable table, const std::string& playerID, const std::string& name, WORD zoneID,
+                                const std::string& slot, int level, int competence) {
+        LoginSelectRow row;
+        row.zoneID = zoneID;
+        row.slot = slot;
+        row.level = level;
+        row.competence = competence;
+        selectableCharacters[std::make_pair((int)table, std::make_pair(playerID, name))] = row;
+    }
+
     // --- what was written -------------------------------------------------
     std::vector<LoginNewSlayer> insertedSlayers;
     std::vector<LoginNewVampire> insertedVampires;
@@ -46,6 +64,7 @@ public:
     int attrAccumExpCalls = 0;
     int slayerNameExistsCalls = 0;
     int slotOccupiedCalls = 0;
+    int loadCharacterForSelectCalls = 0;
 
     bool slayerNameExists(WorldID_t, const std::string& name) {
         slayerNameExistsCalls++;
@@ -124,8 +143,15 @@ public:
         insertedFlagSets.push_back(std::make_pair(name, preset));
     }
 
-    bool loadCharacterForSelect(WorldID_t, LoginRaceTable, const std::string&, const std::string&, LoginSelectRow&) {
-        return false;
+    bool loadCharacterForSelect(WorldID_t, LoginRaceTable table, const std::string& name, const std::string& playerID,
+                                LoginSelectRow& row) {
+        loadCharacterForSelectCalls++;
+        std::map<std::pair<int, AccountAndName>, LoginSelectRow>::const_iterator itr =
+            selectableCharacters.find(std::make_pair((int)table, std::make_pair(playerID, name)));
+        if (itr == selectableCharacters.end())
+            return false;
+        row = itr->second;
+        return true;
     }
 
     void setCharacterServerGroup(WorldID_t, int, const std::string&) {}
