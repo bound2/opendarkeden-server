@@ -7,26 +7,60 @@
 #include "CLRegisterPlayer.h"
 
 #ifdef __LOGIN_SERVER__
-#include <exception>
+#include <utility>
 
 #include "Assert1.h"
 #include "GameServerGroupInfoManager.h"
 #include "LCRegisterPlayerError.h"
 #include "LCRegisterPlayerOK.h"
 #include "LoginPlayer.h"
-#include "PasswordHash.h"
 #include "Properties.h"
+#include "Registration.h"
 #include "repository/LoginAccountRepository.h"
 #endif
 
 #ifdef __LOGIN_SERVER__
 namespace {
 
-// Every string in the registration packet except the password (only its
-// argon2 hash reaches SQL) is interpolated into SQL text verbatim, so
-// anything that could break out of a quoted literal is refused.
-bool containsSqlMetaCharacter(const string& s) {
-    return s.find_first_of("'\\\";") != string::npos;
+// A registration may fail this many times on one connection before it is
+// dropped.
+const uint kMaxFailure = 3;
+
+// The LCRegisterPlayerError code each refusal answers with.
+BYTE errorIDFor(RegisterPlayerRejection reason) {
+    switch (reason) {
+    case RegisterPlayerRejection::EmptyID:
+        return EMPTY_ID;
+    case RegisterPlayerRejection::ShortID:
+        return SMALL_ID_LENGTH;
+    case RegisterPlayerRejection::EmptyPassword:
+        return EMPTY_PASSWORD;
+    case RegisterPlayerRejection::ShortPassword:
+        return SMALL_PASSWORD_LENGTH;
+    case RegisterPlayerRejection::EmptyName:
+        return EMPTY_NAME;
+    case RegisterPlayerRejection::EmptySSN:
+        return EMPTY_SSN;
+    case RegisterPlayerRejection::AlreadyRegistered:
+        return ALREADY_REGISTER_ID;
+    case RegisterPlayerRejection::InvalidID:
+    case RegisterPlayerRejection::InvalidProfileField:
+    case RegisterPlayerRejection::PasswordHashingFailed:
+        break;
+    }
+
+    return ETC_ERROR;
+}
+
+// A registration that failed but left the connection standing: the session
+// waits for another CLRegisterPlayer until the failure count runs out.
+void countFailureOrDisconnect(LoginPlayer* pLoginPlayer) {
+    uint nFailed = pLoginPlayer->getFailureCount() + 1;
+    if (nFailed > kMaxFailure)
+        throw DisconnectException("too many failure");
+    pLoginPlayer->setFailureCount(nFailed);
+
+    pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
 }
 
 } // namespace
@@ -52,131 +86,68 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
-    // cout << "Registering Player... " << endl;
-
-    //----------------------------------------------------------------------
-    // Ensure the login user ID is "guest".
-    //----------------------------------------------------------------------
-    //	if (pLoginPlayer->getID() != "guest")
-    //		throw InvalidProtocolException("must be guest user");
-
-    //----------------------------------------------------------------------
-    // Validate player profile fields; use NULL checks for each string.
-    //----------------------------------------------------------------------
     LCRegisterPlayerError lcRegisterPlayerError;
-
-    try {
-        // cout << "Player registration : " << pPacket->toString() << endl;
-
-        if (pPacket->getID() == "") {
-            lcRegisterPlayerError.setErrorID(EMPTY_ID);
-            throw string("ID field is empty");
-        }
-
-        if (pPacket->getID().size() < 4) {
-            lcRegisterPlayerError.setErrorID(SMALL_ID_LENGTH);
-            throw string("too small ID length");
-        }
-
-        if (containsSqlMetaCharacter(pPacket->getID())) {
-            lcRegisterPlayerError.setErrorID(ETC_ERROR);
-            throw string("Invalid ID");
-        }
-
-        if (pPacket->getPassword() == "") {
-            lcRegisterPlayerError.setErrorID(EMPTY_PASSWORD);
-            throw string("Password field is empty");
-        }
-
-        if (pPacket->getPassword().size() < 6) {
-            lcRegisterPlayerError.setErrorID(SMALL_PASSWORD_LENGTH);
-            throw string("too small password length");
-        }
-
-        if (pPacket->getName() == "") {
-            lcRegisterPlayerError.setErrorID(EMPTY_NAME);
-            throw string("Name field is empty");
-        }
-
-        if (pPacket->getSSN() == "") {
-            lcRegisterPlayerError.setErrorID(EMPTY_SSN);
-            throw string("SSN field is empty");
-        }
-
-        if (containsSqlMetaCharacter(pPacket->getName()) || containsSqlMetaCharacter(pPacket->getSSN()) ||
-            containsSqlMetaCharacter(pPacket->getTelephone()) || containsSqlMetaCharacter(pPacket->getCellular()) ||
-            containsSqlMetaCharacter(pPacket->getZipCode()) || containsSqlMetaCharacter(pPacket->getAddress()) ||
-            containsSqlMetaCharacter(pPacket->getEmail()) || containsSqlMetaCharacter(pPacket->getHomepage()) ||
-            containsSqlMetaCharacter(pPacket->getProfile())) {
-            lcRegisterPlayerError.setErrorID(ETC_ERROR);
-            throw string("Invalid profile field");
-        }
-
-    } catch (string& errstr) {
-        pLoginPlayer->sendPacket(&lcRegisterPlayerError);
-
-        // cout << lcRegisterPlayerError.toString() << endl;
-
-        // For now disconnect the client on validation failure.
-        // *TODO* Allow guest to retry without full disconnect.
-        throw DisconnectException(lcRegisterPlayerError.toString());
-    }
-
-
-    //----------------------------------------------------------------------
-    // Insert into the database.
-    //----------------------------------------------------------------------
-
-    //----------------------------------------------------------------------
-    // Hash the password before touching the database. Only the hash is
-    // stored; CLLoginHandler verifies logins against it in C++.
-    //----------------------------------------------------------------------
-    string hashedPassword;
-    try {
-        hashedPassword = de::password::hash(pPacket->getPassword());
-    } catch (const std::exception& e) {
-        lcRegisterPlayerError.setErrorID(ETC_ERROR);
-        pLoginPlayer->sendPacket(&lcRegisterPlayerError);
-        filelog("loginfail.txt", "Password hashing failed, PlayerID : %s : %s", pPacket->getID().c_str(), e.what());
-        throw DisconnectException("password hashing failed");
-    }
-
     LoginAccountRepository& repo = defaultLoginAccountRepository();
 
+    RegisterPlayerRequest request;
+    request.playerID = pPacket->getID();
+    request.password = pPacket->getPassword();
+    request.name = pPacket->getName();
+    request.sex = pPacket->getSex();
+    request.ssn = pPacket->getSSN();
+    request.telephone = pPacket->getTelephone();
+    request.cellular = pPacket->getCellular();
+    request.zipCode = pPacket->getZipCode();
+    request.address = pPacket->getAddress();
+    request.nation = (int)pPacket->getNation();
+    request.email = pPacket->getEmail();
+    request.homepage = pPacket->getHomepage();
+    request.profile = pPacket->getProfile();
+    request.publicProfile = pPacket->getPublic();
+
     try {
-        if (repo.accountExists(pPacket->getID())) {
-            lcRegisterPlayerError.setErrorID(ALREADY_REGISTER_ID);
-            throw DuplicatedException("that ID already exists");
+        Outcome<LoginNewAccount, RegisterPlayerRefusal> outcome = decideRegisterPlayer(request, repo);
+
+        if (outcome.isRejected()) {
+            const RegisterPlayerRefusal rejection = std::move(outcome).rejection();
+
+            lcRegisterPlayerError.setErrorID(errorIDFor(rejection.reason));
+            pLoginPlayer->sendPacket(&lcRegisterPlayerError);
+
+            if (rejection.reason == RegisterPlayerRejection::AlreadyRegistered) {
+                countFailureOrDisconnect(pLoginPlayer);
+                return;
+            }
+
+            if (rejection.reason == RegisterPlayerRejection::PasswordHashingFailed) {
+                filelog("loginfail.txt", "Password hashing failed, PlayerID : %s : %s", request.playerID.c_str(),
+                        rejection.detail.c_str());
+                throw DisconnectException("password hashing failed");
+            }
+
+            // For now disconnect the client on validation failure.
+            // *TODO* Allow guest to retry without full disconnect.
+            throw DisconnectException(lcRegisterPlayerError.toString());
         }
 
-        LoginNewAccount account;
-        account.playerID = pPacket->getID();
-        account.password = hashedPassword;
-        account.name = pPacket->getName();
-        account.sex = Sex2String[pPacket->getSex()];
-        account.ssn = pPacket->getSSN();
-        account.telephone = pPacket->getTelephone();
-        account.cellular = pPacket->getCellular();
-        account.zipCode = pPacket->getZipCode();
-        account.address = pPacket->getAddress();
-        account.nation = (int)pPacket->getNation();
-        account.email = pPacket->getEmail();
-        account.homepage = pPacket->getHomepage();
-        account.profile = pPacket->getProfile();
-        account.pub = (pPacket->getPublic() == true) ? "PUBLIC" : "PRIVATE";
+        const LoginNewAccount account = std::move(outcome).events();
 
         repo.insertAccount(account);
 
         // The new account is logged on at once.
         repo.markLoggedOnAfterRegister(pLoginPlayer->getSocket()->getHost(), g_pConfig->getPropertyInt("LoginServerID"),
-                                       pPacket->getID());
+                                       request.playerID);
 
         int currentWorldID = 0;
         int currentServerGroupID = 0;
-        if (!repo.loadCurrentLocation(LOGIN_LOCATION_SQL_UPPER, pPacket->getID(), currentWorldID,
+        if (!repo.loadCurrentLocation(LOGIN_LOCATION_SQL_UPPER, request.playerID, currentWorldID,
                                       currentServerGroupID)) {
+            // The row that was just inserted could not be read back.
             lcRegisterPlayerError.setErrorID(ETC_ERROR);
-            throw SQLQueryException("the new player row could not be read back after the insert");
+            pLoginPlayer->sendPacket(&lcRegisterPlayerError);
+
+            countFailureOrDisconnect(pLoginPlayer);
+            return;
         }
 
         WorldID_t WorldID = currentWorldID;
@@ -190,44 +161,16 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
         lcRegisterPlayerOK.setAdult(true);
         pLoginPlayer->sendPacket(&lcRegisterPlayerOK);
 
-        pLoginPlayer->setID(pPacket->getID());
+        pLoginPlayer->setID(request.playerID);
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
-    } catch (DuplicatedException& de) {
-        pLoginPlayer->sendPacket(&lcRegisterPlayerError);
-
-        uint nFailed = pLoginPlayer->getFailureCount() + 1;
-        if (nFailed > 3)
-            throw DisconnectException("too many failure");
-        pLoginPlayer->setFailureCount(nFailed);
-
-        // Registration failed; wait for another CLRegisterPlayer.
-        pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
-    } catch (SQLQueryException& sqe) {
-        // The handler's own throw above: the row could not be read back.
-        lcRegisterPlayerError.setErrorID(ETC_ERROR);
-        pLoginPlayer->sendPacket(&lcRegisterPlayerError);
-
-        uint nFailed = pLoginPlayer->getFailureCount() + 1;
-        if (nFailed > 3)
-            throw DisconnectException("too many failure");
-        pLoginPlayer->setFailureCount(nFailed);
-
-        // Registration failed; wait for another CLRegisterPlayer.
-        pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
     } catch (const char*) {
         // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); answered like the case
-        // above.
+        // DBError.log (its own message dangles); answered like the
+        // read-back failure above.
         lcRegisterPlayerError.setErrorID(ETC_ERROR);
         pLoginPlayer->sendPacket(&lcRegisterPlayerError);
 
-        uint nFailed = pLoginPlayer->getFailureCount() + 1;
-        if (nFailed > 3)
-            throw DisconnectException("too many failure");
-        pLoginPlayer->setFailureCount(nFailed);
-
-        // Registration failed; wait for another CLRegisterPlayer.
-        pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_REGISTER_PLAYER);
+        countFailureOrDisconnect(pLoginPlayer);
     }
     __END_DEBUG
 

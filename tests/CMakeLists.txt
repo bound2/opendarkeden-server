@@ -456,3 +456,69 @@ target_link_libraries(exchange_decision_tests PRIVATE de-kernel gtest_main Threa
 add_dependencies(wire_tests exchange_decision_tests)
 add_test(NAME exchange_decision_tests COMMAND exchange_decision_tests)
 set_tests_properties(exchange_decision_tests PROPERTIES TIMEOUT 60)
+
+# The loginserver's character-deletion decision (docs/RESTRUCTURING.md 3.1):
+# decideDeletePC() returns Outcome<void, DeletePCRejection> over a fake
+# LoginCharacterPurgeRepository, so the ownership check, the compare-and-set
+# retirement and the precedence between the refusals are testable with no
+# database. Only de-kernel is linked (the type tables) — pulling the
+# transport or the login server's own state into the decision would break
+# this link.
+add_executable(character_deletion_tests EXCLUDE_FROM_ALL
+    character_deletion_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/CharacterDeletion.cpp
+)
+target_include_directories(character_deletion_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(character_deletion_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests character_deletion_tests)
+add_test(NAME character_deletion_tests COMMAND character_deletion_tests)
+set_tests_properties(character_deletion_tests PROPERTIES TIMEOUT 60)
+
+# The loginserver's reconnect decision (docs/RESTRUCTURING.md 3.1):
+# decideReconnectLogin() returns Outcome<ReconnectAccepted,
+# ReconnectRejection> over a fake LoginAccountRepository and a fake
+# ReconnectSession, so every refusal, the precedence between them and the
+# session state the decision writes are testable with neither a database nor
+# a socket. Only de-kernel is linked (the type tables) — pulling the
+# transport or the login server's own state into the decision would break
+# this link.
+add_executable(reconnect_decision_tests EXCLUDE_FROM_ALL
+    reconnect_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/ReconnectDecision.cpp
+)
+target_include_directories(reconnect_decision_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(reconnect_decision_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests reconnect_decision_tests)
+add_test(NAME reconnect_decision_tests COMMAND reconnect_decision_tests)
+set_tests_properties(reconnect_decision_tests PROPERTIES TIMEOUT 60)
+
+# The loginserver's account-registration decision (docs/RESTRUCTURING.md
+# 3.1): decideRegisterPlayer() returns Outcome<LoginNewAccount,
+# RegisterPlayerRefusal> over a fake LoginAccountRepository, so every
+# refusal, the precedence between them and the Player row an accepted
+# registration produces are testable with no database. PasswordHash is
+# linked because the decision hashes the password with the real argon2id;
+# de-kernel carries the type tables. Pulling the transport or the login
+# server's own state into the decision would break this link.
+add_executable(registration_tests EXCLUDE_FROM_ALL
+    registration_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/Registration.cpp
+)
+target_include_directories(registration_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(registration_tests PRIVATE PasswordHash de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests registration_tests)
+add_test(NAME registration_tests COMMAND registration_tests)
+# A handful of 64 MiB argon2id computations in the accepted cases.
+set_tests_properties(registration_tests PROPERTIES TIMEOUT 180)

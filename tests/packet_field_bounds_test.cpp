@@ -33,6 +33,7 @@
 #include <gtest/gtest.h>
 
 #include "CLCreatePC.h"
+#include "CLDeletePC.h"
 #include "CLSelectPC.h"
 #include "Exception.h"
 #include "TestStreams.h"
@@ -92,6 +93,14 @@ CLSelectPC highestValidSelectPC() {
     return packet;
 }
 
+CLDeletePC highestValidDeletePC() {
+    CLDeletePC packet;
+    packet.setName(kName);
+    packet.setSlot(SLOT3);
+    packet.setSSN("1234567890");
+    return packet;
+}
+
 // write() lays CLCreatePC out as: name length, name, slot, flags, colors,
 // attributes, race. So the slot is the byte after the name and the flags
 // byte follows it.
@@ -100,6 +109,9 @@ const size_t kCreatePCFlagsOffset = kCreatePCSlotOffset + 1;
 
 // CLSelectPC is name length, name, pc type.
 const size_t kSelectPCTypeOffset = 1 + sizeof("TestName") - 1;
+
+// CLDeletePC is name length, name, slot, SSN length, SSN.
+const size_t kDeletePCSlotOffset = 1 + sizeof("TestName") - 1;
 
 std::vector<unsigned char> patched(const std::vector<unsigned char>& bytes, size_t offset, unsigned char value) {
     std::vector<unsigned char> copy(bytes);
@@ -249,6 +261,51 @@ TEST(CLSelectPCFieldBounds, everyRealPCTypeIsAccepted) {
         CLSelectPC dst;
         readImage(dst, patched(base, kSelectPCTypeOffset, (unsigned char)types[i]));
         EXPECT_EQ(types[i], dst.getPCType());
+    }
+}
+
+//////////////////////////////////////////////////////////////////////
+// CLDeletePC
+//////////////////////////////////////////////////////////////////////
+
+TEST(CLDeletePCFieldBounds, theImageUnderTestIsTheRealWireLayout) {
+    const std::vector<unsigned char> bytes = writeBody(highestValidDeletePC(), kPlainCode);
+
+    ASSERT_GT(bytes.size(), kDeletePCSlotOffset);
+    EXPECT_EQ(std::string(kName).size(), (size_t)bytes[0]);
+    EXPECT_EQ((unsigned char)SLOT3, bytes[kDeletePCSlotOffset]);
+}
+
+TEST(CLDeletePCFieldBounds, everyFieldAtItsHighestValidValueReadsBack) {
+    CLDeletePC dst;
+    readImage(dst, writeBody(highestValidDeletePC(), kPlainCode));
+
+    EXPECT_EQ(std::string(kName), dst.getName());
+    EXPECT_EQ(SLOT3, dst.getSlot());
+    EXPECT_EQ(std::string("1234567890"), dst.getSSN());
+}
+
+TEST(CLDeletePCFieldBounds, aSlotByteOutsideTheThreeSlotsIsRefused) {
+    // The slot indexes Slot2String on the statements the deletion runs, so
+    // a byte past the last slot never reaches the member.
+    const unsigned char slots[] = {(unsigned char)SLOT_MAX, 4, 17, 255};
+    const std::vector<unsigned char> base = writeBody(highestValidDeletePC(), kPlainCode);
+
+    for (size_t i = 0; i < sizeof(slots) / sizeof(slots[0]); i++) {
+        CLDeletePC dst;
+        EXPECT_THROW(readImage(dst, patched(base, kDeletePCSlotOffset, slots[i])), InvalidProtocolException)
+            << "slot " << (int)slots[i];
+    }
+}
+
+TEST(CLDeletePCFieldBounds, everyRealSlotByteIsAccepted) {
+    const Slot slots[] = {SLOT1, SLOT2, SLOT3};
+    const std::vector<unsigned char> base = writeBody(highestValidDeletePC(), kPlainCode);
+
+    for (size_t i = 0; i < sizeof(slots) / sizeof(slots[0]); i++) {
+        CLDeletePC dst;
+        readImage(dst, patched(base, kDeletePCSlotOffset, (unsigned char)slots[i]));
+        EXPECT_EQ(slots[i], dst.getSlot());
     }
 }
 

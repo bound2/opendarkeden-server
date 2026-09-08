@@ -7,6 +7,8 @@
 #include "CLReconnectLogin.h"
 
 #ifdef __LOGIN_SERVER__
+#include <utility>
+
 #include "Assert1.h"
 #include "GCDisconnect.h"
 #include "GameServerInfoManager.h"
@@ -14,24 +16,60 @@
 #include "LoginPlayer.h"
 #include "OptionInfo.h"
 #include "Properties.h"
+#include "ReconnectDecision.h"
 #include "ReconnectLoginInfoManager.h"
 #include "repository/LoginAccountRepository.h"
 
 #endif
 
+#ifdef __LOGIN_SERVER__
+namespace {
+
+// ReconnectSession over the LoginPlayer the reconnect is running for.
+class ReconnectPlayerSession : public ReconnectSession {
+public:
+    explicit ReconnectPlayerSession(LoginPlayer* pLoginPlayer) : m_pLoginPlayer(pLoginPlayer) {}
+
+    void setWorldID(int worldID) override {
+        m_pLoginPlayer->setWorldID((WorldID_t)worldID);
+    }
+
+    void setServerGroupID(int serverGroupID) override {
+        m_pLoginPlayer->setServerGroupID((ServerGroupID_t)serverGroupID);
+    }
+
+    void setID(const string& playerID) override {
+        m_pLoginPlayer->setID(playerID);
+    }
+
+    void setPayPlayValue(int payType, const string& payPlayDate, int payPlayHours, uint payPlayFlag) override {
+        m_pLoginPlayer->setPayPlayValue((PayType)payType, payPlayDate, payPlayHours, payPlayFlag);
+    }
+
+    bool loginPayPlay(int payType, const string& payPlayDate, int payPlayHours, uint payPlayFlag, const string& ip,
+                      const string& playerID) override {
+        return m_pLoginPlayer->loginPayPlay((PayType)payType, payPlayDate, payPlayHours, payPlayFlag, ip, playerID);
+    }
+
+private:
+    LoginPlayer* m_pLoginPlayer;
+};
+
+} // namespace
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 // CLReconnectLoginHandler::execute()
 //
-// 이 패킷은 로그인서버에서 최초로 게임 서버로 연결할 때, 또는 게임 서버에서
-// 다른 게임 서버로 이동할 때, 클라이언트가 서버로 전송하는 최초의 패킷이다.
-// 이때 플레이어 객체는 새로 생겨난 상태이고, 이 플레이어 객체는 IPM 에서
-// 관리되는 상태이다.
+// This is the first packet a client sends when it moves from the login
+// server to a game server, or from one game server to another. The player
+// object has just been created and is held by the IncomingPlayerManager.
 //
-// 당연히 최초의 패킷으로 다른 패킷이 넘어오는 경우라면, 이것은 해킹 시도라고
-// 봐도 무방하므로 이 패킷이 최초인지 검사해야 한다. 이를 위해서 플레이어 객체에
-// 이전 패킷을 저장하고 있으므로, 이 값이 NULL 인지만 보면 되겠다.
+// Any other packet arriving first is taken to be an intrusion attempt, so
+// this has to be the first one: the player object keeps the previous packet,
+// and it is enough to check that it is NULL.
 //
-// 잘못된 패킷이라면, ban 에 등록하고 접속을 종료한다.
+// A packet that does not verify ends the connection.
 //////////////////////////////////////////////////////////////////////////////
 void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer)
 
@@ -52,8 +90,8 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
     string PlayerID;
 
     //----------------------------------------------------------------------
-    // 이 패킷을 ReconnectLoginInfo 객체를 갖고 온다.
-    // 크래커는 키값과 캐릭터 이름을 일정 시간안에 맞춰야만 접속이 가능하다.
+    // Find the ReconnectLoginInfo this packet belongs to. An intruder has to
+    // guess both the key and the character name inside a time window.
     //----------------------------------------------------------------------
     try {
         ReconnectLoginInfo* pReconnectLoginInfo =
@@ -61,38 +99,36 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
 
         PlayerID = pReconnectLoginInfo->getPlayerID();
 
-        // 플레이어 이름을 저장한다.
+        // Keep the account id on the session.
         pLoginPlayer->setID(PlayerID);
 
-        // 키값을 인증한다.
+        // Verify the key.
         if (pPacket->getKey() != pReconnectLoginInfo->getKey())
             throw InvalidProtocolException("invalid key");
 
-        // 따라서, 현재 시간과 expire time 을 비교한다.
+        // Compare the current time against the expiry time.
         Timeval currentTime;
         getCurrentTime(currentTime);
         if (pReconnectLoginInfo->getExpireTime() < currentTime) {
-            // 일단 삭제한다.
             g_pReconnectLoginInfoManager->deleteReconnectLoginInfo(pReconnectLoginInfo->getClientIP());
             throw InvalidProtocolException("session already expired");
         }
 
-        // 인증되었으니, ReconnectLoginInfo 를 삭제한다.
+        // Verified, so the ReconnectLoginInfo is spent.
         g_pReconnectLoginInfoManager->deleteReconnectLoginInfo(pReconnectLoginInfo->getClientIP());
 
-    } catch (NoSuchElementException& nsee) // 그런 IP를 가진 CI 가 없을 경우
+    } catch (NoSuchElementException& nsee) // no ReconnectLoginInfo for that address
     {
-        // 흠.. 연결 이후 CLReconnectLogin 패킷을 보내는 딜레이가 너무 길 경우
-        // session 이 expire 된다. 이럴 경우에도 짜르자!
-        // (예를 들어서, 최초 연결에서는 성공했으나 그다음에 디버깅 상태로
-        // 들어갈 경우, CLReconnectLogin 패킷을 보낼 때쯤에는 expire 된다.)
+        // A client that takes too long between connecting and sending
+        // CLReconnectLogin finds its session expired, and is dropped as
+        // well. (Stopping in a debugger between the two is enough.)
         GCDisconnect gcDisconnect;
         gcDisconnect.setMessage(nsee.toString());
 
         pLoginPlayer->sendPacket(&gcDisconnect);
 
-        // 이렇게 던지면 상위 IPM::processCommands()에서 disconnect 처리한다.
-        throw InvalidProtocolException("fuck");
+        // Thrown so that IPM::processCommands() above disconnects.
+        throw InvalidProtocolException("reconnect login info not found");
     } catch (InvalidProtocolException& ipe) {
         cout << endl
              << "+-----------------------+" << endl
@@ -105,84 +141,63 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
 
         pLoginPlayer->sendPacket(&gcDisconnect);
 
-        // 이렇게 던지면 상위 IPM::processCommands()에서 disconnect 처리한다.
+        // Thrown so that IPM::processCommands() above disconnects.
         throw;
     }
 
     ServerGroupID_t CurrentServerGroupID = 0;
 
-    // 빌링~ by sigi. 2002.5.31
-    PayType payType;
-    string payPlayDate;
-    uint payPlayHours;
-    uint payPlayFlag;
-
     try {
         LoginAccountRepository& repo = defaultLoginAccountRepository();
 
-        // An account with no row cannot reconnect.
-        LoginReconnectRow account;
-        if (!repo.loadAccountForReconnect(PlayerID, account)) {
-            throw SQLQueryException("ReconnectLogin verify failed: no such player");
-        }
+        ReconnectRequest request;
+        request.playerID = PlayerID;
+        request.connectIP = pLoginPlayer->getSocket()->getHost();
+        request.loginServerID = g_pConfig->getPropertyInt("LoginServerID");
 
-        WorldID_t CurrentWorldID = account.currentWorldID;
-        CurrentServerGroupID = account.currentServerGroupID;
+        ReconnectPlayerSession session(pLoginPlayer);
 
-        pLoginPlayer->setWorldID(CurrentWorldID);
-        pLoginPlayer->setServerGroupID(CurrentServerGroupID);
+        Outcome<ReconnectAccepted, ReconnectRejection> outcome = decideReconnectLogin(request, repo, session);
 
-        string logon = account.logOn;
+        if (outcome.isRejected()) {
+            const ReconnectRejection rejection = std::move(outcome).rejection();
 
-        payType = (PayType)(account.payType);
-        payPlayDate = account.payPlayDate;
-        payPlayHours = account.payPlayHours;
-        payPlayFlag = account.payPlayFlag;
+            switch (rejection.reason) {
+            case ReconnectRejectReason::NoSuchAccount:
+                throw DisconnectException("ReconnectLogin verify failed: no such player");
 
-        if (logon == "GAME" || logon == "LOGON") {
-            string msg = "ReconnectLogin verify failed: LogOn = ";
-            msg += logon;
-            pLoginPlayer->setID("NONE");
-            throw SQLQueryException(msg);
-        }
+            case ReconnectRejectReason::AlreadyInGame: {
+                string msg = "ReconnectLogin verify failed: LogOn = ";
+                msg += rejection.logOn;
+                throw DisconnectException(msg);
+            }
 
-        if (logon == "LOGOFF") {
-            // LogOn flips to LOGON for a LOGOFF row; a row that did not
-            // change belongs to a session already logged on.
-            if (!repo.markLoggedOnForReconnect(g_pConfig->getPropertyInt("LoginServerID"), PlayerID)) {
-                throw SQLQueryException("Deny MultiLogin");
+            case ReconnectRejectReason::AlreadyLoggedOnElsewhere:
+                throw DisconnectException("Deny MultiLogin");
+
+            case ReconnectRejectReason::AccessNotAllowed:
+                throw DisconnectException("ReconnectLogin verify failed ");
+
+            case ReconnectRejectReason::NotPayAccount:
+                // Only a build with the pay system applied at login
+                // produces this, and it leaves as a protocol error rather
+                // than a disconnect.
+                throw InvalidProtocolException("Pay First!");
             }
         }
 
-        string access = account.access;
-        if (access != "ALLOW") {
-            throw SQLQueryException("ReconnectLogin verify failed ");
-        }
+        CurrentServerGroupID = (ServerGroupID_t)std::move(outcome).events().serverGroupID;
 
+        // The Thailand build refuses an unapproved account inside the
+        // guarded hours. Not compiled here, and its permission variable is
+        // never read from the account row, so it does not build either.
 #ifdef __THAILAND_SERVER__
         if (strPermission != "ALLOW" && onChildGuardTimeArea(g_pConfig->getPropertyInt("CHILDGUARD_START_TIME"),
                                                              g_pConfig->getPropertyInt("CHILDGUARD_END_TIME"),
                                                              g_pConfig->getProperty("CHILDGUARD"))) {
-            throw SQLQueryException("Player Permission is DENY (child guard) running. ");
+            throw DisconnectException("Player Permission is DENY (child guard) running. ");
         }
 #endif
-
-#ifdef __PAY_SYSTEM_LOGIN__
-        string connectIP = pLoginPlayer->getSocket()->getHost();
-        if (!pLoginPlayer->loginPayPlay(payType, payPlayDate, payPlayHours, payPlayFlag, connectIP, PlayerID)) {
-            throw InvalidProtocolException("Pay First!");
-        }
-#elif defined(__PAY_SYSTEM_FREE_LIMIT__)
-        string connectIP = pLoginPlayer->getSocket()->getHost();
-        if (pLoginPlayer->loginPayPlay(payType, payPlayDate, payPlayHours, payPlayFlag, connectIP, PlayerID)) {
-        } else {
-        }
-#else // elif defined(__PAY_SYSTEM_ZONE__)
-        pLoginPlayer->setPayPlayValue(payType, payPlayDate, payPlayHours, payPlayFlag);
-#endif
-    } catch (SQLQueryException& sce) {
-        // The handler's own verification failures above.
-        throw DisconnectException(sce.toString());
     } catch (const char*) {
         // A SQL failure arrives as END_DB's const char*, already logged to
         // DBError.log (its own message dangles); the client is dropped.
@@ -197,7 +212,7 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
 
 
     //----------------------------------------------------------------------
-    // 이제 LCPCList 패킷을 만들어서 전송하자
+    // Answer with the PC list.
     //----------------------------------------------------------------------
     LCPCList lcPCList;
 
