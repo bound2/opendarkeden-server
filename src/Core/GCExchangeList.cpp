@@ -184,14 +184,13 @@ void GCExchangeList::write(SocketOutputStream& oStream) const {
     // Write listings.
     //
     // Every string below is clamped to kMaxListingString, and getPacketSize()
-    // repeats the identical clamp field for field. SocketOutputStream::
-    // writePacket() emits getPacketSize() into the stream header BEFORE it
-    // calls write(), so the two must agree for every possible value. A BYTE
-    // length prefix cannot carry more than 255 anyway, so an over-long string
-    // has to lose bytes; the only question is whether both sides lose the same
-    // ones. Clamping in only one place (or throwing from write(), with the
-    // header already on the wire) desynchronises the stream for every
-    // subsequent packet on the connection.
+    // repeats the identical clamp field for field. The size field on the wire
+    // is the number of bytes this function actually produces, so the two
+    // disagreeing no longer desynchronises the connection; it still makes
+    // getPacketSize() wrong, and that value is what the send buffers are sized
+    // from and what the framing diagnostic reports against. A BYTE length
+    // prefix cannot carry more than 255 anyway, so an over-long string has to
+    // lose bytes; the only question is whether both sides lose the same ones.
     for (const auto& listing : m_Listings) {
         // Write basic fields
         oStream.write((uint64_t)listing.listingID);

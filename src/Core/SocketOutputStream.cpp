@@ -56,49 +56,84 @@ uint SocketOutputStream::write(const char* buf, uint len) {
 
 
 //////////////////////////////////////////////////////////////////////
+// reserve a field to be filled in later
+//////////////////////////////////////////////////////////////////////
+uint SocketOutputStream::reserveField(uint len) {
+    Assert(len > 0);
+
+    // Taken before the placeholder bytes are written, so the handle is
+    // the distance from the head to the START of the field.
+    const uint slot = length();
+
+    for (uint i = 0; i < len; i++)
+        write((BYTE)0);
+
+    return slot;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// fill in a reserved field
+//////////////////////////////////////////////////////////////////////
+void SocketOutputStream::patchField(uint slot, std::span<const std::byte> src) {
+    Assert(slot + (uint)src.size() <= length());
+
+    // The field can sit anywhere in the ring, wrap point included, so it
+    // is walked byte by byte rather than split into two copies -- fields
+    // patched this way are a few bytes wide.
+    uint position = (m_Head + slot) % m_BufferLen;
+
+    for (size_t i = 0; i < src.size(); i++) {
+        m_Buffer[position] = (char)src[i];
+        position = (position + 1 == m_BufferLen) ? 0 : position + 1;
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////
 // write packet to stream (output buffer)
+//
+// The size field of the header is reserved before the body is written
+// and filled in afterwards with the number of bytes the body produced,
+// so the length on the wire is measured rather than declared and a
+// getPacketSize() that has drifted from write() cannot desynchronise the
+// stream. getPacketSize() is still what the buffers around this call are
+// sized from, so a disagreement is reported.
 //////////////////////////////////////////////////////////////////////
 void SocketOutputStream::writePacket(const Packet* pPacket) {
     __BEGIN_TRY
 
-    // First, the packet ID and size are written to the output buffer.
     PacketID_t packetID = pPacket->getPacketID();
+    Assert(packetID != 0);
+
     write((char*)&packetID, szPacketID);
 
-    PacketSize_t packetSize = pPacket->getPacketSize();
-    write((char*)&packetSize, szPacketSize);
+    const uint sizeSlot = reserveField(szPacketSize);
 
     // The sequence.
     write((char*)&m_Sequence, szSequenceSize);
     m_Sequence++;
 
-    // Now, the packet body is used as the output buffer.
-    cout << "Send:" << packetID << "[" << packetSize << "," << (m_Sequence - 1) << "]" << " " << pPacket->toString()
-         << endl;
-    Assert(packetID != 0);
-
-    uint l1 = length();
+    const uint bodyStart = length();
 
     pPacket->write(*this);
 
-    uint l2 = length();
+    const PacketSize_t bodySize = (PacketSize_t)(length() - bodyStart);
 
-    if ((l2 - l1) != packetSize) {
-        cout << "writePacket WARN: diff size = " << (l2 - l1) << " real size = " << packetSize << "before:" << l1
-             << " after:" << l2 << endl;
+    patchField(sizeSlot, bodySize);
+
+    const PacketSize_t declaredSize = pPacket->getPacketSize();
+
+    if (bodySize != declaredSize) {
+        // Reported to the file resize() already uses for the same fault:
+        // a server's stdout is normally discarded, and both messages mean
+        // "this packet's getPacketSize() disagrees with its write()".
+        filelog("packetsizeerror.txt", "writePacket: PacketID = %u declared = %u written = %u", (uint)packetID,
+                declaredSize, bodySize);
     }
 
-    /*
-    if( packetID == Packet::PACKET_GC_UPDATE_INFO ) {
-
-        ofstream file("flush.txt", ios::out | ios::app);
-        file << "SEND GCUPDATE INFO" << endl;
-        file.close();
-
-    }
-    */
-
-    //	flush();
+    cout << "Send:" << packetID << "[" << bodySize << "," << (m_Sequence - 1) << "]" << " " << pPacket->toString()
+         << endl;
 
     __END_CATCH
 }

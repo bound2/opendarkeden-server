@@ -600,16 +600,36 @@ public:
         throw UnsupportedError();
     }
 
-    // 출력 스트림에 패킷의 헤더와 바디를 모두 쓴다.
+    // Write both the packet's header and its body to the output stream.
+    //
+    // Like SocketOutputStream::writePacket(), the size field is reserved
+    // before the body is written and filled in afterwards with the number
+    // of bytes the body produced, so the length on the wire is measured
+    // rather than declared. The sequence byte is the literal '0': this
+    // path fills a buffer that is copied to many sockets, so no
+    // per-connection sequence applies.
     void writeHeaderNBody(SocketOutputStream& oStream) const {
-        oStream.write(getPacketID());
-        oStream.write(getPacketSize());
+        const PacketID_t packetID = getPacketID();
+        oStream.write(packetID);
+
+        const uint sizeSlot = oStream.reserveField(szPacketSize);
         oStream.write("0", 1);
-        if (getPacketSize() != 0) {
-            write(oStream);
-            if (oStream.length() != getPacketSize() + szPacketID + szPacketSize + 1) {
-                cout << "writeHeaderNBody: " << getPacketID() << " size:" << getPacketSize() << endl;
-            }
+
+        const uint bodyStart = oStream.length();
+
+        write(oStream);
+
+        const PacketSize_t bodySize = (PacketSize_t)(oStream.length() - bodyStart);
+
+        oStream.patchField(sizeSlot, bodySize);
+
+        const PacketSize_t declaredSize = getPacketSize();
+
+        if (bodySize != declaredSize) {
+            // The callers size this stream from getPacketSize(), so a
+            // body larger than that also forced the buffer to grow.
+            filelog("packetsizeerror.txt", "writeHeaderNBody: PacketID = %u declared = %u written = %u", (uint)packetID,
+                    declaredSize, bodySize);
         }
     }
 

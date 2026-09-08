@@ -58,13 +58,13 @@ void CGExchangeList::write(SocketOutputStream& oStream) const {
     // Write seller filter string with a BYTE length prefix.
     //
     // The clamp to kMaxSellerFilter is duplicated, deliberately and identically,
-    // in write() and in getPacketSize(). SocketOutputStream::writePacket() emits
-    // getPacketSize() into the stream header BEFORE it calls write(), so the two
-    // must agree for every possible value of the field. A length byte cannot
-    // carry more than 255 anyway, so an over-long string has to lose bytes; the
-    // only question is whether both sides lose the same ones. Clamping in only
-    // one place (or throwing from write(), with the header already on the wire)
-    // desynchronises the stream for every subsequent packet on the connection.
+    // in write() and in getPacketSize(). The size field on the wire is the
+    // number of bytes write() actually produces, so the two disagreeing no
+    // longer desynchronises the connection; it still makes getPacketSize()
+    // wrong, and that value is what the send buffers are sized from and what
+    // the framing diagnostic reports against. A length byte cannot carry more
+    // than 255 anyway, so an over-long string has to lose bytes; the only
+    // question is whether both sides lose the same ones.
     const uint8_t len =
         (uint8_t)(m_SellerFilter.length() > kMaxSellerFilter ? kMaxSellerFilter : m_SellerFilter.length());
     oStream.write(len);

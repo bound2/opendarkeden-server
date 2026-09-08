@@ -68,6 +68,31 @@ public:
     }
     void writePacket(const Packet* pPacket);
 
+    // Reserve `len` bytes at the end of the buffer and return a handle
+    // for filling them in later, once the bytes that follow are known.
+    // The reserved bytes are zero until patched.
+    //
+    // The handle is the field's distance from the buffer head, not a
+    // pointer and not a buffer index. resize() moves the buffered bytes
+    // to the front of a new allocation but keeps their order and their
+    // distance from the head, so a handle survives a buffer growth
+    // caused by the writes made in between -- which is the case that
+    // matters, since a packet whose body is larger than the free space
+    // grows the buffer while it is being written.
+    uint reserveField(uint len);
+
+    // Overwrite a field reserved by reserveField(). The field may
+    // straddle the ring buffer's wrap point, so the bytes are placed one
+    // at a time instead of by a single copy.
+    void patchField(uint slot, std::span<const std::byte> src);
+
+    // Same, for a protocol scalar -- de::WireScalar for the same reason
+    // write<T>() is constrained by it: this copies sizeof(T) bytes of the
+    // object representation onto the wire.
+    template <de::WireScalar T> void patchField(uint slot, T value) {
+        patchField(slot, std::span<const std::byte>(reinterpret_cast<const std::byte*>(&value), sizeof(T)));
+    }
+
     // Raw scalar write: copies sizeof(T) bytes of the object
     // representation straight onto the wire. Only de::WireScalar types
     // may do that -- see WireTypes.h for what that admits and why.
