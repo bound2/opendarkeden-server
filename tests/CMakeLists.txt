@@ -477,3 +477,25 @@ target_link_libraries(character_deletion_tests PRIVATE de-kernel gtest_main Thre
 add_dependencies(wire_tests character_deletion_tests)
 add_test(NAME character_deletion_tests COMMAND character_deletion_tests)
 set_tests_properties(character_deletion_tests PROPERTIES TIMEOUT 60)
+
+# The loginserver's reconnect decision (docs/RESTRUCTURING.md 3.1):
+# decideReconnectLogin() returns Outcome<ReconnectAccepted,
+# ReconnectRejection> over a fake LoginAccountRepository and a fake
+# ReconnectSession, so every refusal, the precedence between them and the
+# session state the decision writes are testable with neither a database nor
+# a socket. Only de-kernel is linked (the type tables) — pulling the
+# transport or the login server's own state into the decision would break
+# this link.
+add_executable(reconnect_decision_tests EXCLUDE_FROM_ALL
+    reconnect_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/ReconnectDecision.cpp
+)
+target_include_directories(reconnect_decision_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(reconnect_decision_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests reconnect_decision_tests)
+add_test(NAME reconnect_decision_tests COMMAND reconnect_decision_tests)
+set_tests_properties(reconnect_decision_tests PROPERTIES TIMEOUT 60)

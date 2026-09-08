@@ -31,9 +31,14 @@ public:
     };
     std::map<std::string, WebLoginKeyRow> webLoginKeys;
 
+    // The reconnect projection of the same rows, kept apart because it
+    // selects different columns.
+    std::map<std::string, LoginReconnectRow> reconnectAccounts;
+
     // markLoggedOn changes a row only while its LogOn column reads LOGOFF,
     // which is what tells the callers that another session holds it.
     bool markLoggedOnSucceeds = true;
+    bool markLoggedOnForReconnectSucceeds = true;
 
     // --- what was written --------------------------------------------------
     struct LoggedOn {
@@ -42,7 +47,8 @@ public:
         std::string playerID;
     };
     std::vector<LoggedOn> markedLoggedOn;
-    std::vector<std::pair<std::string, std::string>> updatedPasswords; // (hash, playerID)
+    std::vector<std::pair<int, std::string>> markedLoggedOnForReconnect; // (loginServerID, playerID)
+    std::vector<std::pair<std::string, std::string>> updatedPasswords;   // (hash, playerID)
     std::vector<std::string> extendedPayPlay;
     std::vector<std::string> premiumEventsReceived;
     std::vector<std::string> deletedWebLoginKeys;
@@ -58,6 +64,8 @@ public:
     int markLoggedOnCalls = 0;
     int loadIPBlocksCalls = 0;
     int hasUnclaimedPremiumEventCalls = 0;
+    int loadAccountForReconnectCalls = 0;
+    int markLoggedOnForReconnectCalls = 0;
 
     // --- helpers -----------------------------------------------------------
     // An account that logs in cleanly: allowed, logged off, no pay plan.
@@ -75,6 +83,21 @@ public:
         row.payPlayHours = 0;
         row.payPlayFlag = 0;
         row.familyPayPlayDate = "";
+        return row;
+    }
+
+    // The same account through the reconnect projection: allowed, logged
+    // off, no pay plan.
+    static LoginReconnectRow allowedReconnectAccount() {
+        LoginReconnectRow row;
+        row.currentWorldID = 1;
+        row.currentServerGroupID = 3;
+        row.logOn = "LOGOFF";
+        row.access = "ALLOW";
+        row.payType = 0;
+        row.payPlayDate = "";
+        row.payPlayHours = 0;
+        row.payPlayFlag = 0;
         return row;
     }
 
@@ -212,12 +235,20 @@ public:
         return false;
     }
 
-    bool loadAccountForReconnect(const std::string&, LoginReconnectRow&) {
-        return false;
+    // --- reconnect ----------------------------------------------------------
+    bool loadAccountForReconnect(const std::string& playerID, LoginReconnectRow& row) {
+        loadAccountForReconnectCalls++;
+        std::map<std::string, LoginReconnectRow>::const_iterator itr = reconnectAccounts.find(playerID);
+        if (itr == reconnectAccounts.end())
+            return false;
+        row = itr->second;
+        return true;
     }
 
-    bool markLoggedOnForReconnect(int, const std::string&) {
-        return false;
+    bool markLoggedOnForReconnect(int loginServerID, const std::string& playerID) {
+        markLoggedOnForReconnectCalls++;
+        markedLoggedOnForReconnect.push_back(std::make_pair(loginServerID, playerID));
+        return markLoggedOnForReconnectSucceeds;
     }
 
     bool accountExists(const std::string&) {

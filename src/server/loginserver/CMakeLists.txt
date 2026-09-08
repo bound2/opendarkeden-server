@@ -30,6 +30,7 @@ set(LOGINSERVER_SOURCES
     CharacterDeletion.cpp
     CharacterSelection.cpp
     LoginDecision.cpp
+    ReconnectDecision.cpp
     ClientManager.cpp
     UserInfoManager.cpp
     GameServerGroupInfoManager.cpp
