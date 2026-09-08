@@ -21,6 +21,7 @@ GCPetInfo::GCPetInfo()
 
     m_pPetInfo = NULL;
     m_ObjectID = 0;
+    m_IsSummonInfo = 0;
 
     __END_CATCH;
 }
@@ -46,6 +47,7 @@ void GCPetInfo::read(SocketInputStream& iStream)
 
     m_pPetInfo = new PetInfo;
     m_pPetInfo->read(iStream);
+    m_IsSummonInfo = m_pPetInfo->isSummonInfo();
     iStream.read(m_ObjectID);
 
     __END_CATCH

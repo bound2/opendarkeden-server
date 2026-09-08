@@ -53,6 +53,9 @@ public:
     }
 
     uint getSize(void) {
+        // write() emits the id and the coordinates only behind a non-empty name.
+        if (m_Name.empty())
+            return szBYTE;
         return szBYTE + m_Name.size() + szNPCID + szZoneCoord + szZoneCoord;
     }
 

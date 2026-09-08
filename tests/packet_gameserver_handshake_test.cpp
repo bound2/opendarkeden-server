@@ -97,14 +97,18 @@
 //               the PC attributes, whose getters reject anything above
 //               2000.
 //
-//               Five findings are stated below as tests that FAIL when
-//               the underlying code is fixed, which is the signal to
-//               retire them:
-//               emptySlayerNameIsSwallowedAndUnderflowsTheBody,
-//               oversizedSlayerGuildNameIsSwallowedAndUnderflowsTheBody,
-//               namelessNPCInfoOverstatesTheUpdateInfoSize,
-//               maxSizeUnderstatesAFullEffectList and
-//               listNumIsIndependentOfTheListAndTruncatesTheReader.
+//               The write/read disagreements this set found are fixed,
+//               and the pins at the end of the file hold the fixed
+//               behaviour: the PC record and the sub-item record let
+//               their refusals out instead of printing them,
+//               NPCInfo::getSize() counts only the fields write()
+//               emits, EffectInfo::getMaxSize() covers a full
+//               255-effect list, the four list records derive the count
+//               they put on the wire from the list itself, the NPC
+//               record list stops at the count byte, the blood bible
+//               signs and the nickname stop at the widths their max
+//               sizes budget, and GCUpdateInfo, GCPetInfo and
+//               NicknameInfo start with every member initialised.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -421,9 +425,8 @@ void fillPet(PetFixture& f) {
     f.packet.setSummonInfo(0x9A);
 }
 
-// The packet's own summon flag is write-only: read() restores it into
-// the PetInfo, never back into the packet, so a received GCPetInfo is
-// compared through its PetInfo.
+// read() restores the summon flag onto the packet and into the PetInfo
+// it allocates, so a received GCPetInfo is compared through both.
 void expectPetEqual(GCPetInfo& a, GCPetInfo& b) {
     EXPECT_EQ(a.getObjectID(), b.getObjectID());
     ASSERT_TRUE(a.getPetInfo() != NULL);
@@ -445,6 +448,7 @@ void expectPetEqual(GCPetInfo& a, GCPetInfo& b) {
     EXPECT_EQ(x->canCutHead(), y->canCutHead());
     EXPECT_EQ(x->canAttack(), y->canAttack());
     EXPECT_EQ(x->getNickname(), y->getNickname());
+    EXPECT_EQ(a.isSummonInfo(), b.isSummonInfo());
     EXPECT_EQ(a.isSummonInfo(), y->isSummonInfo());
     EXPECT_EQ(x->getItemObjectID(), y->getItemObjectID());
 }
@@ -511,9 +515,9 @@ TEST(GCPetInfoTest, noPetRoundTripsAsAPetNoneRecord) {
 // records, so those live in the fixture and outlive the packet: members
 // are destroyed in reverse declaration order, so `packet` goes first.
 //
-// It also never initialises m_pBloodBibleSign, and read() writes
-// through it without allocating one, so both ends of a round trip have
-// to install one before they touch the packet.
+// The blood bible sign record is one of the non-owned ones, so the
+// sending side installs the fixture's and a reading side allocates its
+// own.
 //////////////////////////////////////////////////////////////////////
 
 struct UpdateInfoFixture {
@@ -550,8 +554,8 @@ SlotInfo* makeItemSlot(ObjectID_t objectID, CoordInven_t x, CoordInven_t y, int 
         pSub->setItemType((ItemType_t)(0x9AAB + i));
         pSub->setItemNum((ItemNum_t)(0x9C + i));
         pSub->setSlotID((SlotID_t)(0x9D + i));
-        // addListElement is the only place PCItemInfo's own list count is
-        // maintained, so the sub-item count is always derived here.
+        // addListElement maintains the count on every list record, so
+        // the sub-item count is always derived from the list.
         pSlot->addListElement(pSub);
     }
     pSlot->setInvenX(x);
@@ -707,18 +711,14 @@ void fillSlayer(UpdateInfoFixture& f) {
     InventoryInfo* pInventory = new InventoryInfo();
     pInventory->addListElement(makeInventorySlot(0x81929394, 0x95, 0xA6, 2, 3));
     pInventory->addListElement(makeInventorySlot(0xA7B8C9DA, 0xEB, 0xFC, 0, 0));
-    // addListElement does not maintain the count that goes on the wire.
-    pInventory->setListNum(2);
     f.packet.setInventoryInfo(pInventory);
 
     GearInfo* pGear = new GearInfo();
     pGear->addListElement(makeGearSlot(0x8DBECFD0, 0xE1));
-    pGear->setListNum(1);
     f.packet.setGearInfo(pGear);
 
     ExtraInfo* pExtra = new ExtraInfo();
     pExtra->addListElement(makeExtraSlot(0xD2E3F4A5));
-    pExtra->setListNum(1);
     f.packet.setExtraInfo(pExtra);
 
     EffectInfo* pEffect = new EffectInfo();
@@ -733,7 +733,6 @@ void fillSlayer(UpdateInfoFixture& f) {
     pMotorcycle->addOptionType(0x89);
     pMotorcycle->addOptionType(0x8A);
     pMotorcycle->addListElement(makeMotorcycleSlot(0x8BCCDDEE, 0x8F, 0x90, 1, 1));
-    pMotorcycle->setListNum(1);
     f.packet.setRideMotorcycleInfo(pMotorcycle);
 
     fillZone(f.packet, 0x8AFB, 3, 2);
@@ -804,13 +803,11 @@ void fillVampire(UpdateInfoFixture& f) {
 
     InventoryInfo* pInventory = new InventoryInfo();
     pInventory->addListElement(makeInventorySlot(0x82939495, 0x96, 0xA7, 1, 2));
-    pInventory->setListNum(1);
     f.packet.setInventoryInfo(pInventory);
 
     GearInfo* pGear = new GearInfo();
     pGear->addListElement(makeGearSlot(0x8EBFD0E1, 0xE2));
     pGear->addListElement(makeGearSlot(0x9FC0D1E2, 0xE3));
-    pGear->setListNum(2);
     f.packet.setGearInfo(pGear);
 
     // An empty extra list: the count byte alone, which is what a
@@ -891,7 +888,6 @@ void fillOusters(UpdateInfoFixture& f) {
 
     ExtraInfo* pExtra = new ExtraInfo();
     pExtra->addListElement(makeExtraSlot(0xD3E4F5A6));
-    pExtra->setListNum(1);
     f.packet.setExtraInfo(pExtra);
 
     // An empty effect list, the third "nothing here" case.
@@ -1231,96 +1227,124 @@ UPDATE_INFO_TESTS(Vampire, "GCUpdateInfo.vampire")
 UPDATE_INFO_TESTS(Ousters, "GCUpdateInfo.ousters")
 
 //////////////////////////////////////////////////////////////////////
-// Findings. Each of the tests below states a write/read disagreement
-// that is real today; each FAILS once the underlying code is fixed,
-// which is the signal to delete it.
+// Pins on the write/read disagreements this set found. Each holds the
+// fixed behaviour: a refusal that leaves the function, a declared size
+// that matches the bytes write() emits, a max that covers the widest
+// record the wire can carry, a count that is the list it precedes.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// PCSlayerInfo2::write() wraps its whole body in
-// `catch (Throwable&) { cout << ... }`, so the refusal it raises on an
-// empty name never leaves the function. The object id has already been
-// written when the throw happens, so the PC record stops after four
-// bytes while GCUpdateInfo::getPacketSize() — which writePacket() puts
-// on the wire ahead of the body — still counts the whole record.
-// PCVampireInfo2 and PCOustersInfo2 let the same refusal out.
-TEST(GCUpdateInfoTest, emptySlayerNameIsSwallowedAndUnderflowsTheBody) {
+// PCSlayerInfo2::write() lets its empty-name refusal out, the way
+// PCVampireInfo2 and PCOustersInfo2 do, so GCUpdateInfo cannot emit a PC
+// record shorter than the size writePacket() has already put on the wire.
+TEST(GCUpdateInfoTest, anEmptySlayerNameRefusesInsteadOfUnderflowingTheBody) {
     UpdateInfoFixture f;
     fillSlayer(f);
     dynamic_cast<PCSlayerInfo2*>(f.packet.getPCInfo())->setName("");
 
-    const size_t written = writeBody(f.packet, kPlainCode).size();
-    EXPECT_LT(written, (size_t)f.packet.getPacketSize())
-        << "PCSlayerInfo2::write() no longer swallows its empty-name refusal — delete this test";
+    SocketEncryptOutputStream oStream(NULL);
+    oStream.setEncryptCode(kPlainCode);
+    EXPECT_THROW(f.packet.write(oStream), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The same swallow on the other refusal PCSlayerInfo2::write() raises:
-// a guild name longer than 30. setGuildName() does not truncate, so a
-// guild renamed past the cap silently shortens every GCUpdateInfo that
-// carries one of its members.
-TEST(GCUpdateInfoTest, oversizedSlayerGuildNameIsSwallowedAndUnderflowsTheBody) {
+// The guild name is bounded by the setter at the 30 the record's write()
+// and its max size both budget, so a guild renamed past the cap costs its
+// members thirty characters rather than a misframed stream.
+TEST(GCUpdateInfoTest, anOversizedSlayerGuildNameIsTruncatedToTheBudgetedWidth) {
     UpdateInfoFixture f;
     fillSlayer(f);
-    dynamic_cast<PCSlayerInfo2*>(f.packet.getPCInfo())->setGuildName(std::string(31, 'g'));
+    PCSlayerInfo2* pInfo = dynamic_cast<PCSlayerInfo2*>(f.packet.getPCInfo());
+    pInfo->setGuildName(std::string(31, 'g'));
 
-    const size_t written = writeBody(f.packet, kPlainCode).size();
-    EXPECT_LT(written, (size_t)f.packet.getPacketSize())
-        << "PCSlayerInfo2::write() no longer swallows its guild-name refusal — delete this test";
+    EXPECT_EQ(std::string(30, 'g'), pInfo->getGuildName());
+    EXPECT_EQ((size_t)f.packet.getPacketSize(), writeBody(f.packet, kPlainCode).size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// NPCInfo::getSize() always adds the id and the two coordinates, but
-// write() emits them only when the name is non-empty. One nameless NPC
-// in a zone makes GCUpdateInfo declare six bytes it never sends.
-TEST(GCUpdateInfoTest, namelessNPCInfoOverstatesTheUpdateInfoSize) {
+TEST(PCInfo2Test, everyRecordBoundsItsGuildNameAtThirty) {
+    PCSlayerInfo2 slayer;
+    PCVampireInfo2 vampire;
+    PCOustersInfo2 ousters;
+    slayer.setGuildName(std::string(31, 'g'));
+    vampire.setGuildName(std::string(31, 'g'));
+    ousters.setGuildName(std::string(31, 'g'));
+
+    EXPECT_EQ((size_t)30, slayer.getGuildName().size());
+    EXPECT_EQ((size_t)30, vampire.getGuildName().size());
+    EXPECT_EQ((size_t)30, ousters.getGuildName().size());
+}
+
+// SubItemInfo::read() lets the stream's own refusal out, so a body that
+// stops in the middle of a sub-item reaches the caller as an exception
+// instead of a half-filled record and a printed line.
+TEST(SubItemInfoTest, aTruncatedRecordRefusesInsteadOfBeingSwallowed) {
+    std::vector<unsigned char> image;
+    for (int i = 0; i < 4; i++) // the object id, and nothing after it
+        image.push_back((unsigned char)(0x81 + i));
+
+    Loopback loopback;
+    loopback.setCodes(kPlainCode);
+    loopback.out().write(reinterpret_cast<const char*>(&image[0]), (uint)image.size());
+    loopback.pump((uint)image.size());
+
+    SubItemInfo info;
+    EXPECT_THROW(info.read(loopback.in()), InsufficientDataException);
+}
+
+// NPCInfo::getSize() counts only the fields write() emits, so a nameless
+// record in a zone costs its length byte and nothing else.
+TEST(GCUpdateInfoTest, aNamelessNPCInfoCostsOnlyItsLengthByte) {
     UpdateInfoFixture f;
     fillOusters(f);
     fillNPCInfo(f.npcs[0], "", 0x85C6);
     f.packet.addNPCInfo(&f.npcs[0]);
 
-    const size_t written = writeBody(f.packet, kPlainCode).size();
-    EXPECT_EQ(written + szNPCID + szZoneCoord * 2, (size_t)f.packet.getPacketSize())
-        << "NPCInfo::getSize() no longer counts the fields a nameless record omits — delete this test";
+    EXPECT_EQ((uint)szBYTE, f.npcs[0].getSize());
+    EXPECT_EQ((size_t)f.packet.getPacketSize(), writeBody(f.packet, kPlainCode).size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// EffectInfo::getMaxSize() is a flat 255, but getSize() is
-// szBYTE + 4 * ListNum and ListNum is a BYTE, so a character carrying
-// the maximum 255 effects needs 1021 bytes. The shortfall is budgeted
-// into GCUpdateInfoFactory::kMaxSize, which is what the receiver sizes
-// its read buffer from.
-TEST(EffectInfoTest, maxSizeUnderstatesAFullEffectList) {
+// The NPC record count goes on the wire as a BYTE, so the list refuses
+// the record that would be written and never counted.
+TEST(GCUpdateInfoTest, theNPCRecordListStopsAtTheCountByte) {
+    UpdateInfoFixture f;
+    fillOusters(f);
+    NPCInfo npc;
+    fillNPCInfo(npc, "GoldNPCOverflow", 0x85C6);
+    for (int i = 0; i < 300; i++)
+        f.packet.addNPCInfo(&npc);
+
+    EXPECT_EQ((size_t)f.packet.getPacketSize(), writeBody(f.packet, kPlainCode).size());
+
+    int kept = 0;
+    while (f.packet.popNPCInfo() != NULL)
+        kept++;
+    EXPECT_EQ((int)GCUpdateInfo::kMaxNPCInfos, kept);
+}
+
+// EffectInfo::getSize() is szBYTE + 4 * ListNum and ListNum is a BYTE, so
+// the widest list a character can carry is 255 effects; the max the
+// receiver sizes its read buffer from covers exactly that.
+TEST(EffectInfoTest, maxSizeCoversAFullEffectList) {
     EffectInfo info;
     for (int i = 0; i < 255; i++)
         info.addListElement((EffectID_t)(0x81A2 + i), (WORD)(0x93B4 + i));
 
     EXPECT_EQ(255, (int)info.getListNum());
-    EXPECT_GT(info.getSize(), EffectInfo::getMaxSize())
-        << "EffectInfo::getMaxSize() now covers a full effect list — delete this test";
+    EXPECT_EQ(EffectInfo::getMaxSize(), info.getSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// InventoryInfo, GearInfo, ExtraInfo and RideMotorcycleInfo all carry a
-// settable m_ListNum that addListElement() does not maintain. write()
-// puts m_ListNum on the wire and then writes every element it holds, so
-// a count that disagrees with the list leaves the reader parsing fewer
-// records than the body carries — and getSize(), which counts the list
-// rather than the field, still matches the byte count, so the packet
-// size looks correct all the way to the receiver. PCItemInfo and
-// EffectInfo derive their counts in addListElement() and do not have
-// this shape.
-TEST(InventoryInfoTest, listNumIsIndependentOfTheListAndTruncatesTheReader) {
+// InventoryInfo, GearInfo, ExtraInfo and RideMotorcycleInfo maintain the
+// count in addListElement(), so the count write() puts ahead of the
+// records is always the list that follows it.
+TEST(InventoryInfoTest, theCountOnTheWireIsAlwaysTheListSize) {
     InventoryInfo src;
     src.addListElement(makeInventorySlot(0x81929394, 0x95, 0xA6, 1, 1));
     src.addListElement(makeInventorySlot(0xA7B8C9DA, 0xEB, 0xFC, 0, 0));
-    src.setListNum(1);
+    EXPECT_EQ(2, (int)src.getListNum());
 
     SocketEncryptOutputStream oStream(NULL);
     oStream.setEncryptCode(kPlainCode);
     src.write(oStream);
     const std::vector<unsigned char> body(oStream.getBuffer(), oStream.getBuffer() + oStream.length());
-    EXPECT_EQ((size_t)src.getSize(), body.size()) << "the declared size counts the list, so it still matches";
+    EXPECT_EQ((size_t)src.getSize(), body.size());
 
     Loopback loopback;
     loopback.setCodes(kPlainCode);
@@ -1329,8 +1353,157 @@ TEST(InventoryInfoTest, listNumIsIndependentOfTheListAndTruncatesTheReader) {
 
     InventoryInfo dst;
     dst.read(loopback.in());
-    EXPECT_EQ(1, (int)dst.getListNum())
-        << "write() now derives the count from the list, so both slots arrive — delete this test";
+    EXPECT_EQ(2, (int)dst.getListNum());
+}
+
+TEST(ListRecordTest, everyListRecordDerivesItsCount) {
+    GearInfo gear;
+    gear.addListElement(makeGearSlot(0x8DBECFD0, 0xE1));
+    gear.addListElement(makeGearSlot(0x9FC0D1E2, 0xE2));
+    EXPECT_EQ(2, (int)gear.getListNum());
+
+    ExtraInfo extra;
+    extra.addListElement(makeExtraSlot(0xD2E3F4A5));
+    EXPECT_EQ(1, (int)extra.getListNum());
+
+    RideMotorcycleInfo motorcycle;
+    motorcycle.addListElement(makeMotorcycleSlot(0x8BCCDDEE, 0x8F, 0x90, 1, 1));
+    EXPECT_EQ(1, (int)motorcycle.getListNum());
+}
+
+// Every GCUpdateInfo member starts initialised, so nothing the packet
+// writes before its fill sites run is indeterminate.
+TEST(GCUpdateInfoTest, aFreshPacketIsFullyInitialised) {
+    GCUpdateInfo packet;
+
+    EXPECT_TRUE(packet.getPCInfo() == NULL);
+    EXPECT_TRUE(packet.getInventoryInfo() == NULL);
+    EXPECT_TRUE(packet.getGearInfo() == NULL);
+    EXPECT_TRUE(packet.getExtraInfo() == NULL);
+    EXPECT_TRUE(packet.getEffectInfo() == NULL);
+    EXPECT_FALSE(packet.hasMotorcycle());
+    EXPECT_TRUE(packet.getRideMotorcycleInfo() == NULL);
+    EXPECT_TRUE(packet.getNicknameInfo() == NULL);
+    EXPECT_TRUE(packet.getBloodBibleSignInfo() == NULL);
+    EXPECT_EQ(0, (int)packet.getZoneID());
+    EXPECT_EQ(0, (int)packet.getZoneX());
+    EXPECT_EQ(0, (int)packet.getZoneY());
+    EXPECT_EQ(0, (int)packet.getGameTime().getYear());
+    EXPECT_EQ(0, (int)packet.getGameTime().getMonth());
+    EXPECT_EQ(0, (int)packet.getGameTime().getDay());
+    EXPECT_EQ(0, (int)packet.getGameTime().getHour());
+    EXPECT_EQ(0, (int)packet.getGameTime().getMinute());
+    EXPECT_EQ(0, (int)packet.getGameTime().getSecond());
+    EXPECT_EQ(WEATHER_CLEAR, packet.getWeather());
+    EXPECT_EQ(0, (int)packet.getWeatherLevel());
+    EXPECT_EQ(0, (int)packet.getDarkLevel());
+    EXPECT_EQ(0, (int)packet.getLightLevel());
+    EXPECT_EQ(0u, packet.getNPCCount());
+    EXPECT_EQ(0u, packet.getMonsterCount());
+    EXPECT_TRUE(packet.popNPCInfo() == NULL);
+    EXPECT_EQ(0, (int)packet.getServerStat());
+    EXPECT_EQ(0, (int)packet.isPremiumZone());
+    EXPECT_EQ(0, (int)packet.isPremiumPlay());
+    EXPECT_EQ(0u, (uint)packet.getSMSCharge());
+    EXPECT_EQ(0, (int)packet.isNonPK());
+    EXPECT_EQ(0u, packet.getGuildUnionID());
+    EXPECT_EQ((BYTE)GCUpdateInfo::UNION_NOTHING, packet.getGuildUnionUserType());
+    EXPECT_EQ(0, packet.getPowerPoint());
+}
+
+// read() allocates the blood bible sign record the way it allocates the
+// PC, inventory, gear, extra and effect records, so a receiver that
+// installed nothing still gets the signs the sender wrote.
+TEST(GCUpdateInfoTest, readAllocatesTheBloodBibleSignRecord) {
+    UpdateInfoFixture src;
+    fillVampire(src);
+
+    GCUpdateInfo dst;
+    roundTrip(src.packet, dst, kPlainCode);
+
+    ASSERT_TRUE(dst.getBloodBibleSignInfo() != NULL);
+    EXPECT_EQ(src.packet.getBloodBibleSignInfo()->getOpenNum(), dst.getBloodBibleSignInfo()->getOpenNum());
+    EXPECT_EQ(src.packet.getBloodBibleSignInfo()->getList(), dst.getBloodBibleSignInfo()->getList());
+}
+
+// write() emits at most the slots getMaxSize() budgets and getSize()
+// counts the same number, so an over-full list can neither outgrow the
+// max nor desync the count byte from the records behind it.
+TEST(BloodBibleSignInfoTest, theSignListStopsAtTheBudgetedSlots) {
+    BloodBibleSignInfo info;
+    info.setOpenNum(0x82A3C4E5);
+    for (int i = 0; i < BLOOD_BIBLE_SIGN_SLOT_NUM + 3; i++)
+        info.getList().push_back((ItemType_t)(0x86A7 + i));
+
+    SocketEncryptOutputStream oStream(NULL);
+    oStream.setEncryptCode(kPlainCode);
+    info.write(oStream);
+    const std::vector<unsigned char> body(oStream.getBuffer(), oStream.getBuffer() + oStream.length());
+
+    EXPECT_EQ((size_t)info.getSize(), body.size());
+    EXPECT_LE((uint)info.getSize(), BloodBibleSignInfo::getMaxSize());
+}
+
+// NicknameInfo starts zeroed, so the NULL-nickname branch of
+// GCUpdateInfo::write() emits a determinate NICK_NONE record.
+TEST(NicknameInfoTest, aFreshRecordIsAZeroedNickNoneRecord) {
+    NicknameInfo info;
+    EXPECT_EQ(0, (int)info.getNicknameID());
+    EXPECT_EQ((int)NicknameInfo::NICK_NONE, (int)info.getNicknameType());
+    EXPECT_EQ(0, (int)info.getNicknameIndex());
+    EXPECT_TRUE(info.getNickname().empty());
+
+    SocketEncryptOutputStream oStream(NULL);
+    oStream.setEncryptCode(kPlainCode);
+    info.write(oStream);
+    const std::vector<unsigned char> body(oStream.getBuffer(), oStream.getBuffer() + oStream.length());
+
+    const std::vector<unsigned char> expected(3, 0x00);
+    EXPECT_EQ(expected, body);
+    EXPECT_EQ((size_t)info.getSize(), body.size());
+}
+
+// The nickname is bounded by the setter at the width getMaxSize()
+// budgets, so the record cannot outgrow the max the receiver sizes its
+// read buffer from.
+TEST(NicknameInfoTest, theNicknameStopsAtTheBudgetedWidth) {
+    NicknameInfo info;
+    info.setNicknameType(NicknameInfo::NICK_CUSTOM);
+    info.setNickname(std::string(MAX_NICKNAME_SIZE + 1, 'n'));
+
+    EXPECT_EQ((size_t)MAX_NICKNAME_SIZE, info.getNickname().size());
+    EXPECT_LE(info.getSize(), NicknameInfo::getMaxSize());
+}
+
+// GCPetInfo's summon flag starts at zero and read() restores it from the
+// PetInfo that carries it on the wire.
+TEST(GCPetInfoTest, aFreshPacketHasNoSummonFlag) {
+    GCPetInfo packet;
+    EXPECT_EQ(0, (int)packet.isSummonInfo());
+}
+
+TEST(GCPetInfoTest, theSummonFlagComesBackOnThePacket) {
+    PetFixture src;
+    fillPet(src);
+
+    GCPetInfo dst;
+    roundTrip(src.packet, dst, kPlainCode);
+
+    EXPECT_EQ((BYTE)0x9A, dst.isSummonInfo());
+    EXPECT_EQ(src.packet.isSummonInfo(), dst.isSummonInfo());
+}
+
+// toString() names each of the eight keys the packet owns, index 0
+// included, and reads nothing past the array.
+TEST(CGSetVampireHotKeyTest, toStringNamesEveryKeyItOwns) {
+    CGSetVampireHotKey packet;
+    fill(packet);
+
+    const std::string text = packet.toString();
+    for (BYTE i = 0; i < 8; i++) {
+        const std::string field = "F" + std::to_string(i + 5) + ":" + std::to_string((int)packet.getHotKey(i));
+        EXPECT_NE(std::string::npos, text.find(field)) << "hot key " << (int)i;
+    }
 }
 
 } // namespace

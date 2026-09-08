@@ -64,7 +64,7 @@ void BloodBibleSignInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
     oStream.write(m_OpenNum);
-    BYTE num = m_SignList.size();
+    BYTE num = signCount();
     oStream.write(num);
     for (int i = 0; i < num; ++i) {
         oStream.write(m_SignList[i]);

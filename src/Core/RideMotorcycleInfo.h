@@ -82,12 +82,10 @@ public:
     BYTE getListNum() const {
         return m_ListNum;
     }
-    void setListNum(BYTE ListNum) {
-        m_ListNum = ListNum;
-    }
 
     void addListElement(RideMotorcycleSlotInfo* pRideMotorcycleSlotInfo) {
         m_RideMotorcycleSlotInfoList.push_back(pRideMotorcycleSlotInfo);
+        m_ListNum++;
     }
 
     void clearList() {

@@ -50,17 +50,15 @@ public:
     // get packet's debug string
     string toString() const;
 
-    // get / set ListNumber
+    // get ListNumber
     BYTE getListNum() const {
         return m_ListNum;
-    }
-    void setListNum(BYTE ListNum) {
-        m_ListNum = ListNum;
     }
 
     // add / delete / clear S List
     void addListElement(ExtraSlotInfo* pExtraSlotInfo) {
         m_ExtraSlotInfoList.push_back(pExtraSlotInfo);
+        m_ListNum++;
     }
 
     // ClearList

@@ -31,7 +31,14 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     PacketSize_t getSize() const {
-        return szuint + szBYTE + szItemType * m_SignList.size();
+        return szuint + szBYTE + szItemType * signCount();
+    }
+
+    // write() emits at most this many signs, so the declared size counts
+    // at most this many.
+    BYTE signCount() const {
+        return (m_SignList.size() > BLOOD_BIBLE_SIGN_SLOT_NUM) ? (BYTE)BLOOD_BIBLE_SIGN_SLOT_NUM
+                                                               : (BYTE)m_SignList.size();
     }
     static constexpr uint getMaxSize() {
         return szuint + szBYTE + szItemType * BLOOD_BIBLE_SIGN_SLOT_NUM;

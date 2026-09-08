@@ -39,12 +39,10 @@ public:
     BYTE getListNum() const {
         return m_ListNum;
     }
-    void setListNum(BYTE ListNum) {
-        m_ListNum = ListNum;
-    }
 
     void addListElement(GearSlotInfo* pGearSlotInfo) {
         m_GearSlotInfoList.push_back(pGearSlotInfo);
+        m_ListNum++;
     }
 
     void clearList() {

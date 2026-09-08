@@ -143,17 +143,22 @@ before anything else moves. Everything later shelters under this pin.
   > `GCPetInfo` with and without a pet, `GCSetPosition`, `GCDisconnect`,
   > `GCReconnectLogin`), have code-0 goldens, loopback round trips and
   > size/factory-max pins
-  > (`tests/packet_gameserver_handshake_test.cpp`), with five open
-  > write/read disagreements stated as tests that flip when fixed
-  > (`PCSlayerInfo2::write` swallowing both of its refusals, so the PC
-  > record underflows the size `GCUpdateInfo` declares; `NPCInfo::getSize`
-  > counting the id and coordinates a nameless record omits;
-  > `EffectInfo::getMaxSize` understating a full 255-effect list by 766
-  > bytes; the settable `m_ListNum` that `addListElement` does not
-  > maintain in `InventoryInfo` / `GearInfo` / `ExtraInfo` /
-  > `RideMotorcycleInfo`, which truncates the reader while the declared
-  > size still matches the bytes). `GCReconnect` is excluded: no server
-  > source constructs it.
+  > (`tests/packet_gameserver_handshake_test.cpp`); the write/read
+  > disagreements it found are fixed and pinned as the behaviour they
+  > now produce (`PCSlayerInfo2` and `SubItemInfo` let the exceptions
+  > their `read`/`write` raise escape, and every `PCInfo2` record caps
+  > its guild name at 30 in the setter, so the PC record can no longer
+  > underflow the size `GCUpdateInfo` declares; `NPCInfo::getSize`
+  > counts only the fields `write()` emits; `EffectInfo::getMaxSize`
+  > covers a full 255-effect list, which is the one wire-layout move in
+  > the set — nine `GCAdd*`/`GCUpdateInfo` max sizes grow by 766 bytes;
+  > `InventoryInfo` / `GearInfo` / `ExtraInfo` / `RideMotorcycleInfo`
+  > derive the count they put on the wire in `addListElement` and no
+  > longer expose `setListNum`; the NPC record list, the blood bible
+  > signs and the nickname stop at the widths their max sizes budget;
+  > `GCUpdateInfo`, `GCPetInfo` and `NicknameInfo` initialise every
+  > member and `GCUpdateInfo::read` allocates the blood bible sign
+  > record). `GCReconnect` is excluded: no server source constructs it.
   > Remaining non-encrypter GC/CG coverage outstanding.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**

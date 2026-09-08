@@ -28,7 +28,10 @@
 GCUpdateInfo::GCUpdateInfo()
 
     : m_pPCInfo(NULL), m_pInventoryInfo(NULL), m_pGearInfo(NULL), m_pExtraInfo(NULL), m_pEffectInfo(NULL),
-      m_hasMotorcycle(false), m_pRideMotorcycleInfo(NULL), m_fPremium(0), m_pNicknameInfo(NULL), m_NonPK(0) {}
+      m_hasMotorcycle(false), m_pRideMotorcycleInfo(NULL), m_ZoneID(0), m_ZoneX(0), m_ZoneY(0), m_GameTime(),
+      m_Weather(WEATHER_CLEAR), m_WeatherLevel(0), m_DarkLevel(0), m_LightLevel(0), m_nNPCs(0), m_NPCTypes{},
+      m_nMonsters(0), m_MonsterTypes{}, m_ServerStat(0), m_fPremium(0), m_SMSCharge(0), m_pNicknameInfo(NULL),
+      m_NonPK(0), m_GuildUnionID(0), m_GuildUnionUserType(UNION_NOTHING), m_pBloodBibleSign(NULL), m_PowerPoint(0) {}
 
 //--------------------------------------------------------------------------------
 // destructor
@@ -50,6 +53,10 @@ GCUpdateInfo::~GCUpdateInfo()
     // the server must never delete them. (The client's copy of this packet
     // does delete them.)
     m_NPCInfos.clear();
+
+    // The nickname and the blood bible sign record belong to the creature
+    // that installed them; only a reader's own copies are heap-owned, and
+    // they are left to the process the same way the NPC records are.
 }
 
 //--------------------------------------------------------------------------------
@@ -178,6 +185,7 @@ void GCUpdateInfo::read(SocketInputStream& iStream)
     iStream.read(m_GuildUnionID);
     iStream.read(m_GuildUnionUserType);
 
+    m_pBloodBibleSign = new BloodBibleSignInfo;
     m_pBloodBibleSign->read(iStream);
 
     // 파워짱 포인트
@@ -309,7 +317,11 @@ void GCUpdateInfo::write(SocketOutputStream& oStream) const
     oStream.write(m_GuildUnionID);
     oStream.write(m_GuildUnionUserType);
 
-    m_pBloodBibleSign->write(oStream);
+    if (m_pBloodBibleSign == NULL) {
+        BloodBibleSignInfo noSign;
+        noSign.write(oStream);
+    } else
+        m_pBloodBibleSign->write(oStream);
 
     // 파워짱 포인트
     oStream.write(m_PowerPoint);

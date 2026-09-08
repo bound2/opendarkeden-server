@@ -47,6 +47,9 @@ public:
         UNION_MAX
     };
 
+    // The NPC record count goes on the wire as a BYTE.
+    static constexpr size_t kMaxNPCInfos = 255;
+
     // constructor
     GCUpdateInfo();
 
@@ -126,7 +129,12 @@ public:
         size += sizeof(uint);
         size += szBYTE;
 
-        size += m_pBloodBibleSign->getSize();
+        if (m_pBloodBibleSign == NULL) {
+            BloodBibleSignInfo noSign;
+            size += noSign.getSize();
+        } else {
+            size += m_pBloodBibleSign->getSize();
+        }
 
         // Deforum list
         size += szint;
@@ -304,6 +312,10 @@ public:
 
     // get/set npc info
     void addNPCInfo(NPCInfo* pInfo) {
+        // A record past the count byte would be written and never counted.
+        // The caller owns the record either way.
+        if (m_NPCInfos.size() >= kMaxNPCInfos)
+            return;
         m_NPCInfos.push_back(pInfo);
     }
     NPCInfo* popNPCInfo(void) {
@@ -527,7 +539,7 @@ public:
         size += szMonsterType * maxMonsterPerZone;
 
         size += szBYTE;
-        size += NPCInfo::getMaxSize() * 255;
+        size += NPCInfo::getMaxSize() * GCUpdateInfo::kMaxNPCInfos;
         // ���� ����
         size += szBYTE;
         // �����̾�
