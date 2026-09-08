@@ -101,23 +101,19 @@ void GLIncomingConnectionHandler::execute(GLIncomingConnection* pPacket)
         g_pGameServerManager->sendPacket(pPacket->getHost(), pPacket->getPort(), &lgIncomingConnectionOK);
 
         // cout << "GLIncomingConnectionHandler Send Packet to ServerIP : " << pPacket->getHost() << endl;
-    } catch (DuplicatedException& de) {
-        // cout << "Duplicated Exception Throwed Step 1" << endl;
-
-        // 실패했을 경우 CI 를 삭제하고, 로그인 서버에게 GLIncomingConnectionError 패킷을 전송한다.
+    } catch (DuplicatedException&) {
+        // On failure, discard the CI and report the rejection to the peer.
         SAFE_DELETE(pReconnectLoginInfo);
-        // cout << "Duplicated Exception Throwed Step 2" << endl;
 
+        // LGIncomingConnectionError::write() rejects a message of 128 bytes
+        // or more, part way through building the datagram, so the message is
+        // a fixed short constant. The receiving handler identifies the
+        // rejected login by the player id and never looks at the text.
         LGIncomingConnectionError lgIncomingConnectionError;
-        lgIncomingConnectionError.setMessage(de.toString());
+        lgIncomingConnectionError.setMessage("duplicated incoming connection");
         lgIncomingConnectionError.setPlayerID(pPacket->getPlayerID());
-        // cout << "Duplicated Exception Throwed Step 3" << endl;
 
         g_pGameServerManager->sendPacket(pPacket->getHost(), pPacket->getPort(), &lgIncomingConnectionError);
-
-        // cout << "Duplicated Exception Throwed Step 4" << endl;
-
-        // cout << "GLIncomingConnectionHandler Send Packet to ServerIP : " << pPacket->getHost() << endl;
     }
 
 #endif
