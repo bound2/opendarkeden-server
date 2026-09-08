@@ -15,8 +15,13 @@
 #include "repository/LoginCharacterRepository.h"
 
 // Why a creation was refused. Each value maps to one LCCreatePCError code
-// except InvalidAttributes, which no client can produce by playing and
-// which the handler answers by dropping the connection.
+// except InvalidAttributes, InvalidSlot and InvalidHairStyle, which no
+// client can produce by playing and which the handler answers by dropping
+// the connection.
+//
+// They are decided in this order: ReservedName, DisallowedCharacters,
+// NameTaken, InvalidSlot, InvalidHairStyle, SlotOccupied,
+// InvalidAttributes, UnknownRace.
 enum class CreatePCRejection {
     // The name contains a reserved token (see isAvailableID).
     ReservedName,
@@ -30,6 +35,13 @@ enum class CreatePCRejection {
     DisallowedCharacters,
     // STR/DEX/INT are outside what the race allows.
     InvalidAttributes,
+    // The slot byte names none of the three slots. It is the index into
+    // Slot2String on every row the creation writes, so it is checked
+    // before the first of them.
+    InvalidSlot,
+    // The hair style names none of the three styles. It is the index
+    // into HairStyle2String on the Slayer row.
+    InvalidHairStyle,
     // The race byte names none of the three races.
     UnknownRace
 };
@@ -41,9 +53,13 @@ struct CreatePCRequest {
     ServerGroupID_t serverGroupID = 0;
     std::string playerID;
     std::string name;
-    Slot slot = SLOT1;
+    // The slot and hair style as the packet carries them: plain integers,
+    // not Slot / HairStyle, because a crafted packet can put a value in
+    // either that names no enumerator, and the decision has to range-check
+    // them before they index Slot2String / HairStyle2String.
+    int slot = SLOT1;
     Sex sex = FEMALE;
-    HairStyle hairStyle = HAIR_STYLE1;
+    int hairStyle = HAIR_STYLE1;
     Color_t hairColor = 0;
     Color_t skinColor = 0;
     Attr_t str = 0;

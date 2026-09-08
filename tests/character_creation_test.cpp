@@ -134,6 +134,88 @@ TEST(DecideCreatePC, AnotherSlotOfTheSameAccountIsFree) {
     EXPECT_TRUE(outcome.isOk());
 }
 
+TEST(DecideCreatePC, ASlotOutsideTheThreeSlotsIsRefused) {
+    // Slot2String has one entry per slot; CLCreatePC::read passes the byte
+    // through unchecked, so the decision is what keeps the index in range.
+    const int slots[] = {SLOT_MAX, 4, 17, 255};
+
+    for (unsigned int i = 0; i < sizeof(slots) / sizeof(slots[0]); i++) {
+        FakeLoginCharacterRepository repository;
+        CreatePCBalanceCache balance;
+        fillBalance(repository);
+
+        CreatePCRequest request = slayerRequest();
+        request.slot = slots[i];
+
+        Outcome<CreatedCharacter, CreatePCRejection> outcome = decideCreatePC(request, repository, balance);
+
+        ASSERT_TRUE(outcome.isRejected()) << slots[i];
+        EXPECT_EQ(CreatePCRejection::InvalidSlot, outcome.rejection()) << slots[i];
+        // The refusal comes before the slot probe, which is the first
+        // reader of the table.
+        EXPECT_EQ(0, repository.slotOccupiedCalls) << slots[i];
+    }
+}
+
+TEST(DecideCreatePC, EveryRealSlotIsAccepted) {
+    const Slot slots[] = {SLOT1, SLOT2, SLOT3};
+    const char* const texts[] = {"SLOT1", "SLOT2", "SLOT3"};
+
+    for (int i = 0; i < 3; i++) {
+        FakeLoginCharacterRepository repository;
+        CreatePCBalanceCache balance;
+        fillBalance(repository);
+
+        CreatePCRequest request = slayerRequest();
+        request.slot = slots[i];
+
+        Outcome<CreatedCharacter, CreatePCRejection> outcome = decideCreatePC(request, repository, balance);
+
+        ASSERT_TRUE(outcome.isOk()) << texts[i];
+        EXPECT_EQ(texts[i], outcome.events().slayer.slot);
+    }
+}
+
+TEST(DecideCreatePC, AHairStyleOutsideTheThreeStylesIsRefused) {
+    // CLCreatePC::getHairStyle() masks two bits, so a crafted packet can
+    // reach 3 — one past the end of HairStyle2String.
+    const int hairStyles[] = {3, 4, 255};
+
+    for (unsigned int i = 0; i < sizeof(hairStyles) / sizeof(hairStyles[0]); i++) {
+        FakeLoginCharacterRepository repository;
+        CreatePCBalanceCache balance;
+        fillBalance(repository);
+
+        CreatePCRequest request = slayerRequest();
+        request.hairStyle = hairStyles[i];
+
+        Outcome<CreatedCharacter, CreatePCRejection> outcome = decideCreatePC(request, repository, balance);
+
+        ASSERT_TRUE(outcome.isRejected()) << hairStyles[i];
+        EXPECT_EQ(CreatePCRejection::InvalidHairStyle, outcome.rejection()) << hairStyles[i];
+        EXPECT_EQ(0, repository.slotOccupiedCalls) << hairStyles[i];
+    }
+}
+
+TEST(DecideCreatePC, EveryRealHairStyleIsAccepted) {
+    const HairStyle hairStyles[] = {HAIR_STYLE1, HAIR_STYLE2, HAIR_STYLE3};
+    const char* const texts[] = {"HAIR_STYLE1", "HAIR_STYLE2", "HAIR_STYLE3"};
+
+    for (int i = 0; i < 3; i++) {
+        FakeLoginCharacterRepository repository;
+        CreatePCBalanceCache balance;
+        fillBalance(repository);
+
+        CreatePCRequest request = slayerRequest();
+        request.hairStyle = hairStyles[i];
+
+        Outcome<CreatedCharacter, CreatePCRejection> outcome = decideCreatePC(request, repository, balance);
+
+        ASSERT_TRUE(outcome.isOk()) << texts[i];
+        EXPECT_EQ(texts[i], outcome.events().slayer.hairStyle);
+    }
+}
+
 TEST(DecideCreatePC, SlayerAttributesOutsideFiveToTwentyAreRefused) {
     struct Case {
         int str;
@@ -302,6 +384,50 @@ TEST(DecideCreatePC, ATakenNameWinsOverAnOccupiedSlot) {
 
     ASSERT_TRUE(outcome.isRejected());
     EXPECT_EQ(CreatePCRejection::NameTaken, outcome.rejection());
+}
+
+TEST(DecideCreatePC, ATakenNameWinsOverAnOutOfRangeSlot) {
+    FakeLoginCharacterRepository repository;
+    CreatePCBalanceCache balance;
+    repository.existingNames.insert("Rowan");
+
+    CreatePCRequest request = slayerRequest();
+    request.slot = 9;
+    request.hairStyle = 9;
+
+    Outcome<CreatedCharacter, CreatePCRejection> outcome = decideCreatePC(request, repository, balance);
+
+    ASSERT_TRUE(outcome.isRejected());
+    EXPECT_EQ(CreatePCRejection::NameTaken, outcome.rejection());
+}
+
+TEST(DecideCreatePC, AnOutOfRangeSlotWinsOverAnOutOfRangeHairStyle) {
+    FakeLoginCharacterRepository repository;
+    CreatePCBalanceCache balance;
+
+    CreatePCRequest request = slayerRequest();
+    request.slot = 9;
+    request.hairStyle = 9;
+
+    Outcome<CreatedCharacter, CreatePCRejection> outcome = decideCreatePC(request, repository, balance);
+
+    ASSERT_TRUE(outcome.isRejected());
+    EXPECT_EQ(CreatePCRejection::InvalidSlot, outcome.rejection());
+}
+
+TEST(DecideCreatePC, AnOutOfRangeSlotWinsOverAnOccupiedSlotAndInvalidAttributes) {
+    FakeLoginCharacterRepository repository;
+    CreatePCBalanceCache balance;
+    repository.occupiedSlots.insert(std::make_pair(std::string("account"), std::string("SLOT2")));
+
+    CreatePCRequest request = slayerRequest();
+    request.slot = 9;
+    request.str = 99;
+
+    Outcome<CreatedCharacter, CreatePCRejection> outcome = decideCreatePC(request, repository, balance);
+
+    ASSERT_TRUE(outcome.isRejected());
+    EXPECT_EQ(CreatePCRejection::InvalidSlot, outcome.rejection());
 }
 
 TEST(DecideCreatePC, AnOccupiedSlotWinsOverInvalidAttributes) {
