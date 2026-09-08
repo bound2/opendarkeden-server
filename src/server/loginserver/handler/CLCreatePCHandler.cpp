@@ -10,17 +10,16 @@
 #include <string.h>
 
 #include <list>
+#include <utility>
 
 #include "Assert.h"
+#include "CharacterCreation.h"
 #include "GameServerInfoManager.h"
 #include "LCCreatePCError.h"
 #include "LCCreatePCOK.h"
 #include "LoginPlayer.h"
-#include "PCSlayerInfo.h"
 #include "repository/LoginCharacterRepository.h"
 #endif
-
-bool isAvailableID(const char* pID);
 
 #ifdef __THAILAND_SERVER__
 // tis620 charset filter functions
@@ -57,335 +56,73 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
     WorldID_t WorldID = pLoginPlayer->getWorldID();
     LoginCharacterRepository& repo = defaultLoginCharacterRepository();
 
+    // The level-1 balance rows never change while the server runs, so one
+    // cache serves every creation.
+    static CreatePCBalanceCache balance;
+
+    CreatePCRequest request;
+    request.worldID = WorldID;
+    request.serverGroupID = pPlayer->getServerGroupID();
+    request.playerID = pLoginPlayer->getID();
+    request.name = pPacket->getName();
+    request.slot = pPacket->getSlot();
+    request.sex = pPacket->getSex();
+    request.hairStyle = pPacket->getHairStyle();
+    request.hairColor = pPacket->getHairColor();
+    request.skinColor = pPacket->getSkinColor();
+    request.str = pPacket->getSTR();
+    request.dex = pPacket->getDEX();
+    request.inte = pPacket->getINT();
+    request.race = pPacket->getRace();
+
     try {
-        // 시스템에서 사용하거나, 금지된 이름은 아닌기 검증한다.
-        // NONE, ZONE***, INV***, QUICK...
-        // string text = pPacket->getName();
+        Outcome<CreatedCharacter, CreatePCRejection> outcome = decideCreatePC(request, repo, balance);
 
-        if (!isAvailableID(pPacket->getName().c_str())) {
-            lcCreatePCError.setErrorID(ALREADY_REGISTER_ID);
-            throw DuplicatedException("이미 존재하는 아이디입니다.");
-        }
-
-        /*
-        list<string>::const_iterator itr = InvalidTokenList.begin();
-        for (; itr != InvalidTokenList.end(); itr++)
-        {
-            if (text.find(*itr) != string::npos)
-            {
+        if (outcome.isRejected()) {
+            switch (outcome.rejection()) {
+            case CreatePCRejection::ReservedName:
+            case CreatePCRejection::NameTaken:
+            case CreatePCRejection::SlotOccupied:
                 lcCreatePCError.setErrorID(ALREADY_REGISTER_ID);
-                throw DuplicatedException("이미 존재하는 아이디입니다.");
-            }
-        }
-        */
-#if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
+                break;
 
-        /*
-         * 태국어 문자셋 tis620 thailand charset 에서 허용하는 문자만을 케릭터 이름으로
-         * 쓸 수 있도록 제어한다.
-         *
-         * */
+            case CreatePCRejection::DisallowedCharacters:
+            case CreatePCRejection::UnknownRace:
+                lcCreatePCError.setErrorID(ETC_ERROR);
+                break;
 
-        /*
-         * 중국어 문자코드셋 gb2312-simple chinese 에서 허용하는 문자만을 케릭터 이름으로
-         * 쓸 수 있도록 제어한다.
-         *
-         * */
-
-        string tmpStr = pPacket->getName();
-        bool isAllowStr = isAllowString(tmpStr);
-
-        if (isAllowStr == false) {
-            lcCreatePCError.setErrorID(ETC_ERROR);
-            throw DuplicatedException("허용하지 않는 문자가 포함되어 있음");
-        }
-
-#endif
-
-
-        // The name must be free and the slot empty.
-        if (repo.slayerNameExists(WorldID, pPacket->getName())) {
-            lcCreatePCError.setErrorID(ALREADY_REGISTER_ID);
-            throw DuplicatedException("that ID already exists.");
-        }
-
-        if (repo.slotOccupied(WorldID, pLoginPlayer->getID(), Slot2String[pPacket->getSlot()])) {
-            lcCreatePCError.setErrorID(ALREADY_REGISTER_ID);
-            throw DuplicatedException("that ID already exists.");
-        }
-        // 잘못된 능력치를 가지고 캐릭터를 생성하려 하는 것은 아닌지 검증한다.
-
-
-        bool bInvalidAttr = false;
-        int nSTR = pPacket->getSTR();
-        int nSTRExp = 0;
-        int nSTRGoalExp = 0;
-        int nDEX = pPacket->getDEX();
-        int nDEXExp = 0;
-        int nDEXGoalExp = 0;
-        int nINT = pPacket->getINT();
-        int nINTExp = 0;
-        int nINTGoalExp = 0;
-
-        // int  Rank         = 1;
-        // int  RankExp      = 0;
-
-        //
-        static int RankGoalExpSlayer = -1;
-        static int GoalExpVampire = -1; // by sigi. 2002.12.20
-        static int RankGoalExpVampire = -1;
-        static int GoalExpOusters = -1;
-        static int RankGoalExpOusters = -1;
-
-        // The level-1 goals are read once per process and cached in the
-        // statics; a missing row leaves the -1.
-        int goalExp = 0;
-
-        if (RankGoalExpSlayer == -1) {
-            if (repo.loadRankGoalExp(WorldID, 0, goalExp))
-                RankGoalExpSlayer = goalExp;
-        }
-
-        if (GoalExpVampire == -1) {
-            if (repo.loadVampireGoalExp(WorldID, goalExp))
-                GoalExpVampire = goalExp;
-        }
-
-        if (GoalExpOusters == -1) {
-            if (repo.loadOustersGoalExp(WorldID, goalExp))
-                GoalExpOusters = goalExp;
-        }
-
-        if (RankGoalExpVampire == -1) {
-            if (repo.loadRankGoalExp(WorldID, 1, goalExp))
-                RankGoalExpVampire = goalExp;
-        }
-
-        if (RankGoalExpOusters == -1) {
-            if (repo.loadRankGoalExp(WorldID, 2, goalExp))
-                RankGoalExpOusters = goalExp;
-        }
-
-        if (pPacket->getRace() == RACE_SLAYER) {
-            if (nSTR < 5 || nSTR > 20)
-                bInvalidAttr = true;
-            if (nDEX < 5 || nDEX > 20)
-                bInvalidAttr = true;
-            if (nINT < 5 || nINT > 20)
-                bInvalidAttr = true;
-            if (nSTR + nDEX + nINT > 30)
-                bInvalidAttr = true;
-
-            // cout << "Slayer: " << nSTR << ", " << nDEX << ", " << nINT << endl;
-        } else if (pPacket->getRace() == RACE_VAMPIRE) // vampire인 경우. 무조건 20. by sigi. 2002.10.31
-        {
-            if (nSTR != 20 || nDEX != 20 || nINT != 20) {
-                bInvalidAttr = true;
-            } else {
-                // 정상적인 vampire인 경우
-                // Slayer의 능력치를 다시 설정해줘야 한다. -_-;
-                // by sigi. 2002.11.7
-                nSTR = 5 + rand() % 16; // 5~20
-                nDEX = 5 + rand() % (21 - nSTR);
-                nINT = 30 - nSTR - nDEX;
-
-                pPacket->setSTR(nSTR);
-                pPacket->setDEX(nDEX);
-                pPacket->setINT(nINT);
-            }
-            //
-
-            // cout << "Vampire: " << nSTR << ", " << nDEX << ", " << nINT << endl;
-        } else if (pPacket->getRace() == RACE_OUSTERS) {
-            /*			if ( nSTR < 10 ) bInvalidAttr = true;
-                        if ( nDEX < 10 ) bInvalidAttr = true;
-                        if ( nINT < 10 ) bInvalidAttr = true;*/
-
-            if (nSTR < 10 || nDEX < 10 || nINT < 10) {
-                filelog("CreatePC.log", "Illegal PC Create [%s:%s] : %u/%u/%u", pPlayer->getID().c_str(),
-                        pPacket->getName().c_str(), nSTR, nDEX, nINT);
+            case CreatePCRejection::InvalidAttributes:
+                // Attributes the creation screen cannot produce mean the
+                // client is not speaking the protocol, so the connection is
+                // dropped rather than answered with an error packet.
+                throw InvalidProtocolException("CLCreatePCHandler::too large character attribute");
             }
 
-            if (nSTR + nDEX + nINT != 45)
-                bInvalidAttr = true;
-        }
-
-        if (bInvalidAttr) {
-            throw InvalidProtocolException("CLCreatePCHandler::too large character attribute");
-        }
-
-        // 모든 검사를 만족했다면 이제 캐릭터를 생성한다.
-        ServerGroupID_t CurrentServerGroupID = pPlayer->getServerGroupID();
-
-        // 우헤헤.. 일단 쿼리를 줄일려고 static으로 삽질을 했다.
-        // 나중에 아예 로그인 서버 뜰때에 경험치 table들을 loading해 두도록해야할 것이다. 2002.7.13 by sigi
-        static int STRGoalExp[100] = {
-            0,
-        };
-        static int STRAccumExp[100] = {
-            0,
-        };
-        static int DEXGoalExp[100] = {
-            0,
-        };
-        static int DEXAccumExp[100] = {
-            0,
-        };
-        static int INTGoalExp[100] = {
-            0,
-        };
-        static int INTAccumExp[100] = {
-            0,
-        };
-
-        // The attribute tables are read once per level and cached in the
-        // static arrays; a missing row leaves the cached zero.
-        int value = 0;
-
-        nSTRGoalExp = STRGoalExp[nSTR];
-        if (nSTRGoalExp == 0) {
-            if (repo.loadAttrGoalExp(WorldID, LOGIN_ATTR_TABLE_STR, nSTR, value))
-                nSTRGoalExp = STRGoalExp[nSTR] = value;
-        }
-
-        nSTRExp = STRAccumExp[nSTR - 1];
-        if (nSTRExp == 0) {
-            if (repo.loadAttrAccumExp(WorldID, LOGIN_ATTR_TABLE_STR, nSTR - 1, value))
-                nSTRExp = STRAccumExp[nSTR - 1] = value;
-        }
-
-        nDEXGoalExp = DEXGoalExp[nDEX];
-        if (nDEXGoalExp == 0) {
-            if (repo.loadAttrGoalExp(WorldID, LOGIN_ATTR_TABLE_DEX, nDEX, value))
-                nDEXGoalExp = DEXGoalExp[nDEX] = value;
-        }
-
-        nDEXExp = DEXAccumExp[nDEX - 1];
-        if (nDEXExp == 0) {
-            if (repo.loadAttrAccumExp(WorldID, LOGIN_ATTR_TABLE_DEX, nDEX - 1, value))
-                nDEXExp = DEXAccumExp[nDEX - 1] = value;
-        }
-
-        nINTGoalExp = INTGoalExp[nINT];
-        if (nINTGoalExp == 0) {
-            if (repo.loadAttrGoalExp(WorldID, LOGIN_ATTR_TABLE_INT, nINT, value))
-                nINTGoalExp = INTGoalExp[nINT] = value;
-        }
-
-        nINTExp = INTAccumExp[nINT - 1];
-        if (nINTExp == 0) {
-            if (repo.loadAttrAccumExp(WorldID, LOGIN_ATTR_TABLE_INT, nINT - 1, value))
-                nINTExp = INTAccumExp[nINT - 1] = value;
-        }
-
-        // 일단 복장은 없고.. 남/녀 구분만..
-        DWORD slayerShape = (pPacket->getSex() == 1 ? 1 : 0);
-        DWORD vampireShape = slayerShape;
-
-        slayerShape |= (pPacket->getHairStyle() << PCSlayerInfo::SLAYER_BIT_HAIRSTYLE1);
-
-        Color_t HelmetColor = 0;
-        Color_t JacketColor = 0;
-        Color_t PantsColor = 0;
-        Color_t WeaponColor = 0;
-        Color_t ShieldColor = 0;
-
-        // 캐릭터 생성시에 뱀파이어를 선택할 수 있다.
-        // by sigi. 2002.10.31
-        string race;
-        switch (pPacket->getRace()) {
-        case RACE_SLAYER:
-            race = "SLAYER";
-            break;
-        case RACE_VAMPIRE:
-            race = "VAMPIRE";
-            break;
-        case RACE_OUSTERS:
-            race = "OUSTERS";
-            break;
-        default:
-            lcCreatePCError.setErrorID(ETC_ERROR);
-            pLoginPlayer->sendPacket(&lcCreatePCError); // 클라이언트에게 PC 생성 실패 패킷을 날린다.
+            pLoginPlayer->sendPacket(&lcCreatePCError); // tell the client the creation failed
             return;
         }
 
-        LoginNewSlayer slayer;
-        slayer.race = race;
-        slayer.name = pPacket->getName();
-        slayer.playerID = pLoginPlayer->getID();
-        slayer.slot = Slot2String[pPacket->getSlot()];
-        slayer.serverGroupID = (int)CurrentServerGroupID;
-        slayer.sex = Sex2String[pPacket->getSex()];
-        slayer.hairStyle = HairStyle2String[pPacket->getHairStyle()];
-        slayer.hairColor = (int)pPacket->getHairColor();
-        slayer.skinColor = (int)pPacket->getSkinColor();
-        slayer.str = (int)pPacket->getSTR();
-        slayer.strExp = nSTRExp;
-        slayer.strGoalExp = nSTRGoalExp;
-        slayer.dex = (int)pPacket->getDEX();
-        slayer.dexExp = nDEXExp;
-        slayer.dexGoalExp = nDEXGoalExp;
-        slayer.inte = (int)pPacket->getINT();
-        slayer.intExp = nINTExp;
-        slayer.intGoalExp = nINTGoalExp;
-        slayer.rank = 1;
-        slayer.rankExp = 0;
-        slayer.rankGoalExp = RankGoalExpSlayer;
-        slayer.hp = (int)pPacket->getSTR() * 2;
-        slayer.currentHP = (int)pPacket->getSTR() * 2;
-        slayer.mp = (int)pPacket->getINT() * 2;
-        slayer.currentMP = (int)pPacket->getINT() * 2;
-        slayer.shape = slayerShape;
-        slayer.helmetColor = (int)HelmetColor;
-        slayer.jacketColor = (int)JacketColor;
-        slayer.pantsColor = (int)PantsColor;
-        slayer.weaponColor = (int)WeaponColor;
-        slayer.shieldColor = (int)ShieldColor;
+        const CreatedCharacter created = std::move(outcome).events();
 
-        repo.insertSlayer(WorldID, slayer);
+        // A vampire's Slayer attributes are rolled by the decision; keep the
+        // packet in step with the rows that are written.
+        pPacket->setSTR(created.str);
+        pPacket->setDEX(created.dex);
+        pPacket->setINT(created.inte);
 
-        // Every character has a Slayer row; a Vampire or Ousters row
-        // besides, by race.
-        if (pPacket->getRace() != RACE_OUSTERS) {
-            LoginNewVampire vampire;
-            vampire.name = pPacket->getName();
-            vampire.playerID = pLoginPlayer->getID();
-            vampire.slot = Slot2String[pPacket->getSlot()];
-            vampire.serverGroupID = (int)CurrentServerGroupID;
-            vampire.sex = Sex2String[pPacket->getSex()];
-            vampire.skinColor = (int)pPacket->getSkinColor();
-            vampire.goalExp = GoalExpVampire;
-            vampire.rankGoalExp = RankGoalExpVampire;
-            vampire.shape = vampireShape;
+        repo.insertSlayer(WorldID, created.slayer);
 
-            repo.insertVampire(WorldID, vampire);
+        if (created.hasOustersRow) {
+            repo.insertOusters(WorldID, created.ousters);
         } else {
-            LoginNewOusters ousters;
-            ousters.name = pPacket->getName();
-            ousters.playerID = pLoginPlayer->getID();
-            ousters.slot = Slot2String[pPacket->getSlot()];
-            ousters.serverGroupID = (int)CurrentServerGroupID;
-            ousters.str = (int)pPacket->getSTR();
-            ousters.dex = (int)pPacket->getDEX();
-            ousters.inte = (int)pPacket->getINT();
-            ousters.goalExp = GoalExpOusters;
-            ousters.rankGoalExp = RankGoalExpOusters;
-            ousters.hairColor = (int)pPacket->getHairColor();
-
-            repo.insertOusters(WorldID, ousters);
+            repo.insertVampire(WorldID, created.vampire);
         }
 
-        if (pPacket->getRace() == RACE_SLAYER) {
-            repo.insertFlagSet(WorldID, pPacket->getName(), LOGIN_FLAGSET_SLAYER);
-        } else {
-            repo.insertFlagSet(WorldID, pPacket->getName(), LOGIN_FLAGSET_OTHER);
-        }
+        repo.insertFlagSet(WorldID, created.slayer.name, created.flagSet);
 
         LCCreatePCOK lcCreatePCOK;
         pLoginPlayer->sendPacket(&lcCreatePCOK);
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
-    } catch (DuplicatedException& de) {
-        pLoginPlayer->sendPacket(&lcCreatePCError); // tell the client the creation failed
     } catch (const char*) {
         // A SQL failure arrives as END_DB's const char*, already logged to
         // DBError.log (its own message dangles); the client gets the
@@ -397,21 +134,6 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
 #endif
 
     __END_DEBUG_EX __END_CATCH
-}
-
-bool isAvailableID(const char* pID) {
-    const int maxInvalidID = 10;
-    static const char* invalidID[maxInvalidID] = {"NONE",   "관리자", "도우미", "담당자", "운영",
-                                                  "기획자", "개발자", "테스터", "직원",   "GM"};
-
-    // 좀 빠를까. - -; 2002.7.13 by sigi.
-    for (int i = 0; i < maxInvalidID; i++) {
-        if (strstr(pID, invalidID[i]) != NULL) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 #ifdef __THAILAND_SERVER__
