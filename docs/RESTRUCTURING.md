@@ -134,6 +134,26 @@ before anything else moves. Everything later shelters under this pin.
   > `LCRegisterPlayerOK`'s group name is capped at `maxNameLength` and
   > refused when empty; `LCServerList` / `LCWorldList` refuse an entry
   > past the count their factory max budgets).
+  > The **gameserver handshake is pinned** — the 12 packets that cross
+  > the gameserver's client socket between the TCP connect and
+  > `GPS_NORMAL`, on the fresh-login and the zone-transfer path
+  > (`CGConnectSetKey`, `CGConnect`, `CGReady`, the two hot-key packets
+  > the `GPS_WAITING_FOR_CG_READY` gate whitelists, `CGVerifyTime`,
+  > `GCSystemAvailabilities`, `GCUpdateInfo` with one golden per race,
+  > `GCPetInfo` with and without a pet, `GCSetPosition`, `GCDisconnect`,
+  > `GCReconnectLogin`), have code-0 goldens, loopback round trips and
+  > size/factory-max pins
+  > (`tests/packet_gameserver_handshake_test.cpp`), with five open
+  > write/read disagreements stated as tests that flip when fixed
+  > (`PCSlayerInfo2::write` swallowing both of its refusals, so the PC
+  > record underflows the size `GCUpdateInfo` declares; `NPCInfo::getSize`
+  > counting the id and coordinates a nameless record omits;
+  > `EffectInfo::getMaxSize` understating a full 255-effect list by 766
+  > bytes; the settable `m_ListNum` that `addListElement` does not
+  > maintain in `InventoryInfo` / `GearInfo` / `ExtraInfo` /
+  > `RideMotorcycleInfo`, which truncates the reader while the declared
+  > size still matches the bytes). `GCReconnect` is excluded: no server
+  > source constructs it.
   > Remaining non-encrypter GC/CG coverage outstanding.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
