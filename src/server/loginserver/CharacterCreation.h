@@ -53,10 +53,11 @@ struct CreatePCRequest {
     ServerGroupID_t serverGroupID = 0;
     std::string playerID;
     std::string name;
-    // The slot and hair style as the packet carries them: plain integers,
-    // not Slot / HairStyle, because a crafted packet can put a value in
-    // either that names no enumerator, and the decision has to range-check
-    // them before they index Slot2String / HairStyle2String.
+    // The slot and hair style as plain integers rather than Slot / HairStyle,
+    // so a caller can hand the decision a value that names no enumerator
+    // and have it refused. Holding one in an enum member would be
+    // undefined to load, which would put the value beyond the reach of the
+    // range check that guards Slot2String / HairStyle2String.
     int slot = SLOT1;
     Sex sex = FEMALE;
     int hairStyle = HAIR_STYLE1;

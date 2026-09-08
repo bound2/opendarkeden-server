@@ -124,8 +124,10 @@ decideCreatePC(const CreatePCRequest& request, LoginCharacterRepository& reposit
 
     // The slot and hair style index Slot2String and HairStyle2String, which
     // have one entry per enumerator and none to spare. CLCreatePC::read
-    // range-checks neither, so both are checked here, before the first
-    // lookup.
+    // refuses a byte outside either range, so nothing off the wire arrives
+    // here out of range; this repeats the check for callers that build a
+    // request without going through the packet, and keeps the decision
+    // total over the values its request type can hold.
     if (request.slot < (int)SLOT1 || request.slot >= (int)SLOT_MAX)
         return Result::Rejected(CreatePCRejection::InvalidSlot);
 

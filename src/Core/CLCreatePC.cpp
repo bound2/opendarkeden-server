@@ -25,10 +25,29 @@ void CLCreatePC::read(SocketInputStream& iStream)
 
     BYTE slot;
     iStream.read(slot);
+
+    // SLOT_MAX is the count of slots, not a slot, and Slot2String has one
+    // entry per real slot. The byte is checked before it becomes a Slot:
+    // an enum object holding a value outside its enumeration is undefined
+    // to load, so a guard placed after the assignment could not be reached
+    // with the input it exists to refuse.
+    if (slot >= (BYTE)SLOT_MAX)
+        throw InvalidProtocolException("slot out of range");
+
     m_Slot = Slot(slot);
 
     BYTE flags;
     iStream.read(flags);
+
+    // Two bits of the flags byte carry the hair style, which reaches 3 while
+    // HairStyle stops at HAIR_STYLE3 (the enum has no count enumerator) and
+    // HairStyle2String has three entries. Bit SLAYER_BIT_SEX is a single bit
+    // and names MALE or FEMALE either way, so it needs no check. Bits above
+    // the three-bit set do not survive the assignment below.
+    const BYTE hairStyle = (flags >> SLAYER_BIT_HAIRSTYLE) & 3;
+    if (hairStyle > (BYTE)HAIR_STYLE3)
+        throw InvalidProtocolException("hair style out of range");
+
     m_BitSet = flags;
 
     for (uint i = 0; i < SLAYER_COLOR_MAX; i++)
