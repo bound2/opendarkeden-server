@@ -421,7 +421,7 @@
 426	GLIncomingConnectionError	256
 427	GLIncomingConnectionOK	29
 428	GLKickVerify	26
-429	GMServerInfo	1277
+429	GMServerInfo	1023
 430	GSAddGuild	312
 431	GSAddGuildMember	282
 432	GSExpelGuildMember	44

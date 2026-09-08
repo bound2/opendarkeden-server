@@ -115,17 +115,9 @@ void LGIncomingConnectionHandler::execute(LGIncomingConnection* pPacket)
         cout << "LGIncomingConnectionHandler Send Packet to ServerIP : " << pPacket->getHost() << endl;
         cout << "LGIncomingConnectionHandler Send Packet to ServerPort : " << pPacket->getPort() << endl;
 
-    } catch (DuplicatedException& de) {
-        // 실패했을 경우 CI 를 삭제하고, 로그인 서버에게 GLIncomingConnectionError 패킷을 전송한다.
+    } catch (DuplicatedException&) {
+        // The connection info is discarded; the loginserver is not told.
         SAFE_DELETE(pConnectionInfo);
-
-        //		GLIncomingConnectionError glIncomingConnectionError;
-        //		glIncomingConnectionError.setMessage(de.toString());
-        //		glIncomingConnectionError.setPlayerID(pPacket->getPlayerID());
-
-        //		cout << "Step 5" << endl;
-        //		g_pLoginServerManager->sendPacket(pPacket->getHost() , pPacket->getPort() , &glIncomingConnectionError);
-        //		cout << "LGIncomingConnectionHandler Send Packet to ServerIP : " << pPacket->getHost() << endl;
     }
 
 #endif
