@@ -43,6 +43,12 @@ void CLRegisterPlayer::read(SocketInputStream& iStream)
 
     BYTE sex;
     iStream.read(sex);
+
+    // Sex has two enumerators and Sex2String two entries. The byte is checked
+    // before it becomes a Sex, for the same reason CLCreatePC checks its slot.
+    if (sex > (BYTE)MALE)
+        throw InvalidProtocolException("sex out of range");
+
     m_Sex = (Sex)sex;
 
     BYTE szSSN;
