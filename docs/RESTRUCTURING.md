@@ -61,7 +61,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `TradeManager.cpp` holds SQL that compiles and runs; `CreatureUtil.cpp` keeps a commented-out block; the rest are listed under 3.2 "What remains".) |
 | R3 | Files with inline SQL outside `database/` and any `repository/` | 19 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (`gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,790 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,788 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
@@ -1091,8 +1091,9 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > 2026-08-31): ownership is mutex-guarded, not thread-affine — the
   > `ZoneGroupThread` holds the group mutex for its whole tick and other
   > threads must take it. Debug-only `ZoneGroup::assertOwned()` guards
-  > the five `Zone` mutation gateways `addPC`×2/`addCreature`/
-  > `deleteCreature`/`moveCreature`. Hardened by the adversarial review:
+  > the eight `Zone` mutation gateways `addPC`×2/`replacePC`/
+  > `addCreature`/`deleteCreature`/`moveCreature`/`addCreatureToTile`/
+  > `deleteCreatureFromTile`. Hardened by the adversarial review:
   > the machinery rides `DE_OWNERSHIP_CHECKS` (Debug-only compile flag —
   > this repo never defines `NDEBUG`, so gating on it was a no-op and
   > the bookkeeping was live in release), a violation now `abort()`s
@@ -1102,9 +1103,11 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > character save), `pthread_equal` + a valid flag replace the raw
   > compare/zero sentinel, and the review's main-thread hole is closed:
   > packets pipelined behind `CGReady` no longer drain on the main
-  > thread after `GPS_NORMAL` opens the validator gate. Documented
-  > violations (CLAUDE.md has the full list): `EventMorph` tile writes
-  > below the gateways. The three `GDRLair*::start` loops now take the
+  > thread after `GPS_NORMAL` opens the validator gate. No creature is
+  > written to a `Tile` outside `Zone.cpp` any more: the race-swap sites
+  > go through `replacePC`, the move-mode swaps, knockback/warp moves and
+  > corpse paths through the tile-only pair (CLAUDE.md has the list of
+  > what is still not gated). The three `GDRLair*::start` loops now take the
   > group mutex like the file's other sites (2026-09-05). The
   > cross-group `DynamicZone` `addZone()` race is fixed (2026-09-05):
   > the group zone map and the `ZoneInfoManager` tables are

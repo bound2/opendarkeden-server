@@ -78,11 +78,11 @@ void ActionWarpInZone::execute(Creature* pCreature1, Creature* pCreature2)
 
         Dir_t dir = rand() % 8;
 
-        pZone->getTile(pCreature1->getX(), pCreature1->getY()).deleteCreature(pCreature1->getObjectID());
+        pZone->deleteCreatureFromTile(pCreature1, pCreature1->getX(), pCreature1->getY());
         GCDeleteObject gcDeleteObject(pCreature1->getObjectID());
         pZone->broadcastPacket(pCreature1->getX(), pCreature1->getY(), &gcDeleteObject);
 
-        pZone->getTile(tx, ty).addCreature(pCreature1, false);
+        pZone->addCreatureToTile(pCreature1, tx, ty, false);
         pCreature1->setXYDir(tx, ty, dir);
         GCAddNPC gcAddNPC;
         makeGCAddNPC(&gcAddNPC, dynamic_cast<NPC*>(pCreature1));

@@ -113,6 +113,12 @@ public:
     void replacePC(Creature* pFrom, Creature* pTo, ZoneCoord_t nx, ZoneCoord_t ny, Dir_t dir,
                    bool bFindSuitablePosition = false, bool bCheckEffect = true, bool bCheckPortal = true);
     void addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir);
+
+    // Tile-only creature writes; see Zone.cpp for the contract.
+    bool addCreatureToTile(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y, bool bCheckEffect = true,
+                           bool bCheckPortal = true);
+    void deleteCreatureFromTile(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y);
+
     TPOINT addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCreature = true, Turn_t decayTurn = 0,
                    ObjectID_t DropPetOID = 0);
     Item* getItem(ObjectID_t id) const;

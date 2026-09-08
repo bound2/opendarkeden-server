@@ -1146,11 +1146,10 @@ void PCManager::killCreature(Creature* pDeadCreature)
     pDeadCreature->getPlayer()->sendPacket(&gcCreatureDied);
     pZone->broadcastPacket(cx, cy, &gcCreatureDied, pDeadCreature);
 
-    // 타일에서 Creature를 지워준다.
-    // 단 PCManager 에서 삭제하면 PC's EM's heartbeat 가 호출되지 않으니 주의하기 바란다.
-    Tile& tile = pZone->getTile(cx, cy);
-    Assert(tile.getCreature(pDeadCreature->getMoveMode()) == pDeadCreature);
-    tile.deleteCreature(pDeadCreature->getObjectID());
+    // Take the creature off the tile only. It must stay in the PCManager: dropping
+    // it from there would stop its effect manager's heartbeat.
+    Assert(pZone->getTile(cx, cy).getCreature(pDeadCreature->getMoveMode()) == pDeadCreature);
+    pZone->deleteCreatureFromTile(pDeadCreature, cx, cy);
 
     /*
     // 밑으로 옮긴다.	by sigi. 2002.5.11

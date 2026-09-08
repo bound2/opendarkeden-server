@@ -595,55 +595,6 @@ void MonsterManager::processCreatures()
             __END_PROFILE_MONSTER("MM_EFFECTMANAGER");
 
             if (pCreature->isAlive()) {
-                /*
-                Monster* pMonster = dynamic_cast<Monster*>(pCreature);
-
-                if (pMonster->isEnemyLimit())
-                {
-                    Zone* 		pZone 	= pMonster->getZone();
-                    ZoneCoord_t cx 		= pMonster->getX();
-                    ZoneCoord_t cy 		= pMonster->getY();
-                    ObjectID_t 	monsterID = pMonster->getObjectID();
-
-                    unordered_map< SpriteType_t , MonsterCounter *>::iterator itr =
-                m_Monsters.find(pMonster->getSpriteType());
-
-                    if (itr == m_Monsters.end())
-                    {
-                        //cerr << "MonsterManager::processCreatures() : NoSuchElementException" << endl;
-                        //throw NoSuchElementException("±×·± SpriteTypeÀ» °¡Áø ¸ó½ºÅÍ´Â Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù.");
-                    }
-                    else
-                    {
-                        // ¸ó½ºÅÍÀÇ ¼ýÀÚ¸¦ ÁÙÀÎ´Ù.
-                        itr->second->deleteMonster();
-                    }
-
-
-                    // Å¸ÀÏ°ú ¸ó½ºÅÍ ¸Å´ÏÀú¿¡¼­ Å©¸®Ã³¸¦ »èÁ¦ÇÑ´Ù.
-                    Tile & tile = pZone->getTile(cx , cy);
-                    tile.deleteCreature(monsterID);
-
-                    SAFE_DELETE(pMonster);
-
-                    if (before == m_Creatures.end())
-                    {
-                        m_Creatures.erase(current);
-                        current = m_Creatures.begin();
-                    }
-                    else
-                    {
-                        m_Creatures.erase(current);
-                        current = before;
-                        current ++;
-                    }
-
-                    GCDeleteObject gcDeleteObject;
-                    gcDeleteObject.setObjectID(monsterID);
-
-                    pZone->broadcastPacket(cx, cy , &gcDeleteObject);
-                }
-            */
                 __BEGIN_PROFILE_MONSTER("MM_CREATURE_ACT");
                 pCreature->act(currentTime);
                 before = current++;
@@ -986,9 +937,8 @@ void MonsterManager::killCreature(Creature* pDeadCreature)
     gcAddEffect.setDuration(0);
     pZone->broadcastPacket(cx, cy, &gcAddEffect);
 
-    // ¸ó½ºÅÍ Á¦°Å
-    Tile& tile = m_pZone->getTile(cx, cy);
-    tile.deleteCreature(pDeadMonster->getObjectID());
+    // Take the monster off the map. The manager entry is dropped by the caller.
+    m_pZone->deleteCreatureFromTile(pDeadMonster, cx, cy);
 
     // DynamicZone ÀÏ°æ¿ìÀÇ Ã³¸®
     if (m_pZone->isDynamicZone()) {
@@ -2055,9 +2005,8 @@ void MonsterManager::deleteAllMonsters(bool bDeleteFromZone)
                 ZoneCoord_t cx = pCreature->getX();
                 ZoneCoord_t cy = pCreature->getY();
 
-                // Å¸ÀÏ¿¡¼­ Á¦°Å
-                Tile& tile = m_pZone->getTile(cx, cy);
-                tile.deleteCreature(pCreature->getObjectID());
+                // Take the monster off the map. The manager is emptied below.
+                m_pZone->deleteCreatureFromTile(pCreature, cx, cy);
 
                 // ÁÖº¯ÀÇ PCµé¿¡°Ô Å©¸®Ã³°¡ »ç¶óÁ³´Ù´Â »ç½ÇÀ» ºê·ÎµåÄ³½ºÆ®ÇÑ´Ù.
                 GCDeleteObject gcDeleteObject(pCreature->getObjectID());

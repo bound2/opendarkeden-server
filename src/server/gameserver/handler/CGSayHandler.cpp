@@ -3356,13 +3356,15 @@ void CGSayHandler::opcommand(GamePlayer* pGamePlayer, string msg, int i) {
 
                 Tile& rTile = pZone->getTile(pCreature->getX(), pCreature->getY());
                 if (!rTile.isAirBlocked() && !rTile.hasPortal()) {
-                    // �ֺ��� PC�鿡�� ũ��ó�� ������ٴ� ����� ��ε�ĳ��Ʈ�Ѵ�.
+                    // Tell the surrounding PCs that the creature has disappeared.
                     GCDeleteObject gcDeleteObject(pCreature->getObjectID());
                     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcDeleteObject, pCreature);
 
-                    rTile.deleteCreature(pCreature->getObjectID());
+                    // A tile files a creature under its move mode, so the mode is changed
+                    // by taking the creature off its tile and adding it again.
+                    pZone->deleteCreatureFromTile(pCreature, pCreature->getX(), pCreature->getY());
                     pCreature->setMoveMode(Creature::MOVE_MODE_FLYING);
-                    rTile.addCreature(pCreature);
+                    pZone->addCreatureToTile(pCreature, pCreature->getX(), pCreature->getY());
 
                     GCAddEffect gcAddEffect;
                     gcAddEffect.setObjectID(pCreature->getObjectID());
@@ -3404,9 +3406,11 @@ void CGSayHandler::opcommand(GamePlayer* pGamePlayer, string msg, int i) {
 
                 Tile& rTile = pZone->getTile(pCreature->getX(), pCreature->getY());
                 if (!rTile.isGroundBlocked() && !rTile.hasPortal()) {
-                    rTile.deleteCreature(pCreature->getObjectID());
+                    // A tile files a creature under its move mode, so the mode is changed
+                    // by taking the creature off its tile and adding it again.
+                    pZone->deleteCreatureFromTile(pCreature, pCreature->getX(), pCreature->getY());
                     pCreature->setMoveMode(Creature::MOVE_MODE_WALKING);
-                    rTile.addCreature(pCreature);
+                    pZone->addCreatureToTile(pCreature, pCreature->getX(), pCreature->getY());
 
                     if (pCreature->isSlayer()) {
                         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
