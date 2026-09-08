@@ -28,6 +28,7 @@ set(LOGINSERVER_SOURCES
     LoginPacketDispatch.cpp
     CharacterCreation.cpp
     CharacterSelection.cpp
+    LoginDecision.cpp
     ClientManager.cpp
     UserInfoManager.cpp
     GameServerGroupInfoManager.cpp
