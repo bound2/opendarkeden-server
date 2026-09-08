@@ -21,6 +21,8 @@ public:
         NICK_CUSTOM,        // 유저가 자유롭게 넣은 닉네임 (스트링)
     };
 
+    NicknameInfo() : m_NicknameID(0), m_NicknameType(NICK_NONE), m_NicknameIndex(0) {}
+
     PacketSize_t getSize() const;
     static constexpr PacketSize_t getMaxSize() {
         return szWORD + szBYTE + szBYTE + MAX_NICKNAME_SIZE;
@@ -49,7 +51,7 @@ public:
         m_NicknameType = type;
     }
     void setNickname(const string& name) {
-        m_Nickname = name;
+        m_Nickname = (name.size() > MAX_NICKNAME_SIZE) ? name.substr(0, MAX_NICKNAME_SIZE) : name;
     }
     void setNicknameIndex(WORD index) {
         m_NicknameIndex = index;

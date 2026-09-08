@@ -263,7 +263,7 @@ public:
         return m_GuildName;
     }
     void setGuildName(string guildName) {
-        m_GuildName = guildName;
+        m_GuildName = (guildName.size() > 30) ? guildName.substr(0, 30) : guildName;
     }
 
     GuildMemberRank_t getGuildMemberRank() const {

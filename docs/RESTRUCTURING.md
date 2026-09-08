@@ -58,10 +58,10 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
 | R1 | `g_p*` global-singleton extern declarations | 332 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 8 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 8 only `TradeManager.cpp` holds SQL that compiles and runs; `CreatureUtil.cpp` keeps a commented-out block; the rest are listed under 3.2 "What remains".) |
-| R3 | Files with inline SQL outside `database/` and any `repository/` | 19 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (`gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
+| R2 | Files with inline SQL in gameserver root | 7 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 7 only `TradeManager.cpp` holds SQL that compiles and runs; `CreatureUtil.cpp` keeps a commented-out block; the rest are listed under 3.2 "What remains".) |
+| R3 | Files with inline SQL outside `database/` and any `repository/` | 18 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (`gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,788 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,755 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
@@ -143,17 +143,22 @@ before anything else moves. Everything later shelters under this pin.
   > `GCPetInfo` with and without a pet, `GCSetPosition`, `GCDisconnect`,
   > `GCReconnectLogin`), have code-0 goldens, loopback round trips and
   > size/factory-max pins
-  > (`tests/packet_gameserver_handshake_test.cpp`), with five open
-  > write/read disagreements stated as tests that flip when fixed
-  > (`PCSlayerInfo2::write` swallowing both of its refusals, so the PC
-  > record underflows the size `GCUpdateInfo` declares; `NPCInfo::getSize`
-  > counting the id and coordinates a nameless record omits;
-  > `EffectInfo::getMaxSize` understating a full 255-effect list by 766
-  > bytes; the settable `m_ListNum` that `addListElement` does not
-  > maintain in `InventoryInfo` / `GearInfo` / `ExtraInfo` /
-  > `RideMotorcycleInfo`, which truncates the reader while the declared
-  > size still matches the bytes). `GCReconnect` is excluded: no server
-  > source constructs it.
+  > (`tests/packet_gameserver_handshake_test.cpp`); the write/read
+  > disagreements it found are fixed and pinned as the behaviour they
+  > now produce (`PCSlayerInfo2` and `SubItemInfo` let the exceptions
+  > their `read`/`write` raise escape, and every `PCInfo2` record caps
+  > its guild name at 30 in the setter, so the PC record can no longer
+  > underflow the size `GCUpdateInfo` declares; `NPCInfo::getSize`
+  > counts only the fields `write()` emits; `EffectInfo::getMaxSize`
+  > covers a full 255-effect list, which is the one wire-layout move in
+  > the set — nine `GCAdd*`/`GCUpdateInfo` max sizes grow by 766 bytes;
+  > `InventoryInfo` / `GearInfo` / `ExtraInfo` / `RideMotorcycleInfo`
+  > derive the count they put on the wire in `addListElement` and no
+  > longer expose `setListNum`; the NPC record list, the blood bible
+  > signs and the nickname stop at the widths their max sizes budget;
+  > `GCUpdateInfo`, `GCPetInfo` and `NicknameInfo` initialise every
+  > member and `GCUpdateInfo::read` allocates the blood bible sign
+  > record). `GCReconnect` is excluded: no server source constructs it.
   > Remaining non-encrypter GC/CG coverage outstanding.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**

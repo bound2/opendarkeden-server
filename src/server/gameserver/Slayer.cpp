@@ -2266,8 +2266,6 @@ ExtraInfo* Slayer::getExtraInfo() const
 {
     __BEGIN_DEBUG
 
-    BYTE ItemCount = 0;
-
     ExtraInfo* pExtraInfo = new ExtraInfo();
 
     Item* pItem = m_pExtraInventorySlot->getItem();
@@ -2346,11 +2344,7 @@ ExtraInfo* Slayer::getExtraInfo() const
                 pExtraSlotInfo->setMainColor(0);
         */
         pExtraInfo->addListElement(pExtraSlotInfo);
-
-        ItemCount++;
     }
-
-    pExtraInfo->setListNum(ItemCount);
 
     return pExtraInfo;
 
@@ -2362,7 +2356,6 @@ GearInfo* Slayer::getGearInfo() const
 {
     __BEGIN_DEBUG
 
-    BYTE ItemCount = 0;
     GearInfo* pGearInfo = new GearInfo();
 
     for (int i = 0; i < WEAR_MAX; i++) {
@@ -2454,12 +2447,8 @@ GearInfo* Slayer::getGearInfo() const
                         pGearSlotInfo->setMainColor(0);*/
 
             pGearInfo->addListElement(pGearSlotInfo);
-
-            ItemCount++;
         }
     }
-
-    pGearInfo->setListNum(ItemCount);
 
     return pGearInfo;
 
@@ -2474,7 +2463,6 @@ InventoryInfo* Slayer::getInventoryInfo() const
 {
     __BEGIN_DEBUG
 
-    BYTE ItemCount = 0;
     InventoryInfo* pInventoryInfo = new InventoryInfo();
     list<Item*> ItemList;
     VolumeHeight_t Height = m_pInventory->getHeight();
@@ -2565,14 +2553,11 @@ InventoryInfo* Slayer::getInventoryInfo() const
                                         pInventorySlotInfo->setMainColor(0);*/
 
                     pInventoryInfo->addListElement(pInventorySlotInfo);
-                    ItemCount++;
                     i = i + ItemWidth - 1;
                 }
             }
         }
     }
-
-    pInventoryInfo->setListNum(ItemCount);
 
     return pInventoryInfo;
 
@@ -2589,7 +2574,6 @@ RideMotorcycleInfo* Slayer::getRideMotorcycleInfo() const
     pRideMotorcycleInfo->setObjectID(m_pMotorcycle->getObjectID());
     pRideMotorcycleInfo->setItemType(m_pMotorcycle->getItemType());
     pRideMotorcycleInfo->setOptionType(m_pMotorcycle->getOptionTypeList());
-    pRideMotorcycleInfo->setListNum(0);
 
     m_SlayerInfo.setMotorcycleColor(388);
 

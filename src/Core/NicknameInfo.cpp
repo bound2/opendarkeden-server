@@ -1,6 +1,7 @@
 #include "NicknameInfo.h"
 
 #include "Assert.h"
+#include "Exception.h"
 
 PacketSize_t NicknameInfo::getSize() const {
     switch (m_NicknameType) {
@@ -40,6 +41,8 @@ void NicknameInfo::read(SocketInputStream& iStream) {
     case NICK_CUSTOM: {
         BYTE szSTR;
         iStream.read(szSTR);
+        if (szSTR > MAX_NICKNAME_SIZE)
+            throw InvalidProtocolException("too long nickname length");
         iStream.read(m_Nickname, szSTR);
         break;
     }

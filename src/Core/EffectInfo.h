@@ -45,7 +45,7 @@ public:
         return szBYTE + szWORD * m_ListNum * 2;
     }
     static constexpr PacketSize_t getMaxSize() {
-        return 255;
+        return szBYTE + szWORD * 255 * 2;
     }
 
     // get packet's debug string

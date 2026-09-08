@@ -36,9 +36,13 @@ string CGSetVampireHotKey::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "CGSetVampireHotKey(" << "F5:" << (int)m_HotKey[1] << "F6:" << (int)m_HotKey[2] << "F7:" << (int)m_HotKey[3]
-        << "F8:" << (int)m_HotKey[4] << "F9:" << (int)m_HotKey[5] << ",F10:" << (int)m_HotKey[6]
-        << ",F11:" << (int)m_HotKey[7] << ",F12:" << (int)m_HotKey[8] << ")";
+    msg << "CGSetVampireHotKey(";
+    for (int i = 0; i < 8; i++) {
+        if (i != 0)
+            msg << ",";
+        msg << "F" << i + 5 << ":" << (int)m_HotKey[i];
+    }
+    msg << ")";
 
     return msg.toString();
 

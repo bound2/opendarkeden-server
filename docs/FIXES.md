@@ -11,6 +11,111 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Gameserver handshake write/read disagreements (2026-09-08)
+
+The findings task 1.2 stated as flip-tests in
+`tests/packet_gameserver_handshake_test.cpp`, plus the ones its review
+reported that no test could state while they were open. Each is now
+pinned as the behaviour it produces. No valid packet's bytes moved and
+no golden changed; the effect-list max below is the set's only
+`tests/wire-layout.txt` movement.
+
+- **`PCSlayerInfo2` and `SubItemInfo` swallowed the exceptions their
+  `read`/`write` raised.** Both wrapped their whole body in
+  `try { ... } catch (Throwable& t) { cout ... }`, the shape
+  `PCSlayerInfo` had on the login side. `PCSlayerInfo2::write()` raises
+  on an empty PC name and on a guild name past 30; the object id was
+  already on the wire when the throw happened, so the record stopped
+  after four bytes while `GCUpdateInfo::getPacketSize()` — which
+  `writePacket()` puts on the wire ahead of the body — still counted the
+  whole record, and every packet after it was misframed.
+  `PCVampireInfo2` and `PCOustersInfo2` never had the wrapper. The
+  exceptions now leave both functions in both records.
+  > **Status:** fixed (wire/update-info-disagreements)
+
+- **`setGuildName` did not truncate.** All three `PCInfo2` records
+  budget 30 in `getMaxSize()` and refuse more in `write()`, but the
+  setter took any length, so a guild renamed past the cap made every
+  `GCUpdateInfo` carrying one of its members unsendable. The setter now
+  truncates to 30, the way the name setters in the same family do.
+  > **Status:** fixed (wire/update-info-disagreements)
+
+- **`NPCInfo::getSize()` counted fields `write()` omits.** `write()`
+  emits the id and the two coordinates only behind a non-empty name;
+  `getSize()` always added them, so one nameless NPC in a zone made
+  `GCUpdateInfo` declare six bytes it never sent. `getSize()` now stops
+  at the length byte for a nameless record, which is what `read()`
+  expects.
+  > **Status:** fixed (wire/update-info-disagreements)
+
+- **`EffectInfo::getMaxSize()` was a flat 255.** `getSize()` is
+  `szBYTE + 4 * ListNum` and `ListNum` is a BYTE, so a character
+  carrying the maximum 255 effects needs 1021 bytes. The shortfall was
+  budgeted into the factory max of every packet that embeds an effect
+  list, which is what the receiver sizes its read buffer from. The max
+  is now the full list, so nine factory maxima grow by 766 bytes in
+  `tests/wire-layout.txt` (`GCAddMonster`,
+  `GCAddMonsterFromBurrowing`, `GCAddMonsterFromTransformation`,
+  `GCAddOusters`, `GCAddSlayer`, `GCAddVampire`,
+  `GCAddVampireFromBurrowing`, `GCAddVampireFromTransformation`,
+  `GCUpdateInfo`). Bytes on the wire are unchanged; this is the read
+  buffer the server budgets, and the client sizes its own from its own
+  copy of the max.
+  > **Status:** fixed (wire/update-info-disagreements)
+
+- **A settable `m_ListNum` that `addListElement` did not maintain.**
+  `InventoryInfo`, `GearInfo`, `ExtraInfo` and `RideMotorcycleInfo` put
+  `m_ListNum` on the wire and then wrote every element they held, so a
+  count that disagreed with the list left the reader parsing fewer
+  records than the body carried — and `getSize()`, which counts the
+  list rather than the field, still matched the byte count, so the
+  packet size looked correct all the way to the receiver. All four now
+  maintain the count in `addListElement()` like `PCItemInfo` and
+  `EffectInfo`, and `setListNum` is gone; every caller set it to the
+  number it had just added, so no count on the wire changes.
+  > **Status:** fixed (wire/update-info-disagreements)
+
+- **`GCUpdateInfo` left most of its members indeterminate.** The
+  constructor initialised ten of them. Among the rest was
+  `m_pBloodBibleSign`, which `read()` wrote through without allocating —
+  a write through an uninitialised pointer on every received packet.
+  Every member is initialised now, `read()` allocates the sign record
+  the way it allocates the other sub-records, and `write()` /
+  `getPacketSize()` fall back to an empty record when none is installed,
+  the way they already did for the nickname.
+  > **Status:** fixed (wire/update-info-disagreements)
+
+- **`NicknameInfo` had no constructor.** The NULL-nickname branch of
+  `GCUpdateInfo::write()` builds one on the stack and emits it, so two
+  indeterminate bytes of nickname id went on the wire for every player
+  without a nickname record. The fields are zeroed now, and
+  `setNickname` truncates to the 22 the max size budgets.
+  > **Status:** fixed (wire/update-info-disagreements)
+
+- **`GCPetInfo::read()` never restored the summon flag.** `write()`
+  copies the packet's flag into the `PetInfo` it emits, so the wire
+  carries it; `read()` left the packet's own copy at whatever the
+  allocation held. The constructor zeroes it and `read()` takes it back
+  from the `PetInfo` it read.
+  > **Status:** fixed (wire/update-info-disagreements)
+
+- **`CGSetVampireHotKey::toString()` read one past its array.** The
+  eight hot keys live at indices 0..7; the debug string printed indices
+  1..8, so it never showed the first key and read one element past the
+  end. It now walks the eight it owns.
+  > **Status:** fixed (wire/update-info-disagreements)
+
+- **Three lists were unbounded against the widths their max sizes
+  budget.** `GCUpdateInfo` writes its NPC record count as a BYTE while
+  `getPacketSize()` counted the whole list, and its factory max budgets
+  255 records; `BloodBibleSignInfo` budgets six signs and capped
+  neither `write()` nor `getSize()`, so a seventh both wrapped the
+  count byte and outgrew the max; the nickname was bounded on neither
+  side. `addNPCInfo` now refuses the record past the count byte,
+  `BloodBibleSignInfo` writes and counts at most the budgeted slots,
+  and the nickname is capped in the setter and refused on read.
+  > **Status:** fixed (wire/update-info-disagreements)
+
 ## Login-phase framing disagreements the CL/LC goldens found (2026-09-08)
 
 The three write/read disagreements task 1.2 stated as flip-tests in

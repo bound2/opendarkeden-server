@@ -1594,8 +1594,6 @@ ExtraInfo* Ousters::getExtraInfo() const
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    BYTE ItemCount = 0;
-
     ExtraInfo* pExtraInfo = new ExtraInfo();
 
     Item* pItem = m_pExtraInventorySlot->getItem();
@@ -1647,11 +1645,7 @@ ExtraInfo* Ousters::getExtraInfo() const
                 pExtraSlotInfo->setMainColor(0);*/
 
         pExtraInfo->addListElement(pExtraSlotInfo);
-
-        ItemCount++;
     }
-
-    pExtraInfo->setListNum(ItemCount);
 
     return pExtraInfo;
 
@@ -1669,8 +1663,6 @@ GearInfo* Ousters::getGearInfo() const
 {
     __BEGIN_TRY
     __BEGIN_DEBUG
-
-    int ItemCount = 0;
 
     GearInfo* pGearInfo = new GearInfo();
 
@@ -1728,12 +1720,8 @@ GearInfo* Ousters::getGearInfo() const
                         pGearSlotInfo->setMainColor(0);*/
 
             pGearInfo->addListElement(pGearSlotInfo);
-
-            ItemCount++;
         }
     }
-
-    pGearInfo->setListNum(ItemCount);
 
     return pGearInfo;
 
@@ -1749,8 +1737,6 @@ InventoryInfo* Ousters::getInventoryInfo() const
 {
     __BEGIN_TRY
     __BEGIN_DEBUG
-
-    BYTE ItemCount = 0;
 
     InventoryInfo* pInventoryInfo = new InventoryInfo();
     list<Item*> ItemList;
@@ -1816,14 +1802,11 @@ InventoryInfo* Ousters::getInventoryInfo() const
                                         pInventorySlotInfo->setMainColor(0);*/
 
                     pInventoryInfo->addListElement(pInventorySlotInfo);
-                    ItemCount++;
                     i = i + ItemWidth - 1;
                 }
             }
         }
     }
-
-    pInventoryInfo->setListNum(ItemCount);
 
     return pInventoryInfo;
 
