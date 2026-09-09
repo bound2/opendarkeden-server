@@ -260,9 +260,46 @@ before anything else moves. Everything later shelters under this pin.
   > packets joined the file with the fix, `GCWaitGuildList` and
   > `GCShowWaitGuildInfo`, which carry the same guild record and had the
   > same reversal. No golden changed.
+  > The **combat feedback set is pinned** — the 33 packets a game server
+  > sends as the result of an attack or a skill use, to the actor, the
+  > target and the observers, plus the status packets that ride along
+  > (`GCAttack`, `GCGetDamage`, the three `GCAttackMeleeOK*`, the five
+  > `GCAttackArmsOK*`, the six `GCSkillToObjectOK*`, the three
+  > `GCSkillToSelfOK*`, the six `GCSkillToTileOK*`, the two
+  > `GCSkillToInventoryOK*`, `GCSkillFailed1`, `GCSkillFailed2`,
+  > `GCStatusCurrentHP`, `GCModifyInformation`, `GCOtherModifyInfo` and
+  > `GCCreatureDied`), have code-0 goldens, loopback round trips and
+  > size/factory-max pins (`tests/packet_combat_test.cpp`), with extra
+  > goldens for the empty stat record, the refusal that changed nothing,
+  > the tile sweep that caught nobody, and a record carrying every one of
+  > the 73 `ModifyType` tags as both a short and a long entry — the
+  > embedded `ModifyInfo` is a pair of counted type/value lists rather
+  > than a flag word, so covering the tags covers the record.
+  > `GCAddEffect` is covered by the zone-scan pins; `GCRemoveEffect`
+  > belongs to effect expiry, and the attack path constructs neither.
+  > Six open write/read disagreements are stated as tests that flip
+  > when fixed (`ModifyInfo` counting each of its two lists in a BYTE it
+  > increments per entry and caps nowhere, so the 256th entry wraps the
+  > count while `write()` still emits it; the tile packets counting their
+  > creature list the same way, and `popCListElement()` taking an entry
+  > off it without decrementing the count; no tile packet bounding that
+  > list against a factory max that budgets one id for a list the count
+  > byte lets reach 255; `ModifyInfo::read()` and the tile `read()`s
+  > appending to the list the packet already holds instead of replacing
+  > it; the type tag travelling unchecked while `toString()` indexes
+  > `ModifyType2String` with it; and
+  > `GCSkillToTileOK3::getObjectID()` /
+  > `GCSkillToInventoryOK2::getObjectID()` declared `CEffectID_t`,
+  > handing back the low half of the id they put on the wire). Two more
+  > are recorded in the test's header rather than tested, because the
+  > test would have to perform the undefined behaviour it reports: 31 of
+  > the 33 leave at least one member uninitialised in the default
+  > constructor, and the two hit flags are `bool` members read straight
+  > off the wire. No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
-  > inter-server links and the social protocols pinned, the remaining
-  > non-encrypter coverage outstanding is the rest of GC/CG.
+  > inter-server links, the social protocols and the combat feedback
+  > set pinned, the remaining non-encrypter coverage outstanding is the
+  > rest of GC/CG.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed
