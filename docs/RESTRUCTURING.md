@@ -869,6 +869,16 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `src/server/gameserver/party/PartyInviteDecision.{h,cpp}`
   > (`tests/party_invite_decision_test.cpp`), leaving `CGPartyInviteHandler`
   > to read the creatures, send the packets and drive the party managers.
+  > Fourth: the trade prepare protocol, where `decideTradePrepare`
+  > answers a `TradePrepareEvents` naming the `GCTradePrepare` to send,
+  > its recipient and the object id it carries, and whether the trade
+  > record is opened or closed, or a `TradePrepareRejection` naming the
+  > `GCTradeError` code the sender gets and the `cancelTrade` that
+  > precedes it, in
+  > `src/server/gameserver/trade/TradePrepareDecision.{h,cpp}`
+  > (`tests/trade_prepare_decision_test.cpp`), leaving
+  > `CGTradePrepareHandler` to look the receiver up, test the safe zone
+  > and the mounts, and drive the `TradeManager`.
   > Wider adoption pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).

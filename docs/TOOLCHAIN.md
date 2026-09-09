@@ -246,6 +246,10 @@ with a race-independent rejection reason that the handlers map to the
 response code of the asking race, or to silence. So does its party invite protocol,
 whose decision answers the packet to send, its recipient and the party
 mutation to perform, or the refusal code the requester gets.
+Its trade prepare protocol follows the same shape: the decision answers
+the `GCTradePrepare` to send, who gets it and the trade record to open or
+close, or the `GCTradeError` code the sender gets and the trade cancelled
+before it.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|
