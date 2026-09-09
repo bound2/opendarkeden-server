@@ -622,3 +622,27 @@ target_link_libraries(trade_prepare_decision_tests PRIVATE de-kernel gtest_main 
 add_dependencies(wire_tests trade_prepare_decision_tests)
 add_test(NAME trade_prepare_decision_tests COMMAND trade_prepare_decision_tests)
 set_tests_properties(trade_prepare_decision_tests PROPERTIES TIMEOUT 60)
+
+# The gameserver's three trade table requests (docs/RESTRUCTURING.md 3.1):
+# decideTradeTableGate, decideTradeAddItem, decideTradeRemoveItem and
+# decideTradeMoney answer Outcome<TradeTableEvents, TradeTableRejection> over a
+# recording fake topology, so the gate the three share and its precedence,
+# every item, gift box and gold branch, the packet and recipient each answer
+# carries, the trade record mutations that go with it in order, and the queries
+# a branch does and does not make are testable with no zone and no trade
+# manager. The handlers themselves are not linked - they need a creature, an
+# inventory and a socket, which is why the decisions were split out of them.
+# de-kernel carries the packet code tables.
+add_executable(trade_table_decision_tests EXCLUDE_FROM_ALL
+    trade_table_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/trade/TradeTableDecision.cpp
+)
+target_include_directories(trade_table_decision_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/trade
+)
+target_link_libraries(trade_table_decision_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests trade_table_decision_tests)
+add_test(NAME trade_table_decision_tests COMMAND trade_table_decision_tests)
+set_tests_properties(trade_table_decision_tests PROPERTIES TIMEOUT 60)

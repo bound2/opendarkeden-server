@@ -924,6 +924,18 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > (`tests/trade_prepare_decision_test.cpp`), leaving
   > `CGTradePrepareHandler` to look the receiver up, test the safe zone
   > and the mounts, and drive the `TradeManager`.
+  > Fifth: the three requests that change an open trade table, where
+  > `decideTradeTableGate` holds the target, race, safe-zone, mount and
+  > open-trade tests all three share, and `decideTradeAddItem`,
+  > `decideTradeRemoveItem` and `decideTradeMoney` answer an ordered
+  > `TradeTableEvents` naming every packet, its recipient and the trade
+  > record mutation beside it, or a `TradeTableRejection` naming the
+  > `GCTradeError` or `GCTradeVerify` code the sender gets and whether the
+  > sender's own trade is dropped first, in
+  > `src/server/gameserver/trade/TradeTableDecision.{h,cpp}`
+  > (`tests/trade_table_decision_test.cpp`), leaving `CGTradeAddItemHandler`,
+  > `CGTradeRemoveItemHandler` and `CGTradeMoneyHandler` to read the
+  > inventory and the item, build the packets and write the gold.
   > Wider adoption pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).

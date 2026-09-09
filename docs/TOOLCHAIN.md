@@ -250,6 +250,10 @@ Its trade prepare protocol follows the same shape: the decision answers
 the `GCTradePrepare` to send, who gets it and the trade record to open or
 close, or the `GCTradeError` code the sender gets and the trade cancelled
 before it.
+Its three trade table requests - an item put down, an item taken back, gold
+staked or reclaimed - share one gate decision and answer an ordered event list
+naming every packet, its recipient and the trade record mutation beside it, or
+the refusal code the sender gets.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|

@@ -490,6 +490,8 @@ set(GAMESERVER_MAIN_SOURCES
     ItemMap.cpp
     TradeManager.cpp
     trade/TradePrepareDecision.cpp
+    trade/TradeTableContext.cpp
+    trade/TradeTableDecision.cpp
     FlagSet.cpp
     AlignmentManager.cpp
     SkillInfo.cpp
