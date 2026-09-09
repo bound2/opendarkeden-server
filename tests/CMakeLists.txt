@@ -570,3 +570,28 @@ target_link_libraries(party_invite_decision_tests PRIVATE de-kernel gtest_main T
 add_dependencies(wire_tests party_invite_decision_tests)
 add_test(NAME party_invite_decision_tests COMMAND party_invite_decision_tests)
 set_tests_properties(party_invite_decision_tests PROPERTIES TIMEOUT 60)
+
+# The loginserver's world and server-group decisions
+# (docs/RESTRUCTURING.md 3.1): decideSelectWorld returns Outcome<void,
+# SelectWorldRejection> and decideSelectServer returns
+# Outcome<SelectedServer, SelectServerRejection> over a recording fake
+# topology, so both refusals of a world, the clamping and the refusal of a
+# group, the queries a decision does and does not make, and every boundary of
+# the population ladder serverListFor shares with CLGetServerListHandler are
+# testable with no login server tables and no socket. The handlers themselves
+# are not linked - they need a socket and the global managers, which is why
+# the decisions were split out of them. Only de-kernel is linked (the type
+# tables carrying the server and world status enums).
+add_executable(world_selection_tests EXCLUDE_FROM_ALL
+    world_selection_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver/WorldSelection.cpp
+)
+target_include_directories(world_selection_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/loginserver
+)
+target_link_libraries(world_selection_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests world_selection_tests)
+add_test(NAME world_selection_tests COMMAND world_selection_tests)
+set_tests_properties(world_selection_tests PROPERTIES TIMEOUT 60)

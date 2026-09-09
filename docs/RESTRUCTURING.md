@@ -807,9 +807,14 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > `decideReconnectLogin` (`ReconnectDecision.{h,cpp}`,
   > `tests/reconnect_decision_test.cpp`) and `decideRegisterPlayer`
   > (`Registration.{h,cpp}`, `tests/registration_test.cpp`) — every `CL*`
-  > handler whose decision reads account or character state; the two that
-  > refuse on world/server status (`CLSelectWorld`, `CLSelectServer`) still
-  > throw. First gameserver adopter: the Exchange service's mutations return
+  > handler whose decision reads account or character state — and
+  > `decideSelectWorld` / `decideSelectServer`
+  > (`WorldSelection.{h,cpp}`, `tests/world_selection_test.cpp`), the two
+  > that refuse on world and server-group status, whose module also carries
+  > the population ladder (`serverGroupStatusFor`, `serverListFor`) that
+  > `CLGetServerListHandler` builds its own list from. The loginserver is
+  > fully adopted: no `CL*` handler decides by throwing any more.
+  > First gameserver adopter: the Exchange service's mutations return
   > `Outcome<…, ExchangeRejection>` (the typed `ExchangeResult` code plus
   > its detail), `CGExchangeBuyHandler` formats the wire text, and the
   > decisions that need only a repository and plain values live in

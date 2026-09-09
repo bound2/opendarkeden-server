@@ -232,16 +232,18 @@ The project now requires C++20. The first production use is cooperative zone
 worker shutdown; new facilities should still be adopted at focused boundaries
 instead of through tree-wide style conversions. The `std::variant`-backed
 `Outcome<Events, Rejection>` is adopted the same way, one decision at a time:
-its production callers are the loginserver's `decideCreatePC`,
-`decideSelectPC` and `decideLogin`, which return the rows to write, or the
-character to route, or the reason the request was refused, instead of
-throwing an exception the same handler catches, and the gameserver's
-Exchange service, whose mutations answer with the listing, the purchase or
-the typed reason they were refused instead of a `pair<bool, string>` whose
-string is already English. The gameserver's guild NPC follows it
-too: the join, registration and confirmation decisions answer with a
-race-independent rejection reason that the handlers map to the response code
-of the asking race, or to silence. So does its party invite protocol,
+its production callers are every one of the loginserver's `CL*` decisions —
+`decideCreatePC`, `decideSelectPC`, `decideLogin`, `decideDeletePC`,
+`decideReconnectLogin`, `decideRegisterPlayer`, `decideSelectWorld` and
+`decideSelectServer` — which return the rows to write, or the character to
+route, or the world and group to enter, or the reason the request was
+refused, instead of throwing an exception the same handler catches, and the
+gameserver's Exchange service, whose mutations answer with the listing, the
+purchase or the typed reason they were refused instead of a
+`pair<bool, string>` whose string is already English. The gameserver's guild
+NPC follows it too: the join, registration and confirmation decisions answer
+with a race-independent rejection reason that the handlers map to the
+response code of the asking race, or to silence. So does its party invite protocol,
 whose decision answers the packet to send, its recipient and the party
 mutation to perform, or the refusal code the requester gets.
 

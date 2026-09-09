@@ -7,19 +7,20 @@
 #include "CLGetServerList.h"
 
 #ifdef __LOGIN_SERVER__
+#include <vector>
+
 #include "Assert1.h"
-#include "GameServerGroupInfoManager.h"
-#include "GameServerInfoManager.h"
+#include "GlobalWorldTopology.h"
 #include "LCServerList.h"
 #include "LoginPlayer.h"
 #include "ServerGroupInfo.h"
-#include "UserInfoManager.h"
+#include "WorldSelection.h"
 #include "repository/LoginAccountRepository.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// 클라이언트가 서버의 리스트를 달라고 요청해오면, 로그인 서버는 DB로부터
-// 서버들의 정보를 로딩해서 LCServerList 패킷에 담아서 전송한다.
+// The client asks for the server list; the login server answers with the
+// groups of the world the session is on.
 //////////////////////////////////////////////////////////////////////////////
 void CLGetServerListHandler::execute(CLGetServerList* pPacket, Player* pPlayer)
 
@@ -30,62 +31,18 @@ void CLGetServerListHandler::execute(CLGetServerList* pPacket, Player* pPlayer)
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
-    // cout << "Start execute" << endl;
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
     WorldID_t WorldID = pLoginPlayer->getWorldID();
 
+    GlobalWorldTopology topology;
+
+    // This list is built off the plain thresholds whatever the build.
+    const ServerLoadThresholds thresholds;
+
     try {
-        int GroupNum = g_pGameServerGroupInfoManager->getSize(WorldID);
-
-        // cout << "ServerNum : " << GroupNum << endl;
-
-        ServerGroupInfo* aServerGroupInfo[GroupNum];
-
-        for (int i = 0; i < GroupNum; i++) {
-            ServerGroupInfo* pServerGroupInfo = new ServerGroupInfo();
-            GameServerGroupInfo* pGameServerGroupInfo =
-                g_pGameServerGroupInfoManager->getGameServerGroupInfo(i, WorldID);
-            pServerGroupInfo->setGroupID(pGameServerGroupInfo->getGroupID());
-            pServerGroupInfo->setGroupName(pGameServerGroupInfo->getGroupName());
-            pServerGroupInfo->setStat(SERVER_FREE);
-
-            UserInfo* pUserInfo = g_pUserInfoManager->getUserInfo(pGameServerGroupInfo->getGroupID(), WorldID);
-
-
-            WORD UserModify = 800;
-            WORD UserMax = 1500;
-
-            if (pUserInfo->getUserNum() < 100 + UserModify) {
-                pServerGroupInfo->setStat(SERVER_FREE);
-            } else if (pUserInfo->getUserNum() < 250 + UserModify) {
-                pServerGroupInfo->setStat(SERVER_NORMAL);
-            } else if (pUserInfo->getUserNum() < 400 + UserModify) {
-                pServerGroupInfo->setStat(SERVER_BUSY);
-            } else if (pUserInfo->getUserNum() < 500 + UserModify) {
-                pServerGroupInfo->setStat(SERVER_VERY_BUSY);
-            } else // if (pUserInfo->getUserNum() >= 500 + UserModify )
-            {
-                pServerGroupInfo->setStat(SERVER_FULL);
-            }
-            // else
-            {
-                // pServerGroupInfo->setStat(SERVER_DOWN);
-            }
-
-            if (pUserInfo->getUserNum() >= UserMax) {
-                pServerGroupInfo->setStat(SERVER_FULL);
-            }
-
-            if (pGameServerGroupInfo->getStat() == SERVER_DOWN) {
-                pServerGroupInfo->setStat(SERVER_DOWN);
-            }
-
-            aServerGroupInfo[i] = pServerGroupInfo;
-
-            // cout << "AddServer : " << pServerGroupInfo->getGroupName() << endl;
-        }
+        const std::vector<ServerListEntry> groups = serverListFor(WorldID, thresholds, topology);
 
         LCServerList lcServerList;
 
@@ -99,17 +56,22 @@ void CLGetServerListHandler::execute(CLGetServerList* pPacket, Player* pPlayer)
             lcServerList.setCurrentServerGroupID(currentServerGroupID);
         }
 
-        for (int k = 0; k < GroupNum; k++) {
-            lcServerList.addListElement(aServerGroupInfo[k]);
+        for (std::vector<ServerListEntry>::const_iterator itr = groups.begin(); itr != groups.end(); ++itr) {
+            ServerGroupInfo* pServerGroupInfo = new ServerGroupInfo();
+            pServerGroupInfo->setGroupID(itr->groupID);
+            pServerGroupInfo->setGroupName(itr->groupName);
+            pServerGroupInfo->setStat(itr->stat);
+
+            lcServerList.addListElement(pServerGroupInfo);
         }
 
         pLoginPlayer->sendPacket(&lcServerList);
 
         pLoginPlayer->setPlayerStatus(LPS_PC_MANAGEMENT);
-    } catch (Throwable& t) {
-        // cout << t.toString() << endl;
+    } catch (Throwable&) {
+        // A group the tables do not describe, or more groups than the list
+        // packet holds, leaves the client without a server list.
     }
-    // cout << "End execute" << endl;
 
 #endif
 

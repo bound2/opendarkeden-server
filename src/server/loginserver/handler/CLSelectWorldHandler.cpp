@@ -7,25 +7,21 @@
 #include "CLSelectWorld.h"
 
 #ifdef __LOGIN_SERVER__
+#include <vector>
+
 #include "Assert1.h"
-#include "GameServerGroupInfoManager.h"
-#include "GameServerInfoManager.h"
-#include "GameWorldInfoManager.h"
+#include "GlobalWorldTopology.h"
 #include "LCServerList.h"
 #include "LoginPlayer.h"
-#include "OptionInfo.h"
-#include "PCSlayerInfo.h"
-#include "PCVampireInfo.h"
 #include "ServerGroupInfo.h"
-#include "Shape.h"
-#include "UserInfo.h"
-#include "UserInfoManager.h"
+#include "WorldSelection.h"
 #include "repository/LoginAccountRepository.h"
 
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// 월드 선택
+// World selection: put the session on the world the client picked and answer
+// with that world's server groups.
 //////////////////////////////////////////////////////////////////////////////
 void CLSelectWorldHandler::execute(CLSelectWorld* pPacket, Player* pPlayer)
 
@@ -36,89 +32,40 @@ void CLSelectWorldHandler::execute(CLSelectWorld* pPacket, Player* pPlayer)
 
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
-    // cout << "Start execute" << endl;
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
     WorldID_t WorldID = pPacket->getWorldID();
 
-    // Assert(WorldID <= g_pGameWorldInfoManager->getSize());
-    //  by sigi. 2002.12.20
-    if (WorldID > g_pGameWorldInfoManager->getSize()) {
-        filelog("errorLogin.txt", "WorldID Over[%d/%d]", (int)WorldID, (int)g_pGameWorldInfoManager->getSize());
-        throw DisconnectException("WorldID over");
-    }
+    GlobalWorldTopology topology;
 
-    // close된 상태에서 못 들어오게 막기. by sigi. 2002.1.7
-    GameWorldInfo* pGameWorldInfo = g_pGameWorldInfoManager->getGameWorldInfo(WorldID);
-    if (pGameWorldInfo->getStatus() == WORLD_CLOSE) {
-        filelog("errorLogin.txt", "WorldClosed[%d]", (int)WorldID);
-        throw DisconnectException("WorldClosed");
-    }
+    ServerLoadThresholds thresholds;
+#ifdef __CHINA_SERVER__
+    // The China build carries more accounts per group before a group reads
+    // very busy, and more before it reads full.
+    thresholds.veryBusyBelow = 1000;
+    thresholds.userMax = 1800;
+#endif
 
-    // 트랜실(2) 빼기
-    // if (WorldID==2) throw DisconnectException();
+    Outcome<void, SelectWorldRejection> outcome = decideSelectWorld(WorldID, topology);
+
+    if (outcome.isRejected()) {
+        const SelectWorldRejection& rejection = outcome.rejection();
+
+        switch (rejection.reason) {
+        case SelectWorldReason::UnknownWorld:
+            filelog("errorLogin.txt", "WorldID Over[%d/%d]", (int)WorldID, rejection.worldCount);
+            throw DisconnectException("WorldID over");
+
+        case SelectWorldReason::WorldClosed:
+            filelog("errorLogin.txt", "WorldClosed[%d]", (int)WorldID);
+            throw DisconnectException("WorldClosed");
+        }
+    }
 
     pLoginPlayer->setWorldID(WorldID);
 
     try {
-        int GroupNum = g_pGameServerGroupInfoManager->getSize(WorldID);
-
-        // cout << "WorldNum : " << (int)GroupNum << endl;
-
-        ServerGroupInfo* aServerGroupInfo[GroupNum];
-
-        for (int i = 0; i < GroupNum; i++) {
-            ServerGroupInfo* pServerGroupInfo = new ServerGroupInfo();
-            GameServerGroupInfo* pGameServerGroupInfo =
-                g_pGameServerGroupInfoManager->getGameServerGroupInfo(i, WorldID);
-            pServerGroupInfo->setGroupID(pGameServerGroupInfo->getGroupID());
-            pServerGroupInfo->setGroupName(pGameServerGroupInfo->getGroupName());
-            // pServerGroupInfo->setStat(SERVER_FREE);
-
-            UserInfo* pUserInfo = g_pUserInfoManager->getUserInfo(pGameServerGroupInfo->getGroupID(), WorldID);
-
-            WORD UserModify = 800;
-#ifdef __CHINA_SERVER__
-            WORD UserMax = 1800;
-#else
-            WORD UserMax = 1500;
-#endif
-
-            if (pUserInfo->getUserNum() < 100 + UserModify) {
-                pServerGroupInfo->setStat(SERVER_FREE);
-            } else if (pUserInfo->getUserNum() < 250 + UserModify) {
-                pServerGroupInfo->setStat(SERVER_NORMAL);
-            } else if (pUserInfo->getUserNum() < 400 + UserModify) {
-                pServerGroupInfo->setStat(SERVER_BUSY);
-            }
-#ifdef __CHINA_SERVER__
-            else if (pUserInfo->getUserNum() < 1000 + UserModify)
-#else
-            else if (pUserInfo->getUserNum() < 500 + UserModify)
-#endif
-            {
-                pServerGroupInfo->setStat(SERVER_VERY_BUSY);
-            } else // if (pUserInfo->getUserNum() >= 500 + UserModify )
-            {
-                pServerGroupInfo->setStat(SERVER_FULL);
-            }
-            // else
-            {
-                // pServerGroupInfo->setStat(SERVER_DOWN);
-            }
-
-            if (pUserInfo->getUserNum() >= UserMax) {
-                pServerGroupInfo->setStat(SERVER_FULL);
-            }
-
-            if (pGameServerGroupInfo->getStat() == SERVER_DOWN) {
-                pServerGroupInfo->setStat(SERVER_DOWN);
-            }
-
-            aServerGroupInfo[i] = pServerGroupInfo;
-
-            // cout << "AddServer : " << pServerGroupInfo->getGroupName() << endl;
-        }
+        const std::vector<ServerListEntry> groups = serverListFor(WorldID, thresholds, topology);
 
         LCServerList lcServerList;
 
@@ -127,18 +74,21 @@ void CLSelectWorldHandler::execute(CLSelectWorld* pPacket, Player* pPlayer)
             lcServerList.setCurrentServerGroupID(currentServerGroupID);
         }
 
-        for (int k = 0; k < GroupNum; k++) {
-            lcServerList.addListElement(aServerGroupInfo[k]);
+        for (std::vector<ServerListEntry>::const_iterator itr = groups.begin(); itr != groups.end(); ++itr) {
+            ServerGroupInfo* pServerGroupInfo = new ServerGroupInfo();
+            pServerGroupInfo->setGroupID(itr->groupID);
+            pServerGroupInfo->setGroupName(itr->groupName);
+            pServerGroupInfo->setStat(itr->stat);
+
+            lcServerList.addListElement(pServerGroupInfo);
         }
 
         pLoginPlayer->sendPacket(&lcServerList);
 
-        //		pLoginPlayer->setPlayerStatus(LPS_PC_MANAGEMENT);
-
-    } catch (Throwable& t) {
-        // cout << t.toString() << endl;
+    } catch (Throwable&) {
+        // A group the tables do not describe, or more groups than the list
+        // packet holds, leaves the client without a server list.
     }
-    // cout << "End execute" << endl;
 
 #endif
 
