@@ -12,13 +12,11 @@
 
 #ifdef __SHARED_SERVER__
 
-#include "GameServerManager.h"
 #include "Guild.h"
+#include "GuildDecision.h"
 #include "GuildManager.h"
+#include "GuildStepRunner.h"
 #include "Properties.h"
-#include "SGDeleteGuildOK.h"
-#include "SGExpelGuildMemberOK.h"
-#include "repository/SharedGuildRepository.h"
 
 #endif
 
@@ -33,93 +31,52 @@ void GSExpelGuildMemberHandler::execute(GSExpelGuildMember* pPacket, Player* pPl
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
 #ifdef __SHARED_SERVER__
-        // cout << "GSExpelGuildMember received" << endl;
 
         Assert(pPacket != NULL);
 
-    // 플레이어가 속한 길드를 가져온다.
     Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
-    // try { Assert(pGuild != NULL); } catch (Throwable& ) { return; }
-    if (pGuild == NULL)
-        return;
 
-    // 플레이어가 길드의 멤버인지 확인한다.
-    GuildMember* pGuildMember = pGuild->getMember(pPacket->getName());
-    // try { Assert(pGuildMember != NULL); } catch (Throwable& ) { return; }
-    if (pGuildMember == NULL)
-        return;
+    ExpelGuildMemberRequest request;
+    request.guildID = pPacket->getGuildID();
+    request.name = pPacket->getName();
+    request.sender = pPacket->getSender();
+    request.guildExists = (pGuild != NULL);
 
-    // 길드 탈퇴 로그를 남긴다.
-    filelog("GuildExit.log", "GuildID: %d, GuildName: %s, Expel: %s, By: %s", pGuild->getID(),
-            pGuild->getName().c_str(), pPacket->getName().c_str(), pPacket->getSender().c_str());
-
-    // The character row loses its guild id.
-    if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-        defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 99, pGuildMember->getName());
-    } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-        defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 0, pGuildMember->getName());
-    } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-        defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 66, pGuildMember->getName());
+    if (pGuild != NULL) {
+        request.guildID = pGuild->getID();
+        request.memberExists = (pGuild->getMember(pPacket->getName()) != NULL);
+        request.guildRace = pGuild->getRace();
     }
 
-    // Guild Member 를 expire 시킨다.
-    pGuildMember->expire();
+    Outcome<SharedGuildEvents, SharedGuildRejection> outcome = decideExpelGuildMember(request);
+    if (outcome.isRejected())
+        return;
 
-    // Guild 에서 삭제한다.
-    pGuild->deleteMember(pGuildMember->getName());
+    runGuildSteps(outcome.events().steps, pGuild, "Expel");
 
-    // 게임 서버로 보낼 패킷을 만든다.
-    SGExpelGuildMemberOK sgExpelGuildMemberOK;
-    sgExpelGuildMemberOK.setGuildID(pGuild->getID());
-    sgExpelGuildMemberOK.setName(pPacket->getName());
-    sgExpelGuildMemberOK.setSender(pPacket->getSender());
+    if (!outcome.events().checkBreakup)
+        return;
 
-    // 게임 서버로 패킷을 보낸다.
-    g_pGameServerManager->broadcast(&sgExpelGuildMemberOK);
+    // Losing the member may have taken the guild below the count it needs.
+    GuildBreakupRequest breakup;
+    breakup.guildID = pPacket->getGuildID();
+    breakup.guildRace = pGuild->getRace();
+    breakup.guildState = pGuild->getState();
+    breakup.activeMemberCount = pGuild->getActiveMemberCount();
+    breakup.minMemberCount = MIN_GUILDMEMBER_COUNT;
+    breakup.cause = pPacket->getName();
+    breakup.oustersNoGuildID = kNoGuildIDOusters;
+    breakup.notifyMembers = false;
 
-    // 길드 인원이 5명 미만이 될 경우 길드를 삭제한다.
-    if (pGuild->getState() == Guild::GUILD_STATE_ACTIVE && pGuild->getActiveMemberCount() < MIN_GUILDMEMBER_COUNT) {
-        // 길드 삭제 로그를 남긴다.
-        filelog("GuildBroken.log", "GuildID: %d, GuildName: %s, MemberCount: %d, Expel: %s", pGuild->getID(),
-                pGuild->getName().c_str(), pGuild->getActiveMemberCount(), pPacket->getName().c_str());
+    HashMapGuildMember& Members = pGuild->getMembers();
+    for (HashMapGuildMemberItor itr = Members.begin(); itr != Members.end(); itr++)
+        breakup.roster.push_back(SharedGuildRosterEntry(itr->second->getName(), itr->second->getRank()));
 
-        // Every remaining member is expelled: the character row loses its
-        // guild id, the roster row is expired, the object is freed.
-        HashMapGuildMember& Members = pGuild->getMembers();
-        HashMapGuildMemberItor itr = Members.begin();
+    Outcome<SharedGuildEvents, SharedGuildRejection> breakupOutcome = decideGuildBreakup(breakup);
+    if (breakupOutcome.isRejected())
+        return;
 
-        for (; itr != Members.end(); itr++) {
-            GuildMember* pGuildMember = itr->second;
-
-            if (pGuild->getRace() == Guild::GUILD_RACE_SLAYER) {
-                defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 99, pGuildMember->getName());
-            } else if (pGuild->getRace() == Guild::GUILD_RACE_VAMPIRE) {
-                defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 0, pGuildMember->getName());
-            } else if (pGuild->getRace() == Guild::GUILD_RACE_OUSTERS) {
-                defaultSharedGuildRepository().setCharacterGuildID(pGuild->getRace(), 66, pGuildMember->getName());
-            }
-
-            pGuildMember->expire();
-            // pGuildMember->destroy();
-
-            SAFE_DELETE(pGuildMember);
-        }
-
-        Members.clear();
-
-        // 길드를 삭제한다
-        pGuild->setState(Guild::GUILD_STATE_BROKEN);
-        pGuild->save();
-
-        SAFE_DELETE(pGuild);
-        g_pGuildManager->deleteGuild(pPacket->getGuildID());
-
-        // 길드를 삭제하도록 패킷을 보낸다.
-        SGDeleteGuildOK sgDeleteGuildOK;
-        sgDeleteGuildOK.setGuildID(pPacket->getGuildID());
-
-        g_pGameServerManager->broadcast(&sgDeleteGuildOK);
-    }
+    runGuildSteps(breakupOutcome.events().steps, pGuild, "Expel");
 
 #endif
 
