@@ -489,6 +489,7 @@ set(GAMESERVER_MAIN_SOURCES
     CreatureUtil.cpp
     ItemMap.cpp
     TradeManager.cpp
+    trade/TradePrepareDecision.cpp
     FlagSet.cpp
     AlignmentManager.cpp
     SkillInfo.cpp

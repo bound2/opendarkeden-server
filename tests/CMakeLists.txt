@@ -596,3 +596,26 @@ target_link_libraries(world_selection_tests PRIVATE de-kernel gtest_main Threads
 add_dependencies(wire_tests world_selection_tests)
 add_test(NAME world_selection_tests COMMAND world_selection_tests)
 set_tests_properties(world_selection_tests PROPERTIES TIMEOUT 60)
+
+# The gameserver's trade prepare protocol (docs/RESTRUCTURING.md 3.1):
+# decideTradePrepare returns Outcome<TradePrepareEvents,
+# TradePrepareRejection> over a recording fake topology, so every branch of
+# every CGTradePrepare code, the precedence between the refusals, the packet,
+# recipient and object id each answer carries, the TradeManager mutation that
+# follows it, and the queries a branch does and does not make are testable
+# with no zone and no trade manager. The handler itself is not linked - it
+# needs a creature and a socket, which is why the decision was split out of
+# it. de-kernel carries the packet code tables.
+add_executable(trade_prepare_decision_tests EXCLUDE_FROM_ALL
+    trade_prepare_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/trade/TradePrepareDecision.cpp
+)
+target_include_directories(trade_prepare_decision_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/trade
+)
+target_link_libraries(trade_prepare_decision_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests trade_prepare_decision_tests)
+add_test(NAME trade_prepare_decision_tests COMMAND trade_prepare_decision_tests)
+set_tests_properties(trade_prepare_decision_tests PROPERTIES TIMEOUT 60)
