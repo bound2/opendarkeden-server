@@ -14,6 +14,7 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //----------------------------------------------------------------------
 //
@@ -57,7 +58,7 @@ public:
     // *OPTIMIZATION HINT*
     // const static CLCreatePCPacketSize 를 정의, 리턴하라.
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_Name.size()                    // name
+        return de::wire::stringWireSize(m_Name)          // name
                + szSlot                                  // slot
                + szBYTE                                  // slayer flags (3 bits)
                + szAttr * 3 + szColor * SLAYER_COLOR_MAX // attributes and colours

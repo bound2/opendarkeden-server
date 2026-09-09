@@ -14,6 +14,7 @@
 
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -37,15 +38,12 @@ WorldInfo::~WorldInfo() noexcept = default;
 void WorldInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    BYTE szName;
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
     iStream.read(m_ID);
-    iStream.read(szName);
 
-    if (szName > maxNameLength)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
+    // The name is read unconditionally, so an empty one is refused here
+    // although write() emits it.
+    de::wire::readString(iStream, m_Name, {1, maxNameLength}, "Name");
     iStream.read(m_Stat);
 
     __END_CATCH
@@ -57,14 +55,9 @@ void WorldInfo::read(SocketInputStream& iStream) {
 void WorldInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
-    if (szName > maxNameLength)
-        throw InvalidProtocolException("too long name length");
-
     oStream.write(m_ID);
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {0, maxNameLength}, "Name");
     oStream.write(m_Stat);
 
     __END_CATCH
@@ -76,9 +69,7 @@ void WorldInfo::write(SocketOutputStream& oStream) const {
 PacketSize_t WorldInfo::getSize() {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-
-    PacketSize_t PacketSize = szWorldID + szBYTE + szName + szBYTE;
+    PacketSize_t PacketSize = szWorldID + de::wire::stringWireSize(m_Name) + szBYTE;
 
     return PacketSize;
 

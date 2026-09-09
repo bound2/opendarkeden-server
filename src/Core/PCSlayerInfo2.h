@@ -8,6 +8,7 @@
 #define __PC_SLAYER_INFO_2_H__
 
 #include "PCInfo.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer의 모든 정보(능력치,걸려있는마법 등)를 담고 있는 객체.
@@ -23,10 +24,10 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     uint getSize() const {
-        return szObjectID + szBYTE + m_Name.size() + szSex + szHairStyle + szColor * 2 + szBYTE + szAlignment +
-               szAttr * 3 * 3 + szRank + szRankExp + szExp * 3 + szHP * 2 + szMP * 2 + szFame + szGold +
-               (szSkillLevel + szSkillExp) * 6 + szSkillType * 4 + szSight + szGuildID + szBYTE + m_GuildName.size() +
-               szGuildMemberRank + szBYTE + szuint + szLevel + szExp + szBonus;
+        return szObjectID + de::wire::stringWireSize(m_Name) + szSex + szHairStyle + szColor * 2 + szBYTE +
+               szAlignment + szAttr * 3 * 3 + szRank + szRankExp + szExp * 3 + szHP * 2 + szMP * 2 + szFame + szGold +
+               (szSkillLevel + szSkillExp) * 6 + szSkillType * 4 + szSight + szGuildID +
+               de::wire::stringWireSize(m_GuildName) + szGuildMemberRank + szBYTE + szuint + szLevel + szExp + szBonus;
     }
 
     static constexpr uint getMaxSize() {

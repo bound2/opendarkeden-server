@@ -8,6 +8,8 @@
 // include files
 #include "GCShowGuildMemberInfo.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -17,22 +19,10 @@ void GCShowGuildMemberInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szName, szGuildMemberIntro;
-
     iStream.read(m_GuildID);
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
     iStream.read(m_GuildMemberRank);
-    iStream.read(szGuildMemberIntro);
-
-    if (szGuildMemberIntro > 0)
-        iStream.read(m_GuildMemberIntro, szGuildMemberIntro);
+    de::wire::readString(iStream, m_GuildMemberIntro, {0, de::wire::kMaxByteStringLength}, "GuildMemberIntro");
 
     __END_CATCH
 }
@@ -46,25 +36,10 @@ void GCShowGuildMemberInfo::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-    BYTE szGuildMemberIntro = m_GuildMemberIntro.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName length");
-
-    if (m_GuildMemberIntro.size() > GUILD_INTRO_MAX_LENGTH)
-        throw InvalidProtocolException("too long szGuildMemberIntro length");
-
     oStream.write(m_GuildID);
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
     oStream.write(m_GuildMemberRank);
-    oStream.write(szGuildMemberIntro);
-
-    if (szGuildMemberIntro > 0)
-        oStream.write(m_GuildMemberIntro);
+    de::wire::writeString(oStream, m_GuildMemberIntro, {0, GUILD_INTRO_MAX_LENGTH}, "GuildMemberIntro");
 
     __END_CATCH
 }

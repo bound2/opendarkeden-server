@@ -13,6 +13,7 @@
 
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -32,36 +33,13 @@ GuildInfo::~GuildInfo() noexcept = default;
 void GuildInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    BYTE szGuildName, szGuildMaster, szGuildExpireDate;
 
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
     iStream.read(m_GuildID);
-    iStream.read(szGuildName);
-
-    if (szGuildName == 0)
-        throw InvalidProtocolException("szGuildName == 0");
-    if (szGuildName > 30)
-        throw InvalidProtocolException("too long szGuildName size");
-
-    iStream.read(m_GuildName, szGuildName);
-    iStream.read(szGuildMaster);
-
-    if (szGuildMaster == 0)
-        throw InvalidProtocolException("szGuildMaster == 0");
-    if (szGuildMaster > 20)
-        throw InvalidProtocolException("too long szGuildMaster size");
-
-    iStream.read(m_GuildMaster, szGuildMaster);
+    de::wire::readString(iStream, m_GuildName, {1, 30}, "GuildName");
+    de::wire::readString(iStream, m_GuildMaster, {1, 20}, "GuildMaster");
     iStream.read(m_GuildMemberCount);
-    iStream.read(szGuildExpireDate);
-
-    if (szGuildExpireDate > 11)
-        throw InvalidProtocolException("too long szGuildExpireDate size");
-
-    if (szGuildExpireDate != 0)
-        iStream.read(m_GuildExpireDate, szGuildExpireDate);
-    else
-        m_GuildExpireDate = "";
+    de::wire::readString(iStream, m_GuildExpireDate, {0, 11}, "GuildExpireDate");
 
     __END_CATCH
 }
@@ -72,35 +50,12 @@ void GuildInfo::read(SocketInputStream& iStream) {
 void GuildInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szGuildName = m_GuildName.size();
-    BYTE szGuildMaster = m_GuildMaster.size();
-    BYTE szGuildExpireDate = m_GuildExpireDate.size();
-
-    if (szGuildName == 0)
-        throw InvalidProtocolException("szGuildName == 0");
-    if (szGuildName > 30)
-        throw InvalidProtocolException("too long szGuildName size");
-
-    if (szGuildMaster == 0)
-        throw InvalidProtocolException("szGuildMaster == 0");
-    if (szGuildMaster > 20)
-        throw InvalidProtocolException("too long szGuildMaster size");
-
-    if (szGuildExpireDate > 11)
-        throw InvalidProtocolException("too long szGuildExpireDate size");
-
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
     oStream.write(m_GuildID);
-    oStream.write(szGuildName);
-    oStream.write(m_GuildName);
-    oStream.write(szGuildMaster);
-    oStream.write(m_GuildMaster);
+    de::wire::writeString(oStream, m_GuildName, {1, 30}, "GuildName");
+    de::wire::writeString(oStream, m_GuildMaster, {1, 20}, "GuildMaster");
     oStream.write(m_GuildMemberCount);
-
-    oStream.write(szGuildExpireDate);
-
-    if (szGuildExpireDate != 0)
-        oStream.write(m_GuildExpireDate);
+    de::wire::writeString(oStream, m_GuildExpireDate, {0, 11}, "GuildExpireDate");
 
     __END_CATCH
 }
@@ -111,13 +66,10 @@ void GuildInfo::write(SocketOutputStream& oStream) const {
 PacketSize_t GuildInfo::getSize() {
     __BEGIN_TRY
 
-    BYTE szGuildName = m_GuildName.size();
-    BYTE szGuildMaster = m_GuildMaster.size();
-    BYTE szGuildExpireDate = m_GuildExpireDate.size();
-
     // The member count, then the expiry date behind its own length byte.
-    PacketSize_t PacketSize =
-        szGuildID + szBYTE + szGuildName + szBYTE + szGuildMaster + szBYTE + szBYTE + szGuildExpireDate;
+    PacketSize_t PacketSize = szGuildID + de::wire::stringWireSize(m_GuildName) +
+                              de::wire::stringWireSize(m_GuildMaster) + szBYTE +
+                              de::wire::stringWireSize(m_GuildExpireDate);
 
     return PacketSize;
 

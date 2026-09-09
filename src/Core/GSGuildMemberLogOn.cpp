@@ -9,6 +9,8 @@
 // include files
 #include "GSGuildMemberLogOn.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Datagram 객체로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -18,17 +20,9 @@ void GSGuildMemberLogOn::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szName;
 
     iStream.read(m_GuildID);
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
     iStream.read(m_bLogOn);
     iStream.read(m_ServerID);
 
@@ -44,16 +38,9 @@ void GSGuildMemberLogOn::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
 
     oStream.write(m_GuildID);
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
     oStream.write(m_bLogOn);
     oStream.write(m_ServerID);
 

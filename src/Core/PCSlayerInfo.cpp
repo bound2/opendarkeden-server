@@ -9,6 +9,8 @@
 // include files
 #include "PCSlayerInfo.h"
 
+#include "WireString.h"
+
 //----------------------------------------------------------------------
 // set ShapeInfo
 //----------------------------------------------------------------------
@@ -32,17 +34,8 @@ void PCSlayerInfo::read(SocketInputStream& iStream) {
     //--------------------------------------------------
     // read slayer name
     //--------------------------------------------------
-    BYTE szName;
 
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     //--------------------------------------------------
     // read slot
@@ -133,16 +126,7 @@ void PCSlayerInfo::write(SocketOutputStream& oStream) const {
     //--------------------------------------------------
     // write slayer name
     //--------------------------------------------------
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     //--------------------------------------------------
     // write slot

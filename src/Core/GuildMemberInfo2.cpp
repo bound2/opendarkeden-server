@@ -13,6 +13,7 @@
 
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -35,17 +36,9 @@ GuildMemberInfo2::~GuildMemberInfo2() {
 void GuildMemberInfo2::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    BYTE szName;
 
     iStream.read(m_GuildID);
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName size");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
     iStream.read(m_Rank);
     iStream.read(m_bLogOn);
 
@@ -58,16 +51,8 @@ void GuildMemberInfo2::read(SocketInputStream& iStream) {
 void GuildMemberInfo2::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName size");
-
     oStream.write(m_GuildID);
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
     oStream.write(m_Rank);
     oStream.write(m_bLogOn);
 
@@ -80,9 +65,7 @@ void GuildMemberInfo2::write(SocketOutputStream& oStream) const {
 PacketSize_t GuildMemberInfo2::getSize() {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-
-    PacketSize_t PacketSize = szGuildID + szBYTE + szName + szGuildMemberRank + szbool;
+    PacketSize_t PacketSize = szGuildID + de::wire::stringWireSize(m_Name) + szGuildMemberRank + szbool;
 
     return PacketSize;
 

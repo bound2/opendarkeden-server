@@ -8,6 +8,7 @@
 #define __PC_VAMPIRE_INFO_2_H__
 
 #include "PCInfo.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Container for vampire PC data used by GCPCList sent at character select.
@@ -24,26 +25,26 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     uint getSize() const {
-        return szObjectID                    // ObjectID
-               + szBYTE + m_Name.size()      // Character name
-               + szLevel                     // Level
-               + szSex                       // Sex
-               + szColor * 2                 // ����
-               + szBYTE + szAlignment        // ����
-               + szAttr * 3 * 3              // �ɷ�ġ
-               + szHP * 2                    // HP
-               + szRank + szRankExp          // ��� ����ġ
-               + szExp                       // ����ġ
-               + szFame                      // Fame
-               + szGold                      // ��
-               + szSight                     // �þ�
-               + szSkillType * 8             // �� Ű
-               + szSilver                    // �� Ű
-               + szBonus                     // ���ʽ�����Ʈ
-               + szGuildID                   // ��� ���̵�
-               + szBYTE + m_GuildName.size() // ��� �̸�
-               + szGuildMemberRank           // guild member rank
-               + szBYTE                      // ����
+        return szObjectID                              // ObjectID
+               + de::wire::stringWireSize(m_Name)      // Character name
+               + szLevel                               // Level
+               + szSex                                 // Sex
+               + szColor * 2                           // ����
+               + szBYTE + szAlignment                  // ����
+               + szAttr * 3 * 3                        // �ɷ�ġ
+               + szHP * 2                              // HP
+               + szRank + szRankExp                    // ��� ����ġ
+               + szExp                                 // ����ġ
+               + szFame                                // Fame
+               + szGold                                // ��
+               + szSight                               // �þ�
+               + szSkillType * 8                       // �� Ű
+               + szSilver                              // �� Ű
+               + szBonus                               // ���ʽ�����Ʈ
+               + szGuildID                             // ��� ���̵�
+               + de::wire::stringWireSize(m_GuildName) // ��� �̸�
+               + szGuildMemberRank                     // guild member rank
+               + szBYTE                                // ����
                + szuint + szLevel + szExp;
     }
 

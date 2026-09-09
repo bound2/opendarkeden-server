@@ -13,6 +13,7 @@
 
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -55,46 +56,18 @@ void GuildInfo2::clearGuildMemberInfoList() {
 void GuildInfo2::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    BYTE szName, szMaster, szDate, szIntro;
 
     iStream.read(m_ID);
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szGuildName == 0");
-    if (szName > 30)
-        throw InvalidProtocolException("too long szGuildName size");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 30}, "Name");
     iStream.read(m_Type);
     iStream.read(m_Race);
     iStream.read(m_State);
     iStream.read(m_ServerGroupID);
     iStream.read(m_ZoneID);
-    iStream.read(szMaster);
+    de::wire::readString(iStream, m_Master, {1, 20}, "Master");
+    de::wire::readString(iStream, m_Date, {0, 11}, "Date");
 
-    if (szMaster == 0)
-        throw InvalidProtocolException("szGuildMaster == 0");
-    if (szMaster > 20)
-        throw InvalidProtocolException("too long szGuildMaster size");
-
-    iStream.read(m_Master, szMaster);
-    iStream.read(szDate);
-
-    if (szDate > 11)
-        throw InvalidProtocolException("too long szGuildExpireDate size");
-
-    if (szDate != 0)
-        iStream.read(m_Date, szDate);
-    else
-        m_Date = "";
-
-    iStream.read(szIntro);
-
-    if (szIntro != 0)
-        iStream.read(m_Intro, szIntro);
-    else
-        m_Intro = "";
+    de::wire::readString(iStream, m_Intro, {0, de::wire::kMaxByteStringLength}, "Intro");
 
     WORD szGuildMemberInfo;
     iStream.read(szGuildMemberInfo);
@@ -114,46 +87,17 @@ void GuildInfo2::read(SocketInputStream& iStream) {
 void GuildInfo2::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-    BYTE szMaster = m_Master.size();
-    BYTE szDate = m_Date.size();
-    BYTE szIntro = m_Intro.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szGuildName == 0");
-    if (szName > 30)
-        throw InvalidProtocolException("too long szGuildName size");
-
-    if (szMaster == 0)
-        throw InvalidProtocolException("szGuildMaster == 0");
-    if (szMaster > 20)
-        throw InvalidProtocolException("too long szGuildMaster size");
-
-    if (szDate > 11)
-        throw InvalidProtocolException("too long szGuildExpireDate size");
-
-    if (m_Intro.size() > GUILD_INTRO_MAX_LENGTH)
-        throw InvalidProtocolException("too long szIntro length");
-
     // 최적화 작업시 실제 크기를 명시하도록 한다.
     oStream.write(m_ID);
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 30}, "Name");
     oStream.write(m_Type);
     oStream.write(m_Race);
     oStream.write(m_State);
     oStream.write(m_ServerGroupID);
     oStream.write(m_ZoneID);
-    oStream.write(szMaster);
-    oStream.write(m_Master);
-
-    oStream.write(szDate);
-    if (szDate != 0)
-        oStream.write(m_Date);
-
-    oStream.write(szIntro);
-    if (szIntro != 0)
-        oStream.write(m_Intro);
+    de::wire::writeString(oStream, m_Master, {1, 20}, "Master");
+    de::wire::writeString(oStream, m_Date, {0, 11}, "Date");
+    de::wire::writeString(oStream, m_Intro, {0, GUILD_INTRO_MAX_LENGTH}, "Intro");
 
 
     WORD szGuildMemberInfo = m_GuildMemberInfoList.size();
@@ -173,13 +117,9 @@ void GuildInfo2::write(SocketOutputStream& oStream) const {
 PacketSize_t GuildInfo2::getSize() {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-    BYTE szMaster = m_Master.size();
-    BYTE szDate = m_Date.size();
-    BYTE szIntro = m_Intro.size();
-
-    PacketSize_t PacketSize = szGuildID + szBYTE + szName + szGuildType + szGuildRace + szGuildState + szServerGroupID +
-                              szZoneID + szBYTE + szMaster + szBYTE + szDate + szBYTE + szIntro;
+    PacketSize_t PacketSize = szGuildID + de::wire::stringWireSize(m_Name) + szGuildType + szGuildRace + szGuildState +
+                              szServerGroupID + szZoneID + de::wire::stringWireSize(m_Master) +
+                              de::wire::stringWireSize(m_Date) + de::wire::stringWireSize(m_Intro);
 
     PacketSize += szWORD;
 

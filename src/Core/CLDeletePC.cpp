@@ -6,21 +6,14 @@
 
 #include "CLDeletePC.h"
 
+#include "WireString.h"
+
 void CLDeletePC::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
-    BYTE szName;
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     BYTE slot;
     iStream.read(slot);
@@ -35,16 +28,7 @@ void CLDeletePC::read(SocketInputStream& iStream)
 
     m_Slot = Slot(slot);
 
-    BYTE szSSN;
-    iStream.read(szSSN);
-
-    if (szSSN == 0)
-        throw InvalidProtocolException("szSSN == 0");
-
-    if (szSSN > 14)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_SSN, szSSN);
+    de::wire::readString(iStream, m_SSN, {1, 14}, "SSN");
 
     __END_CATCH
 }
@@ -54,29 +38,11 @@ void CLDeletePC::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     oStream.write((BYTE)m_Slot);
 
-    BYTE szSSN = m_SSN.size();
-
-    if (szSSN == 0)
-        throw InvalidProtocolException("szSSN == 0");
-
-    if (szSSN > 14)
-        throw InvalidProtocolException("too long name length");
-
-    oStream.write(szSSN);
-    oStream.write(m_SSN);
+    de::wire::writeString(oStream, m_SSN, {1, 14}, "SSN");
 
     __END_CATCH
 }

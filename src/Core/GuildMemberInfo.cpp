@@ -13,6 +13,7 @@
 
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -32,16 +33,8 @@ GuildMemberInfo::~GuildMemberInfo() noexcept = default;
 void GuildMemberInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    BYTE szName;
 
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName size");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
     iStream.read(m_Rank);
     iStream.read(m_bLogOn);
     iStream.read(m_ServerID);
@@ -54,15 +47,7 @@ void GuildMemberInfo::read(SocketInputStream& iStream) {
 void GuildMemberInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName size");
-
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
     oStream.write(m_Rank);
     oStream.write(m_bLogOn);
     oStream.write(m_ServerID);

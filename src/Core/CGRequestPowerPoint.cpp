@@ -7,6 +7,8 @@
 
 #include "CGRequestPowerPoint.h"
 
+#include "WireString.h"
+
 //////////////////////////////////////////////////////////////////////////////
 // class CGRequestPowerPoint member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -27,16 +29,7 @@ void CGRequestPowerPoint::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szCellNum;
-    iStream.read(szCellNum);
-
-    if (szCellNum == 0)
-        throw InvalidProtocolException("szCellNum == 0");
-
-    if (szCellNum > 12)
-        throw InvalidProtocolException("szCellNum > 12");
-
-    iStream.read(m_CellNum, szCellNum);
+    de::wire::readString(iStream, m_CellNum, {1, 12}, "CellNum");
 
     __END_CATCH
 }
@@ -44,16 +37,7 @@ void CGRequestPowerPoint::read(SocketInputStream& iStream)
 void CGRequestPowerPoint::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szCellNum = m_CellNum.size();
-
-    if (szCellNum == 0)
-        throw InvalidProtocolException("szCellNum == 0");
-
-    if (szCellNum > 12)
-        throw InvalidProtocolException("szCellNum > 12");
-
-    oStream.write(szCellNum);
-    oStream.write(m_CellNum);
+    de::wire::writeString(oStream, m_CellNum, {1, 12}, "CellNum");
 
     __END_CATCH
 }

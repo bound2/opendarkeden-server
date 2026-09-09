@@ -6,6 +6,8 @@
 
 #include "CGGuildChat.h"
 
+#include "WireString.h"
+
 void CGGuildChat::read(SocketInputStream& iStream)
 
 {
@@ -15,17 +17,8 @@ void CGGuildChat::read(SocketInputStream& iStream)
     iStream.read(m_Color);
 
     // Read message text
-    BYTE szMessage;
 
-    iStream.read(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    if (szMessage > 128)
-        throw InvalidProtocolException("too large message length");
-
-    iStream.read(m_Message, szMessage);
+    de::wire::readString(iStream, m_Message, {1, 128}, "Message");
 
     __END_CATCH
 }
@@ -39,16 +32,7 @@ void CGGuildChat::write(SocketOutputStream& oStream) const
     oStream.write(m_Color);
 
     // Write message text
-    BYTE szMessage = m_Message.size();
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    if (szMessage > 128)
-        throw InvalidProtocolException("too large message length");
-
-    oStream.write(szMessage);
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_Message, {1, 128}, "Message");
 
     __END_CATCH
 }

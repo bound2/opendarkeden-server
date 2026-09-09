@@ -9,6 +9,8 @@
 // include files
 #include "LCQueryResultPlayerID.h"
 
+#include "WireString.h"
+
 
 //--------------------------------------------------------------------------------
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -21,17 +23,8 @@ void LCQueryResultPlayerID::read(SocketInputStream& iStream)
     //--------------------------------------------------
     // read player id
     //--------------------------------------------------
-    BYTE szPlayerID;
 
-    iStream.read(szPlayerID);
-
-    if (szPlayerID == 0)
-        throw InvalidProtocolException("szPlayerID == 0");
-
-    if (szPlayerID > 20)
-        throw InvalidProtocolException("too large PlayerID length");
-
-    iStream.read(m_PlayerID, szPlayerID);
+    de::wire::readString(iStream, m_PlayerID, {1, 20}, "PlayerID");
 
     //--------------------------------------------------
     // read id existence
@@ -53,17 +46,7 @@ void LCQueryResultPlayerID::write(SocketOutputStream& oStream) const
     //--------------------------------------------------
     // write player id
     //--------------------------------------------------
-    BYTE szPlayerID = m_PlayerID.size();
-
-    if (szPlayerID == 0)
-        throw InvalidProtocolException("empty PlayerID");
-
-    if (szPlayerID > 20)
-        throw InvalidProtocolException("too large PlayerID length");
-
-    oStream.write(szPlayerID);
-
-    oStream.write(m_PlayerID);
+    de::wire::writeString(oStream, m_PlayerID, {1, 20}, "PlayerID");
 
     //--------------------------------------------------
     // write id existence

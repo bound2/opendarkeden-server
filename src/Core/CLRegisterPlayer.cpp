@@ -6,40 +6,20 @@
 
 #include "CLRegisterPlayer.h"
 
+#include "WireString.h"
+
 void CLRegisterPlayer::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
     // 플레이어 기본 정보 (ID - Password)
-    BYTE szID;
-    iStream.read(szID);
-    if (szID == 0)
-        throw InvalidProtocolException("szID == 0");
-    if (szID < minIDLength)
-        throw InvalidProtocolException("too short ID length");
-    if (szID > maxIDLength)
-        throw InvalidProtocolException("too long ID length");
-    iStream.read(m_ID, szID);
+    de::wire::readString(iStream, m_ID, {minIDLength, maxIDLength}, "ID");
 
-    BYTE szPassword;
-    iStream.read(szPassword);
-    if (szPassword == 0)
-        throw InvalidProtocolException("szPassword == 0");
-    if (szPassword < minPasswordLength)
-        throw InvalidProtocolException("too short Password length");
-    if (szPassword > maxPasswordLength)
-        throw InvalidProtocolException("too long Password length");
-    iStream.read(m_Password, szPassword);
+    de::wire::readString(iStream, m_Password, {minPasswordLength, maxPasswordLength}, "Password");
 
     // 플레이어 개인 정보 (Name - Sex - SSN)
-    BYTE szName;
-    iStream.read(szName);
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > maxNameLength)
-        throw InvalidProtocolException("too long Name length");
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, maxNameLength}, "Name");
 
     BYTE sex;
     iStream.read(sex);
@@ -51,76 +31,28 @@ void CLRegisterPlayer::read(SocketInputStream& iStream)
 
     m_Sex = (Sex)sex;
 
-    BYTE szSSN;
-    iStream.read(szSSN);
-    if (szSSN == 0)
-        throw InvalidProtocolException("szSSN == 0");
-    if (szSSN > maxSSNLength)
-        throw InvalidProtocolException("too long SSN length");
-    iStream.read(m_SSN, szSSN);
+    de::wire::readString(iStream, m_SSN, {1, maxSSNLength}, "SSN");
 
     // 플레이어 연락처 (Telephone - Cellular - ZipCode - Address - Nation)
-    BYTE szTelephone;
-    iStream.read(szTelephone);
-    if (szTelephone == 0)
-        throw InvalidProtocolException("szTelephone == 0");
-    if (szTelephone > maxTelephoneLength)
-        throw InvalidProtocolException("too long Telephone length");
-    iStream.read(m_Telephone, szTelephone);
+    de::wire::readString(iStream, m_Telephone, {1, maxTelephoneLength}, "Telephone");
 
-    BYTE szCellular;
-    iStream.read(szCellular);
-    if (szCellular == 0)
-        throw InvalidProtocolException("szCellular == 0");
-    if (szCellular > maxCellularLength)
-        throw InvalidProtocolException("too long Cellular length");
-    iStream.read(m_Cellular, szCellular);
+    de::wire::readString(iStream, m_Cellular, {1, maxCellularLength}, "Cellular");
 
-    BYTE szZipCode;
-    iStream.read(szZipCode);
-    if (szZipCode == 0)
-        throw InvalidProtocolException("szZipCode == 0");
-    if (szZipCode > maxZipCodeLength)
-        throw InvalidProtocolException("too long ZipCode length");
-    iStream.read(m_ZipCode, szZipCode);
+    de::wire::readString(iStream, m_ZipCode, {1, maxZipCodeLength}, "ZipCode");
 
-    BYTE szAddress;
-    iStream.read(szAddress);
-    if (szAddress == 0)
-        throw InvalidProtocolException("szAddress == 0");
-    if (szAddress > maxAddressLength)
-        throw InvalidProtocolException("too long Address length");
-    iStream.read(m_Address, szAddress);
+    de::wire::readString(iStream, m_Address, {1, maxAddressLength}, "Address");
 
     BYTE nation;
     iStream.read(nation);
     m_Nation = (Nation)nation;
 
     // 플레이어 전자 정보 (Email - Homepage)
-    BYTE szEmail;
-    iStream.read(szEmail);
-    if (szEmail == 0)
-        throw InvalidProtocolException("szEmail == 0");
-    if (szEmail > maxEmailLength)
-        throw InvalidProtocolException("too long Email length");
-    iStream.read(m_Email, szEmail);
+    de::wire::readString(iStream, m_Email, {1, maxEmailLength}, "Email");
 
-    BYTE szHomepage;
-    iStream.read(szHomepage);
-    if (szHomepage == 0)
-        throw InvalidProtocolException("szHomepage == 0");
-    if (szHomepage > maxHomepageLength)
-        throw InvalidProtocolException("too long Homepage length");
-    iStream.read(m_Homepage, szHomepage);
+    de::wire::readString(iStream, m_Homepage, {1, maxHomepageLength}, "Homepage");
 
     // 기타 (Profile - Public)
-    BYTE szProfile;
-    iStream.read(szProfile);
-    if (szProfile == 0)
-        throw InvalidProtocolException("szProfile == 0");
-    if (szProfile > maxProfileLength)
-        throw InvalidProtocolException("too long Profile length");
-    iStream.read(m_Profile, szProfile);
+    de::wire::readString(iStream, m_Profile, {1, maxProfileLength}, "Profile");
 
     iStream.read(m_bPublic);
 
@@ -133,105 +65,35 @@ void CLRegisterPlayer::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
     // 플레이어 기본 정보 (ID - Password)
-    BYTE szID = m_ID.size();
-    if (szID == 0)
-        throw InvalidProtocolException("szID == 0");
-    if (szID < minIDLength)
-        throw InvalidProtocolException("too short ID length");
-    if (szID > maxIDLength)
-        throw InvalidProtocolException("too long ID length");
-    oStream.write(szID);
-    oStream.write(m_ID);
+    de::wire::writeString(oStream, m_ID, {minIDLength, maxIDLength}, "ID");
 
-    BYTE szPassword = m_Password.size();
-    if (szPassword == 0)
-        throw InvalidProtocolException("szPassword == 0");
-    if (szPassword < minPasswordLength)
-        throw InvalidProtocolException("too short Password length");
-    if (szPassword > maxPasswordLength)
-        throw InvalidProtocolException("too long Password length");
-    oStream.write(szPassword);
-    oStream.write(m_Password);
+    de::wire::writeString(oStream, m_Password, {minPasswordLength, maxPasswordLength}, "Password");
 
     // 플레이어 개인 정보 (Name - Sex - SSN)
-    BYTE szName = m_Name.size();
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > maxNameLength)
-        throw InvalidProtocolException("too long Name length");
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, maxNameLength}, "Name");
 
     oStream.write((BYTE)m_Sex);
 
-    BYTE szSSN = m_SSN.size();
-    if (szSSN == 0)
-        throw InvalidProtocolException("szSSN == 0");
-    if (szSSN > maxSSNLength)
-        throw InvalidProtocolException("too long SSN length");
-    oStream.write(szSSN);
-    oStream.write(m_SSN);
+    de::wire::writeString(oStream, m_SSN, {1, maxSSNLength}, "SSN");
 
     // 플레이어 연락처 (Telephone - Cellular - ZipCode - Address - Nation)
-    BYTE szTelephone = m_Telephone.size();
-    if (szTelephone == 0)
-        throw InvalidProtocolException("szTelephone == 0");
-    if (szTelephone > maxTelephoneLength)
-        throw InvalidProtocolException("too long Telephone length");
-    oStream.write(szTelephone);
-    oStream.write(m_Telephone);
+    de::wire::writeString(oStream, m_Telephone, {1, maxTelephoneLength}, "Telephone");
 
-    BYTE szCellular = m_Cellular.size();
-    if (szCellular == 0)
-        throw InvalidProtocolException("szCellular == 0");
-    if (szCellular > maxCellularLength)
-        throw InvalidProtocolException("too long Cellular length");
-    oStream.write(szCellular);
-    oStream.write(m_Cellular);
+    de::wire::writeString(oStream, m_Cellular, {1, maxCellularLength}, "Cellular");
 
-    BYTE szZipCode = m_ZipCode.size();
-    if (szZipCode == 0)
-        throw InvalidProtocolException("szZipCode == 0");
-    if (szZipCode > maxZipCodeLength)
-        throw InvalidProtocolException("too long ZipCode length");
-    oStream.write(szZipCode);
-    oStream.write(m_ZipCode);
+    de::wire::writeString(oStream, m_ZipCode, {1, maxZipCodeLength}, "ZipCode");
 
-    BYTE szAddress = m_Address.size();
-    if (szAddress == 0)
-        throw InvalidProtocolException("szAddress == 0");
-    if (szAddress > maxAddressLength)
-        throw InvalidProtocolException("too long Address length");
-    oStream.write(szAddress);
-    oStream.write(m_Address);
+    de::wire::writeString(oStream, m_Address, {1, maxAddressLength}, "Address");
 
     oStream.write((BYTE)m_Nation);
 
     // 플레이어 전자 정보 (Email - Homepage)
-    BYTE szEmail = m_Email.size();
-    if (szEmail == 0)
-        throw InvalidProtocolException("szEmail == 0");
-    if (szEmail > maxEmailLength)
-        throw InvalidProtocolException("too long Email length");
-    oStream.write(szEmail);
-    oStream.write(m_Email);
+    de::wire::writeString(oStream, m_Email, {1, maxEmailLength}, "Email");
 
-    BYTE szHomepage = m_Homepage.size();
-    if (szHomepage == 0)
-        throw InvalidProtocolException("szHomepage == 0");
-    if (szHomepage > maxHomepageLength)
-        throw InvalidProtocolException("too long Homepage length");
-    oStream.write(szHomepage);
-    oStream.write(m_Homepage);
+    de::wire::writeString(oStream, m_Homepage, {1, maxHomepageLength}, "Homepage");
 
     // 기타 (Profile - Public)
-    BYTE szProfile = m_Profile.size();
-    if (szProfile == 0)
-        throw InvalidProtocolException("szProfile == 0");
-    if (szProfile > maxProfileLength)
-        throw InvalidProtocolException("too long Profile length");
-    oStream.write(szProfile);
-    oStream.write(m_Profile);
+    de::wire::writeString(oStream, m_Profile, {1, maxProfileLength}, "Profile");
 
     oStream.write(m_bPublic);
 

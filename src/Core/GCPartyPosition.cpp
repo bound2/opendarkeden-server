@@ -9,6 +9,8 @@
 // include files
 #include "GCPartyPosition.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Initialize packet by reading data from the incoming stream.
@@ -18,16 +20,8 @@ void GCPartyPosition::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szName;
-    iStream.read(szName);
-
     // The factory max budgets twenty characters for the member's name.
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
     iStream.read(m_ZoneID);
     iStream.read(m_X);
     iStream.read(m_Y);
@@ -46,14 +40,7 @@ void GCPartyPosition::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    if (m_Name.empty())
-        throw InvalidProtocolException("szName == 0");
-    if (m_Name.size() > 20)
-        throw InvalidProtocolException("too long szName length");
-
-    BYTE szName = m_Name.size();
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
     oStream.write(m_ZoneID);
     oStream.write(m_X);
     oStream.write(m_Y);

@@ -9,6 +9,8 @@
 // include files
 #include "GCWhisper.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -18,31 +20,11 @@ void GCWhisper::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szName;
-
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 10)
-        throw InvalidProtocolException("too large name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 10}, "Name");
 
     iStream.read(m_Color);
 
-    BYTE szMessage;
-
-    iStream.read(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    if (szMessage > 128)
-        throw InvalidProtocolException("too large message length");
-
-    iStream.read(m_Message, szMessage);
+    de::wire::readString(iStream, m_Message, {1, 128}, "Message");
 
     iStream.read(m_Race);
 
@@ -58,31 +40,11 @@ void GCWhisper::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 10)
-        throw InvalidProtocolException("too large name length");
-
-    oStream.write(szName);
-
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 10}, "Name");
 
     oStream.write(m_Color);
 
-    BYTE szMessage = m_Message.size();
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    if (szMessage > 128)
-        throw InvalidProtocolException("too large message length");
-
-    oStream.write(szMessage);
-
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_Message, {1, 128}, "Message");
 
     oStream.write(m_Race);
 

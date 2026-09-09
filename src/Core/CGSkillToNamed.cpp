@@ -6,6 +6,8 @@
 
 #include "CGSkillToNamed.h"
 
+#include "WireString.h"
+
 CGSkillToNamed::CGSkillToNamed()
 
     {__BEGIN_TRY __END_CATCH}
@@ -22,18 +24,10 @@ void CGSkillToNamed::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szTargetName;
 
     iStream.read((char*)&m_SkillType, szSkillType);
     iStream.read((char*)&m_CEffectID, szCEffectID);
-    iStream.read(szTargetName);
-
-    if (szTargetName == 0)
-        throw InvalidProtocolException("szTargetName == 0");
-    if (szTargetName > 20)
-        throw InvalidProtocolException("too long target name length");
-
-    iStream.read(m_TargetName, szTargetName);
+    de::wire::readString(iStream, m_TargetName, {1, 20}, "TargetName");
 
     __END_CATCH
 }
@@ -43,17 +37,10 @@ void CGSkillToNamed::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szTargetName = m_TargetName.size();
-
-    if (szTargetName == 0)
-        throw InvalidProtocolException("szTargetName == 0");
-    if (szTargetName > 20)
-        throw InvalidProtocolException("too long target name");
 
     oStream.write((char*)&m_SkillType, szSkillType);
     oStream.write((char*)&m_CEffectID, szCEffectID);
-    oStream.write(szTargetName);
-    oStream.write(m_TargetName);
+    de::wire::writeString(oStream, m_TargetName, {1, 20}, "TargetName");
 
     __END_CATCH
 }

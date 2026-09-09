@@ -9,6 +9,8 @@
 // include files
 #include "GCReconnectLogin.h"
 
+#include "WireString.h"
+
 
 //----------------------------------------------------------------------
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -21,17 +23,8 @@ void GCReconnectLogin::read(SocketInputStream& iStream)
     //--------------------------------------------------
     // read game server's ip
     //--------------------------------------------------
-    BYTE szLoginServerIP;
 
-    iStream.read(szLoginServerIP);
-
-    if (szLoginServerIP == 0)
-        throw InvalidProtocolException("szLoginServerIP == 0");
-
-    if (szLoginServerIP > 15)
-        throw InvalidProtocolException("too long IP length");
-
-    iStream.read(m_LoginServerIP, szLoginServerIP);
+    de::wire::readString(iStream, m_LoginServerIP, {1, 15}, "LoginServerIP");
 
     //--------------------------------------------------
     // read game server's port
@@ -58,17 +51,7 @@ void GCReconnectLogin::write(SocketOutputStream& oStream) const
     //--------------------------------------------------
     // write game server's ip
     //--------------------------------------------------
-    BYTE szLoginServerIP = m_LoginServerIP.size();
-
-    if (szLoginServerIP == 0)
-        throw InvalidProtocolException("szLoginServerIP == 0");
-
-    if (szLoginServerIP > 15)
-        throw InvalidProtocolException("too long IP length");
-
-    oStream.write(szLoginServerIP);
-
-    oStream.write(m_LoginServerIP);
+    de::wire::writeString(oStream, m_LoginServerIP, {1, 15}, "LoginServerIP");
 
     //--------------------------------------------------
     // write game server's port

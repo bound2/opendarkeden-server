@@ -1,5 +1,7 @@
 #include "PetInfo.h"
 
+#include "WireString.h"
+
 PetInfo::PetInfo() {
     m_PetType = PET_NONE;
     m_PetLevel = 0;
@@ -46,12 +48,7 @@ void PetInfo::read(SocketInputStream& iStream) {
 
     iStream.read(m_IsSummonInfo);
 
-    BYTE szSTR;
-    iStream.read(szSTR);
-    if (szSTR > kMaxNicknameSize)
-        throw InvalidProtocolException("too long pet nickname length");
-    if (szSTR != 0)
-        iStream.read(m_Nickname, szSTR);
+    de::wire::readString(iStream, m_Nickname, {0, kMaxNicknameSize}, "Nickname");
 
     ObjectID_t ItemObjectID;
     iStream.read(ItemObjectID);
@@ -83,13 +80,7 @@ void PetInfo::write(SocketOutputStream& oStream) const {
 
     oStream.write(m_IsSummonInfo);
 
-    if (m_Nickname.size() > kMaxNicknameSize)
-        throw InvalidProtocolException("too long pet nickname length");
-
-    BYTE szSTR = m_Nickname.size();
-    oStream.write(szSTR);
-    if (szSTR != 0)
-        oStream.write(m_Nickname);
+    de::wire::writeString(oStream, m_Nickname, {0, kMaxNicknameSize}, "Nickname");
 
     ObjectID_t ItemObjectID = getItemObjectID();
     oStream.write(ItemObjectID);

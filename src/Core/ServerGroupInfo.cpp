@@ -14,6 +14,7 @@
 
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -37,15 +38,12 @@ ServerGroupInfo::~ServerGroupInfo() noexcept = default;
 void ServerGroupInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    BYTE szGroupName;
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
     iStream.read(m_GroupID);
-    iStream.read(szGroupName);
 
-    if (szGroupName > maxNameLength)
-        throw InvalidProtocolException("too long group name length");
-
-    iStream.read(m_GroupName, szGroupName);
+    // The name is read unconditionally, so an empty one is refused here
+    // although write() emits it.
+    de::wire::readString(iStream, m_GroupName, {1, maxNameLength}, "GroupName");
     iStream.read(m_Stat);
 
     __END_CATCH
@@ -57,14 +55,9 @@ void ServerGroupInfo::read(SocketInputStream& iStream) {
 void ServerGroupInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szGroupName = m_GroupName.size();
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
-    if (szGroupName > maxNameLength)
-        throw InvalidProtocolException("too long group name length");
-
     oStream.write(m_GroupID);
-    oStream.write(szGroupName);
-    oStream.write(m_GroupName);
+    de::wire::writeString(oStream, m_GroupName, {0, maxNameLength}, "GroupName");
     oStream.write(m_Stat);
 
     __END_CATCH
@@ -76,9 +69,7 @@ void ServerGroupInfo::write(SocketOutputStream& oStream) const {
 PacketSize_t ServerGroupInfo::getSize() {
     __BEGIN_TRY
 
-    BYTE szGroupName = m_GroupName.size();
-
-    PacketSize_t PacketSize = szServerGroupID + szBYTE + szGroupName + szBYTE;
+    PacketSize_t PacketSize = szServerGroupID + de::wire::stringWireSize(m_GroupName) + szBYTE;
 
     return PacketSize;
 

@@ -9,6 +9,8 @@
 // include files
 #include "LCRegisterPlayerOK.h"
 
+#include "WireString.h"
+
 //////////////////////////////////////////////////////////////////////
 //
 //////////////////////////////////////////////////////////////////////
@@ -17,16 +19,7 @@ void LCRegisterPlayerOK::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szGroupName;
-    iStream.read(szGroupName);
-
-    if (szGroupName == 0)
-        throw InvalidProtocolException("szGroupName == 0");
-
-    if (szGroupName > maxNameLength)
-        throw InvalidProtocolException("too long group name length");
-
-    iStream.read(m_GroupName, szGroupName);
+    de::wire::readString(iStream, m_GroupName, {1, maxNameLength}, "GroupName");
     iStream.read(m_isAdult);
 
     __END_CATCH
@@ -41,16 +34,7 @@ void LCRegisterPlayerOK::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szGroupName = m_GroupName.size();
-
-    if (szGroupName == 0)
-        throw InvalidProtocolException("szGroupName == 0");
-
-    if (szGroupName > maxNameLength)
-        throw InvalidProtocolException("too long group name length");
-
-    oStream.write(szGroupName);
-    oStream.write(m_GroupName);
+    de::wire::writeString(oStream, m_GroupName, {1, maxNameLength}, "GroupName");
     oStream.write(m_isAdult);
 
     __END_CATCH

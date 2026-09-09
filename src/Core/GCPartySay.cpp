@@ -9,6 +9,8 @@
 // include files
 #include "GCPartySay.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -18,28 +20,12 @@ void GCPartySay::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szName;
-    iStream.read(szName);
-
     // The factory max budgets twenty characters for the sender's name and
     // 128 for the message.
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
     iStream.read(m_Color);
 
-    BYTE szMessage;
-    iStream.read(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-    if (szMessage > 128)
-        throw InvalidProtocolException("too long message length");
-
-    iStream.read(m_Message, szMessage);
+    de::wire::readString(iStream, m_Message, {1, 128}, "Message");
 
     __END_CATCH
 }
@@ -53,22 +39,9 @@ void GCPartySay::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    if (m_Name.empty())
-        throw InvalidProtocolException("szName == 0");
-    if (m_Name.size() > 20)
-        throw InvalidProtocolException("too long szName length");
-    if (m_Message.empty())
-        throw InvalidProtocolException("szMessage == 0");
-    if (m_Message.size() > 128)
-        throw InvalidProtocolException("too long message length");
-
-    BYTE szName = m_Name.size();
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
     oStream.write(m_Color);
-    szName = m_Message.size();
-    oStream.write(szName);
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_Message, {1, 128}, "Message");
 
     __END_CATCH
 }

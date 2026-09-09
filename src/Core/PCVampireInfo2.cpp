@@ -6,6 +6,8 @@
 
 #include "PCVampireInfo2.h"
 
+#include "WireString.h"
+
 //////////////////////////////////////////////////////////////////////////////
 // read data from socket input stream
 //////////////////////////////////////////////////////////////////////////////
@@ -20,17 +22,8 @@ void PCVampireInfo2::read(SocketInputStream& iStream) {
     //--------------------------------------------------
     // read vampire name
     //--------------------------------------------------
-    BYTE szName;
 
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     //--------------------------------------------------
     // read Level
@@ -118,15 +111,7 @@ void PCVampireInfo2::read(SocketInputStream& iStream) {
     // 길드 아이디
     iStream.read(m_GuildID);
 
-    BYTE szGuildName;
-
-    iStream.read(szGuildName);
-
-    if (szGuildName > 30)
-        throw InvalidProtocolException("too long szGuildName size");
-
-    if (szGuildName != 0)
-        iStream.read(m_GuildName, szGuildName);
+    de::wire::readString(iStream, m_GuildName, {0, 30}, "GuildName");
 
     iStream.read(m_GuildMemberRank);
     iStream.read(m_UnionID);
@@ -150,17 +135,7 @@ void PCVampireInfo2::write(SocketOutputStream& oStream) const {
     //--------------------------------------------------
     // write vampire name
     //--------------------------------------------------
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    oStream.write(szName);
-
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     //--------------------------------------------------
     // write sex
@@ -243,14 +218,7 @@ void PCVampireInfo2::write(SocketOutputStream& oStream) const {
     // 길드 아이디
     oStream.write(m_GuildID);
 
-    BYTE szGuildName = m_GuildName.size();
-
-    if (szGuildName > 30)
-        throw InvalidProtocolException("too long guild name length");
-
-    oStream.write(szGuildName);
-    if (szGuildName != 0)
-        oStream.write(m_GuildName);
+    de::wire::writeString(oStream, m_GuildName, {0, 30}, "GuildName");
 
     oStream.write(m_GuildMemberRank);
     oStream.write(m_UnionID);

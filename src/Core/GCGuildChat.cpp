@@ -9,6 +9,8 @@
 // include files
 #include "GCGuildChat.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -21,40 +23,13 @@ void GCGuildChat::read(SocketInputStream& iStream)
     iStream.read(m_Type);
 
     if (m_Type != 0) {
-        BYTE szGName;
-        iStream.read(szGName);
-
-        if (szGName == 0)
-            throw InvalidProtocolException("szGName == 0");
-        if (szGName > GUILD_NAME_MAX_LENGTH)
-            throw InvalidProtocolException("too long send guild name length");
-
-        iStream.read(m_SendGuildName, szGName);
+        de::wire::readString(iStream, m_SendGuildName, {1, GUILD_NAME_MAX_LENGTH}, "SendGuildName");
     }
 
-    BYTE szSender;
-
-    iStream.read(szSender);
-
-    if (szSender == 0)
-        throw InvalidProtocolException("szSender == 0");
-    if (szSender > 10)
-        throw InvalidProtocolException("too long sender length");
-
-    iStream.read(m_Sender, szSender);
+    de::wire::readString(iStream, m_Sender, {1, 10}, "Sender");
     iStream.read(m_Color);
 
-    BYTE szMessage;
-
-    iStream.read(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    if (szMessage > 128)
-        throw InvalidProtocolException("too long message length");
-
-    iStream.read(m_Message, szMessage);
+    de::wire::readString(iStream, m_Message, {1, 128}, "Message");
 
     __END_CATCH
 }
@@ -68,42 +43,15 @@ void GCGuildChat::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    if (m_Type != 0) {
-        if (m_SendGuildName.empty())
-            throw InvalidProtocolException("szGName == 0");
-        if (m_SendGuildName.size() > GUILD_NAME_MAX_LENGTH)
-            throw InvalidProtocolException("too long send guild name length");
-    }
-
     oStream.write(m_Type);
     if (m_Type != 0) {
-        BYTE szGName = m_SendGuildName.size();
-        oStream.write(szGName);
-        oStream.write(m_SendGuildName);
+        de::wire::writeString(oStream, m_SendGuildName, {1, GUILD_NAME_MAX_LENGTH}, "SendGuildName");
     }
 
-    BYTE szSender = m_Sender.size();
-
-    if (szSender == 0)
-        throw InvalidProtocolException("szSener == 0");
-
-    if (szSender > 10)
-        throw InvalidProtocolException("too long sender length");
-
-    oStream.write(szSender);
-    oStream.write(m_Sender);
+    de::wire::writeString(oStream, m_Sender, {1, 10}, "Sender");
     oStream.write(m_Color);
 
-    BYTE szMessage = m_Message.size();
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    if (szMessage > 128)
-        throw InvalidProtocolException("too large message length");
-
-    oStream.write(szMessage);
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_Message, {1, 128}, "Message");
 
     __END_CATCH
 }

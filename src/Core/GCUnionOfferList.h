@@ -14,6 +14,7 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -57,26 +58,11 @@ public:
     void read(SocketInputStream& iStream) {
         __BEGIN_TRY
 
-        BYTE szGuildName, szGuildMaster;
 
         iStream.read(m_GuildID);
         iStream.read(m_Type);
-        iStream.read(szGuildName);
-
-        if (szGuildName == 0)
-            throw InvalidProtocolException("szGuildName == 0");
-        if (szGuildName > 30)
-            throw InvalidProtocolException("too long szGuildName length");
-
-        iStream.read(m_GuildName, szGuildName);
-        iStream.read(szGuildMaster);
-
-        if (szGuildMaster == 0)
-            throw InvalidProtocolException("szGuildMaster == 0");
-        if (szGuildMaster > 20)
-            throw InvalidProtocolException("too long szGuildMaster length");
-
-        iStream.read(m_MasterName, szGuildMaster);
+        de::wire::readString(iStream, m_GuildName, {1, 30}, "GuildName");
+        de::wire::readString(iStream, m_MasterName, {1, 20}, "MasterName");
 
         iStream.read(m_Date);
 
@@ -86,25 +72,11 @@ public:
     void write(SocketOutputStream& oStream) const {
         __BEGIN_TRY
 
-        BYTE szGuildName = m_GuildName.size();
-        BYTE szGuildMaster = m_MasterName.size();
-
-        if (szGuildName == 0)
-            throw InvalidProtocolException("szGuildName == 0");
-        if (szGuildName > 30)
-            throw InvalidProtocolException("too long szGuildName length");
-
-        if (szGuildMaster == 0)
-            throw InvalidProtocolException("szGuildMaster == 0");
-        if (szGuildMaster > 20)
-            throw InvalidProtocolException("too long szGuildMaster length");
 
         oStream.write(m_GuildID);
         oStream.write(m_Type);
-        oStream.write(szGuildName);
-        oStream.write(m_GuildName);
-        oStream.write(szGuildMaster);
-        oStream.write(m_MasterName);
+        de::wire::writeString(oStream, m_GuildName, {1, 30}, "GuildName");
+        de::wire::writeString(oStream, m_MasterName, {1, 20}, "MasterName");
 
         oStream.write(m_Date);
 

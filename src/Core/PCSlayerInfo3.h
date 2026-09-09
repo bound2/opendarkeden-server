@@ -11,6 +11,7 @@
 
 #include "Assert.h"
 #include "PCInfo.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // 슬레이어의 정보는 다음과 같다.
@@ -114,17 +115,17 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     uint getSize() const {
-        return szObjectID                   // 크리처 아이디
-               + szBYTE + m_Name.size()     // 이름
-               + szCoord + szCoord + szDir  // 좌표와 방향
-               + szDWORD                    // 슬레이어 플래그
-               + szColor * SLAYER_COLOR_MAX // 색깔 정보
-               + szBYTE + szHP * 2          // 최대 체력
-               + szAlignment                // 성향
-               + szRank                     // 계급
-               + szSpeed                    // 공격 스피드
-               + szGuildID                  // 공격 스피드
-               + szBYTE                     // 권한
+        return szObjectID                         // 크리처 아이디
+               + de::wire::stringWireSize(m_Name) // 이름
+               + szCoord + szCoord + szDir        // 좌표와 방향
+               + szDWORD                          // 슬레이어 플래그
+               + szColor * SLAYER_COLOR_MAX       // 색깔 정보
+               + szBYTE + szHP * 2                // 최대 체력
+               + szAlignment                      // 성향
+               + szRank                           // 계급
+               + szSpeed                          // 공격 스피드
+               + szGuildID                        // 공격 스피드
+               + szBYTE                           // 권한
                + szuint + szLevel;
     }
 

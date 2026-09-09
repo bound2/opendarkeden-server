@@ -9,6 +9,7 @@
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
 #include "Types.h"
+#include "WireString.h"
 
 #define MAX_SIGN_SIZE 80
 #define MAX_ITEM_NUM 20
@@ -51,7 +52,7 @@ public:
     StoreOutlook() : m_Open(0) {}
 
     PacketSize_t getSize() const {
-        return szBYTE + ((m_Open == 0) ? 0 : (szBYTE + m_Sign.size()));
+        return szBYTE + ((m_Open == 0) ? 0 : (de::wire::stringWireSize(m_Sign)));
     }
     static constexpr PacketSize_t getMaxSize() {
         return szBYTE + szBYTE + MAX_SIGN_SIZE;

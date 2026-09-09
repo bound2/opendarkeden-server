@@ -9,6 +9,8 @@
 // include files
 #include "PCOustersInfo.h"
 
+#include "WireString.h"
+
 //----------------------------------------------------------------------
 // read data from socket input stream
 //----------------------------------------------------------------------
@@ -18,17 +20,8 @@ void PCOustersInfo::read(SocketInputStream& iStream) {
     //--------------------------------------------------
     // read vampire name
     //--------------------------------------------------
-    BYTE szName;
 
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     //--------------------------------------------------
     // read slot
@@ -121,17 +114,7 @@ void PCOustersInfo::write(SocketOutputStream& oStream) const {
     //--------------------------------------------------
     // write vampire name
     //--------------------------------------------------
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    oStream.write(szName);
-
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     //--------------------------------------------------
     // write slot

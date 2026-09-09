@@ -53,6 +53,8 @@ src/Core/SocketEncryptInputStream.h
 src/Core/SocketEncryptInputStream.cpp
 src/Core/SocketEncryptOutputStream.h
 src/Core/SocketEncryptOutputStream.cpp
+src/Core/WireString.h
+src/Core/WireString.cpp
 #
 # Encryption
 src/Core/EncryptUtility.h

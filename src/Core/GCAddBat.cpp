@@ -6,6 +6,8 @@
 
 #include "GCAddBat.h"
 
+#include "WireString.h"
+
 //////////////////////////////////////////////////////////////////////////////
 // class GCAddBat member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -17,17 +19,7 @@ void GCAddBat::read(SocketInputStream& iStream)
 
     iStream.read(m_ObjectID);
 
-    BYTE szName;
-
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too large name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     // iStream.read(m_SpriteType);
     // iStream.read(m_MainColor);
@@ -52,16 +44,7 @@ void GCAddBat::write(SocketOutputStream& oStream) const
 
     oStream.write(m_ObjectID);
 
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too large name length");
-
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     // oStream.write(m_SpriteType);
     // oStream.write(m_MainColor);

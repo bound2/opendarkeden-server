@@ -11,6 +11,7 @@
 // include files
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //--------------------------------------------------------------------------------
 //
@@ -40,8 +41,8 @@ public:
     // *OPTIMIZATION HINT*
     // const static GCAddNPCPacketSize 를 정의, 리턴하라.
     PacketSize_t getPacketSize() const {
-        return szObjectID + szBYTE + m_Name.size() + szNPCID + szSpriteType + szColor + szColor + szCoord + szCoord +
-               szDir;
+        return szObjectID + de::wire::stringWireSize(m_Name) + szNPCID + szSpriteType + szColor + szColor + szCoord +
+               szCoord + szDir;
     }
 
     // get packet's name

@@ -6,23 +6,16 @@
 
 #include "CLQueryPlayerID.h"
 
+#include "WireString.h"
+
 void CLQueryPlayerID::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
     // read player id
-    BYTE szPlayerID;
 
-    iStream.read(szPlayerID);
-
-    if (szPlayerID == 0)
-        throw InvalidProtocolException("szPlayerID == 0");
-
-    if (szPlayerID > 20)
-        throw InvalidProtocolException("too long PlayerID length");
-
-    iStream.read(m_PlayerID, szPlayerID);
+    de::wire::readString(iStream, m_PlayerID, {1, 20}, "PlayerID");
 
     __END_CATCH
 }
@@ -33,17 +26,7 @@ void CLQueryPlayerID::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
     // write player id
-    BYTE szPlayerID = m_PlayerID.size();
-
-    if (szPlayerID == 0)
-        throw InvalidProtocolException("empty PlayerID");
-
-    if (szPlayerID > 20)
-        throw InvalidProtocolException("too long PlayerID length");
-
-    oStream.write(szPlayerID);
-
-    oStream.write(m_PlayerID);
+    de::wire::writeString(oStream, m_PlayerID, {1, 20}, "PlayerID");
 
     __END_CATCH
 }

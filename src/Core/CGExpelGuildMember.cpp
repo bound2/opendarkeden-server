@@ -6,23 +6,17 @@
 
 #include "CGExpelGuildMember.h"
 
+#include "WireString.h"
+
 
 void CGExpelGuildMember::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
-    BYTE szName;
 
     iStream.read(m_GuildID);
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     __END_CATCH
 }
@@ -32,16 +26,9 @@ void CGExpelGuildMember::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long szName length");
 
     oStream.write(m_GuildID);
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     __END_CATCH
 }

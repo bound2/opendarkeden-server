@@ -7,6 +7,7 @@
 #include "SocketOutputStream.h"
 #include "Types.h"
 #include "VSDateTime.h"
+#include "WireString.h"
 #include "types/PetTypes.h"
 
 class PetItem;
@@ -29,7 +30,7 @@ public:
 
         //		if ( type == MY_INFO )
         return szPetType + szMonsterType + szPetLevel + szPetExp + szPetHP + szPetAttr + szPetAttrLevel + szOptionType +
-               szItemType + szBYTE + szBYTE + szBYTE + szBYTE + szObjectID + szBYTE + m_Nickname.size();
+               szItemType + szBYTE + szBYTE + szBYTE + szBYTE + szObjectID + de::wire::stringWireSize(m_Nickname);
         //		else
         //			return szPetType + szMonsterType + szPetLevel + szPetExp + szPetAttr + szPetAttrLevel + szOptionType
         //+ szItemType + szObjectID;

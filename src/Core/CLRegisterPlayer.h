@@ -11,6 +11,7 @@
 // include files
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //--------------------------------------------------------------------------------
 //
@@ -40,20 +41,20 @@ public:
     // get packet's body size
     PacketSize_t getPacketSize() const {
         // 최적화시 미리 계산된 상수를 사용하도록 한다.
-        return szBYTE + m_ID.size()          // 아이디
-               + szBYTE + m_Password.size()  // 암호
-               + szBYTE + m_Name.size()      // 이름
-               + szBYTE                      // 성별
-               + szBYTE + m_SSN.size()       // 주민등록번호
-               + szBYTE + m_Telephone.size() // 전화번호
-               + szBYTE + m_Cellular.size()  // 휴대폰번호
-               + szBYTE + m_ZipCode.size()   // 우편번호
-               + szBYTE + m_Address.size()   // 주소
-               + szBYTE                      // 국가코드
-               + szBYTE + m_Email.size()     // 전자메일
-               + szBYTE + m_Homepage.size()  // 홈페이지
-               + szBYTE + m_Profile.size()   // 자기소개글
-               + szBYTE;                     // 공개여부
+        return de::wire::stringWireSize(m_ID)          // 아이디
+               + de::wire::stringWireSize(m_Password)  // 암호
+               + de::wire::stringWireSize(m_Name)      // 이름
+               + szBYTE                                // 성별
+               + de::wire::stringWireSize(m_SSN)       // 주민등록번호
+               + de::wire::stringWireSize(m_Telephone) // 전화번호
+               + de::wire::stringWireSize(m_Cellular)  // 휴대폰번호
+               + de::wire::stringWireSize(m_ZipCode)   // 우편번호
+               + de::wire::stringWireSize(m_Address)   // 주소
+               + szBYTE                                // 국가코드
+               + de::wire::stringWireSize(m_Email)     // 전자메일
+               + de::wire::stringWireSize(m_Homepage)  // 홈페이지
+               + de::wire::stringWireSize(m_Profile)   // 자기소개글
+               + szBYTE;                               // 공개여부
     }
 
     // get packet name

@@ -9,6 +9,8 @@
 // include files
 #include "LCQueryResultCharacterName.h"
 
+#include "WireString.h"
+
 
 //--------------------------------------------------------------------------------
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -21,17 +23,8 @@ void LCQueryResultCharacterName::read(SocketInputStream& iStream)
     //--------------------------------------------------
     // read player id
     //--------------------------------------------------
-    BYTE szCharacterName;
 
-    iStream.read(szCharacterName);
-
-    if (szCharacterName == 0)
-        throw InvalidProtocolException("szCharacterName == 0");
-
-    if (szCharacterName > 20)
-        throw InvalidProtocolException("too large CharacterName length");
-
-    iStream.read(m_CharacterName, szCharacterName);
+    de::wire::readString(iStream, m_CharacterName, {1, 20}, "CharacterName");
 
     //--------------------------------------------------
     // read id existence
@@ -53,17 +46,7 @@ void LCQueryResultCharacterName::write(SocketOutputStream& oStream) const
     //--------------------------------------------------
     // write player id
     //--------------------------------------------------
-    BYTE szCharacterName = m_CharacterName.size();
-
-    if (szCharacterName == 0)
-        throw InvalidProtocolException("empty CharacterName");
-
-    if (szCharacterName > 20)
-        throw InvalidProtocolException("too large CharacterName length");
-
-    oStream.write(szCharacterName);
-
-    oStream.write(m_CharacterName);
+    de::wire::writeString(oStream, m_CharacterName, {1, 20}, "CharacterName");
 
     //--------------------------------------------------
     // write id existence
