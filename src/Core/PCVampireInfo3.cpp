@@ -104,6 +104,11 @@ void PCVampireInfo3::write(SocketOutputStream& oStream) const {
     //--------------------------------------------------
     // write Shape
     //--------------------------------------------------
+    // The coat type travels in one byte; the item type it is taken from is
+    // bounded to that width by the game data.
+    if (m_CoatType > 0xFF)
+        throw InvalidProtocolException("coat type does not fit a byte");
+
     BYTE coatType = (BYTE)m_CoatType;
     oStream.write(coatType);
 

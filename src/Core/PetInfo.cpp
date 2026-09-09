@@ -48,6 +48,8 @@ void PetInfo::read(SocketInputStream& iStream) {
 
     BYTE szSTR;
     iStream.read(szSTR);
+    if (szSTR > kMaxNicknameSize)
+        throw InvalidProtocolException("too long pet nickname length");
     if (szSTR != 0)
         iStream.read(m_Nickname, szSTR);
 
@@ -80,6 +82,9 @@ void PetInfo::write(SocketOutputStream& oStream) const {
     oStream.write(m_CanAttack);
 
     oStream.write(m_IsSummonInfo);
+
+    if (m_Nickname.size() > kMaxNicknameSize)
+        throw InvalidProtocolException("too long pet nickname length");
 
     BYTE szSTR = m_Nickname.size();
     oStream.write(szSTR);

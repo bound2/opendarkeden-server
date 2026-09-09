@@ -21,6 +21,8 @@ void GCAddMonsterCorpse::read(SocketInputStream& iStream) {
     iStream.read(m_MonsterType);
 
     iStream.read(name_length);
+    if (name_length > kMaxNameSize)
+        throw InvalidProtocolException("too long monster name length");
     if (name_length != 0)
         iStream.read(m_MonsterName, name_length);
 
@@ -40,6 +42,9 @@ void GCAddMonsterCorpse::read(SocketInputStream& iStream) {
 //--------------------------------------------------------------------------------
 void GCAddMonsterCorpse::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
+
+    if (m_MonsterName.size() > kMaxNameSize)
+        throw InvalidProtocolException("too long monster name length");
 
     BYTE name_length = m_MonsterName.size();
 

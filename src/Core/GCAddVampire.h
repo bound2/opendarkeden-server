@@ -45,7 +45,10 @@ public:
         return PACKET_GC_ADD_VAMPIRE;
     }
     PacketSize_t getPacketSize() const {
-        PacketSize_t ret = m_VampireInfo.getSize() + m_pEffectInfo->getSize() +
+        EffectInfo noEffects;
+        const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+
+        PacketSize_t ret = m_VampireInfo.getSize() + effects.getSize() +
                            ((m_pPetInfo != NULL) ? m_pPetInfo->getSize() : szPetType) + szBYTE;
 
         if (m_pNicknameInfo == NULL) {

@@ -23,6 +23,11 @@ class GCAddMonsterCorpse : public Packet {
 public:
     GCAddMonsterCorpse(){};
     ~GCAddMonsterCorpse(){};
+
+    // The name length travels in one byte and the factory max budgets this
+    // many characters.
+    static constexpr uint kMaxNameSize = 128;
+
     // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
     void read(SocketInputStream& iStream);
 
@@ -152,8 +157,8 @@ class GCAddMonsterCorpseFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_MONSTER_CORPSE;
     static constexpr std::string_view kName = "GCAddMonsterCorpse";
-    static constexpr PacketSize_t kMaxSize{szObjectID + szMonsterType + szBYTE + 128 + szCoord + szCoord + szDir +
-                                           szbool + szBYTE + szObjectID};
+    static constexpr PacketSize_t kMaxSize{szObjectID + szMonsterType + szBYTE + GCAddMonsterCorpse::kMaxNameSize +
+                                           szCoord + szCoord + szDir + szbool + szBYTE + szObjectID};
 
     // create packet
     Packet* createPacket() override {

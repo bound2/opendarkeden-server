@@ -25,6 +25,11 @@ GCAddSlayer::GCAddSlayer(const PCSlayerInfo3& info) : m_SlayerInfo(info) {
 GCAddSlayer::~GCAddSlayer() noexcept
 
 {
+    // The effect record is built for the packet, by read() here and by a
+    // fresh EffectManager snapshot on the fill side, so the packet owns it.
+    // The pet and nickname records belong to the creature that installed
+    // them; only a reader's own copies are heap-owned, and they are left to
+    // the process the way GCUpdateInfo leaves its NPC records.
     SAFE_DELETE(m_pEffectInfo);
 }
 
@@ -56,10 +61,15 @@ void GCAddSlayer::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    static PetInfo NullPetInfo;
+    // A packet carrying no effect record puts an empty list on the wire and
+    // one carrying no pet puts an empty pet record there.
+    EffectInfo noEffects;
+    PetInfo NullPetInfo;
 
     m_SlayerInfo.write(oStream);
-    m_pEffectInfo->write(oStream);
+
+    const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+    effects.write(oStream);
 
     if (m_pPetInfo == NULL)
         NullPetInfo.write(oStream);
@@ -86,8 +96,11 @@ PacketSize_t GCAddSlayer::getPacketSize() const
 {
     __BEGIN_TRY
 
+    EffectInfo noEffects;
+    const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+
     PacketSize_t ret =
-        m_SlayerInfo.getSize() + m_pEffectInfo->getSize() + ((m_pPetInfo != NULL) ? m_pPetInfo->getSize() : szPetType);
+        m_SlayerInfo.getSize() + effects.getSize() + ((m_pPetInfo != NULL) ? m_pPetInfo->getSize() : szPetType);
 
     if (m_pNicknameInfo == NULL) {
         NicknameInfo noNick;
@@ -110,7 +123,8 @@ string GCAddSlayer::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddSlayer(" << "SlayerInfo:" << m_SlayerInfo.toString() << "EffectInfo:" << m_pEffectInfo->toString()
+    msg << "GCAddSlayer(" << "SlayerInfo:" << m_SlayerInfo.toString()
+        << "EffectInfo:" << ((m_pEffectInfo != NULL) ? m_pEffectInfo->toString() : "NULL")
         << "PetInfo:" << ((m_pPetInfo) ? m_pPetInfo->toString() : "NULL") << ")";
     return msg.toString();
 

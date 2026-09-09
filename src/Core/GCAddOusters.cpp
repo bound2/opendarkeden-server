@@ -28,9 +28,13 @@ GCAddOusters::~GCAddOusters() noexcept
 
 {
     try {
+        // The effect record is built for the packet, by read() here and by a
+        // fresh EffectManager snapshot on the fill side, so the packet owns
+        // it. The pet and nickname records belong to the creature that
+        // installed them; only a reader's own copies are heap-owned, and they
+        // are left to the process the way GCUpdateInfo leaves its NPC
+        // records.
         SAFE_DELETE(m_pEffectInfo);
-        SAFE_DELETE(m_pPetInfo);
-        SAFE_DELETE(m_pNicknameInfo);
     } catch (const std::exception&) {
         // ignore during teardown
     }
@@ -63,10 +67,15 @@ void GCAddOusters::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
+    // A packet carrying no effect record puts an empty list on the wire and
+    // one carrying no pet puts an empty pet record there.
+    EffectInfo noEffects;
     PetInfo NullPetInfo;
 
     m_OustersInfo.write(oStream);
-    m_pEffectInfo->write(oStream);
+
+    const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+    effects.write(oStream);
 
     if (m_pPetInfo == NULL)
         NullPetInfo.write(oStream);
@@ -93,8 +102,11 @@ PacketSize_t GCAddOusters::getPacketSize() const
 {
     __BEGIN_TRY
 
+    EffectInfo noEffects;
+    const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+
     PacketSize_t ret =
-        m_OustersInfo.getSize() + m_pEffectInfo->getSize() + ((m_pPetInfo != NULL) ? m_pPetInfo->getSize() : szPetType);
+        m_OustersInfo.getSize() + effects.getSize() + ((m_pPetInfo != NULL) ? m_pPetInfo->getSize() : szPetType);
     if (m_pNicknameInfo == NULL) {
         NicknameInfo noNick;
         noNick.setNicknameType(NicknameInfo::NICK_NONE);
@@ -116,8 +128,8 @@ string GCAddOusters::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCAddOusters(" << "OustersInfo:" << m_OustersInfo.toString() << "EffectInfo:" << m_pEffectInfo->toString()
-        << ")";
+    msg << "GCAddOusters(" << "OustersInfo:" << m_OustersInfo.toString()
+        << "EffectInfo:" << ((m_pEffectInfo != NULL) ? m_pEffectInfo->toString() : "NULL") << ")";
     return msg.toString();
 
     __END_CATCH

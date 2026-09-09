@@ -104,6 +104,9 @@ void StoreOutlook::read(SocketInputStream& iStream) {
     BYTE szSign;
     iStream.read(szSign);
 
+    if (szSign > MAX_SIGN_SIZE)
+        throw InvalidProtocolException("too long store sign length");
+
     if (szSign != 0)
         iStream.read(m_Sign, szSign);
 
@@ -116,6 +119,9 @@ void StoreOutlook::write(SocketOutputStream& oStream) const {
     oStream.write(m_Open);
     if (m_Open == 0)
         return;
+
+    if (m_Sign.size() > MAX_SIGN_SIZE)
+        throw InvalidProtocolException("too long store sign length");
 
     BYTE szSign = m_Sign.size();
     oStream.write(szSign);

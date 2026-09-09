@@ -20,6 +20,10 @@ class NPCInfo {
     ///// member methods /////
 
 public:
+    // The name length travels in one byte and the record max budgets this
+    // many characters.
+    static constexpr uint kMaxNameSize = 30;
+
     NPCInfo();
     ~NPCInfo();
 
@@ -63,7 +67,7 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     static constexpr uint getMaxSize() {
-        return szBYTE + 30 + szNPCID + szZoneCoord + szZoneCoord;
+        return szBYTE + kMaxNameSize + szNPCID + szZoneCoord + szZoneCoord;
     }
 
     string toString(void) const;

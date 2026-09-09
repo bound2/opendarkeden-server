@@ -20,6 +20,9 @@ void GCAddVampirePortal::read(SocketInputStream& iStream)
     BYTE length = 0;
     iStream.read(length);
 
+    if (length > kMaxOwnerIDSize)
+        throw InvalidProtocolException("too long portal owner name length");
+
     if (length > 0) {
         iStream.read(m_OwnerID, length);
     }
@@ -39,6 +42,9 @@ void GCAddVampirePortal::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
     oStream.write(m_ObjectID);
+
+    if (m_OwnerID.size() > kMaxOwnerIDSize)
+        throw InvalidProtocolException("too long portal owner name length");
 
     BYTE length = m_OwnerID.size();
     oStream.write(length);

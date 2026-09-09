@@ -77,6 +77,7 @@ public:
                + szBYTE                      // coatType
                + szColor * VAMPIRE_COLOR_MAX // 색상
                + szBYTE + szHP * 2           // 최대 체력
+               + szAlignment                 // 성향
                + szShape                     // 모양
                + szSpeed                     // 공격 속도
                + szGuildID                   // 길드 아이디
