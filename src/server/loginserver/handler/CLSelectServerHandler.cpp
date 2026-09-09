@@ -7,18 +7,18 @@
 #include "CLSelectServer.h"
 
 #ifdef __LOGIN_SERVER__
+#include <utility>
+
 #include "Assert1.h"
-#include "GameServerGroupInfoManager.h"
-#include "GameServerInfoManager.h"
-#include "GameWorldInfoManager.h"
+#include "GlobalWorldTopology.h"
 #include "LCPCList.h"
 #include "LoginPlayer.h"
-#include "OptionInfo.h"
+#include "WorldSelection.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-// 클라이언트가 PC 의 리스트를 달라고 요청해오면, 로그인 서버는 DB로부터
-// PC들의 정보를 로딩해서 LCPCList 패킷에 담아서 전송한다.
+// The client picks a server group; the login server puts the session on it
+// and answers with the account's characters.
 //////////////////////////////////////////////////////////////////////////////
 void CLSelectServerHandler::execute(CLSelectServer* pPacket, Player* pPlayer)
 
@@ -32,44 +32,31 @@ void CLSelectServerHandler::execute(CLSelectServer* pPacket, Player* pPlayer)
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
-    ServerGroupID_t CurrentServerGroupID = pPacket->getServerGroupID();
+    SelectServerRequest request;
+    request.worldID = pLoginPlayer->getWorldID();
+    request.serverGroupID = pPacket->getServerGroupID();
 
-    WorldID_t WorldID = pLoginPlayer->getWorldID();
+    GlobalWorldTopology topology;
 
-    // Assert (WorldID <= g_pGameWorldInfoManager->getSize());
-    int MaxWorldID = g_pGameWorldInfoManager->getSize();
-    if (WorldID > MaxWorldID) {
-        WorldID = MaxWorldID;
-    }
+    Outcome<SelectedServer, SelectServerRejection> outcome = decideSelectServer(request, topology);
 
-    // Assert (CurrentServerGroupID <= g_pGameServerGroupInfoManager->getSize(WorldID ));
-    int MaxServerGroupID = g_pGameServerGroupInfoManager->getSize(WorldID);
-    if (CurrentServerGroupID > MaxServerGroupID) {
-        CurrentServerGroupID = MaxServerGroupID;
-    }
-
-
-    // by sigi. 2003.1.7
-    GameServerGroupInfo* pGameServerGroupInfo =
-        g_pGameServerGroupInfoManager->getGameServerGroupInfo(CurrentServerGroupID, WorldID);
-
-    Assert(pGameServerGroupInfo != NULL);
-    if (pGameServerGroupInfo->getStat() == SERVER_DOWN) {
-        filelog("errorLogin.txt", "Server Closed: %d", CurrentServerGroupID);
+    if (outcome.isRejected()) {
+        filelog("errorLogin.txt", "Server Closed: %d", outcome.rejection().serverGroupID);
         throw DisconnectException("ServerClosed");
     }
 
+    const SelectedServer selected = std::move(outcome).events();
 
-    pLoginPlayer->setServerGroupID(CurrentServerGroupID);
+    pLoginPlayer->setServerGroupID(selected.serverGroupID);
 
     //----------------------------------------------------------------------
-    // 이제 LCPCList 패킷을 만들어 보내자
+    // Answer with the account's characters.
     //----------------------------------------------------------------------
     LCPCList lcPCList;
     pLoginPlayer->makePCList(lcPCList);
 
 #ifdef __NETMARBLE_SERVER__
-    // 넷마블 사용자 약관 동의 여부 확인
+    // Netmarble asks whether the account accepted the terms.
     lcPCList.setAgree(pLoginPlayer->isAgree());
 #endif
 
