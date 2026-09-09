@@ -23,6 +23,11 @@ typedef struct {
 // 구조체 맥스 크기(14) + 이름 길이 (1)
 const uint PARTY_MEMBER_INFO_MAX_SIZE = 17;
 
+// The name width PARTY_MEMBER_INFO_MAX_SIZE budgets, and the number of
+// members the packet's factory max budgets.
+const uint PARTY_MEMBER_NAME_MAX_LENGTH = 10;
+const uint PARTY_MEMBER_INFO_MAX_COUNT = 6;
+
 //////////////////////////////////////////////////////////////////////////////
 // class GCPartyJoined;
 //////////////////////////////////////////////////////////////////////////////
@@ -49,6 +54,8 @@ public:
         return m_MemberCount;
     }
 
+    // Takes ownership. Refuses a member past the count the factory max
+    // budgets; the refused record is destroyed here.
     void addMemberInfo(PARTY_MEMBER_INFO* pInfo);
     PARTY_MEMBER_INFO* popMemberInfo(void);
 
@@ -68,7 +75,7 @@ class GCPartyJoinedFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PARTY_JOINED;
     static constexpr std::string_view kName = "GCPartyJoined";
-    static constexpr PacketSize_t kMaxSize{szBYTE + PARTY_MEMBER_INFO_MAX_SIZE * 6};
+    static constexpr PacketSize_t kMaxSize{szBYTE + PARTY_MEMBER_INFO_MAX_SIZE * PARTY_MEMBER_INFO_MAX_COUNT};
 
     Packet* createPacket() override {
         return new GCPartyJoined();

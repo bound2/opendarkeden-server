@@ -54,6 +54,9 @@ void GCShowGuildMemberInfo::write(SocketOutputStream& oStream) const
     if (szName > 20)
         throw InvalidProtocolException("too long szName length");
 
+    if (m_GuildMemberIntro.size() > GUILD_INTRO_MAX_LENGTH)
+        throw InvalidProtocolException("too long szGuildMemberIntro length");
+
     oStream.write(m_GuildID);
     oStream.write(szName);
     oStream.write(m_Name);

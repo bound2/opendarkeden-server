@@ -21,17 +21,16 @@ void GCOtherGuildName::read(SocketInputStream& iStream)
 
     iStream.read(m_ObjectID);
     iStream.read(m_GuildID);
+    iStream.read(szGuildName);
 
-    // if (szGuildName == 0 )
-    //	throw InvalidProtocolException("szGuildName == 0");
-
+    // A guildless character carries a zero length and no name.
     if (szGuildName > 30)
         throw InvalidProtocolException("too long GuildName length");
 
     if (szGuildName != 0)
-        iStream.read(szGuildName);
-
-    iStream.read(m_GuildName, szGuildName);
+        iStream.read(m_GuildName, szGuildName);
+    else
+        m_GuildName = "";
 
     __END_CATCH
 }

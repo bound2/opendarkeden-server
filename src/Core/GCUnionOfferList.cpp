@@ -50,6 +50,10 @@ void GCUnionOfferList::read(SocketInputStream& iStream)
 
     BYTE szNum;
     iStream.read(szNum);
+
+    if (szNum > SingleGuildUnionOffer::kMaxCount)
+        throw InvalidProtocolException("too many union offers");
+
     for (int i = 0; i < szNum; ++i) {
         SingleGuildUnionOffer* pInfo = new SingleGuildUnionOffer;
         pInfo->read(iStream);
@@ -67,6 +71,9 @@ void GCUnionOfferList::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_UnionOfferList.size() > SingleGuildUnionOffer::kMaxCount)
+        throw InvalidProtocolException("too many union offers");
 
     BYTE szNum = m_UnionOfferList.size();
     oStream.write(szNum);

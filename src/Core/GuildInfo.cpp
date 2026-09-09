@@ -113,8 +113,11 @@ PacketSize_t GuildInfo::getSize() {
 
     BYTE szGuildName = m_GuildName.size();
     BYTE szGuildMaster = m_GuildMaster.size();
+    BYTE szGuildExpireDate = m_GuildExpireDate.size();
 
-    PacketSize_t PacketSize = szGuildID + szBYTE + szGuildName + szBYTE + szGuildMaster + szBYTE;
+    // The member count, then the expiry date behind its own length byte.
+    PacketSize_t PacketSize =
+        szGuildID + szBYTE + szGuildName + szBYTE + szGuildMaster + szBYTE + szBYTE + szGuildExpireDate;
 
     return PacketSize;
 

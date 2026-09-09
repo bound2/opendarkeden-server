@@ -647,7 +647,6 @@ void CGTradeAddItemHandler::makeGCTradeAddItemPacket(GCTradeAddItem* pPacket, Ob
     else if (IClass == Item::ITEM_CLASS_BELT) {
         Belt* pBelt = dynamic_cast<Belt*>(pItem);
         Inventory* pBeltInventory = pBelt->getInventory();
-        BYTE SubItemCount = 0;
 
         for (int i = 0; i < pBelt->getPocketCount(); i++) {
             Item* pBeltItem = pBeltInventory->getItem(i, 0);
@@ -659,19 +658,14 @@ void CGTradeAddItemHandler::makeGCTradeAddItemPacket(GCTradeAddItem* pPacket, Ob
                 pInfo->setItemNum(pBeltItem->getNum());
                 pInfo->setSlotID(i);
                 pPacket->addListElement(pInfo);
-
-                SubItemCount += 1;
             }
         }
-
-        pPacket->setListNum(SubItemCount);
     }
     // 암스밴드의 경우에는 안에 포함되어 있는 아이템 정보를
     // 같이 날려줘야 한다.
     else if (IClass == Item::ITEM_CLASS_OUSTERS_ARMSBAND) {
         OustersArmsband* pOustersArmsband = dynamic_cast<OustersArmsband*>(pItem);
         Inventory* pOustersArmsbandInventory = pOustersArmsband->getInventory();
-        BYTE SubItemCount = 0;
 
         for (int i = 0; i < pOustersArmsband->getPocketCount(); i++) {
             Item* pOustersArmsbandItem = pOustersArmsbandInventory->getItem(i, 0);
@@ -683,12 +677,8 @@ void CGTradeAddItemHandler::makeGCTradeAddItemPacket(GCTradeAddItem* pPacket, Ob
                 pInfo->setItemNum(pOustersArmsbandItem->getNum());
                 pInfo->setSlotID(i);
                 pPacket->addListElement(pInfo);
-
-                SubItemCount += 1;
             }
         }
-
-        pPacket->setListNum(SubItemCount);
     }
 
 #endif

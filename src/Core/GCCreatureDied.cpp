@@ -17,8 +17,6 @@ void GCCreatureDied::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
-    BYTE flag;
-    iStream.read(flag);
     iStream.read(m_ObjectID);
 
     __END_CATCH
@@ -32,7 +30,6 @@ void GCCreatureDied::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
-    //	oStream.write((BYTE)48);
     oStream.write(m_ObjectID);
 
     __END_CATCH

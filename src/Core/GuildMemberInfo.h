@@ -42,8 +42,14 @@ public:
     // ����ȭ��, �̸� ���� ������ ����Ѵ�.
     PacketSize_t getSize();
 
+    // The roster packet's factory max budgets this many members;
+    // GCGuildMemberList refuses one more.
+    static constexpr uint kMaxCount = 220;
+
+    // One record: the name behind its length byte, the rank, the log-on
+    // flag and the server the member is on.
     static constexpr uint getMaxSize() {
-        return (szBYTE + 20 + szGuildMemberRank + szbool) * 220 + szBYTE + szServerID;
+        return szBYTE + 20 + szGuildMemberRank + szbool + szServerID;
     }
 
     // get packet's debug string

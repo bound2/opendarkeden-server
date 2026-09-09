@@ -31,6 +31,9 @@ void CGJoinGuild::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
+    if (m_GuildMemberIntro.size() > GUILD_INTRO_MAX_LENGTH)
+        throw InvalidProtocolException("too long szGuildMemberIntro length");
+
     BYTE szGuildMemberIntro = m_GuildMemberIntro.size();
 
     oStream.write(m_GuildID);

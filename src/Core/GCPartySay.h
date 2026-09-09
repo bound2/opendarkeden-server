@@ -73,8 +73,9 @@ public:
     string getMessage() const {
         return m_Message;
     }
+    // Truncates to the width the factory max budgets.
     void setMessage(const string& msg) {
-        m_Message = msg;
+        m_Message = (msg.size() > 128) ? msg.substr(0, 128) : msg;
     }
 
 private:

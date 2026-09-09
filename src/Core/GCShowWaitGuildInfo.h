@@ -94,8 +94,10 @@ public:
     const string& getGuildIntro() const {
         return m_GuildIntro;
     }
+    // Truncates to the width the length byte and the factory max allow.
     void setGuildIntro(const string& GuildIntro) {
-        m_GuildIntro = GuildIntro;
+        m_GuildIntro =
+            (GuildIntro.size() > GUILD_INTRO_MAX_LENGTH) ? GuildIntro.substr(0, GUILD_INTRO_MAX_LENGTH) : GuildIntro;
     }
 
     // get/set Join Fee

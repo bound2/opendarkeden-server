@@ -64,7 +64,14 @@ public:
     }
 
     // add GuildMemberInfoList
+    // Takes ownership. Refuses a member past the count the factory max
+    // budgets, so getPacketSize() can never outgrow the read buffer the
+    // receiver sizes from it; the refused record is destroyed here.
     void addGuildMemberInfo(GuildMemberInfo* pGuildMemberInfo) {
+        if (m_GuildMemberInfoList.size() >= GuildMemberInfo::kMaxCount) {
+            SAFE_DELETE(pGuildMemberInfo);
+            throw InvalidProtocolException("too many guild member infos");
+        }
         m_GuildMemberInfoList.push_front(pGuildMemberInfo);
     }
 
@@ -107,7 +114,9 @@ class GCGuildMemberListFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_GUILD_MEMBER_LIST;
     static constexpr std::string_view kName = "GCGuildMemberList";
-    static constexpr PacketSize_t kMaxSize{szBYTE + GuildMemberInfo::getMaxSize()};
+    static constexpr PacketSize_t kMaxSize{szBYTE + // list type
+                                           szBYTE + // member count
+                                           GuildMemberInfo::getMaxSize() * GuildMemberInfo::kMaxCount};
 
     // create packet
     Packet* createPacket() override {

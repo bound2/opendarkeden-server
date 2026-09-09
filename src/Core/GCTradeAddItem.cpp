@@ -17,7 +17,6 @@ GCTradeAddItem::GCTradeAddItem()
 {
     __BEGIN_TRY
 
-    m_ListNum = 0;
     m_Grade = 0;
 
     __END_CATCH
@@ -58,6 +57,10 @@ void GCTradeAddItem::read(SocketInputStream& iStream)
 
     BYTE optionSize;
     iStream.read(optionSize);
+
+    if (optionSize > kMaxOptionTypes)
+        throw InvalidProtocolException("too many option types");
+
     for (int i = 0; i < optionSize; i++) {
         OptionType_t optionType;
         iStream.read(optionType);
@@ -69,8 +72,14 @@ void GCTradeAddItem::read(SocketInputStream& iStream)
     iStream.read(m_Silver);
     iStream.read(m_Grade);
     iStream.read(m_EnchantLevel);
-    iStream.read(m_ListNum);
-    for (BYTE i = 0; i < m_ListNum; i++) {
+
+    BYTE listNum;
+    iStream.read(listNum);
+
+    if (listNum > kMaxSubItems)
+        throw InvalidProtocolException("too many sub items");
+
+    for (BYTE i = 0; i < listNum; i++) {
         SubItemInfo* pInfo = new SubItemInfo();
         pInfo->read(iStream);
         m_InfoList.push_back(pInfo);
@@ -87,6 +96,11 @@ void GCTradeAddItem::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_OptionType.size() > kMaxOptionTypes)
+        throw InvalidProtocolException("too many option types");
+    if (m_InfoList.size() > kMaxSubItems)
+        throw InvalidProtocolException("too many sub items");
 
     oStream.write(m_TargetObjectID);
     oStream.write(m_X);
@@ -109,7 +123,10 @@ void GCTradeAddItem::write(SocketOutputStream& oStream) const
     oStream.write(m_Silver);
     oStream.write(m_Grade);
     oStream.write(m_EnchantLevel);
-    oStream.write(m_ListNum);
+
+    BYTE listNum = m_InfoList.size();
+    oStream.write(listNum);
+
     list<SubItemInfo*>::const_iterator itr = m_InfoList.begin();
     for (; itr != m_InfoList.end(); itr++) {
         Assert(*itr != NULL);
@@ -132,8 +149,8 @@ string GCTradeAddItem::toString() const
         << " ItemObjectID : " << (int)m_ItemObjectID << " ItemClass : " << (int)m_ItemClass
         << " ItemType : " << (int)m_ItemType << " OptionTypeSize : " << (int)m_OptionType.size()
         << " Durability : " << (int)m_Durability << " ItemNum : " << (int)m_ItemNum << " Silver : " << (int)m_Silver
-        << " Grade : " << (int)m_Grade << " EnchantLevel : " << (int)m_EnchantLevel << " ListNum : " << (int)m_ListNum
-        << " )";
+        << " Grade : " << (int)m_Grade << " EnchantLevel : " << (int)m_EnchantLevel
+        << " ListNum : " << (int)m_InfoList.size() << " )";
     return msg.toString();
 
     __END_CATCH

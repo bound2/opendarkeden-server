@@ -60,7 +60,7 @@ void GCShowWaitGuildInfo::read(SocketInputStream& iStream)
 
         iStream.read(Member, szMember);
 
-        m_MemberList.push_front(Member);
+        m_MemberList.push_back(Member);
     }
 
     __END_CATCH
@@ -90,6 +90,9 @@ void GCShowWaitGuildInfo::write(SocketOutputStream& oStream) const
         throw InvalidProtocolException("szGuildMaster == 0");
     if (szGuildMaster > 20)
         throw InvalidProtocolException("too long szGuildMaster length");
+
+    if (m_GuildIntro.size() > GUILD_INTRO_MAX_LENGTH)
+        throw InvalidProtocolException("too long szGuildIntro length");
 
     oStream.write(m_GuildID);
     oStream.write(szGuildName);

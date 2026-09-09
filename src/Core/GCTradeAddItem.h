@@ -21,6 +21,12 @@
 
 class GCTradeAddItem : public Packet {
 public:
+    // The widths the factory max budgets: the option list behind its
+    // BYTE count, and the sub-items a belt or an armsband holds.
+    static constexpr uint kMaxOptionTypes = 255;
+    static constexpr uint kMaxSubItems = 8;
+
+public:
     GCTradeAddItem();
     ~GCTradeAddItem();
 
@@ -32,20 +38,20 @@ public:
     }
     PacketSize_t getPacketSize() const {
         PacketSize_t size = 0;
-        size += szObjectID;                           // m_TargetObjectID
-        size += szCoordInven;                         // m_X
-        size += szCoordInven;                         // m_Y
-        size += szObjectID;                           // m_ItemObjectID
-        size += szBYTE;                               // m_ItemClass
-        size += szItemType;                           // m_ItemType
-        size += szBYTE + m_OptionType.size();         // m_OptionType
-        size += szDurability;                         // m_Durability
-        size += szItemNum;                            // m_ItemNum
-        size += szSilver;                             // silver coating amount
-        size += szGrade;                              // 아이템 등급
-        size += szEnchantLevel;                       // enchant level
-        size += szBYTE;                               // m_ListNum
-        size += (SubItemInfo::getSize() * m_ListNum); // list<SubItemInfo*> m_InfoList;
+        size += szObjectID;                                   // m_TargetObjectID
+        size += szCoordInven;                                 // m_X
+        size += szCoordInven;                                 // m_Y
+        size += szObjectID;                                   // m_ItemObjectID
+        size += szBYTE;                                       // m_ItemClass
+        size += szItemType;                                   // m_ItemType
+        size += szBYTE + m_OptionType.size();                 // m_OptionType
+        size += szDurability;                                 // m_Durability
+        size += szItemNum;                                    // m_ItemNum
+        size += szSilver;                                     // silver coating amount
+        size += szGrade;                                      // 아이템 등급
+        size += szEnchantLevel;                               // enchant level
+        size += szBYTE;                                       // sub-item count
+        size += (SubItemInfo::getSize() * m_InfoList.size()); // list<SubItemInfo*> m_InfoList;
         return size;
     }
     string getPacketName() const {
@@ -109,10 +115,17 @@ public:
         m_OptionType.pop_front();
         return optionType;
     }
+    // Refuses an option past the count the factory max budgets, so
+    // getPacketSize() can never outgrow the read buffer the receiver
+    // sizes from it.
     void addOptionType(OptionType_t otype) {
+        if (m_OptionType.size() >= kMaxOptionTypes)
+            throw InvalidProtocolException("too many option types");
         m_OptionType.push_back(otype);
     }
     void setOptionType(const list<OptionType_t>& OptionTypes) {
+        if (OptionTypes.size() > kMaxOptionTypes)
+            throw InvalidProtocolException("too many option types");
         m_OptionType = OptionTypes;
     }
 
@@ -151,19 +164,22 @@ public:
         m_EnchantLevel = level;
     }
 
+    // The count write() puts on the wire is the list itself.
     BYTE getListNum() const {
-        return m_ListNum;
-    }
-    void setListNum(BYTE num) {
-        m_ListNum = num;
+        return m_InfoList.size();
     }
 
+    // Takes ownership. Refuses a sub-item past the count the factory max
+    // budgets; the refused record is destroyed here.
     void addListElement(SubItemInfo* pInfo) {
+        if (m_InfoList.size() >= kMaxSubItems) {
+            SAFE_DELETE(pInfo);
+            throw InvalidProtocolException("too many sub items");
+        }
         m_InfoList.push_back(pInfo);
     }
     void clearList() {
         m_InfoList.clear();
-        m_ListNum = 0;
     }
 
     SubItemInfo* popListElement() {
@@ -185,7 +201,6 @@ private:
     Silver_t m_Silver;               // silver coating amount
     Grade_t m_Grade;                 // 아이템 등급
     EnchantLevel_t m_EnchantLevel;   // enchant level
-    BYTE m_ListNum;                  // 벨트일 경우, 안에 있는 아이템의 숫자
     list<SubItemInfo*> m_InfoList;   // 벨트일 경우, 안에 있는 아이템의 정보
 };
 
@@ -202,20 +217,20 @@ public:
     static constexpr std::string_view kName = "GCTradeAddItem";
     static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
-        size += szObjectID;                   // m_TargetObjectID
-        size += szCoordInven;                 // m_X
-        size += szCoordInven;                 // m_Y
-        size += szObjectID;                   // m_ItemObjectID
-        size += szBYTE;                       // m_ItemClass
-        size += szItemType;                   // m_ItemType
-        size += szBYTE + 255;                 // m_OptionType
-        size += szDurability;                 // m_Durability
-        size += szItemNum;                    // m_ItemNum
-        size += szSilver;                     // silver coating amount
-        size += szGrade;                      // 아이템 등급
-        size += szEnchantLevel;               // enchant level
-        size += szBYTE;                       // m_ListNum
-        size += (SubItemInfo::getSize() * 8); // list<SubItemInfo*> m_InfoList;
+        size += szObjectID;                                              // m_TargetObjectID
+        size += szCoordInven;                                            // m_X
+        size += szCoordInven;                                            // m_Y
+        size += szObjectID;                                              // m_ItemObjectID
+        size += szBYTE;                                                  // m_ItemClass
+        size += szItemType;                                              // m_ItemType
+        size += szBYTE + GCTradeAddItem::kMaxOptionTypes;                // m_OptionType
+        size += szDurability;                                            // m_Durability
+        size += szItemNum;                                               // m_ItemNum
+        size += szSilver;                                                // silver coating amount
+        size += szGrade;                                                 // 아이템 등급
+        size += szEnchantLevel;                                          // enchant level
+        size += szBYTE;                                                  // sub-item count
+        size += (SubItemInfo::getSize() * GCTradeAddItem::kMaxSubItems); // list<SubItemInfo*> m_InfoList;
         return size;
     }()};
 

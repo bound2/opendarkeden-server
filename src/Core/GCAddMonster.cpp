@@ -115,7 +115,7 @@ string GCAddMonster::toString() const
     StringStream msg;
     msg << "GCAddMonster(" << "ObjectID:" << (int)m_ObjectID << ",MonsterType:" << (int)m_MonsterType
         << ",MonsterName:" << m_MonsterName << ",MainColor:" << (int)m_MainColor << ",SubColor:" << (int)m_SubColor
-        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir]
+        << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << dir2String(m_Dir)
         << ",Effects:" << ((m_pEffectInfo != NULL) ? m_pEffectInfo->toString() : "NULL")
         << ",CurrentHP:" << (int)m_CurrentHP << ",MaxHP:" << (int)m_MaxHP << ",FromFlag:" << (int)m_FromFlag << ")";
     return msg.toString();

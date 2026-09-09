@@ -244,7 +244,7 @@
 249	GCGQuestStatusInfo	2640601
 250	GCGQuestStatusModify	26407
 251	GCGuildChat	166
-252	GCGuildMemberList	5064
+252	GCGuildMemberList	5502
 253	GCGuildResponse	6
 254	GCHolyLandBonusInfo	13
 255	GCHPRecoveryEndToOthers	6
@@ -399,7 +399,7 @@
 404	GCTradeVerify	1
 405	GCUnburrowFail	0
 406	GCUnburrowOK	3
-407	GCUnionOfferList	1180
+407	GCUnionOfferList	1181
 408	GCUntransformFail	0
 409	GCUntransformOK	3
 410	GCUpdateInfo	59146

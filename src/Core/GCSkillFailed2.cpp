@@ -40,8 +40,6 @@ void GCSkillFailed2::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
-    BYTE flag;
-    iStream.read(flag);
     iStream.read(m_ObjectID);
     iStream.read(m_TargetObjectID);
     iStream.read(m_SkillType);
@@ -57,7 +55,6 @@ void GCSkillFailed2::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
-    // oStream.write((BYTE)48);
     oStream.write(m_ObjectID);
     oStream.write(m_TargetObjectID);
     oStream.write(m_SkillType);

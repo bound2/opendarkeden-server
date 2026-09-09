@@ -38,8 +38,6 @@ GCDropItemToZone::~GCDropItemToZone()
 void GCDropItemToZone::read(SocketInputStream& iStream)
 
 {
-    BYTE flag;
-    iStream.read(flag);
     GCAddItemToZone::read(iStream);
     iStream.read(m_DropPetOID);
 }
@@ -47,7 +45,6 @@ void GCDropItemToZone::read(SocketInputStream& iStream)
 void GCDropItemToZone::write(SocketOutputStream& oStream) const
 
 {
-    // oStream.write((BYTE)48);
     GCAddItemToZone::write(oStream);
     oStream.write(m_DropPetOID);
 }

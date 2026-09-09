@@ -25,6 +25,13 @@ void CGPartySay::read(SocketInputStream& iStream)
     iStream.read(m_Color);
     BYTE szMessage;
     iStream.read(szMessage);
+
+    // The factory max budgets 128 characters for the message.
+    if (szMessage == 0)
+        throw InvalidProtocolException("szMessage == 0");
+    if (szMessage > 128)
+        throw InvalidProtocolException("too long message length");
+
     iStream.read(m_Message, szMessage);
 
     __END_CATCH
@@ -34,6 +41,11 @@ void CGPartySay::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_Message.empty())
+        throw InvalidProtocolException("szMessage == 0");
+    if (m_Message.size() > 128)
+        throw InvalidProtocolException("too long message length");
 
     oStream.write(m_Color);
     BYTE szMessage = m_Message.size();
