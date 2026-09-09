@@ -7,6 +7,7 @@
 #include "CLLogin.h"
 
 #include "Properties.h"
+#include "WireString.h"
 
 void CLLogin::read(SocketInputStream& iStream)
 
@@ -15,29 +16,9 @@ void CLLogin::read(SocketInputStream& iStream)
 
     setNetmarble(false);
 
-    BYTE szID;
+    de::wire::readString(iStream, m_ID, {1, 30}, "ID");
 
-    iStream.read(szID);
-
-    if (szID == 0)
-        throw InvalidProtocolException("szID == 0");
-
-    if (szID > 30)
-        throw InvalidProtocolException("too large ID length");
-
-    iStream.read(m_ID, szID);
-
-    BYTE szPassword;
-
-    iStream.read(szPassword);
-
-    if (szPassword == 0)
-        throw InvalidProtocolException("szPassword == 0");
-
-    if (szPassword > 30)
-        throw InvalidProtocolException("too large password length");
-
-    iStream.read(m_Password, szPassword);
+    de::wire::readString(iStream, m_Password, {1, 30}, "Password");
 
     iStream.read((char*)m_cMacAddress, 6 * szBYTE);
 
@@ -59,27 +40,9 @@ void CLLogin::write(SocketOutputStream& oStream) const
 
     // 넷마블의 Cpsso 관련된 코드는 서버의 Write 에서는 고치지 않는다  (쓰이지 않으므로 ;;)
     // Client 에서만 알아서 처리해서 보내주도록 한다.
-    BYTE szID = m_ID.size();
+    de::wire::writeString(oStream, m_ID, {1, 30}, "ID");
 
-    if (szID == 0)
-        throw InvalidProtocolException("empty ID");
-    if (szID > 30)
-        throw InvalidProtocolException("too large ID length");
-
-    oStream.write(szID);
-
-    oStream.write(m_ID);
-
-    BYTE szPassword = m_Password.size();
-
-    if (szPassword == 0)
-        throw InvalidProtocolException("szPassword == 0");
-    if (szPassword > 30)
-        throw InvalidProtocolException("too large password length");
-
-    oStream.write(szPassword);
-
-    oStream.write(m_Password);
+    de::wire::writeString(oStream, m_Password, {1, 30}, "Password");
     oStream.write((char*)m_cMacAddress, 6 * sizeof(BYTE));
 
     oStream.write(m_LoginMode);

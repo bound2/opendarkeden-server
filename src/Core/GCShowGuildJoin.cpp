@@ -8,6 +8,8 @@
 // include files
 #include "GCShowGuildJoin.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -17,17 +19,9 @@ void GCShowGuildJoin::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szGuildName;
 
     iStream.read(m_GuildID);
-    iStream.read(szGuildName);
-
-    if (szGuildName == 0)
-        throw InvalidProtocolException("szGuildName == 0");
-    if (szGuildName > 30)
-        throw InvalidProtocolException("too long szGuildName length");
-
-    iStream.read(m_GuildName, szGuildName);
+    de::wire::readString(iStream, m_GuildName, {1, 30}, "GuildName");
     iStream.read(m_GuildMemberRank);
     iStream.read(m_JoinFee);
 
@@ -43,16 +37,9 @@ void GCShowGuildJoin::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szGuildName = m_GuildName.size();
-
-    if (szGuildName == 0)
-        throw InvalidProtocolException("szGuildName == 0");
-    if (szGuildName > 30)
-        throw InvalidProtocolException("too long szGuildName length");
 
     oStream.write(m_GuildID);
-    oStream.write(szGuildName);
-    oStream.write(m_GuildName);
+    de::wire::writeString(oStream, m_GuildName, {1, 30}, "GuildName");
     oStream.write(m_GuildMemberRank);
     oStream.write(m_JoinFee);
 

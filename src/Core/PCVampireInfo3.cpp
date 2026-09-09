@@ -6,6 +6,8 @@
 
 #include "PCVampireInfo3.h"
 
+#include "WireString.h"
+
 //////////////////////////////////////////////////////////////////////////////
 // read data from socket input stream
 //////////////////////////////////////////////////////////////////////////////
@@ -16,17 +18,8 @@ void PCVampireInfo3::read(SocketInputStream& iStream) {
     iStream.read(m_ObjectID);
 
     // read vampire name
-    BYTE szName;
 
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     // read (X,Y,Dir)
     iStream.read(m_X);
@@ -84,17 +77,7 @@ void PCVampireInfo3::write(SocketOutputStream& oStream) const {
     oStream.write(m_ObjectID);
 
     // write vampire name
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    oStream.write(szName);
-
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     // write (X,Y,Dir)
     oStream.write(m_X);

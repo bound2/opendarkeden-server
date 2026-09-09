@@ -9,6 +9,8 @@
 // include files
 #include "GCGlobalChat.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -20,17 +22,7 @@ void GCGlobalChat::read(SocketInputStream& iStream)
 
     iStream.read(m_Color);
 
-    BYTE szMessage;
-
-    iStream.read(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    if (szMessage > 128)
-        throw InvalidProtocolException("too large message length");
-
-    iStream.read(m_Message, szMessage);
+    de::wire::readString(iStream, m_Message, {1, 128}, "Message");
 
     iStream.read(m_Race);
 
@@ -48,17 +40,7 @@ void GCGlobalChat::write(SocketOutputStream& oStream) const
 
     oStream.write(m_Color);
 
-    BYTE szMessage = m_Message.size();
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    if (szMessage > 128)
-        throw InvalidProtocolException("too large message length");
-
-    oStream.write(szMessage);
-
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_Message, {1, 128}, "Message");
 
     oStream.write(m_Race);
 

@@ -9,6 +9,8 @@
 // include files
 #include "GCAddNPC.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -21,17 +23,7 @@ void GCAddNPC::read(SocketInputStream& iStream)
     // 최적화 작업시 실제 크기를 명시하도록 한다.
     iStream.read(m_ObjectID);
 
-    BYTE szName;
-
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 40)
-        throw InvalidProtocolException("too large name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 40}, "Name");
     iStream.read(m_NPCID);
 
     iStream.read(m_SpriteType);
@@ -58,16 +50,7 @@ void GCAddNPC::write(SocketOutputStream& oStream) const
     // 최적화 작업시 실제 크기를 명시하도록 한다.
     oStream.write(m_ObjectID);
 
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 40)
-        throw InvalidProtocolException("too large name length");
-
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 40}, "Name");
     oStream.write(m_NPCID);
 
     oStream.write(m_SpriteType);

@@ -9,6 +9,8 @@
 // include files
 #include "SGExpelGuildMemberOK.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Datagram 객체로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -16,25 +18,10 @@
 void SGExpelGuildMemberOK::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    BYTE szName, szSender;
 
     iStream.read(m_GuildID);
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
-    iStream.read(szSender);
-
-    if (szSender == 0)
-        throw InvalidProtocolException("szSender == 0");
-    if (szSender > 20)
-        throw InvalidProtocolException("too long sender length");
-
-    iStream.read(m_Sender, szSender);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
+    de::wire::readString(iStream, m_Sender, {1, 20}, "Sender");
 
     __END_CATCH
 }
@@ -46,24 +33,10 @@ void SGExpelGuildMemberOK::read(SocketInputStream& iStream) {
 void SGExpelGuildMemberOK::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-    BYTE szSender = m_Sender.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    if (szSender == 0)
-        throw InvalidProtocolException("szSender == 0");
-    if (szSender > 20)
-        throw InvalidProtocolException("too long sender length");
 
     oStream.write(m_GuildID);
-    oStream.write(szName);
-    oStream.write(m_Name);
-    oStream.write(szSender);
-    oStream.write(m_Sender);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
+    de::wire::writeString(oStream, m_Sender, {1, 20}, "Sender");
 
     __END_CATCH
 }

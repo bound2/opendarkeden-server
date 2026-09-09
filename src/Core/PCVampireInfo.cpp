@@ -9,6 +9,8 @@
 // include files
 #include "PCVampireInfo.h"
 
+#include "WireString.h"
+
 void PCVampireInfo::setShapeInfo(DWORD flag, Color_t color[VAMPIRE_COLOR_MAX]) {
     // 현재는 vampire coat만 모양이 바뀌므로..
     // 나중에 다른 부위도 바뀐다면 PCSlayerInfo를 참조해서 바꿔야될 것이다
@@ -25,17 +27,8 @@ void PCVampireInfo::read(SocketInputStream& iStream) {
     //--------------------------------------------------
     // read vampire name
     //--------------------------------------------------
-    BYTE szName;
 
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     //--------------------------------------------------
     // read slot
@@ -122,17 +115,7 @@ void PCVampireInfo::write(SocketOutputStream& oStream) const {
     //--------------------------------------------------
     // write vampire name
     //--------------------------------------------------
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    oStream.write(szName);
-
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     //--------------------------------------------------
     // write slot

@@ -9,6 +9,7 @@
 
 #include "Assert.h"
 #include "PCInfo.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class PCVampireInfo3;
@@ -52,19 +53,19 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     uint getSize() const {
-        return szObjectID                    // ObjectID
-               + szBYTE + m_Name.size()      // 뱀파이어 이름
-               + szCoord + szCoord + szDir   // 좌표와 방향
-               + szSex                       // 성별
-               + szBYTE                      // coatType
-               + szColor * VAMPIRE_COLOR_MAX // 색상
-               + szBYTE + szHP * 2           // 최대 체력
-               + szAlignment                 // 성향
-               + szShape                     // 모양
-               + szSpeed                     // 공격 속도
-               + szGuildID                   // 길드 아이디
-               + szRank                      // 계급
-               + szBYTE                      // 권한
+        return szObjectID                         // ObjectID
+               + de::wire::stringWireSize(m_Name) // 뱀파이어 이름
+               + szCoord + szCoord + szDir        // 좌표와 방향
+               + szSex                            // 성별
+               + szBYTE                           // coatType
+               + szColor * VAMPIRE_COLOR_MAX      // 색상
+               + szBYTE + szHP * 2                // 최대 체력
+               + szAlignment                      // 성향
+               + szShape                          // 모양
+               + szSpeed                          // 공격 속도
+               + szGuildID                        // 길드 아이디
+               + szRank                           // 계급
+               + szBYTE                           // 권한
                + szuint + szLevel;
     }
 

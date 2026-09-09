@@ -9,6 +9,7 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class GCAddBurrowingCreature;
@@ -26,7 +27,7 @@ public:
         return PACKET_GC_ADD_BURROWING_CREATURE;
     }
     PacketSize_t getPacketSize() const {
-        return szObjectID + szBYTE + m_Name.size() + szCoord + szCoord;
+        return szObjectID + de::wire::stringWireSize(m_Name) + szCoord + szCoord;
     }
     string getPacketName() const {
         return "GCAddBurrowingCreature";

@@ -1,5 +1,7 @@
 #include "StoreInfo.h"
 
+#include "WireString.h"
+
 void StoreItemInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
@@ -76,11 +78,7 @@ void StoreInfo::write(SocketOutputStream& oStream, bool toOther) const {
     if (toOther && m_Open == 0)
         return;
 
-    BYTE szSign = m_Sign.size();
-    oStream.write(szSign);
-
-    if (szSign != 0)
-        oStream.write(m_Sign);
+    de::wire::writeString(oStream, m_Sign, {0, de::wire::kMaxByteStringLength}, "Sign");
 
     BYTE ItemNum = m_Items.size();
     oStream.write(ItemNum);
@@ -101,14 +99,7 @@ void StoreOutlook::read(SocketInputStream& iStream) {
     if (m_Open == 0)
         return;
 
-    BYTE szSign;
-    iStream.read(szSign);
-
-    if (szSign > MAX_SIGN_SIZE)
-        throw InvalidProtocolException("too long store sign length");
-
-    if (szSign != 0)
-        iStream.read(m_Sign, szSign);
+    de::wire::readString(iStream, m_Sign, {0, MAX_SIGN_SIZE}, "Sign");
 
     __END_CATCH
 }
@@ -120,14 +111,7 @@ void StoreOutlook::write(SocketOutputStream& oStream) const {
     if (m_Open == 0)
         return;
 
-    if (m_Sign.size() > MAX_SIGN_SIZE)
-        throw InvalidProtocolException("too long store sign length");
-
-    BYTE szSign = m_Sign.size();
-    oStream.write(szSign);
-
-    if (szSign != 0)
-        oStream.write(m_Sign);
+    de::wire::writeString(oStream, m_Sign, {0, MAX_SIGN_SIZE}, "Sign");
 
     __END_CATCH
 }

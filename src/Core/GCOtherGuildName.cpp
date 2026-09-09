@@ -8,6 +8,8 @@
 // include files
 #include "GCOtherGuildName.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -17,20 +19,11 @@ void GCOtherGuildName::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szGuildName;
-
     iStream.read(m_ObjectID);
     iStream.read(m_GuildID);
-    iStream.read(szGuildName);
 
     // A guildless character carries a zero length and no name.
-    if (szGuildName > 30)
-        throw InvalidProtocolException("too long GuildName length");
-
-    if (szGuildName != 0)
-        iStream.read(m_GuildName, szGuildName);
-    else
-        m_GuildName = "";
+    de::wire::readString(iStream, m_GuildName, {0, 30}, "GuildName");
 
     __END_CATCH
 }
@@ -44,17 +37,13 @@ void GCOtherGuildName::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szGuildName = m_GuildName.size();
 
     // if (szGuildName == 0 )
     //	throw InvalidProtocolException("szGuildName == 0");
 
     oStream.write(m_ObjectID);
     oStream.write(m_GuildID);
-    oStream.write(szGuildName);
-
-    if (szGuildName != 0)
-        oStream.write(m_GuildName);
+    de::wire::writeString(oStream, m_GuildName, {0, de::wire::kMaxByteStringLength}, "GuildName");
 
     __END_CATCH
 }

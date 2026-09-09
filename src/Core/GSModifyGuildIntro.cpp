@@ -9,6 +9,8 @@
 // include files
 #include "GSModifyGuildIntro.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // Datagram 객체로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -18,15 +20,9 @@ void GSModifyGuildIntro::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szGuildIntro;
 
     iStream.read(m_GuildID);
-    iStream.read(szGuildIntro);
-
-    if (szGuildIntro > 0)
-        iStream.read(m_GuildIntro, szGuildIntro);
-    else
-        m_GuildIntro = "";
+    de::wire::readString(iStream, m_GuildIntro, {0, de::wire::kMaxByteStringLength}, "GuildIntro");
 
     __END_CATCH
 }
@@ -40,16 +36,9 @@ void GSModifyGuildIntro::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szGuildIntro = m_GuildIntro.size();
-
-    if (m_GuildIntro.size() > GUILD_INTRO_MAX_LENGTH)
-        throw InvalidProtocolException("too long szGuildIntro length");
 
     oStream.write(m_GuildID);
-    oStream.write(szGuildIntro);
-
-    if (szGuildIntro > 0)
-        oStream.write(m_GuildIntro);
+    de::wire::writeString(oStream, m_GuildIntro, {0, GUILD_INTRO_MAX_LENGTH}, "GuildIntro");
 
     __END_CATCH
 }

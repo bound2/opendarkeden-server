@@ -10,6 +10,7 @@
 #include <bitset>
 
 #include "PCInfo.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Slayer 정보를 담고 있는 객체.
@@ -68,7 +69,8 @@ public:
 
     // get size of object
     uint getSize() const {
-        return szBYTE + m_Name.size() + szSlot + szAlignment + szAttr * 3 + szRank + szExp * 3 + szHP * 2 + szMP * 2 +
+        return de::wire::stringWireSize(m_Name) + szSlot + szAlignment + szAttr * 3 + szRank + szExp * 3 + szHP * 2 +
+               szMP * 2 +
                szFame
                //+ szGold
                + szSkillLevel * 6

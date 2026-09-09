@@ -12,6 +12,7 @@
 // include files
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -41,9 +42,9 @@ public:
 
     // get packet's body size
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_LoginServerIP.size() // 게임 서버 아이피
-               + szuint                        // 게임 서버 포트
-               + szDWORD;                      // 인증 키
+        return de::wire::stringWireSize(m_LoginServerIP) // 게임 서버 아이피
+               + szuint                                  // 게임 서버 포트
+               + szDWORD;                                // 인증 키
     }
 
     // get packet name

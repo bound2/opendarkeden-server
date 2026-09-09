@@ -6,22 +6,18 @@
 
 #include "CGJoinGuild.h"
 
+#include "WireString.h"
+
 
 void CGJoinGuild::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
-    BYTE szGuildMemberIntro;
 
     iStream.read(m_GuildID);
     iStream.read(m_GuildMemberRank);
-    iStream.read(szGuildMemberIntro);
-
-    if (szGuildMemberIntro != 0)
-        iStream.read(m_GuildMemberIntro, szGuildMemberIntro);
-    else
-        m_GuildMemberIntro = "";
+    de::wire::readString(iStream, m_GuildMemberIntro, {0, de::wire::kMaxByteStringLength}, "GuildMemberIntro");
 
     __END_CATCH
 }
@@ -31,17 +27,10 @@ void CGJoinGuild::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    if (m_GuildMemberIntro.size() > GUILD_INTRO_MAX_LENGTH)
-        throw InvalidProtocolException("too long szGuildMemberIntro length");
-
-    BYTE szGuildMemberIntro = m_GuildMemberIntro.size();
 
     oStream.write(m_GuildID);
     oStream.write(m_GuildMemberRank);
-    oStream.write(szGuildMemberIntro);
-
-    if (szGuildMemberIntro != 0)
-        oStream.write(m_GuildMemberIntro);
+    de::wire::writeString(oStream, m_GuildMemberIntro, {0, GUILD_INTRO_MAX_LENGTH}, "GuildMemberIntro");
 
     __END_CATCH
 }

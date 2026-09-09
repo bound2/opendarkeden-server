@@ -8,6 +8,7 @@
 #define __PC_OUSTERS_INFO_2_H__
 
 #include "PCInfo.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // Ousters 정보를 담고 있는 객체.
@@ -25,27 +26,27 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     uint getSize() const {
-        return szObjectID                    // ObjectID
-               + szBYTE + m_Name.size()      // 아우스터스 이름
-               + szLevel                     // 레벨
-               + szSex                       // 성별
-               + szColor                     // 머리 색상
-               + szBYTE + szAlignment        // 성향
-               + szAttr * 3 * 3              // 능력치
-               + szHP * 2                    // HP
-               + szMP * 2                    // MP
-               + szRank + szRankExp          // 계급 경험치
-               + szExp                       // 경험치
-               + szGold                      // 돈
-               + szFame                      // Fame
-               + szSight                     // 시야
-               + szBonus                     // 보너스 포인트
-               + szSkillBonus                // 스킬 보너스 포인트
-               + szSilver                    // 실버 데미지
-               + szBYTE                      // 권한
-               + szGuildID                   // 길드 아이디
-               + szBYTE + m_GuildName.size() // 길드 이름
-               + szGuildMemberRank           // guild member rank
+        return szObjectID                              // ObjectID
+               + de::wire::stringWireSize(m_Name)      // 아우스터스 이름
+               + szLevel                               // 레벨
+               + szSex                                 // 성별
+               + szColor                               // 머리 색상
+               + szBYTE + szAlignment                  // 성향
+               + szAttr * 3 * 3                        // 능력치
+               + szHP * 2                              // HP
+               + szMP * 2                              // MP
+               + szRank + szRankExp                    // 계급 경험치
+               + szExp                                 // 경험치
+               + szGold                                // 돈
+               + szFame                                // Fame
+               + szSight                               // 시야
+               + szBonus                               // 보너스 포인트
+               + szSkillBonus                          // 스킬 보너스 포인트
+               + szSilver                              // 실버 데미지
+               + szBYTE                                // 권한
+               + szGuildID                             // 길드 아이디
+               + de::wire::stringWireSize(m_GuildName) // 길드 이름
+               + szGuildMemberRank                     // guild member rank
                + szuint + szLevel + szExp;
     }
 

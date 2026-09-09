@@ -12,6 +12,7 @@
 // include files
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 class Player;
 
@@ -41,8 +42,8 @@ public:
 
     // get packet's body size
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_PCName.size() // pc name
-               + szPCType;              // pc type
+        return de::wire::stringWireSize(m_PCName) // pc name
+               + szPCType;                        // pc type
     }
 
     // get packet's name

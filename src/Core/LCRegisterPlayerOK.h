@@ -12,6 +12,7 @@
 // include files
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -41,7 +42,7 @@ public:
     // *OPTIMIZATION HINT*
     // const static LCRegisterPlayerOKPacketSize 를 정의, 리턴하라.
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_GroupName.size() + szBYTE;
+        return de::wire::stringWireSize(m_GroupName) + szBYTE;
     }
 
     // get packet's name

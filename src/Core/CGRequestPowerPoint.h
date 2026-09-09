@@ -9,6 +9,7 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class CGRequestPowerPoint;
@@ -26,7 +27,7 @@ public:
         return PACKET_CG_REQUEST_POWER_POINT;
     }
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_CellNum.size();
+        return de::wire::stringWireSize(m_CellNum);
     }
     string getPacketName() const {
         return "CGRequestPowerPoint";

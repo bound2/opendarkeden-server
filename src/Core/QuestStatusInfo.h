@@ -7,6 +7,7 @@
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
 #include "Types.h"
+#include "WireString.h"
 
 #define MAX_MISSION_NUM 100
 
@@ -45,10 +46,7 @@ struct MissionInfo {
         oStream.write(m_Index);
         oStream.write(m_Status);
 
-        BYTE szSTR = m_StrArg.size();
-        oStream.write(szSTR);
-        if (szSTR != 0)
-            oStream.write(m_StrArg);
+        de::wire::writeString(oStream, m_StrArg, {0, de::wire::kMaxByteStringLength}, "StrArg");
 
         oStream.write(m_NumArg);
 

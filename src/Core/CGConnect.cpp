@@ -6,6 +6,8 @@
 
 #include "CGConnect.h"
 
+#include "WireString.h"
+
 void CGConnect::read(SocketInputStream& iStream)
 
 {
@@ -20,16 +22,7 @@ void CGConnect::read(SocketInputStream& iStream)
     m_PCType = PCType(pcType);
 
     // read PC name
-    BYTE szPCName;
-    iStream.read(szPCName);
-
-    if (szPCName == 0)
-        throw InvalidProtocolException("szPCName == 0");
-
-    if (szPCName > 20)
-        throw InvalidProtocolException("too long pc name length");
-
-    iStream.read(m_PCName, szPCName);
+    de::wire::readString(iStream, m_PCName, {1, 20}, "PCName");
     iStream.read((char*)m_MacAddress, 6);
 
     __END_CATCH
@@ -47,16 +40,7 @@ void CGConnect::write(SocketOutputStream& oStream) const
     oStream.write((BYTE)m_PCType);
 
     // write PC name
-    BYTE szPCName = m_PCName.size();
-
-    if (szPCName == 0)
-        throw InvalidProtocolException("szPCName == 0");
-
-    if (szPCName > 20)
-        throw InvalidProtocolException("too long pc name length");
-
-    oStream.write(szPCName);
-    oStream.write(m_PCName);
+    de::wire::writeString(oStream, m_PCName, {1, 20}, "PCName");
 
     oStream.write((char*)m_MacAddress, 6);
 

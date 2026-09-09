@@ -6,23 +6,16 @@
 
 #include "CLSelectPC.h"
 
+#include "WireString.h"
+
 void CLSelectPC::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
     // read creature's name
-    BYTE szPCName;
 
-    iStream.read(szPCName);
-
-    if (szPCName == 0)
-        throw InvalidProtocolException("szPCName == 0");
-
-    if (szPCName > 20)
-        throw InvalidProtocolException("too long pc name length");
-
-    iStream.read(m_PCName, szPCName);
+    de::wire::readString(iStream, m_PCName, {1, 20}, "PCName");
 
     // read pc type
     BYTE pcType;
@@ -47,17 +40,7 @@ void CLSelectPC::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
     // write creature's name
-    BYTE szPCName = m_PCName.size();
-
-    if (szPCName == 0)
-        throw InvalidProtocolException("szPCName == 0");
-
-    if (szPCName > 20)
-        throw InvalidProtocolException("too long pc name length");
-
-    oStream.write(szPCName);
-
-    oStream.write(m_PCName);
+    de::wire::writeString(oStream, m_PCName, {1, 20}, "PCName");
 
     // write pc type
     if (m_PCType != PC_SLAYER && m_PCType != PC_VAMPIRE && m_PCType != PC_OUSTERS)

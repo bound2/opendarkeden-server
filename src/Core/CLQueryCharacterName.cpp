@@ -6,23 +6,16 @@
 
 #include "CLQueryCharacterName.h"
 
+#include "WireString.h"
+
 void CLQueryCharacterName::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
     // read player id
-    BYTE szCharacterName;
 
-    iStream.read(szCharacterName);
-
-    if (szCharacterName == 0)
-        throw InvalidProtocolException("szCharacterName == 0");
-
-    if (szCharacterName > 20)
-        throw InvalidProtocolException("too long CharacterName length");
-
-    iStream.read(m_CharacterName, szCharacterName);
+    de::wire::readString(iStream, m_CharacterName, {1, 20}, "CharacterName");
 
     __END_CATCH
 }
@@ -33,17 +26,7 @@ void CLQueryCharacterName::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
     // write player id
-    BYTE szCharacterName = m_CharacterName.size();
-
-    if (szCharacterName == 0)
-        throw InvalidProtocolException("empty CharacterName");
-
-    if (szCharacterName > 20)
-        throw InvalidProtocolException("too long CharacterName length");
-
-    oStream.write(szCharacterName);
-
-    oStream.write(m_CharacterName);
+    de::wire::writeString(oStream, m_CharacterName, {1, 20}, "CharacterName");
 
     __END_CATCH
 }

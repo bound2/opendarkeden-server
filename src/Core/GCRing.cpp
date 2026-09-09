@@ -9,6 +9,8 @@
 // include files
 #include "GCRing.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -40,15 +42,7 @@ void GCRing::read(SocketInputStream& iStream)
     iStream.read(m_PhoneNumber);
     iStream.read(m_SlotID);
 
-    BYTE szName;
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     __END_CATCH
 }
@@ -65,16 +59,7 @@ void GCRing::write(SocketOutputStream& oStream) const
     oStream.write(m_PhoneNumber);
     oStream.write(m_SlotID);
 
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too long name length");
-
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     __END_CATCH
 }

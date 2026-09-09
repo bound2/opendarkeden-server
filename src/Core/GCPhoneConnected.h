@@ -14,6 +14,7 @@
 #include "Packet.h"
 #include "PacketFactory.h"
 #include "Types.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -49,7 +50,7 @@ public:
     // get packet's body size
     // 최적화시, 미리 계산된 정수를 사용한다.
     PacketSize_t getPacketSize() const {
-        return szPhoneNumber + szSlotID + szBYTE + m_Name.size();
+        return szPhoneNumber + szSlotID + de::wire::stringWireSize(m_Name);
     }
 
     // get packet's name

@@ -12,6 +12,7 @@
 // include files
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -43,7 +44,7 @@ public:
     // *OPTIMIZATION HINT*
     // const static GCPartySayPacketSize 를 정의, 리턴하라.
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_Name.size() + szDWORD + szBYTE + m_Message.size();
+        return szBYTE + m_Name.size() + szDWORD + de::wire::stringWireSize(m_Message);
     }
 
     // get packet's name

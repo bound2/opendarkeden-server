@@ -12,6 +12,7 @@
 #include "CGUseItemFromInventory.h"
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class CGUseMessageItemFromInventory;
@@ -25,7 +26,7 @@ public:
         return PACKET_CG_USE_MESSAGE_ITEM_FROM_INVENTORY;
     }
     PacketSize_t getPacketSize() const {
-        return CGUseItemFromInventory::getPacketSize() + szBYTE + m_Message.size();
+        return CGUseItemFromInventory::getPacketSize() + de::wire::stringWireSize(m_Message);
     }
     string getPacketName() const {
         return "CGUseMessageItemFromInventory";

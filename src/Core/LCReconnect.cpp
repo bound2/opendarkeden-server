@@ -9,6 +9,8 @@
 // include files
 #include "LCReconnect.h"
 
+#include "WireString.h"
+
 
 //----------------------------------------------------------------------
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -21,17 +23,8 @@ void LCReconnect::read(SocketInputStream& iStream)
     //--------------------------------------------------
     // read game server's ip
     //--------------------------------------------------
-    BYTE szGameServerIP;
 
-    iStream.read(szGameServerIP);
-
-    if (szGameServerIP == 0)
-        throw InvalidProtocolException("szGameServerIP == 0");
-
-    if (szGameServerIP > 15)
-        throw InvalidProtocolException("too long IP length");
-
-    iStream.read(m_GameServerIP, szGameServerIP);
+    de::wire::readString(iStream, m_GameServerIP, {1, 15}, "GameServerIP");
 
     //--------------------------------------------------
     // read game server's port
@@ -58,17 +51,7 @@ void LCReconnect::write(SocketOutputStream& oStream) const
     //--------------------------------------------------
     // write game server's ip
     //--------------------------------------------------
-    BYTE szGameServerIP = m_GameServerIP.size();
-
-    if (szGameServerIP == 0)
-        throw InvalidProtocolException("szGameServerIP == 0");
-
-    if (szGameServerIP > 15)
-        throw InvalidProtocolException("too long IP length");
-
-    oStream.write(szGameServerIP);
-
-    oStream.write(m_GameServerIP);
+    de::wire::writeString(oStream, m_GameServerIP, {1, 15}, "GameServerIP");
 
     //--------------------------------------------------
     // write game server's port

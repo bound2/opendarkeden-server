@@ -103,6 +103,17 @@ check_ratchet R7 "files with parenthesized throw syntax" 0 "$R7"
 R8=$(grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
 check_ratchet R8 "non-comment __PRETTY_FUNCTION__ lines" 0 "$R8"
 
+# --- R9: hand-written length-prefixed string reads -------------------------
+# A string field is a BYTE length then that many bytes, and de::wire helpers
+# (src/Core/WireString.h) carry it with the bounds stated once. What is left
+# is the legacy shape: a length read into a local and handed straight to
+# read(string&, uint), with the bounds spelled out around it. The count is of
+# call lines, using R8's comment rule so WireString.h's own example of the
+# shape it replaces does not count itself.
+R9=$(grep -rhE 'iStream\.read\(m_[A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core \
+    --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
+check_ratchet R9 "hand-written length-prefixed string reads" 22 "$R9"
+
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.

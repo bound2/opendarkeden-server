@@ -6,6 +6,8 @@
 
 #include "PCSlayerInfo3.h"
 
+#include "WireString.h"
+
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 void PCSlayerInfo3::read(SocketInputStream& iStream) {
@@ -15,16 +17,7 @@ void PCSlayerInfo3::read(SocketInputStream& iStream) {
     iStream.read(m_ObjectID);
 
     // read name
-    BYTE szName;
-    iStream.read(szName);
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too large name length");
-
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     // read (X,Y,Dir)
     iStream.read(m_X);
@@ -66,16 +59,7 @@ void PCSlayerInfo3::write(SocketOutputStream& oStream) const {
     oStream.write(m_ObjectID);
 
     // write name
-    BYTE szName = m_Name.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    if (szName > 20)
-        throw InvalidProtocolException("too large name length");
-
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, 20}, "Name");
 
     // write (X,Y,Dir)
     oStream.write(m_X);
