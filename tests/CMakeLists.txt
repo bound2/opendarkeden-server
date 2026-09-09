@@ -647,3 +647,29 @@ target_link_libraries(trade_table_decision_tests PRIVATE de-kernel gtest_main Th
 add_dependencies(wire_tests trade_table_decision_tests)
 add_test(NAME trade_table_decision_tests COMMAND trade_table_decision_tests)
 set_tests_properties(trade_table_decision_tests PROPERTIES TIMEOUT 60)
+
+# The sharedserver's guild mutations (docs/RESTRUCTURING.md 3.1):
+# decideAddGuild, decideGuildActivation, decideExpelGuildMember,
+# decideQuitGuild, decideGuildBreakup and decideModifyGuildMember answer
+# Outcome<..., SharedGuildRejection>, so every branch of founding a guild,
+# carrying its registration through, expelling a member, quitting, breaking
+# the guild up and changing a rank, the precedence between the refusals, and
+# the ordered trace each answer produces - the character-side writes through a
+# recording SharedGuildRepository fake, the roster and guild mutations and the
+# packets recorded beside them - are testable with no guild tables and no
+# database. The handlers themselves are not linked - they need the
+# GuildManager, a socket and the StringPool, which is why the decisions were
+# split out of them. de-kernel carries the type tables.
+add_executable(shared_guild_decision_tests EXCLUDE_FROM_ALL
+    shared_guild_decision_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/sharedserver/GuildDecision.cpp
+)
+target_include_directories(shared_guild_decision_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/sharedserver
+)
+target_link_libraries(shared_guild_decision_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests shared_guild_decision_tests)
+add_test(NAME shared_guild_decision_tests COMMAND shared_guild_decision_tests)
+set_tests_properties(shared_guild_decision_tests PROPERTIES TIMEOUT 60)

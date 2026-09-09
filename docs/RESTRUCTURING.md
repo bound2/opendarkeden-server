@@ -980,6 +980,18 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > (`tests/trade_table_decision_test.cpp`), leaving `CGTradeAddItemHandler`,
   > `CGTradeRemoveItemHandler` and `CGTradeMoneyHandler` to read the
   > inventory and the item, build the packets and write the gold.
+  > First sharedserver adopter: the guild mutations a game server asks
+  > for, where `decideAddGuild`, `decideGuildActivation`,
+  > `decideExpelGuildMember`, `decideQuitGuild`, `decideGuildBreakup` and
+  > `decideModifyGuildMember` answer an ordered `SharedGuildEvents` naming
+  > every repository write, roster and guild mutation and `SG*OK` packet
+  > beside it, or a `SharedGuildRejection` naming why the sharedserver
+  > answered with silence, in
+  > `src/server/sharedserver/GuildDecision.{h,cpp}`
+  > (`tests/shared_guild_decision_test.cpp`), leaving `GSAddGuildHandler`,
+  > `GSAddGuildMemberHandler`, `GSExpelGuildMemberHandler`,
+  > `GSQuitGuildHandler` and `GSModifyGuildMemberHandler` to read the guild
+  > tables and run the steps through `GuildStepRunner`.
   > Wider adoption pending.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).

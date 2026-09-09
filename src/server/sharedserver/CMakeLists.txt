@@ -13,6 +13,8 @@ set(SHAREDSERVER_SOURCES
     handler/GSRequestGuildInfoHandler.cpp
     SharedPacketDispatch.cpp
     Guild.cpp
+    GuildDecision.cpp
+    GuildStepRunner.cpp
     GuildManager.cpp
     ResurrectLocationManager.cpp
     GameServerPlayer.cpp

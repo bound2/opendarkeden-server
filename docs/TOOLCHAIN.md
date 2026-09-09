@@ -254,6 +254,11 @@ Its three trade table requests - an item put down, an item taken back, gold
 staked or reclaimed - share one gate decision and answer an ordered event list
 naming every packet, its recipient and the trade record mutation beside it, or
 the refusal code the sender gets.
+The sharedserver has its first adopter too: the guild mutations a game
+server asks it for - founding a guild, taking a member in, expelling one,
+quitting, changing a rank - answer an ordered event list naming every
+database write, guild-table mutation and `SG*OK` packet beside it, or the
+reason the request was answered with silence.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|
