@@ -19,9 +19,13 @@
 GCSkillToTileOK1::GCSkillToTileOK1() {
     __BEGIN_TRY
 
-    m_CListNum = 0;
+    m_SkillType = 0;
+    m_CEffectID = 0;
+    m_Duration = 0;
+    m_Range = 0;
+    m_X = 0;
+    m_Y = 0;
     m_Grade = 0;
-
 
     __END_CATCH
 }
@@ -53,12 +57,15 @@ void GCSkillToTileOK1::read(SocketInputStream& iStream)
     iStream.read(m_Range);
     iStream.read(m_Grade);
 
-    iStream.read(m_CListNum);
+    BYTE CListNum;
+    iStream.read(CListNum);
+
+    m_CList.clear();
 
     ObjectID_t m_Value;
     int i;
 
-    for (i = 0; i < m_CListNum; i++) {
+    for (i = 0; i < CListNum; i++) {
         iStream.read(m_Value);
         m_CList.push_back(m_Value);
     }
@@ -75,6 +82,9 @@ void GCSkillToTileOK1::read(SocketInputStream& iStream)
 void GCSkillToTileOK1::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
+    if (m_CList.size() > kMaxCount)
+        throw InvalidProtocolException("too many creatures in the list");
+
     // 최적화 작업시 실제 크기를 명시하도록 한다.
     oStream.write(m_SkillType);
     oStream.write(m_CEffectID);
@@ -84,7 +94,7 @@ void GCSkillToTileOK1::write(SocketOutputStream& oStream) const {
     oStream.write(m_Range);
     oStream.write(m_Grade);
 
-    oStream.write(m_CListNum);
+    oStream.write((BYTE)m_CList.size());
     for (list<ObjectID_t>::const_iterator itr = m_CList.begin(); itr != m_CList.end(); itr++) {
         oStream.write(*itr);
     }
@@ -105,11 +115,10 @@ void GCSkillToTileOK1::addCListElement(ObjectID_t ObjectID)
 {
     __BEGIN_TRY
 
-    // Creature ID를 추가한다.
-    m_CList.push_back(ObjectID);
+    if (m_CList.size() >= kMaxCount)
+        throw InvalidProtocolException("too many creatures in the list");
 
-    // 크리처 ID count를 증가시킨다.
-    m_CListNum++;
+    m_CList.push_back(ObjectID);
 
     __END_CATCH
 }
@@ -149,7 +158,7 @@ string GCSkillToTileOK1::toString() const {
 
     msg << "GCSkillToTileOK1(" << "SkillType:" << (int)m_SkillType << ",CEffectID:" << (int)m_CEffectID
         << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Duration:" << (int)m_Duration << ",Range:" << (int)m_Range
-        << ",Grade:" << (int)m_Grade << ",CListNum:" << (int)m_CListNum << "CListSet(";
+        << ",Grade:" << (int)m_Grade << ",CListNum:" << (int)m_CList.size() << "CListSet(";
 
     for (list<ObjectID_t>::const_iterator itr = m_CList.begin(); itr != m_CList.end(); itr++) {
         msg << (int)(*itr) << ",";

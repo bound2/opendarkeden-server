@@ -16,11 +16,13 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GCSkillToObjectOK6::GCSkillToObjectOK6()
-
-{
+GCSkillToObjectOK6::GCSkillToObjectOK6() {
     __BEGIN_TRY
 
+    m_X = 0;
+    m_Y = 0;
+    m_SkillType = 0;
+    m_Duration = 0;
     m_Grade = 0;
 
     __END_CATCH

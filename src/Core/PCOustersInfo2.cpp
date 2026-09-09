@@ -42,6 +42,9 @@ void PCOustersInfo2::read(SocketInputStream& iStream) {
     //--------------------------------------------------
     BYTE sex;
     iStream.read(sex);
+    if (sex > (BYTE)MALE)
+        throw InvalidProtocolException("sex out of range");
+
     m_Sex = Sex(sex);
 
     //--------------------------------------------------

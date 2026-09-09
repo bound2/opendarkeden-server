@@ -11,6 +11,123 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Combat feedback write/read disagreements (2026-09-09)
+
+The six findings task 1.2 stated as flip-tests in
+`tests/packet_combat_test.cpp`, plus the two its review recorded rather
+than tested, and three list bounds the social round left open. These
+packets are client-facing, so `write()` and `getPacketSize()` are the
+contract: every fix is a refusal, a cap at a width the factory max
+budgets, a size-accounting correction or a read-side correction to what
+`write()` emits. No golden changed; the five tile maxima below are the
+set's only `tests/wire-layout.txt` movements.
+
+- **`ModifyInfo` counted each of its two lists in a `BYTE` it incremented
+  per entry.** Nothing capped either list, so the 256th entry wrapped the
+  count to zero while `write()` still emitted every entry: the receiver
+  stopped after the count byte and read the rest of the record as the next
+  packet's header, and `getPacketSize()` counted the wrapped count too, so
+  `writePacket()` put a length on the wire the body did not match either.
+  Both counts are the list now (`ModifyInfo::kMaxCount`, the 255 the count
+  byte carries and the maximum budgets), `addShortData`/`addLongData`
+  refuse the entry past it and so does `write()`, and `popShortData` /
+  `popLongData` no longer underflow a count of their own. Of the 485 fill
+  sites in `src/server`, none adds in a loop: each adds one entry per
+  changed field under its own `if`, so a record cannot legitimately hold
+  more than the 73 `ModifyType` values and no refusal is reachable.
+  > **Status:** fixed (wire/combat-disagreements)
+
+- **The five tile packets that carry a creature list counted it the same
+  way, and `popCListElement()` left the count alone.** `GCSkillToTileOK1`,
+  `OK2`, `OK4`, `OK5` and `OK6` wrapped their `m_CListNum` at 256 exactly
+  as `ModifyInfo` did, and a packet read, popped and forwarded declared
+  more ids than it held. Each derives the count from the list now,
+  `setCListNum` is gone, and `addCListElement` and `write()` refuse the id
+  past `kMaxCount`. The bound is 255: the count travels in a byte, so
+  nothing wider can be expressed, and no narrower bound is defensible —
+  the widest mask a tile skill uses is `IceWave`'s 193 tiles, and a tile
+  holds one creature per move mode, so a sweep can in principle reach 579.
+  A crowded sweep therefore refuses the packet where it used to wrap the
+  count; that is loud where the old behaviour desynchronised the stream.
+  > **Status:** fixed (wire/combat-disagreements)
+
+- **No tile packet's factory max budgeted its creature list.**
+  `GCSkillToTileOK1`, `OK2` and `OK6` budgeted one `ObjectID` and `OK4`
+  and `OK5` one plus a spare 255 bytes, for a list the count byte lets
+  reach 255, so a sweep that caught more than one creature wrote a body
+  larger than the read buffer the receiver sizes from that maximum. Each
+  max multiplies `szObjectID` by its packet's `kMaxCount`, which moves five
+  lines in `tests/wire-layout.txt`: `GCSkillToTileOK1` 2060 -> 3076,
+  `GCSkillToTileOK2` 2061 -> 3077, `GCSkillToTileOK4` 270 -> 1286,
+  `GCSkillToTileOK5` 274 -> 1290 and `GCSkillToTileOK6` 2059 -> 3075. This
+  is the buffer the server budgets for a body it receives; the client sizes
+  its own from its own copy of the max, and no byte any packet emits
+  changes.
+  > **Status:** fixed (wire/combat-disagreements)
+
+- **`ModifyInfo::read()` and the tile `read()`s appended to the list the
+  packet already held.** A reader is reused, so a packet read into twice
+  declared one record's worth of entries and wrote two. All six clear
+  before they parse, the shape `GMServerInfo::read` already has.
+  > **Status:** fixed (wire/combat-disagreements)
+
+- **The `ModifyType` tag travelled unchecked while `toString()` indexed
+  `ModifyType2String` with it.** A tag past the last enumerator round
+  tripped intact and the debug string then read past the end of a
+  74-element table. `read()` checks the raw byte before it keeps the
+  entry, the adders refuse the same value, and `modifyType2String()`
+  prints an unknown tag as its number, the way `dir2String()` does.
+  > **Status:** fixed (wire/combat-disagreements)
+
+- **`GCSkillToTileOK3::getObjectID()` and
+  `GCSkillToInventoryOK2::getObjectID()` were declared `CEffectID_t` over
+  an `ObjectID_t` member.** Every caller saw the low half of the id the
+  packet puts on the wire, so two creatures whose ids differ only above
+  bit 16 were one creature to it. Both return `ObjectID_t`; no server
+  source calls either accessor.
+  > **Status:** fixed (wire/combat-disagreements)
+
+- **Thirty-one of the thirty-three packets left a member uninitialised in
+  the default constructor.** Only `GCStatusCurrentHP` and
+  `GCModifyInformation` initialised everything they write, so a packet
+  sent without every setter called put whatever the allocation held on the
+  wire. All of them initialise every member now, pinned by constructing
+  each over storage poisoned with two different bytes and requiring the
+  same body.
+  > **Status:** fixed (wire/combat-disagreements)
+
+- **`GCAttackArmsOK1` and `GCAttackArmsOK5` read the hit flag into a
+  `bool`.** Any byte other than 0 or 1 left an object no load may touch.
+  Both read a `BYTE` and narrow it, so a non-zero byte is a hit. `write()`
+  is untouched and the wire does not move.
+  > **Status:** fixed (wire/combat-disagreements)
+
+- **Three guild lists were capped nowhere.** `GCActiveGuildList` and
+  `GCWaitGuildList` emitted every guild they held against a factory max
+  that budgets 5000 (the count is a `WORD`, so nothing wrapped, but a
+  larger table outgrew the read buffer), and `GCShowWaitGuildInfo`'s
+  founding-member list did the same against its 5. All three refuse in
+  `addGuildInfo`/`addMember`, in `write()` and in `read()`, the way
+  `GCGuildMemberList` does, and destroy a refused owned record. Neither
+  refusal is reachable: `GuildManager::makeActiveGuildList` /
+  `makeWaitGuildList` walk the guild table, which would need 5001 guilds
+  of one race in one state, and a guild leaves `GUILD_STATE_WAIT` for
+  `GUILD_STATE_ACTIVE` the moment it has five members
+  (`GSAddGuildMemberHandler`), so `CGSelectGuildHandler` can never hand
+  `GCShowWaitGuildInfo` a sixth name.
+  > **Status:** fixed (wire/combat-disagreements)
+
+- **The last raw direction and sex indexers.** `Dir2String[m_Dir]` in
+  `CGMove`, `CGUnburrow`, `GCMove`, `GCMoveOK`, `GCUnburrowOK`,
+  `GCUntransformOK`, `PCSlayerInfo3`, `PCOustersInfo3`, `MonsterCorpse`,
+  `ActionSetPosition`, `EffectBloodySnake` and `VisionInfo`, and
+  `Sex2String[m_Sex]` in `PCSlayerInfo3`, `PCVampireInfo3` and
+  `PCOustersInfo3`, indexed an eight- and a two-element table with a value
+  that arrives off the wire. All go through `dir2String()` and a new
+  `sex2String()` beside it, which print the number instead. Debug strings
+  only.
+  > **Status:** fixed (wire/combat-disagreements)
+
 ## Social protocol write/read disagreements (2026-09-09)
 
 The thirteen findings task 1.2 stated as flip-tests in

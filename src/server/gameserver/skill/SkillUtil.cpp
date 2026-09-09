@@ -5616,11 +5616,8 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
         // (0, 1, 3, 4, 5, 5...)
         // ±× ´ÙÀ½ »çÀÌÁî¸¦ ÁÙÀÌ°í, ´Ù½Ã ±× Áß¿¡¼­ ÇÏ³ª¸¦ ·£´ýÀ¸·Î
         // »Ì¾Æ°¡¸é °ãÄ¡Áö ¾Ê´Â Å©¸®ÃÄÀÇ ¸®½ºÆ®¸¦ ¾òÀ» ¼ö ÀÖ´Ù.
-        int Indexes[50] =
-            {
-                -1,
-            },
-            i;
+        std::vector<int> Indexes(creatureVector.size(), -1);
+        int i;
         int size = creatureVector.size();
         for (i = 0; i < size; i++) {
             Indexes[i] = i;
@@ -5707,11 +5704,8 @@ int getSplashVictims(Zone* pZone, int cx, int cy, Creature::CreatureClass CClass
         // (0, 1, 3, 4, 5, 5...)
         // ±× ´ÙÀ½ »çÀÌÁî¸¦ ÁÙÀÌ°í, ´Ù½Ã ±× Áß¿¡¼­ ÇÏ³ª¸¦ ·£´ýÀ¸·Î
         // »Ì¾Æ°¡¸é °ãÄ¡Áö ¾Ê´Â Å©¸®ÃÄÀÇ ¸®½ºÆ®¸¦ ¾òÀ» ¼ö ÀÖ´Ù.
-        int Indexes[50] =
-            {
-                -1,
-            },
-            i;
+        std::vector<int> Indexes(creatureVector.size(), -1);
+        int i;
         int size = creatureVector.size();
         for (i = 0; i < size; i++) {
             Indexes[i] = i;

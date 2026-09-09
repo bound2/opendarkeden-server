@@ -45,11 +45,14 @@ public:
         return PACKET_GC_SKILL_TO_TILE_OK_5;
     }
 
+    // The creature list is counted in a BYTE, and the factory max budgets
+    // this many ids.
+    static constexpr uint kMaxCount = 255;
+
     // get packet's body size
-    // 최적화시, 미리 계산된 정수를 사용한다.
     PacketSize_t getPacketSize() const {
-        return szObjectID + szSkillType + szCoord * 2 + szRange + szDuration + szBYTE + szObjectID * m_CListNum +
-               szBYTE;
+        return (PacketSize_t)(szObjectID + szSkillType + szCoord * 2 + szRange + szDuration + szBYTE +
+                              szObjectID * m_CList.size() + szBYTE);
     }
     // CListNum, SListNum, ListEle* CListNum, ListEle* SListNum* 5
 
@@ -109,12 +112,9 @@ public:
         m_Duration = Duration;
     }
 
-    // get / set Creature List Number
+    // get Creature List Number
     BYTE getCListNum() const {
-        return m_CListNum;
-    }
-    void setCListNum(BYTE CListNum) {
-        m_CListNum = CListNum;
+        return (BYTE)m_CList.size();
     }
 
 
@@ -124,7 +124,6 @@ public:
     // Clear Creature List
     void clearCList() {
         m_CList.clear();
-        m_CListNum = 0;
     }
 
     // pop front Element in Status List
@@ -159,9 +158,6 @@ private:
     // Duration
     Duration_t m_Duration;
 
-    // Creature List Num
-    BYTE m_CListNum;
-
     // Creature List
     list<ObjectID_t> m_CList;
 
@@ -182,7 +178,7 @@ public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SKILL_TO_TILE_OK_5;
     static constexpr std::string_view kName = "GCSkillToTileOK5";
     static constexpr PacketSize_t kMaxSize{szObjectID + szSkillType + szCoord * 2 + szRange + szDuration + szBYTE +
-                                           szWORD + szObjectID + 255 + szBYTE};
+                                           szWORD + szObjectID * GCSkillToTileOK5::kMaxCount + 255 + szBYTE};
 
     // constructor
     GCSkillToTileOK5Factory() {}

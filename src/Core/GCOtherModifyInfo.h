@@ -16,7 +16,7 @@
 
 class GCOtherModifyInfo : public ModifyInfo {
 public:
-    GCOtherModifyInfo(){};
+    GCOtherModifyInfo() : m_ObjectID(0) {}
     ~GCOtherModifyInfo(){};
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;

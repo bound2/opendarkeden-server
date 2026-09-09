@@ -42,6 +42,10 @@ public:
     // ����ȭ��, �̸� ���� ������ ����Ѵ�.
     PacketSize_t getSize();
 
+    // The guild-table packets' factory maxima budget this many guilds;
+    // GCActiveGuildList and GCWaitGuildList refuse one more.
+    static constexpr uint kMaxCount = 5000;
+
     static constexpr uint getMaxSize() {
         //		return ( szGuildID + szBYTE + 30 + szBYTE + 20 + szBYTE + szBYTE + 11 ) * 256 + szBYTE;
         return szGuildID + szBYTE + 30 + szBYTE + 20 + szBYTE + szBYTE + 11;

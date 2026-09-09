@@ -63,7 +63,7 @@ public:
     string toString() const;
 
     // get / set ObjectID
-    CEffectID_t getObjectID() const {
+    ObjectID_t getObjectID() const {
         return m_ObjectID;
     }
     void setObjectID(ObjectID_t ObjectID) {

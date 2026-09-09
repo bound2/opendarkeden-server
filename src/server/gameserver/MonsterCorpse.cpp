@@ -101,7 +101,7 @@ string MonsterCorpse::toString() const {
 
     StringStream msg;
     msg << "MonsterCorpse(" << "ObjectID:" << (int)m_ObjectID << ",MonsterName:" << m_Name
-        << ",MonsterType:" << (int)m_MonsterType << ",m_Dir:" << Dir2String[m_Dir] << ")";
+        << ",MonsterType:" << (int)m_MonsterType << ",m_Dir:" << dir2String(m_Dir) << ")";
     return msg.toString();
 
     __END_CATCH

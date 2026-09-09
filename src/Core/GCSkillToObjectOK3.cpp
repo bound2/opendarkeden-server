@@ -16,11 +16,15 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GCSkillToObjectOK3::GCSkillToObjectOK3()
-
-{
+GCSkillToObjectOK3::GCSkillToObjectOK3() {
     __BEGIN_TRY
+
+    m_ObjectID = 0;
+    m_SkillType = 0;
+    m_TargetX = 0;
+    m_TargetY = 0;
     m_Grade = 0;
+
     __END_CATCH
 }
 

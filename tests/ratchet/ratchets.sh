@@ -76,7 +76,7 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5755 "$R5"
 # SkillFormula.cpp computeOutput extraction (the doc's 08-29 numbers
 # predate the clang-format-18 pass and are superseded).
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 6745 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 6739 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
 check_ratchet R6b "InitAllStat.cpp lines" 4803 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)

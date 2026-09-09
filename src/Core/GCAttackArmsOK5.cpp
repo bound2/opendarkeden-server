@@ -22,11 +22,12 @@ GCAttackArmsOK5::GCAttackArmsOK5()
 
 {
     __BEGIN_TRY
-    __BEGIN_DEBUG
 
     m_SkillType = SKILL_ATTACK_ARMS;
+    m_ObjectID = 0;
+    m_TargetObjectID = 0;
+    m_bSuccess = false;
 
-    __END_DEBUG
     __END_CATCH
 }
 
@@ -59,7 +60,11 @@ void GCAttackArmsOK5::read(SocketInputStream& iStream)
     iStream.read(m_TargetObjectID);
     //	iStream.read(m_X);
     //	iStream.read(m_Y);
-    iStream.read(m_bSuccess);
+
+    // The hit flag is one byte on the wire; any non-zero value is a hit.
+    BYTE success;
+    iStream.read(success);
+    m_bSuccess = (success != 0);
 
     __END_DEBUG
     __END_CATCH
