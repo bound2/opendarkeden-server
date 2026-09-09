@@ -303,10 +303,59 @@ before anything else moves. Everything later shelters under this pin.
   > `GCWaitGuildList` and `GCShowWaitGuildInfo`'s founding-member list,
   > which the social set left uncapped, refuse an entry past the count
   > their factory maxima budget with them. No golden changed.
+  > The **movement, effect-lifecycle and NPC dialogue set is pinned** —
+  > the 26 packets that carry a step, end an effect or run an NPC
+  > conversation: `GCMove`, `GCKnockBack`, `GCFakeMove`, the six
+  > unburrow and untransform packets (`CGUnburrow`, `GCUnburrowOK`,
+  > `GCUnburrowFail`, `CGUntransform`, `GCUntransformOK`,
+  > `GCUntransformFail`), the four transition packets that redraw the
+  > creature as it reappears (`GCAddMonsterFromBurrowing`,
+  > `GCAddMonsterFromTransformation`, `GCAddVampireFromBurrowing`,
+  > `GCAddVampireFromTransformation`), `GCRemoveEffect`,
+  > `GCRemoveInjuriousCreature`, `GCHPRecoveryEndToSelf`,
+  > `GCHPRecoveryEndToOthers`, `GCMPRecoveryEnd`, `GCCannotUse`,
+  > `CGNPCTalk`, `GCNPCAsk`, `GCNPCAskDynamic`, `GCNPCAskVariable`,
+  > `GCNPCSay`, `GCNPCSayDynamic` and `GCNPCInfo`, have code-0 goldens,
+  > loopback round trips and size/factory-max pins
+  > (`tests/packet_movement_test.cpp`), with extra goldens for the
+  > nameless monster and its absent effect record, the vampire
+  > transition carrying no effect record, the sweep that removed no
+  > effect, the script that substitutes nothing, the question with no
+  > choices and the nameless NPC record. `CGMove`, `GCMoveOK`,
+  > `GCMoveError` and `CGNPCAskAnswer` are covered by the encrypter
+  > pins; `GCFastMove`, `GCSetPosition`, `GCAddEffect`,
+  > `GCAddEffectToTile`, `GCDeleteEffectFromTile`, `GCDeleteObject`,
+  > `GCAddBurrowingCreature` and `GCAddNPC` by the zone-scan and
+  > handshake pins; `GCNPCResponse` by the social pins.
+  > `GCKnocksTargetBackOK1`/`2`/`4`/`5` are excluded: they have
+  > registered factories but no server source constructs one. Ten open
+  > write/read disagreements are stated as tests that flip when fixed
+  > (`GCNPCAskDynamic` leaving the contents-count byte out of
+  > `getPacketSize()`, counting its choices in a BYTE it caps nowhere,
+  > bounding that list against no factory max, and dropping on `read()`
+  > an empty choice its count still carries; `GCNPCSayDynamic` deriving
+  > the length byte in front of its message from an unbounded string;
+  > `ScriptParameter::getSize()` measuring name and value through a
+  > BYTE, so `GCNPCAskVariable` under-reports by 256 for every parameter
+  > past it; `GCRemoveEffect` counting its effect list the same way,
+  > `popFrontListElement()` taking an entry off it without decrementing
+  > that count, a full list overrunning a flat 255-byte factory max, and
+  > `read()` appending to the list the packet already holds; the two
+  > monster transition packets not holding the name to the 32 bytes
+  > their max budgets, the way `GCAddMonster` does; and the direction
+  > travelling unchecked while `toString()` indexes `Dir2String` with
+  > it, an eight-entry table whose length is itself the valid
+  > enumerator `DIR_NONE`). Three more are recorded in the test's header
+  > rather than tested: 22 of the 26 leave at least one member
+  > uninitialised in the default constructor, `GCNPCInfo`'s destructor
+  > clears its record list without freeing what `read()` allocated into
+  > it, and the four transition packets' `read()` allocates a fresh
+  > `EffectInfo` over the one the packet already holds. No golden
+  > changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
-  > inter-server links, the social protocols and the combat feedback
-  > set pinned, the remaining non-encrypter coverage outstanding is the
-  > rest of GC/CG.
+  > inter-server links, the social protocols, the combat feedback set
+  > and the movement, effect-lifecycle and NPC dialogue set pinned, the
+  > remaining non-encrypter coverage outstanding is the rest of GC/CG.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed

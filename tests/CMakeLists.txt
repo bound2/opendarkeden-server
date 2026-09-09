@@ -43,6 +43,7 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_interserver_test.cpp
     packet_login_test.cpp
     packet_meta_test.cpp
+    packet_movement_test.cpp
     packet_party_test.cpp
     packet_trade_test.cpp
     packet_zone_scan_test.cpp
