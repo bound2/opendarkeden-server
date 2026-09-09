@@ -139,41 +139,35 @@
 //               per-type values in the all-types record, whose low byte
 //               counts the type it belongs to.
 //
-//               Findings. Each is stated as a test that fails once the
-//               packet is fixed, except where noted:
+//               The findings this set produced are fixed, and the tests
+//               that stated them are the positive pins below:
 //
-//               - ModifyInfo counts its two lists in a BYTE it increments
-//                 per entry and caps nowhere, so the 256th entry wraps the
-//                 count to zero while write() still emits every entry.
-//               - The six tile packets count their creature list the same
-//                 way, with the same wrap, and popCListElement() removes
-//                 an entry without decrementing the count.
-//               - Nothing bounds a tile packet's creature list against the
-//                 factory max, which budgets one id for a list the count
-//                 byte lets reach 255.
-//               - ModifyInfo::read() and the tile packets' read() append
-//                 to the list the packet already holds instead of
-//                 replacing it.
-//               - ModifyInfo::read() takes the type tag as an opaque byte,
-//                 and toString() indexes ModifyType2String with it.
+//               - ModifyInfo derives each list's count from the list and
+//                 refuses the entry past the 255 the count byte carries,
+//                 in the adders and in write().
+//               - The five tile packets that carry a creature list do the
+//                 same with theirs, popCListElement() takes the id off the
+//                 count with the list, and each factory max budgets a full
+//                 255-id list.
+//               - ModifyInfo::read() and the tile read()s replace the list
+//                 the packet holds instead of appending to it.
+//               - A type tag past the last ModifyType is refused in the
+//                 adders and in read(), and toString() prints an unknown
+//                 tag as its number.
 //               - GCSkillToTileOK3::getObjectID() and
-//                 GCSkillToInventoryOK2::getObjectID() are declared
-//                 CEffectID_t, so the caller sees the low half of the
-//                 ObjectID the packet carries.
-//
-//               Two findings are recorded here rather than tested, because
-//               a test would have to perform the undefined behaviour it
-//               reports. Thirty-one of the thirty-three leave at least one
-//               member uninitialised in the default constructor — only
-//               GCStatusCurrentHP and GCModifyInformation initialise
-//               everything they write — so a packet sent without every
-//               setter called puts indeterminate bytes on the wire. And
-//               the two hit flags are bool members read straight off the
-//               wire, so any byte other than 0 or 1 leaves an object no
-//               load may touch.
+//                 GCSkillToInventoryOK2::getObjectID() return the
+//                 ObjectID_t they hold.
+//               - Every packet in the set initialises every member its
+//                 write() emits, pinned by constructing each over poisoned
+//                 storage.
+//               - The two hit flags are read as a byte and narrowed, so a
+//                 wire byte other than 0 or 1 is a hit rather than a bool
+//                 no load may touch.
 //
 //////////////////////////////////////////////////////////////////////
 
+#include <cstring>
+#include <new>
 #include <string>
 #include <vector>
 
@@ -219,6 +213,7 @@
 using wiretest::expectGolden;
 using wiretest::kEncryptCodeCount;
 using wiretest::kEncryptCodes;
+using wiretest::Loopback;
 using wiretest::roundTrip;
 using wiretest::writeBody;
 
@@ -739,12 +734,8 @@ void fill(GCSkillToTileOK3& packet) {
     packet.setGrade(0x9E);
 }
 
-// getObjectID() is declared CEffectID_t, so the comparison would pass on
-// the low half alone. The full-width member is compared through the
-// bytes instead, and the narrowing is pinned in the findings below.
 void expectEqual(GCSkillToTileOK3& a, GCSkillToTileOK3& b) {
     EXPECT_EQ(a.getObjectID(), b.getObjectID());
-    EXPECT_EQ(writeBody(a, kPlainCode), writeBody(b, kPlainCode));
     EXPECT_EQ(a.getSkillType(), b.getSkillType());
     EXPECT_EQ(a.getX(), b.getX());
     EXPECT_EQ(a.getY(), b.getY());
@@ -860,11 +851,8 @@ void fill(GCSkillToInventoryOK2& packet) {
     packet.setDuration(0xA1D2);
 }
 
-// getObjectID() is declared CEffectID_t here too, so the bytes carry the
-// full-width comparison.
 void expectEqual(GCSkillToInventoryOK2& a, GCSkillToInventoryOK2& b) {
     EXPECT_EQ(a.getObjectID(), b.getObjectID());
-    EXPECT_EQ(writeBody(a, kPlainCode), writeBody(b, kPlainCode));
     EXPECT_EQ(a.getSkillType(), b.getSkillType());
     EXPECT_EQ(a.getDuration(), b.getDuration());
 }
@@ -1014,81 +1002,70 @@ TEST(ModifyInfoTest, theTypeNameTableCoversEveryEnumerator) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// The open disagreements.
+// The bounds the counts and the factory maxima agree on.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// ModifyInfo counts each list in a BYTE it increments per entry, and
-// bounds neither list. At 256 entries the count wraps to zero while
-// write() still emits every entry, so the receiver stops after the count
-// byte and the rest of the record is read as the next packet's header.
-// getPacketSize() counts the wrapped count too, so writePacket() puts a
-// length on the wire that the body does not match either.
-TEST(ModifyInfoTest, theCountByteWrapsPastTwoHundredFiftyFive) {
-    const int kEntries = 256;
-
+// Each list is counted in a BYTE derived from the list, so the record
+// stops where the count byte and the maximum do and the entry past it is
+// refused rather than wrapping the count to zero.
+TEST(ModifyInfoTest, anEntryPastTheCountByteIsRefused) {
     GCModifyInformation packet;
-    for (int i = 0; i < kEntries; i++)
+    for (uint i = 0; i < ModifyInfo::kMaxCount; i++) {
         packet.addShortData(MODIFY_CURRENT_HP, (ushort)(0x8181 + i));
-    for (int i = 0; i < kEntries; i++)
-        packet.addLongData(MODIFY_GOLD, (DWORD)(0x81828384u + (unsigned)i));
+        packet.addLongData(MODIFY_GOLD, (DWORD)(0x81828384u + i));
+    }
 
-    EXPECT_EQ(0, (int)packet.getShortCount()) << "ModifyInfo now bounds its short list - delete this test";
-    EXPECT_EQ(0, (int)packet.getLongCount()) << "ModifyInfo now bounds its long list - delete this test";
+    EXPECT_THROW(packet.addShortData(MODIFY_CURRENT_HP, 0x8181), InvalidProtocolException);
+    EXPECT_THROW(packet.addLongData(MODIFY_GOLD, 0x81828384u), InvalidProtocolException);
+
+    EXPECT_EQ((int)ModifyInfo::kMaxCount, (int)packet.getShortCount());
+    EXPECT_EQ((int)ModifyInfo::kMaxCount, (int)packet.getLongCount());
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    const size_t unreported = (size_t)kEntries * (szBYTE + szshort) + (size_t)kEntries * (szBYTE + szDWORD);
-    EXPECT_EQ((size_t)packet.getPacketSize() + unreported, body.size())
-        << "ModifyInfo now counts every entry write() emits - delete this test";
-    EXPECT_EQ(0, (int)body[0]);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+    EXPECT_EQ((size_t)ModifyInfo::getPacketMaxSize(), body.size());
+    EXPECT_EQ((int)ModifyInfo::kMaxCount, (int)body[0]);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The tile packets count their creature list the same way, with the same
-// wrap. popCListElement() compounds it from the other side: it takes an
-// entry off the list and leaves the count alone, so a packet read, popped
-// and forwarded declares more ids than it holds.
-TEST(GCSkillToTileOK1Test, theCreatureListCountWrapsAndPoppingLeavesIt) {
-    const int kEntries = 256;
-
+// The tile packets bound their creature list the same way, and
+// popCListElement() takes the id off the count with the list.
+TEST(GCSkillToTileOK1Test, aCreatureListPastTheCountByteIsRefusedAndPoppingDecrementsIt) {
     GCSkillToTileOK1 packet;
     fillEmptyArea(packet);
-    fillCList(packet, kEntries, 0x81828384);
+    fillCList(packet, (int)GCSkillToTileOK1::kMaxCount, 0x81828384);
 
-    EXPECT_EQ(0, (int)packet.getCListNum()) << "the creature list is now bounded - delete this test";
-
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize() + (size_t)kEntries * szObjectID, body.size())
-        << "getPacketSize() now counts every id write() emits - delete this test";
+    EXPECT_EQ((int)GCSkillToTileOK1::kMaxCount, (int)packet.getCListNum());
+    EXPECT_THROW(packet.addCListElement(0x91A2B3C4), InvalidProtocolException);
+    EXPECT_EQ((int)GCSkillToTileOK1::kMaxCount, (int)packet.getCListNum());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
 
     GCSkillToTileOK4 popped;
     popped.addCListElement(0x91A2B3C4);
     popped.addCListElement(0x95A6B7C8);
     ASSERT_EQ(2, (int)popped.getCListNum());
-    popped.popCListElement();
-    EXPECT_EQ(2, (int)popped.getCListNum()) << "popCListElement() now decrements the count - delete this test";
+    EXPECT_EQ((ObjectID_t)0x91A2B3C4, popped.popCListElement());
+    EXPECT_EQ(1, (int)popped.getCListNum());
+    EXPECT_EQ((size_t)popped.getPacketSize(), writeBody(popped, kPlainCode).size());
 }
 
 template <typename TilePacket, typename TileFactory>
-void expectAFullSweepOutgrowsTheFactoryMax(TilePacket& packet, const char* what) {
-    fillCList(packet, 255, 0x81828384);
+void expectAFullSweepFitsTheFactoryMax(TilePacket& packet, const char* what) {
+    fillCList(packet, (int)TilePacket::kMaxCount, 0x81828384);
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     EXPECT_EQ((size_t)packet.getPacketSize(), body.size()) << what;
 
     TileFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << what << "'s factory max now budgets the creature list - delete this case";
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize())
+        << what << "'s factory max no longer budgets the creature list its count byte carries";
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// A tile packet's factory max budgets one creature id (and, in four of
-// them, a spare WORD) for a list whose count byte lets it reach 255. A
-// full sweep therefore writes a body larger than the read buffer the
-// receiver sizes from that maximum.
-TEST(CombatBoundsTest, aFullSweepOutgrowsEveryTileFactoryMax) {
+// A tile packet's factory max budgets the full 255-id list the count byte
+// carries, so the widest sweep still fits the read buffer the receiver
+// sizes from that maximum.
+TEST(CombatBoundsTest, aFullSweepFitsEveryTileFactoryMax) {
     // The three that also embed the stat record need it full as well:
-    // their maximum budgets a whole record but only one list entry.
+    // their maximum budgets a whole record beside the whole list.
     GCSkillToTileOK1 tile1;
     fill(tile1);
     tile1.clearCList();
@@ -1096,7 +1073,7 @@ TEST(CombatBoundsTest, aFullSweepOutgrowsEveryTileFactoryMax) {
         tile1.addShortData(MODIFY_CURRENT_HP, (ushort)(0x8181 + i));
     for (int i = 2; i < 255; i++)
         tile1.addLongData(MODIFY_GOLD, (DWORD)(0x81828384u + (unsigned)i));
-    expectAFullSweepOutgrowsTheFactoryMax<GCSkillToTileOK1, GCSkillToTileOK1Factory>(tile1, "GCSkillToTileOK1");
+    expectAFullSweepFitsTheFactoryMax<GCSkillToTileOK1, GCSkillToTileOK1Factory>(tile1, "GCSkillToTileOK1");
 
     GCSkillToTileOK2 tile2;
     fill(tile2);
@@ -1105,7 +1082,7 @@ TEST(CombatBoundsTest, aFullSweepOutgrowsEveryTileFactoryMax) {
         tile2.addShortData(MODIFY_CURRENT_HP, (ushort)(0x8181 + i));
     for (int i = 2; i < 255; i++)
         tile2.addLongData(MODIFY_GOLD, (DWORD)(0x81828384u + (unsigned)i));
-    expectAFullSweepOutgrowsTheFactoryMax<GCSkillToTileOK2, GCSkillToTileOK2Factory>(tile2, "GCSkillToTileOK2");
+    expectAFullSweepFitsTheFactoryMax<GCSkillToTileOK2, GCSkillToTileOK2Factory>(tile2, "GCSkillToTileOK2");
 
     GCSkillToTileOK6 tile6;
     fill(tile6);
@@ -1114,25 +1091,24 @@ TEST(CombatBoundsTest, aFullSweepOutgrowsEveryTileFactoryMax) {
         tile6.addShortData(MODIFY_CURRENT_HP, (ushort)(0x8181 + i));
     for (int i = 2; i < 255; i++)
         tile6.addLongData(MODIFY_GOLD, (DWORD)(0x81828384u + (unsigned)i));
-    expectAFullSweepOutgrowsTheFactoryMax<GCSkillToTileOK6, GCSkillToTileOK6Factory>(tile6, "GCSkillToTileOK6");
+    expectAFullSweepFitsTheFactoryMax<GCSkillToTileOK6, GCSkillToTileOK6Factory>(tile6, "GCSkillToTileOK6");
 
-    // The other two carry no stat record, so the list alone overruns.
+    // The other two carry no stat record, so the list is the whole of it.
     GCSkillToTileOK4 tile4;
     fill(tile4);
     tile4.clearCList();
-    expectAFullSweepOutgrowsTheFactoryMax<GCSkillToTileOK4, GCSkillToTileOK4Factory>(tile4, "GCSkillToTileOK4");
+    expectAFullSweepFitsTheFactoryMax<GCSkillToTileOK4, GCSkillToTileOK4Factory>(tile4, "GCSkillToTileOK4");
 
     GCSkillToTileOK5 tile5;
     fill(tile5);
     tile5.clearCList();
-    expectAFullSweepOutgrowsTheFactoryMax<GCSkillToTileOK5, GCSkillToTileOK5Factory>(tile5, "GCSkillToTileOK5");
+    expectAFullSweepFitsTheFactoryMax<GCSkillToTileOK5, GCSkillToTileOK5Factory>(tile5, "GCSkillToTileOK5");
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// ModifyInfo::read() appends to the lists the record already holds, and
-// sets the counts from the wire, so a packet read into twice declares one
-// record's worth of entries and writes two.
-TEST(ModifyInfoTest, aSecondReadAppendsToTheRecordItAlreadyHolds) {
+// A reader is reused across packets, so read() replaces the record it
+// holds: two reads of the same record leave one record's worth of
+// entries, and the bytes it writes back are the bytes it was sent.
+TEST(ModifyInfoTest, aSecondReadReplacesTheRecordItAlreadyHolds) {
     GCModifyInformation src;
     fill(src);
 
@@ -1144,14 +1120,12 @@ TEST(ModifyInfoTest, aSecondReadAppendsToTheRecordItAlreadyHolds) {
     EXPECT_EQ(2, (int)dst.getLongCount());
 
     const std::vector<unsigned char> body = writeBody(dst, kPlainCode);
-    const size_t doubled = 3 * (szBYTE + szshort) + 2 * (szBYTE + szDWORD);
-    EXPECT_EQ((size_t)dst.getPacketSize() + doubled, body.size())
-        << "ModifyInfo::read() now replaces the record it holds - delete this test";
+    EXPECT_EQ((size_t)dst.getPacketSize(), body.size());
+    EXPECT_EQ(writeBody(src, kPlainCode), body);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The tile packets' read() appends to the creature list the same way.
-TEST(GCSkillToTileOK4Test, aSecondReadAppendsToTheCreatureListItAlreadyHolds) {
+// The tile packets' read() replaces the creature list the same way.
+TEST(GCSkillToTileOK4Test, aSecondReadReplacesTheCreatureListItAlreadyHolds) {
     GCSkillToTileOK4 src;
     fill(src);
 
@@ -1162,49 +1136,148 @@ TEST(GCSkillToTileOK4Test, aSecondReadAppendsToTheCreatureListItAlreadyHolds) {
     EXPECT_EQ(3, (int)dst.getCListNum());
 
     const std::vector<unsigned char> body = writeBody(dst, kPlainCode);
-    EXPECT_EQ((size_t)dst.getPacketSize() + 3 * szObjectID, body.size())
-        << "the tile packets' read() now replaces the creature list - delete this test";
+    EXPECT_EQ((size_t)dst.getPacketSize(), body.size());
+    EXPECT_EQ(writeBody(src, kPlainCode), body);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// Nothing checks the tag byte against the enum, on either side. A tag
-// past the last enumerator round-trips intact, and toString() then
-// indexes ModifyType2String past its end. 127 is the largest value the
-// enum's own range admits, so the fixture can carry it without the load
-// itself being the defect.
-TEST(ModifyInfoTest, aTagOutsideTheEnumRoundTripsIntact) {
+// The tag is checked against the enum on both sides: the adder refuses a
+// value past the last ModifyType, and so does the reader, which is what
+// keeps toString() off the end of ModifyType2String. 127 is the largest
+// value the enum's own range admits, so the fixture can carry it without
+// the load itself being the defect.
+TEST(ModifyInfoTest, aTagOutsideTheEnumIsRefused) {
     const int kTagPastTheEnum = 127;
     ASSERT_GT(kTagPastTheEnum, (int)MODIFY_MAX);
 
-    GCModifyInformation src;
-    src.addShortData((ModifyType)kTagPastTheEnum, 0x81A2);
+    GCModifyInformation packet;
+    EXPECT_THROW(packet.addShortData((ModifyType)kTagPastTheEnum, 0x81A2), InvalidProtocolException);
+    EXPECT_THROW(packet.addLongData((ModifyType)kTagPastTheEnum, 0x81A2B3C4), InvalidProtocolException);
+    EXPECT_EQ(0, (int)packet.getShortCount());
+    EXPECT_EQ(0, (int)packet.getLongCount());
+
+    // A peer sends bytes, not enumerators, so the reader carries the same
+    // refusal. The record here is one short entry with the bad tag and an
+    // empty long list.
+    Loopback link;
+    link.setCodes(kPlainCode);
+    link.out().write((BYTE)1);
+    link.out().write((BYTE)kTagPastTheEnum);
+    link.out().write((ushort)0x81A2);
+    link.out().write((BYTE)0);
+    link.pump(szBYTE * 3 + szshort);
 
     GCModifyInformation dst;
-    roundTrip(src, dst, kPlainCode);
-
-    ASSERT_EQ(1, (int)dst.getShortCount());
-    SHORTDATA data;
-    dst.popShortData(data);
-    EXPECT_EQ(kTagPastTheEnum, (int)data.type) << "ModifyInfo now refuses a tag outside the enum - delete this test";
+    EXPECT_THROW(dst.read(link.in()), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// Both packets carry an ObjectID_t on the wire and hand it back through a
-// getter declared CEffectID_t, so every caller sees the low half of the
-// id and two creatures whose ids differ only above bit 16 are the same
-// creature to it.
-TEST(CombatAccessorTest, theObjectIDGettersNarrowTheIdToAWord) {
+// Both packets carry an ObjectID_t on the wire and hand back the member
+// they hold, so two creatures whose ids differ only above bit 16 are two
+// creatures to the caller.
+TEST(CombatAccessorTest, theObjectIDGettersReturnTheFullId) {
     const ObjectID_t kID = 0x81A2B3C4;
 
     GCSkillToTileOK3 tile;
     tile.setObjectID(kID);
-    EXPECT_EQ((CEffectID_t)0xB3C4, tile.getObjectID())
-        << "GCSkillToTileOK3::getObjectID() now returns the full id - delete this case";
+    EXPECT_EQ(kID, tile.getObjectID());
 
     GCSkillToInventoryOK2 inventory;
     inventory.setObjectID(kID);
-    EXPECT_EQ((CEffectID_t)0xB3C4, inventory.getObjectID())
-        << "GCSkillToInventoryOK2::getObjectID() now returns the full id - delete this case";
+    EXPECT_EQ(kID, inventory.getObjectID());
+}
+
+//////////////////////////////////////////////////////////////////////
+// What the default constructor leaves, and what the hit flag reads.
+//////////////////////////////////////////////////////////////////////
+
+// Each packet is built twice over storage poisoned with a different
+// byte, so a member the constructor leaves alone reaches the wire as that
+// byte and the two bodies differ.
+template <typename PacketType> void expectEveryMemberIsInitialised(const char* what) {
+    alignas(PacketType) unsigned char storage[sizeof(PacketType)];
+    const unsigned char poison[2] = {0x00, 0xFF};
+    std::vector<unsigned char> bodies[2];
+
+    for (int i = 0; i < 2; i++) {
+        memset(storage, poison[i], sizeof(storage));
+        PacketType* pPacket = new (storage) PacketType();
+        bodies[i] = writeBody(*pPacket, kPlainCode);
+        pPacket->~PacketType();
+    }
+
+    EXPECT_EQ(bodies[0], bodies[1]) << what << ": its default constructor leaves a member write() emits uninitialised";
+}
+
+TEST(CombatConstructorTest, everyPacketInitialisesEveryMemberItWrites) {
+    expectEveryMemberIsInitialised<GCAttack>("GCAttack");
+    expectEveryMemberIsInitialised<GCGetDamage>("GCGetDamage");
+    expectEveryMemberIsInitialised<GCAttackMeleeOK1>("GCAttackMeleeOK1");
+    expectEveryMemberIsInitialised<GCAttackMeleeOK2>("GCAttackMeleeOK2");
+    expectEveryMemberIsInitialised<GCAttackMeleeOK3>("GCAttackMeleeOK3");
+    expectEveryMemberIsInitialised<GCAttackArmsOK1>("GCAttackArmsOK1");
+    expectEveryMemberIsInitialised<GCAttackArmsOK2>("GCAttackArmsOK2");
+    expectEveryMemberIsInitialised<GCAttackArmsOK3>("GCAttackArmsOK3");
+    expectEveryMemberIsInitialised<GCAttackArmsOK4>("GCAttackArmsOK4");
+    expectEveryMemberIsInitialised<GCAttackArmsOK5>("GCAttackArmsOK5");
+    expectEveryMemberIsInitialised<GCSkillToObjectOK1>("GCSkillToObjectOK1");
+    expectEveryMemberIsInitialised<GCSkillToObjectOK2>("GCSkillToObjectOK2");
+    expectEveryMemberIsInitialised<GCSkillToObjectOK3>("GCSkillToObjectOK3");
+    expectEveryMemberIsInitialised<GCSkillToObjectOK4>("GCSkillToObjectOK4");
+    expectEveryMemberIsInitialised<GCSkillToObjectOK5>("GCSkillToObjectOK5");
+    expectEveryMemberIsInitialised<GCSkillToObjectOK6>("GCSkillToObjectOK6");
+    expectEveryMemberIsInitialised<GCSkillToSelfOK1>("GCSkillToSelfOK1");
+    expectEveryMemberIsInitialised<GCSkillToSelfOK2>("GCSkillToSelfOK2");
+    expectEveryMemberIsInitialised<GCSkillToSelfOK3>("GCSkillToSelfOK3");
+    expectEveryMemberIsInitialised<GCSkillToTileOK1>("GCSkillToTileOK1");
+    expectEveryMemberIsInitialised<GCSkillToTileOK2>("GCSkillToTileOK2");
+    expectEveryMemberIsInitialised<GCSkillToTileOK3>("GCSkillToTileOK3");
+    expectEveryMemberIsInitialised<GCSkillToTileOK4>("GCSkillToTileOK4");
+    expectEveryMemberIsInitialised<GCSkillToTileOK5>("GCSkillToTileOK5");
+    expectEveryMemberIsInitialised<GCSkillToTileOK6>("GCSkillToTileOK6");
+    expectEveryMemberIsInitialised<GCSkillToInventoryOK1>("GCSkillToInventoryOK1");
+    expectEveryMemberIsInitialised<GCSkillToInventoryOK2>("GCSkillToInventoryOK2");
+    expectEveryMemberIsInitialised<GCSkillFailed1>("GCSkillFailed1");
+    expectEveryMemberIsInitialised<GCSkillFailed2>("GCSkillFailed2");
+    expectEveryMemberIsInitialised<GCStatusCurrentHP>("GCStatusCurrentHP");
+    expectEveryMemberIsInitialised<GCModifyInformation>("GCModifyInformation");
+    expectEveryMemberIsInitialised<GCOtherModifyInfo>("GCOtherModifyInfo");
+    expectEveryMemberIsInitialised<GCCreatureDied>("GCCreatureDied");
+}
+
+// The hit flag is a byte on the wire. Both readers take a BYTE and
+// narrow it, so a value the client's own bool would not admit is a hit
+// rather than an object no load may touch.
+TEST(GCAttackArmsOK1Test, aHitFlagByteOtherThanZeroOrOneReadsAsAHit) {
+    Loopback link;
+    link.setCodes(kPlainCode);
+    link.out().write((SkillType_t)0x86B7);
+    link.out().write((ObjectID_t)0x88A9BACB);
+    link.out().write((Bullet_t)0x8C);
+    link.out().write((BYTE)0x7F);
+    link.out().write((BYTE)0);
+    link.out().write((BYTE)0);
+    link.pump(szSkillType + szObjectID + szBullet + szBYTE * 3);
+
+    GCAttackArmsOK1 dst;
+    dst.read(link.in());
+
+    EXPECT_TRUE(dst.getSkillSuccess());
+    EXPECT_EQ((ObjectID_t)0x88A9BACB, dst.getObjectID());
+}
+
+TEST(GCAttackArmsOK5Test, aHitFlagByteOtherThanZeroOrOneReadsAsAHit) {
+    Loopback link;
+    link.setCodes(kPlainCode);
+    link.out().write((SkillType_t)0x8ABB);
+    link.out().write((ObjectID_t)0x8CADBECF);
+    link.out().write((ObjectID_t)0x90D1E2F3);
+    link.out().write((BYTE)0x7F);
+    link.pump(szSkillType + szObjectID * 2 + szBYTE);
+
+    GCAttackArmsOK5 dst;
+    dst.read(link.in());
+
+    EXPECT_TRUE(dst.getSkillSuccess());
+    EXPECT_EQ((ObjectID_t)0x90D1E2F3, dst.getTargetObjectID());
 }
 
 } // namespace

@@ -18,12 +18,15 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GCSkillToTileOK2::GCSkillToTileOK2()
-
-{
+GCSkillToTileOK2::GCSkillToTileOK2() {
     __BEGIN_TRY
 
-    m_CListNum = 0;
+    m_ObjectID = 0;
+    m_SkillType = 0;
+    m_X = 0;
+    m_Y = 0;
+    m_Range = 0;
+    m_Duration = 0;
     m_Grade = 0;
 
     __END_CATCH
@@ -57,12 +60,15 @@ void GCSkillToTileOK2::read(SocketInputStream& iStream)
     iStream.read(m_Range);
     iStream.read(m_Duration);
     iStream.read(m_Grade);
-    iStream.read(m_CListNum);
+    BYTE CListNum;
+    iStream.read(CListNum);
+
+    m_CList.clear();
 
     ObjectID_t m_Value;
     int i;
 
-    for (i = 0; i < m_CListNum; i++) {
+    for (i = 0; i < CListNum; i++) {
         iStream.read(m_Value);
         m_CList.push_back(m_Value);
     }
@@ -79,6 +85,9 @@ void GCSkillToTileOK2::read(SocketInputStream& iStream)
 void GCSkillToTileOK2::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
+    if (m_CList.size() > kMaxCount)
+        throw InvalidProtocolException("too many creatures in the list");
+
     // 최적화 작업시 실제 크기를 명시하도록 한다.
     oStream.write(m_ObjectID);
     oStream.write(m_SkillType);
@@ -87,7 +96,7 @@ void GCSkillToTileOK2::write(SocketOutputStream& oStream) const {
     oStream.write(m_Range);
     oStream.write(m_Duration);
     oStream.write(m_Grade);
-    oStream.write(m_CListNum);
+    oStream.write((BYTE)m_CList.size());
 
     for (list<ObjectID_t>::const_iterator itr = m_CList.begin(); itr != m_CList.end(); itr++) {
         oStream.write(*itr);
@@ -115,11 +124,10 @@ void GCSkillToTileOK2::addCListElement(ObjectID_t ObjectID)
 {
     __BEGIN_TRY
 
-    // Creature ID를 추가한다.
-    m_CList.push_back(ObjectID);
+    if (m_CList.size() >= kMaxCount)
+        throw InvalidProtocolException("too many creatures in the list");
 
-    // 크리처 ID count를 증가시킨다.
-    m_CListNum++;
+    m_CList.push_back(ObjectID);
 
     __END_CATCH
 }
@@ -161,7 +169,7 @@ string GCSkillToTileOK2::toString() const
     StringStream msg;
     msg << "GCSkillToTileOK2(" << "ObjectID:" << (int)m_ObjectID << ",SkillType:" << (int)m_SkillType
         << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Range:" << (int)m_Range << ",Duration:" << (int)m_Duration
-        << ",Grade:" << (int)m_Grade << ",CListNum:" << (int)m_CListNum << " CListSet(";
+        << ",Grade:" << (int)m_Grade << ",CListNum:" << (int)m_CList.size() << " CListSet(";
 
     for (list<ObjectID_t>::const_iterator itr = m_CList.begin(); itr != m_CList.end(); itr++) {
         msg << (int)(*itr) << ",";

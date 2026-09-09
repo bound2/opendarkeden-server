@@ -13,11 +13,14 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GCSkillFailed2::GCSkillFailed2()
-
-{
+GCSkillFailed2::GCSkillFailed2() {
     __BEGIN_TRY
+
+    m_ObjectID = 0;
+    m_TargetObjectID = 0;
+    m_SkillType = 0;
     m_Grade = 0;
+
     __END_CATCH
 }
 

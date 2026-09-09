@@ -133,6 +133,13 @@ enum Sex {
     MALE    // male == 1     -_-;
 };
 const string Sex2String[] = {"FEMALE", "MALE"};
+
+// A sex that names neither of the two prints as its number.
+inline string sex2String(Sex sex) {
+    if ((int)sex < FEMALE || (int)sex > MALE)
+        return std::to_string((int)sex);
+    return Sex2String[sex];
+}
 const uint szSex = szBYTE;
 
 

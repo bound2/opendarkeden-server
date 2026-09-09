@@ -202,7 +202,7 @@ void EffectBloodySnake::affect()
 
     /*
     cout << "EffectSnake(" << m_ObjectID << ")"
-        << "[" << Dir2String[m_Dir].c_str() << "] ("
+        << "[" << dir2String(m_Dir) << "] ("
         << m_X << ", " << m_Y << ") --> ("
         << pt.x << ", " << pt.y << ")" << endl;
     */

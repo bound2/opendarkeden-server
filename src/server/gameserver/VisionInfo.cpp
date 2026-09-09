@@ -195,7 +195,7 @@ string VisionInfo::toString () const
 
     msg << "VisionInfo("
             << "Sight:" << (int)m_Sight
-            << ",Dir: " << Dir2String[m_Dir]
+            << ",Dir: " << dir2String(m_Dir)
             << "\r\n";
 
     for (int y = 0; y < maxVisionHeight ; y++)

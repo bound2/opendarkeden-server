@@ -18,11 +18,12 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GCAttackArmsOK3::GCAttackArmsOK3()
-
-{
+GCAttackArmsOK3::GCAttackArmsOK3() {
     __BEGIN_TRY
 
+    m_ObjectID = 0;
+    m_X = 0;
+    m_Y = 0;
     m_SkillType = SKILL_ATTACK_ARMS;
 
     __END_CATCH

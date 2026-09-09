@@ -108,8 +108,14 @@ public:
         m_JoinFee = JoinFee;
     }
 
+    // The founding-member list the factory max budgets; one more is
+    // refused.
+    static constexpr uint kMaxCount = 5;
+
     // Starting Member List
     void addMember(const string& member) {
+        if (m_MemberList.size() >= kMaxCount)
+            throw InvalidProtocolException("too many founding members");
         m_MemberList.push_front(member);
     }
     string popMember() {
@@ -164,18 +170,18 @@ class GCShowWaitGuildInfoFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOW_WAIT_GUILD_INFO;
     static constexpr std::string_view kName = "GCShowWaitGuildInfo";
-    static constexpr PacketSize_t kMaxSize{szGuildID +         // Guild ID
-                                           szBYTE +            // Guild Name length
-                                           30 +                // Guild Name
-                                           szGuildState +      // Guild State
-                                           szBYTE +            // Guild Master length
-                                           20 +                // Guild Master
-                                           szBYTE +            // Guild Member Count
-                                           szBYTE +            // Guild Intro length
-                                           256 +               // Guild Intro
-                                           szGold +            // Guild Join Fee
-                                           szBYTE +            // Member Num
-                                           (szBYTE + 20) * 5}; // Member List Mex Length
+    static constexpr PacketSize_t kMaxSize{szGuildID +    // Guild ID
+                                           szBYTE +       // Guild Name length
+                                           30 +           // Guild Name
+                                           szGuildState + // Guild State
+                                           szBYTE +       // Guild Master length
+                                           20 +           // Guild Master
+                                           szBYTE +       // Guild Member Count
+                                           szBYTE +       // Guild Intro length
+                                           256 +          // Guild Intro
+                                           szGold +       // Guild Join Fee
+                                           szBYTE +       // Member Num
+                                           (szBYTE + 20) * GCShowWaitGuildInfo::kMaxCount};
 
     // create packet
     Packet* createPacket() override {

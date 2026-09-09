@@ -16,12 +16,13 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GCSkillToTileOK3::GCSkillToTileOK3()
-
-{
+GCSkillToTileOK3::GCSkillToTileOK3() {
     __BEGIN_TRY
 
-    //	m_CListNum = 0;
+    m_ObjectID = 0;
+    m_SkillType = 0;
+    m_X = 0;
+    m_Y = 0;
     m_Grade = 0;
 
     __END_CATCH

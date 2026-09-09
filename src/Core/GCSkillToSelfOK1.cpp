@@ -16,11 +16,14 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GCSkillToSelfOK1::GCSkillToSelfOK1()
-
-{
+GCSkillToSelfOK1::GCSkillToSelfOK1() {
     __BEGIN_TRY
+
+    m_SkillType = 0;
+    m_CEffectID = 0;
+    m_Duration = 0;
     m_Grade = 0;
+
     __END_CATCH
 }
 

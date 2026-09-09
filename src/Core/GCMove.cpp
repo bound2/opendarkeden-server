@@ -55,7 +55,7 @@ string GCMove::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCMove(ObjectID:" << m_ObjectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir: " << Dir2String[m_Dir]
+    msg << "GCMove(ObjectID:" << m_ObjectID << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir: " << dir2String(m_Dir)
         << ")";
     return msg.toString();
 

@@ -149,7 +149,7 @@ void PCVampireInfo3::write(SocketOutputStream& oStream) const {
 string PCVampireInfo3::toString() const {
     StringStream msg;
     msg << "PCVampireInfo3(" << "ObjectID:" << m_ObjectID << ",Name:" << m_Name << ",X:" << (int)m_X
-        << ",Y:" << (int)m_Y << ",Dir:" << dir2String(m_Dir) << ",Sex:" << Sex2String[m_Sex]
+        << ",Y:" << (int)m_Y << ",Dir:" << dir2String(m_Dir) << ",Sex:" << sex2String(m_Sex)
         << ",CoatType:" << (int)m_CoatType << ",BatColor:" << (int)m_Colors[VAMPIRE_COLOR_BAT]
         << ",SkinColor:" << (int)m_Colors[VAMPIRE_COLOR_SKIN] << ",CoatColor:" << (int)m_Colors[VAMPIRE_COLOR_COAT1]
         << "/" << (int)m_Colors[VAMPIRE_COLOR_COAT2] << ",CurrentHP:" << (int)m_CurrentHP << ",MaxHP:" << (int)m_MaxHP

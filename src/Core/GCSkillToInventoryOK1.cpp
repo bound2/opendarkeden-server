@@ -16,9 +16,19 @@
 //////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////
-GCSkillToInventoryOK1::GCSkillToInventoryOK1()
+GCSkillToInventoryOK1::GCSkillToInventoryOK1() {
+    __BEGIN_TRY
 
-    {__BEGIN_TRY __END_CATCH}
+    m_SkillType = 0;
+    m_ObjectID = 0;
+    m_ItemType = 0;
+    m_CEffectID = 0;
+    m_Duration = 0;
+    m_X = 0;
+    m_Y = 0;
+
+    __END_CATCH
+}
 
 
 //////////////////////////////////////////////////////////////////////

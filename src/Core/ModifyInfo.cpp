@@ -9,14 +9,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////////////
-ModifyInfo::ModifyInfo() {
-    __BEGIN_TRY
-
-    m_ShortCount = 0;
-    m_LongCount = 0;
-
-    __END_CATCH
-}
+ModifyInfo::ModifyInfo(){__BEGIN_TRY __END_CATCH}
 
 //////////////////////////////////////////////////////////////////////////////
 // destructor
@@ -34,21 +27,30 @@ void ModifyInfo::read(SocketInputStream& iStream) {
 
     SHORTDATA short_data;
     LONGDATA long_data;
+    BYTE ShortCount, LongCount;
 
-    iStream.read(m_ShortCount);
+    clearList();
 
-    for (BYTE s = 0; s < m_ShortCount; s++) {
+    iStream.read(ShortCount);
+
+    for (BYTE s = 0; s < ShortCount; s++) {
         iStream.read(short_data.type);
         iStream.read(short_data.value);
+
+        if (short_data.type >= MODIFY_MAX)
+            throw InvalidProtocolException("modify type past the last one");
 
         m_ShortList.push_back(short_data);
     }
 
-    iStream.read(m_LongCount);
+    iStream.read(LongCount);
 
-    for (BYTE s = 0; s < m_LongCount; s++) {
+    for (BYTE s = 0; s < LongCount; s++) {
         iStream.read(long_data.type);
         iStream.read(long_data.value);
+
+        if (long_data.type >= MODIFY_MAX)
+            throw InvalidProtocolException("modify type past the last one");
 
         m_LongList.push_back(long_data);
     }
@@ -62,7 +64,10 @@ void ModifyInfo::read(SocketInputStream& iStream) {
 void ModifyInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    oStream.write(m_ShortCount);
+    if (m_ShortList.size() > kMaxCount || m_LongList.size() > kMaxCount)
+        throw InvalidProtocolException("too many modify entries");
+
+    oStream.write((BYTE)m_ShortList.size());
     list<SHORTDATA>::const_iterator short_itr = m_ShortList.begin();
     for (; short_itr != m_ShortList.end(); short_itr++) {
         SHORTDATA short_data = *short_itr;
@@ -70,7 +75,7 @@ void ModifyInfo::write(SocketOutputStream& oStream) const {
         oStream.write(short_data.value);
     }
 
-    oStream.write(m_LongCount);
+    oStream.write((BYTE)m_LongList.size());
     list<LONGDATA>::const_iterator long_itr = m_LongList.begin();
     for (; long_itr != m_LongList.end(); long_itr++) {
         LONGDATA long_data = *long_itr;
@@ -88,20 +93,20 @@ string ModifyInfo::toString() const {
 
     StringStream msg;
 
-    msg << "ModifyInfo[" << "ShortCount:" << (int)m_ShortCount << ",ShortListSet(";
+    msg << "ModifyInfo[" << "ShortCount:" << (int)m_ShortList.size() << ",ShortListSet(";
 
     list<SHORTDATA>::const_iterator short_itr = m_ShortList.begin();
     for (; short_itr != m_ShortList.end(); short_itr++) {
         SHORTDATA short_data = *short_itr;
-        msg << ModifyType2String[short_data.type] << ":" << (int)short_data.value << ",";
+        msg << modifyType2String(short_data.type) << ":" << (int)short_data.value << ",";
     }
 
-    msg << "),LongCount:" << (int)m_LongCount << ",LongListSet(";
+    msg << "),LongCount:" << (int)m_LongList.size() << ",LongListSet(";
 
     list<LONGDATA>::const_iterator long_itr = m_LongList.begin();
     for (; long_itr != m_LongList.end(); long_itr++) {
         LONGDATA long_data = *long_itr;
-        msg << ModifyType2String[long_data.type] << ":" << (int)long_data.value << ",";
+        msg << modifyType2String(long_data.type) << ":" << (int)long_data.value << ",";
     }
 
     msg << ")]";
@@ -113,16 +118,21 @@ string ModifyInfo::toString() const {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
+// Refuses an entry past the count the BYTE on the wire carries and the
+// factory maxima budget.
 void ModifyInfo::addShortData(ModifyType type, ushort value) {
     __BEGIN_TRY
+
+    if (type >= MODIFY_MAX)
+        throw InvalidProtocolException("modify type past the last one");
+    if (m_ShortList.size() >= kMaxCount)
+        throw InvalidProtocolException("too many modify entries");
 
     SHORTDATA short_data;
     short_data.type = type;
     short_data.value = value;
 
     m_ShortList.push_back(short_data);
-
-    m_ShortCount++;
 
     __END_CATCH
 }
@@ -132,13 +142,16 @@ void ModifyInfo::addShortData(ModifyType type, ushort value) {
 void ModifyInfo::addLongData(ModifyType type, ulong value) {
     __BEGIN_TRY
 
+    if (type >= MODIFY_MAX)
+        throw InvalidProtocolException("modify type past the last one");
+    if (m_LongList.size() >= kMaxCount)
+        throw InvalidProtocolException("too many modify entries");
+
     LONGDATA long_data;
     long_data.type = type;
     long_data.value = value;
 
     m_LongList.push_back(long_data);
-
-    m_LongCount++;
 
     __END_CATCH
 }
@@ -154,7 +167,6 @@ void ModifyInfo::popShortData(SHORTDATA& rData) {
     rData.value = short_data.value;
 
     m_ShortList.pop_front();
-    m_ShortCount--;
 
     __END_CATCH
 }
@@ -170,7 +182,6 @@ void ModifyInfo::popLongData(LONGDATA& rData) {
     rData.value = long_data.value;
 
     m_LongList.pop_front();
-    m_LongCount--;
 
     __END_CATCH
 }

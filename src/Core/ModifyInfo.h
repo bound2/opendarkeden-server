@@ -183,6 +183,13 @@ const string ModifyType2String[] = {"BASIC_STR",
 
                                     "MAX"};
 
+// A tag that names no modify type prints as its number.
+inline string modifyType2String(BYTE type) {
+    if (type >= MODIFY_MAX)
+        return std::to_string((int)type);
+    return ModifyType2String[type];
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // 2����Ʈ�� ����� �������� ���, �� ����ü�� ����Ѵ�.
 //////////////////////////////////////////////////////////////////////////////
@@ -214,22 +221,27 @@ public:
     virtual ~ModifyInfo() noexcept;
 
 public:
+    // Each list is counted in a BYTE, and getPacketMaxSize() budgets this
+    // many entries in each.
+    static constexpr uint kMaxCount = 255;
+
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     PacketSize_t getPacketSize() const {
-        return szBYTE * 2 + m_ShortCount * (szBYTE + szshort) + m_LongCount * (szBYTE + szDWORD);
+        return (PacketSize_t)(szBYTE * 2 + m_ShortList.size() * (szBYTE + szshort) +
+                              m_LongList.size() * (szBYTE + szDWORD));
     }
     static constexpr PacketSize_t getPacketMaxSize() {
-        return szBYTE * 2 + 255 * (szBYTE + szshort + szBYTE + szDWORD);
+        return szBYTE * 2 + kMaxCount * (szBYTE + szshort + szBYTE + szDWORD);
     }
     string toString() const;
 
 public:
     BYTE getShortCount(void) const {
-        return m_ShortCount;
+        return (BYTE)m_ShortList.size();
     }
     BYTE getLongCount(void) const {
-        return m_LongCount;
+        return (BYTE)m_LongList.size();
     }
 
     void addShortData(ModifyType type, ushort value);
@@ -239,17 +251,12 @@ public:
     void popLongData(LONGDATA& rData);
 
     void clearList(void) {
-        m_ShortCount = 0;
-        m_LongCount = 0;
         m_ShortList.clear();
         m_LongList.clear();
     }
 
 protected:
-    BYTE m_ShortCount;
     list<SHORTDATA> m_ShortList;
-
-    BYTE m_LongCount;
     list<LONGDATA> m_LongList;
 };
 

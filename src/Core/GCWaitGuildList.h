@@ -65,7 +65,14 @@ public:
     }
 
     // add GuildInfo
+    // Takes ownership. Refuses a guild past the count the factory max
+    // budgets, so getPacketSize() can never outgrow the read buffer the
+    // receiver sizes from it; the refused record is destroyed here.
     void addGuildInfo(GuildInfo* pGuildInfo) {
+        if (m_GuildInfoList.size() >= GuildInfo::kMaxCount) {
+            SAFE_DELETE(pGuildInfo);
+            throw InvalidProtocolException("too many guild infos");
+        }
         m_GuildInfoList.push_front(pGuildInfo);
     }
 
@@ -100,7 +107,7 @@ class GCWaitGuildListFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_WAIT_GUILD_LIST;
     static constexpr std::string_view kName = "GCWaitGuildList";
-    static constexpr PacketSize_t kMaxSize{szWORD + (GuildInfo::getMaxSize() * 5000)};
+    static constexpr PacketSize_t kMaxSize{szWORD + (GuildInfo::getMaxSize() * GuildInfo::kMaxCount)};
 
     // create packet
     Packet* createPacket() override {

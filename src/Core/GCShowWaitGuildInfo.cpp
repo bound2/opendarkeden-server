@@ -50,6 +50,9 @@ void GCShowWaitGuildInfo::read(SocketInputStream& iStream)
     iStream.read(m_JoinFee);
     iStream.read(MemberNum);
 
+    if (MemberNum > kMaxCount)
+        throw InvalidProtocolException("too many founding members");
+
     for (int i = 0; i < MemberNum; i++) {
         iStream.read(szMember);
 
@@ -93,6 +96,9 @@ void GCShowWaitGuildInfo::write(SocketOutputStream& oStream) const
 
     if (m_GuildIntro.size() > GUILD_INTRO_MAX_LENGTH)
         throw InvalidProtocolException("too long szGuildIntro length");
+
+    if (m_MemberList.size() > kMaxCount)
+        throw InvalidProtocolException("too many founding members");
 
     oStream.write(m_GuildID);
     oStream.write(szGuildName);

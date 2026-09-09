@@ -48,11 +48,15 @@ public:
         return PACKET_GC_SKILL_TO_TILE_OK_1;
     }
 
+    // The creature list is counted in a BYTE, and the factory max budgets
+    // this many ids.
+    static constexpr uint kMaxCount = 255;
+
     // get packet's body size
     // Serialized size varies with the contained lists.
     PacketSize_t getPacketSize() const {
-        return szSkillType + szCEffectID + szCoord * 2 + szDuration + szBYTE + szRange + szObjectID * m_CListNum +
-               szBYTE + ModifyInfo::getPacketSize();
+        return (PacketSize_t)(szSkillType + szCEffectID + szCoord * 2 + szDuration + szBYTE + szRange +
+                              szObjectID * m_CList.size() + szBYTE + ModifyInfo::getPacketSize());
     }
 
     // get packet's name
@@ -109,19 +113,15 @@ public:
         m_Range = r;
     }
 
-    // get / set Creature List Number
+    // get Creature List Number
     BYTE getCListNum() const {
-        return m_CListNum;
-    }
-    void setCListNum(BYTE CListNum) {
-        m_CListNum = CListNum;
+        return (BYTE)m_CList.size();
     }
 
     // add / delete  Creature List
     void addCListElement(ObjectID_t ObjectID);
     void clearCList() {
         m_CList.clear();
-        m_CListNum = 0;
     }
 
     // pop front Element in Status List
@@ -155,9 +155,6 @@ private:
     Coord_t m_X;
     Coord_t m_Y;
 
-    // CreatureList Element Number
-    BYTE m_CListNum;
-
     // Creature List
     list<ObjectID_t> m_CList;
 
@@ -178,7 +175,8 @@ public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SKILL_TO_TILE_OK_1;
     static constexpr std::string_view kName = "GCSkillToTileOK1";
     static constexpr PacketSize_t kMaxSize{szSkillType + szCEffectID + szCoord * 2 + szDuration + szBYTE + szBYTE +
-                                           +szRange + szWORD + szObjectID + szBYTE + ModifyInfo::getPacketMaxSize()};
+                                           +szRange + szWORD + szObjectID * GCSkillToTileOK1::kMaxCount + szBYTE +
+                                           ModifyInfo::getPacketMaxSize()};
 
     // constructor
     GCSkillToTileOK1Factory() {}

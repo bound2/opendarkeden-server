@@ -277,25 +277,32 @@ before anything else moves. Everything later shelters under this pin.
   > than a flag word, so covering the tags covers the record.
   > `GCAddEffect` is covered by the zone-scan pins; `GCRemoveEffect`
   > belongs to effect expiry, and the attack path constructs neither.
-  > Six open write/read disagreements are stated as tests that flip
-  > when fixed (`ModifyInfo` counting each of its two lists in a BYTE it
-  > increments per entry and caps nowhere, so the 256th entry wraps the
-  > count while `write()` still emits it; the tile packets counting their
-  > creature list the same way, and `popCListElement()` taking an entry
-  > off it without decrementing the count; no tile packet bounding that
-  > list against a factory max that budgets one id for a list the count
-  > byte lets reach 255; `ModifyInfo::read()` and the tile `read()`s
-  > appending to the list the packet already holds instead of replacing
-  > it; the type tag travelling unchecked while `toString()` indexes
-  > `ModifyType2String` with it; and
-  > `GCSkillToTileOK3::getObjectID()` /
-  > `GCSkillToInventoryOK2::getObjectID()` declared `CEffectID_t`,
-  > handing back the low half of the id they put on the wire). Two more
-  > are recorded in the test's header rather than tested, because the
-  > test would have to perform the undefined behaviour it reports: 31 of
-  > the 33 leave at least one member uninitialised in the default
-  > constructor, and the two hit flags are `bool` members read straight
-  > off the wire. No golden changed.
+  > The six write/read disagreements it found are fixed and pinned as
+  > the behaviour the packets now produce (`ModifyInfo` derives each of
+  > its two list counts from the list and refuses the entry past the 255
+  > its count byte carries, in the adders and in `write()`, so the 256th
+  > entry can no longer wrap the count while `write()` still emits it;
+  > the five tile packets that carry a creature list bound theirs the
+  > same way, `setCListNum` is gone and `popCListElement()` takes the id
+  > off the count with the list; each tile factory max budgets a full
+  > 255-id list, the five wire-layout moves in the set —
+  > `GCSkillToTileOK1` 2060 → 3076, `GCSkillToTileOK2` 2061 → 3077,
+  > `GCSkillToTileOK4` 270 → 1286, `GCSkillToTileOK5` 274 → 1290 and
+  > `GCSkillToTileOK6` 2059 → 3075, all server-side read-buffer budgets
+  > and not fields on the wire; `ModifyInfo::read()` and the tile
+  > `read()`s replace the list the packet holds instead of appending to
+  > it; a type tag past the last `ModifyType` is refused in the adders
+  > and in `read()`, and `modifyType2String()` prints an unknown tag as
+  > its number; and `GCSkillToTileOK3::getObjectID()` /
+  > `GCSkillToInventoryOK2::getObjectID()` return the `ObjectID_t` they
+  > hold). The two the review recorded rather than tested are fixed with
+  > them and testable now: every packet in the set initialises every
+  > member its `write()` emits, pinned by constructing each over poisoned
+  > storage, and the two hit flags are read as a `BYTE` and narrowed
+  > rather than loaded as a `bool`. `GCActiveGuildList`,
+  > `GCWaitGuildList` and `GCShowWaitGuildInfo`'s founding-member list,
+  > which the social set left uncapped, refuse an entry past the count
+  > their factory maxima budget with them. No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols and the combat feedback
   > set pinned, the remaining non-encrypter coverage outstanding is the
