@@ -21,25 +21,33 @@ public:
     virtual ~GCAddMonster() noexcept;
 
 public:
+    // The name length travels in one byte and the factory max budgets this
+    // many characters.
+    static constexpr uint kMaxNameSize = 32;
+
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     PacketID_t getPacketID() const {
         return PACKET_GC_ADD_MONSTER;
     }
     PacketSize_t getPacketSize() const {
-        return szObjectID +               // object id
-               szMonsterType +            // monster type
-               szBYTE +                   // monster name length
-               m_MonsterName.size() +     // monster name
-               szColor +                  // monster main color
-               szColor +                  // sub color
-               szCoord +                  // x coord.
-               szCoord +                  // y coord.
-               szDir +                    // monster direction
-               m_pEffectInfo->getSize() + // effects info on monster
-               szHP +                     // current hp
-               szHP +                     // max hp
-               szBYTE;                    // from Flag
+        // A packet carrying no effect record puts an empty list on the wire.
+        EffectInfo noEffects;
+        const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+
+        return szObjectID +           // object id
+               szMonsterType +        // monster type
+               szBYTE +               // monster name length
+               m_MonsterName.size() + // monster name
+               szColor +              // monster main color
+               szColor +              // sub color
+               szCoord +              // x coord.
+               szCoord +              // y coord.
+               szDir +                // monster direction
+               effects.getSize() +    // effects info on monster
+               szHP +                 // current hp
+               szHP +                 // max hp
+               szBYTE;                // from Flag
     }
     string getPacketName() const {
         return "GCAddMonster";
@@ -155,19 +163,19 @@ class GCAddMonsterFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_MONSTER;
     static constexpr std::string_view kName = "GCAddMonster";
-    static constexpr PacketSize_t kMaxSize{szObjectID +               // object id
-                                           szMonsterType +            // monster type
-                                           szBYTE +                   // monster name length
-                                           32 +                       // monster name max
-                                           szColor +                  // monster main color
-                                           szColor +                  // sub color
-                                           szCoord +                  // x coord.
-                                           szCoord +                  // y coord.
-                                           szDir +                    // monster direction
-                                           EffectInfo::getMaxSize() + // effects info on monster
-                                           szHP +                     // current hp
-                                           szHP +                     // max hp
-                                           szBYTE};                   // from Flag
+    static constexpr PacketSize_t kMaxSize{szObjectID +                 // object id
+                                           szMonsterType +              // monster type
+                                           szBYTE +                     // monster name length
+                                           GCAddMonster::kMaxNameSize + // monster name max
+                                           szColor +                    // monster main color
+                                           szColor +                    // sub color
+                                           szCoord +                    // x coord.
+                                           szCoord +                    // y coord.
+                                           szDir +                      // monster direction
+                                           EffectInfo::getMaxSize() +   // effects info on monster
+                                           szHP +                       // current hp
+                                           szHP +                       // max hp
+                                           szBYTE};                     // from Flag
 
     // create packet
     Packet* createPacket() override {

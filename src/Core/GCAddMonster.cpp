@@ -43,6 +43,8 @@ void GCAddMonster::read(SocketInputStream& iStream)
     iStream.read(m_MonsterType);
 
     iStream.read(name_length);
+    if (name_length > kMaxNameSize)
+        throw InvalidProtocolException("too long monster name length");
     if (name_length != 0)
         iStream.read(m_MonsterName, name_length);
 
@@ -72,6 +74,9 @@ void GCAddMonster::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
+    if (m_MonsterName.size() > kMaxNameSize)
+        throw InvalidProtocolException("too long monster name length");
+
     BYTE name_length = m_MonsterName.size();
 
     oStream.write(m_ObjectID);
@@ -85,7 +90,10 @@ void GCAddMonster::write(SocketOutputStream& oStream) const
     oStream.write(m_Y);
     oStream.write(m_Dir);
 
-    m_pEffectInfo->write(oStream);
+    // A packet carrying no effect record puts an empty list on the wire.
+    EffectInfo noEffects;
+    const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+    effects.write(oStream);
 
     oStream.write(m_CurrentHP);
     oStream.write(m_MaxHP);
@@ -108,8 +116,8 @@ string GCAddMonster::toString() const
     msg << "GCAddMonster(" << "ObjectID:" << (int)m_ObjectID << ",MonsterType:" << (int)m_MonsterType
         << ",MonsterName:" << m_MonsterName << ",MainColor:" << (int)m_MainColor << ",SubColor:" << (int)m_SubColor
         << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir]
-        << ",Effects:" << m_pEffectInfo->toString() << ",CurrentHP:" << (int)m_CurrentHP << ",MaxHP:" << (int)m_MaxHP
-        << ",FromFlag:" << (int)m_FromFlag << ")";
+        << ",Effects:" << ((m_pEffectInfo != NULL) ? m_pEffectInfo->toString() : "NULL")
+        << ",CurrentHP:" << (int)m_CurrentHP << ",MaxHP:" << (int)m_MaxHP << ",FromFlag:" << (int)m_FromFlag << ")";
     return msg.toString();
 
     __END_CATCH

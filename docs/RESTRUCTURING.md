@@ -169,17 +169,23 @@ before anything else moves. Everything later shelters under this pin.
   > `GCAddEffect`, `GCAddEffectToTile`, `GCAddVampirePortal`,
   > `GCDeleteObject`, `GCDeleteEffectFromTile`, `GCFastMove`), have
   > code-0 goldens, loopback round trips and size/factory-max pins
-  > (`tests/packet_zone_scan_test.cpp`), with eight open write/read
-  > disagreements stated as tests that flip when fixed
-  > (`PCSlayerInfo3::write` swallowing its name refusal, so the PC
-  > record underflows the size the packet declares; `GCAddEffect::read`
-  > consuming a leading flag byte `write` never emits;
-  > `PCVampireInfo3::getMaxSize` and `PCOustersInfo3::getMaxSize`
-  > omitting the four-byte alignment field their `getSize` counts;
-  > `PCVampireInfo3` truncating its WORD coat type to one byte; and the
-  > unbounded monster name, shop sign, pet nickname and portal
-  > owner, each of which outgrows the budget the receiver sizes its read
-  > buffer from). `GCSetPosition` is covered by the handshake pins,
+  > (`tests/packet_zone_scan_test.cpp`); the write/read disagreements it
+  > found are fixed and pinned as the behaviour they now produce
+  > (`PCSlayerInfo3::read`/`write` let their refusals escape, so the PC
+  > record can no longer underflow the size the packet declares;
+  > `GCAddEffect::read` consumes exactly what `write` emits;
+  > `PCVampireInfo3::getMaxSize` and `PCOustersInfo3::getMaxSize` count
+  > the four-byte alignment field their `getSize` puts on the wire,
+  > which is the one wire-layout move in the set — seven
+  > `GCAdd*`/`GCMorphVampire2` max sizes grow by four bytes;
+  > `PCVampireInfo3` refuses a coat type that does not fit the wire byte
+  > rather than dropping its high half; the monster name, shop sign, pet
+  > nickname, portal owner and NPC name stop at the widths their max
+  > sizes budget, and `GCNPCInfo` caps its record list at the 255 its
+  > count byte carries; the corpse packets initialise their treasure
+  > count, the creature-add packets survive a missing effect record, and
+  > none of them frees the pet or nickname record the creature owns).
+  > `GCSetPosition` is covered by the handshake pins,
   > `GCAddNewItemToZone` and `GCAddInstalledMineToZone` by the encrypter
   > pins.
   > Remaining non-encrypter GC/CG coverage outstanding.

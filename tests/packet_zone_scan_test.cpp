@@ -124,17 +124,20 @@
 //               wide and hold enumerators; and the names, which each
 //               packet caps well below 128 characters.
 //
-//               Eight findings are stated below as tests that FAIL when
-//               the underlying code is fixed, which is the signal to
-//               retire them:
-//               oversizedSlayerNameIsSwallowedAndUnderflowsTheBody,
-//               readConsumesALeadingFlagByteThatWriteNeverEmits,
-//               vampireInfoMaxSizeOmitsTheAlignmentField,
-//               oustersInfoMaxSizeOmitsTheAlignmentField,
-//               coatTypeIsTruncatedToAByteOnTheWire,
-//               unboundedMonsterNamesWrapTheLengthByteAndOutgrowTheFactoryMax,
-//               unboundedOptionalStringsOutgrowTheirRecordMax and
-//               unboundedPortalOwnerOutgrowsTheFactoryMax.
+//               The write/read disagreements this set found are fixed,
+//               and the section at the end pins what each one produces
+//               now: PCSlayerInfo3 lets its name refusals out,
+//               GCAddEffect::read() consumes exactly what write()
+//               emits, the Vampire and Ousters record maxima count the
+//               alignment field they carry, a coat type that does not
+//               fit the wire byte is refused, the monster names, the
+//               shop sign, the pet nickname, the portal owner and the
+//               NPC name are bounded against the width their max size
+//               budgets, GCNPCInfo caps its record list at the 255 its
+//               count byte carries, the corpse packets initialise their
+//               treasure count, the creature-add packets survive a
+//               missing effect record, and none of the three frees the
+//               pet and nickname records the creature owns.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -163,6 +166,8 @@
 #include "GCDeleteEffectFromTile.h"
 #include "GCDeleteObject.h"
 #include "GCFastMove.h"
+#include "GCNPCInfo.h"
+#include "NPCInfo.h"
 #include "NicknameInfo.h"
 #include "PCOustersInfo3.h"
 #include "PCSlayerInfo3.h"
@@ -199,31 +204,6 @@ const uchar kPlainCode = 0;
         roundTrip(src, dst, kPlainCode);                                                             \
         expectEqual(src, dst);                                                                       \
     }                                                                                                \
-    TEST(Name##Test, bodyBytesMatchGolden) {                                                         \
-        Name packet;                                                                                 \
-        fill(packet);                                                                                \
-        const std::vector<unsigned char> body = writeBody(packet, kPlainCode);                       \
-        expectGolden(#Name, kPlainCode, body);                                                       \
-        for (size_t i = 1; i < kEncryptCodeCount; i++)                                               \
-            EXPECT_EQ(body, writeBody(packet, kEncryptCodes[i]))                                     \
-                << #Name " now varies with the encrypt code — add per-code goldens";                 \
-    }                                                                                                \
-    TEST(Name##Test, sizeMatchesTheBytesWrittenAndFitsTheFactoryMax) {                               \
-        Name packet;                                                                                 \
-        fill(packet);                                                                                \
-        Name##Factory factory;                                                                       \
-        EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size())              \
-            << #Name ": getPacketSize() disagrees with the bytes write() emits; writePacket() puts " \
-                     "the former on the wire, so the stream never resynchronises";                   \
-        EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize())                                \
-            << #Name ": the body outgrows the read buffer the receiver sizes from the factory max";  \
-        EXPECT_EQ(factory.getPacketID(), packet.getPacketID());                                      \
-        EXPECT_EQ(factory.getPacketName(), packet.getPacketName());                                  \
-    }
-
-// The golden and size half on its own, for a packet whose read() cannot
-// consume what its write() emits.
-#define ZONE_SCAN_GOLDEN_AND_SIZE(Name)                                                              \
     TEST(Name##Test, bodyBytesMatchGolden) {                                                         \
         Name packet;                                                                                 \
         fill(packet);                                                                                \
@@ -421,12 +401,8 @@ void expectSlayerInfoEqual(const PCSlayerInfo3& a, const PCSlayerInfo3& b) {
     EXPECT_EQ(a.getAdvancementLevel(), b.getAdvancementLevel());
 }
 
-// The name stays at twelve characters: PCVampireInfo3::getMaxSize()
-// budgets four bytes less than getSize() returns (see
-// vampireInfoMaxSizeOmitsTheAlignmentField), so a full twenty-character
-// name would put every carrier of this record over its factory max.
-// Sex is an enum byte with two enumerators and the coat type is written
-// as a single byte, so neither carries a high byte.
+// Sex is an enum byte with two enumerators and the coat type travels in
+// a single byte, so neither carries a high byte.
 void fillVampireInfo(PCVampireInfo3& info) {
     info.setObjectID(0x8B9CADBE);
     info.setName("GoldScanVamp");
@@ -477,10 +453,8 @@ void expectVampireInfoEqual(const PCVampireInfo3& a, const PCVampireInfo3& b) {
     EXPECT_EQ(a.getAdvancementLevel(), b.getAdvancementLevel());
 }
 
-// The name stays at twelve characters for the same reason as the
-// Vampire record (see oustersInfoMaxSizeOmitsTheAlignmentField). Coat,
-// arm and sylph type share one packed byte and hold enumerators, so
-// they carry their highest valid enumerator rather than a high byte.
+// Coat, arm and sylph type share one packed byte and hold enumerators,
+// so they carry their highest valid enumerator rather than a high byte.
 void fillOustersInfo(PCOustersInfo3& info) {
     info.setObjectID(0x8C9DAEBF);
     info.setName("GoldScanOust");
@@ -536,12 +510,10 @@ void expectOustersInfoEqual(const PCOustersInfo3& a, const PCOustersInfo3& b) {
 //////////////////////////////////////////////////////////////////////
 // GCAddSlayer / GCAddVampire / GCAddOusters.
 //
-// The three packets own their sub-records inconsistently: GCAddOusters
-// deletes the effect, pet and nickname records, while GCAddSlayer and
-// GCAddVampire delete only the effect record. The fixtures follow what
-// each destructor does, so the pet and nickname records for the first
-// two are members that outlive the packet — members are destroyed in
-// reverse declaration order, so `packet` goes first.
+// All three packets own only the effect record; the pet and nickname
+// records belong to whoever installed them. The fixtures hold those two
+// as members that outlive the packet — members are destroyed in reverse
+// declaration order, so `packet` goes first.
 //
 // A NULL nickname pointer is not goldened separately: write() then
 // emits a default NicknameInfo, the same NICK_NONE shape the explicit
@@ -724,42 +696,45 @@ TEST(GCAddVampireTest, refusesOversizedNames) {
     EXPECT_THROW(tooLong.packet.write(oStream), InvalidProtocolException);
 }
 
-// GCAddOusters deletes all three sub-records, so all three are
-// allocated for it and nothing outlives the packet.
-void fillOustersAdd(GCAddOusters& p) {
+struct OustersAddFixture {
+    NicknameInfo nickname;
+    StoreInfo store;
+    GCAddOusters packet;
+};
+
+void fillOustersAdd(OustersAddFixture& f) {
     PCOustersInfo3 info;
     fillOustersInfo(info);
-    p.setOustersInfo(info);
-    p.setEffectInfo(makeEffectInfo(1));
+    f.packet.setOustersInfo(info);
+    f.packet.setEffectInfo(makeEffectInfo(1));
 
     // The forced-string nickname shape.
-    NicknameInfo* pNickname = new NicknameInfo();
-    pNickname->setNicknameID(0xB5C6);
-    pNickname->setNicknameType(NicknameInfo::NICK_CUSTOM_FORCED);
-    pNickname->setNickname("GoldScanForced");
-    p.setNicknameInfo(pNickname);
+    f.nickname.setNicknameID(0xB5C6);
+    f.nickname.setNicknameType(NicknameInfo::NICK_CUSTOM_FORCED);
+    f.nickname.setNickname("GoldScanForced");
+    f.packet.setNicknameInfo(&f.nickname);
 
-    StoreInfo store;
-    store.setOpen(0xD7);
-    store.setSign("GoldScanOustStoreSign");
-    p.setStoreInfo(&store);
+    f.store.setOpen(0xD7);
+    f.store.setSign("GoldScanOustStoreSign");
+    f.packet.setStoreInfo(&f.store);
 }
 
 TEST(GCAddOustersTest, roundTripsThroughLoopback) {
-    GCAddOusters src;
-    fillOustersAdd(src);
+    OustersAddFixture f;
+    fillOustersAdd(f);
     GCAddOusters dst;
-    roundTrip(src, dst, kPlainCode);
-    expectOustersInfoEqual(src.getOustersInfo(), dst.getOustersInfo());
-    expectEffectInfoEqual(src.getEffectInfo(), dst.getEffectInfo());
-    expectPetInfoEqual(src.getPetInfo(), dst.getPetInfo());
-    expectNicknameInfoEqual(src.getNicknameInfo(), dst.getNicknameInfo());
-    expectStoreOutlookEqual(src.getStoreOutlook(), dst.getStoreOutlook());
+    roundTrip(f.packet, dst, kPlainCode);
+    expectOustersInfoEqual(f.packet.getOustersInfo(), dst.getOustersInfo());
+    expectEffectInfoEqual(f.packet.getEffectInfo(), dst.getEffectInfo());
+    expectPetInfoEqual(f.packet.getPetInfo(), dst.getPetInfo());
+    expectNicknameInfoEqual(f.packet.getNicknameInfo(), dst.getNicknameInfo());
+    expectStoreOutlookEqual(f.packet.getStoreOutlook(), dst.getStoreOutlook());
 }
 
 TEST(GCAddOustersTest, bodyBytesMatchGoldenAndSizeMatchesTheBytesWritten) {
-    GCAddOusters packet;
-    fillOustersAdd(packet);
+    OustersAddFixture f;
+    fillOustersAdd(f);
+    GCAddOusters& packet = f.packet;
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     expectGolden("GCAddOusters", kPlainCode, body);
@@ -1033,7 +1008,12 @@ void fill(GCAddEffect& p) {
     p.setEffectID(0x87C8);
     p.setDuration(0x89CA);
 }
-ZONE_SCAN_GOLDEN_AND_SIZE(GCAddEffect)
+void expectEqual(const GCAddEffect& a, const GCAddEffect& b) {
+    EXPECT_EQ(a.getObjectID(), b.getObjectID());
+    EXPECT_EQ(a.getEffectID(), b.getEffectID());
+    EXPECT_EQ(a.getDuration(), b.getDuration());
+}
+ZONE_SCAN_PACKET_TESTS(GCAddEffect)
 
 void fill(GCAddEffectToTile& p) {
     p.setObjectID(0x94A5B6C7);
@@ -1131,172 +1111,255 @@ void expectEqual(const GCFastMove& a, const GCFastMove& b) {
 ZONE_SCAN_PACKET_TESTS(GCFastMove)
 
 //////////////////////////////////////////////////////////////////////
-// Findings.
+// The refusals and bounds these packets enforce, and the records they
+// leave alone. Each pins a write/read disagreement this set found.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// PCSlayerInfo3::write() wraps its whole body in
-// `catch (Throwable&) { cout << ... }`, so neither of its refusals — an
-// empty name and a name longer than 20 — ever leaves the function. The
-// object id has already been written when the throw happens, so the PC
-// record stops after four bytes while GCAddSlayer::getPacketSize(),
-// which writePacket() puts on the wire ahead of the body, still counts
-// the whole record. PCVampireInfo3 and PCOustersInfo3 let the same
-// refusals out.
-TEST(GCAddSlayerTest, oversizedSlayerNameIsSwallowedAndUnderflowsTheBody) {
+// PCSlayerInfo3::write() lets its refusals out, the way PCVampireInfo3
+// and PCOustersInfo3 do. A swallowed refusal stopped the PC record
+// after the four bytes of object id already on the wire, while
+// GCAddSlayer::getPacketSize() — which writePacket() sends ahead of the
+// body — still counted the whole record.
+TEST(GCAddSlayerTest, refusesOversizedSlayerNames) {
+    SocketEncryptOutputStream oStream(NULL);
+
     SlayerAddFixture f;
     fillSlayerAdd(f);
     f.packet.getSlayerInfo().setName(std::string(21, 's'));
-
-    const size_t written = writeBody(f.packet, kPlainCode).size();
-    EXPECT_LT(written, (size_t)f.packet.getPacketSize())
-        << "PCSlayerInfo3::write() no longer swallows its name refusal — delete this test";
+    EXPECT_THROW(f.packet.write(oStream), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCAddEffect::read() consumes a leading BYTE flag that write() no
-// longer emits — the `oStream.write((BYTE)48)` is commented out — and
-// that getPacketSize() does not count. The server only ever writes this
-// packet, so write() is the pinned contract and there is no round trip
-// until read() is fixed or removed.
-TEST(GCAddEffectTest, readConsumesALeadingFlagByteThatWriteNeverEmits) {
-    GCAddEffect src;
-    fill(src);
+// GCAddEffect::read() consumes exactly what write() emits: the leading
+// flag byte it used to take is gone, so the packet round trips through
+// ZONE_SCAN_PACKET_TESTS above. The body is the three fields and
+// nothing else.
+TEST(GCAddEffectTest, theBodyIsTheThreeFieldsAndNothingElse) {
+    GCAddEffect packet;
+    fill(packet);
 
-    std::vector<unsigned char> body = writeBody(src, kPlainCode);
-    ASSERT_EQ((size_t)src.getPacketSize(), body.size());
-    // read() wants one byte more than write() emits, so the image has to
-    // be padded before it can be parsed at all.
-    body.push_back(0xEF);
-
-    Loopback loopback;
-    loopback.setCodes(kPlainCode);
-    loopback.out().write(reinterpret_cast<const char*>(&body[0]), (uint)body.size());
-    loopback.pump((uint)body.size());
-
-    GCAddEffect dst;
-    dst.read(loopback.in());
-
-    EXPECT_NE(src.getObjectID(), dst.getObjectID())
-        << "GCAddEffect::read() no longer consumes a flag byte write() does not emit — delete this test";
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    EXPECT_EQ((size_t)(szObjectID + szEffectID + szDuration), body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// PCVampireInfo3::getSize() counts szAlignment; getMaxSize() does not.
-// Alignment_t is an int, so every carrier of the record — GCAddVampire
-// and GCAddVampireCorpse — budgets four bytes too few, and a name of 17
-// characters or more already declares a body larger than the read
-// buffer the receiver sizes from the factory max.
-TEST(GCAddVampireCorpseTest, vampireInfoMaxSizeOmitsTheAlignmentField) {
+// PCVampireInfo3::getMaxSize() counts the alignment field its getSize()
+// puts on the wire. Alignment_t is an int, so every carrier of the
+// record used to budget four bytes too few, and a name of 17 characters
+// or more declared a body larger than the read buffer the receiver
+// sizes from the factory max.
+TEST(GCAddVampireCorpseTest, theLongestNameStillFitsTheFactoryMax) {
     GCAddVampireCorpse packet;
     fill(packet);
     packet.getVampireInfo().setName(std::string(20, 'v'));
 
     GCAddVampireCorpseFactory factory;
-    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size())
-        << "the declared size still matches the bytes written; only the budget is short";
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "PCVampireInfo3::getMaxSize() now counts the alignment field — delete this test";
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The same omission in PCOustersInfo3::getMaxSize(), affecting
-// GCAddOusters and GCAddOustersCorpse.
-TEST(GCAddOustersCorpseTest, oustersInfoMaxSizeOmitsTheAlignmentField) {
+// The same field in PCOustersInfo3::getMaxSize().
+TEST(GCAddOustersCorpseTest, theLongestNameStillFitsTheFactoryMax) {
     GCAddOustersCorpse packet;
     fill(packet);
     packet.getOustersInfo().setName(std::string(20, 'o'));
 
     GCAddOustersCorpseFactory factory;
-    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size())
-        << "the declared size still matches the bytes written; only the budget is short";
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "PCOustersInfo3::getMaxSize() now counts the alignment field — delete this test";
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// PCVampireInfo3 holds the coat type as an ItemType_t, which is a WORD,
-// but write() casts it to a BYTE and getSize() budgets one byte for it.
-// A coat item type above 255 loses its high byte on the way out and the
-// client sees a different coat.
-TEST(GCAddVampireCorpseTest, coatTypeIsTruncatedToAByteOnTheWire) {
+// PCVampireInfo3 holds the coat type in an ItemType_t, which is a WORD,
+// while the wire and getSize() carry one byte. Every vampire coat item
+// type the game data defines fits that byte; one that does not is
+// refused instead of losing its high byte and dressing the character in
+// a different coat.
+TEST(GCAddVampireCorpseTest, refusesACoatTypeThatDoesNotFitTheWireByte) {
+    SocketEncryptOutputStream oStream(NULL);
+
+    GCAddVampireCorpse tooWide;
+    fill(tooWide);
+    tooWide.getVampireInfo().setCoatType(0x8194);
+    EXPECT_THROW(tooWide.write(oStream), InvalidProtocolException);
+
     GCAddVampireCorpse src;
     fill(src);
-    src.getVampireInfo().setCoatType(0x8194);
-
+    src.getVampireInfo().setCoatType(0xFF);
     GCAddVampireCorpse dst;
     roundTrip(src, dst, kPlainCode);
-
-    EXPECT_EQ(0x94, (int)dst.getVampireInfo().getCoatType())
-        << "PCVampireInfo3 no longer truncates the coat type — delete this test";
+    EXPECT_EQ(0xFF, (int)dst.getVampireInfo().getCoatType());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// Neither GCAddMonster::write() nor GCAddMonsterCorpse::write() bounds
-// the monster name; both derive a BYTE length from it and then emit the
-// whole string. Past 255 characters the length byte wraps, so the
-// declared count and the bytes that follow disagree and the reader
-// stops mid-name; the body also outgrows the read buffer the receiver
-// sizes from the factory max, which budgets 32 and 128 characters.
-TEST(ZoneScanBoundsTest, unboundedMonsterNamesWrapTheLengthByteAndOutgrowTheFactoryMax) {
+// GCAddMonster and GCAddMonsterCorpse bound the monster name on both
+// sides against the 32 and 128 characters their factory maxima budget.
+// Unbounded, the length byte wrapped past 255 and the body outgrew the
+// read buffer the receiver sizes from that max.
+TEST(ZoneScanBoundsTest, monsterNamesAreBoundedAgainstTheFactoryMax) {
+    SocketEncryptOutputStream oStream(NULL);
+
     GCAddMonster monster;
     fill(monster);
+    monster.setMonsterName(std::string(GCAddMonster::kMaxNameSize + 1, 'm'));
+    EXPECT_THROW(monster.write(oStream), InvalidProtocolException);
+
+    monster.setMonsterName(std::string(GCAddMonster::kMaxNameSize, 'm'));
     GCAddMonsterFactory monsterFactory;
-    size_t monsterNameLength = monsterFactory.getPacketMaxSize() + 1;
-    if (monsterNameLength < 300)
-        monsterNameLength = 300;
-    monster.setMonsterName(std::string(monsterNameLength, 'm'));
-    const std::vector<unsigned char> monsterBody = writeBody(monster, kPlainCode);
-    // object id, monster type, then the name length byte.
-    EXPECT_EQ((int)(monsterNameLength & 0xFF), (int)monsterBody[szObjectID + szMonsterType])
-        << "GCAddMonster::write() now bounds the monster name — delete this half of the test";
-    EXPECT_GT(monster.getPacketSize(), monsterFactory.getPacketMaxSize());
+    EXPECT_LE(monster.getPacketSize(), monsterFactory.getPacketMaxSize());
 
     GCAddMonsterCorpse corpse;
     fill(corpse);
+    corpse.setMonsterName(std::string(GCAddMonsterCorpse::kMaxNameSize + 1, 'c'));
+    EXPECT_THROW(corpse.write(oStream), InvalidProtocolException);
+
+    corpse.setMonsterName(std::string(GCAddMonsterCorpse::kMaxNameSize, 'c'));
     GCAddMonsterCorpseFactory corpseFactory;
-    size_t corpseNameLength = corpseFactory.getPacketMaxSize() + 1;
-    if (corpseNameLength < 300)
-        corpseNameLength = 300;
-    corpse.setMonsterName(std::string(corpseNameLength, 'c'));
-    const std::vector<unsigned char> corpseBody = writeBody(corpse, kPlainCode);
-    EXPECT_EQ((int)(corpseNameLength & 0xFF), (int)corpseBody[szObjectID + szMonsterType])
-        << "GCAddMonsterCorpse::write() now bounds the monster name — delete this half of the test";
-    EXPECT_GT(corpse.getPacketSize(), corpseFactory.getPacketMaxSize());
+    EXPECT_LE(corpse.getPacketSize(), corpseFactory.getPacketMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The two optional strings the creature-add packets carry unbounded,
-// StoreOutlook's shop sign and PetInfo's pet nickname, are emitted
-// whole while their record's getMaxSize() budgets a cap (MAX_SIGN_SIZE
-// and 22) that nothing enforces. Each factory max is the sum of those
-// record maxima, so a player who names a shop or a pet past the cap
-// overruns the read buffer of every client that sees them.
-TEST(ZoneScanBoundsTest, unboundedOptionalStringsOutgrowTheirRecordMax) {
+// The two optional strings a creature-add packet carries for a value a
+// player typed are cut to the cap their record's max size budgets, the
+// way the nickname setter is, so a shop or a pet named past the cap
+// cannot overrun the read buffer of every client that sees the owner.
+TEST(ZoneScanBoundsTest, playerTypedStringsAreCutToTheirRecordMax) {
     StoreOutlook sign;
     sign.setOpen(1);
     sign.setSign(std::string(MAX_SIGN_SIZE + 40, 'g'));
-    EXPECT_GT(sign.getSize(), StoreOutlook::getMaxSize())
-        << "StoreOutlook::write() now bounds the shop sign — delete this half of the test";
+    EXPECT_EQ((size_t)MAX_SIGN_SIZE, sign.getSign().size());
+    EXPECT_LE(sign.getSize(), StoreOutlook::getMaxSize());
 
     PetInfo pet;
     fillPetInfo(pet);
-    pet.setNickname(std::string(62, 'p'));
-    EXPECT_GT(pet.getSize(), PetInfo::getMaxSize())
-        << "PetInfo::write() now bounds the pet nickname — delete this half of the test";
+    pet.setNickname(std::string(PetInfo::kMaxNicknameSize + 40, 'p'));
+    EXPECT_EQ((size_t)PetInfo::kMaxNicknameSize, pet.getNickname().size());
+    EXPECT_LE(pet.getSize(), PetInfo::getMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCAddVampirePortal::write() emits the owner name whole while its
-// factory budgets 20 characters for it.
-TEST(ZoneScanBoundsTest, unboundedPortalOwnerOutgrowsTheFactoryMax) {
+// GCAddVampirePortal bounds the owner name against the 20 its factory
+// max budgets.
+TEST(ZoneScanBoundsTest, thePortalOwnerIsBoundedAgainstTheFactoryMax) {
+    SocketEncryptOutputStream oStream(NULL);
+
     GCAddVampirePortal packet;
     fill(packet);
-    packet.setOwnerID(std::string(60, 'o'));
+    packet.setOwnerID(std::string(GCAddVampirePortal::kMaxOwnerIDSize + 1, 'o'));
+    EXPECT_THROW(packet.write(oStream), InvalidProtocolException);
 
+    packet.setOwnerID(std::string(GCAddVampirePortal::kMaxOwnerIDSize, 'o'));
     GCAddVampirePortalFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCAddVampirePortal::write() now bounds the owner name — delete this test";
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+}
+
+// NPCInfo bounds its name against the 30 its own max size budgets, and
+// GCNPCInfo refuses a record past the 255 its count byte carries — the
+// shape GCUpdateInfo::addNPCInfo already has. The records belong to the
+// zone either way, so a refused one is simply not listed.
+TEST(ZoneScanBoundsTest, npcRecordsAreBoundedAgainstTheirMaxSize) {
+    SocketEncryptOutputStream oStream(NULL);
+
+    NPCInfo info;
+    info.setName(std::string(NPCInfo::kMaxNameSize + 1, 'n'));
+    EXPECT_THROW(info.write(oStream), InvalidProtocolException);
+
+    info.setName(std::string(NPCInfo::kMaxNameSize, 'n'));
+    EXPECT_LE(info.getSize(), NPCInfo::getMaxSize());
+
+    std::vector<NPCInfo> records(GCNPCInfo::kMaxNPCInfos + 1);
+    GCNPCInfo packet;
+    for (size_t i = 0; i < records.size(); i++) {
+        records[i].setName("GoldScanNPC");
+        packet.addNPCInfo(&records[i]);
+    }
+
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+    EXPECT_EQ((int)GCNPCInfo::kMaxNPCInfos, (int)body[0]);
+
+    GCNPCInfoFactory factory;
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+}
+
+// The corpse packets initialise the treasure count in the info-taking
+// constructor as well as in the default one, so the byte they put on
+// the wire is a count rather than whatever the allocation held.
+TEST(ZoneScanCorpseTest, theInfoConstructorsInitialiseTheTreasureCount) {
+    PCSlayerInfo3 slayerInfo;
+    fillSlayerInfo(slayerInfo);
+    EXPECT_EQ(0, (int)GCAddSlayerCorpse(slayerInfo).getTreasureCount());
+
+    PCVampireInfo3 vampireInfo;
+    fillVampireInfo(vampireInfo);
+    EXPECT_EQ(0, (int)GCAddVampireCorpse(vampireInfo).getTreasureCount());
+
+    PCOustersInfo3 oustersInfo;
+    fillOustersInfo(oustersInfo);
+    EXPECT_EQ(0, (int)GCAddOustersCorpse(oustersInfo).getTreasureCount());
+}
+
+// A packet with no effect record installed writes an empty list and
+// counts the same empty list, rather than dereferencing NULL in both
+// getPacketSize() and write().
+TEST(ZoneScanEffectRecordTest, aMissingEffectRecordWritesAnEmptyList) {
+    EffectInfo emptyList;
+    EXPECT_EQ((PacketSize_t)szBYTE, emptyList.getSize());
+
+    GCAddMonster monster;
+    fill(monster);
+    delete monster.getEffectInfo();
+    monster.setEffectInfo(NULL);
+    EXPECT_EQ((size_t)monster.getPacketSize(), writeBody(monster, kPlainCode).size());
+
+    SlayerAddFixture slayer;
+    fillSlayerAdd(slayer);
+    delete slayer.packet.getEffectInfo();
+    slayer.packet.setEffectInfo(NULL);
+    EXPECT_EQ((size_t)slayer.packet.getPacketSize(), writeBody(slayer.packet, kPlainCode).size());
+
+    VampireAddFixture vampire;
+    fillVampireAdd(vampire);
+    delete vampire.packet.getEffectInfo();
+    vampire.packet.setEffectInfo(NULL);
+    EXPECT_EQ((size_t)vampire.packet.getPacketSize(), writeBody(vampire.packet, kPlainCode).size());
+
+    OustersAddFixture ousters;
+    fillOustersAdd(ousters);
+    delete ousters.packet.getEffectInfo();
+    ousters.packet.setEffectInfo(NULL);
+    EXPECT_EQ((size_t)ousters.packet.getPacketSize(), writeBody(ousters.packet, kPlainCode).size());
+}
+
+// None of the three creature-add packets frees the pet or the nickname
+// record it was handed: the fill sites install the creature's own, and
+// a packet that freed them would leave the creature holding a dangling
+// pointer. The records here live on the stack, so a destructor that
+// deleted them would not survive this test.
+TEST(ZoneScanOwnershipTest, theCreatureAddPacketsLeaveInstalledRecordsAlone) {
+    PetInfo pet;
+    fillPetInfo(pet);
+
+    NicknameInfo nickname;
+    nickname.setNicknameType(NicknameInfo::NICK_NONE);
+
+    {
+        GCAddSlayer packet;
+        packet.setEffectInfo(makeEffectInfo(0));
+        packet.setPetInfo(&pet);
+        packet.setNicknameInfo(&nickname);
+    }
+    {
+        GCAddVampire packet;
+        packet.setEffectInfo(makeEffectInfo(0));
+        packet.setPetInfo(&pet);
+        packet.setNicknameInfo(&nickname);
+    }
+    {
+        GCAddOusters packet;
+        packet.setEffectInfo(makeEffectInfo(0));
+        packet.setPetInfo(&pet);
+        packet.setNicknameInfo(&nickname);
+    }
+
+    EXPECT_EQ((int)PET_PIXIE, (int)pet.getPetType());
+    EXPECT_EQ("GoldScanPet", pet.getNickname());
+    EXPECT_EQ((int)NicknameInfo::NICK_NONE, (int)nickname.getNicknameType());
 }
 
 } // namespace

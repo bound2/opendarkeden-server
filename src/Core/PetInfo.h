@@ -13,6 +13,10 @@ class PetItem;
 
 class PetInfo {
 public:
+    // The nickname length travels in one byte and the record max budgets
+    // this many characters.
+    static constexpr uint kMaxNicknameSize = 22;
+
     PetInfo();
     virtual ~PetInfo() {}
 
@@ -33,7 +37,7 @@ public:
     static constexpr PacketSize_t getMaxSize() {
         //		if ( type == MY_INFO )
         return szPetType + szMonsterType + szPetLevel + szPetExp + szPetHP + szPetAttr + szPetAttrLevel + szOptionType +
-               szItemType + szBYTE + szBYTE + szBYTE + szBYTE + szObjectID + szBYTE + 22;
+               szItemType + szBYTE + szBYTE + szBYTE + szBYTE + szObjectID + szBYTE + kMaxNicknameSize;
         //		else
         //			return szPetType + szMonsterType + szPetLevel + szPetExp + szPetAttr + szPetAttrLevel + szOptionType
         //+ szItemType + szObjectID;
@@ -173,7 +177,7 @@ public:
         return m_Nickname;
     }
     void setNickname(const string& name) {
-        m_Nickname = name;
+        m_Nickname = (name.size() > kMaxNicknameSize) ? name.substr(0, kMaxNicknameSize) : name;
     }
 
     string toString() const;

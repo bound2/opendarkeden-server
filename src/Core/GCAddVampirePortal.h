@@ -22,6 +22,11 @@ class GCAddVampirePortal : public Packet {
 public:
     GCAddVampirePortal(){};
     ~GCAddVampirePortal(){};
+
+    // The owner name length travels in one byte and the factory max budgets
+    // this many characters.
+    static constexpr uint kMaxOwnerIDSize = 20;
+
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     PacketID_t getPacketID() const {
@@ -120,8 +125,8 @@ class GCAddVampirePortalFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_VAMPIRE_PORTAL;
     static constexpr std::string_view kName = "GCAddVampirePortal";
-    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + 20 + szDuration + szCoord * 2 + szZoneID +
-                                           szCoord * 2 + szBYTE};
+    static constexpr PacketSize_t kMaxSize{szObjectID + szBYTE + GCAddVampirePortal::kMaxOwnerIDSize + szDuration +
+                                           szCoord * 2 + szZoneID + szCoord * 2 + szBYTE};
 
     Packet* createPacket() override {
         return new GCAddVampirePortal();

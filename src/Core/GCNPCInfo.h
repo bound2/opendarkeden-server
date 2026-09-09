@@ -83,8 +83,16 @@ public:
     // methods
     //--------------------------------------------------
 public:
+    // The record count travels in one byte and the factory max budgets this
+    // many records.
+    static constexpr size_t kMaxNPCInfos = 255;
+
     // get/set npc info
     void addNPCInfo(NPCInfo* pInfo) {
+        // A record past the count byte would be written and never counted.
+        // The caller owns the record either way.
+        if (m_NPCInfos.size() >= kMaxNPCInfos)
+            return;
         m_NPCInfos.push_back(pInfo);
     }
     NPCInfo* popNPCInfo(void) {
@@ -120,7 +128,7 @@ public:
         PacketSize_t size = 0;
 
         size += szBYTE;
-        size += NPCInfo::getMaxSize() * 255;
+        size += NPCInfo::getMaxSize() * GCNPCInfo::kMaxNPCInfos;
 
         return size;
     }()};

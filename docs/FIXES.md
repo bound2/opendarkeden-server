@@ -11,6 +11,120 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Zone population scan write/read disagreements (2026-09-09)
+
+The findings task 1.2 stated as flip-tests in
+`tests/packet_zone_scan_test.cpp`, plus the ones its review reported
+that no test could state while they were open. Each is now pinned as
+the behaviour it produces. No valid packet's bytes moved and no golden
+changed; the alignment field below is the set's only
+`tests/wire-layout.txt` movement.
+
+- **`PCSlayerInfo3::read`/`write` swallowed the exceptions they
+  raised.** Both wrapped their whole body in
+  `try { … } catch (Throwable& t) { cout … }`, the third copy of the
+  shape `PCSlayerInfo` and `PCSlayerInfo2` had. `write()` refuses an
+  empty name and a name past 20; the object id was already on the wire
+  when the throw happened, so the PC record stopped after four bytes
+  while `GCAddSlayer::getPacketSize()` — which `writePacket()` puts on
+  the wire ahead of the body — still counted the whole record, and the
+  client misframed every packet after it. `PCVampireInfo3` and
+  `PCOustersInfo3` never had the wrapper. The exceptions now leave both
+  functions.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
+- **`GCAddEffect::read()` consumed a byte `write()` never emits.** The
+  `oStream.write((BYTE)48)` that produced it is commented out and
+  `getPacketSize()` never counted it, so the reader took the first byte
+  of the object id as a flag and shifted every field after it. `read()`
+  now starts at the object id, and the commented-out write is gone.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
+- **Two record maxima omitted the alignment field their size counts.**
+  `PCVampireInfo3::getMaxSize()` and `PCOustersInfo3::getMaxSize()` left
+  out the `szAlignment` that `getSize()` puts on the wire. `Alignment_t`
+  is an int, so every carrier of either record budgeted four bytes too
+  few, and a Vampire or Ousters name of 17 characters or more already
+  declared a body larger than the read buffer the receiver sizes from
+  the factory max. Seven factory maxima grow by four bytes in
+  `tests/wire-layout.txt` (`GCAddOusters` 1228 → 1232,
+  `GCAddOustersCorpse` 54 → 58, `GCAddVampire` 1230 → 1234,
+  `GCAddVampireCorpse` 55 → 59, `GCAddVampireFromBurrowing`
+  1075 → 1079, `GCAddVampireFromTransformation` 1075 → 1079,
+  `GCMorphVampire2` 54 → 58). This is the read buffer the server
+  budgets; the client sizes its own from its own copy of the max, and no
+  byte any packet emits changes.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
+- **`PCVampireInfo3` narrowed its coat type to a byte in silence.** The
+  member is an `ItemType_t`, a WORD, while `write()` cast it to a BYTE
+  and `getSize()` budgeted one byte for it, so a value above 255 lost
+  its high half and dressed the character in a different coat. The wire
+  byte is the client's contract and stays a byte; the domain fits it
+  (`VampireCoatInfo.ItemType` is a `tinyint unsigned`, and the gameserver
+  only ever assigns `pItem->getItemType()` of a worn `VampireCoat`), so
+  `write()` refuses a wider value instead of truncating it.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
+- **Five strings were bounded on neither side.** `GCAddMonster` and
+  `GCAddMonsterCorpse` derived a BYTE length from the monster name and
+  then wrote the whole string, against factory maxima that budget 32 and
+  128 characters; `StoreOutlook`'s shop sign, `PetInfo`'s pet nickname
+  and `GCAddVampirePortal`'s owner name did the same against
+  `MAX_SIGN_SIZE`, 22 and 20; `NPCInfo::setName` took any length against
+  the 30 its own max budgets. Past 255 the length byte wrapped and the
+  reader stopped mid-string; below that the body simply outgrew the read
+  buffer the receiver sizes from the max. All five are refused past the
+  cap in `write()` and `read()`. The two a player types — the shop sign
+  and the pet nickname — are also cut to the cap in their setter, the
+  way the character nickname is; the monster and NPC names come from
+  game data and the portal owner is a character name, so those three are
+  refused rather than quietly shortened. A valid value is untouched.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
+- **`GCNPCInfo` wrote a list its count byte could not describe.**
+  `write()` puts the record count in a BYTE while `getPacketSize()`
+  counted the whole list and the factory max budgets 255 records — the
+  shape `GCUpdateInfo::addNPCInfo` already refuses. `addNPCInfo` now
+  refuses the record past the count byte; the zone owns the records
+  either way, so a refused one is simply not listed.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
+- **The corpse packets left the treasure count indeterminate.**
+  `GCAddSlayerCorpse`, `GCAddVampireCorpse` and `GCAddOustersCorpse`
+  zeroed it in the default constructor and not in the info-taking one,
+  so a corpse built from a PC record put whatever the allocation held on
+  the wire. All three initialise it.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
+- **`GCAddOusters` freed records the creature owns.** Its destructor
+  deleted the effect, the pet and the nickname records, while
+  `GCAddSlayer` and `GCAddVampire` deleted only the effect record.
+  `makeGCAddOusters` installs `pOusters->getPetInfo()` and
+  `pOusters->getNickname()`, which are the creature's own members, so
+  every Ousters that entered someone's view left the creature holding
+  two dangling pointers. Only the effect record is packet-owned — both
+  `read()` and `PacketUtil` hand over a freshly allocated one — and all
+  three destructors now free that and nothing else.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
+- **A missing effect record crashed the size and the write.**
+  `GCAddSlayer`, `GCAddVampire`, `GCAddOusters` and `GCAddMonster`
+  dereferenced `m_pEffectInfo` unconditionally in `getPacketSize()`,
+  `write()` and `toString()`, so a default-constructed instance — the
+  one every factory creates for a reader — crashed before it could read
+  anything. All four fall back to an empty list, the way `GCUpdateInfo`
+  falls back to an empty nickname and blood bible sign.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
+- **`GCAddSlayer::write()` and `GCAddVampire::write()` shared a mutable
+  static.** The null-pet branch wrote a function-local
+  `static PetInfo NullPetInfo` from a `const` member function, so every
+  zone thread emitting a pet-less character touched the same object.
+  Each `write()` now builds its own, as `GCAddOusters::write()` already
+  did. The bytes are the empty pet record either way.
+  > **Status:** fixed (wire/zone-scan-disagreements)
+
 ## Gameserver handshake write/read disagreements (2026-09-08)
 
 The findings task 1.2 stated as flip-tests in

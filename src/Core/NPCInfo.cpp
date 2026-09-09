@@ -25,6 +25,9 @@ void NPCInfo::read(SocketInputStream& iStream) {
     BYTE m_NameLength = 0;
     iStream.read(m_NameLength);
 
+    if (m_NameLength > kMaxNameSize)
+        throw InvalidProtocolException("too long NPC name length");
+
     if (m_NameLength > 0) {
         iStream.read(m_Name, m_NameLength);
         iStream.read(m_NPCID);
@@ -37,6 +40,9 @@ void NPCInfo::read(SocketInputStream& iStream) {
 
 void NPCInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
+
+    if (m_Name.size() > kMaxNameSize)
+        throw InvalidProtocolException("too long NPC name length");
 
     BYTE m_NameLength = m_Name.size();
     oStream.write(m_NameLength);

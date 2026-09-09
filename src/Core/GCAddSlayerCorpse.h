@@ -27,7 +27,7 @@ public:
     GCAddSlayerCorpse() {
         m_TreasureCount = 0;
     }
-    GCAddSlayerCorpse(const PCSlayerInfo3& slayerInfo) : m_SlayerInfo(slayerInfo) {}
+    GCAddSlayerCorpse(const PCSlayerInfo3& slayerInfo) : m_SlayerInfo(slayerInfo), m_TreasureCount(0) {}
     ~GCAddSlayerCorpse(){};
 
 
