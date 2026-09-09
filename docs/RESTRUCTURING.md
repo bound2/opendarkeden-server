@@ -188,7 +188,34 @@ before anything else moves. Everything later shelters under this pin.
   > `GCSetPosition` is covered by the handshake pins,
   > `GCAddNewItemToZone` and `GCAddInstalledMineToZone` by the encrypter
   > pins.
-  > Remaining non-encrypter GC/CG coverage outstanding.
+  > The **inter-server directions are pinned** — all 30 packets the three
+  > server processes say to each other, on both links: the
+  > gameserver/loginserver UDP link (the four `GL*`, the four `LG*`, the
+  > three `GG*` and `GMServerInfo`) and the gameserver/sharedserver TCP
+  > link (the eight `GS*` and ten `SG*` guild packets), have code-0
+  > goldens, round trips and size/factory-max pins
+  > (`tests/packet_interserver_test.cpp`), with extra goldens for the
+  > absent-introduction branches, the empty guild table and the empty
+  > zone table. The datagram half is pinned through a real `Datagram`,
+  > whose header carries a *measured* body length, so the size field, the
+  > datagram's length and `getPacketSize()` are checked against each
+  > other; the socket hop itself stays in
+  > `tests/datagram_frame_test.cpp`. Seven open write/read disagreements
+  > are stated as tests that flip when fixed (`GGGuildChat::read` and
+  > `GGServerChat::read` guarding the message length with the *sender*
+  > length, so a 255-byte message passes a 128-byte cap; the guild
+  > introduction unbounded in `GSAddGuild`, `GSModifyGuildIntro`,
+  > `SGAddGuildOK` and `SGModifyGuildIntroOK`, whose `> 255` / `> 256`
+  > guards on a `BYTE` can never fire; `SGGuildInfo` and `GuildInfo2`
+  > reading their lists front-first against a `write()` that emits front
+  > to back, so both arrive reversed; the entry count neither side caps
+  > at the 500 guilds the factory max budgets; and
+  > `GuildInfo2::getMaxSize` counting the member-count word twice). Both
+  > ends of every one of the 30 are built from this repository, so a fix
+  > there is free to move bytes.
+  > With CL/LC, the gameserver handshake, the zone population scan and
+  > both inter-server links pinned, the remaining non-encrypter coverage
+  > outstanding is the rest of GC/CG.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed
