@@ -65,6 +65,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
+| R9 | Hand-written length-prefixed string reads left in `src/Core` | 22 | `grep -rhE 'iStream\.read\(m_[A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (a string field is a BYTE length then that many bytes; `de::wire::readString`/`writeString` in `src/Core/WireString.h` carry it with the bounds stated once. Line-based with R8's comment rule, so `WireString.h`'s own example of the shape it replaces does not count itself) |
 
 God-file baselines (R6):
 
@@ -956,92 +957,38 @@ live client.
 Runs as ongoing background work; every extraction is independently mergeable
 and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
 
-- [ ] **3.1 `Outcome<Events, Rejection>` result type.** C++20 template in
+- [x] **3.1 `Outcome<Events, Rejection>` result type.** C++20 template in
   `de-kernel` mirroring sidecar's `kernel.domain.Outcome`: gameplay mutations
   return `Ok(events)` or `Rejected(reason)`; exceptions reserved for
   programming/config errors. New/refactored domain code uses it; the
   `__BEGIN_TRY/__END_CATCH` macros stop being control flow (ratchet R5).
-  > **Status:** in progress (2026-09-04) — `src/Core/Outcome.h` is a
-  > `[[nodiscard]]` `std::variant`-backed kernel type with unit tests
-  > (factories, accessors, throw-on-wrong-side, value/move semantics and
-  > non-default/move-only payloads). Adopted one loginserver decision at a
-  > time, each returning its rejection reason instead of throwing and
-  > leaving the handler to translate it and perform the writes:
-  > `decideCreatePC` (`src/server/loginserver/CharacterCreation.{h,cpp}`,
-  > `tests/character_creation_test.cpp`), `decideSelectPC`
-  > (`src/server/loginserver/CharacterSelection.{h,cpp}`,
-  > `tests/character_selection_test.cpp`), `decideLogin`
-  > (`src/server/loginserver/LoginDecision.{h,cpp}`,
-  > `tests/login_decision_test.cpp`, which also covers the password check,
-  > the IP block and the web-login key beside it), `decideDeletePC`
-  > (`CharacterDeletion.{h,cpp}`, `tests/character_deletion_test.cpp`),
-  > `decideReconnectLogin` (`ReconnectDecision.{h,cpp}`,
-  > `tests/reconnect_decision_test.cpp`) and `decideRegisterPlayer`
-  > (`Registration.{h,cpp}`, `tests/registration_test.cpp`) — every `CL*`
-  > handler whose decision reads account or character state — and
-  > `decideSelectWorld` / `decideSelectServer`
-  > (`WorldSelection.{h,cpp}`, `tests/world_selection_test.cpp`), the two
-  > that refuse on world and server-group status, whose module also carries
-  > the population ladder (`serverGroupStatusFor`, `serverListFor`) that
-  > `CLGetServerListHandler` builds its own list from. The loginserver is
-  > fully adopted: no `CL*` handler decides by throwing any more.
-  > First gameserver adopter: the Exchange service's mutations return
-  > `Outcome<…, ExchangeRejection>` (the typed `ExchangeResult` code plus
-  > its detail), `CGExchangeBuyHandler` formats the wire text, and the
-  > decisions that need only a repository and plain values live in
-  > `src/server/gameserver/exchange/ExchangeDecision.{h,cpp}`
-  > (`tests/exchange_decision_test.cpp`). Second: the guild NPC's
-  > eligibility rules, where `decideGuildJoinAttempt`,
-  > `decideGuildRegistration`, `decideGuildJoinConfirm` and
-  > `decideGuildRequirements` answer with a race-independent
-  > `GuildJoinRejection` that `guildJoinResponseCode` maps to the
-  > `NPC_RESPONSE_*` code of the asking race, or to silence, in
-  > `src/server/gameserver/guild/GuildJoinDecision.{h,cpp}`
-  > (`tests/guild_join_decision_test.cpp`), leaving `CGTryJoinGuild`,
-  > `CGRegistGuild` and `CGJoinGuild` to read the creature and send the
-  > packets. Third: the party invite
-  > protocol, where `decidePartyInvite` answers a `PartyInviteEvents` naming
-  > the packet, its recipient and the party mutation, or a
-  > `PartyInviteRejection` naming the `GCPartyInvite` or `GCPartyError` code
-  > the requester gets, in
-  > `src/server/gameserver/party/PartyInviteDecision.{h,cpp}`
-  > (`tests/party_invite_decision_test.cpp`), leaving `CGPartyInviteHandler`
-  > to read the creatures, send the packets and drive the party managers.
-  > Fourth: the trade prepare protocol, where `decideTradePrepare`
-  > answers a `TradePrepareEvents` naming the `GCTradePrepare` to send,
-  > its recipient and the object id it carries, and whether the trade
-  > record is opened or closed, or a `TradePrepareRejection` naming the
-  > `GCTradeError` code the sender gets and the `cancelTrade` that
-  > precedes it, in
-  > `src/server/gameserver/trade/TradePrepareDecision.{h,cpp}`
-  > (`tests/trade_prepare_decision_test.cpp`), leaving
-  > `CGTradePrepareHandler` to look the receiver up, test the safe zone
-  > and the mounts, and drive the `TradeManager`.
-  > Fifth: the three requests that change an open trade table, where
-  > `decideTradeTableGate` holds the target, race, safe-zone, mount and
-  > open-trade tests all three share, and `decideTradeAddItem`,
-  > `decideTradeRemoveItem` and `decideTradeMoney` answer an ordered
-  > `TradeTableEvents` naming every packet, its recipient and the trade
-  > record mutation beside it, or a `TradeTableRejection` naming the
-  > `GCTradeError` or `GCTradeVerify` code the sender gets and whether the
-  > sender's own trade is dropped first, in
-  > `src/server/gameserver/trade/TradeTableDecision.{h,cpp}`
-  > (`tests/trade_table_decision_test.cpp`), leaving `CGTradeAddItemHandler`,
-  > `CGTradeRemoveItemHandler` and `CGTradeMoneyHandler` to read the
-  > inventory and the item, build the packets and write the gold.
-  > First sharedserver adopter: the guild mutations a game server asks
-  > for, where `decideAddGuild`, `decideGuildActivation`,
-  > `decideExpelGuildMember`, `decideQuitGuild`, `decideGuildBreakup` and
-  > `decideModifyGuildMember` answer an ordered `SharedGuildEvents` naming
-  > every repository write, roster and guild mutation and `SG*OK` packet
-  > beside it, or a `SharedGuildRejection` naming why the sharedserver
-  > answered with silence, in
-  > `src/server/sharedserver/GuildDecision.{h,cpp}`
-  > (`tests/shared_guild_decision_test.cpp`), leaving `GSAddGuildHandler`,
-  > `GSAddGuildMemberHandler`, `GSExpelGuildMemberHandler`,
-  > `GSQuitGuildHandler` and `GSModifyGuildMemberHandler` to read the guild
-  > tables and run the steps through `GuildStepRunner`.
-  > Wider adoption pending.
+  > **Status:** done (2026-09-09). `src/Core/Outcome.h` is a `[[nodiscard]]`
+  > `std::variant`-backed kernel type with unit tests. The shape every
+  > adopter settled on: a `decide*` function takes a repository or topology
+  > interface plus plain values, answers the events to perform — rows to
+  > write, packets with their recipients, record mutations, in order — or
+  > a typed rejection the handler maps to a wire code or to silence; the
+  > handler gathers the facts, calls the decision and performs the events,
+  > so every packet and every write keeps the old order and bytes. Each
+  > adopter has a fake in `tests/support/` and a self-contained block at the
+  > end of `tests/CMakeLists.txt`. Production callers, by process:
+  > loginserver — every `CL*` decision: `CharacterCreation`,
+  > `CharacterSelection`, `LoginDecision`, `CharacterDeletion`,
+  > `ReconnectDecision`, `Registration`, `WorldSelection` (all under
+  > `src/server/loginserver/`); no `CL*` handler decides by throwing.
+  > gameserver — `exchange/ExchangeDecision` + `ExchangeService`,
+  > `guild/GuildJoinDecision`, `party/PartyInviteDecision`,
+  > `trade/TradePrepareDecision`, `trade/TradeTableDecision` (all under
+  > `src/server/gameserver/`). sharedserver — `GuildDecision` +
+  > `GuildStepRunner` for the five guild-mutation handlers. Assessed and
+  > deliberately not adopted, with the reason at the site: `TradeManager::canTrade`
+  > / `processTrade` and `CGTradeFinish` (a `goto` and an early return
+  > interleave with the inventory simulation, so any split changes which
+  > error code some inputs get), `CGPartyLeave` (its rules live in
+  > `GlobalPartyManager`; the handler has nothing to decide),
+  > `GSModifyGuildIntro` / `GSGuildMemberLogOn` (a lookup and one write).
+  > Further decisions adopt the same shape as they are touched; the type
+  > and the convention are complete.
   - Owner: R5 ratchet + convention grep test (no new `__BEGIN_TRY` in
     de-core sources).
 

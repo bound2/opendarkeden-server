@@ -228,46 +228,27 @@ The value is that new/refactored code can use a stronger vocabulary at the
 places where this codebase currently relies on conventions, raw buffer pairs,
 macros and polling loops.
 
-The project now requires C++20. The first production use is cooperative zone
-worker shutdown; new facilities should still be adopted at focused boundaries
-instead of through tree-wide style conversions. The `std::variant`-backed
-`Outcome<Events, Rejection>` is adopted the same way, one decision at a time:
-its production callers are every one of the loginserver's `CL*` decisions —
-`decideCreatePC`, `decideSelectPC`, `decideLogin`, `decideDeletePC`,
-`decideReconnectLogin`, `decideRegisterPlayer`, `decideSelectWorld` and
-`decideSelectServer` — which return the rows to write, or the character to
-route, or the world and group to enter, or the reason the request was
-refused, instead of throwing an exception the same handler catches, and the
-gameserver's Exchange service, whose mutations answer with the listing, the
-purchase or the typed reason they were refused instead of a
-`pair<bool, string>` whose string is already English. The gameserver's guild
-NPC follows it too: the join, registration and confirmation decisions answer
-with a race-independent rejection reason that the handlers map to the
-response code of the asking race, or to silence. So does its party invite protocol,
-whose decision answers the packet to send, its recipient and the party
-mutation to perform, or the refusal code the requester gets.
-Its trade prepare protocol follows the same shape: the decision answers
-the `GCTradePrepare` to send, who gets it and the trade record to open or
-close, or the `GCTradeError` code the sender gets and the trade cancelled
-before it.
-Its three trade table requests - an item put down, an item taken back, gold
-staked or reclaimed - share one gate decision and answer an ordered event list
-naming every packet, its recipient and the trade record mutation beside it, or
-the refusal code the sender gets.
-The sharedserver has its first adopter too: the guild mutations a game
-server asks it for - founding a guild, taking a member in, expelling one,
-quitting, changing a rank - answer an ordered event list naming every
-database write, guild-table mutation and `SG*OK` packet beside it, or the
-reason the request was answered with silence.
+The project now requires C++20. The first production use was cooperative zone
+worker shutdown; new facilities are adopted at focused boundaries instead of
+through tree-wide style conversions. The `std::variant`-backed
+`Outcome<Events, Rejection>` followed the same rule, one decision at a time,
+and now has production callers in all three processes: every loginserver
+`CL*` decision (create, select, login, delete, reconnect, register, world and
+server selection), the gameserver's Exchange service, guild NPC, party invite,
+trade prepare and trade table protocols, and the sharedserver's guild
+mutations. Each answers the events to perform — the rows to write, the packet
+to send and its recipient, the record to open or close — or the typed reason
+the request was refused, and the handler performs the writes in the old
+order. The full list with file paths is task 3.1 in `docs/RESTRUCTURING.md`.
 
 | Priority | C++20 facility | Project seam | Main benefit |
 |---|---|---|---|
 | P0 | `std::jthread`, `std::stop_token`, atomic wait/notify | `ManagedThread` (every worker in all three servers) | Cooperative shutdown and owned joins instead of unsupported `stop()`, `while (true)` and sleep polling — done |
-| P0 | `std::span`, concepts, `std::endian`, `std::bit_cast` | `SocketInputStream`, `SocketOutputStream`, packet codecs | Bound buffer lengths to their data and reject unsafe wire types at compile time |
+| P0 | `std::span`, concepts, `std::endian`, `std::bit_cast` | `SocketInputStream`, `SocketOutputStream`, packet codecs | Bound buffer lengths to their data and reject unsafe wire types at compile time — done for the streams, the frame and the string fields; the field-by-field codecs stay by decision |
 | P1 | `constexpr`/`consteval` metadata and concepts | `PacketMeta.h`, every packet factory, `PacketFactoryManager` | Detect duplicate IDs, invalid sizes and incomplete registrations during compilation — done |
-| P1 | `std::source_location` | `Assert.h`, `Exception.h`, DB/error macros | Preserve call-site diagnostics without compiler-specific macros or repeated file/line plumbing |
-| P1 | `std::latch`, `std::barrier`, `std::counting_semaphore` | thread startup phases and bounded work queues | Replace timing assumptions with explicit readiness and back-pressure — the queue half is done as the zone-group mailbox; see below |
-| P2 | ranges, views, `contains`, `erase_if` | manager/registry traversal | Reduce hand-written iterator and double-lookup mistakes once ownership and lock boundaries are explicit |
+| P1 | `std::source_location` | `Assert.h`, `Exception.h`, DB/error macros | Preserve call-site diagnostics without compiler-specific macros or repeated file/line plumbing — done |
+| P1 | `std::latch`, `std::barrier`, `std::counting_semaphore` | thread startup phases and bounded work queues | Replace timing assumptions with explicit readiness and back-pressure — the queue half is done as the zone-group mailbox; the readiness half is retired, no start path waits on a sleep |
+| P2 | ranges, views, `contains`, `erase_if` | manager/registry traversal | Reduce hand-written iterator and double-lookup mistakes once ownership and lock boundaries are explicit — a standing convention, applied where the guild tables were made lock-safe |
 
 ### Structured thread lifetime and cancellation
 
@@ -463,11 +444,19 @@ contiguous region and in each half of a wrapped one, grows the buffer between
 a cut and the flush that finishes it, and checks each time that the receiving
 stream decrypts back to what was written.
 
-What remains: the codecs above the stream still read and write field by
-field with no declarative layout; packet sizes are still hand-maintained, and
-string fields still carry hand-written length prefixes, which is why
-`CGExchangeBuy` needs a comment telling the next author not to pass a
-`std::string` to `write` — something the concept now enforces.
+The codecs above the stream read and write field by field, and that is the
+decision rather than a gap: the client repository keeps a hand-written copy of
+every codec, so a declarative layout on the server side would describe each
+field twice without moving a byte (see "Features that are not first moves").
+What the rounds closed instead is what made the hand-written shape unsafe.
+The wire carries the measured body length (`writePacket`, `Datagram::write`),
+so `getPacketSize()` only budgets buffers, and every declared size is pinned
+against the bytes `write()` emits by the golden suites. String fields carry a
+length prefix through `de::wire::readString`/`writeString`
+(`src/Core/WireString.h`), which state a field's minimum and maximum once and
+refuse outside them at the same points the hand-written sequences did; new or
+touched string fields use it, and the shrink-only ratchet R9 counts the legacy
+`read(m_X, szX)` sequences that remain.
 
 ### Compile-time packet metadata
 
@@ -548,8 +537,12 @@ production builds, not in `make dev-test`.
 
 This complements rather than replaces the golden tests: compile-time checks
 prove internal consistency, while goldens prove compatibility with the client
-and the encrypted wire format. What is still open from the original item is
-fixed/minimum size: the factories only know a maximum.
+and the encrypted wire format. The original item's other half, a fixed or
+minimum size per packet, is retired: the frame carries the measured body
+length, a reader that runs out of bytes refuses with
+`InsufficientDataException` (pinned by the short-stream tests), and every
+declared size is pinned against the bytes `write()` emits, so a minimum the
+factories would state by hand adds nothing the wire does not already enforce.
 
 ### Diagnostics without location macros
 
@@ -642,9 +635,10 @@ nothing else, so no lock order is created. (`std::atomic<std::shared_ptr>`
 would be the C++20 spelling; the pinned libc++ 21 does not ship it, so the
 slot is a mutex-guarded pointer.) `DynamicZoneGroup` serialises instance
 selection/creation under its own mutex, and the instance status is a
-`std::atomic<int>`. Still open on this row is readiness: worker start-up has
-no `std::latch` handshake, because after the jthread work nothing waits on a
-sleep for it.
+`std::atomic<int>`. The readiness half of this row is retired: no start path in
+any of the three processes waits on a sleep for a worker (the pool, the
+managers and the three `main`s were checked), so there is no seam for a
+`std::latch` to replace.
 
 The 463 critical sections in `src/` are now RAII. `__ENTER_CRITICAL_SECTION(x)`
 declares a scoped `CriticalSection` guard (`src/Core/Exception.h`) over any
@@ -664,7 +658,9 @@ is now a double unlock and is forbidden; release early through
 build on a hand-written unlock or a
 `__LEAVE_CRITICAL_SECTION` whose argument does not match its `__ENTER`'s. This
 removes a lock-leak class; it does not change which thread owns which state, so
-the ownership violations listed in CLAUDE.md remain open.
+the ownership violations CLAUDE.md listed have since been closed one by one;
+its "Known violations" list keeps every entry struck through with the fix
+beside it.
 
 ### Safer collection traversal
 
@@ -690,3 +686,22 @@ lifetime bug.
 - `std::format` is useful for typed diagnostics, but changing the logging
   surface is lower value than thread and packet safety and must be benchmarked
   on hot paths.
+
+- Declarative packet layouts (a per-packet field table the codec is generated
+  from) would be a protocol migration, not a language cleanup: the client
+  repository keeps a hand-written copy of each of the 466 codecs, so a layout
+  DSL on the server side alone changes nothing on the wire and doubles the
+  places a field is described. The goldens, the measured-length frame and
+  `WireString.h` are the pin that makes the hand-written codecs safe to keep.
+
+### Status
+
+The plan above is complete as of 2026-09-09. Every row of the priority table
+is either done or retired with its reason written beside it, and the
+`Outcome` adoption (task 3.1 in `docs/RESTRUCTURING.md`) has production
+callers in all three server processes. New code keeps the conventions the
+rows settled — `ManagedThread` for every worker, `de::WireScalar` and
+`de::wire::readString`/`writeString` at the wire, `constexpr` factory
+metadata, `std::source_location` diagnostics, `de::Mailbox`/`de::Snapshot` for
+cross-thread state, `Outcome` for decisions — and adopts further C++20
+facilities at focused boundaries, never as tree-wide style conversions.

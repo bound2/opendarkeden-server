@@ -450,7 +450,7 @@ the main gateways, not a full guarantee.
 - Players enter a zone group through the `ZonePlayerManager` under its
   lock; the zone thread integrates them on its next tick.
 
-### Known violations (documented, not yet fixed)
+### Known violations (each closed; the entries stay for the fix beside them)
 
 - ~~SG/LG/GG handlers **mutate** creature state holding only the `PCFinder`
   lock~~ — **fixed** for the creature side: the six guild handlers and
