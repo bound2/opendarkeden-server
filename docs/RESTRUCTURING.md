@@ -219,9 +219,44 @@ before anything else moves. Everything later shelters under this pin.
   > budget and not a field on the wire; and `GMServerInfo::read`
   > replaces the zone table it already holds instead of appending to
   > it). No golden changed.
-  > With CL/LC, the gameserver handshake, the zone population scan and
-  > both inter-server links pinned, the remaining non-encrypter coverage
-  > outstanding is the rest of GC/CG.
+  > The **social protocols are pinned** — the 45 party, guild and trade
+  > packets a client and a game server exchange: the ten party packets,
+  > the twenty-three registered guild packets and the twelve
+  > face-to-face trade packets have code-0 goldens, loopback round trips
+  > and size/factory-max pins (`tests/packet_party_test.cpp`,
+  > `tests/packet_guild_test.cpp`, `tests/packet_trade_test.cpp`), with
+  > extra goldens for the absent-introduction branches, the
+  > guild-channel chat shape, the parameterless NPC response, the empty
+  > rosters, tables and offer lists, and the traded item with neither an
+  > option nor a sub-item. `CGExpelGuildMember`, `CGQuitGuild` and
+  > `GCShowGuildRegist` are excluded: no server registers a factory for
+  > them, so there is no wire contract to pin; the four `Exchange`
+  > packets are covered by `tests/packet_exchange_test.cpp`. Thirteen
+  > open write/read disagreements are stated as tests that flip when
+  > fixed (`GuildInfo::getSize` counting neither the expiry date nor the
+  > length byte in front of it, so `GCActiveGuildList` declares a body
+  > shorter than the one it sends; `GCActiveGuildList` and
+  > `GCGuildMemberList` reading their lists front-first against a
+  > front-to-back `write()`, so both tables arrive reversed;
+  > `GCActiveGuildList::getListNum` narrowing the wire's WORD count to a
+  > BYTE; the guild roster, the union offer list, the party roster and
+  > `GCTradeAddItem`'s two lists, none of which is capped against the
+  > factory max, with `GuildMemberInfo::getMaxSize` counting one
+  > ServerID for a whole 220-member table and `GCUnionOfferList`'s max
+  > budgeting no count byte at all; the six unbounded guild and member
+  > introductions, whose `> 255` guards on a BYTE never fire; the six
+  > unbounded party names and chat messages; `GCGuildChat`'s unbounded
+  > sending guild name next to its bounded sender and message;
+  > `GCGuildResponse::getCode` and `GCNPCResponse::getCode` returning a
+  > BYTE of a WORD field; and `GCTradeAddItem`'s sub-item count, which
+  > `setListNum` sets independently of the records `write()` emits).
+  > `GCModifyGuildMemberInfo` and `GCOtherGuildName` are pinned
+  > write-side only: both `read()`s test an uninitialised guild-name
+  > length against 30 and against 0 before reading the length byte, so
+  > neither can be round-tripped.
+  > With CL/LC, the gameserver handshake, the zone population scan, both
+  > inter-server links and the social protocols pinned, the remaining
+  > non-encrypter coverage outstanding is the rest of GC/CG.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed

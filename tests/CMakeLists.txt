@@ -38,9 +38,12 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_exchange_test.cpp
     packet_field_bounds_test.cpp
     packet_gameserver_handshake_test.cpp
+    packet_guild_test.cpp
     packet_interserver_test.cpp
     packet_login_test.cpp
     packet_meta_test.cpp
+    packet_party_test.cpp
+    packet_trade_test.cpp
     packet_zone_scan_test.cpp
     wire_layout_test.cpp
     wire_types_test.cpp
