@@ -365,34 +365,16 @@ void expectEqual(GCAddInstalledMineToZone& a, GCAddInstalledMineToZone& b) {
 }
 ENCRYPTER_PACKET_TESTS(GCAddInstalledMineToZone)
 
-// GCDropItemToZone appends a pet ObjectID after the base layout. Its
-// read() also consumes a leading BYTE `flag` that write() no longer emits
-// (the write is commented out, and getPacketSize() does not count it), so
-// the server-side read() is out of step with what the server sends. The
-// server only ever WRITES this GC packet, so the wire contract is write();
-// that is what the golden pins. No loopback round-trip: it cannot pass
-// until read() is fixed or deleted.
+// GCDropItemToZone appends a pet ObjectID after the base layout.
 void fill(GCDropItemToZone& p) {
     fillItemBase(p);
     p.setDropPetOID(0x47586970);
 }
-
-ENCRYPTER_PACKET_GOLDENS(GCDropItemToZone)
-
-// State the asymmetry as a fact so its eventual fix is a deliberate,
-// visible change (this test flips to failing, and the round-trip can then
-// be added) rather than a silent one.
-TEST(GCDropItemToZoneTest, readStillExpectsALeadingFlagByteThatWriteDoesNotEmit) {
-    GCDropItemToZone packet;
-    fill(packet);
-    std::vector<unsigned char> body = writeBody(packet, 0);
-    EXPECT_EQ(packet.getPacketSize(), body.size()) << "write() and getPacketSize() agree";
-
-    GCDropItemToZone dst;
-    EXPECT_THROW(roundTrip(packet, dst, 0), Throwable)
-        << "read() now consumes exactly what write() emits — add GCDropItemToZone to "
-           "ENCRYPTER_PACKET_TESTS and drop this test";
+void expectEqual(GCDropItemToZone& a, GCDropItemToZone& b) {
+    expectItemBaseEqual(a, b);
+    EXPECT_EQ(a.getDropPetOID(), b.getDropPetOID());
 }
+ENCRYPTER_PACKET_TESTS(GCDropItemToZone)
 
 //////////////////////////////////////////////////////////////////////
 // Single-field encrypter packets - no shuffle, but the byte transform

@@ -11,6 +11,143 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Social protocol write/read disagreements (2026-09-09)
+
+The thirteen findings task 1.2 stated as flip-tests in
+`tests/packet_party_test.cpp`, `tests/packet_guild_test.cpp` and
+`tests/packet_trade_test.cpp`, plus the two readers its review reported
+could not be round-tripped. These packets are client-facing, so `write()`
+and `getPacketSize()` are the contract: every fix is a refusal, a cap at
+a width the factory max already budgets, a size-accounting correction or
+a read-side correction to what `write()` emits. No golden changed; the
+guild roster and union offer maxima below are the set's only
+`tests/wire-layout.txt` movements.
+
+- **`GuildInfo::getSize()` omitted the expiry date.** `write()` emits a
+  length byte and then the date; `getSize()` counted neither, so
+  `GCActiveGuildList` declared a body a byte plus the date shorter than
+  the one it sends, for every guild in the table, and `writePacket()`
+  put that short length on the wire ahead of the longer body.
+  `getMaxSize()` already budgets `szBYTE + 11` for the date, so only the
+  size was wrong and no maximum moves.
+  > **Status:** fixed (wire/social-disagreements)
+
+- **Four client-facing lists arrived reversed.**
+  `GCActiveGuildList::read()`, `GCGuildMemberList::read()`,
+  `GCWaitGuildList::read()` and `GCShowWaitGuildInfo::read()` pushed each
+  record they parsed to the front of a list their `write()` emits front
+  to back. All four push to the back now. The two guild tables are drawn
+  as a list the player picks from, the roster is drawn the same way, and
+  `GCShowWaitGuildInfo`'s founding members are a name list — order is
+  what the player sees. Read side only; the wire does not move.
+  > **Status:** fixed (wire/social-disagreements)
+
+- **The guild-table count was narrowed to a `BYTE` by its accessor.**
+  `GCActiveGuildList::getListNum()` and `GCWaitGuildList::getListNum()`
+  returned a `BYTE` of a list whose count goes on the wire as a `WORD`
+  and whose factory max budgets 5000 guilds, so a caller asking how many
+  guilds the packet holds was told zero at 256. Both return the `WORD`.
+  > **Status:** fixed (wire/social-disagreements)
+
+- **Four lists were capped nowhere.** `GCGuildMemberList`,
+  `GCUnionOfferList`, `GCPartyJoined` and `GCTradeAddItem`'s option and
+  sub-item lists each emitted every element they held against a factory
+  max that budgets a fixed number, so the body outgrew the read buffer
+  the receiver sizes from that max. Each refuses the entry past the
+  budget in `addListElement`, in `write()` and in `read()`, and destroys
+  a refused owned record, the way `LCWorldList` does with
+  `WorldInfo::kMaxCount`. Two of the maxima were wrong as well:
+  `GuildMemberInfo::getMaxSize()` was a whole 220-member table that
+  counted one `ServerID` for all of them and left out the roster's own
+  count byte, and `GCUnionOfferList`'s max was exactly twenty offers with
+  no room for the count byte in front of them. The record maximum is one
+  record now and each packet multiplies by its own `kMaxCount`, which
+  moves two lines in `tests/wire-layout.txt`: `GCGuildMemberList`
+  5064 → 5502 and `GCUnionOfferList` 1180 → 1181. Both are read buffers
+  the server budgets for a body it receives, not fields on the wire. Of
+  the fill sites, two can reach a refusal: `Guild::makeMemberInfo()`
+  walks the guild's member map and nothing limits a guild to 220 members,
+  and `GuildUnionOfferManager::makeOfferList()` reads its offers from the
+  database, so a union with more than twenty outstanding offers throws
+  out of the list request. The party roster cannot —
+  `PARTY_MAX_SIZE` is the same six — and the belt and armsband pocket
+  counts in the item data stop at the eight sub-items budgeted.
+  > **Status:** fixed (wire/social-disagreements)
+
+- **`GCTradeAddItem`'s sub-item count was set independently of the
+  records written.** `setListNum()` wrote a member that
+  `addListElement()` left alone; `write()` put that member on the wire
+  and then emitted every record the list held, and `getPacketSize()`
+  sized the records from the member. A packet built without a matching
+  `setListNum()` declared one length, announced a second count and
+  emitted a third number of records, and the receiver read the rest of
+  the body as the next packet's header. The count is the list now and
+  `setListNum` is gone, the shape `InventoryInfo`, `GearInfo`,
+  `ExtraInfo` and `RideMotorcycleInfo` already have. Both callers — the
+  belt and the armsband branches of
+  `CGTradeAddItemHandler::makeGCTradeAddItemPacket()` — set exactly the
+  number of records they had just added, so no count on the wire changes.
+  > **Status:** fixed (wire/social-disagreements)
+
+- **The protocol's strings were bounded on neither side.** The guild and
+  member introductions in `CGJoinGuild`, `CGModifyGuildIntro`,
+  `CGModifyGuildMemberIntro`, `CGRegistGuild`, `GCShowGuildInfo`,
+  `GCShowGuildMemberInfo` and `GCShowWaitGuildInfo` each derived a `BYTE`
+  length from the string and emitted the string whole; the guards that
+  looked like a cap compared a `BYTE` against 255, which no `BYTE` can
+  exceed. They are cut to `GUILD_INTRO_MAX_LENGTH` in the setter and
+  refused past it in `write()` — the same width and the same shape as
+  the inter-server introductions, since every one of these budgets 255
+  or 256 for it. The party protocol's names and chat messages did the
+  same against budgets of 10, 20 and 128: the names are refused past
+  their width, and when empty where the packet needs one, while the
+  messages are cut to 128 in the setter and refused when empty, the way
+  `GCGuildChat` already refuses its own. `GCGuildChat`'s sending guild
+  name is refused empty or past `GUILD_NAME_MAX_LENGTH`, next to the
+  sender and the message it already bounded. A valid value is untouched,
+  so the wire does not move.
+  > **Status:** fixed (wire/social-disagreements)
+
+- **Two result-code accessors halved a `WORD`.**
+  `GCGuildResponse::getCode()` and `GCNPCResponse::getCode()` returned a
+  `BYTE` of a member and a wire field that are both `WORD`, so a code
+  past 255 reached the wire whole and the accessor whole halved.
+  `GCNPCResponse` already declares 139 dialogue codes. Both return the
+  `WORD`; no server source calls either accessor, so nothing else moves.
+  > **Status:** fixed (wire/social-disagreements)
+
+- **Two readers tested an uninitialised length byte.**
+  `GCModifyGuildMemberInfo::read()` and `GCOtherGuildName::read()`
+  declared a `BYTE` for the guild-name length, tested it against 30 and
+  against 0, and only then read the length the stream carries. So the
+  read consumed a length that was never checked when the indeterminate
+  value happened to be non-zero, and read no length byte at all when it
+  happened to be zero, leaving that byte in the stream and taking the
+  rank from it. Both read the length first and check it after, so both
+  packets round trip.
+  > **Status:** fixed (wire/social-disagreements)
+
+- **Five more packets read a leading flag byte `write()` does not
+  emit.** `GCCreatureDied`, `GCDropItemToZone`, `GCMove`, `GCNPCSay` and
+  `GCSkillFailed2` each carry a commented-out `oStream.write((BYTE)48)`
+  and a `read()` that consumes the byte it would have produced — the
+  shape `GCAddEffect` and `GCAddMonsterFromBurrowing` had. The reader
+  took the first byte of the object id as a flag and shifted every field
+  after it. All five start at the first field `write()` emits, and the
+  commented-out writes are gone. `GCDropItemToZone` round trips through
+  `tests/packet_encrypter_test.cpp` at every encrypt code now instead of
+  being pinned write-side only; its goldens are unchanged.
+  > **Status:** fixed (wire/social-disagreements)
+
+- **`toString()` indexed `Dir2String[8]` unchecked.** `GCAddMonster`,
+  `GCAddMonsterCorpse`, `GCAddMonsterFromBurrowing`,
+  `GCAddMonsterFromTransformation` and `PCVampireInfo3` print a
+  direction that arrives off the wire, so a value outside the eight read
+  past the end of the array. All five go through `dir2String()`, which
+  prints the number instead. Debug strings only; nothing on the wire
+  moves.
+  > **Status:** fixed (wire/social-disagreements)
+
 ## Inter-server link write/read disagreements (2026-09-09)
 
 The findings task 1.2 stated as flip-tests in

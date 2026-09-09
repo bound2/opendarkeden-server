@@ -13,6 +13,11 @@ void CGPartyLeave::read(SocketInputStream& iStream)
 
     BYTE name_length = 0;
     iStream.read(name_length);
+
+    // An empty name asks to leave the party rather than to expel a member.
+    if (name_length > 10)
+        throw InvalidProtocolException("too long target name length");
+
     if (name_length > 0) {
         iStream.read(m_TargetName, name_length);
     }
@@ -24,6 +29,9 @@ void CGPartyLeave::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_TargetName.size() > 10)
+        throw InvalidProtocolException("too long target name length");
 
     BYTE name_length = m_TargetName.size();
     oStream.write(name_length);

@@ -44,7 +44,7 @@ void GCActiveGuildList::read(SocketInputStream& iStream) {
     for (int i = 0; i < ListNum; i++) {
         GuildInfo* pGuildInfo = new GuildInfo();
         pGuildInfo->read(iStream);
-        m_GuildInfoList.push_front(pGuildInfo);
+        m_GuildInfoList.push_back(pGuildInfo);
     }
 
     __END_CATCH

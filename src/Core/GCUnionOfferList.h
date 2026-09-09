@@ -40,6 +40,10 @@ public:
                szDWORD;              // Date
     }
 
+    // The list packet's factory max budgets this many offers;
+    // GCUnionOfferList refuses one more.
+    static constexpr uint kMaxCount = 20;
+
     static constexpr PacketSize_t getMaxSize() {
         return szGuildID + // Guild ID
                szBYTE +    // Guild Type
@@ -188,7 +192,14 @@ public:
         return m_UnionOfferList;
     }
 
+    // Takes ownership. Refuses an offer past the count the factory max
+    // budgets, so getPacketSize() can never outgrow the read buffer the
+    // receiver sizes from it; the refused offer is destroyed here.
     void addUnionOfferList(SingleGuildUnionOffer* pUnionOffer) {
+        if (m_UnionOfferList.size() >= SingleGuildUnionOffer::kMaxCount) {
+            SAFE_DELETE(pUnionOffer);
+            throw InvalidProtocolException("too many union offers");
+        }
         m_UnionOfferList.push_back(pUnionOffer);
     }
 
@@ -209,7 +220,8 @@ class GCUnionOfferListFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_UNION_OFFER_LIST;
     static constexpr std::string_view kName = "GCUnionOfferList";
-    static constexpr PacketSize_t kMaxSize{SingleGuildUnionOffer::getMaxSize() * 20};
+    static constexpr PacketSize_t kMaxSize{szBYTE + // offer count
+                                           SingleGuildUnionOffer::getMaxSize() * SingleGuildUnionOffer::kMaxCount};
 
     // create packet
     Packet* createPacket() override {

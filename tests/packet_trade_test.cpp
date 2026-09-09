@@ -84,21 +84,12 @@
 //               every byte the width allows, except the code bytes,
 //               which hold a handful of small enumerators.
 //
-//               Open write/read disagreements are stated as tests that
-//               fail once they are fixed:
-//
-//               - GCTradeAddItem keeps the sub-item count in a member
-//                 setListNum() writes and addListElement() does not
-//                 touch. write() puts that member on the wire and then
-//                 emits the records the list actually holds, and
-//                 getPacketSize() sizes the records from the member, so
-//                 a packet built without the matching setListNum()
-//                 declares one length, announces a second count and
-//                 emits a third number of records.
-//               - neither of GCTradeAddItem's two lists is capped. The
-//                 factory max budgets 255 options and eight sub-items,
-//                 and a full option list with a ninth sub-item already
-//                 outgrows the read buffer the receiver sizes from it.
+//               Two pins cover GCTradeAddItem's lists, in
+//               theSubItemCountIsTheListItself and
+//               listsPastTheFactoryBudgetAreRefused: the sub-item count
+//               on the wire is the list itself, and both lists stop at
+//               the 255 options and eight sub-items the factory max
+//               budgets.
 //
 //               Not expressible as a test: every packet in this file
 //               leaves its scalar members uninitialised except
@@ -379,16 +370,12 @@ void fill(GCTradeAddItem& packet) {
 
     packet.addListElement(makeSubItemInfo(0));
     packet.addListElement(makeSubItemInfo(1));
-    // addListElement() does not maintain the count write() puts on the
-    // wire, so the fixture sets it to match the list it just built.
-    packet.setListNum(2);
 }
 
 // Neither list: the item was handed over with no option and nothing
 // slotted into it.
 void fillBare(GCTradeAddItem& packet) {
     fillTradeItem(packet);
-    packet.setListNum(0);
 }
 
 void expectSubItemEqual(SubItemInfo* a, SubItemInfo* b, int index) {
@@ -434,57 +421,49 @@ TRADE_PACKET_TESTS(GCTradeAddItem)
 TRADE_PACKET_VARIANT(GCTradeAddItem, bare, fillBare)
 
 //////////////////////////////////////////////////////////////////////
-// The open disagreements.
+// The counts and the bounds.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCTradeAddItem's sub-item count is a member setListNum() writes, and
-// addListElement() leaves it alone. write() puts that member on the
-// wire and then emits every record the list holds, and getPacketSize()
-// sizes the records from the member, so a packet built without a
-// matching setListNum() declares a length that is short by a record,
-// announces a count of zero and then emits the records anyway. The
-// receiver stops after the count it was given and reads the rest of the
-// body as the next packet's header. This is the shape InventoryInfo,
-// GearInfo, ExtraInfo and RideMotorcycleInfo no longer have.
-TEST(GCTradeAddItemTest, theSubItemCountIsSetIndependentlyOfTheRecordsWritten) {
+// The sub-item count on the wire is the list itself, so the size the
+// packet declares and the count it announces move with the records
+// write() emits. This is the shape InventoryInfo, GearInfo, ExtraInfo
+// and RideMotorcycleInfo already have.
+TEST(GCTradeAddItemTest, theSubItemCountIsTheListItself) {
     GCTradeAddItem packet;
     fillTradeItem(packet);
+
+    const PacketSize_t empty = packet.getPacketSize();
+    EXPECT_EQ(0, (int)packet.getListNum());
+
     packet.addListElement(makeSubItemInfo(0));
     packet.addListElement(makeSubItemInfo(1));
 
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-
-    EXPECT_EQ(0, (int)packet.getListNum())
-        << "GCTradeAddItem now derives its sub-item count from the list — delete this test";
-    EXPECT_LT((size_t)packet.getPacketSize(), body.size())
-        << "the declared size no longer omits the records write() emits — delete this test";
-    EXPECT_EQ((size_t)packet.getPacketSize() + 2 * SubItemInfo::getSize(), body.size());
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// Neither of GCTradeAddItem's lists is capped. The factory max budgets
-// 255 options and eight sub-items; a full option list with a ninth
-// sub-item is written rather than refused, and the body outgrows the
-// read buffer the receiver sizes from that max.
-TEST(GCTradeAddItemTest, listsPastTheFactoryBudgetAreWrittenRatherThanRefused) {
-    const int kOptions = 255;
-    const int kSubItems = 9;
-
-    GCTradeAddItem packet;
-    fillTradeItem(packet);
-    for (int i = 0; i < kOptions; i++)
-        packet.addOptionType((OptionType_t)(0x80 + (i % 0x80)));
-    for (int i = 0; i < kSubItems; i++)
-        packet.addListElement(makeSubItemInfo(i));
-    packet.setListNum(kSubItems);
+    EXPECT_EQ(2, (int)packet.getListNum());
+    EXPECT_EQ(empty + 2 * SubItemInfo::getSize(), packet.getPacketSize());
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+}
+
+// Both lists stop where the factory max does: 255 options and the eight
+// sub-items a belt or an armsband holds.
+TEST(GCTradeAddItemTest, listsPastTheFactoryBudgetAreRefused) {
+    GCTradeAddItem packet;
+    fillTradeItem(packet);
+    for (uint i = 0; i < GCTradeAddItem::kMaxOptionTypes; i++)
+        packet.addOptionType((OptionType_t)(0x80 + (i % 0x80)));
+    for (uint i = 0; i < GCTradeAddItem::kMaxSubItems; i++)
+        packet.addListElement(makeSubItemInfo(i));
 
     GCTradeAddItemFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCTradeAddItem now caps its lists at the widths its factory max budgets — delete this test";
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize())
+        << "a full option list and a full belt are exactly the factory max";
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    EXPECT_THROW(packet.addOptionType((OptionType_t)0x99), InvalidProtocolException);
+    EXPECT_THROW(packet.addListElement(makeSubItemInfo(9)), InvalidProtocolException);
+    EXPECT_EQ((int)GCTradeAddItem::kMaxSubItems, (int)packet.getListNum());
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize());
 }
 
 } // namespace

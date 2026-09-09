@@ -45,6 +45,8 @@ void CGRegistGuild::write(SocketOutputStream& oStream) const
         throw InvalidProtocolException("szGuildName == 0 ");
     if (szGuildName > 30)
         throw InvalidProtocolException("szGuildName > 30");
+    if (m_GuildIntro.size() > GUILD_INTRO_MAX_LENGTH)
+        throw InvalidProtocolException("too long szGuildIntro length");
 
     oStream.write(szGuildName);
     oStream.write(m_GuildName);

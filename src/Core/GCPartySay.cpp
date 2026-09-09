@@ -20,10 +20,26 @@ void GCPartySay::read(SocketInputStream& iStream)
 
     BYTE szName;
     iStream.read(szName);
+
+    // The factory max budgets twenty characters for the sender's name and
+    // 128 for the message.
+    if (szName == 0)
+        throw InvalidProtocolException("szName == 0");
+    if (szName > 20)
+        throw InvalidProtocolException("too long szName length");
+
     iStream.read(m_Name, szName);
     iStream.read(m_Color);
-    iStream.read(szName);
-    iStream.read(m_Message, szName);
+
+    BYTE szMessage;
+    iStream.read(szMessage);
+
+    if (szMessage == 0)
+        throw InvalidProtocolException("szMessage == 0");
+    if (szMessage > 128)
+        throw InvalidProtocolException("too long message length");
+
+    iStream.read(m_Message, szMessage);
 
     __END_CATCH
 }
@@ -36,6 +52,15 @@ void GCPartySay::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_Name.empty())
+        throw InvalidProtocolException("szName == 0");
+    if (m_Name.size() > 20)
+        throw InvalidProtocolException("too long szName length");
+    if (m_Message.empty())
+        throw InvalidProtocolException("szMessage == 0");
+    if (m_Message.size() > 128)
+        throw InvalidProtocolException("too long message length");
 
     BYTE szName = m_Name.size();
     oStream.write(szName);

@@ -11,8 +11,6 @@ void GCNPCSay::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE flag;
-    iStream.read(flag);
     iStream.read(m_ObjectID);
     iStream.read(m_ScriptID);
     iStream.read(m_SubjectID);
@@ -25,7 +23,6 @@ void GCNPCSay::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    // oStream.write((BYTE)48);
     oStream.write(m_ObjectID);
     oStream.write(m_ScriptID);
     oStream.write(m_SubjectID);

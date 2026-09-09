@@ -219,9 +219,9 @@ before anything else moves. Everything later shelters under this pin.
   > budget and not a field on the wire; and `GMServerInfo::read`
   > replaces the zone table it already holds instead of appending to
   > it). No golden changed.
-  > The **social protocols are pinned** — the 45 party, guild and trade
+  > The **social protocols are pinned** — the 47 party, guild and trade
   > packets a client and a game server exchange: the ten party packets,
-  > the twenty-three registered guild packets and the twelve
+  > the twenty-five registered guild packets and the twelve
   > face-to-face trade packets have code-0 goldens, loopback round trips
   > and size/factory-max pins (`tests/packet_party_test.cpp`,
   > `tests/packet_guild_test.cpp`, `tests/packet_trade_test.cpp`), with
@@ -231,29 +231,35 @@ before anything else moves. Everything later shelters under this pin.
   > option nor a sub-item. `CGExpelGuildMember`, `CGQuitGuild` and
   > `GCShowGuildRegist` are excluded: no server registers a factory for
   > them, so there is no wire contract to pin; the four `Exchange`
-  > packets are covered by `tests/packet_exchange_test.cpp`. Thirteen
-  > open write/read disagreements are stated as tests that flip when
-  > fixed (`GuildInfo::getSize` counting neither the expiry date nor the
-  > length byte in front of it, so `GCActiveGuildList` declares a body
-  > shorter than the one it sends; `GCActiveGuildList` and
-  > `GCGuildMemberList` reading their lists front-first against a
-  > front-to-back `write()`, so both tables arrive reversed;
-  > `GCActiveGuildList::getListNum` narrowing the wire's WORD count to a
-  > BYTE; the guild roster, the union offer list, the party roster and
-  > `GCTradeAddItem`'s two lists, none of which is capped against the
-  > factory max, with `GuildMemberInfo::getMaxSize` counting one
-  > ServerID for a whole 220-member table and `GCUnionOfferList`'s max
-  > budgeting no count byte at all; the six unbounded guild and member
-  > introductions, whose `> 255` guards on a BYTE never fire; the six
-  > unbounded party names and chat messages; `GCGuildChat`'s unbounded
-  > sending guild name next to its bounded sender and message;
-  > `GCGuildResponse::getCode` and `GCNPCResponse::getCode` returning a
-  > BYTE of a WORD field; and `GCTradeAddItem`'s sub-item count, which
-  > `setListNum` sets independently of the records `write()` emits).
-  > `GCModifyGuildMemberInfo` and `GCOtherGuildName` are pinned
-  > write-side only: both `read()`s test an uninitialised guild-name
-  > length against 30 and against 0 before reading the length byte, so
-  > neither can be round-tripped.
+  > packets are covered by `tests/packet_exchange_test.cpp`. The
+  > thirteen write/read disagreements it found are fixed and pinned as
+  > the behaviour the packets now produce (`GuildInfo::getSize` counts
+  > the expiry date and the length byte in front of it, so
+  > `GCActiveGuildList` declares the body it sends; `GCActiveGuildList`,
+  > `GCGuildMemberList`, `GCWaitGuildList` and `GCShowWaitGuildInfo`
+  > read their lists front to back, in the order `write()` sends them;
+  > `GCActiveGuildList::getListNum` and `GCWaitGuildList::getListNum`
+  > return the wire's WORD count; the guild roster, the union offer
+  > list, the party roster and `GCTradeAddItem`'s two lists refuse an
+  > entry past the count their factory max budgets, with
+  > `GuildMemberInfo::getMaxSize` now one record and
+  > `GCUnionOfferList`'s max budgeting its count byte — the two
+  > wire-layout moves in the set, `GCGuildMemberList` 5064 → 5502 and
+  > `GCUnionOfferList` 1180 → 1181, both server-side read-buffer
+  > budgets and not fields on the wire; the guild and member
+  > introductions are cut to `GUILD_INTRO_MAX_LENGTH` in their setters
+  > and refused past it in `write()`; the party names and chat messages
+  > are held to the widths their factory maxima budget; `GCGuildChat`'s
+  > sending guild name is refused empty or past 20, like its sender and
+  > its message; `GCGuildResponse::getCode` and
+  > `GCNPCResponse::getCode` return the WORD they hold; and
+  > `GCTradeAddItem`'s sub-item count is derived from the list, with
+  > `setListNum` gone). `GCModifyGuildMemberInfo` and `GCOtherGuildName`
+  > round trip too: both `read()`s read the guild-name length byte
+  > before testing it rather than testing an uninitialised one. Two
+  > packets joined the file with the fix, `GCWaitGuildList` and
+  > `GCShowWaitGuildInfo`, which carry the same guild record and had the
+  > same reversal. No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links and the social protocols pinned, the remaining
   > non-encrypter coverage outstanding is the rest of GC/CG.
@@ -263,11 +269,15 @@ before anything else moves. Everything later shelters under this pin.
   >    2026-08-30 as above. Pinning them surfaced three read/write/size
   >    disagreements, each stated as a fact by a test that flips when it
   >    is fixed (record the fix in `docs/FIXES.md`, task 5.3):
-  >    - `GCDropItemToZone::read()` consumes a leading `BYTE flag` that
-  >      `write()` no longer emits (commented out) and `getPacketSize()`
-  >      does not count. The server only writes this packet, so write()
-  >      is the pinned contract; no round-trip until read() is fixed or
-  >      removed. Check the client copy in 1.4.
+  >    - ~~`GCDropItemToZone::read()` consumes a leading `BYTE flag`
+  >      that `write()` no longer emits (commented out) and
+  >      `getPacketSize()` does not count~~ — **fixed 2026-09-09** with
+  >      the social-protocol set: `read()` starts at the object id, the
+  >      commented-out write is gone, and the packet round trips at
+  >      every encrypt code. `GCCreatureDied`, `GCMove`, `GCNPCSay` and
+  >      `GCSkillFailed2` carried the same shape and are fixed with it.
+  >      `write()` never emitted the byte, so the goldens are unchanged
+  >      and the client copy needs no change.
   >    - `CGUseItemFromInventory` and `CGSkillToInventory`:
   >      `getPacketSize()` counts `m_InventoryItemObjectID`, which
   >      `read()`/`write()` skip — over-reports by `szObjectID`. Dormant on

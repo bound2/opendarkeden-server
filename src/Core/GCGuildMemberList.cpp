@@ -46,10 +46,14 @@ void GCGuildMemberList::read(SocketInputStream& iStream)
     BYTE ListNum;
 
     iStream.read(ListNum);
+
+    if (ListNum > GuildMemberInfo::kMaxCount)
+        throw InvalidProtocolException("too many guild member infos");
+
     for (int i = 0; i < ListNum; i++) {
         GuildMemberInfo* pGuildMemberInfo = new GuildMemberInfo();
         pGuildMemberInfo->read(iStream);
-        m_GuildMemberInfoList.push_front(pGuildMemberInfo);
+        m_GuildMemberInfoList.push_back(pGuildMemberInfo);
     }
 
     __END_CATCH
@@ -63,6 +67,9 @@ void GCGuildMemberList::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_GuildMemberInfoList.size() > GuildMemberInfo::kMaxCount)
+        throw InvalidProtocolException("too many guild member infos");
 
     oStream.write(m_Type);
     BYTE ListNum = m_GuildMemberInfoList.size();

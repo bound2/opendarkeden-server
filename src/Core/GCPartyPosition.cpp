@@ -20,6 +20,13 @@ void GCPartyPosition::read(SocketInputStream& iStream)
 
     BYTE szName;
     iStream.read(szName);
+
+    // The factory max budgets twenty characters for the member's name.
+    if (szName == 0)
+        throw InvalidProtocolException("szName == 0");
+    if (szName > 20)
+        throw InvalidProtocolException("too long szName length");
+
     iStream.read(m_Name, szName);
     iStream.read(m_ZoneID);
     iStream.read(m_X);
@@ -38,6 +45,11 @@ void GCPartyPosition::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_Name.empty())
+        throw InvalidProtocolException("szName == 0");
+    if (m_Name.size() > 20)
+        throw InvalidProtocolException("too long szName length");
 
     BYTE szName = m_Name.size();
     oStream.write(szName);

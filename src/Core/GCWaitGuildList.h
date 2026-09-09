@@ -59,7 +59,8 @@ public:
     string toString() const;
 
 public:
-    BYTE getListNum() const {
+    // The count goes on the wire as a WORD.
+    WORD getListNum() const {
         return m_GuildInfoList.size();
     }
 

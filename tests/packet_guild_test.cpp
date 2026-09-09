@@ -5,7 +5,7 @@
 //               pins for the guild protocol: every CG and GC packet a
 //               client and a game server exchange to found a guild,
 //               join or leave one, browse its roster and talk on its
-//               channel. Twenty-three packets, each with the reason it
+//               channel. Twenty-five packets, each with the reason it
 //               is here:
 //
 //               CGRegistGuild    the founding request: a guild name
@@ -63,6 +63,10 @@
 //               GCUnionOfferList the guilds that have offered to join
 //                                or leave the union, each with the date
 //                                of its offer.
+//               GCWaitGuildList  the same table for the guilds still
+//                                waiting for registration.
+//               GCShowWaitGuildInfo  one such guild's page, with the
+//                                founding members it has gathered.
 //
 //               Deliberately excluded, because no server registers a
 //               factory for them (tests/ratchet/factory_registrations.txt
@@ -91,12 +95,6 @@
 //                 side sizes its read buffer from the factory max, so a
 //                 body that outgrows it is a truncated packet, not a
 //                 caught error.
-//
-//               Two packets get the golden and the size pins without
-//               the round trip: GCModifyGuildMemberInfo and
-//               GCOtherGuildName cannot be read back at all, for the
-//               reason recorded under the findings below. write() is
-//               the pinned contract for both.
 //
 //               Extra goldens cover the branches one fixture cannot.
 //               The four packets with an optional introduction
@@ -128,57 +126,24 @@
 //               introductions, dates and chat messages, which each
 //               packet caps well below 128 characters.
 //
-//               Open write/read disagreements are stated as tests that
-//               fail once they are fixed:
+//               Seven more pins cover the sizes, the counts and the
+//               bounds every writer holds:
+//               packetSizeCountsEveryGuildsExpireDate,
+//               listNumIsTheWordCountOnTheWire,
+//               aRosterPastTheFactoryBudgetIsRefused,
+//               aFullListFitsTheFactoryMaxAndOneMoreIsRefused,
+//               introsAreCutToTheWidthTheLengthByteAndTheFactoryMaxAllow,
+//               theSendingGuildNameIsBounded and
+//               theCodeGettersReturnTheWordTheWireCarries. A valid
+//               packet is untouched by any of them.
 //
-//               - GuildInfo::getSize() counts neither the length byte
-//                 its write() emits for the expiry date nor the date
-//                 itself, so GCActiveGuildList declares a body shorter
-//                 than the one it sends, by one byte plus the date for
-//                 every guild in the table.
-//               - GCActiveGuildList and GCGuildMemberList read their
-//                 lists front-first against a write() that walks front
-//                 to back, so both tables arrive reversed.
-//               - GCActiveGuildList::getListNum() returns a BYTE while
-//                 the count on the wire is a WORD, so a table past 255
-//                 guilds reports a truncated count to its own caller.
-//               - GCGuildMemberList caps its roster nowhere, and
-//                 GuildMemberInfo::getMaxSize() budgets 220 members
-//                 without counting the ServerID each of them carries,
-//                 so 203 full-width members already outgrow the read
-//                 buffer the receiver sizes from the factory max.
-//               - GCUnionOfferList's factory max is exactly twenty
-//                 entries' worth with no room for the count byte in
-//                 front of them, so a full list outgrows it by one
-//                 byte, and neither side caps the list at twenty.
-//               - none of the six guild or member introductions is
-//                 bounded. Each writer derives a BYTE length from the
-//                 string and emits the string whole; the guards that
-//                 look like a cap compare a BYTE against 255, which no
-//                 BYTE can exceed.
-//               - GCGuildChat bounds its sender and its message but
-//                 not the sending guild's name.
-//               - GCGuildResponse::getCode() and
-//                 GCNPCResponse::getCode() return a BYTE while the
-//                 member and the wire field are a WORD, so a code past
-//                 255 reaches the wire whole and the accessor whole
-//                 halved.
-//
-//               Not expressible as a test: GCModifyGuildMemberInfo and
-//               GCOtherGuildName declare an uninitialised BYTE for the
-//               guild-name length, test it against 30 and against 0,
-//               and only then read the length byte the stream carries.
-//               So read() consumes a length that was never checked when
-//               the uninitialised value happens to be non-zero, and
-//               reads no length byte at all when it happens to be zero,
-//               leaving that byte in the stream and taking the rank
-//               from it. The outcome depends on what the allocation
-//               held, so no round trip can be stated for either packet.
-//               Every CG packet in this file, and GCGuildChat,
-//               GCModifyGuildMemberInfo, GCOtherGuildName,
-//               GCShowGuildInfo, GCShowGuildJoin and
-//               GCShowGuildMemberInfo, also leave every scalar member
-//               uninitialised.
+//               Not expressible as a test: every CG packet in this file,
+//               and GCGuildChat, GCModifyGuildMemberInfo,
+//               GCOtherGuildName, GCShowGuildInfo, GCShowGuildJoin and
+//               GCShowGuildMemberInfo, leave every scalar member
+//               uninitialised. A packet that is written without every
+//               setter being called puts whatever the allocation held on
+//               the wire, and no test can pin that value.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -210,7 +175,9 @@
 #include "GCShowGuildInfo.h"
 #include "GCShowGuildJoin.h"
 #include "GCShowGuildMemberInfo.h"
+#include "GCShowWaitGuildInfo.h"
 #include "GCUnionOfferList.h"
+#include "GCWaitGuildList.h"
 #include "GuildInfo.h"
 #include "GuildMemberInfo.h"
 #include "TestStreams.h"
@@ -640,7 +607,7 @@ GUILD_PACKET_TESTS(GCNPCResponse)
 GUILD_PACKET_VARIANT(GCNPCResponse, noparam, fillNoparam)
 
 //////////////////////////////////////////////////////////////////////
-// The two packets that cannot be read back.
+// The two guild badges, whose name is absent for a guildless character.
 //////////////////////////////////////////////////////////////////////
 
 void fill(GCModifyGuildMemberInfo& packet) {
@@ -655,8 +622,14 @@ void fillNoname(GCModifyGuildMemberInfo& packet) {
     packet.setGuildMemberRank(0x97);
 }
 
-GUILD_PACKET_WRITE_TESTS(GCModifyGuildMemberInfo)
-GUILD_PACKET_WRITE_VARIANT(GCModifyGuildMemberInfo, noname, fillNoname)
+void expectEqual(const GCModifyGuildMemberInfo& a, const GCModifyGuildMemberInfo& b) {
+    EXPECT_EQ(a.getGuildID(), b.getGuildID());
+    EXPECT_EQ(a.getGuildName(), b.getGuildName());
+    EXPECT_EQ((int)a.getGuildMemberRank(), (int)b.getGuildMemberRank());
+}
+
+GUILD_PACKET_TESTS(GCModifyGuildMemberInfo)
+GUILD_PACKET_VARIANT(GCModifyGuildMemberInfo, noname, fillNoname)
 
 void fill(GCOtherGuildName& packet) {
     packet.setObjectID(0x99AABBCC);
@@ -670,8 +643,14 @@ void fillNoname(GCOtherGuildName& packet) {
     packet.setGuildName("");
 }
 
-GUILD_PACKET_WRITE_TESTS(GCOtherGuildName)
-GUILD_PACKET_WRITE_VARIANT(GCOtherGuildName, noname, fillNoname)
+void expectEqual(const GCOtherGuildName& a, const GCOtherGuildName& b) {
+    EXPECT_EQ(a.getObjectID(), b.getObjectID());
+    EXPECT_EQ(a.getGuildID(), b.getGuildID());
+    EXPECT_EQ(a.getGuildName(), b.getGuildName());
+}
+
+GUILD_PACKET_TESTS(GCOtherGuildName)
+GUILD_PACKET_VARIANT(GCOtherGuildName, noname, fillNoname)
 
 //////////////////////////////////////////////////////////////////////
 // The three lists.
@@ -711,52 +690,43 @@ void expectEqual(GCActiveGuildList& a, GCActiveGuildList& b) {
     ASSERT_EQ((int)a.getListNum(), (int)b.getListNum());
 
     const int guilds = (int)a.getListNum();
-    std::vector<GuildInfo*> left, right;
     for (int i = 0; i < guilds; i++) {
-        left.push_back(a.popFrontGuildInfoList());
-        right.push_back(b.popFrontGuildInfoList());
-    }
-
-    // The table comes back reversed — see guildListReversesOnARoundTrip.
-    for (int i = 0; i < guilds; i++) {
-        ASSERT_TRUE(left[i] != NULL);
-        ASSERT_TRUE(right[guilds - 1 - i] != NULL);
-        expectGuildInfoEqual(*left[i], *right[guilds - 1 - i], i);
-    }
-
-    for (int i = 0; i < guilds; i++) {
-        delete left[i];
-        delete right[i];
+        GuildInfo* pLeft = a.popFrontGuildInfoList();
+        GuildInfo* pRight = b.popFrontGuildInfoList();
+        ASSERT_TRUE(pLeft != NULL);
+        ASSERT_TRUE(pRight != NULL);
+        expectGuildInfoEqual(*pLeft, *pRight, i);
+        delete pLeft;
+        delete pRight;
     }
 }
 
-// GCActiveGuildList does not get the shared size pin: GuildInfo::getSize()
-// under-reports every guild, which packetSizeOmitsEveryGuildsExpireDate
-// states below.
-TEST(GCActiveGuildListTest, roundTripsThroughLoopback) {
-    GCActiveGuildList src;
-    fill(src);
-    GCActiveGuildList dst;
-    roundTrip(src, dst, kPlainCode);
-    expectEqual(src, dst);
-}
-
-TEST(GCActiveGuildListTest, bodyBytesMatchGolden) {
-    GCActiveGuildList packet;
-    fill(packet);
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    expectGolden("GCActiveGuildList", kPlainCode, body);
-    for (size_t i = 1; i < kEncryptCodeCount; i++)
-        EXPECT_EQ(body, writeBody(packet, kEncryptCodes[i]))
-            << "GCActiveGuildList now varies with the encrypt code — add per-code goldens";
-
-    GCActiveGuildListFactory factory;
-    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
-    EXPECT_EQ(factory.getPacketID(), packet.getPacketID());
-    EXPECT_EQ(factory.getPacketName(), packet.getPacketName());
-}
-
+GUILD_PACKET_TESTS(GCActiveGuildList)
 GUILD_PACKET_VARIANT(GCActiveGuildList, empty, fillEmpty)
+
+// The same record on the other guild table: the guilds still waiting for
+// registration rather than the active ones.
+void fill(GCWaitGuildList& packet) {
+    packet.addGuildInfo(makeGuildInfo(0xA8E3, "GuildWaitNameA", "GuildWaitMsA", 0xA9, "2026.09.09"));
+    packet.addGuildInfo(makeGuildInfo(0xAAF5, "GuildWaitNameB", "GuildWaitMsB", 0xAB, ""));
+}
+
+void expectEqual(GCWaitGuildList& a, GCWaitGuildList& b) {
+    ASSERT_EQ((int)a.getListNum(), (int)b.getListNum());
+
+    const int guilds = (int)a.getListNum();
+    for (int i = 0; i < guilds; i++) {
+        GuildInfo* pLeft = a.popFrontGuildInfoList();
+        GuildInfo* pRight = b.popFrontGuildInfoList();
+        ASSERT_TRUE(pLeft != NULL);
+        ASSERT_TRUE(pRight != NULL);
+        expectGuildInfoEqual(*pLeft, *pRight, i);
+        delete pLeft;
+        delete pRight;
+    }
+}
+
+GUILD_PACKET_TESTS(GCWaitGuildList)
 
 GuildMemberInfo* makeGuildMemberInfo(const std::string& name, GuildMemberRank_t rank, bool logOn, ServerID_t serverID) {
     GuildMemberInfo* pInfo = new GuildMemberInfo();
@@ -784,27 +754,17 @@ void expectEqual(GCGuildMemberList& a, GCGuildMemberList& b) {
     ASSERT_EQ((int)a.getListNum(), (int)b.getListNum());
 
     const int members = (int)a.getListNum();
-    std::vector<GuildMemberInfo*> left, right;
     for (int i = 0; i < members; i++) {
-        left.push_back(a.popFrontGuildMemberInfoList());
-        right.push_back(b.popFrontGuildMemberInfoList());
-    }
-
-    // The roster comes back reversed — see memberListReversesOnARoundTrip.
-    for (int i = 0; i < members; i++) {
-        GuildMemberInfo* pLeft = left[i];
-        GuildMemberInfo* pRight = right[members - 1 - i];
+        GuildMemberInfo* pLeft = a.popFrontGuildMemberInfoList();
+        GuildMemberInfo* pRight = b.popFrontGuildMemberInfoList();
         ASSERT_TRUE(pLeft != NULL);
         ASSERT_TRUE(pRight != NULL);
         EXPECT_EQ(pLeft->getName(), pRight->getName()) << "member " << i;
         EXPECT_EQ((int)pLeft->getRank(), (int)pRight->getRank()) << "member " << i;
         EXPECT_EQ(pLeft->getLogOn(), pRight->getLogOn()) << "member " << i;
         EXPECT_EQ(pLeft->getServerID(), pRight->getServerID()) << "member " << i;
-    }
-
-    for (int i = 0; i < members; i++) {
-        delete left[i];
-        delete right[i];
+        delete pLeft;
+        delete pRight;
     }
 }
 
@@ -854,57 +814,63 @@ GUILD_PACKET_TESTS(GCUnionOfferList)
 GUILD_PACKET_VARIANT(GCUnionOfferList, empty, fillEmpty)
 
 //////////////////////////////////////////////////////////////////////
-// The open disagreements.
+// The registration page, whose founding members are a list of names.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// GuildInfo::write() emits a length byte for the expiry date and then
-// the date itself; GuildInfo::getSize() counts neither. Every guild in
-// the table therefore shortens the size GCActiveGuildList declares by a
-// byte plus its date, and writePacket() puts that short length on the
-// wire ahead of the longer body.
-TEST(GCActiveGuildListTest, packetSizeOmitsEveryGuildsExpireDate) {
-    GCActiveGuildList packet;
-    fill(packet);
-
-    // The canonical table holds one ten-character date and one empty
-    // one, behind a length byte each.
-    const size_t omitted = (szBYTE + 10) + (szBYTE + 0);
-
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize() + omitted, body.size())
-        << "GuildInfo::getSize() now counts the expiry date write() emits — delete this test";
+void fill(GCShowWaitGuildInfo& packet) {
+    packet.setGuildID(0xB6A7);
+    packet.setGuildName("GuildWaitPage");
+    packet.setGuildState(0xB8);
+    packet.setGuildMaster("GuildWaitMst");
+    packet.setGuildMemberCount(0xB9);
+    packet.setGuildIntro("guild waiting for registration");
+    packet.setJoinFee(0xBACBDCED);
+    packet.addMember("WaitMemberA");
+    packet.addMember("WaitMemberB");
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCActiveGuildList::write() walks its list front to back while read()
-// pushes every guild it parses to the front, so the table arrives
-// reversed.
-TEST(GCActiveGuildListTest, guildListReversesOnARoundTrip) {
-    GCActiveGuildList src;
-    fill(src);
+void expectEqual(GCShowWaitGuildInfo& a, GCShowWaitGuildInfo& b) {
+    EXPECT_EQ(a.getGuildID(), b.getGuildID());
+    EXPECT_EQ(a.getGuildName(), b.getGuildName());
+    EXPECT_EQ((int)a.getGuildState(), (int)b.getGuildState());
+    EXPECT_EQ(a.getGuildMaster(), b.getGuildMaster());
+    EXPECT_EQ((int)a.getGuildMemberCount(), (int)b.getGuildMemberCount());
+    EXPECT_EQ(a.getGuildIntro(), b.getGuildIntro());
+    EXPECT_EQ(a.getJoinFee(), b.getJoinFee());
+    ASSERT_EQ((int)a.getMemberNum(), (int)b.getMemberNum());
 
-    GCActiveGuildList dst;
-    roundTrip(src, dst, kPlainCode);
-
-    GuildInfo* pSentFirst = src.popFrontGuildInfoList();
-    GuildInfo* pReceivedFirst = dst.popFrontGuildInfoList();
-    ASSERT_TRUE(pSentFirst != NULL);
-    ASSERT_TRUE(pReceivedFirst != NULL);
-
-    EXPECT_NE(pSentFirst->getGuildID(), pReceivedFirst->getGuildID())
-        << "GCActiveGuildList::read() now preserves the order write() sent — delete this test";
-
-    delete pSentFirst;
-    delete pReceivedFirst;
+    const int members = (int)a.getMemberNum();
+    for (int i = 0; i < members; i++)
+        EXPECT_EQ(a.popMember(), b.popMember()) << "member " << i;
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The count GCActiveGuildList puts on the wire is a WORD, and the table
-// the factory max budgets is 5000 guilds, but getListNum() narrows the
-// list size to a BYTE, so the caller that asks how many guilds it holds
-// is told zero at 256.
-TEST(GCActiveGuildListTest, listNumTruncatesTheWordCountToAByte) {
+GUILD_PACKET_TESTS(GCShowWaitGuildInfo)
+
+//////////////////////////////////////////////////////////////////////
+// The bounds and the counts.
+//////////////////////////////////////////////////////////////////////
+
+// The expiry date goes on the wire behind its own length byte, and
+// GuildInfo::getSize() counts both, so the size GCActiveGuildList
+// declares is the body it sends. The shared size pin covers the
+// canonical table; this one isolates the date.
+TEST(GCActiveGuildListTest, packetSizeCountsEveryGuildsExpireDate) {
+    GCActiveGuildList withDates;
+    fill(withDates);
+
+    GCActiveGuildList withoutDates;
+    withoutDates.addGuildInfo(makeGuildInfo(0xA4BF, "GuildListNameA", "GuildMasterA", 0xA5, ""));
+    withoutDates.addGuildInfo(makeGuildInfo(0xA6D1, "GuildListNameB", "GuildMasterB", 0xA7, ""));
+
+    // The canonical table holds one ten-character date and one empty one.
+    EXPECT_EQ(withoutDates.getPacketSize() + 10, withDates.getPacketSize());
+    EXPECT_EQ((size_t)withDates.getPacketSize(), writeBody(withDates, kPlainCode).size());
+}
+
+// The count GCActiveGuildList puts on the wire is a WORD, and so is the
+// one getListNum() hands its caller; the table the factory max budgets
+// is 5000 guilds.
+TEST(GCActiveGuildListTest, listNumIsTheWordCountOnTheWire) {
     const int kGuilds = 256;
 
     GCActiveGuildList packet;
@@ -912,182 +878,168 @@ TEST(GCActiveGuildListTest, listNumTruncatesTheWordCountToAByte) {
         packet.addGuildInfo(
             makeGuildInfo((GuildID_t)(0x8000 + i), "GuildListNm", "GuildMastr", (BYTE)(0x81 + i % 0x7F), ""));
 
-    EXPECT_EQ(0, (int)packet.getListNum())
-        << "GCActiveGuildList::getListNum() now returns the WORD count write() emits — delete this test";
+    EXPECT_EQ(kGuilds, (int)packet.getListNum());
+
+    GCWaitGuildList waiting;
+    for (int i = 0; i < kGuilds; i++)
+        waiting.addGuildInfo(
+            makeGuildInfo((GuildID_t)(0x8000 + i), "GuildWaitNm", "GuildMastr", (BYTE)(0x81 + i % 0x7F), ""));
+
+    EXPECT_EQ(kGuilds, (int)waiting.getListNum());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The same front-push in GCGuildMemberList::read() reverses the roster.
-TEST(GCGuildMemberListTest, memberListReversesOnARoundTrip) {
-    GCGuildMemberList src;
-    fill(src);
-
-    GCGuildMemberList dst;
-    roundTrip(src, dst, kPlainCode);
-
-    GuildMemberInfo* pSentFirst = src.popFrontGuildMemberInfoList();
-    GuildMemberInfo* pReceivedFirst = dst.popFrontGuildMemberInfoList();
-    ASSERT_TRUE(pSentFirst != NULL);
-    ASSERT_TRUE(pReceivedFirst != NULL);
-
-    EXPECT_NE(pSentFirst->getName(), pReceivedFirst->getName())
-        << "GCGuildMemberList::read() now preserves the order write() sent — delete this test";
-
-    delete pSentFirst;
-    delete pReceivedFirst;
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// GCGuildMemberListFactory::kMaxSize is one GuildMemberInfo::getMaxSize()
-// plus the type byte, and that maximum budgets 220 members of a name,
-// a rank and a log-on flag each — it counts one ServerID for the whole
-// table rather than one per member, and leaves out the roster's own
-// count byte. Nothing caps the list either, so 203 full-width members
-// are written and the body outgrows the read buffer the receiver sizes
-// from that maximum.
-TEST(GCGuildMemberListTest, aRosterPastTheFactoryBudgetIsWrittenRatherThanRefused) {
-    const int kMembers = 203;
+// The roster stops where the factory max does: 220 members of a
+// full-width name, a rank, a log-on flag and the server each is on,
+// behind the list type and the count byte.
+TEST(GCGuildMemberListTest, aRosterPastTheFactoryBudgetIsRefused) {
     const std::string name(20, 'm');
 
-    GCGuildMemberList packet;
-    packet.setType(0x93);
-    for (int i = 0; i < kMembers; i++)
-        packet.addGuildMemberInfo(
+    GCGuildMemberListFactory factory;
+    GCGuildMemberList exactFit;
+    exactFit.setType(0x93);
+    for (uint i = 0; i < GuildMemberInfo::kMaxCount; i++)
+        exactFit.addGuildMemberInfo(
             makeGuildMemberInfo(name, (BYTE)(0x81 + i % 0x7F), (i % 2) == 0, (ServerID_t)(0x8000 + i)));
 
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+    EXPECT_EQ(factory.getPacketMaxSize(), exactFit.getPacketSize())
+        << "a full roster of full-width members is exactly the factory max";
+    EXPECT_EQ((size_t)exactFit.getPacketSize(), writeBody(exactFit, kPlainCode).size());
 
-    GCGuildMemberListFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCGuildMemberList now fits the roster its factory max budgets — delete this test";
+    EXPECT_THROW(exactFit.addGuildMemberInfo(makeGuildMemberInfo(name, 0x99, true, 0x9ABC)), InvalidProtocolException);
+    EXPECT_EQ((int)GuildMemberInfo::kMaxCount, (int)exactFit.getListNum());
+    EXPECT_EQ(factory.getPacketMaxSize(), exactFit.getPacketSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCUnionOfferListFactory::kMaxSize is exactly twenty offers' worth and
-// budgets nothing for the count byte write() puts in front of them, so
-// a full list of twenty already outgrows it. Nothing caps the list at
-// twenty either.
-TEST(GCUnionOfferListTest, aFullListOutgrowsTheFactoryMax) {
-    const int kOffers = 20;
+// The offer list stops at the twenty offers the factory max budgets,
+// count byte included.
+TEST(GCUnionOfferListTest, aFullListFitsTheFactoryMaxAndOneMoreIsRefused) {
     const std::string name(30, 'u');
     const std::string master(20, 'M');
 
-    GCUnionOfferList packet;
-    for (int i = 0; i < kOffers; i++)
-        packet.addUnionOfferList(makeUnionOffer((GuildID_t)(0x8000 + i), SingleGuildUnionOffer::JOIN, name, master,
-                                                (DWORD)(0x81A2B3C4 + i)));
-
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
-
     GCUnionOfferListFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCUnionOfferList's factory max now budgets its count byte — delete this test";
+    GCUnionOfferList exactFit;
+    for (uint i = 0; i < SingleGuildUnionOffer::kMaxCount; i++)
+        exactFit.addUnionOfferList(makeUnionOffer((GuildID_t)(0x8000 + i), SingleGuildUnionOffer::JOIN, name, master,
+                                                  (DWORD)(0x81A2B3C4 + i)));
+
+    EXPECT_EQ(factory.getPacketMaxSize(), exactFit.getPacketSize())
+        << "a full list of full-width offers is exactly the factory max";
+    EXPECT_EQ((size_t)exactFit.getPacketSize(), writeBody(exactFit, kPlainCode).size());
+
+    EXPECT_THROW(
+        exactFit.addUnionOfferList(makeUnionOffer(0x9999, SingleGuildUnionOffer::QUIT, name, master, 0x9AABBCCD)),
+        InvalidProtocolException);
+    EXPECT_EQ((size_t)SingleGuildUnionOffer::kMaxCount, exactFit.getUnionOfferList().size());
+    EXPECT_EQ(factory.getPacketMaxSize(), exactFit.getPacketSize());
 }
 
-// Each introduction goes on the wire behind a BYTE length that write()
-// derives from the string and emits unchecked. `offset` names the byte
-// that length lands on, so the wrap is read from the body rather than
-// inferred.
-void expectUnboundedIntro(const Packet& packet, PacketSize_t maxSize, size_t length, size_t offset, const char* what) {
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize(), body.size()) << what;
-    EXPECT_GT(packet.getPacketSize(), maxSize) << what << " is now bounded — delete this case";
-    ASSERT_LT(offset, body.size()) << what;
-    EXPECT_EQ((int)(BYTE)length, (int)body[offset]) << what << ": the length byte no longer wraps";
+// An introduction goes on the wire behind a BYTE length, so
+// GUILD_INTRO_MAX_LENGTH is both what the length can express and what
+// every carrier's factory max budgets. Each setter cuts to it and each
+// write() refuses past it, and `size` is what the packet declares once
+// the value is cut.
+void expectIntroIsCut(Packet& packet, PacketSize_t size, const std::string& cut, const char* what) {
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size()) << what;
+    EXPECT_EQ(size, packet.getPacketSize()) << what;
+    EXPECT_EQ(GUILD_INTRO_MAX_LENGTH, cut.size()) << what << ": the setter cuts to the budgeted width";
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// None of the six writers that carry a guild or member introduction
-// bounds it. Each derives a BYTE length from the string and then emits
-// the string whole, so past 255 characters the length byte wraps and
-// the reader stops mid-text, and the body outgrows the read buffer the
-// receiver sizes from the factory max. The guards that look like a cap
-// (`> 255` in CGModifyGuildIntro and CGModifyGuildMemberIntro) compare
-// a BYTE against a value no BYTE can exceed, so they never fire.
-// CGRegistGuild, GCShowGuildInfo and GCShowGuildMemberInfo do bound
-// their names; only the introduction is open.
-TEST(GuildBoundsTest, unboundedIntrosWrapTheLengthByteAndOutgrowTheFactoryMax) {
-    const size_t kLength = 300;
-    const std::string intro(kLength, 'i');
+// The six client-facing introductions, plus the registration page's.
+TEST(GuildBoundsTest, introsAreCutToTheWidthTheLengthByteAndTheFactoryMaxAllow) {
+    const std::string intro(300, 'i');
 
     CGJoinGuild joinGuild;
     fill(joinGuild);
     joinGuild.setGuildMemberIntro(intro);
-    expectUnboundedIntro(joinGuild, CGJoinGuildFactory::kMaxSize, kLength, szGuildID + szGuildMemberRank,
-                         "CGJoinGuild");
+    expectIntroIsCut(joinGuild, szGuildID + szGuildMemberRank + szBYTE + GUILD_INTRO_MAX_LENGTH,
+                     joinGuild.getGuildMemberIntro(), "CGJoinGuild");
 
     CGModifyGuildIntro modifyIntro;
     fill(modifyIntro);
     modifyIntro.setGuildIntro(intro);
-    expectUnboundedIntro(modifyIntro, CGModifyGuildIntroFactory::kMaxSize, kLength, szGuildID, "CGModifyGuildIntro");
+    expectIntroIsCut(modifyIntro, szGuildID + szBYTE + GUILD_INTRO_MAX_LENGTH, modifyIntro.getGuildIntro(),
+                     "CGModifyGuildIntro");
 
     CGModifyGuildMemberIntro modifyMemberIntro;
     fill(modifyMemberIntro);
     modifyMemberIntro.setGuildMemberIntro(intro);
-    expectUnboundedIntro(modifyMemberIntro, CGModifyGuildMemberIntroFactory::kMaxSize, kLength, szGuildID,
-                         "CGModifyGuildMemberIntro");
+    expectIntroIsCut(modifyMemberIntro, szGuildID + szBYTE + GUILD_INTRO_MAX_LENGTH,
+                     modifyMemberIntro.getGuildMemberIntro(), "CGModifyGuildMemberIntro");
 
     CGRegistGuild registGuild;
     fill(registGuild);
     registGuild.setGuildIntro(intro);
-    expectUnboundedIntro(registGuild, CGRegistGuildFactory::kMaxSize, kLength,
-                         szBYTE + registGuild.getGuildName().size(), "CGRegistGuild");
+    expectIntroIsCut(registGuild, szBYTE + registGuild.getGuildName().size() + szBYTE + GUILD_INTRO_MAX_LENGTH,
+                     registGuild.getGuildIntro(), "CGRegistGuild");
 
     GCShowGuildInfo showGuildInfo;
     fill(showGuildInfo);
     showGuildInfo.setGuildIntro(intro);
-    expectUnboundedIntro(showGuildInfo, GCShowGuildInfoFactory::kMaxSize, kLength,
-                         szGuildID + szBYTE + showGuildInfo.getGuildName().size() + szGuildState + szBYTE +
-                             showGuildInfo.getGuildMaster().size() + szBYTE,
-                         "GCShowGuildInfo");
+    expectIntroIsCut(showGuildInfo,
+                     szGuildID + szBYTE + showGuildInfo.getGuildName().size() + szGuildState + szBYTE +
+                         showGuildInfo.getGuildMaster().size() + szBYTE + szBYTE + GUILD_INTRO_MAX_LENGTH + szGold,
+                     showGuildInfo.getGuildIntro(), "GCShowGuildInfo");
 
     GCShowGuildMemberInfo showMemberInfo;
     fill(showMemberInfo);
     showMemberInfo.setGuildMemberIntro(intro);
-    expectUnboundedIntro(showMemberInfo, GCShowGuildMemberInfoFactory::kMaxSize, kLength,
-                         szGuildID + szBYTE + showMemberInfo.getName().size() + szGuildMemberRank,
-                         "GCShowGuildMemberInfo");
+    expectIntroIsCut(showMemberInfo,
+                     szGuildID + szBYTE + showMemberInfo.getName().size() + szGuildMemberRank + szBYTE +
+                         GUILD_INTRO_MAX_LENGTH,
+                     showMemberInfo.getGuildMemberIntro(), "GCShowGuildMemberInfo");
+
+    GCShowWaitGuildInfo showWaitInfo;
+    fill(showWaitInfo);
+    showWaitInfo.setGuildIntro(intro);
+    EXPECT_EQ(GUILD_INTRO_MAX_LENGTH, showWaitInfo.getGuildIntro().size());
+    EXPECT_EQ((size_t)showWaitInfo.getPacketSize(), writeBody(showWaitInfo, kPlainCode).size());
+
+    GCShowWaitGuildInfoFactory factory;
+    EXPECT_LE(showWaitInfo.getPacketSize(), factory.getPacketMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
 // GCGuildChat refuses a sender past 10 characters and a message past
-// 128, on both sides, but writes the sending guild's name with no check
-// at all — while the factory max budgets 20 for it.
-TEST(GCGuildChatTest, theSendingGuildNameIsNotBounded) {
-    const size_t kLength = 300;
-
+// 128; the sending guild's name is held to the 20 the factory max
+// budgets the same way. It is a guild name, so it is refused rather than
+// cut, and a union line always names the guild it came from.
+TEST(GCGuildChatTest, theSendingGuildNameIsBounded) {
     GCGuildChat packet;
     fill(packet);
-    packet.setSendGuildName(std::string(kLength, 'g'));
 
-    expectUnboundedIntro(packet, GCGuildChatFactory::kMaxSize, kLength, szBYTE, "GCGuildChat sending guild name");
+    packet.setSendGuildName(std::string(GUILD_NAME_MAX_LENGTH + 1, 'g'));
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
+
+    packet.setSendGuildName("");
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
+
+    packet.setSendGuildName(std::string(GUILD_NAME_MAX_LENGTH, 'g'));
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    // The guild channel carries no guild name at all, so the empty value
+    // that the union channel refuses is what it writes.
+    packet.setType(0);
+    packet.setSendGuildName("");
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
 // Both response packets keep their code in a WORD, put a WORD on the
-// wire and hand the caller a BYTE, so a code past 255 is delivered
-// whole and read back halved. GCNPCResponse already declares 139
-// dialogue codes.
-TEST(GuildResponseCodeTest, theCodeGettersTruncateTheWordTheWireCarries) {
+// wire and hand the caller the same WORD. GCNPCResponse declares 139
+// dialogue codes, so the value can pass 255.
+TEST(GuildResponseCodeTest, theCodeGettersReturnTheWordTheWireCarries) {
     const WORD code = 0x0141;
 
     GCGuildResponse guildResponse;
     guildResponse.setCode(code);
     guildResponse.setParameter(0x95A6B7C8);
-    EXPECT_EQ((int)(BYTE)code, (int)guildResponse.getCode())
-        << "GCGuildResponse::getCode() now returns the WORD it holds — delete this case";
+    EXPECT_EQ((int)code, (int)guildResponse.getCode());
 
     GCNPCResponse npcResponse;
     npcResponse.setCode(code);
-    EXPECT_EQ((int)(BYTE)code, (int)npcResponse.getCode())
-        << "GCNPCResponse::getCode() now returns the WORD it holds — delete this case";
+    EXPECT_EQ((int)code, (int)npcResponse.getCode());
 
-    // The wire is not the problem: the WORD survives the round trip, so
-    // the loss is in the accessor alone.
     GCGuildResponse dst;
     roundTrip(guildResponse, dst, kPlainCode);
+    EXPECT_EQ((int)code, (int)dst.getCode());
     EXPECT_EQ(guildResponse.getParameter(), dst.getParameter());
     EXPECT_EQ((size_t)(szWORD + szuint), writeBody(guildResponse, kPlainCode).size());
 }

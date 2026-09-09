@@ -333,6 +333,13 @@ const uint szDir = sizeof(Dir_t);
 enum Directions { LEFT, LEFTDOWN, DOWN, RIGHTDOWN, RIGHT, RIGHTUP, UP, LEFTUP, DIR_MAX, DIR_NONE = DIR_MAX };
 const string Dir2String[] = {"LEFT", "LEFTDOWN", "DOWN", "RIGHTDOWN", "RIGHT", "RIGHTUP", "UP", "LEFTUP"};
 
+// A direction that names none of the eight prints as its number.
+inline string dir2String(Dir_t dir) {
+    if (dir >= DIR_MAX)
+        return std::to_string((int)dir);
+    return Dir2String[dir];
+}
+
 
 //////////////////////////////////////////////////////////////////////////////
 // 시야 관련

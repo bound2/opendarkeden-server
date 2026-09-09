@@ -23,8 +23,13 @@ void GCGuildChat::read(SocketInputStream& iStream)
     if (m_Type != 0) {
         BYTE szGName;
         iStream.read(szGName);
-        if (szGName != 0)
-            iStream.read(m_SendGuildName, szGName);
+
+        if (szGName == 0)
+            throw InvalidProtocolException("szGName == 0");
+        if (szGName > GUILD_NAME_MAX_LENGTH)
+            throw InvalidProtocolException("too long send guild name length");
+
+        iStream.read(m_SendGuildName, szGName);
     }
 
     BYTE szSender;
@@ -62,6 +67,13 @@ void GCGuildChat::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_Type != 0) {
+        if (m_SendGuildName.empty())
+            throw InvalidProtocolException("szGName == 0");
+        if (m_SendGuildName.size() > GUILD_NAME_MAX_LENGTH)
+            throw InvalidProtocolException("too long send guild name length");
+    }
 
     oStream.write(m_Type);
     if (m_Type != 0) {

@@ -18,8 +18,6 @@ void GCMove::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE flag;
-    iStream.read(flag);
     iStream.read(m_ObjectID);
     iStream.read(m_X);
     iStream.read(m_Y);
@@ -37,7 +35,6 @@ void GCMove::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    // oStream.write((BYTE)48);
     oStream.write(m_ObjectID);
     oStream.write(m_X);
     oStream.write(m_Y);

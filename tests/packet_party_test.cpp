@@ -78,18 +78,13 @@
 //               the names, which each packet caps well below 128
 //               characters.
 //
-//               Open write/read disagreements are stated as tests that
-//               fail once they are fixed:
-//
-//               - no name or message in this protocol is bounded. The
-//                 six strings each go on the wire behind a BYTE length
-//                 derived from the string itself, so past the width the
-//                 factory max budgets the body outgrows the receiver's
-//                 read buffer, and past 255 characters the length byte
-//                 wraps and the reader stops mid-text.
-//               - GCPartyJoined does not cap its roster at the six
-//                 members its factory max budgets, and its member count
-//                 is a BYTE that wraps at 256.
+//               Two pins cover the bounds the writers hold, in
+//               namesAndMessagesAreHeldToTheWidthsTheFactoryMaxBudgets
+//               and aRosterPastTheFactoryBudgetIsRefused: every name is
+//               refused past the width its factory max budgets, every
+//               chat message is cut to it in the setter and refused
+//               when empty, and the roster stops at six members of ten
+//               characters. A valid packet is untouched.
 //
 //               Not expressible as a test: CGPartyInvite,
 //               CGPartyPosition, CGPartySay, GCPartyError,
@@ -379,78 +374,77 @@ void expectEqual(const GCPartySay& a, const GCPartySay& b) {
 PARTY_PACKET_TESTS(GCPartySay)
 
 //////////////////////////////////////////////////////////////////////
-// The open disagreements.
+// The bounds every writer holds.
 //////////////////////////////////////////////////////////////////////
 
-// Every string in this protocol goes on the wire behind a BYTE length
-// that write() derives from the string and emits unchecked. `offset`
-// names the byte that length lands on, so the wrap is read from the body
-// rather than inferred.
-void expectUnboundedString(const Packet& packet, PacketSize_t maxSize, size_t length, size_t offset, const char* what) {
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize(), body.size()) << what;
-    EXPECT_GT(packet.getPacketSize(), maxSize) << what << " is now bounded — delete this case";
-    ASSERT_LT(offset, body.size()) << what;
-    EXPECT_EQ((int)(BYTE)length, (int)body[offset]) << what << ": the length byte no longer wraps";
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// None of the six strings the party protocol carries is bounded on
-// either side. Each writer derives a BYTE length from the string and
-// then emits the string whole, so past 255 characters the length byte
-// wraps and the reader stops mid-text, and well before that the body
-// outgrows the read buffer the receiver sizes from the factory max: the
-// names are budgeted at 10 or 20 characters and the chat messages at
-// 128.
-TEST(PartyBoundsTest, unboundedNamesAndMessagesWrapTheLengthByteAndOutgrowTheFactoryMax) {
-    const size_t kLength = 300;
-    const std::string oversized(kLength, 'p');
+// Every string in this protocol goes on the wire behind a BYTE length. A
+// name is refused past the width its factory max budgets; a chat message
+// is cut to that width in the setter and refused when it is empty. The
+// two names that mean something when empty — CGPartyLeave's target and
+// GCPartyLeave's expeller, which both say the member left on its own —
+// keep that branch.
+TEST(PartyBoundsTest, namesAndMessagesAreHeldToTheWidthsTheFactoryMaxBudgets) {
+    const std::string oversized(300, 'p');
 
     CGPartyLeave leave;
     leave.setTargetName(oversized);
-    expectUnboundedString(leave, CGPartyLeaveFactory::kMaxSize, kLength, 0, "CGPartyLeave target name");
+    EXPECT_THROW(writeBody(leave, kPlainCode), InvalidProtocolException);
+    leave.setTargetName("");
+    EXPECT_EQ(szBYTE, writeBody(leave, kPlainCode).size()) << "an empty target name asks to leave the party";
 
     GCPartyLeave partyLeave;
     partyLeave.setExpeller(oversized);
     partyLeave.setExpellee("PtyExpelle");
-    expectUnboundedString(partyLeave, GCPartyLeaveFactory::kMaxSize, kLength, 0, "GCPartyLeave expeller");
+    EXPECT_THROW(writeBody(partyLeave, kPlainCode), InvalidProtocolException);
+    partyLeave.setExpeller("PtyExpellr");
+    partyLeave.setExpellee(oversized);
+    EXPECT_THROW(writeBody(partyLeave, kPlainCode), InvalidProtocolException);
+    partyLeave.setExpellee("");
+    EXPECT_THROW(writeBody(partyLeave, kPlainCode), InvalidProtocolException) << "somebody always leaves";
 
     GCPartyPosition position;
     fill(position);
     position.setName(oversized);
-    expectUnboundedString(position, GCPartyPositionFactory::kMaxSize, kLength, 0, "GCPartyPosition name");
+    EXPECT_THROW(writeBody(position, kPlainCode), InvalidProtocolException);
+    position.setName("");
+    EXPECT_THROW(writeBody(position, kPlainCode), InvalidProtocolException);
 
     CGPartySay clientSay;
     fill(clientSay);
     clientSay.setMessage(oversized);
-    expectUnboundedString(clientSay, CGPartySayFactory::kMaxSize, kLength, szDWORD, "CGPartySay message");
+    EXPECT_EQ((size_t)128, clientSay.getMessage().size()) << "the setter cuts the message to the budgeted width";
+    EXPECT_EQ((size_t)(szDWORD + szBYTE + 128), writeBody(clientSay, kPlainCode).size());
+    clientSay.setMessage("");
+    EXPECT_THROW(writeBody(clientSay, kPlainCode), InvalidProtocolException);
 
     GCPartySay serverSay;
     fill(serverSay);
     serverSay.setMessage(oversized);
-    expectUnboundedString(serverSay, GCPartySayFactory::kMaxSize, kLength,
-                          szBYTE + serverSay.getName().size() + szDWORD, "GCPartySay message");
+    EXPECT_EQ((size_t)128, serverSay.getMessage().size());
+    EXPECT_EQ(szBYTE + serverSay.getName().size() + szDWORD + szBYTE + 128, writeBody(serverSay, kPlainCode).size());
+    serverSay.setName(oversized);
+    EXPECT_THROW(writeBody(serverSay, kPlainCode), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCPartyJoined's roster is a list neither addMemberInfo() nor write()
-// caps. The factory max budgets six members, the size the client sees
-// is the count of whatever the list holds, and the count itself is a
-// BYTE that wraps at 256 while write() keeps emitting records.
-TEST(GCPartyJoinedTest, aRosterPastTheFactoryBudgetIsWrittenRatherThanRefused) {
-    const int kMembers = 7;
-
+// The roster stops where the factory max does: six members of ten
+// characters each. PARTY_MAX_SIZE is six too, so a party the game server
+// builds cannot reach the refusal.
+TEST(GCPartyJoinedTest, aRosterPastTheFactoryBudgetIsRefused) {
     GCPartyJoined packet;
-    for (int i = 0; i < kMembers; i++)
+    for (uint i = 0; i < PARTY_MEMBER_INFO_MAX_COUNT; i++)
         packet.addMemberInfo(makeMemberInfo("PtyMemberX", (BYTE)(i % 2), (BYTE)(0x81 + i), (IP_t)(0x82A3B4C5 + i)));
 
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
-    EXPECT_EQ(kMembers, (int)body[0]);
-
     GCPartyJoinedFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCPartyJoined now caps its roster at the six members its factory max budgets — delete this test";
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize())
+        << "a full roster of full-width names is exactly the factory max";
+
+    EXPECT_THROW(packet.addMemberInfo(makeMemberInfo("PtyMemberX", 0, 0x99, 0x9AABBCCD)), InvalidProtocolException);
+    EXPECT_EQ((int)PARTY_MEMBER_INFO_MAX_COUNT, (int)packet.getMemberInfoCount());
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize());
+
+    GCPartyJoined tooLongName;
+    tooLongName.addMemberInfo(makeMemberInfo(std::string(11, 'p'), 0, 0x99, 0x9AABBCCD));
+    EXPECT_THROW(writeBody(tooLongName, kPlainCode), InvalidProtocolException);
 }
 
 } // namespace

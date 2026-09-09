@@ -20,17 +20,17 @@ void GCModifyGuildMemberInfo::read(SocketInputStream& iStream)
     BYTE szGuildName;
 
     iStream.read(m_GuildID);
+    iStream.read(szGuildName);
 
-    // if (szGuildName == 0 )
-    //	throw InvalidProtocolException("szGuildName == 0");
-
+    // A guildless member carries a zero length and no name.
     if (szGuildName > 30)
         throw InvalidProtocolException("too long GuildName length");
 
     if (szGuildName != 0)
-        iStream.read(szGuildName);
+        iStream.read(m_GuildName, szGuildName);
+    else
+        m_GuildName = "";
 
-    iStream.read(m_GuildName, szGuildName);
     iStream.read(m_GuildMemberRank);
 
     __END_CATCH

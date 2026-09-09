@@ -36,7 +36,7 @@ public:
     string toString() const;
 
 public:
-    BYTE getCode(void) const {
+    WORD getCode(void) const {
         return m_Code;
     }
     void setCode(WORD code) {

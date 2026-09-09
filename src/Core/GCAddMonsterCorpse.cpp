@@ -74,7 +74,7 @@ string GCAddMonsterCorpse::toString() const {
 
     StringStream msg;
     msg << "GCAddMonsterCorpse(" << "ObjectID:" << m_ObjectID << ",MonsterType:" << (int)m_MonsterType
-        << ",MonsterName:" << m_MonsterName << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir]
+        << ",MonsterName:" << m_MonsterName << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << dir2String(m_Dir)
         << ",hasHead:" << (int)m_bhasHead << ",TreasureCount:" << (int)m_TreasureCount << ")";
     return msg.toString();
 
