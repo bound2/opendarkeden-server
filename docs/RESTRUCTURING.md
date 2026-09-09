@@ -75,7 +75,7 @@ are enforced so far.
 | File | Baseline lines |
 |------|---------------:|
 | `src/server/gameserver/Zone.cpp` | 9,263 (9,297 on 2026-08-31) |
-| `src/server/gameserver/skill/SkillUtil.cpp` | 6,745 (enforced by `ratchets.sh` R6a) |
+| `src/server/gameserver/skill/SkillUtil.cpp` | 6,739 (enforced by `ratchets.sh` R6a) |
 | `src/server/gameserver/InitAllStat.cpp` | 4,803 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,904 (4,905 on 2026-08-31) |
 | `src/server/gameserver/Slayer.cpp` | 4,068 (4,375 on 2026-08-31) |
