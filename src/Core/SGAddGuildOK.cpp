@@ -73,6 +73,9 @@ void SGAddGuildOK::write(SocketOutputStream& oStream) const {
     if (szGuildMaster > 20)
         throw InvalidProtocolException("too long guild master length");
 
+    if (m_GuildIntro.size() > GUILD_INTRO_MAX_LENGTH)
+        throw InvalidProtocolException("too long guild intro length");
+
     oStream.write(m_GuildID);
     oStream.write(szGuildName);
     oStream.write(m_GuildName);

@@ -14,17 +14,12 @@
 //----------------------------------------------------------------------
 void SubSlayerSkillInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
-    try {
-        iStream.read(m_SkillType);
-        iStream.read(m_Exp);
-        iStream.read(m_ExpLevel);
-        iStream.read(m_Interval);
-        iStream.read(m_CastingTime);
-        iStream.read(m_Enable);
-
-    } catch (Throwable& t) {
-        cout << t.toString() << endl;
-    }
+    iStream.read(m_SkillType);
+    iStream.read(m_Exp);
+    iStream.read(m_ExpLevel);
+    iStream.read(m_Interval);
+    iStream.read(m_CastingTime);
+    iStream.read(m_Enable);
 
     __END_CATCH
 }
@@ -35,17 +30,12 @@ void SubSlayerSkillInfo::read(SocketInputStream& iStream) {
 void SubSlayerSkillInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    try {
-        oStream.write(m_SkillType);
-        oStream.write(m_Exp);
-        oStream.write(m_ExpLevel);
-        oStream.write(m_Interval);
-        oStream.write(m_CastingTime);
-        oStream.write(m_Enable);
-
-    } catch (Throwable& t) {
-        cout << t.toString() << endl;
-    }
+    oStream.write(m_SkillType);
+    oStream.write(m_Exp);
+    oStream.write(m_ExpLevel);
+    oStream.write(m_Interval);
+    oStream.write(m_CastingTime);
+    oStream.write(m_Enable);
 
     __END_CATCH
 }

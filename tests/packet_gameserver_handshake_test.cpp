@@ -99,15 +99,15 @@
 //
 //               The write/read disagreements this set found are fixed,
 //               and the pins at the end of the file hold the fixed
-//               behaviour: the PC record and the sub-item record let
-//               their refusals out instead of printing them,
-//               NPCInfo::getSize() counts only the fields write()
-//               emits, EffectInfo::getMaxSize() covers a full
-//               255-effect list, the four list records derive the count
-//               they put on the wire from the list itself, the NPC
-//               record list stops at the count byte, the blood bible
-//               signs and the nickname stop at the widths their max
-//               sizes budget, and GCUpdateInfo, GCPetInfo and
+//               behaviour: the PC record, the sub-item record and the
+//               motorcycle slot record let their refusals out instead
+//               of printing them, NPCInfo::getSize() counts only the
+//               fields write() emits, EffectInfo::getMaxSize() covers
+//               a full 255-effect list, the four list records derive
+//               the count they put on the wire from the list itself,
+//               the NPC record list stops at the count byte, the blood
+//               bible signs and the nickname stop at the widths their
+//               max sizes budget, and GCUpdateInfo, GCPetInfo and
 //               NicknameInfo start with every member initialised.
 //
 //////////////////////////////////////////////////////////////////////
@@ -1504,6 +1504,19 @@ TEST(CGSetVampireHotKeyTest, toStringNamesEveryKeyItOwns) {
         const std::string field = "F" + std::to_string(i + 5) + ":" + std::to_string((int)packet.getHotKey(i));
         EXPECT_NE(std::string::npos, text.find(field)) << "hot key " << (int)i;
     }
+}
+
+// A stream that stops short leaves the record half-parsed and the
+// caller reading the next field from the wrong offset, so read() lets
+// the failure reach it instead of printing it.
+TEST(RideMotorcycleSlotInfoTest, aShortStreamStopsTheRead) {
+    Loopback loopback;
+    loopback.setCodes(kPlainCode);
+    loopback.out().write((BYTE)0x81);
+    loopback.pump(1);
+
+    RideMotorcycleSlotInfo slot;
+    EXPECT_THROW(slot.read(loopback.in()), InsufficientDataException);
 }
 
 } // namespace

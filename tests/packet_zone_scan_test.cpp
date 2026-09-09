@@ -82,7 +82,11 @@
 //               GCAddMonsterFromBurrowing, GCAddVampireFromBurrowing,
 //               GCAddMonsterFromTransformation and
 //               GCAddVampireFromTransformation belong to the unburrow
-//               and untransform transitions, not to view population.
+//               and untransform transitions, not to view population;
+//               they carry the same optional effect record as the
+//               creature adds here, so the last section pins that one
+//               fallback for them, and that GCAddMonsterFromBurrowing
+//               reads exactly what its write() emits.
 //               GCAddHelicopter (waypoint travel),
 //               GCAddInjuriousCreature (a skill result) and
 //               GCRemoveEffect (effect expiry on an object already in
@@ -154,6 +158,8 @@
 #include "GCAddEffectToTile.h"
 #include "GCAddMonster.h"
 #include "GCAddMonsterCorpse.h"
+#include "GCAddMonsterFromBurrowing.h"
+#include "GCAddMonsterFromTransformation.h"
 #include "GCAddNPC.h"
 #include "GCAddOusters.h"
 #include "GCAddOustersCorpse.h"
@@ -161,6 +167,8 @@
 #include "GCAddSlayerCorpse.h"
 #include "GCAddVampire.h"
 #include "GCAddVampireCorpse.h"
+#include "GCAddVampireFromBurrowing.h"
+#include "GCAddVampireFromTransformation.h"
 #include "GCAddVampirePortal.h"
 #include "GCAddWolf.h"
 #include "GCDeleteEffectFromTile.h"
@@ -1324,6 +1332,57 @@ TEST(ZoneScanEffectRecordTest, aMissingEffectRecordWritesAnEmptyList) {
     delete ousters.packet.getEffectInfo();
     ousters.packet.setEffectInfo(NULL);
     EXPECT_EQ((size_t)ousters.packet.getPacketSize(), writeBody(ousters.packet, kPlainCode).size());
+}
+
+// The unburrow and untransform packets carry the same optional effect
+// record. A default-constructed instance is the one every factory hands
+// a reader, so sizing, writing or printing one before it has read
+// anything must not dereference NULL.
+template <typename AddPacket> void expectSurvivesAMissingEffectRecord(AddPacket& packet, const char* what) {
+    ASSERT_TRUE(packet.getEffectInfo() == NULL) << what;
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size()) << what;
+    EXPECT_FALSE(packet.toString().empty()) << what;
+
+    AddPacket dst;
+    roundTrip(packet, dst, kPlainCode);
+    ASSERT_TRUE(dst.getEffectInfo() != NULL) << what;
+    EXPECT_EQ(0, (int)dst.getEffectInfo()->getListNum()) << what;
+    EXPECT_EQ(packet.getPacketSize(), dst.getPacketSize()) << what;
+}
+
+template <typename MonsterPacket> void fillTransitionMonster(MonsterPacket& p) {
+    p.setObjectID(0x91A2B3C4);
+    p.setMonsterType(0x85C6);
+    p.setMonsterName("GoldTransitionMonster");
+    p.setMainColor(0x87C8);
+    p.setSubColor(0x89CA);
+    p.setX(0x8B);
+    p.setY(0x9C);
+    p.setDir(5);
+    p.setCurrentHP(0x8ECF);
+    p.setMaxHP(0x90D1);
+}
+
+// Each fixture picks one of the eight directions Dir2String holds,
+// because toString() indexes that array.
+TEST(ZoneScanEffectRecordTest, theTransitionPacketsSurviveAMissingEffectRecord) {
+    GCAddMonsterFromBurrowing monsterBurrow;
+    fillTransitionMonster(monsterBurrow);
+    expectSurvivesAMissingEffectRecord(monsterBurrow, "GCAddMonsterFromBurrowing");
+
+    GCAddMonsterFromTransformation monsterMorph;
+    fillTransitionMonster(monsterMorph);
+    expectSurvivesAMissingEffectRecord(monsterMorph, "GCAddMonsterFromTransformation");
+
+    GCAddVampireFromBurrowing vampireBurrow;
+    fillVampireInfo(vampireBurrow.getVampireInfo());
+    vampireBurrow.getVampireInfo().setDir(5);
+    expectSurvivesAMissingEffectRecord(vampireBurrow, "GCAddVampireFromBurrowing");
+
+    GCAddVampireFromTransformation vampireMorph;
+    fillVampireInfo(vampireMorph.getVampireInfo());
+    vampireMorph.getVampireInfo().setDir(5);
+    expectSurvivesAMissingEffectRecord(vampireMorph, "GCAddVampireFromTransformation");
 }
 
 // None of the three creature-add packets frees the pet or the nickname

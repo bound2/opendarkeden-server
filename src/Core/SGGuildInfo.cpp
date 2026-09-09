@@ -19,12 +19,12 @@ SGGuildInfo::SGGuildInfo() {}
 // destructor
 //////////////////////////////////////////////////////////////////////
 SGGuildInfo::~SGGuildInfo() noexcept {
-    // ��� ����Ʈ�� ��� ��ü ����
+    // Destroys every guild record the list still owns.
     clearGuildInfoList();
 }
 
 //////////////////////////////////////////////////////////////////////
-// Datagram ��ü�κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
+// Read the packet body from the input stream.
 //////////////////////////////////////////////////////////////////////
 void SGGuildInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
@@ -32,10 +32,14 @@ void SGGuildInfo::read(SocketInputStream& iStream) {
     WORD szGuildInfo;
 
     iStream.read(szGuildInfo);
+
+    if (szGuildInfo > GuildInfo2::kMaxCount)
+        throw InvalidProtocolException("too many guild infos");
+
     for (int i = 0; i < szGuildInfo; i++) {
         GuildInfo2* pGuildInfo = new GuildInfo2();
         pGuildInfo->read(iStream);
-        m_GuildInfoList.push_front(pGuildInfo);
+        m_GuildInfoList.push_back(pGuildInfo);
     }
 
     __END_CATCH
@@ -43,10 +47,13 @@ void SGGuildInfo::read(SocketInputStream& iStream) {
 
 
 //////////////////////////////////////////////////////////////////////
-// Datagram ��ü�� ��Ŷ�� ���̳ʸ� �̹����� ������.
+// Write the packet body to the output stream.
 //////////////////////////////////////////////////////////////////////
 void SGGuildInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
+
+    if (m_GuildInfoList.size() > GuildInfo2::kMaxCount)
+        throw InvalidProtocolException("too many guild infos");
 
     WORD szGuildInfo = m_GuildInfoList.size();
 
@@ -66,7 +73,7 @@ void SGGuildInfo::write(SocketOutputStream& oStream) const {
 void SGGuildInfo::clearGuildInfoList() {
     __BEGIN_TRY
 
-    // GuildInfoList�� �����Ѵ�.
+    // Destroy every guild record in the list.
     while (!m_GuildInfoList.empty()) {
         GuildInfo2* pGuildInfo = m_GuildInfoList.front();
         m_GuildInfoList.pop_front();

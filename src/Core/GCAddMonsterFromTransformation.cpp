@@ -79,7 +79,10 @@ void GCAddMonsterFromTransformation::write(SocketOutputStream& oStream) const
     oStream.write(m_Y);
     oStream.write(m_Dir);
 
-    m_pEffectInfo->write(oStream);
+    // A packet carrying no effect record puts an empty list on the wire.
+    EffectInfo noEffects;
+    const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+    effects.write(oStream);
 
     oStream.write(m_CurrentHP);
     oStream.write(m_MaxHP);
@@ -103,8 +106,8 @@ string GCAddMonsterFromTransformation::toString() const
     msg << "GCAddMonsterFromTransformation(" << "ObjectID:" << (int)m_ObjectID << ",MonsterType:" << (int)m_MonsterType
         << ",MonsterName:" << m_MonsterName << ",MainColor:" << (int)m_MainColor << ",SubColor:" << (int)m_SubColor
         << ",X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << Dir2String[m_Dir]
-        << ",Effects:" << m_pEffectInfo->toString() << ",CurrentHP:" << (int)m_CurrentHP << ",MaxHP:" << (int)m_MaxHP
-        << ")";
+        << ",Effects:" << ((m_pEffectInfo != NULL) ? m_pEffectInfo->toString() : "NULL")
+        << ",CurrentHP:" << (int)m_CurrentHP << ",MaxHP:" << (int)m_MaxHP << ")";
 
     return msg.toString();
 

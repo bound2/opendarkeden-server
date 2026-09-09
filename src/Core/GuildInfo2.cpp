@@ -91,9 +91,6 @@ void GuildInfo2::read(SocketInputStream& iStream) {
 
     iStream.read(szIntro);
 
-    if (szIntro > 256)
-        throw InvalidProtocolException("too long szIntro length");
-
     if (szIntro != 0)
         iStream.read(m_Intro, szIntro);
     else
@@ -104,7 +101,7 @@ void GuildInfo2::read(SocketInputStream& iStream) {
     for (int i = 0; i < szGuildMemberInfo; i++) {
         GuildMemberInfo2* pGuildMemberInfo = new GuildMemberInfo2();
         pGuildMemberInfo->read(iStream);
-        m_GuildMemberInfoList.push_front(pGuildMemberInfo);
+        m_GuildMemberInfoList.push_back(pGuildMemberInfo);
     }
 
 
@@ -135,7 +132,7 @@ void GuildInfo2::write(SocketOutputStream& oStream) const {
     if (szDate > 11)
         throw InvalidProtocolException("too long szGuildExpireDate size");
 
-    if (szIntro > 256)
+    if (m_Intro.size() > GUILD_INTRO_MAX_LENGTH)
         throw InvalidProtocolException("too long szIntro length");
 
     // 최적화 작업시 실제 크기를 명시하도록 한다.

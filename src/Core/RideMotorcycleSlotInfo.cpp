@@ -12,14 +12,10 @@
 void RideMotorcycleSlotInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    try {
-        PCItemInfo::read(iStream);
+    PCItemInfo::read(iStream);
 
-        iStream.read(m_InvenX);
-        iStream.read(m_InvenY);
-    } catch (Throwable& t) {
-        cout << t.toString() << endl;
-    }
+    iStream.read(m_InvenX);
+    iStream.read(m_InvenY);
 
     __END_CATCH
 }
@@ -30,14 +26,10 @@ void RideMotorcycleSlotInfo::read(SocketInputStream& iStream) {
 void RideMotorcycleSlotInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    try {
-        PCItemInfo::write(oStream);
+    PCItemInfo::write(oStream);
 
-        oStream.write(m_InvenX);
-        oStream.write(m_InvenY);
-    } catch (Throwable& t) {
-        cout << t.toString() << endl;
-    }
+    oStream.write(m_InvenX);
+    oStream.write(m_InvenY);
 
     __END_CATCH
 }

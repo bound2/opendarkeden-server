@@ -138,27 +138,18 @@
 //               this repository, so a fix here is free to move bytes:
 //               nothing outside it parses these.
 //
-//               Seven findings are stated below as tests that FAIL
-//               when the underlying code is fixed, which is the signal
-//               to retire them:
-//               messageLengthIsCheckedAgainstTheSenderLength (twice),
-//               unboundedGuildIntrosWrapTheLengthByteAndOutgrowTheFactoryMax,
-//               guildListReversesOnARoundTrip,
-//               memberListReversesOnARoundTrip,
-//               aListPastTheFactoryBudgetIsWrittenRatherThanRefused
-//               and guildInfoMaxSizeCountsTheMemberCountWordTwice.
-//
-//               Two more are recorded here because no test states them
-//               usefully. GMServerInfo::read() appends to the zone
-//               table it already holds and overwrites the count, so a
-//               packet read into twice reports fewer zones than it
-//               carries; the receive path always builds a fresh packet,
-//               so nothing reaches that state today. And the intro
-//               guards in GSModifyGuildIntro, SGModifyGuildIntroOK and
-//               GuildInfo2 compare a BYTE against 255 and 256, which no
-//               BYTE can exceed — that dead guard is what leaves the
-//               introduction unbounded, and the finding test below
-//               states the consequence rather than the guard.
+//               The write/read disagreements this set found are fixed,
+//               and the section at the end pins what each one produces
+//               now: the two GG chat packets bound the message length
+//               against the message, the four packets that carry a
+//               guild introduction cut it to the width their length
+//               byte and factory max allow, SGGuildInfo and GuildInfo2
+//               read their lists back in the order write() sent them,
+//               SGGuildInfo refuses a table past the guild count its
+//               factory max budgets, GuildInfo2's max counts the
+//               member-count word once, and GMServerInfo::read()
+//               replaces the zone table it already holds instead of
+//               appending to it.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -207,6 +198,7 @@
 using wiretest::expectGolden;
 using wiretest::kEncryptCodeCount;
 using wiretest::kEncryptCodes;
+using wiretest::Loopback;
 using wiretest::roundTrip;
 using wiretest::writeBody;
 
@@ -958,12 +950,9 @@ void expectMemberEqual(GuildInfo2& a, GuildInfo2& b) {
     }
 
     for (int i = 0; i < members; i++) {
-        // read() pushes each member to the front of a list write()
-        // emitted front to back, so the record that came back last is
-        // the one that went out first — see
-        // memberListReversesOnARoundTrip.
+        // read() rebuilds the list in the order write() emitted it.
         GuildMemberInfo2* pLeft = left[i];
-        GuildMemberInfo2* pRight = right[members - 1 - i];
+        GuildMemberInfo2* pRight = right[i];
         EXPECT_EQ(pLeft->getGuildID(), pRight->getGuildID()) << "member " << i;
         EXPECT_EQ(pLeft->getName(), pRight->getName()) << "member " << i;
         EXPECT_EQ((int)pLeft->getRank(), (int)pRight->getRank()) << "member " << i;
@@ -1004,10 +993,9 @@ void expectEqual(SGGuildInfo& a, SGGuildInfo& b) {
         right.push_back(b.popFrontGuildInfoList());
     }
 
-    // The guild list comes back reversed for the same reason the member
-    // list does — see guildListReversesOnARoundTrip.
+    // The guild list comes back in the order it was sent.
     for (int i = 0; i < guilds; i++)
-        expectGuildEqual(*left[i], *right[guilds - 1 - i]);
+        expectGuildEqual(*left[i], *right[i]);
 
     for (int i = 0; i < guilds; i++) {
         delete left[i];
@@ -1019,113 +1007,132 @@ INTERSERVER_STREAM_TESTS(SGGuildInfo)
 INTERSERVER_STREAM_VARIANT(SGGuildInfo, empty, fillEmpty)
 
 //////////////////////////////////////////////////////////////////////
-// Findings.
+// What the fixed write/read disagreements produce now.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// GGGuildChat::read() guards the message length with `szSender > 128`.
-// The sender length was already capped at 10 two lines above, so the
-// guard can never fire and a declared message length of up to 255 is
-// accepted — while write() refuses anything past 128, and the receiver
-// sizes its buffer from a factory max that budgets 128.
-TEST(GGGuildChatTest, messageLengthIsCheckedAgainstTheSenderLength) {
+// A declared message length past the 128 write() emits, and the
+// factory max budgets, is refused. The sender is capped at 10 two
+// lines above the guard, so only a guard naming the message bounds it.
+TEST(GGGuildChatTest, aMessagePastTheCapIsRefused) {
     const std::string sender = "GgSender01";
-    const std::string message(200, 'm');
 
-    std::vector<unsigned char> image;
-    image.push_back(0x8D);
-    image.push_back(0xAF);
-    image.push_back(0x9E);
-    appendString(image, sender);
+    std::vector<unsigned char> head;
+    head.push_back(0x8D);
+    head.push_back(0xAF);
+    head.push_back(0x9E);
+    appendString(head, sender);
     for (int i = 0; i < 4; i++)
-        image.push_back(0xC0);
-    appendString(image, message);
+        head.push_back(0xC0);
+
+    std::vector<unsigned char> oversized(head);
+    appendString(oversized, std::string(200, 'm'));
 
     GGGuildChat packet;
-    readDatagramImage(packet, image);
-    EXPECT_EQ(message, packet.getMessage()) << "GGGuildChat::read() now bounds the message length — delete this test";
+    EXPECT_THROW(readDatagramImage(packet, oversized), InvalidProtocolException);
+
+    // The longest message write() will emit still parses.
+    const std::string longest(128, 'm');
+    std::vector<unsigned char> atTheCap(head);
+    appendString(atTheCap, longest);
+
+    GGGuildChat accepted;
+    readDatagramImage(accepted, atTheCap);
+    EXPECT_EQ(longest, accepted.getMessage());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The same wrong variable in GGServerChat::read(): its message guard
-// also tests the sender length, which is capped at 10 above it.
-TEST(GGServerChatTest, messageLengthIsCheckedAgainstTheSenderLength) {
+// The same guard in GGServerChat, whose race byte follows the message.
+TEST(GGServerChatTest, aMessagePastTheCapIsRefused) {
     const std::string sender = "GgChatter1";
     const std::string receiver = "GgTarget02";
-    const std::string message(200, 'm');
 
-    std::vector<unsigned char> image;
-    appendString(image, sender);
-    appendString(image, receiver);
+    std::vector<unsigned char> head;
+    appendString(head, sender);
+    appendString(head, receiver);
     for (int i = 0; i < 4; i++)
-        image.push_back(0xC0);
-    appendString(image, message);
-    image.push_back(0x8F);
+        head.push_back(0xC0);
+
+    std::vector<unsigned char> oversized(head);
+    appendString(oversized, std::string(200, 'm'));
+    oversized.push_back(0x8F);
 
     GGServerChat packet;
-    readDatagramImage(packet, image);
-    EXPECT_EQ(message, packet.getMessage()) << "GGServerChat::read() now bounds the message length — delete this test";
+    EXPECT_THROW(readDatagramImage(packet, oversized), InvalidProtocolException);
+
+    const std::string longest(128, 'm');
+    std::vector<unsigned char> atTheCap(head);
+    appendString(atTheCap, longest);
+    atTheCap.push_back(0x8F);
+
+    GGServerChat accepted;
+    readDatagramImage(accepted, atTheCap);
+    EXPECT_EQ(longest, accepted.getMessage());
 }
 
 // The introduction is the last field of three of the four packets that
 // carry one, and GSAddGuild puts its state, race and server group after
 // it; `trailing` names those bytes, so the length byte is found by
 // counting back from the end of the body.
-void expectUnboundedIntro(const Packet& packet, PacketSize_t maxSize, size_t introLength, size_t trailing,
-                          const char* what) {
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    ASSERT_GT(body.size(), introLength + trailing) << what;
+void expectIntroCutToTheCap(const Packet& packet, const std::string& intro, PacketSize_t maxSize, size_t trailing,
+                            const char* what) {
+    EXPECT_EQ((size_t)GUILD_INTRO_MAX_LENGTH, intro.size()) << what << ": the setter cuts the string to the cap";
 
-    EXPECT_EQ((size_t)packet.getPacketSize(), body.size()) << what << ": the whole string is still emitted";
-    EXPECT_EQ((int)(introLength & 0xFF), (int)body[body.size() - trailing - introLength - 1])
-        << what << ": write() now bounds the guild intro — delete this part of the test";
-    EXPECT_GT(packet.getPacketSize(), maxSize) << what;
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    ASSERT_GT(body.size(), GUILD_INTRO_MAX_LENGTH + trailing) << what;
+
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size()) << what;
+    EXPECT_LE(packet.getPacketSize(), maxSize) << what << ": the longest introduction fits the factory max";
+    EXPECT_EQ((int)GUILD_INTRO_MAX_LENGTH, (int)body[body.size() - trailing - GUILD_INTRO_MAX_LENGTH - 1])
+        << what << ": the length byte carries the whole string";
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// None of the four writers that carry a guild introduction bounds it.
-// Each derives a BYTE length from the string and then emits the string
-// whole, so past 255 characters the length byte wraps and the reader
-// stops mid-text, and the body outgrows the read buffer the receiver
-// sizes from the factory max. The guards that look like they cap it
-// (`szGuildIntro > 255` in the two ModifyGuildIntro packets, `szIntro >
-// 256` in GuildInfo2) compare a BYTE against a value no BYTE can
-// exceed, so they never fire. GSAddGuild and SGAddGuildOK do bound
-// their guild name and master; only the introduction is open.
-TEST(InterserverBoundsTest, unboundedGuildIntrosWrapTheLengthByteAndOutgrowTheFactoryMax) {
-    const size_t kIntroLength = 300;
-    const std::string intro(kIntroLength, 'i');
+// Every packet that carries a guild introduction cuts it to the width
+// its one-byte length prefix can express and its factory max budgets,
+// so no length byte wraps and no body outgrows the read buffer the
+// receiver sizes from that max. The value a player types arrives inside
+// the same one-byte frame in CGRegistGuild and CGModifyGuildIntro, so
+// the game server never has to refuse one the client already limited.
+TEST(InterserverBoundsTest, guildIntrosAreCutToTheCap) {
+    const std::string tooLong(300, 'i');
 
     GSAddGuild addGuild;
     fillCommon(addGuild);
-    addGuild.setGuildIntro(intro);
-    expectUnboundedIntro(addGuild, GSAddGuildFactory::kMaxSize, kIntroLength,
-                         szGuildState + szGuildRace + szServerGroupID, "GSAddGuild");
+    addGuild.setGuildIntro(tooLong);
+    expectIntroCutToTheCap(addGuild, addGuild.getGuildIntro(), GSAddGuildFactory::kMaxSize,
+                           szGuildState + szGuildRace + szServerGroupID, "GSAddGuild");
 
     GSModifyGuildIntro modifyIntro;
     fill(modifyIntro);
-    modifyIntro.setGuildIntro(intro);
-    expectUnboundedIntro(modifyIntro, GSModifyGuildIntroFactory::kMaxSize, kIntroLength, 0, "GSModifyGuildIntro");
+    modifyIntro.setGuildIntro(tooLong);
+    expectIntroCutToTheCap(modifyIntro, modifyIntro.getGuildIntro(), GSModifyGuildIntroFactory::kMaxSize, 0,
+                           "GSModifyGuildIntro");
 
     SGAddGuildOK addGuildOK;
     fillCommon(addGuildOK);
-    addGuildOK.setGuildIntro(intro);
-    expectUnboundedIntro(addGuildOK, SGAddGuildOKFactory::kMaxSize, kIntroLength, 0, "SGAddGuildOK");
+    addGuildOK.setGuildIntro(tooLong);
+    expectIntroCutToTheCap(addGuildOK, addGuildOK.getGuildIntro(), SGAddGuildOKFactory::kMaxSize, 0, "SGAddGuildOK");
 
     SGModifyGuildIntroOK modifyIntroOK;
     fill(modifyIntroOK);
-    modifyIntroOK.setGuildIntro(intro);
-    expectUnboundedIntro(modifyIntroOK, SGModifyGuildIntroOKFactory::kMaxSize, kIntroLength, 0, "SGModifyGuildIntroOK");
+    modifyIntroOK.setGuildIntro(tooLong);
+    expectIntroCutToTheCap(modifyIntroOK, modifyIntroOK.getGuildIntro(), SGModifyGuildIntroOKFactory::kMaxSize, 0,
+                           "SGModifyGuildIntroOK");
+
+    // The nested guild record the shared server fills from the database
+    // is cut the same way, and a whole guild still fits the budget
+    // GuildInfo2::getMaxSize() gives it.
+    GuildInfo2 guild;
+    guild.setID(0xA6F7);
+    guild.setName("CapGuildName");
+    guild.setMaster("CapGuildMaster");
+    guild.setDate("2031-12-24");
+    guild.setIntro(tooLong);
+    EXPECT_EQ((size_t)GUILD_INTRO_MAX_LENGTH, guild.getIntro().size());
+    EXPECT_LE((uint)guild.getSize(), GuildInfo2::getMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// SGGuildInfo::write() walks its list front to back while read() pushes
-// every guild it parses to the front, so the table arrives reversed.
-// The sharedserver is the only sender and the gameserver the only
-// reader, and the reader treats the table as a set, so nothing is
-// visibly wrong today — but read() does not reconstruct what write()
-// sent.
-TEST(SGGuildInfoTest, guildListReversesOnARoundTrip) {
+// A round trip rebuilds the guild table in the order write() emitted it
+// rather than reversing it.
+TEST(SGGuildInfoTest, theGuildListKeepsTheOrderWriteSent) {
     SGGuildInfo src;
     fill(src);
 
@@ -1137,17 +1144,14 @@ TEST(SGGuildInfoTest, guildListReversesOnARoundTrip) {
     ASSERT_TRUE(pSentFirst != NULL);
     ASSERT_TRUE(pReceivedFirst != NULL);
 
-    EXPECT_NE(pSentFirst->getID(), pReceivedFirst->getID())
-        << "SGGuildInfo::read() now preserves the order write() sent — delete this test";
+    EXPECT_EQ(pSentFirst->getID(), pReceivedFirst->getID());
 
     delete pSentFirst;
     delete pReceivedFirst;
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The same front-push in GuildInfo2::read() reverses each guild's
-// member list.
-TEST(SGGuildInfoTest, memberListReversesOnARoundTrip) {
+// And each guild's member list with it.
+TEST(SGGuildInfoTest, theMemberListKeepsTheOrderWriteSent) {
     SGGuildInfo src;
     src.addGuildInfo(makeFullGuildInfo());
 
@@ -1164,8 +1168,7 @@ TEST(SGGuildInfoTest, memberListReversesOnARoundTrip) {
     ASSERT_TRUE(pSentFirst != NULL);
     ASSERT_TRUE(pReceivedFirst != NULL);
 
-    EXPECT_NE(pSentFirst->getName(), pReceivedFirst->getName())
-        << "GuildInfo2::read() now preserves the order write() sent — delete this test";
+    EXPECT_EQ(pSentFirst->getName(), pReceivedFirst->getName());
 
     delete pSentFirst;
     delete pReceivedFirst;
@@ -1173,38 +1176,69 @@ TEST(SGGuildInfoTest, memberListReversesOnARoundTrip) {
     delete pReceived;
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// SGGuildInfoFactory::kMaxSize is 500 guilds' worth of GuildInfo2, and
-// that number is the receiver's read buffer. Neither write() nor read()
-// caps the WORD entry count at it, so a table of 500 full-sized guilds
-// plus one is emitted and parsed rather than refused — the same gap the
-// login server's two list packets used to have.
-TEST(SGGuildInfoTest, aListPastTheFactoryBudgetIsWrittenRatherThanRefused) {
+// SGGuildInfoFactory::kMaxSize is GuildInfo2::kMaxCount guilds' worth of
+// GuildInfo2, and that number is the receiver's read buffer. The list
+// refuses the entry past it on the way in, write() refuses a list that
+// reached that length another way, and read() refuses a declared count
+// past it before allocating a single record.
+TEST(SGGuildInfoTest, aListPastTheFactoryBudgetIsRefused) {
     SGGuildInfo packet;
-    for (int i = 0; i < 501; i++)
-        packet.addGuildInfo(makeMinimalGuildInfo(i));
-    ASSERT_EQ(501, (int)packet.getGuildInfoListNum());
+    for (uint i = 0; i < GuildInfo2::kMaxCount; i++)
+        packet.addGuildInfo(makeMinimalGuildInfo((int)i));
+    ASSERT_EQ((int)GuildInfo2::kMaxCount, (int)packet.getGuildInfoListNum());
+
+    EXPECT_THROW(packet.addGuildInfo(makeMinimalGuildInfo(0)), InvalidProtocolException);
+    EXPECT_EQ((int)GuildInfo2::kMaxCount, (int)packet.getGuildInfoListNum());
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     ASSERT_LE(2u, body.size());
     EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
-    EXPECT_EQ(501u, ((unsigned int)body[0] | ((unsigned int)body[1] << 8)))
-        << "SGGuildInfo::write() now refuses a list past the 500 its factory max budgets — delete this test";
+    EXPECT_EQ(GuildInfo2::kMaxCount, ((unsigned int)body[0] | ((unsigned int)body[1] << 8)));
+    EXPECT_LE(packet.getPacketSize(), SGGuildInfoFactory::kMaxSize);
+
+    const unsigned int declared = GuildInfo2::kMaxCount + 1;
+    Loopback loopback;
+    loopback.setCodes(kPlainCode);
+    loopback.out().write((unsigned char)(declared & 0xFF));
+    loopback.out().write((unsigned char)(declared >> 8));
+    loopback.pump(2);
+
+    SGGuildInfo reader;
+    EXPECT_THROW(reader.read(loopback.in()), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GuildInfo2::getMaxSize() adds szWORD twice: once for the member count
-// write() emits and once more at the end. Every guild in SGGuildInfo's
-// budget is therefore two bytes too large, and the packet's factory max
-// is 1000 bytes above what 500 full guilds can occupy. It over-budgets,
-// so nothing truncates — but the number is not the record's size.
-TEST(SGGuildInfoTest, guildInfoMaxSizeCountsTheMemberCountWordTwice) {
+// GuildInfo2::getMaxSize() counts the member-count word once, the way
+// write() emits it, so SGGuildInfo's factory max is what its budget of
+// guilds can actually occupy.
+TEST(SGGuildInfoTest, guildInfoMaxSizeCountsTheMemberCountWordOnce) {
     const uint fields = szGuildID + szBYTE + 30 + szGuildType + szGuildRace + szGuildState + szServerGroupID +
                         szZoneID + szBYTE + 20 + szBYTE + 11 + szBYTE + 256;
-    const uint honest = fields + szWORD + GuildMemberInfo2::getMaxSize() * 220;
 
-    EXPECT_EQ(honest + szWORD, GuildInfo2::getMaxSize())
-        << "GuildInfo2::getMaxSize() no longer counts the member-count word twice — delete this test";
+    EXPECT_EQ(fields + szWORD + GuildMemberInfo2::getMaxSize() * 220, GuildInfo2::getMaxSize());
+    EXPECT_EQ(szWORD + GuildInfo2::getMaxSize() * GuildInfo2::kMaxCount, SGGuildInfoFactory::kMaxSize);
+}
+
+// The body carries the whole zone table, so reading a second one into
+// the same packet replaces the first rather than appending to it and
+// leaving the count naming fewer zones than the list holds. The receive
+// path builds a fresh packet every time, so nothing reaches that state
+// today.
+TEST(GMServerInfoTest, readingTwiceReplacesTheZoneTable) {
+    GMServerInfo src;
+    fill(src);
+    const std::vector<unsigned char> image = datagramBody(src);
+
+    GMServerInfo dst;
+    readDatagramImage(dst, image);
+    readDatagramImage(dst, image);
+
+    EXPECT_EQ(3, (int)dst.getZoneUserCount());
+    EXPECT_EQ((size_t)dst.getPacketSize(), image.size());
+
+    ZONEUSERDATA zone;
+    dst.popZoneUserData(zone);
+    EXPECT_EQ(0xA1B2, (int)zone.ZoneID);
+    EXPECT_EQ(0xC3D4, (int)zone.UserNum);
 }
 
 } // namespace

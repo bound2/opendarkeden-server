@@ -27,17 +27,21 @@ public:
         return PACKET_GC_ADD_MONSTER_FROM_TRANSFORMATION;
     }
     PacketSize_t getPacketSize() const {
-        return szObjectID +               // object id
-               szMonsterType +            // monster type
-               szBYTE +                   // monster name length
-               m_MonsterName.size() +     // monster name
-               szColor +                  // monster main color
-               szColor +                  // monster sub color
-               szCoord +                  // x coord
-               szCoord +                  // y coord
-               szDir +                    // direction
-               m_pEffectInfo->getSize() + // effects info on monster
-               szHP * 2;                  // current & max hp
+        // A packet carrying no effect record puts an empty list on the wire.
+        EffectInfo noEffects;
+        const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+
+        return szObjectID +           // object id
+               szMonsterType +        // monster type
+               szBYTE +               // monster name length
+               m_MonsterName.size() + // monster name
+               szColor +              // monster main color
+               szColor +              // monster sub color
+               szCoord +              // x coord
+               szCoord +              // y coord
+               szDir +                // direction
+               effects.getSize() +    // effects info on monster
+               szHP * 2;              // current & max hp
     }
     string getPacketName() const {
         return "GCAddMonsterFromTransformation";

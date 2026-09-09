@@ -56,7 +56,11 @@ public:
 
     // get packet's body size
     PacketSize_t getPacketSize() const {
-        return m_VampireInfo.getSize() + m_pEffectInfo->getSize();
+        // A packet carrying no effect record puts an empty list on the wire.
+        EffectInfo noEffects;
+        const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+
+        return m_VampireInfo.getSize() + effects.getSize();
     }
 
     // get packet's name

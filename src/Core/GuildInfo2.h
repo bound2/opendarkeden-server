@@ -45,10 +45,14 @@ public:
     // 최적화시, 미리 계산된 정수를 사용한다.
     PacketSize_t getSize();
 
+    // The list packet SGGuildInfo budgets this many guilds in its factory
+    // max; it refuses one more.
+    static constexpr uint kMaxCount = 500;
+
     static constexpr uint getMaxSize() {
         return (szGuildID + szBYTE + 30 + szGuildType + szGuildRace + szGuildState + szServerGroupID + szZoneID +
                 szBYTE + 20 + szBYTE + 11 + szBYTE + 256) +
-               szWORD + GuildMemberInfo2::getMaxSize() * 220 + szWORD;
+               szWORD + GuildMemberInfo2::getMaxSize() * 220;
     }
 
     // get packet's debug string
@@ -130,8 +134,9 @@ public:
     string getIntro() const {
         return m_Intro;
     }
+    // Truncates to the width the length byte and the factory max allow.
     void setIntro(const string& intro) {
-        m_Intro = intro;
+        m_Intro = (intro.size() > GUILD_INTRO_MAX_LENGTH) ? intro.substr(0, GUILD_INTRO_MAX_LENGTH) : intro;
     }
 
     // get guild member info list num
