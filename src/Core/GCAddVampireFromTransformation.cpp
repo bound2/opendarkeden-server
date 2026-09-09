@@ -44,7 +44,10 @@ void GCAddVampireFromTransformation::write(SocketOutputStream& oStream) const
 
     m_VampireInfo.write(oStream);
 
-    m_pEffectInfo->write(oStream);
+    // A packet carrying no effect record puts an empty list on the wire.
+    EffectInfo noEffects;
+    const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
+    effects.write(oStream);
 
     __END_CATCH
 }
@@ -61,7 +64,7 @@ string GCAddVampireFromTransformation::toString() const
     StringStream msg;
 
     msg << "GCAddVampireFromTransformation(" << "VampireInfo:" << m_VampireInfo.toString()
-        << "EffectInfo:" << m_pEffectInfo->toString() << ")";
+        << "EffectInfo:" << ((m_pEffectInfo != NULL) ? m_pEffectInfo->toString() : "NULL") << ")";
 
     return msg.toString();
 

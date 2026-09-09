@@ -200,19 +200,25 @@ before anything else moves. Everything later shelters under this pin.
   > whose header carries a *measured* body length, so the size field, the
   > datagram's length and `getPacketSize()` are checked against each
   > other; the socket hop itself stays in
-  > `tests/datagram_frame_test.cpp`. Seven open write/read disagreements
-  > are stated as tests that flip when fixed (`GGGuildChat::read` and
-  > `GGServerChat::read` guarding the message length with the *sender*
-  > length, so a 255-byte message passes a 128-byte cap; the guild
-  > introduction unbounded in `GSAddGuild`, `GSModifyGuildIntro`,
-  > `SGAddGuildOK` and `SGModifyGuildIntroOK`, whose `> 255` / `> 256`
-  > guards on a `BYTE` can never fire; `SGGuildInfo` and `GuildInfo2`
-  > reading their lists front-first against a `write()` that emits front
-  > to back, so both arrive reversed; the entry count neither side caps
-  > at the 500 guilds the factory max budgets; and
-  > `GuildInfo2::getMaxSize` counting the member-count word twice). Both
-  > ends of every one of the 30 are built from this repository, so a fix
-  > there is free to move bytes.
+  > `tests/datagram_frame_test.cpp`. Both ends of every one of the 30
+  > are built from this repository, so a fix there is free to move
+  > bytes. The **write/read disagreements this set found are fixed** and
+  > pinned as the behaviour they now produce (`GGGuildChat::read` and
+  > `GGServerChat::read` bound the message length against the message
+  > instead of the *sender*, so a declared length past the 128 `write`
+  > emits is refused; the guild introduction in `GSAddGuild`,
+  > `GSModifyGuildIntro`, `SGAddGuildOK`, `SGModifyGuildIntroOK` and
+  > `GuildInfo2` is cut to `GUILD_INTRO_MAX_LENGTH` in the setter and
+  > refused past it in `write`, in place of guards that compared a
+  > `BYTE` against 255 and 256; `SGGuildInfo` and `GuildInfo2` read
+  > their lists back in the order `write` sent them; `SGGuildInfo`
+  > refuses a table past the 500 guilds its factory max budgets, in
+  > `addGuildInfo`, `write` and `read` alike; `GuildInfo2::getMaxSize`
+  > counts the member-count word once, the one wire-layout move in the
+  > set — `SGGuildInfo` 2916502 → 2915502, a server-side read-buffer
+  > budget and not a field on the wire; and `GMServerInfo::read`
+  > replaces the zone table it already holds instead of appending to
+  > it). No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan and
   > both inter-server links pinned, the remaining non-encrypter coverage
   > outstanding is the rest of GC/CG.

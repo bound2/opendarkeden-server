@@ -455,7 +455,7 @@
 470	SGAddGuildOK	316
 471	SGDeleteGuildOK	2
 472	SGExpelGuildMemberOK	44
-473	SGGuildInfo	2916502
+473	SGGuildInfo	2915502
 475	SGGuildMemberLogOnOK	26
 476	SGModifyGuildIntroOK	258
 477	SGModifyGuildMemberOK	45

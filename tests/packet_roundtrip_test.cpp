@@ -329,3 +329,30 @@ TEST(GCShopListTest, shopTypeIsIncludedInFrameSize) {
         }
     }
 }
+
+#include "SubOustersSkillInfo.h"
+#include "SubSlayerSkillInfo.h"
+#include "SubVampireSkillInfo.h"
+
+// A stream that stops short leaves a sub-skill record half-parsed and
+// the caller reading the next record from the wrong offset, so read()
+// lets the failure reach it instead of printing it.
+TEST(SubSkillInfoTest, aShortStreamStopsTheRead) {
+    for (int which = 0; which < 3; which++) {
+        Loopback loopback;
+        loopback.setCodes(0);
+        loopback.out().write((BYTE)0x81);
+        loopback.pump(1);
+
+        if (which == 0) {
+            SubSlayerSkillInfo info;
+            EXPECT_THROW(info.read(loopback.in()), InsufficientDataException);
+        } else if (which == 1) {
+            SubVampireSkillInfo info;
+            EXPECT_THROW(info.read(loopback.in()), InsufficientDataException);
+        } else {
+            SubOustersSkillInfo info;
+            EXPECT_THROW(info.read(loopback.in()), InsufficientDataException);
+        }
+    }
+}

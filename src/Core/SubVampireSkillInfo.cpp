@@ -14,14 +14,9 @@
 //----------------------------------------------------------------------
 void SubVampireSkillInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
-    try {
-        iStream.read(m_SkillType);
-        iStream.read(m_Interval);
-        iStream.read(m_CastingTime);
-
-    } catch (Throwable& t) {
-        cout << t.toString() << endl;
-    }
+    iStream.read(m_SkillType);
+    iStream.read(m_Interval);
+    iStream.read(m_CastingTime);
 
     __END_CATCH
 }
@@ -32,14 +27,9 @@ void SubVampireSkillInfo::read(SocketInputStream& iStream) {
 void SubVampireSkillInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    try {
-        oStream.write(m_SkillType);
-        oStream.write(m_Interval);
-        oStream.write(m_CastingTime);
-
-    } catch (Throwable& t) {
-        cout << t.toString() << endl;
-    }
+    oStream.write(m_SkillType);
+    oStream.write(m_Interval);
+    oStream.write(m_CastingTime);
 
     __END_CATCH
 }

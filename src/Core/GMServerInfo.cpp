@@ -42,6 +42,10 @@ void GMServerInfo::read(Datagram& iDatagram)
     iDatagram.read(m_WorldID);
     iDatagram.read(m_ServerID);
 
+    // The body carries the whole table, so it replaces whatever this
+    // packet already holds.
+    clearList();
+
     ZONEUSERDATA zoneuser_data;
 
     iDatagram.read(m_ZoneCount);

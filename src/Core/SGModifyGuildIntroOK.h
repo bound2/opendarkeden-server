@@ -68,8 +68,9 @@ public:
     const string& getGuildIntro() const {
         return m_GuildIntro;
     }
+    // Truncates to the width the length byte and the factory max allow.
     void setGuildIntro(const string& intro) {
-        m_GuildIntro = intro;
+        m_GuildIntro = (intro.size() > GUILD_INTRO_MAX_LENGTH) ? intro.substr(0, GUILD_INTRO_MAX_LENGTH) : intro;
     }
 
 private:

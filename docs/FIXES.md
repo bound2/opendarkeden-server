@@ -11,6 +11,125 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Inter-server link write/read disagreements (2026-09-09)
+
+The findings task 1.2 stated as flip-tests in
+`tests/packet_interserver_test.cpp`, plus the one its review reported
+that no test stated usefully, and the leftovers earlier rounds reported
+in the packets they did not cover. Each is now pinned as the behaviour
+it produces. No golden changed; the `GuildInfo2` maximum below is the
+set's only `tests/wire-layout.txt` movement.
+
+- **Two chat packets guarded the message length with the sender
+  length.** `GGGuildChat::read()` and `GGServerChat::read()` both test
+  `szSender > 128` where they mean the message. The sender is capped at
+  10 two lines above, so the guard can never fire and a declared message
+  length of up to 255 was accepted — while `write()` refuses anything
+  past 128 and the receiver sizes its buffer from a factory max that
+  budgets 128. Both guards name the message now.
+  > **Status:** fixed (wire/interserver-disagreements)
+
+- **The guild introduction was bounded nowhere.** `GSAddGuild`,
+  `GSModifyGuildIntro`, `SGAddGuildOK` and `SGModifyGuildIntroOK`, and
+  the `GuildInfo2` record nested in `SGGuildInfo`, each derived a `BYTE`
+  length from the string and then emitted the string whole. Past 255
+  characters the length byte wrapped and the reader stopped mid-text;
+  below that the body simply outgrew the read buffer the receiver sizes
+  from the factory max. The guards that looked like caps
+  (`szGuildIntro > 255` in the two `ModifyGuildIntro` packets,
+  `szIntro > 256` in `GuildInfo2`) compared a `BYTE` against a value no
+  `BYTE` can hold. `GUILD_INTRO_MAX_LENGTH` (255, the width the length
+  byte can express and the smallest of the five budgets) is now cut to
+  in every setter and refused past in every `write()`; the read side
+  needs no guard, because the one-byte length is the bound. The
+  introduction is player-typed and arrives inside the same one-byte
+  frame in `CGRegistGuild` and `CGModifyGuildIntro`, so the game server
+  never has to refuse a value the client already limited, and the shared
+  server's `Guild.Intro` column — a MySQL `text` — is cut on the way
+  into the record.
+  > **Status:** fixed (wire/interserver-disagreements)
+
+- **`SGGuildInfo` and `GuildInfo2` read their lists back reversed.**
+  Both `read()`s push each record they parse to the front of a list
+  their `write()` emits front to back, so the guild table and every
+  guild's member list arrived in the opposite order. Both push to the
+  back now. Nothing depended on the reversal: `SGGuildInfoHandler`
+  inserts each guild into `GuildManager`'s id-keyed map and each member
+  into `Guild`'s name-keyed map, and the shared server fills the packet
+  by walking its own hash map, whose order is arbitrary to begin with.
+  > **Status:** fixed (wire/interserver-disagreements)
+
+- **`SGGuildInfo`'s entry count was capped on neither side.**
+  `SGGuildInfoFactory::kMaxSize` is 500 guilds' worth of `GuildInfo2`
+  and that number is the receiver's read buffer, but neither `write()`
+  nor `read()` held the `WORD` count to it, so a table of 501 full-sized
+  guilds was emitted and parsed rather than refused. `addGuildInfo()`
+  now refuses the entry past `GuildInfo2::kMaxCount` and destroys it,
+  the way `LCWorldList::addListElement` does with `WorldInfo::kMaxCount`;
+  `write()` refuses a list that reached that length another way, and
+  `read()` refuses a declared count past it before allocating a record.
+  The shared server fills the packet in
+  `GuildManager::makeSGGuildInfo()`, under its own mutex, from
+  `GSRequestGuildInfoHandler`: a guild table past 500 makes
+  `addGuildInfo()` throw, the scoped critical section releases the
+  mutex, and `GameServerManager::processCommands()` catches the
+  `ProtocolException` and drops that one game server's connection. The
+  shared server stays up; the game server reconnects and asks again.
+  > **Status:** fixed (wire/interserver-disagreements)
+
+- **`GuildInfo2::getMaxSize()` counted the member-count word twice.** It
+  added `szWORD` once for the count `write()` emits and once more at the
+  end, so every guild in `SGGuildInfo`'s budget was two bytes too large
+  and the packet's factory max was 1000 bytes above what 500 full guilds
+  can occupy. It over-budgeted, so nothing truncated, but the number was
+  not the record's size. One line moves in `tests/wire-layout.txt`:
+  `SGGuildInfo` 2916502 → 2915502. This is the read buffer the game
+  server budgets for a body it receives, not a field on the wire.
+  > **Status:** fixed (wire/interserver-disagreements)
+
+- **`GMServerInfo::read()` appended to the zone table it already
+  held.** It read the count into the member that `getPacketSize()` and
+  `write()` use and then pushed the new rows onto the existing list, so
+  a packet read into twice reported fewer zones than it carried. The
+  body carries the whole table, so `read()` clears the list first. The
+  receive path builds a fresh packet each time, so nothing reached that
+  state.
+  > **Status:** fixed (wire/interserver-disagreements)
+
+- **Four transition packets dereferenced a missing effect record.**
+  `GCAddMonsterFromBurrowing`, `GCAddMonsterFromTransformation`,
+  `GCAddVampireFromBurrowing` and `GCAddVampireFromTransformation` read
+  `m_pEffectInfo` unconditionally in `getPacketSize()`, `write()` and
+  `toString()`, so a default-constructed instance — the one every
+  factory creates for a reader — crashed before it could read anything.
+  All four fall back to an empty list, as `GCAddSlayer`, `GCAddVampire`,
+  `GCAddOusters` and `GCAddMonster` already do.
+  > **Status:** fixed (wire/interserver-disagreements)
+
+- **`GCAddMonsterFromBurrowing::read()` consumed a byte `write()` never
+  emits.** The same shape `GCAddEffect` had: the
+  `oStream.write((BYTE)48)` that would produce the leading flag is
+  commented out and `getPacketSize()` never counted it, so the reader
+  took the first byte of the object id as a flag and shifted every field
+  after it. `read()` starts at the object id now and the commented-out
+  write is gone. No byte moves: `write()` never emitted the flag. Five
+  more packets carry the same commented-out write and the same leading
+  read — `GCCreatureDied`, `GCDropItemToZone`, `GCMove`, `GCNPCSay` and
+  `GCSkillFailed2` — and are left alone here; `GCDropItemToZone` is
+  already an open finding under task 1.2.
+  > **Status:** fixed (wire/interserver-disagreements)
+
+- **Four more records swallowed the exceptions their bodies raised.**
+  `RideMotorcycleSlotInfo`, `SubOustersSkillInfo`, `SubSlayerSkillInfo`
+  and `SubVampireSkillInfo` each wrapped the whole of `read()` and
+  `write()` in `try { … } catch (Throwable& t) { cout … }`, the shape
+  `PCSlayerInfo`, `PCSlayerInfo2`, `PCSlayerInfo3` and `SubItemInfo`
+  had. A stream that stops short leaves the record half-parsed and the
+  caller reading its next field from the wrong offset, so the failure
+  has to reach it. The exceptions now leave all eight functions, and no
+  `read()` or `write()` in `src/Core` catches `Throwable` any more.
+  > **Status:** fixed (wire/interserver-disagreements)
+
 ## Zone population scan write/read disagreements (2026-09-09)
 
 The findings task 1.2 stated as flip-tests in

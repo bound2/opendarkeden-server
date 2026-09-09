@@ -42,7 +42,7 @@ void GGGuildChat::read(Datagram& iDatagram)
 
     if (szMessage == 0)
         throw InvalidProtocolException("szMessage == 0");
-    if (szSender > 128)
+    if (szMessage > 128)
         throw InvalidProtocolException("too long Message length");
 
     iDatagram.read(m_Message, szMessage);
