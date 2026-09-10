@@ -2,6 +2,22 @@
 #include "DB.h"
 #include "repository/SMSMessageRepository.h"
 
+// END_DB, except that the SQLQueryException is rethrown as itself instead
+// of as DB.h's const char* naming a string destroyed on unwind. The relay
+// loop catches SQLQueryException to reopen the connection, and a
+// const char* reaches neither that branch nor its catch (Throwable&).
+// DBError.log gets the same line END_DB writes.
+#define END_DB_RETHROW(STMT)                                            \
+    catch (SQLQueryException & sqe) {                                   \
+        delete STMT;                                                    \
+        string msg;                                                     \
+        msg += string(std::source_location::current().function_name()); \
+        msg += " : ";                                                   \
+        msg += string(sqe.toString());                                  \
+        filelog("DBError.log", "%s", msg.c_str());                      \
+        throw;                                                          \
+    }
+
 namespace {
 
 // MySQL implementation of SMSMessageRepository. Quirks:
@@ -54,7 +70,7 @@ public:
 
             SAFE_DELETE(pStmt);
         }
-        END_DB(pStmt)
+        END_DB_RETHROW(pStmt)
 
         return found;
     }
@@ -74,7 +90,7 @@ public:
 
             SAFE_DELETE(pStmt);
         }
-        END_DB(pStmt)
+        END_DB_RETHROW(pStmt)
 
         return inserted;
     }
@@ -88,7 +104,7 @@ public:
 
             SAFE_DELETE(pStmt);
         }
-        END_DB(pStmt)
+        END_DB_RETHROW(pStmt)
     }
 
     void keepAlive() {

@@ -22,6 +22,11 @@
 // enqueue never turns. The thread's queue is still filled, by
 // CGSMSSendHandler.
 //
+// A SQL failure leaves these methods as the SQLQueryException the
+// driver raised, not as the const char* END_DB hands the rest of the
+// tree: the caller selects its reconnect branch on that type. The
+// failure is written to DBError.log first, in END_DB's format.
+//
 // Message ids are fixed-width text the caller generates and increments
 // (the dimension, world and server digits, then a zero-padded counter);
 // the tables allocate nothing.
