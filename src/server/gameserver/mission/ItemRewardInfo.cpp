@@ -1,7 +1,6 @@
 
 #include "ItemRewardInfo.h"
 
-#include "DB.h"
 #include "GCCreateItem.h"
 #include "Inventory.h"
 #include "ItemFactoryManager.h"
@@ -130,41 +129,6 @@ QuestMessage ItemRewardInfo::giveReward(PlayerCreature* pPC) const
 
     __END_CATCH
 }
-
-/*void ItemRewardInfo::loadRewardClass( RewardClass& rClass )
-
-{
-    __BEGIN_TRY
-
-    Statement* pStmt = NULL;
-
-    BEGIN_DB
-    {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-                "SELECT RewardID, IClass, IType, OptionType, TimeLimit FROM ItemRewardInfo where RewardClass=%u",
-rClass.getRewardClass() );
-
-        while ( pResult->next() )
-        {
-            int index = 0;
-
-            RewardID_t		rID			= (RewardID_t)		pResult->getInt( ++index );
-            Item::ItemClass	iClass		= (Item::ItemClass)	pResult->getInt( ++index );
-            ItemType_t		iType		= (ItemType_t)		pResult->getInt( ++index );
-            string			options		= 					pResult->getString( ++index );
-            DWORD			timeLimit	= (DWORD)			pResult->getInt( ++index );
-
-            ItemRewardInfo* pIRewardInfo = new ItemRewardInfo( rID, rClass.getRewardClass(), iClass, iType, options,
-timeLimit ); rClass.addRewardInfo( pIRewardInfo );
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-    __END_CATCH
-}*/
 
 string ItemRewardInfo::toString() const {
     __BEGIN_TRY

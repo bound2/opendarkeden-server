@@ -35,9 +35,6 @@ public:
 
     virtual string toString() const;
 
-public:
-    //	static void		loadRewardClass( RewardClass& rClass ) ;
-
 private:
     Item::ItemClass m_IClass;
     ItemType_t m_IType;

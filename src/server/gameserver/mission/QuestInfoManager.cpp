@@ -1,6 +1,5 @@
 #include "QuestInfoManager.h"
 
-#include "DB.h"
 #include "EventQuestAdvance.h"
 #include "GatherItemQuestInfo.h"
 #include "Item.h"
@@ -41,107 +40,6 @@ bool QuestInfoManager::isEventQuest(QuestID_t qID) const {
     }
     return false;
 }
-
-/*void QuestInfoManager::load( const string& name )
-
-{
-    __BEGIN_TRY
-
-    clear();
-
-    Statement* pStmt = NULL;
-
-    BEGIN_DB
-    {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery(
-                "SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, TargetSType, IsChief, Goal FROM
-MonsterKillQuestInfo");
-
-        while (pResult->next())
-        {
-            int index = 0;
-            QuestID_t		qID			= (QuestID_t) 	pResult->getInt( ++index );
-            Race_t			race		= (Race_t)		pResult->getInt( ++index );
-            QuestGrade_t	MaxGrade	= (QuestGrade_t)pResult->getInt( ++index );
-            QuestGrade_t	MinGrade	= (QuestGrade_t)pResult->getInt( ++index );
-            DWORD			timeLimit	= (DWORD)		pResult->getInt( ++index );
-            RewardClass_t	rewardClass	= (RewardClass_t)pResult->getInt(++index );
-            SpriteType_t	monsterSType= (SpriteType_t)pResult->getInt( ++index );
-            bool			isChief		= ( pResult->getInt( ++index ) == 0 )?false:true;
-            int				killCount	= (int)			pResult->getInt( ++index );
-
-//			RewardClass* pRC = g_pRewardClassInfoManager->getRewardClass( rewardClass );
-//			Assert( pRC != NULL );
-
-            MonsterKillQuestInfo* pMonsterKillQI = new MonsterKillQuestInfo( qID, race, MaxGrade, MinGrade, timeLimit,
-rewardClass, monsterSType, isChief, killCount ); addQuestInfo( pMonsterKillQI );
-
-            cout << "Loading Quest Info : " << pMonsterKillQI->toString() << endl;
-        }
-
-        pResult = pStmt->executeQuery(
-                "SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, TargetIClass, TargetIType, Goal
-FROM GatherItemQuestInfo");
-
-        while (pResult->next())
-        {
-            int index = 0;
-            QuestID_t		qID			= (QuestID_t) 	pResult->getInt( ++index );
-            Race_t			race		= (Race_t)		pResult->getInt( ++index );
-            QuestGrade_t	MaxGrade	= (QuestGrade_t)pResult->getInt( ++index );
-            QuestGrade_t	MinGrade	= (QuestGrade_t)pResult->getInt( ++index );
-            DWORD			timeLimit	= (DWORD)		pResult->getInt( ++index );
-            RewardClass_t	rewardClass	= (RewardClass_t)pResult->getInt(++index );
-            Item::ItemClass iClass 		= (Item::ItemClass)pResult->getInt( ++index );
-            ItemType_t		iType		= (ItemType_t)pResult->getInt( ++index );
-            int				Count		= (int)			pResult->getInt( ++index );
-
-//			RewardClass* pRC = g_pRewardClassInfoManager->getRewardClass( rewardClass );
-//			Assert( pRC != NULL );
-
-            GatherItemQuestInfo* pGatherItemQI = new GatherItemQuestInfo( qID, race, MaxGrade, MinGrade, timeLimit,
-rewardClass, iClass, iType, Count ); addQuestInfo( pGatherItemQI );
-
-            cout << "Loading Quest Info : " << pGatherItemQI->toString() << endl;
-        }
-
-//		나중에 하자
-//		pResult = pStmt->executeQuery(
-//				"SELECT QuestID, Race, MaxGrade, MinGrade, TimeLimitSec, RewardClass, TargetSType, IsChief, Goal FROM
-MonsterKillQuestInfo");
-//
-//		while (pResult->next())
-//		{
-//			int index = 0;
-//			QuestID_t		qID			= (QuestID_t) 	pResult->getInt( ++index );
-//			Race_t			race		= (Race_t)		pResult->getInt( ++index );
-//			QuestGrade_t	MaxGrade	= (QuestGrade_t)pResult->getInt( ++index );
-//			QuestGrade_t	MinGrade	= (QuestGrade_t)pResult->getInt( ++index );
-//			DWORD			timeLimit	= (DWORD)		pResult->getInt( ++index );
-//			RewardClass_t	rewardClass	= (RewardClass_t)pResult->getInt(++index );
-//			SpriteType_t	monsterSType= (SpriteType_t)pResult->getInt( ++index );
-//			bool			isChief		= ( pResult->getInt( ++index ) == 0 )?false:true;
-//			int				killCount	= (int)			pResult->getInt( ++index );
-//
-//			RewardClass* pRC = g_pRewardClassInfoManager->getRewardClass( rewardClass );
-//			Assert( pRC != NULL );
-//
-//			MonsterKillQuestInfo* pMonsterKillQI = new MonsterKillQuestInfo( qID, race, MaxGrade, MinGrade, timeLimit,
-pRC, monsterSType, isChief, killCount );
-//			addQuestInfo( pMonsterKillQI );
-//
-//			cout << "Loading Quest Info : " << pMonsterKillQI->toString() << endl;
-//		}
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-
-    __END_CATCH
-}
-*/
 
 void QuestInfoManager::addQuestInfo(QuestInfo* pQI)
 
