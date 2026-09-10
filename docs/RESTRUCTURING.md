@@ -665,14 +665,86 @@ before anything else moves. Everything later shelters under this pin.
   > `GCWarScheduleList` 2281 → 2401, both server-side read-buffer
   > budgets for packets no server reads and not fields on the wire. No
   > golden changed.
+  > The **chat, notice, nickname, union and SMS set is pinned** — the
+  > 31 packets a client and a game server exchange to talk: the eleven
+  > chat and notice packets (`GCSystemMessage`, `GCSay`, `GCWhisper`,
+  > `GCWhisperFailed`, `CGGlobalChat`, `GCGlobalChat`, `CGRangerSay`,
+  > `GCFriendChatting`, `GCKickMessage`, `GCShowMessageBox`,
+  > `GCRequestFailed`), the six nickname packets (`CGSelectNickname`,
+  > `CGModifyNickname`, `GCAddNickname`, `GCModifyNickname`,
+  > `GCNicknameList`, `GCNicknameVerify`), the eight guild-union packets
+  > (`CGRequestUnion`, `CGAcceptUnion`, `CGDenyUnion`, `CGQuitUnion`,
+  > `CGQuitUnionAccept`, `CGQuitUnionDeny`, `CGRequestUnionInfo`,
+  > `CGAppointSubmaster`) and the six SMS packets (`CGAddSMSAddress`,
+  > `CGDeleteSMSAddress`, `CGSMSAddressList`, `CGSMSSend`,
+  > `GCSMSAddressList`, `GCAddressListVerify`), have code-0 goldens,
+  > loopback round trips and size/factory-max pins
+  > (`tests/packet_chat_test.cpp`), with extra goldens for the nickname
+  > written with no text, the three shapes `NicknameInfo` takes, the
+  > empty nickname, receiver and address listings, and the address book
+  > entry whose three fields are all empty. No packet in the family
+  > calls the encrypter or derives from one that does, so every golden
+  > is recorded at code 0 and each test also asserts the bytes do not
+  > vary with the code. `CGSay` and `CGWhisper` already had goldens from
+  > `tests/packet_roundtrip_test.cpp`; the chat these handlers relay to
+  > a channel is pinned with its channel (`CGGuildChat`, `GCGuildChat`,
+  > `CGPartySay`, `GCPartySay`, `GGServerChat`, `GGGuildChat`), and the
+  > answers they share with other families (`GCGuildResponse`,
+  > `GCUseOK`, `GCModifyInformation`, `GCNoticeEvent`, `GCNotifyWin`,
+  > `GCPetStashList`) in the social, inventory, combat, quest-war and
+  > store files. The whole phone family — `CGDialUp`, `CGPhoneSay`,
+  > `CGPhoneDisconnect`, `GCPhoneConnected`, `GCPhoneConnectionFailed`,
+  > `GCPhoneDisconnected`, `GCPhoneSay` — and `GCShowUnionInfo` are
+  > excluded: no server registers a factory for any of them, so the
+  > handlers the gameserver still registers for the three phone requests
+  > can never be reached. `GCShowMessageBox` and `GCAddNickname` have no
+  > sender at all and are pinned anyway, because a registered factory is
+  > the contract the client's own copy has to match and a GC packet the
+  > client can only receive needs no server sender to be part of it.
+  > Four packets had a single-aspect width pin in
+  > `tests/packet_roundtrip_test.cpp` and no golden —
+  > `CGAddSMSAddress`, `CGModifyNickname`, `GCFriendChatting` and
+  > `GCShowMessageBox`, as `GCSystemMessage` did — and all five are
+  > pinned in full here. Eleven open write/read disagreements are stated
+  > as tests that flip when fixed (`GCSystemMessage` carrying a `Race_t`
+  > with a getter and a setter neither `read()` nor `write()` touches;
+  > `GCModifyNickname` leaving uninitialised the record pointer
+  > `getPacketSize()`, `write()` and `read()` all dereference;
+  > `GCRequestFailed::setCode` taking a WORD into a BYTE, and its name
+  > not being held to the ten its max budgets; `NicknameInfo::write`
+  > admitting the empty custom nickname `read()` refuses;
+  > `GCNicknameList` and `GCSMSAddressList` deriving count bytes they
+  > cap nowhere, so the 256th record wraps them to zero while `write()`
+  > emits every one; `CGSMSSend`'s max budgeting five bytes for the
+  > caller number `read()` accepts eleven of, its receiver count
+  > wrapping the same way, and its `write()` deriving every length byte
+  > with no bound; and `CGModifyNickname::setItemObjectID` taking a WORD
+  > where the member and the wire carry an `ObjectID_t`), and 15 of the
+  > 31 leave at least one member the default constructor never sets,
+  > pinned over poisoned storage — nine of those are built with only
+  > the string `write()` refuses to run without, because the refusal
+  > comes after the scalar fields are already in the buffer. Seven more
+  > are recorded in the test's header rather than tested:
+  > `GCSystemMessage` and `GCKickMessage` casting a byte to an enum
+  > whose range is narrower; `NicknameInfo` and `CGSMSSend` bounding
+  > through `Assert()`, which writes `assertion_failed.log`; the two
+  > list packets freeing no record; `NicknameInfo::write` capping a
+  > custom nickname at 255 where every other side stops at 22; and
+  > `GCRequestFailed` raising its zero-length refusal with an empty
+  > message. No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set, the inventory
   > and item handling set, the store, shop and stash dialogue, the
-  > character progression set and the quest, war and zone-selection set
-  > pinned, the remaining non-encrypter coverage outstanding is the rest
-  > of GC/CG, whose largest unpinned group is the chat and notice
-  > packets (`GCSystemMessage`, `GCSay` and their siblings).
+  > character progression set, the quest, war and zone-selection set and
+  > the chat, notice, nickname, union and SMS set pinned, the remaining
+  > non-encrypter coverage outstanding is the rest of GC/CG, whose
+  > largest unpinned groups are the motorcycle packets
+  > (`CGRideMotorCycle`, `CGGetOffMotorCycle` and the
+  > `GCRideMotorCycle*` / `GCGetOffMotorCycle*` / `GCSearchMotorcycle*`
+  > answers) and the vampire transformation and blood-drain packets
+  > (`CGBloodDrain`, the three `GCBloodDrainOK`, `GCMorph1`,
+  > `GCMorphSlayer2`, `GCMorphVampire2`, `GCChangeShape`).
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed

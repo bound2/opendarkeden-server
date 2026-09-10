@@ -120,7 +120,8 @@
 //               GCSkillFailed1/2, GCStatusCurrentHP and the ModifyInfo
 //               record itself (packet_combat_test.cpp), GCDeleteObject,
 //               GCAddEffect, GCAddEffectToTile and the StoreInfo record
-//               (packet_zone_scan_test.cpp), GCNoticeEvent and the
+//               (packet_zone_scan_test.cpp), GCNoticeEvent
+//               (packet_quest_war_test.cpp), the
 //               PCItemInfo / InventoryInfo / GearInfo / ExtraInfo
 //               records (packet_gameserver_handshake_test.cpp),
 //               SubItemInfo (there and in packet_trade_test.cpp),

@@ -98,8 +98,9 @@
 //               GCDeleteandPickUpOK, GCCreateItem
 //               (packet_inventory_test.cpp), GCDeleteObject
 //               (packet_zone_scan_test.cpp), GCModifyInformation
-//               (packet_combat_test.cpp), GCNoticeEvent and
-//               GCSystemMessage (packet_gameserver_handshake_test.cpp),
+//               (packet_combat_test.cpp), GCNoticeEvent
+//               (packet_quest_war_test.cpp), GCSystemMessage
+//               (packet_chat_test.cpp),
 //               GCNPCResponse (packet_guild_test.cpp). The records
 //               these packets embed are pinned too: StoreInfo and
 //               StoreOutlook in packet_zone_scan_test.cpp, PCItemInfo
