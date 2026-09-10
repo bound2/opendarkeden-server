@@ -22,7 +22,7 @@ namespace {
 //    FAILS: Num - 1 on the UNSIGNED column raises ER_DATA_OUT_OF_RANGE
 //    (1690) — an expression error independent of strict mode — leaving
 //    the row untouched. The SQLQueryException escapes through END_DB
-//    (as a const char*), GoodsInventory::popItem never erases the entry,
+//    (as a DatabaseError), GoodsInventory::popItem never erases the entry,
 //    and the purchase is re-delivered on the next load: a stuck-item bug.
 //  - The row id is a bigint but is carried and interpolated as a string,
 //    unquoted (%s straight into the numeric comparison).

@@ -13,7 +13,7 @@ namespace {
 //    FlagWarStat has no unique key at all — so MySQL raises error 1055
 //    every time the statement is called. It is called only when the flag
 //    war is switched on, which ActiveFlagWar : 0 in both shipped configs
-//    prevents; and when it is called, the const char* END_DB rethrows
+//    prevents; and when it is called, the DatabaseError END_DB throws
 //    escapes every Throwable-only catch up to main.cpp's catch (...), so
 //    the process exits. The integration tier pins the throw. Fixing it
 //    means adding PlayerID and Race to the GROUP BY, or wrapping them in

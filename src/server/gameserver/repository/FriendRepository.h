@@ -20,7 +20,7 @@
 // GCFriendChatting is dispatched server-side from
 // GamePlayer::processCommand, whose catch (...) turns anything into a
 // DisconnectException. END_DB converts the driver's SQLQueryException to
-// a const char*, which nothing between here and there catches. So a
+// a DatabaseError, which nothing between here and there catches. So a
 // client that opens its friend list is disconnected.
 //
 // The integration tier's FriendMySQL cases pin that failure. Whoever adds
