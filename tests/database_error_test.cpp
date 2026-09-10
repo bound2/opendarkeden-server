@@ -11,6 +11,7 @@
 
 #include <unistd.h>
 
+#include <new>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -105,6 +106,164 @@ TEST_F(DatabaseErrorTest, ItIsNeitherAThrowableNorAStdException) {
     }
     EXPECT_FALSE(asThrowable);
     EXPECT_TRUE(asDatabaseError);
+}
+
+
+//--------------------------------------------------------------------------------
+// The statement is closed whatever leaves the block
+//
+// A statement site opens a statement, runs a query and deletes it at the
+// end of the block. Only the SQL clause used to stand behind that, so an
+// exception raised between the query and the delete -- a bad_alloc, an
+// out-of-bounds Throwable, an Error from a helper -- carried the site's
+// last reference away with it and the statement and the result set it owns
+// were never freed. The catch-all clause closes it and rethrows.
+//
+// The macro deletes the pointer with the type the site declares. Every real
+// site declares Statement*, so what runs is Statement's own destructor, the
+// one that deletes the result set; this subclass records the delete and
+// runs that destructor as part of its own.
+//--------------------------------------------------------------------------------
+
+int g_statementsDestroyed = 0;
+
+class TrackedStatement : public Statement {
+public:
+    ~TrackedStatement() {
+        ++g_statementsDestroyed;
+    }
+};
+
+enum class Raise { Nothing, NotSQL, StdException, SQL };
+
+void raiseInside(Raise what) {
+    switch (what) {
+    case Raise::Nothing:
+        return;
+    case Raise::NotSQL:
+        throw OutOfBoundException("row index past the result");
+    case Raise::StdException:
+        throw std::bad_alloc();
+    case Raise::SQL:
+        throw SQLQueryException("Table 'DARKEDEN.NoSuchTable' doesn't exist");
+    }
+}
+
+// The shape a repository method has when the failure is not the statement's:
+// the statement is open, a helper raises, and the site's own SAFE_DELETE is
+// never reached.
+void openStatementThen(Raise what) {
+    TrackedStatement* pStmt = NULL;
+    BEGIN_DB {
+        pStmt = new TrackedStatement();
+        raiseInside(what);
+        SAFE_DELETE(pStmt);
+    }
+    END_DB(pStmt)
+}
+
+void openStatementWithContextThen(Raise what) {
+    TrackedStatement* pStmt = NULL;
+    BEGIN_DB_EX {
+        pStmt = new TrackedStatement();
+        raiseInside(what);
+        SAFE_DELETE(pStmt);
+    }
+    END_DB_EX(pStmt, "saving the stash")
+}
+
+// A site that finished with its statement early: SAFE_DELETE cleared the
+// pointer, so the clause finds nothing left to close.
+void closeStatementThen(Raise what) {
+    TrackedStatement* pStmt = NULL;
+    BEGIN_DB {
+        pStmt = new TrackedStatement();
+        SAFE_DELETE(pStmt);
+        raiseInside(what);
+    }
+    END_DB(pStmt)
+}
+
+TEST_F(DatabaseErrorTest, AStatementStillOpenIsDestroyedWhenAThrowableLeavesTheBlock) {
+    g_statementsDestroyed = 0;
+    bool asOutOfBound = false;
+
+    try {
+        openStatementThen(Raise::NotSQL);
+    } catch (OutOfBoundException& e) {
+        asOutOfBound = true;
+        EXPECT_NE(std::string::npos, e.toString().find("row index past the result"));
+    }
+
+    EXPECT_TRUE(asOutOfBound) << "the clause must rethrow what it caught, unchanged";
+    EXPECT_EQ(1, g_statementsDestroyed);
+}
+
+TEST_F(DatabaseErrorTest, AStatementStillOpenIsDestroyedWhenAStdExceptionLeavesTheBlock) {
+    g_statementsDestroyed = 0;
+    bool asBadAlloc = false;
+
+    try {
+        openStatementThen(Raise::StdException);
+    } catch (std::bad_alloc&) {
+        asBadAlloc = true;
+    }
+
+    EXPECT_TRUE(asBadAlloc);
+    EXPECT_EQ(1, g_statementsDestroyed);
+}
+
+TEST_F(DatabaseErrorTest, TheContextFormClosesItTheSameWay) {
+    g_statementsDestroyed = 0;
+    bool asOutOfBound = false;
+
+    try {
+        openStatementWithContextThen(Raise::NotSQL);
+    } catch (OutOfBoundException&) {
+        asOutOfBound = true;
+    }
+
+    EXPECT_TRUE(asOutOfBound);
+    EXPECT_EQ(1, g_statementsDestroyed);
+}
+
+TEST_F(DatabaseErrorTest, TheSQLClauseStillClosesTheStatementItAnswersFor) {
+    g_statementsDestroyed = 0;
+    bool refused = false;
+
+    try {
+        openStatementThen(Raise::SQL);
+    } catch (const DatabaseError&) {
+        refused = true;
+    }
+
+    EXPECT_TRUE(refused);
+    EXPECT_EQ(1, g_statementsDestroyed);
+}
+
+// SAFE_DELETE clears the pointer, so the two clauses cannot delete a
+// statement the site already deleted.
+TEST_F(DatabaseErrorTest, ASiteThatClosedItsStatementEarlyDoesNotCloseItTwice) {
+    g_statementsDestroyed = 0;
+
+    try {
+        closeStatementThen(Raise::NotSQL);
+    } catch (OutOfBoundException&) {
+    }
+    EXPECT_EQ(1, g_statementsDestroyed);
+
+    g_statementsDestroyed = 0;
+    try {
+        closeStatementThen(Raise::SQL);
+    } catch (const DatabaseError&) {
+    }
+    EXPECT_EQ(1, g_statementsDestroyed);
+}
+
+TEST_F(DatabaseErrorTest, ABlockThatFinishesNormallyLeavesTheClausesUnrun) {
+    g_statementsDestroyed = 0;
+    openStatementThen(Raise::Nothing);
+    EXPECT_EQ(1, g_statementsDestroyed);
 }
 
 } // namespace

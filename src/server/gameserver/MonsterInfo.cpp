@@ -289,7 +289,7 @@ void MonsterInfo::parseSlayerTreasureString(const string& text)
     if (newtext.size() < 10)
     {
         cerr << "MonsterInfo::parseSlayerTreasureString() : Too short treasure string" << endl;
-        throw "MonsterInfo::parseSlayerTreasureString() : Too short treasure string";
+        throw Error("MonsterInfo::parseSlayerTreasureString() : Too short treasure string");
     }
     */
 
@@ -320,7 +320,7 @@ void MonsterInfo::parseVampireTreasureString(const string& text)
     if (newtext.size() < 10)
     {
         cerr << "MonsterInfo::parseVampireTreasureString() : Too short treasure string" << endl;
-        throw "MonsterInfo::parseVampireTreasureString() : Too short treasure string";
+        throw Error("MonsterInfo::parseVampireTreasureString() : Too short treasure string");
     }
     */
 

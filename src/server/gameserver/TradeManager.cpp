@@ -215,7 +215,7 @@ void TradeManager::initTrade(Creature* pCreature1, Creature* pCreature2)
 
     // 둘 중에 하나라도 교환 정보가 존재하면 곤란하다.
     if (hasTradeInfo(pCreature1->getName()) || hasTradeInfo(pCreature2->getName())) {
-        throw "TradeManager::initTrade() : Trade info already exist!";
+        throw Error("TradeManager::initTrade() : Trade info already exist!");
     }
 
     TradeInfo* pInfo1 = new TradeInfo();
@@ -412,7 +412,7 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
     __BEGIN_TRY
 
     if (!canTrade(pCreature1, pCreature2)) {
-        throw "TradeManager::processTrade() : 아, 씨바. 교환도 안 되는데, 왜 교환시키는데?";
+        throw Error("TradeManager::processTrade() : the two cannot trade at all");
     }
 
     // 필요한 변수들을 준비한다.
@@ -489,7 +489,7 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
         pInventory1 = pOusters1->getInventory();
         pInventory2 = pOusters2->getInventory();
     } else
-        throw "TradeManager::processTrade() : 다른 종족 간에 교환할 수는 없쥐!";
+        throw Error("TradeManager::processTrade() : the two races cannot trade with each other");
 
     // 먼저 각자의 인벤토리에서 교환할 아이템들을 제거한다.
     for (list<Item*>::iterator itr = tradeList1.begin(); itr != tradeList1.end(); itr++) {
@@ -500,7 +500,7 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
                 pItem->getItemType() < 6) {
                 /*
                 if ( tradeList1.size() != 1 )
-                    throw "TradeManager::processTrade() : 선물 상자는 다른 아이템과 함께 교환할 수는 없다!";
+                    throw Error("TradeManager::processTrade() : a gift box cannot be traded together with other items");
                 */
 
                 bTradeGiftBox = true;
@@ -512,7 +512,7 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
             itemMap1.addItem(pItem);
             pItem->whenPCLost(pPlayerCreature1);
         } else
-            throw "TradeManager::processTrade() : 모지? 아이템이 없자나!";
+            throw Error("TradeManager::processTrade() : there is no item on the table");
     }
     for (list<Item*>::iterator itr = tradeList2.begin(); itr != tradeList2.end(); itr++) {
         Item* pItem = (*itr);
@@ -522,12 +522,12 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
                 pItem->getItemType() < 6) {
                 /*
                 if ( tradeList2.size() != 1 )
-                    throw "TradeManager::processTrade() : 선물 상자는 다른 아이템과 함께 교환할 수는 없다!";
+                    throw Error("TradeManager::processTrade() : a gift box cannot be traded together with other items");
                 */
 
                 // 상대가 GiftBox 를 올리지 않았다면 Trade 를 할 수 없다!
                 if (!bTradeGiftBox)
-                    throw "TradeManager::processTrade() : 선물 상자는 둘 다 올려야 교환할 수 있다!";
+                    throw Error("TradeManager::processTrade() : a gift box trades only against another gift box");
 
                 giftBoxType2 = pItem->getItemType();
             }
@@ -536,7 +536,7 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
             itemMap2.addItem(pItem);
             pItem->whenPCLost(pPlayerCreature2);
         } else
-            throw "TradeManager::processTrade() : 모지? 아이템이 없자나!";
+            throw Error("TradeManager::processTrade() : there is no item on the table");
     }
 
     // 이제 서로의 인벤토리에다 교환할 아이템들을 더해본다.
@@ -544,7 +544,7 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
         Item* pItem = itr->second;
         // 아이템을 더하던 중 하나라도 더할 수 없다면, false를 리턴한다.
         if (!pInventory2->addItem(pItem)) {
-            throw "TradeManager::processTrade() : 씨바, 교환하다가 에러났다.";
+            throw Error("TradeManager::processTrade() : the trade failed halfway through");
         }
 
         pItem->whenPCTake(pPlayerCreature2);
@@ -568,7 +568,7 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
             if (blackGiftBoxType != 0)
                 pItem->setItemType(blackGiftBoxType);
             else
-                throw "TradeManager::processTrade() : 씨바, 교환하다가 에러났다.";
+                throw Error("TradeManager::processTrade() : the trade failed halfway through");
         }
 
         if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_GIFT_BOX && pItem->getItemType() >= 16 &&
@@ -587,7 +587,7 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
         Item* pItem = itr->second;
         // 아이템을 더하던 중 하나라도 더할 수 없다면, false를 리턴한다.
         if (!pInventory1->addItem(pItem)) {
-            throw "TradeManager::processTrade() : 씨바, 교환하다가 에러났다.";
+            throw Error("TradeManager::processTrade() : the trade failed halfway through");
         }
 
         pItem->whenPCTake(pPlayerCreature1);
@@ -611,7 +611,7 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
             if (blackGiftBoxType != 0)
                 pItem->setItemType(blackGiftBoxType);
             else
-                throw "TradeManager::processTrade() : 씨바, 교환하다가 에러났다.";
+                throw Error("TradeManager::processTrade() : the trade failed halfway through");
         }
 
         if (pItem->getItemClass() == Item::ITEM_CLASS_EVENT_GIFT_BOX && pItem->getItemType() >= 16 &&

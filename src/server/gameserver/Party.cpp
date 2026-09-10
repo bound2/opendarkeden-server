@@ -278,7 +278,7 @@ void PartyInviteInfoManager::cancelInvite(Creature* pCreature)
     else
     {
         cerr << "PartyInviteInfoManager::cancelInvite() : Error" << endl;
-        throw "PartyInviteInfoManager::cancelInvite() : Error";
+        throw Error("PartyInviteInfoManager::cancelInvite() : Error");
     }
     */
 

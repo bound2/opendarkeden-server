@@ -54,7 +54,7 @@ void TreasureOptionType::loadFromFile(ifstream& file)
         Assert(pInfo != NULL);
     } catch (NoSuchElementException& nsee) {
         cerr << "TreasureOptionType::loadFromFile() : Unknown Option" << endl;
-        throw "TreasureOptionType::loadFromFile() : Unknown Option";
+        throw Error("TreasureOptionType::loadFromFile() : Unknown Option");
     }
 
     __END_CATCH
@@ -82,11 +82,11 @@ void TreasureOptionType::parseString(const string& text)
             m_OptionType = pInfo->getType();
         } catch (NoSuchElementException& nsee) {
             cerr << "TreasureOptionType::parseString() : Unknown Option String[" << optionString << "]" << endl;
-            throw "TreasureOptionType::parseString() : Unknown Option String";
+            throw Error("TreasureOptionType::parseString() : Unknown Option String");
         }
     } else {
         cerr << "TreasureOptionType::parseString() : Error[" << text << "]" << endl;
-        throw "TreasureOptionType::parseString() : Error";
+        throw Error("TreasureOptionType::parseString() : Error");
     }
 
     __END_CATCH
@@ -200,7 +200,7 @@ void TreasureItemType::parseString(int itemClass, const string& text)
 
     if (i == string::npos || j == string::npos || k == string::npos) {
         cerr << "TreasureItemType::parseString() : Error" << endl;
-        throw "TreasureItemType::parseString() : Error";
+        throw Error("TreasureItemType::parseString() : Error");
     }
 
     m_ItemType = atoi(trim(text.substr(i + 1, j - i - 1)).c_str());
@@ -657,7 +657,7 @@ void Treasure::parseString(const string& text)
 
     if (i == string::npos || j == string::npos || k == string::npos) {
         cerr << "Treasure::parseString() : Error" << endl;
-        throw "Treasure::parseString() : Error";
+        throw Error("Treasure::parseString() : Error");
     }
 
     // m_ItemRatio = atoi(trim(text.substr(i+1, j-i-1)).c_str()) * 150 / 100 ;
