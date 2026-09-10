@@ -8,6 +8,7 @@
 #include "Properties.h"
 #include "StringStream.h"
 #include "Timeval.h"
+#include "repository/SMSMessageRepository.h"
 
 #define KEY_SIZE 32
 
@@ -57,8 +58,7 @@ void SMSServiceThread::run() {
     if (g_pConfig->hasKey("SMS_DB_PORT"))
         port = g_pConfig->getPropertyInt("SMS_DB_PORT");
 
-    m_pConnection = new Connection(host, db, user, password, port);
-    Assert(m_pConnection != NULL);
+    defaultSMSMessageRepository().open(host, db, user, password, port);
 
     uint Dimension = g_pConfig->getPropertyInt("Dimension");
     uint WorldID = g_pConfig->getPropertyInt("WorldID");
@@ -81,26 +81,17 @@ void SMSServiceThread::run() {
         mid = buffer;
     }
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        pStmt = m_pConnection->createStatement();
-        Result* pResult =
-            pStmt->executeQuery("SELECT MAX(mid) FROM uds_msg WHERE mid LIKE '%c%c%c%%' AND length(mid)=%d",
-                                Dimension + '0', WorldID + '0', ServerID + '0', KEY_SIZE);
-
+    {
+        // The counter resumes from the highest id this server already
+        // relayed; anything of another width is not one of ours.
         string max;
-        if (pResult->next())
-            max = pResult->getString(1);
+        defaultSMSMessageRepository().loadMaxMessageID(Dimension + '0', WorldID + '0', ServerID + '0', KEY_SIZE, max);
+
         if (max.size() == KEY_SIZE)
             mid = max;
         ++mid;
         cout << "initial mid : " << mid << endl;
-        ;
-
-        SAFE_DELETE(pStmt);
     }
-    END_DB(pStmt);
 
     Timeval dummyQueryTime;
     getCurrentTime(dummyQueryTime);
@@ -117,29 +108,19 @@ void SMSServiceThread::run() {
                     SMSMessage* pMsg = *itr;
 
                     if (pMsg != NULL) {
-                        Statement* pStmt = NULL;
+                        filelog("SMS.log", "Send message [%s] %s", mid.c_str(), pMsg->toString().c_str());
 
-                        BEGIN_DB {
-                            // cout << pMsg->toString() << endl;
-                            filelog("SMS.log", "Send message [%s] %s", mid.c_str(), pMsg->toString().c_str());
-                            pStmt = m_pConnection->createStatement();
-                            pStmt->executeQuery("INSERT INTO uds_msg (mid,recvdate,target,toname,callback,body) VALUES "
-                                                "('%s',now(),'%s','%s','%s','%s')",
-                                                mid.c_str(), pMsg->m_ReceiverNumber.c_str(), pMsg->m_SenderName.c_str(),
-                                                pMsg->m_CallerNumber.c_str(), getDBString(pMsg->m_Message).c_str());
+                        // The id advances only for a message that reached
+                        // the relay, so a refused row is retried under the
+                        // same id by the next message in the queue.
+                        if (defaultSMSMessageRepository().insertMessage(mid, pMsg->m_ReceiverNumber, pMsg->m_SenderName,
+                                                                        pMsg->m_CallerNumber,
+                                                                        getDBString(pMsg->m_Message))) {
+                            defaultSMSMessageRepository().enqueue(mid);
+                            filelog("SMS.log", "insert queue %s", mid.c_str());
 
-                            if (pStmt->getAffectedRowCount() != 0) {
-                                pStmt->executeQuery("INSERT INTO msg_queue (mid) VALUES ('%s')", mid.c_str());
-                                filelog("SMS.log", "insert queue %s", mid.c_str());
-
-                                //							cout << mid << " message sent!" << endl;
-                                ++mid;
-                                // mid++;
-                            }
-
-                            SAFE_DELETE(pStmt);
+                            ++mid;
                         }
-                        END_DB(pStmt)
                     }
                 }
 
@@ -147,10 +128,7 @@ void SMSServiceThread::run() {
             }
         } catch (SQLQueryException& e) {
             filelog("SMSThreadException.log", "SQLQueryException:%s", e.toString().c_str());
-            SAFE_DELETE(m_pConnection);
-
-            m_pConnection = new Connection(host, db, user, password);
-            Assert(m_pConnection != NULL);
+            defaultSMSMessageRepository().reopen(host, db, user, password);
         } catch (Throwable& t) {
             filelog("SMSThreadException.log", "Throwable:%s", t.toString().c_str());
         }
@@ -161,7 +139,7 @@ void SMSServiceThread::run() {
         getCurrentTime(currentTime);
 
         if (dummyQueryTime < currentTime) {
-            g_pDatabaseManager->executeDummyQuery(m_pConnection);
+            defaultSMSMessageRepository().keepAlive();
 
             // 1시간 ~ 1시간 30분 사이에서 dummy query 시간을 설정한다.
             // timeout이 되지 않게 하기 위해서이다.

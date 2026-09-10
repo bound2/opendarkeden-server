@@ -20,9 +20,7 @@
 // (MySQL returns one NULL row); the caller sizes its arrays from them.
 //
 // Not enclosed: GameServerInfo is also read by the sharedserver's
-// SharedConfigRepository and by gameserver/GameServerInfoManager.cpp,
-// WorldInfo by gameserver/GameWorldInfoManager.cpp — both stale copies
-// in no CMakeLists, never compiled; NonPKServerList and CastleStatInfo:
+// SharedConfigRepository. WorldInfo, NonPKServerList and CastleStatInfo:
 // nothing else.
 
 // GameServerInfo, every world, in the statement's column order.

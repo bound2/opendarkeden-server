@@ -7,7 +7,6 @@
 #include "TradeManager.h"
 
 #include "Creature.h"
-#include "DB.h"
 #include "EventItemUtil.h"
 #include "FlagSet.h"
 #include "GCTradeFinish.h"
@@ -23,6 +22,7 @@
 #include "VSDateTime.h"
 #include "Vampire.h"
 #include "VariableManager.h"
+#include "repository/PlayRecordRepository.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // class TradeInfo member methods
@@ -668,21 +668,8 @@ void TradeManager::processTrade(Creature* pCreature1, Creature* pCreature2)
 
     // log(LOG_TRADE, pCreature1->getName(), pCreature2->getName(), msg.toString());
 
-    Statement* pStmt = NULL;
-
-    BEGIN_DB {
-        StringStream SQL;
-        SQL << "INSERT INTO TradeLog (Timeline, Name1, IP1, Name2, IP2, Content) VALUES (" << "'"
-            << VSDateTime::currentDateTime().toString() << "'," << "'" << pCreature1->getName() << "'," << "'" << ip1
-            << "'," << "'" << pCreature2->getName() << "'," << "'" << ip2 << "'," << "'" << msg.toString() << "'"
-            << ")";
-
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pStmt->executeQueryString(SQL.toString());
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt);
+    defaultPlayRecordRepository().logPlayerTrade(VSDateTime::currentDateTime().toString(), pCreature1->getName(), ip1,
+                                                 pCreature2->getName(), ip2, msg.toString());
 
     // 교환이 끝났으니, 교환 정보를 삭제한다.
     // *** 클라이언트 측에서 교환이 끝난 후에도

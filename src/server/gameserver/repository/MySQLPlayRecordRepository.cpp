@@ -1,4 +1,5 @@
 #include "DB.h"
+#include "StringStream.h"
 #include "repository/PlayRecordRepository.h"
 
 namespace {
@@ -126,6 +127,27 @@ public:
                                 timeline.c_str(), storeName.c_str(), storeHost.c_str(), buyerName.c_str(),
                                 buyerHost.c_str(), storeName.c_str(), storeAccountID.c_str(), itemText.c_str(),
                                 buyerName.c_str(), buyerAccountID.c_str(), price);
+
+            SAFE_DELETE(pStmt);
+        }
+        END_DB(pStmt)
+    }
+
+    // The player-trade row is assembled rather than formatted: content is
+    // as long as the two inventories make it, and executeQuery's format
+    // buffer holds 2048 bytes.
+    void logPlayerTrade(const string& timeline, const string& name1, const string& host1, const string& name2,
+                        const string& host2, const string& content) {
+        Statement* pStmt = NULL;
+
+        BEGIN_DB {
+            StringStream SQL;
+            SQL << "INSERT INTO TradeLog (Timeline, Name1, IP1, Name2, IP2, Content) VALUES (" << "'" << timeline
+                << "'," << "'" << name1 << "'," << "'" << host1 << "'," << "'" << name2 << "'," << "'" << host2 << "',"
+                << "'" << content << "'" << ")";
+
+            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
+            pStmt->executeQueryString(SQL.toString());
 
             SAFE_DELETE(pStmt);
         }
