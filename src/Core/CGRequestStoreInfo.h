@@ -58,7 +58,7 @@ public:
     }
 
 private:
-    ObjectID_t m_OwnerObjectID; // 0이면 자기 자신의 상점 정보
+    ObjectID_t m_OwnerObjectID = 0; // 0이면 자기 자신의 상점 정보
 };
 
 

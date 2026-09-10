@@ -13,7 +13,9 @@
 #include "Exception.h"
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "StoreInfo.h"
 #include "Types.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -23,6 +25,10 @@
 
 class CGStoreSign : public Packet {
 public:
+    // The stall sign the player types. Its length travels in one byte
+    // and a stall record carries it at this width.
+    static constexpr uint kMaxSignSize = MAX_SIGN_SIZE;
+
     CGStoreSign(){};
     virtual ~CGStoreSign(){};
     // Initialize packet by reading data from the incoming stream.
@@ -39,7 +45,7 @@ public:
 
     // get packet's body size
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_Sign.size();
+        return de::wire::stringWireSize(m_Sign);
     }
 
     // get packet name
@@ -54,6 +60,8 @@ public:
         return m_Sign;
     }
     void setSign(const string& sign) {
+        if (sign.size() > kMaxSignSize)
+            throw InvalidProtocolException("store sign too long");
         m_Sign = sign;
     }
 
@@ -74,7 +82,7 @@ class CGStoreSignFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_CG_STORE_SIGN;
     static constexpr std::string_view kName = "CGStoreSign";
-    static constexpr PacketSize_t kMaxSize{szBYTE + 80};
+    static constexpr PacketSize_t kMaxSize{szBYTE + CGStoreSign::kMaxSignSize};
 
     // constructor
     CGStoreSignFactory() {}

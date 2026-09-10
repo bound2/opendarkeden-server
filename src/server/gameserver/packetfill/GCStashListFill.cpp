@@ -41,7 +41,6 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
     BYTE pocketCount = 0;
     Inventory* pBeltInventory = NULL;
     Inventory* pOustersArmsbandInventory = NULL;
-    BYTE subItemCount = 0;
     BYTE i = 0;
     PetInfo* pPetInfo = 0;
 
@@ -124,13 +123,8 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
 
                 // 만든 정보를 해당하는 리스트에다가 더한다.
                 m_pSubItems[rack][index].push_back(pSubItemInfo);
-
-                // 카운트를 올려주고
-                subItemCount++;
             }
         }
-        // 리스트에 몇개나 들어있는지 세팅해 준다.
-        m_SubItemsCount[rack][index] = subItemCount;
 
         break;
     case Item::ITEM_CLASS_OUSTERS_ARMSBAND:
@@ -166,13 +160,8 @@ void GCStashList::setStashItem(BYTE rack, BYTE index, Item* pItem)
 
                 // 만든 정보를 해당하는 리스트에다가 더한다.
                 m_pSubItems[rack][index].push_back(pSubItemInfo);
-
-                // 카운트를 올려주고
-                subItemCount++;
             }
         }
-        // 리스트에 몇개나 들어있는지 세팅해 준다.
-        m_SubItemsCount[rack][index] = subItemCount;
 
         break;
 

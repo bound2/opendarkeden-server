@@ -211,6 +211,13 @@
 //                 optional for an item it does not hold: every DWORD is
 //                 a remaining time a real item can have, so no sentinel
 //                 can say "absent".
+//               - GCTimeLimitItemInfo's entry count is the map it
+//                 holds, refused past the 100 its factory max budgets in
+//                 the adder, in write() and in read(), and
+//                 CGTypeStringList's string count is refused past the 20
+//                 its own budgets the same way. The typed string list is
+//                 not one of the 37; it is here only for that bound,
+//                 beside the count with the same shape.
 //
 //               Every packet in the set initialises every member it
 //               writes, pinned by constructing each over storage
@@ -246,6 +253,7 @@
 #include "CGRequestRepair.h"
 #include "CGThrowBomb.h"
 #include "CGThrowItem.h"
+#include "CGTypeStringList.h"
 #include "CGUseItemFromGQuestInventory.h"
 #include "CGUseMessageItemFromInventory.h"
 #include "CGUsePotionFromQuickSlot.h"
@@ -1287,6 +1295,75 @@ TEST(CGUseMessageItemFromInventoryTest, anEmptyMessageIsRefused) {
     packet.setX(0x92);
     packet.setY(0xA3);
     EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
+}
+
+//////////////////////////////////////////////////////////////////////
+// The two entry counts the bounds above did not reach.
+//////////////////////////////////////////////////////////////////////
+
+// A body write() would never produce, so a read()'s own bound is
+// reachable.
+template <typename Emit> void readHandBuiltBody(Packet& packet, Emit emit) {
+    wiretest::Loopback link;
+    link.setCodes(kPlainCode);
+    emit(link.out());
+    const uint length = link.out().length();
+    link.pump(length);
+    packet.read(link.in());
+}
+
+// The listing's entry count is the map it holds, refused past the 100
+// its factory max budgets in the adder, in write() and in read(), so a
+// full listing fits the read buffer exactly and the count cannot wrap.
+TEST(GCTimeLimitItemInfoTest, theEntryCountStopsAtTheNumberTheFactoryMaxBudgets) {
+    GCTimeLimitItemInfo packet;
+    for (size_t i = 0; i < GCTimeLimitItemInfo::kMaxEntryCount; i++)
+        packet.addTimeLimit((ObjectID_t)(0x81A20000 + i), (DWORD)(0x83A4B5C6 + i));
+
+    GCTimeLimitItemInfoFactory factory;
+    EXPECT_EQ(packet.getPacketSize(), factory.getPacketMaxSize());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    EXPECT_THROW(packet.addTimeLimit(0x91A2B3C4, 0x92A3B4C5), InvalidProtocolException);
+
+    GCTimeLimitItemInfo tooMany;
+    EXPECT_THROW(readHandBuiltBody(tooMany,
+                                   [](SocketEncryptOutputStream& out) {
+                                       out.write((BYTE)(GCTimeLimitItemInfo::kMaxEntryCount + 1));
+                                       for (size_t i = 0; i < GCTimeLimitItemInfo::kMaxEntryCount + 1; i++) {
+                                           out.write((ObjectID_t)(0x81A20000 + i));
+                                           out.write((DWORD)0x83A4B5C6);
+                                       }
+                                   }),
+                 InvalidProtocolException);
+}
+
+// The typed string list is bounded the same way, at the 20 strings of 50
+// bytes its factory max budgets.
+TEST(CGTypeStringListTest, theStringCountStopsAtTheNumberTheFactoryMaxBudgets) {
+    CGTypeStringList packet;
+    packet.setType(CGTypeStringList::STRING_TYPE_WAIT_FOR_MEET);
+    packet.setParam(0x84A5B6C7);
+    for (size_t i = 0; i < CGTypeStringList::kMaxStringCount; i++)
+        packet.addString(std::string(MAX_STRING_LENGTH, 's'));
+
+    CGTypeStringListFactory factory;
+    EXPECT_EQ(packet.getPacketSize(), factory.getPacketMaxSize());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    EXPECT_THROW(packet.addString("one string too many"), InvalidProtocolException);
+
+    CGTypeStringList dst;
+    roundTrip(packet, dst, kPlainCode);
+    EXPECT_EQ((int)CGTypeStringList::kMaxStringCount, dst.getSize());
+
+    CGTypeStringList tooMany;
+    EXPECT_THROW(readHandBuiltBody(tooMany,
+                                   [](SocketEncryptOutputStream& out) {
+                                       out.write((BYTE)CGTypeStringList::STRING_TYPE_WAIT_FOR_MEET);
+                                       out.write((BYTE)(CGTypeStringList::kMaxStringCount + 1));
+                                   }),
+                 InvalidProtocolException);
 }
 
 } // namespace

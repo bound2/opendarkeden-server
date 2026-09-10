@@ -27,6 +27,10 @@ void GCMyStoreInfo::read(SocketInputStream& iStream)
     __BEGIN_TRY
 
     iStream.read(m_OpenUI);
+
+    if (m_pInfo == NULL)
+        throw InvalidProtocolException("no store record");
+
     m_pInfo->read(iStream, false);
 
     __END_CATCH
@@ -39,6 +43,9 @@ void GCMyStoreInfo::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_pInfo == NULL)
+        throw InvalidProtocolException("no store record");
 
     oStream.write(m_OpenUI);
     m_pInfo->write(oStream, false);

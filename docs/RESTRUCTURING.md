@@ -466,36 +466,48 @@ before anything else moves. Everything later shelters under this pin.
   > `GCNPCResponse`) are pinned in the inventory, zone-scan, combat,
   > handshake and social files. `GCShopList` had a frame-size pin in
   > `tests/packet_roundtrip_test.cpp` but no golden and gets one here.
-  > Nine open write/read disagreements are stated as tests that flip
-  > when fixed (`GCShopBuyFail::getPacketSize()` counting the NPC id
-  > alone against the fail code and four-byte amount `write()` also
-  > emits, which is its factory max too, so every refusal declares a
-  > body five bytes short and overruns the buffer sized for it;
-  > `CGStoreSign` deriving the sign's length byte by hand and capping
-  > nothing, so a sign past the 80 its max budgets is emitted whole and
-  > at 256 the length byte wraps, while an empty sign goes out as a bare
-  > zero length byte that `SocketInputStream::read(string&, uint)`
-  > refuses to read back; `StoreInfo::setSign` capping nothing while
-  > `StoreInfo::getMaxSize` budgets 80, so a full stall whose sign is
-  > longer than that makes `GCMyStoreInfo` and `GCOtherStoreInfo`
-  > outgrow their maxima; `GCShopBought` and
-  > `GCShopBuyOK` wrapping their option count at 256 and outgrowing
-  > their maxima with it; those two plus `GCShopList` and `GCStashList`
-  > appending to the option list the packet already holds;
-  > `GCPetStashList` never putting its code byte on the wire although
-  > both pet handlers set it and its max budgets one; and `GCStashList`
-  > keeping each slot's sub-item count in an array of its own, so a
-  > sub-item added through `getSubItems()` leaves the count behind), and
-  > 25 of the 36 leave at least one member the default constructor never
-  > sets, pinned over poisoned storage — with `GCMyStoreInfo` and
-  > `GCOtherStoreInfo` pinned on the record pointer itself, which
-  > `getPacketSize()` and `write()` dereference. Three more are recorded
-  > in the test's header rather than tested: the three list `read()`s
-  > index their fixed slot arrays with a rack or slot byte off the wire
-  > and never bound it, `GCShopBuyFail::read()` takes a code byte it
-  > never compares against `GC_SHOP_BUY_FAIL_MAX`, and `GCPetStashList`
-  > frees neither the slot it overwrites on a re-read nor the `PetInfo`
-  > inside a slot it destroys. No golden changed.
+  > The **nine write/read disagreements it found are fixed** and
+  > pinned as the behaviour the packets now produce
+  > (`GCShopBuyFail` declares the fail code and four-byte amount it
+  > sends behind the NPC id, and its max budgets all three, where both
+  > counted the id alone and every refusal overran the buffer sized for
+  > it by five bytes; `CGStoreSign`'s sign goes through the `de::wire`
+  > helpers at the 80 its max budgets, refused past that in the setter
+  > too, so its length byte cannot wrap, and an empty sign is admitted,
+  > so the bare zero length byte `write()` emits reads back; `StoreInfo`
+  > cuts its sign at the 80 its max size budgets, the way `StoreOutlook`
+  > already did, and bounds it there on the wire, so a full stall hits
+  > the `GCMyStoreInfo` and `GCOtherStoreInfo` maxima exactly;
+  > `GCShopBought`, `GCShopBuyOK`, `GCShopList` and `GCStashList` hold
+  > their option lists to `MAX_ITEM_OPTION_NUM`, the widest an item
+  > carries, in the adders, the setters, `write()` and `read()`, and
+  > their maxima budget it instead of 255 options; the same four replace
+  > the list a packet already holds on every read, with `GCStashList`
+  > destroying the sub-item records it drops; `GCPetStashList` carries
+  > the twenty slots and nothing else, the shape the client's own reader
+  > takes, so the code byte no sender could deliver is gone with its
+  > `setCode` calls; and `GCStashList`'s sub-item count for each slot is
+  > the list the records come from, held to the eight belt pockets the
+  > max budgets, so a sub-item added through `getSubItems()` is counted,
+  > declared and sent). The two the poisoned-storage pin recorded are
+  > fixed with them: all 36 initialise every member their `write()`
+  > emits, and `GCMyStoreInfo` and `GCOtherStoreInfo` start with an
+  > empty record pointer and refuse in `getPacketSize()` and `write()`
+  > rather than follow it. Six `tests/wire-layout.txt` lines move —
+  > `GCPetStashList` 1021 → 1020, `GCShopBought` 284 → 59,
+  > `GCShopBuyFail` 4 → 9, `GCShopBuyOK` 287 → 62, `GCShopList`
+  > 5515 → 1015 and `GCStashList` 21006 → 7506 — all read-buffer
+  > budgets and not fields on the wire. Two entry counts the inventory
+  > round left near-missed are bounded with them and pinned in
+  > `tests/packet_inventory_test.cpp`: `GCTimeLimitItemInfo`'s 100
+  > entries and `CGTypeStringList`'s 20 strings, each the number its own
+  > max already budgets, so neither max moves. Three findings are
+  > recorded in the test's header rather than fixed: the three list
+  > `read()`s index their fixed slot arrays with a rack or slot byte off
+  > the wire and never bound it, `GCShopBuyFail::read()` takes a code
+  > byte it never compares against `GC_SHOP_BUY_FAIL_MAX`, and
+  > `GCPetStashList` frees neither the slot it overwrites on a re-read
+  > nor the `PetInfo` inside a slot it destroys. No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set, the inventory

@@ -11,6 +11,127 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Store, shop and stash write/read disagreements (2026-09-10)
+
+The nine findings task 1.2 stated as flip-tests in
+`tests/packet_store_test.cpp`, the initialisation split the same file
+pinned, and two entry counts the inventory round left near-missed. These
+packets are client-facing, so `write()` and `getPacketSize()` are the
+contract: every fix is a refusal, a cap at the width the factory max
+already budgets, a size-accounting correction, a read-side correction or
+an initialisation. **No golden changes.** Six `tests/wire-layout.txt`
+lines move — `GCPetStashList` 1021 → 1020, `GCShopBought` 284 → 59,
+`GCShopBuyFail` 4 → 9, `GCShopBuyOK` 287 → 62, `GCShopList` 5515 → 1015
+and `GCStashList` 21006 → 7506 — all read-buffer budgets, not fields on
+the wire.
+
+- **`GCShopBuyFail::getPacketSize()` counted the NPC id alone while
+  `write()` also emitted the fail code and the four-byte amount, and the
+  factory max was the same four bytes.** Every refusal declared a body
+  five bytes shorter than it sent, so `writePacket()` put a length on the
+  wire that did not describe the body behind it and the stream never
+  resynchronised; the receiver's read buffer, sized from the max, was
+  overrun by the same five bytes. The size and the max count all three
+  fields: `GCShopBuyFail` 4 → 9.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **`CGStoreSign` derived the sign's length byte by hand and capped
+  nothing.** A sign past the 80 bytes its factory max budgets was emitted
+  whole, and at 256 bytes the length byte wrapped to zero while the text
+  still followed it. The field goes through `de::wire::readString` /
+  `writeString` at `MAX_SIGN_SIZE`, and the setter refuses a longer one,
+  so the length always describes the bytes behind it. A sign of 0..80
+  bytes travels unchanged.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **`CGStoreSign::write()` emitted an empty sign as a bare zero length
+  byte that `read()` could not take back.** The hand-written sequence
+  handed the zero to `SocketInputStream::read(string&, uint)`, which
+  refuses a zero length, so a stall named with an empty string was
+  written and never read. The helper's bounds admit an empty value
+  (`{0, MAX_SIGN_SIZE}`) and `write()` is byte-identical.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **`StoreInfo::setSign` capped nothing and `StoreInfo::write` bounded
+  the sign at 255 while `StoreInfo::getMaxSize` budgets 80.** A full
+  stall whose sign was longer made `GCMyStoreInfo` and `GCOtherStoreInfo`
+  outgrow their factory maxima by the overage. The setter cuts at
+  `MAX_SIGN_SIZE`, the way `StoreOutlook::setSign` already did — the two
+  carriers of the same player-typed field behave alike, and
+  `tests/packet_zone_scan_test.cpp` pins the cut for both — and `read()`
+  and `write()` bound the field there too, so a peer cannot smuggle a
+  longer one past the record's budget.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **`GCShopBought`, `GCShopBuyOK`, `GCShopList` and `GCStashList` bounded
+  their option lists against nothing.** The count travels in a `BYTE`, so
+  the 256th option wrapped it to zero while `write()` still emitted every
+  option, and the four maxima budgeted 255 options per item where an item
+  carries at most `MAX_ITEM_OPTION_NUM` (30) — a code sheet's stone grid.
+  The lists are held to that bound in the adders, the setters, `write()`
+  and `read()`, and the maxima budget it: `GCShopBought` 284 → 59,
+  `GCShopBuyOK` 287 → 62, `GCShopList` 5515 → 1015 and `GCStashList`
+  21006 → 7506, the last two twenty and sixty slots deep.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **The same four read their option list into whatever the packet already
+  held.** A reused packet grew by one listing per read, so it declared
+  one listing and held two. `GCShopBought::read` and `GCShopBuyOK::read`
+  clear the list first; `GCShopList::read` and `GCStashList::read` reset
+  every slot, which is what a full listing replaces, and `GCStashList`
+  destroys the sub-item records it drops instead of leaking them.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **`GCPetStashList` never put its code byte on the wire although three
+  senders set it and its factory max budgeted a byte for it.** The client
+  decides which side is right and it reads no code:
+  `Client/Packet/Gpackets/GCPetStashList.cpp` reads, per slot, an
+  availability byte, the `PetInfo` and the keep days, and
+  `GCPetStashListHandler` never calls `getCode()`. So the wire is right
+  and the code was dead API: `m_Code` / `getCode` / `setCode` are gone,
+  with the `setCode` calls in `ActionPetDeposit`, `ActionPetWithdraw` and
+  `CGSayHandler`'s `PetStash` command, and the max no longer budgets a
+  byte no body carries: `GCPetStashList` 1021 → 1020.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **`GCStashList` kept each slot's sub-item count in an array of its
+  own while the records came from a separate list.** A sub-item added
+  through `getSubItems()` left the count behind, so `write()` emitted the
+  stale count and then the whole list and `getPacketSize()` counted the
+  stale one. The count is the list, refused past the eight belt pockets
+  the max budgets in `write()` and in `read()`; the count array and the
+  bookkeeping in `GCStashListFill.cpp` are gone, and a slot entry holding
+  no record is refused rather than skipped, which would leave the body one
+  record short of the count.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **`GCMyStoreInfo` and `GCOtherStoreInfo` left their `StoreInfo`
+  pointer uninitialised, and both `getPacketSize()` and `write()`
+  dereferenced it.** A sender that skipped `setStoreInfo` followed an
+  indeterminate value. The pointer starts empty and `getPacketSize()`,
+  `write()` and `read()` throw `InvalidProtocolException` on it.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **Twenty-five of the thirty-six left at least one member the default
+  constructor never set**, so a packet sent without every setter called
+  put whatever the allocation held on the wire. All thirty-six initialise
+  every member now, pinned by constructing each over storage poisoned
+  with two different bytes.
+  > **Status:** fixed (wire/store-disagreements)
+
+- **`GCTimeLimitItemInfo` and `CGTypeStringList` derived an entry count
+  from a list they bounded against nothing.** Both counts travel in a
+  `BYTE`; `GCTimeLimitItemInfo` only `Assert`ed the bound and
+  `CGTypeStringList` did not check at all, so a listing past what the
+  factory max budgets outgrew the receiver's read buffer. Each is held to
+  the number its own max already budgets — 100 time-limit entries, 20
+  strings of 50 bytes — in the adder, in `write()` and in `read()`. Both
+  maxima were already right, so no wire-layout line moves.
+  `CGTypeStringList::popString` called `front()` on a list that may be
+  empty and throws now, and the packet initialises its type and its
+  parameter.
+  > **Status:** fixed (wire/store-disagreements)
+
 ## Inventory and item handling write/read disagreements (2026-09-10)
 
 The fourteen findings task 1.2 stated as flip-tests in

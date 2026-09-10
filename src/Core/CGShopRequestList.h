@@ -69,8 +69,8 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
-    ShopRackType_t m_RackType;
+    ObjectID_t m_ObjectID = 0;
+    ShopRackType_t m_RackType = 0;
 };
 
 

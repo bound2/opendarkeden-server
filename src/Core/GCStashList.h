@@ -14,25 +14,29 @@
 #include "SubItemInfo.h"
 
 typedef struct _STASHITEM {
+    // The options one slot's item carries. The count travels in a BYTE
+    // and the widest option list an item holds is a code sheet's grid.
+    static constexpr uint kMaxOptionCount = MAX_ITEM_OPTION_NUM;
+
     int getPacketSize() const {
-        return szObjectID + szBYTE + szItemType + szBYTE + optionType.size() + szDurability + szItemNum + szSilver +
-               szGrade + szEnchantLevel;
+        return szObjectID + szBYTE + szItemType + szBYTE + szOptionType * optionType.size() + szDurability + szItemNum +
+               szSilver + szGrade + szEnchantLevel;
     }
 
     static constexpr int getPacketMaxSize() {
-        return szObjectID + szBYTE + szItemType + szBYTE + 255 + szDurability + szItemNum + szSilver + szGrade +
-               szEnchantLevel;
+        return szObjectID + szBYTE + szItemType + szBYTE + szOptionType * kMaxOptionCount + szDurability + szItemNum +
+               szSilver + szGrade + szEnchantLevel;
     }
 
-    ObjectID_t objectID;
-    BYTE itemClass;
-    ItemType_t itemType;
+    ObjectID_t objectID = 0;
+    BYTE itemClass = 0;
+    ItemType_t itemType = 0;
     list<OptionType_t> optionType;
-    Durability_t durability;
-    ItemNum_t num;
-    Silver_t silver;
-    Grade_t grade;
-    EnchantLevel_t enchantLevel;
+    Durability_t durability = 0;
+    ItemNum_t num = 0;
+    Silver_t silver = 0;
+    Grade_t grade = 0;
+    EnchantLevel_t enchantLevel = 0;
 } STASHITEM;
 
 //////////////////////////////////////////////////////////////////////////////
@@ -43,6 +47,11 @@ class Item;
 
 class GCStashList : public Packet {
 public:
+    // The items a belt or an armsband keeps in one stash slot. The
+    // widest pocket count an item of either class has is this many, and
+    // the factory max budgets that many records per slot.
+    static constexpr uint kMaxSubItemCount = 8;
+
     GCStashList();
     virtual ~GCStashList();
 
@@ -65,7 +74,8 @@ public:
 
     list<SubItemInfo*>& getSubItems(BYTE rack, BYTE index);
 
-    BYTE getSubItemCount(BYTE rack, BYTE index);
+    // The count on the wire, which is the list itself.
+    BYTE getSubItemCount(BYTE rack, BYTE index) const;
 
     Gold_t getStashGold() const {
         return m_StashGold;
@@ -82,12 +92,11 @@ public:
     }
 
 private:
-    bool m_bExist[STASH_RACK_MAX][STASH_INDEX_MAX];
+    bool m_bExist[STASH_RACK_MAX][STASH_INDEX_MAX] = {};
     STASHITEM m_pItems[STASH_RACK_MAX][STASH_INDEX_MAX];
     list<SubItemInfo*> m_pSubItems[STASH_RACK_MAX][STASH_INDEX_MAX];
-    BYTE m_SubItemsCount[STASH_RACK_MAX][STASH_INDEX_MAX];
-    Gold_t m_StashGold;
-    BYTE m_StashNum;
+    Gold_t m_StashGold = 0;
+    BYTE m_StashNum = 0;
 };
 
 
@@ -101,15 +110,15 @@ public:
     static constexpr std::string_view kName = "GCStashList";
     static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
-        PacketSize_t unit_size = szBYTE * 2 + // rack과 인덱스
-                                              // sizeof(STASHITEM) +         // 실제 정보
-                                 STASHITEM::getPacketMaxSize() + szBYTE + // 벨트에 들어있는 아이템의 숫자
-                                 SubItemInfo::getSize() * 8;              // 벨트 아이템(8개가 맥스)
+        PacketSize_t unit_size = szBYTE * 2 +                    // rack and index
+                                 STASHITEM::getPacketMaxSize() + // the item itself
+                                 szBYTE +                        // how many items the belt holds
+                                 SubItemInfo::getSize() * GCStashList::kMaxSubItemCount; // the belt's items
 
-        size += szBYTE;                                       // 보관함의 갯수
-        size += szBYTE;                                       // 총 아이템의 숫자
-        size += unit_size * STASH_RACK_MAX * STASH_INDEX_MAX; // 아이템이 꽉 차 있다면...
-        size += szGold;                                       // 돈
+        size += szBYTE;                                       // number of racks
+        size += szBYTE;                                       // total number of items
+        size += unit_size * STASH_RACK_MAX * STASH_INDEX_MAX; // every slot occupied
+        size += szGold;                                       // money
 
         return size;
     }()};

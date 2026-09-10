@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    Gold_t m_Amount;
+    Gold_t m_Amount = 0;
 };
 
 

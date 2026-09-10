@@ -51,7 +51,7 @@ void StoreInfo::read(SocketInputStream& iStream, bool toOther) {
     if (toOther && m_Open == 0)
         return;
 
-    de::wire::readString(iStream, m_Sign, {0, de::wire::kMaxByteStringLength}, "Sign");
+    de::wire::readString(iStream, m_Sign, {0, MAX_SIGN_SIZE}, "Sign");
 
     BYTE ItemNum;
     iStream.read(ItemNum);
@@ -74,7 +74,7 @@ void StoreInfo::write(SocketOutputStream& oStream, bool toOther) const {
     if (toOther && m_Open == 0)
         return;
 
-    de::wire::writeString(oStream, m_Sign, {0, de::wire::kMaxByteStringLength}, "Sign");
+    de::wire::writeString(oStream, m_Sign, {0, MAX_SIGN_SIZE}, "Sign");
 
     BYTE ItemNum = m_Items.size();
     oStream.write(ItemNum);
