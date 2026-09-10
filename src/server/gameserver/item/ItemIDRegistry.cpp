@@ -4,7 +4,7 @@
 // Description :
 // The initItemIDRegistry member function of the 87 item classes that have
 // one, pulled out of the item implementation files and implemented here.
-// (EventBall and SubInventory declare it and neither define nor call it.)
+// (SubInventory declares it and neither defines nor calls it.)
 //////////////////////////////////////////////////////////////////////////////
 
 #include "AR.h"
