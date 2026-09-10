@@ -19,7 +19,6 @@
 #include "ClientManager.h"
 #include "CombatInfoManager.h"
 #include "CreatureUtil.h"
-#include "DB.h"
 #include "DynamicZone.h"
 #include "DynamicZoneGroup.h"
 #include "DynamicZoneManager.h"
@@ -369,9 +368,6 @@ void CGSayHandler::opExecute(Creature* pCreature, GamePlayer* pGamePlayer, strin
     } else if (msg.substr(i + 1, 4) == "user" && pCreature->isGOD()) {
         // cout << "==================Operator Order user Execute==================" << endl;
         opuser(pGamePlayer, msg, i);
-    } else if (msg.substr(i + 1, 6) == "notice" && pCreature->isGOD()) {
-        // cout << "==================Operator Order user Execute==================" << endl;
-        opnotice(pGamePlayer, msg, i);
     }
 
     // ���� �Լ��� �� ���ÿ� �Լ�
@@ -1768,39 +1764,6 @@ void CGSayHandler::opwall(GamePlayer* pGamePlayer, string msg, int i) {
 
     g_pZoneGroupManager->broadcast(&gcSystemMessage);
 
-    /*
-    Statement* pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-    Result* pResult = pStmt->executeQuery("SELECT MAX(ZoneGroupID) FROM ZoneGroupInfo");
-
-    pResult->next();
-
-    BYTE GroupCount = pResult->getInt(1) + 1;
-
-    for (int i = 1; i < GroupCount; i++) {
-
-        ZoneGroup* pZoneGroup;
-
-        try
-        {
-            pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
-        }
-        catch (NoSuchElementException&)
-        {
-            SAFE_DELETE(pStmt);
-            throw Error("Critical Error : ZoneInfoManager�� �ش� ���׷��� ��������
-    �ʽ��ϴ�.");
-        }
-
-        ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();
-
-        pZonePlayerManager->broadcastPacket_NOBLOCKED(&gcSystemMessage);
-
-    }
-
-    SAFE_DELETE(pStmt);
-    */
-
     __END_DEBUG_EX __END_CATCH
 }
 
@@ -3002,32 +2965,6 @@ void CGSayHandler::opmrecall(GamePlayer* pGamePlayer, string msg, int i) {
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void CGSayHandler::opnotice(GamePlayer* pGamePlayer, string msg, int i) {
-    __BEGIN_TRY __BEGIN_DEBUG_EX
-
-        // Creature* pCreature = pGamePlayer->getCreature();
-
-        size_t j = msg.find_first_of(' ', i + 1);
-    size_t k = msg.find_first_of(' ', j + 1);
-
-    string noticemsg = msg.substr(j + 1, k - j - 1).c_str();
-
-    StringStream sql;
-
-    sql << "INSERT INTO quick1001 (content) VALUES (" << noticemsg << ")";
-
-    Connection* pConnection = new Connection("211.117.52.124", "darkBBS2002", "elcastle", "elca005", 3306);
-    Statement* pStmt = pConnection->createStatement();
-    pStmt->executeQueryString(sql.toString());
-
-    SAFE_DELETE(pStmt);
-    SAFE_DELETE(pConnection);
-
-    __END_DEBUG_EX __END_CATCH
-}
-
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
 void CGSayHandler::opsummon(GamePlayer* pGamePlayer, string msg, int i) {
     __BEGIN_TRY __BEGIN_DEBUG_EX
 
@@ -3970,41 +3907,6 @@ void CGSayHandler::opcommand(GamePlayer* pGamePlayer, string msg, int i) {
         } else {
             gcNE.setParameter(atoi(name.c_str()));
         }
-
-        /*		if ( gcNE.getParameter() < 3 )
-                {
-                    pGamePlayer->sendPacket(&gcNE);
-
-                    GCMiniGameScores gcScores;
-                    gcScores.setGameType( (GameType)gcNE.getParameter() );
-
-                    Statement* pStmt = NULL;
-
-                    BEGIN_DB
-                    {
-                        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                        Result* pResult = pStmt->executeQuery(
-                                "SELECT Name, Score FROM MiniGameScores WHERE Type = %u ORDER BY Score limit
-           10",gcScores.getGameType() );
-
-                        int i=0;
-
-                        if (pResult->next())
-                        {
-                            string name = pResult->getString(1);
-                            WORD score = (WORD)pResult->getInt(2);
-
-                            gcScores.setScore(i,name,score);
-                            i++;
-                        }
-
-                        SAFE_DELETE(pStmt);
-                    }
-                    END_DB(pStmt)
-
-                    pGamePlayer->sendPacket(&gcScores);
-                    bSendPacket = false;
-                } */
     } else if (command == "changeSex") {
         Creature* pCreature = pGamePlayer->getCreature();
         PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
