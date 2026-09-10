@@ -144,10 +144,6 @@
 //                 body that outgrows it is a truncated packet, not a
 //                 caught error.
 //
-//               GCRegenZoneStatus gets the golden and the size pin but
-//               not the round trip: it cannot round trip at all, which
-//               is the first finding below.
-//
 //               Extra goldens cover the branches one fixture cannot:
 //               the counted lists are written empty (.empty on
 //               GCSelectQuestID, GCMonsterKillQuestInfo,
@@ -176,106 +172,69 @@
 //               positions; and CGFailQuest's give-up flag, which is
 //               bool.
 //
-//               Findings. Each is stated as a test that fails once the
-//               packet is fixed, except where noted:
+//               The write/read disagreements this set found are fixed
+//               and pinned as the behaviour the packets now produce.
+//               These packets are client-facing, so write() and
+//               getPacketSize() are the contract: every fix is a
+//               refusal, a cap at the width the factory max budgets, a
+//               size-accounting correction, a read-side correction or
+//               an initialisation, and no golden moved.
 //
-//               - GCRegenZoneStatus::read appends the eight bytes it
-//                 takes off the wire to the eight its constructor
-//                 already pushed, so getStatus() keeps returning the
-//                 constructor's zeros and write() emits them again: the
-//                 packet cannot round trip at all.
-//               - GCMiniGameScores::getPacketSize never advances its
-//                 iterator, so it counts the first name's length once
-//                 per entry. A table whose names differ in length
-//                 declares a size it does not send.
-//               - GCMiniGameScores derives each name's length byte
-//                 from the name with no bound, while its factory max
-//                 budgets twenty bytes for one: a longer name outgrows
-//                 the read buffer, and a name of 256 wraps the length
-//                 byte to zero while write() emits the whole string.
-//               - GCNoticeEvent::getCode returns a BYTE from the WORD
-//                 it holds and puts on the wire, so the caller cannot
-//                 see a code past 255.
-//               - GCNoticeEvent::setParameter(WORD, WORD) assigns
-//                 makeDWORD of its two halves to the code, not to the
-//                 parameter: the code is overwritten with the low half
-//                 and the parameter never changes.
-//               - GCGQuestStatusInfo derives its record count into a
-//                 BYTE it caps nowhere, so the 256th record wraps the
-//                 count to zero while write() still emits every record.
-//               - GCGQuestStatusInfo, GCSelectQuestID,
-//                 GCMonsterKillQuestInfo, GCWarList,
-//                 GCWarScheduleList and the ValueList inside
-//                 GuildWarInfo and RaceWarInfo all append to the list
-//                 the packet already holds instead of replacing it, so
-//                 a reused packet grows by one listing per read.
-//               - GCWarList's factory max budgets twelve race wars and
-//                 twelve guild wars and nothing else: not the count
-//                 byte, not the war type byte in front of each record,
-//                 and not the level war its own read() builds. Twelve
-//                 full guild wars and twelve full race wars already
-//                 outgrow it.
-//               - GCWarList's count byte is derived from the list and
-//                 capped nowhere, so the 256th war wraps it to zero.
-//               - GCWarScheduleList derives each guild name's length
-//                 byte from the name with no bound and its max budgets
-//                 sixteen bytes for one, so a longer name outgrows the
-//                 read buffer and a name of 256 wraps the length byte
-//                 to zero while write() emits the whole string.
-//               - GCWarScheduleList's count byte is capped nowhere
-//                 either, and its max budgets twenty entries.
-//               - QuestStatusInfo derives its mission count into a
-//                 BYTE it caps nowhere, so the 256th mission wraps the
-//                 count to zero while write() emits every mission.
-//               - ValueList, the join guilds of a guild war and the
-//                 castles of a race war, wraps its own count byte at
-//                 256 the same way.
-//               - GCGQuestStatusModify leaves uninitialised the record
-//                 pointer that getPacketSize() and write() dereference,
-//                 so a sender that skips setInfo follows an
-//                 indeterminate value.
-//               - MissionInfo::write prints every mission it emits to
-//                 standard output, on the wire path, once per player
-//                 the packet is sent to.
+//               - GCRegenZoneStatus holds the eight statuses in a fixed
+//                 array read() writes into, so the packet round trips;
+//                 a slot outside the eight is refused in the getter and
+//                 the setter.
+//               - GCMiniGameScores::getPacketSize walks the table it
+//                 measures, each name is cut to the twenty bytes the
+//                 factory max budgets in addScore, and write() and
+//                 read() carry the field through de::wire, so no length
+//                 byte can wrap and a full table fits the read buffer.
+//                 read() refuses a table past the ten write() emits.
+//               - GCNoticeEvent::getCode returns the WORD it puts on
+//                 the wire, setParameter(WORD, WORD) joins its halves
+//                 into the parameter, and read() refuses a code that is
+//                 not below NOTICE_EVENT_MAX, testing the raw WORD
+//                 before it reaches the member the three switches read.
+//               - GCGQuestStatusInfo, QuestStatusInfo's mission list,
+//                 GCWarList, GCWarScheduleList and the ValueList inside
+//                 a guild and a race war are each held to what their
+//                 own maximum budgets - 100 records, 100 missions, 24
+//                 wars, 20 entries and 255 values - in the adder, in
+//                 write() and in read(), so no count byte can wrap
+//                 while write() emits every entry. GCSelectQuestID and
+//                 GCMonsterKillQuestInfo refuse a list past 255 with an
+//                 InvalidProtocolException in place of the Assert()
+//                 that wrote assertion_failed.log first.
+//               - GCWarList's factory max budgets the count byte, the
+//                 war type byte in front of each record and the widest
+//                 of the three record shapes, twenty-four times over.
+//               - GCWarScheduleList's guild names stop at the sixteen
+//                 its max budgets, whose length byte the max now counts
+//                 as well.
+//               - GCSelectQuestID, GCGQuestStatusInfo, GCWarList,
+//                 GCWarScheduleList, GCMonsterKillQuestInfo,
+//                 QuestStatusInfo and ValueList replace what they hold
+//                 at the top of read() instead of appending to it.
+//               - The two quest status packets track which record is
+//                 their own: every sender hands over a GQuestStatus the
+//                 GQuestManager keeps, so the packet frees only what
+//                 read() allocated, and QuestStatusInfo frees the
+//                 missions it holds.
+//               - GCWarList::read tests the raw war type byte before it
+//                 reaches the WarType enum, whose range stops at 3, and
+//                 GCFlagWarStatus refuses a race outside its three
+//                 slots in the getter and the setter.
+//               - MissionInfo::write puts nothing on standard output.
+//               - GCAddHelicopter's code getter is getCode.
 //
-//               Six findings are recorded here rather than tested,
-//               because reaching them is undefined behaviour, has no
-//               observable wire effect, or is a leak:
-//
-//               - GCWarList::read casts the war type byte straight to
-//                 the WarType enum before switching on it. The enum
-//                 declares three values, so its range is 0..3; any
-//                 byte above that is an out-of-range enum load. Every
-//                 fixture here writes a real war type for that reason.
-//               - GCFlagWarStatus::getFlagCount and setFlagCount index
-//                 a three-element array with a Race_t they never bound.
-//               - GCGQuestStatusInfo's destructor frees no record: the
-//                 loop that did is commented out, so every record a
-//                 read() allocated leaks. GCGQuestStatusModify::read
-//                 allocates a record on every call without freeing the
-//                 one the packet held, and its destructor drops that
-//                 one too.
-//               - GCSelectQuestID and GCMonsterKillQuestInfo do refuse
-//                 a list past 255, through Assert(), which appends to
-//                 assertion_failed.log in the working directory before
-//                 it throws.
-//               - GCAddHelicopter's code getter is named setCode and
-//                 overloads the setter.
-//               - GCNoticeEvent's read() and write() take a code they
-//                 never compare against NOTICE_EVENT_MAX, so a peer
-//                 can announce a notice no branch of the client draws.
-//
-//               Eighteen of the twenty-seven leave at least one
-//               member the default constructor never sets, so a packet
-//               sent without every setter called puts indeterminate
-//               bytes on the wire. The poisoned-storage pin at the end
-//               of the file asserts today's split. GCNotifyWin is in
-//               neither list because its one text field is required
-//               non-empty, so a default-constructed body is refused
-//               rather than written; and GCGQuestStatusModify is in
-//               neither because writing one over poisoned storage
-//               would follow the indeterminate record pointer, so it
-//               gets a pin on the pointer itself instead.
+//               All twenty-seven initialise every member their write()
+//               emits, pinned by constructing each over storage poisoned
+//               with two different bytes. GCNotifyWin is not in the
+//               list because its one text field is required non-empty,
+//               so a default-constructed body is refused rather than
+//               written; GCGQuestStatusModify is not in it because its
+//               record pointer starts empty and getPacketSize() and
+//               write() refuse on it, which the pin beside it states.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -324,6 +283,7 @@
 using wiretest::expectGolden;
 using wiretest::kEncryptCodeCount;
 using wiretest::kEncryptCodes;
+using wiretest::Loopback;
 using wiretest::roundTrip;
 using wiretest::writeBody;
 
@@ -332,6 +292,18 @@ namespace {
 // The unencrypted branch. No packet in this file rides the encrypter, so
 // this is the only code whose bytes could differ from any other.
 const uchar kPlainCode = 0;
+
+// Emit a body field by field and hand it to a reader, so a refusal on
+// the read side can be pinned without a sender that could produce those
+// bytes.
+template <typename Emit, typename Consume> void throughLoopback(Emit emit, Consume consume) {
+    Loopback link;
+    link.setCodes(kPlainCode);
+    emit(link.out());
+    const uint length = link.out().length();
+    link.pump(length);
+    consume(link.in());
+}
 
 //////////////////////////////////////////////////////////////////////
 // The three pins every packet gets. fill() / expectEqual() are
@@ -655,11 +627,7 @@ public:
     FixtureQuestStatus(DWORD questID, BYTE status) : QuestStatusInfo(questID) {
         m_Status = status;
     }
-    ~FixtureQuestStatus() {
-        for (list<MissionInfo*>::iterator itr = m_Missions.begin(); itr != m_Missions.end(); ++itr)
-            delete *itr;
-        m_Missions.clear();
-    }
+    // QuestStatusInfo frees the missions it holds.
     void addMission(MissionInfo* pMission) {
         m_Missions.push_back(pMission);
     }
@@ -686,9 +654,13 @@ FixtureQuestStatus* makeQuestStatus(DWORD questID, BYTE status, int missions) {
     return pInfo;
 }
 
+// The records are function-local statics because the packet neither owns
+// nor frees the ones a sender fills the listing with.
 void fill(GCGQuestStatusInfo& packet) {
-    packet.getInfos().push_back(makeQuestStatus(0x89AABBCC, QuestStatusInfo::DOING, 2));
-    packet.getInfos().push_back(makeQuestStatus(0x8DAEBFC0, QuestStatusInfo::COMPLETE, 0));
+    static FixtureQuestStatus* pDoing = makeQuestStatus(0x89AABBCC, QuestStatusInfo::DOING, 2);
+    static FixtureQuestStatus* pComplete = makeQuestStatus(0x8DAEBFC0, QuestStatusInfo::COMPLETE, 0);
+    packet.getInfos().push_back(pDoing);
+    packet.getInfos().push_back(pComplete);
 }
 
 void fillNoQuestStatus(GCGQuestStatusInfo&) {}
@@ -733,10 +705,7 @@ QUEST_PACKET_VARIANT(GCGQuestStatusModify, nomissions, fillNoMissions)
 // The mini game's score table.
 //////////////////////////////////////////////////////////////////////
 
-// The game type is an enumerator on the setter. The names are text and
-// are all the same length: getPacketSize() counts the first name's
-// length once per entry, so any other shape declares a size write()
-// does not send - the finding below states that on its own.
+// The game type is an enumerator on the setter, and the names are text.
 void fill(GCMiniGameScores& packet) {
     packet.setGameType(GAME_ARROW);
     packet.setLevel(0x99);
@@ -1005,13 +974,16 @@ QUEST_PACKET_TESTS(GCNotifyWin)
 // The eight statuses are positions, so each carries its slot rather than
 // a value >= 128.
 void fill(GCRegenZoneStatus& packet) {
-    for (uint i = 0; i < 8; i++)
+    for (uint i = 0; i < GCRegenZoneStatus::kZoneCount; i++)
         packet.setStatus(i, (BYTE)(0x81 + i));
 }
 
-// GCRegenZoneStatus gets the golden and the size pin only: it cannot
-// round trip, which the first finding below states.
-QUEST_PACKET_GOLDEN_AND_SIZE(GCRegenZoneStatus)
+void expectEqual(GCRegenZoneStatus& a, GCRegenZoneStatus& b) {
+    for (uint i = 0; i < GCRegenZoneStatus::kZoneCount; i++)
+        EXPECT_EQ((int)a.getStatus(i), (int)b.getStatus(i)) << "regen zone " << i;
+}
+
+QUEST_PACKET_TESTS(GCRegenZoneStatus)
 
 void fill(GCEnterVampirePortal& packet) {
     packet.setObjectID(0x92B3C4D5);
@@ -1034,43 +1006,28 @@ void fill(GCAddHelicopter& packet) {
 
 void expectEqual(GCAddHelicopter& a, GCAddHelicopter& b) {
     EXPECT_EQ(a.getObjectID(), b.getObjectID());
-    // The code getter is named setCode and overloads the setter.
-    EXPECT_EQ((int)a.setCode(), (int)b.setCode());
+    EXPECT_EQ((int)a.getCode(), (int)b.getCode());
 }
 
 QUEST_PACKET_TESTS(GCAddHelicopter)
 
 //////////////////////////////////////////////////////////////////////
-// Write/read disagreements, each stated as a test that fails once the
-// packet is fixed.
+// The refusals, the caps, the replacements and the size accounting the
+// write/read disagreements this family had turned into.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCRegenZoneStatus::read appends the eight bytes it takes off the wire
-// to the eight its constructor already pushed, so getStatus() keeps
-// returning the constructor's zeros and write() emits them again. The
-// packet cannot round trip at all.
-TEST(GCRegenZoneStatusTest, readAppendsBehindTheEightTheConstructorAlreadyPushed) {
-    GCRegenZoneStatus src;
-    fill(src);
-
-    GCRegenZoneStatus dst;
-    roundTrip(src, dst, kPlainCode);
-
-    for (uint i = 0; i < 8; i++)
-        EXPECT_EQ(0, (int)dst.getStatus(i))
-            << "GCRegenZoneStatus::read() now replaces the statuses - drop this test and pin the round trip";
-
-    EXPECT_NE(writeBody(src, kPlainCode), writeBody(dst, kPlainCode))
-        << "GCRegenZoneStatus now round trips - pin it with QUEST_PACKET_TESTS instead";
+// A regen zone outside the eight write() emits reaches no slot of the
+// array behind it.
+TEST(GCRegenZoneStatusTest, aZoneOutsideTheEightIsRefused) {
+    GCRegenZoneStatus packet;
+    EXPECT_THROW(packet.setStatus(GCRegenZoneStatus::kZoneCount, 0x81), InvalidProtocolException);
+    EXPECT_THROW(packet.getStatus(GCRegenZoneStatus::kZoneCount), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCMiniGameScores::getPacketSize never advances its iterator: it counts
-// the first name's length once per entry. A table whose names differ in
-// length declares a size it does not send, and writePacket() puts that
-// size on the wire before write() runs.
-TEST(GCMiniGameScoresTest, theSizeCountsTheFirstNameOncePerEntry) {
+// getPacketSize() walks the whole table, so a set of names of different
+// lengths declares the body write() sends. writePacket() puts that size
+// on the wire before write() runs.
+TEST(GCMiniGameScoresTest, theSizeWalksTheWholeTable) {
     GCMiniGameScores packet;
     packet.setGameType(GAME_PUSH);
     packet.setLevel(0x81);
@@ -1078,118 +1035,145 @@ TEST(GCMiniGameScoresTest, theSizeCountsTheFirstNameOncePerEntry) {
     packet.addScore("Gloomhollow Sapper", 0x84A5);
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_NE((size_t)packet.getPacketSize(), body.size())
-        << "GCMiniGameScores::getPacketSize() now walks the table - drop this test and pin the agreement";
-    EXPECT_EQ((size_t)(szBYTE * 3 + (szBYTE + 3 + szWORD) * 2), (size_t)packet.getPacketSize());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
     EXPECT_EQ((size_t)(szBYTE * 3 + (szBYTE + 3 + szWORD) + (szBYTE + 18 + szWORD)), body.size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCMiniGameScores derives each name's length byte from the name with no
-// bound, while its factory max budgets twenty bytes for one name.
-TEST(GCMiniGameScoresTest, theNameOutgrowsWhatTheFactoryMaxBudgets) {
+// Each name is cut to the width the factory max budgets, so a full table
+// of long names fits the buffer the receiver sizes from it and no length
+// byte can wrap.
+TEST(GCMiniGameScoresTest, theNameStopsAtWhatTheFactoryMaxBudgets) {
     GCMiniGameScores packet;
     packet.setGameType(GAME_MINE);
     packet.setLevel(0x81);
-    for (int i = 0; i < 10; i++)
+    for (uint i = 0; i < GCMiniGameScores::kMaxScores; i++)
         packet.addScore(std::string(200, 'n'), (WORD)(0x82A3 + i));
 
     GCMiniGameScoresFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCMiniGameScores: the name is now held to what the factory max budgets";
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize());
 
-    GCMiniGameScores wrapped;
-    wrapped.setGameType(GAME_MINE);
-    wrapped.setLevel(0x81);
-    wrapped.addScore(std::string(256, 'n'), 0x84A5);
-
-    const std::vector<unsigned char> body = writeBody(wrapped, kPlainCode);
-    EXPECT_EQ(0, (int)body[3]) << "GCMiniGameScores: the name length is now bounded - drop this test";
-    EXPECT_EQ((size_t)(szBYTE * 3 + szBYTE + 256 + szWORD), body.size());
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+    EXPECT_EQ((int)GCMiniGameScores::kMaxNameLength, (int)body[3]);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCNoticeEvent::getCode returns a BYTE from the WORD it holds and puts
-// on the wire, so a caller cannot see a code past 255.
-TEST(GCNoticeEventTest, theCodeGetterReturnsAByteOfTheWordItSends) {
+// The read side refuses the name and the count write() cannot produce.
+TEST(GCMiniGameScoresTest, aNameOrATablePastTheBudgetIsRefused) {
+    GCMiniGameScores wide;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)GAME_MINE);
+                         out.write((BYTE)0x81);
+                         out.write((BYTE)1);
+                         out.write((BYTE)(GCMiniGameScores::kMaxNameLength + 1));
+                         out.write(std::string(GCMiniGameScores::kMaxNameLength + 1, 'n'));
+                         out.write((WORD)0x82A3);
+                     },
+                     [&wide](SocketEncryptInputStream& in) { wide.read(in); }),
+                 InvalidProtocolException);
+
+    GCMiniGameScores many;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)GAME_MINE);
+                         out.write((BYTE)0x81);
+                         out.write((BYTE)(GCMiniGameScores::kMaxScores + 1));
+                     },
+                     [&many](SocketEncryptInputStream& in) { many.read(in); }),
+                 InvalidProtocolException);
+}
+
+// The code getter returns the WORD the packet holds and puts on the
+// wire, so a caller sees every value a peer could announce.
+TEST(GCNoticeEventTest, theCodeGetterReturnsTheWordItSends) {
     GCNoticeEvent packet;
     packet.setCode(0x81A2);
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     EXPECT_EQ((size_t)szWORD, body.size());
-    EXPECT_NE(0x81A2, (int)packet.getCode())
-        << "GCNoticeEvent::getCode() now returns the WORD it holds - drop this test";
-    EXPECT_EQ(0xA2, (int)packet.getCode());
+    EXPECT_EQ(0x81A2, (int)packet.getCode());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCNoticeEvent::setParameter(WORD, WORD) assigns makeDWORD of its two
-// halves to the code, not to the parameter, so it overwrites the notice
-// with the low half and leaves the parameter alone.
-TEST(GCNoticeEventTest, theTwoHalfParameterSetterWritesTheCodeInstead) {
+// A code no branch of the switch names is refused on the raw WORD,
+// before it reaches the member the three switches read.
+TEST(GCNoticeEventTest, aCodePastTheLastNoticeIsRefused) {
+    GCNoticeEvent dst;
+    EXPECT_THROW(throughLoopback([](SocketEncryptOutputStream& out) { out.write((WORD)NOTICE_EVENT_MAX); },
+                                 [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
+// setParameter(WORD, WORD) joins its two halves into the parameter and
+// leaves the notice alone.
+TEST(GCNoticeEventTest, theTwoHalfParameterSetterSetsTheParameter) {
     GCNoticeEvent packet;
     packet.setCode(NOTICE_EVENT_WAR_OVER);
-    packet.setParameter(0x81A2B3C4);
     packet.setParameter((WORD)0x85A6, (WORD)0x87B8);
 
-    EXPECT_EQ(0x81A2B3C4u, packet.getParameter())
-        << "GCNoticeEvent::setParameter(WORD, WORD) now sets the parameter - drop this test";
-    EXPECT_EQ(0xB8, (int)packet.getCode());
+    EXPECT_EQ(makeDWORD(0x85A6, 0x87B8), packet.getParameter());
+    EXPECT_EQ((int)NOTICE_EVENT_WAR_OVER, (int)packet.getCode());
+
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+    EXPECT_EQ((size_t)(szWORD + szuint), body.size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCGQuestStatusInfo derives its record count into a BYTE it caps
-// nowhere, so the 256th record wraps the count to zero while write()
-// still emits every record.
-TEST(GCGQuestStatusInfoTest, theRecordCountWrapsAtTwoHundredAndFiftySix) {
-    // QuestStatusInfo has no virtual destructor, so the records are freed
-    // through the type they were built as.
+// The listing is held to the records the factory max budgets, in write()
+// and in read() alike, so its count byte cannot wrap.
+TEST(GCGQuestStatusInfoTest, theListingStopsAtWhatTheFactoryMaxBudgets) {
     std::vector<FixtureQuestStatus*> owned;
     GCGQuestStatusInfo packet;
-    for (int i = 0; i < 256; i++) {
+    for (int i = 0; i < MAX_QUEST_NUM; i++) {
         FixtureQuestStatus* pInfo = makeQuestStatus((DWORD)(0x81A2B3C4 + i), QuestStatusInfo::DOING, 0);
         owned.push_back(pInfo);
         packet.getInfos().push_back(pInfo);
     }
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "GCGQuestStatusInfo: the listing is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + 256 * (szDWORD + szBYTE + szBYTE)), body.size());
+    EXPECT_EQ(MAX_QUEST_NUM, (int)body[0]);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+
+    GCGQuestStatusInfoFactory factory;
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+
+    FixtureQuestStatus* pExtra = makeQuestStatus(0x99AABBCC, QuestStatusInfo::DOING, 0);
+    owned.push_back(pExtra);
+    packet.getInfos().push_back(pExtra);
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
+
+    GCGQuestStatusInfo dst;
+    EXPECT_THROW(throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)(MAX_QUEST_NUM + 1)); },
+                                 [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
 
     packet.getInfos().clear();
     for (size_t i = 0; i < owned.size(); i++)
         delete owned[i];
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// QuestStatusInfo derives its mission count into a BYTE it caps nowhere,
-// so the 256th mission wraps the count to zero while write() emits every
-// mission. Standard output is captured because MissionInfo::write prints
-// one line per mission, which the finding below states on its own.
-TEST(GCGQuestStatusModifyTest, theMissionCountWrapsAtTwoHundredAndFiftySix) {
+// A quest record's mission list is held to what its own maximum budgets,
+// so its count byte cannot wrap either.
+TEST(GCGQuestStatusModifyTest, theMissionListStopsAtWhatTheRecordMaxBudgets) {
     FixtureQuestStatus* pInfo = makeQuestStatus(0x85A6B7C8, QuestStatusInfo::DOING, 0);
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < MAX_MISSION_NUM; i++)
         pInfo->addMission(makeMission(MissionInfo::HIDE, (WORD)(0x81A2 + i), MissionInfo::CURRENT, "", 0x89AABBCC));
 
     GCGQuestStatusModify packet;
     packet.setType(GCGQuestStatusModify::CURRENT);
     packet.setInfo(pInfo);
 
-    testing::internal::CaptureStdout();
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    testing::internal::GetCapturedStdout();
+    EXPECT_EQ(MAX_MISSION_NUM, (int)body[szBYTE + szDWORD + szBYTE]);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
-    EXPECT_EQ(0, (int)body[1 + szDWORD + szBYTE]) << "QuestStatusInfo: the mission list is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + szDWORD + szBYTE + szBYTE + 256 * (szBYTE + szWORD + szBYTE + szBYTE + szDWORD)),
-              body.size());
+    pInfo->addMission(makeMission(MissionInfo::HIDE, 0x91C2, MissionInfo::CURRENT, "", 0x89AABBCC));
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
 
     delete pInfo;
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// MissionInfo::write prints every mission it emits to standard output,
-// on the wire path, once per player the packet is sent to.
-TEST(GCGQuestStatusModifyTest, writingAMissionPrintsItToStandardOutput) {
+// Writing a mission puts nothing on standard output.
+TEST(GCGQuestStatusModifyTest, writingAMissionPrintsNothing) {
     GCGQuestStatusModify packet;
     fill(packet);
 
@@ -1197,15 +1181,62 @@ TEST(GCGQuestStatusModifyTest, writingAMissionPrintsItToStandardOutput) {
     writeBody(packet, kPlainCode);
     const std::string printed = testing::internal::GetCapturedStdout();
 
-    EXPECT_NE(std::string::npos, printed.find("write mission"))
-        << "MissionInfo::write() no longer prints to standard output - drop this test";
+    EXPECT_TRUE(printed.empty()) << "MissionInfo::write() prints on the wire path: " << printed;
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCWarList's factory max budgets twelve race wars and twelve guild wars
-// and nothing else: not the count byte, not the war type byte in front
-// of each record, and not the level war its own read() builds.
-TEST(GCWarListTest, theMaxBudgetsNeitherTheCountByteNorTheWarTypeBytes) {
+// The packet frees the record read() allocated and never the one a
+// sender hands it.
+TEST(GCGQuestStatusModifyTest, thePacketFreesOnlyTheRecordItRead) {
+    FixtureQuestStatus* pOwn = makeQuestStatus(0x91C2D3E4, QuestStatusInfo::SUCCESS, 2);
+    const PacketSize_t size = pOwn->getSize();
+
+    {
+        GCGQuestStatusModify src;
+        src.setType(GCGQuestStatusModify::SUCCESS);
+        src.setInfo(pOwn);
+
+        GCGQuestStatusModify dst;
+        roundTrip(src, dst, kPlainCode);
+        ASSERT_TRUE(dst.getInfo() != NULL);
+        EXPECT_EQ((int)size, (int)dst.getInfo()->getSize());
+
+        // A second read replaces the record the first one allocated.
+        roundTrip(src, dst, kPlainCode);
+        ASSERT_TRUE(dst.getInfo() != NULL);
+        EXPECT_EQ((int)size, (int)dst.getInfo()->getSize());
+    }
+
+    EXPECT_EQ((int)size, (int)pOwn->getSize());
+    delete pOwn;
+}
+
+// The same for the listing: a sender keeps every record it fills it
+// with.
+TEST(GCGQuestStatusInfoTest, thePacketFreesOnlyTheRecordsItRead) {
+    GCGQuestStatusInfo reference;
+    fill(reference);
+    const std::vector<unsigned char> body = writeBody(reference, kPlainCode);
+
+    {
+        GCGQuestStatusInfo src;
+        fill(src);
+
+        GCGQuestStatusInfo dst;
+        roundTrip(src, dst, kPlainCode);
+        EXPECT_EQ((size_t)2, dst.getInfos().size());
+    }
+
+    GCGQuestStatusInfo again;
+    fill(again);
+    EXPECT_EQ(body, writeBody(again, kPlainCode));
+}
+
+// The factory max budgets the count byte, the war type byte in front of
+// each record and the widest of the three record shapes.
+TEST(GCWarListTest, theMaxBudgetsTheCountByteAndTheWarTypeBytes) {
+    EXPECT_GE(GuildWarInfo::getMaxSize(), RaceWarInfo::getMaxSize());
+    EXPECT_GE(GuildWarInfo::getMaxSize(), LevelWarInfo::getMaxSize());
+
     GCWarList packet;
     for (int i = 0; i < 12; i++) {
         GuildWarInfo* pGuild = new GuildWarInfo;
@@ -1222,92 +1253,145 @@ TEST(GCWarListTest, theMaxBudgetsNeitherTheCountByteNorTheWarTypeBytes) {
     }
 
     GCWarListFactory factory;
-    EXPECT_EQ((int)((RaceWarInfo::getMaxSize() + GuildWarInfo::getMaxSize()) * 12), (int)factory.getPacketMaxSize());
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCWarList: the max now budgets the count byte and the war type bytes";
-    EXPECT_EQ((int)(szBYTE + 24 * szWarType), (int)packet.getPacketSize() - (int)factory.getPacketMaxSize());
+    EXPECT_EQ((int)(szBYTE + (szWarType + GuildWarInfo::getMaxSize()) * GCWarList::kMaxWars),
+              (int)factory.getPacketMaxSize());
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    LevelWarInfo* pExtra = new LevelWarInfo;
+    EXPECT_THROW(packet.addWarInfo(pExtra), InvalidProtocolException);
+    delete pExtra;
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCWarList's count byte is derived from the list and capped nowhere, so
-// the 256th war wraps it to zero while write() emits every record.
-TEST(GCWarListTest, theWarCountWrapsAtTwoHundredAndFiftySix) {
-    GCWarList packet;
-    for (int i = 0; i < 256; i++) {
-        LevelWarInfo* pLevel = new LevelWarInfo;
-        pLevel->setLevel(i);
-        packet.addWarInfo(pLevel);
-    }
-
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "GCWarList: the war list is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + 256 * (szWarType + szint + szDWORD + szDWORD)), body.size());
+// A listing past what the max budgets is refused on the read side too.
+TEST(GCWarListTest, aListingPastTheBudgetIsRefused) {
+    GCWarList dst;
+    EXPECT_THROW(throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)(GCWarList::kMaxWars + 1)); },
+                                 [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// ValueList, which carries a guild war's join guilds and a race war's
-// castles, derives its own count byte from the list and caps nothing.
-TEST(GuildWarInfoTest, theJoinGuildCountWrapsAtTwoHundredAndFiftySix) {
+// The war type byte is tested raw, before it reaches the enum whose
+// range stops at 3.
+TEST(GCWarListTest, aWarTypeNoRecordShapeMatchesIsRefused) {
+    GCWarList dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)1);
+                         out.write((WarType_t)(WAR_LEVEL + 1));
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
+// ValueList, the join guilds of a guild war and the castles of a race
+// war, is held to the values its own count byte carries.
+TEST(GuildWarInfoTest, theJoinGuildListStopsAtWhatTheCountByteCarries) {
     GCWarList packet;
     GuildWarInfo* pGuild = new GuildWarInfo;
     pGuild->setCastleID(0x81A2);
-    for (int i = 0; i < 256; i++)
+    for (size_t i = 0; i < GuildWarInfo::GuildIDList::kMaxValues; i++)
         pGuild->addJoinGuild((GuildID_t)i);
     packet.addWarInfo(pGuild);
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     const size_t countAt = szBYTE + szWarType + szDWORD + szDWORD + szZoneID + szBYTE + szBYTE;
-    EXPECT_EQ(0, (int)body[countAt]) << "ValueList: the list is now capped - drop this test";
-    EXPECT_EQ(countAt + szBYTE + 256 * szGuildID, body.size());
+    EXPECT_EQ((int)GuildWarInfo::GuildIDList::kMaxValues, (int)body[countAt]);
+    EXPECT_EQ(countAt + szBYTE + GuildWarInfo::GuildIDList::kMaxValues * szGuildID, body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+
+    EXPECT_THROW(pGuild->addJoinGuild(0x99AA), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCWarScheduleList derives each guild name's length byte from the name
-// with no bound, so a name of 256 wraps the byte to zero while write()
-// emits the whole string and the reader stops at the wrong offset. The
-// factory max budgets sixteen bytes for a name.
-TEST(GCWarScheduleListTest, theGuildNameLengthWrapsAndOutgrowsWhatTheMaxBudgets) {
-    GCWarScheduleList wrapped;
-    WarScheduleInfo* pInfo = makeGuildSchedule(false);
-    pInfo->challengerGuildName[0] = std::string(256, 'c');
-    wrapped.addWarScheduleInfo(pInfo);
-
-    const std::vector<unsigned char> body = writeBody(wrapped, kPlainCode);
-    const size_t lengthAt = szBYTE + szBYTE + szWORD + szBYTE * 3 + szGuildID;
-    EXPECT_EQ(0, (int)body[lengthAt]) << "GCWarScheduleList: the guild name is now bounded - drop this test";
-
+// The six guild names of an entry stop at the width the factory max
+// budgets, so a full schedule of full names still fits the read buffer.
+TEST(GCWarScheduleListTest, theGuildNamesStopAtWhatTheMaxBudgets) {
     GCWarScheduleList wide;
-    for (int i = 0; i < 2; i++) {
+    for (size_t i = 0; i < GCWarScheduleList::kMaxEntries; i++) {
         WarScheduleInfo* pWide = makeGuildSchedule(false);
         for (int j = 0; j < 5; j++)
-            pWide->challengerGuildName[j] = std::string(255, 'c');
-        pWide->reinforceGuildName = std::string(255, 'r');
+            pWide->challengerGuildName[j] = std::string(GCWarScheduleList::kMaxGuildNameLength, 'c');
+        pWide->reinforceGuildName = std::string(GCWarScheduleList::kMaxGuildNameLength, 'r');
         wide.addWarScheduleInfo(pWide);
     }
 
     GCWarScheduleListFactory factory;
-    EXPECT_GT(wide.getPacketSize(), factory.getPacketMaxSize())
-        << "GCWarScheduleList: the guild names are now held to what the max budgets";
+    EXPECT_EQ(factory.getPacketMaxSize(), wide.getPacketSize());
+    EXPECT_EQ((size_t)wide.getPacketSize(), writeBody(wide, kPlainCode).size());
+
+    GCWarScheduleList over;
+    WarScheduleInfo* pOver = makeGuildSchedule(false);
+    pOver->challengerGuildName[0] = std::string(GCWarScheduleList::kMaxGuildNameLength + 1, 'c');
+    over.addWarScheduleInfo(pOver);
+    EXPECT_THROW(writeBody(over, kPlainCode), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCWarScheduleList's count byte is capped nowhere either, and its max
-// budgets twenty entries.
-TEST(GCWarScheduleListTest, theEntryCountWrapsAtTwoHundredAndFiftySix) {
+// The schedule is held to the entries the factory max budgets, so its
+// count byte cannot wrap.
+TEST(GCWarScheduleListTest, theScheduleStopsAtWhatTheFactoryMaxBudgets) {
     GCWarScheduleList packet;
-    for (int i = 0; i < 256; i++)
+    for (size_t i = 0; i < GCWarScheduleList::kMaxEntries; i++)
         packet.addWarScheduleInfo(makeRaceSchedule());
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "GCWarScheduleList: the schedule is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + 256 * (szBYTE + szWORD + szBYTE * 3)), body.size());
+    EXPECT_EQ((int)GCWarScheduleList::kMaxEntries, (int)body[0]);
+    EXPECT_EQ((size_t)(szBYTE + GCWarScheduleList::kMaxEntries * (szBYTE + szWORD + szBYTE * 3)), body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+
+    WarScheduleInfo* pExtra = makeRaceSchedule();
+    EXPECT_THROW(packet.addWarScheduleInfo(pExtra), InvalidProtocolException);
+    delete pExtra;
+
+    GCWarScheduleList dst;
+    EXPECT_THROW(
+        throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)(GCWarScheduleList::kMaxEntries + 1)); },
+                        [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+        InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The six list packets and the two records read into whatever the packet
-// already holds instead of replacing it, so a reused packet grows by one
-// listing per read.
-TEST(GCSelectQuestIDTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+// A flag count is asked for and set by race, and only the three slots
+// write() emits exist.
+TEST(GCFlagWarStatusTest, aRaceOutsideTheThreeSlotsIsRefused) {
+    GCFlagWarStatus packet;
+    EXPECT_THROW(packet.setFlagCount((Race_t)GCFlagWarStatus::kRaceCount, 0x81), InvalidProtocolException);
+    EXPECT_THROW(packet.getFlagCount((Race_t)GCFlagWarStatus::kRaceCount), InvalidProtocolException);
+}
+
+// The two quest listings refuse a list past what their count byte
+// carries with an exception the handlers on the path can catch, rather
+// than through Assert() and its assertion_failed.log.
+TEST(GCSelectQuestIDTest, aListPastWhatTheCountByteCarriesIsRefused) {
+    std::vector<QuestID_t> ids(maxQuestNum, 0x81A2B3C4);
+    GCSelectQuestID full(ids.begin(), ids.end());
+
+    GCSelectQuestIDFactory factory;
+    EXPECT_EQ(factory.getPacketMaxSize(), full.getPacketSize());
+
+    ids.push_back(0x85A6B7C8);
+    EXPECT_THROW({ GCSelectQuestID over(ids.begin(), ids.end()); }, InvalidProtocolException);
+}
+
+TEST(GCMonsterKillQuestInfoTest, aListPastWhatTheCountByteCarriesIsRefused) {
+    GCMonsterKillQuestInfo packet;
+    for (int i = 0; i < maxQuestNum; i++)
+        packet.addQuestInfo(makeKillQuest((QuestID_t)(0x81A2B3C4 + i), 0x91C2, 0x93D4, 0x95E6F708));
+
+    GCMonsterKillQuestInfoFactory factory;
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize());
+
+    GCMonsterKillQuestInfo::QuestInfo* pExtra = makeKillQuest(0x99AABBCC, 0x9DEE, 0xA1F2, 0xA3B4C5D6);
+    EXPECT_THROW(packet.addQuestInfo(pExtra), InvalidProtocolException);
+    delete pExtra;
+}
+
+//////////////////////////////////////////////////////////////////////
+// Reading replaces what the packet holds.
+//
+// Each list packet is read into twice; the second listing is the one it
+// holds, not the two appended.
+//////////////////////////////////////////////////////////////////////
+
+TEST(GCSelectQuestIDTest, aSecondReadReplacesTheListItAlreadyHolds) {
     GCSelectQuestID src;
     fill(src);
 
@@ -1323,10 +1407,10 @@ TEST(GCSelectQuestIDTest, aSecondReadAppendsToTheListItAlreadyHolds) {
         dst.popQuestID();
         held++;
     }
-    EXPECT_EQ(6, held) << "GCSelectQuestID::read() now replaces the list - drop this test and pin the replacement";
+    EXPECT_EQ(3, held);
 }
 
-TEST(GCGQuestStatusInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+TEST(GCGQuestStatusInfoTest, aSecondReadReplacesTheListingItAlreadyHolds) {
     GCGQuestStatusInfo src;
     fill(src);
 
@@ -1337,11 +1421,10 @@ TEST(GCGQuestStatusInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
     GCGQuestStatusInfo second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ((size_t)4, dst.getInfos().size())
-        << "GCGQuestStatusInfo::read() now replaces the listing - drop this test and pin the replacement";
+    EXPECT_EQ((size_t)2, dst.getInfos().size());
 }
 
-TEST(GCWarListTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+TEST(GCWarListTest, aSecondReadReplacesTheListItAlreadyHolds) {
     GCWarList src;
     fill(src);
 
@@ -1352,10 +1435,10 @@ TEST(GCWarListTest, aSecondReadAppendsToTheListItAlreadyHolds) {
     GCWarList second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(6, dst.getSize()) << "GCWarList::read() now replaces the list - drop this test and pin the replacement";
+    EXPECT_EQ(3, dst.getSize());
 }
 
-TEST(GCWarScheduleListTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+TEST(GCWarScheduleListTest, aSecondReadReplacesTheListItAlreadyHolds) {
     GCWarScheduleList src;
     fill(src);
 
@@ -1367,12 +1450,14 @@ TEST(GCWarScheduleListTest, aSecondReadAppendsToTheListItAlreadyHolds) {
     roundTrip(second, dst, kPlainCode);
 
     int held = 0;
-    while (dst.popWarScheduleInfo() != NULL)
+    for (WarScheduleInfo* pInfo = dst.popWarScheduleInfo(); pInfo != NULL; pInfo = dst.popWarScheduleInfo()) {
+        delete pInfo;
         held++;
-    EXPECT_EQ(4, held) << "GCWarScheduleList::read() now replaces the list - drop this test and pin the replacement";
+    }
+    EXPECT_EQ(2, held);
 }
 
-TEST(GCMonsterKillQuestInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+TEST(GCMonsterKillQuestInfoTest, aSecondReadReplacesTheListItAlreadyHolds) {
     GCMonsterKillQuestInfo src;
     fill(src);
 
@@ -1388,8 +1473,24 @@ TEST(GCMonsterKillQuestInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
         delete dst.popQuestInfo();
         held++;
     }
-    EXPECT_EQ(4, held)
-        << "GCMonsterKillQuestInfo::read() now replaces the list - drop this test and pin the replacement";
+    EXPECT_EQ(2, held);
+}
+
+// The join guild list inside a record replaces its values the same way.
+TEST(GuildWarInfoTest, aSecondReadReplacesTheJoinGuildsItAlreadyHolds) {
+    GCWarList src;
+    src.addWarInfo(makeGuildWar());
+
+    GCWarList dst;
+    roundTrip(src, dst, kPlainCode);
+    roundTrip(src, dst, kPlainCode);
+
+    ASSERT_EQ(1, dst.getSize());
+    WarInfo* pInfo = dst.popWarInfo();
+    GuildWarInfo* pGuild = dynamic_cast<GuildWarInfo*>(pInfo);
+    ASSERT_TRUE(pGuild != NULL);
+    EXPECT_EQ(2, pGuild->getJoinGuilds().getSize());
+    delete pInfo;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1413,47 +1514,35 @@ template <typename PacketType> void expectEveryMemberIsInitialised(const char* w
         << what << ": its default constructor leaves a member write() emits uninitialised";
 }
 
-// FINDING, stated as a test that fails once it is fixed. Each of these
-// puts an indeterminate byte on the wire when a sender skips a setter.
-template <typename PacketType> void expectAMemberIsLeftUninitialised(const char* what) {
-    EXPECT_NE(bodyOverPoison<PacketType>(0x00), bodyOverPoison<PacketType>(0xFF))
-        << what
-        << ": its default constructor now initialises every member write() emits - move it to the "
-           "initialised list";
-}
-
-TEST(QuestWarConstructorTest, thePacketsThatInitialiseEveryMemberTheyWrite) {
+TEST(QuestWarConstructorTest, everyPacketInitialisesEveryMemberItWrites) {
+    expectEveryMemberIsInitialised<CGSelectQuest>("CGSelectQuest");
+    expectEveryMemberIsInitialised<CGFailQuest>("CGFailQuest");
+    expectEveryMemberIsInitialised<CGGQuestAccept>("CGGQuestAccept");
+    expectEveryMemberIsInitialised<CGGQuestCancel>("CGGQuestCancel");
+    expectEveryMemberIsInitialised<CGSubmitScore>("CGSubmitScore");
+    expectEveryMemberIsInitialised<CGModifyTaxRatio>("CGModifyTaxRatio");
+    expectEveryMemberIsInitialised<CGWithdrawTax>("CGWithdrawTax");
+    expectEveryMemberIsInitialised<CGDonationMoney>("CGDonationMoney");
+    expectEveryMemberIsInitialised<CGSelectRegenZone>("CGSelectRegenZone");
+    expectEveryMemberIsInitialised<CGSelectPortal>("CGSelectPortal");
+    expectEveryMemberIsInitialised<CGSelectWayPoint>("CGSelectWayPoint");
+    expectEveryMemberIsInitialised<CGSelectTileEffect>("CGSelectTileEffect");
+    expectEveryMemberIsInitialised<CGRelicToObject>("CGRelicToObject");
+    expectEveryMemberIsInitialised<GCQuestStatus>("GCQuestStatus");
     expectEveryMemberIsInitialised<GCSelectQuestID>("GCSelectQuestID");
     expectEveryMemberIsInitialised<GCMonsterKillQuestInfo>("GCMonsterKillQuestInfo");
     expectEveryMemberIsInitialised<GCGQuestStatusInfo>("GCGQuestStatusInfo");
-    expectEveryMemberIsInitialised<GCNoticeEvent>("GCNoticeEvent");
-    expectEveryMemberIsInitialised<GCRegenZoneStatus>("GCRegenZoneStatus");
+    expectEveryMemberIsInitialised<GCMiniGameScores>("GCMiniGameScores");
     expectEveryMemberIsInitialised<GCWarList>("GCWarList");
     expectEveryMemberIsInitialised<GCWarScheduleList>("GCWarScheduleList");
+    expectEveryMemberIsInitialised<GCFlagWarStatus>("GCFlagWarStatus");
+    expectEveryMemberIsInitialised<GCNoticeEvent>("GCNoticeEvent");
+    expectEveryMemberIsInitialised<GCRegenZoneStatus>("GCRegenZoneStatus");
+    expectEveryMemberIsInitialised<GCEnterVampirePortal>("GCEnterVampirePortal");
+    expectEveryMemberIsInitialised<GCAddHelicopter>("GCAddHelicopter");
 }
 
-TEST(QuestWarConstructorTest, thePacketsThatDoNot) {
-    expectAMemberIsLeftUninitialised<CGSelectQuest>("CGSelectQuest");
-    expectAMemberIsLeftUninitialised<CGFailQuest>("CGFailQuest");
-    expectAMemberIsLeftUninitialised<CGGQuestAccept>("CGGQuestAccept");
-    expectAMemberIsLeftUninitialised<CGGQuestCancel>("CGGQuestCancel");
-    expectAMemberIsLeftUninitialised<CGSubmitScore>("CGSubmitScore");
-    expectAMemberIsLeftUninitialised<CGModifyTaxRatio>("CGModifyTaxRatio");
-    expectAMemberIsLeftUninitialised<CGWithdrawTax>("CGWithdrawTax");
-    expectAMemberIsLeftUninitialised<CGDonationMoney>("CGDonationMoney");
-    expectAMemberIsLeftUninitialised<CGSelectRegenZone>("CGSelectRegenZone");
-    expectAMemberIsLeftUninitialised<CGSelectPortal>("CGSelectPortal");
-    expectAMemberIsLeftUninitialised<CGSelectWayPoint>("CGSelectWayPoint");
-    expectAMemberIsLeftUninitialised<CGSelectTileEffect>("CGSelectTileEffect");
-    expectAMemberIsLeftUninitialised<CGRelicToObject>("CGRelicToObject");
-    expectAMemberIsLeftUninitialised<GCQuestStatus>("GCQuestStatus");
-    expectAMemberIsLeftUninitialised<GCMiniGameScores>("GCMiniGameScores");
-    expectAMemberIsLeftUninitialised<GCFlagWarStatus>("GCFlagWarStatus");
-    expectAMemberIsLeftUninitialised<GCEnterVampirePortal>("GCEnterVampirePortal");
-    expectAMemberIsLeftUninitialised<GCAddHelicopter>("GCAddHelicopter");
-}
-
-// GCNotifyWin is in neither list: its one text field is required
+// GCNotifyWin is not in the list: its one text field is required
 // non-empty, so the body a default constructor leaves is refused rather
 // than written.
 TEST(QuestWarConstructorTest, theWinnerNoticeRefusesItsDefaultBody) {
@@ -1465,28 +1554,19 @@ TEST(QuestWarConstructorTest, theWinnerNoticeRefusesItsDefaultBody) {
     pPacket->~GCNotifyWin();
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCGQuestStatusModify is in neither list because writing one over
-// poisoned storage would follow the record pointer its constructor
-// leaves alone. The pointer itself is pinned instead: both
-// getPacketSize() and write() dereference it, so a sender that skips
-// setInfo follows an indeterminate value.
-TEST(QuestWarConstructorTest, theQuestStatusRecordPointerIsLeftUninitialised) {
-    alignas(GCGQuestStatusModify) unsigned char zeroed[sizeof(GCGQuestStatusModify)];
-    memset(zeroed, 0x00, sizeof(zeroed));
-    GCGQuestStatusModify* pZeroed = new (zeroed) GCGQuestStatusModify();
-    QuestStatusInfo* pFromZero = pZeroed->getInfo();
-    pZeroed->~GCGQuestStatusModify();
+// GCGQuestStatusModify is not in the list either: its record pointer
+// starts empty, and both getPacketSize() and write() refuse on it rather
+// than following it.
+TEST(QuestWarConstructorTest, theQuestStatusRecordPointerStartsEmpty) {
+    alignas(GCGQuestStatusModify) unsigned char storage[sizeof(GCGQuestStatusModify)];
+    memset(storage, 0xFF, sizeof(storage));
+    GCGQuestStatusModify* pPacket = new (storage) GCGQuestStatusModify();
 
-    alignas(GCGQuestStatusModify) unsigned char poisoned[sizeof(GCGQuestStatusModify)];
-    memset(poisoned, 0xFF, sizeof(poisoned));
-    GCGQuestStatusModify* pPoisoned = new (poisoned) GCGQuestStatusModify();
-    QuestStatusInfo* pFromPoison = pPoisoned->getInfo();
-    pPoisoned->~GCGQuestStatusModify();
+    EXPECT_TRUE(pPacket->getInfo() == NULL);
+    EXPECT_THROW(pPacket->getPacketSize(), InvalidProtocolException);
+    EXPECT_THROW(writeBody(*pPacket, kPlainCode), InvalidProtocolException);
 
-    EXPECT_NE(pFromZero, pFromPoison)
-        << "GCGQuestStatusModify: its constructor now initialises the record pointer - move it to the "
-           "initialised list";
+    pPacket->~GCGQuestStatusModify();
 }
 
 } // namespace

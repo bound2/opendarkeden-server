@@ -65,7 +65,7 @@ public:
     string toString() const;
 
 private:
-    ZoneID_t m_ZoneID;
+    ZoneID_t m_ZoneID = 0;
 };
 
 

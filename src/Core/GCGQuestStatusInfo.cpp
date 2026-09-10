@@ -29,14 +29,26 @@ GCGQuestStatusInfo::~GCGQuestStatusInfo()
 {
     __BEGIN_TRY
 
-    /*	list<QuestStatusInfo*>::iterator itr = m_Infos.begin();
-
-        for (; itr != m_Infos.end() ; ++itr )
-        {
-            SAFE_DELETE((*itr));
-        }*/
+    clearInfos();
 
     __END_CATCH_NO_RETHROW
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// Drop the listing, freeing only the records read() allocated.
+//////////////////////////////////////////////////////////////////////
+void GCGQuestStatusInfo::clearInfos()
+
+{
+    if (m_bOwnsInfos) {
+        list<QuestStatusInfo*>::iterator itr = m_Infos.begin();
+        for (; itr != m_Infos.end(); ++itr)
+            delete *itr;
+    }
+
+    m_Infos.clear();
+    m_bOwnsInfos = false;
 }
 
 
@@ -48,13 +60,21 @@ void GCGQuestStatusInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The listing replaces the one the packet holds.
+    clearInfos();
+
     BYTE size;
     iStream.read(size);
 
+    if (size > MAX_QUEST_NUM)
+        throw InvalidProtocolException("too many quest status records");
+
+    m_bOwnsInfos = true;
+
     for (int i = 0; i < size; ++i) {
         QuestStatusInfo* pInfo = new QuestStatusInfo(0);
-        pInfo->read(iStream);
         m_Infos.push_back(pInfo);
+        pInfo->read(iStream);
     }
 
 
@@ -68,9 +88,11 @@ void GCGQuestStatusInfo::read(SocketInputStream& iStream)
 void GCGQuestStatusInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
+    if (m_Infos.size() > MAX_QUEST_NUM)
+        throw InvalidProtocolException("too many quest status records");
+
     BYTE size = m_Infos.size();
     oStream.write(size);
-    // cout << "퀘스트 개수 : " << (int)size << endl;
 
     list<QuestStatusInfo*>::const_iterator itr = m_Infos.begin();
 

@@ -80,9 +80,9 @@ public:
     }
 
 private:
-    BYTE m_GameType;
-    BYTE m_Level;
-    WORD m_Score;
+    BYTE m_GameType = 0;
+    BYTE m_Level = 0;
+    WORD m_Score = 0;
 };
 
 

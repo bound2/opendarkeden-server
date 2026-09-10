@@ -20,16 +20,19 @@
 class GCMonsterKillQuestInfo : public Packet {
 public:
     struct QuestInfo {
-        QuestID_t questID;
-        SpriteType_t sType;
-        WORD goal;
-        DWORD timeLimit;
+        QuestID_t questID = 0;
+        SpriteType_t sType = 0;
+        WORD goal = 0;
+        DWORD timeLimit = 0;
     };
 
     static constexpr int szQuestInfo = szQuestID + szSpriteType + szWORD + szDWORD;
 
     GCMonsterKillQuestInfo() {}
     virtual ~GCMonsterKillQuestInfo();
+
+    // The packet owns the records it holds.
+    void clearList();
 
 public:
     void read(SocketInputStream& iStream);
@@ -53,6 +56,8 @@ public:
         return pQI;
     }
     void addQuestInfo(QuestInfo* pQI) {
+        if (m_QuestInfoList.size() >= maxQuestNum)
+            throw InvalidProtocolException("too many kill quest records");
         m_QuestInfoList.push_back(pQI);
     }
 

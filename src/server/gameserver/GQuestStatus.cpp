@@ -7,12 +7,8 @@
 #include "PlayerCreature.h"
 #include "repository/PlayRecordRepository.h"
 
-GQuestStatus::~GQuestStatus() {
-    list<MissionInfo*>::iterator itr = m_Missions.begin();
-
-    for (; itr != m_Missions.end(); ++itr)
-        SAFE_DELETE((*itr));
-}
+// The missions belong to QuestStatusInfo, which frees them.
+GQuestStatus::~GQuestStatus() {}
 
 void GQuestStatus::initMissions() {
     map<vector<GQuestElement*>::const_iterator, GQuestMission*>::iterator itr = m_MissionMap.begin();
@@ -22,12 +18,8 @@ void GQuestStatus::initMissions() {
     }
 
     m_MissionMap.clear();
-    list<MissionInfo*>::iterator litr = m_Missions.begin();
-    for (; litr != m_Missions.end(); ++litr) {
-        SAFE_DELETE((*litr));
-    }
+    clearMissions();
 
-    m_Missions.clear();
     for (int i = GQuestInfo::HAPPEN; i < GQuestInfo::MAX; ++i) {
         m_ElementAdvance[i] = m_pGQuestInfo->getElements((GQuestInfo::ElementType)i).begin();
     }

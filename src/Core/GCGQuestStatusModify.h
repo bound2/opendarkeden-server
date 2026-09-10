@@ -33,11 +33,18 @@ public:
 
 public:
     void read(SocketInputStream& iStream) {
+        // The record replaces the one the packet holds.
+        clearInfo();
+
         iStream.read(m_Type);
         m_pInfo = new QuestStatusInfo(0);
+        m_bOwnsInfo = true;
         m_pInfo->read(iStream);
     }
     void write(SocketOutputStream& oStream) const {
+        if (m_pInfo == NULL)
+            throw InvalidProtocolException("quest status record missing");
+
         oStream.write(m_Type);
         m_pInfo->write(oStream);
     }
@@ -45,6 +52,8 @@ public:
         return PACKET_GC_GQUEST_STATUS_MODIFY;
     }
     PacketSize_t getPacketSize() const {
+        if (m_pInfo == NULL)
+            throw InvalidProtocolException("quest status record missing");
         return szBYTE + m_pInfo->getSize();
     }
     string getPacketName() const {
@@ -63,13 +72,26 @@ public:
     QuestStatusInfo* getInfo() const {
         return m_pInfo;
     }
+
+    // A sender keeps the record it hands over; only the one read()
+    // allocates belongs to the packet.
     void setInfo(QuestStatusInfo* pInfo) {
+        clearInfo();
         m_pInfo = pInfo;
     }
 
 private:
-    BYTE m_Type;
-    QuestStatusInfo* m_pInfo;
+    void clearInfo() {
+        if (m_bOwnsInfo)
+            delete m_pInfo;
+
+        m_pInfo = NULL;
+        m_bOwnsInfo = false;
+    }
+
+    BYTE m_Type = 0;
+    QuestStatusInfo* m_pInfo = NULL;
+    bool m_bOwnsInfo = false;
 };
 
 

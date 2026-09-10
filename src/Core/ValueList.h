@@ -19,11 +19,15 @@ public:
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
 
+    // The values the count byte carries, which is what
+    // getPacketMaxSize() budgets.
+    static constexpr size_t kMaxValues = 255;
+
     PacketSize_t getPacketSize() const {
         return szBYTE + sizeof(T) * m_Values.size();
     }
     static constexpr uint getPacketMaxSize() {
-        return szBYTE + sizeof(T) * 255;
+        return szBYTE + sizeof(T) * kMaxValues;
     }
 
     string toString() const;
@@ -37,6 +41,8 @@ public:
     }
 
     void addValue(const T& info) {
+        if (m_Values.size() >= kMaxValues)
+            throw InvalidProtocolException("too many values");
         m_Values.push_back(info);
     }
 
@@ -77,6 +83,9 @@ private:
 template <class T> void ValueList<T>::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
+    // The values replace the ones the list holds.
+    m_Values.clear();
+
     BYTE numValue;
     iStream.read(numValue);
 
@@ -96,6 +105,9 @@ template <class T> void ValueList<T>::read(SocketInputStream& iStream) {
 //////////////////////////////////////////////////////////////////////////////
 template <class T> void ValueList<T>::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
+
+    if (m_Values.size() > kMaxValues)
+        throw InvalidProtocolException("too many values");
 
     BYTE numValue = m_Values.size();
     oStream.write(numValue);

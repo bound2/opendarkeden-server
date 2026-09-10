@@ -92,7 +92,7 @@ public:
     }
 
 private:
-    ZoneID_t m_CastleID;       // 전쟁중인 성
+    ZoneID_t m_CastleID = 0;   // 전쟁중인 성
     string m_DefenseGuildName; // 방어 길드
     string m_AttackGuildName;  // 공격 길드
     GuildIDList m_GuildIDs;    // 참여길드들

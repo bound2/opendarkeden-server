@@ -24,7 +24,13 @@ GCGQuestStatusModify::GCGQuestStatusModify()
 //////////////////////////////////////////////////////////////////////
 GCGQuestStatusModify::~GCGQuestStatusModify()
 
-    {__BEGIN_TRY __END_CATCH_NO_RETHROW}
+{
+    __BEGIN_TRY
+
+    clearInfo();
+
+    __END_CATCH_NO_RETHROW
+}
 
 //////////////////////////////////////////////////////////////////////
 //

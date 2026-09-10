@@ -11,6 +11,7 @@
 #include <iterator>
 #include <list>
 
+#include "Exception.h"
 #include "Packet.h"
 #include "PacketFactory.h"
 
@@ -25,6 +26,8 @@ public:
     // inItr must be a container<QuestID_t>::input_iterator.
     template <class inItr> explicit GCSelectQuestID(inItr b, inItr e) {
         copy(b, e, back_inserter(m_QuestIDList));
+        if (m_QuestIDList.size() > maxQuestNum)
+            throw InvalidProtocolException("too many quest ids");
     }
     GCSelectQuestID() {}
     virtual ~GCSelectQuestID();

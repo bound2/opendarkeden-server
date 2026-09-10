@@ -60,7 +60,7 @@ public:
 
 
 private:
-    Gold_t m_Gold;
+    Gold_t m_Gold = 0;
 };
 
 

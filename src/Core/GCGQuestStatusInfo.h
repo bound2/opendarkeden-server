@@ -48,6 +48,8 @@ public:
         return tot + pInfo->getSize();
     }
 
+    // A sender keeps the records it fills the listing with; only the
+    // ones read() allocates belong to the packet.
     list<QuestStatusInfo*>& getInfos() {
         return m_Infos;
     }
@@ -56,7 +58,10 @@ public:
     }
 
 private:
+    void clearInfos();
+
     list<QuestStatusInfo*> m_Infos;
+    bool m_bOwnsInfos = false;
 };
 
 

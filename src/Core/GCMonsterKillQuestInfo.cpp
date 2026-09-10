@@ -16,6 +16,17 @@ GCMonsterKillQuestInfo::~GCMonsterKillQuestInfo()
 {
     __BEGIN_TRY
 
+    clearList();
+
+    __END_CATCH_NO_RETHROW
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// The packet owns the records it holds.
+//////////////////////////////////////////////////////////////////////////////
+void GCMonsterKillQuestInfo::clearList()
+
+{
     list<QuestInfo*>::iterator itr = m_QuestInfoList.begin();
     list<QuestInfo*>::iterator endItr = m_QuestInfoList.end();
 
@@ -25,8 +36,6 @@ GCMonsterKillQuestInfo::~GCMonsterKillQuestInfo()
     }
 
     m_QuestInfoList.clear();
-
-    __END_CATCH_NO_RETHROW
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -37,18 +46,21 @@ void GCMonsterKillQuestInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The list replaces the one the packet holds.
+    clearList();
+
     BYTE num;
 
     iStream.read(num);
 
     for (int i = 0; i < num; ++i) {
         QuestInfo* pQI = new QuestInfo;
+        addQuestInfo(pQI);
+
         iStream.read(pQI->questID);
         iStream.read(pQI->sType);
         iStream.read(pQI->goal);
         iStream.read(pQI->timeLimit);
-
-        addQuestInfo(pQI);
     }
 
     __END_CATCH
@@ -62,7 +74,8 @@ void GCMonsterKillQuestInfo::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    Assert(m_QuestInfoList.size() <= maxQuestNum);
+    if (m_QuestInfoList.size() > maxQuestNum)
+        throw InvalidProtocolException("too many kill quest records");
 
     BYTE num = m_QuestInfoList.size();
 

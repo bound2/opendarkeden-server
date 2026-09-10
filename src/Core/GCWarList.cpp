@@ -64,34 +64,34 @@ void GCWarList::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The list replaces the one the packet holds.
+    clear();
+
     BYTE count = 0;
     iStream.read(count);
+
+    if (count > kMaxWars)
+        throw InvalidProtocolException("too many wars");
 
     WarType_t warType;
     for (int i = 0; i < count; i++) {
         WarInfo* pWarInfo = NULL;
         iStream.read(warType);
 
-        switch ((WarType)warType) {
-        case WAR_GUILD:
+        // The raw byte is tested before it reaches the enum.
+        if (warType != WAR_GUILD && warType != WAR_RACE && warType != WAR_LEVEL)
+            throw InvalidProtocolException("unknown war type");
+
+        if (warType == WAR_GUILD)
             pWarInfo = new GuildWarInfo;
-            break;
-
-        case WAR_RACE:
+        else if (warType == WAR_RACE)
             pWarInfo = new RaceWarInfo;
-            break;
-
-        case WAR_LEVEL:
+        else
             pWarInfo = new LevelWarInfo;
-            break;
-
-        default:
-            throw Error("wrong WarType");
-        }
-
-        pWarInfo->read(iStream);
 
         addWarInfo(pWarInfo);
+
+        pWarInfo->read(iStream);
     }
 
     __END_CATCH
@@ -105,6 +105,9 @@ void GCWarList::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_WarInfos.size() > kMaxWars)
+        throw InvalidProtocolException("too many wars");
 
     BYTE count = m_WarInfos.size();
 

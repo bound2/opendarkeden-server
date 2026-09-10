@@ -620,45 +620,50 @@ before anything else moves. Everything later shelters under this pin.
   > the chat set rather than to quests or wars. `GCNotifyWin` had a
   > name-width pin in `tests/packet_roundtrip_test.cpp` and no golden,
   > as the `GuildWarInfo` and `MissionInfo` records had a width pin
-  > each; all three are pinned in full here. Fifteen open write/read
-  > disagreements are stated as tests that flip when fixed
-  > (`GCRegenZoneStatus::read` appending its eight bytes behind the
-  > eight the constructor already pushed, so the packet cannot round
-  > trip at all; `GCMiniGameScores::getPacketSize` never advancing its
-  > iterator, so it counts the first name's length once per entry and a
-  > table of uneven names declares a size it does not send; the same
-  > packet deriving each name's length byte with no bound while its max
-  > budgets twenty bytes for one; `GCNoticeEvent::getCode` returning a
-  > BYTE of the WORD it puts on the wire, and its
-  > `setParameter(WORD, WORD)` assigning `makeDWORD` of the two halves
-  > to the code instead of the parameter; `GCGQuestStatusInfo`,
-  > `GCWarList`, `GCWarScheduleList`, `QuestStatusInfo`'s mission list
-  > and the `ValueList` inside a guild and a race war each deriving a
-  > count byte they cap nowhere, so the 256th entry wraps it to zero
-  > while `write()` emits every one; those two packets and
-  > `GCSelectQuestID`, `GCMonsterKillQuestInfo` and
-  > `GCGQuestStatusInfo` appending to the list they already hold
-  > instead of replacing it; `GCWarList`'s max budgeting twelve race
-  > wars and twelve guild wars and neither the count byte nor the war
-  > type byte in front of each record, so that very listing outgrows
-  > it; `GCWarScheduleList`'s guild names not being held to the sixteen
-  > its max budgets; `GCGQuestStatusModify` leaving uninitialised the
-  > record pointer `getPacketSize()` and `write()` dereference; and
-  > `MissionInfo::write` printing every mission to standard output on
-  > the wire path), and 18 of the 27 leave at least one member the
-  > default constructor never sets, pinned over poisoned storage. Six
-  > more are recorded in the test's header rather than tested:
-  > `GCWarList::read` casting the war type byte to the `WarType` enum
-  > before switching, so any byte past 3 is an out-of-range enum load;
-  > `GCFlagWarStatus` indexing its three-slot array with an unbounded
-  > `Race_t`; `GCGQuestStatusInfo` freeing no record (the loop is
-  > commented out) and `GCGQuestStatusModify::read` allocating one per
-  > call and freeing none; `GCSelectQuestID` and
-  > `GCMonsterKillQuestInfo` refusing a list past 255 through
-  > `Assert()`, which writes `assertion_failed.log` before it throws;
-  > `GCAddHelicopter`'s code getter being named `setCode`; and
-  > `GCNoticeEvent` taking a code it never compares against
-  > `NOTICE_EVENT_MAX`. No golden changed.
+  > each; all three are pinned in full here. **The fifteen write/read
+  > disagreements it found are fixed** and pinned as the behaviour the
+  > packets now produce (`GCRegenZoneStatus` holds its eight statuses in
+  > a fixed array `read()` writes into rather than appending them behind
+  > the eight the constructor pushed, so the packet round trips at all,
+  > and a slot outside the eight is refused in the getter and the
+  > setter; `GCMiniGameScores::getPacketSize` walks the table it
+  > measures, each name is cut in `addScore` to the twenty bytes the max
+  > budgets, and `write()` and `read()` carry the field through
+  > `de::wire`, so no length byte wraps and a full table fits the read
+  > buffer; `GCNoticeEvent::getCode` returns the WORD it puts on the
+  > wire and its `setParameter(WORD, WORD)` joins the two halves into
+  > the parameter; `GCGQuestStatusInfo`, `QuestStatusInfo`'s mission
+  > list, `GCWarList`, `GCWarScheduleList` and the `ValueList` inside a
+  > guild and a race war are each held to the 100, 100, 24, 20 and 255
+  > their own maxima budget, in the adder, in `write()` and in `read()`,
+  > so no count byte wraps while `write()` emits every entry; those
+  > readers and `GCSelectQuestID` and `GCMonsterKillQuestInfo` replace
+  > the list they hold instead of appending to it, freeing the records
+  > they drop where they own them; `GCWarList`'s max budgets the count
+  > byte, the war type byte in front of each record and twenty-four
+  > times the widest of the three record shapes; `GCWarScheduleList`'s
+  > guild names are held to the sixteen its max budgets, whose length
+  > byte the max now counts as well; `GCGQuestStatusModify`'s record
+  > pointer starts empty, with `getPacketSize()` and `write()` refusing
+  > on it; and `MissionInfo::write` prints nothing). All 27 initialise
+  > every member their `write()` emits, pinned over poisoned storage.
+  > The six the test's header recorded rather than tested are fixed with
+  > them: `GCWarList::read` tests the raw war type byte against the
+  > three shapes it builds before it reaches the `WarType` enum, whose
+  > range stops at 3; `GCFlagWarStatus` refuses a race outside its three
+  > slots in the getter and the setter; the two quest status packets
+  > free only the record `read()` allocated, so the `GQuestStatus` every
+  > sender hands over and keeps is never touched, and `QuestStatusInfo`
+  > owns and frees the missions it holds; `GCSelectQuestID` and
+  > `GCMonsterKillQuestInfo` refuse a list past 255 with an
+  > `InvalidProtocolException` in place of the `Assert()` that wrote
+  > `assertion_failed.log` first; `GCAddHelicopter`'s code getter is
+  > `getCode`; and `GCNoticeEvent::read` refuses a code that is not
+  > below `NOTICE_EVENT_MAX`, on the raw WORD. Two
+  > `tests/wire-layout.txt` lines move, `GCWarList` 13344 → 14257 and
+  > `GCWarScheduleList` 2281 → 2401, both server-side read-buffer
+  > budgets for packets no server reads and not fields on the wire. No
+  > golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set, the inventory
