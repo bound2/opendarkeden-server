@@ -26,6 +26,9 @@ void GCSelectQuestID::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The list replaces the one the packet holds.
+    m_QuestIDList.clear();
+
     BYTE num;
 
     iStream.read(num);
@@ -48,7 +51,8 @@ void GCSelectQuestID::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    Assert(m_QuestIDList.size() <= maxQuestNum);
+    if (m_QuestIDList.size() > maxQuestNum)
+        throw InvalidProtocolException("too many quest ids");
 
     BYTE num = m_QuestIDList.size();
 

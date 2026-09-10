@@ -17,11 +17,9 @@ void GCRegenZoneStatus::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    for (int i = 0; i < 8; ++i) {
-        BYTE buf;
-        iStream.read(buf);
-        m_Statuses.push_back(buf);
-    }
+    // The statuses replace the ones the packet holds.
+    for (uint i = 0; i < kZoneCount; ++i)
+        iStream.read(m_Statuses[i]);
 
     __END_CATCH
 }
@@ -35,7 +33,7 @@ void GCRegenZoneStatus::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    for (int i = 0; i < 8; ++i)
+    for (uint i = 0; i < kZoneCount; ++i)
         oStream.write(m_Statuses[i]);
 
     __END_CATCH

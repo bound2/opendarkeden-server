@@ -7,6 +7,7 @@
 #ifndef __GC_NOTICE_EVENT_H__
 #define __GC_NOTICE_EVENT_H__
 
+#include "Exception.h"
 #include "Packet.h"
 #include "PacketFactory.h"
 #include "Utility.h"
@@ -131,7 +132,7 @@ public:
     string toString() const;
 
 public:
-    BYTE getCode(void) const {
+    WORD getCode(void) const {
         return m_Code;
     }
     void setCode(WORD code) {
@@ -146,7 +147,7 @@ public:
     }
 
     void setParameter(WORD hiWord, WORD loWord) {
-        m_Code = makeDWORD(hiWord, loWord);
+        m_Parameter = makeDWORD(hiWord, loWord);
     }
 
 private:

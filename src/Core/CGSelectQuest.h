@@ -67,10 +67,10 @@ public:
 
 private:
     // Quest ID
-    QuestID_t m_QuestID;
+    QuestID_t m_QuestID = 0;
 
     // NPC의 ObjectID
-    ObjectID_t m_NPCOID;
+    ObjectID_t m_NPCOID = 0;
 };
 
 

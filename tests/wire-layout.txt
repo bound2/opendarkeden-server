@@ -410,8 +410,8 @@
 415	GCVisibleFail	0
 416	GCVisibleOK	0
 417	GCWaitGuildList	335002
-418	GCWarList	13344
-419	GCWarScheduleList	2281
+418	GCWarList	14257
+419	GCWarScheduleList	2401
 420	GCWhisper	145
 421	GCWhisperFailed	0
 422	GGCommand	81

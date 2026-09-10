@@ -11,6 +11,145 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Quest, war and zone-selection write/read disagreements (2026-09-10)
+
+The fifteen findings task 1.2 stated as flip-tests in
+`tests/packet_quest_war_test.cpp`, the initialisation split the same file
+pinned, and the six its header recorded rather than tested. These packets
+are client-facing, so `write()` and `getPacketSize()` are the contract:
+every fix is a refusal, a cap at the width the factory max budgets, a
+size-accounting correction, a read-side correction or an initialisation.
+**No golden changes.** Two `tests/wire-layout.txt` lines move —
+`GCWarList` 13344 → 14257 and `GCWarScheduleList` 2281 → 2401 — both
+read-buffer budgets for packets no server reads, not fields on the wire.
+
+- **`GCRegenZoneStatus::read` appended the eight bytes it took off the
+  wire to the eight its constructor had already pushed into a
+  `vector<BYTE>`**, so `getStatus()` kept returning the constructor's
+  zeros and `write()` emitted them again: the packet could not round trip
+  at all. `write()` always emits exactly eight, so the statuses are a
+  fixed eight-slot array `read()` writes into, and a slot outside the
+  eight is refused in the getter and the setter instead of indexing past
+  the end. `RegenZoneManager` indexes those slots with the
+  `RegenZonePosition.id` column, whose seed rows are 0..7.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **`GCMiniGameScores::getPacketSize` never advanced its iterator**, so
+  it counted the first name's length once per entry and a table of names
+  of different lengths declared a size `write()` did not send —
+  `writePacket()` puts that size on the wire before `write()` runs, so
+  the stream never resynchronises. It walks the table now. The same
+  packet derived each name's length byte from the name with no bound
+  while its max budgets twenty bytes for one, so a name of 256 wrapped
+  the byte to zero while `write()` emitted the whole string: `addScore`
+  cuts the name to twenty, `write()` and `read()` carry the field through
+  `de::wire`, and `read()` refuses a table past the ten `write()` emits.
+  The max is unchanged, restated as its two constants.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **`GCNoticeEvent::getCode` returned a `BYTE` of the `WORD` it holds and
+  puts on the wire**, so a caller could not see a code past 255, and
+  **`setParameter(WORD, WORD)` assigned `makeDWORD` of its two halves to
+  the code** rather than the parameter, overwriting the notice with the
+  low half. Both are fixed; no `src/server` source called either. The
+  code was also never compared against `NOTICE_EVENT_MAX`, so a peer
+  could announce a notice no branch of the client draws: `read()` refuses
+  on the raw `WORD` before it reaches the member the three switches read.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **`MissionInfo::write` printed every mission it emitted to standard
+  output**, on the wire path, once per player the packet was sent to. The
+  print is gone.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **Five counted lists derived a count byte they capped nowhere**, so the
+  256th entry wrapped it to zero while `write()` still emitted every one:
+  `GCGQuestStatusInfo`'s records, `QuestStatusInfo`'s missions,
+  `GCWarList`'s wars, `GCWarScheduleList`'s entries and the `ValueList`
+  carrying a guild war's join guilds and a race war's castles. Each is
+  held to what its own maximum budgets — `MAX_QUEST_NUM` 100,
+  `MAX_MISSION_NUM` 100, 24 wars, `MAX_WAR_NUM` 20 and 255 values — in
+  the adder where there is one, in `write()` and in `read()`.
+  `GCSelectQuestID` and `GCMonsterKillQuestInfo` did refuse a list past
+  255, but through `Assert()`, which appends to `assertion_failed.log` in
+  the working directory before it throws; both throw
+  `InvalidProtocolException` now, and `GCMonsterKillQuestInfo` refuses in
+  its adder as well.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **`GCWarListFactory`'s maximum budgeted twelve race wars and twelve
+  guild wars and nothing else** — not the count byte, not the war type
+  byte in front of each record, and not the level war its own `read()`
+  builds — so twelve full guild wars and twelve full race wars already
+  outgrew the buffer the receiver sizes from it. `write()` can put any of
+  the three shapes behind each war type byte, so the max budgets the
+  count byte and twenty-four times the widest of them, a `GuildWarInfo`:
+  `GCWarList` 13344 → 14257. Twenty-four is the record count the old
+  number already stood for, and `addWarInfo`, `write()` and `read()`
+  refuse past it.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **`GCWarScheduleList` derived each of the six guild names' length bytes
+  from the name with no bound.** The names are held to sixteen through
+  `de::wire`, the width its max budgets — and which the golden's own
+  sixteen-byte reinforcing guild name shows is the real field width — so
+  a name of 256 can no longer wrap the byte while `write()` emits the
+  whole string. The max never budgeted the length byte in front of each
+  of those six names, so a full schedule of full names outgrew it by six
+  bytes an entry; it counts them now: `GCWarScheduleList` 2281 → 2401.
+  `WarScheduleInfo` also initialises every member, so an entry
+  `read()` builds for a war type that carries no challengers no longer
+  holds indeterminate guild ids.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **Seven readers appended to what the packet already held instead of
+  replacing it**, so a reused packet grew by one listing per read:
+  `GCSelectQuestID`, `GCGQuestStatusInfo`, `GCWarList`,
+  `GCWarScheduleList`, `GCMonsterKillQuestInfo`, `QuestStatusInfo`'s
+  mission list and `ValueList`. All seven replace what they hold at the
+  top of `read()`, freeing the records they drop where they own them.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **`GCGQuestStatusInfo`'s destructor freed no record — the loop that did
+  was commented out — and `GCGQuestStatusModify::read` allocated one on
+  every call and freed none**, while its destructor dropped that one too.
+  Every sender of both hands over a `GQuestStatus` the character's
+  `GQuestManager` owns and keeps (`GQuestManager::getStatusInfoPacket`
+  pushes `m_QuestStatuses` entries into the listing; `accept`, `cancel`,
+  the two mission-progress sites and `GQuestStatus::update` hand over the
+  status itself), so both packets track which record is their own: the
+  listing and the pointer start unowned, `read()` frees what it allocated
+  before allocating the next, and the destructor frees that and never a
+  sender's. `QuestStatusInfo` owns the missions it holds and frees them,
+  which is where the records `read()` allocates were leaking their
+  missions; `GQuestStatus` no longer frees them itself.
+  `GCGQuestStatusModify`'s record pointer starts empty and
+  `getPacketSize()` and `write()` refuse on it rather than following the
+  indeterminate value a sender that skipped `setInfo` left.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **`GCWarList::read` cast the war type byte straight to the `WarType`
+  enum before switching on it.** The enum declares three values, so its
+  range is 0..3 and any byte above that is an out-of-range enum load,
+  which the Debug toolchain's UBSan traps on. The raw `BYTE` is tested
+  against the three shapes `read()` builds before it reaches the enum.
+  **`GCFlagWarStatus::getFlagCount` and `setFlagCount` indexed a
+  three-element array with a `Race_t` they never bounded**; both refuse a
+  race outside the three slots `write()` emits.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **Eighteen of the twenty-seven left at least one member the default
+  constructor never set**, so a packet sent without every setter called
+  put indeterminate bytes on the wire. All twenty-seven initialise every
+  member now, pinned by constructing each over storage poisoned with two
+  different bytes. `MissionInfo`, `GuildWarInfo` and `LevelWarInfo`
+  initialise theirs with them.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
+- **`GCAddHelicopter`'s code getter was named `setCode`**, overloading
+  the setter. It is `getCode`; no `src/server` source called the getter.
+  > **Status:** fixed (wire/quest-war-disagreements)
+
 ## Every SQL failure threw a dangling pointer (2026-09-10)
 
 - **`END_DB` and `END_DB_EX` built the `DBError.log` line in a local

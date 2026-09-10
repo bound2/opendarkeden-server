@@ -19,14 +19,15 @@ struct MissionInfo {
         FAIL,     // 실패
     };
 
-    BYTE m_Condition; // 어느 조건에 있는가 0 : Happen, 1 : Complete, 2 : Fail, 3 : Reward
-    WORD m_Index;     // 해당 조건의 몇번째 element인가
-    BYTE m_Status;    // 현재 상태
+    BYTE m_Condition = 0; // 어느 조건에 있는가 0 : Happen, 1 : Complete, 2 : Fail, 3 : Reward
+    WORD m_Index = 0;     // 해당 조건의 몇번째 element인가
+    BYTE m_Status = 0;    // 현재 상태
 
-    string m_StrArg; // 찍어줄 문자열
-    DWORD m_NumArg;  // 찍어줄 숫자
+    string m_StrArg;    // 찍어줄 문자열
+    DWORD m_NumArg = 0; // 찍어줄 숫자
 
-    MissionInfo() : m_StrArg(""), m_NumArg(0) {}
+    MissionInfo() {}
+    virtual ~MissionInfo() {}
 
     void read(SocketInputStream& iStream) {
         iStream.read(m_Condition);
@@ -46,8 +47,6 @@ struct MissionInfo {
         de::wire::writeString(oStream, m_StrArg, {0, de::wire::kMaxByteStringLength}, "StrArg");
 
         oStream.write(m_NumArg);
-
-        cout << "write mission : " << m_NumArg << " , " << m_StrArg << endl;
     }
 
     PacketSize_t getSize() const {
@@ -71,6 +70,10 @@ public:
     };
 
     QuestStatusInfo(DWORD qID) : m_QuestID(qID), m_Status(CANNOT) {}
+    ~QuestStatusInfo();
+
+    // The record owns the missions it holds.
+    void clearMissions();
 
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;

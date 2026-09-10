@@ -15,6 +15,7 @@
 #include "Packet.h"
 #include "PacketFactory.h"
 #include "Types.h"
+#include "WireString.h"
 
 enum GameType { GAME_MINE = 0, GAME_NEMO, GAME_PUSH, GAME_ARROW };
 
@@ -25,6 +26,11 @@ enum GameType { GAME_MINE = 0, GAME_NEMO, GAME_PUSH, GAME_ARROW };
 
 class GCMiniGameScores : public Packet {
 public:
+    // The entries write() emits and the name width the factory max
+    // budgets for each.
+    static constexpr uint kMaxScores = 10;
+    static constexpr uint kMaxNameLength = 20;
+
     GCMiniGameScores();
     ~GCMiniGameScores();
 
@@ -60,16 +66,17 @@ public:
         m_Scores.pop_front();
         return ret;
     }
+    // The name is cut to the width the factory max budgets.
     void addScore(const string& name, WORD score) {
-        m_Scores.push_back(pair<string, WORD>(name, score));
+        m_Scores.push_back(pair<string, WORD>(name.substr(0, kMaxNameLength), score));
     }
     list<pair<string, WORD>>::size_type getSize() const {
         return m_Scores.size();
     }
 
 private:
-    BYTE m_GameType;
-    BYTE m_Level;
+    BYTE m_GameType = 0;
+    BYTE m_Level = 0;
     list<pair<string, WORD>> m_Scores;
 };
 
@@ -82,7 +89,8 @@ class GCMiniGameScoresFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MINI_GAME_SCORES;
     static constexpr std::string_view kName = "GCMiniGameScores";
-    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE + szBYTE + (szWORD + 21) * 10};
+    static constexpr PacketSize_t kMaxSize{
+        szBYTE + szBYTE + szBYTE + (szWORD + szBYTE + GCMiniGameScores::kMaxNameLength) * GCMiniGameScores::kMaxScores};
 
     GCMiniGameScoresFactory() {}
     virtual ~GCMiniGameScoresFactory() {}

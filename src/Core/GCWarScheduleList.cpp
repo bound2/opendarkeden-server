@@ -27,6 +27,17 @@ GCWarScheduleList::~GCWarScheduleList()
 {
     __BEGIN_TRY
 
+    clearList();
+
+    __END_CATCH_NO_RETHROW;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// The packet owns the entries it holds.
+//////////////////////////////////////////////////////////////////////////////
+void GCWarScheduleList::clearList()
+
+{
     WarScheduleInfoList::iterator itr = m_WarScheduleList.begin();
 
     for (; itr != m_WarScheduleList.end(); itr++) {
@@ -35,8 +46,6 @@ GCWarScheduleList::~GCWarScheduleList()
     }
 
     m_WarScheduleList.clear();
-
-    __END_CATCH_NO_RETHROW;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -47,13 +56,21 @@ void GCWarScheduleList::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The schedule replaces the one the packet holds.
+    clearList();
+
     BYTE count = 0;
 
     iStream.read(count);
 
+    if (count > kMaxEntries)
+        throw InvalidProtocolException("too many war schedules");
+
     for (int i = 0; i < count; i++) {
         WarScheduleInfo* newWarScheduleInfo;
         newWarScheduleInfo = new WarScheduleInfo;
+
+        addWarScheduleInfo(newWarScheduleInfo);
 
         iStream.read(newWarScheduleInfo->warType);
         iStream.read(newWarScheduleInfo->year);
@@ -61,22 +78,16 @@ void GCWarScheduleList::read(SocketInputStream& iStream)
         iStream.read(newWarScheduleInfo->day);
         iStream.read(newWarScheduleInfo->hour);
         if (newWarScheduleInfo->warType == 0) {
-            for (int i = 0; i < 5; ++i) {
-                BYTE szGuildName;
-                iStream.read(newWarScheduleInfo->challengerGuildID[i]);
-                iStream.read(szGuildName);
-                if (szGuildName != 0)
-                    iStream.read(newWarScheduleInfo->challengerGuildName[i], szGuildName);
+            for (int j = 0; j < 5; ++j) {
+                iStream.read(newWarScheduleInfo->challengerGuildID[j]);
+                de::wire::readString(iStream, newWarScheduleInfo->challengerGuildName[j], {0, kMaxGuildNameLength},
+                                     "ChallengerGuildName");
             }
 
-            BYTE szGuildName;
             iStream.read(newWarScheduleInfo->reinforceGuildID);
-            iStream.read(szGuildName);
-            if (szGuildName != 0)
-                iStream.read(newWarScheduleInfo->reinforceGuildName, szGuildName);
+            de::wire::readString(iStream, newWarScheduleInfo->reinforceGuildName, {0, kMaxGuildNameLength},
+                                 "ReinforceGuildName");
         }
-
-        addWarScheduleInfo(newWarScheduleInfo);
     }
 
     __END_CATCH
@@ -90,6 +101,9 @@ void GCWarScheduleList::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_WarScheduleList.size() > kMaxEntries)
+        throw InvalidProtocolException("too many war schedules");
 
     BYTE ListNum = m_WarScheduleList.size();
 
@@ -106,15 +120,12 @@ void GCWarScheduleList::write(SocketOutputStream& oStream) const
         if ((*itr)->warType == 0) {
             for (int i = 0; i < 5; ++i) {
                 oStream.write((*itr)->challengerGuildID[i]);
-                BYTE szGuildName = (*itr)->challengerGuildName[i].size();
-                oStream.write(szGuildName);
-                oStream.write((*itr)->challengerGuildName[i]);
+                de::wire::writeString(oStream, (*itr)->challengerGuildName[i], {0, kMaxGuildNameLength},
+                                      "ChallengerGuildName");
             }
 
             oStream.write((*itr)->reinforceGuildID);
-            BYTE szGuildName = (*itr)->reinforceGuildName.size();
-            oStream.write(szGuildName);
-            oStream.write((*itr)->reinforceGuildName);
+            de::wire::writeString(oStream, (*itr)->reinforceGuildName, {0, kMaxGuildNameLength}, "ReinforceGuildName");
         }
     }
 
@@ -139,13 +150,11 @@ PacketSize_t GCWarScheduleList::getPacketSize() const
         if ((*itr)->warType == 0) {
             for (int i = 0; i < 5; ++i) {
                 size += szGuildID;
-                size += szBYTE;
-                size += (*itr)->challengerGuildName[i].size();
+                size += de::wire::stringWireSize((*itr)->challengerGuildName[i]);
             }
 
             size += szGuildID;
-            size += szBYTE;
-            size += (*itr)->reinforceGuildName.size();
+            size += de::wire::stringWireSize((*itr)->reinforceGuildName);
         }
     }
 

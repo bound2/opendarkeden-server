@@ -60,7 +60,7 @@ public:
 
 
 private:
-    uint m_Ratio;
+    uint m_Ratio = 0;
 };
 
 

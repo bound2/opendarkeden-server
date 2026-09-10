@@ -14,7 +14,13 @@ void GCNoticeEvent::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    iStream.read(m_Code);
+    WORD code = 0;
+    iStream.read(code);
+
+    if (code >= NOTICE_EVENT_MAX)
+        throw InvalidProtocolException("unknown notice event code");
+
+    m_Code = code;
 
     switch (m_Code) {
     // 파라미터를 써야 하는 코드

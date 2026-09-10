@@ -60,9 +60,9 @@ public:
     }
 
 private:
-    WORD m_QuestID;
-    WORD m_CurrentNum;
-    DWORD m_Time;
+    WORD m_QuestID = 0;
+    WORD m_CurrentNum = 0;
+    DWORD m_Time = 0;
 };
 
 

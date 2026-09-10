@@ -61,8 +61,8 @@ public:
     }
 
 private:
-    Gold_t m_Gold;       // 기부 금액
-    BYTE m_DonationType; // 기부 종류
+    Gold_t m_Gold = 0;       // 기부 금액
+    BYTE m_DonationType = 0; // 기부 종류
 };
 
 

@@ -88,11 +88,11 @@ public:
     string toString() const;
 
 private:
-    ObjectID_t m_ItemObjectID; // item object id
-    ObjectID_t m_ObjectID;     // 성물보관함 object id
+    ObjectID_t m_ItemObjectID = 0; // item object id
+    ObjectID_t m_ObjectID = 0;     // 성물보관함 object id
 
-    Coord_t m_X;
-    Coord_t m_Y;
+    Coord_t m_X = 0;
+    Coord_t m_Y = 0;
 };
 
 

@@ -20,6 +20,9 @@
 
 class GCFlagWarStatus : public Packet {
 public:
+    // The flag counts write() emits, one per race.
+    static constexpr uint kRaceCount = 3;
+
     GCFlagWarStatus();
     ~GCFlagWarStatus();
 
@@ -30,7 +33,7 @@ public:
         return PACKET_GC_FLAG_WAR_STATUS;
     }
     PacketSize_t getPacketSize() const {
-        return szWORD + szBYTE * 3;
+        return szWORD + szBYTE * kRaceCount;
     }
     string getPacketName() const {
         return "GCFlagWarStatus";
@@ -46,15 +49,19 @@ public:
     }
 
     BYTE getFlagCount(Race_t race) const {
+        if ((uint)race >= kRaceCount)
+            throw InvalidProtocolException("flag war race out of range");
         return m_FlagCount[(int)race];
     }
     void setFlagCount(Race_t race, BYTE count) {
+        if ((uint)race >= kRaceCount)
+            throw InvalidProtocolException("flag war race out of range");
         m_FlagCount[(int)race] = count;
     }
 
 private:
-    WORD m_TimeRemain;
-    BYTE m_FlagCount[3];
+    WORD m_TimeRemain = 0;
+    BYTE m_FlagCount[kRaceCount] = {};
 };
 
 
@@ -66,7 +73,7 @@ class GCFlagWarStatusFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_FLAG_WAR_STATUS;
     static constexpr std::string_view kName = "GCFlagWarStatus";
-    static constexpr PacketSize_t kMaxSize{szWORD + szBYTE * 3};
+    static constexpr PacketSize_t kMaxSize{szWORD + szBYTE * GCFlagWarStatus::kRaceCount};
 
     GCFlagWarStatusFactory() {}
     virtual ~GCFlagWarStatusFactory() {}

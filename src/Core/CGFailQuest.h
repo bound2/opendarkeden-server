@@ -59,7 +59,7 @@ public:
     }
 
 private:
-    BYTE m_bFail;
+    BYTE m_bFail = 0;
 };
 
 

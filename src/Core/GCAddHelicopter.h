@@ -42,7 +42,7 @@ public:
         m_ObjectID = d;
     }
 
-    BYTE setCode(void) const {
+    BYTE getCode(void) const {
         return m_Code;
     }
     void setCode(BYTE code) {
@@ -50,8 +50,8 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // 헬기를 호출한 슬레이어의 오브젝트 ID
-    BYTE m_Code;           // 헬기 소환과 관련된 코드 (0:호출, 1:제거)
+    ObjectID_t m_ObjectID = 0; // 헬기를 호출한 슬레이어의 오브젝트 ID
+    BYTE m_Code = 0;           // 헬기 소환과 관련된 코드 (0:호출, 1:제거)
 };
 
 //////////////////////////////////////////////////////////////////////////////

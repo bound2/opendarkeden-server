@@ -61,7 +61,7 @@ public:
     }
 
 private:
-    int m_Level; // 몇 레벨 전쟁인가
+    int m_Level = 0; // 몇 레벨 전쟁인가
 };
 
 #endif

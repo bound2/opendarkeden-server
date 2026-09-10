@@ -56,9 +56,9 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;
-    Coord_t m_X;
-    Coord_t m_Y;
+    ObjectID_t m_ObjectID = 0;
+    Coord_t m_X = 0;
+    Coord_t m_Y = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////

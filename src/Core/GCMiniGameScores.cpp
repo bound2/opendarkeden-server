@@ -43,14 +43,18 @@ void GCMiniGameScores::read(SocketInputStream& iStream)
     iStream.read(m_GameType);
     iStream.read(m_Level);
 
+    // The table replaces the one the packet holds.
+    m_Scores.clear();
+
     BYTE count;
     iStream.read(count);
 
+    if (count > kMaxScores)
+        throw InvalidProtocolException("too many mini game scores");
+
     for (BYTE i = 0; i < count; ++i) {
-        BYTE len;
-        iStream.read(len);
         string name;
-        iStream.read(name, len);
+        de::wire::readString(iStream, name, {0, kMaxNameLength}, "MiniGameName");
         WORD score;
         iStream.read(score);
 
@@ -70,16 +74,13 @@ void GCMiniGameScores::write(SocketOutputStream& oStream) const {
     oStream.write(m_GameType);
     oStream.write(m_Level);
 
-    BYTE count = m_Scores.size();
-    if (count > 10)
-        count = 10;
-    oStream.write(count);
+    const uint count = m_Scores.size() > kMaxScores ? kMaxScores : (uint)m_Scores.size();
+    oStream.write((BYTE)count);
 
     list<pair<string, WORD>>::const_iterator itr = m_Scores.begin();
 
     for (uint i = 0; i < count; ++i) {
-        oStream.write((BYTE)(*itr).first.size());
-        oStream.write((*itr).first);
+        de::wire::writeString(oStream, (*itr).first, {0, kMaxNameLength}, "MiniGameName");
         oStream.write((*itr).second);
         itr++;
     }
@@ -90,14 +91,13 @@ void GCMiniGameScores::write(SocketOutputStream& oStream) const {
 PacketSize_t GCMiniGameScores::getPacketSize() const {
     PacketSize_t ret = szBYTE + szBYTE + szBYTE;
 
-    BYTE count = m_Scores.size();
-    if (count > 10)
-        count = 10;
+    const uint count = m_Scores.size() > kMaxScores ? kMaxScores : (uint)m_Scores.size();
 
     list<pair<string, WORD>>::const_iterator itr = m_Scores.begin();
 
     for (uint i = 0; i < count; ++i) {
-        ret += szBYTE + (*itr).first.size() + szWORD;
+        ret += de::wire::stringWireSize((*itr).first) + szWORD;
+        itr++;
     }
     return ret;
 }
