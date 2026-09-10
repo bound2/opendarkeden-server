@@ -11,6 +11,137 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Character progression write/read disagreements (2026-09-10)
+
+The nine findings task 1.2 stated as flip-tests in
+`tests/packet_skill_test.cpp`, the initialisation split the same file
+pinned, and three of the four its header recorded rather than tested.
+These packets are client-facing, so `write()` and `getPacketSize()` are
+the contract: every fix is a refusal, a cap at the width the factory max
+already budgets, a size-accounting correction, a read-side correction or
+an initialisation. **No golden changes.** One `tests/wire-layout.txt`
+line moves — `GCSkillInfo` 4338 → 34706 — a read-buffer budget for a
+packet no server reads, not a field on the wire.
+
+- **`GCSkillInfo` derived its record count into a `BYTE` it capped
+  nowhere, and `GCSkillInfoFactory`'s maximum was one bare
+  `SlayerSkillInfo`.** The 256th record wrapped the count to zero while
+  `write()` still emitted every record, and the max budgeted neither the
+  pc type byte nor the record count byte nor a second record, so a single
+  full record already outgrew the buffer the receiver sizes from it. A
+  book carries one record per skill domain — `SKILL_DOMAIN_MAX`, 8, the
+  bound `Slayer::sendSlayerSkillInfo` fills against and the one a vampire
+  and an ousters use one slot of — and `addListElement`, `write()` and
+  `read()` refuse past it. The max budgets the two header bytes and eight
+  slayer records, the widest of the three races: `GCSkillInfo`
+  4338 → 34706.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **`SlayerSkillInfo`, `VampireSkillInfo` and `OustersSkillInfo` kept
+  their skill count in a `BYTE` the caller set by hand while
+  `addListElement` left it alone.** `write()` emitted that count and then
+  the whole list, so a record whose list was longer sent skills the
+  reader never consumed and `getPacketSize()` counted them. The count is
+  the list now, held to the 255, 120 and 120 each record's own
+  `getMaxSize()` budgets in the adder, in `write()` and in `read()`.
+  `setListNum` is gone from all three, with the `SkillCount` bookkeeping
+  in `Slayer.cpp`, `Vampire.cpp` and `Ousters.cpp` that maintained it.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **`GCSkillInfo::read` appended to the book the packet already held**,
+  as `GCRankBonusInfo`, `GCSweeperBonusInfo`, `GCHolyLandBonusInfo` and
+  `GCBloodBibleList` did to their lists, so a reused packet declared one
+  listing and held two. All five replace what they hold at the top of
+  `read()`, with `GCSkillInfo` destroying the records it drops instead of
+  leaking them.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **`GCSkillInfo::write` emitted any pc type while `read()` refused every
+  one but `PC_SLAYER`, `PC_VAMPIRE` and `PC_OUSTERS`**, so a book
+  announced with any other type went out and could not be read back — and
+  the type was one of the members the constructor left alone. The setter,
+  `write()` and `read()` refuse the same three-value set, testing the raw
+  `BYTE` before it reaches an enum, which the Debug toolchain's UBSan
+  traps on.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **`GCRankBonusInfo`, `GCSweeperBonusInfo` and `GCHolyLandBonusInfo`
+  derived their count byte from a list they bounded against nothing.**
+  The 256th entry wrapped the count to zero while `write()` still emitted
+  every entry, and the body outgrew maxima budgeting 100, 12 and 12
+  entries. Each is held to its own max's number in the adder, in
+  `write()` and in `read()`. `GCBloodBibleList`, whose list is reached
+  through `getList()`, only `Assert`ed the same bound and now refuses past
+  the 12 its max budgets in `write()` and in `read()`. All four maxima
+  were already right, so no wire-layout line moves for them.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **`SweeperBonusInfo` and `BloodBibleBonusInfo` carried a type the
+  managers set on every record and the wire never took.** Both `read()`
+  and `write()` handle the race byte alone; the type and the option list
+  are commented out on both sides. The client decides which side is right
+  and it reads no type: its own
+  `Client/Packet/Gpackets/SweeperBonusInfo.cpp` and
+  `BloodBibleBonusInfo.cpp` read the race byte only, and
+  `GCSweeperBonusInfoHandler` and `GCHolyLandBonusInfoHandler` use
+  `getRace()` and never `getType()`. So the wire is right and the type was
+  dead API: `m_Type` / `getType` / `setType` are gone from both records,
+  with the two `SweeperBonusManager::makeSweeperBonusInfo` /
+  `makeVoidSweeperBonusInfo` calls that set it. Both records' `getSize()`
+  and `getMaxSize()` already counted the race byte alone, so neither
+  factory max moves. The option list the same two calls still fill is
+  dead the same way and is left alone.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **`GCBloodBibleSignInfo` left its record pointer uninitialised and both
+  `getPacketSize()` and `write()` dereferenced it**, while `read()`
+  allocated a record on every call and freed none and the destructor
+  dropped the pointer. Every sender hands the packet the character's own
+  `BloodBibleSignInfo` (`PlayerCreature::getBloodBibleSign`) and keeps it,
+  so the packet tracks which record is its own: the pointer starts empty
+  and `getPacketSize()` and `write()` refuse on it, `read()` frees the
+  record it allocated before allocating the next, and the destructor frees
+  that one and never a sender's.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **`BloodBibleSignInfo::read` appended to the sign list it already held
+  and bounded the count against nothing**, where `write()` emits at most
+  the six slots the record has and `getMaxSize()` budgets six. It replaces
+  the list and refuses a count past `BLOOD_BIBLE_SIGN_SLOT_NUM`.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **Eighteen of the twenty-nine left at least one member the default
+  constructor never set**, so a packet sent without every setter called
+  put whatever the allocation held on the wire. All twenty-nine
+  initialise every member now, pinned by constructing each over storage
+  poisoned with two different bytes.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **Each race record's learn flag and a slayer skill's enable flag were
+  read straight into a `bool`**, so a peer sending any byte but 0 or 1
+  left a `bool` holding a value no `bool` may hold. Each travels as a
+  `BYTE` that `read()` holds to 0 or 1 before it reaches the member. A
+  sender writes a real `bool`, so no byte on the wire changes.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- **Four `throw "..."` raw string literals in the packet layer could be
+  caught by nothing.** `__END_CATCH` catches `Throwable`, so an
+  out-of-range index in `GCShopList::getShopItem`,
+  `GCShopListMysterious::getShopItem`, `GCShopVersion::getVersion` or
+  `GCShopVersion::setVersion` unwound past every handler on the path.
+  All four throw `InvalidProtocolException`, pinned in
+  `tests/packet_store_test.cpp`. The two remaining raw-literal throws in
+  `src/Core` (`SXml.cpp` and `Utility.cpp`, both in `filelog()`) are not
+  in the packet layer and are left alone.
+  > **Status:** fixed (wire/skill-disagreements)
+
+- `GCUsePowerPointResult::read` and `GCRequestPowerPointResult::read`
+  take their code bytes without comparing them against the last
+  enumerator of the `RESULT_CODE` and `ITEM_CODE` lists their own headers
+  declare, so a peer can announce a result no branch of the client
+  handles.
+  > **Status:** open — recorded in `tests/packet_skill_test.cpp`
+
 ## Hard-coded BBS credentials in the `*notice` operator command (2026-09-10)
 
 - **`CGSayHandler::opnotice` opened a MySQL connection to a

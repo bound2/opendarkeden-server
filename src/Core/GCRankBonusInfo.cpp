@@ -34,8 +34,14 @@ void GCRankBonusInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The listing replaces the one the packet holds.
+    m_RankBonusInfoList.clear();
+
     BYTE ListNum;
     iStream.read(ListNum);
+
+    if (ListNum > kMaxEntries)
+        throw InvalidProtocolException("too many rank bonuses");
 
     for (WORD i = 0; i < ListNum; i++) {
         DWORD rankBonusType;
@@ -54,9 +60,9 @@ void GCRankBonusInfo::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    //--------------------------------------------------
-    // write pc type
-    //--------------------------------------------------
+    if (m_RankBonusInfoList.size() > kMaxEntries)
+        throw InvalidProtocolException("too many rank bonuses");
+
     BYTE size = m_RankBonusInfoList.size();
     oStream.write(size);
 

@@ -38,9 +38,16 @@ void GCHolyLandBonusInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The listing replaces the one the packet holds.
+    clearBloodBibleBonusInfoList();
+
     BYTE ListNum;
 
     iStream.read(ListNum);
+
+    if (ListNum > kMaxEntries)
+        throw InvalidProtocolException("too many holy land bonuses");
+
     for (int i = 0; i < ListNum; i++) {
         BloodBibleBonusInfo* pBloodBibleBonusInfo = new BloodBibleBonusInfo();
         pBloodBibleBonusInfo->read(iStream);
@@ -58,6 +65,9 @@ void GCHolyLandBonusInfo::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_BloodBibleBonusInfoList.size() > kMaxEntries)
+        throw InvalidProtocolException("too many holy land bonuses");
 
     BYTE ListNum = m_BloodBibleBonusInfoList.size();
     oStream.write(ListNum);

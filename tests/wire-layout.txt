@@ -353,7 +353,7 @@
 358	GCShowWaitGuildInfo	423
 359	GCSkillFailed1	2045
 360	GCSkillFailed2	11
-361	GCSkillInfo	4338
+361	GCSkillInfo	34706
 362	GCSkillToInventoryOK1	2056
 363	GCSkillToInventoryOK2	8
 364	GCSkillToObjectOK1	2053

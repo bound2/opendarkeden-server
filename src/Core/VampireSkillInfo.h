@@ -44,8 +44,11 @@ public:
     // ����ȭ��, �̸� ���� ������ ����Ѵ�.
     PacketSize_t getSize();
 
+    // The skill count travels in a BYTE and the max budgets this many.
+    static constexpr size_t kMaxSkills = 120;
+
     static constexpr uint getMaxSize() {
-        return szBYTE + szBYTE + (SubVampireSkillInfo::getMaxSize() * 120);
+        return szBYTE + szBYTE + (SubVampireSkillInfo::getMaxSize() * kMaxSkills);
     }
 
     // get packet's debug string
@@ -59,24 +62,20 @@ public:
         m_bLearnNewSkill = NewSkill;
     }
 
-    // get / set ListNumber
+    // get ListNumber: the count write() emits is the list itself.
     BYTE getListNum() const {
-        return m_ListNum;
-    }
-    void setListNum(BYTE ListNum) {
-        m_ListNum = ListNum;
+        return (BYTE)m_SubVampireSkillInfoList.size();
     }
 
     // add / delete / clear S List
     void addListElement(SubVampireSkillInfo* pSubVampireSkillInfo) {
+        if (m_SubVampireSkillInfoList.size() >= kMaxSkills)
+            throw InvalidProtocolException("too many vampire skills");
         m_SubVampireSkillInfoList.push_back(pSubVampireSkillInfo);
     }
 
     // ClearList
-    void clearList() {
-        m_SubVampireSkillInfoList.clear();
-        m_ListNum = 0;
-    }
+    void clearList();
 
     // pop front Element in Status List
     SubVampireSkillInfo* popFrontListElement() {
@@ -88,9 +87,6 @@ public:
 private:
     // New ��ų�� ��� �� �ִ��� ������ ����
     bool m_bLearnNewSkill;
-
-    // SubVampireSkillInfo List Total Number
-    BYTE m_ListNum;
 
     // SubVampireSkillInfo List
     list<SubVampireSkillInfo*> m_SubVampireSkillInfoList;

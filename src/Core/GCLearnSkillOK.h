@@ -75,10 +75,10 @@ public:
 
 private:
     // SkillType
-    SkillType_t m_SkillType;
+    SkillType_t m_SkillType = 0;
 
     // DomainType
-    SkillDomainType_t m_DomainType;
+    SkillDomainType_t m_DomainType = 0;
 };
 
 

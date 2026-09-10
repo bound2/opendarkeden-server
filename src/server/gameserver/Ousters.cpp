@@ -1825,8 +1825,6 @@ void Ousters::sendOustersSkillInfo()
 
     OustersSkillInfo* pOustersSkillInfo = new OustersSkillInfo();
 
-    BYTE SkillCount = 0;
-
     Timeval currentTime;
     getCurrentTime(currentTime);
 
@@ -1843,8 +1841,6 @@ void Ousters::sendOustersSkillInfo()
             pSubOustersSkillInfo->setCastingTime(pOustersSkillSlot->getRemainTurn(currentTime));
 
             pOustersSkillInfo->addListElement(pSubOustersSkillInfo);
-
-            SkillCount++;
         }
     }
 
@@ -1857,8 +1853,6 @@ void Ousters::sendOustersSkillInfo()
             pOustersSkillInfo->setLearnNewSkill(true);
         }
     }
-
-    pOustersSkillInfo->setListNum(SkillCount);
 
     gcSkillInfo.addListElement(pOustersSkillInfo);
 

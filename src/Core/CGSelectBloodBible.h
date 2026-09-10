@@ -62,7 +62,7 @@ public:
 
 private:
     // BloodBible ID
-    ItemType_t m_BloodBibleID;
+    ItemType_t m_BloodBibleID = 0;
 };
 
 

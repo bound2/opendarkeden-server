@@ -54,7 +54,7 @@ public:
     }
 
 private:
-    DWORD m_RankBonusType; // Rank Bonus Type
+    DWORD m_RankBonusType = 0; // Rank Bonus Type
 };
 
 //////////////////////////////////////////////////////////////////////

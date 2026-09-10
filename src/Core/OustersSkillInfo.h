@@ -43,8 +43,11 @@ public:
     // 최적화시, 미리 계산된 정수를 사용한다.
     PacketSize_t getSize();
 
+    // The skill count travels in a BYTE and the max budgets this many.
+    static constexpr size_t kMaxSkills = 120;
+
     static constexpr uint getMaxSize() {
-        return szBYTE + szBYTE + (SubOustersSkillInfo::getMaxSize() * 120);
+        return szBYTE + szBYTE + (SubOustersSkillInfo::getMaxSize() * kMaxSkills);
     }
 
     // get packet's debug string
@@ -58,24 +61,20 @@ public:
         m_bLearnNewSkill = NewSkill;
     }
 
-    // get / set ListNumber
+    // get ListNumber: the count write() emits is the list itself.
     BYTE getListNum() const {
-        return m_ListNum;
-    }
-    void setListNum(BYTE ListNum) {
-        m_ListNum = ListNum;
+        return (BYTE)m_SubOustersSkillInfoList.size();
     }
 
     // add / delete / clear S List
     void addListElement(SubOustersSkillInfo* pSubOustersSkillInfo) {
+        if (m_SubOustersSkillInfoList.size() >= kMaxSkills)
+            throw InvalidProtocolException("too many ousters skills");
         m_SubOustersSkillInfoList.push_back(pSubOustersSkillInfo);
     }
 
     // ClearList
-    void clearList() {
-        m_SubOustersSkillInfoList.clear();
-        m_ListNum = 0;
-    }
+    void clearList();
 
     // pop front Element in Status List
     SubOustersSkillInfo* popFrontListElement() {
@@ -87,9 +86,6 @@ public:
 private:
     // New 스킬을 배울 수 있느냐 없느냐 정보
     bool m_bLearnNewSkill;
-
-    // SubOustersSkillInfo List Total Number
-    BYTE m_ListNum;
 
     // SubOustersSkillInfo List
     list<SubOustersSkillInfo*> m_SubOustersSkillInfoList;

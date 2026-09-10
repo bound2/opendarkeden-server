@@ -19,7 +19,16 @@ void SubSlayerSkillInfo::read(SocketInputStream& iStream) {
     iStream.read(m_ExpLevel);
     iStream.read(m_Interval);
     iStream.read(m_CastingTime);
-    iStream.read(m_Enable);
+
+    // A bool holds 0 or 1, so any other byte is refused rather than
+    // stored in one.
+    BYTE enable = 0;
+    iStream.read(enable);
+
+    if (enable > 1)
+        throw InvalidProtocolException("enable flag is not a bool");
+
+    m_Enable = enable != 0;
 
     __END_CATCH
 }

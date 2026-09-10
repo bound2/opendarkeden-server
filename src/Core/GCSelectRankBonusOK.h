@@ -67,7 +67,7 @@ public:
 
 private:
     // RankBonusType
-    DWORD m_RankBonusType;
+    DWORD m_RankBonusType = 0;
 };
 
 

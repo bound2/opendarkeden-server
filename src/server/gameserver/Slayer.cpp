@@ -2596,9 +2596,6 @@ void Slayer::sendSlayerSkillInfo()
             pSlayerSkillInfo[i]->setDomainType((SkillDomainType_t)i);
         }
 
-        BYTE SkillCount[SKILL_DOMAIN_VAMPIRE] = {
-            0,
-        };
         SkillInfo* pSkillInfo = NULL;
         SkillDomainType_t SDomainType = 0;
 
@@ -2635,12 +2632,9 @@ void Slayer::sendSlayerSkillInfo()
 
                 // 슬레이어 스킬인포에 서브 스킬 인포를 추가한다.
                 pSlayerSkillInfo[SDomainType]->addListElement(pSubSlayerSkillInfo);
-                SkillCount[SDomainType]++;
-                pSlayerSkillInfo[SDomainType]->setListNum(SkillCount[SDomainType]);
             }
         }
 
-        pSlayerSkillInfo[SDomainType]->setListNum(SkillCount[SDomainType]);
         GCSkillInfo gcSkillInfo;
         gcSkillInfo.setPCType(PC_SLAYER);
 

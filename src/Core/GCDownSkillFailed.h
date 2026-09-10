@@ -71,9 +71,9 @@ public:
     }
 
 private:
-    SkillType_t m_SkillType;
-    BYTE m_Desc; // 기술을 배우는 데 실패한 이유이다.
-                 // 자세한 내용은 CGDownSkillHandler를 참고하도록.
+    SkillType_t m_SkillType = 0;
+    BYTE m_Desc = 0; // 기술을 배우는 데 실패한 이유이다.
+                     // 자세한 내용은 CGDownSkillHandler를 참고하도록.
 };
 
 

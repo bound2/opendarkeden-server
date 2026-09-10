@@ -62,23 +62,34 @@ public:
     // methods
     //--------------------------------------------------
 public:
+    // A book carries one record per skill domain: a slayer fills one for
+    // each domain it may learn, a vampire and an ousters one apiece.
+    static constexpr size_t kMaxRecords = SKILL_DOMAIN_MAX;
+
+    // read() builds a record for these three and refuses every other.
+    static bool isKnownPCType(BYTE PCType) {
+        return PCType == PC_SLAYER || PCType == PC_VAMPIRE || PCType == PC_OUSTERS;
+    }
+
     // get / set PCType
     BYTE getPCType() const {
         return m_PCType;
     }
     void setPCType(BYTE PCType) {
+        if (!isKnownPCType(PCType))
+            throw InvalidProtocolException("unknown pc type");
         m_PCType = PCType;
     }
 
     // add / delete / clear Skill List
     void addListElement(PCSkillInfo* pPCSkillInfo) {
+        if (m_pPCSkillInfoList.size() >= kMaxRecords)
+            throw InvalidProtocolException("too many skill records");
         m_pPCSkillInfoList.push_back(pPCSkillInfo);
     }
 
     // ClearList
-    void clearList() {
-        m_pPCSkillInfoList.clear();
-    }
+    void clearList();
 
     // pop front Element in Status List
     PCSkillInfo* popFrontListElement() {
@@ -88,7 +99,7 @@ public:
     }
 
 private:
-    BYTE m_PCType;
+    BYTE m_PCType = PC_SLAYER;
 
     //---------------------------------------------------------
     // PC Skill Information
@@ -110,7 +121,9 @@ class GCSkillInfoFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SKILL_INFO;
     static constexpr std::string_view kName = "GCSkillInfo";
-    static constexpr PacketSize_t kMaxSize{SlayerSkillInfo::getMaxSize()};
+    // The pc type, the record count and one record per domain. The
+    // slayer record is the widest of the three races.
+    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE + GCSkillInfo::kMaxRecords * SlayerSkillInfo::getMaxSize()};
 
     // create packet
     Packet* createPacket() override {

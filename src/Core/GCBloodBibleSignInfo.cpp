@@ -15,7 +15,22 @@ GCBloodBibleSignInfo::~GCBloodBibleSignInfo()
 {
     __BEGIN_TRY
 
+    clearSignInfo();
+
     __END_CATCH_NO_RETHROW
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Drop the record, freeing it only where read() allocated it.
+//////////////////////////////////////////////////////////////////////////////
+void GCBloodBibleSignInfo::clearSignInfo()
+
+{
+    if (m_bOwnsInfo)
+        SAFE_DELETE(m_pInfo);
+
+    m_pInfo = NULL;
+    m_bOwnsInfo = false;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -26,7 +41,11 @@ void GCBloodBibleSignInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The record replaces the one the packet holds.
+    clearSignInfo();
+
     m_pInfo = new BloodBibleSignInfo;
+    m_bOwnsInfo = true;
     m_pInfo->read(iStream);
 
     __END_CATCH
@@ -39,6 +58,9 @@ void GCBloodBibleSignInfo::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_pInfo == NULL)
+        throw InvalidProtocolException("blood bible sign record missing");
 
     m_pInfo->write(oStream);
 

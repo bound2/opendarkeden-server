@@ -19,7 +19,6 @@
 BloodBibleBonusInfo::BloodBibleBonusInfo() {
     __BEGIN_TRY
 
-    m_Type = 0;
     m_Race = 0;
 
     __END_CATCH
@@ -46,7 +45,6 @@ void BloodBibleBonusInfo::read(SocketInputStream& iStream) {
 
     //	BYTE szOptionList;
 
-    //	iStream.read( m_Type );
     iStream.read(m_Race);
 
     /*	iStream.read( szOptionList );
@@ -66,7 +64,6 @@ void BloodBibleBonusInfo::read(SocketInputStream& iStream) {
 void BloodBibleBonusInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    //	oStream.write( m_Type );
     oStream.write(m_Race);
 
     /*	BYTE szOptionList = m_OptionTypeList.size();
@@ -92,9 +89,7 @@ string BloodBibleBonusInfo::toString() const {
 
     StringStream msg;
 
-    msg << "BloodBibleBonusInfo( "
-        //		<< "Type:" << (int)m_Type
-        << "Race:"
+    msg << "BloodBibleBonusInfo( " << "Race:"
         << (int)m_Race
         //		<< "OptionTypeListSize:" << (int)m_OptionTypeList.size()
         << ")";

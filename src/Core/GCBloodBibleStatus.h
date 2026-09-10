@@ -126,16 +126,16 @@ public:
     }
 
 private:
-    ItemType_t m_ItemType; // 피의 성서 종류
+    ItemType_t m_ItemType = 0; // 피의 성서 종류
 
-    ZoneID_t m_ZoneID;
+    ZoneID_t m_ZoneID = 0;
 
-    Storage_t m_Storage;
+    Storage_t m_Storage = 0;
     string m_OwnerName;
-    Race_t m_Race;
-    Race_t m_ShrineRace;
-    ZoneCoord_t m_X;
-    ZoneCoord_t m_Y;
+    Race_t m_Race = 0;
+    Race_t m_ShrineRace = 0;
+    ZoneCoord_t m_X = 0;
+    ZoneCoord_t m_Y = 0;
 };
 
 

@@ -72,7 +72,7 @@ public:
 
 private:
     // which
-    BYTE m_Which;
+    BYTE m_Which = 0;
 };
 
 

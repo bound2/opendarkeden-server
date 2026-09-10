@@ -26,9 +26,15 @@ void GCBloodBibleList::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The listing replaces the one the packet holds.
+    m_BloodBibleList.clear();
+
     BYTE num;
 
     iStream.read(num);
+
+    if (num > kMaxEntries)
+        throw InvalidProtocolException("too many blood bibles");
 
     for (int i = 0; i < num; ++i) {
         ItemType_t iType;
@@ -48,7 +54,8 @@ void GCBloodBibleList::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    Assert(m_BloodBibleList.size() <= 12);
+    if (m_BloodBibleList.size() > kMaxEntries)
+        throw InvalidProtocolException("too many blood bibles");
 
     BYTE num = m_BloodBibleList.size();
 

@@ -1883,4 +1883,18 @@ TEST(StoreConstructorTest, theStoreInfoPointerStartsEmptyAndIsRefused) {
     expectTheStorePointerStartsEmpty<GCOtherStoreInfo>("GCOtherStoreInfo");
 }
 
+// An out-of-range index is refused with a Throwable, which is what the
+// __END_CATCH blocks around these calls catch.
+TEST(ShopBoundsTest, anOutOfRangeIndexIsRefusedWithACatchableException) {
+    GCShopList list;
+    EXPECT_THROW(list.getShopItem((BYTE)SHOP_RACK_INDEX_MAX), InvalidProtocolException);
+
+    GCShopListMysterious mysterious;
+    EXPECT_THROW(mysterious.getShopItem((BYTE)SHOP_RACK_INDEX_MAX), InvalidProtocolException);
+
+    GCShopVersion version;
+    EXPECT_THROW(version.getVersion((ShopRackType_t)SHOP_RACK_TYPE_MAX), InvalidProtocolException);
+    EXPECT_THROW(version.setVersion((ShopRackType_t)SHOP_RACK_TYPE_MAX, 0x81A2B3C4), InvalidProtocolException);
+}
+
 } // namespace

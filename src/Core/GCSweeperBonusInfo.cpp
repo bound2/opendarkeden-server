@@ -38,9 +38,16 @@ void GCSweeperBonusInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The listing replaces the one the packet holds.
+    clearSweeperBonusInfoList();
+
     BYTE ListNum;
 
     iStream.read(ListNum);
+
+    if (ListNum > kMaxEntries)
+        throw InvalidProtocolException("too many sweeper bonuses");
+
     for (int i = 0; i < ListNum; i++) {
         SweeperBonusInfo* pSweeperBonusInfo = new SweeperBonusInfo();
         pSweeperBonusInfo->read(iStream);
@@ -58,6 +65,9 @@ void GCSweeperBonusInfo::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_SweeperBonusInfoList.size() > kMaxEntries)
+        throw InvalidProtocolException("too many sweeper bonuses");
 
     BYTE ListNum = m_SweeperBonusInfoList.size();
     oStream.write(ListNum);

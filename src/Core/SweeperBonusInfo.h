@@ -53,14 +53,6 @@ public:
     // get packet's debug string
     string toString() const;
 
-    // get/set SweeperBonus Type
-    BYTE getType() const {
-        return m_Type;
-    }
-    void setType(BYTE type) {
-        m_Type = type;
-    }
-
     // get/set Owner Race
     BYTE getRace() const {
         return m_Race;
@@ -90,9 +82,6 @@ public:
     }
 
 private:
-    // Sweeper Bonus type
-    BYTE m_Type;
-
     // Owner Race
     BYTE m_Race;
 

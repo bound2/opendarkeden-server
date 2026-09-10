@@ -54,12 +54,18 @@ public:
     // methods
     //--------------------------------------------------
 public:
+    // The count travels in a BYTE and the factory max budgets this many
+    // bonuses.
+    static constexpr size_t kMaxEntries = 100;
+
     BYTE getListNum() const {
         return m_RankBonusInfoList.size();
     }
 
     // add
     void addListElement(DWORD rankBonusType) {
+        if (m_RankBonusInfoList.size() >= kMaxEntries)
+            throw InvalidProtocolException("too many rank bonuses");
         m_RankBonusInfoList.push_back(rankBonusType);
     }
 
@@ -91,7 +97,7 @@ class GCRankBonusInfoFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_RANK_BONUS_INFO;
     static constexpr std::string_view kName = "GCRankBonusInfo";
-    static constexpr PacketSize_t kMaxSize{szBYTE + (szDWORD * 100)};
+    static constexpr PacketSize_t kMaxSize{szBYTE + (szDWORD * GCRankBonusInfo::kMaxEntries)};
 
     // create packet
     Packet* createPacket() override {

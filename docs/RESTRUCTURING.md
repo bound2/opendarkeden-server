@@ -541,37 +541,50 @@ before anything else moves. Everything later shelters under this pin.
   > belongs to combat feedback rather than to progression. `GCSkillInfo`
   > had an ousters frame-size pin and `GCBloodBibleStatus` a name-width
   > pin in `tests/packet_roundtrip_test.cpp`; both are single-aspect and
-  > neither had a golden, so both packets are pinned in full here. Nine
-  > open write/read disagreements are stated as tests that flip when
-  > fixed (`GCSkillInfo` deriving its record count into a BYTE it caps
-  > nowhere, so the 256th record wraps the count to zero while `write()`
-  > emits every record; its factory max being one bare
-  > `SlayerSkillInfo`, budgeting neither the pc type byte nor the count
-  > byte nor a second record, although a slayer's book carries one per
-  > domain, so a single full record already outgrows it; the three race
-  > records keeping their skill count in a BYTE `addListElement` never
-  > touches, so `write()` emits that count and then the whole list and
-  > `getPacketSize()` counts the skills the reader will not consume;
-  > `GCSkillInfo::read` appending to the book the packet already holds,
-  > as `GCRankBonusInfo`, `GCSweeperBonusInfo`, `GCHolyLandBonusInfo`
-  > and `GCBloodBibleList` do to their lists; `GCSkillInfo::write`
-  > emitting any pc type while `read()` refuses every one but the three
-  > it builds, so such a book is written and cannot be read back; those
-  > three bonus lists wrapping their count byte at 256 and outgrowing
-  > maxima that budget 100, 12 and 12 entries; `SweeperBonusInfo` and
-  > `BloodBibleBonusInfo` writing and reading only their race byte, so
-  > the type both managers set on every record never reaches the wire;
-  > and `GCBloodBibleSignInfo` leaving uninitialised the record pointer
-  > `getPacketSize()` and `write()` dereference), and 18 of the 29 leave
-  > at least one member the default constructor never sets, pinned over
-  > poisoned storage. Four more are recorded in the test's header rather
-  > than tested: each race record's learn flag and a slayer skill's
-  > enable flag are read straight into a `bool`,
-  > `GCBloodBibleSignInfo::read` allocates a record on every call and
-  > frees none, `BloodBibleSignInfo::read` appends to the sign list it
-  > already holds, and the two power-point results take code bytes they
-  > never compare against the enumerators their own headers declare. No
-  > golden changed.
+  > neither had a golden, so both packets are pinned in full here.
+  > The **nine write/read disagreements it found are fixed** and pinned
+  > as the behaviour the packets now produce (a book carries one record
+  > per skill domain, refused past that in `addListElement`, in `write()`
+  > and in `read()`, so its count byte cannot wrap; the factory max
+  > budgets the pc type byte, the record count byte and one full record
+  > per domain, where it was one bare `SlayerSkillInfo` that a single
+  > full record already outgrew; the three race records emit the skill
+  > count their list holds and stop at the 255, 120 and 120 their own
+  > maxima budget, with `setListNum` gone from all three and from the
+  > `Slayer` / `Vampire` / `Ousters` fills that maintained it;
+  > `GCSkillInfo::read` replaces the book the packet holds, destroying
+  > the records it drops, and `GCRankBonusInfo`, `GCSweeperBonusInfo`,
+  > `GCHolyLandBonusInfo` and `GCBloodBibleList` replace their lists the
+  > same way; `GCSkillInfo` announces only the three pc types `read()`
+  > builds a record for, refusing every other in the setter, in `write()`
+  > and in `read()`, testing the raw byte before it reaches an enum;
+  > those three bonus lists and `GCBloodBibleList` are held to the 100,
+  > 12, 12 and 12 entries their factory maxima budget, in the adders, in
+  > `write()` and in `read()`; `SweeperBonusInfo` and
+  > `BloodBibleBonusInfo` are the race byte the client's own readers take
+  > and nothing else, so the type that reached no wire is gone with its
+  > accessors and the two `SweeperBonusManager` calls; and
+  > `GCBloodBibleSignInfo`'s record pointer starts empty, with
+  > `getPacketSize()` and `write()` refusing on it). All 29 initialise
+  > every member their `write()` emits, pinned over poisoned storage.
+  > Three of the four the test's header recorded are fixed with them:
+  > `GCBloodBibleSignInfo` frees on a re-read and in its destructor only
+  > the record `read()` allocated, so a sender still keeps the
+  > character's own record it hands over; `BloodBibleSignInfo::read`
+  > replaces the signs it holds and refuses a count past the six slots
+  > `write()` emits; and each race record's learn flag and a slayer
+  > skill's enable flag travel as a `BYTE` held to 0 or 1 before it
+  > reaches a `bool`, which moves no byte because a sender writes a real
+  > bool. The fourth stays recorded: the two power-point results take
+  > code bytes they never compare against the enumerators their own
+  > headers declare. One `tests/wire-layout.txt` line moves,
+  > `GCSkillInfo` 4338 → 34706, a server-side read-buffer budget for a
+  > packet no server reads and not a field on the wire. Four raw string
+  > literals `__END_CATCH` could not catch are `InvalidProtocolException`s
+  > with them — `GCShopList::getShopItem`,
+  > `GCShopListMysterious::getShopItem` and `GCShopVersion`'s two version
+  > accessors — pinned in `tests/packet_store_test.cpp`. No golden
+  > changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set, the inventory

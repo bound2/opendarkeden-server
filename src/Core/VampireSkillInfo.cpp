@@ -22,7 +22,6 @@
 VampireSkillInfo::VampireSkillInfo() {
     __BEGIN_TRY
     m_bLearnNewSkill = false;
-    m_ListNum = 0;
     __END_CATCH
 }
 
@@ -31,7 +30,14 @@ VampireSkillInfo::VampireSkillInfo() {
 // destructor
 //////////////////////////////////////////////////////////////////////
 VampireSkillInfo::~VampireSkillInfo() noexcept {
-    // �Ҽӵ� ��� ��ü���� �����Ѵ�.
+    clearList();
+}
+
+
+//////////////////////////////////////////////////////////////////
+// The record owns the skills it holds.
+//////////////////////////////////////////////////////////////////
+void VampireSkillInfo::clearList() {
     while (!m_SubVampireSkillInfoList.empty()) {
         SubVampireSkillInfo* pSubVampireSkillInfo = m_SubVampireSkillInfoList.front();
         SAFE_DELETE(pSubVampireSkillInfo);
@@ -47,10 +53,26 @@ void VampireSkillInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
-    iStream.read(m_bLearnNewSkill);
-    iStream.read(m_ListNum);
+    // The list replaces the one the record holds.
+    clearList();
 
-    for (int i = 0; i < m_ListNum; i++) {
+    // A bool holds 0 or 1, so any other byte is refused rather than
+    // stored in one.
+    BYTE learnNewSkill = 0;
+    iStream.read(learnNewSkill);
+
+    if (learnNewSkill > 1)
+        throw InvalidProtocolException("learn flag is not a bool");
+
+    m_bLearnNewSkill = learnNewSkill != 0;
+
+    BYTE ListNum = 0;
+    iStream.read(ListNum);
+
+    if (ListNum > kMaxSkills)
+        throw InvalidProtocolException("too many vampire skills");
+
+    for (int i = 0; i < ListNum; i++) {
         SubVampireSkillInfo* pSubVampireSkillInfo = new SubVampireSkillInfo();
         pSubVampireSkillInfo->read(iStream);
         m_SubVampireSkillInfoList.push_back(pSubVampireSkillInfo);
@@ -67,8 +89,11 @@ void VampireSkillInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    if (m_SubVampireSkillInfoList.size() > kMaxSkills)
+        throw InvalidProtocolException("too many vampire skills");
+
     oStream.write(m_bLearnNewSkill);
-    oStream.write(m_ListNum);
+    oStream.write((BYTE)m_SubVampireSkillInfoList.size());
 
     for (list<SubVampireSkillInfo*>::const_iterator itr = m_SubVampireSkillInfoList.begin();
          itr != m_SubVampireSkillInfoList.end(); itr++) {
@@ -104,7 +129,7 @@ string VampireSkillInfo::toString() const {
 
     StringStream msg;
 
-    msg << "VampireSkillInfo( ListNum:" << (int)m_ListNum << " ListSet( ";
+    msg << "VampireSkillInfo( ListNum:" << (int)m_SubVampireSkillInfoList.size() << " ListSet( ";
 
     for (list<SubVampireSkillInfo*>::const_iterator itr = m_SubVampireSkillInfoList.begin();
          itr != m_SubVampireSkillInfoList.end(); itr++) {

@@ -172,68 +172,50 @@
 //               enable flag, which are bool; and the ModifyType tags of
 //               the stat record, which must be enumerators.
 //
-//               Findings. Each is stated as a test that fails once the
-//               packet is fixed, except where noted:
+//               What the set found, now pinned as the behaviour the
+//               packets produce:
 //
-//               - GCSkillInfo derives the record count into a BYTE it
-//                 caps nowhere, so the 256th record wraps the count to
-//                 zero while write() still emits every record.
-//               - GCSkillInfoFactory's maximum is one SlayerSkillInfo
-//                 and nothing else: it budgets neither the pc type byte
-//                 nor the record count byte, and no second record,
-//                 although a slayer's book carries one record per
-//                 domain. A single full record already outgrows it.
-//               - The three race records keep their skill count in a
-//                 BYTE the caller sets by hand while addListElement
-//                 leaves it alone, so write() emits that count and then
-//                 the whole list: a record whose list is longer than
-//                 its count sends skills the reader never consumes, and
-//                 getPacketSize() counts them.
-//               - GCSkillInfo::read appends to the record list the
-//                 packet already holds instead of replacing it, so a
-//                 reused packet grows by one book per read.
-//               - GCSkillInfo::write emits any pc type byte while
-//                 read() refuses every one that is not PC_SLAYER,
-//                 PC_VAMPIRE or PC_OUSTERS, so a book announced with
-//                 any other type is written and cannot be read back -
-//                 and the type is one of the members the constructor
-//                 leaves alone.
-//               - GCRankBonusInfo, GCSweeperBonusInfo and
-//                 GCHolyLandBonusInfo derive their count byte from the
-//                 list and cap nothing, so the 256th entry wraps the
-//                 count to zero and the body outgrows a factory max
-//                 that budgets 100, 12 and 12 entries.
-//               - Those three and GCBloodBibleList append to the list
-//                 the packet already holds instead of replacing it.
-//               - SweeperBonusInfo and BloodBibleBonusInfo write and
-//                 read only their race byte: the type byte and the
-//                 option list are commented out on both sides, so the
-//                 type both managers set on every record never reaches
-//                 the wire.
-//               - GCBloodBibleSignInfo leaves its record pointer
-//                 uninitialised, so getPacketSize() and write()
-//                 dereference an indeterminate value when a sender
-//                 skips setSignInfo.
+//               - The book carries one record per skill domain, which
+//                 is what GCSkillInfoFactory's maximum budgets, beside
+//                 the pc type byte and the record count byte. The adder,
+//                 write() and read() refuse past it, so the count byte
+//                 cannot wrap.
+//               - Each of the three race records emits the skill count
+//                 its list holds, and the list stops at what the
+//                 record's own maximum budgets: 255 for a slayer, 120
+//                 for a vampire and 120 for an ousters. Every skill
+//                 write() sends is one the reader consumes.
+//               - GCSkillInfo::read replaces the book the packet holds,
+//                 destroying the records it drops, and so do
+//                 GCRankBonusInfo, GCSweeperBonusInfo,
+//                 GCHolyLandBonusInfo and GCBloodBibleList with their
+//                 lists.
+//               - GCSkillInfo announces only the three pc types read()
+//                 builds a record for: the setter, write() and read()
+//                 refuse every other.
+//               - GCRankBonusInfo, GCSweeperBonusInfo,
+//                 GCHolyLandBonusInfo and GCBloodBibleList hold their
+//                 lists to the 100, 12, 12 and 12 entries their factory
+//                 maxima budget.
+//               - SweeperBonusInfo and BloodBibleBonusInfo are a race
+//                 byte and nothing else, which is what the client reads
+//                 and what their size functions budget. Neither record
+//                 carries a type.
+//               - GCBloodBibleSignInfo's record pointer starts empty and
+//                 getPacketSize() and write() refuse on it. A sender
+//                 hands the packet the character's own record and keeps
+//                 it; only the record read() allocates belongs to the
+//                 packet, and a second read frees the first.
+//               - BloodBibleSignInfo::read replaces the signs it holds
+//                 and refuses a count past the six slots write() emits.
+//               - The learn flag of each race record and the enable flag
+//                 of a slayer skill travel as a BYTE that read() holds
+//                 to 0 or 1 before it reaches a bool. The bytes on the
+//                 wire do not change: a sender writes a real bool.
 //
-//               Four findings are recorded here rather than tested,
-//               because reaching them is undefined behaviour or has no
-//               observable wire effect:
+//               One finding is recorded here rather than tested,
+//               because reaching it has no observable wire effect:
 //
-//               - The learn flag of each race record and the enable
-//                 flag of a slayer skill are read straight into a bool,
-//                 so a peer sending any byte but 0 or 1 leaves a bool
-//                 holding a value no bool may hold. Every fixture here
-//                 writes true or false for that reason.
-//               - GCBloodBibleSignInfo::read allocates a new record on
-//                 every call without freeing the one the packet held,
-//                 so a reused packet leaks a record and a delivered one
-//                 is never freed at all - the destructor drops the
-//                 pointer.
-//               - BloodBibleSignInfo::read appends to the sign list it
-//                 already holds, which a second read would grow past
-//                 the six slots write() emits. It is unreachable
-//                 through the packet only because read() allocates a
-//                 fresh record each time.
 //               - GCUsePowerPointResult::read and
 //                 GCRequestPowerPointResult::read take their code bytes
 //                 without comparing them against the last enumerator of
@@ -241,19 +223,17 @@
 //                 declare, so a peer can announce a result no branch of
 //                 the client handles.
 //
-//               Eighteen of the twenty-nine leave at least one member
-//               the default constructor never sets, so a packet sent
-//               without every setter called puts indeterminate bytes on
-//               the wire. The poisoned-storage pin at the end of the
-//               file asserts today's split. CGUsePowerPoint and
-//               GCUseBonusPointFail are in neither list because their
+//               All twenty-nine initialise every member they write, so
+//               a packet sent without every setter called puts no
+//               indeterminate byte on the wire. The poisoned-storage pin
+//               at the end of the file asserts it. CGUsePowerPoint and
+//               GCUseBonusPointFail are outside that pin because their
 //               body is empty; CGRequestPowerPoint and CGSkillToNamed
-//               are in neither because their one text field is required
-//               non-empty, so a default-constructed body is refused
-//               rather than written; and GCBloodBibleSignInfo is in
-//               neither because writing one over poisoned storage would
-//               follow the indeterminate record pointer, so it gets a
-//               pin on the pointer itself instead.
+//               are outside it because their one text field is required
+//               non-empty, and GCBloodBibleSignInfo because the record
+//               is required, so a default-constructed body is refused
+//               rather than written - the three get a refusal pin
+//               instead.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -305,6 +285,7 @@
 using wiretest::expectGolden;
 using wiretest::kEncryptCodeCount;
 using wiretest::kEncryptCodes;
+using wiretest::Loopback;
 using wiretest::roundTrip;
 using wiretest::writeBody;
 
@@ -313,6 +294,18 @@ namespace {
 // The unencrypted branch. No packet in this file rides the encrypter, so
 // this is the only code whose bytes could differ from any other.
 const uchar kPlainCode = 0;
+
+// Emit a body field by field and hand it to a reader, so a refusal on
+// the read side can be pinned without a sender that could produce those
+// bytes.
+template <typename Emit, typename Consume> void throughLoopback(Emit emit, Consume consume) {
+    Loopback link;
+    link.setCodes(kPlainCode);
+    emit(link.out());
+    const uint length = link.out().length();
+    link.pump(length);
+    consume(link.in());
+}
 
 //////////////////////////////////////////////////////////////////////
 // The three pins every packet gets. fill() / expectEqual() are
@@ -521,8 +514,7 @@ SubOustersSkillInfo* makeOustersSkill(SkillType_t type, ExpLevel_t level, Turn_t
 }
 
 // The slayer record is the only one of the three that carries a domain
-// byte. The count is set by hand because addListElement does not touch
-// it - that disagreement is a finding below.
+// byte.
 SlayerSkillInfo* makeSlayerRecord(bool learnNew, SkillDomainType_t domain, int skills) {
     SlayerSkillInfo* pRecord = new SlayerSkillInfo();
     pRecord->setLearnNewSkill(learnNew);
@@ -531,7 +523,6 @@ SlayerSkillInfo* makeSlayerRecord(bool learnNew, SkillDomainType_t domain, int s
         pRecord->addListElement(makeSlayerSkill((SkillType_t)(0x92A3 + i * 0x0101), (Exp_t)(0x94A5B6C7 + i),
                                                 (ExpLevel_t)(0x98A9 + i), (Turn_t)(0x9AABBCCD + i),
                                                 (Turn_t)(0x9EAFB0C1 + i), (i % 2) == 0));
-    pRecord->setListNum((BYTE)skills);
     return pRecord;
 }
 
@@ -541,7 +532,6 @@ VampireSkillInfo* makeVampireRecord(bool learnNew, int skills) {
     for (int i = 0; i < skills; i++)
         pRecord->addListElement(
             makeVampireSkill((SkillType_t)(0xA2B3 + i * 0x0101), (Turn_t)(0xA4B5C6D7 + i), (Turn_t)(0xA8B9CADB + i)));
-    pRecord->setListNum((BYTE)skills);
     return pRecord;
 }
 
@@ -551,7 +541,6 @@ OustersSkillInfo* makeOustersRecord(bool learnNew, int skills) {
     for (int i = 0; i < skills; i++)
         pRecord->addListElement(makeOustersSkill((SkillType_t)(0xB2C3 + i * 0x0101), (ExpLevel_t)(0xB4C5 + i),
                                                  (Turn_t)(0xB6C7D8E9 + i), (Turn_t)(0xBACBDCED + i)));
-    pRecord->setListNum((BYTE)skills);
     return pRecord;
 }
 
@@ -888,20 +877,17 @@ void expectEqual(GCSelectRankBonusFailed& a, GCSelectRankBonusFailed& b) {
 
 SKILL_PACKET_TESTS(GCSelectRankBonusFailed)
 
-// Both records carry a type the setter accepts and write() drops, which
-// is a finding below; the fixtures set it anyway, the way the two
-// managers do.
-SweeperBonusInfo* makeSweeperBonus(BYTE type, BYTE race) {
+// Each record is a race byte and nothing else.
+SweeperBonusInfo* makeSweeperBonus(BYTE race) {
     SweeperBonusInfo* pInfo = new SweeperBonusInfo();
-    pInfo->setType(type);
     pInfo->setRace(race);
     return pInfo;
 }
 
 void fill(GCSweeperBonusInfo& packet) {
-    packet.addSweeperBonusInfo(makeSweeperBonus(0x84, 0x81));
-    packet.addSweeperBonusInfo(makeSweeperBonus(0x85, 0x82));
-    packet.addSweeperBonusInfo(makeSweeperBonus(0x86, 0x83));
+    packet.addSweeperBonusInfo(makeSweeperBonus(0x81));
+    packet.addSweeperBonusInfo(makeSweeperBonus(0x82));
+    packet.addSweeperBonusInfo(makeSweeperBonus(0x83));
 }
 
 void fillNoSweeperBonuses(GCSweeperBonusInfo&) {}
@@ -923,17 +909,16 @@ void expectEqual(GCSweeperBonusInfo& a, GCSweeperBonusInfo& b) {
 SKILL_PACKET_TESTS(GCSweeperBonusInfo)
 SKILL_PACKET_VARIANT(GCSweeperBonusInfo, empty, fillNoSweeperBonuses)
 
-BloodBibleBonusInfo* makeHolyLandBonus(BYTE type, BYTE race) {
+BloodBibleBonusInfo* makeHolyLandBonus(BYTE race) {
     BloodBibleBonusInfo* pInfo = new BloodBibleBonusInfo();
-    pInfo->setType(type);
     pInfo->setRace(race);
     return pInfo;
 }
 
 void fill(GCHolyLandBonusInfo& packet) {
-    packet.addBloodBibleBonusInfo(makeHolyLandBonus(0x8A, 0x87));
-    packet.addBloodBibleBonusInfo(makeHolyLandBonus(0x8B, 0x88));
-    packet.addBloodBibleBonusInfo(makeHolyLandBonus(0x8C, 0x89));
+    packet.addBloodBibleBonusInfo(makeHolyLandBonus(0x87));
+    packet.addBloodBibleBonusInfo(makeHolyLandBonus(0x88));
+    packet.addBloodBibleBonusInfo(makeHolyLandBonus(0x89));
 }
 
 void fillNoHolyLandBonuses(GCHolyLandBonusInfo&) {}
@@ -1034,7 +1019,6 @@ TEST(GCBloodBibleSignInfoTest, roundTripsThroughLoopback) {
     GCBloodBibleSignInfo dst;
     roundTrip(src.packet, dst, kPlainCode);
     expectSignInfoEqual(src.packet, dst);
-    delete dst.getSignInfo();
 }
 
 TEST(GCBloodBibleSignInfoTest, bodyBytesMatchGolden) {
@@ -1065,7 +1049,6 @@ TEST(GCBloodBibleSignInfoTest, emptyBodyBytesMatchGolden) {
     GCBloodBibleSignInfo dst;
     roundTrip(src.packet, dst, kPlainCode);
     expectSignInfoEqual(src.packet, dst);
-    delete dst.getSignInfo();
 }
 
 // signCount() caps what write() emits at the six slots the record has,
@@ -1082,78 +1065,179 @@ TEST(GCBloodBibleSignInfoTest, fullBodyBytesMatchGolden) {
     GCBloodBibleSignInfo dst;
     roundTrip(src.packet, dst, kPlainCode);
     expectSignInfoEqual(src.packet, dst);
-    delete dst.getSignInfo();
 }
 
 //////////////////////////////////////////////////////////////////////
-// The write/read disagreements the set found.
+// What the packets hold their counts, their types and their records to.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCSkillInfo derives the record count into a BYTE it caps nowhere, so
-// the 256th record wraps the count to zero while write() still emits
-// every record.
-TEST(GCSkillInfoTest, theRecordCountWrapsAtTwoHundredAndFiftySix) {
+// A book carries one record per skill domain, which is what the factory
+// max budgets, so the count byte cannot wrap.
+TEST(GCSkillInfoTest, theRecordListStopsAtTheDomainCount) {
     GCSkillInfo packet;
     packet.setPCType(PC_SLAYER);
-    for (int i = 0; i < 256; i++)
-        packet.addListElement(makeSlayerRecord(false, (SkillDomainType_t)i, 0));
+    for (size_t i = 0; i < GCSkillInfo::kMaxRecords; i++)
+        packet.addListElement(makeSlayerRecord(false, (SkillDomainType_t)(0x80 + i), 0));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[1]) << "GCSkillInfo: the record list is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE * 2 + 256 * (szBYTE + szSkillDomainType + szBYTE)), body.size())
-        << "GCSkillInfo: write() no longer emits the records the count byte cannot describe";
+    EXPECT_EQ((int)GCSkillInfo::kMaxRecords, (int)body[1]);
+    EXPECT_EQ((size_t)(szBYTE * 2 + GCSkillInfo::kMaxRecords * (szBYTE + szSkillDomainType + szBYTE)), body.size());
     EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+
+    SlayerSkillInfo* pExtra = makeSlayerRecord(false, 0x90, 0);
+    EXPECT_THROW(packet.addListElement(pExtra), InvalidProtocolException);
+    delete pExtra;
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCSkillInfoFactory's maximum is one SlayerSkillInfo and nothing else:
-// it budgets neither the pc type byte nor the record count byte, and no
-// second record, although a slayer's book carries one per domain.
-TEST(GCSkillInfoTest, theFactoryMaxBudgetsOneRecordAndNeitherHeaderByte) {
+// A book that declares more records than there are domains is refused
+// rather than read past the buffer the receiver sized for it.
+TEST(GCSkillInfoTest, aBookThatDeclaresMoreRecordsThanThereAreDomainsIsRefused) {
+    GCSkillInfo dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)PC_SLAYER);
+                         out.write((BYTE)(GCSkillInfo::kMaxRecords + 1));
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
+// The factory max budgets the pc type byte, the record count byte and
+// one record per domain, the widest of which is a slayer's.
+TEST(GCSkillInfoTest, theFactoryMaxBudgetsTheHeaderAndOneRecordPerDomain) {
     GCSkillInfoFactory factory;
-    EXPECT_EQ((PacketSize_t)SlayerSkillInfo::getMaxSize(), factory.getPacketMaxSize())
-        << "GCSkillInfo: the factory max now budgets more than a bare record - drop this test";
+    EXPECT_EQ((PacketSize_t)(szBYTE + szBYTE + GCSkillInfo::kMaxRecords * SlayerSkillInfo::getMaxSize()),
+              factory.getPacketMaxSize());
+    EXPECT_GE(SlayerSkillInfo::getMaxSize(), VampireSkillInfo::getMaxSize());
+    EXPECT_GE(SlayerSkillInfo::getMaxSize(), OustersSkillInfo::getMaxSize());
 
     GCSkillInfo packet;
     packet.setPCType(PC_SLAYER);
-    packet.addListElement(makeSlayerRecord(true, 0x81, 255));
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCSkillInfo: one full record now fits the read buffer the receiver sizes for it";
+    for (size_t i = 0; i < GCSkillInfo::kMaxRecords; i++)
+        packet.addListElement(makeSlayerRecord(true, (SkillDomainType_t)(0x80 + i), (int)SlayerSkillInfo::kMaxSkills));
+
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The three race records keep their skill count in a BYTE the caller
-// sets by hand while addListElement leaves it alone, so write() emits
-// that count and then the whole list: the skills past the count are sent
-// and never consumed, and getPacketSize() counts them.
-TEST(GCSkillInfoTest, theSkillCountIsMaintainedByHand) {
+// The skill count each race record emits is the list itself, so every
+// skill write() sends is one the reader consumes.
+TEST(GCSkillInfoTest, theSkillCountFollowsTheList) {
     GCSkillInfo packet;
     packet.setPCType(PC_SLAYER);
-    SlayerSkillInfo* pRecord = makeSlayerRecord(true, 0x81, 2);
-    pRecord->setListNum(1);
-    packet.addListElement(pRecord);
+    packet.addListElement(makeSlayerRecord(true, 0x81, 2));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     const size_t countOffset = szBYTE * 2 + szBYTE + szSkillDomainType;
-    EXPECT_EQ(1, (int)body[countOffset]) << "GCSkillInfo: the skill count now follows the list - drop this test";
-    EXPECT_EQ((size_t)(countOffset + szBYTE + 2 * SubSlayerSkillInfo::getMaxSize()), body.size())
-        << "GCSkillInfo: write() no longer emits the skills the count byte does not describe";
+    EXPECT_EQ(2, (int)body[countOffset]);
+    EXPECT_EQ((size_t)(countOffset + szBYTE + 2 * SubSlayerSkillInfo::getMaxSize()), body.size());
     EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCSkillInfo dst;
     roundTrip(packet, dst, kPlainCode);
     PCSkillInfo* pRead = dst.popFrontListElement();
     ASSERT_TRUE(pRead != NULL);
-    EXPECT_EQ((PacketSize_t)(szBYTE + szSkillDomainType + szBYTE + SubSlayerSkillInfo::getMaxSize()), pRead->getSize())
-        << "GCSkillInfo: the second skill now reaches the reader";
+    EXPECT_EQ((PacketSize_t)(szBYTE + szSkillDomainType + szBYTE + 2 * SubSlayerSkillInfo::getMaxSize()),
+              pRead->getSize());
     delete pRead;
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCSkillInfo::read appends to the record list the packet already holds
-// instead of replacing it, so a reused packet grows by one book per read.
-TEST(GCSkillInfoTest, aSecondReadAppendsToTheBookItAlreadyHolds) {
+// Each race record's list stops at the skills its own max budgets.
+TEST(SkillRecordTest, theSlayerRecordStopsAtTheSkillsItsMaxBudgets) {
+    SlayerSkillInfo* pRecord = makeSlayerRecord(true, 0x81, (int)SlayerSkillInfo::kMaxSkills);
+    EXPECT_EQ((int)SlayerSkillInfo::kMaxSkills, (int)pRecord->getListNum());
+    EXPECT_EQ((PacketSize_t)SlayerSkillInfo::getMaxSize(), pRecord->getSize());
+
+    SubSlayerSkillInfo* pExtra = makeSlayerSkill(0x92A3, 0x94A5B6C7, 0x98A9, 0x9AABBCCD, 0x9EAFB0C1, true);
+    EXPECT_THROW(pRecord->addListElement(pExtra), InvalidProtocolException);
+    delete pExtra;
+    delete pRecord;
+}
+
+TEST(SkillRecordTest, theVampireRecordStopsAtTheSkillsItsMaxBudgets) {
+    VampireSkillInfo* pRecord = makeVampireRecord(true, (int)VampireSkillInfo::kMaxSkills);
+    EXPECT_EQ((int)VampireSkillInfo::kMaxSkills, (int)pRecord->getListNum());
+    EXPECT_EQ((PacketSize_t)VampireSkillInfo::getMaxSize(), pRecord->getSize());
+
+    SubVampireSkillInfo* pExtra = makeVampireSkill(0xA2B3, 0xA4B5C6D7, 0xA8B9CADB);
+    EXPECT_THROW(pRecord->addListElement(pExtra), InvalidProtocolException);
+    delete pExtra;
+    delete pRecord;
+
+    VampireSkillInfo record;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)1);
+                         out.write((BYTE)(VampireSkillInfo::kMaxSkills + 1));
+                     },
+                     [&record](SocketEncryptInputStream& in) { record.read(in); }),
+                 InvalidProtocolException);
+}
+
+TEST(SkillRecordTest, theOustersRecordStopsAtTheSkillsItsMaxBudgets) {
+    OustersSkillInfo* pRecord = makeOustersRecord(true, (int)OustersSkillInfo::kMaxSkills);
+    EXPECT_EQ((int)OustersSkillInfo::kMaxSkills, (int)pRecord->getListNum());
+    EXPECT_EQ((PacketSize_t)OustersSkillInfo::getMaxSize(), pRecord->getSize());
+
+    SubOustersSkillInfo* pExtra = makeOustersSkill(0xB2C3, 0xB4C5, 0xB6C7D8E9, 0xBACBDCED);
+    EXPECT_THROW(pRecord->addListElement(pExtra), InvalidProtocolException);
+    delete pExtra;
+    delete pRecord;
+
+    OustersSkillInfo record;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)1);
+                         out.write((BYTE)(OustersSkillInfo::kMaxSkills + 1));
+                     },
+                     [&record](SocketEncryptInputStream& in) { record.read(in); }),
+                 InvalidProtocolException);
+}
+
+// The learn flag of a race record and the enable flag of a slayer skill
+// are bools, so a byte that is neither 0 nor 1 is refused rather than
+// stored in one.
+TEST(SkillRecordTest, aLearnFlagThatIsNeitherZeroNorOneIsRefused) {
+    SlayerSkillInfo record;
+    EXPECT_THROW(throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)0x81); },
+                                 [&record](SocketEncryptInputStream& in) { record.read(in); }),
+                 InvalidProtocolException);
+}
+
+TEST(SkillRecordTest, anEnableFlagThatIsNeitherZeroNorOneIsRefused) {
+    SubSlayerSkillInfo skill;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((SkillType_t)0x92A3);
+                         out.write((Exp_t)0x94A5B6C7);
+                         out.write((ExpLevel_t)0x98A9);
+                         out.write((Turn_t)0x9AABBCCD);
+                         out.write((Turn_t)0x9EAFB0C1);
+                         out.write((BYTE)0x81);
+                     },
+                     [&skill](SocketEncryptInputStream& in) { skill.read(in); }),
+                 InvalidProtocolException);
+}
+
+// write() announces only the three pc types read() builds a record for,
+// so a book that goes out reads back.
+TEST(GCSkillInfoTest, aPCTypeNoBranchBuildsIsRefused) {
+    GCSkillInfo packet;
+    EXPECT_THROW(packet.setPCType(0x81), InvalidProtocolException);
+    EXPECT_EQ((int)PC_SLAYER, (int)packet.getPCType());
+
+    GCSkillInfo dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)0x81);
+                         out.write((BYTE)0);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
+// The book a read produces replaces the one the packet held, so a reused
+// packet holds one book however many it has parsed.
+TEST(GCSkillInfoTest, aSecondReadReplacesTheBookItAlreadyHolds) {
     GCSkillInfo src;
     fill(src);
     const PacketSize_t oneBook = src.getPacketSize();
@@ -1165,79 +1249,108 @@ TEST(GCSkillInfoTest, aSecondReadAppendsToTheBookItAlreadyHolds) {
     GCSkillInfo second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ((int)(oneBook * 2 - szBYTE * 2), (int)dst.getPacketSize())
-        << "GCSkillInfo::read() now replaces the record list - drop this test and pin the replacement";
+    EXPECT_EQ((int)oneBook, (int)dst.getPacketSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// write() emits any pc type byte while read() refuses every one that is
-// not PC_SLAYER, PC_VAMPIRE or PC_OUSTERS, so a book announced with any
-// other type is written and cannot be read back.
-TEST(GCSkillInfoTest, aPCTypeNoBranchBuildsIsWrittenAndCannotBeReadBack) {
-    GCSkillInfo packet;
-    packet.setPCType(0x81);
-
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)(szBYTE * 2), body.size());
-    EXPECT_EQ(0x81, (int)body[0]);
-    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
-
-    GCSkillInfo dst;
-    EXPECT_THROW(roundTrip(packet, dst, kPlainCode), InvalidProtocolException)
-        << "GCSkillInfo: an unknown pc type now reads back - drop this test and pin the refusal";
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// The three counted-list packets derive their count byte from the list
-// and cap nothing, so the 256th entry wraps the count to zero and the
-// body outgrows the factory max.
-TEST(GCRankBonusInfoTest, theEntryCountWrapsAtTwoHundredAndFiftySix) {
+// The three counted-list packets stop at the entries their factory
+// maxima budget, in the adder, in write() and in read().
+TEST(GCRankBonusInfoTest, theListStopsAtTheWidthTheFactoryMaxBudgets) {
     GCRankBonusInfo packet;
-    for (int i = 0; i < 256; i++)
+    for (size_t i = 0; i < GCRankBonusInfo::kMaxEntries; i++)
         packet.addListElement((DWORD)(0x81A2B3C4 + i));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "GCRankBonusInfo: the list is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + 256 * szDWORD), body.size());
+    EXPECT_EQ((int)GCRankBonusInfo::kMaxEntries, (int)body[0]);
+    EXPECT_EQ((size_t)(szBYTE + GCRankBonusInfo::kMaxEntries * szDWORD), body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCRankBonusInfoFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCRankBonusInfo: the list now fits the factory max";
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize());
+
+    EXPECT_THROW(packet.addListElement(0x81A2B3C4), InvalidProtocolException);
+
+    GCRankBonusInfo dst;
+    EXPECT_THROW(
+        throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)(GCRankBonusInfo::kMaxEntries + 1)); },
+                        [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+        InvalidProtocolException);
 }
 
-TEST(GCSweeperBonusInfoTest, theEntryCountWrapsAtTwoHundredAndFiftySix) {
+TEST(GCSweeperBonusInfoTest, theListStopsAtTheWidthTheFactoryMaxBudgets) {
     GCSweeperBonusInfo packet;
-    for (int i = 0; i < 256; i++)
-        packet.addSweeperBonusInfo(makeSweeperBonus((BYTE)i, (BYTE)i));
+    for (size_t i = 0; i < GCSweeperBonusInfo::kMaxEntries; i++)
+        packet.addSweeperBonusInfo(makeSweeperBonus((BYTE)(0x81 + i)));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "GCSweeperBonusInfo: the list is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + 256 * SweeperBonusInfo::getMaxSize()), body.size());
+    EXPECT_EQ((int)GCSweeperBonusInfo::kMaxEntries, (int)body[0]);
+    EXPECT_EQ((size_t)(szBYTE + GCSweeperBonusInfo::kMaxEntries * SweeperBonusInfo::getMaxSize()), body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCSweeperBonusInfoFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCSweeperBonusInfo: the list now fits the factory max";
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize());
+
+    SweeperBonusInfo* pExtra = makeSweeperBonus(0x81);
+    EXPECT_THROW(packet.addSweeperBonusInfo(pExtra), InvalidProtocolException);
+    delete pExtra;
+
+    GCSweeperBonusInfo dst;
+    EXPECT_THROW(
+        throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)(GCSweeperBonusInfo::kMaxEntries + 1)); },
+                        [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+        InvalidProtocolException);
 }
 
-TEST(GCHolyLandBonusInfoTest, theEntryCountWrapsAtTwoHundredAndFiftySix) {
+TEST(GCHolyLandBonusInfoTest, theListStopsAtTheWidthTheFactoryMaxBudgets) {
     GCHolyLandBonusInfo packet;
-    for (int i = 0; i < 256; i++)
-        packet.addBloodBibleBonusInfo(makeHolyLandBonus((BYTE)i, (BYTE)i));
+    for (size_t i = 0; i < GCHolyLandBonusInfo::kMaxEntries; i++)
+        packet.addBloodBibleBonusInfo(makeHolyLandBonus((BYTE)(0x87 + i)));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "GCHolyLandBonusInfo: the list is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + 256 * BloodBibleBonusInfo::getMaxSize()), body.size());
+    EXPECT_EQ((int)GCHolyLandBonusInfo::kMaxEntries, (int)body[0]);
+    EXPECT_EQ((size_t)(szBYTE + GCHolyLandBonusInfo::kMaxEntries * BloodBibleBonusInfo::getMaxSize()), body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCHolyLandBonusInfoFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCHolyLandBonusInfo: the list now fits the factory max";
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize());
+
+    BloodBibleBonusInfo* pExtra = makeHolyLandBonus(0x87);
+    EXPECT_THROW(packet.addBloodBibleBonusInfo(pExtra), InvalidProtocolException);
+    delete pExtra;
+
+    GCHolyLandBonusInfo dst;
+    EXPECT_THROW(
+        throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)(GCHolyLandBonusInfo::kMaxEntries + 1)); },
+                        [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+        InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The four list packets read into whatever the packet already holds
-// instead of replacing it, so a reused packet grows by one listing per
-// read.
-TEST(GCRankBonusInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+// GCBloodBibleList takes its list through getList(), so the bound sits
+// in write() and in read() rather than in an adder.
+TEST(GCBloodBibleListTest, theListStopsAtTheWidthTheFactoryMaxBudgets) {
+    GCBloodBibleList packet;
+    for (size_t i = 0; i < GCBloodBibleList::kMaxEntries; i++)
+        packet.getList().push_back((ItemType_t)(0x81A2 + i));
+
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    EXPECT_EQ((int)GCBloodBibleList::kMaxEntries, (int)body[0]);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+
+    GCBloodBibleListFactory factory;
+    EXPECT_EQ(factory.getPacketMaxSize(), packet.getPacketSize());
+
+    packet.getList().push_back(0x81A2);
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
+
+    GCBloodBibleList dst;
+    EXPECT_THROW(
+        throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)(GCBloodBibleList::kMaxEntries + 1)); },
+                        [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+        InvalidProtocolException);
+}
+
+// The four list packets replace what they hold on every read, so a
+// reused packet holds one listing however many it has parsed.
+TEST(GCRankBonusInfoTest, aSecondReadReplacesTheListItAlreadyHolds) {
     GCRankBonusInfo src;
     fill(src);
 
@@ -1248,11 +1361,10 @@ TEST(GCRankBonusInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
     GCRankBonusInfo second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(10, (int)dst.getListNum())
-        << "GCRankBonusInfo::read() now replaces the list - drop this test and pin the replacement";
+    EXPECT_EQ(5, (int)dst.getListNum());
 }
 
-TEST(GCSweeperBonusInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+TEST(GCSweeperBonusInfoTest, aSecondReadReplacesTheListItAlreadyHolds) {
     GCSweeperBonusInfo src;
     fill(src);
 
@@ -1263,11 +1375,10 @@ TEST(GCSweeperBonusInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
     GCSweeperBonusInfo second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(6, (int)dst.getListNum())
-        << "GCSweeperBonusInfo::read() now replaces the list - drop this test and pin the replacement";
+    EXPECT_EQ(3, (int)dst.getListNum());
 }
 
-TEST(GCHolyLandBonusInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+TEST(GCHolyLandBonusInfoTest, aSecondReadReplacesTheListItAlreadyHolds) {
     GCHolyLandBonusInfo src;
     fill(src);
 
@@ -1278,11 +1389,10 @@ TEST(GCHolyLandBonusInfoTest, aSecondReadAppendsToTheListItAlreadyHolds) {
     GCHolyLandBonusInfo second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(6, (int)dst.getListNum())
-        << "GCHolyLandBonusInfo::read() now replaces the list - drop this test and pin the replacement";
+    EXPECT_EQ(3, (int)dst.getListNum());
 }
 
-TEST(GCBloodBibleListTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+TEST(GCBloodBibleListTest, aSecondReadReplacesTheListItAlreadyHolds) {
     GCBloodBibleList src;
     fill(src);
 
@@ -1293,39 +1403,75 @@ TEST(GCBloodBibleListTest, aSecondReadAppendsToTheListItAlreadyHolds) {
     GCBloodBibleList second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(8u, dst.getList().size())
-        << "GCBloodBibleList::read() now replaces the list - drop this test and pin the replacement";
+    EXPECT_EQ(4u, dst.getList().size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// SweeperBonusInfo and BloodBibleBonusInfo write and read only their
-// race byte: the type byte and the option list are commented out on both
-// sides, so the type both managers set on every record never reaches the
-// wire.
-TEST(GCSweeperBonusInfoTest, theRecordTypeNeverReachesTheWire) {
-    GCSweeperBonusInfo quiet;
-    quiet.addSweeperBonusInfo(makeSweeperBonus(0x00, 0x81));
+// Both standing-bonus records are a race byte and nothing else, which is
+// what the client reads, so their size functions budget exactly that.
+TEST(GCSweeperBonusInfoTest, theRecordIsTheRaceByte) {
+    GCSweeperBonusInfo packet;
+    packet.addSweeperBonusInfo(makeSweeperBonus(0x81));
 
-    GCSweeperBonusInfo loud;
-    loud.addSweeperBonusInfo(makeSweeperBonus(0xFF, 0x81));
-
-    EXPECT_EQ(writeBody(quiet, kPlainCode), writeBody(loud, kPlainCode))
-        << "SweeperBonusInfo: the type now reaches the wire - drop this test and pin it";
-    EXPECT_EQ((uint)szBYTE, SweeperBonusInfo::getMaxSize())
-        << "SweeperBonusInfo: the record now budgets more than the race byte";
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    ASSERT_EQ((size_t)(szBYTE + szBYTE), body.size());
+    EXPECT_EQ(1, (int)body[0]);
+    EXPECT_EQ(0x81, (int)body[1]);
+    EXPECT_EQ((uint)szBYTE, SweeperBonusInfo::getMaxSize());
 }
 
-TEST(GCHolyLandBonusInfoTest, theRecordTypeNeverReachesTheWire) {
-    GCHolyLandBonusInfo quiet;
-    quiet.addBloodBibleBonusInfo(makeHolyLandBonus(0x00, 0x87));
+TEST(GCHolyLandBonusInfoTest, theRecordIsTheRaceByte) {
+    GCHolyLandBonusInfo packet;
+    packet.addBloodBibleBonusInfo(makeHolyLandBonus(0x87));
 
-    GCHolyLandBonusInfo loud;
-    loud.addBloodBibleBonusInfo(makeHolyLandBonus(0xFF, 0x87));
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    ASSERT_EQ((size_t)(szBYTE + szBYTE), body.size());
+    EXPECT_EQ(1, (int)body[0]);
+    EXPECT_EQ(0x87, (int)body[1]);
+    EXPECT_EQ((uint)szBYTE, BloodBibleBonusInfo::getMaxSize());
+}
 
-    EXPECT_EQ(writeBody(quiet, kPlainCode), writeBody(loud, kPlainCode))
-        << "BloodBibleBonusInfo: the type now reaches the wire - drop this test and pin it";
-    EXPECT_EQ((uint)szBYTE, BloodBibleBonusInfo::getMaxSize())
-        << "BloodBibleBonusInfo: the record now budgets more than the race byte";
+// A sender hands GCBloodBibleSignInfo the character's own record and
+// keeps it; only the record read() allocates belongs to the packet, and
+// a second read frees the first.
+TEST(GCBloodBibleSignInfoTest, theSenderKeepsTheRecordItHandsOver) {
+    BloodBibleSignInfo record;
+    record.setOpenNum(0x94A5B6C7);
+
+    {
+        GCBloodBibleSignInfo packet;
+        packet.setSignInfo(&record);
+        EXPECT_EQ(&record, packet.getSignInfo());
+    }
+
+    EXPECT_EQ(0x94A5B6C7u, record.getOpenNum());
+}
+
+TEST(GCBloodBibleSignInfoTest, aSecondReadReplacesTheRecordItAllocated) {
+    SignInfoFixture first(0x94A5B6C7, 3);
+    SignInfoFixture second(0x9CADBECF, 1);
+
+    GCBloodBibleSignInfo dst;
+    roundTrip(first.packet, dst, kPlainCode);
+    ASSERT_TRUE(dst.getSignInfo() != NULL);
+    ASSERT_EQ(3u, dst.getSignInfo()->getList().size());
+
+    roundTrip(second.packet, dst, kPlainCode);
+    ASSERT_TRUE(dst.getSignInfo() != NULL);
+    EXPECT_EQ(0x9CADBECFu, dst.getSignInfo()->getOpenNum());
+    EXPECT_EQ(1u, dst.getSignInfo()->getList().size());
+}
+
+// A record that declares more signs than the six slots write() emits is
+// refused rather than read past the budget.
+TEST(GCBloodBibleSignInfoTest, aRecordThatDeclaresMoreSignsThanThereAreSlotsIsRefused) {
+    BloodBibleSignInfo record;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((uint)0x94A5B6C7);
+                         out.write((BYTE)(BLOOD_BIBLE_SIGN_SLOT_NUM + 1));
+                     },
+                     [&record](SocketEncryptInputStream& in) { record.read(in); }),
+                 InvalidProtocolException);
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1349,43 +1495,31 @@ template <typename PacketType> void expectEveryMemberIsInitialised(const char* w
         << what << ": its default constructor leaves a member write() emits uninitialised";
 }
 
-// FINDING, stated as a test that fails once it is fixed. Each of these
-// puts an indeterminate byte on the wire when a sender skips a setter.
-template <typename PacketType> void expectAMemberIsLeftUninitialised(const char* what) {
-    EXPECT_NE(bodyOverPoison<PacketType>(0x00), bodyOverPoison<PacketType>(0xFF))
-        << what
-        << ": its default constructor now initialises every member write() emits - move it to the "
-           "initialised list";
-}
-
 TEST(SkillConstructorTest, thePacketsThatInitialiseEveryMemberTheyWrite) {
+    expectEveryMemberIsInitialised<CGLearnSkill>("CGLearnSkill");
+    expectEveryMemberIsInitialised<CGDownSkill>("CGDownSkill");
+    expectEveryMemberIsInitialised<CGCastingSkill>("CGCastingSkill");
+    expectEveryMemberIsInitialised<CGUseBonusPoint>("CGUseBonusPoint");
+    expectEveryMemberIsInitialised<CGSelectRankBonus>("CGSelectRankBonus");
+    expectEveryMemberIsInitialised<CGSelectBloodBible>("CGSelectBloodBible");
+    expectEveryMemberIsInitialised<GCSkillInfo>("GCSkillInfo");
+    expectEveryMemberIsInitialised<GCTeachSkillInfo>("GCTeachSkillInfo");
+    expectEveryMemberIsInitialised<GCLearnSkillOK>("GCLearnSkillOK");
+    expectEveryMemberIsInitialised<GCLearnSkillFailed>("GCLearnSkillFailed");
+    expectEveryMemberIsInitialised<GCLearnSkillReady>("GCLearnSkillReady");
+    expectEveryMemberIsInitialised<GCDownSkillOK>("GCDownSkillOK");
+    expectEveryMemberIsInitialised<GCDownSkillFailed>("GCDownSkillFailed");
+    expectEveryMemberIsInitialised<GCCastingSkill>("GCCastingSkill");
     expectEveryMemberIsInitialised<GCUseBonusPointOK>("GCUseBonusPointOK");
+    expectEveryMemberIsInitialised<GCUsePowerPointResult>("GCUsePowerPointResult");
     expectEveryMemberIsInitialised<GCRequestPowerPointResult>("GCRequestPowerPointResult");
     expectEveryMemberIsInitialised<GCRankBonusInfo>("GCRankBonusInfo");
+    expectEveryMemberIsInitialised<GCSelectRankBonusOK>("GCSelectRankBonusOK");
+    expectEveryMemberIsInitialised<GCSelectRankBonusFailed>("GCSelectRankBonusFailed");
     expectEveryMemberIsInitialised<GCSweeperBonusInfo>("GCSweeperBonusInfo");
     expectEveryMemberIsInitialised<GCHolyLandBonusInfo>("GCHolyLandBonusInfo");
     expectEveryMemberIsInitialised<GCBloodBibleList>("GCBloodBibleList");
-}
-
-TEST(SkillConstructorTest, thePacketsThatDoNot) {
-    expectAMemberIsLeftUninitialised<CGLearnSkill>("CGLearnSkill");
-    expectAMemberIsLeftUninitialised<CGDownSkill>("CGDownSkill");
-    expectAMemberIsLeftUninitialised<CGCastingSkill>("CGCastingSkill");
-    expectAMemberIsLeftUninitialised<CGUseBonusPoint>("CGUseBonusPoint");
-    expectAMemberIsLeftUninitialised<CGSelectRankBonus>("CGSelectRankBonus");
-    expectAMemberIsLeftUninitialised<CGSelectBloodBible>("CGSelectBloodBible");
-    expectAMemberIsLeftUninitialised<GCSkillInfo>("GCSkillInfo");
-    expectAMemberIsLeftUninitialised<GCTeachSkillInfo>("GCTeachSkillInfo");
-    expectAMemberIsLeftUninitialised<GCLearnSkillOK>("GCLearnSkillOK");
-    expectAMemberIsLeftUninitialised<GCLearnSkillFailed>("GCLearnSkillFailed");
-    expectAMemberIsLeftUninitialised<GCLearnSkillReady>("GCLearnSkillReady");
-    expectAMemberIsLeftUninitialised<GCDownSkillOK>("GCDownSkillOK");
-    expectAMemberIsLeftUninitialised<GCDownSkillFailed>("GCDownSkillFailed");
-    expectAMemberIsLeftUninitialised<GCCastingSkill>("GCCastingSkill");
-    expectAMemberIsLeftUninitialised<GCUsePowerPointResult>("GCUsePowerPointResult");
-    expectAMemberIsLeftUninitialised<GCSelectRankBonusOK>("GCSelectRankBonusOK");
-    expectAMemberIsLeftUninitialised<GCSelectRankBonusFailed>("GCSelectRankBonusFailed");
-    expectAMemberIsLeftUninitialised<GCBloodBibleStatus>("GCBloodBibleStatus");
+    expectEveryMemberIsInitialised<GCBloodBibleStatus>("GCBloodBibleStatus");
 }
 
 // CGUsePowerPoint and GCUseBonusPointFail are in neither list: their
@@ -1395,45 +1529,37 @@ TEST(SkillConstructorTest, theBodylessMessagesWriteNothingAtAll) {
     EXPECT_TRUE(bodyOverPoison<GCUseBonusPointFail>(0xFF).empty());
 }
 
-// CGRequestPowerPoint and CGSkillToNamed are in neither list either:
-// their one text field is required non-empty, so the body a default
-// constructor leaves is refused rather than written.
+// Three more are in neither list either: two carry one text field that
+// is required non-empty and the third carries a record a sender must
+// hand it, so the body a default constructor leaves is refused rather
+// than written.
 template <typename PacketType> void expectTheDefaultBodyIsRefused(const char* what) {
     alignas(PacketType) unsigned char storage[sizeof(PacketType)];
     memset(storage, 0xFF, sizeof(storage));
     PacketType* pPacket = new (storage) PacketType();
     EXPECT_THROW(writeBody(*pPacket, kPlainCode), InvalidProtocolException)
-        << what << ": an empty text field now reaches the wire";
+        << what << ": an empty field now reaches the wire";
     pPacket->~PacketType();
 }
 
-TEST(SkillConstructorTest, theRequestsWhoseTextFieldIsRequired) {
+TEST(SkillConstructorTest, theMessagesWhoseFieldIsRequired) {
     expectTheDefaultBodyIsRefused<CGRequestPowerPoint>("CGRequestPowerPoint");
     expectTheDefaultBodyIsRefused<CGSkillToNamed>("CGSkillToNamed");
+    expectTheDefaultBodyIsRefused<GCBloodBibleSignInfo>("GCBloodBibleSignInfo");
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCBloodBibleSignInfo is in neither list because writing one over
-// poisoned storage would follow the record pointer its constructor
-// leaves alone. The pointer itself is pinned instead: both
-// getPacketSize() and write() dereference it, so a sender that skips
-// setSignInfo follows an indeterminate value.
-TEST(SkillConstructorTest, theSignInfoPointerIsLeftUninitialised) {
-    alignas(GCBloodBibleSignInfo) unsigned char zeroed[sizeof(GCBloodBibleSignInfo)];
-    memset(zeroed, 0x00, sizeof(zeroed));
-    GCBloodBibleSignInfo* pZeroed = new (zeroed) GCBloodBibleSignInfo();
-    BloodBibleSignInfo* pFromZero = pZeroed->getSignInfo();
-    pZeroed->~GCBloodBibleSignInfo();
+// GCBloodBibleSignInfo's record pointer starts empty whatever the
+// storage held, and both getPacketSize() and write() refuse on it.
+TEST(SkillConstructorTest, theSignInfoPointerStartsEmpty) {
+    alignas(GCBloodBibleSignInfo) unsigned char storage[sizeof(GCBloodBibleSignInfo)];
 
-    alignas(GCBloodBibleSignInfo) unsigned char poisoned[sizeof(GCBloodBibleSignInfo)];
-    memset(poisoned, 0xFF, sizeof(poisoned));
-    GCBloodBibleSignInfo* pPoisoned = new (poisoned) GCBloodBibleSignInfo();
-    BloodBibleSignInfo* pFromPoison = pPoisoned->getSignInfo();
-    pPoisoned->~GCBloodBibleSignInfo();
-
-    EXPECT_NE(pFromZero, pFromPoison)
-        << "GCBloodBibleSignInfo: its constructor now initialises the record pointer - move it to the "
-           "initialised list";
+    for (int pass = 0; pass < 2; pass++) {
+        memset(storage, pass == 0 ? 0x00 : 0xFF, sizeof(storage));
+        GCBloodBibleSignInfo* pPacket = new (storage) GCBloodBibleSignInfo();
+        EXPECT_TRUE(pPacket->getSignInfo() == NULL);
+        EXPECT_THROW(pPacket->getPacketSize(), InvalidProtocolException);
+        pPacket->~GCBloodBibleSignInfo();
+    }
 }
 
 } // namespace

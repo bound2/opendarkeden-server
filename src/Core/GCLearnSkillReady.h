@@ -66,7 +66,7 @@ public:
 
 private:
     // ½ºÅ³ Å¸ÀÔ
-    SkillDomainType_t m_SkillDomainType;
+    SkillDomainType_t m_SkillDomainType = 0;
 };
 
 

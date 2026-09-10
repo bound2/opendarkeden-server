@@ -2014,8 +2014,6 @@ void Vampire::sendVampireSkillInfo()
 
     VampireSkillInfo* pVampireSkillInfo = new VampireSkillInfo();
 
-    BYTE SkillCount = 0;
-
     // 현재 시간, 남은 캐스팅 타임을 계산하기 위해
     Timeval currentTime;
     getCurrentTime(currentTime);
@@ -2035,8 +2033,6 @@ void Vampire::sendVampireSkillInfo()
             pSubVampireSkillInfo->setCastingTime(pVampireSkillSlot->getRemainTurn(currentTime));
 
             pVampireSkillInfo->addListElement(pSubVampireSkillInfo);
-
-            SkillCount++;
         }
     }
 
@@ -2051,8 +2047,6 @@ void Vampire::sendVampireSkillInfo()
             pVampireSkillInfo->setLearnNewSkill(true);
         }
     }
-
-    pVampireSkillInfo->setListNum(SkillCount);
 
     gcSkillInfo.addListElement(pVampireSkillInfo);
 
