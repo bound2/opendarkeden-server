@@ -134,10 +134,9 @@
 //                 body that outgrows it is a truncated packet, not a
 //                 caught error.
 //
-//               GCMyStoreInfo, GCOtherStoreInfo and GCShopBuyFail get
-//               those pins written out by hand: the first two hold
-//               their record by pointer and need a fixture that owns
-//               it, and the third's declared size is a finding below.
+//               GCMyStoreInfo and GCOtherStoreInfo get those pins
+//               written out by hand: they hold their record by pointer
+//               and need a fixture that owns it.
 //
 //               Extra goldens cover the branches one fixture cannot:
 //               the item-bearing records are written with and without
@@ -152,8 +151,8 @@
 //               stall window (.noitem on GCAddStoreItem) and a pet slot
 //               holding a record with no pet in it (.petnone on
 //               GCPetStashList, PetInfo's own early return). The empty
-//               sign gets a golden too (.nosign on CGStoreSign), inside
-//               the finding below, because it cannot be read back.
+//               sign gets a golden too (.nosign on CGStoreSign), a bare
+//               zero length byte that reads back as an empty stall name.
 //
 //               Fixture values are distinct per field and >= 128 in
 //               every byte the width allows. Three groups cannot follow
@@ -163,57 +162,52 @@
 //               array or to select a branch; and GCShopVersion's rack
 //               type, which selects one of three version stamps.
 //
-//               Findings. Each is stated as a test that fails once the
-//               packet is fixed, except where noted:
+//               The write/read disagreements this set found are fixed,
+//               and the bounds section at the end pins what each one
+//               produces now:
 //
-//               - GCShopBuyFail::getPacketSize() counts the NPC id
-//                 alone while write() also emits the fail code and the
-//                 four-byte amount, and the factory max is the same
-//                 four bytes, so every refusal declares a body five
-//                 bytes shorter than it sends and overruns the read
-//                 buffer the receiver sized for it.
-//               - CGStoreSign writes the sign length into a BYTE it
-//                 derives by hand and caps nowhere, so a sign past the
-//                 80 bytes its factory max budgets is emitted whole,
-//                 and at 256 bytes the length byte wraps to zero while
-//                 the text still follows it.
-//               - CGStoreSign::write() emits an empty sign as a bare
-//                 zero length byte, but read() hands that zero to
-//                 SocketInputStream::read(string&, uint), which refuses
-//                 a zero length, so a stall named with an empty string
-//                 is written and cannot be read back.
-//               - StoreInfo::setSign caps nothing, and StoreInfo::write
-//                 bounds the sign at 255 while StoreInfo::getMaxSize
-//                 budgets 80, so a full stall whose sign is longer than
-//                 that makes GCMyStoreInfo and GCOtherStoreInfo outgrow
-//                 their factory max by the overage. StoreOutlook, the
-//                 sign's other carrier, does cut at 80 in its setter.
-//               - GCShopBought and GCShopBuyOK derive the option count
-//                 from the list and cap nothing, so the 256th option
-//                 wraps the count to zero and the body outgrows the
-//                 factory max, which budgets 255.
+//               - GCShopBuyFail declares the fail code and the
+//                 four-byte amount it sends behind the NPC id, and its
+//                 factory max budgets all three, where the size and the
+//                 max counted the id alone and every refusal overran
+//                 the buffer sized for it by five bytes.
+//               - CGStoreSign's sign goes through the de::wire helpers
+//                 at the 80 its factory max budgets, refused past that
+//                 in the setter as well, so its length byte cannot
+//                 wrap; an empty sign is admitted, so the bare zero
+//                 length byte write() emits reads back.
+//               - StoreInfo cuts its sign at the 80 its max size
+//                 budgets, the way StoreOutlook does, and bounds it
+//                 there on the wire, so a full stall hits the
+//                 GCMyStoreInfo and GCOtherStoreInfo maxima exactly.
 //               - GCShopBought, GCShopBuyOK, GCShopList and GCStashList
-//                 append to the option list a packet already holds
-//                 instead of replacing it, so a reused packet grows by
-//                 one listing per read. PCItemInfo::read, the record
-//                 the store packets use, clears first.
-//               - GCPetStashList never puts its code byte on the wire
-//                 although both pet handlers set it and its factory max
-//                 budgets a byte for it, so the answer the sender chose
-//                 is dropped and every body is one byte under the
-//                 declared maximum.
-//               - GCStashList keeps the sub-item count of each slot in
-//                 an array of its own while the records come from a
-//                 separate list, so a sub-item added through
-//                 getSubItems() leaves the count behind: write() emits
-//                 the stale count and then the whole list, and
-//                 getPacketSize() counts the stale one.
-//               - GCMyStoreInfo and GCOtherStoreInfo leave their
-//                 StoreInfo pointer uninitialised, so getPacketSize()
-//                 and write() dereference an indeterminate value when a
-//                 sender skips setStoreInfo.
+//                 hold their option lists to MAX_ITEM_OPTION_NUM, the
+//                 widest an item carries, in the adders, the setters,
+//                 write() and read(), and their factory maxima budget
+//                 that instead of 255 options.
+//               - The same four replace the list a packet already holds
+//                 on every read instead of appending to it, as
+//                 PCItemInfo::read does.
+//               - GCPetStashList carries the twenty slots and nothing
+//                 else, which is what the client's own reader takes:
+//                 the code byte no sender could deliver is gone, and
+//                 the factory max no longer budgets one.
+//               - GCStashList's sub-item count for each slot is the
+//                 list the records come from, held to the eight the max
+//                 budgets, so a sub-item added through getSubItems() is
+//                 counted, declared and sent.
+//               - GCMyStoreInfo and GCOtherStoreInfo start with an
+//                 empty record pointer and refuse in getPacketSize()
+//                 and write() rather than follow it.
+//               - Every one of the thirty-six initialises every member
+//                 its write() emits, pinned over poisoned storage.
+//                 CGStoreOpen, CGStoreClose and CGStashRequestBuy are
+//                 not in that list because their body is empty, and
+//                 GCMyStoreInfo and GCOtherStoreInfo because writing
+//                 one over poisoned storage reaches the record pointer,
+//                 which gets its own pin.
 //
-//               Three findings are recorded here rather than tested,
+//               Three findings are recorded here rather than fixed,
 //               because reaching them is undefined behaviour or has no
 //               observable wire effect:
 //
@@ -233,17 +227,6 @@
 //                 freeing what it held and the destructor frees the
 //                 slot record but not the PetInfo inside it, so both a
 //                 reused packet and a delivered one leak the pet.
-//
-//               Twenty-five of the thirty-six leave at least one member
-//               the default constructor never sets, so a packet sent
-//               without every setter called puts indeterminate bytes on
-//               the wire. The poisoned-storage pin at the end of the
-//               file asserts today's split. CGStoreOpen, CGStoreClose
-//               and CGStashRequestBuy are in neither list because their
-//               body is empty; GCMyStoreInfo and GCOtherStoreInfo are
-//               in neither because writing one over poisoned storage
-//               would follow the indeterminate record pointer, so they
-//               get a pin on the pointer itself instead.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -547,12 +530,9 @@ void expectEqual(CGStoreSign& a, CGStoreSign& b) {
 
 STORE_PACKET_TESTS(CGStoreSign)
 
-// FINDING, stated as a test that fails once it is fixed.
-// write() emits an empty sign as a bare zero length byte, but read()
-// hands that zero to SocketInputStream::read(string&, uint), which
-// refuses a zero length, so a stall named with an empty string is
-// written and cannot be read back.
-TEST(CGStoreSignTest, anEmptySignIsWrittenAndCannotBeReadBack) {
+// A stall named with an empty string goes out as a bare zero length
+// byte and comes back as one: the field admits an empty value.
+TEST(CGStoreSignTest, anEmptySignRoundTrips) {
     CGStoreSign packet;
     packet.setSign("");
 
@@ -563,8 +543,9 @@ TEST(CGStoreSignTest, anEmptySignIsWrittenAndCannotBeReadBack) {
     expectGolden("CGStoreSign.nosign", kPlainCode, body);
 
     CGStoreSign dst;
-    EXPECT_THROW(roundTrip(packet, dst, kPlainCode), InvalidProtocolException)
-        << "CGStoreSign: an empty sign now reads back - drop this test and pin the round trip";
+    dst.setSign("something the read must replace");
+    roundTrip(packet, dst, kPlainCode);
+    EXPECT_TRUE(dst.getSign().empty());
 }
 
 void fill(CGDisplayItem& packet) {
@@ -1143,23 +1124,7 @@ void expectEqual(GCShopBuyFail& a, GCShopBuyFail& b) {
     EXPECT_EQ(a.getAmount(), b.getAmount());
 }
 
-TEST(GCShopBuyFailTest, roundTripsThroughLoopback) {
-    GCShopBuyFail src;
-    fill(src);
-    GCShopBuyFail dst;
-    roundTrip(src, dst, kPlainCode);
-    expectEqual(src, dst);
-}
-
-TEST(GCShopBuyFailTest, bodyBytesMatchGolden) {
-    GCShopBuyFail packet;
-    fill(packet);
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    expectGolden("GCShopBuyFail", kPlainCode, body);
-    for (size_t i = 1; i < kEncryptCodeCount; i++)
-        EXPECT_EQ(body, writeBody(packet, kEncryptCodes[i]))
-            << "GCShopBuyFail now varies with the encrypt code - add per-code goldens";
-}
+STORE_PACKET_TESTS(GCShopBuyFail)
 
 void fill(GCShopSellOK& packet) {
     packet.setObjectID(0x84A5B6C7);
@@ -1543,7 +1508,6 @@ PetStashItemInfo* newPetStashItem(MonsterType_t creature, DWORD keepDays) {
 }
 
 void fill(GCPetStashList& packet) {
-    packet.setCode(0x81);
     std::vector<PetStashItemInfo*>& slots = packet.getPetStashItemInfos();
     slots[0] = newPetStashItem(0x82A3, 0x84A5B6C7);
     slots[MAX_PET_STASH - 1] = newPetStashItem(0x85A6, 0x87A8B9CA);
@@ -1565,9 +1529,8 @@ void expectEqual(GCPetStashList& a, GCPetStashList& b) {
 
 STORE_PACKET_TESTS(GCPetStashList)
 
-void fillPetStashEmpty(GCPetStashList& packet) {
-    packet.setCode(0x82);
-}
+// No slot occupied: twenty availability bytes and nothing behind them.
+void fillPetStashEmpty(GCPetStashList&) {}
 
 STORE_PACKET_VARIANT(GCPetStashList, empty, fillPetStashEmpty)
 
@@ -1583,44 +1546,41 @@ void fillPetStashNone(GCPetStashList& packet) {
 STORE_PACKET_VARIANT(GCPetStashList, petnone, fillPetStashNone)
 
 //////////////////////////////////////////////////////////////////////
-// Findings.
+// Bounds.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCShopBuyFail::getPacketSize() counts the NPC id alone while write()
-// also emits the fail code and the four-byte amount, and the factory max
-// is the same four bytes.
-TEST(GCShopBuyFailTest, theDeclaredSizeOmitsTheCodeAndTheAmount) {
+// The refusal declares the code and the four-byte amount it sends
+// behind the NPC id, and the factory max budgets all three.
+TEST(GCShopBuyFailTest, theDeclaredSizeCountsTheCodeAndTheAmount) {
     GCShopBuyFail packet;
     fill(packet);
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
 
-    EXPECT_EQ((size_t)szObjectID, (size_t)packet.getPacketSize())
-        << "GCShopBuyFail: the declared size now counts more than the NPC id - drop this test";
     EXPECT_EQ((size_t)(szObjectID + szBYTE + szuint), body.size());
-    EXPECT_LT((size_t)packet.getPacketSize(), body.size())
-        << "GCShopBuyFail: the declared size now matches write() - pin the agreement instead";
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCShopBuyFailFactory factory;
-    EXPECT_GT(body.size(), (size_t)factory.getPacketMaxSize()) << "GCShopBuyFail: the body now fits the factory max";
+    EXPECT_EQ((PacketSize_t)(szObjectID + szBYTE + szuint), factory.getPacketMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// CGStoreSign derives the sign's length byte by hand and caps nothing:
-// a sign past the 80 bytes its factory max budgets is emitted whole, and
-// at 256 the length byte wraps to zero while the text still follows it.
-TEST(CGStoreSignTest, theSignIsUncappedAndItsLengthByteWraps) {
-    CGStoreSign overBudget;
-    overBudget.setSign(std::string(MAX_SIGN_SIZE + 1, 's'));
+// The sign stops at the 80 bytes the factory max budgets, in the setter
+// and on the wire, so its length byte can never wrap.
+TEST(CGStoreSignTest, theSignStopsAtTheWidthTheFactoryMaxBudgets) {
+    CGStoreSign full;
+    full.setSign(std::string(MAX_SIGN_SIZE, 's'));
     CGStoreSignFactory factory;
-    EXPECT_GT(overBudget.getPacketSize(), factory.getPacketMaxSize())
-        << "CGStoreSign: the sign now fits the factory max";
+    EXPECT_EQ(full.getPacketSize(), factory.getPacketMaxSize());
 
-    CGStoreSign wrapped;
-    wrapped.setSign(std::string(256, 'w'));
-    const std::vector<unsigned char> body = writeBody(wrapped, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "CGStoreSign: the sign is now capped - drop this test";
-    EXPECT_EQ((size_t)szBYTE + 256, body.size());
+    const std::vector<unsigned char> body = writeBody(full, kPlainCode);
+    EXPECT_EQ((size_t)MAX_SIGN_SIZE, (size_t)body[0]);
+    EXPECT_EQ((size_t)szBYTE + MAX_SIGN_SIZE, body.size());
+
+    CGStoreSign dst;
+    roundTrip(full, dst, kPlainCode);
+    EXPECT_EQ(full.getSign(), dst.getSign());
+
+    EXPECT_THROW(full.setSign(std::string(MAX_SIGN_SIZE + 1, 's')), InvalidProtocolException);
+    EXPECT_THROW(full.setSign(std::string(256, 'w')), InvalidProtocolException);
 }
 
 // A stall filled to every budget its record's max size grants: twenty
@@ -1643,12 +1603,10 @@ void fillMaximalStoreInfo(StoreInfo& info) {
     }
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// StoreInfo::setSign caps nothing and StoreInfo::write bounds the sign at
-// 255 while StoreInfo::getMaxSize budgets 80, so a full stall whose sign
-// is longer than that outgrows the factory max by the overage.
-// StoreOutlook, the sign's other carrier, cuts at 80 in its setter.
-TEST(GCMyStoreInfoTest, aSignPastTheRecordBudgetOutgrowsTheFactoryMax) {
+// The stall record cuts its sign at the 80 its max size budgets, the
+// way the outlook record does, so a stall filled to every budget hits
+// the factory max exactly and never passes it.
+TEST(GCMyStoreInfoTest, theSignIsCutToTheRecordBudget) {
     MyStoreFixture f;
     fillMaximalStoreInfo(f.info);
     GCMyStoreInfoFactory factory;
@@ -1658,10 +1616,8 @@ TEST(GCMyStoreInfoTest, aSignPastTheRecordBudgetOutgrowsTheFactoryMax) {
         << "GCMyStoreInfo: a stall filled to every budget no longer hits the factory max exactly";
 
     f.info.setSign(std::string(MAX_SIGN_SIZE + 1, 's'));
-    EXPECT_EQ((size_t)MAX_SIGN_SIZE + 1, f.info.getSign().size())
-        << "StoreInfo::setSign now caps the sign - drop this test";
-    EXPECT_GT(f.packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCMyStoreInfo: the sign now fits the factory max";
+    EXPECT_EQ((size_t)MAX_SIGN_SIZE, f.info.getSign().size());
+    EXPECT_EQ(factory.getPacketMaxSize(), f.packet.getPacketSize());
 
     StoreOutlook outlook;
     outlook.setOpen(1);
@@ -1669,49 +1625,80 @@ TEST(GCMyStoreInfoTest, aSignPastTheRecordBudgetOutgrowsTheFactoryMax) {
     EXPECT_EQ((size_t)MAX_SIGN_SIZE, outlook.getSign().size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCShopBought derives its option count from the list and caps nothing,
-// so the 256th option wraps the count to zero and the body outgrows the
-// factory max, which budgets 255.
-TEST(GCShopBoughtTest, theOptionCountWrapsAndTheListOutgrowsTheFactoryMax) {
+// A full option list: the widest one an item carries, which is what the
+// factory maxima budget.
+std::list<OptionType_t> fullOptionList(size_t count) {
+    std::list<OptionType_t> options;
+    for (size_t i = 0; i < count; i++)
+        options.push_back((OptionType_t)(0x80 + (i & 0x7F)));
+    return options;
+}
+
+// The option list stops at the width the factory max budgets, in the
+// adder, in the setter and in write(), so the count byte cannot wrap
+// and a full list fits the read buffer exactly.
+TEST(GCShopBoughtTest, theOptionListStopsAtTheWidthTheFactoryMaxBudgets) {
     GCShopBought packet;
     fill(packet);
-    packet.setOptionType(std::list<OptionType_t>());
-    for (int i = 0; i < 256; i++)
-        packet.addOptionType((OptionType_t)(0x80 + (i & 0x7F)));
+    packet.setOptionType(fullOptionList(GCShopBought::kMaxOptionCount));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     const size_t countOffset = szObjectID + szShopVersion + szShopRackType + szBYTE + szObjectID + szBYTE + szItemType;
-    EXPECT_EQ(0, (int)body[countOffset]) << "GCShopBought: the option list is now capped - drop this test";
+    EXPECT_EQ((int)GCShopBought::kMaxOptionCount, (int)body[countOffset]);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCShopBoughtFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCShopBought: the option list now fits the factory max";
+    EXPECT_EQ(packet.getPacketSize(), factory.getPacketMaxSize());
+
+    EXPECT_THROW(packet.addOptionType(0x80), InvalidProtocolException);
+    EXPECT_THROW(packet.setOptionType(fullOptionList(GCShopBought::kMaxOptionCount + 1)), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed. The same shape
-// in GCShopBuyOK.
-TEST(GCShopBuyOKTest, theOptionCountWrapsAndTheListOutgrowsTheFactoryMax) {
+// The same shape in GCShopBuyOK.
+TEST(GCShopBuyOKTest, theOptionListStopsAtTheWidthTheFactoryMaxBudgets) {
     GCShopBuyOK packet;
     fill(packet);
-    packet.setOptionType(std::list<OptionType_t>());
-    for (int i = 0; i < 256; i++)
-        packet.addOptionType((OptionType_t)(0x80 + (i & 0x7F)));
+    packet.setOptionType(fullOptionList(GCShopBuyOK::kMaxOptionCount));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     const size_t countOffset = szObjectID + szShopVersion + szObjectID + szBYTE + szItemType;
-    EXPECT_EQ(0, (int)body[countOffset]) << "GCShopBuyOK: the option list is now capped - drop this test";
+    EXPECT_EQ((int)GCShopBuyOK::kMaxOptionCount, (int)body[countOffset]);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCShopBuyOKFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCShopBuyOK: the option list now fits the factory max";
+    EXPECT_EQ(packet.getPacketSize(), factory.getPacketMaxSize());
+
+    EXPECT_THROW(packet.addOptionType(0x80), InvalidProtocolException);
+    EXPECT_THROW(packet.setOptionType(fullOptionList(GCShopBuyOK::kMaxOptionCount + 1)), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The four packets that carry an option list read it into whatever the
-// packet already holds instead of replacing it, so a reused packet grows
-// by one listing per read.
-TEST(GCShopBoughtTest, aSecondReadAppendsToTheOptionListItAlreadyHolds) {
+// The two list packets hold every slot's option list to the same width;
+// a listing that declares more is refused rather than read into the
+// fixed slot behind it.
+TEST(GCShopListTest, aSlotOptionListPastTheWidthTheFactoryMaxBudgetsIsRefused) {
+    std::vector<ShopItemFixture> items = canonicalShopItems();
+    items[0].options.clear();
+    for (size_t i = 0; i < GCShopList::kMaxOptionCount + 1; i++)
+        items[0].options.push_back((OptionType_t)(0x80 + (i & 0x7F)));
+
+    GCShopList packet;
+    EXPECT_THROW(fillShopList(packet, items), InvalidProtocolException);
+}
+
+TEST(GCStashListTest, aSlotOptionListPastTheWidthTheFactoryMaxBudgetsIsRefused) {
+    std::vector<StashItemFixture> items = canonicalStashItems();
+    items[0].options.clear();
+    for (size_t i = 0; i < STASHITEM::kMaxOptionCount + 1; i++)
+        items[0].options.push_back((OptionType_t)(0x80 + (i & 0x7F)));
+
+    GCStashList packet;
+    EXPECT_THROW(fillStashList(packet, items), InvalidProtocolException);
+}
+
+// The four packets that carry an option list replace what they hold on
+// every read, so a reused packet holds one listing however many it has
+// parsed.
+TEST(GCShopBoughtTest, aSecondReadReplacesTheOptionListItAlreadyHolds) {
     GCShopBought src;
     fill(src);
 
@@ -1722,11 +1709,11 @@ TEST(GCShopBoughtTest, aSecondReadAppendsToTheOptionListItAlreadyHolds) {
     GCShopBought second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(4u, dst.getOptionType().size())
-        << "GCShopBought::read() now replaces the option list - drop this test and pin the replacement";
+    EXPECT_EQ(2u, dst.getOptionType().size());
+    EXPECT_EQ(second.getOptionType(), dst.getOptionType());
 }
 
-TEST(GCShopBuyOKTest, aSecondReadAppendsToTheOptionListItAlreadyHolds) {
+TEST(GCShopBuyOKTest, aSecondReadReplacesTheOptionListItAlreadyHolds) {
     GCShopBuyOK src;
     fill(src);
 
@@ -1737,11 +1724,11 @@ TEST(GCShopBuyOKTest, aSecondReadAppendsToTheOptionListItAlreadyHolds) {
     GCShopBuyOK second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(4u, dst.getOptionType().size())
-        << "GCShopBuyOK::read() now replaces the option list - drop this test and pin the replacement";
+    EXPECT_EQ(2u, dst.getOptionType().size());
+    EXPECT_EQ(second.getOptionType(), dst.getOptionType());
 }
 
-TEST(GCShopListTest, aSecondReadAppendsToTheOptionListItAlreadyHolds) {
+TEST(GCShopListTest, aSecondReadReplacesTheRackItAlreadyHolds) {
     GCShopList src;
     fill(src);
 
@@ -1752,11 +1739,11 @@ TEST(GCShopListTest, aSecondReadAppendsToTheOptionListItAlreadyHolds) {
     GCShopList second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(4u, dst.getShopItem(0).optionType.size())
-        << "GCShopList::read() now replaces the option list - drop this test and pin the replacement";
+    EXPECT_EQ(2u, dst.getShopItem(0).optionType.size());
+    expectEqual(second, dst);
 }
 
-TEST(GCStashListTest, aSecondReadAppendsToTheOptionListItAlreadyHolds) {
+TEST(GCStashListTest, aSecondReadReplacesTheStashItAlreadyHolds) {
     GCStashList src;
     fill(src);
 
@@ -1767,43 +1754,29 @@ TEST(GCStashListTest, aSecondReadAppendsToTheOptionListItAlreadyHolds) {
     GCStashList second;
     fill(second);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(4u, dst.getStashItem(0, 2).optionType.size())
-        << "GCStashList::read() now replaces the option list - drop this test and pin the replacement";
+    EXPECT_EQ(2u, dst.getStashItem(0, 2).optionType.size());
+    expectEqual(second, dst);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCPetStashList never puts its code byte on the wire although both pet
-// handlers set it and its factory max budgets a byte for it, so the
-// answer the sender chose is dropped and every body is one byte under
-// the declared maximum.
-TEST(GCPetStashListTest, theCodeNeverReachesTheWire) {
-    GCPetStashList quiet;
-    fill(quiet);
-    quiet.setCode(0);
-
-    GCPetStashList loud;
-    fill(loud);
-    loud.setCode(0xFF);
-
-    EXPECT_EQ(writeBody(quiet, kPlainCode), writeBody(loud, kPlainCode))
-        << "GCPetStashList: the code now reaches the wire - drop this test and pin it";
-
-    GCPetStashList dst;
-    roundTrip(loud, dst, kPlainCode);
-    EXPECT_NE(0xFF, (int)dst.getCode()) << "GCPetStashList: the code now survives a round trip";
+// The pet listing is the twenty slots and nothing else: the body is the
+// availability byte, the record and the keep days per slot, which is
+// what the client's own reader takes, and the factory max budgets
+// exactly that.
+TEST(GCPetStashListTest, theBodyIsTheSlotsAndTheFactoryMaxBudgetsThem) {
+    GCPetStashList packet;
+    fill(packet);
 
     GCPetStashListFactory factory;
-    EXPECT_EQ((PacketSize_t)(szBYTE + PetStashItemInfo::getPacketMaxSize() * MAX_PET_STASH), factory.getPacketMaxSize())
-        << "GCPetStashList: the factory max no longer budgets a byte the body never carries";
+    EXPECT_EQ((PacketSize_t)(PetStashItemInfo::getPacketMaxSize() * MAX_PET_STASH), factory.getPacketMaxSize());
+
+    GCPetStashList empty;
+    EXPECT_EQ((size_t)(szBYTE * MAX_PET_STASH), writeBody(empty, kPlainCode).size());
+    EXPECT_EQ((size_t)empty.getPacketSize(), writeBody(empty, kPlainCode).size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCStashList keeps each slot's sub-item count in an array of its own
-// while the records come from a separate list, so a sub-item added
-// through getSubItems() leaves the count behind: write() emits the stale
-// count and then the whole list, and getPacketSize() counts the stale
-// one.
-TEST(GCStashListTest, theSubItemCountIsMaintainedByHand) {
+// Each slot's sub-item count is the list the records come from, so a
+// sub-item added through getSubItems() is counted, declared and sent.
+TEST(GCStashListTest, theSubItemCountIsTheList) {
     GCStashList packet;
     fill(packet);
     ASSERT_EQ(2, (int)packet.getSubItemCount(0, 2));
@@ -1816,10 +1789,12 @@ TEST(GCStashListTest, theSubItemCountIsMaintainedByHand) {
     pExtra->setSlotID(0xB6);
     packet.getSubItems(0, 2).push_back(pExtra);
 
-    EXPECT_EQ(2, (int)packet.getSubItemCount(0, 2))
-        << "GCStashList: the sub-item count now follows the list - drop this test";
-    EXPECT_LT((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size())
-        << "GCStashList: the declared size now covers the whole sub-item list";
+    EXPECT_EQ(3, (int)packet.getSubItemCount(0, 2));
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    GCStashList dst;
+    roundTrip(packet, dst, kPlainCode);
+    EXPECT_EQ(3, (int)dst.getSubItemCount(0, 2));
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1843,57 +1818,43 @@ template <typename PacketType> void expectEveryMemberIsInitialised(const char* w
         << what << ": its default constructor leaves a member write() emits uninitialised";
 }
 
-// FINDING, stated as a test that fails once it is fixed. Each of these
-// puts an indeterminate byte on the wire when a sender skips a setter.
-template <typename PacketType> void expectAMemberIsLeftUninitialised(const char* what) {
-    EXPECT_NE(bodyOverPoison<PacketType>(0x00), bodyOverPoison<PacketType>(0xFF))
-        << what
-        << ": its default constructor now initialises every member write() emits - move it to the "
-           "initialised list";
-}
-
-TEST(StoreConstructorTest, thePacketsThatInitialiseEveryMemberTheyWrite) {
-    // CGStoreSign qualifies because its one member is a string, which
-    // is empty however the storage around it is poisoned.
+TEST(StoreConstructorTest, everyPacketInitialisesEveryMemberItWrites) {
+    // CGStoreSign qualifies through its one member, a string, which is
+    // empty however the storage around it is poisoned.
     expectEveryMemberIsInitialised<CGStoreSign>("CGStoreSign");
     expectEveryMemberIsInitialised<CGShopRequestSell>("CGShopRequestSell");
     expectEveryMemberIsInitialised<GCShopBuyOK>("GCShopBuyOK");
     expectEveryMemberIsInitialised<GCShopBuyFail>("GCShopBuyFail");
     expectEveryMemberIsInitialised<GCPetStashVerify>("GCPetStashVerify");
-    // GCPetStashList only qualifies because the one member its
-    // constructor leaves alone, the code byte, never reaches the wire.
     expectEveryMemberIsInitialised<GCPetStashList>("GCPetStashList");
+    expectEveryMemberIsInitialised<CGDisplayItem>("CGDisplayItem");
+    expectEveryMemberIsInitialised<CGUndisplayItem>("CGUndisplayItem");
+    expectEveryMemberIsInitialised<CGBuyStoreItem>("CGBuyStoreItem");
+    expectEveryMemberIsInitialised<CGRequestStoreInfo>("CGRequestStoreInfo");
+    expectEveryMemberIsInitialised<CGShopRequestList>("CGShopRequestList");
+    expectEveryMemberIsInitialised<CGShopRequestBuy>("CGShopRequestBuy");
+    expectEveryMemberIsInitialised<CGStashList>("CGStashList");
+    expectEveryMemberIsInitialised<CGStashDeposit>("CGStashDeposit");
+    expectEveryMemberIsInitialised<CGStashWithdraw>("CGStashWithdraw");
+    expectEveryMemberIsInitialised<CGMouseToStash>("CGMouseToStash");
+    expectEveryMemberIsInitialised<CGStashToMouse>("CGStashToMouse");
+    expectEveryMemberIsInitialised<CGDepositPet>("CGDepositPet");
+    expectEveryMemberIsInitialised<CGWithdrawPet>("CGWithdrawPet");
+    expectEveryMemberIsInitialised<GCAddStoreItem>("GCAddStoreItem");
+    expectEveryMemberIsInitialised<GCRemoveStoreItem>("GCRemoveStoreItem");
+    expectEveryMemberIsInitialised<GCShopList>("GCShopList");
+    expectEveryMemberIsInitialised<GCShopListMysterious>("GCShopListMysterious");
+    expectEveryMemberIsInitialised<GCShopBought>("GCShopBought");
+    expectEveryMemberIsInitialised<GCShopSellOK>("GCShopSellOK");
+    expectEveryMemberIsInitialised<GCShopSellFail>("GCShopSellFail");
+    expectEveryMemberIsInitialised<GCShopSold>("GCShopSold");
+    expectEveryMemberIsInitialised<GCShopVersion>("GCShopVersion");
+    expectEveryMemberIsInitialised<GCShopMarketCondition>("GCShopMarketCondition");
+    expectEveryMemberIsInitialised<GCStashList>("GCStashList");
+    expectEveryMemberIsInitialised<GCStashSell>("GCStashSell");
 }
 
-TEST(StoreConstructorTest, thePacketsThatDoNot) {
-    expectAMemberIsLeftUninitialised<CGDisplayItem>("CGDisplayItem");
-    expectAMemberIsLeftUninitialised<CGUndisplayItem>("CGUndisplayItem");
-    expectAMemberIsLeftUninitialised<CGBuyStoreItem>("CGBuyStoreItem");
-    expectAMemberIsLeftUninitialised<CGRequestStoreInfo>("CGRequestStoreInfo");
-    expectAMemberIsLeftUninitialised<CGShopRequestList>("CGShopRequestList");
-    expectAMemberIsLeftUninitialised<CGShopRequestBuy>("CGShopRequestBuy");
-    expectAMemberIsLeftUninitialised<CGStashList>("CGStashList");
-    expectAMemberIsLeftUninitialised<CGStashDeposit>("CGStashDeposit");
-    expectAMemberIsLeftUninitialised<CGStashWithdraw>("CGStashWithdraw");
-    expectAMemberIsLeftUninitialised<CGMouseToStash>("CGMouseToStash");
-    expectAMemberIsLeftUninitialised<CGStashToMouse>("CGStashToMouse");
-    expectAMemberIsLeftUninitialised<CGDepositPet>("CGDepositPet");
-    expectAMemberIsLeftUninitialised<CGWithdrawPet>("CGWithdrawPet");
-    expectAMemberIsLeftUninitialised<GCAddStoreItem>("GCAddStoreItem");
-    expectAMemberIsLeftUninitialised<GCRemoveStoreItem>("GCRemoveStoreItem");
-    expectAMemberIsLeftUninitialised<GCShopList>("GCShopList");
-    expectAMemberIsLeftUninitialised<GCShopListMysterious>("GCShopListMysterious");
-    expectAMemberIsLeftUninitialised<GCShopBought>("GCShopBought");
-    expectAMemberIsLeftUninitialised<GCShopSellOK>("GCShopSellOK");
-    expectAMemberIsLeftUninitialised<GCShopSellFail>("GCShopSellFail");
-    expectAMemberIsLeftUninitialised<GCShopSold>("GCShopSold");
-    expectAMemberIsLeftUninitialised<GCShopVersion>("GCShopVersion");
-    expectAMemberIsLeftUninitialised<GCShopMarketCondition>("GCShopMarketCondition");
-    expectAMemberIsLeftUninitialised<GCStashList>("GCStashList");
-    expectAMemberIsLeftUninitialised<GCStashSell>("GCStashSell");
-}
-
-// CGStoreOpen, CGStoreClose and CGStashRequestBuy are in neither list:
+// CGStoreOpen, CGStoreClose and CGStashRequestBuy are not in that list:
 // their body is empty, so there is nothing a constructor could leave.
 TEST(StoreConstructorTest, theBodylessRequestsWriteNothingAtAll) {
     EXPECT_TRUE(bodyOverPoison<CGStoreOpen>(0xFF).empty());
@@ -1901,32 +1862,25 @@ TEST(StoreConstructorTest, theBodylessRequestsWriteNothingAtAll) {
     EXPECT_TRUE(bodyOverPoison<CGStashRequestBuy>(0xFF).empty());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCMyStoreInfo and GCOtherStoreInfo are in neither list because writing
-// one over poisoned storage would follow the record pointer their
-// constructors leave alone. The pointer itself is pinned instead: both
-// getPacketSize() and write() dereference it, so a sender that skips
-// setStoreInfo follows an indeterminate value.
-template <typename PacketType> void expectTheStorePointerIsLeftUninitialised(const char* what) {
-    alignas(PacketType) unsigned char zeroed[sizeof(PacketType)];
-    memset(zeroed, 0x00, sizeof(zeroed));
-    PacketType* pZeroed = new (zeroed) PacketType();
-    StoreInfo* pFromZero = pZeroed->getStoreInfo();
-    pZeroed->~PacketType();
-
+// GCMyStoreInfo and GCOtherStoreInfo are not in it either: they hold the
+// stall record by pointer, which starts empty, and both getPacketSize()
+// and write() refuse rather than follow it, so a sender that skips
+// setStoreInfo is caught instead of reading an indeterminate value.
+template <typename PacketType> void expectTheStorePointerStartsEmpty(const char* what) {
     alignas(PacketType) unsigned char poisoned[sizeof(PacketType)];
     memset(poisoned, 0xFF, sizeof(poisoned));
-    PacketType* pPoisoned = new (poisoned) PacketType();
-    StoreInfo* pFromPoison = pPoisoned->getStoreInfo();
-    pPoisoned->~PacketType();
+    PacketType* pPacket = new (poisoned) PacketType();
 
-    EXPECT_NE(pFromZero, pFromPoison)
-        << what << ": its constructor now initialises the record pointer - move it to the initialised list";
+    EXPECT_TRUE(pPacket->getStoreInfo() == NULL) << what << ": its constructor leaves the record pointer alone";
+    EXPECT_THROW(pPacket->getPacketSize(), InvalidProtocolException);
+    EXPECT_THROW(writeBody(*pPacket, kPlainCode), InvalidProtocolException);
+
+    pPacket->~PacketType();
 }
 
-TEST(StoreConstructorTest, theStoreInfoPointerIsLeftUninitialised) {
-    expectTheStorePointerIsLeftUninitialised<GCMyStoreInfo>("GCMyStoreInfo");
-    expectTheStorePointerIsLeftUninitialised<GCOtherStoreInfo>("GCOtherStoreInfo");
+TEST(StoreConstructorTest, theStoreInfoPointerStartsEmptyAndIsRefused) {
+    expectTheStorePointerStartsEmpty<GCMyStoreInfo>("GCMyStoreInfo");
+    expectTheStorePointerStartsEmpty<GCOtherStoreInfo>("GCOtherStoreInfo");
 }
 
 } // namespace

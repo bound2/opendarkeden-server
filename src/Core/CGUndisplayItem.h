@@ -76,9 +76,9 @@ public:
     }
 
 private:
-    CoordInven_t m_X, m_Y;
-    ObjectID_t m_ItemObjectID;
-    BYTE m_Index;
+    CoordInven_t m_X = 0, m_Y = 0;
+    ObjectID_t m_ItemObjectID = 0;
+    BYTE m_Index = 0;
 };
 
 

@@ -55,9 +55,9 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;
-    BYTE m_Rack;
-    BYTE m_Index;
+    ObjectID_t m_ObjectID = 0;
+    BYTE m_Rack = 0;
+    BYTE m_Index = 0;
 };
 
 

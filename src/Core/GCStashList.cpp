@@ -14,18 +14,9 @@
 
 GCStashList::GCStashList()
 
-{
-    __BEGIN_TRY
+    {__BEGIN_TRY
 
-    for (int r = 0; r < STASH_RACK_MAX; r++) {
-        for (int i = 0; i < STASH_INDEX_MAX; i++) {
-            m_bExist[r][i] = false;
-            m_SubItemsCount[r][i] = 0;
-        }
-    }
-
-    __END_CATCH
-}
+         __END_CATCH}
 
 //////////////////////////////////////////////////////////////////////////////
 // destructor
@@ -61,6 +52,21 @@ void GCStashList::read(SocketInputStream& iStream)
     BYTE rack = 0;
     BYTE index = 0;
 
+    // The listing replaces the stash the packet holds.
+    for (int r = 0; r < STASH_RACK_MAX; r++) {
+        for (int s = 0; s < STASH_INDEX_MAX; s++) {
+            m_bExist[r][s] = false;
+            m_pItems[r][s] = _STASHITEM();
+
+            list<SubItemInfo*>::iterator itr = m_pSubItems[r][s].begin();
+            for (; itr != m_pSubItems[r][s].end(); itr++) {
+                SubItemInfo* pItemInfo = *itr;
+                SAFE_DELETE(pItemInfo);
+            }
+            m_pSubItems[r][s].clear();
+        }
+    }
+
     // 보관함의 갯수를 읽어들인다.
     iStream.read(m_StashNum);
 
@@ -78,6 +84,10 @@ void GCStashList::read(SocketInputStream& iStream)
 
         BYTE optionSize;
         iStream.read(optionSize);
+
+        if (optionSize > STASHITEM::kMaxOptionCount)
+            throw InvalidProtocolException("too many item options");
+
         for (int j = 0; j < optionSize; j++) {
             OptionType_t optionType;
             iStream.read(optionType);
@@ -91,8 +101,13 @@ void GCStashList::read(SocketInputStream& iStream)
         iStream.read(item.enchantLevel);
 
         // sub 아이템 정보를 읽어들인다.
-        iStream.read(m_SubItemsCount[rack][index]);
-        for (int s = 0; s < m_SubItemsCount[rack][index]; s++) {
+        BYTE subItemCount;
+        iStream.read(subItemCount);
+
+        if (subItemCount > kMaxSubItemCount)
+            throw InvalidProtocolException("too many sub items");
+
+        for (int s = 0; s < subItemCount; s++) {
             SubItemInfo* pSubItemInfo = new SubItemInfo();
             pSubItemInfo->read(iStream);
             m_pSubItems[rack][index].push_back(pSubItemInfo);
@@ -144,6 +159,9 @@ void GCStashList::write(SocketOutputStream& oStream) const
                 oStream.write(item.itemClass);
                 oStream.write(item.itemType);
 
+                if (item.optionType.size() > STASHITEM::kMaxOptionCount)
+                    throw InvalidProtocolException("too many item options");
+
                 BYTE optionSize = item.optionType.size();
                 oStream.write(optionSize);
                 list<OptionType_t>::const_iterator iOption;
@@ -159,12 +177,18 @@ void GCStashList::write(SocketOutputStream& oStream) const
                 oStream.write(item.enchantLevel);
 
                 // sub 아이템 정보를 쓴다.
-                oStream.write(m_SubItemsCount[r][i]);
+                if (m_pSubItems[r][i].size() > kMaxSubItemCount)
+                    throw InvalidProtocolException("too many sub items");
+
+                oStream.write((BYTE)m_pSubItems[r][i].size());
 
                 list<SubItemInfo*>::const_iterator itr = m_pSubItems[r][i].begin();
                 for (; itr != m_pSubItems[r][i].end(); itr++) {
-                    if (*itr)
-                        (*itr)->write(oStream);
+                    // The count is the list, so an entry with no record
+                    // would leave the body one record short of it.
+                    if (*itr == NULL)
+                        throw InvalidProtocolException("sub item record missing");
+                    (*itr)->write(oStream);
                 }
             }
         }
@@ -212,7 +236,7 @@ PacketSize_t GCStashList::getPacketSize() const
                 size += szBYTE;
 
                 // 벨트에 들어 있는 아이템의 크기
-                size += SubItemInfo::getSize() * m_SubItemsCount[r][i];
+                size += SubItemInfo::getSize() * m_pSubItems[r][i].size();
             }
         }
     }
@@ -304,13 +328,13 @@ list<SubItemInfo*>& GCStashList::getSubItems(BYTE rack, BYTE index)
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-BYTE GCStashList::getSubItemCount(BYTE rack, BYTE index)
+BYTE GCStashList::getSubItemCount(BYTE rack, BYTE index) const
 
 {
     __BEGIN_TRY
 
     Assert(rack < STASH_RACK_MAX && index < STASH_INDEX_MAX);
-    return m_SubItemsCount[rack][index];
+    return (BYTE)m_pSubItems[rack][index].size();
 
     __END_CATCH
 }

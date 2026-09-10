@@ -16,15 +16,15 @@
 #include "PacketFactory.h"
 
 typedef struct _SHOPLISTITEM {
-    bool bExist;
-    ObjectID_t objectID;
-    BYTE itemClass;
-    ItemType_t itemType;
+    bool bExist = false;
+    ObjectID_t objectID = 0;
+    BYTE itemClass = 0;
+    ItemType_t itemType = 0;
     list<OptionType_t> optionType;
-    Durability_t durability;
-    Silver_t silver;
-    Grade_t grade;
-    EnchantLevel_t enchantLevel;
+    Durability_t durability = 0;
+    Silver_t silver = 0;
+    Grade_t grade = 0;
+    EnchantLevel_t enchantLevel = 0;
 
 } SHOPLISTITEM;
 
@@ -36,6 +36,11 @@ class Item;
 
 class GCShopList : public Packet {
 public:
+    // The options one rack slot's item carries. The count travels in a
+    // BYTE and the widest option list an item holds is a code sheet's
+    // grid.
+    static constexpr uint kMaxOptionCount = MAX_ITEM_OPTION_NUM;
+
     GCShopList();
     virtual ~GCShopList();
 
@@ -99,13 +104,13 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;                       // NPC's object id
-    ShopVersion_t m_Version;                     // Shop version
-    ShopRackType_t m_RackType;                   // rack type
+    ObjectID_t m_ObjectID = 0;                   // NPC's object id
+    ShopVersion_t m_Version = 0;                 // Shop version
+    ShopRackType_t m_RackType = 0;               // rack type
     SHOPLISTITEM m_pBuffer[SHOP_RACK_INDEX_MAX]; // actual item info
-    MarketCond_t m_MarketCondBuy;                // 시장 시세
-    MarketCond_t m_MarketCondSell;               // 시장 시세
-    BYTE m_ShopType;                             // 상점의 종류 (일반 or 이벤트)
+    MarketCond_t m_MarketCondBuy = 0;            // market condition
+    MarketCond_t m_MarketCondSell = 0;           // market condition
+    BYTE m_ShopType = 0;                         // shop kind (ordinary or event)
 };
 
 
@@ -118,13 +123,13 @@ public:
     static constexpr std::string_view kName = "GCShopList";
     static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t unit = 0;
-        unit += szBYTE;       // shop rack index
-        unit += szObjectID;   // item object id
-        unit += szBYTE;       // item class
-        unit += szItemType;   // item type
-        unit += szBYTE + 255; // item option type
-        unit += szDurability; // item durability
-        unit += szSilver;     // silver coating amount
+        unit += szBYTE;                                              // shop rack index
+        unit += szObjectID;                                          // item object id
+        unit += szBYTE;                                              // item class
+        unit += szItemType;                                          // item type
+        unit += szBYTE + szOptionType * GCShopList::kMaxOptionCount; // item option type
+        unit += szDurability;                                        // item durability
+        unit += szSilver;                                            // silver coating amount
         unit += szGrade;
         unit += szEnchantLevel; // enchant level
 

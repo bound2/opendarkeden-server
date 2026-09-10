@@ -64,7 +64,9 @@ public:
         return PACKET_GC_SHOP_BUY_FAIL;
     }
     PacketSize_t getPacketSize() const {
-        return szObjectID;
+        return szObjectID + // NPC object id
+               szBYTE +     // fail code
+               szuint;      // the amount the refusal names
     }
     string getPacketName() const {
         return "GCShopBuyFail";
@@ -106,7 +108,9 @@ class GCShopBuyFailFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOP_BUY_FAIL;
     static constexpr std::string_view kName = "GCShopBuyFail";
-    static constexpr PacketSize_t kMaxSize{szObjectID};
+    static constexpr PacketSize_t kMaxSize{szObjectID + // NPC object id
+                                           szBYTE +     // fail code
+                                           szuint};     // the amount the refusal names
 
     Packet* createPacket() override {
         return new GCShopBuyFail();

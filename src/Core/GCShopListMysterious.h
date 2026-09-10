@@ -17,9 +17,9 @@
 // buffer structure
 //////////////////////////////////////////////////////////////////////////////
 typedef struct {
-    bool bExist;
-    BYTE itemClass;
-    ItemType_t itemType;
+    bool bExist = false;
+    BYTE itemClass = 0;
+    ItemType_t itemType = 0;
 
 } SHOPLISTITEM_MYSTERIOUS;
 
@@ -86,12 +86,12 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;                                  // NPC's object id
-    ShopVersion_t m_Version;                                // Shop version
-    ShopRackType_t m_RackType;                              // rack type
+    ObjectID_t m_ObjectID = 0;                              // NPC's object id
+    ShopVersion_t m_Version = 0;                            // Shop version
+    ShopRackType_t m_RackType = 0;                          // rack type
     SHOPLISTITEM_MYSTERIOUS m_pBuffer[SHOP_RACK_INDEX_MAX]; // buffer for i/o
-    MarketCond_t m_MarketCondBuy;                           // 시장 시세
-    MarketCond_t m_MarketCondSell;
+    MarketCond_t m_MarketCondBuy = 0;                       // 시장 시세
+    MarketCond_t m_MarketCondSell = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////

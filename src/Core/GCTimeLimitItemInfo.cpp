@@ -20,7 +20,9 @@ void GCTimeLimitItemInfo::read(SocketInputStream& iStream)
     BYTE szInfo;
 
     iStream.read(szInfo);
-    Assert(szInfo <= MAX_TIME_LIMIT_ITEM_INFO);
+
+    if (szInfo > kMaxEntryCount)
+        throw InvalidProtocolException("too many time limit entries");
 
     m_TimeLimitItemInfos.clear();
 
@@ -43,9 +45,10 @@ void GCTimeLimitItemInfo::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szInfo = m_TimeLimitItemInfos.size();
+    if (m_TimeLimitItemInfos.size() > kMaxEntryCount)
+        throw InvalidProtocolException("too many time limit entries");
 
-    Assert(szInfo <= MAX_TIME_LIMIT_ITEM_INFO);
+    BYTE szInfo = m_TimeLimitItemInfos.size();
 
     oStream.write(szInfo);
 
@@ -104,6 +107,9 @@ void GCTimeLimitItemInfo::addTimeLimit(ObjectID_t objectID, DWORD time)
 
     if (itr != m_TimeLimitItemInfos.end())
         throw Error("GCTimeLimitItemInfo addTimeLimit error");
+
+    if (m_TimeLimitItemInfos.size() >= kMaxEntryCount)
+        throw InvalidProtocolException("too many time limit entries");
 
     m_TimeLimitItemInfos[objectID] = time;
 

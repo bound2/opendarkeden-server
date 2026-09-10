@@ -301,7 +301,7 @@
 306	GCPartyPosition	31
 307	GCPartySay	154
 308	GCPetInfo	50
-309	GCPetStashList	1021
+309	GCPetStashList	1020
 310	GCPetStashVerify	1
 311	GCPetUseSkill	8
 312	GCPhoneConnected	26
@@ -334,10 +334,10 @@
 339	GCSelectRankBonusFailed	5
 340	GCSelectRankBonusOK	4
 341	GCSetPosition	3
-342	GCShopBought	284
-343	GCShopBuyFail	4
-344	GCShopBuyOK	287
-345	GCShopList	5515
+342	GCShopBought	59
+343	GCShopBuyFail	9
+344	GCShopBuyOK	62
+345	GCShopList	1015
 346	GCShopListMysterious	74
 347	GCShopMarketCondition	8
 348	GCShopSellFail	4
@@ -372,7 +372,7 @@
 377	GCSkillToTileOK5	1290
 378	GCSkillToTileOK6	3075
 379	GCSMSAddressList	2341
-380	GCStashList	21006
+380	GCStashList	7506
 381	GCStashSell	4
 382	GCStatusCurrentHP	6
 383	GCSubInventoryInfo	21125

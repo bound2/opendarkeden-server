@@ -24,6 +24,10 @@ public:
     enum StringType { STRING_TYPE_WAIT_FOR_MEET, STRING_TYPE_WAIT_FOR_APART, STRING_TYPE_FORCE_APART_COUPLE };
 
 public:
+    // The strings the list carries. The count travels in a BYTE and the
+    // factory max budgets this many.
+    static constexpr uint kMaxStringCount = MAX_STRING_NUM;
+
     CGTypeStringList();
     ~CGTypeStringList();
 
@@ -60,6 +64,8 @@ public:
     }
 
     void addString(string str) {
+        if (m_StringList.size() >= kMaxStringCount)
+            throw InvalidProtocolException("too many list strings");
         m_StringList.push_back(str);
     }
     void clearString() {
@@ -69,6 +75,8 @@ public:
         return m_StringList.size();
     }
     string popString() {
+        if (m_StringList.empty())
+            throw InvalidProtocolException("no list string to pop");
         string ret = m_StringList.front();
         m_StringList.pop_front();
         return ret;
@@ -82,9 +90,9 @@ public:
     }
 
 private:
-    BYTE m_StringType;
+    BYTE m_StringType = 0;
     list<string> m_StringList;
-    DWORD m_Param;
+    DWORD m_Param = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -95,7 +103,8 @@ class CGTypeStringListFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_CG_TYPE_STRING_LIST;
     static constexpr std::string_view kName = "CGTypeStringList";
-    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE + (szBYTE + MAX_STRING_LENGTH) * MAX_STRING_NUM + szDWORD};
+    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE +
+                                           (szBYTE + MAX_STRING_LENGTH) * CGTypeStringList::kMaxStringCount + szDWORD};
 
     Packet* createPacket() override {
         return new CGTypeStringList();

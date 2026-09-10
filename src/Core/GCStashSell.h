@@ -44,7 +44,7 @@ public:
     }
 
 private:
-    Gold_t m_Price;
+    Gold_t m_Price = 0;
 };
 
 

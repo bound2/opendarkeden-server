@@ -104,8 +104,11 @@ public:
     string getSign() const {
         return m_Sign;
     }
+    // The sign length travels in one byte and the record max budgets this
+    // many characters, so a longer one is cut to the cap, the way the
+    // outlook record cuts it.
     void setSign(const string& sign) {
-        m_Sign = sign;
+        m_Sign = (sign.size() > MAX_SIGN_SIZE) ? sign.substr(0, MAX_SIGN_SIZE) : sign;
     }
 
     vector<StoreItemInfo>& getItems() {

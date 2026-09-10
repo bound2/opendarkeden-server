@@ -19,6 +19,10 @@
 //////////////////////////////////////////////////////////////////////////////
 class GCShopBuyOK : public Packet {
 public:
+    // The options an item carries. The count travels in a BYTE and the
+    // widest option list an item holds is a code sheet's grid.
+    static constexpr uint kMaxOptionCount = MAX_ITEM_OPTION_NUM;
+
     GCShopBuyOK();
     virtual ~GCShopBuyOK();
 
@@ -28,17 +32,17 @@ public:
         return PACKET_GC_SHOP_BUY_OK;
     }
     PacketSize_t getPacketSize() const {
-        return szObjectID +                   // NPC
-               szShopVersion +                // shop Version
-               szObjectID +                   // item OID
-               szBYTE +                       // item class
-               szItemType +                   // item type
-               szBYTE + m_OptionType.size() + // item option type
-               szDurability +                 // item durability
-               szItemNum +                    // number of item
-               szSilver +                     // silver coating amount
-               szGrade + szEnchantLevel +     // enchant level
-               szPrice;                       // item price
+        return szObjectID +                                  // NPC
+               szShopVersion +                               // shop Version
+               szObjectID +                                  // item OID
+               szBYTE +                                      // item class
+               szItemType +                                  // item type
+               szBYTE + szOptionType * m_OptionType.size() + // item option type
+               szDurability +                                // item durability
+               szItemNum +                                   // number of item
+               szSilver +                                    // silver coating amount
+               szGrade + szEnchantLevel +                    // enchant level
+               szPrice;                                      // item price
     }
     string getPacketName() const {
         return "GCShopBuyOK";
@@ -95,9 +99,13 @@ public:
         return optionType;
     }
     void addOptionType(OptionType_t type) {
+        if (m_OptionType.size() >= kMaxOptionCount)
+            throw InvalidProtocolException("too many item options");
         m_OptionType.push_back(type);
     }
     void setOptionType(const list<OptionType_t>& OptionTypes) {
+        if (OptionTypes.size() > kMaxOptionCount)
+            throw InvalidProtocolException("too many item options");
         m_OptionType = OptionTypes;
     }
 
@@ -166,14 +174,14 @@ class GCShopBuyOKFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SHOP_BUY_OK;
     static constexpr std::string_view kName = "GCShopBuyOK";
-    static constexpr PacketSize_t kMaxSize{szObjectID +               // NPC OID
-                                           szShopVersion +            // shop version
-                                           szObjectID +               // item OID
-                                           szBYTE +                   // item class
-                                           szItemType +               // item type
-                                           szBYTE + 255 +             // item option type
-                                           szDurability +             // item durablility
-                                           szItemNum +                // number of item
+    static constexpr PacketSize_t kMaxSize{szObjectID +                                           // NPC OID
+                                           szShopVersion +                                        // shop version
+                                           szObjectID +                                           // item OID
+                                           szBYTE +                                               // item class
+                                           szItemType +                                           // item type
+                                           szBYTE + szOptionType * GCShopBuyOK::kMaxOptionCount + // item option type
+                                           szDurability +                                         // item durablility
+                                           szItemNum +                                            // number of item
                                            szSilver +                 // silver coating amount
                                            szGrade + szEnchantLevel + // enchant level
                                            szPrice};                  // item price

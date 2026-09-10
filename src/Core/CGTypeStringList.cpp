@@ -33,6 +33,9 @@ void CGTypeStringList::read(SocketInputStream& iStream)
     iStream.read(num);
     //	cout << "Number of String:" << (int)num << ", ";
 
+    if (num > kMaxStringCount)
+        throw InvalidProtocolException("too many list strings");
+
     for (BYTE i = 0; i < num; i++) {
         string temp;
         de::wire::readString(iStream, temp, {1, MAX_STRING_LENGTH}, "list string");
@@ -51,6 +54,9 @@ void CGTypeStringList::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
     oStream.write(m_StringType);
+
+    if (m_StringList.size() > kMaxStringCount)
+        throw InvalidProtocolException("too many list strings");
 
     BYTE szList = m_StringList.size();
 

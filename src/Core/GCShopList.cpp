@@ -19,11 +19,6 @@ GCShopList::GCShopList()
 {
     __BEGIN_TRY
 
-    for (int i = 0; i < SHOP_RACK_INDEX_MAX; i++)
-        m_pBuffer[i].bExist = false;
-
-    m_ShopType = 0;
-
     __END_CATCH;
 }
 
@@ -50,6 +45,10 @@ void GCShopList::read(SocketInputStream& iStream)
     BYTE nTotal = 0;
     BYTE index = 0;
 
+    // The listing replaces the rack the packet holds.
+    for (i = 0; i < SHOP_RACK_INDEX_MAX; i++)
+        m_pBuffer[i] = _SHOPLISTITEM();
+
     // read NPC id & version & rack type & number of item
     iStream.read(m_ObjectID);
     iStream.read(m_Version);
@@ -66,6 +65,10 @@ void GCShopList::read(SocketInputStream& iStream)
 
         BYTE optionSize;
         iStream.read(optionSize);
+
+        if (optionSize > kMaxOptionCount)
+            throw InvalidProtocolException("too many item options");
+
         for (int j = 0; j < optionSize; j++) {
             OptionType_t optionType;
             iStream.read(optionType);
@@ -120,6 +123,9 @@ void GCShopList::write(SocketOutputStream& oStream) const
             oStream.write(item.itemClass);
             oStream.write(item.itemType);
 
+            if (item.optionType.size() > kMaxOptionCount)
+                throw InvalidProtocolException("too many item options");
+
             BYTE optionSize = item.optionType.size();
             oStream.write(optionSize);
 
@@ -156,13 +162,13 @@ PacketSize_t GCShopList::getPacketSize() const
 
     for (int i = 0; i < SHOP_RACK_INDEX_MAX; i++) {
         if (m_pBuffer[i].bExist) {
-            size += szBYTE;                                  // Item index in shop rack
-            size += szObjectID;                              // item OID
-            size += szBYTE;                                  // item class
-            size += szItemType;                              // item type
-            size += szBYTE + m_pBuffer[i].optionType.size(); // item option type
-            size += szDurability;                            // item durability
-            size += szSilver;                                // silver coating amount
+            size += szBYTE;                                                 // Item index in shop rack
+            size += szObjectID;                                             // item OID
+            size += szBYTE;                                                 // item class
+            size += szItemType;                                             // item type
+            size += szBYTE + szOptionType * m_pBuffer[i].optionType.size(); // item option type
+            size += szDurability;                                           // item durability
+            size += szSilver;                                               // silver coating amount
             size += szGrade;
             size += szEnchantLevel; // enchant level
         }

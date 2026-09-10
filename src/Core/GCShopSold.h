@@ -89,16 +89,16 @@ public:
 
 private:
     // NPC's object id
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // 상점 버젼
-    ShopVersion_t m_Version;
+    ShopVersion_t m_Version = 0;
 
     // 진열장 종류
-    ShopRackType_t m_RackType;
+    ShopRackType_t m_RackType = 0;
 
     // 진열장 인덱스
-    BYTE m_RackIndex;
+    BYTE m_RackIndex = 0;
 };
 
 

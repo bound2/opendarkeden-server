@@ -16,8 +16,8 @@
 #define MAX_PET_STASH 20
 
 struct PetStashItemInfo {
-    PetInfo* pPetInfo;
-    DWORD KeepDays;
+    PetInfo* pPetInfo = NULL;
+    DWORD KeepDays = 0;
 
     PacketSize_t getPacketSize() const {
         return szBYTE + pPetInfo->getSize() + szDWORD;
@@ -48,19 +48,11 @@ public:
     string toString() const;
 
 public:
-    BYTE getCode() const {
-        return m_Code;
-    }
-    void setCode(BYTE code) {
-        m_Code = code;
-    }
-
     vector<PetStashItemInfo*>& getPetStashItemInfos() {
         return m_PetStashItemInfos;
     }
 
 private:
-    BYTE m_Code;
     vector<PetStashItemInfo*> m_PetStashItemInfos;
 };
 
@@ -73,7 +65,7 @@ class GCPetStashListFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_PET_STASH_LIST;
     static constexpr std::string_view kName = "GCPetStashList";
-    static constexpr PacketSize_t kMaxSize{szBYTE + PetStashItemInfo::getPacketMaxSize() * MAX_PET_STASH};
+    static constexpr PacketSize_t kMaxSize{PetStashItemInfo::getPacketMaxSize() * MAX_PET_STASH};
 
     Packet* createPacket() override {
         return new GCPetStashList();

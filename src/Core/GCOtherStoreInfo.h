@@ -27,6 +27,8 @@ public:
         return PACKET_GC_OTHER_STORE_INFO;
     }
     PacketSize_t getPacketSize() const {
+        if (m_pInfo == NULL)
+            throw InvalidProtocolException("no store record");
         return szObjectID + szBYTE + m_pInfo->getSize(true);
     }
     string getPacketName() const {
@@ -57,9 +59,9 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;
-    BYTE m_IsRequested;
-    StoreInfo* m_pInfo;
+    ObjectID_t m_ObjectID = 0;
+    BYTE m_IsRequested = 0;
+    StoreInfo* m_pInfo = NULL;
 };
 
 //////////////////////////////////////////////////////////////////////////////

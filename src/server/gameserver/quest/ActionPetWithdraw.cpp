@@ -48,7 +48,6 @@ void ActionPetWithdraw::execute(Creature* pCreature1, Creature* pCreature2)
     GCPetStashList gcPetStashList;
     makeGCPetStashList(&gcPetStashList, pPC);
 
-    gcPetStashList.setCode(0);
     pPC->getPlayer()->sendPacket(&gcPetStashList);
 
     __END_CATCH

@@ -83,10 +83,10 @@ public:
     }
 
 private:
-    CoordInven_t m_X, m_Y;
-    ObjectID_t m_ItemObjectID;
-    Gold_t m_Price;
-    BYTE m_Index;
+    CoordInven_t m_X = 0, m_Y = 0;
+    ObjectID_t m_ItemObjectID = 0;
+    Gold_t m_Price = 0;
+    BYTE m_Index = 0;
 };
 
 

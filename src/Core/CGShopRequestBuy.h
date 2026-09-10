@@ -80,12 +80,12 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;     // NPC ID
-    ShopRackType_t m_RackType; // Rack type
-    BYTE m_RackIndex;          // Rack index
-    ItemNum_t m_Num;           // Number of item
-    Coord_t m_X;               // 플레이어 인벤토리 내의 좌표값
-    Coord_t m_Y;
+    ObjectID_t m_ObjectID = 0;     // NPC ID
+    ShopRackType_t m_RackType = 0; // Rack type
+    BYTE m_RackIndex = 0;          // Rack index
+    ItemNum_t m_Num = 0;           // Number of item
+    Coord_t m_X = 0;               // 플레이어 인벤토리 내의 좌표값
+    Coord_t m_Y = 0;
 };
 
 

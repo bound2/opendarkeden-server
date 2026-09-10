@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // 플레이어 크리쳐의 object id
+    ObjectID_t m_ObjectID = 0; // 플레이어 크리쳐의 object id
 };
 
 

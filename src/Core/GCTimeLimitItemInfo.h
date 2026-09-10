@@ -28,6 +28,10 @@ public:
     typedef map<ObjectID_t, DWORD> ItemTimeLimitMap;
 
 public:
+    // The entries the listing carries. The count travels in a BYTE and
+    // the factory max budgets this many.
+    static constexpr uint kMaxEntryCount = MAX_TIME_LIMIT_ITEM_INFO;
+
     GCTimeLimitItemInfo();
     ~GCTimeLimitItemInfo();
 
@@ -70,7 +74,7 @@ class GCTimeLimitItemInfoFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_TIME_LIMIT_ITEM_INFO;
     static constexpr std::string_view kName = "GCTimeLimitItemInfo";
-    static constexpr PacketSize_t kMaxSize{szBYTE + MAX_TIME_LIMIT_ITEM_INFO * (szObjectID + szDWORD)};
+    static constexpr PacketSize_t kMaxSize{szBYTE + GCTimeLimitItemInfo::kMaxEntryCount * (szObjectID + szDWORD)};
 
     Packet* createPacket() override {
         return new GCTimeLimitItemInfo();

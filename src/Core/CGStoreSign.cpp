@@ -6,14 +6,14 @@
 
 #include "CGStoreSign.h"
 
+#include "WireString.h"
+
 void CGStoreSign::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
-    BYTE size;
-    iStream.read(size);
-    iStream.read(m_Sign, size);
+    de::wire::readString(iStream, m_Sign, {0, kMaxSignSize}, "store sign");
 
     __END_CATCH
 }
@@ -23,9 +23,7 @@ void CGStoreSign::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE size = m_Sign.size();
-    oStream.write(size);
-    oStream.write(m_Sign);
+    de::wire::writeString(oStream, m_Sign, {0, kMaxSignSize}, "store sign");
 
     __END_CATCH
 }

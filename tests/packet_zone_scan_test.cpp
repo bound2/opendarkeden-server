@@ -1423,11 +1423,11 @@ TEST(ZoneScanOwnershipTest, theCreatureAddPacketsLeaveInstalledRecordsAlone) {
 }
 
 // The record's own read half, the one GCMyStoreInfo uses. The sign
-// travels behind a length byte, so it comes back whole at the width that
-// byte carries and when it is absent, and a longer one is refused rather
-// than sent behind a length that does not describe it.
+// travels behind a length byte, so it comes back whole at the width the
+// record's max size budgets and when it is absent, and a longer one is
+// cut in the setter rather than sent past that budget.
 TEST(StoreInfoTest, theSignTravelsBehindItsLengthByte) {
-    const std::string full(de::wire::kMaxByteStringLength, 's');
+    const std::string full(MAX_SIGN_SIZE, 's');
 
     StoreInfo src;
     src.setOpen(1);
@@ -1456,11 +1456,9 @@ TEST(StoreInfoTest, theSignTravelsBehindItsLengthByte) {
 
     StoreInfo tooLong;
     tooLong.setOpen(1);
-    tooLong.setSign(std::string(de::wire::kMaxByteStringLength + 1, 's'));
-
-    Loopback longLink;
-    longLink.setCodes(0);
-    EXPECT_THROW(tooLong.write(longLink.out(), false), InvalidProtocolException);
+    tooLong.setSign(std::string(MAX_SIGN_SIZE + 1, 's'));
+    EXPECT_EQ((size_t)MAX_SIGN_SIZE, tooLong.getSign().size());
+    EXPECT_LE(tooLong.getSize(false), StoreInfo::getMaxSize());
 }
 
 } // namespace

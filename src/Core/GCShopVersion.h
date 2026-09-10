@@ -83,12 +83,12 @@ public:
 
 private:
     // NPC's object id
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // shop version
-    ShopVersion_t m_Version[SHOP_RACK_TYPE_MAX];
+    ShopVersion_t m_Version[SHOP_RACK_TYPE_MAX] = {};
 
-    MarketCond_t m_MarketCondSell;
+    MarketCond_t m_MarketCondSell = 0;
 };
 
 

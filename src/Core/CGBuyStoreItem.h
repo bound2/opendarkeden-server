@@ -59,9 +59,9 @@ public:
     }
 
 private:
-    ObjectID_t m_OwnerObjectID;
-    ObjectID_t m_ItemObjectID;
-    BYTE m_Index;
+    ObjectID_t m_OwnerObjectID = 0;
+    ObjectID_t m_ItemObjectID = 0;
+    BYTE m_Index = 0;
 };
 
 

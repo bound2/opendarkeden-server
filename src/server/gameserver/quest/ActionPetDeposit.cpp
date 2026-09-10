@@ -55,7 +55,6 @@ void ActionPetDeposit::execute(Creature* pCreature1, Creature* pCreature2)
     response.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
     pPC->getPlayer()->sendPacket(&response);
 
-    gcPetStashList.setCode(1);
     pPC->getPlayer()->sendPacket(&gcPetStashList);
 
     __END_CATCH

@@ -4216,7 +4216,6 @@ void CGSayHandler::opcommand(GamePlayer* pGamePlayer, string msg, int i) {
             GCPetStashList gcPetStashList;
             makeGCPetStashList(&gcPetStashList, pPC);
 
-            gcPetStashList.setCode(0);
             pGamePlayer->sendPacket(&gcPetStashList);
             bSendPacket = false;
         }

@@ -90,16 +90,16 @@ public:
 
 private:
     // NPC's object id
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // 상점 버젼
-    ShopVersion_t m_Version;
+    ShopVersion_t m_Version = 0;
 
     // 아이템 정보
-    ObjectID_t m_ItemObjectID;
+    ObjectID_t m_ItemObjectID = 0;
 
     // 가격
-    Price_t m_Price;
+    Price_t m_Price = 0;
 };
 
 

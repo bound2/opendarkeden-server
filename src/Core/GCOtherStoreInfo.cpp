@@ -28,6 +28,10 @@ void GCOtherStoreInfo::read(SocketInputStream& iStream)
 
     iStream.read(m_ObjectID);
     iStream.read(m_IsRequested);
+
+    if (m_pInfo == NULL)
+        throw InvalidProtocolException("no store record");
+
     m_pInfo->read(iStream, true);
 
     __END_CATCH
@@ -40,6 +44,9 @@ void GCOtherStoreInfo::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_pInfo == NULL)
+        throw InvalidProtocolException("no store record");
 
     oStream.write(m_ObjectID);
     oStream.write(m_IsRequested);
