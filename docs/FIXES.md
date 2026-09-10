@@ -11,6 +11,145 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Movement, effect-lifecycle and NPC dialogue write/read disagreements (2026-09-10)
+
+The ten findings task 1.2 stated as flip-tests in
+`tests/packet_movement_test.cpp`, plus the three its PR recorded rather
+than tested, and the blast-list bounds the combat round left open in the
+bomb and mine packets. These packets are client-facing, so `write()` and
+`getPacketSize()` are the contract: every fix is a refusal, a cap at the
+width the length byte or the factory max already budgets, a
+size-accounting correction or a read-side correction to what `write()`
+emits. No golden changed; the seven maxima below are the set's only
+`tests/wire-layout.txt` movements, and the five bomb and mine goldens are
+new files.
+
+- **`GCNPCAskDynamic::getPacketSize()` did not count the choice-count
+  byte `write()` emits.** `writePacket()` puts that size on the wire
+  before calling `write()`, so every question declared a body one byte
+  shorter than the one that followed it and the stream never
+  resynchronised. The size counts the byte now, and so does the factory
+  maximum, which had left it out too.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **`GCNPCAskDynamic` counted its choices in a `BYTE` it incremented per
+  entry and bounded the list against nothing.** The 256th choice wrapped
+  the count to zero while `write()` still emitted every string. The count
+  is the list now, bounded by `kMaxCount` — 15, refused in
+  `addContent()`, in `write()` and in `read()`. The bound is the fill
+  site's own: `ActionAskDynamic` adds one choice per `Script` content and
+  `Script` holds at most `SCRIPT_MAX_CONTENTS` (15) of them, so the
+  refusal is unreachable. The factory max budgeted ten, which the shipped
+  data already passes — of 1155 `Script` rows two carry 11 and 12
+  contents — so it budgets 15 now: `GCNPCAskDynamic` 11294 -> 16425, a
+  read-buffer budget rather than a field on the wire.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **`GCNPCAskDynamic::write()` emitted a zero-length choice that `read()`
+  counted and dropped.** The packet read back declared one more choice
+  than it held, so forwarding it wrote one fewer field than its own count
+  promised. `read()` keeps the empty choice, which is the side that
+  matches `write()`: the field is a well-formed zero-length string, the
+  size counts its length word, and `ScriptManager` trims each
+  `**`-separated chunk into the script whatever it holds.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **`GCNPCSayDynamic` derived the length byte in front of its message
+  from an unbounded string.** `ActionSayDynamic` sets the message to a
+  script subject, and 208 of the 1155 shipped subjects are longer than
+  255 bytes, so the length byte wrapped (846 becomes 78) and the client
+  read a truncated line with the rest of the text left in its buffer. The
+  message goes through `de::wire::readString`/`writeString` at the 255
+  the byte can describe, on both sides. The seven live sends are
+  `CGNPCTalkHandler`'s string-pool alerts, whose longest entry is 120
+  bytes, so no live line is refused.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **`ScriptParameter::getSize()` measured its name and value through a
+  `BYTE`.** `GCNPCAskVariable` therefore under-reported by 256 for every
+  parameter longer than a byte can count, while `write()` emitted both
+  strings whole. Both fields go through `de::wire::readString`/
+  `writeString` at 255 and the size is `stringWireSize()` of each, so the
+  declared size and the emitted bytes cannot drift again. The parameter
+  count, a `BYTE` with the same wrap, is the map now, refused past the
+  255 the factory max budgets in `addScriptParameter()`, in `write()` and
+  by `read()`'s own count byte; a refused record is destroyed rather than
+  leaked, as the duplicate-name refusal beside it now is too.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **`GCRemoveEffect` counted its effect list the same way, and
+  `popFrontListElement()` left the count alone.** The count is the list
+  now, refused past `kMaxCount` (255, what the count byte carries) in
+  `addEffectList()`, in `write()` and in `read()`, `setListNum` is gone,
+  and popping an id shortens what the packet declares. The factory max
+  was a flat 255 bytes, which budgets 125 ids for a list the count byte
+  lets reach 255; it is `szObjectID + szBYTE + 255 * szEffectID` now:
+  `GCRemoveEffect` 255 -> 515.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **`GCRemoveEffect::read()` appended to the list the packet already
+  held.** A packet read into twice declared one sweep's worth of ids and
+  wrote two. It clears before it parses, the shape `ModifyInfo::read()`
+  and the tile reads already have.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **`GCAddMonsterFromBurrowing` and `GCAddMonsterFromTransformation` did
+  not hold the monster name to the 32 bytes their factory max budgets.**
+  `GCAddMonster` carries the same record and refuses a longer name; these
+  two let a long name outgrow the receiver's read buffer and a name past
+  255 wrap the length byte in front of it. Both go through
+  `de::wire::readString`/`writeString` at `kMaxNameSize`, the same 32.
+  No maximum moves — it already budgeted 32.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **A direction outside the eight travelled unchecked in both
+  directions.** `Dir_t` is a `BYTE` typedef, so this is a range gap
+  rather than undefined behaviour, and `dir2String()` already prints an
+  unknown value as its number. The two client requests refuse it:
+  `CGUnburrow::read()` and `CGMove::read()` throw on a direction `>=
+  DIR_MAX`. The server's own broadcasts keep it: `MonsterAI::moveNormal`
+  computes `DIR_NONE` for a monster already standing on its destination
+  and hands it to `Zone::moveCreature`, and `dirMoveMask` has a (0,0)
+  entry at that index, so `GCMove`, `GCUnburrowOK` and `GCUntransformOK`
+  carrying `DIR_NONE` is part of the contract and is pinned as one.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **Twenty-two of the twenty-six packets left at least one member
+  uninitialised in the default constructor.** A packet sent without every
+  setter called put whatever the allocation held on the wire. All of them
+  initialise every member now — including `PCVampireInfo3`, the record
+  the two vampire transition packets embed — pinned by constructing each
+  over storage poisoned with two different bytes and requiring the same
+  body.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **`~GCNPCInfo` cleared its record list without freeing what `read()`
+  allocated into it.** The records a filler hands the packet belong to
+  the `Zone` and the ones `read()` parses belong to nobody, so every
+  packet read leaked one record per NPC in the zone. The packet tracks
+  which it holds and destroys only its own; `read()` clears first, so a
+  packet read into twice does not leak the first roster either.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **The four transition packets' `read()` allocated a fresh `EffectInfo`
+  over the one the packet already held.** Each destructor frees the
+  record, so reading into a packet that had one leaked it. All four free
+  the held record before allocating.
+  > **Status:** fixed (wire/movement-disagreements)
+
+- **`GCThrowBombOK1`/`2`/`3` and `GCMineExplosionOK1`/`2` carried the
+  tile packets' creature list with the tile packets' bugs.** The count
+  wrapped at 256, `popCListElement()` left it alone, `setCListNum` let a
+  caller declare a count the list did not hold, and every factory max
+  budgeted one `ObjectID` for a list the count byte lets reach 255 — so a
+  blast that caught more than one creature already wrote a body larger
+  than the receiver's read buffer. All five take the `GCSkillToTileOK*`
+  fix verbatim, and their maxima budget a full list: `GCThrowBombOK1`
+  2055 -> 3071, `GCThrowBombOK2` 2058 -> 3074, `GCThrowBombOK3` 271 ->
+  1287, `GCMineExplosionOK1` 2054 -> 3070, `GCMineExplosionOK2` 267 ->
+  1283. None was pinned by a golden before; all five have one now.
+  > **Status:** fixed (wire/movement-disagreements)
+
 ## Combat feedback write/read disagreements (2026-09-09)
 
 The six findings task 1.2 stated as flip-tests in

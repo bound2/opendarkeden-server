@@ -10,6 +10,7 @@
 #include "EffectInfo.h"
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class GCAddMonsterFromBurrowing;
@@ -21,6 +22,10 @@ public:
     virtual ~GCAddMonsterFromBurrowing() noexcept;
 
 public:
+    // The name length travels in one byte and the factory max budgets this
+    // many characters, the width GCAddMonster holds the same record to.
+    static constexpr uint kMaxNameSize = 32;
+
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     PacketID_t getPacketID() const {
@@ -31,17 +36,16 @@ public:
         EffectInfo noEffects;
         const EffectInfo& effects = (m_pEffectInfo != NULL) ? *m_pEffectInfo : noEffects;
 
-        return szObjectID +           // object id
-               szMonsterType +        // monster type
-               szBYTE +               // monster name length
-               m_MonsterName.size() + // monster name
-               szColor +              // monster main color
-               szColor +              // monster sub color
-               szCoord +              // x coord
-               szCoord +              // y coord
-               szDir +                // direction
-               effects.getSize() +    // effects info on monster
-               szHP * 2;              // current & max hp
+        return szObjectID +                              // object id
+               szMonsterType +                           // monster type
+               de::wire::stringWireSize(m_MonsterName) + // monster name
+               szColor +                                 // monster main color
+               szColor +                                 // monster sub color
+               szCoord +                                 // x coord
+               szCoord +                                 // y coord
+               szDir +                                   // direction
+               effects.getSize() +                       // effects info on monster
+               szHP * 2;                                 // current & max hp
     }
     string getPacketName() const {
         return "GCAddMonsterFromBurrowing";
@@ -127,17 +131,17 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;       // object id
-    MonsterType_t m_MonsterType; // monster type
-    string m_MonsterName;        // monster name
-    Color_t m_MainColor;         // monster main color
-    Color_t m_SubColor;          // monster sub color
-    Coord_t m_X;                 // x coord.
-    Coord_t m_Y;                 // y coord.
-    Dir_t m_Dir;                 // monster direction
-    EffectInfo* m_pEffectInfo;   // effects info on monster
-    HP_t m_CurrentHP;            // current hp
-    HP_t m_MaxHP;                // maximum hp
+    ObjectID_t m_ObjectID = 0;        // object id
+    MonsterType_t m_MonsterType = 0;  // monster type
+    string m_MonsterName;             // monster name
+    Color_t m_MainColor = 0;          // monster main color
+    Color_t m_SubColor = 0;           // monster sub color
+    Coord_t m_X = 0;                  // x coord.
+    Coord_t m_Y = 0;                  // y coord.
+    Dir_t m_Dir = 0;                  // monster direction
+    EffectInfo* m_pEffectInfo = NULL; // effects info on monster
+    HP_t m_CurrentHP = 0;             // current hp
+    HP_t m_MaxHP = 0;                 // maximum hp
 };
 
 
@@ -149,14 +153,14 @@ class GCAddMonsterFromBurrowingFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_MONSTER_FROM_BURROWING;
     static constexpr std::string_view kName = "GCAddMonsterFromBurrowing";
-    static constexpr PacketSize_t kMaxSize{szObjectID                  // object id
-                                           + szMonsterType             // monster type
-                                           + szBYTE                    // monster name length
-                                           + 32                        // monster namx max
-                                           + szColor + szColor         // monster main & sub color
-                                           + szCoord + szCoord + szDir // monster x, y coord & direction
-                                           + EffectInfo::getMaxSize()  // effects info on monster
-                                           + szHP * 2};                // current & max hp
+    static constexpr PacketSize_t kMaxSize{szObjectID                                // object id
+                                           + szMonsterType                           // monster type
+                                           + szBYTE                                  // monster name length
+                                           + GCAddMonsterFromBurrowing::kMaxNameSize // monster name max
+                                           + szColor + szColor                       // monster main & sub color
+                                           + szCoord + szCoord + szDir               // monster x, y coord & direction
+                                           + EffectInfo::getMaxSize()                // effects info on monster
+                                           + szHP * 2};                              // current & max hp
 
     Packet* createPacket() override {
         return new GCAddMonsterFromBurrowing();

@@ -65,7 +65,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
-| R9 | Hand-written length-prefixed string reads left in `src/Core` | 22 | `grep -rhE 'iStream\.read\(m_[A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (a string field is a BYTE length then that many bytes; `de::wire::readString`/`writeString` in `src/Core/WireString.h` carry it with the bounds stated once. Line-based with R8's comment rule, so `WireString.h`'s own example of the shape it replaces does not count itself) |
+| R9 | Hand-written length-prefixed string reads left in `src/Core` | 19 | `grep -rhE 'iStream\.read\(m_[A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (a string field is a BYTE length then that many bytes; `de::wire::readString`/`writeString` in `src/Core/WireString.h` carry it with the bounds stated once. Line-based with R8's comment rule, so `WireString.h`'s own example of the shape it replaces does not count itself) |
 
 God-file baselines (R6):
 
@@ -261,15 +261,16 @@ before anything else moves. Everything later shelters under this pin.
   > packets joined the file with the fix, `GCWaitGuildList` and
   > `GCShowWaitGuildInfo`, which carry the same guild record and had the
   > same reversal. No golden changed.
-  > The **combat feedback set is pinned** — the 33 packets a game server
+  > The **combat feedback set is pinned** — the 38 packets a game server
   > sends as the result of an attack or a skill use, to the actor, the
   > target and the observers, plus the status packets that ride along
   > (`GCAttack`, `GCGetDamage`, the three `GCAttackMeleeOK*`, the five
   > `GCAttackArmsOK*`, the six `GCSkillToObjectOK*`, the three
   > `GCSkillToSelfOK*`, the six `GCSkillToTileOK*`, the two
   > `GCSkillToInventoryOK*`, `GCSkillFailed1`, `GCSkillFailed2`,
-  > `GCStatusCurrentHP`, `GCModifyInformation`, `GCOtherModifyInfo` and
-  > `GCCreatureDied`), have code-0 goldens, loopback round trips and
+  > `GCStatusCurrentHP`, `GCModifyInformation`, `GCOtherModifyInfo`,
+  > `GCCreatureDied`, the three `GCThrowBombOK*` and the two
+  > `GCMineExplosionOK*`), have code-0 goldens, loopback round trips and
   > size/factory-max pins (`tests/packet_combat_test.cpp`), with extra
   > goldens for the empty stat record, the refusal that changed nothing,
   > the tile sweep that caught nobody, and a record carrying every one of
@@ -304,6 +305,15 @@ before anything else moves. Everything later shelters under this pin.
   > `GCWaitGuildList` and `GCShowWaitGuildInfo`'s founding-member list,
   > which the social set left uncapped, refuse an entry past the count
   > their factory maxima budget with them. No golden changed.
+  > Five packets joined the file after it, `GCThrowBombOK1`/`2`/`3` and
+  > `GCMineExplosionOK1`/`2`: the thrown bomb's and the stepped-on
+  > mine's answers carry the same creature list the tile packets do,
+  > with the same wrap and the same one-`ObjectID` budget, and are
+  > bounded the same way. Their five wire-layout moves —
+  > `GCThrowBombOK1` 2055 → 3071, `GCThrowBombOK2` 2058 → 3074,
+  > `GCThrowBombOK3` 271 → 1287, `GCMineExplosionOK1` 2054 → 3070 and
+  > `GCMineExplosionOK2` 267 → 1283 — are read-buffer budgets, not
+  > fields on the wire; their goldens are new files.
   > The **movement, effect-lifecycle and NPC dialogue set is pinned** —
   > the 26 packets that carry a step, end an effect or run an NPC
   > conversation: `GCMove`, `GCKnockBack`, `GCFakeMove`, the six
@@ -329,30 +339,39 @@ before anything else moves. Everything later shelters under this pin.
   > `GCAddBurrowingCreature` and `GCAddNPC` by the zone-scan and
   > handshake pins; `GCNPCResponse` by the social pins.
   > `GCKnocksTargetBackOK1`/`2`/`4`/`5` are excluded: they have
-  > registered factories but no server source constructs one. Ten open
-  > write/read disagreements are stated as tests that flip when fixed
-  > (`GCNPCAskDynamic` leaving the contents-count byte out of
-  > `getPacketSize()`, counting its choices in a BYTE it caps nowhere,
-  > bounding that list against no factory max, and dropping on `read()`
-  > an empty choice its count still carries; `GCNPCSayDynamic` deriving
-  > the length byte in front of its message from an unbounded string;
-  > `ScriptParameter::getSize()` measuring name and value through a
-  > BYTE, so `GCNPCAskVariable` under-reports by 256 for every parameter
-  > past it; `GCRemoveEffect` counting its effect list the same way,
-  > `popFrontListElement()` taking an entry off it without decrementing
-  > that count, a full list overrunning a flat 255-byte factory max, and
-  > `read()` appending to the list the packet already holds; the two
-  > monster transition packets not holding the name to the 32 bytes
-  > their max budgets, the way `GCAddMonster` does; and the direction
-  > travelling unchecked while `toString()` indexes `Dir2String` with
-  > it, an eight-entry table whose length is itself the valid
-  > enumerator `DIR_NONE`). Three more are recorded in the test's header
-  > rather than tested: 22 of the 26 leave at least one member
-  > uninitialised in the default constructor, `GCNPCInfo`'s destructor
-  > clears its record list without freeing what `read()` allocated into
-  > it, and the four transition packets' `read()` allocates a fresh
-  > `EffectInfo` over the one the packet already holds. No golden
-  > changed.
+  > registered factories but no server source constructs one. The ten
+  > write/read disagreements it found are fixed and pinned as the
+  > behaviour the packets now produce (`GCNPCAskDynamic` counts the
+  > contents byte in `getPacketSize()`, derives the choice count from
+  > the list and refuses the choice past `kMaxCount` in the adder, in
+  > `write()` and in `read()` — 15, the most `SCRIPT_MAX_CONTENTS`
+  > lets a script carry and what its factory max now budgets, where the
+  > old budget of ten was already under the twelve the shipped scripts
+  > reach — and keeps on `read()` the empty choice `write()` emits as a
+  > bare length word; `GCNPCSayDynamic`'s message and
+  > `ScriptParameter`'s name and value go through
+  > `de::wire::readString`/`writeString` at the 255 their length byte
+  > can describe, so `GCNPCAskVariable` measures each parameter whole
+  > and no string reaches the wire behind a wrapped length;
+  > `GCRemoveEffect` derives its count from the list, refuses the id
+  > past the 255 the count byte carries, `read()` replaces the list
+  > instead of appending to it, and its maximum budgets a full list; the
+  > two monster transition packets hold the name to the 32 bytes their
+  > max budgets, the width `GCAddMonster` holds the same record to; and
+  > `DIR_NONE` stays part of the contract for the packets that broadcast
+  > a creature's direction, because `MonsterAI` computes it for a
+  > monster already standing on its destination and the move mask has an
+  > entry for it, while `CGUnburrow` and `CGMove` refuse a direction
+  > outside the eight from a client). The three the review recorded
+  > rather than tested are fixed with them and testable now: every
+  > packet in the set initialises every member its `write()` emits,
+  > pinned by constructing each over poisoned storage; `~GCNPCInfo`
+  > destroys the records `read()` allocated while still only dropping
+  > the ones a filler handed it; and the four transition packets'
+  > `read()` frees the `EffectInfo` it replaces. Two `tests/wire-layout.txt`
+  > lines move with them, `GCRemoveEffect` 255 → 515 and
+  > `GCNPCAskDynamic` 11294 → 16425, both server-side read-buffer
+  > budgets and not fields on the wire. No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set
   > and the movement, effect-lifecycle and NPC dialogue set pinned, the

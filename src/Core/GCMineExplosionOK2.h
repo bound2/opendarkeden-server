@@ -45,10 +45,14 @@ public:
         return PACKET_GC_MINE_EXPLOSION_OK_2;
     }
 
+    // The creature list is counted in a BYTE, and the factory max budgets
+    // this many ids.
+    static constexpr uint kMaxCount = 255;
+
     // get packet's body size
     // 최적화시, 미리 계산된 정수를 사용한다.
     PacketSize_t getPacketSize() const {
-        return szCoord * 2 + szDir + szItemType + szBYTE + szObjectID * m_CListNum;
+        return (PacketSize_t)(szCoord * 2 + szDir + szItemType + szBYTE + szObjectID * m_CList.size());
     }
     // CListNum, SListNum, ListEle* CListNum, ListEle* SListNum* 5
 
@@ -98,12 +102,9 @@ public:
         m_Dir = R;
     }
 
-    // get / set Creature List Number
+    // get Creature List Number
     BYTE getCListNum() const {
-        return m_CListNum;
-    }
-    void setCListNum(BYTE CListNum) {
-        m_CListNum = CListNum;
+        return (BYTE)m_CList.size();
     }
 
 
@@ -113,7 +114,6 @@ public:
     // Clear Creature List
     void clearCList() {
         m_CList.clear();
-        m_CListNum = 0;
     }
 
     // pop front Element in Status List
@@ -126,17 +126,13 @@ public:
 
 private:
     // X, Y
-    Coord_t m_X;
-
-    Coord_t m_Y;
+    Coord_t m_X = 0;
+    Coord_t m_Y = 0;
 
     // Dir
-    Dir_t m_Dir;
+    Dir_t m_Dir = 0;
 
-    ItemType_t m_ItemType;
-
-    // Creature List Num
-    BYTE m_CListNum;
+    ItemType_t m_ItemType = 0;
 
     // Creature List
     list<ObjectID_t> m_CList;
@@ -155,7 +151,8 @@ class GCMineExplosionOK2Factory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MINE_EXPLOSION_OK_2;
     static constexpr std::string_view kName = "GCMineExplosionOK2";
-    static constexpr PacketSize_t kMaxSize{szCoord * 2 + szDir + szItemType + szBYTE + szWORD + szObjectID + 255};
+    static constexpr PacketSize_t kMaxSize{szCoord * 2 + szDir + szItemType + szBYTE + szWORD +
+                                           szObjectID * GCMineExplosionOK2::kMaxCount + 255};
 
     // constructor
     GCMineExplosionOK2Factory() {}

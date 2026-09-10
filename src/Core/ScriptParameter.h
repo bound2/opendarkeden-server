@@ -13,6 +13,7 @@
 #include "Exception.h"
 #include "Packet.h"
 #include "Types.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 //
@@ -42,8 +43,11 @@ public:
     // ����ȭ��, �̸� ���� ������ ����Ѵ�.
     PacketSize_t getSize();
 
+    // Each string travels behind a BYTE length.
+    static constexpr uint kMaxStringSize = de::wire::kMaxByteStringLength;
+
     static constexpr uint getMaxSize() {
-        return szBYTE + 255 + szBYTE + 255;
+        return (szBYTE + kMaxStringSize) * 2;
     }
 
     // get packet's debug string

@@ -10,13 +10,7 @@
 //////////////////////////////////////////////////////////////////////////////
 GCNPCAskDynamic::GCNPCAskDynamic()
 
-{
-    __BEGIN_TRY
-
-    m_ContentsCount = 0;
-
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -45,19 +39,23 @@ void GCNPCAskDynamic::read(SocketInputStream& iStream)
         throw InvalidProtocolException("subject size == 0");
     iStream.read(m_Subject, size);
 
-    // read countents count
-    iStream.read(m_ContentsCount);
+    // read contents count
+    BYTE contentsCount = 0;
+    iStream.read(contentsCount);
+    if (contentsCount > kMaxCount)
+        throw InvalidProtocolException("too many contents");
 
-    for (int i = 0; i < m_ContentsCount; i++) {
-        // 문자열 길이를 읽어들인다.
+    m_Contents.clear();
+
+    for (int i = 0; i < contentsCount; i++) {
+        // Read the string length, then the string itself. A zero length is
+        // an empty choice, which write() emits as its bare length word.
         iStream.read(size);
 
-        // 내용이 있는 문자열이라면 내용 자체를 읽어들인다.
-        if (size > 0) {
-            string msg = "";
+        string msg = "";
+        if (size > 0)
             iStream.read(msg, size);
-            m_Contents.push_back(msg);
-        }
+        m_Contents.push_back(msg);
     }
 
     __END_CATCH
@@ -73,6 +71,9 @@ void GCNPCAskDynamic::write(SocketOutputStream& oStream) const
 
     WORD size = 0;
 
+    if (m_Contents.size() > kMaxCount)
+        throw InvalidProtocolException("too many contents");
+
     oStream.write(m_ObjectID);
     oStream.write(m_ScriptID);
 
@@ -82,16 +83,16 @@ void GCNPCAskDynamic::write(SocketOutputStream& oStream) const
     oStream.write(size);
     oStream.write(m_Subject);
 
-    oStream.write(m_ContentsCount);
+    oStream.write((BYTE)m_Contents.size());
 
     list<string>::const_iterator itr = m_Contents.begin();
 
     for (; itr != m_Contents.end(); itr++) {
-        // 문자열의 길이를 전송한다.
+        // The string length, then the string itself. An empty choice is its
+        // length word alone.
         size = (*itr).size();
         oStream.write(size);
 
-        // 내용이 있는 문자열이라면 문자열 자체를 전송한다.
         if (size > 0)
             oStream.write(*itr);
     }
@@ -131,8 +132,10 @@ void GCNPCAskDynamic::addContent(string content)
 {
     __BEGIN_TRY
 
+    if (m_Contents.size() >= kMaxCount)
+        throw InvalidProtocolException("too many contents");
+
     m_Contents.push_back(content);
-    m_ContentsCount++;
 
     __END_CATCH
 }
@@ -146,7 +149,6 @@ string GCNPCAskDynamic::popContent(void)
 
     string rValue = m_Contents.front();
     m_Contents.pop_front();
-    m_ContentsCount--;
     return rValue;
 
     __END_CATCH

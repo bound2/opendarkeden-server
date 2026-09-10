@@ -54,9 +54,9 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // creature object id
-    ScriptID_t m_ScriptID; // script id
-    BYTE m_SubjectID;      // subject id
+    ObjectID_t m_ObjectID = 0; // creature object id
+    ScriptID_t m_ScriptID = 0; // script id
+    BYTE m_SubjectID = 0;      // subject id
 };
 
 

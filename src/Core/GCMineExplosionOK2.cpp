@@ -18,13 +18,7 @@
 //////////////////////////////////////////////////////////////////////
 GCMineExplosionOK2::GCMineExplosionOK2()
 
-{
-    __BEGIN_TRY
-
-    m_CListNum = 0;
-
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -51,12 +45,15 @@ void GCMineExplosionOK2::read(SocketInputStream& iStream)
     iStream.read(m_Y);
     iStream.read(m_Dir);
     iStream.read(m_ItemType);
-    iStream.read(m_CListNum);
+    BYTE CListNum = 0;
+    iStream.read(CListNum);
+
+    m_CList.clear();
 
     ObjectID_t m_Value;
     int i;
 
-    for (i = 0; i < m_CListNum; i++) {
+    for (i = 0; i < CListNum; i++) {
         iStream.read(m_Value);
         m_CList.push_back(m_Value);
     }
@@ -72,12 +69,15 @@ void GCMineExplosionOK2::read(SocketInputStream& iStream)
 void GCMineExplosionOK2::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
+    if (m_CList.size() > kMaxCount)
+        throw InvalidProtocolException("too many creatures in the list");
+
     // 최적화 작업시 실제 크기를 명시하도록 한다.
     oStream.write(m_X);
     oStream.write(m_Y);
     oStream.write(m_Dir);
     oStream.write(m_ItemType);
-    oStream.write(m_CListNum);
+    oStream.write((BYTE)m_CList.size());
 
     for (list<ObjectID_t>::const_iterator itr = m_CList.begin(); itr != m_CList.end(); itr++) {
         oStream.write(*itr);
@@ -99,37 +99,13 @@ void GCMineExplosionOK2::addCListElement(ObjectID_t ObjectID)
 {
     __BEGIN_TRY
 
-    // Creature ID를 추가한다.
+    if (m_CList.size() >= kMaxCount)
+        throw InvalidProtocolException("too many creatures in the list");
+
     m_CList.push_back(ObjectID);
 
-    // 크리처 ID count를 증가시킨다.
-    m_CListNum++;
-
     __END_CATCH
 }
-
-/*
-//////////////////////////////////////////////////////////////////////
-//
-// GCMineExplosionOK2::deleteCListElement()
-//
-// Creature List의 요소를 지울때 필요한 멤버 함수.
-//
-//////////////////////////////////////////////////////////////////////
-void GCMineExplosionOK2::deleteCListElement()
-
-{
-    __BEGIN_TRY
-
-    // 크리쳐 아이디를 하나 지운다.
-    m_CList.pop_front();
-
-    // 크리처 리스트 카운터를 하나 지운다.
-    m_CListNum--;
-
-    __END_CATCH
-}
-*/
 
 
 //////////////////////////////////////////////////////////////////////
@@ -144,7 +120,7 @@ string GCMineExplosionOK2::toString() const
 
     StringStream msg;
     msg << "GCMineExplosionOK2(X:" << (int)m_X << ",Y:" << (int)m_Y << ",Dir:" << (int)m_Dir
-        << ",ItemType:" << (int)m_ItemType << ",CListNum: " << (int)m_CListNum << " CListSet(";
+        << ",ItemType:" << (int)m_ItemType << ",CListNum: " << (int)m_CList.size() << " CListSet(";
 
     for (list<ObjectID_t>::const_iterator itr = m_CList.begin(); itr != m_CList.end(); itr++) {
         msg << (int)(*itr) << ",";

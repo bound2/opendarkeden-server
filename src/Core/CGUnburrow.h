@@ -77,9 +77,9 @@ public:
     }
 
 private:
-    Coord_t m_X; // X 좌표
-    Coord_t m_Y; // Y 좌표
-    Dir_t m_Dir; // 방향
+    Coord_t m_X = 0; // X 좌표
+    Coord_t m_Y = 0; // Y 좌표
+    Dir_t m_Dir = 0; // 방향
 };
 
 

@@ -28,6 +28,10 @@ public:
     virtual ~GCNPCAskVariable();
 
 public:
+    // The parameter count travels in one byte, and the factory max budgets
+    // this many parameters.
+    static constexpr uint kMaxCount = 255;
+
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     PacketID_t getPacketID() const {
@@ -62,8 +66,8 @@ public:
     string getValue(const string& name) const;
 
 private:
-    ObjectID_t m_ObjectID;                     // NPC's object id
-    ScriptID_t m_ScriptID;                     // script id
+    ObjectID_t m_ObjectID = 0;                 // NPC's object id
+    ScriptID_t m_ScriptID = 0;                 // script id
     HashMapScriptParameter m_ScriptParameters; // script parameters
 };
 

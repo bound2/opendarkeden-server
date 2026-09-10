@@ -85,8 +85,8 @@ public:
 
 
 private:
-    ObjectID_t m_ObjectID; // 크리처 아이디
-    Coord_t m_ToX, m_ToY;  // 도착좌표
+    ObjectID_t m_ObjectID = 0;    // 크리처 아이디
+    Coord_t m_ToX = 0, m_ToY = 0; // 도착좌표
 };
 
 

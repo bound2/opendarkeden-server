@@ -95,10 +95,10 @@ public:
 
 
 private:
-    ObjectID_t m_ObjectID; // 크리처 아이디
-    Coord_t m_X;           // X 좌표
-    Coord_t m_Y;           // Y 좌표
-    Dir_t m_Dir;           // 방향
+    ObjectID_t m_ObjectID = 0; // 크리처 아이디
+    Coord_t m_X = 0;           // X 좌표
+    Coord_t m_Y = 0;           // Y 좌표
+    Dir_t m_Dir = 0;           // 방향
 };
 
 

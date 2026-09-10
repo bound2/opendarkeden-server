@@ -85,9 +85,9 @@ public:
 
 
 private:
-    Coord_t m_X; // 목표 X 좌표
-    Coord_t m_Y; // 목표 Y 좌표
-    Dir_t m_Dir; // 목표 방향
+    Coord_t m_X = 0; // 목표 X 좌표
+    Coord_t m_Y = 0; // 목표 Y 좌표
+    Dir_t m_Dir = 0; // 목표 방향
 };
 
 

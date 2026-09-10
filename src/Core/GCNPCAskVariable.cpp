@@ -37,8 +37,11 @@ void GCNPCAskVariable::read(SocketInputStream& iStream)
     iStream.read(m_ObjectID);
     iStream.read(m_ScriptID);
 
-    BYTE szParameters;
+    BYTE szParameters = 0;
     iStream.read(szParameters);
+
+    clearScriptParameters();
+
     for (int i = 0; i < szParameters; i++) {
         ScriptParameter* pParam = new ScriptParameter();
         pParam->read(iStream);
@@ -56,11 +59,13 @@ void GCNPCAskVariable::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
+    if (m_ScriptParameters.size() > kMaxCount)
+        throw InvalidProtocolException("too many script parameters");
+
     oStream.write(m_ObjectID);
     oStream.write(m_ScriptID);
 
-    BYTE szParam = m_ScriptParameters.size();
-    oStream.write(szParam);
+    oStream.write((BYTE)m_ScriptParameters.size());
 
     HashMapScriptParameterConstItor itr = m_ScriptParameters.begin();
     for (; itr != m_ScriptParameters.end(); itr++) {
@@ -73,11 +78,17 @@ void GCNPCAskVariable::write(SocketOutputStream& oStream) const
 void GCNPCAskVariable::addScriptParameter(ScriptParameter* pParam) {
     __BEGIN_TRY
 
+    // The packet owns the record from here, so a refused one is destroyed.
+    if (m_ScriptParameters.size() >= kMaxCount) {
+        SAFE_DELETE(pParam);
+        throw InvalidProtocolException("too many script parameters");
+    }
+
     HashMapScriptParameterItor itr = m_ScriptParameters.find(pParam->getName());
 
     if (itr != m_ScriptParameters.end()) {
+        SAFE_DELETE(pParam);
         throw DuplicatedException("Dup Parameter Variable name");
-        return;
     }
 
     m_ScriptParameters[pParam->getName()] = pParam;

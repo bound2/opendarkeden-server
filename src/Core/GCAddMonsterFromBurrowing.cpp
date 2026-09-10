@@ -8,17 +8,19 @@
 // include files
 #include "GCAddMonsterFromBurrowing.h"
 
+#include "WireString.h"
+
 //--------------------------------------------------------------------
 // Constructor
 //--------------------------------------------------------------------
 GCAddMonsterFromBurrowing::GCAddMonsterFromBurrowing()
 
-    : m_pEffectInfo(NULL){__BEGIN_TRY __END_CATCH}
+    {__BEGIN_TRY __END_CATCH}
 
-      //--------------------------------------------------------------------
-      // Destructor
-      //--------------------------------------------------------------------
-      GCAddMonsterFromBurrowing::~GCAddMonsterFromBurrowing() noexcept
+//--------------------------------------------------------------------
+// Destructor
+//--------------------------------------------------------------------
+GCAddMonsterFromBurrowing::~GCAddMonsterFromBurrowing() noexcept
 
 {
     SAFE_DELETE(m_pEffectInfo);
@@ -32,13 +34,10 @@ void GCAddMonsterFromBurrowing::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE name_length = 0;
     iStream.read(m_ObjectID);
     iStream.read(m_MonsterType);
 
-    iStream.read(name_length);
-    if (name_length != 0)
-        iStream.read(m_MonsterName, name_length);
+    de::wire::readString(iStream, m_MonsterName, {0, kMaxNameSize}, "MonsterName");
 
     iStream.read(m_MainColor);
     iStream.read(m_SubColor);
@@ -46,6 +45,8 @@ void GCAddMonsterFromBurrowing::read(SocketInputStream& iStream)
     iStream.read(m_Y);
     iStream.read(m_Dir);
 
+    // The record the packet already holds is replaced, not leaked.
+    SAFE_DELETE(m_pEffectInfo);
     m_pEffectInfo = new EffectInfo();
     m_pEffectInfo->read(iStream);
 
@@ -64,14 +65,10 @@ void GCAddMonsterFromBurrowing::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE name_length = m_MonsterName.size();
-
     oStream.write(m_ObjectID);
     oStream.write(m_MonsterType);
 
-    oStream.write(name_length);
-    if (m_MonsterName.size() != 0)
-        oStream.write(m_MonsterName);
+    de::wire::writeString(oStream, m_MonsterName, {0, kMaxNameSize}, "MonsterName");
 
     oStream.write(m_MainColor);
     oStream.write(m_SubColor);

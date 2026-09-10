@@ -13,6 +13,7 @@
 
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -32,19 +33,8 @@ ScriptParameter::~ScriptParameter() noexcept = default;
 void ScriptParameter::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    BYTE szName, szValue;
-
-    iStream.read(szName);
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-
-    iStream.read(m_Name, szName);
-
-    iStream.read(szValue);
-    if (szValue == 0)
-        throw InvalidProtocolException("szValue == 0");
-
-    iStream.read(m_Value, szValue);
+    de::wire::readString(iStream, m_Name, {1, kMaxStringSize}, "Name");
+    de::wire::readString(iStream, m_Value, {1, kMaxStringSize}, "Value");
 
     __END_CATCH
 }
@@ -55,18 +45,8 @@ void ScriptParameter::read(SocketInputStream& iStream) {
 void ScriptParameter::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-    BYTE szValue = m_Value.size();
-
-    if (szName == 0)
-        throw InvalidProtocolException("szName == 0");
-    if (szValue == 0)
-        throw InvalidProtocolException("szValue == 0");
-
-    oStream.write(szName);
-    oStream.write(m_Name);
-    oStream.write(szValue);
-    oStream.write(m_Value);
+    de::wire::writeString(oStream, m_Name, {1, kMaxStringSize}, "Name");
+    de::wire::writeString(oStream, m_Value, {1, kMaxStringSize}, "Value");
 
     __END_CATCH
 }
@@ -77,12 +57,7 @@ void ScriptParameter::write(SocketOutputStream& oStream) const {
 PacketSize_t ScriptParameter::getSize() {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-    BYTE szValue = m_Value.size();
-
-    PacketSize_t PacketSize = szBYTE + szName + szBYTE + szValue;
-
-    return PacketSize;
+    return (PacketSize_t)(de::wire::stringWireSize(m_Name) + de::wire::stringWireSize(m_Value));
 
     __END_CATCH
 }

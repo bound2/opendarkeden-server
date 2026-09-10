@@ -81,11 +81,11 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;
-    ZoneCoord_t m_OriginX;
-    ZoneCoord_t m_OriginY;
-    ZoneCoord_t m_TargetX;
-    ZoneCoord_t m_TargetY;
+    ObjectID_t m_ObjectID = 0;
+    ZoneCoord_t m_OriginX = 0;
+    ZoneCoord_t m_OriginY = 0;
+    ZoneCoord_t m_TargetX = 0;
+    ZoneCoord_t m_TargetY = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////
