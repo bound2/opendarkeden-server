@@ -194,9 +194,6 @@ public:
     // summon
     static void opsummon(GamePlayer* pPlayer, string msg, int i);
 
-    // notice
-    static void opnotice(GamePlayer* pPlayer, string msg, int i);
-
     // pay
     static void oppay(GamePlayer* pPlayer, string msg, int i);
 
