@@ -8,6 +8,8 @@
 // include files
 #include "GCSystemMessage.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -17,14 +19,9 @@ void GCSystemMessage::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szMessage;
-
-    iStream.read(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    iStream.read(m_Message, szMessage);
+    // The length byte carries less than the factory max budgets, so the
+    // byte's own range is the cap.
+    de::wire::readString(iStream, m_Message, {1, de::wire::kMaxByteStringLength}, "Message");
 
     iStream.read(m_Color);
 
@@ -44,14 +41,7 @@ void GCSystemMessage::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szMessage = m_Message.size();
-
-    oStream.write(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_Message, {1, de::wire::kMaxByteStringLength}, "Message");
 
     oStream.write(m_Color);
 

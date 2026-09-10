@@ -9,6 +9,7 @@
 #include "Resource.h"
 
 #include "Socket.h"
+#include "WireString.h"
 
 
 //--------------------------------------------------------------------------------
@@ -141,16 +142,10 @@ void Resource::read(SocketInputStream& iStream) {
     //--------------------------------------------------------------------------------
     // read filename
     //--------------------------------------------------------------------------------
-    BYTE szFilename;
-    iStream.read(szFilename);
-
-    if (szFilename == 0)
-        throw InvalidProtocolException("szFilename == 0");
-
-    if (szFilename > maxFilename)
-        throw InvalidProtocolException("too large filename length");
-
-    iStream.read(m_Filename, szFilename);
+    // maxFilename is 256, one past what the length byte can describe, so
+    // the byte's own range is the cap. Names come from the resource list,
+    // which save() holds to 20.
+    de::wire::readString(iStream, m_Filename, {1, de::wire::kMaxByteStringLength}, "Filename");
 
     //--------------------------------------------------------------------------------
     // read filesize
@@ -213,17 +208,7 @@ void Resource::write(SocketOutputStream& oStream) const {
     //--------------------------------------------------------------------------------
     // write filename
     //--------------------------------------------------------------------------------
-    BYTE szFilename = m_Filename.size();
-
-    if (szFilename == 0)
-        throw InvalidProtocolException("szFilename == 0");
-
-    if (szFilename > maxFilename)
-        throw InvalidProtocolException("too large filename length");
-
-    oStream.write(szFilename);
-
-    oStream.write(m_Filename);
+    de::wire::writeString(oStream, m_Filename, {1, de::wire::kMaxByteStringLength}, "Filename");
 
     //--------------------------------------------------------------------------------
     // write filesize

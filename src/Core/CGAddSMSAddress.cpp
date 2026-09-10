@@ -6,6 +6,8 @@
 
 #include "CGAddSMSAddress.h"
 
+#include "WireString.h"
+
 CGAddSMSAddress::CGAddSMSAddress()
 
     {__BEGIN_TRY __END_CATCH}
@@ -22,16 +24,9 @@ void CGAddSMSAddress::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szSTR;
-
-    iStream.read(szSTR);
-    iStream.read(m_CharacterName, szSTR);
-
-    iStream.read(szSTR);
-    iStream.read(m_CustomName, szSTR);
-
-    iStream.read(szSTR);
-    iStream.read(m_Number, szSTR);
+    de::wire::readString(iStream, m_CharacterName, {1, 20}, "CharacterName");
+    de::wire::readString(iStream, m_CustomName, {1, 40}, "CustomName");
+    de::wire::readString(iStream, m_Number, {1, 11}, "Number");
 
     __END_CATCH
 }
@@ -41,19 +36,9 @@ void CGAddSMSAddress::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szSTR;
-
-    szSTR = m_CharacterName.size();
-    oStream.write(szSTR);
-    oStream.write(m_CharacterName);
-
-    szSTR = m_CustomName.size();
-    oStream.write(szSTR);
-    oStream.write(m_CustomName);
-
-    szSTR = m_Number.size();
-    oStream.write(szSTR);
-    oStream.write(m_Number);
+    de::wire::writeString(oStream, m_CharacterName, {0, 20}, "CharacterName");
+    de::wire::writeString(oStream, m_CustomName, {0, 40}, "CustomName");
+    de::wire::writeString(oStream, m_Number, {0, 11}, "Number");
 
     __END_CATCH
 }

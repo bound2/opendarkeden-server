@@ -10,6 +10,7 @@
 #include "NicknameInfo.h"
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class CGModifyNickname;
@@ -27,7 +28,7 @@ public:
         return PACKET_CG_MODIFY_NICKNAME;
     }
     PacketSize_t getPacketSize() const {
-        return szObjectID + szBYTE + m_Nickname.size();
+        return szObjectID + de::wire::stringWireSize(m_Nickname);
     }
     string getPacketName() const {
         return "CGModifyNickname";

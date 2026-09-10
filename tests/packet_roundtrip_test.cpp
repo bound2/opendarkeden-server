@@ -26,16 +26,34 @@
 //               EncrypterFree below fails if that ever changes, which is
 //               the signal to add per-code goldens for them.
 //
+//               The last section holds the length-prefixed string
+//               fields of packets and records that belong to no packet
+//               family with a file of its own: what each field's bounds
+//               admit, and what they refuse.
+//
 //////////////////////////////////////////////////////////////////////
 
 #include <gtest/gtest.h>
 
+#include "CGAddSMSAddress.h"
+#include "CGCrashReport.h"
+#include "CGModifyNickname.h"
 #include "CGMove.h"
 #include "CGSay.h"
 #include "CGWhisper.h"
+#include "GCBloodBibleStatus.h"
+#include "GCFriendChatting.h"
 #include "GCMoveOK.h"
+#include "GCNotifyWin.h"
 #include "GCShopList.h"
+#include "GCShowMessageBox.h"
+#include "GCSystemMessage.h"
+#include "GuildWarInfo.h"
+#include "ItemNameInfo.h"
+#include "QuestStatusInfo.h"
+#include "Resource.h"
 #include "TestStreams.h"
+#include "WireString.h"
 
 using wiretest::expectGolden;
 using wiretest::Loopback;
@@ -355,4 +373,314 @@ TEST(SubSkillInfoTest, aShortStreamStopsTheRead) {
             EXPECT_THROW(info.read(loopback.in()), InsufficientDataException);
         }
     }
+}
+
+//////////////////////////////////////////////////////////////////////
+// Length-prefixed string fields, in packets with no family file
+//
+// Each of these fields states its bounds once, in the de::wire call
+// that carries the prefix and the bytes. What is pinned per field is
+// the value at the cap surviving the round trip and the refusals: a
+// value past the cap, and -- where the two halves disagree about the
+// empty value, because read() takes the field unconditionally and
+// write() emits whatever it holds -- an empty field that write() sends
+// and read() refuses.
+//////////////////////////////////////////////////////////////////////
+
+namespace {
+
+// The unencrypted branch: none of these packets reference the
+// encrypter, so this is the only code whose bytes differ from any other.
+const uchar kStringFieldCode = 0;
+
+// Write a record through a loopback and read it back, the way the
+// packets that embed it do.
+template <typename T> void recordRoundTrip(const T& src, T& dst, uint size) {
+    Loopback link;
+    link.setCodes(kStringFieldCode);
+    src.write(link.out());
+    link.pump(size);
+    dst.read(link.in());
+}
+
+} // namespace
+
+TEST(CGAddSMSAddressTest, theThreeFieldsStopAtWhatTheFactoryMaxBudgets) {
+    CGAddSMSAddress src;
+    src.setCharacterName(std::string(20, 'c'));
+    src.setCustomName(std::string(40, 'u'));
+    src.setNumber(std::string(11, '7'));
+
+    CGAddSMSAddress dst;
+    roundTrip(src, dst, kStringFieldCode);
+    EXPECT_EQ(src.getCharacterName(), dst.getCharacterName());
+    EXPECT_EQ(src.getCustomName(), dst.getCustomName());
+    EXPECT_EQ(src.getNumber(), dst.getNumber());
+
+    src.setNumber(std::string(12, '7'));
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+
+    CGAddSMSAddress noNumber;
+    noNumber.setCharacterName("Name");
+    noNumber.setCustomName("Custom");
+
+    CGAddSMSAddress back;
+    EXPECT_THROW(roundTrip(noNumber, back, kStringFieldCode), InvalidProtocolException);
+}
+
+TEST(CGCrashReportTest, theWordPrefixedFieldsStopAtTheirCaps) {
+    CGCrashReport src;
+    src.setExecutableTime("2026-01-02 03:04:05");
+    src.setVersion(0x1234);
+    src.setAddress("0x00401000");
+    src.setOS(std::string(100, 'o'));
+    src.setCallStack(std::string(1024, 'c'));
+    src.setMessage(std::string(1024, 'm'));
+
+    CGCrashReport dst;
+    roundTrip(src, dst, kStringFieldCode);
+    EXPECT_EQ(src.getOS(), dst.getOS());
+    EXPECT_EQ(src.getCallStack(), dst.getCallStack());
+    EXPECT_EQ(src.getMessage(), dst.getMessage());
+
+    // The WORD prefix reaches past what a byte counts, which is why
+    // these three carry one.
+    EXPECT_EQ(szWORD + 1024u, de::wire::stringWireSize16(src.getMessage()));
+
+    src.setOS(std::string(101, 'o'));
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+
+    CGCrashReport noOS;
+    noOS.setExecutableTime("2026-01-02 03:04:05");
+    noOS.setVersion(0x1234);
+    noOS.setAddress("0x00401000");
+
+    CGCrashReport back;
+    EXPECT_THROW(roundTrip(noOS, back, kStringFieldCode), InvalidProtocolException);
+}
+
+TEST(CGModifyNicknameTest, theNicknameStopsAtWhatTheFactoryMaxBudgets) {
+    CGModifyNickname src;
+    src.setItemObjectID(0x4321);
+    src.setNickname(std::string(MAX_NICKNAME_SIZE, 'n'));
+
+    CGModifyNickname dst;
+    roundTrip(src, dst, kStringFieldCode);
+    EXPECT_EQ(src.getNickname(), dst.getNickname());
+
+    CGModifyNickname absent;
+    absent.setItemObjectID(0x4321);
+
+    CGModifyNickname absentBack;
+    absentBack.setNickname("left over from the last read");
+    roundTrip(absent, absentBack, kStringFieldCode);
+    EXPECT_TRUE(absentBack.getNickname().empty());
+
+    src.setNickname(std::string(MAX_NICKNAME_SIZE + 1, 'n'));
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+}
+
+TEST(GCBloodBibleStatusTest, theOwnerNameStopsAtWhatItsLengthByteCarries) {
+    GCBloodBibleStatus src;
+    src.setItemType(3);
+    src.setZoneID(7);
+    src.setStorage(2);
+    src.setRace(1);
+    src.setShrineRace(2);
+    src.setX(11);
+    src.setY(22);
+    src.setOwnerName(std::string(de::wire::kMaxByteStringLength, 'o'));
+
+    GCBloodBibleStatus dst;
+    roundTrip(src, dst, kStringFieldCode);
+    EXPECT_EQ(src.getOwnerName(), dst.getOwnerName());
+
+    src.setOwnerName("");
+    GCBloodBibleStatus absentBack;
+    roundTrip(src, absentBack, kStringFieldCode);
+    EXPECT_TRUE(absentBack.getOwnerName().empty());
+
+    src.setOwnerName(std::string(de::wire::kMaxByteStringLength + 1, 'o'));
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+}
+
+// The one packet here whose two halves cap the same field differently:
+// the message is refused past 128 on read and past 512 on write.
+TEST(GCFriendChattingTest, theNameAndTheMessageKeepTheirOwnCaps) {
+    GCFriendChatting src;
+    src.setCommand(GC_MESSAGE);
+    src.setPlayerName(std::string(32, 'p'));
+    src.setMessage(std::string(128, 'm'));
+    src.setIsBlack(1);
+    src.setIsOnLine(1);
+
+    GCFriendChatting dst;
+    roundTrip(src, dst, kStringFieldCode);
+    EXPECT_EQ(src.getPlayerName(), dst.getPlayerName());
+    EXPECT_EQ(src.getMessage(), dst.getMessage());
+
+    src.setMessage(std::string(129, 'm'));
+    GCFriendChatting refused;
+    EXPECT_THROW(roundTrip(src, refused, kStringFieldCode), InvalidProtocolException);
+
+    src.setMessage(std::string(513, 'm'));
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+
+    src.setPlayerName(std::string(33, 'p'));
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+
+    // Most of the sends leave both strings empty; read() refuses that.
+    GCFriendChatting bare;
+    bare.setCommand(GC_ADD_FRIEND_ERROR);
+
+    GCFriendChatting bareBack;
+    EXPECT_THROW(roundTrip(bare, bareBack, kStringFieldCode), InvalidProtocolException);
+}
+
+TEST(GCNotifyWinTest, theNameStopsAtWhatItsLengthByteCarries) {
+    GCNotifyWin src;
+    src.setGiftID(0x11223344);
+    src.setName(std::string(de::wire::kMaxByteStringLength, 'w'));
+
+    GCNotifyWin dst;
+    roundTrip(src, dst, kStringFieldCode);
+    EXPECT_EQ(src.getName(), dst.getName());
+
+    src.setName(std::string(de::wire::kMaxByteStringLength + 1, 'w'));
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+
+    src.setName("");
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+}
+
+// Before the bounds were stated once, both halves of this packet threw
+// on every length, and write() emitted no length byte at all.
+TEST(GCShowMessageBoxTest, theMessageStopsAtWhatItsLengthByteCarries) {
+    GCShowMessageBox src;
+    src.setMessage(std::string(de::wire::kMaxByteStringLength, 'b'));
+
+    GCShowMessageBox dst;
+    roundTrip(src, dst, kStringFieldCode);
+    EXPECT_EQ(src.getMessage(), dst.getMessage());
+
+    src.setMessage(std::string(de::wire::kMaxByteStringLength + 1, 'b'));
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+
+    src.setMessage("");
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+}
+
+TEST(GCSystemMessageTest, theMessageStopsAtWhatItsLengthByteCarries) {
+    GCSystemMessage src;
+    src.setMessage(std::string(de::wire::kMaxByteStringLength, 's'));
+    src.setColor(0x006040E8);
+    src.setType(SYSTEM_MESSAGE_NORMAL);
+
+    GCSystemMessage dst;
+    roundTrip(src, dst, kStringFieldCode);
+    EXPECT_EQ(src.getMessage(), dst.getMessage());
+    EXPECT_EQ(src.getColor(), dst.getColor());
+
+    src.setMessage(std::string(de::wire::kMaxByteStringLength + 1, 's'));
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+
+    src.setMessage("");
+    EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
+}
+
+TEST(GuildWarInfoTest, theTwoGuildNamesStopAtWhatTheRecordMaxBudgets) {
+    GuildWarInfo src;
+    src.setStartTime(0x20260102);
+    src.setRemainTime(3600);
+    src.setCastleID(9);
+    src.setAttackGuildName(std::string(40, 'a'));
+    src.setDefenseGuildName(std::string(30, 'd'));
+    src.addJoinGuild(0x1111);
+
+    GuildWarInfo dst;
+    recordRoundTrip(src, dst, src.getSize());
+    EXPECT_EQ(src.getAttackGuildName(), dst.getAttackGuildName());
+    EXPECT_EQ(src.getDefenseGuildName(), dst.getDefenseGuildName());
+
+    GuildWarInfo unnamed;
+    unnamed.setStartTime(0x20260102);
+    unnamed.setRemainTime(3600);
+    unnamed.setCastleID(9);
+
+    GuildWarInfo unnamedBack;
+    recordRoundTrip(unnamed, unnamedBack, unnamed.getSize());
+    EXPECT_TRUE(unnamedBack.getAttackGuildName().empty());
+    EXPECT_TRUE(unnamedBack.getDefenseGuildName().empty());
+
+    src.setDefenseGuildName(std::string(31, 'd'));
+    Loopback link;
+    link.setCodes(kStringFieldCode);
+    EXPECT_THROW(src.write(link.out()), InvalidProtocolException);
+}
+
+TEST(ItemNameInfoTest, theNameStopsAtWhatTheRecordMaxBudgets) {
+    ItemNameInfo src(0x4455, std::string(20, 'i'));
+
+    ItemNameInfo dst;
+    recordRoundTrip(src, dst, src.getSize());
+    EXPECT_EQ(src.getName(), dst.getName());
+
+    ItemNameInfo tooLong(0x4455, std::string(21, 'i'));
+    Loopback link;
+    link.setCodes(kStringFieldCode);
+    EXPECT_THROW(tooLong.write(link.out()), InvalidProtocolException);
+
+    // write() emits an empty name; read() refuses it.
+    ItemNameInfo unnamed(0x4455, "");
+    ItemNameInfo back;
+    EXPECT_THROW(recordRoundTrip(unnamed, back, unnamed.getSize()), InvalidProtocolException);
+}
+
+TEST(MissionInfoTest, theStringArgumentStopsAtWhatItsLengthByteCarries) {
+    MissionInfo src;
+    src.m_Condition = 1;
+    src.m_Index = 2;
+    src.m_Status = MissionInfo::CURRENT;
+    src.m_StrArg = std::string(de::wire::kMaxByteStringLength, 'q');
+    src.m_NumArg = 0x01020304;
+
+    MissionInfo dst;
+    recordRoundTrip(src, dst, src.getSize());
+    EXPECT_EQ(src.m_StrArg, dst.m_StrArg);
+    EXPECT_EQ(src.m_NumArg, dst.m_NumArg);
+
+    src.m_StrArg = "";
+    MissionInfo absentBack;
+    absentBack.m_StrArg = "left over from the last read";
+    recordRoundTrip(src, absentBack, src.getSize());
+    EXPECT_TRUE(absentBack.m_StrArg.empty());
+
+    src.m_StrArg = std::string(de::wire::kMaxByteStringLength + 1, 'q');
+    Loopback link;
+    link.setCodes(kStringFieldCode);
+    EXPECT_THROW(src.write(link.out()), InvalidProtocolException);
+}
+
+// maxFilename is 256, one past what the length byte can describe, so the
+// byte's own range is the cap.
+TEST(ResourceTest, theFilenameStopsAtWhatItsLengthByteCarries) {
+    Resource src;
+    src.setVersion(0x0102);
+    src.setFilename(std::string(de::wire::kMaxByteStringLength, 'f'));
+    src.setFileSize(0x00112233);
+
+    Resource dst;
+    recordRoundTrip(src, dst, src.getSize());
+    EXPECT_EQ(src.getFilename(), dst.getFilename());
+    EXPECT_EQ(src.getFileSize(), dst.getFileSize());
+
+    Loopback link;
+    link.setCodes(kStringFieldCode);
+
+    Resource tooLong;
+    tooLong.setFilename(std::string(de::wire::kMaxByteStringLength + 1, 'f'));
+    EXPECT_THROW(tooLong.write(link.out()), InvalidProtocolException);
+
+    Resource unnamed;
+    EXPECT_THROW(unnamed.write(link.out()), InvalidProtocolException);
 }

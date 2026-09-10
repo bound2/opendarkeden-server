@@ -5,6 +5,8 @@
 //////////////////////////////////////////////////////////////////////////////
 #include "CGModifyNickname.h"
 
+#include "WireString.h"
+
 CGModifyNickname::CGModifyNickname()
 
     {__BEGIN_TRY __END_CATCH}
@@ -23,10 +25,7 @@ void CGModifyNickname::read(SocketInputStream& iStream)
 
     iStream.read(m_ItemObjectID);
 
-    BYTE szSTR;
-    iStream.read(szSTR);
-    if (szSTR != 0)
-        iStream.read(m_Nickname, szSTR);
+    de::wire::readString(iStream, m_Nickname, {0, MAX_NICKNAME_SIZE}, "Nickname");
 
     __END_CATCH
 }
@@ -38,11 +37,7 @@ void CGModifyNickname::write(SocketOutputStream& oStream) const
 
     oStream.write(m_ItemObjectID);
 
-    BYTE szSTR;
-    szSTR = m_Nickname.size();
-    oStream.write(szSTR);
-    if (szSTR != 0)
-        oStream.write(m_Nickname);
+    de::wire::writeString(oStream, m_Nickname, {0, MAX_NICKNAME_SIZE}, "Nickname");
 
     __END_CATCH
 }

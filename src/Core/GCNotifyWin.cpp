@@ -6,6 +6,8 @@
 
 #include "GCNotifyWin.h"
 
+#include "WireString.h"
+
 void GCNotifyWin::read(SocketInputStream& iStream)
 
 {
@@ -13,14 +15,9 @@ void GCNotifyWin::read(SocketInputStream& iStream)
 
     iStream.read(m_GiftID);
 
-    BYTE szMessage;
-
-    iStream.read(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    iStream.read(m_Name, szMessage);
+    // The factory max budgets more than the length byte can describe, so
+    // the byte's own range is the cap.
+    de::wire::readString(iStream, m_Name, {1, de::wire::kMaxByteStringLength}, "Name");
 
     __END_CATCH
 }
@@ -32,14 +29,7 @@ void GCNotifyWin::write(SocketOutputStream& oStream) const
 
     oStream.write(m_GiftID);
 
-    BYTE szMessage = m_Name.size();
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    oStream.write(szMessage);
-
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, de::wire::kMaxByteStringLength}, "Name");
 
     __END_CATCH
 }

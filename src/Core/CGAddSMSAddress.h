@@ -9,6 +9,7 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class CGAddSMSAddress;
@@ -26,7 +27,8 @@ public:
         return PACKET_CG_ADD_SMS_ADDRESS;
     }
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_CharacterName.size() + szBYTE + m_CustomName.size() + szBYTE + m_Number.size();
+        return de::wire::stringWireSize(m_CharacterName) + de::wire::stringWireSize(m_CustomName) +
+               de::wire::stringWireSize(m_Number);
     }
     string getPacketName() const {
         return "CGAddSMSAddress";

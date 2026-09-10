@@ -9,6 +9,8 @@
 // include files
 #include "GuildWarInfo.h"
 
+#include "WireString.h"
+
 //////////////////////////////////////////////////////////////////////
 // Read war info from the incoming stream.
 //////////////////////////////////////////////////////////////////////
@@ -19,14 +21,8 @@ void GuildWarInfo::read(SocketInputStream& iStream) {
     iStream.read(m_CastleID);
 
 
-    BYTE szName;
-    iStream.read(szName);
-    if (szName > 0)
-        iStream.read(m_AttackGuildName, szName);
-
-    iStream.read(szName);
-    if (szName > 0)
-        iStream.read(m_DefenseGuildName, szName);
+    de::wire::readString(iStream, m_AttackGuildName, {0, 40}, "AttackGuildName");
+    de::wire::readString(iStream, m_DefenseGuildName, {0, 30}, "DefenseGuildName");
 
 
     m_GuildIDs.read(iStream);
@@ -44,15 +40,8 @@ void GuildWarInfo::write(SocketOutputStream& oStream) const {
     WarInfo::write(oStream);
     oStream.write(m_CastleID);
 
-    BYTE szName = m_AttackGuildName.size();
-    oStream.write(szName);
-    if (szName > 0)
-        oStream.write(m_AttackGuildName);
-
-    szName = m_DefenseGuildName.size();
-    oStream.write(szName);
-    if (szName > 0)
-        oStream.write(m_DefenseGuildName);
+    de::wire::writeString(oStream, m_AttackGuildName, {0, 40}, "AttackGuildName");
+    de::wire::writeString(oStream, m_DefenseGuildName, {0, 30}, "DefenseGuildName");
 
     m_GuildIDs.write(oStream);
 
