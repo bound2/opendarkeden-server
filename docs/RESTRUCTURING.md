@@ -508,12 +508,76 @@ before anything else moves. Everything later shelters under this pin.
   > byte it never compares against `GC_SHOP_BUY_FAIL_MAX`, and
   > `GCPetStashList` frees neither the slot it overwrites on a re-read
   > nor the `PetInfo` inside a slot it destroys. No golden changed.
+  > The **character progression set is pinned** — the 29 packets a
+  > client and a game server exchange while a character advances: the
+  > nine client requests (`CGLearnSkill`, `CGDownSkill`,
+  > `CGCastingSkill`, `CGSkillToNamed`, `CGUseBonusPoint`,
+  > `CGUsePowerPoint`, `CGRequestPowerPoint`, `CGSelectRankBonus`,
+  > `CGSelectBloodBible`) and the twenty answers they draw
+  > (`GCSkillInfo`, `GCTeachSkillInfo`, `GCLearnSkillOK`,
+  > `GCLearnSkillFailed`, `GCLearnSkillReady`, `GCDownSkillOK`,
+  > `GCDownSkillFailed`, `GCCastingSkill`, `GCUseBonusPointOK`,
+  > `GCUseBonusPointFail`, `GCUsePowerPointResult`,
+  > `GCRequestPowerPointResult`, `GCRankBonusInfo`,
+  > `GCSelectRankBonusOK`, `GCSelectRankBonusFailed`,
+  > `GCSweeperBonusInfo`, `GCHolyLandBonusInfo`, `GCBloodBibleList`,
+  > `GCBloodBibleStatus`, `GCBloodBibleSignInfo`), have code-0 goldens,
+  > loopback round trips and size/factory-max pins
+  > (`tests/packet_skill_test.cpp`), with one golden per race for the
+  > skill book and extra goldens for the book with no record and the
+  > record with no skill, the empty rank-bonus, sweeper, holy-land,
+  > blood-bible and sign listings, the full sign list, the stat record a
+  > spent bonus point produces with nothing in it, and the blood bible
+  > that belongs to nobody. No packet in the family calls the encrypter
+  > or derives from one that does, so every golden is recorded at code 0
+  > and each test also asserts the bytes do not vary with the code. The
+  > four aimed-skill requests these handlers also answer
+  > (`CGSkillToObject`, `CGSkillToSelf`, `CGSkillToTile`,
+  > `CGSkillToInventory`) are covered by the encrypter pins, the
+  > `ModifyInfo` stat record and the `GCSkillFailed*` / `GCSkillTo*OK*`
+  > results by the combat pins, and the `BloodBibleSignInfo` record by
+  > the handshake pins. `GCPetUseSkill` is excluded: it has a registered
+  > factory, but its only sender is `Pet.cpp`'s attack path, which
+  > belongs to combat feedback rather than to progression. `GCSkillInfo`
+  > had an ousters frame-size pin and `GCBloodBibleStatus` a name-width
+  > pin in `tests/packet_roundtrip_test.cpp`; both are single-aspect and
+  > neither had a golden, so both packets are pinned in full here. Nine
+  > open write/read disagreements are stated as tests that flip when
+  > fixed (`GCSkillInfo` deriving its record count into a BYTE it caps
+  > nowhere, so the 256th record wraps the count to zero while `write()`
+  > emits every record; its factory max being one bare
+  > `SlayerSkillInfo`, budgeting neither the pc type byte nor the count
+  > byte nor a second record, although a slayer's book carries one per
+  > domain, so a single full record already outgrows it; the three race
+  > records keeping their skill count in a BYTE `addListElement` never
+  > touches, so `write()` emits that count and then the whole list and
+  > `getPacketSize()` counts the skills the reader will not consume;
+  > `GCSkillInfo::read` appending to the book the packet already holds,
+  > as `GCRankBonusInfo`, `GCSweeperBonusInfo`, `GCHolyLandBonusInfo`
+  > and `GCBloodBibleList` do to their lists; `GCSkillInfo::write`
+  > emitting any pc type while `read()` refuses every one but the three
+  > it builds, so such a book is written and cannot be read back; those
+  > three bonus lists wrapping their count byte at 256 and outgrowing
+  > maxima that budget 100, 12 and 12 entries; `SweeperBonusInfo` and
+  > `BloodBibleBonusInfo` writing and reading only their race byte, so
+  > the type both managers set on every record never reaches the wire;
+  > and `GCBloodBibleSignInfo` leaving uninitialised the record pointer
+  > `getPacketSize()` and `write()` dereference), and 18 of the 29 leave
+  > at least one member the default constructor never sets, pinned over
+  > poisoned storage. Four more are recorded in the test's header rather
+  > than tested: each race record's learn flag and a slayer skill's
+  > enable flag are read straight into a `bool`,
+  > `GCBloodBibleSignInfo::read` allocates a record on every call and
+  > frees none, `BloodBibleSignInfo::read` appends to the sign list it
+  > already holds, and the two power-point results take code bytes they
+  > never compare against the enumerators their own headers declare. No
+  > golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set, the inventory
-  > and item handling set and the store, shop and stash dialogue pinned,
-  > the remaining non-encrypter coverage outstanding is the rest of
-  > GC/CG.
+  > and item handling set, the store, shop and stash dialogue and the
+  > character progression set pinned, the remaining non-encrypter
+  > coverage outstanding is the rest of GC/CG.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed
