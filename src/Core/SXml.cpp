@@ -17,6 +17,8 @@
 #include <iosfwd>
 #include <iostream>
 
+#include "Exception.h"
+
 void itoa(int value, char* buf, int r) {
     if (r == 10) {
         sprintf(buf, "%d", value);
@@ -166,7 +168,7 @@ void XMLUtil::filelog(const char* fmt, ...) {
         int nchars = vsnprintf(message_buffer, 30000, fmt, valist);
         if (nchars == -1 || nchars > 30000) {
             filelog(NULL, "filelog buffer overflow!");
-            throw "filelog() : more buffer size needed for log";
+            throw Error("filelog() : more buffer size needed for log");
         }
         va_end(valist);
 

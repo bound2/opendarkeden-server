@@ -277,7 +277,7 @@ GamePlayer::~GamePlayer() noexcept {
         }
     } catch (NoSuchElementException& nsee) {
         cerr << "GamePlayer::~GamePlayer() : " << nsee.toString() << endl;
-        throw "GamePlayer::~GamePlayer() : NoSuchElementException";
+        throw Error("GamePlayer::~GamePlayer() : NoSuchElementException");
     } catch (Throwable& t) {
         t.addStack();
         throw;
@@ -1271,7 +1271,7 @@ void GamePlayer::loadSpecialEventCount(void) {
 
     DWORD count = 0;
     if (!defaultSessionRepository().loadSpecialEventCount(m_ID, count)) {
-        throw "GamePlayer::loadSpecialEventCount() : unable to dispatch data";
+        throw Error("GamePlayer::loadSpecialEventCount() : unable to dispatch data");
     }
     m_SpecialEventCount = count;
 

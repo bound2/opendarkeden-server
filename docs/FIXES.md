@@ -11,6 +11,39 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A bare string-literal throw walked past every handler written for it (2026-09-10)
+
+- **149 sites answered a refusal with `throw "text"`, a `const char*`
+  nothing in the tree catches.** `__END_CATCH` rethrows a `Throwable` and
+  the 344 `__END_CATCH_NO_RETHROW` sites swallow one; `__END_DEBUG_EX`,
+  which every CG handler ends with, rethrows an `Error` and logs a plain
+  `Exception`; a skill's own `catch (Throwable& t)` runs its
+  `executeSkillFailException` branch. A `const char*` matches none of
+  them, so it walked past the handler the surrounding code had written for
+  exactly this failure and landed in whatever `catch (...)` stood highest —
+  `main()`'s "unknown exception...", `GamePlayer::processCommand`'s
+  disconnect, `ManagedThread`'s `ServerShutdown::fail()` — with the message
+  dropped on the way. Out of a destructor there is no backstop at all:
+  `~GamePlayer` is implicitly `noexcept`, so its literal was
+  `std::terminate` for the whole game server whenever a departing player's
+  party lookup missed. The 62 sites outside `src/server/gameserver/item`
+  now throw `Error` with the same text, the 15 Korean ones translated.
+  Each lands in the handler that was already there: a load failure reaches
+  `main()`'s `catch (Throwable&)`, which writes it to `../log/instant.log`
+  and refuses to start where the literal only printed "unknown
+  exception..."; a skill's missing-ammunition refusal reaches the skill's
+  own fail branch instead of disconnecting the player; a zone tick failure
+  reaches `zoneGroupThreadError.log` before the same shutdown; and
+  `~GamePlayer`'s reaches the destructor's own `__END_CATCH_NO_RETHROW`,
+  which swallows it after the `cerr` line the site already writes — a
+  swallow accepted deliberately, because terminating every logged-in
+  session over one departing player's party bookkeeping is not a refusal
+  worth keeping. Ratchet R11 holds the remainder at 87: the item classes'
+  identical `Invalid item type or optionType` constructor refusal, one per
+  class, a family to convert as a family.
+  > **Status:** fixed for everything outside `src/server/gameserver/item`
+  > (seam/statement-leak); the 87 item constructors are ratcheted by R11
+
 ## A statement that met anything but a SQL failure was never closed (2026-09-10)
 
 - **`BEGIN_DB`/`END_DB` closed the `Statement` only in the clause that
