@@ -61,7 +61,7 @@ GQuestElement::ResultType GQuestGiveEventQuestItemElement::checkCondition(Player
             base = 10 + m_Type - 1;
         }
 
-        inventory.getItems().push_back(base);
+        inventory.addOne(base);
         pPC->getPlayer()->sendPacket(inventory.getInventoryPacket());
 
         defaultQuestItemRepository().insert(pPC->getName(), base);

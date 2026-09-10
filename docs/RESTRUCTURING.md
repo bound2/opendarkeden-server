@@ -65,7 +65,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
-| R9 | Hand-written length-prefixed string reads left in `src/Core` | 0 | `grep -rhE 'iStream\.read\(m_[A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (a string field is a BYTE length then that many bytes; `de::wire::readString`/`writeString` in `src/Core/WireString.h` carry it with the bounds stated once. Line-based with R8's comment rule, so `WireString.h`'s own example of the shape it replaces does not count itself) |
+| R9 | Hand-written length-prefixed string reads left in `src/Core` | 0 | `grep -rhE 'iStream\.read\([A-Za-z_][A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (a string field is a BYTE length then that many bytes; `de::wire::readString`/`writeString` in `src/Core/WireString.h` carry it with the bounds stated once. The read may land in a member or in a local, so any identifier counts. Line-based with R8's comment rule, so `WireString.h`'s own example of the shape it replaces does not count itself) |
 
 God-file baselines (R6):
 
@@ -405,29 +405,37 @@ before anything else moves. Everything later shelters under this pin.
   > `GCAddItemToInventory` and `GCChangeInventoryItemNum` have no packet
   > id of their own and are pinned through `GCMakeItemOK` and
   > `GCMakeItemFail`, the only packets that put them on the wire.
-  > Fourteen open write/read disagreements are stated as tests that flip
-  > when fixed (`GCAddItemToInventory::write()` emitting its option
-  > count twice, which `read()` consumes once, and an item count
-  > `getPacketSize()` never budgets for, so `GCMakeItemOK` declares a
-  > body two bytes short and cannot be read back at all;
-  > `GCAddItemToItemVerify::getPacketSize()` having no case for its
-  > THREE_ENCHANT_OK branch, so that result declares a bare code byte
-  > against the code and two parameters `write()` gives it, and the
-  > constructor leaving the second parameter uninitialised;
-  > `GCChangeInventoryItemNum` counting its material list in a BYTE it
-  > increments per entry and caps nowhere, exposing that count through
-  > `setChangedItemListNum()`, popping an entry without decrementing it,
-  > and letting a full list reach five times the 255 bytes the two
-  > crafting maxima budget for the record; `GCCreateItem`
-  > wrapping its option count at 256 and outgrowing its max with it;
-  > `GCGQuestInventory` doing the same with an item list its max budgets
-  > at 100, and its `read()` appending to the list the packet already
-  > holds; and 30 of the 37 leaving at least one member the default
-  > constructor never sets, pinned over poisoned storage). One more is
-  > recorded in the test's header rather than tested:
-  > `GCTimeLimitItemInfo::getTimeLimit()` answers 0xffff for an item it
-  > does not hold, a value a real remaining time can equal. No golden
-  > changed.
+  > The fourteen write/read disagreements it found are fixed and pinned
+  > as the behaviour the packets now produce
+  > (`GCAddItemToInventory::write()` emits its option count once, the
+  > side the client's own copy of the record reads, and
+  > `getPacketSize()` counts the item count behind it, so `GCMakeItemOK`
+  > declares the body it sends and round trips; the record's option list
+  > and `GCCreateItem`'s are held to `MAX_ITEM_OPTION_NUM` (30) in the
+  > adder, the setter, `write()` and `read()` — the widest option list an
+  > item carries, a code sheet's stone grid, where every other class
+  > holds at most three — and `GCCreateItem`'s max budgets it;
+  > `GCAddItemToItemVerify::getPacketSize()` counts both parameters of a
+  > THREE_ENCHANT_OK result and the constructor sets the second one;
+  > `GCChangeInventoryItemNum`'s count is its list, refused past the 255
+  > its count byte carries in the adder and in `write()`, with
+  > `setChangedItemListNum` gone, popping taking the entry off both
+  > lists, `read()` replacing what the packet holds, and both crafting
+  > maxima built from the two embedded records' own maxima so a full
+  > material list fits; `GCGQuestInventory` holds its item list to the
+  > 100 its max budgets in `addItem()`, in `write()` and in `read()`,
+  > and `read()` replaces the list instead of appending to it; and every
+  > one of the 37 initialises every member its `write()` emits, pinned
+  > over poisoned storage). The one the test's header recorded rather
+  > than tested is fixed with them:
+  > `GCTimeLimitItemInfo::getTimeLimit()` returns `std::optional<DWORD>`
+  > with `hasTimeLimit()` beside it, in place of an 0xffff a real
+  > remaining time can equal. Three `tests/wire-layout.txt` lines move,
+  > `GCCreateItem` 277 → 52, `GCMakeItemFail` 2297 → 3318 and
+  > `GCMakeItemOK` 2552 → 3363, all server-side read-buffer budgets and
+  > not fields on the wire. One golden pair moves deliberately:
+  > `GCMakeItemOK`'s two goldens are one byte shorter, the duplicated
+  > option count the client never read.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set and the

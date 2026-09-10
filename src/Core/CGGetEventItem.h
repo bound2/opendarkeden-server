@@ -53,7 +53,7 @@ public:
     }
 
 private:
-    BYTE m_EventType; // 이벤트 종류
+    BYTE m_EventType = 0; // 이벤트 종류
 };
 
 

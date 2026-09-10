@@ -41,10 +41,16 @@ void GCCreateItem::read(SocketInputStream& iStream)
 
     BYTE optionSize;
     iStream.read(optionSize);
+
+    if (optionSize > kMaxOptionCount)
+        throw InvalidProtocolException("too many item options");
+
+    m_OptionType.clear();
+
     for (int i = 0; i < optionSize; i++) {
         OptionType_t optionType;
         iStream.read(optionType);
-        addOptionType(optionType);
+        m_OptionType.push_back(optionType);
     }
 
     iStream.read(m_Durability);
@@ -69,6 +75,9 @@ void GCCreateItem::write(SocketOutputStream& oStream) const
     oStream.write(m_ObjectID);
     oStream.write(m_ItemClass);
     oStream.write(m_ItemType);
+
+    if (m_OptionType.size() > kMaxOptionCount)
+        throw InvalidProtocolException("too many item options");
 
     BYTE optionSize = m_OptionType.size();
     oStream.write(optionSize);

@@ -167,11 +167,6 @@
 //                 factory max, so a body that outgrows it is a truncated
 //                 packet, not a caught error.
 //
-//               GCMakeItemOK and GCAddItemToItemVerify get those pins
-//               written out by hand, the first because its declared size
-//               is a finding below and it cannot survive a round trip,
-//               the second because one of its three shapes is.
-//
 //               Extra goldens cover the branches one fixture cannot:
 //               GCCreateItem writes an item with no options in
 //               .nooptions, GCMakeItemOK the same in .nooptions, the
@@ -188,60 +183,41 @@
 //               capped at 128 bytes; and GCAddItemToItemVerify's result
 //               code, which selects the shape of the rest of the body.
 //
-//               Findings. Each is stated as a test that fails once the
-//               packet is fixed, except where noted:
+//               The bounds section at the end pins what the packets
+//               refuse and what they derive:
 //
-//               - GCAddItemToInventory::write() emits the option count
-//                 twice while read() consumes it once, and it writes an
-//                 item count getPacketSize() never budgets for, so
-//                 GCMakeItemOK declares a body two bytes shorter than it
-//                 sends and cannot survive a round trip: every field
-//                 behind the option list is read a byte early and the
-//                 stat record runs off the end.
-//               - GCAddItemToItemVerify::getPacketSize() has no case for
-//                 its THREE_ENCHANT_OK branch, so that result declares a
-//                 bare code byte while write() gives it the code and two
-//                 parameters; and the second parameter is the one member
-//                 the constructor leaves alone, so it reaches the wire
-//                 indeterminate.
-//               - GCChangeInventoryItemNum keeps its count in a BYTE it
-//                 increments per entry and caps nowhere, so the 256th
-//                 wraps it to zero while write() still emits every
-//                 entry; setChangedItemListNum() lets the count and the
-//                 lists disagree, and then the declared size describes
-//                 neither; popFrontChangedItemListElement() removes an
-//                 entry without decrementing it; and a list the count
-//                 byte lets reach 255 is five times the 255 bytes
-//                 GCMakeItemOK and GCMakeItemFail budget for it.
-//               - GCCreateItem derives its option count from the list
-//                 but caps nothing, so the 256th option wraps the count
-//                 to zero and the body outgrows the factory max.
-//               - GCGQuestInventory does the same with its item list,
-//                 which its factory max budgets at 100 entries, and
-//                 read() appends to the list the packet already holds
-//                 instead of replacing it.
+//               - GCAddItemToInventory writes one option count and an
+//                 item count getPacketSize() budgets, so GCMakeItemOK
+//                 declares the body it sends and round trips. The
+//                 option list is held to the widest an item carries,
+//                 MAX_ITEM_OPTION_NUM, which is a code sheet's grid.
+//                 The GCMakeItemOK goldens carry one count byte where
+//                 they used to carry two.
+//               - GCAddItemToItemVerify::getPacketSize() counts both
+//                 parameters of a THREE_ENCHANT_OK result, and the
+//                 second parameter starts at zero.
+//               - GCChangeInventoryItemNum's count is its list, refused
+//                 past the 255 the count byte carries; there is no
+//                 setter to move it away from the list, popping takes
+//                 the entry off both, and the two crafting factory
+//                 maxima budget a full list.
+//               - GCCreateItem holds its option list to the same
+//                 MAX_ITEM_OPTION_NUM and its factory max budgets it.
+//               - GCGQuestInventory holds its item list to the 100 its
+//                 factory max budgets, in the adder, in write() and in
+//                 read(), and read() replaces the list rather than
+//                 appending to it.
+//               - GCTimeLimitItemInfo::getTimeLimit() answers an empty
+//                 optional for an item it does not hold: every DWORD is
+//                 a remaining time a real item can have, so no sentinel
+//                 can say "absent".
 //
-//               One finding is recorded here rather than tested:
-//               GCTimeLimitItemInfo::getTimeLimit() returns 0xffff for
-//               an item it does not hold, which is a value a real
-//               remaining time can equal, so a caller cannot tell the
-//               two apart.
-//
-//               Thirty of the thirty-seven leave at least one member the
-//               default constructor never sets - every CG request in the
-//               set, GCCannotAdd, GCDeleteInventoryItem,
-//               GCDeleteandPickUpOK, GCRemoveFromGear,
-//               GCAddGearToInventory, GCAddGearToZone, the three
-//               GCThrowItemOK packets, and
-//               GCAddItemToItemVerify's second parameter - so a packet
-//               sent without every setter called puts indeterminate
-//               bytes on the wire. The poisoned-storage pin at the end
-//               of the file asserts today's split between the packets
-//               that initialise everything they write and the packets
-//               that do not; CGUseMessageItemFromInventory is in
-//               neither list, because its message field refuses an
-//               empty value and a default-constructed one cannot be
-//               written at all.
+//               Every packet in the set initialises every member it
+//               writes, pinned by constructing each over storage
+//               poisoned with two different bytes and requiring the same
+//               body. CGUseMessageItemFromInventory is not in that list,
+//               because its message field refuses an empty value and a
+//               default-constructed one cannot be written at all.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -880,9 +856,9 @@ INVENTORY_PACKET_VARIANT(GCUseOK, empty, fillEmpty)
 //////////////////////////////////////////////////////////////////////
 
 void fill(GCGQuestInventory& packet) {
-    packet.getItemList().push_back(0xC6D7);
-    packet.getItemList().push_back(0xC8D9);
-    packet.getItemList().push_back(0xCADB);
+    packet.addItem(0xC6D7);
+    packet.addItem(0xC8D9);
+    packet.addItem(0xCADB);
 }
 
 void fillEmpty(GCGQuestInventory& packet) {
@@ -916,8 +892,12 @@ void fillEmpty(GCTimeLimitItemInfo& packet) {
 
 void expectEqual(GCTimeLimitItemInfo& a, GCTimeLimitItemInfo& b) {
     EXPECT_EQ(a.getPacketSize(), b.getPacketSize());
-    for (int i = 0; i < 3; i++)
-        EXPECT_EQ(a.getTimeLimit(kTimeLimitIDs[i]), b.getTimeLimit(kTimeLimitIDs[i])) << "entry " << i;
+    for (int i = 0; i < 3; i++) {
+        SCOPED_TRACE(testing::Message() << "entry " << i);
+        ASSERT_EQ(a.hasTimeLimit(kTimeLimitIDs[i]), b.hasTimeLimit(kTimeLimitIDs[i]));
+        if (a.hasTimeLimit(kTimeLimitIDs[i]))
+            EXPECT_EQ(*a.getTimeLimit(kTimeLimitIDs[i]), *b.getTimeLimit(kTimeLimitIDs[i]));
+    }
 }
 
 INVENTORY_PACKET_TESTS(GCTimeLimitItemInfo)
@@ -940,13 +920,21 @@ void fillError(GCAddItemToItemVerify& packet) {
     packet.setParameter(0);
 }
 
+void fillThreeEnchant(GCAddItemToItemVerify& packet) {
+    packet.setCode(ADD_ITEM_TO_ITEM_VERIFY_THREE_ENCHANT_OK);
+    packet.setParameter(0x81C2D3E4);
+    packet.setParameter2(0x82C3D4E5);
+}
+
 void expectEqual(GCAddItemToItemVerify& a, GCAddItemToItemVerify& b) {
     EXPECT_EQ(a.getCode(), b.getCode());
     EXPECT_EQ(a.getParameter(), b.getParameter());
+    EXPECT_EQ(a.getParameter2(), b.getParameter2());
 }
 
 INVENTORY_PACKET_TESTS(GCAddItemToItemVerify)
 INVENTORY_PACKET_VARIANT(GCAddItemToItemVerify, error, fillError)
+INVENTORY_PACKET_VARIANT(GCAddItemToItemVerify, threeenchant, fillThreeEnchant)
 
 //////////////////////////////////////////////////////////////////////
 // A thrown item.
@@ -1013,7 +1001,7 @@ void expectEqual(GCMakeItemFail& a, GCMakeItemFail& b) {
 INVENTORY_PACKET_TESTS(GCMakeItemFail)
 INVENTORY_PACKET_VARIANT(GCMakeItemFail, empty, fillEmpty)
 
-void fillMakeItemOK(GCMakeItemOK& packet) {
+void fill(GCMakeItemOK& packet) {
     fillChangedItems(packet, 2, 0xF7C8D9EA);
     packet.setObjectID(0xF8C9DAEB);
     packet.setX(0xF9);
@@ -1027,206 +1015,160 @@ void fillMakeItemOK(GCMakeItemOK& packet) {
     fillModifyInfo(packet);
 }
 
-void fillMakeItemOKNoOptions(GCMakeItemOK& packet) {
-    fillMakeItemOK(packet);
+void fillNoOptions(GCMakeItemOK& packet) {
+    fill(packet);
     packet.setOptionType(std::list<OptionType_t>());
 }
 
-TEST(GCMakeItemOKTest, bodyBytesMatchGolden) {
+void expectEqual(GCMakeItemOK& a, GCMakeItemOK& b) {
+    expectChangedItemsEqual(a, b);
+    EXPECT_EQ(a.getObjectID(), b.getObjectID());
+    EXPECT_EQ(a.getX(), b.getX());
+    EXPECT_EQ(a.getY(), b.getY());
+    EXPECT_EQ(a.getItemClass(), b.getItemClass());
+    EXPECT_EQ(a.getItemType(), b.getItemType());
+    EXPECT_EQ(a.getOptionType(), b.getOptionType());
+    EXPECT_EQ(a.getDurability(), b.getDurability());
+    EXPECT_EQ(a.getItemNum(), b.getItemNum());
+    expectModifyInfoEqual(a, b);
+}
+
+INVENTORY_PACKET_TESTS(GCMakeItemOK)
+INVENTORY_PACKET_VARIANT(GCMakeItemOK, nooptions, fillNoOptions)
+
+//////////////////////////////////////////////////////////////////////
+// The bounds and the counts.
+//////////////////////////////////////////////////////////////////////
+
+// The item record inside GCMakeItemOK writes one option count and an
+// item count, and its declared size budgets both. writePacket() puts
+// getPacketSize() on the wire before write() runs, so anything else is
+// a stream that never resynchronises - the stock size pin above covers
+// the whole packet, this one isolates the record.
+TEST(GCMakeItemOKTest, theItemRecordDeclaresTheCountsItWrites) {
     GCMakeItemOK packet;
-    fillMakeItemOK(packet);
+    fill(packet);
+
+    EXPECT_EQ(szObjectID + szCoordInven * 2 + szBYTE + szItemType + szBYTE + 2 * szOptionType + szDurability +
+                  szItemNum,
+              (uint)packet.GCAddItemToInventory::getPacketSize());
+
+    // Two materials, then the record's fixed head, then the one option
+    // count and the two options behind it.
+    const size_t optionCount =
+        szBYTE + 2 * (szObjectID + szItemNum) + szObjectID + szCoordInven * 2 + szBYTE + szItemType;
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    expectGolden("GCMakeItemOK", kPlainCode, body);
-    for (size_t i = 1; i < kEncryptCodeCount; i++)
-        EXPECT_EQ(body, writeBody(packet, kEncryptCodes[i]))
-            << "GCMakeItemOK now varies with the encrypt code - add per-code goldens";
+    ASSERT_GT(body.size(), optionCount + 2);
+    EXPECT_EQ(2, (int)body[optionCount]);
+    EXPECT_EQ(0xFE, (int)body[optionCount + 1]);
+    EXPECT_EQ(0xCF, (int)body[optionCount + 2]);
 }
 
-TEST(GCMakeItemOKTest, nooptionsBodyBytesMatchGolden) {
+// The option list is held to the widest an item carries: a code sheet
+// keeps its stone grid there and holds exactly MAX_ITEM_OPTION_NUM, so
+// that many must reach the wire and one more is refused.
+TEST(GCMakeItemOKTest, theOptionListIsHeldToTheItemsOptionSlots) {
     GCMakeItemOK packet;
-    fillMakeItemOKNoOptions(packet);
-    expectGolden("GCMakeItemOK.nooptions", kPlainCode, writeBody(packet, kPlainCode));
-}
+    fill(packet);
+    packet.setOptionType(std::list<OptionType_t>());
 
-TEST(GCMakeItemOKTest, fitsTheFactoryMax) {
-    GCMakeItemOK packet;
-    fillMakeItemOK(packet);
+    for (uint i = 0; i < GCAddItemToInventory::kMaxOptionCount; i++)
+        packet.addOptionType((OptionType_t)(0x80 + i));
+
+    EXPECT_THROW(packet.addOptionType(0xFF), InvalidProtocolException);
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
     GCMakeItemOKFactory factory;
     EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
-    EXPECT_EQ(factory.getPacketID(), packet.getPacketID());
-    EXPECT_EQ(factory.getPacketName(), packet.getPacketName());
 }
 
-//////////////////////////////////////////////////////////////////////
-// Findings.
-//////////////////////////////////////////////////////////////////////
+// The material count is the list. It travels in a BYTE, so the list is
+// refused past what that byte describes, and both crafting factory
+// maxima budget a full one.
+TEST(GCMakeItemFailTest, theMaterialListIsHeldToWhatTheCountByteDescribes) {
+    GCMakeItemFail packet;
+    fillChangedItems(packet, (int)GCChangeInventoryItemNum::kMaxCount, 0x84C5D6E7);
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCAddItemToInventory::write() writes the option count, then writes it
-// again before walking the options, and it writes an item count that
-// getPacketSize() never budgets for. read() consumes one option count,
-// so GCMakeItemOK declares a body two bytes shorter than it sends - and
-// the receiver takes the second count as the first option.
-TEST(GCMakeItemOKTest, theItemRecordDeclaresTwoBytesFewerThanItWrites) {
-    GCMakeItemOK packet;
-    fillMakeItemOK(packet);
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize() + 2, body.size())
-        << "GCMakeItemOK: the item record now declares what it writes - drop this test and give the packet "
-           "the stock size pin";
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// The doubled count byte desynchronises the read: every field behind
-// the option list is taken from one byte early, and the stat record at
-// the end runs off the body.
-TEST(GCMakeItemOKTest, doesNotSurviveARoundTrip) {
-    GCMakeItemOK src;
-    fillMakeItemOK(src);
-    GCMakeItemOK dst;
-    EXPECT_ANY_THROW(roundTrip(src, dst, kPlainCode))
-        << "GCMakeItemOK now round trips - drop this test and give the packet the stock round-trip pin";
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// GCAddItemToItemVerify::getPacketSize() has no case for
-// THREE_ENCHANT_OK, so that result declares a bare code byte while
-// write() gives it the code and two parameters.
-TEST(GCAddItemToItemVerifyTest, sizeOmitsBothParametersOfAThreeEnchantResult) {
-    GCAddItemToItemVerify packet;
-    packet.setCode(ADD_ITEM_TO_ITEM_VERIFY_THREE_ENCHANT_OK);
-    packet.setParameter(0x81C2D3E4);
-    packet.setParameter2(0x82C3D4E5);
+    EXPECT_EQ(255, (int)packet.getChangedItemListNum());
+    EXPECT_THROW(packet.addChangedItemListElement(0x88C9DAEB, 0x92), InvalidProtocolException);
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    expectGolden("GCAddItemToItemVerify.threeenchant", kPlainCode, body);
-    EXPECT_EQ((size_t)packet.getPacketSize() + szuint * 2, body.size())
-        << "GCAddItemToItemVerify: getPacketSize() now counts the parameters of a three-enchant result - "
-           "fold this branch into the stock variant pin";
+    EXPECT_EQ((size_t)szBYTE + 255 * (szObjectID + szItemNum) + szBYTE * 2, body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
-    GCAddItemToItemVerify dst;
-    roundTrip(packet, dst, kPlainCode);
-    EXPECT_EQ(packet.getCode(), dst.getCode());
-    EXPECT_EQ(packet.getParameter(), dst.getParameter());
-    EXPECT_EQ(packet.getParameter2(), dst.getParameter2());
+    GCMakeItemFailFactory failFactory;
+    EXPECT_LE(packet.getPacketSize(), failFactory.getPacketMaxSize());
+
+    GCMakeItemOK okPacket;
+    fill(okPacket);
+    okPacket.clearChangedItemList();
+    fillChangedItems(okPacket, (int)GCChangeInventoryItemNum::kMaxCount, 0x85C6D7E8);
+
+    GCMakeItemOKFactory okFactory;
+    EXPECT_LE(okPacket.getPacketSize(), okFactory.getPacketMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The second parameter is the one member the constructor does not set,
-// and the THREE_ENCHANT_OK branch puts it on the wire.
-TEST(GCAddItemToItemVerifyTest, theSecondParameterIsLeftUninitialised) {
-    alignas(GCAddItemToItemVerify) unsigned char storage[sizeof(GCAddItemToItemVerify)];
-    const unsigned char poison[2] = {0x00, 0xFF};
-    std::vector<unsigned char> bodies[2];
-
-    for (int i = 0; i < 2; i++) {
-        memset(storage, poison[i], sizeof(storage));
-        GCAddItemToItemVerify* pPacket = new (storage) GCAddItemToItemVerify();
-        pPacket->setCode(ADD_ITEM_TO_ITEM_VERIFY_THREE_ENCHANT_OK);
-        pPacket->setParameter(0x83C4D5E6);
-        bodies[i] = writeBody(*pPacket, kPlainCode);
-        pPacket->~GCAddItemToItemVerify();
-    }
-
-    EXPECT_NE(bodies[0], bodies[1])
-        << "GCAddItemToItemVerify now initialises its second parameter - move it to the initialised list below";
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// GCChangeInventoryItemNum keeps its count in a BYTE it increments per
-// entry, with no cap, so the 256th entry wraps the count to zero while
-// write() still emits all 256 pairs.
-TEST(GCMakeItemFailTest, theMaterialCountWrapsWhileWriteEmitsEveryEntry) {
-    GCMakeItemFail packet;
-    fillChangedItems(packet, 256, 0x84C5D6E7);
-
-    EXPECT_EQ(0, (int)packet.getChangedItemListNum()) << "GCChangeInventoryItemNum now caps its list - drop this test";
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)szBYTE + 256 * (szObjectID + szItemNum) + szBYTE * 2, body.size())
-        << "GCChangeInventoryItemNum: write() no longer emits entries the count byte cannot describe";
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// A list the count byte lets reach 255 is 1276 bytes, five times the 255
-// GCMakeItemOK and GCMakeItemFail budget for the whole record.
-TEST(GCMakeItemFailTest, aFullMaterialListOutgrowsWhatTheFactoryMaxBudgetsForIt) {
-    GCMakeItemFail packet;
-    fillChangedItems(packet, 255, 0x85C6D7E8);
-
-    EXPECT_GT(packet.GCChangeInventoryItemNum::getPacketSize(), (PacketSize_t)255)
-        << "GCChangeInventoryItemNum: the material record now fits the 255 bytes the factory max budgets - "
-           "drop this test";
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// setChangedItemListNum() writes the count directly, so the count on the
-// wire and the entries behind it need not agree - and the declared size
-// then describes neither.
-TEST(GCMakeItemFailTest, theMaterialCountCanBeSetAwayFromTheList) {
-    GCMakeItemFail packet;
-    fillChangedItems(packet, 1, 0x86C7D8E9);
-    packet.setChangedItemListNum(3);
-
-    EXPECT_EQ((size_t)szBYTE + 3 * (szObjectID + szItemNum) + szBYTE * 2, (size_t)packet.getPacketSize())
-        << "GCChangeInventoryItemNum: the count is no longer settable away from the list";
-    EXPECT_EQ((size_t)szBYTE + 1 * (szObjectID + szItemNum) + szBYTE * 2, writeBody(packet, kPlainCode).size());
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// popFrontChangedItemListElement() takes an entry off the list without
-// taking it off the count.
-TEST(GCMakeItemFailTest, poppingAMaterialLeavesTheCount) {
+// Popping a material takes it off the count with the list, so what is
+// left declares what it writes.
+TEST(GCMakeItemFailTest, poppingAMaterialTakesItOffTheCount) {
     GCMakeItemFail packet;
     fillChangedItems(packet, 2, 0x87C8D9EA);
-    packet.popFrontChangedItemListElement();
 
-    EXPECT_EQ(2, (int)packet.getChangedItemListNum())
-        << "GCChangeInventoryItemNum: popping now decrements the count - drop this test";
+    packet.popFrontChangedItemListElement();
+    packet.popFrontChangedItemNumListElement();
+
+    EXPECT_EQ(1, (int)packet.getChangedItemListNum());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    packet.popFrontChangedItemListElement();
+    packet.popFrontChangedItemNumListElement();
+    EXPECT_THROW(packet.popFrontChangedItemListElement(), InvalidProtocolException);
+    EXPECT_THROW(packet.popFrontChangedItemNumListElement(), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCCreateItem derives its option count from the list and caps nothing,
-// so the 256th option wraps the count to zero and the body outgrows the
-// factory max.
-TEST(GCCreateItemTest, theOptionCountWrapsAndTheListOutgrowsTheFactoryMax) {
+// GCCreateItem holds the same option list to the same bound, and its
+// factory max budgets a full one.
+TEST(GCCreateItemTest, theOptionListIsHeldToTheItemsOptionSlots) {
     GCCreateItem packet;
     fill(packet);
     packet.setOptionType(std::list<OptionType_t>());
-    for (int i = 0; i < 256; i++)
-        packet.addOptionType((OptionType_t)(0x80 + (i & 0x7F)));
+
+    for (uint i = 0; i < GCCreateItem::kMaxOptionCount; i++)
+        packet.addOptionType((OptionType_t)(0x80 + i));
+
+    EXPECT_THROW(packet.addOptionType(0xFF), InvalidProtocolException);
+    EXPECT_THROW(packet.setOptionType(std::list<OptionType_t>(GCCreateItem::kMaxOptionCount + 1, 0x81)),
+                 InvalidProtocolException);
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[7]) << "GCCreateItem: the option list is now capped - drop this test";
+    EXPECT_EQ((int)GCCreateItem::kMaxOptionCount, (int)body[7]);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCCreateItemFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCCreateItem: the option list now fits the factory max";
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCGQuestInventory counts its list in a BYTE it never caps, and its
-// factory max budgets 100 entries.
-TEST(GCGQuestInventoryTest, theItemListIsUncapped) {
-    GCGQuestInventory overBudget;
-    for (int i = 0; i < MAX_GQUEST_INVENTORY_ITEM_NUM + 1; i++)
-        overBudget.getItemList().push_back((ItemType_t)(0x8000 + i));
+// The guild-quest listing is held to the 100 its factory max budgets,
+// in the adder and again in write() for a list reached through the
+// mutable accessor.
+TEST(GCGQuestInventoryTest, theItemListIsHeldToWhatTheFactoryMaxBudgets) {
+    GCGQuestInventory packet;
+    for (uint i = 0; i < GCGQuestInventory::kMaxCount; i++)
+        packet.addItem((ItemType_t)(0x8000 + i));
+
+    EXPECT_THROW(packet.addItem(0x9000), InvalidProtocolException);
+
     GCGQuestInventoryFactory factory;
-    EXPECT_GT(overBudget.getPacketSize(), factory.getPacketMaxSize())
-        << "GCGQuestInventory: the item list now fits the factory max";
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
 
-    GCGQuestInventory wrapped;
-    for (int i = 0; i < 256; i++)
-        wrapped.getItemList().push_back((ItemType_t)(0x9000 + i));
-    const std::vector<unsigned char> body = writeBody(wrapped, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "GCGQuestInventory: the item list is now capped - drop this test";
-    EXPECT_EQ((size_t)szBYTE + 256 * szItemType, body.size());
+    packet.getItemList().push_back(0x9001);
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCGQuestInventory::read() appends to the list the packet already holds
-// instead of replacing it, so a reused packet grows by one listing per
-// read.
-TEST(GCGQuestInventoryTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+// read() replaces the list the packet already holds, so a packet read
+// into twice declares one listing and writes one.
+TEST(GCGQuestInventoryTest, aSecondReadReplacesTheListItAlreadyHolds) {
     GCGQuestInventory src;
     fill(src);
 
@@ -1235,10 +1177,25 @@ TEST(GCGQuestInventoryTest, aSecondReadAppendsToTheListItAlreadyHolds) {
     ASSERT_EQ(3u, dst.getItemList().size());
 
     GCGQuestInventory second;
-    fill(second);
+    second.addItem(0xCCDD);
     roundTrip(second, dst, kPlainCode);
-    EXPECT_EQ(6u, dst.getItemList().size())
-        << "GCGQuestInventory::read() now replaces the list - drop this test and pin the replacement instead";
+    EXPECT_EQ(1u, dst.getItemList().size());
+    expectEqual(second, dst);
+}
+
+// getTimeLimit() answers an empty optional for an item the packet does
+// not hold: every DWORD is a remaining time a real item can have, so no
+// sentinel can say "absent".
+TEST(GCTimeLimitItemInfoTest, anAbsentItemIsAnEmptyAnswer) {
+    GCTimeLimitItemInfo packet;
+    packet.addTimeLimit(0xCCDDEEFF, 0xFFFF);
+
+    EXPECT_TRUE(packet.hasTimeLimit(0xCCDDEEFF));
+    ASSERT_TRUE(packet.getTimeLimit(0xCCDDEEFF).has_value());
+    EXPECT_EQ((DWORD)0xFFFF, *packet.getTimeLimit(0xCCDDEEFF));
+
+    EXPECT_FALSE(packet.hasTimeLimit(0xCCDDEEFE));
+    EXPECT_FALSE(packet.getTimeLimit(0xCCDDEEFE).has_value());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1262,58 +1219,67 @@ template <typename PacketType> void expectEveryMemberIsInitialised(const char* w
         << what << ": its default constructor leaves a member write() emits uninitialised";
 }
 
-// FINDING, stated as a test that fails once it is fixed. Each of these
-// puts an indeterminate byte on the wire when a sender skips a setter.
-template <typename PacketType> void expectAMemberIsLeftUninitialised(const char* what) {
-    EXPECT_NE(bodyOverPoison<PacketType>(0x00), bodyOverPoison<PacketType>(0xFF))
-        << what
-        << ": its default constructor now initialises every member write() emits - move it to the "
-           "initialised list";
-}
-
-TEST(InventoryConstructorTest, thePacketsThatInitialiseEveryMemberTheyWrite) {
+TEST(InventoryConstructorTest, everyPacketInitialisesEveryMemberItWrites) {
+    expectEveryMemberIsInitialised<CGAddGearToMouse>("CGAddGearToMouse");
+    expectEveryMemberIsInitialised<CGAddMouseToGear>("CGAddMouseToGear");
+    expectEveryMemberIsInitialised<CGAddMouseToQuickSlot>("CGAddMouseToQuickSlot");
+    expectEveryMemberIsInitialised<CGAddQuickSlotToMouse>("CGAddQuickSlotToMouse");
+    expectEveryMemberIsInitialised<CGAddInventoryToMouse>("CGAddInventoryToMouse");
+    expectEveryMemberIsInitialised<CGAddMouseToInventory>("CGAddMouseToInventory");
+    expectEveryMemberIsInitialised<CGAddItemToItem>("CGAddItemToItem");
+    expectEveryMemberIsInitialised<CGAddItemToCodeSheet>("CGAddItemToCodeSheet");
+    expectEveryMemberIsInitialised<CGMixItem>("CGMixItem");
+    expectEveryMemberIsInitialised<CGMakeItem>("CGMakeItem");
+    expectEveryMemberIsInitialised<CGThrowItem>("CGThrowItem");
+    expectEveryMemberIsInitialised<CGThrowBomb>("CGThrowBomb");
+    expectEveryMemberIsInitialised<CGReloadFromInventory>("CGReloadFromInventory");
+    expectEveryMemberIsInitialised<CGReloadFromQuickSlot>("CGReloadFromQuickSlot");
+    expectEveryMemberIsInitialised<CGUsePotionFromQuickSlot>("CGUsePotionFromQuickSlot");
+    expectEveryMemberIsInitialised<CGUseItemFromGQuestInventory>("CGUseItemFromGQuestInventory");
+    expectEveryMemberIsInitialised<CGRequestRepair>("CGRequestRepair");
+    expectEveryMemberIsInitialised<CGGetEventItem>("CGGetEventItem");
+    expectEveryMemberIsInitialised<CGRequestNewbieItem>("CGRequestNewbieItem");
+    expectEveryMemberIsInitialised<GCCannotAdd>("GCCannotAdd");
     expectEveryMemberIsInitialised<GCCreateItem>("GCCreateItem");
-    expectEveryMemberIsInitialised<GCReloadOK>("GCReloadOK");
+    expectEveryMemberIsInitialised<GCDeleteInventoryItem>("GCDeleteInventoryItem");
+    expectEveryMemberIsInitialised<GCDeleteandPickUpOK>("GCDeleteandPickUpOK");
     expectEveryMemberIsInitialised<GCUseOK>("GCUseOK");
-    expectEveryMemberIsInitialised<GCGQuestInventory>("GCGQuestInventory");
-    expectEveryMemberIsInitialised<GCTimeLimitItemInfo>("GCTimeLimitItemInfo");
+    expectEveryMemberIsInitialised<GCReloadOK>("GCReloadOK");
+    expectEveryMemberIsInitialised<GCRemoveFromGear>("GCRemoveFromGear");
+    expectEveryMemberIsInitialised<GCAddGearToInventory>("GCAddGearToInventory");
+    expectEveryMemberIsInitialised<GCAddGearToZone>("GCAddGearToZone");
     expectEveryMemberIsInitialised<GCMakeItemOK>("GCMakeItemOK");
     expectEveryMemberIsInitialised<GCMakeItemFail>("GCMakeItemFail");
+    expectEveryMemberIsInitialised<GCThrowItemOK1>("GCThrowItemOK1");
+    expectEveryMemberIsInitialised<GCThrowItemOK2>("GCThrowItemOK2");
+    expectEveryMemberIsInitialised<GCThrowItemOK3>("GCThrowItemOK3");
+    expectEveryMemberIsInitialised<GCGQuestInventory>("GCGQuestInventory");
+    expectEveryMemberIsInitialised<GCTimeLimitItemInfo>("GCTimeLimitItemInfo");
 }
 
-TEST(InventoryConstructorTest, thePacketsThatDoNot) {
-    expectAMemberIsLeftUninitialised<CGAddGearToMouse>("CGAddGearToMouse");
-    expectAMemberIsLeftUninitialised<CGAddMouseToGear>("CGAddMouseToGear");
-    expectAMemberIsLeftUninitialised<CGAddMouseToQuickSlot>("CGAddMouseToQuickSlot");
-    expectAMemberIsLeftUninitialised<CGAddQuickSlotToMouse>("CGAddQuickSlotToMouse");
-    expectAMemberIsLeftUninitialised<CGAddInventoryToMouse>("CGAddInventoryToMouse");
-    expectAMemberIsLeftUninitialised<CGAddMouseToInventory>("CGAddMouseToInventory");
-    expectAMemberIsLeftUninitialised<CGAddItemToItem>("CGAddItemToItem");
-    expectAMemberIsLeftUninitialised<CGAddItemToCodeSheet>("CGAddItemToCodeSheet");
-    expectAMemberIsLeftUninitialised<CGMixItem>("CGMixItem");
-    expectAMemberIsLeftUninitialised<CGMakeItem>("CGMakeItem");
-    expectAMemberIsLeftUninitialised<CGThrowItem>("CGThrowItem");
-    expectAMemberIsLeftUninitialised<CGThrowBomb>("CGThrowBomb");
-    expectAMemberIsLeftUninitialised<CGReloadFromInventory>("CGReloadFromInventory");
-    expectAMemberIsLeftUninitialised<CGReloadFromQuickSlot>("CGReloadFromQuickSlot");
-    expectAMemberIsLeftUninitialised<CGUsePotionFromQuickSlot>("CGUsePotionFromQuickSlot");
-    expectAMemberIsLeftUninitialised<CGUseItemFromGQuestInventory>("CGUseItemFromGQuestInventory");
-    expectAMemberIsLeftUninitialised<CGRequestRepair>("CGRequestRepair");
-    expectAMemberIsLeftUninitialised<CGGetEventItem>("CGGetEventItem");
-    expectAMemberIsLeftUninitialised<CGRequestNewbieItem>("CGRequestNewbieItem");
-    expectAMemberIsLeftUninitialised<GCCannotAdd>("GCCannotAdd");
-    expectAMemberIsLeftUninitialised<GCDeleteInventoryItem>("GCDeleteInventoryItem");
-    expectAMemberIsLeftUninitialised<GCDeleteandPickUpOK>("GCDeleteandPickUpOK");
-    expectAMemberIsLeftUninitialised<GCRemoveFromGear>("GCRemoveFromGear");
-    expectAMemberIsLeftUninitialised<GCAddGearToInventory>("GCAddGearToInventory");
-    expectAMemberIsLeftUninitialised<GCAddGearToZone>("GCAddGearToZone");
-    expectAMemberIsLeftUninitialised<GCThrowItemOK1>("GCThrowItemOK1");
-    expectAMemberIsLeftUninitialised<GCThrowItemOK2>("GCThrowItemOK2");
-    expectAMemberIsLeftUninitialised<GCThrowItemOK3>("GCThrowItemOK3");
+// GCAddItemToItemVerify needs its own case: the branch that writes both
+// parameters is the one the default code does not take, so the record
+// has to be given that code before it is written.
+TEST(InventoryConstructorTest, theThreeEnchantResultInitialisesBothParameters) {
+    alignas(GCAddItemToItemVerify) unsigned char storage[sizeof(GCAddItemToItemVerify)];
+    const unsigned char poison[2] = {0x00, 0xFF};
+    std::vector<unsigned char> bodies[2];
+
+    for (int i = 0; i < 2; i++) {
+        memset(storage, poison[i], sizeof(storage));
+        GCAddItemToItemVerify* pPacket = new (storage) GCAddItemToItemVerify();
+        pPacket->setCode(ADD_ITEM_TO_ITEM_VERIFY_THREE_ENCHANT_OK);
+        pPacket->setParameter(0x83C4D5E6);
+        bodies[i] = writeBody(*pPacket, kPlainCode);
+        pPacket->~GCAddItemToItemVerify();
+    }
+
+    EXPECT_EQ(bodies[0], bodies[1])
+        << "GCAddItemToItemVerify: its default constructor leaves the second parameter uninitialised";
 }
 
-// CGUseMessageItemFromInventory is not in either list: its message field
-// refuses an empty value, so a default-constructed one cannot be
+// CGUseMessageItemFromInventory is not in the list above: its message
+// field refuses an empty value, so a default-constructed one cannot be
 // written at all.
 TEST(CGUseMessageItemFromInventoryTest, anEmptyMessageIsRefused) {
     CGUseMessageItemFromInventory packet;

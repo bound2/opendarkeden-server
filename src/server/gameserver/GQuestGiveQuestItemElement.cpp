@@ -8,7 +8,7 @@
 
 GQuestElement::ResultType GQuestGiveQuestItemElement::checkCondition(PlayerCreature* pPC) const {
     GQuestInventory& inventory = pPC->getGQuestManager()->getGQuestInventory();
-    inventory.getItems().push_back(m_ItemType);
+    inventory.addOne(m_ItemType);
     pPC->getPlayer()->sendPacket(inventory.getInventoryPacket());
 
     GCSystemMessage gcSM;

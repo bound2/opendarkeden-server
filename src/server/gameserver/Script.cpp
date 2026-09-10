@@ -128,8 +128,7 @@ void Script::addContent(const string& content, DWORD code)
 
 {
     if (m_ContentCount >= SCRIPT_MAX_CONTENTS) {
-        cerr << "Script::addContent() : Out of bounds" << endl;
-        throw "Script::addContent() : Out of bounds";
+        throw Error("Script::addContent() : Out of bounds");
     }
 
     m_Contents[m_ContentCount] = content;

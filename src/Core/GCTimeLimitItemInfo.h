@@ -9,6 +9,7 @@
 #define __GC_TIME_LIMIT_ITEM_INFO_H__
 
 #include <map>
+#include <optional>
 
 #include "Packet.h"
 #include "PacketFactory.h"
@@ -44,7 +45,11 @@ public:
     string toString() const;
 
 public:
-    DWORD getTimeLimit(ObjectID_t objectID) const;
+    // Empty for an item the packet does not carry: every value the
+    // field holds is a remaining time a real item can have, so no
+    // sentinel can say "absent".
+    std::optional<DWORD> getTimeLimit(ObjectID_t objectID) const;
+    bool hasTimeLimit(ObjectID_t objectID) const;
     void addTimeLimit(ObjectID_t objectID, DWORD time);
 
 

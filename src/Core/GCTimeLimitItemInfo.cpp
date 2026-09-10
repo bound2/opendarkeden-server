@@ -70,7 +70,7 @@ PacketSize_t GCTimeLimitItemInfo::getPacketSize() const
     __END_CATCH
 }
 
-DWORD GCTimeLimitItemInfo::getTimeLimit(ObjectID_t objectID) const
+std::optional<DWORD> GCTimeLimitItemInfo::getTimeLimit(ObjectID_t objectID) const
 
 {
     __BEGIN_TRY
@@ -80,7 +80,17 @@ DWORD GCTimeLimitItemInfo::getTimeLimit(ObjectID_t objectID) const
     if (itr != m_TimeLimitItemInfos.end())
         return itr->second;
 
-    return 0xffff;
+    return std::nullopt;
+
+    __END_CATCH
+}
+
+bool GCTimeLimitItemInfo::hasTimeLimit(ObjectID_t objectID) const
+
+{
+    __BEGIN_TRY
+
+    return m_TimeLimitItemInfos.find(objectID) != m_TimeLimitItemInfos.end();
 
     __END_CATCH
 }

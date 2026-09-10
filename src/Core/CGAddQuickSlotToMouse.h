@@ -49,8 +49,8 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;
-    SlotID_t m_SlotID;
+    ObjectID_t m_ObjectID = 0;
+    SlotID_t m_SlotID = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////

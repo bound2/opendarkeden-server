@@ -91,6 +91,9 @@ PacketSize_t GCAddItemToItemVerify::getPacketSize() const
     case ADD_ITEM_TO_ITEM_VERIFY_UP_GRADE_OK:
         size += szuint;
         break;
+    case ADD_ITEM_TO_ITEM_VERIFY_THREE_ENCHANT_OK:
+        size += szuint * 2;
+        break;
 
     // 파라미터를 쓰지 않아도 되는 코드
     default:

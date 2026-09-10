@@ -22,7 +22,12 @@
 #define MAX_ADDRESS_NUM 30
 
 struct AddressUnit {
-    DWORD ElementID;
+    // The field lengths the factory max budgets.
+    static constexpr uint kMaxCharacterNameLength = 20;
+    static constexpr uint kMaxCustomNameLength = 40;
+    static constexpr uint kMaxNumberLength = 11;
+
+    DWORD ElementID = 0;
     string CharacterName;
     string CustomName;
     string Number;
@@ -31,7 +36,7 @@ struct AddressUnit {
         return szDWORD + szBYTE + CharacterName.size() + szBYTE + CustomName.size() + szBYTE + Number.size();
     }
     static constexpr PacketSize_t getMaxPacketSize() {
-        return szDWORD + szBYTE + 20 + szBYTE + 40 + szBYTE + 11;
+        return szDWORD + szBYTE + kMaxCharacterNameLength + szBYTE + kMaxCustomNameLength + szBYTE + kMaxNumberLength;
     }
 
     void read(SocketInputStream& iStream);

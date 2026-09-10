@@ -17,6 +17,11 @@ const uint szItemType = sizeof(ItemType_t);
 typedef BYTE OptionType_t;
 const uint szOptionType = sizeof(OptionType_t);
 
+// The most options one item carries. A code sheet keeps its stone grid
+// in the option list and holds exactly this many; every other item class
+// holds at most three.
+const uint MAX_ITEM_OPTION_NUM = 30;
+
 // DefaultOptionSetType
 typedef BYTE DefaultOptionSetType_t;
 const uint szDefaultOptionSetType = sizeof(DefaultOptionSetType_t);

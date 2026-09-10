@@ -66,11 +66,11 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // 아이템의 object id
-    CoordInven_t m_InvenX; // 아이템의 인벤토리 좌표 X
-    CoordInven_t m_InvenY; // 아이템의 인벤토리 좌표 Y
+    ObjectID_t m_ObjectID = 0; // 아이템의 object id
+    CoordInven_t m_InvenX = 0; // 아이템의 인벤토리 좌표 X
+    CoordInven_t m_InvenY = 0; // 아이템의 인벤토리 좌표 Y
 
-    ObjectID_t m_TargetObjectID[2]; // 합칠 두 아이템의 오브젝트 ID
+    ObjectID_t m_TargetObjectID[2] = {0, 0}; // 합칠 두 아이템의 오브젝트 ID
 };
 
 
