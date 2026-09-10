@@ -76,17 +76,4 @@ private:
     Timeval m_StartTime; // 기술이 시작된 시간.
 };
 
-/*class EffectGrayDarknessLoader : public EffectLoader
-{
-public:
-    virtual Effect::EffectClass getEffectClass() const  { return Effect::EFFECT_CLASS_GRAY_DARKNESS; }
-    virtual string getEffectClassName() const  { return "EffectGrayDarkness"; }
-
-public:
-    virtual void load(Creature* pCreature)  {}
-    virtual void load(Zone* pZone) ;
-};
-
-extern EffectGrayDarknessLoader* g_pEffectGrayDarknessLoader;*/
-
 #endif // __EFFECT_GRAY_DARKNESS__

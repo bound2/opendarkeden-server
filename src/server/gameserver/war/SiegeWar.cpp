@@ -9,7 +9,6 @@
 #include "Assert.h"
 #include "CGSay.h"
 #include "CastleInfoManager.h"
-#include "DB.h"
 #include "GCNPCResponse.h"
 #include "GCNoticeEvent.h"
 #include "GCSystemMessage.h"
@@ -128,42 +127,8 @@ void SiegeWar::executeStart()
 
     SiegeManager::Instance().start(siegeZoneID);
 
-    // SiegeWarHistory Table 에 기록
-    recordSiegeWarStart();
-
     __END_CATCH
 }
-
-void SiegeWar::recordSiegeWarStart()
-
-{
-    __BEGIN_TRY
-
-    /*	Statement* pStmt = NULL;
-
-        CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( m_CastleZoneID );
-
-        // NULL 일리도 없지만 혹시나 하는 맘에 -_-;
-        if ( pCastleInfo == NULL )	return;
-
-        BEGIN_DB
-        {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-            pStmt->executeQuery("INSERT IGNORE INTO SiegeWarHistory (WarID, SiegeWarID, ServerID, CastleName,
-       DefenseGuildID, DefenseGuildName, AttackGuildID, AttackGuildName) VALUES (%d, '%s', %d, '%s', %d, '%s', %d,
-       '%s')", (int)getWarID(), getWarStartTime().toStringforWeb().c_str(), g_pConfig->getPropertyInt("ServerID"),
-                            pCastleInfo->getName().c_str(),
-                            (int)pCastleInfo->getGuildID(),
-                            g_pGuildManager->getGuildName( pCastleInfo->getGuildID() ).c_str(),
-                            getChallangerGuildID(),
-                            g_pGuildManager->getGuildName( getChallangerGuildID() ).c_str() );
-
-        }
-        END_DB(pStmt)*/
-
-    __END_CATCH
-}
-
 //--------------------------------------------------------------------------------
 //
 // executeEnd
@@ -243,40 +208,8 @@ void SiegeWar::executeEnd()
     filelog("SiegeWar.log", "[%u] executeEnd : reset zone %u", getWarID(), siegeZoneID);
     SiegeManager::Instance().reset(siegeZoneID);
 
-    // SiegeWarHistory Table 에 기록
-    recordSiegeWarEnd();
-
     __END_CATCH
 }
-
-void SiegeWar::recordSiegeWarEnd()
-
-    {__BEGIN_TRY
-
-         /*	Statement* pStmt = NULL;
-
-              BEGIN_DB
-              {
-
-                  pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-                  pStmt->executeQuery("UPDATE SiegeWarHistory SET WinnerGuildID = %d , WinnerGuildName = '%s' WHERE
-             WarID = %d", (int)m_WinnerGuildID, g_pGuildManager->getGuildName( m_WinnerGuildID ).c_str(),
-                                  (int)getWarID() );
-
-              }
-              END_DB(pStmt)
-
-              // script 돌리기 ㅡ.,ㅡ system 함수를 쓰게 될 줄이야 !_!
-              char cmd[100];
-              sprintf(cmd, "/home/darkeden/vs/bin/script/recordSiegeWarHistory.py %d %d %d ",
-                              (int)getWarID(),
-                              g_pConfig->getPropertyInt("Dimension"),
-                              g_pConfig->getPropertyInt("WorldID") );
-
-              filelog("script.log", cmd);
-              system(cmd);
-          */
-         __END_CATCH}
 
 string SiegeWar::getWarName() const
 

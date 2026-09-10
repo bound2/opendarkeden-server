@@ -7,7 +7,6 @@
 #include "EffectGrayDarkness.h"
 
 #include "Creature.h"
-#include "DB.h"
 #include "Tile.h"
 #include "Zone.h"
 
@@ -146,56 +145,3 @@ string EffectGrayDarkness::toString() const {
 
     __END_CATCH
 }
-
-/*void EffectGrayDarknessLoader::load( Zone* pZone )
-
-{
-    __BEGIN_TRY
-
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    BEGIN_DB
-    {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery( "SELECT LeftX, TopY, RightX, BottomY FROM ZoneEffectInfo WHERE ZoneID = %u AND
-EffectID = %d", pZone->getZoneID(), Effect::EFFECT_CLASS_GRAY_DARKNESS );
-
-        VSRect rect( 0, 0, pZone->getWidth()-1, pZone->getHeight()-1 );
-
-        while ( pResult->next() )
-        {
-            int left	= pResult->getInt(1);
-            int top		= pResult->getInt(2);
-            int right	= pResult->getInt(3);
-            int bottom	= pResult->getInt(4);
-
-            for ( int x = left ; x <= right ; x++ )
-            {
-                for ( int y = top ; y <= bottom ; y++ )
-                {
-                    if ( !rect.ptInRect( x, y ) )
-                        continue;
-
-                    Tile& tile = pZone->getTile( x, y );
-
-                    if ( tile.canAddEffect() )
-                    {
-                        EffectGrayDarkness* pEffect = new EffectGrayDarkness( pZone, x, y );
-                        pEffect->setLevel(300);
-                        pEffect->setStartTime();
-
-                        pZone->registerObject( pEffect );
-                        // pZone->addEffect( pEffect );  // REMOVED: Don't add permanent tile effects to Zone
-                        tile.addEffect( pEffect );
-                    }
-                }
-            }
-        }
-    }
-    END_DB( pStmt )
-
-    __END_CATCH
-}
-
-EffectGrayDarknessLoader* g_pEffectGrayDarknessLoader = NULL;*/
