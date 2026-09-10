@@ -46,6 +46,7 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_meta_test.cpp
     packet_movement_test.cpp
     packet_party_test.cpp
+    packet_quest_war_test.cpp
     packet_skill_test.cpp
     packet_store_test.cpp
     packet_trade_test.cpp
