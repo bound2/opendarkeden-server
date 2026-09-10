@@ -13,6 +13,7 @@
 #include "Packet.h"
 #include "PacketFactory.h"
 #include "WarInfo.h"
+#include "WireString.h"
 
 //--------------------------------------------------------------------------------
 //
@@ -37,8 +38,8 @@ public:
     void write(SocketOutputStream& oStream) const;
 
     PacketSize_t getSize() const {
-        return WarInfo::getSize() + szZoneID + szBYTE + m_AttackGuildName.size() + szBYTE + m_DefenseGuildName.size() +
-               m_GuildIDs.getPacketSize();
+        return WarInfo::getSize() + szZoneID + de::wire::stringWireSize(m_AttackGuildName) +
+               de::wire::stringWireSize(m_DefenseGuildName) + m_GuildIDs.getPacketSize();
     }
 
     static constexpr PacketSize_t getMaxSize() {

@@ -20,6 +20,10 @@
 // sequence is the legacy shape: new and touched string fields use
 // these instead.
 //
+// A few fields carry a WORD length instead, for values longer than a
+// byte can count. readString16() / writeString16() / stringWireSize16()
+// are the same three functions over that prefix.
+//
 //////////////////////////////////////////////////////////////////////
 
 #ifndef __WIRE_STRING_H__
@@ -41,12 +45,21 @@ namespace wire {
 // The longest string a BYTE prefix can describe.
 inline constexpr unsigned kMaxByteStringLength = 255;
 
+// The longest string a WORD prefix can describe.
+inline constexpr unsigned kMaxWordStringLength = 65535;
+
 // The lengths a field accepts, both ends inclusive. min 1 refuses an
 // empty value, min 0 admits it; max is the field's cap and may not
 // pass what the prefix can carry.
 struct StringBounds {
     unsigned min = 0;
     unsigned max = kMaxByteStringLength;
+};
+
+// The same, for a field whose length travels in a WORD.
+struct StringBounds16 {
+    unsigned min = 0;
+    unsigned max = kMaxWordStringLength;
 };
 
 // Read a BYTE prefix, then that many bytes into `out`. A length
@@ -64,6 +77,14 @@ void writeString(SocketOutputStream& oStream, std::string_view value, StringBoun
 // What such a field occupies on the wire.
 constexpr uint stringWireSize(std::string_view value) {
     return szBYTE + (uint)value.size();
+}
+
+// The WORD-prefixed field, refused at the same points.
+void readString16(SocketInputStream& iStream, std::string& out, StringBounds16 bounds, std::string_view what);
+void writeString16(SocketOutputStream& oStream, std::string_view value, StringBounds16 bounds, std::string_view what);
+
+constexpr uint stringWireSize16(std::string_view value) {
+    return szWORD + (uint)value.size();
 }
 
 } // namespace wire

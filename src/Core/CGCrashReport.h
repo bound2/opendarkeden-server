@@ -12,6 +12,7 @@
 // include files
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -32,8 +33,8 @@ public:
         return PACKET_CG_CRASH_REPORT;
     }
     PacketSize_t getPacketSize() const {
-        return m_ExecutableTime.size() + szWORD + m_Address.size() + szWORD + m_OS.size() + szWORD +
-               m_CallStack.size() + szWORD + m_Message.size();
+        return m_ExecutableTime.size() + szWORD + m_Address.size() + de::wire::stringWireSize16(m_OS) +
+               de::wire::stringWireSize16(m_CallStack) + de::wire::stringWireSize16(m_Message);
     }
     string getPacketName() const {
         return "CGCrashReport";

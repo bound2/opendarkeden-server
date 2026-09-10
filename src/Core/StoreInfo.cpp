@@ -33,7 +33,7 @@ PacketSize_t StoreInfo::getSize(bool toOther) const {
     if (toOther && m_Open == 0)
         return ret;
 
-    ret += szBYTE + m_Sign.size() + szBYTE;
+    ret += de::wire::stringWireSize(m_Sign) + szBYTE;
 
     vector<StoreItemInfo>::const_iterator itr = m_Items.begin();
 
@@ -51,11 +51,7 @@ void StoreInfo::read(SocketInputStream& iStream, bool toOther) {
     if (toOther && m_Open == 0)
         return;
 
-    BYTE szSign;
-    iStream.read(szSign);
-
-    if (szSign != 0)
-        iStream.read(m_Sign, szSign);
+    de::wire::readString(iStream, m_Sign, {0, de::wire::kMaxByteStringLength}, "Sign");
 
     BYTE ItemNum;
     iStream.read(ItemNum);

@@ -453,10 +453,11 @@ The wire carries the measured body length (`writePacket`, `Datagram::write`),
 so `getPacketSize()` only budgets buffers, and every declared size is pinned
 against the bytes `write()` emits by the golden suites. String fields carry a
 length prefix through `de::wire::readString`/`writeString`
-(`src/Core/WireString.h`), which state a field's minimum and maximum once and
-refuse outside them at the same points the hand-written sequences did; new or
-touched string fields use it, and the shrink-only ratchet R9 counts the legacy
-`read(m_X, szX)` sequences that remain.
+(`src/Core/WireString.h`), with `readString16`/`writeString16` for the few
+whose length travels in a WORD, which state a field's minimum and maximum
+once and refuse outside them at the same points the hand-written sequences
+did; new or touched string fields use it, and the shrink-only ratchet R9,
+now at zero, counts the legacy `read(m_X, szX)` sequences that remain.
 
 ### Compile-time packet metadata
 

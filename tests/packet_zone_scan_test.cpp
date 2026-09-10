@@ -183,6 +183,7 @@
 #include "PetInfo.h"
 #include "StoreInfo.h"
 #include "TestStreams.h"
+#include "WireString.h"
 
 using wiretest::expectGolden;
 using wiretest::kEncryptCodeCount;
@@ -1419,6 +1420,47 @@ TEST(ZoneScanOwnershipTest, theCreatureAddPacketsLeaveInstalledRecordsAlone) {
     EXPECT_EQ((int)PET_PIXIE, (int)pet.getPetType());
     EXPECT_EQ("GoldScanPet", pet.getNickname());
     EXPECT_EQ((int)NicknameInfo::NICK_NONE, (int)nickname.getNicknameType());
+}
+
+// The record's own read half, the one GCMyStoreInfo uses. The sign
+// travels behind a length byte, so it comes back whole at the width that
+// byte carries and when it is absent, and a longer one is refused rather
+// than sent behind a length that does not describe it.
+TEST(StoreInfoTest, theSignTravelsBehindItsLengthByte) {
+    const std::string full(de::wire::kMaxByteStringLength, 's');
+
+    StoreInfo src;
+    src.setOpen(1);
+    src.setSign(full);
+
+    Loopback link;
+    link.setCodes(0);
+    src.write(link.out(), false);
+    link.pump(src.getSize(false));
+
+    StoreInfo dst;
+    dst.read(link.in(), false);
+    EXPECT_EQ(full, dst.getSign());
+
+    StoreInfo empty;
+    empty.setOpen(1);
+
+    Loopback emptyLink;
+    emptyLink.setCodes(0);
+    empty.write(emptyLink.out(), false);
+    emptyLink.pump(empty.getSize(false));
+
+    StoreInfo emptyBack;
+    emptyBack.read(emptyLink.in(), false);
+    EXPECT_TRUE(emptyBack.getSign().empty());
+
+    StoreInfo tooLong;
+    tooLong.setOpen(1);
+    tooLong.setSign(std::string(de::wire::kMaxByteStringLength + 1, 's'));
+
+    Loopback longLink;
+    longLink.setCodes(0);
+    EXPECT_THROW(tooLong.write(longLink.out(), false), InvalidProtocolException);
 }
 
 } // namespace

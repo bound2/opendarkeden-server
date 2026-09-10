@@ -9,6 +9,7 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class GCNotifyWin;
@@ -25,7 +26,7 @@ public:
         return PACKET_GC_NOTIFY_WIN;
     }
     PacketSize_t getPacketSize() const {
-        return szDWORD + szBYTE + m_Name.size();
+        return szDWORD + de::wire::stringWireSize(m_Name);
     }
     string getPacketName() const {
         return "GCNotifyWin";

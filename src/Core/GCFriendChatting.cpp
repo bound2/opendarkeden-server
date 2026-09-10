@@ -9,6 +9,8 @@
 // include files
 #include "GCFriendChatting.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // �Է½�Ʈ��(����)���κ��� ����Ÿ�� �о ��Ŷ�� �ʱ�ȭ�Ѵ�.
@@ -23,17 +25,9 @@ void GCFriendChatting::read(SocketInputStream& iStream) {
 
     iStream.read(m_Command);
 
-    BYTE szPlayerName;
-    iStream.read(szPlayerName);
-    if (szPlayerName > 32)
-        throw InvalidProtocolException("PlayerName Lenth error");
-    iStream.read(m_PlayerName, szPlayerName);
-
-    WORD szMessage;
-    iStream.read(szMessage);
-    if (szMessage > 128)
-        throw InvalidProtocolException("Too large Message length");
-    iStream.read(m_Message, szMessage);
+    // The message is refused past 128 here and past 512 on write.
+    de::wire::readString(iStream, m_PlayerName, {1, 32}, "PlayerName");
+    de::wire::readString16(iStream, m_Message, {1, 128}, "Message");
 
     iStream.read(m_IsBlack);
     iStream.read(m_IsOnLine);
@@ -50,17 +44,8 @@ void GCFriendChatting::write(SocketOutputStream& oStream) const {
 
     oStream.write(m_Command);
 
-    BYTE szPlayerName = m_PlayerName.size();
-    if (szPlayerName > 32)
-        throw InvalidProtocolException("Too Large PlayerName Lenth");
-    oStream.write(szPlayerName);
-    oStream.write(m_PlayerName);
-
-    WORD szMessage = m_Message.size();
-    if (szMessage > 512)
-        throw InvalidProtocolException("Too Large Message Lenth");
-    oStream.write(szMessage);
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_PlayerName, {0, 32}, "PlayerName");
+    de::wire::writeString16(oStream, m_Message, {0, 512}, "Message");
 
     oStream.write(m_IsBlack);
     oStream.write(m_IsOnLine);

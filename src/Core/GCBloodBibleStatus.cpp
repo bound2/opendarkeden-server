@@ -8,6 +8,8 @@
 // include files
 #include "GCBloodBibleStatus.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -25,12 +27,7 @@ void GCBloodBibleStatus::read(SocketInputStream& iStream)
     iStream.read(m_X);
     iStream.read(m_Y);
 
-    BYTE szOwnerName;
-    iStream.read(szOwnerName);
-
-    if (szOwnerName > 0) {
-        iStream.read(m_OwnerName, szOwnerName);
-    }
+    de::wire::readString(iStream, m_OwnerName, {0, de::wire::kMaxByteStringLength}, "OwnerName");
 
     __END_CATCH
 }
@@ -52,12 +49,7 @@ void GCBloodBibleStatus::write(SocketOutputStream& oStream) const
     oStream.write(m_X);
     oStream.write(m_Y);
 
-    BYTE szOwnerName = m_OwnerName.size();
-    oStream.write(szOwnerName);
-
-    if (szOwnerName > 0) {
-        oStream.write(m_OwnerName);
-    }
+    de::wire::writeString(oStream, m_OwnerName, {0, de::wire::kMaxByteStringLength}, "OwnerName");
 
     __END_CATCH
 }

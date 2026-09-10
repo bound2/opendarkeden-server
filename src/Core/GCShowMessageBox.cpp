@@ -8,6 +8,8 @@
 // include files
 #include "GCShowMessageBox.h"
 
+#include "WireString.h"
+
 
 //////////////////////////////////////////////////////////////////////
 // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
@@ -17,15 +19,9 @@ void GCShowMessageBox::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE szMessage;
-    iStream.read(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-    else
-        throw InvalidProtocolException("too long Message size");
-
-    iStream.read(m_Message, szMessage);
+    // The length byte carries less than the factory max budgets, so the
+    // byte's own range is the cap.
+    de::wire::readString(iStream, m_Message, {1, de::wire::kMaxByteStringLength}, "Message");
 
     __END_CATCH
 }
@@ -39,14 +35,7 @@ void GCShowMessageBox::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szMessage = m_Message.size();
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-    else
-        throw InvalidProtocolException("too long Message size");
-
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_Message, {1, de::wire::kMaxByteStringLength}, "Message");
 
     __END_CATCH
 }

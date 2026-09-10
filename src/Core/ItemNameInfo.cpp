@@ -11,6 +11,7 @@
 
 #include "SocketInputStream.h"
 #include "SocketOutputStream.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////
 // constructor
@@ -38,11 +39,8 @@ ItemNameInfo::~ItemNameInfo ()
 void ItemNameInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
-    BYTE szName;
-    // 최적화 작업시 실제 크기를 명시하도록 한다.
     iStream.read(m_ObjectID);
-    iStream.read(szName);
-    iStream.read(m_Name, szName);
+    de::wire::readString(iStream, m_Name, {1, 20}, "Name");
 
     __END_CATCH
 }
@@ -53,10 +51,8 @@ void ItemNameInfo::read(SocketInputStream& iStream) {
 void ItemNameInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
     oStream.write(m_ObjectID);
-    oStream.write(szName);
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {0, 20}, "Name");
 
     __END_CATCH
 }
@@ -67,9 +63,7 @@ void ItemNameInfo::write(SocketOutputStream& oStream) const {
 PacketSize_t ItemNameInfo::getSize() const {
     __BEGIN_TRY
 
-    BYTE szName = m_Name.size();
-
-    PacketSize_t PacketSize = szObjectID + szBYTE + szName;
+    PacketSize_t PacketSize = szObjectID + de::wire::stringWireSize(m_Name);
 
     return PacketSize;
 

@@ -33,10 +33,7 @@ struct MissionInfo {
         iStream.read(m_Index);
         iStream.read(m_Status);
 
-        BYTE szSTR;
-        iStream.read(szSTR);
-        if (szSTR != 0)
-            iStream.read(m_StrArg, szSTR);
+        de::wire::readString(iStream, m_StrArg, {0, de::wire::kMaxByteStringLength}, "StrArg");
 
         iStream.read(m_NumArg);
     }
@@ -54,7 +51,7 @@ struct MissionInfo {
     }
 
     PacketSize_t getSize() const {
-        return szBYTE + szWORD + szBYTE + szBYTE + m_StrArg.size() + szDWORD;
+        return szBYTE + szWORD + szBYTE + de::wire::stringWireSize(m_StrArg) + szDWORD;
     }
     static constexpr PacketSize_t getMaxSize() {
         return szBYTE + szWORD + szBYTE + szBYTE + 255 + szDWORD;
