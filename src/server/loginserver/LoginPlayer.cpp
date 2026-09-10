@@ -39,7 +39,6 @@ static uint maxWaitForKickCharacterCount = 3; // GameServer가 반응이 없으�
 
 // CLLoginHandler.cpp에 있는 함수다.
 void addLoginPlayerData(const string& ID, const string& ip, const string& SSN, const string& zipcode);
-void addLogoutPlayerData(Player* pPlayer);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -343,8 +342,6 @@ void LoginPlayer::disconnect(bool bDisconnected) {
             throw Error("LoginPlayer::disconnect : SQL error, see DBError.log");
         }
     }
-
-    addLogoutPlayerData(this);
 
     __END_CATCH
 }
@@ -668,47 +665,6 @@ string LoginPlayer::toString() const {
     return msg.toString();
 
     __END_CATCH
-}
-
-//////////////////////////////////////////////////////////////////////////////
-//
-// add LogoutPlayerdata
-//
-// 접속자 통계를 위해서
-// UserInfo DB의 LogoutPlayerData에 Logout한 사용자를 추가한다.
-//
-//////////////////////////////////////////////////////////////////////////////
-void addLogoutPlayerData(Player* pPlayer) {
-    /*if(pPlayer->getID() != "NONE")
-    {
-
-        Statement* pStmt = NULL;
-
-        pStmt = g_pDatabaseManager->getUserInfoConnection()->createStatement();
-
-        // 유저 통계 관련 정보를 입력한다.
-        BEGIN_DB
-        {
-            string ID = pPlayer->getID();
-            string ip = pPlayer->getSocket()->getHost();
-
-            // 먼저 현재 시간을 얻어낸다.
-            int year, month, day, hour, minute, second;
-            getCurrentTimeEx(year, month, day, hour, minute, second);
-            string currentDT = VSDateTime::currentDateTime().toDateTime();
-
-            StringStream sql;
-            sql << "INSERT INTO USERINFO.LogoutPlayerData (PlayerID,IP,Date,Time) VALUES ('"
-                << ID << "','" << ip << "','"
-                << currentDT.substr( 0, 10 ).c_str() << "','"
-                << currentDT.substr( 11 ).c_str() << "')";
-
-            pStmt->executeQuery(sql.toString());
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-    }*/
 }
 
 void LoginPlayer::makePCList(LCPCList& lcPCList) {

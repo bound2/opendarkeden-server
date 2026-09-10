@@ -1,7 +1,6 @@
 
 #include "RewardClassInfoManager.h"
 
-#include "DB.h"
 #include "ItemRewardInfo.h"
 #include "RandomRewardClass.h"
 #include "SlayerWeaponRewardClass.h"
@@ -48,59 +47,3 @@ RewardClass* RewardClassInfoManager::getRewardClass(RewardClass_t rClass) const 
 
     __END_CATCH
 }
-
-/*void RewardClassInfoManager::load( const string& name )
-{
-    __BEGIN_TRY
-
-    Statement* pStmt = NULL;
-
-    BEGIN_DB
-    {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        Result* pResult = pStmt->executeQuery("SELECT RewardClass, RewardID, IClass, IType, OptionType, TimeLimitSec
-FROM ItemRewardInfo");
-
-        while (pResult->next())
-        {
-            int index = 0;
-
-            RewardClass_t	rClass	= (RewardClass_t)		pResult->getInt( ++index );
-            RewardID_t		rID		= (RewardID_t	)		pResult->getInt( ++index );
-            Item::ItemClass	iClass	= (Item::ItemClass)		pResult->getInt( ++index );
-            ItemType_t		iType	= (ItemType_t)			pResult->getInt( ++index );
-            string			option	= 						pResult->getString( ++index );
-            DWORD			time	= (DWORD)				pResult->getInt( ++index );
-
-            if ( m_RewardClasses[ rClass ] == NULL ) m_RewardClasses[rClass] = new RandomRewardClass( rClass );
-
-            ItemRewardInfo* pItemRI = new ItemRewardInfo( rID, rClass, iClass, iType, option, time );
-            m_RewardClasses[rClass]->addRewardInfo( pItemRI );
-        }
-
-        pResult = pStmt->executeQuery("SELECT RewardClass, RewardID, IClass, IType, OptionType, TimeLimitSec FROM
-SlayerWeaponRewardInfo");
-
-        while (pResult->next())
-        {
-            int index = 0;
-
-            RewardClass_t	rClass	= (RewardClass_t)		pResult->getInt( ++index );
-            RewardID_t		rID		= (RewardID_t	)		pResult->getInt( ++index );
-            Item::ItemClass	iClass	= (Item::ItemClass)		pResult->getInt( ++index );
-            ItemType_t		iType	= (ItemType_t)			pResult->getInt( ++index );
-            string			option	= 						pResult->getString( ++index );
-            DWORD			time	= (DWORD)				pResult->getInt( ++index );
-
-            if ( m_RewardClasses[ rClass ] == NULL ) m_RewardClasses[rClass] = new SlayerWeaponRewardClass( rClass );
-
-            ItemRewardInfo* pItemRI = new ItemRewardInfo( rID, rClass, iClass, iType, option, time );
-            m_RewardClasses[rClass]->addRewardInfo( pItemRI );
-        }
-
-        SAFE_DELETE(pStmt);
-    }
-    END_DB(pStmt)
-
-    __END_CATCH
-}*/

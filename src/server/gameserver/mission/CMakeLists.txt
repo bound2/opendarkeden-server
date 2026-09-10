@@ -9,7 +9,6 @@ set(MISSION_SOURCES
     EventQuestAdvance.cpp
     EventQuestInfoManager.cpp
     EventQuestLootingManager.cpp
-    EventQuestRewardManager.cpp
     GatherItemQuestInfo.cpp
     GatherItemQuestStatus.cpp
     ItemRewardInfo.cpp

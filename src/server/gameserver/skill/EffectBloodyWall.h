@@ -109,23 +109,4 @@ private:
     bool m_bForce;
 };
 
-/*
-//////////////////////////////////////////////////////////////////////////////
-// class EffectBloodyWallLoader
-//////////////////////////////////////////////////////////////////////////////
-
-class EffectBloodyWallLoader : public EffectLoader
-{
-public:
-    virtual Effect::EffectClass getEffectClass() const  { return Effect::EFFECT_CLASS_BLOODY_WALL; }
-    virtual string getEffectClassName() const  { return "EffectBloodyWall"; }
-
-public:
-    virtual void load(Creature* pCreature)  {}
-    virtual void load(Zone* pZone) ;
-};
-
-extern EffectBloodyWallLoader* g_pEffectBloodyWallLoader;
-*/
-
 #endif // __EFFECT_BLOODY_WALL__

@@ -6,7 +6,6 @@
 
 #include "EffectBloodyWall.h"
 
-#include "DB.h"
 #include "GCModifyInformation.h"
 #include "GCStatusCurrentHP.h"
 #include "GamePlayer.h"
@@ -283,65 +282,3 @@ string EffectBloodyWall::toString() const {
 
     __END_CATCH
 }
-
-/*
-void EffectBloodyWallLoader::load(Zone* pZone)
-
-{
-    __BEGIN_TRY
-
-    Statement* pStmt = NULL;
-    Result* pResult = NULL;
-
-    BEGIN_DB
-    {
-        pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-        pResult = pStmt->executeQuery( "SELECT LeftX, TopY, RightX, BottomY, Value1, Value2, Value3 FROM ZoneEffectInfo
-WHERE ZoneID = %d AND EffectID = %d", pZone->getZoneID(), (int)Effect::EFFECT_CLASS_BLOODY_WALL);
-
-        while (pResult->next())
-        {
-            int count = 0;
-
-            ZoneCoord_t left 	= pResult->getInt( ++count );
-            ZoneCoord_t top 	= pResult->getInt( ++count );
-            ZoneCoord_t right 	= pResult->getInt( ++count );
-            ZoneCoord_t	bottom	= pResult->getInt( ++count );
-            int 		value1	= pResult->getInt( ++count );
-            int 		value2	= pResult->getInt( ++count );
-            int 		value3	= pResult->getInt( ++count );
-
-            VSRect rect(0, 0, pZone->getWidth()-1, pZone->getHeight()-1);
-
-            for ( int X = left ; X <= right ; X++ )
-            for ( int Y = top ; Y <= bottom ; Y++ )
-            {
-                if ( rect.ptInRect(X, Y) )
-                {
-                    Tile& tile = pZone->getTile(X,Y);
-                    if ( tile.canAddEffect() )
-                    {
-                        EffectBloodyWall* pEffect = new EffectBloodyWall(pZone, X, Y);
-                        pEffect->setDamage( value3 );
-                        pEffect->setTick( value2 );
-                        pEffect->setLevel( 300 );
-
-                        // 존 및 타일에다가 이펙트를 추가한다.
-                        pZone->registerObject(pEffect);
-                        // pZone->addEffect(pEffect);  // REMOVED: Don't add permanent tile effects to Zone
-                        tile.addEffect(pEffect);
-
-                    }
-
-                }
-            }
-
-        }
-    }
-    END_DB(pStmt)
-
-    __END_CATCH
-}
-
-EffectBloodyWallLoader* g_pEffectBloodyWallLoader = NULL;
-*/

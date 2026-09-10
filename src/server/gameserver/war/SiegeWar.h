@@ -72,9 +72,6 @@ protected:
     void executeStart();
     void executeEnd();
 
-    void recordSiegeWarStart();
-    void recordSiegeWarEnd();
-
 public:
     void makeWarScheduleInfo(WarScheduleInfo* pWSI) const;
     void makeWarInfo(WarInfo* pWarInfo) const;

@@ -11,6 +11,34 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Hard-coded BBS credentials in the `*notice` operator command (2026-09-10)
+
+- **`CGSayHandler::opnotice` opened a MySQL connection to a
+  third-party host whose address, database, user and password were
+  literals in the source**, and inserted the GM's chat text into that
+  server's `quick1001` table **unquoted and unescaped**: the text went
+  straight between the VALUES parentheses, so whatever a GM typed was
+  SQL. The credentials are not moved into a repository. Nothing else
+  happened in the command — it answered the player nothing and touched
+  no game state — so the command is deleted: the dispatch branch that
+  reached it and the whole body. Its declaration stays in
+  `src/Core/CGSay.h`, the packet header the client repo mirrors.
+  > **Status:** fixed (seam/inline-sql-residue)
+
+- **`MySQLSMSMessageRepository` turned every SQL failure into a
+  `const char*`, so the SMS relay could never reconnect.**
+  `SMSServiceThread::run()` catches `SQLQueryException` to call
+  `reopen()` on the repository, but the repository's statements sat
+  inside `END_DB`, which logs to `DBError.log` and then throws
+  `msg.c_str()` of a local string. Neither that branch nor the
+  thread's `catch (Throwable&)` matches a `const char*`, so a dropped
+  relay connection left the loop instead of being reopened. The
+  repository now catches the `SQLQueryException` itself, writes the
+  same `DBError.log` line and rethrows it; `END_DB` and its other call
+  sites are untouched. Dormant: `GameServer::start()` never starts the
+  thread.
+  > **Status:** fixed (seam/inline-sql-residue)
+
 ## Store, shop and stash write/read disagreements (2026-09-10)
 
 The nine findings task 1.2 stated as flip-tests in
