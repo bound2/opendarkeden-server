@@ -19,6 +19,7 @@
 #include "ClientManager.h"
 #include "CombatInfoManager.h"
 #include "CreatureUtil.h"
+#include "DatabaseError.h"
 #include "DynamicZone.h"
 #include "DynamicZoneGroup.h"
 #include "DynamicZoneManager.h"
@@ -1715,14 +1716,14 @@ void CGSayHandler::opsave(GamePlayer* pGamePlayer, string msg, int i) {
 
     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_SAVE_YOUR_DATA));
 
-    // A SQL failure arrives as END_DB's const char*, which __END_DEBUG_EX
+    // A SQL failure arrives as END_DB's DatabaseError, which __END_DEBUG_EX
     // below does not match, so it is swallowed here (the text is in
     // DBError.log). On an empty table the read answers false and the 0
     // below stands, so the loop runs zero times.
     int maxZoneGroupID = 0;
     try {
         defaultZoneInfoRepository().loadMaxZoneGroupID(maxZoneGroupID);
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         return;
     }
 
@@ -2034,7 +2035,7 @@ void CGSayHandler::opdeny(GamePlayer* pGamePlayer, string msg, int i) {
         if (defaultCharacterRepository().loadSlayerPlayerID(PLAYERID_SPELLING_OPDENY, Name, PlayerID)) {
             defaultSessionRepository().denyAccount(PlayerID);
         }
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         return;
     }
     __END_DEBUG_EX __END_CATCH
@@ -2123,7 +2124,7 @@ void CGSayHandler::opfind(GamePlayer* pGamePlayer, string msg, int i) {
 
     try {
         found = defaultSessionRepository().loadUserServerID(Name, serverID);
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         return;
     }
 
@@ -2214,7 +2215,7 @@ void CGSayHandler::opuser(GamePlayer* pGamePlayer, string msg, int i) {
 
     try {
         GroupCount = defaultSessionRepository().countPlayersOnline();
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         return;
     }
     //	StringStream msg;

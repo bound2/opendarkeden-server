@@ -76,7 +76,7 @@ void CGVerifyTimeHandler::saveSpeedHackPlayer(Player* pPlayer) {
         static ServerGroupID_t ServerGroupID = g_pConfig->getPropertyInt("ServerID");
 
         // The UPDATE and, when it changed no row, the INSERT IGNORE. A SQL
-        // failure is END_DB's const char*, which the catch below does not
+        // failure is END_DB's DatabaseError, which the catch below does not
         // match.
         defaultSessionRepository().recordSpeedHack(ID, IP, Name, (int)WorldID, (int)ServerGroupID);
     } catch (Throwable& t) {

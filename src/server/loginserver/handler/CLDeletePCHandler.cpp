@@ -11,6 +11,7 @@
 
 #include "Assert.h"
 #include "CharacterDeletion.h"
+#include "DatabaseError.h"
 #include "LCDeletePCError.h"
 #include "LCDeletePCOK.h"
 #include "LoginPlayer.h"
@@ -80,11 +81,11 @@ void CLDeletePCHandler::execute(CLDeletePC* pPacket, Player* pPlayer) {
         pLoginPlayer->sendPacket(&lcDeletePCOK);
 
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles). The client gets the
-        // failure packet with the default error id.
-        cout << "Fail to deletePC : SQL error, see DBError.log" << endl;
+    } catch (const DatabaseError& error) {
+        // A SQL failure arrives as END_DB's DatabaseError carrying the line
+        // it wrote to DBError.log. The client gets the failure packet with
+        // the default error id.
+        cout << "Fail to deletePC : " << error.message() << endl;
 
         pLoginPlayer->sendPacket(&lcDeletePCError);
     }

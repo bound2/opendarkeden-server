@@ -35,8 +35,8 @@ const char* const kFlagSetStatements[LOGIN_FLAGSET_MAX] = {
 // MySQL implementation of LoginCharacterRepository. Every method creates
 // its Statement on g_pDatabaseManager->getConnection(worldID) (see the
 // header) and frees it on every success path; a SQL failure is logged to
-// DBError.log under the method's name and rethrown as END_DB's
-// const char*. A table or preset outside its enum runs no statement.
+// DBError.log under the method's name and thrown as END_DB's
+// DatabaseError. A table or preset outside its enum runs no statement.
 class MySQLLoginCharacterRepository : public LoginCharacterRepository {
 public:
     bool slayerNameExists(WorldID_t worldID, const string& name) {

@@ -33,7 +33,7 @@ void CLQueryCharacterNameHandler::execute(CLQueryCharacterName* pPacket, Player*
 
     Assert(WorldID <= g_pGameWorldInfoManager->getSize());
 
-    // A SQL failure leaves as END_DB's const char*, the way the
+    // A SQL failure leaves as END_DB's DatabaseError, the way the
     // SQLQueryException did.
     bool bExists = defaultLoginCharacterRepository().slayerNameExists(WorldID, pPacket->getCharacterName());
 

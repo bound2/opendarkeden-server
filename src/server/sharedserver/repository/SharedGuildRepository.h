@@ -36,7 +36,7 @@
 // Guild::correctString before passing it, nothing else is escaped.
 //
 // A SQL failure is logged to DBError.log under the repository method's
-// name and thrown as END_DB's const char*. No caller in the sharedserver
+// name and thrown as END_DB's DatabaseError. No caller in the sharedserver
 // catches it: on the worker it leaves the handler, processCommand,
 // GameServerManager::run and ManagedThread's body, which marks the
 // process failed and stops it; during init() it reaches main.cpp's

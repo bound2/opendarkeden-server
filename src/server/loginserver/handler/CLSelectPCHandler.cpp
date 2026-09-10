@@ -11,6 +11,7 @@
 
 #include "Assert1.h"
 #include "CharacterSelection.h"
+#include "DatabaseError.h"
 #include "GameServerInfo.h"
 #include "GameServerInfoManager.h"
 #include "GameServerManager.h"
@@ -186,10 +187,10 @@ void CLSelectPCHandler::execute(CLSelectPC* pPacket, Player* pPlayer)
 
         defaultLoginCharacterRepository().setCharacterServerGroup(WorldID, pLoginPlayer->getServerGroupID(),
                                                                   pPacket->getPCName());
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); the client is dropped.
-        throw DisconnectException("CLSelectPCHandler : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        // A SQL failure arrives as END_DB's DatabaseError carrying the line
+        // it wrote to DBError.log; the reason travels with the disconnect.
+        throw DisconnectException("CLSelectPCHandler : " + error.message());
     } catch (NoSuchElementException& nsee) {
         StringStream msg;
 

@@ -12,7 +12,7 @@ const char* const kCurrentLocationSelect[LOGIN_LOCATION_SQL_SPELLING_MAX] = {
 // getConnection("DARKEDEN") except insertLoginRecord, which uses the
 // USERINFO connection. Each method frees its Statement on every success
 // path; a SQL failure is logged to DBError.log under the method's name and
-// rethrown as END_DB's const char*.
+// rethrown as END_DB's DatabaseError.
 class MySQLLoginAccountRepository : public LoginAccountRepository {
 public:
     void insertTestClientUser(const string& playerID, const string& ip) {

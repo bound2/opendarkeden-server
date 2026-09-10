@@ -6,7 +6,7 @@ namespace {
 // MySQL implementation of PayPlayRepository. Every method creates its
 // Statement on getDistConnection("PLAYER_DB") (see the header) and frees
 // it on every success path; a SQL failure is logged to DBError.log under
-// the method's name and rethrown as END_DB's const char*.
+// the method's name and rethrown as END_DB's DatabaseError.
 class MySQLPayPlayRepository : public PayPlayRepository {
 public:
     bool loadPCRoomByIP(const string& ip, PayPlayPCRoomRow& row) {

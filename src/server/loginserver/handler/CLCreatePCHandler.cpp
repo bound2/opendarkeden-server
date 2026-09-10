@@ -14,6 +14,7 @@
 
 #include "Assert.h"
 #include "CharacterCreation.h"
+#include "DatabaseError.h"
 #include "GameServerInfoManager.h"
 #include "LCCreatePCError.h"
 #include "LCCreatePCOK.h"
@@ -129,10 +130,9 @@ void CLCreatePCHandler::execute(CLCreatePC* pPacket, Player* pPlayer) {
         LCCreatePCOK lcCreatePCOK;
         pLoginPlayer->sendPacket(&lcCreatePCOK);
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); the client gets the
-        // failure packet with ETC_ERROR.
+    } catch (const DatabaseError&) {
+        // A SQL failure arrives as END_DB's DatabaseError, already logged to
+        // DBError.log; the client gets the failure packet with ETC_ERROR.
         lcCreatePCError.setErrorID(ETC_ERROR);
         pLoginPlayer->sendPacket(&lcCreatePCError); // tell the client the creation failed
     }

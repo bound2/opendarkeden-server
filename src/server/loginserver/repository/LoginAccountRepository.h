@@ -34,7 +34,7 @@
 //    caller keeps its bytes.
 //  - PrivateAgreementRemain is not in initdb/. Its only caller is under
 //    __NETMARBLE_SERVER__; against the shipped schema the SELECT fails
-//    as a SQL error crossing as END_DB's const char*.
+//    as a SQL error crossing as END_DB's DatabaseError.
 //
 // Not enclosed (SQL on the same tables elsewhere in the tree):
 //  - Player: the gameserver's MySQLSessionRepository.cpp (the connect-time

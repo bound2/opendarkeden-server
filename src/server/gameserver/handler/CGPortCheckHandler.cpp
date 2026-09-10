@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include "CGPortCheck.h"
+#include "DatabaseError.h"
 #include "Properties.h"
 
 #ifdef __GAME_SERVER__
@@ -44,8 +45,8 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
 
         // log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
 
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged
+    } catch (const DatabaseError&) {
+        // A SQL failure arrives as END_DB's DatabaseError, already logged
         // to DBError.log; swallowed.
         /*
         try {
@@ -57,7 +58,7 @@ void CGPortCheckHandler::execute(CGPortCheck* pPacket)
 
             //log(LOG_CGCONNECT, pPacket->getPCName(), "", host);
 
-        } catch (const char*) {
+        } catch (const DatabaseError&) {
 
             // 무시한다.
             //throw ProtocolException("Duplicated IPInfo");
