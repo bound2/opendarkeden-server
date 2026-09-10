@@ -41,6 +41,7 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_gameserver_handshake_test.cpp
     packet_guild_test.cpp
     packet_interserver_test.cpp
+    packet_inventory_test.cpp
     packet_login_test.cpp
     packet_meta_test.cpp
     packet_movement_test.cpp
