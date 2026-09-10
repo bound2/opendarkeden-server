@@ -55,6 +55,7 @@
 #include <sys/time.h>
 
 #include "Assert1.h"
+#include "DatabaseError.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameServerInfoManager.h"
 #include "LCLoginError.h"
@@ -81,7 +82,7 @@ namespace {
 // Rewrites the account's stored password as a fresh argon2id hash. A hashing
 // failure is logged and otherwise ignored: the password was already accepted
 // against the stored value, and the next login retries. A SQL failure leaves
-// as END_DB's const char*.
+// as END_DB's DatabaseError.
 void storePasswordHash(const string& ID, const string& password) {
     string hashed;
     try {
@@ -402,10 +403,10 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
             pLoginPlayer->sendPacket(&lcLoginOK);
             pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
         }
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); rethrown as an Error.
-        throw Error("CLLoginHandler : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        // A SQL failure arrives as END_DB's DatabaseError carrying the line
+        // it wrote to DBError.log; rethrown as an Error with that line in it.
+        throw Error("CLLoginHandler : " + error.message());
     }
 
     // Needed elsewhere too, so it is its own function. by sigi. 2002.5.8
@@ -429,7 +430,7 @@ void addLoginPlayerData(const string& ID, const string& ip, const string& SSN, c
 #ifdef __LOGIN_SERVER__
     // The per-login statistics row: account, address, and the current
     // date and time as two texts. SSN and zipcode are no longer recorded.
-    // A SQL failure leaves as END_DB's const char*.
+    // A SQL failure leaves as END_DB's DatabaseError.
     string currentDT = VSDateTime::currentDateTime().toDateTime();
 
     defaultLoginAccountRepository().insertLoginRecord(ID, ip, currentDT.substr(0, 10), currentDT.substr(11));
@@ -482,7 +483,7 @@ bool CLLoginHandler::checkFreePass(CLLogin* pPacket, Player* pPlayer)
 
     // The NetMarble password is checked against the stored hash; an
     // account with no row is created on the spot with the hashed
-    // password. A SQL failure leaves as END_DB's const char*.
+    // password. A SQL failure leaves as END_DB's DatabaseError.
     try {
         LoginAccountRepository& repo = defaultLoginAccountRepository();
 
@@ -535,7 +536,7 @@ bool CLLoginHandler::checkWebLogin(CLLogin* pPacket, Player* pPlayer) {
 
     // The web login key must match the one the site stored for the
     // account, and be at most five minutes old. A SQL failure leaves as
-    // END_DB's const char*.
+    // END_DB's DatabaseError.
     try {
         LoginAccountRepository& repo = defaultLoginAccountRepository();
 

@@ -5,6 +5,7 @@
 
 #include "Mofus.h"
 
+#include "DatabaseError.h"
 #include "Exception.h"
 #include "repository/MofusPointRepository.h"
 
@@ -13,8 +14,8 @@
 // external service, and the game must not fall over when its bookkeeping
 // does.
 //
-// The type the swallow has to name is the bare const char* each
-// repository call rethrows from END_DB after converting the driver's
+// The type the swallow has to name is the DatabaseError each repository
+// call throws from END_DB after converting the driver's
 // SQLQueryException; catching SQLQueryException here would silently turn
 // an ignored error into a thrown one.
 //
@@ -24,7 +25,7 @@
 // GamePlayer::processCommand's catch (...) and disconnects the player
 // instead of logging them in with zero points. The Restore and
 // EventMorph paths call it on a zone thread, where nothing catches a
-// const char* at all — std::terminate, i.e. the process. And
+// DatabaseError at all — std::terminate, i.e. the process. And
 // MPlayerManager::processResult calls it INSIDE
 // __ENTER_CRITICAL_SECTION((*g_pPCFinder)), whose
 // __LEAVE_CRITICAL_SECTION catches Throwable& only: that one would
@@ -37,7 +38,7 @@ int loadPowerPoint(const string& name) {
 
     try {
         defaultMofusPointRepository().loadPowerPoint(name, powerpoint);
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         // SQL 에러는 무시한다.
     }
 
@@ -62,7 +63,7 @@ int savePowerPoint(const string& name, int amount) {
         }
 
         points.loadPowerPoint(name, powerpoint);
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         // SQL 에러는 무시한다.
     }
 
@@ -76,7 +77,7 @@ void logPowerPoint(const string& name, int recvPoint, int savePoint) {
 
     try {
         defaultMofusPointRepository().logPowerPoint(name, recvPoint, savePoint);
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         // SQL 에러는 무시한다.
     }
 

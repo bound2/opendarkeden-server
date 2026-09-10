@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "Assert1.h"
+#include "DatabaseError.h"
 #include "GCDisconnect.h"
 #include "GameServerInfoManager.h"
 #include "LCPCList.h"
@@ -198,10 +199,10 @@ void CLReconnectLoginHandler::execute(CLReconnectLogin* pPacket, Player* pPlayer
             throw DisconnectException("Player Permission is DENY (child guard) running. ");
         }
 #endif
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); the client is dropped.
-        throw DisconnectException("CLReconnectLoginHandler : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        // A SQL failure arrives as END_DB's DatabaseError carrying the line
+        // it wrote to DBError.log; the reason travels with the disconnect.
+        throw DisconnectException("CLReconnectLoginHandler : " + error.message());
     }
 
     // cout << "CLReconnectLogin : ReconnectLoginInfo verified" << endl;

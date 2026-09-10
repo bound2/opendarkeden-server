@@ -20,7 +20,7 @@
 // initdb/DARKEDEN.sql does not create AccountPoint or PointLedger — both
 // are in initdb/USERINFO.sql — so against the shipped schema every point
 // statement fails with ER_NO_SUCH_TABLE, is logged to DBError.log and
-// thrown as END_DB's const char*. ExchangeService::buyListing reads the
+// thrown as END_DB's DatabaseError. ExchangeService::buyListing reads the
 // buyer's balance before it begins, so a buy always throws out of
 // CGExchangeBuyHandler, where GamePlayer::processCommand's catch (...)
 // disconnects the buyer.
@@ -31,7 +31,7 @@
 // the first left pending (MySQL commits a pending transaction when a new
 // one begins), and the pair gives no cross-database atomicity. The
 // DARKEDEN half does behave: a listing created after beginTransaction is
-// discarded by rollback and kept by commit. A const char* escaping from a
+// discarded by rollback and kept by commit. A DatabaseError escaping from a
 // statement inside the pair leaves ExchangeService::buyListing without a
 // rollback (it catches only std::string), so the connection stays in the
 // transaction until the next START TRANSACTION.
@@ -47,7 +47,7 @@
 // ExchangeListing's UNIQUE KEY (ItemClass, ItemID, ObjectID), and the
 // fact that no statement deletes a listing row, mean createListing for an
 // object that was ever listed — whatever status its old row is in now —
-// fails with ER_DUP_ENTRY (thrown as the const char*). ExchangeOrder's
+// fails with ER_DUP_ENTRY (thrown as a DatabaseError). ExchangeOrder's
 // UNIQUE ListingID does the same to a second order on one listing.
 //
 // The methods keep the __BEGIN_TRY / __END_CATCH frames and the bool

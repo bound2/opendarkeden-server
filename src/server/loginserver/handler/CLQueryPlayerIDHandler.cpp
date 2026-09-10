@@ -28,7 +28,7 @@ void CLQueryPlayerIDHandler::execute(CLQueryPlayerID* pPacket, Player* pPlayer)
 
     LoginPlayer* pLoginPlayer = dynamic_cast<LoginPlayer*>(pPlayer);
 
-    // A SQL failure leaves as END_DB's const char*, the way the
+    // A SQL failure leaves as END_DB's DatabaseError, the way the
     // SQLQueryException did.
     bool bExists = defaultLoginAccountRepository().accountNameExists(pPacket->getPlayerID());
 

@@ -9,6 +9,7 @@
 // include files
 #include "GameWorldInfoManager.h"
 
+#include "DatabaseError.h"
 #include "repository/ServerInfoRepository.h"
 
 //----------------------------------------------------------------------
@@ -62,11 +63,11 @@ void GameWorldInfoManager::load() {
 
     try {
         rows = defaultServerInfoRepository().loadWorlds();
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); rethrown as the Error the
-        // startup path expects.
-        throw Error("GameWorldInfoManager::load : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        // A SQL failure arrives as END_DB's DatabaseError carrying the line
+        // it wrote to DBError.log; rethrown as the Error the startup path
+        // expects, with that line in it.
+        throw Error("GameWorldInfoManager::load : " + error.message());
     }
 
     try {

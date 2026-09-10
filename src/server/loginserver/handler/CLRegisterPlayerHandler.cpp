@@ -10,6 +10,7 @@
 #include <utility>
 
 #include "Assert1.h"
+#include "DatabaseError.h"
 #include "GameServerGroupInfoManager.h"
 #include "LCRegisterPlayerError.h"
 #include "LCRegisterPlayerOK.h"
@@ -163,10 +164,9 @@ void CLRegisterPlayerHandler::execute(CLRegisterPlayer* pPacket, Player* pPlayer
 
         pLoginPlayer->setID(request.playerID);
         pLoginPlayer->setPlayerStatus(LPS_WAITING_FOR_CL_GET_PC_LIST);
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); answered like the
-        // read-back failure above.
+    } catch (const DatabaseError&) {
+        // A SQL failure arrives as END_DB's DatabaseError, already logged to
+        // DBError.log; answered like the read-back failure above.
         lcRegisterPlayerError.setErrorID(ETC_ERROR);
         pLoginPlayer->sendPacket(&lcRegisterPlayerError);
 

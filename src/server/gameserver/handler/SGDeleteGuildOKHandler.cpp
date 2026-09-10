@@ -139,10 +139,9 @@ void SGDeleteGuildOKHandler::execute(SGDeleteGuildOK* pPacket)
             // taken from the returned list, not a live member. The
             // message repository is looked up inside the command so the
             // SQL runs on the zone thread's own connection. A SQL failure
-            // there surfaces as the const char* END_DB rethrows -- not a
+            // there surfaces as the DatabaseError END_DB throws -- not a
             // Throwable -- which the mailbox drain logs without stopping
-            // the tick; the dangling const char* itself (END_DB throws
-            // msg.c_str() from a local string) is a separate open defect.
+            // the tick.
             const GuildMemberRank_t rank = members[i].second;
             de::postToPlayer(memberName, [rank](PlayerCreature& pc, Player& player) {
                 // 등록비를 환불한다.

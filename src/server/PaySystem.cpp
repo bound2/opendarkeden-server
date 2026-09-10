@@ -19,6 +19,7 @@
 
 #include "PaySystem.h"
 
+#include "DatabaseError.h"
 #include "Properties.h"
 #include "Thread.h"
 #include "repository/PayPlayRepository.h"
@@ -342,7 +343,7 @@ bool PaySystem::loginPayPlayPCRoom(const string& ip, const string& playerID) {
     PayPlayRepository& repo = defaultPayPlayRepository();
 
     // The room this client IP belongs to. A SQL failure anywhere below
-    // is noted in paySystem.txt and leaves as END_DB's const char*, except
+    // is noted in paySystem.txt and leaves as END_DB's DatabaseError, except
     // the occupant INSERT, whose failure is noted and ignored.
     try {
         PayPlayPCRoomRow room;
@@ -385,9 +386,9 @@ bool PaySystem::loginPayPlayPCRoom(const string& ip, const string& playerID) {
             if (bAvailable) {
                 try {
                     repo.insertPCRoomUser(m_PCRoomID, playerID);
-                } catch (const char*) {
+                } catch (const DatabaseError& error) {
                     filelog("paySystem.txt", "%s",
-                            "PaySystem::loginPayPlayPCRoom : occupant insert failed, see DBError.log");
+                            ("PaySystem::loginPayPlayPCRoom : occupant insert failed : " + error.message()).c_str());
                 }
 
                 // Counted again with this player in; over the limit, the
@@ -404,8 +405,8 @@ bool PaySystem::loginPayPlayPCRoom(const string& ip, const string& playerID) {
                 }
             }
         }
-    } catch (const char*) {
-        filelog("paySystem.txt", "%s", "PaySystem::loginPayPlayPCRoom : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        filelog("paySystem.txt", "%s", ("PaySystem::loginPayPlayPCRoom : " + error.message()).c_str());
         throw;
     }
 
@@ -422,11 +423,11 @@ void PaySystem::logoutPayPlayPCRoom(const string& playerID) {
 
     if (m_PayPlayType == PAY_PLAY_TYPE_PCROOM) {
         // The occupant row the login inserted; a SQL failure is noted in
-        // paySystem.txt and leaves as END_DB's const char*.
+        // paySystem.txt and leaves as END_DB's DatabaseError.
         try {
             defaultPayPlayRepository().deletePCRoomUser(playerID);
-        } catch (const char*) {
-            filelog("paySystem.txt", "%s", "PaySystem::logoutPayPlayPCRoom : SQL error, see DBError.log");
+        } catch (const DatabaseError& error) {
+            filelog("paySystem.txt", "%s", ("PaySystem::logoutPayPlayPCRoom : " + error.message()).c_str());
             throw;
         }
     }
@@ -541,14 +542,14 @@ bool PaySystem::loginPayPlay(const string& ip, const string& playerID) {
     if (!m_bSetPersonValue) {
         // The account's pay-play columns; a missing row refuses the
         // login, a SQL failure is noted in paySystem.txt and leaves as
-        // END_DB's const char*.
+        // END_DB's DatabaseError.
         PayPlayAccountRow account;
         bool bFound = false;
 
         try {
             bFound = defaultPayPlayRepository().loadAccountPayPlay(playerID, account);
-        } catch (const char*) {
-            filelog("paySystem.txt", "%s", "PaySystem::loginPayPlay : SQL error, see DBError.log");
+        } catch (const DatabaseError& error) {
+            filelog("paySystem.txt", "%s", ("PaySystem::loginPayPlay : " + error.message()).c_str());
             throw;
         }
 
@@ -762,14 +763,14 @@ bool PaySystem::isPayPlayingPeriodPersonal(const string& PlayerID) {
     bool isPayPlay = false;
 
     // A SQL failure is noted in paySystem.txt and leaves as END_DB's
-    // const char*.
+    // DatabaseError.
     try {
         int flag = 0;
         if (defaultPayPlayRepository().loadAccountPayPlaying(PlayerID, flag)) {
             isPayPlay = flag == 1;
         }
-    } catch (const char*) {
-        filelog("paySystem.txt", "%s", "PaySystem::isPayPlayingPeriodPersonal : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        filelog("paySystem.txt", "%s", ("PaySystem::isPayPlayingPeriodPersonal : " + error.message()).c_str());
         throw;
     }
 
@@ -787,14 +788,14 @@ bool PaySystem::isPlayInPayPCRoom(const string& ip, const string& playerID) {
     __BEGIN_TRY
 
     // The room this client IP belongs to; a SQL failure is noted in
-    // paySystem.txt and leaves as END_DB's const char*.
+    // paySystem.txt and leaves as END_DB's DatabaseError.
     PayPlayPCRoomPeriodRow room;
     bool bFound = false;
 
     try {
         bFound = defaultPayPlayRepository().loadPCRoomPeriodByIP(ip, room);
-    } catch (const char*) {
-        filelog("paySystem.txt", "%s", "PaySystem::isPlayInPayPCRoom : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        filelog("paySystem.txt", "%s", ("PaySystem::isPlayInPayPCRoom : " + error.message()).c_str());
         throw;
     }
 

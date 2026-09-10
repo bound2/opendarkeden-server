@@ -9,6 +9,7 @@
 // include files
 #include "UserInfoManager.h"
 
+#include "DatabaseError.h"
 #include "repository/LoginConfigRepository.h"
 
 //----------------------------------------------------------------------
@@ -79,11 +80,11 @@ void UserInfoManager::load() noexcept(false) {
 
     try {
         rows = repo.loadGameServerGroupIDs();
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); rethrown as the Error the
-        // startup path expects.
-        throw Error("UserInfoManager::load : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        // A SQL failure arrives as END_DB's DatabaseError carrying the line
+        // it wrote to DBError.log; rethrown as the Error the startup path
+        // expects, with that line in it.
+        throw Error("UserInfoManager::load : " + error.message());
     }
 
     for (size_t i = 0; i < rows.size(); i++) {

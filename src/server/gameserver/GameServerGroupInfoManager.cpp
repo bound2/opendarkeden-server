@@ -95,7 +95,7 @@ void GameServerGroupInfoManager::load()
     m_GameServerGroupInfos = new HashMapGameServerGroupInfo[m_MaxWorldID];
 
     // A SQL failure is converted inside the repository (DBError.log + a
-    // thrown const char*, see DB.h's END_DB) and escapes this try; a
+    // thrown DatabaseError, see DB.h's END_DB) and escapes this try; a
     // failure in addGameServerGroupInfo is printed and swallowed.
     try {
         vector<GameServerGroupRow> rows = defaultGameInfoRepository().loadGameServerGroups();

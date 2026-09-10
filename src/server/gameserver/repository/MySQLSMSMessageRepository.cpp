@@ -3,9 +3,9 @@
 #include "repository/SMSMessageRepository.h"
 
 // END_DB, except that the SQLQueryException is rethrown as itself instead
-// of as DB.h's const char* naming a string destroyed on unwind. The relay
+// of as DB.h's DatabaseError. The relay
 // loop catches SQLQueryException to reopen the connection, and a
-// const char* reaches neither that branch nor its catch (Throwable&).
+// DatabaseError reaches neither that branch nor its catch (Throwable&).
 // DBError.log gets the same line END_DB writes.
 #define END_DB_RETHROW(STMT)                                            \
     catch (SQLQueryException & sqe) {                                   \

@@ -8,6 +8,7 @@
 
 #ifdef __LOGIN_SERVER__
 #include "Assert1.h"
+#include "DatabaseError.h"
 #include "GameServerGroupInfoManager.h"
 #include "GameServerInfoManager.h"
 #include "LCPCList.h"
@@ -42,10 +43,10 @@ void CLChangeServerHandler::execute(CLChangeServer* pPacket, Player* pPlayer)
         pLoginPlayer->setPlayerStatus(LPS_PC_MANAGEMENT);
 
         defaultLoginAccountRepository().setCurrentServerGroup((int)pPacket->getServerGroupID(), pLoginPlayer->getID());
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles).
-        throw DisconnectException("CLChangeServerHandler : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        // A SQL failure arrives as END_DB's DatabaseError carrying the line
+        // it wrote to DBError.log; the reason travels with the disconnect.
+        throw DisconnectException("CLChangeServerHandler : " + error.message());
     }
 
 #endif

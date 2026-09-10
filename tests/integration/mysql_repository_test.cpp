@@ -261,18 +261,17 @@ protected:
 TEST_F(FriendMySQL, EveryReadRaisesBecauseTheTableIsNotInTheSchema) {
     FriendRepository& repository = defaultFriendRepository();
 
-    // Catch the const char* END_DB rethrows rather than using
+    // Catch the DatabaseError END_DB throws rather than using
     // EXPECT_ANY_THROW, which would pass for any failure at all. Be
     // precise about what that buys: it pins the failure to the SQL
     // layer, and nothing more. It CANNOT tell a missing table from a
     // dropped connection — Statement::executeQuery raises
     // SQLQueryException for both, and END_DB converts both to the same
-    // const char*. Nor can the message be read: END_DB throws
-    // msg.c_str() from a local std::string, so the pointer dangles.
+    // DatabaseError.
     bool refused = false;
     try {
         repository.loadFriends("it-friend");
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "loadFriends succeeded, so FriendList now exists — see this fixture's comment";
@@ -280,7 +279,7 @@ TEST_F(FriendMySQL, EveryReadRaisesBecauseTheTableIsNotInTheSchema) {
     refused = false;
     try {
         repository.loadMessages("it-friend");
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "loadMessages succeeded, so FriendHistory now exists";
@@ -288,7 +287,7 @@ TEST_F(FriendMySQL, EveryReadRaisesBecauseTheTableIsNotInTheSchema) {
     refused = false;
     try {
         repository.friendExists("it-friend", "it-other");
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "friendExists succeeded, so FriendList now exists";
@@ -300,7 +299,7 @@ TEST_F(FriendMySQL, EveryWriteRaisesToo) {
     bool refused = false;
     try {
         repository.insertFriend("it-friend", "it-other");
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "insertFriend succeeded, so FriendList now exists";
@@ -308,7 +307,7 @@ TEST_F(FriendMySQL, EveryWriteRaisesToo) {
     refused = false;
     try {
         repository.insertMessage("hello", "it-other", "it-friend");
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "insertMessage succeeded, so FriendHistory now exists";
@@ -318,7 +317,7 @@ TEST_F(FriendMySQL, EveryWriteRaisesToo) {
     refused = false;
     try {
         repository.deleteFriend("it-friend", "it-other");
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "deleteFriend succeeded, so FriendList now exists";
@@ -331,7 +330,7 @@ TEST_F(FriendMySQL, EveryWriteRaisesToo) {
     refused = false;
     try {
         repository.insertBlacklisted("it-other", "it-friend");
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "insertBlacklisted succeeded, so FriendList now exists";
@@ -339,7 +338,7 @@ TEST_F(FriendMySQL, EveryWriteRaisesToo) {
     refused = false;
     try {
         repository.hasBlacklisted("it-other", "it-friend");
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "hasBlacklisted succeeded, so FriendList now exists";
@@ -347,7 +346,7 @@ TEST_F(FriendMySQL, EveryWriteRaisesToo) {
     refused = false;
     try {
         repository.deleteMessages("it-friend");
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "deleteMessages succeeded, so FriendHistory now exists";
@@ -456,23 +455,22 @@ TEST_F(FlagWarMySQL, TheHistoryRollUpIsRefusedByOnlyFullGroupByAndTheWipeTakesEv
     // Task 3.2 moves statements without fixing them, so the throw is
     // what this tier pins. Anyone who fixes the GROUP BY should expect
     // this assertion to be the thing that fails.
-    // Pin more than "something threw": catch the const char* END_DB
-    // rethrows, so a failure raising some other type would fail here
-    // rather than quietly validating the claim.
-    //
-    // What this CANNOT do is read the message: END_DB builds a local
-    // std::string and throws msg.c_str(), so the pointer dangles the
-    // moment the catch block exits (asserting on the 1055 text here reads
-    // an empty string). That is a defect in the macro itself — every
-    // repository in the tree rethrows the same way. The MySQL error text
-    // does reach DBError.log, which END_DB writes before throwing.
+    // Pin more than "something threw": catch the DatabaseError END_DB
+    // throws, so a failure raising some other type would fail here rather
+    // than quietly validating the claim. The error owns its message, which
+    // is the line END_DB wrote to DBError.log, so the refusal MySQL gave
+    // reads back here — the statement that was refused and the reason.
     bool refused = false;
+    std::string reported;
     try {
         repository.loadFlagWarStatTotals();
-    } catch (const char*) {
+    } catch (const DatabaseError& error) {
         refused = true;
+        reported = error.message();
     }
     EXPECT_TRUE(refused) << "loadFlagWarStatTotals did not raise the ONLY_FULL_GROUP_BY refusal";
+    EXPECT_NE(std::string::npos, reported.find("loadFlagWarStatTotals")) << "message was: " << reported;
+    EXPECT_NE(std::string::npos, reported.find("only_full_group_by")) << "message was: " << reported;
 
     // The tally itself is fine. The history writer is fed BY HAND
     // below with what the roll-up would have produced, so the writer is
@@ -563,7 +561,7 @@ TEST_F(MofusMySQL, TheFirstSaveInsertsAndEveryLaterOneAccumulates) {
     bool refused = false;
     try {
         repository.insertPowerPoint("it-spend", 0);
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
         refused = true;
     }
     EXPECT_TRUE(refused) << "the duplicate-key insert did not raise";
@@ -2974,7 +2972,7 @@ TEST_F(GoodsMySQL, TakeOneDecrementsAndFlipsStatusOnTheLastUnit) {
 TEST_F(GoodsMySQL, TakingAZeroCountRowFailsAndLeavesItUntouched) {
     // Num - 1 on the UNSIGNED column raises ER_DATA_OUT_OF_RANGE (1690)
     // regardless of strict mode; the row is untouched and the error
-    // escapes as an exception (through END_DB, as a raw const char*) —
+    // escapes as an exception (through END_DB, as a DatabaseError) —
     // the stuck-item path documented on MySQLGoodsRepository.
     PlayerFixture slayer = PlayerFixtures::midLevelSlayer();
     slayer.persist();
@@ -6036,12 +6034,12 @@ TEST_F(ItemObjectMySQL, MotorcycleRedeemProbesReadsAndInsertsInBothSpellings) {
     // The quest-action spelling is INSERT IGNORE: a second row for the same id
     // is swallowed and the standing row is untouched. The handler spelling
     // has no IGNORE, so the same duplicate is a SQL failure thrown as
-    // END_DB's const char*.
+    // END_DB's DatabaseError.
     repository.insertRedeemedMotorcycle(REDEEM_SPELLING_QUEST_ACTION, 31000, 78, 4, 5, 32, 14, 15, 301);
     EXPECT_EQ("77", queryScalar("SELECT ObjectID" + where + "31000"));
     EXPECT_EQ("300", queryScalar("SELECT Durability" + where + "31000"));
     EXPECT_THROW(repository.insertRedeemedMotorcycle(REDEEM_SPELLING_HANDLER, 31000, 78, 4, 5, 32, 14, 15, 301),
-                 const char*);
+                 DatabaseError);
 
     // The quest-action spelling inserts a fresh id like the handler one does.
     repository.insertRedeemedMotorcycle(REDEEM_SPELLING_QUEST_ACTION, 31001, 79, 4, 5, 32, 14, 15, 301);
@@ -6690,11 +6688,11 @@ TEST_F(PlayRecordMySQL, LottoCountIsReplacedThenAddedToPerPlayerAndType) {
 
 // CreatureUtil's gold medal: the table is not in initdb/, so the INSERT
 // fails on the shipped schema — the bug the header records, pinned here
-// as the const char* END_DB throws.
+// as the DatabaseError END_DB throws.
 TEST_F(PlayRecordMySQL, GoldMedalInsertFailsOnTheShippedSchema) {
     EXPECT_EQ("0", queryScalar("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() "
                                "AND table_name = 'GoldMedalCount'"));
-    EXPECT_THROW(defaultPlayRecordRepository().insertGoldMedal("it-acct"), const char*);
+    EXPECT_THROW(defaultPlayRecordRepository().insertGoldMedal("it-acct"), DatabaseError);
 }
 
 // CreatureUtil's underworld kill record (its only caller sits under
@@ -7606,6 +7604,37 @@ TEST_F(GuildMySQL, UnionOffersAreInsertedReadByTypeAgedAndCleared) {
     repository.deleteOffers(31000);
     EXPECT_EQ(0, repository.countOffers(31000));
     EXPECT_EQ(1, repository.countOffers(31001));
+}
+
+// --- what END_DB throws ----------------------------------------------------
+
+// Every statement in the tree answers a SQL failure with this value, and a
+// SELECT against a table the schema does not have is the cheapest way to
+// reach it. What is pinned is that the value OWNS its message: the error is
+// copied out of the handler and read after the catch block has gone, and
+// the text is the line END_DB wrote to DBError.log — the function the
+// statement ran in, then the driver's own words. A pointer into the
+// handler's string would give an empty or garbage read here.
+TEST(DatabaseErrorMySQL, TheMessageOutlivesTheHandlerAndNamesTheFunctionAndTheSQLError) {
+    DatabaseError caught{""};
+    bool refused = false;
+
+    try {
+        execSQL("SELECT * FROM no_such_table_for_the_database_error_pin");
+    } catch (const DatabaseError& error) {
+        caught = error;
+        refused = true;
+    }
+
+    ASSERT_TRUE(refused) << "the missing table did not raise";
+
+    const std::string reported = caught.message();
+    EXPECT_FALSE(reported.empty());
+    EXPECT_NE(std::string::npos, reported.find("execSQL")) << "message was: " << reported;
+    EXPECT_NE(std::string::npos, reported.find("SQLQueryException")) << "message was: " << reported;
+    EXPECT_NE(std::string::npos, reported.find("no_such_table_for_the_database_error_pin"))
+        << "message was: " << reported;
+    EXPECT_STREQ(reported.c_str(), caught.what());
 }
 
 } // namespace

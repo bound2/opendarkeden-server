@@ -23,7 +23,7 @@
 // mofus link is an external service, and the game must not fall over
 // when its bookkeeping does. That swallow lives at the call sites, not
 // here — these methods raise like every other repository method
-// (END_DB's const char*), and Mofus.cpp catches.
+// (END_DB's DatabaseError), and Mofus.cpp catches.
 class MofusPointRepository {
 public:
     virtual ~MofusPointRepository() {}

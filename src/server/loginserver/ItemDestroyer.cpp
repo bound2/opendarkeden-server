@@ -8,6 +8,7 @@
 // include files
 #include "ItemDestroyer.h"
 
+#include "DatabaseError.h"
 #include "repository/LoginCharacterPurgeRepository.h"
 
 //--------------------------------------------------------------------------------
@@ -24,11 +25,11 @@ void ItemDestroyer::destroyAll(const string& ownerID) {
 
     try {
         defaultLoginCharacterPurgeRepository().destroyItems(ownerID);
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); rethrown as the Error the
-        // callers of this class expect.
-        throw Error("ItemDestroyer::destroyAll : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        // A SQL failure arrives as END_DB's DatabaseError carrying the line
+        // it wrote to DBError.log; rethrown as the Error the callers of this
+        // class expect, with that line in it.
+        throw Error("ItemDestroyer::destroyAll : " + error.message());
     }
 
     __END_CATCH

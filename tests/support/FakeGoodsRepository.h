@@ -18,9 +18,9 @@
 //    MySQL's left-to-right SET evaluation quirk.
 //  - takeOne() on a row at Num=0 THROWS: Num - 1 on the UNSIGNED column
 //    raises ER_DATA_OUT_OF_RANGE (1690) regardless of strict mode, and
-//    the row is left untouched. The real error surfaces as a raw
-//    const char* out of END_DB; the fake throws std::runtime_error so
-//    tests have something typed to catch.
+//    the row is left untouched. The real error surfaces as END_DB's
+//    DatabaseError; the fake throws std::runtime_error, which needs no
+//    database header to catch.
 //  - takeOne() of an unknown id returns false (no row matched).
 class FakeGoodsRepository : public GoodsRepository {
 public:

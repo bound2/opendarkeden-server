@@ -9,6 +9,7 @@
 #include "LoginPlayer.h"
 
 #include "Assert.h"
+#include "DatabaseError.h"
 #include "GameServerInfoManager.h"
 #include "GameServerManager.h"
 #include "LCLoginError.h"
@@ -335,11 +336,11 @@ void LoginPlayer::disconnect(bool bDisconnected) {
             bool bDecreaseTime = false; // the login server does not count play time down
             logoutPayPlay(m_ID, bClear, bDecreaseTime);
 #endif
-        } catch (const char*) {
-            // A SQL failure arrives as END_DB's const char*, already logged
-            // to DBError.log (its own message dangles); rethrown as the
-            // Error the callers expect.
-            throw Error("LoginPlayer::disconnect : SQL error, see DBError.log");
+        } catch (const DatabaseError& error) {
+            // A SQL failure arrives as END_DB's DatabaseError carrying the
+            // line it wrote to DBError.log; rethrown as the Error the callers
+            // expect, with that line in it.
+            throw Error("LoginPlayer::disconnect : " + error.message());
         }
     }
 
@@ -385,11 +386,11 @@ void LoginPlayer::disconnect_nolog(bool bDisconnected) {
             bool bDecreaseTime = false; // the login server does not count play time down
             logoutPayPlay(m_ID, bClear, bDecreaseTime);
 #endif
-        } catch (const char*) {
-            // A SQL failure arrives as END_DB's const char*, already logged
-            // to DBError.log (its own message dangles); rethrown as the
-            // Error the callers expect.
-            throw Error("LoginPlayer::disconnect : SQL error, see DBError.log");
+        } catch (const DatabaseError& error) {
+            // A SQL failure arrives as END_DB's DatabaseError carrying the
+            // line it wrote to DBError.log; rethrown as the Error the callers
+            // expect, with that line in it.
+            throw Error("LoginPlayer::disconnect : " + error.message());
         }
     }
 
@@ -791,9 +792,10 @@ void LoginPlayer::makePCList(LCPCList& lcPCList) {
                 lcPCList.setPCInfo(pPCOustersInfo->getSlot(), pPCOustersInfo);
             }
         }
-    } catch (const char*) {
-        // A SQL failure arrives as END_DB's const char*, already logged to
-        // DBError.log (its own message dangles); the client is dropped.
-        throw DisconnectException("LoginPlayer::makePCList : SQL error, see DBError.log");
+    } catch (const DatabaseError& error) {
+        // A SQL failure arrives as END_DB's DatabaseError carrying the line
+        // it wrote to DBError.log; the client is dropped, and the reason
+        // travels with the disconnect.
+        throw DisconnectException("LoginPlayer::makePCList : " + error.message());
     }
 }

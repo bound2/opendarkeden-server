@@ -77,7 +77,7 @@ public:
 
     // --- event tallies (CreatureUtil) -----------------------------------------
     // INSERT INTO GoldMedalCount (PlayerID, getTime). The table is not in
-    // initdb/, so on the shipped schema this throws END_DB's const char*
+    // initdb/, so on the shipped schema this throws END_DB's DatabaseError
     // every time; the caller does not catch it.
     virtual void insertGoldMedal(const std::string& playerID) = 0;
     // UPDATE EventLotto count=count+num for (player, type); REPLACE a fresh

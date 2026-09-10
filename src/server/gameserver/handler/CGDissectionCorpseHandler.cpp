@@ -16,6 +16,7 @@
 #include "CombatInfoManager.h"
 #include "Corpse.h"
 #include "CreatureUtil.h"
+#include "DatabaseError.h"
 #include "Effect.h"
 #include "EffectFlagInsert.h"
 #include "EffectHasSlayerRelic.h"
@@ -392,12 +393,12 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                     if (!defaultItemRepository().loadBlackStarCount(BlackStarNumber)) {
                         throw ProtocolException("Fail to load data from DB");
                     }
-                } catch (const char*) {
-                    // A SQL failure arrives as END_DB's const char*, which the
-                    // handler's outer catch (Throwable&) would not swallow, so
-                    // it is rethrown as an Error. The SQL text is in DBError.log
-                    // (END_DB's own message dangles).
-                    throw Error("CGDissectionCorpseHandler: the black-star count read failed, see DBError.log");
+                } catch (const DatabaseError& error) {
+                    // A SQL failure arrives as END_DB's DatabaseError, which
+                    // the handler's outer catch (Throwable&) would not
+                    // swallow, so it is rethrown as an Error carrying the line
+                    // END_DB wrote to DBError.log.
+                    throw Error("CGDissectionCorpseHandler: the black-star count read failed : " + error.message());
                 }
 
                 {

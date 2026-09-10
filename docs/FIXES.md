@@ -11,6 +11,34 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Every SQL failure threw a dangling pointer (2026-09-10)
+
+- **`END_DB` and `END_DB_EX` built the `DBError.log` line in a local
+  `std::string` and then threw `msg.c_str()`**, a pointer into storage
+  that dies as the catch clause unwinds. All 735 statement sites in
+  `src/` answer a failed statement that way, and the 34
+  `catch (const char*)` handlers in `src/server` receive it. Nothing
+  crashed only because almost every one of them logged a fixed string
+  and never read the pointer; the MySQL integration tier said so in a
+  comment beside each refusal it pinned, having no way to assert on the
+  error MySQL gave. The macros now throw a `DatabaseError`
+  (`src/server/database/DatabaseError.h`), a value holding the same
+  message, and the handlers catch that type. The ones that report the
+  failure carry the real text rather than pointing at the log: the
+  startup managers' `Error`, the login handlers' `DisconnectException`,
+  `PaySystem`'s `paySystem.txt` lines and `CLDeletePCHandler`'s console
+  line. `DatabaseError` derives from nothing on purpose — `__END_CATCH`
+  rethrows a `Throwable` and `__END_CATCH_NO_RETHROW` swallows one, so a
+  base would have changed how far a SQL failure travels before it
+  reaches the handler that decides what the caller is told.
+  `MySQLSMSMessageRepository`'s file-local `END_DB_RETHROW` is
+  untouched: its thread catches the `SQLQueryException` itself to
+  reconnect. `tests/database_error_test.cpp` pins the macros with no
+  database, and the MySQL tier pins a statement against a missing table;
+  both copy the error out of the handler and read its message after the
+  catch block is gone. Ratchet R10 keeps both halves at zero.
+  > **Status:** fixed (seam/db-error-type)
+
 ## Character progression write/read disagreements (2026-09-10)
 
 The nine findings task 1.2 stated as flip-tests in

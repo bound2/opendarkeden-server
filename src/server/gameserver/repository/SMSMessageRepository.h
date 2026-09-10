@@ -23,7 +23,7 @@
 // CGSMSSendHandler.
 //
 // A SQL failure leaves these methods as the SQLQueryException the
-// driver raised, not as the const char* END_DB hands the rest of the
+// driver raised, not as the DatabaseError END_DB hands the rest of the
 // tree: the caller selects its reconnect branch on that type. The
 // failure is written to DBError.log first, in END_DB's format.
 //
