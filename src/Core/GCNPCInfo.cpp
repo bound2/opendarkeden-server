@@ -34,9 +34,24 @@ GCNPCInfo::GCNPCInfo()
 GCNPCInfo::~GCNPCInfo()
 
 {
-    // the NPCInfo objects are owned by the Zone, not the packet — see
-    // GCUpdateInfo's destructor. (The client's copy deletes them.)
+    clearNPCInfos();
+}
+
+//--------------------------------------------------------------------------------
+// A filler hands records the zone owns, so those are only dropped; the ones
+// read() allocated go with the packet.
+//--------------------------------------------------------------------------------
+void GCNPCInfo::clearNPCInfos()
+
+{
+    if (m_OwnsNPCInfos) {
+        list<NPCInfo*>::iterator itr = m_NPCInfos.begin();
+        for (; itr != m_NPCInfos.end(); itr++)
+            SAFE_DELETE(*itr);
+    }
+
     m_NPCInfos.clear();
+    m_OwnsNPCInfos = false;
 }
 
 //--------------------------------------------------------------------------------
@@ -52,6 +67,10 @@ void GCNPCInfo::read(SocketInputStream& iStream)
     //////////////////////////////////////////////////
     BYTE NPCInfoCount = 0;
     iStream.read(NPCInfoCount);
+
+    clearNPCInfos();
+    m_OwnsNPCInfos = true;
+
     for (BYTE nc = 0; nc < NPCInfoCount; nc++) {
         NPCInfo* pInfo = new NPCInfo;
         pInfo->read(iStream);

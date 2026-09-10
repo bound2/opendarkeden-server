@@ -47,24 +47,25 @@ public:
     // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
     void write(SocketOutputStream& oStream) const;
 
+    // The effect list is counted in a BYTE, and the factory max budgets this
+    // many ids.
+    static constexpr uint kMaxCount = 255;
+
     // get packet's body size
     // 최적화시, 미리 계산된 정수를 사용한다.
     PacketSize_t getPacketSize() const {
-        return szObjectID + szBYTE + szEffectID * m_ListNum;
+        return (PacketSize_t)(szObjectID + szBYTE + szEffectID * m_EffectList.size());
     }
     static constexpr PacketSize_t getPacketMaxSize() {
-        return 255;
+        return szObjectID + szBYTE + szEffectID * kMaxCount;
     }
 
     // get packet's debug string
     string toString() const;
 
-    // get / set ListNumber
+    // get ListNumber
     BYTE getListNum() const {
-        return m_ListNum;
-    }
-    void setListNum(BYTE ListNum) {
-        m_ListNum = ListNum;
+        return (BYTE)m_EffectList.size();
     }
 
     // get&set ObjectID
@@ -81,7 +82,6 @@ public:
     // ClearList
     void clearList() {
         m_EffectList.clear();
-        m_ListNum = 0;
     }
 
     // pop front Element in Status List
@@ -92,9 +92,7 @@ public:
     }
 
 protected:
-    ObjectID_t m_ObjectID;
-    // StatusList Element Number
-    BYTE m_ListNum;
+    ObjectID_t m_ObjectID = 0;
 
     // Status List
     list<EffectID_t> m_EffectList;
@@ -112,7 +110,7 @@ class GCRemoveEffectFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_REMOVE_EFFECT;
     static constexpr std::string_view kName = "GCRemoveEffect";
-    static constexpr PacketSize_t kMaxSize{255};
+    static constexpr PacketSize_t kMaxSize{GCRemoveEffect::getPacketMaxSize()};
 
     // constructor
     GCRemoveEffectFactory() {}

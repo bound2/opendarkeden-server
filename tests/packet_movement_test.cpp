@@ -117,10 +117,8 @@
 //                 factory max, so a body that outgrows it is a truncated
 //                 packet, not a caught error.
 //
-//               GCNPCAskDynamic and GCNPCInfo get the same three pins
-//               written out by hand: the first because its declared size
-//               is a finding below, the second because read() hands back
-//               records the packet does not own.
+//               GCNPCInfo gets the same three pins written out by hand,
+//               because its records are pointers the test has to drain.
 //
 //               Extra goldens cover the branches one fixture cannot:
 //               the two monster transition packets take their empty-name
@@ -140,66 +138,40 @@
 //               below 128 characters; and the vampire record's sex, coat
 //               type and outlook fields, which hold enumerators.
 //
-//               Findings. Each is stated as a test that fails once the
-//               packet is fixed, except where noted:
+//               Beyond the three pins, the bounds each list and string
+//               now keeps, one test each:
 //
-//               - GCNPCAskDynamic::getPacketSize() does not count the
-//                 contents-count byte write() puts on the wire, so it
-//                 declares a body one byte shorter than it sends.
-//               - GCNPCAskDynamic counts its choices in a BYTE it
-//                 increments per entry and caps nowhere, so the 256th
-//                 wraps the count to zero while write() still emits every
-//                 string; and nothing holds the list to the ten entries
-//                 its factory max budgets.
-//               - GCNPCAskDynamic::write() emits a zero-length choice
-//                 that read() counts and drops, so the packet read back
-//                 declares one more choice than it holds.
-//               - GCNPCSayDynamic derives the length byte in front of its
-//                 message from an unbounded string, so a message past 255
-//                 goes on the wire behind a length that does not describe
-//                 it, and one past 2048 outgrows the factory max.
-//               - ScriptParameter::getSize() measures its name and value
-//                 through a BYTE, so GCNPCAskVariable under-reports by
-//                 256 for every parameter longer than that.
-//               - GCRemoveEffect counts its effect list in a BYTE it
-//                 increments per entry and caps nowhere, with the same
-//                 wrap; popFrontListElement() removes an entry without
-//                 decrementing the count; and a list the count byte lets
-//                 reach 255 is four times the 255-byte factory max.
-//               - GCRemoveEffect::read() appends to the list the packet
-//                 already holds instead of replacing it.
-//               - GCAddMonsterFromBurrowing and
-//                 GCAddMonsterFromTransformation do not hold the monster
-//                 name to the 32 bytes their factory max budgets, the way
-//                 GCAddMonster does, so a long name outgrows the max and
-//                 a name past 255 truncates the length byte in front of
-//                 it.
-//               - GCMove, CGUnburrow, GCUnburrowOK and GCUntransformOK
-//                 take the direction as an opaque byte, and toString()
-//                 indexes Dir2String with it - an eight-entry table whose
-//                 count, DIR_NONE, is itself a valid enumerator.
-//
-//               Three findings are recorded here rather than tested,
-//               because a test would have to perform the undefined
-//               behaviour it reports or watch an allocation nothing
-//               observes. Twenty-two of the twenty-six leave at least one
-//               member uninitialised in the default constructor - only
-//               GCHPRecoveryEndToSelf, GCHPRecoveryEndToOthers,
-//               GCMPRecoveryEnd and GCRemoveEffect's list count are set -
-//               so a packet sent without every setter called puts
-//               indeterminate bytes on the wire. GCNPCInfo's destructor
-//               clears its record list without freeing the NPCInfo
-//               objects read() allocates into it. And the four transition
-//               packets' read() allocates a fresh EffectInfo without
-//               freeing the one the packet already holds.
+//               - GCNPCAskDynamic's choice count is the list and stops at
+//                 fifteen, the width the factory max budgets and the most
+//                 choices a script holds; an empty choice is a bare length
+//                 word both sides keep.
+//               - GCNPCSayDynamic's message and GCNPCAskVariable's
+//                 parameters stop at the 255 their length byte can
+//                 describe, and are measured whole.
+//               - GCRemoveEffect's effect list is its count, stops at the
+//                 255 the count byte carries and the max budgets, and
+//                 read() replaces the list rather than appending to it.
+//               - The two monster transition packets hold the name to the
+//                 32 bytes their max budgets, the width GCAddMonster
+//                 holds the same record to.
+//               - DIR_NONE reaches the client through GCMove,
+//                 GCUnburrowOK and GCUntransformOK, because MonsterAI
+//                 computes it for a monster already on its destination;
+//                 the two client requests refuse it.
+//               - Every packet initialises every member it writes, pinned
+//                 by constructing each over storage poisoned with two
+//                 different bytes and requiring the same body.
 //
 //////////////////////////////////////////////////////////////////////
 
+#include <cstring>
+#include <new>
 #include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
 
+#include "CGMove.h"
 #include "CGNPCTalk.h"
 #include "CGUnburrow.h"
 #include "CGUntransform.h"
@@ -236,6 +208,7 @@
 using wiretest::expectGolden;
 using wiretest::kEncryptCodeCount;
 using wiretest::kEncryptCodes;
+using wiretest::Loopback;
 using wiretest::roundTrip;
 using wiretest::writeBody;
 
@@ -671,8 +644,8 @@ void fillEmpty(GCRemoveEffect& packet) {
     packet.setObjectID(0x86A7B8C9);
 }
 
-// popFrontListElement() does not touch the count, so the count is read
-// once and then drives both walks.
+// The count is the list, so popping shortens it: it is read once and
+// then drives both walks.
 void expectEqual(GCRemoveEffect& a, GCRemoveEffect& b) {
     EXPECT_EQ(a.getObjectID(), b.getObjectID());
     ASSERT_EQ(a.getListNum(), b.getListNum());
@@ -835,8 +808,7 @@ MOVEMENT_PACKET_TESTS(GCNPCAskVariable)
 MOVEMENT_PACKET_VARIANT(GCNPCAskVariable, empty, fillEmpty)
 
 //////////////////////////////////////////////////////////////////////
-// The run-time question. Its declared size is a finding below, so its
-// three pins are written out with that assertion replaced.
+// The run-time question.
 //////////////////////////////////////////////////////////////////////
 
 void fill(GCNPCAskDynamic& packet) {
@@ -855,8 +827,8 @@ void fillNocontents(GCNPCAskDynamic& packet) {
     packet.setSubject("AskSubject");
 }
 
-// popContent() empties the list and decrements the count, so the count
-// is read once and then drives both walks.
+// The count is the list, so popping shortens it: it is read once and
+// then drives both walks.
 void expectEqual(GCNPCAskDynamic& a, GCNPCAskDynamic& b) {
     EXPECT_EQ(a.getObjectID(), b.getObjectID());
     EXPECT_EQ(a.getScriptID(), b.getScriptID());
@@ -867,47 +839,13 @@ void expectEqual(GCNPCAskDynamic& a, GCNPCAskDynamic& b) {
         EXPECT_EQ(a.popContent(), b.popContent()) << "content " << i;
 }
 
-TEST(GCNPCAskDynamicTest, roundTripsThroughLoopback) {
-    GCNPCAskDynamic src;
-    fill(src);
-    GCNPCAskDynamic dst;
-    roundTrip(src, dst, kPlainCode);
-    expectEqual(src, dst);
-}
-
-TEST(GCNPCAskDynamicTest, bodyBytesMatchGolden) {
-    GCNPCAskDynamic packet;
-    fill(packet);
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    expectGolden("GCNPCAskDynamic", kPlainCode, body);
-    for (size_t i = 1; i < kEncryptCodeCount; i++)
-        EXPECT_EQ(body, writeBody(packet, kEncryptCodes[i]))
-            << "GCNPCAskDynamic now varies with the encrypt code - add per-code goldens";
-}
-
-TEST(GCNPCAskDynamicTest, fitsTheFactoryMax) {
-    GCNPCAskDynamic packet;
-    fill(packet);
-    GCNPCAskDynamicFactory factory;
-    EXPECT_LE(writeBody(packet, kPlainCode).size(), (size_t)factory.getPacketMaxSize());
-    EXPECT_EQ(factory.getPacketID(), packet.getPacketID());
-    EXPECT_EQ(factory.getPacketName(), packet.getPacketName());
-}
-
-TEST(GCNPCAskDynamicTest, nocontentsBodyBytesMatchGolden) {
-    GCNPCAskDynamic packet;
-    fillNocontents(packet);
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    expectGolden("GCNPCAskDynamic.nocontents", kPlainCode, body);
-
-    GCNPCAskDynamic dst;
-    roundTrip(packet, dst, kPlainCode);
-    expectEqual(packet, dst);
-}
+MOVEMENT_PACKET_TESTS(GCNPCAskDynamic)
+MOVEMENT_PACKET_VARIANT(GCNPCAskDynamic, nocontents, fillNocontents)
 
 //////////////////////////////////////////////////////////////////////
-// The NPC roster. read() allocates a record per entry and the packet's
-// destructor does not free them, so the tests drain what they read.
+// The NPC roster. A filler hands the zone's own records and read()
+// allocates its own, so the tests drain what they read: a popped record
+// is the caller's.
 //////////////////////////////////////////////////////////////////////
 
 struct NPCInfoFixture {
@@ -1011,58 +949,36 @@ TEST(GCNPCInfoTest, emptynameBodyBytesMatchGolden) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// Findings.
+// Bounds and refusals.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCNPCAskDynamic::getPacketSize() counts the subject and every choice
-// but not the count byte write() puts between them, so the size the
-// header declares is one shorter than the body that follows it.
-TEST(GCNPCAskDynamicTest, sizeOmitsTheContentsCountByte) {
-    GCNPCAskDynamic packet;
-    fill(packet);
-
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize() + szBYTE, body.size())
-        << "getPacketSize() now counts the contents count byte - delete this test";
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// The choice count is a BYTE addContent() increments and caps nowhere,
-// so the 256th choice wraps it to zero: write() emits every string
-// behind a count that says there are none. Nothing bounds the list
-// against the ten choices the factory max budgets either.
-TEST(GCNPCAskDynamicTest, theContentsCountWrapsAndTheListOutgrowsTheFactoryMax) {
+// The choice count is the list, and the list stops at fifteen: the width
+// the factory max budgets, and the most choices a script can hold.
+TEST(GCNPCAskDynamicTest, theChoiceListStopsAtTheWidthTheFactoryMaxBudgets) {
     const std::string kSubject = "AskSubject";
 
-    GCNPCAskDynamic wrapped;
-    fillNocontents(wrapped);
-    for (int i = 0; i < 256; i++)
-        wrapped.addContent("choice");
+    GCNPCAskDynamic packet;
+    fillNocontents(packet);
+    for (uint i = 0; i < GCNPCAskDynamic::kMaxCount; i++)
+        packet.addContent(std::string(64, 'c'));
 
-    EXPECT_EQ(0, (int)wrapped.getContentsCount()) << "the choice list is now bounded - delete this test";
+    EXPECT_EQ((int)GCNPCAskDynamic::kMaxCount, (int)packet.getContentsCount());
+    EXPECT_THROW(packet.addContent("one choice too many"), InvalidProtocolException);
 
-    const std::vector<unsigned char> body = writeBody(wrapped, kPlainCode);
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     const size_t countOffset = szObjectID + szScriptID + szWORD + kSubject.size();
     ASSERT_LT(countOffset, body.size());
-    EXPECT_EQ(0, (int)body[countOffset]) << "the count byte now describes the choices behind it - delete this case";
-    EXPECT_EQ((size_t)wrapped.getPacketSize() + szBYTE, body.size());
-
-    GCNPCAskDynamic wide;
-    fillNocontents(wide);
-    for (int i = 0; i < 255; i++)
-        wide.addContent(std::string(64, 'c'));
+    EXPECT_EQ((int)GCNPCAskDynamic::kMaxCount, (int)body[countOffset])
+        << "the count byte does not describe the choices behind it";
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCNPCAskDynamicFactory factory;
-    EXPECT_GT(writeBody(wide, kPlainCode).size(), (size_t)factory.getPacketMaxSize())
-        << "the choice list now stops at the width the factory max budgets - delete this case";
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// write() emits a zero-length choice as a bare length word; read()
-// counts it and drops it. The packet read back therefore declares one
-// more choice than it holds, and writes one fewer than it declares.
-TEST(GCNPCAskDynamicTest, anEmptyChoiceIsCountedButNotKept) {
+// An empty choice is its length word and nothing else. read() keeps it,
+// so the packet read back declares and writes what it was sent.
+TEST(GCNPCAskDynamicTest, anEmptyChoiceSurvivesTheRoundTrip) {
     GCNPCAskDynamic src;
     fillNocontents(src);
     src.addContent("ChoiceOne");
@@ -1075,101 +991,79 @@ TEST(GCNPCAskDynamicTest, anEmptyChoiceIsCountedButNotKept) {
     roundTrip(src, dst, kPlainCode);
 
     EXPECT_EQ(3, (int)dst.getContentsCount());
-    EXPECT_EQ(sent.size() - szWORD, writeBody(dst, kPlainCode).size())
-        << "an empty choice now survives the round trip - delete this test";
+    EXPECT_EQ(sent, writeBody(dst, kPlainCode));
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The length byte in front of the message is the low byte of an
-// unbounded string's size, so a message past 255 characters goes on the
-// wire behind a length that does not describe it, and a message past the
-// 2048 the factory max budgets outgrows the receiver's read buffer.
-TEST(GCNPCSayDynamicTest, theMessageIsUnbounded) {
-    const size_t kLongMessage = 300;
-
+// The length byte in front of the message describes it: a message the
+// byte cannot count is refused rather than sent behind a wrapped length.
+TEST(GCNPCSayDynamicTest, theMessageStopsAtTheWidthItsLengthByteCarries) {
     GCNPCSayDynamic packet;
     fill(packet);
-    packet.setMessage(std::string(kLongMessage, 'm'));
+    packet.setMessage(std::string(GCNPCSayDynamic::kMaxMessageSize, 'm'));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    ASSERT_EQ(szObjectID + szBYTE + kLongMessage, body.size());
-    EXPECT_EQ((int)(BYTE)kLongMessage, (int)body[szObjectID])
-        << "the message is now held to the width its length byte carries - delete this case";
+    ASSERT_EQ(szObjectID + szBYTE + (size_t)GCNPCSayDynamic::kMaxMessageSize, body.size());
+    EXPECT_EQ((int)GCNPCSayDynamic::kMaxMessageSize, (int)body[szObjectID]);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
-    packet.setMessage(std::string(2100, 'm'));
     GCNPCSayDynamicFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "the message now stops at the width the factory max budgets - delete this case";
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+
+    packet.setMessage(std::string(GCNPCSayDynamic::kMaxMessageSize + 1, 'm'));
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// ScriptParameter::getSize() measures its name and its value through a
-// BYTE, while write() emits both strings whole, so GCNPCAskVariable
-// declares 256 bytes less than it sends for every parameter longer than
-// a byte can count.
-TEST(GCNPCAskVariableTest, aParameterPastTheLengthByteUnderReportsTheSize) {
-    const size_t kLongValue = 300;
-
+// A parameter is measured whole, and one longer than its length byte can
+// count is refused.
+TEST(GCNPCAskVariableTest, aParameterIsMeasuredWholeAndStopsAtItsLengthByte) {
     GCNPCAskVariable packet;
     fillEmpty(packet);
-    addParameter(packet, "wide", std::string(kLongValue, 'v'));
+    addParameter(packet, "wide", std::string(ScriptParameter::kMaxStringSize, 'v'));
 
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize() + 256, body.size())
-        << "the parameter is now measured whole, or held to the width its length byte carries - delete this test";
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    GCNPCAskVariableFactory factory;
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+
+    addParameter(packet, "wider", std::string(ScriptParameter::kMaxStringSize + 1, 'v'));
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The effect list count is a BYTE addEffectList() increments and caps
-// nowhere, so the 256th entry wraps it to zero while write() still emits
-// every id, and popFrontListElement() takes an entry off the list
-// without decrementing it.
-TEST(GCRemoveEffectTest, theEffectListCountWrapsAndPoppingLeavesIt) {
-    const int kEntries = 256;
-
+// The effect list count is the list, so popping an id shortens what the
+// packet declares, and the adder refuses the id past the count byte.
+TEST(GCRemoveEffectTest, theEffectListCountIsTheListAndPoppingShortensIt) {
     GCRemoveEffect packet;
     fillEmpty(packet);
-    for (int i = 0; i < kEntries; i++)
+    for (uint i = 0; i < GCRemoveEffect::kMaxCount; i++)
         packet.addEffectList((EffectID_t)(0x81E2 + i));
 
-    EXPECT_EQ(0, (int)packet.getListNum()) << "the effect list is now bounded - delete this test";
+    EXPECT_EQ(255, (int)packet.getListNum());
+    EXPECT_THROW(packet.addEffectList(0x81E2), InvalidProtocolException);
 
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)packet.getPacketSize() + (size_t)kEntries * szEffectID, body.size())
-        << "getPacketSize() now counts every id write() emits - delete this test";
-
-    GCRemoveEffect popped;
-    fillEmpty(popped);
-    popped.addEffectList(0x81E2);
-    popped.addEffectList(0x83E4);
-    ASSERT_EQ(2, (int)popped.getListNum());
-    popped.popFrontListElement();
-    EXPECT_EQ(2, (int)popped.getListNum()) << "popFrontListElement() now decrements the count - delete this test";
+    packet.popFrontListElement();
+    EXPECT_EQ(254, (int)packet.getListNum());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// The factory max is a flat 255 bytes, which budgets 125 ids for a list
-// the count byte lets reach 255. A full sweep writes a body twice the
-// read buffer the receiver sizes from that maximum.
-TEST(GCRemoveEffectTest, aFullListOutgrowsTheFactoryMax) {
+// A full sweep fits the read buffer the receiver sizes from the factory
+// max.
+TEST(GCRemoveEffectTest, aFullListFitsTheFactoryMax) {
     GCRemoveEffect packet;
     fillEmpty(packet);
-    for (int i = 0; i < 255; i++)
+    for (uint i = 0; i < GCRemoveEffect::kMaxCount; i++)
         packet.addEffectList((EffectID_t)(0x81E2 + i));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCRemoveEffectFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "the effect list now stops at the width the factory max budgets - delete this test";
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+    EXPECT_EQ(szObjectID + szBYTE + GCRemoveEffect::kMaxCount * szEffectID, (uint)factory.getPacketMaxSize());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// read() appends to the list the packet already holds and sets the count
-// from the wire, so a packet read into twice declares one sweep's worth
-// of ids and writes two.
-TEST(GCRemoveEffectTest, aSecondReadAppendsToTheListItAlreadyHolds) {
+// read() replaces the list the packet holds, so a packet read into twice
+// declares and writes one sweep.
+TEST(GCRemoveEffectTest, aSecondReadReplacesTheListItHolds) {
     GCRemoveEffect src;
     fill(src);
 
@@ -1178,53 +1072,48 @@ TEST(GCRemoveEffectTest, aSecondReadAppendsToTheListItAlreadyHolds) {
     roundTrip(src, dst, kPlainCode);
 
     EXPECT_EQ(3, (int)dst.getListNum());
-
-    const std::vector<unsigned char> body = writeBody(dst, kPlainCode);
-    EXPECT_EQ((size_t)dst.getPacketSize() + 3 * szEffectID, body.size())
-        << "GCRemoveEffect::read() now replaces the list it holds - delete this test";
+    EXPECT_EQ((size_t)dst.getPacketSize(), writeBody(dst, kPlainCode).size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCAddMonster holds its name to the 32 bytes its factory max budgets
-// and refuses a longer one in write(). The two transition packets that
-// carry the same record do not, so a long name outgrows the receiver's
-// read buffer and a name past 255 leaves a length byte that does not
-// describe the string behind it.
+// GCAddMonster holds its name to the 32 bytes its factory max budgets.
+// The two transition packets that carry the same record hold it to the
+// same width on both sides.
 template <typename TransitionPacket, typename TransitionFactory>
-void expectTheMonsterNameIsUnbounded(TransitionPacket& packet, const char* what) {
-    // Long enough to overrun a maximum whose bulk is the effect list's
-    // budget, and to wrap the length byte in front of the name twice
-    // over.
-    const size_t kLongName = 1100;
-    packet.setMonsterName(std::string(kLongName, 'n'));
+void expectTheMonsterNameStopsAtTheBudget(TransitionPacket& packet, const char* what) {
+    packet.setMonsterName(std::string(TransitionPacket::kMaxNameSize, 'n'));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((int)(BYTE)kLongName, (int)body[szObjectID + szMonsterType])
-        << what << "'s name is now held to the width its length byte carries - delete this case";
+    EXPECT_EQ((int)TransitionPacket::kMaxNameSize, (int)body[szObjectID + szMonsterType]) << what;
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size()) << what;
 
     TransitionFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << what << "'s name now stops at the width the factory max budgets - delete this case";
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize()) << what;
+
+    TransitionPacket dst;
+    roundTrip(packet, dst, kPlainCode);
+    EXPECT_EQ(packet.getMonsterName(), dst.getMonsterName()) << what;
+
+    packet.setMonsterName(std::string(TransitionPacket::kMaxNameSize + 1, 'n'));
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException) << what;
 }
 
-TEST(MovementBoundsTest, theTransitionMonsterNamesAreUnbounded) {
+TEST(MovementBoundsTest, theTransitionMonsterNamesStopAtTheBudget) {
     GCAddMonsterFromBurrowing burrowing;
     fill(burrowing);
-    expectTheMonsterNameIsUnbounded<GCAddMonsterFromBurrowing, GCAddMonsterFromBurrowingFactory>(
+    expectTheMonsterNameStopsAtTheBudget<GCAddMonsterFromBurrowing, GCAddMonsterFromBurrowingFactory>(
         burrowing, "GCAddMonsterFromBurrowing");
 
     GCAddMonsterFromTransformation transforming;
     fill(transforming);
-    expectTheMonsterNameIsUnbounded<GCAddMonsterFromTransformation, GCAddMonsterFromTransformationFactory>(
+    expectTheMonsterNameStopsAtTheBudget<GCAddMonsterFromTransformation, GCAddMonsterFromTransformationFactory>(
         transforming, "GCAddMonsterFromTransformation");
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// Nothing checks the direction byte against the eight directions, on
-// either side, and toString() indexes Dir2String with it. DIR_NONE is a
-// valid enumerator whose value is the table's length, so a packet that
-// names no direction already indexes past its end.
-TEST(MovementDirectionTest, aDirectionOutsideTheEightRoundTripsIntact) {
+// DIR_NONE is a direction the server holds and broadcasts: MonsterAI
+// computes it for a monster already standing on its destination, and the
+// move mask has an entry for it. So the packets that carry a creature's
+// direction to the client carry that value too.
+TEST(MovementDirectionTest, theBroadcastDirectionsCarryTheOneThatNamesNoDirection) {
     ASSERT_EQ(8, (int)DIR_MAX) << "Dir2String has one entry per direction below DIR_MAX";
     ASSERT_EQ((int)DIR_MAX, (int)DIR_NONE);
 
@@ -1233,32 +1122,112 @@ TEST(MovementDirectionTest, aDirectionOutsideTheEightRoundTripsIntact) {
     move.setDir(DIR_NONE);
     GCMove movedst;
     roundTrip(move, movedst, kPlainCode);
-    EXPECT_EQ((Dir_t)DIR_NONE, movedst.getDir())
-        << "GCMove now refuses a direction outside the eight - delete this case";
-
-    CGUnburrow unburrow;
-    fill(unburrow);
-    unburrow.setDir(DIR_NONE);
-    CGUnburrow unburrowdst;
-    roundTrip(unburrow, unburrowdst, kPlainCode);
-    EXPECT_EQ((Dir_t)DIR_NONE, unburrowdst.getDir())
-        << "CGUnburrow now refuses a direction outside the eight - delete this case";
+    EXPECT_EQ((Dir_t)DIR_NONE, movedst.getDir());
 
     GCUnburrowOK unburrowOK;
     fill(unburrowOK);
     unburrowOK.setDir(DIR_NONE);
     GCUnburrowOK unburrowOKdst;
     roundTrip(unburrowOK, unburrowOKdst, kPlainCode);
-    EXPECT_EQ((Dir_t)DIR_NONE, unburrowOKdst.getDir())
-        << "GCUnburrowOK now refuses a direction outside the eight - delete this case";
+    EXPECT_EQ((Dir_t)DIR_NONE, unburrowOKdst.getDir());
 
     GCUntransformOK untransformOK;
     fill(untransformOK);
     untransformOK.setDir(DIR_NONE);
     GCUntransformOK untransformOKdst;
     roundTrip(untransformOK, untransformOKdst, kPlainCode);
-    EXPECT_EQ((Dir_t)DIR_NONE, untransformOKdst.getDir())
-        << "GCUntransformOK now refuses a direction outside the eight - delete this case";
+    EXPECT_EQ((Dir_t)DIR_NONE, untransformOKdst.getDir());
+}
+
+// A client names one of the eight or nothing at all, so the two requests
+// refuse anything else. CGMove reads through the encrypter; at code 0 it
+// takes the plain branch these bytes are written on.
+TEST(MovementDirectionTest, theRequestsRefuseADirectionOutsideTheEight) {
+    Loopback unburrowLink;
+    unburrowLink.setCodes(kPlainCode);
+    unburrowLink.out().write((Coord_t)0x8A);
+    unburrowLink.out().write((Coord_t)0x9B);
+    unburrowLink.out().write((Dir_t)DIR_NONE);
+    unburrowLink.pump(szCoord * 2 + szDir);
+
+    CGUnburrow unburrow;
+    EXPECT_THROW(unburrow.read(unburrowLink.in()), InvalidProtocolException);
+
+    Loopback moveLink;
+    moveLink.setCodes(kPlainCode);
+    moveLink.out().write((Dir_t)DIR_NONE);
+    moveLink.out().write((Coord_t)0x8A);
+    moveLink.out().write((Coord_t)0x9B);
+    moveLink.pump(szDir + szCoord * 2);
+
+    CGMove move;
+    EXPECT_THROW(move.read(moveLink.in()), InvalidProtocolException);
+}
+
+//////////////////////////////////////////////////////////////////////
+// What the default constructor leaves.
+//////////////////////////////////////////////////////////////////////
+
+// Each packet is built twice over storage poisoned with a different
+// byte, so a member the constructor leaves alone reaches the wire as that
+// byte and the two bodies differ. `prepare` fills only the fields whose
+// emptiness write() refuses.
+template <typename PacketType, typename Prepare>
+void expectEveryMemberIsInitialised(const char* what, Prepare prepare) {
+    alignas(PacketType) unsigned char storage[sizeof(PacketType)];
+    const unsigned char poison[2] = {0x00, 0xFF};
+    std::vector<unsigned char> bodies[2];
+
+    for (int i = 0; i < 2; i++) {
+        memset(storage, poison[i], sizeof(storage));
+        PacketType* pPacket = new (storage) PacketType();
+        prepare(*pPacket);
+        bodies[i] = writeBody(*pPacket, kPlainCode);
+        pPacket->~PacketType();
+    }
+
+    EXPECT_EQ(bodies[0], bodies[1]) << what << ": its default constructor leaves a member write() emits uninitialised";
+}
+
+template <typename PacketType> void expectEveryMemberIsInitialised(const char* what) {
+    expectEveryMemberIsInitialised<PacketType>(what, [](PacketType&) {});
+}
+
+TEST(MovementConstructorTest, everyPacketInitialisesEveryMemberItWrites) {
+    expectEveryMemberIsInitialised<GCMove>("GCMove");
+    expectEveryMemberIsInitialised<GCKnockBack>("GCKnockBack");
+    expectEveryMemberIsInitialised<GCFakeMove>("GCFakeMove");
+    expectEveryMemberIsInitialised<CGUnburrow>("CGUnburrow");
+    expectEveryMemberIsInitialised<GCUnburrowOK>("GCUnburrowOK");
+    expectEveryMemberIsInitialised<GCUnburrowFail>("GCUnburrowFail");
+    expectEveryMemberIsInitialised<CGUntransform>("CGUntransform");
+    expectEveryMemberIsInitialised<GCUntransformOK>("GCUntransformOK");
+    expectEveryMemberIsInitialised<GCUntransformFail>("GCUntransformFail");
+    expectEveryMemberIsInitialised<GCAddMonsterFromBurrowing>("GCAddMonsterFromBurrowing");
+    expectEveryMemberIsInitialised<GCAddMonsterFromTransformation>("GCAddMonsterFromTransformation");
+    expectEveryMemberIsInitialised<GCRemoveEffect>("GCRemoveEffect");
+    expectEveryMemberIsInitialised<GCHPRecoveryEndToSelf>("GCHPRecoveryEndToSelf");
+    expectEveryMemberIsInitialised<GCHPRecoveryEndToOthers>("GCHPRecoveryEndToOthers");
+    expectEveryMemberIsInitialised<GCMPRecoveryEnd>("GCMPRecoveryEnd");
+    expectEveryMemberIsInitialised<GCCannotUse>("GCCannotUse");
+    expectEveryMemberIsInitialised<CGNPCTalk>("CGNPCTalk");
+    expectEveryMemberIsInitialised<GCNPCAsk>("GCNPCAsk");
+    expectEveryMemberIsInitialised<GCNPCAskVariable>("GCNPCAskVariable");
+    expectEveryMemberIsInitialised<GCNPCSay>("GCNPCSay");
+    expectEveryMemberIsInitialised<GCNPCInfo>("GCNPCInfo");
+
+    // The five whose write() refuses an empty string get that one field.
+    expectEveryMemberIsInitialised<GCRemoveInjuriousCreature>(
+        "GCRemoveInjuriousCreature", [](GCRemoveInjuriousCreature& packet) { packet.setName("Turret"); });
+    expectEveryMemberIsInitialised<GCNPCAskDynamic>("GCNPCAskDynamic",
+                                                    [](GCNPCAskDynamic& packet) { packet.setSubject("Subject"); });
+    expectEveryMemberIsInitialised<GCNPCSayDynamic>("GCNPCSayDynamic",
+                                                    [](GCNPCSayDynamic& packet) { packet.setMessage("Message"); });
+    expectEveryMemberIsInitialised<GCAddVampireFromBurrowing>(
+        "GCAddVampireFromBurrowing", [](GCAddVampireFromBurrowing& packet) { packet.getVampireInfo().setName("V"); });
+    expectEveryMemberIsInitialised<GCAddVampireFromTransformation>(
+        "GCAddVampireFromTransformation",
+        [](GCAddVampireFromTransformation& packet) { packet.getVampireInfo().setName("V"); });
 }
 
 } // namespace

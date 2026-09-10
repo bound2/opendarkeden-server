@@ -26,12 +26,17 @@ public:
     PacketID_t getPacketID() const {
         return PACKET_GC_NPC_ASK_DYNAMIC;
     }
+    // The choice count travels in one byte, a script holds at most
+    // SCRIPT_MAX_CONTENTS choices, and the factory max budgets this many.
+    static constexpr uint kMaxCount = 15;
+
     PacketSize_t getPacketSize() const {
         PacketSize_t size = 0;
 
         size += szObjectID;                // npc object id
         size += szScriptID;                // script id size
         size += szWORD + m_Subject.size(); // subject length & actual string
+        size += szBYTE;                    // contents count
 
         list<string>::const_iterator itr = m_Contents.begin();
         for (; itr != m_Contents.end(); itr++)
@@ -67,18 +72,17 @@ public:
     }
 
     BYTE getContentsCount(void) const {
-        return m_ContentsCount;
+        return (BYTE)m_Contents.size();
     }
 
     void addContent(string content);
     string popContent(void);
 
 private:
-    ObjectID_t m_ObjectID;   // NPC's object id
-    ScriptID_t m_ScriptID;   // script id
-    string m_Subject;        // subject
-    BYTE m_ContentsCount;    // content count
-    list<string> m_Contents; // actual content
+    ObjectID_t m_ObjectID = 0; // NPC's object id
+    ScriptID_t m_ScriptID = 0; // script id
+    string m_Subject;          // subject
+    list<string> m_Contents;   // actual content
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -92,10 +96,11 @@ public:
     static constexpr PacketSize_t kMaxSize{[] {
         PacketSize_t size = 0;
 
-        size += szObjectID;          // npc object id
-        size += szScriptID;          // script id size
-        size += szWORD + 1024;       // subject length & actual string
-        size += szWORD * 10 + 10240; // contents length & actual strings
+        size += szObjectID;                                   // npc object id
+        size += szScriptID;                                   // script id size
+        size += szWORD + 1024;                                // subject length & actual string
+        size += szBYTE;                                       // contents count
+        size += (szWORD + 1024) * GCNPCAskDynamic::kMaxCount; // contents length & actual strings
 
         return size;
     }()};

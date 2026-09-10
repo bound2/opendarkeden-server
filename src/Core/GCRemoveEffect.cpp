@@ -18,11 +18,7 @@
 //////////////////////////////////////////////////////////////////////
 GCRemoveEffect::GCRemoveEffect()
 
-{
-    __BEGIN_TRY
-    m_ListNum = 0;
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -46,11 +42,15 @@ void GCRemoveEffect::read(SocketInputStream& iStream)
 
     iStream.read(m_ObjectID);
 
-    // 최적화 작업시 실제 크기를 명시하도록 한다.
-    iStream.read(m_ListNum);
+    BYTE listNum = 0;
+    iStream.read(listNum);
+    if (listNum > kMaxCount)
+        throw InvalidProtocolException("too many effects in the list");
+
+    m_EffectList.clear();
 
     EffectID_t value;
-    for (int i = 0; i < m_ListNum; i++) {
+    for (int i = 0; i < listNum; i++) {
         iStream.read(value);
         m_EffectList.push_back(value);
     }
@@ -65,10 +65,11 @@ void GCRemoveEffect::read(SocketInputStream& iStream)
 void GCRemoveEffect::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    oStream.write(m_ObjectID);
+    if (m_EffectList.size() > kMaxCount)
+        throw InvalidProtocolException("too many effects in the list");
 
-    // 최적화 작업시 실제 크기를 명시하도록 한다.
-    oStream.write(m_ListNum);
+    oStream.write(m_ObjectID);
+    oStream.write((BYTE)m_EffectList.size());
 
     for (list<EffectID_t>::const_iterator itr = m_EffectList.begin(); itr != m_EffectList.end(); itr++) {
         oStream.write(*itr);
@@ -89,11 +90,10 @@ void GCRemoveEffect::addEffectList(EffectID_t Value)
 {
     __BEGIN_TRY
 
-    // 변하는 것이 무엇인지 List에 넣는다.
-    m_EffectList.push_back(Value);
+    if (m_EffectList.size() >= kMaxCount)
+        throw InvalidProtocolException("too many effects in the list");
 
-    // 변화 셋의 갯수를 하나 증가 시킨다.
-    m_ListNum++;
+    m_EffectList.push_back(Value);
 
     __END_CATCH
 }
@@ -108,7 +108,7 @@ string GCRemoveEffect::toString() const {
 
     StringStream msg;
 
-    msg << "GCRemoveEffect(" << ",ListNum:" << (int)m_ListNum << ",ListSet(";
+    msg << "GCRemoveEffect(" << ",ListNum:" << (int)m_EffectList.size() << ",ListSet(";
     for (list<EffectID_t>::const_iterator itr = m_EffectList.begin(); itr != m_EffectList.end(); itr++) {
         msg << (int)(*itr) << ",";
     }

@@ -87,6 +87,10 @@ public:
     // many records.
     static constexpr size_t kMaxNPCInfos = 255;
 
+    // Drop every record the packet holds, destroying the ones read()
+    // allocated.
+    void clearNPCInfos();
+
     // get/set npc info
     void addNPCInfo(NPCInfo* pInfo) {
         // A record past the count byte would be written and never counted.
@@ -109,6 +113,10 @@ public:
 private:
     // 현재 존에 존재하는 NPC들에 대한 정보
     list<NPCInfo*> m_NPCInfos;
+
+    // A filler hands records the zone owns; read() allocates its own, and
+    // those the packet destroys.
+    bool m_OwnsNPCInfos = false;
 };
 
 

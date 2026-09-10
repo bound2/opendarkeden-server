@@ -11,8 +11,9 @@
 //               results: CGAttackHandler, skill/AttackMelee.cpp,
 //               skill/AttackArms.cpp, the object/self/tile/inventory
 //               skill handlers under skill/ and the helpers in
-//               skill/SkillUtil.cpp they share, and the two death paths
-//               in PCManager.cpp and MonsterManager.cpp. Thirty-three
+//               skill/SkillUtil.cpp they share, CGThrowBombHandler and
+//               ZoneUtil.cpp's mine blast, and the two death paths in
+//               PCManager.cpp and MonsterManager.cpp. Thirty-eight
 //               packets, each with the reason it is here:
 //
 //               GCAttack         what CGAttackHandler broadcasts for the
@@ -87,6 +88,16 @@
 //                                a creature other than the receiver.
 //               GCCreatureDied   what PCManager and MonsterManager
 //                                broadcast when the hit was the last one.
+//               GCThrowBombOK1   the thrown bomb's three-way split:
+//               GCThrowBombOK2   OK1 to the thrower, OK2 to each caught
+//               GCThrowBombOK3   target, OK3 to the observers. All three
+//                                carry the list of creature ids the blast
+//                                caught.
+//               GCMineExplosionOK1  the same blast when the bomb is a
+//               GCMineExplosionOK2  mine somebody stepped on: OK1 to each
+//                                caught target, OK2 to the observers.
+//                                Nobody threw it, so there is no thrower
+//                                to answer.
 //
 //               Deliberately excluded:
 //
@@ -148,7 +159,8 @@
 //               - The five tile packets that carry a creature list do the
 //                 same with theirs, popCListElement() takes the id off the
 //                 count with the list, and each factory max budgets a full
-//                 255-id list.
+//                 255-id list. The three bomb and two mine packets carry
+//                 the same list and keep the same bounds.
 //               - ModifyInfo::read() and the tile read()s replace the list
 //                 the packet holds instead of appending to it.
 //               - A type tag past the last ModifyType is refused in the
@@ -185,6 +197,8 @@
 #include "GCAttackMeleeOK3.h"
 #include "GCCreatureDied.h"
 #include "GCGetDamage.h"
+#include "GCMineExplosionOK1.h"
+#include "GCMineExplosionOK2.h"
 #include "GCModifyInformation.h"
 #include "GCOtherModifyInfo.h"
 #include "GCSkillFailed1.h"
@@ -207,6 +221,9 @@
 #include "GCSkillToTileOK5.h"
 #include "GCSkillToTileOK6.h"
 #include "GCStatusCurrentHP.h"
+#include "GCThrowBombOK1.h"
+#include "GCThrowBombOK2.h"
+#include "GCThrowBombOK3.h"
 #include "ModifyInfo.h"
 #include "TestStreams.h"
 
@@ -321,8 +338,8 @@ void expectModifyInfoEqual(ModifyInfo& a, ModifyInfo& b) {
     }
 }
 
-// The creature list the tile packets carry. popCListElement() does not
-// touch the count, so the count is read once and then used to drive both
+// The creature list the tile and blast packets carry. The count is the
+// list, so popping shortens it: it is read once and then drives both
 // walks.
 template <typename TilePacket> void fillCList(TilePacket& packet, int count, ObjectID_t base) {
     for (int i = 0; i < count; i++)
@@ -966,6 +983,145 @@ void expectEqual(const GCCreatureDied& a, const GCCreatureDied& b) {
 COMBAT_PACKET_TESTS(GCCreatureDied)
 
 //////////////////////////////////////////////////////////////////////
+// The thrown bomb and the mine it leaves. Both carry the same creature
+// list the tile packets do, in the same three-way split.
+//////////////////////////////////////////////////////////////////////
+
+void fill(GCThrowBombOK1& packet) {
+    packet.setXYDir(0xA1, 0xB2, 0xC3);
+    packet.setItemType(0xA4D5);
+    fillCList(packet, 3, 0xA6D7E8F9);
+    fillModifyInfo(packet);
+}
+
+void expectEqual(GCThrowBombOK1& a, GCThrowBombOK1& b) {
+    EXPECT_EQ(a.getX(), b.getX());
+    EXPECT_EQ(a.getY(), b.getY());
+    EXPECT_EQ(a.getDir(), b.getDir());
+    EXPECT_EQ(a.getItemType(), b.getItemType());
+    expectCListEqual(a, b);
+    expectModifyInfoEqual(a, b);
+}
+
+COMBAT_PACKET_TESTS(GCThrowBombOK1)
+
+void fill(GCThrowBombOK2& packet) {
+    packet.setObjectID(0xA2D3E4F5);
+    packet.setXYDir(0xA7, 0xB8, 0xC9);
+    packet.setItemType(0xAAD1);
+    fillCList(packet, 3, 0xACD3E4F5);
+    fillModifyInfo(packet);
+}
+
+void expectEqual(GCThrowBombOK2& a, GCThrowBombOK2& b) {
+    EXPECT_EQ(a.getObjectID(), b.getObjectID());
+    EXPECT_EQ(a.getX(), b.getX());
+    EXPECT_EQ(a.getY(), b.getY());
+    EXPECT_EQ(a.getDir(), b.getDir());
+    EXPECT_EQ(a.getItemType(), b.getItemType());
+    expectCListEqual(a, b);
+    expectModifyInfoEqual(a, b);
+}
+
+COMBAT_PACKET_TESTS(GCThrowBombOK2)
+
+void fill(GCThrowBombOK3& packet) {
+    packet.setObjectID(0xAED5E6F7);
+    packet.setXYDir(0xB1, 0xC2, 0xD3);
+    packet.setItemType(0xB4E5);
+    fillCList(packet, 3, 0xB6E7F8D9);
+}
+
+void expectEqual(GCThrowBombOK3& a, GCThrowBombOK3& b) {
+    EXPECT_EQ(a.getObjectID(), b.getObjectID());
+    EXPECT_EQ(a.getX(), b.getX());
+    EXPECT_EQ(a.getY(), b.getY());
+    EXPECT_EQ(a.getDir(), b.getDir());
+    EXPECT_EQ(a.getItemType(), b.getItemType());
+    expectCListEqual(a, b);
+}
+
+COMBAT_PACKET_TESTS(GCThrowBombOK3)
+
+void fill(GCMineExplosionOK1& packet) {
+    packet.setXYDir(0xB7, 0xC8, 0xD9);
+    packet.setItemType(0xBAE1);
+    fillCList(packet, 3, 0xBCE3F4D5);
+    fillModifyInfo(packet);
+}
+
+void expectEqual(GCMineExplosionOK1& a, GCMineExplosionOK1& b) {
+    EXPECT_EQ(a.getX(), b.getX());
+    EXPECT_EQ(a.getY(), b.getY());
+    EXPECT_EQ(a.getDir(), b.getDir());
+    EXPECT_EQ(a.getItemType(), b.getItemType());
+    expectCListEqual(a, b);
+    expectModifyInfoEqual(a, b);
+}
+
+COMBAT_PACKET_TESTS(GCMineExplosionOK1)
+
+void fill(GCMineExplosionOK2& packet) {
+    packet.setXYDir(0xC1, 0xD2, 0xE3);
+    packet.setItemType(0xC4F5);
+    fillCList(packet, 3, 0xC6F7E8D9);
+}
+
+void expectEqual(GCMineExplosionOK2& a, GCMineExplosionOK2& b) {
+    EXPECT_EQ(a.getX(), b.getX());
+    EXPECT_EQ(a.getY(), b.getY());
+    EXPECT_EQ(a.getDir(), b.getDir());
+    EXPECT_EQ(a.getItemType(), b.getItemType());
+    expectCListEqual(a, b);
+}
+
+COMBAT_PACKET_TESTS(GCMineExplosionOK2)
+
+// The blast lists are bounded the way the tile ones are: the count is
+// the list, the adder refuses the id past the 255 the count byte carries,
+// and the factory max budgets a full list.
+template <typename BlastPacket, typename BlastFactory> void expectTheBlastListIsBounded(const char* what) {
+    BlastPacket packet;
+    fill(packet);
+    packet.clearCList();
+    for (uint i = 0; i < BlastPacket::kMaxCount; i++)
+        packet.addCListElement((ObjectID_t)(0x81828384u + i));
+
+    EXPECT_EQ(255, (int)packet.getCListNum()) << what;
+    EXPECT_THROW(packet.addCListElement(0x81828384u), InvalidProtocolException) << what;
+
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size()) << what;
+
+    BlastFactory factory;
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize()) << what;
+
+    packet.popCListElement();
+    EXPECT_EQ(254, (int)packet.getCListNum()) << what;
+}
+
+TEST(CombatBoundsTest, theBlastCreatureListsAreBounded) {
+    expectTheBlastListIsBounded<GCThrowBombOK1, GCThrowBombOK1Factory>("GCThrowBombOK1");
+    expectTheBlastListIsBounded<GCThrowBombOK2, GCThrowBombOK2Factory>("GCThrowBombOK2");
+    expectTheBlastListIsBounded<GCThrowBombOK3, GCThrowBombOK3Factory>("GCThrowBombOK3");
+    expectTheBlastListIsBounded<GCMineExplosionOK1, GCMineExplosionOK1Factory>("GCMineExplosionOK1");
+    expectTheBlastListIsBounded<GCMineExplosionOK2, GCMineExplosionOK2Factory>("GCMineExplosionOK2");
+}
+
+// A packet read into twice declares and writes one blast.
+TEST(CombatBoundsTest, aSecondReadReplacesTheBlastListItHolds) {
+    GCThrowBombOK3 src;
+    fill(src);
+
+    GCThrowBombOK3 dst;
+    roundTrip(src, dst, kPlainCode);
+    roundTrip(src, dst, kPlainCode);
+
+    EXPECT_EQ(3, (int)dst.getCListNum());
+    EXPECT_EQ((size_t)dst.getPacketSize(), writeBody(dst, kPlainCode).size());
+}
+
+//////////////////////////////////////////////////////////////////////
 // The shape of the stat record itself.
 //////////////////////////////////////////////////////////////////////
 
@@ -1241,6 +1397,11 @@ TEST(CombatConstructorTest, everyPacketInitialisesEveryMemberItWrites) {
     expectEveryMemberIsInitialised<GCModifyInformation>("GCModifyInformation");
     expectEveryMemberIsInitialised<GCOtherModifyInfo>("GCOtherModifyInfo");
     expectEveryMemberIsInitialised<GCCreatureDied>("GCCreatureDied");
+    expectEveryMemberIsInitialised<GCThrowBombOK1>("GCThrowBombOK1");
+    expectEveryMemberIsInitialised<GCThrowBombOK2>("GCThrowBombOK2");
+    expectEveryMemberIsInitialised<GCThrowBombOK3>("GCThrowBombOK3");
+    expectEveryMemberIsInitialised<GCMineExplosionOK1>("GCMineExplosionOK1");
+    expectEveryMemberIsInitialised<GCMineExplosionOK2>("GCMineExplosionOK2");
 }
 
 // The hit flag is a byte on the wire. Both readers take a BYTE and

@@ -6,6 +6,8 @@
 
 #include "GCNPCSayDynamic.h"
 
+#include "WireString.h"
+
 void GCNPCSayDynamic::read(SocketInputStream& iStream)
 
 {
@@ -13,14 +15,7 @@ void GCNPCSayDynamic::read(SocketInputStream& iStream)
 
     iStream.read(m_ObjectID);
 
-    BYTE szMessage;
-
-    iStream.read(szMessage);
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    iStream.read(m_Message, szMessage);
+    de::wire::readString(iStream, m_Message, {1, kMaxMessageSize}, "Message");
 
     __END_CATCH
 }
@@ -32,14 +27,7 @@ void GCNPCSayDynamic::write(SocketOutputStream& oStream) const
 
     oStream.write(m_ObjectID);
 
-    BYTE szMessage = m_Message.size();
-
-    if (szMessage == 0)
-        throw InvalidProtocolException("szMessage == 0");
-
-    oStream.write(szMessage);
-
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_Message, {1, kMaxMessageSize}, "Message");
 
     __END_CATCH
 }

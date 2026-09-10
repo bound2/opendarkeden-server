@@ -27,6 +27,8 @@ void GCAddVampireFromTransformation::read(SocketInputStream& iStream)
 
     m_VampireInfo.read(iStream);
 
+    // The record the packet already holds is replaced, not leaked.
+    SAFE_DELETE(m_pEffectInfo);
     m_pEffectInfo = new EffectInfo();
     m_pEffectInfo->read(iStream);
 

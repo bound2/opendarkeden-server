@@ -263,8 +263,8 @@
 268	GCLightning	1
 269	GCMakeItemFail	2297
 270	GCMakeItemOK	2552
-271	GCMineExplosionOK1	2054
-272	GCMineExplosionOK2	267
+271	GCMineExplosionOK1	3070
+272	GCMineExplosionOK2	1283
 273	GCMiniGameScores	233
 274	GCModifyGuildMemberInfo	34
 275	GCModifyInformation	2042
@@ -285,7 +285,7 @@
 290	GCNoticeEvent	6
 291	GCNotifyWin	2053
 292	GCNPCAsk	10
-293	GCNPCAskDynamic	11294
+293	GCNPCAskDynamic	16425
 294	GCNPCAskVariable	130569
 295	GCNPCInfo	9436
 296	GCNPCResponse	6
@@ -316,7 +316,7 @@
 321	GCRegenZoneStatus	8
 322	GCReloadOK	1
 323	GCRemoveCorpseHead	4
-324	GCRemoveEffect	255
+324	GCRemoveEffect	515
 325	GCRemoveFromGear	1
 326	GCRemoveInjuriousCreature	11
 327	GCRemoveStoreItem	5
@@ -383,9 +383,9 @@
 388	GCTakeOutFail	4
 389	GCTakeOutOK	4
 390	GCTeachSkillInfo	2
-391	GCThrowBombOK1	2055
-392	GCThrowBombOK2	2058
-393	GCThrowBombOK3	271
+391	GCThrowBombOK1	3071
+392	GCThrowBombOK2	3074
+393	GCThrowBombOK3	1287
 394	GCThrowItemOK1	4
 395	GCThrowItemOK2	2046
 396	GCThrowItemOK3	8

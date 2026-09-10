@@ -279,54 +279,54 @@ public:
 
 private:
     // PC's object id
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // PC name
     string m_Name;
 
-    Coord_t m_X;
-    Coord_t m_Y;
-    Dir_t m_Dir;
+    Coord_t m_X = 0;
+    Coord_t m_Y = 0;
+    Dir_t m_Dir = 0;
 
     // PC sex
-    Sex m_Sex;
+    Sex m_Sex = FEMALE;
 
     // CoatType
-    ItemType_t m_CoatType;
+    ItemType_t m_CoatType = 0;
 
     // colors
-    Color_t m_Colors[VAMPIRE_COLOR_MAX];
+    Color_t m_Colors[VAMPIRE_COLOR_MAX] = {};
 
     // 마스터 이펙트 색깔
-    BYTE m_MasterEffectColor;
+    BYTE m_MasterEffectColor = 0;
 
     // Current HP
-    HP_t m_CurrentHP;
+    HP_t m_CurrentHP = 0;
 
     // Max HP
-    HP_t m_MaxHP;
+    HP_t m_MaxHP = 0;
 
     // Attack Speed
-    Speed_t m_AttackSpeed;
+    Speed_t m_AttackSpeed = 0;
 
     // 성향
-    Alignment_t m_Alignment;
+    Alignment_t m_Alignment = 0;
 
     // 뱀파이어 모양
-    Shape_t m_Shape;
+    Shape_t m_Shape = 0;
 
     // 권한
-    BYTE m_Competence;
+    BYTE m_Competence = 0;
 
     // 길드 아이디
-    GuildID_t m_GuildID;
+    GuildID_t m_GuildID = 0;
 
-    uint m_UnionID;
+    uint m_UnionID = 0;
 
     // 계급
-    Rank_t m_Rank;
+    Rank_t m_Rank = 0;
 
-    Level_t m_AdvancementLevel;
+    Level_t m_AdvancementLevel = 0;
 };
 
 #endif

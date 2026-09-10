@@ -15,6 +15,11 @@ void CGUnburrow::read(SocketInputStream& iStream)
     iStream.read(m_Y);
     iStream.read(m_Dir);
 
+    // The tile the client wants to come out on names one of the eight
+    // directions.
+    if (m_Dir >= DIR_MAX)
+        throw InvalidProtocolException("direction out of range");
+
     __END_CATCH
 }
 

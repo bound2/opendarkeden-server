@@ -57,9 +57,9 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // NPC's object id
-    ScriptID_t m_ScriptID; // script id
-    NPCID_t m_NPCID;
+    ObjectID_t m_ObjectID = 0; // NPC's object id
+    ScriptID_t m_ScriptID = 0; // script id
+    NPCID_t m_NPCID = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////

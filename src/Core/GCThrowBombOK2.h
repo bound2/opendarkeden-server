@@ -45,11 +45,15 @@ public:
         return PACKET_GC_THROW_BOMB_OK_2;
     }
 
+    // The creature list is counted in a BYTE, and the factory max budgets
+    // this many ids.
+    static constexpr uint kMaxCount = 255;
+
     // get packet's body size
     // 최적화시, 미리 계산된 정수를 사용한다.
     PacketSize_t getPacketSize() const {
-        return szObjectID + szCoord * 2 + szDir + szItemType + szBYTE + szObjectID * m_CListNum +
-               ModifyInfo::getPacketSize();
+        return (PacketSize_t)(szObjectID + szCoord * 2 + szDir + szItemType + szBYTE + szObjectID * m_CList.size() +
+                              ModifyInfo::getPacketSize());
     }
     // CListNum, SListNum, ListEle* CListNum, ListEle* SListNum* 2
 
@@ -107,12 +111,9 @@ public:
         m_ItemType = i;
     }
 
-    // get / set Creature List Number
+    // get Creature List Number
     BYTE getCListNum() const {
-        return m_CListNum;
-    }
-    void setCListNum(BYTE CListNum) {
-        m_CListNum = CListNum;
+        return (BYTE)m_CList.size();
     }
 
 
@@ -122,7 +123,6 @@ public:
     // Clear Creature List
     void clearCList() {
         m_CList.clear();
-        m_CListNum = 0;
     }
 
     // pop front Element in Status List
@@ -135,20 +135,16 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // X, Y
-    Coord_t m_X;
-
-    Coord_t m_Y;
+    Coord_t m_X = 0;
+    Coord_t m_Y = 0;
 
     // Dir
-    Dir_t m_Dir;
+    Dir_t m_Dir = 0;
 
-    ItemType_t m_ItemType;
-
-    // Creature List Num
-    BYTE m_CListNum;
+    ItemType_t m_ItemType = 0;
 
     // Creature List
     list<ObjectID_t> m_CList;
@@ -168,7 +164,7 @@ public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_THROW_BOMB_OK_2;
     static constexpr std::string_view kName = "GCThrowBombOK2";
     static constexpr PacketSize_t kMaxSize{szObjectID + szCoord * 2 + szDir + szItemType + szBYTE + szWORD +
-                                           szObjectID + ModifyInfo::getPacketMaxSize()};
+                                           szObjectID * GCThrowBombOK2::kMaxCount + ModifyInfo::getPacketMaxSize()};
 
     // constructor
     GCThrowBombOK2Factory() {}

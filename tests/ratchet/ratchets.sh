@@ -112,7 +112,7 @@ check_ratchet R8 "non-comment __PRETTY_FUNCTION__ lines" 0 "$R8"
 # shape it replaces does not count itself.
 R9=$(grep -rhE 'iStream\.read\(m_[A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core \
     --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
-check_ratchet R9 "hand-written length-prefixed string reads" 22 "$R9"
+check_ratchet R9 "hand-written length-prefixed string reads" 19 "$R9"
 
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).

@@ -9,6 +9,7 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class GCNPCSayDynamic;
@@ -24,8 +25,12 @@ public:
     PacketID_t getPacketID() const {
         return PACKET_GC_NPC_SAY_DYNAMIC;
     }
+    // The message length travels in one byte, which is narrower than the
+    // text the factory max budgets.
+    static constexpr uint kMaxMessageSize = de::wire::kMaxByteStringLength;
+
     PacketSize_t getPacketSize() const {
-        return szObjectID + szBYTE + m_Message.size();
+        return szObjectID + de::wire::stringWireSize(m_Message);
     }
     string getPacketName() const {
         return "GCNPCSayDynamic";
@@ -47,8 +52,8 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // NPC's object id
-    string m_Message;      // chatting message
+    ObjectID_t m_ObjectID = 0; // NPC's object id
+    string m_Message;          // chatting message
 };
 
 
