@@ -293,7 +293,7 @@ TEST_F(ExchangeMySQL, TextIsEscapedAndARelistedObjectIsRefused) {
     EXPECT_EQ(1u, repo.getSellerListings("it-sc-o'brien", LISTING_STATUS_ACTIVE).size());
 
     // The same (ItemClass, ItemID, ObjectID) again, even after the first
-    // row was cancelled: ER_DUP_ENTRY crossing as END_DB's const char*.
+    // row was cancelled: ER_DUP_ENTRY crossing as END_DB's DatabaseError.
     repo.cancelListing(id);
     EXPECT_ANY_THROW(repo.createListing(make(31)));
 }

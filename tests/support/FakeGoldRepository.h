@@ -22,9 +22,9 @@
 //    decreaseGold does: a row short of the fee is zeroed instead.
 //  - decreaseGold() below the row's balance throws: Gold is int(10)
 //    UNSIGNED, and the unsigned subtraction raises ER_DATA_OUT_OF_RANGE
-//    (1690), leaving the row untouched. The real error surfaces as a raw
-//    const char* out of END_DB; the fake throws std::runtime_error so
-//    tests have something typed to catch.
+//    (1690), leaving the row untouched. The real error surfaces as
+//    END_DB's DatabaseError; the fake throws std::runtime_error, which
+//    needs no database header to catch.
 //  - NOT modeled: deltas above INT_MAX and sums above the column's
 //    4294967295 maximum (real MySQL would clamp with a warning under the
 //    non-strict sql_mode; the fake's int arithmetic would just go

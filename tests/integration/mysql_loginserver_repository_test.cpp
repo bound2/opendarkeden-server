@@ -238,7 +238,7 @@ TEST_F(LoginAccountMySQL, ComebackEventGrantsOneWeekOnce) {
 
 TEST_F(LoginAccountMySQL, PrivateAgreementTableIsNotInTheSchema) {
     // PrivateAgreementRemain is not created by initdb/, so the probe is a
-    // SQL error crossing as END_DB's const char*. This pins that it throws,
+    // SQL error crossing as END_DB's DatabaseError. This pins that it throws,
     // not the message.
     EXPECT_ANY_THROW(defaultLoginAccountRepository().hasPrivateAgreementRemaining("it-la-a"));
 }

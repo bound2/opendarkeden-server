@@ -678,3 +678,16 @@ target_link_libraries(shared_guild_decision_tests PRIVATE de-kernel gtest_main T
 add_dependencies(wire_tests shared_guild_decision_tests)
 add_test(NAME shared_guild_decision_tests COMMAND shared_guild_decision_tests)
 set_tests_properties(shared_guild_decision_tests PROPERTIES TIMEOUT 60)
+
+# What END_DB throws (src/server/database/DB.h): the DatabaseError a failed
+# statement raises, its message read after the handler that caught it is
+# gone, and the reach the __END_CATCH family gives it. Needs no database —
+# the SQLQueryException the driver would raise is thrown inside the
+# BEGIN_DB block — but DB.h reaches the MySQL headers through Connection.h
+# and the macro deletes a Statement, so it links the Database library like
+# database_timeout_tests above.
+add_executable(database_error_tests EXCLUDE_FROM_ALL database_error_test.cpp)
+target_link_libraries(database_error_tests PRIVATE Database ServerCore de-kernel ${MYSQL_LIBRARY} gtest_main Threads::Threads)
+add_dependencies(wire_tests database_error_tests)
+add_test(NAME database_error_tests COMMAND database_error_tests)
+set_tests_properties(database_error_tests PROPERTIES TIMEOUT 30)

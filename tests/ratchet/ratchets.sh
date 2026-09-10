@@ -118,6 +118,23 @@ R9=$(grep -rhE 'iStream\.read\([A-Za-z_][A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/C
     --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
 check_ratchet R9 "hand-written length-prefixed string reads" 0 "$R9"
 
+# --- R10: what a failed statement throws, and who catches it ---------------
+# A throw of a c_str() taken from a local string hands the handler storage
+# that dies with the clause it came from. END_DB and END_DB_EX answer a
+# failed statement with a DatabaseError (src/server/database/DatabaseError.h)
+# that owns the line they wrote to DBError.log, so no statement in the tree
+# has that shape.
+R10a=$(grep -rnE 'throw [A-Za-z_]+\.c_str\(\)' src | wc -l)
+check_ratchet R10a "throws of a pointer into a local string" 0 "$R10a"
+
+# The receiving end. All 34 handlers name DatabaseError, so one left here
+# would either be dead -- nothing throws a const char* from a statement --
+# or be reaching for one of the ~160 bare `throw "literal"` sites, which are
+# a separate defect and are not answered this way. Textual, so a
+# commented-out clause counts too.
+R10b=$(grep -rn 'catch (const char\*' src | wc -l)
+check_ratchet R10b "catch (const char*) handlers left in src" 0 "$R10b"
+
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.

@@ -22,11 +22,11 @@ inline void execSQL(const std::string& sql) {
 // Cleanup for a fixture whose tables may not exist. A missing table
 // raises, and for a DELETE that is the same outcome as deleting
 // nothing — so swallow it rather than making every such fixture
-// conditional. END_DB rethrows a const char*.
+// conditional. END_DB throws a DatabaseError.
 inline void execSQLIgnoringErrors(const std::string& sql) {
     try {
         execSQL(sql);
-    } catch (const char*) {
+    } catch (const DatabaseError&) {
     }
 }
 
