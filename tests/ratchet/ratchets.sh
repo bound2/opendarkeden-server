@@ -109,10 +109,10 @@ check_ratchet R8 "non-comment __PRETTY_FUNCTION__ lines" 0 "$R8"
 # readString/writeString over a BYTE prefix, readString16/writeString16 over
 # a WORD one. What this counts is the legacy shape: a length read into a
 # local and handed straight to read(string&, uint), with the bounds spelled
-# out around it. None is left; the count is of call lines, using R8's comment
-# rule so WireString.h's own example of the shape it replaces does not count
-# itself.
-R9=$(grep -rhE 'iStream\.read\(m_[A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core \
+# out around it, into a member or into a local. None is left; the count is of
+# call lines, using R8's comment rule so WireString.h's own example of the
+# shape it replaces does not count itself.
+R9=$(grep -rhE 'iStream\.read\([A-Za-z_][A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core \
     --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
 check_ratchet R9 "hand-written length-prefixed string reads" 0 "$R9"
 

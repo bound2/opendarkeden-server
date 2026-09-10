@@ -24,10 +24,21 @@ public:
     ~GCAddItemToInventory() noexcept;
 
 public:
+    // The options an item carries. The count travels in a BYTE and the
+    // widest option list an item holds is a code sheet's grid.
+    static constexpr uint kMaxOptionCount = MAX_ITEM_OPTION_NUM;
+
+    // What the record occupies inside GCMakeItemOK.
+    static constexpr PacketSize_t getPacketMaxSize() {
+        return szObjectID + szCoord + szCoord + szBYTE + szItemType + szBYTE + szOptionType * kMaxOptionCount +
+               szDurability + szItemNum;
+    }
+
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     PacketSize_t getPacketSize() const {
-        return szObjectID + szCoord + szCoord + szBYTE + szItemType + szBYTE + m_OptionType.size() + szDurability;
+        return szObjectID + szCoord + szCoord + szBYTE + szItemType + szBYTE + szOptionType * m_OptionType.size() +
+               szDurability + szItemNum;
     }
     string getPacketName() const {
         return "GCAddItemToInventory";
@@ -84,9 +95,13 @@ public:
         return optionType;
     }
     void addOptionType(OptionType_t OptionType) {
+        if (m_OptionType.size() >= kMaxOptionCount)
+            throw InvalidProtocolException("too many item options");
         m_OptionType.push_back(OptionType);
     }
     void setOptionType(const list<OptionType_t>& OptionTypes) {
+        if (OptionTypes.size() > kMaxOptionCount)
+            throw InvalidProtocolException("too many item options");
         m_OptionType = OptionTypes;
     }
 

@@ -20,7 +20,7 @@ void GCShowWaitGuildInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE MemberNum, szMember;
+    BYTE MemberNum;
     string Member;
 
     iStream.read(m_GuildID);
@@ -37,15 +37,7 @@ void GCShowWaitGuildInfo::read(SocketInputStream& iStream)
         throw InvalidProtocolException("too many founding members");
 
     for (int i = 0; i < MemberNum; i++) {
-        iStream.read(szMember);
-
-        if (szMember == 0)
-            throw InvalidProtocolException("szMember == 0");
-        if (szMember > 20)
-            throw InvalidProtocolException("too long szMember length");
-
-        iStream.read(Member, szMember);
-
+        de::wire::readString(iStream, Member, {1, kMaxMemberNameLength}, "founding member name");
         m_MemberList.push_back(Member);
     }
 
@@ -62,8 +54,6 @@ void GCShowWaitGuildInfo::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
     BYTE MemberNum = m_MemberList.size();
-    BYTE szMember;
-
 
     if (m_MemberList.size() > kMaxCount)
         throw InvalidProtocolException("too many founding members");
@@ -80,15 +70,7 @@ void GCShowWaitGuildInfo::write(SocketOutputStream& oStream) const
 
     list<string>::const_iterator itr = m_MemberList.begin();
     for (; itr != m_MemberList.end(); itr++) {
-        szMember = (*itr).size();
-
-        if (szMember == 0)
-            throw InvalidProtocolException("szMember == 0");
-        if (szMember > 20)
-            throw InvalidProtocolException("too long szMember length");
-
-        oStream.write(szMember);
-        oStream.write((*itr));
+        de::wire::writeString(oStream, *itr, {1, kMaxMemberNameLength}, "founding member name");
     }
 
     __END_CATCH

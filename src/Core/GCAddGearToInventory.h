@@ -58,9 +58,9 @@ public:
     }
 
 private:
-    SlotID_t m_SlotID;     // wear part ID
-    CoordInven_t m_InvenX; // Inventory�� X, Y ��ǥ.
-    CoordInven_t m_InvenY;
+    SlotID_t m_SlotID = 0;     // wear part ID
+    CoordInven_t m_InvenX = 0; // Inventory X, Y coordinate.
+    CoordInven_t m_InvenY = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////

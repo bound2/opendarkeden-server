@@ -77,7 +77,8 @@ class GCMakeItemFailFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MAKE_ITEM_FAIL;
     static constexpr std::string_view kName = "GCMakeItemFail";
-    static constexpr PacketSize_t kMaxSize{255 + ModifyInfo::getPacketMaxSize()};
+    static constexpr PacketSize_t kMaxSize{GCChangeInventoryItemNum::getPacketMaxSize() +
+                                           ModifyInfo::getPacketMaxSize()};
 
     // constructor
     GCMakeItemFailFactory() {}

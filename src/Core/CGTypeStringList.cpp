@@ -6,6 +6,8 @@
 
 #include "CGTypeStringList.h"
 
+#include "WireString.h"
+
 CGTypeStringList::CGTypeStringList()
 
     {__BEGIN_TRY __END_CATCH}
@@ -33,18 +35,7 @@ void CGTypeStringList::read(SocketInputStream& iStream)
 
     for (BYTE i = 0; i < num; i++) {
         string temp;
-        BYTE szString;
-        iStream.read(szString);
-
-        if (szString == 0)
-            throw InvalidProtocolException("String 길이가 0입니다.");
-        if (szString > MAX_STRING_LENGTH)
-            throw InvalidProtocolException("String 길이가 너무 깁니다.");
-
-        iStream.read(temp, szString);
-
-        //		cout << "String[" << (int)i << "]:" << temp.c_str() << ", ";
-
+        de::wire::readString(iStream, temp, {1, MAX_STRING_LENGTH}, "list string");
         addString(temp);
     }
 
@@ -68,9 +59,7 @@ void CGTypeStringList::write(SocketOutputStream& oStream) const
     list<string>::const_iterator itr = m_StringList.begin();
 
     for (; itr != m_StringList.end(); ++itr) {
-        BYTE szString = (*itr).size();
-        oStream.write(szString);
-        oStream.write(*itr);
+        de::wire::writeString(oStream, *itr, {1, MAX_STRING_LENGTH}, "list string");
     }
 
     oStream.write(m_Param);

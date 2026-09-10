@@ -60,12 +60,12 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
     // 보조 인벤토리 아이템의 오브젝트 아이디. 0이면 메인 인벤토리에서 꺼냄
     // ObjectID_t m_InventoryItemObjectID;
 
-    CoordInven_t m_InvenX;
-    CoordInven_t m_InvenY;
+    CoordInven_t m_InvenX = 0;
+    CoordInven_t m_InvenY = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////

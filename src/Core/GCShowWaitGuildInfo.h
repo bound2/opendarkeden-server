@@ -112,6 +112,9 @@ public:
     // refused.
     static constexpr uint kMaxCount = 5;
 
+    // The name length the factory max budgets per member.
+    static constexpr uint kMaxMemberNameLength = 20;
+
     // Starting Member List
     void addMember(const string& member) {
         if (m_MemberList.size() >= kMaxCount)
@@ -181,7 +184,8 @@ public:
                                            256 +          // Guild Intro
                                            szGold +       // Guild Join Fee
                                            szBYTE +       // Member Num
-                                           (szBYTE + 20) * GCShowWaitGuildInfo::kMaxCount};
+                                           (szBYTE + GCShowWaitGuildInfo::kMaxMemberNameLength) *
+                                               GCShowWaitGuildInfo::kMaxCount};
 
     // create packet
     Packet* createPacket() override {

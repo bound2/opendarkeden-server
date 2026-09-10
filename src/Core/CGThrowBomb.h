@@ -70,11 +70,11 @@ public:
     }
 
 private:
-    Coord_t m_ZoneX;
-    Coord_t m_ZoneY;
-    Coord_t m_BombX;
-    Coord_t m_BombY;
-    BYTE m_AttackSlayerFlag;
+    Coord_t m_ZoneX = 0;
+    Coord_t m_ZoneY = 0;
+    Coord_t m_BombX = 0;
+    Coord_t m_BombY = 0;
+    BYTE m_AttackSlayerFlag = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////

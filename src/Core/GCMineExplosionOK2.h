@@ -118,6 +118,8 @@ public:
 
     // pop front Element in Status List
     ObjectID_t popCListElement() {
+        if (m_CList.empty())
+            throw InvalidProtocolException("no creature left");
         ObjectID_t CreatureList = m_CList.front();
         m_CList.pop_front();
         return CreatureList;

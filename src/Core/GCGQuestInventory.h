@@ -42,6 +42,16 @@ public:
     string toString() const;
 
 public:
+    // The entries the count byte describes and the factory max sizes a
+    // read buffer for.
+    static constexpr uint kMaxCount = MAX_GQUEST_INVENTORY_ITEM_NUM;
+
+    void addItem(ItemType_t item) {
+        if (m_ItemList.size() >= kMaxCount)
+            throw InvalidProtocolException("guild quest inventory is full");
+        m_ItemList.push_back(item);
+    }
+
     list<ItemType_t>& getItemList() {
         return m_ItemList;
     }

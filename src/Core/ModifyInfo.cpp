@@ -161,6 +161,9 @@ void ModifyInfo::addLongData(ModifyType type, ulong value) {
 void ModifyInfo::popShortData(SHORTDATA& rData) {
     __BEGIN_TRY
 
+    if (m_ShortList.empty())
+        throw InvalidProtocolException("no short entry left");
+
     SHORTDATA short_data = m_ShortList.front();
 
     rData.type = short_data.type;
@@ -175,6 +178,9 @@ void ModifyInfo::popShortData(SHORTDATA& rData) {
 //////////////////////////////////////////////////////////////////////////////
 void ModifyInfo::popLongData(LONGDATA& rData) {
     __BEGIN_TRY
+
+    if (m_LongList.empty())
+        throw InvalidProtocolException("no long entry left");
 
     LONGDATA long_data = m_LongList.front();
 

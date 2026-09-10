@@ -90,14 +90,14 @@ public:
 
 private:
     // Item Object ID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // TargetObjectID
-    ObjectID_t m_TargetObjectID;
+    ObjectID_t m_TargetObjectID = 0;
 
     // InvenX / Y
-    CoordInven_t m_InvenX;
-    CoordInven_t m_InvenY;
+    CoordInven_t m_InvenX = 0;
+    CoordInven_t m_InvenY = 0;
 };
 
 

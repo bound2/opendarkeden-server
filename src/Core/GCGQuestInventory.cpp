@@ -34,6 +34,11 @@ void GCGQuestInventory::read(SocketInputStream& iStream) {
     BYTE size;
     iStream.read(size);
 
+    if (size > kMaxCount)
+        throw InvalidProtocolException("guild quest inventory is too long");
+
+    m_ItemList.clear();
+
     for (int i = 0; i < size; ++i) {
         ItemType_t item;
         iStream.read(item);
@@ -45,6 +50,9 @@ void GCGQuestInventory::read(SocketInputStream& iStream) {
 
 void GCGQuestInventory::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
+
+    if (m_ItemList.size() > kMaxCount)
+        throw InvalidProtocolException("guild quest inventory is too long");
 
     BYTE size = m_ItemList.size();
     oStream.write(size);

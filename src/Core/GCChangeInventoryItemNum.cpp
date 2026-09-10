@@ -2,8 +2,7 @@
 //
 // Filename    : GCChangeInventoryItemNum.cpp
 // Written By  : elca@ewestsoft.com
-// Description : 자신에게 쓰는 기술의 성공을 알리기 위한 패킷 클래스의
-//               멤버 정의.
+// Description : Members of the changed-material record.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -18,11 +17,7 @@
 //////////////////////////////////////////////////////////////////////
 GCChangeInventoryItemNum::GCChangeInventoryItemNum()
 
-{
-    __BEGIN_TRY
-    m_ChangedItemListNum = 0;
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -37,25 +32,27 @@ GCChangeInventoryItemNum::~GCChangeInventoryItemNum()
 
 
 //////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read the record from the input stream.
 //////////////////////////////////////////////////////////////////////
 void GCChangeInventoryItemNum::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
-    // 최적화 작업시 실제 크기를 명시하도록 한다.
-    iStream.read(m_ChangedItemListNum);
+    BYTE listNum;
+    iStream.read(listNum);
+
+    clearChangedItemList();
 
     int i;
     ObjectID_t item;
     ItemNum_t num;
 
-    for (i = 0; i < m_ChangedItemListNum; i++) {
+    for (i = 0; i < listNum; i++) {
         iStream.read(item);
         m_ChangedItemList.push_back(item);
     }
-    for (i = 0; i < m_ChangedItemListNum; i++) {
+    for (i = 0; i < listNum; i++) {
         iStream.read(num);
         m_ChangedItemNumList.push_back(num);
     }
@@ -65,13 +62,16 @@ void GCChangeInventoryItemNum::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Write the record to the output stream.
 //////////////////////////////////////////////////////////////////////
 void GCChangeInventoryItemNum::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    // 최적화 작업시 실제 크기를 명시하도록 한다.
-    oStream.write(m_ChangedItemListNum);
+    if (m_ChangedItemList.size() > kMaxCount)
+        throw InvalidProtocolException("too many changed items");
+
+    BYTE listNum = (BYTE)m_ChangedItemList.size();
+    oStream.write(listNum);
 
     for (list<ObjectID_t>::const_iterator itr = m_ChangedItemList.begin(); itr != m_ChangedItemList.end(); itr++) {
         oStream.write(*itr);
@@ -86,9 +86,9 @@ void GCChangeInventoryItemNum::write(SocketOutputStream& oStream) const {
 
 //////////////////////////////////////////////////////////////////////
 //
-// GCChangeInventoryItemNum::addListElement()
+// GCChangeInventoryItemNum::addChangedItemListElement()
 //
-// (변화부위, 변화수치 ) 의 한 셋을 리스트에 넣기 위한 멤버 함수.
+// Put one (item, new count) pair on the list.
 //
 //////////////////////////////////////////////////////////////////////
 void GCChangeInventoryItemNum::addChangedItemListElement(ObjectID_t id, ItemNum_t num)
@@ -96,12 +96,11 @@ void GCChangeInventoryItemNum::addChangedItemListElement(ObjectID_t id, ItemNum_
 {
     __BEGIN_TRY
 
-    // 변하는 것이 무엇인지 List에 넣는다.
+    if (m_ChangedItemList.size() >= kMaxCount)
+        throw InvalidProtocolException("too many changed items");
+
     m_ChangedItemList.push_back(id);
     m_ChangedItemNumList.push_back(num);
-
-    // 변화 셋의 갯수를 하나 증가 시킨다.
-    m_ChangedItemListNum++;
 
     __END_CATCH
 }
@@ -117,15 +116,12 @@ string GCChangeInventoryItemNum::toString() const {
 
     StringStream msg;
 
-    msg << "Changed ListNum:" << (int)m_ChangedItemListNum << " ChangedListSet(";
+    msg << "Changed ListNum:" << (int)m_ChangedItemList.size() << " ChangedListSet(";
 
-    int i;
     list<ObjectID_t>::const_iterator itrItem = m_ChangedItemList.begin();
     list<ItemNum_t>::const_iterator itrItemNum = m_ChangedItemNumList.begin();
-    for (i = 0; i < m_ChangedItemListNum; i++) {
+    for (; itrItem != m_ChangedItemList.end() && itrItemNum != m_ChangedItemNumList.end(); itrItem++, itrItemNum++) {
         msg << "(" << (int)(*itrItem) << "," << (int)(*itrItemNum) << "),";
-        itrItem++;
-        itrItemNum++;
     }
     msg << ")";
     return msg.toString();

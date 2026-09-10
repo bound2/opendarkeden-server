@@ -84,11 +84,11 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // Inventory의 X, Y 좌표
-    CoordInven_t m_InvenX;
-    CoordInven_t m_InvenY;
+    CoordInven_t m_InvenX = 0;
+    CoordInven_t m_InvenY = 0;
 };
 
 

@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    BYTE m_Index; // 아이템의 index
+    BYTE m_Index = 0; // 아이템의 index
 };
 
 

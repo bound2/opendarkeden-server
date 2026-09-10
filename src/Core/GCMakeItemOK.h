@@ -79,7 +79,8 @@ class GCMakeItemOKFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_MAKE_ITEM_OK;
     static constexpr std::string_view kName = "GCMakeItemOK";
-    static constexpr PacketSize_t kMaxSize{255 + 255 + ModifyInfo::getPacketMaxSize()};
+    static constexpr PacketSize_t kMaxSize{GCChangeInventoryItemNum::getPacketMaxSize() +
+                                           GCAddItemToInventory::getPacketMaxSize() + ModifyInfo::getPacketMaxSize()};
 
     // constructor
     GCMakeItemOKFactory() {}

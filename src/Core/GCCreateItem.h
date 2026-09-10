@@ -22,23 +22,27 @@ public:
     ~GCCreateItem(){};
 
 public:
+    // The options an item carries. The count travels in a BYTE and the
+    // widest option list an item holds is a code sheet's grid.
+    static constexpr uint kMaxOptionCount = MAX_ITEM_OPTION_NUM;
+
     void read(SocketInputStream& iStream);
     void write(SocketOutputStream& oStream) const;
     PacketID_t getPacketID() const {
         return PACKET_GC_CREATE_ITEM;
     }
     PacketSize_t getPacketSize() const {
-        return szObjectID +                   // 아이템 오브젝트 ID
-               szBYTE +                       // 아이템 클래스
-               szItemType +                   // 아이템 타입
-               szBYTE + m_OptionType.size() + // 아이템 옵션
-               szDurability +                 // 아이템 내구도
-               szSilver +                     // 아이템 은 도금량
-               szGrade +                      // 아이템 등급
-               szEnchantLevel +               // 아이템 인챈트 레벨
-               szItemNum +                    // 아이템 숫자
-               szCoordInven +                 // 아이템 X 좌표
-               szCoordInven;                  // 아이템 Y 좌표
+        return szObjectID +                                  // item object id
+               szBYTE +                                      // item class
+               szItemType +                                  // item type
+               szBYTE + szOptionType * m_OptionType.size() + // item options
+               szDurability +                                // item durability
+               szSilver +                                    // silver coating
+               szGrade +                                     // item grade
+               szEnchantLevel +                              // enchant level
+               szItemNum +                                   // item count
+               szCoordInven +                                // inventory x
+               szCoordInven;                                 // inventory y
     }
     string getPacketName() const {
         return "GCCreateItem";
@@ -81,9 +85,13 @@ public:
         return optionType;
     }
     void addOptionType(OptionType_t OptionType) {
+        if (m_OptionType.size() >= kMaxOptionCount)
+            throw InvalidProtocolException("too many item options");
         m_OptionType.push_back(OptionType);
     }
     void setOptionType(const list<OptionType_t>& OptionTypes) {
+        if (OptionTypes.size() > kMaxOptionCount)
+            throw InvalidProtocolException("too many item options");
         m_OptionType = OptionTypes;
     }
 
@@ -159,17 +167,17 @@ class GCCreateItemFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_CREATE_ITEM;
     static constexpr std::string_view kName = "GCCreateItem";
-    static constexpr PacketSize_t kMaxSize{szObjectID +     // 아이템 오브젝트 ID
-                                           szBYTE +         // 아이템 클래스
-                                           szItemType +     // 아이템 타입
-                                           szBYTE + 255 +   // 아이템 옵션
-                                           szDurability +   // 아이템 내구도
-                                           szSilver +       // 아이템 은 도금량
-                                           szGrade +        // 아이템 등급
-                                           szEnchantLevel + // 아이템 인챈트 레벨
-                                           szItemNum +      // 아이템 숫자
-                                           szCoordInven +   // 아이템 X 좌표
-                                           szCoordInven};   // 아이템 Y 좌표
+    static constexpr PacketSize_t kMaxSize{szObjectID +                                            // item object id
+                                           szBYTE +                                                // item class
+                                           szItemType +                                            // item type
+                                           szBYTE + szOptionType * GCCreateItem::kMaxOptionCount + // item options
+                                           szDurability +                                          // item durability
+                                           szSilver +                                              // silver coating
+                                           szGrade +                                               // item grade
+                                           szEnchantLevel +                                        // enchant level
+                                           szItemNum +                                             // item count
+                                           szCoordInven +                                          // inventory x
+                                           szCoordInven};                                          // inventory y
 
     Packet* createPacket() override {
         return new GCCreateItem();

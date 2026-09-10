@@ -147,6 +147,9 @@ string GCNPCAskDynamic::popContent(void)
 {
     __BEGIN_TRY
 
+    if (m_Contents.empty())
+        throw InvalidProtocolException("no content left");
+
     string rValue = m_Contents.front();
     m_Contents.pop_front();
     return rValue;

@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    SlotID_t m_SlotID; // SlotID
+    SlotID_t m_SlotID = 0; // SlotID
 };
 
 

@@ -86,6 +86,8 @@ public:
 
     // pop front Element in Status List
     WORD popFrontListElement() {
+        if (m_EffectList.empty())
+            throw InvalidProtocolException("no effect left");
         EffectID_t effectID = m_EffectList.front();
         m_EffectList.pop_front();
         return effectID;

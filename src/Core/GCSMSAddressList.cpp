@@ -12,20 +12,17 @@
 //////////////////////////////////////////////////////////////////////
 #include "GCSMSAddressList.h"
 
+#include "WireString.h"
+
 void AddressUnit::read(SocketInputStream& iStream)
 
 {
     __BEGIN_TRY
 
-    BYTE szStr;
-
     iStream.read(ElementID);
-    iStream.read(szStr);
-    iStream.read(CharacterName, szStr);
-    iStream.read(szStr);
-    iStream.read(CustomName, szStr);
-    iStream.read(szStr);
-    iStream.read(Number, szStr);
+    de::wire::readString(iStream, CharacterName, {0, kMaxCharacterNameLength}, "CharacterName");
+    de::wire::readString(iStream, CustomName, {0, kMaxCustomNameLength}, "CustomName");
+    de::wire::readString(iStream, Number, {0, kMaxNumberLength}, "Number");
 
     __END_CATCH
 }
@@ -35,21 +32,10 @@ void AddressUnit::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE szStr;
-
     oStream.write(ElementID);
-
-    szStr = CharacterName.size();
-    oStream.write(szStr);
-    oStream.write(CharacterName);
-
-    szStr = CustomName.size();
-    oStream.write(szStr);
-    oStream.write(CustomName);
-
-    szStr = Number.size();
-    oStream.write(szStr);
-    oStream.write(Number);
+    de::wire::writeString(oStream, CharacterName, {0, kMaxCharacterNameLength}, "CharacterName");
+    de::wire::writeString(oStream, CustomName, {0, kMaxCustomNameLength}, "CustomName");
+    de::wire::writeString(oStream, Number, {0, kMaxNumberLength}, "Number");
 
     __END_CATCH
 }

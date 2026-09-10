@@ -48,6 +48,7 @@ public:
     GCAddItemToItemVerify() {
         m_Code = ADD_ITEM_TO_ITEM_VERIFY_MAX;
         m_Parameter = 0;
+        m_Parameter2 = 0;
     }
     virtual ~GCAddItemToItemVerify() {}
 

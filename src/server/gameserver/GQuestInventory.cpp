@@ -7,7 +7,7 @@ void GQuestInventory::load(const string& ownerName) {
 
     vector<int> itemTypes = defaultQuestItemRepository().loadItemTypes(ownerName);
     for (size_t i = 0; i < itemTypes.size(); i++) {
-        getItems().push_back(itemTypes[i]);
+        addOne(itemTypes[i]);
     }
 
     __END_CATCH
@@ -22,7 +22,7 @@ void GQuestInventory::removeOne(const string& ownerName, ItemType_t item) {
 }
 
 void GQuestInventory::addOne(ItemType_t item) {
-    getItems().push_back(item);
+    m_Inventory.addItem(item);
 }
 
 void GQuestInventory::saveOne(const string& ownerName, ItemType_t item) {

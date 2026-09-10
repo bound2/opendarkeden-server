@@ -70,7 +70,7 @@ public:
 
 private:
     // SlotID
-    SlotID_t m_SlotID;
+    SlotID_t m_SlotID = 0;
 };
 
 

@@ -76,10 +76,10 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // QuickSlot의 ID
-    SlotID_t m_SlotID;
+    SlotID_t m_SlotID = 0;
 };
 
 

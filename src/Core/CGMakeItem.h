@@ -72,8 +72,8 @@ public:
     }
 
 private:
-    ItemClass_t m_ItemClass;
-    ItemType_t m_ItemType;
+    ItemClass_t m_ItemClass = 0;
+    ItemType_t m_ItemType = 0;
 };
 
 

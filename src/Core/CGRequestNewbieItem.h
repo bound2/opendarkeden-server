@@ -40,7 +40,7 @@ public:
     }
 
 private:
-    BYTE m_ItemClass;
+    BYTE m_ItemClass = 0;
 };
 
 

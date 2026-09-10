@@ -11,6 +11,144 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Inventory and item handling write/read disagreements (2026-09-10)
+
+The fourteen findings task 1.2 stated as flip-tests in
+`tests/packet_inventory_test.cpp`, plus the one its PR recorded rather
+than tested. These packets are client-facing, so `write()` and
+`getPacketSize()` are the contract: every fix is a refusal, a cap at the
+width the factory max already budgets, a size-accounting correction, a
+read-side correction or an initialisation. One golden pair moves
+deliberately — `GCMakeItemOK` carried a count byte twice and the client
+reads it once — and no other golden changes. The three
+`tests/wire-layout.txt` movements are read-buffer budgets, not fields on
+the wire.
+
+- **`GCAddItemToInventory::write()` emitted the option count twice while
+  `read()` consumed it once, and it wrote an item count
+  `getPacketSize()` never budgeted for.** `GCMakeItemOK`, the only
+  packet that puts the record on the wire, declared a body two bytes
+  shorter than it sent, so the receiver took the second count as the
+  first option, read every field behind the option list a byte early and
+  ran the stat record off the end of the body. The client decides which
+  side is right and it reads one count: its own
+  `Client/Packet/Gpackets/GCAddItemToInventory.cpp` reads the object id,
+  the two inventory coordinates, the class, the type, **one** option
+  count, the options, the durability and the item count, and
+  `GCMakeItemOKHandler` uses `getItemNum()`. So the duplicated write is
+  the bug: `write()` emits one count and `getPacketSize()` counts the
+  item count. `tests/golden/GCMakeItemOK.code0.hex` and
+  `GCMakeItemOK.nooptions.code0.hex` are re-recorded one byte shorter —
+  a deliberate wire fix, and the only golden change in the set.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **The record's option list was bounded against nothing.** The count
+  travels in a `BYTE`, so the 256th option wrapped it to zero while
+  `write()` still emitted every option. The list is held to
+  `MAX_ITEM_OPTION_NUM` (30) in the adder, in the setter, in `write()`
+  and in `read()`. That is the widest option list an item carries: a
+  code sheet keeps its stone grid there and holds exactly 30
+  (`CodeSheet::CodeSheet` pads to 30, `CGAddItemToCodeSheetHandler`
+  refuses a sheet with fewer), and every other item class holds at most
+  three.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **`GCAddItemToItemVerify::getPacketSize()` had no case for its
+  THREE_ENCHANT_OK branch.** That result declared a bare code byte while
+  `write()` gave it the code and two parameters, so the packet put a
+  length on the wire eight bytes short of the body behind it. The size
+  counts both parameters now.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **`GCAddItemToItemVerify`'s second parameter was the one member the
+  constructor left alone**, and the THREE_ENCHANT_OK branch put it on
+  the wire, so a sender that skipped `setParameter2()` sent whatever the
+  allocation held. It starts at zero.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **`GCChangeInventoryItemNum` kept its material count in a `BYTE` it
+  incremented per entry and bounded nowhere.** The 256th material
+  wrapped the count to zero while `write()` still emitted every pair;
+  `setChangedItemListNum()` let the count and the lists disagree, and
+  the declared size then described neither; and
+  `popFrontChangedItemListElement()` took an entry off the list without
+  taking it off the count. The count is the list now, refused past
+  `kMaxCount` — 255, what the count byte carries — in the adder and in
+  `write()`; the setter is gone; popping an empty list is an
+  `InvalidProtocolException` rather than a `front()` on nothing; and
+  `read()` clears before it parses. The bound is the count byte's
+  because the record has no live fill site to take one from:
+  `CGMakeItemHandler::execute` is commented out in its entirety, no
+  source calls `addChangedItemListElement`, and there is no recipe table
+  in `initdb/` saying how many materials a craft consumes.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **A full material list was five times what the two crafting factory
+  maxima budgeted for it.** Both budgeted a flat 255 bytes for a record
+  that reaches 1 + 255 * (`szObjectID` + `szItemNum`) = 1276, and
+  `GCMakeItemOK` budgeted another flat 255 for an item record it can now
+  measure. Both maxima are built from the two records' own
+  `getPacketMaxSize()`: `GCMakeItemFail` 2297 -> 3318 and `GCMakeItemOK`
+  2552 -> 3363, server-side read-buffer budgets and not fields on the
+  wire.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **`GCCreateItem` derived its option count from the list and bounded
+  nothing**, so the 256th option wrapped the count and the body outgrew
+  the 255 options its factory max budgeted. It is held to the same
+  `MAX_ITEM_OPTION_NUM` in the adder, the setter, `write()` and
+  `read()`, and its max budgets that: `GCCreateItem` 277 -> 52.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **`GCGQuestInventory` counted its item list in a `BYTE` it never
+  bounded, and `read()` appended to the list the packet already held.**
+  A guild-quest inventory past 255 items wrapped the count, one past the
+  100 the factory max budgets outgrew the receiver's read buffer, and a
+  packet read into twice declared one listing and held two. The list is
+  held to `MAX_GQUEST_INVENTORY_ITEM_NUM` in a new `addItem()`, in
+  `write()` and in `read()`, and `read()` clears before it parses. The
+  server's own adds go through `GQuestInventory::addOne`.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **`GCTimeLimitItemInfo::getTimeLimit()` answered `0xffff` for an item
+  it did not hold**, a value a real remaining time can equal, so a
+  caller could not tell an absent item from one with 65535 seconds left.
+  It returns `std::optional<DWORD>` now, with `hasTimeLimit()` beside
+  it. The wire is untouched; the packet has no caller of the accessor in
+  `src/server`.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **Thirty of the thirty-seven packets left at least one member the
+  default constructor never set**, so a packet sent without every setter
+  called put whatever the allocation held on the wire. All thirty-seven
+  initialise every member now, pinned by constructing each over storage
+  poisoned with two different bytes and requiring the same body.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **Three string fields still read a length into a local and handed it
+  straight to `read(string&, uint)`** — `CGTypeStringList`'s list
+  strings, `GCShowWaitGuildInfo`'s founding-member names and
+  `GCSMSAddressList`'s three `AddressUnit` fields — a shape R9's grep did
+  not match because it only looked for reads into a member. All go
+  through `de::wire::readString`/`writeString` at the bounds their
+  factory maxima budget, and R9's grep accepts any identifier and still
+  measures 0.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **Four `pop*()` methods called `front()` on a list that may be
+  empty** — `GCNPCAskDynamic::popContent`,
+  `GCRemoveEffect::popFrontListElement` and
+  `ModifyInfo::popShortData`/`popLongData` — and so did the eleven
+  `popCListElement()` copies in the tile, bomb and mine packets. All
+  throw `InvalidProtocolException` on an empty list.
+  > **Status:** fixed (wire/inventory-disagreements)
+
+- **`Script::addContent` threw a raw string literal past
+  `SCRIPT_MAX_CONTENTS`**, which no `__END_CATCH` can catch, so a script
+  with a sixteenth content terminated the process instead of being
+  reported. It throws `Error`.
+  > **Status:** fixed (wire/inventory-disagreements)
+
 ## Movement, effect-lifecycle and NPC dialogue write/read disagreements (2026-09-10)
 
 The ten findings task 1.2 stated as flip-tests in
