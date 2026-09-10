@@ -436,12 +436,72 @@ before anything else moves. Everything later shelters under this pin.
   > not fields on the wire. One golden pair moves deliberately:
   > `GCMakeItemOK`'s two goldens are one byte shorter, the duplicated
   > option count the client never read.
+  > The **store, shop and stash dialogue is pinned** — the 36 packets a
+  > client and a game server exchange over a shop counter: the eighteen
+  > client requests (`CGStoreOpen`, `CGStoreClose`, `CGStoreSign`,
+  > `CGDisplayItem`, `CGUndisplayItem`, `CGBuyStoreItem`,
+  > `CGRequestStoreInfo`, `CGShopRequestList`, `CGShopRequestBuy`,
+  > `CGShopRequestSell`, `CGStashList`, `CGStashDeposit`,
+  > `CGStashWithdraw`, `CGStashRequestBuy`, `CGMouseToStash`,
+  > `CGStashToMouse`, `CGDepositPet`, `CGWithdrawPet`) and the eighteen
+  > answers they draw (`GCMyStoreInfo`, `GCOtherStoreInfo`,
+  > `GCAddStoreItem`, `GCRemoveStoreItem`, `GCShopList`,
+  > `GCShopListMysterious`, `GCShopBought`, `GCShopBuyOK`,
+  > `GCShopBuyFail`, `GCShopSellOK`, `GCShopSellFail`, `GCShopSold`,
+  > `GCShopVersion`, `GCShopMarketCondition`, `GCStashList`,
+  > `GCStashSell`, `GCPetStashList`, `GCPetStashVerify`), have code-0
+  > goldens, loopback round trips and size/factory-max pins
+  > (`tests/packet_store_test.cpp`), with extra goldens for the item
+  > that carries no options, the empty rack, stash and pet-stash
+  > listings, the stall written closed to its owner and to a passer-by,
+  > the empty stall window, the empty sign and the pet slot holding no
+  > pet. No packet in the family calls the encrypter or derives from one
+  > that does, so every golden is recorded at code 0 and each test also
+  > asserts the bytes do not vary with the code. The `StoreInfo` /
+  > `StoreOutlook` records are covered by the zone-scan pins and
+  > `PCItemInfo` / `SubItemInfo` / `PetInfo` by the handshake pins; the
+  > answers these handlers share with other families (`GCCannotAdd`,
+  > `GCCreateItem`, `GCDeleteandPickUpOK`, `GCDeleteObject`,
+  > `GCModifyInformation`, `GCNoticeEvent`, `GCSystemMessage`,
+  > `GCNPCResponse`) are pinned in the inventory, zone-scan, combat,
+  > handshake and social files. `GCShopList` had a frame-size pin in
+  > `tests/packet_roundtrip_test.cpp` but no golden and gets one here.
+  > Nine open write/read disagreements are stated as tests that flip
+  > when fixed (`GCShopBuyFail::getPacketSize()` counting the NPC id
+  > alone against the fail code and four-byte amount `write()` also
+  > emits, which is its factory max too, so every refusal declares a
+  > body five bytes short and overruns the buffer sized for it;
+  > `CGStoreSign` deriving the sign's length byte by hand and capping
+  > nothing, so a sign past the 80 its max budgets is emitted whole and
+  > at 256 the length byte wraps, while an empty sign goes out as a bare
+  > zero length byte that `SocketInputStream::read(string&, uint)`
+  > refuses to read back; `StoreInfo::setSign` capping nothing while
+  > `StoreInfo::getMaxSize` budgets 80, so a full stall whose sign is
+  > longer than that makes `GCMyStoreInfo` and `GCOtherStoreInfo`
+  > outgrow their maxima; `GCShopBought` and
+  > `GCShopBuyOK` wrapping their option count at 256 and outgrowing
+  > their maxima with it; those two plus `GCShopList` and `GCStashList`
+  > appending to the option list the packet already holds;
+  > `GCPetStashList` never putting its code byte on the wire although
+  > both pet handlers set it and its max budgets one; and `GCStashList`
+  > keeping each slot's sub-item count in an array of its own, so a
+  > sub-item added through `getSubItems()` leaves the count behind), and
+  > 25 of the 36 leave at least one member the default constructor never
+  > sets, pinned over poisoned storage — with `GCMyStoreInfo` and
+  > `GCOtherStoreInfo` pinned on the record pointer itself, which
+  > `getPacketSize()` and `write()` dereference. Three more are recorded
+  > in the test's header rather than tested: the three list `read()`s
+  > index their fixed slot arrays with a rack or slot byte off the wire
+  > and never bound it, `GCShopBuyFail::read()` takes a code byte it
+  > never compares against `GC_SHOP_BUY_FAIL_MAX`, and `GCPetStashList`
+  > frees neither the slot it overwrites on a re-read nor the `PetInfo`
+  > inside a slot it destroys. No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
-  > the movement, effect-lifecycle and NPC dialogue set and the
-  > inventory and item handling set pinned, the remaining non-encrypter
-  > coverage outstanding is the store, shop and stash dialogue and the
-  > rest of GC/CG.
+  > the movement, effect-lifecycle and NPC dialogue set, the inventory
+  > and item handling set and the store, shop and stash dialogue pinned,
+  > the remaining non-encrypter coverage outstanding is the rest of
+  > GC/CG.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed
