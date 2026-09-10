@@ -6,7 +6,8 @@
 // of as DB.h's DatabaseError. The relay
 // loop catches SQLQueryException to reopen the connection, and a
 // DatabaseError reaches neither that branch nor its catch (Throwable&).
-// DBError.log gets the same line END_DB writes.
+// DBError.log gets the same line END_DB writes, and the catch-all closes
+// the statement for every other exception the block can raise.
 #define END_DB_RETHROW(STMT)                                            \
     catch (SQLQueryException & sqe) {                                   \
         delete STMT;                                                    \
@@ -15,6 +16,10 @@
         msg += " : ";                                                   \
         msg += string(sqe.toString());                                  \
         filelog("DBError.log", "%s", msg.c_str());                      \
+        throw;                                                          \
+    }                                                                   \
+    catch (...) {                                                       \
+        delete STMT;                                                    \
         throw;                                                          \
     }
 

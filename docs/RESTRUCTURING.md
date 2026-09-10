@@ -1491,20 +1491,19 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > - ActionShowGuildDialog gates guild creation on a hardcoded seven
   >   days ahead of the handler's QUIT_GUILD_PENALTY_TERM.
   >
-  > **Three one-line Core defects every seam inherits — owed a Core
-  > round; two now fixed:** `END_DB` threw `msg.c_str()` of a local
-  > string, so every handler received a dangling pointer — **fixed**, the
-  > macros throw a `DatabaseError` (`src/server/database/DatabaseError.h`)
-  > that owns the `DBError.log` line and the 34 handlers name that type
-  > (`docs/FIXES.md`; `MySQLSMSMessageRepository` keeps its own
-  > `END_DB_RETHROW`, which its thread's reconnect branch catches as a
-  > `SQLQueryException`); `__LEAVE_CRITICAL_SECTION` released only on
+  > **Three one-line Core defects every seam inherits — all three now
+  > fixed:** `END_DB` threw `msg.c_str()` of a local string, so every
+  > handler received a dangling pointer — **fixed**, the macros throw a
+  > `DatabaseError` (`src/server/database/DatabaseError.h`) that owns the
+  > `DBError.log` line and the 34 handlers name that type
+  > (`docs/FIXES.md`); `__LEAVE_CRITICAL_SECTION` released only on
   > `Throwable&`, so a repository call inside a critical section left its
-  > mutex held on failure — **fixed 2026-09-05**, the section is now a
-  > scoped guard that releases on any exit (`docs/FIXES.md`);
-  > `SAFE_DELETE(pStmt)` sits inside every seam's try, so a
-  > non-SQLQueryException throw (`bad_alloc`, `OutOfBoundException`)
-  > leaks the Statement — open.
+  > mutex held on failure — **fixed**, the section is a scoped guard that
+  > releases on any exit (`docs/FIXES.md`); `SAFE_DELETE(pStmt)` sits
+  > inside every try, so any other exception leaked the Statement —
+  > **fixed**, `END_DB`, `END_DB_EX` and
+  > `MySQLSMSMessageRepository`'s `END_DB_RETHROW` carry a catch-all that
+  > deletes the statement and rethrows unchanged (`docs/FIXES.md`).
   >
   > **What remains.** R2 is 0: the gameserver root holds no SQL, live or
   > commented out. `TradeManager.cpp`'s TradeLog INSERT is

@@ -11,6 +11,33 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A statement that met anything but a SQL failure was never closed (2026-09-10)
+
+- **`BEGIN_DB`/`END_DB` closed the `Statement` only in the clause that
+  answers a failed statement.** The shape all 682 sites share is
+  `Statement* pStmt = NULL; BEGIN_DB { pStmt = conn->createStatement();
+  ...; SAFE_DELETE(pStmt); } END_DB(pStmt)`, and that `SAFE_DELETE` sits
+  inside the try. Any other exception raised between the query and it — a
+  `bad_alloc`, an `OutOfBoundException` or `NoSuchElementException` from a
+  container walked while building the row, an `Error` from a helper called
+  with the statement still open — carried the site's only reference away
+  and leaked the `Statement` together with the `Result` it owns, which for
+  a SELECT is the whole result set. `END_DB`, `END_DB_EX` and
+  `MySQLSMSMessageRepository.cpp`'s file-local `END_DB_RETHROW` now carry a
+  `catch (...)` that deletes the statement and rethrows unchanged, so every
+  site is covered without touching one. Nothing is logged there: the
+  failure is not the statement's, and the handler that catches it decides
+  what to say. Double deletion cannot follow, because `SAFE_DELETE` clears
+  the pointer: a site that finished early leaves NULL behind, and the four
+  blocks in `MySQLExchangeRepository.cpp` that open a second statement each
+  do it after a `SAFE_DELETE` of the first. `tests/database_error_test.cpp`
+  pins the clause with no database, counting destructions through a
+  `Statement` subclass declared at the site — the macro deletes the pointer
+  with the type the site gives it — for a `Throwable`, for a
+  `std::bad_alloc`, for the SQL clause, and for a site that already closed
+  its statement.
+  > **Status:** fixed (seam/statement-leak)
+
 ## Quest, war and zone-selection write/read disagreements (2026-09-10)
 
 The fifteen findings task 1.2 stated as flip-tests in

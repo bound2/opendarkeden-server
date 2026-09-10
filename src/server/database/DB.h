@@ -24,6 +24,14 @@
 // that function. Under Clang it is the text __PRETTY_FUNCTION__ produces, so
 // DBError.log keeps its historical format. The same line is what the thrown
 // DatabaseError carries, so a handler can report the failure the log records.
+//
+// The trailing catch-all closes the statement and its result set for every
+// other exception the block can raise -- bad_alloc, an out-of-bounds or
+// missing-element Throwable, an Error from a helper called between the query
+// and the delete -- and rethrows it unchanged. A site that already deleted
+// the statement holds NULL there, since SAFE_DELETE clears the pointer.
+// Nothing is logged: the failure is not the statement's, and whoever
+// catches the exception decides what to say about it.
 #define END_DB(STMT)                                                    \
     catch (SQLQueryException & sqe) {                                   \
         delete STMT;                                                    \
@@ -33,6 +41,10 @@
         msg += string(sqe.toString());                                  \
         filelog("DBError.log", "%s", msg.c_str());                      \
         throw DatabaseError{msg};                                       \
+    }                                                                   \
+    catch (...) {                                                       \
+        delete STMT;                                                    \
+        throw;                                                          \
     }
 #define END_DB_EX(STMT, MSG)                                            \
     catch (SQLQueryException & sqe) {                                   \
@@ -45,6 +57,10 @@
         msg += string(MSG);                                             \
         filelog("DBError.log", "%s", msg.c_str());                      \
         throw DatabaseError{msg};                                       \
+    }                                                                   \
+    catch (...) {                                                       \
+        delete STMT;                                                    \
+        throw;                                                          \
     }
 
 #define NEW_STMT g_pDatabaseManager->getConnection("DARKEDEN")->createStatement()
