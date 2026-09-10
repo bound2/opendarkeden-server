@@ -66,6 +66,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
 | R9 | Hand-written length-prefixed string reads left in `src/Core` | 0 | `grep -rhE 'iStream\.read\([A-Za-z_][A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (a string field is a BYTE length then that many bytes; `de::wire::readString`/`writeString` in `src/Core/WireString.h` carry it with the bounds stated once. The read may land in a member or in a local, so any identifier counts. Line-based with R8's comment rule, so `WireString.h`'s own example of the shape it replaces does not count itself) |
+| R10 | Throws of a pointer into a local string, and the handlers that caught one | 0 (R10a), 0 (R10b) | R10a: `grep -rnE 'throw [A-Za-z_]+\.c_str\(\)' src \| wc -l` — a `throw x.c_str()` hands the handler storage that dies with the clause it came from; `END_DB`/`END_DB_EX` answer a failed statement with a `DatabaseError` (`src/server/database/DatabaseError.h`) that owns its message, so nothing in the tree has that shape. R10b: `grep -rn 'catch (const char\*' src \| wc -l` — the receiving end. All 34 handlers name `DatabaseError`, so the count is 0 and one left behind would either be dead or be reaching for one of the ~160 bare `throw "literal"` sites, which are a separate defect and are not answered this way. Textual, so a commented-out clause counts (the one inside `CGPortCheckHandler.cpp`'s commented-out retry moved with the live code) |
 
 God-file baselines (R6):
 
@@ -1411,15 +1412,15 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   days ahead of the handler's QUIT_GUILD_PENALTY_TERM.
   >
   > **Three one-line Core defects every seam inherits — owed a Core
-  > round; one now fixed:** `END_DB` throws `msg.c_str()` of a local
-  > string (the message dangles; no test can read it) — open, and worked
-  > around in `MySQLSMSMessageRepository` alone, which catches the
-  > `SQLQueryException`, writes END_DB's `DBError.log` line and rethrows
-  > it, so its caller's reconnect branch is reachable;
-  > `__LEAVE_CRITICAL_SECTION` released only on `Throwable&`, so a
-  > repository call inside a critical section left its mutex held on
-  > failure (masked because nothing catches the `const char*` before the
-  > process terminates) — **fixed 2026-09-05**, the section is now a
+  > round; two now fixed:** `END_DB` threw `msg.c_str()` of a local
+  > string, so every handler received a dangling pointer — **fixed**, the
+  > macros throw a `DatabaseError` (`src/server/database/DatabaseError.h`)
+  > that owns the `DBError.log` line and the 34 handlers name that type
+  > (`docs/FIXES.md`; `MySQLSMSMessageRepository` keeps its own
+  > `END_DB_RETHROW`, which its thread's reconnect branch catches as a
+  > `SQLQueryException`); `__LEAVE_CRITICAL_SECTION` released only on
+  > `Throwable&`, so a repository call inside a critical section left its
+  > mutex held on failure — **fixed 2026-09-05**, the section is now a
   > scoped guard that releases on any exit (`docs/FIXES.md`);
   > `SAFE_DELETE(pStmt)` sits inside every seam's try, so a
   > non-SQLQueryException throw (`bad_alloc`, `OutOfBoundException`)
