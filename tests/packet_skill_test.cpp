@@ -102,7 +102,7 @@
 //               GCSkillToTileOK and two GCSkillToInventoryOK packets
 //               and the ModifyInfo record itself
 //               (packet_combat_test.cpp), GCSystemMessage
-//               (packet_gameserver_handshake_test.cpp), GCNPCResponse
+//               (packet_chat_test.cpp), GCNPCResponse
 //               (packet_guild_test.cpp). The BloodBibleSignInfo record
 //               GCBloodBibleSignInfo carries is pinned in
 //               packet_gameserver_handshake_test.cpp, which is where

@@ -66,7 +66,9 @@
 //               GCSystemMessage and GCNoticeEvent
 //               are in-game notices — nothing in this window builds one
 //               (CGConnectHandler includes GCSystemMessage.h and never
-//               uses it).
+//               uses it). GCSystemMessage is pinned in
+//               packet_chat_test.cpp and GCNoticeEvent in
+//               packet_quest_war_test.cpp.
 //
 //               None of the twelve calls readEncrypt/writeEncrypt, so
 //               goldens are recorded at encrypt code 0 only, as the
