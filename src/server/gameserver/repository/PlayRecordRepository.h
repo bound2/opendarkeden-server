@@ -9,10 +9,11 @@
 // Per-player play records: a player's saved quest states (GQuestSave —
 // loaded at login, REPLACEd on every status change, deleted when a quest
 // is erased), the head-count log a half-hourly event writes (HeadCount),
-// the minigame score board (MiniGameScores), the store-purchase trade log
-// (TradeLog) and the per-account event tallies (GoldMedalCount,
-// EventLotto, UnderworldEvent). Reads are typed to the driver getter used
-// for each column (getInt → int, getString → std::string).
+// the minigame score board (MiniGameScores), the trade log (TradeLog —
+// store purchases and player-to-player trades) and the per-account event
+// tallies (GoldMedalCount, EventLotto, UnderworldEvent). Reads are typed
+// to the driver getter used for each column (getInt → int, getString →
+// std::string).
 //
 // Connections: the event tallies go through the thread's dist connection
 // (DatabaseManager ignores the name asked for and hands back the second
@@ -61,6 +62,18 @@ public:
                                const std::string& storeAccountID, const std::string& buyerName,
                                const std::string& buyerHost, const std::string& buyerAccountID,
                                const std::string& itemText, Gold_t price) = 0;
+
+    // The player-to-player TradeLog row (TradeManager::processTrade).
+    // content carries both sides' name, account, gold and one line per
+    // traded item, so its length is bounded only by the two inventories:
+    // the statement is assembled as a string and sent through
+    // executeQueryString rather than through executeQuery's 2048-byte
+    // format buffer. Every text, content included, is interpolated
+    // unescaped, so a quote or a backslash in an item's toString() breaks
+    // the statement. timeline is the caller's own timestamp text, not
+    // now().
+    virtual void logPlayerTrade(const std::string& timeline, const std::string& name1, const std::string& host1,
+                                const std::string& name2, const std::string& host2, const std::string& content) = 0;
 
     // --- event tallies (CreatureUtil) -----------------------------------------
     // INSERT INTO GoldMedalCount (PlayerID, getTime). The table is not in

@@ -57,11 +57,11 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
-| R1 | `g_p*` global-singleton extern declarations | 332 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` |
-| R2 | Files with inline SQL in gameserver root | 7 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29. Of the 7 only `TradeManager.cpp` holds SQL that compiles and runs; `CreatureUtil.cpp` keeps a commented-out block; the rest are listed under 3.2 "What remains".) |
-| R3 | Files with inline SQL outside `database/` and any `repository/` | 18 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (`gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
+| R1 | `g_p*` global-singleton extern declarations | 331 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` (332→331 on 2026-09-10 with the never-built `EventMonsterNameManager.h`, which redeclared `g_pMonsterNameManager`; a `default*Repository()` accessor is a function, not a global, so extractions do not move this number) |
+| R2 | Files with inline SQL in gameserver root | 0 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29; 7→0 on 2026-09-10, the last two live sites into `PlayRecordRepository::logPlayerTrade` and the new `SMSMessageRepository`, `CreatureUtil.cpp`'s commented-out `addOlympicStat` body deleted, and four never-built stale copies deleted with it. The root is clean; new SQL there fails the ratchet.) |
+| R3 | Files with inline SQL outside `database/` and any `repository/` | 11 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (18→11 on 2026-09-10 with the seven gameserver-root files R2 counted. `gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,755 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,737 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted. 5,755→5,737 on 2026-09-10: the never-built `EventMonsterNameManager.cpp` (4), `GameServerInfoManager.cpp` (7) and `GameWorldInfoManager.cpp` (7) were deleted) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
@@ -1273,25 +1273,26 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > non-SQLQueryException throw (`bad_alloc`, `OutOfBoundException`)
   > leaks the Statement — open.
   >
-  > **What remains.** Of R2's eight files only one holds SQL that
-  > compiles and runs: `TradeManager.cpp`
-  > (one TradeLog INSERT of unbounded length through
-  > `executeQueryString`; the 2048-byte `executeQuery` buffer would turn
-  > a large trade's log into a new failure after the gold moved, so it
-  > waits for an uncapped parameterized path in the DB layer).
-  > `CreatureUtil.cpp`'s 118 live statements moved in the CreatureUtil
-  > round (the purge to `CharacterPurgeRepository`, the rest to the
-  > Character and PlayRecord seams); it stays on R2 and R3 for the
-  > fully commented-out `addOlympicStat` body alone, which declares its
-  > own Statement inside the comment and so is left as it is under the
-  > comment policy. `SMSServiceThread.cpp` compiles but its thread is
-  > never started;
+  > **What remains.** R2 is 0: the gameserver root holds no SQL, live or
+  > commented out. `TradeManager.cpp`'s TradeLog INSERT is
+  > `PlayRecordRepository::logPlayerTrade`, still assembled as a string
+  > and sent through `executeQueryString` because a trade's log is as
+  > long as the two inventories make it and `executeQuery`'s format
+  > buffer holds 2048 bytes; the MySQL tier pins it, including a content
+  > past that width. `SMSServiceThread.cpp`'s three relay statements are
+  > `SMSMessageRepository`, which owns the SMS_DB_* connection because
+  > the relay is not one of DatabaseManager's servers; live but dormant
+  > (`GameServer::start()` does not start the thread) and unpinnable by
+  > the tier, since `uds_msg` and `msg_queue` are not in `initdb/`.
+  > `CreatureUtil.cpp`'s commented-out `addOlympicStat` body is deleted
+  > (the function stays: its dozen callers record nothing).
   > `EventMonsterNameManager`, `GameServerInfoManager` (a stale third
   > copy), `GameWorldInfoManager` (a stale fork of ServerCore's live
-  > loader), `MoonCardUtil` and `Vampire_backup` are in no CMakeLists
-  > and never compiled (no `file(GLOB)` exists anywhere). Deleting them
-  > is a separate decision. Under R3, in the gameserver (live statement
-  > counts; every table below is in `initdb/` unless said otherwise):
+  > loader) and `MoonCardUtil` (a stale subset of `EventItemUtil.cpp`)
+  > are deleted — they were in no CMakeLists and never compiled (no
+  > `file(GLOB)` exists anywhere). Under R3, in the gameserver (live
+  > statement counts; every table below is in `initdb/` unless said
+  > otherwise):
   > `handler/CGSayHandler.cpp` (1 live,
   > 2 commented out — its other thirteen moved in the CGSay round; what
   > stays is `opnotice`'s INSERT into `quick1001` on a hard-coded remote

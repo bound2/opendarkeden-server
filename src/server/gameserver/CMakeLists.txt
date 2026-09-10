@@ -579,6 +579,7 @@ set(GAMESERVER_MAIN_SOURCES
     repository/MySQLQuestItemRepository.cpp
     repository/MySQLRankBonusRepository.cpp
     repository/MySQLSMSAddressRepository.cpp
+    repository/MySQLSMSMessageRepository.cpp
     repository/MySQLSpecialEventRepository.cpp
     repository/MySQLSessionRepository.cpp
     repository/MySQLSkillSaveRepository.cpp

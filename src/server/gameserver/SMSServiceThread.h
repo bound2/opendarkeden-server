@@ -4,7 +4,6 @@
 #include <list>
 #include <string>
 
-#include "DB.h"
 #include "Exception.h"
 #include "ManagedThread.h"
 #include "Mutex.h"
@@ -29,10 +28,10 @@ private:
 
 class SMSServiceThread : public ManagedThread {
 public:
-    // The worker drains m_MessageQueue and owns m_pConnection, so it must be
-    // joined before those members are destroyed. A base destructor would run
-    // too late. (In the deployed gameserver this never runs: the process
-    // exits with _Exit rather than unwinding the legacy singleton graph.)
+    // The worker drains m_MessageQueue, so it must be joined before that
+    // member is destroyed. A base destructor would run too late. (In the
+    // deployed gameserver this never runs: the process exits with _Exit
+    // rather than unwinding the legacy singleton graph.)
     ~SMSServiceThread() noexcept override {
         stop();
         join();
@@ -53,13 +52,12 @@ public:
     bool isValidNumber(const string& num) const;
 
 private:
-    SMSServiceThread() : m_QueueMutex(), m_pConnection(NULL) {
+    SMSServiceThread() : m_QueueMutex() {
         m_QueueMutex.setName("SMS Queue Lock");
     }
 
     Mutex m_QueueMutex;
     list<SMSMessage*> m_MessageQueue;
-    Connection* m_pConnection;
 };
 
 #endif

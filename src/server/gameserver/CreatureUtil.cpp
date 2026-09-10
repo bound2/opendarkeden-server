@@ -2113,45 +2113,7 @@ void giveLotto(PlayerCreature* pPC, BYTE type, uint num) {
 void addOlympicStat(PlayerCreature* pPC, BYTE type, uint num) {
     __BEGIN_TRY
 
-    /*	if ( !g_pVariableManager->getVariable( OLYMPIC_EVENT ) )
-            return;
-
-        GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pPC->getPlayer());
-        Assert( pGamePlayer != NULL );
-
-        Statement* pStmt = NULL;
-
-        BEGIN_DB
-        {
-            pStmt = g_pDatabaseManager->getConnection("DARKEDEN")->createStatement();
-
-            pStmt->executeQuery("UPDATE OlympicStat SET count=count+%u WHERE PlayerID='%s' AND OwnerID='%s' AND Type=%u
-       AND Day=now()", num, pGamePlayer->getID().c_str(), pPC->getName().c_str(), type);
-
-            if ( pStmt->getAffectedRowCount() < 1 )
-            {
-                pStmt->executeQuery("REPLACE INTO OlympicStat (PlayerID,OwnerID,Race,Type,count,Day) VALUES
-       ('%s','%s',%u,%u,%u, now())", pGamePlayer->getID().c_str(), pPC->getName().c_str(), (uint)pPC->getRace(), type,
-       num);
-            }
-    */
-    /*		Result* pResult = pStmt->executeQuery("SELECT count FROM EventLotto WHERE PlayerID='%s' AND Type=%u",
-                    pGamePlayer->getID().c_str(), type);
-
-            if ( pResult->next() )
-            {
-                char buffer[256];
-                sprintf(buffer, "%u단계 복권이 %d개가 되었습니다. 자세한 내용은 홈페이지를 참조하세요.",
-                        type, pResult->getInt(1));
-                GCSystemMessage gcSM;
-                gcSM.setMessage( buffer );
-                pGamePlayer->sendPacket(&gcSM);
-            }*/
-    /*
-            SAFE_DELETE( pStmt );
-        }
-        END_DB(pStmt);
-    */
+    // Records nothing: the olympic event's OlympicStat counters are not kept.
     __END_CATCH
 }
 

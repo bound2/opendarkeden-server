@@ -6726,6 +6726,32 @@ TEST_F(PlayRecordMySQL, StoreTradeIsLoggedWithBothNamesInTheContent) {
               queryScalar("SELECT Content" + where));
 }
 
+// TradeManager::processTrade: the player-to-player TradeLog row. Its
+// content is the caller's whole transcript of the trade, both sides'
+// name, account, gold and one line per item.
+TEST_F(PlayRecordMySQL, PlayerTradeIsLoggedWithBothSidesInTheContent) {
+    const std::string content = "[it-one(it-acct1)] \nGOLD:10\n----\n[it-two(it-acct2)] \nGOLD:20\n";
+    defaultPlayRecordRepository().logPlayerTrade("2026-09-10 11:22:33", "it-one", "10.0.0.1", "it-two", "10.0.0.2",
+                                                 content);
+    const std::string where = " FROM TradeLog WHERE Name1 = 'it-one'";
+    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
+    EXPECT_EQ("2026-09-10 11:22:33", queryScalar("SELECT Timeline" + where));
+    EXPECT_EQ("it-two", queryScalar("SELECT Name2" + where));
+    EXPECT_EQ("10.0.0.1", queryScalar("SELECT IP1" + where));
+    EXPECT_EQ("10.0.0.2", queryScalar("SELECT IP2" + where));
+    EXPECT_EQ(content, queryScalar("SELECT Content" + where));
+}
+
+// Why this row is assembled and sent through executeQueryString instead
+// of formatted: a trade of two loaded inventories writes a transcript far
+// past executeQuery's 2048-byte format buffer, and it must land whole.
+TEST_F(PlayRecordMySQL, PlayerTradeContentPastTheFormatBufferLandsWhole) {
+    const std::string content(6000, 'x');
+    defaultPlayRecordRepository().logPlayerTrade("2026-09-10 11:22:33", "it-one", "10.0.0.1", "it-two", "10.0.0.2",
+                                                 content);
+    EXPECT_EQ("6000", queryScalar("SELECT LENGTH(Content) FROM TradeLog WHERE Name1 = 'it-one'"));
+}
+
 // --- the session cluster against real MySQL ----------------------------------
 // Session end, the boot sweep, the PC-room lotto and the NetMarble user
 // count. Player/PCRoom rows go through the dist connection (same schema),
