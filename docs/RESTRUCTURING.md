@@ -57,11 +57,11 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 
 | # | Metric | Baseline | Command |
 |---|--------|---------:|---------|
-| R1 | `g_p*` global-singleton extern declarations | 331 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` (332→331 on 2026-09-10 with the never-built `EventMonsterNameManager.h`, which redeclared `g_pMonsterNameManager`; a `default*Repository()` accessor is a function, not a global, so extractions do not move this number) |
+| R1 | `g_p*` global-singleton extern declarations | 327 | `grep -rE '^extern .*\* g_p' src --include='*.h' --include='*.cpp' \| wc -l` (332→331 on 2026-09-10 with the never-built `EventMonsterNameManager.h`, which redeclared `g_pMonsterNameManager`; 331→327 on 2026-09-10 with the never-built `EventBall.h` (two) and the commented-out `EffectBloodyWallLoader` and `EffectGrayDarknessLoader` declarations; a `default*Repository()` accessor is a function, not a global, so extractions do not move this number) |
 | R2 | Files with inline SQL in gameserver root | 0 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29; 7→0 on 2026-09-10, the last two live sites into `PlayRecordRepository::logPlayerTrade` and the new `SMSMessageRepository`, `CreatureUtil.cpp`'s commented-out `addOlympicStat` body deleted, and four never-built stale copies deleted with it. The root is clean; new SQL there fails the ratchet.) |
-| R3 | Files with inline SQL outside `database/` and any `repository/` | 11 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (18→11 on 2026-09-10 with the seven gameserver-root files R2 counted. `gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
+| R3 | Files with inline SQL outside `database/` and any `repository/` | 0 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (18→11 on 2026-09-10 with the seven gameserver-root files R2 counted; 11→0 the same day with the never-built `EventBall.cpp`, the `*notice` command that held the last live statement, and the nine files whose only `executeQuery` sat inside a comment block. `gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,737 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted. 5,755→5,737 on 2026-09-10: the never-built `EventMonsterNameManager.cpp` (4), `GameServerInfoManager.cpp` (7) and `GameWorldInfoManager.cpp` (7) were deleted) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,719 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted. 5,755→5,737 on 2026-09-10: the never-built `EventMonsterNameManager.cpp` (4), `GameServerInfoManager.cpp` (7) and `GameWorldInfoManager.cpp` (7) were deleted. 5,737→5,719 on 2026-09-10: the never-built `EventBall.cpp` (10) and `EventQuestRewardManager.cpp` (1) were deleted, and seven more sat in commented-out or empty bodies deleted from `mission/`, `skill/` and `war/`) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
@@ -1263,8 +1263,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >   gets a test: the compiler will never check them.
   > - R2/R3 are **textual** greps. A commented-out block that names code
   >   the conversion deleted is rewritten to name the seam method (it is
-  >   otherwise wrong); a self-contained commented-out block is left
-  >   alone and its file keeps counting.
+  >   otherwise wrong); a self-contained commented-out block is deleted,
+  >   with the dead function around it when nothing calls it.
   >
   > **Knowing changes common to every seam:** the Statement is freed on
   > every success path (the originals leaked one on dozens of paths,
@@ -1335,7 +1335,10 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   >
   > **Three one-line Core defects every seam inherits — owed a Core
   > round; one now fixed:** `END_DB` throws `msg.c_str()` of a local
-  > string (the message dangles; no test can read it) — open;
+  > string (the message dangles; no test can read it) — open, and worked
+  > around in `MySQLSMSMessageRepository` alone, which catches the
+  > `SQLQueryException`, writes END_DB's `DBError.log` line and rethrows
+  > it, so its caller's reconnect branch is reachable;
   > `__LEAVE_CRITICAL_SECTION` released only on `Throwable&`, so a
   > repository call inside a critical section left its mutex held on
   > failure (masked because nothing catches the `const char*` before the
@@ -1362,26 +1365,27 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > copy), `GameWorldInfoManager` (a stale fork of ServerCore's live
   > loader) and `MoonCardUtil` (a stale subset of `EventItemUtil.cpp`)
   > are deleted — they were in no CMakeLists and never compiled (no
-  > `file(GLOB)` exists anywhere). Under R3, in the gameserver (live
-  > statement counts; every table below is in `initdb/` unless said
-  > otherwise):
-  > `handler/CGSayHandler.cpp` (1 live,
-  > 2 commented out — its other thirteen moved in the CGSay round; what
-  > stays is `opnotice`'s INSERT into `quick1001` on a hard-coded remote
-  > BBS host, through a Connection it opens itself rather than
-  > DatabaseManager — outside the seams' convention, and worth a decision
-  > of its own for two reasons that are not about seams: the host,
-  > database, user and **password are literals in the source**, and the
-  > GM's chat text is interpolated into the statement **unquoted and
-  > unescaped**); `item/EventBall.cpp` (7 live, 2 commented out; its tables are
-  > not in `initdb/` and the file is in no CMakeLists — never compiled);
-  > files
-  > whose only `executeQuery` is commented out (five `mission/` files,
-  > EffectBloodyWall, EffectGrayDarkness, SiegeWar); outside it, only
-  > the loginserver's `LoginPlayer.cpp`, whose only remaining
-  > `executeQuery` is the fully commented-out `addLogoutPlayerData`
-  > body, which declares its own Statement and so stays under the
-  > comment policy.
+  > `file(GLOB)` exists anywhere). R3 is 0 too. `item/EventBall.cpp`
+  > and its header are deleted: seven live statements against
+  > `EventBallObject` and `EventBallInfo`, neither table in `initdb/`,
+  > the file in no CMakeLists and the class named nowhere else.
+  > `handler/CGSayHandler.cpp`'s last live statement went with the
+  > `*notice` operator command, whose entire body was an INSERT into
+  > `quick1001` on a hard-coded remote BBS host: the host, database,
+  > user and **password were literals in the source** and the GM's chat
+  > text was interpolated **unquoted and unescaped** (`docs/FIXES.md`).
+  > The command answered the player nothing, so its dispatch branch and
+  > its body are gone; the declaration stays in `src/Core/CGSay.h`,
+  > which the client repo mirrors.
+  > Everything else R3 counted was an `executeQuery` inside a comment
+  > block, deleted with the block: five `mission/` files (among them
+  > `EventQuestRewardManager`, whose only member was that commented-out
+  > body and which nothing constructs), the commented-out
+  > `EffectBloodyWallLoader` and `EffectGrayDarknessLoader` in both
+  > their headers and their implementations, `SiegeWar`'s
+  > `recordSiegeWarStart` and `recordSiegeWarEnd` (declarations, bodies
+  > and both call sites) and the loginserver's `addLogoutPlayerData`
+  > (declaration, body and its call from `disconnect`).
   - Owner: R2/R3 ratchet tests; repository unit tests (fake/in-memory
     implementations for domain tests; MySQL-backed integration tier runs
     locally against the existing docker + `initdb/` schema).
