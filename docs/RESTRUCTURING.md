@@ -586,12 +586,87 @@ before anything else moves. Everything later shelters under this pin.
   > `GCShopListMysterious::getShopItem` and `GCShopVersion`'s two version
   > accessors — pinned in `tests/packet_store_test.cpp`. No golden
   > changed.
+  > The **quest, war and zone-selection set is pinned** — the 27 packets
+  > a client and a game server exchange around a quest, a war, the flag
+  > war, a castle's tax and the places a player picks: the thirteen
+  > client requests (`CGSelectQuest`, `CGFailQuest`, `CGGQuestAccept`,
+  > `CGGQuestCancel`, `CGSubmitScore`, `CGModifyTaxRatio`,
+  > `CGWithdrawTax`, `CGDonationMoney`, `CGSelectRegenZone`,
+  > `CGSelectPortal`, `CGSelectWayPoint`, `CGSelectTileEffect`,
+  > `CGRelicToObject`) and the fourteen answers they draw
+  > (`GCQuestStatus`, `GCSelectQuestID`, `GCMonsterKillQuestInfo`,
+  > `GCGQuestStatusInfo`, `GCGQuestStatusModify`, `GCMiniGameScores`,
+  > `GCWarList`, `GCWarScheduleList`, `GCFlagWarStatus`, `GCNotifyWin`,
+  > `GCNoticeEvent`, `GCRegenZoneStatus`, `GCEnterVampirePortal`,
+  > `GCAddHelicopter`), have code-0 goldens, loopback round trips and
+  > size/factory-max pins (`tests/packet_quest_war_test.cpp`), with
+  > extra goldens for the empty quest, kill-quest, general-quest,
+  > score, war and war-schedule listings, the quest record carrying no
+  > mission, the score table written past the ten `write()` caps it at,
+  > the war schedule whose five challengers and reinforcement are all
+  > nameless, and the notice code that carries no parameter. No packet
+  > in the family calls the encrypter or derives from one that does, so
+  > every golden is recorded at code 0 and each test also asserts the
+  > bytes do not vary with the code. The answers these handlers share
+  > with other families (`GCNPCResponse`, `GCModifyInformation`,
+  > `GCAddEffect`, `GCRemoveEffect`, `GCDeleteObject`, `GCCannotAdd`,
+  > `GCCreateItem`, `GCDeleteInventoryItem`, `GCAddVampire`,
+  > `GCSweeperBonusInfo`) are pinned in the social, combat, zone-scan,
+  > inventory and progression files; `GCAddHelicopter`, which the
+  > zone-scan set deferred as waypoint travel, is pinned here.
+  > `GCSystemMessage`, `GCSay` and `GCItemNameInfoList` are excluded:
+  > generic in-game text and the zone's item-name listing, sent from
+  > 138, 10 and 3 server sources across every family, and belonging to
+  > the chat set rather than to quests or wars. `GCNotifyWin` had a
+  > name-width pin in `tests/packet_roundtrip_test.cpp` and no golden,
+  > as the `GuildWarInfo` and `MissionInfo` records had a width pin
+  > each; all three are pinned in full here. Fifteen open write/read
+  > disagreements are stated as tests that flip when fixed
+  > (`GCRegenZoneStatus::read` appending its eight bytes behind the
+  > eight the constructor already pushed, so the packet cannot round
+  > trip at all; `GCMiniGameScores::getPacketSize` never advancing its
+  > iterator, so it counts the first name's length once per entry and a
+  > table of uneven names declares a size it does not send; the same
+  > packet deriving each name's length byte with no bound while its max
+  > budgets twenty bytes for one; `GCNoticeEvent::getCode` returning a
+  > BYTE of the WORD it puts on the wire, and its
+  > `setParameter(WORD, WORD)` assigning `makeDWORD` of the two halves
+  > to the code instead of the parameter; `GCGQuestStatusInfo`,
+  > `GCWarList`, `GCWarScheduleList`, `QuestStatusInfo`'s mission list
+  > and the `ValueList` inside a guild and a race war each deriving a
+  > count byte they cap nowhere, so the 256th entry wraps it to zero
+  > while `write()` emits every one; those two packets and
+  > `GCSelectQuestID`, `GCMonsterKillQuestInfo` and
+  > `GCGQuestStatusInfo` appending to the list they already hold
+  > instead of replacing it; `GCWarList`'s max budgeting twelve race
+  > wars and twelve guild wars and neither the count byte nor the war
+  > type byte in front of each record, so that very listing outgrows
+  > it; `GCWarScheduleList`'s guild names not being held to the sixteen
+  > its max budgets; `GCGQuestStatusModify` leaving uninitialised the
+  > record pointer `getPacketSize()` and `write()` dereference; and
+  > `MissionInfo::write` printing every mission to standard output on
+  > the wire path), and 18 of the 27 leave at least one member the
+  > default constructor never sets, pinned over poisoned storage. Six
+  > more are recorded in the test's header rather than tested:
+  > `GCWarList::read` casting the war type byte to the `WarType` enum
+  > before switching, so any byte past 3 is an out-of-range enum load;
+  > `GCFlagWarStatus` indexing its three-slot array with an unbounded
+  > `Race_t`; `GCGQuestStatusInfo` freeing no record (the loop is
+  > commented out) and `GCGQuestStatusModify::read` allocating one per
+  > call and freeing none; `GCSelectQuestID` and
+  > `GCMonsterKillQuestInfo` refusing a list past 255 through
+  > `Assert()`, which writes `assertion_failed.log` before it throws;
+  > `GCAddHelicopter`'s code getter being named `setCode`; and
+  > `GCNoticeEvent` taking a code it never compares against
+  > `NOTICE_EVENT_MAX`. No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set, the inventory
-  > and item handling set, the store, shop and stash dialogue and the
-  > character progression set pinned, the remaining non-encrypter
-  > coverage outstanding is the rest of GC/CG.
+  > and item handling set, the store, shop and stash dialogue, the
+  > character progression set and the quest, war and zone-selection set
+  > pinned, the remaining non-encrypter coverage outstanding is the rest
+  > of GC/CG, whose largest unpinned group is the chat and notice
+  > packets (`GCSystemMessage`, `GCSay` and their siblings).
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed
