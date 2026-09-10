@@ -372,10 +372,68 @@ before anything else moves. Everything later shelters under this pin.
   > lines move with them, `GCRemoveEffect` 255 → 515 and
   > `GCNPCAskDynamic` 11294 → 16425, both server-side read-buffer
   > budgets and not fields on the wire. No golden changed.
+  > The **inventory and item handling set is pinned** — the 37 packets
+  > the item handlers exchange to move, use, make, repair and throw an
+  > item: the twenty client requests (`CGAddGearToMouse`,
+  > `CGAddMouseToGear`, `CGAddInventoryToMouse`,
+  > `CGAddMouseToInventory`, `CGAddMouseToQuickSlot`,
+  > `CGAddQuickSlotToMouse`, `CGAddItemToItem`, `CGAddItemToCodeSheet`,
+  > `CGMixItem`, `CGMakeItem`, `CGThrowItem`, `CGThrowBomb`,
+  > `CGReloadFromInventory`, `CGReloadFromQuickSlot`,
+  > `CGUsePotionFromQuickSlot`, `CGUseItemFromGQuestInventory`,
+  > `CGUseMessageItemFromInventory`, `CGRequestRepair`,
+  > `CGGetEventItem`, `CGRequestNewbieItem`) and the seventeen answers they
+  > draw (`GCCannotAdd`, `GCCreateItem`, `GCDeleteInventoryItem`,
+  > `GCDeleteandPickUpOK`, `GCUseOK`, `GCAddItemToItemVerify`,
+  > `GCReloadOK`, `GCRemoveFromGear`, `GCAddGearToInventory`,
+  > `GCAddGearToZone`, `GCMakeItemOK`, `GCMakeItemFail`, the three
+  > `GCThrowItemOK` packets,
+  > `GCGQuestInventory`, `GCTimeLimitItemInfo`), have code-0 goldens,
+  > loopback round trips and size/factory-max pins
+  > (`tests/packet_inventory_test.cpp`), with extra goldens for the item
+  > that carries no options, the empty stat record, the empty material,
+  > item, time-limit and creature lists, and the parameterless and
+  > two-parameter shapes of the drop-one-item-on-another result.
+  > `CGUseMessageItemFromInventory` inherits the encrypter from
+  > `CGUseItemFromInventory` without calling it, so it is pinned here at
+  > codes 0..5; the family's other encrypter users are covered by
+  > the encrypter pins, the `PCItemInfo` / `SubItemInfo` /
+  > `InventoryInfo` / `GearInfo` / `ExtraInfo` item records by the
+  > handshake pins and `StoreInfo` by the zone-scan pins.
+  > `GCModifyMoney` and `GCSubInventoryInfo` are excluded: no registered
+  > factory and no source outside `src/Core` mentions them.
+  > `GCAddItemToInventory` and `GCChangeInventoryItemNum` have no packet
+  > id of their own and are pinned through `GCMakeItemOK` and
+  > `GCMakeItemFail`, the only packets that put them on the wire.
+  > Fourteen open write/read disagreements are stated as tests that flip
+  > when fixed (`GCAddItemToInventory::write()` emitting its option
+  > count twice, which `read()` consumes once, and an item count
+  > `getPacketSize()` never budgets for, so `GCMakeItemOK` declares a
+  > body two bytes short and cannot be read back at all;
+  > `GCAddItemToItemVerify::getPacketSize()` having no case for its
+  > THREE_ENCHANT_OK branch, so that result declares a bare code byte
+  > against the code and two parameters `write()` gives it, and the
+  > constructor leaving the second parameter uninitialised;
+  > `GCChangeInventoryItemNum` counting its material list in a BYTE it
+  > increments per entry and caps nowhere, exposing that count through
+  > `setChangedItemListNum()`, popping an entry without decrementing it,
+  > and letting a full list reach five times the 255 bytes the two
+  > crafting maxima budget for the record; `GCCreateItem`
+  > wrapping its option count at 256 and outgrowing its max with it;
+  > `GCGQuestInventory` doing the same with an item list its max budgets
+  > at 100, and its `read()` appending to the list the packet already
+  > holds; and 30 of the 37 leaving at least one member the default
+  > constructor never sets, pinned over poisoned storage). One more is
+  > recorded in the test's header rather than tested:
+  > `GCTimeLimitItemInfo::getTimeLimit()` answers 0xffff for an item it
+  > does not hold, a value a real remaining time can equal. No golden
+  > changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
-  > inter-server links, the social protocols, the combat feedback set
-  > and the movement, effect-lifecycle and NPC dialogue set pinned, the
-  > remaining non-encrypter coverage outstanding is the rest of GC/CG.
+  > inter-server links, the social protocols, the combat feedback set,
+  > the movement, effect-lifecycle and NPC dialogue set and the
+  > inventory and item handling set pinned, the remaining non-encrypter
+  > coverage outstanding is the store, shop and stash dialogue and the
+  > rest of GC/CG.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed
