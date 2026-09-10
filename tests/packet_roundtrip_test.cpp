@@ -278,7 +278,6 @@ TEST(GCSkillInfoTest, oustersLevelIsIncludedInFrameSize) {
         GCSkillInfo packet;
         packet.setPCType(PC_OUSTERS);
         auto* skills = new OustersSkillInfo();
-        skills->setListNum(count);
         for (int i = 0; i < count; ++i) {
             auto* skill = new SubOustersSkillInfo();
             skill->setSkillType(246 + i);

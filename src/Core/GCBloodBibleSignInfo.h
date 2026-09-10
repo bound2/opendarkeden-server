@@ -27,6 +27,8 @@ public:
         return PACKET_GC_BLOOD_BIBLE_SIGN_INFO;
     }
     PacketSize_t getPacketSize() const {
+        if (m_pInfo == NULL)
+            throw InvalidProtocolException("blood bible sign record missing");
         return m_pInfo->getSize();
     }
     string getPacketName() const {
@@ -38,12 +40,19 @@ public:
     BloodBibleSignInfo* getSignInfo() const {
         return m_pInfo;
     }
+
+    // A sender keeps the record it hands over; only the one read()
+    // allocates belongs to the packet.
     void setSignInfo(BloodBibleSignInfo* pInfo) {
+        clearSignInfo();
         m_pInfo = pInfo;
     }
 
 private:
-    BloodBibleSignInfo* m_pInfo;
+    void clearSignInfo();
+
+    BloodBibleSignInfo* m_pInfo = NULL;
+    bool m_bOwnsInfo = false;
 };
 
 //////////////////////////////////////////////////////////////////////////////

@@ -66,7 +66,7 @@ public:
 
 private:
     // SkillType
-    SkillType_t m_SkillType;
+    SkillType_t m_SkillType = 0;
 };
 
 

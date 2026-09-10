@@ -26,6 +26,15 @@ GCSkillInfo::GCSkillInfo()
 GCSkillInfo::~GCSkillInfo()
 
 {
+    clearList();
+}
+
+//--------------------------------------------------------------------------------
+// The packet owns the records it holds.
+//--------------------------------------------------------------------------------
+void GCSkillInfo::clearList()
+
+{
     while (!m_pPCSkillInfoList.empty()) {
         PCSkillInfo* pPCSkillInfo = m_pPCSkillInfoList.front();
         SAFE_DELETE(pPCSkillInfo);
@@ -41,12 +50,25 @@ void GCSkillInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The book replaces the one the packet holds.
+    clearList();
+
     //--------------------------------------------------
     // read pc type/info
     //--------------------------------------------------
-    iStream.read(m_PCType);
+    BYTE PCType = 0;
+    iStream.read(PCType);
+
+    if (!isKnownPCType(PCType))
+        throw InvalidProtocolException("invalid pc type");
+
+    m_PCType = PCType;
+
     BYTE m_ListNum = 0;
     iStream.read(m_ListNum);
+
+    if (m_ListNum > kMaxRecords)
+        throw InvalidProtocolException("too many skill records");
 
     switch (m_PCType) {
     case PC_SLAYER:
@@ -91,6 +113,12 @@ void GCSkillInfo::write(SocketOutputStream& oStream) const
     //--------------------------------------------------
     // write pc type
     //--------------------------------------------------
+    if (!isKnownPCType(m_PCType))
+        throw InvalidProtocolException("invalid pc type");
+
+    if (m_pPCSkillInfoList.size() > kMaxRecords)
+        throw InvalidProtocolException("too many skill records");
+
     oStream.write(m_PCType);
 
     BYTE szSkill = m_pPCSkillInfoList.size();

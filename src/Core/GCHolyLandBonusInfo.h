@@ -56,11 +56,17 @@ public:
     string toString() const;
 
 public:
+    // The count travels in a BYTE and the factory max budgets this many
+    // bonuses.
+    static constexpr size_t kMaxEntries = 12;
+
     BYTE getListNum() const {
         return m_BloodBibleBonusInfoList.size();
     }
 
     void addBloodBibleBonusInfo(BloodBibleBonusInfo* pBloodBibleBonusInfo) {
+        if (m_BloodBibleBonusInfoList.size() >= kMaxEntries)
+            throw InvalidProtocolException("too many holy land bonuses");
         m_BloodBibleBonusInfoList.push_back(pBloodBibleBonusInfo);
     }
 
@@ -93,7 +99,8 @@ class GCHolyLandBonusInfoFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_HOLY_LAND_BONUS_INFO;
     static constexpr std::string_view kName = "GCHolyLandBonusInfo";
-    static constexpr PacketSize_t kMaxSize{szBYTE + BloodBibleBonusInfo::getMaxSize() * 12};
+    static constexpr PacketSize_t kMaxSize{szBYTE +
+                                           BloodBibleBonusInfo::getMaxSize() * GCHolyLandBonusInfo::kMaxEntries};
 
     // create packet
     Packet* createPacket() override {

@@ -50,8 +50,8 @@ public:
     }
 
 private:
-    SkillDomainType_t m_DomainType; // NPC가 가르쳐주는 기술의 도메인 타입
-    SkillLevel_t m_TargetLevel;     // 플레이어가 이제 배울 기술 레벨
+    SkillDomainType_t m_DomainType = 0; // NPC가 가르쳐주는 기술의 도메인 타입
+    SkillLevel_t m_TargetLevel = 0;     // 플레이어가 이제 배울 기술 레벨
 };
 
 //////////////////////////////////////////////////////////////////////////////

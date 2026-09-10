@@ -71,8 +71,8 @@ public:
     }
 
 private:
-    DWORD m_RankBonusType;
-    BYTE m_Desc; // ½ÇÆÐÄÚµå
+    DWORD m_RankBonusType = 0;
+    BYTE m_Desc = 0; // ½ÇÆÐÄÚµå
 };
 
 

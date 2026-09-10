@@ -56,11 +56,17 @@ public:
     string toString() const;
 
 public:
+    // The count travels in a BYTE and the factory max budgets this many
+    // bonuses.
+    static constexpr size_t kMaxEntries = 12;
+
     BYTE getListNum() const {
         return m_SweeperBonusInfoList.size();
     }
 
     void addSweeperBonusInfo(SweeperBonusInfo* pSweeperBonusInfo) {
+        if (m_SweeperBonusInfoList.size() >= kMaxEntries)
+            throw InvalidProtocolException("too many sweeper bonuses");
         m_SweeperBonusInfoList.push_back(pSweeperBonusInfo);
     }
 
@@ -93,7 +99,7 @@ class GCSweeperBonusInfoFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_SWEEPER_BONUS_INFO;
     static constexpr std::string_view kName = "GCSweeperBonusInfo";
-    static constexpr PacketSize_t kMaxSize{szBYTE + SweeperBonusInfo::getMaxSize() * 12};
+    static constexpr PacketSize_t kMaxSize{szBYTE + SweeperBonusInfo::getMaxSize() * GCSweeperBonusInfo::kMaxEntries};
 
     // create packet
     Packet* createPacket() override {

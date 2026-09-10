@@ -34,6 +34,10 @@ public:
     string toString() const;
 
 public:
+    // The count travels in a BYTE and the factory max budgets this many
+    // blood bibles.
+    static constexpr size_t kMaxEntries = 12;
+
     vector<ItemType_t>& getList() {
         return m_BloodBibleList;
     }
@@ -53,7 +57,7 @@ class GCBloodBibleListFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_BLOOD_BIBLE_LIST;
     static constexpr std::string_view kName = "GCBloodBibleList";
-    static constexpr PacketSize_t kMaxSize{szBYTE + szItemType * 12};
+    static constexpr PacketSize_t kMaxSize{szBYTE + szItemType * GCBloodBibleList::kMaxEntries};
 
     Packet* createPacket() override {
         return new GCBloodBibleList();

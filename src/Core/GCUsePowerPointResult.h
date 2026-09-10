@@ -103,7 +103,7 @@ private:
     BYTE m_ItemCode;
 
     // 파워 포인트
-    int m_PowerPoint;
+    int m_PowerPoint = 0;
 };
 
 

@@ -44,9 +44,16 @@ BloodBibleSignInfo::~BloodBibleSignInfo() {
 void BloodBibleSignInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
+    // The signs replace the ones the record holds.
+    m_SignList.clear();
+
     iStream.read(m_OpenNum);
     BYTE num;
     iStream.read(num);
+
+    if (num > BLOOD_BIBLE_SIGN_SLOT_NUM)
+        throw InvalidProtocolException("too many blood bible signs");
+
     for (int i = 0; i < num; ++i) {
         ItemType_t type;
         iStream.read(type);

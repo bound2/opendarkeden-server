@@ -214,7 +214,6 @@ void SweeperBonusManager::makeSweeperBonusInfo(GCSweeperBonusInfo& gcSweeperBonu
         SweeperBonusInfo* pInfo = new SweeperBonusInfo();
         SweeperBonus* pBonus = itr->second;
 
-        pInfo->setType(pBonus->getType());
         pInfo->setRace(pBonus->getRace());
         pInfo->setOptionType(pBonus->getOptionTypeList());
 
@@ -234,7 +233,6 @@ void SweeperBonusManager::makeVoidSweeperBonusInfo(GCSweeperBonusInfo& gcSweeper
         SweeperBonusInfo* pInfo = new SweeperBonusInfo();
         SweeperBonus* pBonus = itr->second;
 
-        pInfo->setType(pBonus->getType());
         pInfo->setRace(3);
         pInfo->setOptionType(pBonus->getOptionTypeList());
 

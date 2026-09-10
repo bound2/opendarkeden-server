@@ -71,9 +71,9 @@ public:
     }
 
 private:
-    SkillType_t m_SkillType;
-    BYTE m_Desc; // ±â¼úÀ» ¹è¿ì´Â µ¥ ½ÇÆÐÇÑ ÀÌÀ¯ÀÌ´Ù.
-                 // ÀÚ¼¼ÇÑ ³»¿ëÀº CGLearnSkillHandler¸¦ Âü°íÇÏµµ·Ï.
+    SkillType_t m_SkillType = 0;
+    BYTE m_Desc = 0; // ±â¼úÀ» ¹è¿ì´Â µ¥ ½ÇÆÐÇÑ ÀÌÀ¯ÀÌ´Ù.
+                     // ÀÚ¼¼ÇÑ ³»¿ëÀº CGLearnSkillHandler¸¦ Âü°íÇÏµµ·Ï.
 };
 
 

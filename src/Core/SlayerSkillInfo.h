@@ -43,8 +43,11 @@ public:
     // Serialized size varies with the contained skill list.
     PacketSize_t getSize();
 
+    // The skill count travels in a BYTE and the max budgets this many.
+    static constexpr size_t kMaxSkills = 255;
+
     static constexpr uint getMaxSize() {
-        return szBYTE + szSkillDomainType + szBYTE + (SubSlayerSkillInfo::getMaxSize() * 255);
+        return szBYTE + szSkillDomainType + szBYTE + (SubSlayerSkillInfo::getMaxSize() * kMaxSkills);
     }
 
     // get packet's debug string
@@ -66,24 +69,20 @@ public:
         m_DomainType = DomainType;
     }
 
-    // get / set ListNumber
+    // get ListNumber: the count write() emits is the list itself.
     BYTE getListNum() const {
-        return m_ListNum;
-    }
-    void setListNum(BYTE ListNum) {
-        m_ListNum = ListNum;
+        return (BYTE)m_SubSlayerSkillInfoList.size();
     }
 
     // add / delete / clear S List
     void addListElement(SubSlayerSkillInfo* pSubSlayerSkillInfo) {
+        if (m_SubSlayerSkillInfoList.size() >= kMaxSkills)
+            throw InvalidProtocolException("too many slayer skills");
         m_SubSlayerSkillInfoList.push_back(pSubSlayerSkillInfo);
     }
 
     // ClearList
-    void clearList() {
-        m_SubSlayerSkillInfoList.clear();
-        m_ListNum = 0;
-    }
+    void clearList();
 
     // pop front Element in Status List
     SubSlayerSkillInfo* popFrontListElement() {
@@ -97,9 +96,6 @@ private:
     bool m_bLearnNewSkill;
 
     SkillDomainType_t m_DomainType;
-
-    // SubSlayerSkillInfo List Total Number
-    BYTE m_ListNum;
 
     // SubSlayerSkillInfo List
     list<SubSlayerSkillInfo*> m_SubSlayerSkillInfoList;

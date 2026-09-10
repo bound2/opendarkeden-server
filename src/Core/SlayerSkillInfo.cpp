@@ -23,7 +23,6 @@ SlayerSkillInfo::SlayerSkillInfo() {
     __BEGIN_TRY
     m_bLearnNewSkill = false;
     m_DomainType = 0;
-    m_ListNum = 0;
     __END_CATCH
 }
 
@@ -32,7 +31,14 @@ SlayerSkillInfo::SlayerSkillInfo() {
 // destructor
 //////////////////////////////////////////////////////////////////////
 SlayerSkillInfo::~SlayerSkillInfo() noexcept {
-    // �Ҽӵ� ��� ��ü���� �����Ѵ�.
+    clearList();
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// The record owns the skills it holds.
+//////////////////////////////////////////////////////////////////////
+void SlayerSkillInfo::clearList() {
     while (!m_SubSlayerSkillInfoList.empty()) {
         SubSlayerSkillInfo* pSubSlayerSkillInfo = m_SubSlayerSkillInfoList.front();
         SAFE_DELETE(pSubSlayerSkillInfo);
@@ -48,11 +54,28 @@ void SlayerSkillInfo::read(SocketInputStream& iStream) {
     __BEGIN_TRY
 
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
-    iStream.read(m_bLearnNewSkill);
-    iStream.read(m_DomainType);
-    iStream.read(m_ListNum);
+    // The list replaces the one the record holds.
+    clearList();
 
-    for (int i = 0; i < m_ListNum; i++) {
+    // A bool holds 0 or 1, so any other byte is refused rather than
+    // stored in one.
+    BYTE learnNewSkill = 0;
+    iStream.read(learnNewSkill);
+
+    if (learnNewSkill > 1)
+        throw InvalidProtocolException("learn flag is not a bool");
+
+    m_bLearnNewSkill = learnNewSkill != 0;
+
+    iStream.read(m_DomainType);
+
+    BYTE ListNum = 0;
+    iStream.read(ListNum);
+
+    if (ListNum > kMaxSkills)
+        throw InvalidProtocolException("too many slayer skills");
+
+    for (int i = 0; i < ListNum; i++) {
         SubSlayerSkillInfo* pSubSlayerSkillInfo = new SubSlayerSkillInfo();
         pSubSlayerSkillInfo->read(iStream);
         m_SubSlayerSkillInfoList.push_back(pSubSlayerSkillInfo);
@@ -69,9 +92,12 @@ void SlayerSkillInfo::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
     // ����ȭ �۾��� ���� ũ�⸦ �����ϵ��� �Ѵ�.
+    if (m_SubSlayerSkillInfoList.size() > kMaxSkills)
+        throw InvalidProtocolException("too many slayer skills");
+
     oStream.write(m_bLearnNewSkill);
     oStream.write(m_DomainType);
-    oStream.write(m_ListNum);
+    oStream.write((BYTE)m_SubSlayerSkillInfoList.size());
 
     for (list<SubSlayerSkillInfo*>::const_iterator itr = m_SubSlayerSkillInfoList.begin();
          itr != m_SubSlayerSkillInfoList.end(); itr++) {
@@ -107,7 +133,7 @@ string SlayerSkillInfo::toString() const {
 
     StringStream msg;
 
-    msg << "SlayerSkillInfo( ListNum:" << (int)m_ListNum << " ListSet( ";
+    msg << "SlayerSkillInfo( ListNum:" << (int)m_SubSlayerSkillInfoList.size() << " ListSet( ";
 
     for (list<SubSlayerSkillInfo*>::const_iterator itr = m_SubSlayerSkillInfoList.begin();
          itr != m_SubSlayerSkillInfoList.end(); itr++) {
