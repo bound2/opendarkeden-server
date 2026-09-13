@@ -3404,9 +3404,7 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         if (pPC->getPetInfo() != NULL)
             sendPetInfo(pGamePlayer);
         // 존 이동할때  넣어주는 패킷
-        Packet* pNicknamePacket = pPC->getNicknameBook()->getNicknameBookListPacket();
-        pPC->getPlayer()->sendPacket(pNicknamePacket);
-        SAFE_DELETE(pNicknamePacket);
+        pPC->getPlayer()->sendPacket(pPC->getNicknameBook()->getNicknameBookListPacket().get());
 
         Packet* pGQuestPacket = pPC->getGQuestManager()->getStatusInfoPacket();
         pPC->getPlayer()->sendPacket(pGQuestPacket);

@@ -189,9 +189,7 @@ void CGGetEventItemHandler::executeCombackItem(CGGetEventItem* pPacket, Player* 
                 Assert(pNicknameBook != NULL);
 
                 pNicknameBook->addNewNickname("Come Back!");
-                Packet* pNicknamePacket = pNicknameBook->getNicknameBookListPacket();
-                pGamePlayer->sendPacket(pNicknamePacket);
-                SAFE_DELETE(pNicknamePacket);
+                pGamePlayer->sendPacket(pNicknameBook->getNicknameBookListPacket().get());
             } else {
                 // 이미 아이템을 받아갔다.
                 GCNPCResponse response;

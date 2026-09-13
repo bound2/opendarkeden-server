@@ -1,13 +1,15 @@
 #ifndef __NICKNAME_BOOK_H__
 #define __NICKNAME_BOOK_H__
 
+#include <memory>
+
 #include <unordered_map>
 
+#include "GCNicknameList.h"
 #include "NicknameInfo.h"
 #include "Types.h"
 
 class PlayerCreature;
-class Packet;
 class NicknameRepository;
 
 class NicknameBook {
@@ -23,7 +25,10 @@ public:
         m_Nicknames[id] = pInfo;
     }
 
-    Packet* getNicknameBookListPacket() const;
+    // The listing the client redraws the book from. Its records belong to
+    // the book, so the packet must not outlive them and owns none of them;
+    // the caller sends it and lets it go.
+    std::unique_ptr<GCNicknameList> getNicknameBookListPacket() const;
     WORD popNicknameID() {
         return m_NextNicknameID++;
     }
