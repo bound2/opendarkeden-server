@@ -58,7 +58,7 @@ public:
 
 public:
     // get/set vampire info
-    const PCVampireInfo3& getSlayerInfo() {
+    const PCVampireInfo3& getVampireInfo() {
         return m_VampireInfo3;
     }
     void setVampireInfo(PCVampireInfo3 info) {

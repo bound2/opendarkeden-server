@@ -93,16 +93,16 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // 한 턴
-    BYTE m_Delay;
+    BYTE m_Delay = 0;
 
     // 몇번
-    HP_t m_Period;
+    HP_t m_Period = 0;
 
     // 얼마나
-    HP_t m_Quantity;
+    HP_t m_Quantity = 0;
 };
 
 

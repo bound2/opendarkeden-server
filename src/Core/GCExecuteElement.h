@@ -24,9 +24,23 @@ public:
     ~GCExecuteElement();
 
 public:
+    // The conditions a quest element fires under: Happen, Complete,
+    // Fail, Reward.
+    static constexpr BYTE kConditionMax = 4;
+
     void read(SocketInputStream& iStream) {
         iStream.read(m_QuestID);
-        iStream.read(m_Condition);
+
+        // A byte carries more values than there are conditions, so it is
+        // tested before it is stored.
+        BYTE condition = 0;
+        iStream.read(condition);
+
+        if (condition >= kConditionMax)
+            throw InvalidProtocolException("element condition out of range");
+
+        m_Condition = condition;
+
         iStream.read(m_Index);
     }
     void write(SocketOutputStream& oStream) const {
@@ -68,9 +82,9 @@ public:
     }
 
 private:
-    DWORD m_QuestID;
-    BYTE m_Condition; // 어느 조건에 있는가 0 : Happen, 1 : Complete, 2 : Fail, 3 : Reward
-    WORD m_Index;     // 해당 조건의 몇번째 element인가
+    DWORD m_QuestID = 0;
+    BYTE m_Condition = 0; // 어느 조건에 있는가 0 : Happen, 1 : Complete, 2 : Fail, 3 : Reward
+    WORD m_Index = 0;     // 해당 조건의 몇번째 element인가
 };
 
 

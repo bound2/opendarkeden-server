@@ -66,7 +66,7 @@ public:
 private:
     // 번개가 친 후, 천둥이 올 때까지의 딜레이시간
     // 1 -> 0.1초
-    BYTE m_Delay;
+    BYTE m_Delay = 0;
 };
 
 

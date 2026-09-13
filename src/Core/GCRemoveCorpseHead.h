@@ -80,7 +80,7 @@ public:
 
 private:
     // object id
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 };
 
 

@@ -84,13 +84,13 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // TargetObjectID
-    ObjectID_t m_TargetObjectID;
+    ObjectID_t m_TargetObjectID = 0;
 
     // CounterSkillType
-    SkillType_t m_SkillType;
+    SkillType_t m_SkillType = 0;
 };
 
 

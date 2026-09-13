@@ -66,9 +66,9 @@ public:
     }
 
 public:
-    Weather m_Weather;
+    Weather m_Weather = WEATHER_CLEAR;
 
-    WeatherLevel_t m_WeatherLevel;
+    WeatherLevel_t m_WeatherLevel = 0;
 };
 
 

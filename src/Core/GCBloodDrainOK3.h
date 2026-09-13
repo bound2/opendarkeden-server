@@ -77,10 +77,10 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // TargetObjectID
-    ObjectID_t m_TargetObjectID;
+    ObjectID_t m_TargetObjectID = 0;
 };
 
 

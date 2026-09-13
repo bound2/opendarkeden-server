@@ -93,17 +93,9 @@ public:
         m_Outlook.reset();
     }
 
-    PCSlayerInfo3(const PCSlayerInfo3& slayerInfo)
-        : m_ObjectID(slayerInfo.m_ObjectID), m_Name(slayerInfo.m_Name), m_X(slayerInfo.m_X), m_Y(slayerInfo.m_Y),
-          m_Dir(slayerInfo.m_Dir), m_Outlook(slayerInfo.m_Outlook), m_MasterEffectColor(slayerInfo.m_MasterEffectColor),
-          m_CurrentHP(slayerInfo.m_CurrentHP), m_MaxHP(slayerInfo.m_MaxHP), m_AttackSpeed(slayerInfo.m_AttackSpeed),
-          m_Alignment(slayerInfo.m_Alignment), m_GuildID(slayerInfo.m_GuildID), m_Rank(slayerInfo.m_Rank),
-          m_AdvancementLevel(slayerInfo.m_AdvancementLevel) {
-        for (uint i = 0; i < SLAYER_COLOR_MAX; i++)
-            m_Colors[i] = slayerInfo.m_Colors[i]; // 슬레이어 색깔 정보
-
-        m_Competence = slayerInfo.m_Competence;
-    }
+    // The record is plain data, so a copy carries every member write()
+    // emits.
+    PCSlayerInfo3(const PCSlayerInfo3& slayerInfo) = default;
 
 
 public:
@@ -144,34 +136,7 @@ public:
                + szuint + szLevel;
     }
 
-    PCSlayerInfo3& operator=(const PCSlayerInfo3& slayerInfo) {
-        if (&slayerInfo == this)
-            return *this;
-        m_ObjectID = slayerInfo.m_ObjectID;
-        m_Name = slayerInfo.m_Name;
-        m_X = slayerInfo.m_X;
-        m_Y = slayerInfo.m_Y;
-        m_Dir = slayerInfo.m_Dir;
-        m_Outlook = slayerInfo.m_Outlook;
-        m_CurrentHP = slayerInfo.m_CurrentHP;
-        m_MaxHP = slayerInfo.m_MaxHP;
-        m_AttackSpeed = slayerInfo.m_AttackSpeed;
-        m_Alignment = slayerInfo.m_Alignment;
-
-        for (uint i = 0; i < SLAYER_COLOR_MAX; i++)
-            m_Colors[i] = slayerInfo.m_Colors[i]; // 슬레이어 색깔 정보
-
-        m_MasterEffectColor = slayerInfo.m_MasterEffectColor;
-
-        m_Competence = slayerInfo.m_Competence;
-        m_GuildID = slayerInfo.m_GuildID;
-        m_UnionID = slayerInfo.m_UnionID;
-
-        m_Rank = slayerInfo.m_Rank;
-        m_AdvancementLevel = slayerInfo.m_AdvancementLevel;
-
-        return *this;
-    }
+    PCSlayerInfo3& operator=(const PCSlayerInfo3& slayerInfo) = default;
 
     string toString() const;
 
@@ -420,23 +385,23 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID;              // OID
-    string m_Name;                      // PC의 이름
-    Coord_t m_X;                        // X 좌표
-    Coord_t m_Y;                        // Y 좌표
-    Dir_t m_Dir;                        // 방향
-    bitset<SLAYER_BIT_MAX> m_Outlook;   // 슬레이어외모정보
-    Color_t m_Colors[SLAYER_COLOR_MAX]; // 슬레이어색깔정보
-    BYTE m_MasterEffectColor;           // 마스터 이펙트 색깔
-    HP_t m_CurrentHP;                   // 슬레이어현재체력
-    HP_t m_MaxHP;                       // 슬레이어최대체력
-    Speed_t m_AttackSpeed;              // 공격속도
-    Alignment_t m_Alignment;            // 성향
-    BYTE m_Competence;                  // 권한
-    GuildID_t m_GuildID;                // 길드 아이디
-    uint m_UnionID;
-    Rank_t m_Rank; // 계급
-    Level_t m_AdvancementLevel;
+    ObjectID_t m_ObjectID = 0;               // OID
+    string m_Name;                           // PC의 이름
+    Coord_t m_X = 0;                         // X 좌표
+    Coord_t m_Y = 0;                         // Y 좌표
+    Dir_t m_Dir = 0;                         // 방향
+    bitset<SLAYER_BIT_MAX> m_Outlook;        // 슬레이어외모정보
+    Color_t m_Colors[SLAYER_COLOR_MAX] = {}; // 슬레이어색깔정보
+    BYTE m_MasterEffectColor = 0;            // 마스터 이펙트 색깔
+    HP_t m_CurrentHP = 0;                    // 슬레이어현재체력
+    HP_t m_MaxHP = 0;                        // 슬레이어최대체력
+    Speed_t m_AttackSpeed = 0;               // 공격속도
+    Alignment_t m_Alignment = 0;             // 성향
+    BYTE m_Competence = 0;                   // 권한
+    GuildID_t m_GuildID = 0;                 // 길드 아이디
+    uint m_UnionID = 0;
+    Rank_t m_Rank = 0; // 계급
+    Level_t m_AdvancementLevel = 0;
 };
 
 #endif

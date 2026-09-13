@@ -85,13 +85,13 @@ public:
 
 private:
     // 한 턴
-    BYTE m_Delay;
+    BYTE m_Delay = 0;
 
     // 몇번
-    MP_t m_Period;
+    MP_t m_Period = 0;
 
     // 얼마나
-    MP_t m_Quantity;
+    MP_t m_Quantity = 0;
 };
 
 

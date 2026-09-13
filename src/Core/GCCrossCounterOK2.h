@@ -77,9 +77,9 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
-    SkillType_t m_SkillType;
+    SkillType_t m_SkillType = 0;
 };
 
 

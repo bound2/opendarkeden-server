@@ -82,7 +82,7 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // ObjectID
+    ObjectID_t m_ObjectID = 0; // ObjectID
     /*
         Coord_t m_X;			// X 좌표
         Coord_t m_Y;			// Y 좌표

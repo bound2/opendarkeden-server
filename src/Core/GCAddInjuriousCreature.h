@@ -53,11 +53,12 @@ public:
     string toString() const;
 
     // get/set Name
+    // The field carries a character name, so it stops where one does.
     string getName() const {
         return m_Name;
     }
     void setName(const string& Name) {
-        m_Name = Name;
+        m_Name = (Name.size() > maxNameLength) ? Name.substr(0, maxNameLength) : Name;
     }
 
 private:
@@ -77,7 +78,7 @@ class GCAddInjuriousCreatureFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_ADD_INJURIOUS_CREATURE;
     static constexpr std::string_view kName = "GCAddInjuriousCreature";
-    static constexpr PacketSize_t kMaxSize{szBYTE + 10};
+    static constexpr PacketSize_t kMaxSize{szBYTE + maxNameLength};
 
     // create packet
     Packet* createPacket() override {

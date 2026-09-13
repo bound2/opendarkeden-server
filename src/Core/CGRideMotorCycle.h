@@ -82,13 +82,13 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // Coord X
-    Coord_t m_X;
+    Coord_t m_X = 0;
 
     // Coord Y
-    Coord_t m_Y;
+    Coord_t m_Y = 0;
 };
 
 

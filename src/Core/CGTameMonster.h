@@ -50,7 +50,7 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // ObjectID
+    ObjectID_t m_ObjectID = 0; // ObjectID
 };
 
 

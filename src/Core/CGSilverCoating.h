@@ -41,7 +41,7 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // Item Object ID
+    ObjectID_t m_ObjectID = 0; // Item Object ID
 };
 
 

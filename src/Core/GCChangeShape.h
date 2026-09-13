@@ -113,21 +113,21 @@ public:
 
 private:
     // 크리처 아이디
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // Item Class
-    BYTE m_ItemClass;
+    BYTE m_ItemClass = 0;
 
     // Item Type
-    ItemType_t m_ItemType;
+    ItemType_t m_ItemType = 0;
 
     // Option Type
-    OptionType_t m_OptionType;
+    OptionType_t m_OptionType = 0;
 
     // Attack Speed
-    Speed_t m_AttackSpeed;
+    Speed_t m_AttackSpeed = 0;
 
-    BYTE m_Flag;
+    BYTE m_Flag = 0;
 };
 
 
