@@ -61,7 +61,7 @@ public:
 
 private:
     // Guild ID
-    GuildID_t m_GuildID;
+    GuildID_t m_GuildID = 0;
 };
 
 

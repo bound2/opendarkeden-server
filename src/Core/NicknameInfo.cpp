@@ -1,6 +1,5 @@
 #include "NicknameInfo.h"
 
-#include "Assert.h"
 #include "Exception.h"
 #include "WireString.h"
 
@@ -14,12 +13,10 @@ PacketSize_t NicknameInfo::getSize() const {
         return szWORD + szBYTE + szWORD;
     case NICK_CUSTOM_FORCED:
     case NICK_CUSTOM:
-        return szWORD + szBYTE + szBYTE + m_Nickname.size();
+        return szWORD + szBYTE + de::wire::stringWireSize(m_Nickname);
     default:
-        Assert(false);
+        throw InvalidProtocolException("nickname type out of range");
     }
-
-    return 0;
 }
 
 void NicknameInfo::read(SocketInputStream& iStream) {
@@ -40,11 +37,11 @@ void NicknameInfo::read(SocketInputStream& iStream) {
     }
     case NICK_CUSTOM_FORCED:
     case NICK_CUSTOM: {
-        de::wire::readString(iStream, m_Nickname, {1, MAX_NICKNAME_SIZE}, "Nickname");
+        de::wire::readString(iStream, m_Nickname, {0, MAX_NICKNAME_SIZE}, "Nickname");
         break;
     }
     default:
-        Assert(false);
+        throw InvalidProtocolException("nickname type out of range");
     }
 
     __END_CATCH
@@ -68,11 +65,11 @@ void NicknameInfo::write(SocketOutputStream& oStream) const {
     }
     case NICK_CUSTOM_FORCED:
     case NICK_CUSTOM: {
-        de::wire::writeString(oStream, m_Nickname, {0, de::wire::kMaxByteStringLength}, "Nickname");
+        de::wire::writeString(oStream, m_Nickname, {0, MAX_NICKNAME_SIZE}, "Nickname");
         break;
     }
     default:
-        Assert(false);
+        throw InvalidProtocolException("nickname type out of range");
     }
 
     __END_CATCH

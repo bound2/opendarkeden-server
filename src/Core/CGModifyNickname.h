@@ -39,7 +39,7 @@ public:
     ObjectID_t getItemObjectID() const {
         return m_ItemObjectID;
     }
-    void setItemObjectID(WORD id) {
+    void setItemObjectID(ObjectID_t id) {
         m_ItemObjectID = id;
     }
 
@@ -51,7 +51,7 @@ public:
     }
 
 private:
-    ObjectID_t m_ItemObjectID;
+    ObjectID_t m_ItemObjectID = 0;
     string m_Nickname;
 };
 

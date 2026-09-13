@@ -20,7 +20,9 @@
 // class GCNicknameList;
 //////////////////////////////////////////////////////////////////////////////
 
-#define MAX_NICKNAME_NUM 500
+// The count byte in front of the listing carries no more than this, so
+// the factory max budgets the same number of records.
+#define MAX_NICKNAME_NUM 255
 
 class GCNicknameList : public Packet {
 public:
@@ -40,12 +42,17 @@ public:
     string toString() const;
 
 public:
+    // A sender keeps the records it fills the listing with; only the
+    // ones read() allocates belong to the packet.
     vector<NicknameInfo*>& getNicknames() {
         return m_Nicknames;
     }
 
 private:
+    void clearNicknames();
+
     vector<NicknameInfo*> m_Nicknames;
+    bool m_bOwnsNicknames = false;
 };
 
 //////////////////////////////////////////////////////////////////////////////

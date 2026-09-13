@@ -419,12 +419,16 @@ TEST(CGAddSMSAddressTest, theThreeFieldsStopAtWhatTheFactoryMaxBudgets) {
     src.setNumber(std::string(12, '7'));
     EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
 
+    // Both halves admit an empty value in each of the three.
     CGAddSMSAddress noNumber;
     noNumber.setCharacterName("Name");
     noNumber.setCustomName("Custom");
 
     CGAddSMSAddress back;
-    EXPECT_THROW(roundTrip(noNumber, back, kStringFieldCode), InvalidProtocolException);
+    roundTrip(noNumber, back, kStringFieldCode);
+    EXPECT_EQ("Name", back.getCharacterName());
+    EXPECT_EQ("Custom", back.getCustomName());
+    EXPECT_TRUE(back.getNumber().empty());
 }
 
 TEST(CGCrashReportTest, theWordPrefixedFieldsStopAtTheirCaps) {
@@ -503,13 +507,13 @@ TEST(GCBloodBibleStatusTest, theOwnerNameStopsAtWhatItsLengthByteCarries) {
     EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
 }
 
-// The one packet here whose two halves cap the same field differently:
-// the message is refused past 128 on read and past 512 on write.
-TEST(GCFriendChattingTest, theNameAndTheMessageKeepTheirOwnCaps) {
+// The name stops at 32 and the message at 512, on both sides, and both
+// are admitted empty: most of the sends leave them so.
+TEST(GCFriendChattingTest, theNameAndTheMessageKeepTheSameCapsOnBothSides) {
     GCFriendChatting src;
     src.setCommand(GC_MESSAGE);
     src.setPlayerName(std::string(32, 'p'));
-    src.setMessage(std::string(128, 'm'));
+    src.setMessage(std::string(512, 'm'));
     src.setIsBlack(1);
     src.setIsOnLine(1);
 
@@ -518,22 +522,24 @@ TEST(GCFriendChattingTest, theNameAndTheMessageKeepTheirOwnCaps) {
     EXPECT_EQ(src.getPlayerName(), dst.getPlayerName());
     EXPECT_EQ(src.getMessage(), dst.getMessage());
 
-    src.setMessage(std::string(129, 'm'));
-    GCFriendChatting refused;
-    EXPECT_THROW(roundTrip(src, refused, kStringFieldCode), InvalidProtocolException);
+    GCFriendChattingFactory factory;
+    EXPECT_LE(src.getPacketSize(), factory.getPacketMaxSize());
 
     src.setMessage(std::string(513, 'm'));
     EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
 
+    src.setMessage("still refused");
     src.setPlayerName(std::string(33, 'p'));
     EXPECT_THROW(writeBody(src, kStringFieldCode), InvalidProtocolException);
 
-    // Most of the sends leave both strings empty; read() refuses that.
     GCFriendChatting bare;
     bare.setCommand(GC_ADD_FRIEND_ERROR);
 
     GCFriendChatting bareBack;
-    EXPECT_THROW(roundTrip(bare, bareBack, kStringFieldCode), InvalidProtocolException);
+    roundTrip(bare, bareBack, kStringFieldCode);
+    EXPECT_EQ(bare.getCommand(), bareBack.getCommand());
+    EXPECT_TRUE(bareBack.getPlayerName().empty());
+    EXPECT_TRUE(bareBack.getMessage().empty());
 }
 
 TEST(GCNotifyWinTest, theNameStopsAtWhatItsLengthByteCarries) {

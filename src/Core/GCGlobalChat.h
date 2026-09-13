@@ -84,10 +84,10 @@ private:
     string m_Message;
 
     // text color
-    uint m_Color;
+    uint m_Color = 0;
 
     // race
-    Race_t m_Race;
+    Race_t m_Race = 0;
 };
 
 

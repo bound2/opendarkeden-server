@@ -70,7 +70,7 @@ public:
 
 private:
     // GuildID
-    GuildID_t m_GuildID;
+    GuildID_t m_GuildID = 0;
 
     // name
     string m_Name;

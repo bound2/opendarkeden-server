@@ -24,6 +24,8 @@ public:
         return PACKET_GC_MODIFY_NICKNAME;
     }
     PacketSize_t getPacketSize() const {
+        if (m_pNicknameInfo == NULL)
+            throw InvalidProtocolException("nickname record missing");
         return szObjectID + m_pNicknameInfo->getSize();
     }
     string getPacketName() const {
@@ -39,17 +41,29 @@ public:
         return m_ObjectID;
     }
 
-    //	NicknameInfo&	getNicknameInfo() { return m_NicknameInfo; }
     NicknameInfo* getNicknameInfo() const {
         return m_pNicknameInfo;
     }
+
+    // A sender keeps the record it hands over; only the one read()
+    // allocates belongs to the packet.
     void setNicknameInfo(NicknameInfo* pNicknameInfo) {
+        clearNicknameInfo();
         m_pNicknameInfo = pNicknameInfo;
     }
 
 private:
-    ObjectID_t m_ObjectID;
-    NicknameInfo* m_pNicknameInfo;
+    void clearNicknameInfo() {
+        if (m_bOwnsNicknameInfo)
+            delete m_pNicknameInfo;
+
+        m_pNicknameInfo = NULL;
+        m_bOwnsNicknameInfo = false;
+    }
+
+    ObjectID_t m_ObjectID = 0;
+    NicknameInfo* m_pNicknameInfo = NULL;
+    bool m_bOwnsNicknameInfo = false;
 };
 
 class GCModifyNicknameFactory : public PacketFactory {

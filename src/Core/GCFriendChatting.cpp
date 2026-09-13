@@ -25,9 +25,10 @@ void GCFriendChatting::read(SocketInputStream& iStream) {
 
     iStream.read(m_Command);
 
-    // The message is refused past 128 here and past 512 on write.
-    de::wire::readString(iStream, m_PlayerName, {1, 32}, "PlayerName");
-    de::wire::readString16(iStream, m_Message, {1, 128}, "Message");
+    // Both ends of the exchange admit an empty name and an empty
+    // message, and stop the message at 512.
+    de::wire::readString(iStream, m_PlayerName, {0, 32}, "PlayerName");
+    de::wire::readString16(iStream, m_Message, {0, 512}, "Message");
 
     iStream.read(m_IsBlack);
     iStream.read(m_IsOnLine);

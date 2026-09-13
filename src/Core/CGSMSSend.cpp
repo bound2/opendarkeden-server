@@ -6,9 +6,9 @@
 
 #include "CGSMSSend.h"
 
-#include "Assert1.h"
 #include "SocketEncryptInputStream.h"
 #include "SocketEncryptOutputStream.h"
+#include "WireString.h"
 
 
 void CGSMSSend::read(SocketInputStream& iStream)
@@ -19,25 +19,18 @@ void CGSMSSend::read(SocketInputStream& iStream)
     BYTE size;
 
     iStream.read(size);
-    Assert(size <= MAX_RECEVIER_NUM);
+    if (size > MAX_RECEVIER_NUM)
+        throw InvalidProtocolException("too many receivers");
 
     m_Numbers.clear();
     for (int i = 0; i < size; ++i) {
-        BYTE strSize;
         string number;
-        iStream.read(strSize);
-        Assert(strSize <= MAX_NUMBER_LENGTH);
-        iStream.read(number, strSize);
+        de::wire::readString(iStream, number, {0, MAX_NUMBER_LENGTH}, "Number");
         m_Numbers.push_back(number);
     }
 
-    iStream.read(size);
-    Assert(size <= MAX_NUMBER_LENGTH);
-    iStream.read(m_CallerNumber, size);
-
-    iStream.read(size);
-    Assert(size <= MAX_MESSAGE_LENGTH);
-    iStream.read(m_Message, size);
+    de::wire::readString(iStream, m_CallerNumber, {0, MAX_NUMBER_LENGTH}, "CallerNumber");
+    de::wire::readString(iStream, m_Message, {0, MAX_MESSAGE_LENGTH}, "Message");
 
     __END_CATCH
 }
@@ -47,27 +40,21 @@ void CGSMSSend::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    BYTE size;
+    if (m_Numbers.size() > MAX_RECEVIER_NUM)
+        throw InvalidProtocolException("too many receivers");
 
-    size = m_Numbers.size();
+    BYTE size = m_Numbers.size();
     oStream.write(size);
 
     list<string>::const_iterator itr = m_Numbers.begin();
     list<string>::const_iterator endItr = m_Numbers.end();
 
     for (; itr != endItr; ++itr) {
-        size = itr->size();
-        oStream.write(size);
-        oStream.write(*itr);
+        de::wire::writeString(oStream, *itr, {0, MAX_NUMBER_LENGTH}, "Number");
     }
 
-    size = m_CallerNumber.size();
-    oStream.write(size);
-    oStream.write(m_CallerNumber);
-
-    size = m_Message.size();
-    oStream.write(size);
-    oStream.write(m_Message);
+    de::wire::writeString(oStream, m_CallerNumber, {0, MAX_NUMBER_LENGTH}, "CallerNumber");
+    de::wire::writeString(oStream, m_Message, {0, MAX_MESSAGE_LENGTH}, "Message");
 
     __END_CATCH
 }
@@ -81,11 +68,11 @@ PacketSize_t CGSMSSend::getPacketSize() const {
     list<string>::const_iterator endItr = m_Numbers.end();
 
     for (; itr != endItr; ++itr) {
-        ret += szBYTE + itr->size();
+        ret += de::wire::stringWireSize(*itr);
     }
 
-    ret += szBYTE + m_CallerNumber.size();
-    ret += szBYTE + m_Message.size();
+    ret += de::wire::stringWireSize(m_CallerNumber);
+    ret += de::wire::stringWireSize(m_Message);
 
     return ret;
 

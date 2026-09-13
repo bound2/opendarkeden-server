@@ -34,8 +34,10 @@ void CGSMSAddressListHandler::execute(CGSMSAddressList* pPacket, Player* pPlayer
     SMSAddressBook* pBook = pPC->getAddressBook();
     if (pBook != NULL) {
         GCSMSAddressList* pPacket = pBook->getGCSMSAddressList();
-        if (pPacket != NULL)
+        if (pPacket != NULL) {
             pGamePlayer->sendPacket(pPacket);
+            SAFE_DELETE(pPacket);
+        }
     }
 
 #endif // __GAME_SERVER__

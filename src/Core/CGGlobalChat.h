@@ -71,7 +71,7 @@ public:
 
 private:
     // text color
-    uint m_Color;
+    uint m_Color = 0;
 
     // chatting message
     string m_Message;
