@@ -36,6 +36,7 @@ add_executable(wire_tests EXCLUDE_FROM_ALL
     packet_roundtrip_test.cpp
     packet_chat_test.cpp
     packet_combat_test.cpp
+    packet_creature_test.cpp
     packet_encrypter_test.cpp
     packet_exchange_test.cpp
     packet_field_bounds_test.cpp

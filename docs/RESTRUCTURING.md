@@ -753,19 +753,74 @@ before anything else moves. Everything later shelters under this pin.
   > own halves. Two `tests/wire-layout.txt` lines move, `GCNicknameList`
   > 13001 → 6631 and `CGSMSSend` 108 → 114, both server-side read-buffer
   > budgets and not fields on the wire. No golden changed.
+  > The **creature-state set is pinned** — the 42 packets a client and
+  > a game server exchange about a creature and the zone around it: the
+  > ten motorcycle packets (`CGRideMotorCycle`, `CGGetOffMotorCycle`,
+  > `GCRideMotorCycle`, `GCRideMotorCycleOK`, `GCRideMotorCycleFailed`,
+  > `GCGetOffMotorCycle`, `GCGetOffMotorCycleOK`,
+  > `GCGetOffMotorCycleFailed`, `GCSearchMotorcycleOK`,
+  > `GCSearchMotorcycleFail`), the eight blood-drain and morph packets
+  > (`CGBloodDrain`, the three `GCBloodDrainOK`, `GCMorph1`,
+  > `GCMorphSlayer2`, `GCMorphVampire2`, `GCChangeShape`), the four other
+  > things a player asks of their own creature (`CGAbsorbSoul`,
+  > `CGResurrect`, `CGSilverCoating`, `CGTameMonster`), the three
+  > visibility packets (`CGVisible`, `GCVisibleOK`, `GCVisibleFail`),
+  > `GCRemoveCorpseHead` and `GCAddInjuriousCreature`, the four zone
+  > packets (`GCLightning`, `GCChangeDarkLight`, `GCChangeWeather`,
+  > `GCExecuteElement`), the three recovery packets
+  > (`GCHPRecoveryStartToSelf`, `GCHPRecoveryStartToOthers`,
+  > `GCMPRecoveryStart`), the three `GCCrossCounterOK`, the four
+  > `GCKnocksTargetBackOK` and `GCPetUseSkill`, have code-0 goldens,
+  > loopback round trips and size/factory-max pins
+  > (`tests/packet_creature_test.cpp`), with extra goldens for the vampire
+  > shape of a morph beside the slayer one, the injurious creature's name
+  > at the full ten its max budgets, and the empty stat record the three
+  > `ModifyInfo`-carrying families send. No packet in the family calls the
+  > encrypter or derives from one that does, so every golden is recorded
+  > at code 0 and each test also asserts the bytes do not vary with the
+  > code. `GCVisibleOK` and the four `GCKnocksTargetBackOK` have no sender
+  > and are pinned anyway, because a registered factory is the contract
+  > the client's own copy has to match. Five open write/read disagreements
+  > are stated as tests that flip when fixed
+  > (`GCMorph1::getPacketSize()` not counting the pc-type byte `write()`
+  > emits, so the declared body is one byte short of the body sent;
+  > `GCMorph1` starting with its four records as null pointers that
+  > `getPacketSize()` follows and `write()` guards only one of;
+  > `GCAddInjuriousCreature` bounding at ten the character name it
+  > carries, which runs to `maxNameLength`, so an eleven-byte name is
+  > refused rather than announced; `PCSlayerInfo3`'s and
+  > `PCVampireInfo3`'s copy constructors dropping the union id their
+  > assignment operators copy, so the two morph packets, whose every way
+  > in takes the record by value, emit whatever their own storage held
+  > there, which is why both are pinned over zeroed storage; and 31 of the
+  > 42 leaving at least one member the default constructor never sets,
+  > pinned over poisoned storage). Seven more are recorded in the test's
+  > header rather than tested: `GCChangeWeather::read` casting a byte to a
+  > `Weather` whose range is narrower and whose `Weather2String` is
+  > narrower still; the two knockback success flags read straight into a
+  > `bool`; `~GCMorph1` freeing all four records it was handed and its
+  > `read()` replacing them without freeing; `GCMorph1::write` bounding
+  > its pc type through `Assert()`; `GCExecuteElement::read` taking a
+  > condition byte it compares against nothing; `GCMorphVampire2`'s
+  > vampire-record accessor named `getSlayerInfo`; and `CGBloodDrain`
+  > copying its object id as raw bytes rather than through the typed
+  > stream calls. No golden changed and no `tests/wire-layout.txt` line
+  > moved.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set, the inventory
   > and item handling set, the store, shop and stash dialogue, the
-  > character progression set, the quest, war and zone-selection set and
-  > the chat, notice, nickname, union and SMS set pinned, the remaining
-  > non-encrypter coverage outstanding is the rest of GC/CG, whose
-  > largest unpinned groups are the motorcycle packets
-  > (`CGRideMotorCycle`, `CGGetOffMotorCycle` and the
-  > `GCRideMotorCycle*` / `GCGetOffMotorCycle*` / `GCSearchMotorcycle*`
-  > answers) and the vampire transformation and blood-drain packets
-  > (`CGBloodDrain`, the three `GCBloodDrainOK`, `GCMorph1`,
-  > `GCMorphSlayer2`, `GCMorphVampire2`, `GCChangeShape`).
+  > character progression set, the quest, war and zone-selection set, the
+  > chat, notice, nickname, union and SMS set and the creature-state set
+  > pinned, the remaining non-encrypter coverage outstanding is 18
+  > registered GC/CG packets: the take-out-goods group (`CGTakeOutGood`,
+  > `GCTakeOutOK`, `GCTakeOutFail`, `GCGoodsList`, `GCTakeOff`,
+  > `GCRealWearingInfo`), the session group (`CGRequestIP`,
+  > `GCRequestedIP`, `CGRequestInfo`, `CGLogout`, `CGAuthKey`,
+  > `GCAuthKey`, `GCReconnect`, `CGPortCheck`, `CGCrashReport`,
+  > `CGLotterySelect`, `CGPetGamble`) and `CGTypeStringList`, which has
+  > an entry-count pin in `tests/packet_inventory_test.cpp` but no
+  > golden.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed
