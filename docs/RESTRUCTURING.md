@@ -1304,6 +1304,16 @@ visibility can't express.
   > `InvalidProtocolException` on an unregistered id, and the seven
   > receive loops call it unconditionally. R4 = 0, held by the ratchet.
   > Handler file moves out of `Core` are 2.4.
+  > The handler classes themselves are still defined in the packet headers:
+  > 196 `src/Core/*.h` carry a `class XHandler { ... };`, and for 193 of them
+  > that is the only definition anywhere — no `src/server/*/handler/`
+  > directory holds a header at all, so the 194 `handler/*.cpp` define their
+  > members against the Core declaration (`CGConnectSetKeyHandler` twice, in
+  > the gameserver and the loginserver). The other three, `CGDialUpHandler`,
+  > `CGPhoneDisconnectHandler` and `CGPhoneSayHandler`, have no
+  > implementation left. The client repo mirrors 167 of the 196 headers and
+  > 42 of its copies carry a handler class of their own, so moving the
+  > definitions out is a two-repo change.
   - Owner: R4 ratchet test + include-graph test (a kernel packet including a
     Zone header fails).
 
