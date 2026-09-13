@@ -821,21 +821,66 @@ before anything else moves. Everything later shelters under this pin.
   > goldens record a zero union id, and their fixtures keep that one
   > field zero so the recorded bodies stand, with the id pinned by the
   > round trip and by a copy-constructor test of its own.
-  > With CL/LC, the gameserver handshake, the zone population scan, both
-  > inter-server links, the social protocols, the combat feedback set,
-  > the movement, effect-lifecycle and NPC dialogue set, the inventory
-  > and item handling set, the store, shop and stash dialogue, the
-  > character progression set, the quest, war and zone-selection set, the
-  > chat, notice, nickname, union and SMS set and the creature-state set
-  > pinned, the remaining non-encrypter coverage outstanding is 18
-  > registered GC/CG packets: the take-out-goods group (`CGTakeOutGood`,
-  > `GCTakeOutOK`, `GCTakeOutFail`, `GCGoodsList`, `GCTakeOff`,
-  > `GCRealWearingInfo`), the session group (`CGRequestIP`,
-  > `GCRequestedIP`, `CGRequestInfo`, `CGLogout`, `CGAuthKey`,
-  > `GCAuthKey`, `GCReconnect`, `CGPortCheck`, `CGCrashReport`,
-  > `CGLotterySelect`, `CGPetGamble`) and `CGTypeStringList`, which has
-  > an entry-count pin in `tests/packet_inventory_test.cpp` but no
-  > golden.
+  > The **session and take-out set is pinned** — the 18 packets a client
+  > and a game server exchange to take a quest's goods out of the stash
+  > and to run the connection itself: the six take-out packets
+  > (`CGTakeOutGood`, `GCTakeOutOK`, `GCTakeOutFail`, `GCGoodsList`,
+  > `GCTakeOff`, `GCRealWearingInfo`), the eleven session packets
+  > (`CGRequestIP`, `GCRequestedIP`, `CGRequestInfo`, `CGLogout`,
+  > `CGAuthKey`, `GCAuthKey`, `GCReconnect`, `CGPortCheck`,
+  > `CGCrashReport`, `CGLotterySelect`, `CGPetGamble`) and
+  > `CGTypeStringList`, have code-0 goldens, loopback round trips and
+  > size/factory-max pins (`tests/packet_session_test.cpp`), with extra
+  > goldens for the empty and full goods listings, the address request
+  > carrying no name, the empty and full string listings, and the crash
+  > report whose three optional strings are all empty. No packet in the
+  > family calls the encrypter or derives from one that does, so every
+  > golden is recorded at code 0 and each stream test also asserts the
+  > bytes do not vary with the code; `CGPortCheck` is a `DatagramPacket`
+  > and is pinned through a real `Datagram`, whose measured header makes
+  > its size pin three-way. `GCReconnect` and `GCAuthKey` have no live
+  > sender — nothing outside `src/Core` constructs a `GCReconnect` and
+  > the one `GCAuthKey` site is commented out — and both are pinned
+  > anyway, because a registered factory is the contract the client's own
+  > copy has to match. `CGTypeStringList` had an entry-count pin in
+  > `tests/packet_inventory_test.cpp` and `CGCrashReport` a string-cap
+  > pin in `tests/packet_roundtrip_test.cpp`; both are single-aspect and
+  > neither had a golden, so both packets are pinned in full here.
+  > **Twelve open write/read disagreements are stated as tests that flip
+  > when they are fixed** (`GCReconnect::getPacketSize()` counting a
+  > pc-type byte `write()` never emits and `read()` never consumes, so
+  > the declared body is one byte longer than the body sent and the
+  > member behind it is never given a value; `CGRequestIP`'s and
+  > `GCRequestedIP`'s names bounded in neither the setter, `write()` nor
+  > `read()`, while their factory maxima budget ten;
+  > `CGRequestIP::read` leaving the name it holds untouched on a zero
+  > count byte; `GCGoodsList`'s record count and each record's option
+  > count narrowed to a `BYTE` from an unbounded list, so 256 entries
+  > wrap the count to zero while `write()` emits every one, and its
+  > `read()` appending to the listing it already holds; `CGRequestInfo`,
+  > `CGLotterySelect` and `CGTypeStringList` taking code bytes they
+  > never compare against the ranges their own headers name;
+  > `CGCrashReport::write` admitting an empty OS, call stack and message
+  > that its own `read()` refuses; and twelve of the eighteen leaving at
+  > least one member the default constructor never sets, pinned over
+  > poisoned storage). Four more are recorded in the test's header
+  > rather than tested: `GCGoodsList::popGoodsInfo` taking `front()` off
+  > a list it never checks for emptiness, with no count getter to bound
+  > a drain; `addGoodsInfo` accepting a null record that
+  > `getPacketSize()` then follows while `write()` bounds it through
+  > `Assert()`; `CGCrashReport::write` bounding its two fixed-width
+  > fields through `Assert()`, which appends to `assertion_failed.log`
+  > first; and `CGPortCheck` being registered on the game server's
+  > client-facing dispatch table though `DatagramPacket::read` refuses a
+  > TCP stream by design, so only the UDP path can serve it. No golden
+  > changed and no `tests/wire-layout.txt` line moved.
+  > With every family pinned, the non-encrypter coverage is complete:
+  > every registered GC/CG factory has a golden. The proof is
+  > mechanical — the factory names in
+  > `tests/ratchet/factory_registrations.txt`, 449 unique across the
+  > three servers, minus the packet names under `tests/golden/`, is
+  > empty, and no packet in it is pinned only through another packet's
+  > variant golden.
   > **Adversarial review (2026-08-29) named the specific gaps, in
   > priority order:**
   > 1. ~~Only 2 of the 17 encrypter-using packets are pinned~~ — closed
