@@ -88,14 +88,6 @@ public:
         m_Type = Type;
     }
 
-    // get/set race
-    Race_t getRace() const {
-        return m_Race;
-    }
-    void setRace(Race_t race) {
-        m_Race = race;
-    }
-
 private:
     // chatting message
     string m_Message;
@@ -104,9 +96,6 @@ private:
     uint m_Color;
 
     SystemMessageType m_Type;
-
-    // race
-    Race_t m_Race;
 };
 
 

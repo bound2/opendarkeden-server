@@ -162,12 +162,6 @@
 //                 body that outgrows it is a truncated packet, not a
 //                 caught error.
 //
-//               GCModifyNickname gets the golden and the size pin from
-//               the macro but a round trip written out, because its
-//               read() writes through a record pointer the receiving
-//               packet has to be given first - the second finding
-//               below.
-//
 //               Extra goldens cover the branches one fixture cannot:
 //               the nickname written with no text (.noname on
 //               CGModifyNickname); the three shapes NicknameInfo takes,
@@ -176,9 +170,7 @@
 //               GCNicknameList's canonical listing); the counted lists
 //               written empty (.empty on GCNicknameList, CGSMSSend and
 //               GCSMSAddressList); and the address book entry written
-//               with all three fields empty (.bare on CGAddSMSAddress,
-//               golden and size only, because read() refuses what
-//               write() emits there).
+//               with all three fields empty (.bare on CGAddSMSAddress).
 //
 //               Fixture values are distinct per field and >= 128 in
 //               every byte the width allows. Three groups cannot follow
@@ -187,102 +179,78 @@
 //               which are text; the system message type, the kick type,
 //               the friend command, the nickname type, the quit method
 //               and the four verify codes, which are enumerators; and
-//               CGModifyNickname's item id, whose setter takes a WORD.
+//               CGModifyNickname's item id, which the golden records as
+//               a WORD-wide value.
 //
-//               Findings. Each is stated as a test that fails once the
-//               packet is fixed, except where noted:
+//               The write/read disagreements this set found are fixed
+//               and pinned as the behaviour the packets now produce.
+//               These packets are client-facing, so write() and
+//               getPacketSize() are the contract: every fix is a
+//               refusal, a cap at the width the factory max budgets, a
+//               size-accounting correction, a read-side correction or
+//               an initialisation, and no golden moved.
 //
-//               - GCSystemMessage carries a Race_t with a getter and a
-//                 setter that neither read() nor write() touches, so a
-//                 sender's setRace never leaves the process.
-//               - GCModifyNickname leaves uninitialised the record
-//                 pointer that getPacketSize(), write() and read() all
-//                 dereference, so a sender that skips setNicknameInfo
-//                 follows an indeterminate value and a receiver writes
-//                 through one.
-//               - GCRequestFailed::setCode takes a WORD and stores a
-//                 BYTE, so a code past 255 loses its high half before
-//                 it reaches the wire.
-//               - GCRequestFailed derives its name's length byte from
-//                 the name with no bound, while its factory max budgets
-//                 ten bytes for it: an eleven-byte name already
-//                 outgrows the read buffer.
-//               - NicknameInfo::write admits an empty custom nickname
-//                 and read() refuses one, so the record write() emits
-//                 for a NICK_CUSTOM with no text cannot be read back.
-//               - GCNicknameList derives its record count into a BYTE
-//                 it caps nowhere, so the 256th record wraps the count
-//                 to zero while write() still emits every one. Its
-//                 factory max budgets MAX_NICKNAME_NUM (500) records,
-//                 more than that byte can ever describe.
-//               - GCSMSAddressList wraps its own count byte at 256 the
-//                 same way; its max budgets thirty entries.
-//               - CGSMSSend's factory max budgets MAX_RECEVIER_NUM (5)
-//                 bytes for the caller number where read() accepts
-//                 MAX_NUMBER_LENGTH (11), so a packet built at the
-//                 lengths read() admits outgrows the read buffer.
-//               - CGSMSSend::write derives every length byte from the
-//                 string with no bound, so a message past
-//                 MAX_MESSAGE_LENGTH is emitted whole and a message of
-//                 256 wraps its length byte to zero.
-//               - CGSMSSend's receiver count byte is capped nowhere
-//                 either, so the 256th number wraps it to zero.
-//               - CGModifyNickname::setItemObjectID takes a WORD while
-//                 the member it writes and the wire both carry an
-//                 ObjectID_t, so an item id past 65535 cannot be set.
-//
-//               Seven findings are recorded here rather than tested,
-//               because reaching them is undefined behaviour, has no
-//               observable wire effect, or is a leak:
-//
-//               - GCSystemMessage::read and GCKickMessage::read cast
-//                 the type byte straight to SystemMessageType and
-//                 KickMessageType before storing it, and
-//                 GCKickMessage::setType casts on the way in too. Both
-//                 enums declare fewer values than a byte carries, so a
-//                 byte past their range is an out-of-range enum load.
-//                 Every fixture here writes a real enumerator for that
-//                 reason.
-//               - NicknameInfo's getSize(), read() and write() end
-//                 their switch on the nickname type with Assert(false),
-//                 which appends to assertion_failed.log in the working
-//                 directory before it throws. CGSMSSend::read bounds
-//                 all four of its lengths through Assert() as well.
-//               - ~GCNicknameList and ~GCSMSAddressList free no record,
-//                 and both read()s clear the vector without freeing
-//                 what it held, so every record a read() allocated
-//                 leaks.
-//               - NicknameInfo::write caps a custom nickname at the
-//                 255 its length byte carries while read(), the setter
-//                 and the record's own max all stop at
-//                 MAX_NICKNAME_SIZE (22). The setter truncates, so no
-//                 sender can reach the gap.
-//               - GCRequestFailed's read() and write() raise their
-//                 zero-length refusal as a ProtocolException carrying
-//                 an empty message, so the log line names no field.
-//               - GCFriendChatting caps its message at 128 on read and
-//                 512 on write, and admits on write the empty name and
-//                 message read() refuses; CGAddSMSAddress admits all
-//                 three of its empty fields on write and refuses them
-//                 on read. Both are already stated as tests in
+//               - GCSystemMessage carries no race: the client's reader
+//                 takes the message, the colour and the type byte and
+//                 nothing else, so the getter and setter no sender
+//                 could reach the wire through are gone.
+//               - GCModifyNickname's record pointer starts empty,
+//                 getPacketSize() and write() refuse on it, and read()
+//                 allocates the record it fills. Every sender hands
+//                 over a record it keeps - the character's
+//                 NicknameBook's, or one on the stack - so the packet
+//                 frees only what read() allocated.
+//               - GCRequestFailed::setCode takes the BYTE the wire
+//                 carries, its name stops at the ten the factory max
+//                 budgets in the setter and travels through de::wire in
+//                 write() and read(), and the zero-length refusal names
+//                 the field.
+//               - NicknameInfo's custom nickname is bounded at
+//                 MAX_NICKNAME_SIZE in the setter, in write() and in
+//                 read(), all three admitting the empty value a
+//                 NICK_CUSTOM slot can hold; a type no record shape
+//                 names is an InvalidProtocolException in each of
+//                 getSize(), read() and write(), in place of the
+//                 Assert() that wrote assertion_failed.log first.
+//               - GCNicknameList's listing, GCSMSAddressList's and
+//                 CGSMSSend's receiver list are each held to what their
+//                 own maximum budgets - MAX_NICKNAME_NUM 255 records,
+//                 MAX_ADDRESS_NUM 30 entries and MAX_RECEVIER_NUM 5
+//                 numbers - in write() and in read(), so no count byte
+//                 can wrap while write() emits every entry.
+//                 SMSAddressBook stops the book at the thirty the
+//                 listing carries.
+//               - CGSMSSend's factory max budgets MAX_NUMBER_LENGTH for
+//                 the caller number, which is what read() accepts, so a
+//                 packet built at every read cap is exactly the max;
+//                 its four strings travel through de::wire, so no
+//                 length byte can wrap and the message stops at
+//                 MAX_MESSAGE_LENGTH.
+//               - CGModifyNickname::setItemObjectID takes the full
+//                 ObjectID_t the member and the wire both carry.
+//               - GCSystemMessage::read, GCKickMessage::read and
+//                 GCKickMessage::setType test the raw byte against the
+//                 enum's range before it reaches an enum that declares
+//                 fewer values than a byte carries.
+//               - ~GCNicknameList and ~GCSMSAddressList free what the
+//                 packet owns, and both read()s replace the listing
+//                 they hold instead of clearing it and dropping the
+//                 records. A GCSMSAddressList entry is the packet's own
+//                 either way: its one sender builds a fresh record per
+//                 address.
+//               - GCFriendChatting's name and message are admitted
+//                 empty and stop at 32 and 512 on both sides, and
+//                 CGAddSMSAddress admits all three of its empty fields
+//                 on both sides. Both are also pinned in
 //                 tests/packet_roundtrip_test.cpp.
-//               - CGSMSSend's max budgets MAX_MESSAGE_LENGTH (40) for
-//                 the message, the cap the client's own write()
-//                 asserts, while the server once accepted 80.
 //
-//               Fifteen of the thirty-one leave at least one member the
-//               default constructor never sets, so a packet sent
-//               without every setter called puts indeterminate bytes on
-//               the wire. The poisoned-storage pin at the end of the
-//               file asserts today's split. Nine of the thirty-one
-//               refuse a body with an empty required string, so those
-//               are built over poisoned storage with only that string
-//               set - the refusal comes after the scalar fields are
-//               already in the buffer, so it proves nothing about them
-//               on its own. GCModifyNickname is in neither list because
-//               writing one over poisoned storage would follow the
-//               indeterminate record pointer, so it gets a pin on the
-//               pointer itself instead.
+//               Every one of the thirty-one initialises each member
+//               write() emits, which the poisoned-storage pin at the
+//               end of the file asserts. Nine of them refuse a body
+//               with an empty required string, so those are built over
+//               poisoned storage with only that string set - the
+//               refusal comes after the scalar fields are already in
+//               the buffer, so it proves nothing about them on its own.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -332,6 +300,7 @@
 using wiretest::expectGolden;
 using wiretest::kEncryptCodeCount;
 using wiretest::kEncryptCodes;
+using wiretest::Loopback;
 using wiretest::roundTrip;
 using wiretest::writeBody;
 
@@ -340,6 +309,18 @@ namespace {
 // The unencrypted branch. No packet in this file rides the encrypter, so
 // this is the only code whose bytes could differ from any other.
 const uchar kPlainCode = 0;
+
+// Emit a body field by field and hand it to a reader, so a refusal on
+// the read side can be pinned without a sender that could produce those
+// bytes.
+template <typename Emit, typename Consume> void throughLoopback(Emit emit, Consume consume) {
+    Loopback link;
+    link.setCodes(kPlainCode);
+    emit(link.out());
+    const uint length = link.out().length();
+    link.pump(length);
+    consume(link.in());
+}
 
 //////////////////////////////////////////////////////////////////////
 // The three pins every packet gets. fill() / expectEqual() are
@@ -395,19 +376,6 @@ const uchar kPlainCode = 0;
         Name dst;                                                              \
         roundTrip(packet, dst, kPlainCode);                                    \
         expectEqual(packet, dst);                                              \
-    }
-
-// The same, for a branch the reader refuses: write() emits a body read()
-// will not take back, so only the bytes and the size are pinned.
-#define CHAT_PACKET_WRITE_ONLY_VARIANT(Name, Variant, fillVariant)             \
-    TEST(Name##Test, Variant##BodyBytesMatchGolden) {                          \
-        Name packet;                                                           \
-        fillVariant(packet);                                                   \
-        const std::vector<unsigned char> body = writeBody(packet, kPlainCode); \
-        expectGolden(#Name "." #Variant, kPlainCode, body);                    \
-        EXPECT_EQ((size_t)packet.getPacketSize(), body.size());                \
-        Name##Factory factory;                                                 \
-        EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());         \
     }
 
 //////////////////////////////////////////////////////////////////////
@@ -579,14 +547,14 @@ void expectEqual(CGSelectNickname& a, CGSelectNickname& b) {
 CHAT_PACKET_TESTS(CGSelectNickname)
 
 // An item id a WORD cannot hold. Returned rather than written at the
-// call site, so the narrowing the setter does is the packet's and not a
+// call site, so what the setter does with it is the packet's and not a
 // constant the compiler folds.
 ObjectID_t fullItemObjectID() {
     return 0x81A2B3C4;
 }
 
-// The item id cannot follow the >= 128 rule across a full ObjectID_t:
-// the setter takes a WORD, which is the finding below.
+// The golden records the item id as a WORD-wide value, so the fixture
+// cannot follow the >= 128 rule across the whole ObjectID_t.
 void fill(CGModifyNickname& packet) {
     packet.setItemObjectID(0xA9BA);
     packet.setNickname("Ashen Duelist");
@@ -662,19 +630,31 @@ void expectEqual(GCModifyNickname& a, GCModifyNickname& b) {
     expectEqualNicknameInfo(*a.getNicknameInfo(), *b.getNicknameInfo());
 }
 
-CHAT_PACKET_GOLDEN_AND_SIZE(GCModifyNickname)
+CHAT_PACKET_TESTS(GCModifyNickname)
 
-// read() writes through the record pointer rather than allocating one,
-// so the receiving packet is given a record first.
-TEST(GCModifyNicknameTest, roundTripsThroughLoopback) {
-    GCModifyNickname src;
-    fill(src);
+// The record a sender hands over outlives the packet; the one read()
+// allocates does not, and a second read replaces it.
+TEST(GCModifyNicknameTest, thePacketFreesOnlyTheRecordItRead) {
+    NicknameInfo sender;
+    fillNicknameInfo(sender, 0xC1D2, NicknameInfo::NICK_CUSTOM, 0, "Ashen Herald");
 
-    NicknameInfo target;
-    GCModifyNickname dst;
-    dst.setNicknameInfo(&target);
-    roundTrip(src, dst, kPlainCode);
-    expectEqual(src, dst);
+    {
+        GCModifyNickname src;
+        src.setObjectID(0x81A2B3C4);
+        src.setNicknameInfo(&sender);
+
+        GCModifyNickname dst;
+        roundTrip(src, dst, kPlainCode);
+        ASSERT_TRUE(dst.getNicknameInfo() != NULL);
+        EXPECT_NE(&sender, dst.getNicknameInfo());
+        EXPECT_EQ(sender.getNickname(), dst.getNicknameInfo()->getNickname());
+
+        roundTrip(src, dst, kPlainCode);
+        ASSERT_TRUE(dst.getNicknameInfo() != NULL);
+        EXPECT_EQ(sender.getNickname(), dst.getNicknameInfo()->getNickname());
+    }
+
+    EXPECT_EQ("Ashen Herald", sender.getNickname());
 }
 
 NicknameInfo* makeNickname(WORD id, BYTE type, WORD index, const std::string& text) {
@@ -814,7 +794,7 @@ void fill(CGAddSMSAddress& packet) {
     packet.setNumber("01098765432");
 }
 
-// write() admits all three empty; read() refuses each.
+// All three fields empty, which both sides admit.
 void fillBareAddress(CGAddSMSAddress& packet) {
     packet.setCharacterName("");
     packet.setCustomName("");
@@ -828,7 +808,7 @@ void expectEqual(CGAddSMSAddress& a, CGAddSMSAddress& b) {
 }
 
 CHAT_PACKET_TESTS(CGAddSMSAddress)
-CHAT_PACKET_WRITE_ONLY_VARIANT(CGAddSMSAddress, bare, fillBareAddress)
+CHAT_PACKET_VARIANT(CGAddSMSAddress, bare, fillBareAddress)
 
 void fill(CGDeleteSMSAddress& packet) {
     packet.setElementID(0xDDEEF0A1);
@@ -976,114 +956,229 @@ TEST(ChatTextTest, theTextPacketsRefuseAnEmptyRequiredField) {
 }
 
 //////////////////////////////////////////////////////////////////////
-// Findings.
+// What the two halves now agree on.
 //////////////////////////////////////////////////////////////////////
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCSystemMessage carries a Race_t with a getter and a setter that
-// neither read() nor write() touches, so a sender's setRace never
-// leaves the process.
-TEST(GCSystemMessageTest, theRaceItHoldsNeverReachesTheWire) {
-    GCSystemMessage slayer;
-    fill(slayer);
-    slayer.setRace(0x81);
-
-    GCSystemMessage vampire;
-    fill(vampire);
-    vampire.setRace(0x92);
-
-    EXPECT_EQ(writeBody(slayer, kPlainCode), writeBody(vampire, kPlainCode))
-        << "GCSystemMessage now puts the race on the wire - drop this test and record the byte in the golden";
+// The type byte is tested raw, before it reaches an enum that declares
+// fewer values than a byte carries.
+TEST(GCSystemMessageTest, aTypePastTheLastOneIsRefused) {
+    GCSystemMessage dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)6);
+                         out.write(std::string("notice"));
+                         out.write((uint)0x81A2B3C4);
+                         out.write((BYTE)SYSTEM_MESSAGE_MAX);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCRequestFailed::setCode takes a WORD and stores a BYTE, so a code
-// past 255 loses its high half before it reaches the wire.
-TEST(GCRequestFailedTest, theCodeSetterDropsTheHighHalfOfItsWord) {
+// The same for the kick countdown, on the way in through the setter as
+// well as off the wire.
+TEST(GCKickMessageTest, aTypePastTheLastOneIsRefused) {
+    GCKickMessage packet;
+    EXPECT_THROW(packet.setType((BYTE)KICK_MESSAGE_MAX), InvalidProtocolException);
+
+    GCKickMessage dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)KICK_MESSAGE_MAX);
+                         out.write((uint)0x81A2B3C4);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
+// The code setter takes the BYTE the wire carries, so a caller sees
+// every value that reaches it.
+TEST(GCRequestFailedTest, theCodeIsTheByteTheWireCarries) {
     GCRequestFailed packet;
     packet.setName("Duskwarden");
-    packet.setCode(0x0181);
+    packet.setCode(0x81);
+    EXPECT_EQ(0x81, (int)packet.getCode());
 
-    EXPECT_EQ(0x81, (int)packet.getCode()) << "GCRequestFailed::setCode now keeps the WORD it takes - drop this test";
+    GCRequestFailed dst;
+    roundTrip(packet, dst, kPlainCode);
+    EXPECT_EQ(0x81, (int)dst.getCode());
+    EXPECT_EQ(packet.getName(), dst.getName());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCRequestFailed derives its name's length byte from the name with no
-// bound, while its factory max budgets ten bytes for it.
-TEST(GCRequestFailedTest, theNameIsNotHeldToWhatTheMaxBudgets) {
+// The name is held to the ten the factory max budgets, in the setter and
+// in read() alike, and the zero-length refusal names the field.
+TEST(GCRequestFailedTest, theNameStopsAtWhatTheMaxBudgets) {
     GCRequestFailed packet;
     packet.setCode(REQUEST_FAILED_IP);
-    packet.setName(std::string(11, 'n'));
+    packet.setName(std::string(GCRequestFailed::kMaxNameLength + 1, 'n'));
+    EXPECT_EQ((size_t)GCRequestFailed::kMaxNameLength, packet.getName().size());
 
     GCRequestFailedFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCRequestFailed: the name is now held to the ten its max budgets - drop this test";
+    EXPECT_EQ(packet.getPacketSize(), factory.getPacketMaxSize());
     EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    GCRequestFailed wide;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)REQUEST_FAILED_IP);
+                         out.write((BYTE)(GCRequestFailed::kMaxNameLength + 1));
+                         out.write(std::string(GCRequestFailed::kMaxNameLength + 1, 'n'));
+                     },
+                     [&wide](SocketEncryptInputStream& in) { wide.read(in); }),
+                 InvalidProtocolException);
+
+    packet.setName("");
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// CGModifyNickname::setItemObjectID takes a WORD while the member it
-// writes and the wire both carry an ObjectID_t.
-TEST(CGModifyNicknameTest, theItemIdSetterDropsTheHighHalfOfTheObjectId) {
+// The item id setter takes the whole ObjectID_t the member and the wire
+// both carry.
+TEST(CGModifyNicknameTest, theItemIdSetterTakesTheFullObjectId) {
     const ObjectID_t full = fullItemObjectID();
 
     CGModifyNickname packet;
     packet.setNickname("Ashen Duelist");
     packet.setItemObjectID(full);
+    EXPECT_EQ(full, packet.getItemObjectID());
 
-    EXPECT_EQ((ObjectID_t)0xB3C4, packet.getItemObjectID())
-        << "CGModifyNickname::setItemObjectID now takes the full ObjectID - drop this test";
+    CGModifyNickname dst;
+    roundTrip(packet, dst, kPlainCode);
+    EXPECT_EQ(full, dst.getItemObjectID());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// NicknameInfo::write admits an empty custom nickname and read()
-// refuses one, so the record write() emits cannot be read back.
-TEST(GCAddNicknameTest, theEmptyCustomNicknameWriteEmitsIsRefusedOnRead) {
+// A NICK_CUSTOM slot with no text is a record both halves accept.
+TEST(GCAddNicknameTest, theEmptyCustomNicknameRoundTrips) {
     GCAddNickname packet;
     fillNicknameInfo(packet.getNicknameInfo(), 0x81A2, NicknameInfo::NICK_CUSTOM, 0, "");
 
     // The record id, the type byte and a zero length byte.
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     EXPECT_EQ((size_t)(szWORD + szBYTE + szBYTE), body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     GCAddNickname dst;
-    EXPECT_THROW(roundTrip(packet, dst, kPlainCode), ProtocolException)
-        << "NicknameInfo's two halves now agree on the empty custom nickname - drop this test";
+    roundTrip(packet, dst, kPlainCode);
+    expectEqual(packet, dst);
+    EXPECT_TRUE(dst.getNicknameInfo().getNickname().empty());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCNicknameList derives its record count into a BYTE it caps nowhere,
-// so the 256th record wraps the count to zero while write() emits every
-// one. MAX_NICKNAME_NUM, which the factory max budgets, is 500.
-TEST(GCNicknameListTest, theRecordCountWrapsAtTwoHundredAndFiftySix) {
+// The nickname is held to MAX_NICKNAME_SIZE in the setter, in write() and
+// in read(), and a type no record shape names is refused rather than
+// asserted.
+TEST(GCAddNicknameTest, theNicknameStopsAtItsMaximumAndAnUnknownTypeIsRefused) {
+    GCAddNickname packet;
+    fillNicknameInfo(packet.getNicknameInfo(), 0x83A4, NicknameInfo::NICK_CUSTOM, 0,
+                     std::string(MAX_NICKNAME_SIZE + 1, 'n'));
+    EXPECT_EQ((size_t)MAX_NICKNAME_SIZE, packet.getNicknameInfo().getNickname().size());
+
+    GCAddNicknameFactory factory;
+    EXPECT_EQ(packet.getPacketSize(), factory.getPacketMaxSize());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    GCAddNickname wide;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((WORD)0x85A6);
+                         out.write((BYTE)NicknameInfo::NICK_CUSTOM);
+                         out.write((BYTE)(MAX_NICKNAME_SIZE + 1));
+                         out.write(std::string(MAX_NICKNAME_SIZE + 1, 'n'));
+                     },
+                     [&wide](SocketEncryptInputStream& in) { wide.read(in); }),
+                 InvalidProtocolException);
+
+    GCAddNickname unknown;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((WORD)0x87A8);
+                         out.write((BYTE)(NicknameInfo::NICK_CUSTOM + 1));
+                     },
+                     [&unknown](SocketEncryptInputStream& in) { unknown.read(in); }),
+                 InvalidProtocolException);
+
+    GCAddNickname emitting;
+    fillNicknameInfo(emitting.getNicknameInfo(), 0x89AA, (BYTE)(NicknameInfo::NICK_CUSTOM + 1), 0, "");
+    EXPECT_THROW(writeBody(emitting, kPlainCode), InvalidProtocolException);
+}
+
+// The listing is held to the records the factory max budgets, which is
+// what the count byte in front of it can describe.
+TEST(GCNicknameListTest, theListingStopsAtWhatTheFactoryMaxBudgets) {
+    EXPECT_EQ(255, MAX_NICKNAME_NUM);
+
+    std::vector<NicknameInfo*> owned;
     GCNicknameList packet;
-    for (int i = 0; i < 256; i++)
-        packet.getNicknames().push_back(makeNickname((WORD)(0x8100 + i), NicknameInfo::NICK_NONE, 0, ""));
+    for (int i = 0; i < MAX_NICKNAME_NUM; i++) {
+        owned.push_back(makeNickname((WORD)(0x8100 + i), NicknameInfo::NICK_NONE, 0, ""));
+        packet.getNicknames().push_back(owned.back());
+    }
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "GCNicknameList: the listing is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + 256 * (szWORD + szBYTE)), body.size());
-    EXPECT_GT(MAX_NICKNAME_NUM, 255) << "MAX_NICKNAME_NUM now fits the count byte - restate this test";
+    EXPECT_EQ(MAX_NICKNAME_NUM, (int)body[0]);
+    EXPECT_EQ((size_t)(szBYTE + MAX_NICKNAME_NUM * (szWORD + szBYTE)), body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+
+    GCNicknameListFactory factory;
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+
+    owned.push_back(makeNickname(0x9100, NicknameInfo::NICK_NONE, 0, ""));
+    packet.getNicknames().push_back(owned.back());
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
+
+    for (size_t i = 0; i < owned.size(); i++)
+        delete owned[i];
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCSMSAddressList wraps its own count byte at 256 the same way; its
-// max budgets MAX_ADDRESS_NUM entries.
-TEST(GCSMSAddressListTest, theEntryCountWrapsAtTwoHundredAndFiftySix) {
+// A sender keeps every record it fills the listing with; only the ones
+// read() allocated are the packet's to free.
+TEST(GCNicknameListTest, thePacketFreesOnlyTheRecordsItRead) {
+    GCNicknameList reference;
+    fill(reference);
+    const std::vector<unsigned char> body = writeBody(reference, kPlainCode);
+
+    {
+        GCNicknameList src;
+        fill(src);
+
+        GCNicknameList dst;
+        roundTrip(src, dst, kPlainCode);
+        EXPECT_EQ((size_t)3, dst.getNicknames().size());
+
+        // A second read replaces the records the first one allocated.
+        roundTrip(src, dst, kPlainCode);
+        EXPECT_EQ((size_t)3, dst.getNicknames().size());
+    }
+
+    GCNicknameList again;
+    fill(again);
+    EXPECT_EQ(body, writeBody(again, kPlainCode));
+}
+
+// The address book is held to the entries its own maximum budgets, on
+// both sides.
+TEST(GCSMSAddressListTest, theListingStopsAtWhatTheFactoryMaxBudgets) {
     GCSMSAddressList packet;
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < MAX_ADDRESS_NUM; i++)
         packet.getAddresses().push_back(makeAddress(0x81A2B300 + i, "", "", ""));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "GCSMSAddressList: the book is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + 256 * (szDWORD + szBYTE * 3)), body.size());
+    EXPECT_EQ(MAX_ADDRESS_NUM, (int)body[0]);
+    EXPECT_EQ((size_t)(szBYTE + MAX_ADDRESS_NUM * (szDWORD + szBYTE * 3)), body.size());
+    EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+
+    GCSMSAddressListFactory factory;
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+
+    packet.getAddresses().push_back(makeAddress(0x91A2B3C4, "", "", ""));
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
+
+    GCSMSAddressList dst;
+    EXPECT_THROW(throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)(MAX_ADDRESS_NUM + 1)); },
+                                 [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// CGSMSSend's factory max budgets MAX_RECEVIER_NUM bytes for the caller
-// number where read() accepts MAX_NUMBER_LENGTH, so a packet built at
-// the lengths read() admits outgrows the read buffer.
-TEST(CGSMSSendTest, aPacketAtTheReadCapsOutgrowsTheFactoryMax) {
+// A packet built at every length read() accepts is exactly what the
+// factory max budgets.
+TEST(CGSMSSendTest, aPacketAtTheReadCapsIsTheFactoryMax) {
     CGSMSSend packet;
     for (int i = 0; i < MAX_RECEVIER_NUM; i++)
         packet.getNumbersList().push_back(std::string(MAX_NUMBER_LENGTH, '8'));
@@ -1091,55 +1186,67 @@ TEST(CGSMSSendTest, aPacketAtTheReadCapsOutgrowsTheFactoryMax) {
     packet.setMessage(std::string(MAX_MESSAGE_LENGTH, 'm'));
 
     CGSMSSendFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "CGSMSSend: the max now budgets the caller number read() accepts - drop this test";
+    EXPECT_EQ(packet.getPacketSize(), factory.getPacketMaxSize());
     EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    CGSMSSend dst;
+    roundTrip(packet, dst, kPlainCode);
+    expectEqual(packet, dst);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// CGSMSSend::write derives every length byte from the string with no
-// bound, so a message past MAX_MESSAGE_LENGTH is emitted whole and a
-// message of 256 wraps its length byte to zero.
-TEST(CGSMSSendTest, theMessageLengthByteIsDerivedWithNoBound) {
+// Every string travels through de::wire, so a message past
+// MAX_MESSAGE_LENGTH is refused instead of emitted whole behind a length
+// byte that wrapped.
+TEST(CGSMSSendTest, theMessageStopsAtWhatTheMaxBudgets) {
     CGSMSSend packet;
     packet.setCallerNumber("01011112222");
     packet.setMessage(std::string(MAX_MESSAGE_LENGTH + 1, 'm'));
-
-    // The receiver count, the caller number behind its length byte, then
-    // the message behind its own.
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ((size_t)(szBYTE + szBYTE + 11 + szBYTE + MAX_MESSAGE_LENGTH + 1), body.size())
-        << "CGSMSSend::write now holds the message to MAX_MESSAGE_LENGTH - drop this test";
-    EXPECT_EQ(MAX_MESSAGE_LENGTH + 1, (int)body[szBYTE + szBYTE + 11]);
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
 
     packet.setMessage(std::string(256, 'm'));
-    const std::vector<unsigned char> wrapped = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)wrapped[szBYTE + szBYTE + 11]) << "CGSMSSend: the message length byte no longer wraps";
-    EXPECT_EQ((size_t)(szBYTE + szBYTE + 11 + szBYTE + 256), wrapped.size());
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
+
+    packet.setCallerNumber(std::string(MAX_NUMBER_LENGTH + 1, '9'));
+    packet.setMessage("refused");
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
+
+    CGSMSSend wide;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)0);
+                         out.write((BYTE)11);
+                         out.write(std::string("01011112222"));
+                         out.write((BYTE)(MAX_MESSAGE_LENGTH + 1));
+                         out.write(std::string(MAX_MESSAGE_LENGTH + 1, 'm'));
+                     },
+                     [&wide](SocketEncryptInputStream& in) { wide.read(in); }),
+                 InvalidProtocolException);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// CGSMSSend's receiver count byte is capped nowhere either.
-TEST(CGSMSSendTest, theReceiverCountWrapsAtTwoHundredAndFiftySix) {
+// The receiver list is held to what the max budgets on both sides.
+TEST(CGSMSSendTest, theReceiverListStopsAtWhatTheMaxBudgets) {
     CGSMSSend packet;
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < MAX_RECEVIER_NUM + 1; i++)
         packet.getNumbersList().push_back("8");
     packet.setCallerNumber("01011112222");
-    packet.setMessage("wrapped");
+    packet.setMessage("refused");
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
 
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    EXPECT_EQ(0, (int)body[0]) << "CGSMSSend: the receiver list is now capped - drop this test";
-    EXPECT_EQ((size_t)(szBYTE + 256 * (szBYTE + 1) + szBYTE + 11 + szBYTE + 7), body.size());
+    CGSMSSend dst;
+    EXPECT_THROW(throughLoopback([](SocketEncryptOutputStream& out) { out.write((BYTE)(MAX_RECEVIER_NUM + 1)); },
+                                 [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
 }
 
 //////////////////////////////////////////////////////////////////////
-// What the default constructor leaves.
+// What the default constructor sets.
 //////////////////////////////////////////////////////////////////////
 
 // Each packet is built twice over storage poisoned with a different
 // byte, so a member the constructor leaves alone reaches the wire as
-// that byte and the two bodies differ. `prep` sets only the strings
-// write() refuses to run without; it touches no scalar.
+// that byte and the two bodies differ. `prep` sets only what write()
+// refuses to run without - the required strings, and
+// GCModifyNickname's record; it touches no scalar.
 template <typename PacketType, typename Prep>
 std::vector<unsigned char> bodyOverPoison(unsigned char poison, Prep prep) {
     alignas(PacketType) unsigned char storage[sizeof(PacketType)];
@@ -1160,83 +1267,63 @@ template <typename PacketType> void expectEveryMemberIsInitialised(const char* w
     expectEveryMemberIsInitialised<PacketType>(what, [](PacketType&) {});
 }
 
-// FINDING, stated as a test that fails once it is fixed. Each of these
-// puts an indeterminate byte on the wire when a sender skips a setter.
-template <typename PacketType, typename Prep> void expectAMemberIsLeftUninitialised(const char* what, Prep prep) {
-    EXPECT_NE(bodyOverPoison<PacketType>(0x00, prep), bodyOverPoison<PacketType>(0xFF, prep))
-        << what
-        << ": its default constructor now initialises every member write() emits - move it to the "
-           "initialised list";
+// The record a poisoned GCModifyNickname is given, so write() reaches
+// the scalar the test is about. The packet neither owns nor frees it.
+NicknameInfo* poisonPrepNickname() {
+    static NicknameInfo* pInfo = new NicknameInfo;
+    pInfo->setNicknameType(NicknameInfo::NICK_NONE);
+    return pInfo;
 }
 
-template <typename PacketType> void expectAMemberIsLeftUninitialised(const char* what) {
-    expectAMemberIsLeftUninitialised<PacketType>(what, [](PacketType&) {});
-}
-
-TEST(ChatConstructorTest, thePacketsThatInitialiseEveryMemberTheyWrite) {
+TEST(ChatConstructorTest, everyPacketInitialisesEveryMemberItWrites) {
     expectEveryMemberIsInitialised<GCSystemMessage>("GCSystemMessage",
                                                     [](GCSystemMessage& p) { p.setMessage("notice"); });
+    expectEveryMemberIsInitialised<GCSay>("GCSay", [](GCSay& p) { p.setMessage("say"); });
+    expectEveryMemberIsInitialised<GCWhisper>("GCWhisper", [](GCWhisper& p) {
+        p.setName("who");
+        p.setMessage("whisper");
+    });
     expectEveryMemberIsInitialised<GCWhisperFailed>("GCWhisperFailed");
+    expectEveryMemberIsInitialised<CGGlobalChat>("CGGlobalChat", [](CGGlobalChat& p) { p.setMessage("shout"); });
+    expectEveryMemberIsInitialised<GCGlobalChat>("GCGlobalChat", [](GCGlobalChat& p) { p.setMessage("shout"); });
     expectEveryMemberIsInitialised<CGRangerSay>("CGRangerSay", [](CGRangerSay& p) { p.setMessage("ranger"); });
     expectEveryMemberIsInitialised<GCFriendChatting>("GCFriendChatting");
+    expectEveryMemberIsInitialised<GCKickMessage>("GCKickMessage");
     expectEveryMemberIsInitialised<GCShowMessageBox>("GCShowMessageBox",
                                                      [](GCShowMessageBox& p) { p.setMessage("box"); });
     expectEveryMemberIsInitialised<GCRequestFailed>("GCRequestFailed", [](GCRequestFailed& p) { p.setName("who"); });
-    expectEveryMemberIsInitialised<GCAddNickname>("GCAddNickname");
-    expectEveryMemberIsInitialised<GCNicknameList>("GCNicknameList");
+    expectEveryMemberIsInitialised<CGSelectNickname>("CGSelectNickname");
+    expectEveryMemberIsInitialised<CGModifyNickname>("CGModifyNickname");
     expectEveryMemberIsInitialised<GCNicknameVerify>("GCNicknameVerify");
+    expectEveryMemberIsInitialised<GCNicknameList>("GCNicknameList");
+    expectEveryMemberIsInitialised<GCAddNickname>("GCAddNickname");
+    expectEveryMemberIsInitialised<GCModifyNickname>(
+        "GCModifyNickname", [](GCModifyNickname& p) { p.setNicknameInfo(poisonPrepNickname()); });
+    expectEveryMemberIsInitialised<CGRequestUnion>("CGRequestUnion");
+    expectEveryMemberIsInitialised<CGAcceptUnion>("CGAcceptUnion");
+    expectEveryMemberIsInitialised<CGDenyUnion>("CGDenyUnion");
+    expectEveryMemberIsInitialised<CGQuitUnion>("CGQuitUnion");
+    expectEveryMemberIsInitialised<CGQuitUnionAccept>("CGQuitUnionAccept");
+    expectEveryMemberIsInitialised<CGQuitUnionDeny>("CGQuitUnionDeny");
     expectEveryMemberIsInitialised<CGRequestUnionInfo>("CGRequestUnionInfo");
+    expectEveryMemberIsInitialised<CGAppointSubmaster>("CGAppointSubmaster",
+                                                       [](CGAppointSubmaster& p) { p.setName("who"); });
     expectEveryMemberIsInitialised<CGAddSMSAddress>("CGAddSMSAddress");
+    expectEveryMemberIsInitialised<CGDeleteSMSAddress>("CGDeleteSMSAddress");
     expectEveryMemberIsInitialised<CGSMSAddressList>("CGSMSAddressList");
     expectEveryMemberIsInitialised<CGSMSSend>("CGSMSSend");
     expectEveryMemberIsInitialised<GCSMSAddressList>("GCSMSAddressList");
     expectEveryMemberIsInitialised<GCAddressListVerify>("GCAddressListVerify");
 }
 
-TEST(ChatConstructorTest, thePacketsThatDoNot) {
-    expectAMemberIsLeftUninitialised<GCSay>("GCSay", [](GCSay& p) { p.setMessage("say"); });
-    expectAMemberIsLeftUninitialised<GCWhisper>("GCWhisper", [](GCWhisper& p) {
-        p.setName("who");
-        p.setMessage("whisper");
-    });
-    expectAMemberIsLeftUninitialised<CGGlobalChat>("CGGlobalChat", [](CGGlobalChat& p) { p.setMessage("shout"); });
-    expectAMemberIsLeftUninitialised<GCGlobalChat>("GCGlobalChat", [](GCGlobalChat& p) { p.setMessage("shout"); });
-    expectAMemberIsLeftUninitialised<GCKickMessage>("GCKickMessage");
-    expectAMemberIsLeftUninitialised<CGSelectNickname>("CGSelectNickname");
-    expectAMemberIsLeftUninitialised<CGModifyNickname>("CGModifyNickname");
-    expectAMemberIsLeftUninitialised<CGRequestUnion>("CGRequestUnion");
-    expectAMemberIsLeftUninitialised<CGAcceptUnion>("CGAcceptUnion");
-    expectAMemberIsLeftUninitialised<CGDenyUnion>("CGDenyUnion");
-    expectAMemberIsLeftUninitialised<CGQuitUnion>("CGQuitUnion");
-    expectAMemberIsLeftUninitialised<CGQuitUnionAccept>("CGQuitUnionAccept");
-    expectAMemberIsLeftUninitialised<CGQuitUnionDeny>("CGQuitUnionDeny");
-    expectAMemberIsLeftUninitialised<CGAppointSubmaster>("CGAppointSubmaster",
-                                                         [](CGAppointSubmaster& p) { p.setName("who"); });
-    expectAMemberIsLeftUninitialised<CGDeleteSMSAddress>("CGDeleteSMSAddress");
-}
-
-// FINDING, stated as a test that fails once it is fixed.
-// GCModifyNickname is in neither list because writing one over poisoned
-// storage would follow the record pointer its constructor leaves alone.
-// The pointer itself is pinned instead: getPacketSize(), write() and
-// read() all dereference it, so a sender that skips setNicknameInfo
-// follows an indeterminate value and a receiver writes through one.
-TEST(ChatConstructorTest, theModifyNicknameRecordPointerIsLeftUninitialised) {
-    alignas(GCModifyNickname) unsigned char zeroed[sizeof(GCModifyNickname)];
-    memset(zeroed, 0x00, sizeof(zeroed));
-    GCModifyNickname* pZeroed = new (zeroed) GCModifyNickname();
-    NicknameInfo* pFromZero = pZeroed->getNicknameInfo();
-    pZeroed->~GCModifyNickname();
-
-    alignas(GCModifyNickname) unsigned char poisoned[sizeof(GCModifyNickname)];
-    memset(poisoned, 0xFF, sizeof(poisoned));
-    GCModifyNickname* pPoisoned = new (poisoned) GCModifyNickname();
-    NicknameInfo* pFromPoison = pPoisoned->getNicknameInfo();
-    pPoisoned->~GCModifyNickname();
-
-    EXPECT_NE(pFromZero, pFromPoison)
-        << "GCModifyNickname: its constructor now initialises the record pointer - move it to the "
-           "initialised list";
+// The record pointer starts empty, and getPacketSize() and write()
+// refuse on it instead of following what a sender that skipped
+// setNicknameInfo left behind.
+TEST(GCModifyNicknameTest, theRecordPointerStartsEmptyAndIsRefusedWhenMissing) {
+    GCModifyNickname packet;
+    EXPECT_TRUE(packet.getNicknameInfo() == NULL);
+    EXPECT_THROW(packet.getPacketSize(), InvalidProtocolException);
+    EXPECT_THROW(writeBody(packet, kPlainCode), InvalidProtocolException);
 }
 
 } // namespace

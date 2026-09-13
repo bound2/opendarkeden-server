@@ -25,8 +25,12 @@ void GCSystemMessage::read(SocketInputStream& iStream)
 
     iStream.read(m_Color);
 
+    // The enum declares fewer values than the byte carries, so the raw
+    // byte is tested before it reaches it.
     BYTE t;
     iStream.read(t);
+    if (t >= SYSTEM_MESSAGE_MAX)
+        throw InvalidProtocolException("system message type out of range");
     m_Type = (SystemMessageType)t;
 
     __END_CATCH

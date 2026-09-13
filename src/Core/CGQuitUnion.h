@@ -74,8 +74,8 @@ public:
 
 private:
     // Guild ID
-    GuildID_t m_GuildID;
-    BYTE m_Method;
+    GuildID_t m_GuildID = 0;
+    BYTE m_Method = QUIT_NORMAL;
 };
 
 

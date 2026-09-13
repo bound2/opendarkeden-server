@@ -705,33 +705,54 @@ before anything else moves. Everything later shelters under this pin.
   > `tests/packet_roundtrip_test.cpp` and no golden —
   > `CGAddSMSAddress`, `CGModifyNickname`, `GCFriendChatting` and
   > `GCShowMessageBox`, as `GCSystemMessage` did — and all five are
-  > pinned in full here. Eleven open write/read disagreements are stated
-  > as tests that flip when fixed (`GCSystemMessage` carrying a `Race_t`
-  > with a getter and a setter neither `read()` nor `write()` touches;
-  > `GCModifyNickname` leaving uninitialised the record pointer
-  > `getPacketSize()`, `write()` and `read()` all dereference;
-  > `GCRequestFailed::setCode` taking a WORD into a BYTE, and its name
-  > not being held to the ten its max budgets; `NicknameInfo::write`
-  > admitting the empty custom nickname `read()` refuses;
-  > `GCNicknameList` and `GCSMSAddressList` deriving count bytes they
-  > cap nowhere, so the 256th record wraps them to zero while `write()`
-  > emits every one; `CGSMSSend`'s max budgeting five bytes for the
-  > caller number `read()` accepts eleven of, its receiver count
-  > wrapping the same way, and its `write()` deriving every length byte
-  > with no bound; and `CGModifyNickname::setItemObjectID` taking a WORD
-  > where the member and the wire carry an `ObjectID_t`), and 15 of the
-  > 31 leave at least one member the default constructor never sets,
-  > pinned over poisoned storage — nine of those are built with only
-  > the string `write()` refuses to run without, because the refusal
-  > comes after the scalar fields are already in the buffer. Seven more
-  > are recorded in the test's header rather than tested:
-  > `GCSystemMessage` and `GCKickMessage` casting a byte to an enum
-  > whose range is narrower; `NicknameInfo` and `CGSMSSend` bounding
-  > through `Assert()`, which writes `assertion_failed.log`; the two
-  > list packets freeing no record; `NicknameInfo::write` capping a
-  > custom nickname at 255 where every other side stops at 22; and
-  > `GCRequestFailed` raising its zero-length refusal with an empty
-  > message. No golden changed.
+  > pinned in full here. **The eleven write/read disagreements it found
+  > are fixed** and pinned as the behaviour the packets now produce
+  > (`GCSystemMessage` carries no race, because the client's reader takes
+  > the message, the colour and the type byte and nothing else, and the
+  > only two mentions of the getter and setter in `src/server` sit in
+  > commented-out blocks; `GCModifyNickname`'s record pointer starts
+  > empty, `getPacketSize()` and `write()` refuse on it, and `read()`
+  > allocates the record it fills, so the packet frees only what it read
+  > and never the `NicknameBook` record or stack object its four senders
+  > hand over; `GCRequestFailed::setCode` takes the BYTE the wire
+  > carries, its name is cut to the ten its max budgets in the setter and
+  > travels through `de::wire` in `write()` and `read()`, and its
+  > zero-length refusal is an `InvalidProtocolException` naming the
+  > field; `NicknameInfo`'s custom nickname is bounded at
+  > `MAX_NICKNAME_SIZE` in the setter, in `write()` and in `read()`, all
+  > three admitting the empty value a `NICK_CUSTOM` slot can hold, which
+  > the client's own reader and `CGModifyNicknameHandler`'s
+  > add-a-nickname branch both produce; `GCNicknameList`'s listing,
+  > `GCSMSAddressList`'s and `CGSMSSend`'s receiver list are held to the
+  > 255, 30 and 5 their own maxima budget, in `write()` and in `read()`,
+  > so no count byte wraps while `write()` emits every entry, and
+  > `SMSAddressBook` stops the book at the thirty the listing carries;
+  > `CGSMSSend`'s max budgets `MAX_NUMBER_LENGTH` for the caller number,
+  > which is what `read()` accepts, so a packet built at every read cap
+  > is exactly the max, and its four strings travel through `de::wire`,
+  > so no length byte wraps and the message stops at
+  > `MAX_MESSAGE_LENGTH`; and `CGModifyNickname::setItemObjectID` takes
+  > the full `ObjectID_t` the member and the wire both carry). All 31
+  > initialise every member their `write()` emits, pinned over poisoned
+  > storage — nine are built with only the string `write()` refuses to
+  > run without, because the refusal comes after the scalar fields are
+  > already in the buffer. The seven the test's header recorded rather
+  > than tested are fixed with them: `GCSystemMessage::read`,
+  > `GCKickMessage::read` and `GCKickMessage::setType` test the raw byte
+  > against the enum's range before it reaches an enum that declares
+  > fewer values than a byte carries; `NicknameInfo` and `CGSMSSend`
+  > refuse through `InvalidProtocolException` in place of the `Assert()`
+  > that wrote `assertion_failed.log` first; `~GCNicknameList` and
+  > `~GCSMSAddressList` free what the packet owns and both `read()`s
+  > replace the listing they hold, with a `GCSMSAddressList` entry the
+  > packet's own either way because its one sender builds a fresh record
+  > per address, and `CGSMSAddressListHandler` deletes the listing it
+  > sends; and `GCFriendChatting`'s name and message are admitted empty
+  > and stop at 32 and 512 on both sides, as `CGAddSMSAddress`'s three
+  > fields are admitted empty on both sides, both matching the client's
+  > own halves. Two `tests/wire-layout.txt` lines move, `GCNicknameList`
+  > 13001 → 6631 and `CGSMSSend` 108 → 114, both server-side read-buffer
+  > budgets and not fields on the wire. No golden changed.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set, the inventory

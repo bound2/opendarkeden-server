@@ -16,13 +16,7 @@
 //////////////////////////////////////////////////////////////////////////////
 GCModifyNickname::GCModifyNickname()
 
-{
-    __BEGIN_TRY
-
-    m_ObjectID = 0;
-
-    __END_CATCH;
-}
+    {__BEGIN_TRY __END_CATCH}
 
 //////////////////////////////////////////////////////////////////////////////
 // destructor
@@ -31,6 +25,8 @@ GCModifyNickname::~GCModifyNickname()
 
 {
     __BEGIN_TRY
+
+    clearNicknameInfo();
 
     __END_CATCH_NO_RETHROW
 }
@@ -43,7 +39,13 @@ void GCModifyNickname::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
+    // The record replaces the one the packet holds.
+    clearNicknameInfo();
+
     iStream.read(m_ObjectID);
+
+    m_pNicknameInfo = new NicknameInfo;
+    m_bOwnsNicknameInfo = true;
     m_pNicknameInfo->read(iStream);
 
     __END_CATCH
@@ -57,6 +59,9 @@ void GCModifyNickname::write(SocketOutputStream& oStream) const
 
 {
     __BEGIN_TRY
+
+    if (m_pNicknameInfo == NULL)
+        throw InvalidProtocolException("nickname record missing");
 
     oStream.write(m_ObjectID);
     m_pNicknameInfo->write(oStream);

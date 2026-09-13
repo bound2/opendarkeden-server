@@ -27,7 +27,26 @@ GCNicknameList::~GCNicknameList()
 
 {
     __BEGIN_TRY
+
+    clearNicknames();
+
     __END_CATCH_NO_RETHROW
+}
+
+//////////////////////////////////////////////////////////////////////
+// Drop the listing, freeing only the records read() allocated.
+//////////////////////////////////////////////////////////////////////
+void GCNicknameList::clearNicknames()
+
+{
+    if (m_bOwnsNicknames) {
+        vector<NicknameInfo*>::iterator itr = m_Nicknames.begin();
+        for (; itr != m_Nicknames.end(); ++itr)
+            delete *itr;
+    }
+
+    m_Nicknames.clear();
+    m_bOwnsNicknames = false;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -38,15 +57,20 @@ void GCNicknameList::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    m_Nicknames.clear();
+    // The listing replaces the one the packet holds.
+    clearNicknames();
 
+    // The count byte carries no more than MAX_NICKNAME_NUM, so what it
+    // announces is already inside the budget.
     BYTE Num;
     iStream.read(Num);
 
+    m_bOwnsNicknames = true;
+
     for (int i = 0; i < Num; ++i) {
         NicknameInfo* pUnit = new NicknameInfo;
-        pUnit->read(iStream);
         m_Nicknames.push_back(pUnit);
+        pUnit->read(iStream);
     }
 
     __END_CATCH
@@ -58,6 +82,9 @@ void GCNicknameList::read(SocketInputStream& iStream)
 //////////////////////////////////////////////////////////////////////
 void GCNicknameList::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
+
+    if (m_Nicknames.size() > MAX_NICKNAME_NUM)
+        throw InvalidProtocolException("too many nickname records");
 
     BYTE Num = m_Nicknames.size();
     oStream.write(Num);

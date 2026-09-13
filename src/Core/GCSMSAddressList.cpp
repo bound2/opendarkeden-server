@@ -55,7 +55,23 @@ GCSMSAddressList::~GCSMSAddressList()
 
 {
     __BEGIN_TRY
+
+    clearAddresses();
+
     __END_CATCH_NO_RETHROW
+}
+
+//////////////////////////////////////////////////////////////////////
+// Drop the listing, freeing every record it held.
+//////////////////////////////////////////////////////////////////////
+void GCSMSAddressList::clearAddresses()
+
+{
+    vector<AddressUnit*>::iterator itr = m_Addresses.begin();
+    for (; itr != m_Addresses.end(); ++itr)
+        delete *itr;
+
+    m_Addresses.clear();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -66,15 +82,19 @@ void GCSMSAddressList::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    m_Addresses.clear();
+    // The listing replaces the one the packet holds.
+    clearAddresses();
 
     BYTE Num;
     iStream.read(Num);
 
+    if (Num > MAX_ADDRESS_NUM)
+        throw InvalidProtocolException("too many address book entries");
+
     for (int i = 0; i < Num; ++i) {
         AddressUnit* pUnit = new AddressUnit;
-        pUnit->read(iStream);
         m_Addresses.push_back(pUnit);
+        pUnit->read(iStream);
     }
 
     __END_CATCH
@@ -86,6 +106,9 @@ void GCSMSAddressList::read(SocketInputStream& iStream)
 //////////////////////////////////////////////////////////////////////
 void GCSMSAddressList::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
+
+    if (m_Addresses.size() > MAX_ADDRESS_NUM)
+        throw InvalidProtocolException("too many address book entries");
 
     BYTE Num = m_Addresses.size();
     oStream.write(Num);

@@ -61,11 +61,15 @@ public:
     string toString() const;
 
 public:
+    // Every entry in the listing belongs to the packet: a sender builds
+    // a fresh record per address, and read() allocates its own.
     vector<AddressUnit*>& getAddresses() {
         return m_Addresses;
     }
 
 private:
+    void clearAddresses();
+
     vector<AddressUnit*> m_Addresses;
 };
 

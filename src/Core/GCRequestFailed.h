@@ -9,6 +9,7 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 enum {
     REQUEST_FAILED_NULL,
@@ -21,6 +22,9 @@ enum {
 
 class GCRequestFailed : public Packet {
 public:
+    // The name length the factory max budgets.
+    static constexpr uint kMaxNameLength = 10;
+
     GCRequestFailed() {
         m_Code = REQUEST_FAILED_NULL;
     }
@@ -31,7 +35,7 @@ public:
         return PACKET_GC_REQUEST_FAILED;
     }
     PacketSize_t getPacketSize() const {
-        return szBYTE + szBYTE + m_Name.size();
+        return szBYTE + de::wire::stringWireSize(m_Name);
     }
     string getPacketName() const {
         return "GCRequestFailed";
@@ -42,7 +46,7 @@ public:
     BYTE getCode(void) const {
         return m_Code;
     }
-    void setCode(WORD code) {
+    void setCode(BYTE code) {
         m_Code = code;
     }
 
@@ -50,7 +54,7 @@ public:
         return m_Name;
     }
     void setName(const string& name) {
-        m_Name = name;
+        m_Name = (name.size() > kMaxNameLength) ? name.substr(0, kMaxNameLength) : name;
     }
 
 private:
@@ -66,7 +70,7 @@ class GCRequestFailedFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_REQUEST_FAILED;
     static constexpr std::string_view kName = "GCRequestFailed";
-    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE + 10};
+    static constexpr PacketSize_t kMaxSize{szBYTE + szBYTE + GCRequestFailed::kMaxNameLength};
 
     Packet* createPacket() override {
         return new GCRequestFailed();

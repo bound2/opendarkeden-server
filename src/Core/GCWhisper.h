@@ -91,13 +91,13 @@ private:
     string m_Name;
 
     // text color
-    uint m_Color;
+    uint m_Color = 0;
 
     // chatting message
     string m_Message;
 
     // Race
-    Race_t m_Race;
+    Race_t m_Race = 0;
 };
 
 

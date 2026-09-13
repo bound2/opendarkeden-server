@@ -81,8 +81,10 @@ class CGSMSSendFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_CG_SMS_SEND;
     static constexpr std::string_view kName = "CGSMSSend";
+    // The receiver count, then that many numbers, the caller's own
+    // number and the message, each behind its length byte.
     static constexpr PacketSize_t kMaxSize{szBYTE + (szBYTE + MAX_NUMBER_LENGTH) * MAX_RECEVIER_NUM + szBYTE +
-                                           MAX_RECEVIER_NUM + szBYTE + MAX_MESSAGE_LENGTH};
+                                           MAX_NUMBER_LENGTH + szBYTE + MAX_MESSAGE_LENGTH};
 
     Packet* createPacket() override {
         return new CGSMSSend();

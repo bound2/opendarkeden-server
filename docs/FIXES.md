@@ -11,6 +11,154 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Chat, nickname, union and SMS write/read disagreements (2026-09-13)
+
+The eleven findings task 1.2 stated as flip-tests in
+`tests/packet_chat_test.cpp`, the initialisation split the same file
+pinned, and the seven its header recorded rather than tested. These
+packets are client-facing, so `write()` and `getPacketSize()` are the
+contract: every fix is a refusal, a cap at the width the factory max
+budgets, a size-accounting correction, a read-side correction or an
+initialisation. **No golden changes.** Two `tests/wire-layout.txt` lines
+move — `GCNicknameList` 13001 → 6631 and `CGSMSSend` 108 → 114 — both
+read-buffer budgets, not fields on the wire.
+
+- **`GCSystemMessage` carried a `Race_t` with a getter and a setter
+  neither `read()` nor `write()` touches**, so a sender's `setRace` never
+  left the process. The client's own reader
+  (`Client/Packet/Gpackets/GCSystemMessage.cpp`) takes the message behind
+  its length byte, the colour and the type byte and stops; its
+  `GCSystemMessage.h` declares no race member at all. The two mentions in
+  `src/server` — `CGRangerSayHandler.cpp`'s `setRace` and
+  `ZonePlayerManager.cpp`'s `getRace` — both sit inside commented-out
+  blocks, so nothing reachable used it. The member and both accessors are
+  gone; the commented blocks are left as they are.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **`GCModifyNickname`'s record pointer started indeterminate and
+  `getPacketSize()`, `write()` and `read()` all dereferenced it.** A
+  sender that skipped `setNicknameInfo` followed an indeterminate value
+  and a receiver wrote a whole record through one. All four senders hand
+  over a record they keep — the character's `NicknameBook`'s in
+  `CGModifyNicknameHandler`, `CGSelectNicknameHandler` and
+  `PlayerCreature::levelUp`, a function-local `static` or a stack
+  `NicknameInfo` in `CGSayHandler`'s two admin commands — so the packet
+  tracks which record is its own the way `GCGQuestStatusModify` does: the
+  pointer starts empty, `getPacketSize()` and `write()` refuse on it,
+  `read()` allocates and owns the record it fills and frees it before
+  allocating the next, and the destructor frees that and never a
+  sender's.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **`GCRequestFailed::setCode` took a `WORD` into a `BYTE`, and the
+  name's length byte was derived with no bound** while the factory max
+  budgets ten bytes for it, so an eleven-byte name already outgrew the
+  read buffer the receiver sizes from that max. The setter takes the
+  `BYTE` the wire carries (its one caller passes `REQUEST_FAILED_IP`),
+  the name is cut to `kMaxNameLength` in the setter and carried through
+  `de::wire` in `write()` and `read()`, and the zero-length refusal both
+  halves raised as `ProtocolException("")` — a log line naming no field —
+  is now the helper's `InvalidProtocolException` naming `Name`. The max
+  is unchanged, restated as that constant.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **`CGModifyNickname::setItemObjectID` took a `WORD`** while the member
+  it writes and the wire both carry an `ObjectID_t`, so no caller could
+  set an item id past 65535. It takes the full `ObjectID_t`; no
+  `src/server` source calls it.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **`NicknameInfo::write` bounded its custom nickname at the 255 its
+  length byte carries where `read()` stopped at `MAX_NICKNAME_SIZE` and
+  refused an empty one**, so the record `write()` emits for a
+  `NICK_CUSTOM` slot with no text could not be read back. All three sides
+  agree at `{0, MAX_NICKNAME_SIZE}` now. The empty value is admitted
+  rather than refused because senders produce it —
+  `CGModifyNicknameHandler`'s add-a-nickname branch builds a
+  `NICK_CUSTOM` record straight from the packet's nickname without
+  checking it, and `CGModifyNickname::read` admits an empty one — and
+  because the client's own `NicknameInfo::read` writes the field only
+  when its length byte is non-zero. The three `Assert(false)` defaults
+  that closed the switch in `getSize()`, `read()` and `write()`, which
+  append to `assertion_failed.log` in the working directory before they
+  throw, are `InvalidProtocolException`s; in `read()` that is also the
+  range check on the type byte.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **Three counted lists derived a count byte they capped nowhere**, so
+  the 256th entry wrapped it to zero while `write()` still emitted every
+  one: `GCNicknameList`'s records, `GCSMSAddressList`'s entries and
+  `CGSMSSend`'s receivers. Each is held to what its own maximum budgets —
+  255, `MAX_ADDRESS_NUM` 30 and `MAX_RECEVIER_NUM` 5 — in `write()` and
+  in `read()`. `GCNicknameListFactory`'s max budgeted `MAX_NICKNAME_NUM`
+  500 records, twice what the count byte in front of them can ever
+  describe, so `MAX_NICKNAME_NUM` is the 255 that byte carries and the
+  max follows it: `GCNicknameList` 13001 → 6631.
+  `SMSAddressBook::addAddressElement` compared its size with `>` before
+  inserting, so the book could reach 31 entries and the listing packet
+  refuse to write at all; it stops at the thirty the listing carries.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **`CGSMSSendFactory`'s maximum budgeted `MAX_RECEVIER_NUM` (5) bytes
+  for the caller number where `read()` accepts `MAX_NUMBER_LENGTH`
+  (11)** — the wrong constant in the arithmetic — so a packet built at
+  the lengths `read()` admits outgrew the read buffer by six bytes. The
+  max budgets the length it accepts, and a packet at every read cap is
+  now exactly that max: `CGSMSSend` 108 → 114. The same packet derived
+  all four of its length bytes from the strings with no bound, so a
+  message past `MAX_MESSAGE_LENGTH` was emitted whole and one of 256
+  wrapped its byte to zero; every string travels through `de::wire` now,
+  at the widths the max budgets. Its four `Assert()` bounds on the read
+  side, which wrote `assertion_failed.log` before throwing, are
+  `InvalidProtocolException`s.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **`GCSystemMessage::read`, `GCKickMessage::read` and
+  `GCKickMessage::setType` cast a byte straight to an enum narrower than
+  a byte.** `SystemMessageType` declares eight values and
+  `KickMessageType` two, so a byte above their range is an out-of-range
+  enum load, which the Debug toolchain's UBSan traps on. Each tests the
+  raw `BYTE` against the enum's `_MAX` before assigning.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **`~GCNicknameList` and `~GCSMSAddressList` freed no record, and both
+  `read()`s cleared the vector without freeing what it held**, so every
+  record a `read()` allocated leaked. The two differ in who owns what.
+  `GCNicknameList`'s one sender, `NicknameBook::getNicknameBookListPacket`,
+  pushes the book's own records, so the listing starts unowned and the
+  packet frees only what `read()` allocated. Every `GCSMSAddressList`
+  entry is the packet's: its one sender,
+  `SMSAddressBook::getGCSMSAddressList`, builds a fresh `AddressUnit` per
+  address through `SMSAddressElement::getAddressUnit` and keeps only the
+  element, so the destructor frees the whole listing and `read()` frees
+  before replacing it. `CGSMSAddressListHandler` also never deleted the
+  packet it sent — the nickname list's handler does — so the records
+  leaked with it; it deletes it now.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **Fifteen of the thirty-one left at least one member the default
+  constructor never sets**, so a packet sent without every setter called
+  put indeterminate bytes on the wire: `GCSay`'s object id and colour,
+  `GCWhisper`'s and `GCGlobalChat`'s colour and race, `CGGlobalChat`'s
+  colour, `GCKickMessage`'s seconds, `CGSelectNickname`'s nickname id,
+  `CGModifyNickname`'s item id, the six union packets' guild id,
+  `CGQuitUnion`'s quit method, `CGAppointSubmaster`'s guild id and
+  `CGDeleteSMSAddress`'s element id. All 31 initialise every member their
+  `write()` emits now, pinned over poisoned storage.
+  > **Status:** fixed (wire/chat-disagreements)
+
+- **`GCFriendChatting` capped its message at 128 on read and 512 on
+  write, and admitted on write the empty name and message `read()`
+  refused; `CGAddSMSAddress` admitted all three of its empty fields on
+  write and refused them on read.** Both are read-side widenings, because
+  the write side is what the senders and the client already agree on: the
+  client's `GCFriendChatting::read` refuses only past 32 and 512 and
+  writes each field only when its length is non-zero, most of
+  `GCFriendChattingHandler`'s sends leave both strings empty, and the
+  client's `CGAddSMSAddress::write` admits an empty value in each of the
+  three. The pins in `tests/packet_roundtrip_test.cpp` follow.
+  > **Status:** fixed (wire/chat-disagreements)
+
 ## A bare string-literal throw walked past every handler written for it (2026-09-10)
 
 - **149 sites answered a refusal with `throw "text"`, a `const char*`

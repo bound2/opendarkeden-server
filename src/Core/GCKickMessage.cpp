@@ -19,7 +19,7 @@ void GCKickMessage::read(SocketInputStream& iStream)
 
     BYTE t;
     iStream.read(t);
-    m_Type = (KickMessageType)t;
+    setType(t);
 
     iStream.read(m_Seconds);
 

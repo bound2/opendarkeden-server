@@ -81,10 +81,10 @@ public:
 
 private:
     // character's creature id
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // text color
-    uint m_Color;
+    uint m_Color = 0;
 
     // chatting message
     string m_Message;

@@ -62,7 +62,9 @@ GCSMSAddressList* SMSAddressBook::getGCSMSAddressList() const {
 }
 
 int SMSAddressBook::addAddressElement(SMSAddressElement* pElement) {
-    if (m_Addresses.size() > MAX_ADDRESS_NUM)
+    // The listing packet carries MAX_ADDRESS_NUM entries, so the book
+    // may not pass it.
+    if (m_Addresses.size() >= MAX_ADDRESS_NUM)
         return GCAddressListVerify::ADD_FAIL_MAX_NUM_EXCEEDED;
     if (m_Addresses[pElement->getID()] != NULL)
         return GCAddressListVerify::ADD_FAIL_INVALID_DATA;

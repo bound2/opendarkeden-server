@@ -46,7 +46,7 @@ public:
     }
 
 private:
-    WORD m_NicknameID;
+    WORD m_NicknameID = 0;
 };
 
 

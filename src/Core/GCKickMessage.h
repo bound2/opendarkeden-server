@@ -66,7 +66,11 @@ public:
     BYTE getType() const {
         return m_Type;
     }
+    // The enum declares fewer values than the byte carries, so the raw
+    // byte is tested before it reaches it.
     void setType(BYTE type) {
+        if (type >= KICK_MESSAGE_MAX)
+            throw InvalidProtocolException("kick message type out of range");
         m_Type = (KickMessageType)type;
     }
 
@@ -82,7 +86,7 @@ private:
     KickMessageType m_Type;
 
     // seconds
-    uint m_Seconds;
+    uint m_Seconds = 0;
 };
 
 

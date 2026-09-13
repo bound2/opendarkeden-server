@@ -24,9 +24,11 @@ void CGAddSMSAddress::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    de::wire::readString(iStream, m_CharacterName, {1, 20}, "CharacterName");
-    de::wire::readString(iStream, m_CustomName, {1, 40}, "CustomName");
-    de::wire::readString(iStream, m_Number, {1, 11}, "Number");
+    // The sending side admits an empty value in each of the three, so
+    // the read side takes what it emits.
+    de::wire::readString(iStream, m_CharacterName, {0, 20}, "CharacterName");
+    de::wire::readString(iStream, m_CustomName, {0, 40}, "CustomName");
+    de::wire::readString(iStream, m_Number, {0, 11}, "Number");
 
     __END_CATCH
 }
