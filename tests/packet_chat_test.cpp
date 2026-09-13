@@ -127,10 +127,8 @@
 //               GCPhoneSay appear in no line of
 //               tests/ratchet/factory_registrations.txt, so no
 //               PacketFactoryManager list can build one off the wire.
-//               The three CG handlers are still registered on the
-//               gameserver's dispatch table, and CGDialUpHandler,
-//               CGPhoneSayHandler and CGPhoneDisconnectHandler are the
-//               only sources that construct the four GC answers, so
+//               No handler exists for the three CG packets and no
+//               server source constructs the four GC answers, so
 //               the whole exchange is unreachable. GCShowUnionInfo is
 //               excluded for the same reason: its factory is in no
 //               registration list either, though
