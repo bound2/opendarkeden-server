@@ -128,10 +128,9 @@ R10a=$(grep -rnE 'throw [A-Za-z_]+\.c_str\(\)' src | wc -l)
 check_ratchet R10a "throws of a pointer into a local string" 0 "$R10a"
 
 # The receiving end. All 34 handlers name DatabaseError, so one left here
-# would either be dead -- nothing throws a const char* from a statement --
-# or be reaching for one of the ~160 bare `throw "literal"` sites, which are
-# a separate defect and are not answered this way. Textual, so a
-# commented-out clause counts too.
+# would be dead: no statement throws a const char*, and R11 holds the rest of
+# the tree at zero bare literal throws. Textual, so a commented-out clause
+# counts too.
 R10b=$(grep -rn 'catch (const char\*' src | wc -l)
 check_ratchet R10b "catch (const char*) handlers left in src" 0 "$R10b"
 
@@ -142,12 +141,10 @@ check_ratchet R10b "catch (const char*) handlers left in src" 0 "$R10b"
 # __END_CATCH_NO_RETHROW matches it, so it walks past every handler the code
 # around it wrote and lands in a catch (...) backstop -- or, out of a
 # destructor, in std::terminate. `throw Error("text")` reaches the handler
-# that was written for it. What is left is the item constructors' identical
-# "Invalid item type or optionType" refusal, one per item class; they are a
-# family and are converted as a family. Line-based with R8's comment rule, so
-# a commented-out throw does not count.
+# that was written for it. None is left, so a new one fails here. Line-based
+# with R8's comment rule, so a commented-out throw does not count.
 R11=$(grep -rh 'throw "' src --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
-check_ratchet R11 "bare string-literal throws" 87 "$R11"
+check_ratchet R11 "bare string-literal throws" 0 "$R11"
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.

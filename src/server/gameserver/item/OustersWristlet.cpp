@@ -48,7 +48,7 @@ OustersWristlet::OustersWristlet(ItemType_t itemType, const list<OptionType_t>& 
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "OustersWristlet::OustersWristlet() : Invalid item type or option type");
-        throw "OustersWristlet::OustersWristlet() : Invalid item type or optionType";
+        throw Error("OustersWristlet::OustersWristlet() : Invalid item type or optionType");
     }
 }
 
