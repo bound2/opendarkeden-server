@@ -275,7 +275,6 @@ set(HANDLER_SOURCES
     handler/CGDeleteSMSAddressHandler.cpp
     handler/CGDenyUnionHandler.cpp
     handler/CGDepositPetHandler.cpp
-    handler/CGDialUpHandler.cpp
     handler/CGDisplayItemHandler.cpp
     handler/CGDissectionCorpseHandler.cpp
     handler/CGDonationMoneyHandler.cpp
@@ -312,8 +311,6 @@ set(HANDLER_SOURCES
     handler/CGPartyPositionHandler.cpp
     handler/CGPartySayHandler.cpp
     handler/CGPetGambleHandler.cpp
-    handler/CGPhoneDisconnectHandler.cpp
-    handler/CGPhoneSayHandler.cpp
     handler/CGPickupMoneyHandler.cpp
     handler/CGPortCheckHandler.cpp
     handler/CGQuitGuildHandler.cpp

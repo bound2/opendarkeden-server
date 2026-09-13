@@ -35,7 +35,6 @@
 #include "CGDeleteSMSAddress.h"
 #include "CGDenyUnion.h"
 #include "CGDepositPet.h"
-#include "CGDialUp.h"
 #include "CGDisplayItem.h"
 #include "CGDissectionCorpse.h"
 #include "CGDonationMoney.h"
@@ -72,8 +71,6 @@
 #include "CGPartyPosition.h"
 #include "CGPartySay.h"
 #include "CGPetGamble.h"
-#include "CGPhoneDisconnect.h"
-#include "CGPhoneSay.h"
 #include "CGPickupMoney.h"
 #include "CGPortCheck.h"
 #include "CGQuitGuild.h"
@@ -242,7 +239,6 @@ void registerGameServerPacketHandlers() {
     DE_REGISTER_PACKET_HANDLER(CGDeleteSMSAddress);
     DE_REGISTER_PACKET_HANDLER(CGDenyUnion);
     DE_REGISTER_PACKET_HANDLER(CGDepositPet);
-    DE_REGISTER_PACKET_HANDLER(CGDialUp);
     DE_REGISTER_PACKET_HANDLER(CGDisplayItem);
     DE_REGISTER_PACKET_HANDLER(CGDissectionCorpse);
     DE_REGISTER_PACKET_HANDLER(CGDonationMoney);
@@ -279,8 +275,6 @@ void registerGameServerPacketHandlers() {
     DE_REGISTER_PACKET_HANDLER(CGPartyPosition);
     DE_REGISTER_PACKET_HANDLER(CGPartySay);
     DE_REGISTER_PACKET_HANDLER(CGPetGamble);
-    DE_REGISTER_PACKET_HANDLER(CGPhoneDisconnect);
-    DE_REGISTER_PACKET_HANDLER(CGPhoneSay);
     DE_REGISTER_PACKET_HANDLER(CGPickupMoney);
     DE_REGISTER_PACKET_HANDLER(CGQuitGuild);
     DE_REGISTER_PACKET_HANDLER(CGQuitUnion);

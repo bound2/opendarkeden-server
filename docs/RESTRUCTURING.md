@@ -1352,6 +1352,16 @@ visibility can't express.
   >    nothing Core compiles needs a gameserver header, so the PUBLIC
   >    `src/server/gameserver[/item]` exports on `Core` and the private
   >    gameserver dirs on all four packet libraries are removed.
+  > 9. **The dead phone exchange is deleted**: `CGDialUp`,
+  >    `CGPhoneDisconnect` and `CGPhoneSay` have no factory in any of
+  >    `PacketFactoryManager::init()`'s lists, so `createPacket` answers
+  >    their ids with an `InvalidProtocolException` and the dispatch
+  >    entries the gameserver registered for them could never run; their
+  >    three handler sources, the registrations and the CMake entries are
+  >    gone, and with them the only senders of `GCRing`,
+  >    `GCPhoneConnected`, `GCPhoneConnectionFailed`, `GCPhoneDisconnected`
+  >    and `GCPhoneSay`. The packet classes stay in `src/Core`, which the
+  >    client repo mirrors.
   - Owner: CMake target membership + include-graph test.
 
 **Phase exit criteria:** `de-kernel` builds standalone with no MySQL/Lua/Zone
