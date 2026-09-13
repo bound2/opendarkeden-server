@@ -176,7 +176,6 @@ before anything else moves. Everything later shelters under this pin.
   > pinned as the behaviour the packets now produce, except the twelve
   > in `tests/packet_session_test.cpp`, which are stated as tests that
   > flip when they are fixed; the ones that cannot be tested — undefined
-  > when they are fixed; the ones that cannot be tested — undefined
   > behaviour, a leak, or no observable wire effect — are recorded in
   > their file's header. The fixes moved `tests/wire-layout.txt` lines
   > in most families, every one a server-side read-buffer budget rather
