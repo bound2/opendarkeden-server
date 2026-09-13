@@ -302,11 +302,11 @@ void filelog(const char* szFilename, const char* fmt, ...) {
 
     int nchars = vsnprintf(buffer, 30000, fmt, valist);
 
+    va_end(valist);
+
     if (nchars == -1 || nchars > 30000) {
         throw Error("filelog() : more buffer size needed for log");
     }
-
-    va_end(valist);
 
     VSDateTime current = VSDateTime::currentDateTime();
 

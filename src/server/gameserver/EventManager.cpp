@@ -44,7 +44,7 @@ void EventManager::addEvent(Event* pEvent)
 
 {
     __BEGIN_TRY
-    __END_DEBUG
+    __BEGIN_DEBUG
 
     Assert(pEvent != NULL);
 
@@ -58,7 +58,7 @@ void EventManager::addEvent(Event* pEvent)
         throw Error("EventManager::addEvent() : Duplicated event class");
     }
 
-    __BEGIN_DEBUG
+    __END_DEBUG
     __END_CATCH
 }
 

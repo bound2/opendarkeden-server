@@ -11,6 +11,28 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Error paths that could not report anything (2026-09-13)
+
+- **`XMLUtil::filelog`'s own overflow branch passed a null format to
+  itself.** `filelog(NULL, "filelog buffer overflow!")` reaches
+  `vsnprintf(buf, n, NULL, valist)` on the one path that exists to report
+  that formatting already failed, which is undefined behaviour; the message
+  is the format now. Both `filelog` overloads also threw their overflow
+  `Error` before `va_end(valist)`, leaving the variadic state unclosed on
+  the throwing path; `va_end` runs right after `vsnprintf` in both.
+  > **Status:** fixed (seam/item-literal-throws)
+
+- **`EventManager::addEvent` had its debug macros in the wrong order**
+  (`__BEGIN_TRY __END_DEBUG` ... `__BEGIN_DEBUG __END_CATCH`), which
+  expands to an empty `try` with two handlers, then the whole body outside
+  any `try`, then a second empty one: the duplicate-event-class `Error` it
+  raises reached the caller with nothing printed and no frame added to its
+  stack. Correcting the order to `__BEGIN_TRY __BEGIN_DEBUG` ...
+  `__END_DEBUG __END_CATCH` puts the body inside both, so the refusal is
+  written to standard output and carries `addEvent` in its trace. It still
+  propagates: both macros rethrow.
+  > **Status:** fixed (seam/item-literal-throws)
+
 ## Chat, nickname, union and SMS write/read disagreements (2026-09-13)
 
 The eleven findings task 1.2 stated as flip-tests in
