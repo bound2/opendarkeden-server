@@ -67,7 +67,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
 | R9 | Hand-written length-prefixed string reads left in `src/Core` | 0 | `grep -rhE 'iStream\.read\([A-Za-z_][A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (a string field is a BYTE length then that many bytes; `de::wire::readString`/`writeString` in `src/Core/WireString.h` carry it with the bounds stated once. The read may land in a member or in a local, so any identifier counts. Line-based with R8's comment rule, so `WireString.h`'s own example of the shape it replaces does not count itself) |
 | R10 | Throws of a pointer into a local string, and the handlers that caught one | 0 (R10a), 0 (R10b) | R10a: `grep -rnE 'throw [A-Za-z_]+\.c_str\(\)' src \| wc -l` — a `throw x.c_str()` hands the handler storage that dies with the clause it came from; `END_DB`/`END_DB_EX` answer a failed statement with a `DatabaseError` (`src/server/database/DatabaseError.h`) that owns its message, so nothing in the tree has that shape. R10b: `grep -rn 'catch (const char\*' src \| wc -l` — the receiving end. All 34 handlers name `DatabaseError`, so the count is 0 and one left behind would either be dead or be reaching for one of the ~160 bare `throw "literal"` sites, which are a separate defect and are not answered this way. Textual, so a commented-out clause counts (the one inside `CGPortCheckHandler.cpp`'s commented-out retry moved with the live code) |
-| R11 | Bare string-literal throws left in `src` | 87 | `grep -rh 'throw "' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` — a `throw "text"` puts a `const char*` on the stack, a type nothing catches (R10b) and neither `__END_CATCH` nor the swallowing `__END_CATCH_NO_RETHROW` matches, so it walks past every handler the surrounding code wrote and lands in a `catch (...)` backstop — or, thrown out of a destructor, in `std::terminate`. `throw Error("text")` reaches the handler written for it. 149→87 on 2026-09-10: the 62 sites outside `src/server/gameserver/item` (see `docs/FIXES.md`). What remains is one family: the item classes' identical `Invalid item type or optionType` constructor refusal, one per class, converted as a family in a later round. Line-based with R8's comment rule, so a commented-out throw does not count |
+| R11 | Bare string-literal throws left in `src` | 0 | `grep -rh 'throw "' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` — a `throw "text"` puts a `const char*` on the stack, a type nothing catches (R10b) and neither `__END_CATCH` nor the swallowing `__END_CATCH_NO_RETHROW` matches, so it walks past every handler the surrounding code wrote and lands in a `catch (...)` backstop — or, thrown out of a destructor, in `std::terminate`. `throw Error("text")` reaches the handler written for it. 149→0 over two rounds (see `docs/FIXES.md`): the 62 sites outside `src/server/gameserver/item`, then the 87 item constructors that answered a failed `isPossibleItem` check with the identical `Invalid item type or optionType` literal, one per item class. Line-based with R8's comment rule, so a commented-out throw does not count |
 
 God-file baselines (R6):
 
@@ -1352,6 +1352,16 @@ visibility can't express.
   >    nothing Core compiles needs a gameserver header, so the PUBLIC
   >    `src/server/gameserver[/item]` exports on `Core` and the private
   >    gameserver dirs on all four packet libraries are removed.
+  > 9. **The dead phone exchange is deleted**: `CGDialUp`,
+  >    `CGPhoneDisconnect` and `CGPhoneSay` have no factory in any of
+  >    `PacketFactoryManager::init()`'s lists, so `createPacket` answers
+  >    their ids with an `InvalidProtocolException` and the dispatch
+  >    entries the gameserver registered for them could never run; their
+  >    three handler sources, the registrations and the CMake entries are
+  >    gone, and with them the only senders of `GCRing`,
+  >    `GCPhoneConnected`, `GCPhoneConnectionFailed`, `GCPhoneDisconnected`
+  >    and `GCPhoneSay`. The packet classes stay in `src/Core`, which the
+  >    client repo mirrors.
   - Owner: CMake target membership + include-graph test.
 
 **Phase exit criteria:** `de-kernel` builds standalone with no MySQL/Lua/Zone

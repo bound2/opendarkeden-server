@@ -166,11 +166,11 @@ void XMLUtil::filelog(const char* fmt, ...) {
             0,
         };
         int nchars = vsnprintf(message_buffer, 30000, fmt, valist);
+        va_end(valist);
         if (nchars == -1 || nchars > 30000) {
-            filelog(NULL, "filelog buffer overflow!");
+            filelog("filelog buffer overflow!");
             throw Error("filelog() : more buffer size needed for log");
         }
-        va_end(valist);
 
         time_t now = time(0);
         char time_buffer[256] = {

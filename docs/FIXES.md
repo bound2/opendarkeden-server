@@ -11,6 +11,28 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Error paths that could not report anything (2026-09-13)
+
+- **`XMLUtil::filelog`'s own overflow branch passed a null format to
+  itself.** `filelog(NULL, "filelog buffer overflow!")` reaches
+  `vsnprintf(buf, n, NULL, valist)` on the one path that exists to report
+  that formatting already failed, which is undefined behaviour; the message
+  is the format now. Both `filelog` overloads also threw their overflow
+  `Error` before `va_end(valist)`, leaving the variadic state unclosed on
+  the throwing path; `va_end` runs right after `vsnprintf` in both.
+  > **Status:** fixed (seam/item-literal-throws)
+
+- **`EventManager::addEvent` had its debug macros in the wrong order**
+  (`__BEGIN_TRY __END_DEBUG` ... `__BEGIN_DEBUG __END_CATCH`), which
+  expands to an empty `try` with two handlers, then the whole body outside
+  any `try`, then a second empty one: the duplicate-event-class `Error` it
+  raises reached the caller with nothing printed and no frame added to its
+  stack. Correcting the order to `__BEGIN_TRY __BEGIN_DEBUG` ...
+  `__END_DEBUG __END_CATCH` puts the body inside both, so the refusal is
+  written to standard output and carries `addEvent` in its trace. It still
+  propagates: both macros rethrow.
+  > **Status:** fixed (seam/item-literal-throws)
+
 ## Chat, nickname, union and SMS write/read disagreements (2026-09-13)
 
 The eleven findings task 1.2 stated as flip-tests in
@@ -186,11 +208,30 @@ read-buffer budgets, not fields on the wire.
   which swallows it after the `cerr` line the site already writes — a
   swallow accepted deliberately, because terminating every logged-in
   session over one departing player's party bookkeeping is not a refusal
-  worth keeping. Ratchet R11 holds the remainder at 87: the item classes'
-  identical `Invalid item type or optionType` constructor refusal, one per
-  class, a family to convert as a family.
-  > **Status:** fixed for everything outside `src/server/gameserver/item`
-  > (seam/statement-leak); the 87 item constructors are ratcheted by R11
+  worth keeping. The item classes' identical `Invalid item type or
+  optionType` constructor refusal, 87 sites, one per class, went the same
+  way. It is raised only by the `(itemType, optionType)` constructor the
+  `ItemFactory` subclasses call, never by the argument-less one every
+  `<Class>Loader::load` uses, so no database row is skipped at startup by
+  the change. Eleven of the paths that reach a factory do land somewhere
+  else now. Four improve: the item-making skills (`CreateBomb`,
+  `CreateMine`, `CreateHolyWater`, `AbsorbSoul`) already catch `Throwable`
+  and answer with their own skill-fail packet, so a refusal ends the skill
+  instead of disconnecting the player. Seven turn a kill into a swallow:
+  monster loot (`MonsterManager::processCreatures`) and NPC-triggered quest
+  actions (`NPCManager::processCreatures`) logged nothing and took the whole
+  server down through `ManagedThread`'s `catch (...)`, and now log one line
+  and abandon the rest of that tick; the GM relic command, the NPC-dialogue
+  rewards, the event-tree inventory move, the quick-slot motorcycle key and
+  `ActionRedeemMotorcycle` disconnected the player and now swallow, four of
+  them with their diagnostic commented out. All eleven are accepted: the
+  `filelog("itembug.log", ...)` line beside every one of these throws
+  reports the failure whatever catches it, and a malformed `ItemInfo` row is
+  not worth a server. Ratchet R11 is 0, so a new literal anywhere in `src`
+  fails it.
+  > **Status:** fixed; the 62 sites outside `src/server/gameserver/item` in
+  > seam/statement-leak, the 87 item constructors in
+  > seam/item-literal-throws
 
 ## A statement that met anything but a SQL failure was never closed (2026-09-10)
 
