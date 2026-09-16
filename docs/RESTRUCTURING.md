@@ -183,10 +183,9 @@ before anything else moves. Everything later shelters under this pin.
   > re-recorded for a fixture that carried an out-of-range condition
   > byte.
   >
-  > Open: the four fixtures pinned first still carry values under 128,
-  > so a signedness flip on `Coord_t`/`Dir_t` would leave their goldens
-  > byte-identical. Strengthening them re-records 15 existing goldens
-  > and is a protocol-review change of its own, not part of coverage.
+  > The four fixtures pinned first carry high-bit coordinates and
+  > colours with the direction an enumerator, and a test reads their
+  > recorded goldens back so they stay that way.
   - Owner: the golden files — any layout change is a byte-diff in the commit.
   - Note: packets whose `read`/`write` depend on game-state globals need those
     globals stubbed; list any such packet here as found (they are also the
