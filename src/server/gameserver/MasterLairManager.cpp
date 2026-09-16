@@ -1169,7 +1169,7 @@ void MasterLairManager::giveKillingReward()
                 }
             }
         } else {
-            throw Error("PCManager에 PC아닌게 들어있노 -_-");
+            throw Error("PCManager holds a creature that is not a PC");
         }
     }
 

@@ -239,7 +239,7 @@ bool deleteRelicEffect(Corpse* pCorpse, Item* pItem)
         else if (pRelicInfo->relicType == RELIC_TYPE_VAMPIRE)
             EClass = Effect::EFFECT_CLASS_HAS_VAMPIRE_RELIC;
         else
-            throw Error("잘못된 Relic Item Type 입니다.");
+            throw Error("Invalid relic item type.");
     } break;
 
     case Item::ITEM_CLASS_BLOOD_BIBLE:
@@ -389,7 +389,7 @@ bool deleteRelicEffect(Creature* pCreature, Item* pItem)
         else if (pRelicInfo->relicType == RELIC_TYPE_VAMPIRE)
             effectClass = Effect::EFFECT_CLASS_HAS_VAMPIRE_RELIC;
         else
-            throw Error("잘못된 Relic Item Type 입니다.");
+            throw Error("Invalid relic item type.");
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_BLOOD_BIBLE) {
         effectClass = Effect::EFFECT_CLASS_HAS_BLOOD_BIBLE;
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_CASTLE_SYMBOL) {
@@ -553,7 +553,7 @@ bool dropRelicToZone(PlayerCreature* pPC, Item* pItem)
             pItem->getEffectManager().addEffect(pLock);
         }
     } else {
-        throw Error("Logout하는데 성물 떨어뜨릴 자리가 없다");
+        throw Error("No free tile to drop the relic on logout");
         // return false;
     }
 

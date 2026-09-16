@@ -2271,7 +2271,7 @@ void makeOptionList(const string& options, list<OptionType_t>& optionList)
         try {
             optionType = g_pOptionInfoManager->getOptionType(optionName);
         } catch (NoSuchElementException&) {
-            throw Error("±×·± ¿É¼ÇÀÌ ¾ø´Ü´Ù.");
+            throw Error("No such option.");
         }
 
         optionList.push_back(optionType);

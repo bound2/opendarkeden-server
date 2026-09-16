@@ -190,7 +190,7 @@ void GameServerManager::sendDatagram(Datagram* pDatagram) {
     } catch (ConnectException& t) {
         cout << "GameServerManager::sendDatagram Exception Check!!" << endl;
         cout << t.toString() << endl;
-        throw ConnectException("GameServerManager::sendDatagram ������ ������");
+        throw ConnectException("GameServerManager::sendDatagram failed");
     }
 
     __END_CATCH

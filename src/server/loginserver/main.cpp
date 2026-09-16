@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     try {
         if (Argv[1] != "-f") {
-            throw Error("Usage : loginserver -f È¯°æÆÄÀÏ [-p port]");
+            throw Error("Usage : loginserver -f config-file [-p port]");
         }
 
         // Ã¹¹øÂ° ÆÄ¶ó¹ÌÅÍ°¡ -f ÀÏ °æ¿ì, µÎ¹øÂ° ÆÄ¶ó¹ÌÅÍ´Â È¯°æÆÄÀÏÀÇ À§Ä¡°¡ µÈ´Ù.
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     try {
         if (argc > 3) {
             if (argc < 5 || Argv[3] != "-i")
-                throw Error("Usage : loginserver -f È¯°æÆÄÀÏ [-i ID]");
+                throw Error("Usage : loginserver -f config-file [-i ID]");
 
             // port¸¦ °­Á¦·Î ¼³Á¤ÇÑ´Ù.
             char sLoginServerPort[5], sLoginServerUDPPort[5], sLoginServerID[5];

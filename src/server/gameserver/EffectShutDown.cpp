@@ -108,7 +108,7 @@ void EffectShutDown::affect(Creature* pCreature)
         try {
             pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
         } catch (NoSuchElementException&) {
-            throw Error("Critical Error : ZoneInfoManager꼇닸瞳맡契삔.");
+            throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }
 
         ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();
@@ -127,7 +127,7 @@ void EffectShutDown::affect(Creature* pCreature)
             pZoneInfo = g_pZoneInfoManager->getZoneInfo(i);
 
         } catch (NoSuchElementException) {
-            throw Error("Critical Error : ZoneInfoManager에 해당 존이 존재하지 않습니다.");
+            throw Error("Critical Error : ZoneInfoManager has no such zone.");
         }
 
         ZoneGroup* pZoneGroup;
@@ -136,7 +136,7 @@ void EffectShutDown::affect(Creature* pCreature)
             pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
 
         } catch (NoSuchElementException) {
-            throw Error("Critical Error : ZoneInfoManager에 해당 존그룹이 존재하지 않습니다.");
+            throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }
 
         Zone* pZone = pZoneGroup->getZone(i);
@@ -195,7 +195,7 @@ void EffectShutDown::unaffect()
         try {
             pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
         } catch (NoSuchElementException&) {
-            throw Error("Critical Error : ZoneInfoManager꼇닸瞳맡契삔.");
+            throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }
 
         ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();

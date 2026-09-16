@@ -1117,7 +1117,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
             pCorpse->setLevel((int)(pOusters->getLevel()));
             pCorpse->setExp((Exp_t)computeCreatureExp(pOusters, BLOODDRAIN_EXP));
         } else {
-            throw Error("PlayerCreature class type 오류");
+            throw Error("PlayerCreature class type error");
         }
 
         // by sigi. 2002.12.12
@@ -1290,8 +1290,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
             }
             catch (NoSuchElementException&)
             {
-                throw Error("Critical Error : 포탈에 지정된 존 아이디가 틀리거나, ZoneInfoManager에 해당 존이 존재하지
-    않습니다.");
+                throw Error("Critical Error : the zone id set on the portal is wrong, or ZoneInfoManager has no such zone.");
             }
 
             try
@@ -1301,7 +1300,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
             catch (NoSuchElementException&)
             {
                 // 일단은 서버가 1대이므로.. 그대로 나간다...
-                throw Error("Critical Error : 현재로는 게임 서버는 1대뿐이당..");
+                throw Error("Critical Error : only one game server is supported");
             }
 
             //pResurrectZone = pZoneGroup->getZone(ZoneID);
@@ -1416,8 +1415,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
             }
             catch (NoSuchElementException&)
             {
-                throw Error("Critical Error : 포탈에 지정된 존 아이디가 틀리거나, ZoneInfoManager에 해당 존이 존재하지
-    않습니다.");
+                throw Error("Critical Error : the zone id set on the portal is wrong, or ZoneInfoManager has no such zone.");
             }
 
             try
@@ -1427,7 +1425,7 @@ void PCManager::killCreature(Creature* pDeadCreature)
             catch (NoSuchElementException&)
             {
                 // 일단은 서버가 1대이므로.. 그대로 나간다...
-                throw Error("Critical Error : 현재로는 게임 서버는 1대뿐이당..");
+                throw Error("Critical Error : only one game server is supported");
             }
 
             //pResurrectZone = pZoneGroup->getZone(ZoneID);

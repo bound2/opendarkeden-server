@@ -134,7 +134,7 @@ bool WarSystem::addWarDelayed(War* pWar)
     Assert(pWar != NULL);
 
     if (hasActiveRaceWar() && pWar->getWarType() == WAR_RACE) {
-        throw Error("이미 종족 전쟁이 진행중입니다.");
+        throw Error("A race war is already in progress.");
     }
 
     __ENTER_CRITICAL_SECTION(m_MutexWarQueue);
@@ -283,7 +283,7 @@ bool WarSystem::makeGCWarList_LOCKED()
             pWarInfo = new RaceWarInfo;
             break;
         default:
-            throw Error("WarType이 잘못됐다.");
+            throw Error("Invalid war type.");
         }
 
         pWarSchedule->makeWarInfo(pWarInfo);

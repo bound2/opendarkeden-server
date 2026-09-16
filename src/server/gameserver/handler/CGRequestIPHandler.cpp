@@ -34,7 +34,7 @@ void CGRequestIPHandler::execute(CGRequestIP* pPacket, Player* pPlayer)
             DWORD port = 0;
 
             if (!defaultSessionRepository().loadUserIP(pPacket->getName(), ip, port)) {
-                throw NoSuchElementException("요청한 ID의 IP정보가 없음다.");
+                throw NoSuchElementException("No IP information for the requested ID.");
             } else {
                 IP_t IP = ip;
                 uint Port = port;

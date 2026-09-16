@@ -646,7 +646,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             }
         }
     } catch (NoSuchElementException&) {
-        throw Error("ZoneInfo¿¡ zoneID°¡ ¾ø´Ù.");
+        throw Error("ZoneInfo has no such zoneID.");
     }
 #elif defined(__CONNECT_BILLING_SYSTEM__)
     if (pGamePlayer->isMetroFreePlayer()) {
@@ -669,7 +669,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             }
 
         } catch (NoSuchElementException&) {
-            throw Error("ZoneInfo¿¡ zoneID°¡ ¾ø´Ù.");
+            throw Error("ZoneInfo has no such zoneID.");
         }
 
         // session °ªÀ» Á¤ÇØµÐ´Ù. by sigi. 2002.11.18
@@ -720,7 +720,7 @@ void CGConnectHandler::execute(CGConnect* pPacket, Player* pPlayer)
             }
         }
     } catch (NoSuchElementException&) {
-        throw Error("ZoneInfo¿¡ zoneID°¡ ¾ø´Ù.");
+        throw Error("ZoneInfo has no such zoneID.");
     }
 #else
     // ¾Æ¹«°Íµµ ¼³Á¤µÇ¾î ÀÖÁö ¾ÊÀ¸¸é

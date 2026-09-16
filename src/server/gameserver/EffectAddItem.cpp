@@ -94,7 +94,7 @@ void EffectAddItem::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* 
         pZone->addItem(pItem, x, y, m_bAllowCreature);
     } else {
         SAFE_DELETE(pTarget);
-        throw Error("EffectAddItem인데 item이 아닌가?");
+        throw Error("EffectAddItem target is not an item");
     }
 
     pTarget = NULL;

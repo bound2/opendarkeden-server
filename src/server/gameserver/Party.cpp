@@ -1367,7 +1367,7 @@ void Party::shareRevealer(Creature* pCaster, int Duration)
     }
 
     if (!pCaster->isFlag(Effect::EFFECT_CLASS_REVEALER)) {
-        throw Error("Revealer 이펙트가 걸려 있지 않음");
+        throw Error("No Revealer effect is applied");
     }
 
     // Caster 의 Revelaer 스킬 레벨을 가져온다

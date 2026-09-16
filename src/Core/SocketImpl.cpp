@@ -245,7 +245,7 @@ uint SocketImpl::send(const void* buf, uint len, uint flags) {
     } catch (Throwable& t) {
         cout << "SocketImpl::send Exception Check!" << endl;
         cout << t.toString() << endl;
-        throw InvalidProtocolException("�� ������ �ö�Ա�");
+        throw InvalidProtocolException("SocketImpl::send failed");
     }
 
     return result;

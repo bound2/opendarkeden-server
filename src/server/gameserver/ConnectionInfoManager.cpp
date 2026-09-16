@@ -233,7 +233,7 @@ void ConnectionInfoManager::heartbeat()
             try {
                 pZoneGroup = g_pZoneGroupManager->getZoneGroupByGroupID(i);
             } catch (NoSuchElementException& t) {
-                throw Error("Critical Error : ZoneInfoManager에 해당 존그룹이 존재하지 않습니다.");
+                throw Error("Critical Error : ZoneInfoManager has no such zone group.");
             }
 
             pZoneGroup->makeZoneUserInfo(gmServerInfo);

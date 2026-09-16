@@ -156,7 +156,7 @@ void CGShopRequestSellHandler::executeNormal(CGShopRequestSell* pPacket, Player*
     if (!pItem->destroy()) {
         filelog("shopDBBug.txt", "NoSuchItemInDB-destroy: %s", pItem->toString().c_str());
 
-        throw DisconnectException("아이템 지울려는데 DB에 없다.");
+        throw DisconnectException("Item to delete is not in the database.");
     }
 
     // 만약 벨트라면 안에 있는 포션을 삭제해준다.
@@ -908,7 +908,7 @@ void CGShopRequestSellHandler::executeOpSwapAdvancementItem(CGShopRequestSell* p
     if (!pItem->destroy()) {
         filelog("shopDBBug.txt", "NoSuchItemInDB-destroy: %s", pItem->toString().c_str());
 
-        throw DisconnectException("아이템 지울려는데 DB에 없다.");
+        throw DisconnectException("Item to delete is not in the database.");
     }
 
     pZone->registerObject(pNewItem);

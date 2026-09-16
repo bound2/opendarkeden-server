@@ -129,7 +129,7 @@ bool EffectRevealer::canSeeHide(Creature* pTarget) const
 
         level = pMonster->getLevel();
     } else {
-        throw Error("뱀파이어나 몬스터가 아닌데 하이드하고 있다");
+        throw Error("Hide is active on a creature that is neither a vampire nor a monster");
     }
 
     if (m_SkillLevel >= 25 && m_SkillLevel > level)
@@ -179,7 +179,7 @@ bool EffectRevealer::canSeeInvisibility(Creature* pTarget) const
 
         level = pMonster->getLevel();
     } else {
-        throw Error("뱀파이어나 몬스터가 아닌데 인비지빌리티를 쓰고 있다.");
+        throw Error("Invisibility is active on a creature that is neither a vampire nor a monster.");
     }
 
     if (m_SkillLevel >= 65 && (m_SkillLevel - 20) >= level)

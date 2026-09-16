@@ -89,7 +89,7 @@ uint DatagramSocket::send(Datagram* pDatagram) {
     } catch (ConnectException& t) {
         cout << "DatagramSocket::send Exception Check!" << endl;
         cout << t.toString() << endl;
-        throw ConnectException("DatagramSocket�� ������ ������");
+        throw ConnectException("DatagramSocket::send failed");
     }
 
     __END_CATCH

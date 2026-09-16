@@ -171,7 +171,7 @@ void LoginPlayer::processCommand(bool Option) {
                 Timeval currentTime;
                 getCurrentTime(currentTime);
                 if (currentTime >= m_ExpireTime)
-                    throw DisconnectException("일정 시간동안 입력하지 않으면 접속이 종료됩니다.");
+                    throw DisconnectException("Connection closed after a period with no input.");
                 break;
             }
 
@@ -282,7 +282,7 @@ void LoginPlayer::processCommand(bool Option) {
         Timeval currentTime;
         getCurrentTime(currentTime);
         if (currentTime >= m_ExpireTime)
-            throw DisconnectException("일정 시간동안 입력하지 않으면 접속이 종료됩니다.");
+            throw DisconnectException("Connection closed after a period with no input.");
 
     } catch (InvalidProtocolException& ipe) {
         // 접속을 강제종료시켜야 한다. 무슨 방법으로??

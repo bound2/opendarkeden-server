@@ -288,7 +288,7 @@ void VariableManager::load()
 
     int maxAttr = 0;
     if (!repository.loadMaxAttrID(maxAttr)) {
-        throw Error("VariableManager::load(): attrID MAX값을 구할 수 없습니다.");
+        throw Error("VariableManager::load(): cannot obtain the maximum attrID.");
     }
 
     m_Variables.clear();
@@ -297,7 +297,7 @@ void VariableManager::load()
     vector<VariableRow> rows = repository.loadVariables();
 
     if (rows.empty()) {
-        throw Error("VariableManager::load(): 값이 하나도 존재하지 않습니다");
+        throw Error("VariableManager::load(): no values exist");
     }
 
     for (size_t r = 0; r < rows.size(); r++) {

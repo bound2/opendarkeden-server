@@ -599,7 +599,7 @@ LoginPlayer* LoginPlayerManager::getPlayer_NOLOCKED(const string& id) const {
     }
 
     if (pLoginPlayer == NULL)
-        throw NoSuchElementException("그런 아이디를 가진 플레이어는 존재하지 않습니다.");
+        throw NoSuchElementException("No player with that ID exists.");
 
     return pLoginPlayer;
 

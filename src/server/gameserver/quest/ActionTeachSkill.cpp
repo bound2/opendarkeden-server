@@ -47,7 +47,7 @@ void ActionTeachSkill::read(PropertyBuffer& propertyBuffer)
         else if (domainType == "VAMPIRE")
             m_DomainType = SKILL_DOMAIN_VAMPIRE;
         else
-            throw Error("TeachSkill::read() : 잘못된 기술 타입입니다.");
+            throw Error("TeachSkill::read() : invalid skill type.");
     } catch (NoSuchElementException& nsee) {
         throw Error(nsee.toString());
     }

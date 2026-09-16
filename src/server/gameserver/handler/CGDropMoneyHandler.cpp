@@ -35,7 +35,7 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
 
         // -_-; 무시
         //	return;
-        throw DisconnectException("돈은 버릴 수 없습니다.");
+        throw DisconnectException("Money cannot be dropped.");
 
     Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
@@ -67,7 +67,7 @@ void CGDropMoneyHandler::execute(CGDropMoney* pPacket, Player* pPlayer)
             pOusters = dynamic_cast<Ousters*>(pPC);
             pZone = pOusters->getZone();
         } else
-            throw ProtocolException("CGDropMoneyHandler::execute() : 알 수 없는 플레이어 크리쳐.");
+            throw ProtocolException("CGDropMoneyHandler::execute() : unknown player creature.");
 
         // 플레이어가 떨어뜨리고자 하는 액수만큼의 돈을 가지고 있는지 확인한다.
         Item* pItem = NULL;

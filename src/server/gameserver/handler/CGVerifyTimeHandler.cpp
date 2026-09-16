@@ -32,7 +32,7 @@ void CGVerifyTimeHandler::execute(CGVerifyTime* pPacket, Player* pPlayer)
 
     if (!(pGamePlayer->verifySpeed(pPacket))) {
         saveSpeedHackPlayer(pPlayer);
-        throw DisconnectException("스피드핵 딱! 걸려써!!");
+        throw DisconnectException("Speed hack detected");
     }
 
 #endif

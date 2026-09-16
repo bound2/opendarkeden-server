@@ -266,7 +266,7 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
                 filelog("motorError.txt",
                         "ActionRedeemMotorcycle::load() : 모터사이클을 존에다 더할 수 없습니다. zoneID=%d, xy=(%d, %d)",
                         (int)pZone->getZoneID(), (int)x, (int)y); // by sigi. 2002.12.24
-                throw Error("ActionRedeemMotorcycle::load() : 모터사이클을 존에다 더할 수 없습니다");
+                throw Error("ActionRedeemMotorcycle::load() : cannot add the motorcycle to the zone");
             }
 
             // by sigi. 2002.10.14

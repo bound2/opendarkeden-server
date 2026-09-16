@@ -64,7 +64,7 @@ void ActionGiveItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     if (!pInventory->getEmptySlot(pItem, pt)) {
         // ConditionHasInvenSpace 컨디션과 반드시 함께 써야만 한다.
-        throw Error("ActionGiveItem: 제발 ConditionHasInvenSpace랑 같이 쓰자. 인벤토리에 자리없다.");
+        throw Error("ActionGiveItem: no room in the inventory; pair this action with ConditionHasInvenSpace.");
     }
 
     CoordInven_t X = pt.x;
