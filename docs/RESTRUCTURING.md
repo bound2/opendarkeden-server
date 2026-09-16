@@ -774,38 +774,53 @@ before anything else moves. Everything later shelters under this pin.
   > loopback round trips and size/factory-max pins
   > (`tests/packet_creature_test.cpp`), with extra goldens for the vampire
   > shape of a morph beside the slayer one, the injurious creature's name
-  > at the full ten its max budgets, and the empty stat record the three
-  > `ModifyInfo`-carrying families send. No packet in the family calls the
+  > at ten bytes, and the empty stat record the three `ModifyInfo`-carrying
+  > families send. No packet in the family calls the
   > encrypter or derives from one that does, so every golden is recorded
   > at code 0 and each test also asserts the bytes do not vary with the
   > code. `GCVisibleOK` and the four `GCKnocksTargetBackOK` have no sender
   > and are pinned anyway, because a registered factory is the contract
-  > the client's own copy has to match. Five open write/read disagreements
-  > are stated as tests that flip when fixed
-  > (`GCMorph1::getPacketSize()` not counting the pc-type byte `write()`
-  > emits, so the declared body is one byte short of the body sent;
-  > `GCMorph1` starting with its four records as null pointers that
-  > `getPacketSize()` follows and `write()` guards only one of;
-  > `GCAddInjuriousCreature` bounding at ten the character name it
-  > carries, which runs to `maxNameLength`, so an eleven-byte name is
-  > refused rather than announced; `PCSlayerInfo3`'s and
-  > `PCVampireInfo3`'s copy constructors dropping the union id their
-  > assignment operators copy, so the two morph packets, whose every way
-  > in takes the record by value, emit whatever their own storage held
-  > there, which is why both are pinned over zeroed storage; and 31 of the
-  > 42 leaving at least one member the default constructor never sets,
-  > pinned over poisoned storage). Seven more are recorded in the test's
-  > header rather than tested: `GCChangeWeather::read` casting a byte to a
-  > `Weather` whose range is narrower and whose `Weather2String` is
-  > narrower still; the two knockback success flags read straight into a
-  > `bool`; `~GCMorph1` freeing all four records it was handed and its
-  > `read()` replacing them without freeing; `GCMorph1::write` bounding
-  > its pc type through `Assert()`; `GCExecuteElement::read` taking a
-  > condition byte it compares against nothing; `GCMorphVampire2`'s
-  > vampire-record accessor named `getSlayerInfo`; and `CGBloodDrain`
-  > copying its object id as raw bytes rather than through the typed
-  > stream calls. No golden changed and no `tests/wire-layout.txt` line
-  > moved.
+  > the client's own copy has to match. **The five write/read
+  > disagreements it found are fixed** and pinned as the behaviour the
+  > packets now produce (`GCMorph1::getPacketSize()` counts the pc-type
+  > byte `write()` emits, so the declared length and the body agree;
+  > `GCMorph1`'s four records start empty and both `getPacketSize()` and
+  > `write()` refuse a packet missing one instead of following a null
+  > pointer, with the records the packet's own — every sender builds them
+  > for it and keeps none, so a setter frees what it replaces, `read()`
+  > frees the four it holds before filling four more, and the pc type is
+  > bounded by `InvalidProtocolException` on both sides in place of the
+  > `Assert()` that wrote `assertion_failed.log` first;
+  > `GCAddInjuriousCreature` carries a whole character name,
+  > `maxNameLength` in the setter, in `write()` and in `read()`, with its
+  > factory max budgeting it; `PCSlayerInfo3`'s, `PCVampireInfo3`'s and
+  > `PCOustersInfo3`'s copy constructors carry every member `write()`
+  > emits, the union id included, so the ten packets that hold one of
+  > those records by value — `GCAddSlayer`, `GCAddVampire`,
+  > `GCAddOusters`, the three corpse packets, the two
+  > `GCAddVampireFrom` packets and the two morph packets — put the id on
+  > the wire: each is built from a `getXInfo3()` that sets the union id
+  > and then returns the character's cached record by value, a copy the
+  > compiler cannot elide, so the id was dropped on every call;
+  > and all 42 initialise every member their `write()` emits, pinned over
+  > poisoned storage for the 41 that hold no record by pointer). The
+  > seven the test's header recorded rather than tested are fixed with
+  > them: `GCChangeWeather::read` tests the raw byte against
+  > `WEATHER_MAX` before it reaches the enum, and its `toString()` prints
+  > a weather `Weather2String` does not name as its number;
+  > `GCKnocksTargetBackOK1::read` and `GCKnocksTargetBackOK5::read` take
+  > the success flag as a BYTE and refuse anything but 0 or 1;
+  > `GCExecuteElement::read` tests the condition byte against the four
+  > conditions `GQuestInfo::ElementType` names, its sending side left as
+  > it is because its one sender passes one of those four;
+  > `GCMorphVampire2`'s vampire-record accessor is `getVampireInfo`; and
+  > `CGBloodDrain` carries its object id through the typed stream calls,
+  > the same bytes. One `tests/wire-layout.txt` line moves,
+  > `GCAddInjuriousCreature` 11 → 21, a server-side read-buffer budget
+  > and not a field on the wire. No golden changed: the two morph
+  > goldens record a zero union id, and their fixtures keep that one
+  > field zero so the recorded bodies stand, with the id pinned by the
+  > round trip and by a copy-constructor test of its own.
   > With CL/LC, the gameserver handshake, the zone population scan, both
   > inter-server links, the social protocols, the combat feedback set,
   > the movement, effect-lifecycle and NPC dialogue set, the inventory

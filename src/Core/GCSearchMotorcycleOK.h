@@ -58,9 +58,9 @@ public:
     }
 
 private:
-    ZoneID_t m_ZoneID;
-    Coord_t m_ZoneX;
-    Coord_t m_ZoneY;
+    ZoneID_t m_ZoneID = 0;
+    Coord_t m_ZoneX = 0;
+    Coord_t m_ZoneY = 0;
 };
 
 

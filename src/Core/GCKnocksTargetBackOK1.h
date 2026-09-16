@@ -109,16 +109,16 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // Bullet Num
-    Bullet_t m_BulletNum;
+    Bullet_t m_BulletNum = 0;
 
-    bool m_bSuccess;
+    bool m_bSuccess = false;
 
-    Coord_t m_X, m_Y; // 이동된 좌표.
-    Dir_t m_dir;      // 밀려난 방향.
-    SkillType_t m_SkillType;
+    Coord_t m_X = 0, m_Y = 0; // 이동된 좌표.
+    Dir_t m_dir = 0;          // 밀려난 방향.
+    SkillType_t m_SkillType = 0;
 };
 
 

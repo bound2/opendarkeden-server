@@ -180,17 +180,16 @@
 //                 caught error.
 //
 //               GCMorph1 gets all three written out rather than from
-//               the macro: it declares one byte less than it writes -
-//               the first finding below - so its size pin states the
-//               gap and its round trip pumps the measured body instead
-//               of the declared one.
+//               the macro, because it holds its four records by
+//               pointer. GCExecuteElement gets its round trip written
+//               out for the reason its fill() states.
 //
 //               Extra goldens cover the branches one fixture cannot:
 //               the vampire shape of a morph (.vampire on GCMorph1,
 //               with the empty inventory, gear and extra lists beside
 //               the slayer fixture's full ones); the injurious
-//               creature's name at the full ten its max budgets
-//               (.maxname); and the empty stat record the three
+//               creature's name at ten bytes (.maxname); and the empty
+//               stat record the three
 //               ModifyInfo-carrying families can send (.nostats on
 //               GCBloodDrainOK1, GCCrossCounterOK1 and
 //               GCKnocksTargetBackOK1). The record's full 255-entry
@@ -198,95 +197,66 @@
 //               tests/packet_combat_test.cpp and not repeated.
 //
 //               Fixture values are distinct per field and >= 128 in
-//               every byte the width allows. Four groups cannot follow
+//               every byte the width allows. Five groups cannot follow
 //               that rule and say so at the point of use: the creature
 //               and guild names, which are text; the weather, the sex
 //               and the slayer and vampire outlook slices, which are
 //               enumerators; the knockback success flags, which are
-//               bools; and the PC attributes, whose getters refuse
-//               anything above 2000.
+//               bools; the PC attributes, whose getters refuse
+//               anything above 2000; and the union id of the two
+//               records a morph packet holds by value, which the
+//               recorded bodies carry as zero.
 //
-//               Findings. Each is stated as a test that fails once the
-//               packet is fixed, except where noted:
+//               What the two halves agree on, each pinned by a test of
+//               its own beside the three above. No valid packet's bytes
+//               moved for any of them, and docs/FIXES.md carries the
+//               wire consequence of each:
 //
-//               - GCMorph1::getPacketSize() does not count the pc-type
-//                 byte write() puts in front of the record, so the
-//                 declared body is one byte short of the body sent.
-//               - GCMorph1 starts with the four records it writes as
-//                 null pointers, and getPacketSize() dereferences all
-//                 four while write() guards only the PC one, so a
-//                 sender that sets the PC record and forgets the
-//                 inventory follows a null pointer instead of being
-//                 refused.
-//               - GCAddInjuriousCreature bounds the name it carries at
-//                 the ten its factory max budgets, in write() and in
-//                 read() alike, while the name it is given is a
-//                 character name, which runs to twenty
-//                 (maxNameLength): a player with an eleven-byte name
-//                 cannot be announced as the one who struck first, and
-//                 write() refuses instead of truncating.
-//               - PCSlayerInfo3's and PCVampireInfo3's copy
-//                 constructors do not copy the union id, while their
-//                 assignment operators do. GCMorphSlayer2 and
-//                 GCMorphVampire2 take the record by value, so the union
-//                 id a sender sets never reaches the wire: the packet
-//                 emits whatever its own storage held where the id
-//                 belongs. That is why both are built over zeroed
-//                 storage here - it is the only way the body can be
-//                 pinned at all.
-//               - Thirty-one of the forty-two leave at least one
-//                 member the default constructor never sets, so a
-//                 packet sent without every setter called puts
-//                 indeterminate bytes on the wire. The poisoned-storage
-//                 pin at the end of the file asserts today's split.
-//                 GCChangeShape sets its flag and nothing else;
-//                 GCKnocksTargetBackOK1 sets two of its seven.
-//
-//               Seven findings are recorded here rather than tested,
-//               because reaching them is undefined behaviour, has no
-//               observable wire effect, or is a leak:
-//
-//               - GCChangeWeather::read casts the wire byte straight to
-//                 Weather before storing it. The enum declares four
-//                 values where a byte carries 256, so a byte past its
-//                 range is an out-of-range enum load; and
-//                 Weather2String, which toString() indexes with the
-//                 stored value, holds three entries, so WEATHER_MAX
-//                 reads past its end. Every fixture here writes a real
-//                 enumerator for that reason.
+//               - GCMorph1::getPacketSize() counts the pc-type byte
+//                 write() puts in front of the record, so the declared
+//                 length and the body sent agree.
+//               - GCMorph1's four records start empty and both
+//                 getPacketSize() and write() refuse a packet missing
+//                 one, rather than following a null pointer. The
+//                 records belong to the packet: every sender builds
+//                 them for it and keeps none, so a setter frees what it
+//                 replaces, read() frees the four it holds before
+//                 filling four more, and the destructor frees what is
+//                 left. The pc type is bounded by
+//                 InvalidProtocolException on both sides.
+//               - GCAddInjuriousCreature carries a whole character
+//                 name: maxNameLength in the setter, in write() and in
+//                 read(), with the factory max budgeting it.
+//               - PCSlayerInfo3's, PCVampireInfo3's and
+//                 PCOustersInfo3's copy constructors carry every member
+//                 write() emits, the union id included. All three
+//                 records are copied by value into the packets that
+//                 hold one, so a dropped member was a field the sender
+//                 set and the wire never saw.
+//               - GCChangeWeather::read tests the raw byte against
+//                 WEATHER_MAX before it reaches an enum that declares
+//                 fewer values than a byte carries, and toString()
+//                 prints a weather Weather2String does not name as its
+//                 number.
 //               - GCKnocksTargetBackOK1::read and
-//                 GCKnocksTargetBackOK5::read load the success flag
-//                 straight into a bool member, so a wire byte other
-//                 than 0 or 1 becomes an invalid bool - the shape the
-//                 combat set fixed for the two attack hit flags by
-//                 reading a BYTE and narrowing it.
-//               - ~GCMorph1 frees all four records it was handed, and
-//                 read() replaces them without freeing what it holds,
-//                 so a sender that keeps its own PC record has it
-//                 freed under it and a second read leaks four records.
-//               - GCMorph1::write bounds its pc type through Assert(),
-//                 which appends to assertion_failed.log in the working
-//                 directory before it throws.
-//               - GCExecuteElement::read takes a condition byte it
-//                 never compares against the four conditions its own
-//                 header names.
+//                 GCKnocksTargetBackOK5::read take the success flag as
+//                 a BYTE and refuse anything but 0 or 1 rather than
+//                 storing an invalid bool.
+//               - GCExecuteElement::read tests the condition byte
+//                 against the four conditions its own header names.
 //               - GCMorphVampire2's accessor for the vampire record it
-//                 holds is named getSlayerInfo.
-//               - CGBloodDrain::read and ::write copy the object id as
-//                 raw bytes rather than through the typed stream calls
-//                 every other packet in the set uses. szObjectID is
-//                 sizeof(ObjectID_t), so the bytes are the same today.
-//
-//               GCMorph1, GCMorphSlayer2 and GCMorphVampire2 are in
-//               neither poisoned-storage list. GCMorph1 would follow
-//               the null record pointers its constructor sets, so it
-//               gets a pin on the pointers instead. The other two hold
-//               one record each, replaceable only whole - both ways in
-//               take it by value and the getter is const - so a
-//               partly-set packet is unreachable; what a fresh one
-//               holds is pinned instead, by the empty-name refusal its
-//               record's write() raises, and by the dropped union id
-//               above.
+//                 holds is getVampireInfo.
+//               - CGBloodDrain::read and ::write carry the object id
+//                 through the typed stream calls every other packet in
+//                 the set uses. szObjectID is sizeof(ObjectID_t), so
+//                 the bytes are unchanged.
+//               - All forty-two initialise every member their write()
+//                 emits, so a packet sent without every setter called
+//                 puts no indeterminate byte on the wire. The
+//                 poisoned-storage pin at the end of the file asserts
+//                 that for forty-one of them; GCMorph1 holds its
+//                 records by pointer, and what a fresh one holds is
+//                 the refusal above.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -341,6 +311,7 @@
 #include "GCVisibleFail.h"
 #include "GCVisibleOK.h"
 #include "PCOustersInfo2.h"
+#include "PCOustersInfo3.h"
 #include "TestStreams.h"
 
 using wiretest::expectGolden;
@@ -360,6 +331,17 @@ const uchar kPlainCode = 0;
 // the high byte of an attribute fixture cannot be >= 128. The low byte
 // still is, and the nine values of a race stay distinct.
 const Attr_t kAttrs[9] = {0x0781, 0x0792, 0x07A3, 0x0784, 0x0795, 0x07A6, 0x0787, 0x0798, 0x07A9};
+
+// Put arbitrary bytes on the wire and hand them to a reader, for the
+// bodies no setter can build.
+template <typename Emit, typename Consume> void throughLoopback(Emit emit, Consume consume) {
+    Loopback link;
+    link.setCodes(kPlainCode);
+    emit(link.out());
+    const uint length = link.out().length();
+    link.pump(length);
+    consume(link.in());
+}
 
 //////////////////////////////////////////////////////////////////////
 // The three pins every packet gets. fill() / expectEqual() are
@@ -944,13 +926,13 @@ void expectMorphEqual(GCMorph1& a, GCMorph1& b) {
     }
 }
 
-// GCMorph1 declares one byte less than it writes, so the loopback is
-// pumped with the measured body length instead of getPacketSize().
+// GCMorph1 holds its records by pointer, so the round trip is written
+// out rather than taken from the macro.
 void morphRoundTrip(GCMorph1& src, GCMorph1& dst) {
     Loopback loopback;
     loopback.setCodes(kPlainCode);
     src.write(loopback.out());
-    loopback.pump((uint)writeBody(src, kPlainCode).size());
+    loopback.pump((uint)src.getPacketSize());
     dst.read(loopback.in());
 }
 
@@ -997,33 +979,56 @@ TEST(GCMorph1Test, theBodyFitsTheFactoryMaxAndTheFactoryAgreesWithThePacket) {
     EXPECT_EQ(factory.getPacketName(), packet.getPacketName());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCMorph1::getPacketSize() does not count the pc-type byte write() puts
-// in front of the record, so the declared body is one byte short of the
-// body sent. writePacket() puts the declared length on the wire first,
-// so the stream never resynchronises.
-TEST(GCMorph1Test, theDeclaredSizeOmitsThePCTypeByte) {
+// The declared size counts the pc-type byte write() puts in front of the
+// record. writePacket() puts the declared length on the wire first, so a
+// gap there is a stream that never resynchronises.
+TEST(GCMorph1Test, theDeclaredSizeCountsThePCTypeByte) {
     GCMorph1 slayer;
     fillMorphSlayer(slayer);
-    EXPECT_EQ((size_t)slayer.getPacketSize() + szBYTE, writeBody(slayer, kPlainCode).size())
-        << "GCMorph1: getPacketSize() now counts the pc-type byte - drop this test";
+    EXPECT_EQ((size_t)slayer.getPacketSize(), writeBody(slayer, kPlainCode).size());
 
     GCMorph1 vampire;
     fillMorphVampire(vampire);
-    EXPECT_EQ((size_t)vampire.getPacketSize() + szBYTE, writeBody(vampire, kPlainCode).size());
+    EXPECT_EQ((size_t)vampire.getPacketSize(), writeBody(vampire, kPlainCode).size());
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCMorph1 starts with the four records it writes as null pointers.
-// getPacketSize() dereferences all four and write() guards only the PC
-// one, so a sender that sets the PC record and forgets the inventory
-// follows a null pointer instead of being refused.
-TEST(GCMorph1Test, theRecordPointersStartNullAndAreFollowed) {
-    GCMorph1 packet;
-    EXPECT_TRUE(packet.getPCInfo2() == NULL) << "GCMorph1 now starts with a record - drop this test";
-    EXPECT_TRUE(packet.getInventoryInfo() == NULL);
-    EXPECT_TRUE(packet.getGearInfo() == NULL);
-    EXPECT_TRUE(packet.getExtraInfo() == NULL);
+// The four records start empty, and both halves that emit them refuse a
+// packet missing any one rather than following a null pointer.
+TEST(GCMorph1Test, aMissingRecordIsRefusedByBothSizeAndWrite) {
+    GCMorph1 empty;
+    EXPECT_TRUE(empty.getPCInfo2() == NULL);
+    EXPECT_TRUE(empty.getInventoryInfo() == NULL);
+    EXPECT_TRUE(empty.getGearInfo() == NULL);
+    EXPECT_TRUE(empty.getExtraInfo() == NULL);
+    EXPECT_THROW(empty.getPacketSize(), InvalidProtocolException);
+    EXPECT_THROW(writeBody(empty, kPlainCode), InvalidProtocolException);
+
+    // The PC record set and the other three forgotten.
+    GCMorph1 partial;
+    PCSlayerInfo2* pInfo = new PCSlayerInfo2();
+    fillSlayerInfo2(pInfo);
+    partial.setPCInfo2(pInfo);
+    EXPECT_THROW(partial.getPacketSize(), InvalidProtocolException);
+    EXPECT_THROW(writeBody(partial, kPlainCode), InvalidProtocolException);
+}
+
+// The records belong to the packet, so reading into one that already
+// holds four replaces them rather than leaking them.
+TEST(GCMorph1Test, readingTwiceReplacesTheRecordsItHolds) {
+    GCMorph1 src;
+    fillMorphSlayer(src);
+
+    GCMorph1 dst;
+    morphRoundTrip(src, dst);
+    PCInfo* pFirst = dst.getPCInfo2();
+    ASSERT_TRUE(pFirst != NULL);
+
+    GCMorph1 second;
+    fillMorphVampire(second);
+    morphRoundTrip(second, dst);
+    ASSERT_TRUE(dst.getPCInfo2() != NULL);
+    EXPECT_EQ(PC_VAMPIRE, dst.getPCInfo2()->getPCType());
+    expectMorphEqual(second, dst);
 }
 
 // read() refuses a pc-type byte that is neither 'S' nor 'V', and write()
@@ -1120,63 +1125,44 @@ void expectSlayerInfo3Equal(const PCSlayerInfo3& a, const PCSlayerInfo3& b) {
     EXPECT_EQ(a.getAdvancementLevel(), b.getAdvancementLevel());
 }
 
-// Both morph packets hold their record by value, and every way in copies
-// it. The record's copy constructor leaves the union id alone - the
-// finding below - so a packet built on the stack sends whatever that
-// stack slot held, and the body cannot be pinned at all. Building it over
-// zeroed storage through the converting constructor, whose member
-// initialiser is the same copy constructor, makes the id a deterministic
-// zero instead. The pin is on every other field; the id's four bytes are
-// the finding.
-template <typename PacketType, typename RecordType> class MorphPacket {
-public:
-    explicit MorphPacket(const RecordType& record) {
-        memset(m_Storage, 0, sizeof(m_Storage));
-        m_pPacket = new (m_Storage) PacketType(record);
-    }
-    ~MorphPacket() {
-        m_pPacket->~PacketType();
-    }
-    PacketType& get() {
-        return *m_pPacket;
-    }
-
-private:
-    alignas(PacketType) unsigned char m_Storage[sizeof(PacketType)];
-    PacketType* m_pPacket;
-};
-
-typedef MorphPacket<GCMorphSlayer2, PCSlayerInfo3> SlayerMorph;
-
 PCSlayerInfo3 canonicalSlayerInfo3() {
     PCSlayerInfo3 info;
     fillSlayerInfo3(info);
     return info;
 }
 
+// The recorded body carries no union id, so the golden and the size pin
+// take the fixture with that one field cleared. The id's own path onto
+// the wire is pinned by the round trip and by the copy below.
+PCSlayerInfo3 goldenSlayerInfo3() {
+    PCSlayerInfo3 info = canonicalSlayerInfo3();
+    info.setUnionID(0);
+    return info;
+}
+
 TEST(GCMorphSlayer2Test, roundTripsThroughLoopback) {
-    SlayerMorph src(canonicalSlayerInfo3());
+    GCMorphSlayer2 src(canonicalSlayerInfo3());
     GCMorphSlayer2 dst;
-    roundTrip(src.get(), dst, kPlainCode);
-    expectSlayerInfo3Equal(src.get().getSlayerInfo(), dst.getSlayerInfo());
+    roundTrip(src, dst, kPlainCode);
+    expectSlayerInfo3Equal(src.getSlayerInfo(), dst.getSlayerInfo());
 }
 
 TEST(GCMorphSlayer2Test, bodyBytesMatchGolden) {
-    SlayerMorph packet(canonicalSlayerInfo3());
-    const std::vector<unsigned char> body = writeBody(packet.get(), kPlainCode);
+    GCMorphSlayer2 packet(goldenSlayerInfo3());
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     expectGolden("GCMorphSlayer2", kPlainCode, body);
     for (size_t i = 1; i < kEncryptCodeCount; i++)
-        EXPECT_EQ(body, writeBody(packet.get(), kEncryptCodes[i]))
+        EXPECT_EQ(body, writeBody(packet, kEncryptCodes[i]))
             << "GCMorphSlayer2 now varies with the encrypt code - add per-code goldens";
 }
 
 TEST(GCMorphSlayer2Test, sizeMatchesTheBytesWrittenAndFitsTheFactoryMax) {
-    SlayerMorph packet(canonicalSlayerInfo3());
+    GCMorphSlayer2 packet(canonicalSlayerInfo3());
     GCMorphSlayer2Factory factory;
-    EXPECT_EQ((size_t)packet.get().getPacketSize(), writeBody(packet.get(), kPlainCode).size());
-    EXPECT_LE(packet.get().getPacketSize(), factory.getPacketMaxSize());
-    EXPECT_EQ(factory.getPacketID(), packet.get().getPacketID());
-    EXPECT_EQ(factory.getPacketName(), packet.get().getPacketName());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+    EXPECT_EQ(factory.getPacketID(), packet.getPacketID());
+    EXPECT_EQ(factory.getPacketName(), packet.getPacketName());
 }
 
 // Sex is an enum byte with two enumerators and the coat type travels in
@@ -1231,37 +1217,43 @@ void expectVampireInfo3Equal(const PCVampireInfo3& a, const PCVampireInfo3& b) {
     EXPECT_EQ(a.getAdvancementLevel(), b.getAdvancementLevel());
 }
 
-typedef MorphPacket<GCMorphVampire2, PCVampireInfo3> VampireMorph;
-
 PCVampireInfo3 canonicalVampireInfo3() {
     PCVampireInfo3 info;
     fillVampireInfo3(info);
     return info;
 }
 
+// The same split as the slayer shape: the recorded body carries no union
+// id.
+PCVampireInfo3 goldenVampireInfo3() {
+    PCVampireInfo3 info = canonicalVampireInfo3();
+    info.setUnionID(0);
+    return info;
+}
+
 TEST(GCMorphVampire2Test, roundTripsThroughLoopback) {
-    VampireMorph src(canonicalVampireInfo3());
+    GCMorphVampire2 src(canonicalVampireInfo3());
     GCMorphVampire2 dst;
-    roundTrip(src.get(), dst, kPlainCode);
-    expectVampireInfo3Equal(src.get().getSlayerInfo(), dst.getSlayerInfo());
+    roundTrip(src, dst, kPlainCode);
+    expectVampireInfo3Equal(src.getVampireInfo(), dst.getVampireInfo());
 }
 
 TEST(GCMorphVampire2Test, bodyBytesMatchGolden) {
-    VampireMorph packet(canonicalVampireInfo3());
-    const std::vector<unsigned char> body = writeBody(packet.get(), kPlainCode);
+    GCMorphVampire2 packet(goldenVampireInfo3());
+    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     expectGolden("GCMorphVampire2", kPlainCode, body);
     for (size_t i = 1; i < kEncryptCodeCount; i++)
-        EXPECT_EQ(body, writeBody(packet.get(), kEncryptCodes[i]))
+        EXPECT_EQ(body, writeBody(packet, kEncryptCodes[i]))
             << "GCMorphVampire2 now varies with the encrypt code - add per-code goldens";
 }
 
 TEST(GCMorphVampire2Test, sizeMatchesTheBytesWrittenAndFitsTheFactoryMax) {
-    VampireMorph packet(canonicalVampireInfo3());
+    GCMorphVampire2 packet(canonicalVampireInfo3());
     GCMorphVampire2Factory factory;
-    EXPECT_EQ((size_t)packet.get().getPacketSize(), writeBody(packet.get(), kPlainCode).size());
-    EXPECT_LE(packet.get().getPacketSize(), factory.getPacketMaxSize());
-    EXPECT_EQ(factory.getPacketID(), packet.get().getPacketID());
-    EXPECT_EQ(factory.getPacketName(), packet.get().getPacketName());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
+    EXPECT_EQ(factory.getPacketID(), packet.getPacketID());
+    EXPECT_EQ(factory.getPacketName(), packet.getPacketName());
 }
 
 // Each holds one record, replaceable only whole, so a partly-set packet
@@ -1277,36 +1269,61 @@ TEST(GCMorphVampire2Test, aFreshPacketRefusesToWrite) {
     EXPECT_THROW(writeBody(packet, kPlainCode), Throwable);
 }
 
-// FINDING, stated as a test that fails once it is fixed.
-// PCSlayerInfo3's and PCVampireInfo3's copy constructors do not copy the
-// union id, while their assignment operators do. Both morph packets take
-// the record by value, so the union id a sender sets never reaches the
-// wire: the packet emits whatever its own storage held where the id
-// belongs. The destination is built over zeroed storage, so what the copy
-// constructor leaves behind is a deterministic zero rather than a stack
-// remnant.
-template <typename RecordType> void expectTheCopyConstructorDropsTheUnionID(const char* what, RecordType& source) {
+// Both morph packets take their record by value, so what the copy
+// constructor carries is what reaches the wire. The copy is made over
+// poisoned storage, so a member the constructor skips shows up as the
+// poison rather than as whatever the stack happened to hold.
+template <typename RecordType> RecordType copyOverPoison(unsigned char poison, const RecordType& source) {
+    alignas(RecordType) unsigned char storage[sizeof(RecordType)];
+    memset(storage, poison, sizeof(storage));
+    RecordType* pCopy = new (storage) RecordType(source);
+    RecordType result = *pCopy;
+    pCopy->~RecordType();
+    return result;
+}
+
+template <typename RecordType> void expectTheCopyConstructorCarriesTheUnionID(const char* what, RecordType& source) {
     ASSERT_NE((uint)0, source.getUnionID()) << what << ": the fixture must set a union id";
 
-    alignas(RecordType) unsigned char storage[sizeof(RecordType)];
-    memset(storage, 0x00, sizeof(storage));
-    RecordType* pCopy = new (storage) RecordType(source);
-    const uint copied = pCopy->getUnionID();
-    pCopy->~RecordType();
+    EXPECT_EQ(source.getUnionID(), copyOverPoison<RecordType>(0x00, source).getUnionID()) << what;
+    EXPECT_EQ(source.getUnionID(), copyOverPoison<RecordType>(0xFF, source).getUnionID()) << what;
 
-    EXPECT_EQ((uint)0, copied) << what << ": its copy constructor now copies the union id - drop this test";
+    RecordType assigned;
+    assigned = source;
+    EXPECT_EQ(source.getUnionID(), assigned.getUnionID()) << what;
 }
 
-TEST(GCMorphSlayer2Test, theRecordsCopyConstructorDropsTheUnionID) {
+TEST(GCMorphSlayer2Test, theRecordsCopyConstructorCarriesTheUnionID) {
     PCSlayerInfo3 info = canonicalSlayerInfo3();
-    info.setUnionID(0xADBECFD0);
-    expectTheCopyConstructorDropsTheUnionID("PCSlayerInfo3", info);
+    expectTheCopyConstructorCarriesTheUnionID("PCSlayerInfo3", info);
+
+    GCMorphSlayer2 packet(info);
+    EXPECT_EQ(info.getUnionID(), packet.getSlayerInfo().getUnionID());
+
+    GCMorphSlayer2 dst;
+    roundTrip(packet, dst, kPlainCode);
+    EXPECT_EQ(info.getUnionID(), dst.getSlayerInfo().getUnionID());
 }
 
-TEST(GCMorphVampire2Test, theRecordsCopyConstructorDropsTheUnionID) {
+TEST(GCMorphVampire2Test, theRecordsCopyConstructorCarriesTheUnionID) {
     PCVampireInfo3 info = canonicalVampireInfo3();
-    info.setUnionID(0xA1B2C3D4);
-    expectTheCopyConstructorDropsTheUnionID("PCVampireInfo3", info);
+    expectTheCopyConstructorCarriesTheUnionID("PCVampireInfo3", info);
+
+    GCMorphVampire2 packet(info);
+    EXPECT_EQ(info.getUnionID(), packet.getVampireInfo().getUnionID());
+
+    GCMorphVampire2 dst;
+    roundTrip(packet, dst, kPlainCode);
+    EXPECT_EQ(info.getUnionID(), dst.getVampireInfo().getUnionID());
+}
+
+// The third record of the same shape carries a union id the same way,
+// through every packet that holds one by value.
+TEST(PCOustersInfo3Test, theCopyConstructorCarriesTheUnionID) {
+    PCOustersInfo3 info;
+    info.setName("MorphedOusters");
+    info.setUnionID(0x9CADBECF);
+    expectTheCopyConstructorCarriesTheUnionID("PCOustersInfo3", info);
 }
 
 // The lighter change: the item a creature now appears to hold. The flag
@@ -1424,8 +1441,7 @@ void expectEqual(GCRemoveCorpseHead& a, GCRemoveCorpseHead& b) {
 
 CREATURE_PACKET_TESTS(GCRemoveCorpseHead)
 
-// The name is text and stops at the ten this packet's own bounds allow,
-// which is less than a character name can hold - the third finding.
+// The name is text, and the field carries a character name.
 void fill(GCAddInjuriousCreature& packet) {
     packet.setName("Duskbiter");
 }
@@ -1436,28 +1452,34 @@ void expectEqual(GCAddInjuriousCreature& a, GCAddInjuriousCreature& b) {
 
 CREATURE_PACKET_TESTS(GCAddInjuriousCreature)
 
-// The name at the full ten: the body hits the factory max exactly.
+// A ten-byte name, the width this packet's own bounds once stopped at.
 void fillMaxName(GCAddInjuriousCreature& packet) {
     packet.setName("Nightbiter");
 }
 
 CREATURE_PACKET_VARIANT(GCAddInjuriousCreature, maxname, fillMaxName)
 
-// FINDING, stated as a test that fails once it is fixed.
-// GCAddInjuriousCreature bounds the name at the ten its factory max
-// budgets, in write() and in read() alike, while the name it is given is
-// a character name, which runs to maxNameLength (20). A player with an
-// eleven-byte name cannot be announced as the one who struck first, and
-// write() refuses instead of truncating.
-TEST(GCAddInjuriousCreatureTest, aCharacterNamePastTenIsRefusedRatherThanCarried) {
+// The name the packet carries is a character name, so it runs to
+// maxNameLength on both sides and the factory max budgets a whole one.
+TEST(GCAddInjuriousCreatureTest, aWholeCharacterNameIsCarried) {
     GCAddInjuriousCreature packet;
-    packet.setName(std::string(11, 'n'));
-    EXPECT_THROW(writeBody(packet, kPlainCode), Throwable)
-        << "GCAddInjuriousCreature now carries a name past ten - drop this test";
+    packet.setName(std::string(maxNameLength, 'n'));
+    EXPECT_EQ(maxNameLength, packet.getName().size());
 
     GCAddInjuriousCreatureFactory factory;
-    EXPECT_GT((PacketSize_t)(szBYTE + maxNameLength), factory.getPacketMaxSize())
-        << "GCAddInjuriousCreature's max now budgets a whole character name - restate this test";
+    EXPECT_EQ((PacketSize_t)(szBYTE + maxNameLength), factory.getPacketMaxSize());
+    EXPECT_EQ(packet.getPacketSize(), factory.getPacketMaxSize());
+    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+
+    GCAddInjuriousCreature dst;
+    roundTrip(packet, dst, kPlainCode);
+    EXPECT_EQ(packet.getName(), dst.getName());
+
+    // Past a character name the setter cuts rather than the packet
+    // refusing to write at all.
+    GCAddInjuriousCreature wide;
+    wide.setName(std::string(maxNameLength + 1, 'n'));
+    EXPECT_EQ(maxNameLength, wide.getName().size());
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1487,8 +1509,8 @@ void expectEqual(GCChangeDarkLight& a, GCChangeDarkLight& b) {
 
 CREATURE_PACKET_TESTS(GCChangeDarkLight)
 
-// The weather is an enumerator: read() casts the wire byte straight to
-// it, so a fixture may only use a real one.
+// The weather is an enumerator, so the fixture carries one rather than a
+// high byte.
 void fill(GCChangeWeather& packet) {
     packet.setWeather(WEATHER_SNOWY);
     packet.setWeatherLevel(0xC5);
@@ -1501,8 +1523,25 @@ void expectEqual(GCChangeWeather& a, GCChangeWeather& b) {
 
 CREATURE_PACKET_TESTS(GCChangeWeather)
 
-// The condition byte is a plain wire byte: read() compares it against
-// nothing.
+// The weather byte is tested raw, before it reaches an enum that declares
+// fewer values than a byte carries.
+TEST(GCChangeWeatherTest, aWeatherPastTheLastOneIsRefused) {
+    GCChangeWeather dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((BYTE)WEATHER_MAX);
+                         out.write((WeatherLevel_t)0x81);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
+// The condition byte names one of the four conditions a quest element
+// fires under, and read() refuses a byte past them. write() does not
+// bound it: the only sender passes a GQuestInfo::ElementType, and the
+// recorded body below carries a byte outside the four, which is why the
+// round trip is written out with a real condition instead of coming from
+// the macro.
 void fill(GCExecuteElement& packet) {
     packet.setQuestID(0xA6B7C8D9);
     packet.setCondition(0xAA);
@@ -1515,7 +1554,29 @@ void expectEqual(GCExecuteElement& a, GCExecuteElement& b) {
     EXPECT_EQ(a.getIndex(), b.getIndex());
 }
 
-CREATURE_PACKET_TESTS(GCExecuteElement)
+CREATURE_PACKET_GOLDEN_AND_SIZE(GCExecuteElement)
+
+TEST(GCExecuteElementTest, roundTripsThroughLoopback) {
+    GCExecuteElement src;
+    fill(src);
+    src.setCondition(GCExecuteElement::kConditionMax - 1);
+
+    GCExecuteElement dst;
+    roundTrip(src, dst, kPlainCode);
+    expectEqual(src, dst);
+}
+
+TEST(GCExecuteElementTest, aConditionPastTheFourIsRefused) {
+    GCExecuteElement dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((DWORD)0xA6B7C8D9);
+                         out.write((BYTE)GCExecuteElement::kConditionMax);
+                         out.write((WORD)0xABBC);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
 
 //////////////////////////////////////////////////////////////////////
 // Regeneration.
@@ -1709,6 +1770,36 @@ void expectEqual(GCKnocksTargetBackOK5& a, GCKnocksTargetBackOK5& b) {
 
 CREATURE_PACKET_TESTS(GCKnocksTargetBackOK5)
 
+// The success flag arrives as a byte and is narrowed, so a byte that is
+// neither 0 nor 1 is refused rather than stored in a bool.
+TEST(GCKnocksTargetBackOK1Test, aSuccessFlagThatIsNotABoolIsRefused) {
+    GCKnocksTargetBackOK1 dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((SkillType_t)0xBCCD);
+                         out.write((Dir_t)0x81);
+                         out.write((Coord_t)0x82);
+                         out.write((Coord_t)0x83);
+                         out.write((ObjectID_t)0x84A5B6C7);
+                         out.write((Bullet_t)0x85);
+                         out.write((BYTE)2);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
+TEST(GCKnocksTargetBackOK5Test, aSuccessFlagThatIsNotABoolIsRefused) {
+    GCKnocksTargetBackOK5 dst;
+    EXPECT_THROW(throughLoopback(
+                     [](SocketEncryptOutputStream& out) {
+                         out.write((ObjectID_t)0x84A5B6C7);
+                         out.write((ObjectID_t)0x88A9BACB);
+                         out.write((BYTE)2);
+                     },
+                     [&dst](SocketEncryptInputStream& in) { dst.read(in); }),
+                 InvalidProtocolException);
+}
+
 void fill(GCPetUseSkill& packet) {
     packet.setAttacker(0xCFD0E1F2);
     packet.setTarget(0xD3E4F5A6);
@@ -1726,10 +1817,9 @@ CREATURE_PACKET_TESTS(GCPetUseSkill)
 //////////////////////////////////////////////////////////////////////
 
 // Each packet is built twice over storage poisoned with a different
-// byte, so a member the constructor leaves alone reaches the wire as
-// that byte and the two bodies differ. `prep` sets only what write()
-// refuses to run without, and the enum and bool members whose
-// indeterminate load would be undefined; it touches no plain scalar.
+// byte, so a member the constructor left alone would reach the wire as
+// that byte and the two bodies would differ. `prep` sets only what
+// write() refuses to run without; it touches no plain scalar.
 template <typename PacketType, typename Prep>
 std::vector<unsigned char> bodyOverPoison(unsigned char poison, Prep prep) {
     alignas(PacketType) unsigned char storage[sizeof(PacketType)];
@@ -1750,20 +1840,7 @@ template <typename PacketType> void expectEveryMemberIsInitialised(const char* w
     expectEveryMemberIsInitialised<PacketType>(what, [](PacketType&) {});
 }
 
-// FINDING, stated as a test that fails once it is fixed. Each of these
-// puts an indeterminate byte on the wire when a sender skips a setter.
-template <typename PacketType, typename Prep> void expectAMemberIsLeftUninitialised(const char* what, Prep prep) {
-    EXPECT_NE(bodyOverPoison<PacketType>(0x00, prep), bodyOverPoison<PacketType>(0xFF, prep))
-        << what
-        << ": its default constructor now initialises every member write() emits - move it to the "
-           "initialised list";
-}
-
-template <typename PacketType> void expectAMemberIsLeftUninitialised(const char* what) {
-    expectAMemberIsLeftUninitialised<PacketType>(what, [](PacketType&) {});
-}
-
-TEST(CreatureConstructorTest, thePacketsThatInitialiseEveryMemberTheyWrite) {
+TEST(CreatureConstructorTest, everyPacketInitialisesEveryMemberItWrites) {
     expectEveryMemberIsInitialised<GCGetOffMotorCycleOK>("GCGetOffMotorCycleOK");
     expectEveryMemberIsInitialised<GCGetOffMotorCycleFailed>("GCGetOffMotorCycleFailed");
     expectEveryMemberIsInitialised<GCSearchMotorcycleFail>("GCSearchMotorcycleFail");
@@ -1773,48 +1850,56 @@ TEST(CreatureConstructorTest, thePacketsThatInitialiseEveryMemberTheyWrite) {
     expectEveryMemberIsInitialised<GCVisibleFail>("GCVisibleFail");
     expectEveryMemberIsInitialised<GCAddInjuriousCreature>("GCAddInjuriousCreature",
                                                            [](GCAddInjuriousCreature& p) { p.setName("who"); });
+    expectEveryMemberIsInitialised<CGRideMotorCycle>("CGRideMotorCycle");
+    expectEveryMemberIsInitialised<CGGetOffMotorCycle>("CGGetOffMotorCycle");
+    expectEveryMemberIsInitialised<GCRideMotorCycle>("GCRideMotorCycle");
+    expectEveryMemberIsInitialised<GCRideMotorCycleOK>("GCRideMotorCycleOK");
+    expectEveryMemberIsInitialised<GCRideMotorCycleFailed>("GCRideMotorCycleFailed");
+    expectEveryMemberIsInitialised<GCGetOffMotorCycle>("GCGetOffMotorCycle");
+    expectEveryMemberIsInitialised<GCSearchMotorcycleOK>("GCSearchMotorcycleOK");
+    expectEveryMemberIsInitialised<CGBloodDrain>("CGBloodDrain");
+    expectEveryMemberIsInitialised<GCBloodDrainOK1>("GCBloodDrainOK1");
+    expectEveryMemberIsInitialised<GCBloodDrainOK2>("GCBloodDrainOK2");
+    expectEveryMemberIsInitialised<GCBloodDrainOK3>("GCBloodDrainOK3");
+    expectEveryMemberIsInitialised<GCChangeShape>("GCChangeShape");
+    expectEveryMemberIsInitialised<CGAbsorbSoul>("CGAbsorbSoul");
+    expectEveryMemberIsInitialised<CGSilverCoating>("CGSilverCoating");
+    expectEveryMemberIsInitialised<CGTameMonster>("CGTameMonster");
+    expectEveryMemberIsInitialised<GCRemoveCorpseHead>("GCRemoveCorpseHead");
+    expectEveryMemberIsInitialised<GCLightning>("GCLightning");
+    expectEveryMemberIsInitialised<GCChangeDarkLight>("GCChangeDarkLight");
+    expectEveryMemberIsInitialised<GCChangeWeather>("GCChangeWeather");
+    expectEveryMemberIsInitialised<GCExecuteElement>("GCExecuteElement");
+    expectEveryMemberIsInitialised<GCHPRecoveryStartToSelf>("GCHPRecoveryStartToSelf");
+    expectEveryMemberIsInitialised<GCHPRecoveryStartToOthers>("GCHPRecoveryStartToOthers");
+    expectEveryMemberIsInitialised<GCMPRecoveryStart>("GCMPRecoveryStart");
+    expectEveryMemberIsInitialised<GCCrossCounterOK1>("GCCrossCounterOK1");
+    expectEveryMemberIsInitialised<GCCrossCounterOK2>("GCCrossCounterOK2");
+    expectEveryMemberIsInitialised<GCCrossCounterOK3>("GCCrossCounterOK3");
+    expectEveryMemberIsInitialised<GCKnocksTargetBackOK1>("GCKnocksTargetBackOK1");
+    expectEveryMemberIsInitialised<GCKnocksTargetBackOK2>("GCKnocksTargetBackOK2");
+    expectEveryMemberIsInitialised<GCKnocksTargetBackOK4>("GCKnocksTargetBackOK4");
+    expectEveryMemberIsInitialised<GCKnocksTargetBackOK5>("GCKnocksTargetBackOK5");
+    expectEveryMemberIsInitialised<GCPetUseSkill>("GCPetUseSkill");
+
+    // The two morph packets hold a record, replaceable only whole: the
+    // prep copies the one the packet built, names it, and puts it back,
+    // so what the record's own default constructor left is what write()
+    // emits.
+    expectEveryMemberIsInitialised<GCMorphSlayer2>("GCMorphSlayer2", [](GCMorphSlayer2& p) {
+        PCSlayerInfo3 info = p.getSlayerInfo();
+        info.setName("M");
+        p.setSlayerInfo(info);
+    });
+    expectEveryMemberIsInitialised<GCMorphVampire2>("GCMorphVampire2", [](GCMorphVampire2& p) {
+        PCVampireInfo3 info = p.getVampireInfo();
+        info.setName("M");
+        p.setVampireInfo(info);
+    });
 }
 
-TEST(CreatureConstructorTest, thePacketsThatDoNot) {
-    expectAMemberIsLeftUninitialised<CGRideMotorCycle>("CGRideMotorCycle");
-    expectAMemberIsLeftUninitialised<CGGetOffMotorCycle>("CGGetOffMotorCycle");
-    expectAMemberIsLeftUninitialised<GCRideMotorCycle>("GCRideMotorCycle");
-    expectAMemberIsLeftUninitialised<GCRideMotorCycleOK>("GCRideMotorCycleOK");
-    expectAMemberIsLeftUninitialised<GCRideMotorCycleFailed>("GCRideMotorCycleFailed");
-    expectAMemberIsLeftUninitialised<GCGetOffMotorCycle>("GCGetOffMotorCycle");
-    expectAMemberIsLeftUninitialised<GCSearchMotorcycleOK>("GCSearchMotorcycleOK");
-    expectAMemberIsLeftUninitialised<CGBloodDrain>("CGBloodDrain");
-    expectAMemberIsLeftUninitialised<GCBloodDrainOK1>("GCBloodDrainOK1");
-    expectAMemberIsLeftUninitialised<GCBloodDrainOK2>("GCBloodDrainOK2");
-    expectAMemberIsLeftUninitialised<GCBloodDrainOK3>("GCBloodDrainOK3");
-    expectAMemberIsLeftUninitialised<GCChangeShape>("GCChangeShape");
-    expectAMemberIsLeftUninitialised<CGAbsorbSoul>("CGAbsorbSoul");
-    expectAMemberIsLeftUninitialised<CGSilverCoating>("CGSilverCoating");
-    expectAMemberIsLeftUninitialised<CGTameMonster>("CGTameMonster");
-    expectAMemberIsLeftUninitialised<GCRemoveCorpseHead>("GCRemoveCorpseHead");
-    expectAMemberIsLeftUninitialised<GCLightning>("GCLightning");
-    expectAMemberIsLeftUninitialised<GCChangeDarkLight>("GCChangeDarkLight");
-    // The weather is an enumerator: an indeterminate one cannot be read
-    // at all, so the fixture sets it and the level carries the finding.
-    expectAMemberIsLeftUninitialised<GCChangeWeather>("GCChangeWeather",
-                                                      [](GCChangeWeather& p) { p.setWeather(WEATHER_CLEAR); });
-    expectAMemberIsLeftUninitialised<GCExecuteElement>("GCExecuteElement");
-    expectAMemberIsLeftUninitialised<GCHPRecoveryStartToSelf>("GCHPRecoveryStartToSelf");
-    expectAMemberIsLeftUninitialised<GCHPRecoveryStartToOthers>("GCHPRecoveryStartToOthers");
-    expectAMemberIsLeftUninitialised<GCMPRecoveryStart>("GCMPRecoveryStart");
-    expectAMemberIsLeftUninitialised<GCCrossCounterOK1>("GCCrossCounterOK1");
-    expectAMemberIsLeftUninitialised<GCCrossCounterOK2>("GCCrossCounterOK2");
-    expectAMemberIsLeftUninitialised<GCCrossCounterOK3>("GCCrossCounterOK3");
-    // The success flag is a bool, so the fixture sets it for the same
-    // reason; the coordinates, the direction and the skill type carry
-    // the finding.
-    expectAMemberIsLeftUninitialised<GCKnocksTargetBackOK1>("GCKnocksTargetBackOK1",
-                                                            [](GCKnocksTargetBackOK1& p) { p.setSkillSuccess(true); });
-    expectAMemberIsLeftUninitialised<GCKnocksTargetBackOK2>("GCKnocksTargetBackOK2");
-    expectAMemberIsLeftUninitialised<GCKnocksTargetBackOK4>("GCKnocksTargetBackOK4");
-    expectAMemberIsLeftUninitialised<GCKnocksTargetBackOK5>("GCKnocksTargetBackOK5",
-                                                            [](GCKnocksTargetBackOK5& p) { p.setSkillSuccess(true); });
-    expectAMemberIsLeftUninitialised<GCPetUseSkill>("GCPetUseSkill");
-}
+// GCMorph1 is not in the list above: it holds its four records by
+// pointer, and what a fresh one holds is pinned by the refusal in
+// GCMorph1Test.aMissingRecordIsRefusedByBothSizeAndWrite instead.
 
 } // namespace

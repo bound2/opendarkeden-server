@@ -15,7 +15,7 @@ void GCAddInjuriousCreature::read(SocketInputStream& iStream)
 
     // 이름 읽기
 
-    de::wire::readString(iStream, m_Name, {1, 10}, "Name");
+    de::wire::readString(iStream, m_Name, {1, maxNameLength}, "Name");
 
     __END_CATCH
 }
@@ -26,7 +26,7 @@ void GCAddInjuriousCreature::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
     // 이름 쓰기
-    de::wire::writeString(oStream, m_Name, {1, 10}, "Name");
+    de::wire::writeString(oStream, m_Name, {1, maxNameLength}, "Name");
 
     __END_CATCH
 }

@@ -50,7 +50,16 @@ void GCKnocksTargetBackOK5::read(SocketInputStream& iStream)
     iStream.read(m_TargetObjectID);
     //	iStream.read(m_X);
     //	iStream.read(m_Y);
-    iStream.read(m_bSuccess);
+
+    // A bool holds 0 or 1, so any other byte is refused rather than
+    // stored in one.
+    BYTE success = 0;
+    iStream.read(success);
+
+    if (success > 1)
+        throw InvalidProtocolException("skill success flag is not a bool");
+
+    m_bSuccess = (success != 0);
 
     iStream.read(m_SkillType);
     iStream.read(m_dir);

@@ -31,18 +31,9 @@ public:
 public:
     PCVampireInfo3() {}
 
-    PCVampireInfo3(const PCVampireInfo3& vampireInfo)
-        : m_ObjectID(vampireInfo.m_ObjectID), m_Name(vampireInfo.m_Name), m_X(vampireInfo.m_X), m_Y(vampireInfo.m_Y),
-          m_Dir(vampireInfo.m_Dir), m_Sex(vampireInfo.m_Sex), m_CoatType(vampireInfo.m_CoatType),
-          m_MasterEffectColor(vampireInfo.m_MasterEffectColor), m_CurrentHP(vampireInfo.m_CurrentHP),
-          m_MaxHP(vampireInfo.m_MaxHP), m_AttackSpeed(vampireInfo.m_AttackSpeed), m_Alignment(vampireInfo.m_Alignment),
-          m_Shape(vampireInfo.m_Shape), m_GuildID(vampireInfo.m_GuildID), m_Rank(vampireInfo.m_Rank),
-          m_AdvancementLevel(vampireInfo.m_AdvancementLevel) {
-        for (uint i = 0; i < VAMPIRE_COLOR_MAX; i++)
-            m_Colors[i] = vampireInfo.m_Colors[i];
-
-        m_Competence = vampireInfo.m_Competence;
-    }
+    // The record is plain data, so a copy carries every member write()
+    // emits.
+    PCVampireInfo3(const PCVampireInfo3& vampireInfo) = default;
 
 public:
     PCType getPCType() const {
@@ -87,36 +78,7 @@ public:
                + szuint + szLevel;
     }
 
-    PCVampireInfo3& operator=(const PCVampireInfo3& vampireInfo) {
-        if (&vampireInfo == this)
-            return *this;
-
-        m_ObjectID = vampireInfo.m_ObjectID;
-        m_Name = vampireInfo.m_Name;
-        m_X = vampireInfo.m_X;
-        m_Y = vampireInfo.m_Y;
-        m_Dir = vampireInfo.m_Dir;
-        m_Sex = vampireInfo.m_Sex;
-        m_CoatType = vampireInfo.m_CoatType;
-        m_CurrentHP = vampireInfo.m_CurrentHP;
-        m_MaxHP = vampireInfo.m_MaxHP;
-        m_AttackSpeed = vampireInfo.m_AttackSpeed;
-        m_Alignment = vampireInfo.m_Alignment;
-        m_Shape = vampireInfo.m_Shape;
-
-        for (uint i = 0; i < VAMPIRE_COLOR_MAX; i++)
-            m_Colors[i] = vampireInfo.m_Colors[i];
-
-        m_MasterEffectColor = vampireInfo.m_MasterEffectColor;
-        m_Competence = vampireInfo.m_Competence;
-
-        m_GuildID = vampireInfo.m_GuildID;
-        m_UnionID = vampireInfo.m_UnionID;
-        m_Rank = vampireInfo.m_Rank;
-        m_AdvancementLevel = vampireInfo.m_AdvancementLevel;
-
-        return *this;
-    }
+    PCVampireInfo3& operator=(const PCVampireInfo3& vampireInfo) = default;
 
     string toString() const;
 

@@ -116,16 +116,16 @@ public:
     }
 
 private:
-    ObjectID_t m_ObjectID; // ObjectID
+    ObjectID_t m_ObjectID = 0; // ObjectID
 
-    ZoneCoord_t m_TargetZoneX;
-    ZoneCoord_t m_TargetZoneY;
+    ZoneCoord_t m_TargetZoneX = 0;
+    ZoneCoord_t m_TargetZoneY = 0;
 
-    ObjectID_t m_InvenObjectID;  // 라바의 ObjectID
-    CoordInven_t m_InvenX;       // X 좌표
-    CoordInven_t m_InvenY;       // Y 좌표
-    CoordInven_t m_TargetInvenX; // Target X 좌표
-    CoordInven_t m_TargetInvenY; // Target Y 좌표
+    ObjectID_t m_InvenObjectID = 0;  // 라바의 ObjectID
+    CoordInven_t m_InvenX = 0;       // X 좌표
+    CoordInven_t m_InvenY = 0;       // Y 좌표
+    CoordInven_t m_TargetInvenX = 0; // Target X 좌표
+    CoordInven_t m_TargetInvenY = 0; // Target Y 좌표
 };
 
 

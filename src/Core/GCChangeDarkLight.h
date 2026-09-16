@@ -70,10 +70,10 @@ public:
 
 public:
     // 존의 어둡기(0 - 15)
-    DarkLevel_t m_DarkLevel;
+    DarkLevel_t m_DarkLevel = 0;
 
     // 존의 빛의 크기(1 - 13)
-    LightLevel_t m_LightLevel;
+    LightLevel_t m_LightLevel = 0;
 };
 
 

@@ -42,6 +42,12 @@ void GCMorph1::read(SocketInputStream& iStream)
     //--------------------------------------------------
     // read pc type/info
     //--------------------------------------------------
+    // The four records replace the ones the packet holds.
+    SAFE_DELETE(m_pPCInfo);
+    SAFE_DELETE(m_pInventoryInfo);
+    SAFE_DELETE(m_pGearInfo);
+    SAFE_DELETE(m_pExtraInfo);
+
     char pcType;
     iStream.read(pcType);
 
@@ -85,7 +91,8 @@ void GCMorph1::write(SocketOutputStream& oStream) const
     //--------------------------------------------------
     // write pc type
     //--------------------------------------------------
-    Assert(m_pPCInfo != NULL);
+    requireRecords();
+
     char pcType;
     switch (m_pPCInfo->getPCType()) {
     case PC_SLAYER:
@@ -124,7 +131,7 @@ string GCMorph1::toString() const
     __BEGIN_TRY
 
     StringStream msg;
-    msg << "GCMorph1(" << "PC:" << m_pPCInfo->toString() << ")";
+    msg << "GCMorph1(" << "PC:" << (m_pPCInfo != NULL ? m_pPCInfo->toString() : string("none")) << ")";
     return msg.toString();
 
     __END_CATCH

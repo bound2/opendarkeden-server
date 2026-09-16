@@ -54,7 +54,7 @@ public:
     }
 
 private:
-    ObjectID_t m_Attacker, m_Target;
+    ObjectID_t m_Attacker = 0, m_Target = 0;
 };
 
 

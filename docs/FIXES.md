@@ -11,6 +11,125 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Creature-state write/read disagreements (2026-09-13)
+
+The five findings task 1.2 stated as flip-tests in
+`tests/packet_creature_test.cpp`, the initialisation split the same file
+pinned, and the seven its header recorded rather than tested. These
+packets are client-facing, so `write()` and `getPacketSize()` are the
+contract: every fix is a refusal, a widening to what the field already
+carries, a size-accounting correction, a read-side correction or an
+initialisation. **No golden changes.** One `tests/wire-layout.txt` line
+moves — `GCAddInjuriousCreature` 11 → 21 — a read-buffer budget, not a
+field on the wire.
+
+- **`PCSlayerInfo3`, `PCVampireInfo3` and `PCOustersInfo3` had
+  hand-written copy constructors that left the union id out**, while
+  their equally hand-written assignment operators copied it. The union
+  id never reached a client: `Slayer::getSlayerInfo3()`,
+  `Vampire::getVampireInfo3()` and `Ousters::getOustersInfo3()` each
+  refresh the character's cached record — coordinates, HP, alignment,
+  guild id, and the union id they look up through
+  `GuildUnionManager::getGuildUnion` — and then `return m_SlayerInfo;`.
+  Returning a *member* by value is a copy the compiler cannot elide, so
+  the copy constructor ran on every call and dropped the id it had just
+  written. Ten packets hold one of those records by value and are built
+  from those getters: `GCAddSlayer`, `GCAddVampire` and `GCAddOusters`
+  (every zone scan, every character that walks into view, via
+  `PacketUtil.cpp`'s `makeGCAdd*`), the three corpse packets,
+  `GCAddVampireFromBurrowing`, `GCAddVampireFromTransformation` and the
+  two morph packets. What the client got in those four bytes was
+  whatever the return slot held: zero for a vampire, whose record
+  declared `uint m_UnionID = 0`, and indeterminate bytes for a slayer or
+  an ousters, whose records declared no member initialisers at all. All
+  three copy constructors and assignment operators are `= default` — the
+  records are plain data — and every member of all three has an
+  initialiser, so a copy of one carries no indeterminate byte either.
+  > **Status:** fixed (wire/creature-disagreements)
+
+- **`GCMorph1::getPacketSize()` did not count the pc-type byte
+  `write()` puts in front of the record**, so the declared body was one
+  byte shorter than the body sent. `writePacket()` puts the declared
+  length on the wire before calling `write()`, so the extra byte was not
+  a wrong length but a stream the client could not resynchronise: the
+  next packet's header started one byte late. The factory max already
+  budgeted the byte. It counts `szBYTE` now.
+  > **Status:** fixed (wire/creature-disagreements)
+
+- **`GCMorph1` followed null record pointers.** Its constructor sets all
+  four to `NULL`, `getPacketSize()` dereferenced all four and `write()`
+  guarded only the PC one, so a sender that set the PC record and forgot
+  the inventory crashed the game server instead of being refused. Both
+  refuse a missing record through `InvalidProtocolException`, and
+  `write()`'s pc-type bound is that exception in place of the `Assert()`
+  that appended to `assertion_failed.log` in the working directory before
+  throwing. Ownership is settled from the senders: all three
+  (`EventMorph.cpp` and `skill/Restore.cpp` twice) pass records the
+  `Slayer`/`Vampire` accessors allocate fresh and nobody keeps, so the
+  four belong to the packet — each setter frees what it replaces,
+  `read()` frees the four it holds before filling four more, and the
+  destructor frees what is left. A second `read()` leaked all four
+  before.
+  > **Status:** fixed (wire/creature-disagreements)
+
+- **`GCAddInjuriousCreature` bounded at ten the character name it
+  carries.** `write()` and `read()` both stopped at ten while the name
+  comes from a creature and runs to `maxNameLength` (20), so a player
+  with an eleven-byte name could not be announced as the one who struck
+  first: `write()` raised instead of truncating, and the target never
+  learned who to strike back at. The setter cuts at `maxNameLength`,
+  `write()` and `read()` carry the field at that width, and the factory
+  max budgets a whole name (`szBYTE + maxNameLength`, 11 → 21). A
+  ten-byte name's bytes are unchanged.
+  > **Status:** fixed (wire/creature-disagreements)
+
+- **`GCChangeWeather::read` cast the wire byte straight to `Weather`.**
+  The enum declares three weathers and a `WEATHER_MAX`, so a byte past
+  its range was an out-of-range enum load, which the Debug toolchain's
+  UBSan traps on; and `Weather2String`, which `toString()` indexes with
+  the stored value, holds three entries, so a stored `WEATHER_MAX` read
+  past its end. `read()` tests the raw byte against `WEATHER_MAX` before
+  assigning, and `toString()` prints a value the table does not name as
+  its number.
+  > **Status:** fixed (wire/creature-disagreements)
+
+- **`GCKnocksTargetBackOK1::read` and `GCKnocksTargetBackOK5::read`
+  loaded the success flag straight into a `bool` member**, so a wire byte
+  other than 0 or 1 became an invalid bool — a value on which every later
+  test of it is undefined. Both read a BYTE, refuse anything but 0 or 1
+  and assign, the shape `SlayerSkillInfo` and `OustersSkillInfo` already
+  use.
+  > **Status:** fixed (wire/creature-disagreements)
+
+- **`GCExecuteElement::read` took a condition byte it compared against
+  nothing**, where the four conditions a quest element fires under are
+  `GQuestInfo::ElementType`'s `HAPPEN`, `COMPLETE`, `FAIL` and `REWARD`.
+  `read()` refuses a byte past them. The sending side is left as it is:
+  the packet's one sender, `GQuestExecuteElement::checkCondition`, passes
+  the `ElementType` `GQuestInfo::makeVector` stamped on the element, so
+  no reachable send is out of range and no emitted byte moves.
+  > **Status:** fixed (wire/creature-disagreements)
+
+- **`GCMorphVampire2`'s accessor for the vampire record it holds was
+  named `getSlayerInfo`.** It is `getVampireInfo`, matching
+  `setVampireInfo` beside it and `GCAddVampire`. No `src/server` source
+  called it.
+  > **Status:** fixed (wire/creature-disagreements)
+
+- **`CGBloodDrain::read` and `::write` copied the object id as raw
+  bytes** (`iStream.read((char*)&m_ObjectID, szObjectID)`) rather than
+  through the typed stream calls every other packet in the set uses,
+  which is what `de::WireScalar` exists to constrain. `szObjectID` is
+  `sizeof(ObjectID_t)`, so the bytes are identical.
+  > **Status:** fixed (wire/creature-disagreements)
+
+- **Thirty-one of the forty-two left at least one member the default
+  constructor never set**, so a packet sent without every setter called
+  put indeterminate bytes on the wire — a client reading a coordinate, a
+  skill type or a direction that was never assigned. All forty-two
+  initialise every member their `write()` emits.
+  > **Status:** fixed (wire/creature-disagreements)
+
 ## Error paths that could not report anything (2026-09-13)
 
 - **`XMLUtil::filelog`'s own overflow branch passed a null format to

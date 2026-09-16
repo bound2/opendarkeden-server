@@ -17,8 +17,14 @@ void GCChangeWeather::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE weather;
+    // The enum declares fewer values than the byte carries, so the raw
+    // byte is tested before it reaches it.
+    BYTE weather = 0;
     iStream.read(weather);
+
+    if (weather >= WEATHER_MAX)
+        throw InvalidProtocolException("weather out of range");
+
     m_Weather = (Weather)weather;
 
     iStream.read(m_WeatherLevel);
@@ -50,9 +56,12 @@ string GCChangeWeather::toString() const
 {
     __BEGIN_TRY
 
+    // Weather2String names only the weathers below WEATHER_MAX; any
+    // other value prints as its number.
     StringStream msg;
-    msg << "GCChangeWeather(" << "Weather:" << Weather2String[m_Weather] << ",WeatherLevel:" << (int)m_WeatherLevel
-        << ")";
+    msg << "GCChangeWeather("
+        << "Weather:" << (m_Weather < WEATHER_MAX ? Weather2String[m_Weather] : std::to_string((int)m_Weather))
+        << ",WeatherLevel:" << (int)m_WeatherLevel << ")";
     return msg.toString();
 
     __END_CATCH

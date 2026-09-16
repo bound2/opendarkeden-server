@@ -31,19 +31,9 @@ public:
 public:
     PCOustersInfo3() {}
 
-    PCOustersInfo3(const PCOustersInfo3& oustersInfo)
-        : m_ObjectID(oustersInfo.m_ObjectID), m_Name(oustersInfo.m_Name), m_X(oustersInfo.m_X), m_Y(oustersInfo.m_Y),
-          m_Dir(oustersInfo.m_Dir), m_Sex(oustersInfo.m_Sex), m_CoatType(oustersInfo.m_CoatType),
-          m_ArmType(oustersInfo.m_ArmType), m_SylphType(oustersInfo.m_SylphType),
-          m_MasterEffectColor(oustersInfo.m_MasterEffectColor), m_CurrentHP(oustersInfo.m_CurrentHP),
-          m_MaxHP(oustersInfo.m_MaxHP), m_AttackSpeed(oustersInfo.m_AttackSpeed), m_Alignment(oustersInfo.m_Alignment),
-          m_GuildID(oustersInfo.m_GuildID), m_Rank(oustersInfo.m_Rank),
-          m_AdvancementLevel(oustersInfo.m_AdvancementLevel) {
-        for (uint i = 0; i < OUSTERS_COLOR_MAX; i++)
-            m_Colors[i] = oustersInfo.m_Colors[i];
-
-        m_Competence = oustersInfo.m_Competence;
-    }
+    // The record is plain data, so a copy carries every member write()
+    // emits.
+    PCOustersInfo3(const PCOustersInfo3& oustersInfo) = default;
 
 public:
     PCType getPCType() const {
@@ -86,38 +76,7 @@ public:
                + szuint + szLevel;
     }
 
-    PCOustersInfo3& operator=(const PCOustersInfo3& oustersInfo) {
-        if (&oustersInfo == this)
-            return *this;
-
-        m_ObjectID = oustersInfo.m_ObjectID;
-        m_Name = oustersInfo.m_Name;
-        m_X = oustersInfo.m_X;
-        m_Y = oustersInfo.m_Y;
-        m_Dir = oustersInfo.m_Dir;
-        m_Sex = oustersInfo.m_Sex;
-        m_CoatType = oustersInfo.m_CoatType;
-        m_ArmType = oustersInfo.m_ArmType;
-        m_SylphType = oustersInfo.m_SylphType;
-        m_CurrentHP = oustersInfo.m_CurrentHP;
-        m_MaxHP = oustersInfo.m_MaxHP;
-        m_AttackSpeed = oustersInfo.m_AttackSpeed;
-        m_Alignment = oustersInfo.m_Alignment;
-
-        for (uint i = 0; i < OUSTERS_COLOR_MAX; i++)
-            m_Colors[i] = oustersInfo.m_Colors[i];
-
-        m_MasterEffectColor = oustersInfo.m_MasterEffectColor;
-
-        m_Competence = oustersInfo.m_Competence;
-
-        m_GuildID = oustersInfo.m_GuildID;
-        m_UnionID = oustersInfo.m_UnionID;
-        m_Rank = oustersInfo.m_Rank;
-        m_AdvancementLevel = oustersInfo.m_AdvancementLevel;
-
-        return *this;
-    }
+    PCOustersInfo3& operator=(const PCOustersInfo3& oustersInfo) = default;
 
     string toString() const;
 
@@ -294,57 +253,57 @@ public:
 
 private:
     // PC's object id
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
     // PC name
     string m_Name;
 
-    Coord_t m_X;
-    Coord_t m_Y;
-    Dir_t m_Dir;
+    Coord_t m_X = 0;
+    Coord_t m_Y = 0;
+    Dir_t m_Dir = 0;
 
     // PC sex
-    Sex m_Sex;
+    Sex m_Sex = FEMALE;
 
     // CoatType
-    OustersCoatType m_CoatType;
+    OustersCoatType m_CoatType = OUSTERS_COAT_BASIC;
 
     // ArmType
-    OustersArmType m_ArmType;
+    OustersArmType m_ArmType = OUSTERS_ARM_GAUNTLET;
 
     // SylphType
-    OustersSylphType m_SylphType;
+    OustersSylphType m_SylphType = OUSTERS_SYLPH_NONE;
 
     // colors
-    Color_t m_Colors[OUSTERS_COLOR_MAX];
+    Color_t m_Colors[OUSTERS_COLOR_MAX] = {};
 
     // 마스터 이펙트 색깔
-    BYTE m_MasterEffectColor;
+    BYTE m_MasterEffectColor = 0;
 
     // Current HP
-    HP_t m_CurrentHP;
+    HP_t m_CurrentHP = 0;
 
     // Max HP
-    HP_t m_MaxHP;
+    HP_t m_MaxHP = 0;
 
     // Attack Speed
-    Speed_t m_AttackSpeed;
+    Speed_t m_AttackSpeed = 0;
 
     // 성향
-    Alignment_t m_Alignment;
+    Alignment_t m_Alignment = 0;
 
     // 권한
-    BYTE m_Competence;
+    BYTE m_Competence = 0;
 
     // 길드 아이디
-    GuildID_t m_GuildID;
+    GuildID_t m_GuildID = 0;
 
-    uint m_UnionID;
+    uint m_UnionID = 0;
 
     // 계급
-    Rank_t m_Rank;
+    Rank_t m_Rank = 0;
 
-    Level_t m_AdvancementLevel;
+    Level_t m_AdvancementLevel = 0;
 };
 
 #endif

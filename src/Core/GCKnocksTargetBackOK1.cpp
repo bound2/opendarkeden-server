@@ -18,14 +18,7 @@
 //////////////////////////////////////////////////////////////////////
 GCKnocksTargetBackOK1::GCKnocksTargetBackOK1()
 
-{
-    __BEGIN_TRY
-
-    m_ObjectID = 0;
-    m_BulletNum = 0;
-
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 
 //////////////////////////////////////////////////////////////////////
@@ -53,7 +46,16 @@ void GCKnocksTargetBackOK1::read(SocketInputStream& iStream)
     iStream.read(m_Y);
     iStream.read(m_ObjectID);
     iStream.read(m_BulletNum);
-    iStream.read(m_bSuccess);
+
+    // A bool holds 0 or 1, so any other byte is refused rather than
+    // stored in one.
+    BYTE success = 0;
+    iStream.read(success);
+
+    if (success > 1)
+        throw InvalidProtocolException("skill success flag is not a bool");
+
+    m_bSuccess = (success != 0);
 
     ModifyInfo::read(iStream);
 

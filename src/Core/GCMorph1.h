@@ -49,11 +49,10 @@ public:
 
     // get packet's body size
     PacketSize_t getPacketSize() const {
-        // [PCType][PCInfo]
-        // [GameTime][Weather][WeatherLevel][DarkLevel][LightLevel]
-        // [#NPCTypes][NPCType1]...[NPCTypeN]
-        // [#MonsterTypes][MonsterType1]...[MonsterTypeM]
-        return m_pPCInfo->getSize() + m_pInventoryInfo->getSize() + m_pGearInfo->getSize() + m_pExtraInfo->getSize();
+        // [PCType][PCInfo][InventoryInfo][GearInfo][ExtraInfo]
+        requireRecords();
+        return szBYTE + m_pPCInfo->getSize() + m_pInventoryInfo->getSize() + m_pGearInfo->getSize() +
+               m_pExtraInfo->getSize();
     }
 
     // get packet name
@@ -69,11 +68,15 @@ public:
     // methods
     //--------------------------------------------------
 public:
-    // get/set PC info
+    // The four records belong to the packet: every sender builds them
+    // for it and keeps none, so each setter frees what it replaces and
+    // the destructor frees what is left.
     PCInfo* getPCInfo2() const {
         return m_pPCInfo;
     }
     void setPCInfo2(PCInfo* pPCInfo) {
+        if (m_pPCInfo != pPCInfo)
+            delete m_pPCInfo;
         m_pPCInfo = pPCInfo;
     }
 
@@ -82,6 +85,8 @@ public:
         return m_pInventoryInfo;
     }
     void setInventoryInfo(InventoryInfo* pInventoryInfo) {
+        if (m_pInventoryInfo != pInventoryInfo)
+            delete m_pInventoryInfo;
         m_pInventoryInfo = pInventoryInfo;
     }
 
@@ -90,6 +95,8 @@ public:
         return m_pGearInfo;
     }
     void setGearInfo(GearInfo* pGearInfo) {
+        if (m_pGearInfo != pGearInfo)
+            delete m_pGearInfo;
         m_pGearInfo = pGearInfo;
     }
 
@@ -98,6 +105,8 @@ public:
         return m_pExtraInfo;
     }
     void setExtraInfo(ExtraInfo* pExtraInfo) {
+        if (m_pExtraInfo != pExtraInfo)
+            delete m_pExtraInfo;
         m_pExtraInfo = pExtraInfo;
     }
 
@@ -105,6 +114,13 @@ public:
     // data members
     //--------------------------------------------------
 private:
+    // write() emits all four, so a packet missing one is refused rather
+    // than followed.
+    void requireRecords() const {
+        if (m_pPCInfo == NULL || m_pInventoryInfo == NULL || m_pGearInfo == NULL || m_pExtraInfo == NULL)
+            throw InvalidProtocolException("morph record missing");
+    }
+
     //--------------------------------------------------------------------------------
     // PC Information
     //--------------------------------------------------------------------------------

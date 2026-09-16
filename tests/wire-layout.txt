@@ -172,7 +172,7 @@
 177	GCAddGearToInventory	3
 178	GCAddGearToZone	1
 179	GCAddHelicopter	5
-180	GCAddInjuriousCreature	11
+180	GCAddInjuriousCreature	21
 181	GCAddInstalledMineToZone	379
 182	GCAddItemToItemVerify	9
 183	GCAddMonster	1072

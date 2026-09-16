@@ -90,11 +90,11 @@ public:
 
 private:
     // ObjectID
-    ObjectID_t m_ObjectID;
+    ObjectID_t m_ObjectID = 0;
 
-    Coord_t m_X, m_Y; // 이동된 좌표.
-    Dir_t m_dir;      // 밀려난 방향.
-    SkillType_t m_SkillType;
+    Coord_t m_X = 0, m_Y = 0; // 이동된 좌표.
+    Dir_t m_dir = 0;          // 밀려난 방향.
+    SkillType_t m_SkillType = 0;
 };
 
 

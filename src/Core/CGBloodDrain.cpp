@@ -22,7 +22,7 @@ void CGBloodDrain::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    iStream.read((char*)&m_ObjectID, szObjectID);
+    iStream.read(m_ObjectID);
 
     __END_CATCH
 }
@@ -32,7 +32,7 @@ void CGBloodDrain::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    oStream.write((char*)&m_ObjectID, szObjectID);
+    oStream.write(m_ObjectID);
 
     __END_CATCH
 }
