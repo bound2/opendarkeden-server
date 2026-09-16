@@ -43,7 +43,6 @@ public:
     // get packet's body size
     PacketSize_t getPacketSize() const {
         return de::wire::stringWireSize(m_Name)       // 캐릭터 이름
-               + szPCType                             // 슬레이어 or 뱀파이어?
                + de::wire::stringWireSize(m_ServerIP) // 새로 접속할 게임 서버 IP
                + szDWORD;                             // 인증 키
     }
@@ -63,14 +62,6 @@ public:
     }
     void setName(const string& name) {
         m_Name = name;
-    }
-
-    // get/set pc type
-    PCType getPCType() const {
-        return m_PCType;
-    }
-    void setPCType(PCType pcType) {
-        m_PCType = pcType;
     }
 
     // get/set server ip
@@ -93,14 +84,11 @@ private:
     // creature name
     string m_Name;
 
-    // pc type
-    PCType m_PCType;
-
     // New Server IP
     string m_ServerIP;
 
     // authentication key
-    DWORD m_Key;
+    DWORD m_Key = 0;
 };
 
 
@@ -117,7 +105,6 @@ public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_RECONNECT;
     static constexpr std::string_view kName = "GCReconnect";
     static constexpr PacketSize_t kMaxSize{szBYTE + 20   // 캐릭터 이름
-                                           + szPCType    // 슬레이어 or 뱀파이어?
                                            + szBYTE + 15 // 새로 접속할 게임 서버 IP
                                            + szDWORD};   // 인증 키
 

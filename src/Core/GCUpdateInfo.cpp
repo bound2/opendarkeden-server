@@ -338,11 +338,14 @@ string GCUpdateInfo::toString() const
 {
     __BEGIN_TRY
 
+    // Weather2String names only the weathers below WEATHER_MAX; any
+    // other value prints as its number.
     StringStream msg;
 
     msg << "GCUpdateInfo(" << "PC:" << m_pPCInfo->toString() << "EffectInfo:" << m_pEffectInfo->toString()
         << ",ZoneID: " << m_ZoneID << ",ZoneX: " << m_ZoneX << ",ZoneY: " << m_ZoneY
-        << ",GameTime:" << m_GameTime.toString() << ",Weather:" << Weather2String[m_Weather]
+        << ",GameTime:" << m_GameTime.toString()
+        << ",Weather:" << (m_Weather < WEATHER_MAX ? Weather2String[m_Weather] : std::to_string((int)m_Weather))
         << ",WeatherLevel:" << (int)m_WeatherLevel << ",DarkLevel:" << (int)m_DarkLevel
         << ",LightLevel:" << (int)m_LightLevel;
 

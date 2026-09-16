@@ -6,7 +6,6 @@
 
 #include "CGCrashReport.h"
 
-#include "Assert1.h"
 #include "WireString.h"
 
 CGCrashReport::CGCrashReport()
@@ -25,13 +24,14 @@ void CGCrashReport::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    iStream.read(m_ExecutableTime, 19);
+    iStream.read(m_ExecutableTime, kExecutableTimeLength);
     iStream.read(m_Version);
-    iStream.read(m_Address, 10);
+    iStream.read(m_Address, kAddressLength);
 
-    de::wire::readString16(iStream, m_OS, {1, 100}, "OS");
-    de::wire::readString16(iStream, m_CallStack, {1, 1024}, "CallStack");
-    de::wire::readString16(iStream, m_Message, {1, 1024}, "Message");
+    // write() admits all three empty, so read() takes what it emits.
+    de::wire::readString16(iStream, m_OS, {0, 100}, "OS");
+    de::wire::readString16(iStream, m_CallStack, {0, 1024}, "CallStack");
+    de::wire::readString16(iStream, m_Message, {0, 1024}, "Message");
 
     __END_CATCH
 }
@@ -41,8 +41,11 @@ void CGCrashReport::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    Assert(m_ExecutableTime.size() == 19);
-    Assert(m_Address.size() == 10);
+    if (m_ExecutableTime.size() != kExecutableTimeLength)
+        throw InvalidProtocolException("ExecutableTime is not the fixed width");
+
+    if (m_Address.size() != kAddressLength)
+        throw InvalidProtocolException("Address is not the fixed width");
 
     oStream.write(m_ExecutableTime);
     oStream.write(m_Version);

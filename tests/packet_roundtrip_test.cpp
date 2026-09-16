@@ -458,8 +458,12 @@ TEST(CGCrashReportTest, theWordPrefixedFieldsStopAtTheirCaps) {
     noOS.setVersion(0x1234);
     noOS.setAddress("0x00401000");
 
+    // write() admits all three empty, and read() takes them back.
     CGCrashReport back;
-    EXPECT_THROW(roundTrip(noOS, back, kStringFieldCode), InvalidProtocolException);
+    roundTrip(noOS, back, kStringFieldCode);
+    EXPECT_TRUE(back.getOS().empty());
+    EXPECT_TRUE(back.getCallStack().empty());
+    EXPECT_TRUE(back.getMessage().empty());
 }
 
 TEST(CGModifyNicknameTest, theNicknameStopsAtWhatTheFactoryMaxBudgets) {

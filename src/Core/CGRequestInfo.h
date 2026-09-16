@@ -9,6 +9,7 @@
 #define __CG_REQUEST_INFO_H__
 
 // include files
+#include "Exception.h"
 #include "Packet.h"
 #include "PacketFactory.h"
 
@@ -76,8 +77,8 @@ public:
 
 private:
     // Code
-    BYTE m_Code;
-    uint m_Value;
+    BYTE m_Code = 0;
+    uint m_Value = 0;
 };
 
 

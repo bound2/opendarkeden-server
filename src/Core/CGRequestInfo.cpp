@@ -11,7 +11,16 @@ void CGRequestInfo::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    iStream.read(m_Code);
+    // A byte carries more values than there are request codes, so it is
+    // tested before it is stored.
+    BYTE code = 0;
+    iStream.read(code);
+
+    if (code >= REQUEST_INFO_MAX)
+        throw InvalidProtocolException("request code out of range");
+
+    m_Code = code;
+
     iStream.read(m_Value);
 
     __END_CATCH

@@ -40,7 +40,7 @@ public:
     }
 
 private:
-    DWORD m_Key;
+    DWORD m_Key = 0;
 };
 
 

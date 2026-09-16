@@ -173,14 +173,15 @@ before anything else moves. Everything later shelters under this pin.
   > `tests/packet_roundtrip_test.cpp`.
   >
   > Every family turned up write/read disagreements. All are fixed and
-  > pinned as the behaviour the packets now produce, except the twelve
-  > in `tests/packet_session_test.cpp`, which are stated as tests that
-  > flip when they are fixed; the ones that cannot be tested — undefined
-  > behaviour, a leak, or no observable wire effect — are recorded in
-  > their file's header. The fixes moved `tests/wire-layout.txt` lines
-  > in most families, every one a server-side read-buffer budget rather
-  > than a field on the wire, and one golden pair (`GCMakeItemOK`, one
-  > byte shorter: a duplicated option count the client never read).
+  > pinned as the behaviour the packets now produce; the one that cannot
+  > be fixed — `CGPortCheck`'s registration, which the game server's UDP
+  > path needs — is recorded in its file's header. The fixes moved
+  > `tests/wire-layout.txt` lines in most families, every one a
+  > server-side read-buffer budget rather than a field on the wire, and
+  > one golden pair (`GCMakeItemOK`, one byte shorter: a duplicated
+  > option count the client never read). `GCExecuteElement`'s golden was
+  > re-recorded for a fixture that carried an out-of-range condition
+  > byte.
   >
   > Open: the four fixtures pinned first still carry values under 128,
   > so a signedness flip on `Coord_t`/`Dir_t` would leave their goldens

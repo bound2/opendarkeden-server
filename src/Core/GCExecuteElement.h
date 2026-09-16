@@ -44,6 +44,9 @@ public:
         iStream.read(m_Index);
     }
     void write(SocketOutputStream& oStream) const {
+        if (m_Condition >= kConditionMax)
+            throw InvalidProtocolException("element condition out of range");
+
         oStream.write(m_QuestID);
         oStream.write(m_Condition);
         oStream.write(m_Index);
@@ -71,6 +74,8 @@ public:
         return m_Condition;
     }
     void setCondition(BYTE cond) {
+        if (cond >= kConditionMax)
+            throw InvalidProtocolException("element condition out of range");
         m_Condition = cond;
     }
 

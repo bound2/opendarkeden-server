@@ -6,8 +6,6 @@
 
 #include "GCGoodsList.h"
 
-#include "Assert1.h"
-
 //////////////////////////////////////////////////////////////////////////////
 // constructor
 //////////////////////////////////////////////////////////////////////////////
@@ -30,6 +28,17 @@ GCGoodsList::~GCGoodsList()
 {
     __BEGIN_TRY
 
+    clearGoodsInfo();
+
+    __END_CATCH_NO_RETHROW
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Free every record the packet holds.
+//////////////////////////////////////////////////////////////////////////////
+void GCGoodsList::clearGoodsInfo()
+
+{
     list<GoodsInfo*>::iterator itr = m_GoodsList.begin();
     list<GoodsInfo*>::iterator endItr = m_GoodsList.end();
 
@@ -39,8 +48,6 @@ GCGoodsList::~GCGoodsList()
     }
 
     m_GoodsList.clear();
-
-    __END_CATCH_NO_RETHROW
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -55,6 +62,8 @@ void GCGoodsList::read(SocketInputStream& iStream)
     iStream.read(totalNum);
     if (totalNum > MAX_GOODS_LIST)
         throw DisconnectException("GCGoodsList : totalNum greater than MAX_GOODS_LIST");
+
+    clearGoodsInfo();
 
     for (int i = 0; i < totalNum; ++i) {
         GoodsInfo* pGI = new GoodsInfo;
@@ -94,10 +103,10 @@ void GCGoodsList::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    BYTE totalNum = m_GoodsList.size();
-    if (totalNum > MAX_GOODS_LIST)
+    if (m_GoodsList.size() > (size_t)MAX_GOODS_LIST)
         throw DisconnectException("GCGoodsList : totalNum greater than MAX_GOODS_LIST");
 
+    BYTE totalNum = (BYTE)m_GoodsList.size();
     oStream.write(totalNum);
 
     list<GoodsInfo*>::const_iterator itr = m_GoodsList.begin();
@@ -105,14 +114,18 @@ void GCGoodsList::write(SocketOutputStream& oStream) const
 
     for (; itr != endItr; ++itr) {
         GoodsInfo* pGI = *itr;
-        Assert(pGI != NULL);
+        if (pGI == NULL)
+            throw InvalidProtocolException("GCGoodsList : null goods record");
 
         oStream.write(pGI->objectID);
         oStream.write(pGI->itemClass);
         oStream.write(pGI->itemType);
         oStream.write(pGI->grade);
 
-        BYTE optionNum = pGI->optionType.size();
+        if (pGI->optionType.size() > kMaxOptionCount)
+            throw InvalidProtocolException("GCGoodsList : too many record options");
+
+        BYTE optionNum = (BYTE)pGI->optionType.size();
         oStream.write(optionNum);
 
         list<OptionType_t>::const_iterator oitr = pGI->optionType.begin();

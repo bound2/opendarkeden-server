@@ -311,7 +311,7 @@
 316	GCQuestStatus	8
 317	GCRankBonusInfo	401
 318	GCRealWearingInfo	4
-319	GCReconnect	42
+319	GCReconnect	41
 320	GCReconnectLogin	24
 321	GCRegenZoneStatus	8
 322	GCReloadOK	1
