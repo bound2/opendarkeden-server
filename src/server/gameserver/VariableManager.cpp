@@ -4,9 +4,9 @@
 
 #include "Properties.h"
 #include "SystemAvailabilitiesManager.h"
+#include "ZoneInternal.h"
 #include "repository/ContentInfoRepository.h"
 
-extern void strlwr(char* str);
 
 //////////////////////////////////////////////////////////////////////////////
 // constructor

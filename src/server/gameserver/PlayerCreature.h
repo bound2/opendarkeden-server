@@ -408,7 +408,7 @@ protected:
     Stash* m_pStash;     // 보관함 포인터
     BYTE m_StashNum;     // 보관함의 숫자
     string m_Name;       // PC name
-    Gold_t m_Gold;       // money carried by the character
+    Gold_t m_Gold = 0;   // money carried by the character
     Gold_t m_StashGold;  // 보관함 안의 돈 액수
     bool m_bStashStatus; // 보관함 아이템 OID 등록 여부
 
