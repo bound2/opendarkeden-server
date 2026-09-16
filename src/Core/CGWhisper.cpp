@@ -30,8 +30,9 @@ void CGWhisper::write(SocketOutputStream& oStream) const
 {
     __BEGIN_TRY
 
-    // 이름 쓰기
-    de::wire::writeString(oStream, m_Name, {1, 128}, "Name");
+    // Write the name. The bound matches read()'s and the factory's
+    // kMaxSize budget: a name longer than 10 bytes cannot be read back.
+    de::wire::writeString(oStream, m_Name, {1, 10}, "Name");
 
     oStream.write(m_Color);
 

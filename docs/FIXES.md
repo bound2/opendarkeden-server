@@ -11,6 +11,23 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## CGWhisper wrote names its own read() refuses (2026-09-16)
+
+- **`CGWhisper::write()` bounded the name at 128 while `read()` bounds
+  it at 10.** The packet is client-to-game, so `read()` is the contract
+  and `CGWhisperFactory::kMaxSize` budgets the name at 10 as well: a name
+  of 11 to 128 bytes was written happily and then refused by every reader
+  of the field, the server's own included. `write()` now refuses the same
+  lengths `read()` does, which is a behaviour change on the write side --
+  the call that used to emit an unreadable packet now throws
+  `InvalidProtocolException`. No valid packet's bytes move:
+  `tests/wire-layout.txt` and `tests/golden/CGWhisper.code0.hex` are
+  unchanged, and the server never writes this packet. The client repo's
+  copy (`Client/Packet/Cpackets/CGWhisper.cpp`) carries the same 128/10
+  split, recorded there in a comment; it needs the identical change.
+  `tests/packet_roundtrip_test.cpp` pins both ends of the bound.
+  > **Status:** fixed (fix/exception-text)
+
 ## Three GM commands answered any player (2026-09-16)
 
 - **`*find`, `*OpenPayMap` and `*ClosePayMap` ran for anyone who typed
