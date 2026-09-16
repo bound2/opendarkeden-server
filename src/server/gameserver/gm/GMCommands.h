@@ -85,7 +85,6 @@ void opsoulchain(GamePlayer* pPlayer, std::string msg, int i);
 void opzone(std::string msg, int i);
 void opwarp(GamePlayer* pPlayer, std::string msg, int i);
 void oprecall(GamePlayer* pPlayer, std::string msg, int i);
-void opmrecall(GamePlayer* pPlayer, std::string msg, int i);
 void opsummon(GamePlayer* pPlayer, std::string msg, int i);
 void opopenpaymap(GamePlayer* pPlayer, std::string msg, int i);
 void opclosepaymap(GamePlayer* pPlayer, std::string msg, int i);
@@ -108,7 +107,8 @@ void oprefreshguildunion(GamePlayer* pPlayer, std::string msg, int i, bool bSame
 // ConsoleCommands.cpp
 //////////////////////////////////////////////////////////////////////////////
 
-// Carries a sub-command of its own, chosen by a ladder inside the body.
+// Carries a sub-command of its own, looked up in the table in
+// ConsoleSubcommands.h.
 void opcommand(GamePlayer* pPlayer, std::string msg, int i);
 
 } // namespace de::gm
