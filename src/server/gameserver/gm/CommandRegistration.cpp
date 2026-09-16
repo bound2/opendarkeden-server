@@ -100,19 +100,16 @@ void registerOperatorCommands(CommandRouter& router) {
     router.add("load", Permission::God, withPlayer<opload>);
     router.add("view", Permission::God, withPlayer<opview>);
     router.add("combat", Permission::God, withPlayer<opcombat>);
-    // *find, *OpenPayMap and *ClosePayMap answer anyone: each was written as
-    // one branch testing two names, and the gate was spelled out beside the
-    // second name only, where it binds to that name alone.
-    router.add("find", Permission::Everyone, withPlayer<opfind>);
+    router.add("find", Permission::God, withPlayer<opfind>);
     router.add(kFindAlias, 4, Permission::God, withPlayer<opfind>);
     router.add("credit", Permission::God, withPlayer<opcredit>);
     router.add("soulchain", Permission::God, withPlayer<opsoulchain>);
     router.add("log", Permission::God, withPlayer<oplog>);
     router.add("bug_report", Permission::God, withCreature<opbugreport>);
     router.add("CrashReport", Permission::God, withCreature<opcrashreport>);
-    router.add("OpenPayMap", Permission::Everyone, withPlayer<opopenpaymap>);
+    router.add("OpenPayMap", Permission::God, withPlayer<opopenpaymap>);
     router.add(kOpenPayMapAlias, 12, Permission::God, withPlayer<opopenpaymap>);
-    router.add("ClosePayMap", Permission::Everyone, withPlayer<opclosepaymap>);
+    router.add("ClosePayMap", Permission::God, withPlayer<opclosepaymap>);
     router.add(kClosePayMapAlias, 12, Permission::God, withPlayer<opclosepaymap>);
 }
 

@@ -114,16 +114,16 @@ std::vector<Expected> expectedOperatorCommands() {
         {"combat", 6, Permission::God, "opcombat"},
         // Ungated, as the ladder left it: the branch tested two names and
         // the gate bound to the second one alone.
-        {"find", 4, Permission::Everyone, "opfind"},
+        {"find", 4, Permission::God, "opfind"},
         {kFindAlias, 4, Permission::God, "opfind"},
         {"credit", 6, Permission::God, "opcredit"},
         {"soulchain", 9, Permission::God, "opsoulchain"},
         {"log", 3, Permission::God, "oplog"},
         {"bug_report", 10, Permission::God, "opbugreport"},
         {"CrashReport", 11, Permission::God, "opcrashreport"},
-        {"OpenPayMap", 10, Permission::Everyone, "opopenpaymap"},
+        {"OpenPayMap", 10, Permission::God, "opopenpaymap"},
         {kOpenPayMapAlias, 12, Permission::God, "opopenpaymap"},
-        {"ClosePayMap", 11, Permission::Everyone, "opclosepaymap"},
+        {"ClosePayMap", 11, Permission::God, "opclosepaymap"},
         {kClosePayMapAlias, 12, Permission::God, "opclosepaymap"},
     };
 }
@@ -347,8 +347,11 @@ TEST(GMCommandRouter, ACallerBelowTheLevelRunsNothing) {
     EXPECT_EQ(run(router, "*kick someone", Permission::Helper), "opkick");
     EXPECT_EQ(run(router, "*kick someone", Permission::Everyone), "");
 
-    // *find is ungated, as the ladder left it.
-    EXPECT_EQ(run(router, "*find someone", Permission::Everyone), "opfind");
+    // *find is GOD-only, like the two pay-map commands.
+    EXPECT_EQ(run(router, "*find someone", Permission::God), "opfind");
+    EXPECT_EQ(run(router, "*find someone", Permission::DM), "");
+    EXPECT_EQ(run(router, "*OpenPayMap", Permission::Everyone), "");
+    EXPECT_EQ(run(router, "*ClosePayMap", Permission::DM), "");
 }
 
 TEST(GMCommandRouter, ARefusedCommandDoesNotAnswerTheMessage) {

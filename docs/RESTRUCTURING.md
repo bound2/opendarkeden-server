@@ -1242,9 +1242,7 @@ down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
   > `tests/gm_command_router_test.cpp` links the real registration over
   > stubbed bodies and pins every row — name, length, gate and order — so a
   > gate change has to be written twice. The levels are God / DM / Helper /
-  > Everyone, ordered as `Competence` is. Preserved quirks: `*find`,
-  > `*OpenPayMap` and `*ClosePayMap` are ungated, which is what the `||`
-  > precedence in the ladder gave them, and three alias names left mojibake
+  > Everyone, ordered as `Competence` is. Three alias names left mojibake
   > by the code-page move are registered unreachable, each longer than the
   > length it is compared over. What remains: `*command` is still one
   > 1,300-line body with a sub-ladder of its own, and `opmrecall`,

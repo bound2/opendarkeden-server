@@ -11,6 +11,18 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Three GM commands answered any player (2026-09-16)
+
+- **`*find`, `*OpenPayMap` and `*ClosePayMap` ran for anyone who typed
+  them.** Each branch of the say handler's command ladder tested two
+  names with `nameA || nameB && isGOD()`, and `&&` binds tighter than
+  `||`, so the GOD gate guarded only the second, mojibake, name: any
+  player could look up which server another account was on, and could
+  open or close the pay zone's portals. The command table registers all
+  three as GOD-only, and `tests/gm_command_router_test.cpp` pins the
+  gate.
+  > **Status:** fixed (refactor/gm-command-router)
+
 ## Session and take-out write/read disagreements (2026-09-16)
 
 The twelve findings task 1.2 stated as flip-tests in
