@@ -615,6 +615,8 @@ set(EXCHANGE_SOURCES
 set(GM_SOURCES
     gm/CommandRouter.cpp
     gm/CommandRegistration.cpp
+    gm/SubcommandTable.cpp
+    gm/ConsoleCommandRegistration.cpp
     gm/ServerCommands.cpp
     gm/PlayerCommands.cpp
     gm/ZoneCommands.cpp

@@ -95,6 +95,11 @@ check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
 R6e=$(wc -l < src/server/gameserver/handler/CGSayHandler.cpp 2>/dev/null || echo missing)
 check_ratchet R6e "CGSayHandler.cpp lines" 116 "$R6e"
 
+# R6f: the *command console, whose sub-command bodies are one function per
+# name in ConsoleCommands.cpp beside the console that dispatches them.
+R6f=$(wc -l < src/server/gameserver/gm/ConsoleCommands.cpp 2>/dev/null || echo missing)
+check_ratchet R6f "ConsoleCommands.cpp lines" 1596 "$R6f"
+
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`
 # so this deliberately simple textual ban is unambiguous and catches typed,
