@@ -398,9 +398,10 @@ is exempt. Coverage is exactly the eight `Zone` gateways
 plus `addCreatureToTile`/`deleteCreatureFromTile`, the tile-only pair that
 puts a creature on or takes it off one tile and touches nothing else — the
 move-mode swaps and the corpse paths go through them, so every creature
-write to a `Tile` outside `Zone.cpp` is gated. `Zone::movePC`/`deletePC`/
-`pushPC`/`addItem`/`deleteItem` are **not** — the assert is a tripwire on
-the main gateways, not a full guarantee.
+write to a `Tile` outside `ZoneSpawn.cpp` and `ZoneMove.cpp`, where the
+gateways live, is gated. `Zone::movePC`/`deletePC`/`pushPC`/`addItem`/
+`deleteItem` are **not** — the assert is a tripwire on the main gateways,
+not a full guarantee.
 
 ### Cross-thread communication
 
@@ -477,14 +478,15 @@ the main gateways, not a full guarantee.
   `clear()` a sharedserver resync triggers retires too, never frees. Still
   open: a zone thread reading a retired member sees its last rank.
 - ~~`EventMorph.cpp` mutates `Tile` contents directly~~ — **fixed**: no
-  creature is written to a `Tile` outside `Zone.cpp` any more. The PC-swap
-  sites (`EventMorph.cpp`, the two `skill/Restore.cpp` sites) go through
-  `Zone::replacePC`; the move-mode swaps (`skill/TransformToBat.cpp`,
-  `ZoneUtil.cpp`'s burrow/unburrow/untransform, the `ghost` say command),
-  the knockback and NPC-warp moves, and the corpse paths that take a dead
-  creature off the map while its manager keeps it (`MonsterManager.cpp`,
-  `PCManager.cpp`) go through `Zone::addCreatureToTile` /
-  `Zone::deleteCreatureFromTile`. All three are gated.
+  creature is written to a `Tile` outside `ZoneSpawn.cpp` and `ZoneMove.cpp`
+  any more. The PC-swap sites (`EventMorph.cpp`, the two
+  `skill/Restore.cpp` sites) go through `Zone::replacePC`; the move-mode
+  swaps (`skill/TransformToBat.cpp`, `ZoneUtil.cpp`'s
+  burrow/unburrow/untransform, the `ghost` say command), the knockback and
+  NPC-warp moves, and the corpse paths that take a dead creature off the
+  map while its manager keeps it (`MonsterManager.cpp`, `PCManager.cpp`)
+  go through `Zone::addCreatureToTile` / `Zone::deleteCreatureFromTile`.
+  All three are gated.
 - ~~Cross-group `ZoneGroup::addZone()` race~~ — **fixed**: `DynamicZone.cpp`
   (reached from `CGSelectWayPointHandler` / `ActionEnterQuestZone` on the
   *requesting player's* zone thread) still inserts the new zone into the
