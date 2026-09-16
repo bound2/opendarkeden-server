@@ -153,8 +153,6 @@ public:
     void loadItem(bool checkTimeLimit = false);
 
     virtual void save() const;
-    virtual void tinysave(const string& field) const;
-    //	virtual void tinysave(const char* field) const ;
     void saveSkills(void) const;
     void saveGears(void) const;
     void saveExps(void) const;
@@ -192,9 +190,6 @@ public:
     // 겉모습 관련 함수(이름, 권한, 성별, 머리, 피부, 전화번호)
     //////////////////////////////////////////////////////////////
 public:
-    const string& getName() const {
-        return m_Name;
-    }
     void setName(const string& name) {
         m_Name = name;
         m_Owner = name;
@@ -297,7 +292,6 @@ public:
     void setAlignment(Alignment_t Alignment) {
         m_Alignment = Alignment;
     }
-    void saveAlignment(Alignment_t alignment);
 
     Attr_t getSTR(AttrType attrType = ATTR_CURRENT) const {
         return m_STR[attrType];
@@ -480,7 +474,6 @@ public:
     bool changeShape(Item* pItem, Color_t color, bool bSendPacket = true);
     bool addShape(Item::ItemClass IClass, ItemType_t IType, Color_t color);
     bool removeShape(Item::ItemClass IClass, bool bSendPacket = true);
-    Color_t getItemShapeColor(Item* pItem, OptionInfo* pOptionInfo = NULL) const;
 
 
     void destroyGears();
@@ -581,15 +574,7 @@ public:
         m_Fame = fame;
     }
 
-    virtual Gold_t getGold() const {
-        return m_Gold;
-    }
-    virtual void setGold(Gold_t gold);
     virtual void setGoldEx(Gold_t gold);
-    virtual void increaseGoldEx(Gold_t gold);
-    virtual void decreaseGoldEx(Gold_t gold);
-    virtual bool checkGoldIntegrity();
-    virtual bool checkStashGoldIntegrity();
 
 
     void setInMagics(const string& blob) {}
@@ -604,7 +589,6 @@ public:
     virtual void setResurrectZoneID(ZoneID_t id) {
         m_ResurrectZoneID = id;
     }
-    virtual void setResurrectZoneIDEx(ZoneID_t id);
 
     virtual Steal_t getHPStealAmount(void) const {
         return m_HPStealAmount;
@@ -665,7 +649,6 @@ public:
     uint getSlayerLevel(void) const;
     void saveInitialRank(void);
 
-    virtual IP_t getIP(void) const;
 
     WORD getDomainExpSaveCount(void) const {
         return m_DomainExpSaveCount;
@@ -724,9 +707,6 @@ public:
     //////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////
 private:
-    // PC name
-    string m_Name;
-
     // 권한
     BYTE m_Competence;
     BYTE m_CompetenceShape;
@@ -786,9 +766,8 @@ private:
     Vision_t m_Vision[2];
     SkillPoint_t m_SkillPoint;
 
-    // Fame/Gold
+    // Fame
     Fame_t m_Fame;
-    Gold_t m_Gold;
 
     // SkillLevel, SkillExp
     SkillLevel_t m_SkillDomainLevels[SKILL_DOMAIN_VAMPIRE];

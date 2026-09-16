@@ -26,6 +26,7 @@
 
 #include "GCMonsterKillQuestInfo.h"
 #include "OptionInfo.h"
+#include "repository/CharacterRace.h"
 
 static const GuildID_t SlayerCommon = 99;
 static const GuildID_t VampireCommon = 0;
@@ -70,13 +71,16 @@ public:
     virtual ~PlayerCreature();
 
     virtual bool load();
-    virtual void tinysave(const string& field) const = 0;
+    virtual void tinysave(const string& field) const;
     //	virtual void tinysave(const char* field) const  = 0;
 
     ////////////////////////////////////////////////////////////
     // OID 등록 관련 메쏘드
     ////////////////////////////////////////////////////////////
 protected:
+    // Which race table this character's rows live in.
+    CharacterRace characterRace() const;
+
     virtual void registerItem(Item* pItem, ObjectRegistry& OR);
 
 public:
@@ -177,7 +181,7 @@ public:
     virtual void setStashGoldEx(Gold_t gold);
     virtual void increaseStashGoldEx(Gold_t gold);
     virtual void decreaseStashGoldEx(Gold_t gold);
-    virtual bool checkStashGoldIntegrity() = 0;
+    virtual bool checkStashGoldIntegrity();
 
     virtual bool getStashStatus(void) const {
         return m_bStashStatus;
@@ -213,6 +217,9 @@ public:
     // 아이템 검색 함수
     ////////////////////////////////////////////////////////////
 public:
+    // The colour the client should paint an item's shape in.
+    Color_t getItemShapeColor(Item* pItem, OptionInfo* pOptionInfo = NULL) const;
+
     virtual Item* findItemOID(ObjectID_t id) = 0;
     virtual Item* findItemOID(ObjectID_t id, int& storage, int& x, int& y) = 0;
 
@@ -243,15 +250,21 @@ public:
     // 기타 함수
     ////////////////////////////////////////////////////////////
 public:
+    const string& getName() const {
+        return m_Name;
+    }
+
     virtual Fame_t getFame() const = 0;
     virtual void setFame(Fame_t fame) = 0;
 
-    virtual Gold_t getGold() const = 0;
-    virtual void setGold(Gold_t gold) = 0;
+    virtual Gold_t getGold() const {
+        return m_Gold;
+    }
+    virtual void setGold(Gold_t gold);
     virtual void setGoldEx(Gold_t gold) = 0;
-    virtual void increaseGoldEx(Gold_t gold) = 0;
-    virtual void decreaseGoldEx(Gold_t gold) = 0;
-    virtual bool checkGoldIntegrity() = 0;
+    virtual void increaseGoldEx(Gold_t gold);
+    virtual void decreaseGoldEx(Gold_t gold);
+    virtual bool checkGoldIntegrity();
     bool checkDBGold(Gold_t gold) {
         Gold_t temp = getGold();
         setGold(gold);
@@ -265,12 +278,12 @@ public:
 
     virtual ZoneID_t getResurrectZoneID(void) const = 0;
     virtual void setResurrectZoneID(ZoneID_t id) = 0;
-    virtual void setResurrectZoneIDEx(ZoneID_t id) = 0;
+    virtual void setResurrectZoneIDEx(ZoneID_t id);
 
     // virtual Race_t getRace() const = 0; - Creature로 올렸다.
     virtual GuildID_t getCommonGuildID() const = 0;
 
-    virtual IP_t getIP(void) const = 0;
+    virtual IP_t getIP(void) const;
 
 
     ////////////////////////////////////////////////////////////
@@ -322,6 +335,9 @@ public:
 
     virtual Alignment_t getAlignment() const = 0;
     virtual void setAlignment(Alignment_t Alignment) = 0;
+
+    // Set the alignment and write the new value straight back to the database.
+    void saveAlignment(Alignment_t alignment);
 
     ////////////////////////////////////////////////////////////
     // Rank Bonus 관련
@@ -391,6 +407,8 @@ protected:
 
     Stash* m_pStash;     // 보관함 포인터
     BYTE m_StashNum;     // 보관함의 숫자
+    string m_Name;       // PC name
+    Gold_t m_Gold;       // money carried by the character
     Gold_t m_StashGold;  // 보관함 안의 돈 액수
     bool m_bStashStatus; // 보관함 아이템 OID 등록 여부
 

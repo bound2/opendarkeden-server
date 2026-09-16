@@ -120,8 +120,6 @@ public:
     void loadItem(bool checkTimeLimit = false);
 
     virtual void save() const;
-    virtual void tinysave(const string& field) const;
-    //	virtual void tinysave(const char* field) const ;
     void saveSkills(void) const;
     void saveGears(void) const;
     void saveExps(void) const;
@@ -160,9 +158,6 @@ public:
     // 겉모습 관련 함수(이름, 권한, 성별, 머리, 피부)
     ////////////////////////////////////////////////////
 public:
-    const string& getName() const {
-        return m_Name;
-    }
     void setName(const string& name) {
         m_Name = name;
     }
@@ -214,7 +209,6 @@ public:
     void setAlignment(Alignment_t Alignment) {
         m_Alignment = Alignment;
     }
-    void saveAlignment(Alignment_t alignment);
 
     Attr_t getSTR(AttrType attrType = ATTR_CURRENT) const {
         return m_STR[attrType];
@@ -376,7 +370,6 @@ public:
     void takeOffItem(WearPart Part, bool bAddOnMouse, bool bSendModifyInfo);
     bool addShape(Item::ItemClass IClass, ItemType_t IType, Color_t color);
     bool removeShape(Item::ItemClass IClass, bool bSendPacket = true);
-    Color_t getItemShapeColor(Item* pItem, OptionInfo* pOptionInfo = NULL) const;
 
 
     void destroyGears();
@@ -454,16 +447,8 @@ public:
     // 기타 함수
     ////////////////////////////////////////////////////
 public:
-    virtual Gold_t getGold() const {
-        return m_Gold;
-    }
-    virtual void setGold(Gold_t gold);
     virtual void setGoldEx(Gold_t gold);
-    virtual void increaseGoldEx(Gold_t gold);
-    virtual void decreaseGoldEx(Gold_t gold);
 
-    virtual bool checkGoldIntegrity();
-    virtual bool checkStashGoldIntegrity();
 
     void heartbeat(const Timeval& currentTime);
 
@@ -482,7 +467,6 @@ public:
     virtual void setResurrectZoneID(ZoneID_t id) {
         m_ResurrectZoneID = id;
     }
-    virtual void setResurrectZoneIDEx(ZoneID_t id);
 
     Silver_t getSilverDamage() const {
         return m_SilverDamage;
@@ -550,7 +534,6 @@ public:
 
     virtual Sight_t getEffectedSight();
 
-    virtual IP_t getIP(void) const;
 
     //	WORD getRankExpSaveCount(void) const { return m_RankExpSaveCount; }
     //	void setRankExpSaveCount(WORD count) { m_RankExpSaveCount = count; }
@@ -647,9 +630,6 @@ public:
     /////////////////////////////////////////////////////////////////////
 
 private:
-    // PC Name
-    string m_Name;
-
     // 권한
     BYTE m_Competence;
     BYTE m_CompetenceShape;
@@ -700,8 +680,6 @@ private:
     // Skill bonus
     SkillBonus_t m_SkillBonus;
 
-    // gold
-    Gold_t m_Gold;
 
     Fame_t m_Fame;
 

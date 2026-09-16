@@ -896,15 +896,6 @@ void Slayer::save() const
     __END_CATCH
 }
 
-// tinysave
-void Slayer::tinysave(const string& field) const {
-    __BEGIN_TRY
-
-    defaultCharacterRepository().tinysave(m_Name, CHARACTER_RACE_SLAYER, field);
-
-    __END_CATCH
-}
-
 PhoneNumber_t Slayer::getPhoneSlotNumber(SlotID_t SlotID)
 
 {
@@ -2672,18 +2663,6 @@ EffectInfo* Slayer::getEffectInfo() const {
     return pEffectInfo;
 }
 
-void Slayer::setGold(Gold_t gold)
-
-{
-    __BEGIN_TRY
-
-    // MAX_MONEY 를 넘어가는 걸 막는다
-    // 2003.1.8  by bezz.
-    m_Gold = min((Gold_t)MAX_MONEY, gold);
-
-    __END_CATCH
-}
-
 void Slayer::setGoldEx(Gold_t gold)
 
 {
@@ -2705,69 +2684,6 @@ void Slayer::setGoldEx(Gold_t gold)
     __END_DEBUG
     __END_CATCH
 }
-
-void Slayer::increaseGoldEx(Gold_t gold)
-
-{
-    __BEGIN_TRY
-    __BEGIN_DEBUG
-
-    // Prevent going over MAX_MONEY
-    // 2003.1.8  by bezz.
-    if (m_Gold + gold > MAX_MONEY)
-        gold = MAX_MONEY - m_Gold;
-
-    setGold(m_Gold + gold);
-
-    defaultGoldRepository().increaseGold(m_Name, CHARACTER_RACE_SLAYER, gold);
-
-    __END_DEBUG
-    __END_CATCH
-}
-
-void Slayer::decreaseGoldEx(Gold_t gold)
-
-{
-    __BEGIN_TRY
-    __BEGIN_DEBUG
-
-    // Prevent going below 0. Below 0 it underflows and causes chaos.
-    // 2003.1.8  by bezz.
-    if (m_Gold < gold)
-        gold = m_Gold;
-
-    setGold(m_Gold - gold);
-
-    defaultGoldRepository().decreaseGold(m_Name, CHARACTER_RACE_SLAYER, gold);
-
-    __END_DEBUG
-    __END_CATCH
-}
-
-bool Slayer::checkGoldIntegrity() {
-    __BEGIN_TRY
-
-    int gold = 0;
-    if (!defaultGoldRepository().loadGold(m_Name, CHARACTER_RACE_SLAYER, gold))
-        return false;
-
-    return gold == m_Gold;
-
-    __END_CATCH
-}
-
-bool Slayer::checkStashGoldIntegrity() {
-    __BEGIN_TRY
-
-    int gold = 0;
-    if (!defaultStashRepository().loadStashGold(m_Name, CHARACTER_RACE_SLAYER, gold))
-        return false;
-
-    return gold == m_StashGold;
-
-    __END_CATCH
-}
-
 
 void Slayer::heartbeat(const Timeval& currentTime)
 
@@ -2959,49 +2875,6 @@ void Slayer::getSlayerRecord(SLAYER_RECORD& record) const
     __END_CATCH
 }
 
-void Slayer::setResurrectZoneIDEx(ZoneID_t id)
-
-{
-    __BEGIN_TRY
-
-    setResurrectZoneID(id);
-
-    /*
-    StringStream sql;
-    sql << "ResurrectZone = " << (int)id;
-    tinysave(sql.toString());
-    */
-
-    // by sigi. 2002.5.15
-    char pField[80];
-    sprintf(pField, "ResurrectZone=%d", id);
-    tinysave(pField);
-
-    __END_CATCH
-}
-
-void Slayer::saveAlignment(Alignment_t alignment)
-
-{
-    __BEGIN_TRY
-
-    setAlignment(alignment);
-
-    /*
-    StringStream sql;
-    sql << "Alignment = " << (int)alignment;
-
-    tinysave(sql.toString());
-    */
-    // by sigi. 2002.5.15
-    char pField[80];
-    sprintf(pField, "Alignment=%d", alignment);
-    tinysave(pField);
-
-
-    __END_CATCH
-}
-
 uint Slayer::getSlayerLevel(void) const
 
 {
@@ -3131,15 +3004,6 @@ void Slayer::saveSkills(void) const
     }
 
     __END_CATCH
-}
-
-IP_t Slayer::getIP(void) const {
-    ///*
-    Assert(m_pPlayer != NULL);
-    Socket* pSocket = m_pPlayer->getSocket();
-    Assert(pSocket != NULL);
-    return pSocket->getHostIP();
-    //*/
 }
 
 void Slayer::saveGears(void) const
@@ -3755,33 +3619,6 @@ bool Slayer::removeShape(Item::ItemClass IClass, bool bSendPacket) {
 
     return bisWeapon;
 }
-
-Color_t Slayer::getItemShapeColor(Item* pItem, OptionInfo* pOptionInfo) const {
-    Color_t color;
-
-    if (pItem->isTimeLimitItem()) {
-        // 퀘스트 아이템도 특정한 색깔로 대체해서 처리한다.
-        color = QUEST_COLOR;
-    } else if (pItem->isUnique()) {
-        // 유니크는 특정한 색깔로 대체해서 처리한다.
-        color = UNIQUE_COLOR;
-    }
-    // 외부에서 이미 OptionInfo를 찾은 경우
-    else if (pOptionInfo != NULL) {
-        color = pOptionInfo->getColor();
-    }
-    // 아니면.. 첫번째 옵션의 색깔을 지정한다.
-    else if (pItem->getFirstOptionType() != 0) {
-        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getFirstOptionType());
-        color = pOptionInfo->getColor();
-    } else {
-        // default 색
-        color = 377;
-    }
-
-    return color;
-}
-
 
 bool Slayer::canPlayFree()
 

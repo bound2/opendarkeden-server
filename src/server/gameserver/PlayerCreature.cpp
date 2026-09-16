@@ -42,6 +42,9 @@
 // #include "QuestEvent.h"
 // #include "Quest.h"
 // #include "SimpleQuestLoader.h"
+#include <stdio.h>
+
+#include <algorithm>
 #include <list>
 
 #include "AdvancementClassExpTable.h"
@@ -51,11 +54,15 @@
 #include "GQuestManager.h"
 #include "NicknameBook.h"
 #include "Pet.h"
+#include "PlayerRace.h"
 #include "SMSAddressBook.h"
+#include "Socket.h"
 #include "Store.h"
 #include "VariableManager.h"
 #include "mofus/Mofus.h"
 #include "repository/BloodBibleSignRepository.h"
+#include "repository/CharacterRepository.h"
+#include "repository/GoldRepository.h"
 #include "repository/GoodsRepository.h"
 #include "repository/RankBonusRepository.h"
 #include "repository/StashRepository.h"
@@ -1330,4 +1337,145 @@ bool PlayerCreature::canChangeMasterEffectColor() {
     // it cannot be changed via shop conversion items.
     // 2005.05.17 by bezz
     return m_MasterEffectColor != 5;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Behaviour shared by every player race.
+//////////////////////////////////////////////////////////////////////////////
+
+const Color_t UNIQUE_COLOR = 0xFFFF;
+const Color_t QUEST_COLOR = 0xFFFE;
+
+CharacterRace PlayerCreature::characterRace() const {
+    return characterRaceOf(getRace());
+}
+
+void PlayerCreature::tinysave(const string& field) const {
+    __BEGIN_TRY
+
+    defaultCharacterRepository().tinysave(m_Name, characterRace(), field);
+
+    __END_CATCH
+}
+
+void PlayerCreature::setGold(Gold_t gold) {
+    __BEGIN_TRY
+
+    // Never let the amount pass MAX_MONEY.
+    m_Gold = min((Gold_t)MAX_MONEY, gold);
+
+    __END_CATCH
+}
+
+void PlayerCreature::increaseGoldEx(Gold_t gold) {
+    __BEGIN_TRY
+    __BEGIN_DEBUG
+
+    // Prevent going over MAX_MONEY
+    if (m_Gold + gold > MAX_MONEY)
+        gold = MAX_MONEY - m_Gold;
+
+    setGold(m_Gold + gold);
+
+    defaultGoldRepository().increaseGold(m_Name, characterRace(), gold);
+
+    __END_DEBUG
+    __END_CATCH
+}
+
+void PlayerCreature::decreaseGoldEx(Gold_t gold) {
+    __BEGIN_TRY
+    __BEGIN_DEBUG
+
+    // Prevent going below 0. Below 0 it underflows and causes chaos.
+    if (m_Gold < gold)
+        gold = m_Gold;
+
+    setGold(m_Gold - gold);
+
+    defaultGoldRepository().decreaseGold(m_Name, characterRace(), gold);
+
+    __END_DEBUG
+    __END_CATCH
+}
+
+bool PlayerCreature::checkGoldIntegrity() {
+    __BEGIN_TRY
+
+    int gold = 0;
+    if (!defaultGoldRepository().loadGold(m_Name, characterRace(), gold))
+        return false;
+
+    return gold == m_Gold;
+
+    __END_CATCH
+}
+
+bool PlayerCreature::checkStashGoldIntegrity() {
+    __BEGIN_TRY
+
+    int gold = 0;
+    if (!defaultStashRepository().loadStashGold(m_Name, characterRace(), gold))
+        return false;
+
+    return gold == m_StashGold;
+
+    __END_CATCH
+}
+
+void PlayerCreature::setResurrectZoneIDEx(ZoneID_t id) {
+    __BEGIN_TRY
+
+    setResurrectZoneID(id);
+
+    char pField[80];
+    sprintf(pField, "ResurrectZone=%d", id);
+    tinysave(pField);
+
+    __END_CATCH
+}
+
+void PlayerCreature::saveAlignment(Alignment_t alignment) {
+    __BEGIN_TRY
+
+    setAlignment(alignment);
+
+    char pField[80];
+    sprintf(pField, "Alignment=%d", alignment);
+    tinysave(pField);
+
+    __END_CATCH
+}
+
+IP_t PlayerCreature::getIP(void) const {
+    Assert(m_pPlayer != NULL);
+    Socket* pSocket = m_pPlayer->getSocket();
+    Assert(pSocket != NULL);
+    return pSocket->getHostIP();
+}
+
+Color_t PlayerCreature::getItemShapeColor(Item* pItem, OptionInfo* pOptionInfo) const {
+    Color_t color;
+
+    if (pItem->isTimeLimitItem()) {
+        // Time-limited (quest) items get a colour of their own.
+        color = QUEST_COLOR;
+    } else if (pItem->isUnique()) {
+        // So do unique items.
+        color = UNIQUE_COLOR;
+    }
+    // The caller already looked the OptionInfo up.
+    else if (pOptionInfo != NULL) {
+        color = pOptionInfo->getColor();
+    }
+    // Otherwise take the colour of the item's first option.
+    else if (pItem->getFirstOptionType() != 0) {
+        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getFirstOptionType());
+        color = pOptionInfo->getColor();
+    } else {
+        // Default colour.
+        color = 377;
+    }
+
+    return color;
 }
