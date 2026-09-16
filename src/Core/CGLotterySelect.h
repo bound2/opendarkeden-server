@@ -81,9 +81,9 @@ public:
     }
 
 private:
-    BYTE m_Type;
-    DWORD m_QuestLevel;
-    DWORD m_GiftID;
+    BYTE m_Type = 0;
+    DWORD m_QuestLevel = 0;
+    DWORD m_GiftID = 0;
 };
 
 

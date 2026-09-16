@@ -9,6 +9,7 @@
 
 #include <list>
 
+#include "Exception.h"
 #include "Packet.h"
 #include "PacketFactory.h"
 #include "SubItemInfo.h"
@@ -73,17 +74,33 @@ public:
     string toString() const;
 
 public:
+    // The options one record carries. The count travels in a BYTE and
+    // GoodsInfo::getPacketMaxSize budgets this many.
+    static constexpr size_t kMaxOptionCount = 255;
+
+    // The packet owns every record it holds and frees it.
     void addGoodsInfo(GoodsInfo* pGI) {
+        if (pGI == NULL)
+            throw InvalidProtocolException("GCGoodsList : null goods record");
+        if (m_GoodsList.size() >= (size_t)MAX_GOODS_LIST)
+            throw InvalidProtocolException("GCGoodsList : too many goods records");
+        if (pGI->optionType.size() > kMaxOptionCount)
+            throw InvalidProtocolException("GCGoodsList : too many record options");
         m_GoodsList.push_back(pGI);
     }
+    // Hands the record over to the caller, which frees it.
     GoodsInfo* popGoodsInfo() {
+        if (m_GoodsList.empty())
+            throw InvalidProtocolException("GCGoodsList : no goods record to pop");
         GoodsInfo* pRet = m_GoodsList.front();
-        if (pRet)
-            m_GoodsList.pop_front();
+        m_GoodsList.pop_front();
         return pRet;
     }
 
 private:
+    // Free every record the packet holds.
+    void clearGoodsInfo();
+
     list<GoodsInfo*> m_GoodsList;
 };
 

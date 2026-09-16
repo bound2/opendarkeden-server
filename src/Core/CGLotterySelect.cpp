@@ -12,7 +12,16 @@ void CGLotterySelect::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    iStream.read(m_Type);
+    // A byte carries more values than there are lottery types, so it is
+    // tested before it is stored.
+    BYTE type = 0;
+    iStream.read(type);
+
+    if (type >= TYPE_MAX)
+        throw InvalidProtocolException("lottery type out of range");
+
+    m_Type = type;
+
     iStream.read(m_QuestLevel);
     iStream.read(m_GiftID);
 

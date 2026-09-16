@@ -28,7 +28,15 @@ void CGTypeStringList::read(SocketInputStream& iStream)
 
     BYTE num;
 
-    iStream.read(m_StringType);
+    // A byte carries more values than there are list types, so it is
+    // tested before it is stored.
+    BYTE type = 0;
+    iStream.read(type);
+
+    if (type > STRING_TYPE_FORCE_APART_COUPLE)
+        throw InvalidProtocolException("list type out of range");
+
+    m_StringType = type;
     //	cout << "CGTypeStringList(StringType:" << (int)m_StringType << ", ";
     iStream.read(num);
     //	cout << "Number of String:" << (int)num << ", ";

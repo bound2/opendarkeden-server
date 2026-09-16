@@ -11,6 +11,134 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Session and take-out write/read disagreements (2026-09-16)
+
+The twelve findings task 1.2 stated as flip-tests in
+`tests/packet_session_test.cpp`, the initialisation split the same file
+pinned, and the four its header recorded rather than tested. These
+packets are client-facing, so `write()` and `getPacketSize()` are the
+contract: every fix is a refusal, a cap, a size-accounting correction, a
+read-side correction or an initialisation. **No valid packet's bytes
+move.** One `tests/wire-layout.txt` line moves — `GCReconnect` 42 → 41 —
+a read-buffer budget, not a field on the wire. One golden is re-recorded,
+`GCExecuteElement.code0.hex` (`…aa…` → `…03…`), because its fixture
+carried a condition byte outside the four the packet now bounds; that is
+a fixture change, not a protocol change.
+
+- **`GCReconnect::getPacketSize()` counted a pc-type byte `write()`
+  never emitted.** The declared body was one byte longer than the body
+  sent, and `writePacket()` puts the declared length on the wire before
+  calling `write()`, so the client's next packet header started one byte
+  early. The client's own copy
+  (`Client/Packet/Gpackets/GCReconnect.cpp`) reads a name, a server
+  address and a key and no pc type, so `write()`/`read()` were right and
+  the size was wrong: the `szPCType` term is gone from `getPacketSize()`
+  and from the factory max, with `m_PCType` and its accessors, which
+  nothing wrote, read or initialised — `getPCType()` returned whatever
+  the storage held. No `src/server` source used them. The golden is
+  unchanged.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`CGRequestIP` and `GCRequestedIP` carried a name past what their
+  factory maxima budget.** Neither setter, `write()` nor `read()` bounded
+  it, while both maxima budget ten bytes, so an eleven-byte name declared
+  and emitted a body past the buffer the receiver sizes from that max —
+  and `CGRequestIP::read()` took the full 255 its count byte carries.
+  Both setters cut at ten, and both fields go through
+  `de::wire::readString`/`writeString` at that width: `{0, 10}` for the
+  request, which admits a nameless one, `{1, 10}` for the answer, which
+  keeps refusing it on both sides. A ten-byte name's bytes are unchanged.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`CGRequestIP::read` left the name the packet already held
+  untouched** when the count byte was zero, so a packet read into twice
+  kept the first name while `write()` had emitted none. The helper clears
+  the field on a zero length.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`GCGoodsList` narrowed both of its counts to a BYTE before testing
+  them.** The record count was narrowed and then compared against
+  `MAX_GOODS_LIST`, so 256 records wrapped the count to zero while
+  `write()` still emitted every one of them — a listing the client reads
+  as empty followed by bytes it takes for the next packet's header. The
+  per-record option count was narrowed with no test at all, while
+  `GoodsInfo::getPacketMaxSize` budgets 255 options. `addGoodsInfo`
+  refuses a record past `MAX_GOODS_LIST` and one whose option list runs
+  past 255, and `write()` tests both sizes before narrowing them.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`GCGoodsList::read` appended to the listing the packet already
+  held** instead of replacing it, so a packet read into twice declared
+  and wrote both listings, and the records of the first leaked. Ownership
+  is settled from the sender: `quest/ActionTakeOutGoods.cpp` allocates
+  each record fresh and keeps none, so the records belong to the packet —
+  `read()` frees what it holds before filling the listing again, the
+  destructor frees the rest, and `popGoodsInfo()` hands one to the caller
+  to free.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`GCGoodsList` followed pointers it never checked.** `addGoodsInfo`
+  accepted `NULL`, which `getPacketSize()` then dereferenced while
+  `write()` bounded it through an `Assert()`; and `popGoodsInfo` took
+  `front()` off a list it never tested for emptiness, which is undefined
+  behaviour on an empty listing and the packet exposes no count to bound
+  a drain with. The adder refuses a null record and the pop refuses an
+  empty listing, both through `InvalidProtocolException`.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`CGRequestInfo::read`, `CGLotterySelect::read` and
+  `CGTypeStringList::read` stored a code byte they compared against
+  nothing**, each with a named range in its own header —
+  `REQUEST_INFO_MAX`, `TYPE_MAX`, and the three `StringType` values. All
+  three test the raw byte before storing it, the shape
+  `GCChangeWeather::read` already uses.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`CGCrashReport::write` emitted a body `read()` refused.** `write()`
+  admitted an empty OS, call stack and message and emitted each as a bare
+  zero-length word, while `read()` refused a zero length on all three, so
+  a crash report with any of the three empty disconnected the client that
+  sent it. The client's own writer
+  (`Client/Packet/Cpackets/CGCrashReport.cpp`) emits the same shape and
+  its reader bounds only the upper end, so `read()` admits an empty field
+  on all three. Its two fixed-width fields were bounded through
+  `Assert()`, which appends to `assertion_failed.log` in the working
+  directory before it throws; they are `InvalidProtocolException` now.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **Twelve of the eighteen packets left a member the default constructor
+  never set**, so a packet sent without every setter called put
+  indeterminate bytes on the wire. Every member of all eighteen has an
+  initialiser, and the poisoned-storage pin in
+  `tests/packet_session_test.cpp` covers the whole set in one list.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`GCUpdateInfo::toString` indexed `Weather2String[m_Weather]`
+  unguarded.** The table holds three entries and the enum names a
+  `WEATHER_MAX` past them, so a stored value the table does not name read
+  past its end. It prints as its number, the way `GCChangeWeather`'s own
+  `toString()` does.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`GCExecuteElement` bounded its condition byte on read alone.** The
+  four conditions a quest element fires under are `GQuestInfo`'s
+  `HAPPEN`, `COMPLETE`, `FAIL` and `REWARD`; the setter and `write()` took
+  any byte. Both refuse one past the four now. No reachable send moves:
+  the packet's one sender passes the `ElementType` `makeVector` stamped on
+  the element.
+  > **Status:** fixed (wire/session-disagreements)
+
+- **`CGPortCheck` is registered on the game server's client-facing
+  dispatch table although `DatagramPacket::read(SocketInputStream&)`
+  refuses a TCP stream by design.** A client that sends the id over TCP
+  is already refused there. The registration is not the defect and cannot
+  be dropped: `PacketFactoryManager::init()` builds one factory table per
+  server process, and the game server's UDP path resolves that same table
+  — `Datagram::read(DatagramPacket*&)` asks `g_pPacketFactoryManager` for
+  the packet and `Datagram::isDatagram` names `PACKET_CG_PORT_CHECK` — so
+  the entry is what lets the packet arrive at all.
+  > **Status:** recorded, left as it is (wire/session-disagreements)
+
 ## Creature-state write/read disagreements (2026-09-13)
 
 The five findings task 1.2 stated as flip-tests in

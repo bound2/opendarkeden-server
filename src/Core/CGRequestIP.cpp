@@ -7,6 +7,8 @@
 
 #include "CGRequestIP.h"
 
+#include "WireString.h"
+
 //////////////////////////////////////////////////////////////////////////////
 // class CGRequestIP member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -27,12 +29,7 @@ void CGRequestIP::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE num;
-    iStream.read(num);
-
-    if (num > 0) {
-        iStream.read(m_Name, num);
-    }
+    de::wire::readString(iStream, m_Name, {0, kMaxNameLength}, "Name");
 
     __END_CATCH
 }
@@ -40,12 +37,7 @@ void CGRequestIP::read(SocketInputStream& iStream)
 void CGRequestIP::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE num = m_Name.size();
-    oStream.write(num);
-
-    if (num > 0) {
-        oStream.write(m_Name);
-    }
+    de::wire::writeString(oStream, m_Name, {0, kMaxNameLength}, "Name");
 
     __END_CATCH
 }

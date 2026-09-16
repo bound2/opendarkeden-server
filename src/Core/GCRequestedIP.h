@@ -11,6 +11,7 @@
 #include "Packet.h"
 #include "PacketFactory.h"
 #include "Types.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class GCRequestedIP;
@@ -31,16 +32,20 @@ public:
         return "GCRequestedIP";
     }
     PacketSize_t getPacketSize() const {
-        return szBYTE + szuint + m_Name.size() + 4;
+        return de::wire::stringWireSize(m_Name) + szuint + 4;
     }
     string toString() const;
 
 public:
+    // The name is held to what the factory max budgets.
+    static constexpr uint kMaxNameLength = 10;
+
     string getName() const {
         return m_Name;
     }
     void setName(const char* pName) {
-        m_Name = pName;
+        const string name(pName);
+        m_Name = (name.size() > kMaxNameLength) ? name.substr(0, kMaxNameLength) : name;
     }
 
     void setIP(IP_t ip) {
@@ -59,8 +64,8 @@ public:
 
 protected:
     string m_Name;
-    IP_t m_IP;
-    uint m_Port;
+    IP_t m_IP = 0;
+    uint m_Port = 0;
 };
 
 //////////////////////////////////////////////////////////////////////////////
@@ -71,7 +76,7 @@ class GCRequestedIPFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_GC_REQUESTED_IP;
     static constexpr std::string_view kName = "GCRequestedIP";
-    static constexpr PacketSize_t kMaxSize{szBYTE + szuint + 10 + 4};
+    static constexpr PacketSize_t kMaxSize{szBYTE + GCRequestedIP::kMaxNameLength + szuint + 4};
 
     Packet* createPacket() override {
         return new GCRequestedIP();

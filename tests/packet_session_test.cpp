@@ -136,12 +136,6 @@
 //               and there is no encrypt code on that path at all,
 //               which is why its golden carries no per-code assertion.
 //
-//               GCReconnect gets all three written out rather than
-//               from the macro: it declares one byte more than it
-//               writes - the first finding below - so its size pin
-//               states the gap and its round trip pumps the measured
-//               body instead of the declared one.
-//
 //               Extra goldens cover the branches one fixture cannot:
 //               the goods listing with nothing in it (.empty) and with
 //               the twenty records MAX_GOODS_LIST budgets (.full); the
@@ -151,7 +145,7 @@
 //               full width its factory max budgets (.full); and the
 //               crash report whose three optional strings are all
 //               empty (.nostrings), which write() emits as three bare
-//               zero-length words and read() refuses.
+//               zero-length words and read() takes back.
 //
 //               Fixture values are distinct per field and >= 128 in
 //               every byte the width allows. Four groups cannot follow
@@ -164,83 +158,62 @@
 //               CGCrashReport's build time and fault address, which
 //               write() requires to be exactly 19 and 10 bytes.
 //
-//               Findings. Each is stated as a test that fails once the
-//               packet is fixed, except where noted:
+//               What the two halves agree on, each pinned by a test of
+//               its own beside the three above. No valid packet's bytes
+//               moved for any of them, and docs/FIXES.md carries the
+//               wire consequence of each:
 //
-//               - GCReconnect::getPacketSize() counts a pc-type byte
-//                 that write() never emits and read() never consumes,
-//                 so the declared body is one byte longer than the
-//                 body sent. The member behind it is never written,
-//                 never read and never initialised, so getPCType() on
-//                 any GCReconnect returns whatever the storage held.
-//               - CGRequestIP's name is bounded nowhere - not in the
-//                 setter, not in write(), and not in read(), which
-//                 takes the full 255 its count byte carries - while
-//                 the factory max budgets ten. An eleven-byte name
-//                 declares and emits a body past the buffer the
-//                 receiver sizes from that max.
-//               - CGRequestIP::read leaves the name the packet already
-//                 holds untouched when the count byte is zero, so a
-//                 packet read into twice keeps the first name while
-//                 write() emitted none.
-//               - GCRequestedIP's name is bounded the same way: the
-//                 setter, write() and read() all take more than the
-//                 ten its factory max budgets.
-//               - GCGoodsList::addGoodsInfo is unbounded and write()
-//                 narrows the count to a BYTE before testing it
-//                 against MAX_GOODS_LIST, so 256 records wrap the
-//                 count to zero while write() still emits every one of
-//                 them.
-//               - A record's option count wraps the same way: the list
-//                 is unbounded and the count is narrowed to a BYTE
-//                 with no test at all, while GoodsInfo::getPacketMaxSize
-//                 budgets 255 options.
-//               - GCGoodsList::read appends to the listing the packet
-//                 already holds instead of replacing it, so a packet
-//                 read into twice declares and writes both listings.
-//               - CGRequestInfo::read takes a code byte it never
-//                 compares against REQUEST_INFO_MAX, the one value its
-//                 own header names.
-//               - CGLotterySelect::read takes a type byte it never
-//                 compares against TYPE_MAX, the three its own header
-//                 names.
-//               - CGTypeStringList::read takes a type byte it never
-//                 compares against the three StringType values its own
-//                 header names.
-//               - CGCrashReport::write admits an empty OS, call stack
-//                 and message and emits each as a bare zero-length
-//                 word, while read() refuses a zero length on all
-//                 three: the body write() produces cannot be read
-//                 back.
-//               - Twelve of the eighteen leave at least one member the
-//                 default constructor never sets, so a packet sent
-//                 without every setter called puts indeterminate bytes
-//                 on the wire. The poisoned-storage pin at the end of
-//                 the file asserts today's split.
+//               - GCReconnect declares the body it writes. The pc-type
+//                 byte getPacketSize() counted is gone, with the member
+//                 nothing wrote, read or initialised and the accessors
+//                 on it: the client's own copy reads a name, an address
+//                 and a key, and no pc type.
+//               - CGRequestIP and GCRequestedIP hold the name to the
+//                 ten their factory maxima budget, in the setter, in
+//                 write() and in read().
+//               - CGRequestIP::read clears the name the packet holds
+//                 when the count byte is zero.
+//               - GCRequestedIP refuses a nameless answer on both
+//                 sides.
+//               - GCGoodsList refuses a listing past MAX_GOODS_LIST in
+//                 the adder, in write() and in read(), and a record
+//                 option count past the 255 GoodsInfo::getPacketMaxSize
+//                 budgets; neither count is narrowed to a BYTE before
+//                 it is tested.
+//               - GCGoodsList::read replaces the listing the packet
+//                 holds, freeing the records it owned. The records
+//                 belong to the packet: its one sender allocates each
+//                 fresh and keeps none, and popGoodsInfo() hands one
+//                 back to the caller to free.
+//               - GCGoodsList refuses a null record and refuses to pop
+//                 from an empty listing.
+//               - CGRequestInfo, CGLotterySelect and CGTypeStringList
+//                 test the code byte against the range their own
+//                 headers name before storing it.
+//               - CGCrashReport::read takes the three optional strings
+//                 empty, which is the shape write() emits, and write()
+//                 refuses a fixed-width field of the wrong width
+//                 through InvalidProtocolException rather than an
+//                 Assert() that appends to assertion_failed.log in the
+//                 working directory before it throws.
+//               - All eighteen initialise every member write() emits.
 //
-//               Four findings are recorded here rather than tested,
-//               because reaching them is undefined behaviour or has no
-//               observable wire effect:
+//               One finding is recorded here rather than fixed:
 //
-//               - GCGoodsList::popGoodsInfo takes front() off a list
-//                 it never checks for emptiness, and the packet
-//                 exposes no count or emptiness getter, so a reader
-//                 that does not already know how many records arrived
-//                 has no safe way to drain it.
-//               - GCGoodsList::addGoodsInfo accepts a null record;
-//                 getPacketSize() then follows it, while write()
-//                 bounds it through Assert().
-//               - CGCrashReport::write bounds its two fixed-width
-//                 fields through Assert(), which appends to
-//                 assertion_failed.log in the working directory before
-//                 it throws.
 //               - CGPortCheck is registered on the game server's
-//                 client-facing dispatch table, but it is a
-//                 DatagramPacket: DatagramPacket::read(SocketInputStream&)
-//                 throws by design, so the registration can only be
-//                 served over UDP. Its handler reads the sender
-//                 address out of the datagram header, not out of the
-//                 body pinned here.
+//                 client-facing dispatch table although it is a
+//                 DatagramPacket, so a client that sends its id over a
+//                 TCP socket is refused by
+//                 DatagramPacket::read(SocketInputStream&). The
+//                 registration cannot be dropped for that: a server
+//                 process builds one factory table, and the game
+//                 server's UDP path resolves the same one -
+//                 Datagram::read(DatagramPacket*&) asks
+//                 g_pPacketFactoryManager for the packet, and
+//                 Datagram::isDatagram names PACKET_CG_PORT_CHECK - so
+//                 the entry is what lets the packet arrive at all. Its
+//                 handler reads the sender address out of the datagram
+//                 header, not out of the body pinned here.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -637,12 +610,8 @@ SESSION_PACKET_TESTS(GCAuthKey)
 
 // The name and the address are text; the address is a full-width dotted
 // quad rather than a high-byte string, because write() caps it at 15.
-// The pc type is set but never compared: write() does not emit it and
-// read() does not consume it, so the member on the receiving side is
-// never given a value.
 void fill(GCReconnect& packet) {
     packet.setName("ReconnectPC");
-    packet.setPCType(PC_VAMPIRE);
     packet.setServerIP("203.198.171.94");
     packet.setKey(0x89AABBCC);
 }
@@ -653,43 +622,7 @@ void expectEqual(GCReconnect& a, GCReconnect& b) {
     EXPECT_EQ(a.getKey(), b.getKey());
 }
 
-// GCReconnect declares one byte more than it writes, so the loopback is
-// pumped with the measured body length instead of getPacketSize().
-void reconnectRoundTrip(GCReconnect& src, GCReconnect& dst) {
-    Loopback loopback;
-    loopback.setCodes(kPlainCode);
-    src.write(loopback.out());
-    loopback.pump((uint)writeBody(src, kPlainCode).size());
-    dst.read(loopback.in());
-}
-
-TEST(GCReconnectTest, roundTripsThroughLoopback) {
-    GCReconnect src;
-    fill(src);
-    GCReconnect dst;
-    reconnectRoundTrip(src, dst);
-    expectEqual(src, dst);
-}
-
-TEST(GCReconnectTest, bodyBytesMatchGolden) {
-    GCReconnect packet;
-    fill(packet);
-    const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
-    expectGolden("GCReconnect", kPlainCode, body);
-    for (size_t i = 1; i < kEncryptCodeCount; i++)
-        EXPECT_EQ(body, writeBody(packet, kEncryptCodes[i]))
-            << "GCReconnect now varies with the encrypt code - add per-code goldens";
-}
-
-TEST(GCReconnectTest, theBodyFitsTheFactoryMaxAndTheFactoryAgreesWithThePacket) {
-    GCReconnect packet;
-    fill(packet);
-    GCReconnectFactory factory;
-    EXPECT_LE(writeBody(packet, kPlainCode).size(), (size_t)factory.getPacketMaxSize())
-        << "GCReconnect: the body outgrows the read buffer the receiver sizes from the factory max";
-    EXPECT_EQ(factory.getPacketID(), packet.getPacketID());
-    EXPECT_EQ(factory.getPacketName(), packet.getPacketName());
-}
+SESSION_PACKET_TESTS(GCReconnect)
 
 //////////////////////////////////////////////////////////////////////
 // The port check, the crash report, the lottery and the gamble.
@@ -799,43 +732,36 @@ void fillFullStrings(CGTypeStringList& packet) {
 SESSION_PACKET_VARIANT(CGTypeStringList, full, fillFullStrings)
 
 //////////////////////////////////////////////////////////////////////
-// Findings, each stated as a test that fails once the packet is fixed.
+// What the two halves agree on, each pinned beside the three above.
 //////////////////////////////////////////////////////////////////////
 
-// GCReconnect::getPacketSize() counts a pc-type byte that write() never
-// emits and read() never consumes, so the declared body is one byte
-// longer than the body sent. writePacket() puts the declared length on
-// the wire first, so the stream never resynchronises.
-TEST(GCReconnectTest, theDeclaredSizeCountsAPCTypeByteNobodyWrites) {
-    GCReconnect packet;
-    fill(packet);
-    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size() + szPCType)
-        << "GCReconnect: getPacketSize() now names the body write() emits - drop this test";
-}
-
-// CGRequestIP's name is bounded nowhere - not in the setter, not in
-// write(), and not in read(), which takes the full 255 its count byte
-// carries - while the factory max budgets ten. An eleven-byte name
-// declares and emits a body past the buffer the receiver sizes from that
-// max.
-TEST(CGRequestIPTest, theNameRunsPastWhatTheFactoryMaxBudgets) {
+// The name is held to the ten the factory max budgets: the setter cuts
+// there, and write() and read() carry the field at that width.
+TEST(CGRequestIPTest, theNameIsHeldToWhatTheFactoryMaxBudgets) {
     CGRequestIP packet;
     packet.setName("ElevenChars");
+    EXPECT_EQ("ElevenChar", packet.getName());
 
     CGRequestIPFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "CGRequestIP: the name is now held to what the factory max budgets - drop this test";
-    EXPECT_EQ((size_t)packet.getPacketSize(), writeBody(packet, kPlainCode).size());
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
 
     CGRequestIP dst;
     roundTrip(packet, dst, kPlainCode);
-    EXPECT_EQ("ElevenChars", dst.getName());
+    EXPECT_EQ("ElevenChar", dst.getName());
+
+    CGRequestIP tooLong;
+    EXPECT_THROW(readHandBuiltBody(tooLong,
+                                   [](SocketEncryptOutputStream& out) {
+                                       out.write((BYTE)(CGRequestIP::kMaxNameLength + 1));
+                                       out.write("ElevenChars", CGRequestIP::kMaxNameLength + 1);
+                                   }),
+                 InvalidProtocolException);
 }
 
-// CGRequestIP::read leaves the name the packet already holds untouched
-// when the count byte is zero, so a packet read into twice keeps the
-// first name while write() emitted none.
-TEST(CGRequestIPTest, aSecondReadWithNoNameKeepsTheNameItAlreadyHolds) {
+// CGRequestIP::read clears the name the packet already holds when the
+// count byte is zero, so a packet read into twice carries what the
+// second body said.
+TEST(CGRequestIPTest, aSecondReadWithNoNameClearsTheNameItHolds) {
     CGRequestIP named;
     fill(named);
 
@@ -846,25 +772,33 @@ TEST(CGRequestIPTest, aSecondReadWithNoNameKeepsTheNameItAlreadyHolds) {
     CGRequestIP nameless;
     fillNoName(nameless);
     roundTrip(nameless, dst, kPlainCode);
-    EXPECT_EQ("IPTargetXY", dst.getName())
-        << "CGRequestIP::read now clears the name on an empty count - drop this test";
+    EXPECT_EQ("", dst.getName());
 }
 
-// GCRequestedIP's name is bounded the same way: the setter, write() and
-// read() all take more than the ten its factory max budgets.
-TEST(GCRequestedIPTest, theNameRunsPastWhatTheFactoryMaxBudgets) {
+// GCRequestedIP's name is held the same way.
+TEST(GCRequestedIPTest, theNameIsHeldToWhatTheFactoryMaxBudgets) {
     GCRequestedIP packet;
     packet.setName("ElevenChars");
     packet.setIP(0x81A2B3C4);
     packet.setPort(0x85A6B7C8);
+    EXPECT_EQ("ElevenChar", packet.getName());
 
     GCRequestedIPFactory factory;
-    EXPECT_GT(packet.getPacketSize(), factory.getPacketMaxSize())
-        << "GCRequestedIP: the name is now held to what the factory max budgets - drop this test";
+    EXPECT_LE(packet.getPacketSize(), factory.getPacketMaxSize());
 
     GCRequestedIP dst;
     roundTrip(packet, dst, kPlainCode);
-    EXPECT_EQ("ElevenChars", dst.getName());
+    EXPECT_EQ("ElevenChar", dst.getName());
+
+    GCRequestedIP tooLong;
+    EXPECT_THROW(readHandBuiltBody(tooLong,
+                                   [](SocketEncryptOutputStream& out) {
+                                       out.write((BYTE)(GCRequestedIP::kMaxNameLength + 1));
+                                       out.write("ElevenChars", GCRequestedIP::kMaxNameLength + 1);
+                                       out.write((IP_t)0x81A2B3C4);
+                                       out.write((uint)0x85A6B7C8);
+                                   }),
+                 InvalidProtocolException);
 }
 
 // Both halves refuse a nameless answer, so the shape write() cannot emit
@@ -885,41 +819,53 @@ TEST(GCRequestedIPTest, aNamelessAnswerIsRefusedOnBothSides) {
                  InvalidProtocolException);
 }
 
-// GCGoodsList::addGoodsInfo is unbounded and write() narrows the count to
-// a BYTE before testing it against MAX_GOODS_LIST, so 256 records wrap
-// the count to zero while write() still emits every one of them.
-TEST(GCGoodsListTest, theRecordCountWrapsWhileWriteEmitsEveryRecord) {
+// The listing stops at MAX_GOODS_LIST on every side. The adder refuses
+// the record past it, so write()'s own test - which runs before the
+// count is narrowed to the BYTE that describes it - has nothing left to
+// catch.
+TEST(GCGoodsListTest, aListingPastTheMaximumIsRefused) {
     GCGoodsList packet;
-    for (uint i = 0; i < 256; i++)
-        packet.addGoodsInfo(makeGoods((ObjectID_t)(0x81A2B300 + i), 0x90, 0x91A2, 0x93A4B5C6, 0, 0x97, 0x98A9BACB));
+    fillFullGoods(packet);
+
+    GoodsInfo* pOneTooMany = makeGoods(0x81A2B3C4, 0x90, 0x91A2, 0x93A4B5C6, 0, 0x97, 0x98A9BACB);
+    EXPECT_THROW(packet.addGoodsInfo(pOneTooMany), InvalidProtocolException);
+    delete pOneTooMany;
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     ASSERT_FALSE(body.empty());
-    EXPECT_EQ(0, (int)body[0]) << "GCGoodsList: the record count no longer wraps - drop this test";
-    EXPECT_LT((size_t)1, body.size());
+    EXPECT_EQ(MAX_GOODS_LIST, (int)body[0]);
     EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
+
+    GCGoodsList dst;
+    EXPECT_THROW(readHandBuiltBody(dst, [](SocketEncryptOutputStream& out) { out.write((BYTE)(MAX_GOODS_LIST + 1)); }),
+                 DisconnectException);
 }
 
-// A record's option count wraps the same way: the list is unbounded and
-// the count is narrowed to a BYTE with no test at all, while
-// GoodsInfo::getPacketMaxSize budgets 255 options.
-TEST(GCGoodsListTest, aRecordOptionCountWrapsWhileWriteEmitsEveryOption) {
+// A record's option count stops at the 255 GoodsInfo::getPacketMaxSize
+// budgets, which is also every value the count byte can describe.
+TEST(GCGoodsListTest, aRecordOptionCountPastTheBudgetIsRefused) {
     GCGoodsList packet;
-    packet.addGoodsInfo(makeGoods(0x81A2B3C4, 0x90, 0x91A2, 0x93A4B5C6, 256, 0x97, 0x98A9BACB));
+
+    GoodsInfo* pOneTooMany =
+        makeGoods(0x81A2B3C4, 0x90, 0x91A2, 0x93A4B5C6, GCGoodsList::kMaxOptionCount + 1, 0x97, 0x98A9BACB);
+    EXPECT_THROW(packet.addGoodsInfo(pOneTooMany), InvalidProtocolException);
+    delete pOneTooMany;
+
+    packet.addGoodsInfo(
+        makeGoods(0x81A2B3C4, 0x90, 0x91A2, 0x93A4B5C6, GCGoodsList::kMaxOptionCount, 0x97, 0x98A9BACB));
 
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     // The count byte sits behind the record's object id, class, type and
     // grade.
     const size_t countAt = szBYTE + szObjectID + szBYTE + szItemType + szGrade;
     ASSERT_LT(countAt, body.size());
-    EXPECT_EQ(0, (int)body[countAt]) << "GCGoodsList: a record's option count no longer wraps - drop this test";
+    EXPECT_EQ((int)GCGoodsList::kMaxOptionCount, (int)body[countAt]);
     EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 }
 
-// GCGoodsList::read appends to the listing the packet already holds
-// instead of replacing it, so a packet read into twice declares and
-// writes both listings.
-TEST(GCGoodsListTest, aSecondReadAppendsToTheListingItAlreadyHolds) {
+// GCGoodsList::read replaces the listing the packet already holds, so a
+// packet read into twice declares and writes the second listing alone.
+TEST(GCGoodsListTest, aSecondReadReplacesTheListingItAlreadyHolds) {
     GCGoodsList src;
     fill(src);
 
@@ -931,56 +877,64 @@ TEST(GCGoodsListTest, aSecondReadAppendsToTheListingItAlreadyHolds) {
     fill(again);
     roundTrip(again, dst, kPlainCode);
 
-    EXPECT_EQ((PacketSize_t)(2 * (afterOne - szBYTE) + szBYTE), dst.getPacketSize())
-        << "GCGoodsList::read now replaces the listing it holds - drop this test";
+    EXPECT_EQ(afterOne, dst.getPacketSize());
 }
 
-// CGRequestInfo::read takes a code byte it never compares against
-// REQUEST_INFO_MAX, the one value its own header names.
-TEST(CGRequestInfoTest, aCodeOutsideTheNamedRangeIsAccepted) {
+// The packet owns its records, so neither end of the listing admits a
+// pointer it cannot follow.
+TEST(GCGoodsListTest, aNullRecordAndAnEmptyListingAreRefused) {
+    GCGoodsList packet;
+    EXPECT_THROW(packet.addGoodsInfo(NULL), InvalidProtocolException);
+    EXPECT_THROW(packet.popGoodsInfo(), InvalidProtocolException);
+}
+
+// CGRequestInfo::read tests the code byte against REQUEST_INFO_MAX, the
+// one value its own header names.
+TEST(CGRequestInfoTest, aCodeOutsideTheNamedRangeIsRefused) {
     CGRequestInfo packet;
-    readHandBuiltBody(packet, [](SocketEncryptOutputStream& out) {
-        out.write((BYTE)0xFE);
-        out.write((uint)0x86A7B8C9);
-    });
-    EXPECT_EQ(0xFE, (int)packet.getCode()) << "CGRequestInfo::read now bounds the code byte - drop this test";
+    EXPECT_THROW(readHandBuiltBody(packet,
+                                   [](SocketEncryptOutputStream& out) {
+                                       out.write((BYTE)CGRequestInfo::REQUEST_INFO_MAX);
+                                       out.write((uint)0x86A7B8C9);
+                                   }),
+                 InvalidProtocolException);
 }
 
-// CGLotterySelect::read takes a type byte it never compares against
-// TYPE_MAX, the three its own header names.
-TEST(CGLotterySelectTest, aTypeOutsideTheNamedRangeIsAccepted) {
+// CGLotterySelect::read tests the type byte against TYPE_MAX, the three
+// its own header names.
+TEST(CGLotterySelectTest, aTypeOutsideTheNamedRangeIsRefused) {
     CGLotterySelect packet;
-    readHandBuiltBody(packet, [](SocketEncryptOutputStream& out) {
-        out.write((BYTE)0xFD);
-        out.write((DWORD)0x8DAEBFC0);
-        out.write((DWORD)0x91A2B3C4);
-    });
-    EXPECT_EQ(0xFD, (int)packet.getType()) << "CGLotterySelect::read now bounds the type byte - drop this test";
+    EXPECT_THROW(readHandBuiltBody(packet,
+                                   [](SocketEncryptOutputStream& out) {
+                                       out.write((BYTE)TYPE_MAX);
+                                       out.write((DWORD)0x8DAEBFC0);
+                                       out.write((DWORD)0x91A2B3C4);
+                                   }),
+                 InvalidProtocolException);
 }
 
-// CGTypeStringList::read takes a type byte it never compares against the
-// three StringType values its own header names.
-TEST(CGTypeStringListTest, aTypeOutsideTheNamedRangeIsAccepted) {
+// CGTypeStringList::read tests the type byte against the three
+// StringType values its own header names.
+TEST(CGTypeStringListTest, aTypeOutsideTheNamedRangeIsRefused) {
     CGTypeStringList packet;
-    readHandBuiltBody(packet, [](SocketEncryptOutputStream& out) {
-        out.write((BYTE)0xFC);
-        out.write((BYTE)0);
-        out.write((DWORD)0x95A6B7C8);
-    });
-    EXPECT_EQ(0xFC, (int)packet.getType()) << "CGTypeStringList::read now bounds the type byte - drop this test";
+    EXPECT_THROW(readHandBuiltBody(packet,
+                                   [](SocketEncryptOutputStream& out) {
+                                       out.write((BYTE)(CGTypeStringList::STRING_TYPE_FORCE_APART_COUPLE + 1));
+                                       out.write((BYTE)0);
+                                       out.write((DWORD)0x95A6B7C8);
+                                   }),
+                 InvalidProtocolException);
 }
 
-// CGCrashReport::write admits an empty OS, call stack and message and
-// emits each as a bare zero-length word, while read() refuses a zero
-// length on all three: the body write() produces cannot be read back.
-// The golden is the shape write() emits.
+// The three optional strings write() admits empty are the three read()
+// takes back, so the body write() produces can be read back.
 void fillNoOptionalStrings(CGCrashReport& packet) {
     packet.setExecutableTime(kCrashTime);
     packet.setVersion(0x8CAD);
     packet.setAddress(kCrashAddress);
 }
 
-TEST(CGCrashReportTest, nostringsBodyBytesMatchGoldenAndAreRefusedOnRead) {
+TEST(CGCrashReportTest, nostringsBodyBytesMatchGoldenAndReadBack) {
     CGCrashReport packet;
     fillNoOptionalStrings(packet);
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
@@ -988,8 +942,23 @@ TEST(CGCrashReportTest, nostringsBodyBytesMatchGoldenAndAreRefusedOnRead) {
     EXPECT_EQ((size_t)packet.getPacketSize(), body.size());
 
     CGCrashReport dst;
-    EXPECT_THROW(roundTrip(packet, dst, kPlainCode), InvalidProtocolException)
-        << "CGCrashReport: read() now accepts the empty strings write() emits - drop this test";
+    roundTrip(packet, dst, kPlainCode);
+    expectEqual(packet, dst);
+}
+
+// The two fields that travel without a length prefix are refused at any
+// other width, through the exception the rest of the packet uses rather
+// than an Assert() that writes a log file first.
+TEST(CGCrashReportTest, aFixedWidthFieldOfTheWrongWidthIsRefused) {
+    CGCrashReport shortTime;
+    fill(shortTime);
+    shortTime.setExecutableTime("2026-01-02");
+    EXPECT_THROW(writeBody(shortTime, kPlainCode), InvalidProtocolException);
+
+    CGCrashReport longAddress;
+    fill(longAddress);
+    longAddress.setAddress("0x004010000");
+    EXPECT_THROW(writeBody(longAddress, kPlainCode), InvalidProtocolException);
 }
 
 // Both halves refuse a nameless port check, so the shape write() cannot
@@ -1052,55 +1021,37 @@ template <typename PacketType> void expectEveryMemberIsInitialised(const char* w
     expectEveryMemberIsInitialised<PacketType>(what, [](PacketType&) {});
 }
 
-// FINDING, stated as a test that fails once it is fixed. Each of these
-// puts an indeterminate byte on the wire when a sender skips a setter.
-template <typename PacketType, typename Prep> void expectAMemberIsLeftUninitialised(const char* what, Prep prep) {
-    EXPECT_NE(bodyOverPoison<PacketType>(0x00, prep), bodyOverPoison<PacketType>(0xFF, prep))
-        << what
-        << ": its default constructor now initialises every member write() emits - move it to the "
-           "initialised list";
-}
-
-template <typename PacketType> void expectAMemberIsLeftUninitialised(const char* what) {
-    expectAMemberIsLeftUninitialised<PacketType>(what, [](PacketType&) {});
-}
-
-TEST(SessionConstructorTest, thePacketsThatInitialiseEveryMemberTheyWrite) {
+TEST(SessionConstructorTest, everyPacketInitialisesEveryMemberItWrites) {
+    expectEveryMemberIsInitialised<CGTakeOutGood>("CGTakeOutGood");
+    expectEveryMemberIsInitialised<GCTakeOutOK>("GCTakeOutOK");
+    expectEveryMemberIsInitialised<GCTakeOutFail>("GCTakeOutFail");
     expectEveryMemberIsInitialised<GCGoodsList>("GCGoodsList");
+    expectEveryMemberIsInitialised<GCTakeOff>("GCTakeOff");
+    expectEveryMemberIsInitialised<GCRealWearingInfo>("GCRealWearingInfo");
     expectEveryMemberIsInitialised<CGRequestIP>("CGRequestIP");
+    // write() refuses an empty name, so the fixture names the character.
+    expectEveryMemberIsInitialised<GCRequestedIP>("GCRequestedIP", [](GCRequestedIP& p) { p.setName("IPOwnerXYZ"); });
+    expectEveryMemberIsInitialised<CGRequestInfo>("CGRequestInfo");
     expectEveryMemberIsInitialised<CGLogout>("CGLogout");
-    expectEveryMemberIsInitialised<CGPetGamble>("CGPetGamble");
-    expectEveryMemberIsInitialised<CGTypeStringList>("CGTypeStringList");
-    // write() refuses an empty name, so the fixture names the character
-    // and the packet has nothing else to carry.
-    expectEveryMemberIsInitialised<CGPortCheck>("CGPortCheck", [](CGPortCheck& p) { p.setPCName("PortCheckPC"); });
-}
-
-TEST(SessionConstructorTest, thePacketsThatDoNot) {
-    expectAMemberIsLeftUninitialised<CGTakeOutGood>("CGTakeOutGood");
-    expectAMemberIsLeftUninitialised<GCTakeOutOK>("GCTakeOutOK");
-    expectAMemberIsLeftUninitialised<GCTakeOutFail>("GCTakeOutFail");
-    expectAMemberIsLeftUninitialised<GCTakeOff>("GCTakeOff");
-    expectAMemberIsLeftUninitialised<GCRealWearingInfo>("GCRealWearingInfo");
-    // write() refuses an empty name; the port carries the finding,
-    // because the constructor sets the address and stops there.
-    expectAMemberIsLeftUninitialised<GCRequestedIP>("GCRequestedIP", [](GCRequestedIP& p) { p.setName("IPOwnerXYZ"); });
-    expectAMemberIsLeftUninitialised<CGRequestInfo>("CGRequestInfo");
-    expectAMemberIsLeftUninitialised<CGAuthKey>("CGAuthKey");
-    expectAMemberIsLeftUninitialised<GCAuthKey>("GCAuthKey");
-    // write() refuses an empty name and an empty address; the key
-    // carries the finding.
-    expectAMemberIsLeftUninitialised<GCReconnect>("GCReconnect", [](GCReconnect& p) {
+    expectEveryMemberIsInitialised<CGAuthKey>("CGAuthKey");
+    expectEveryMemberIsInitialised<GCAuthKey>("GCAuthKey");
+    // write() refuses an empty name and an empty address.
+    expectEveryMemberIsInitialised<GCReconnect>("GCReconnect", [](GCReconnect& p) {
         p.setName("ReconnectPC");
         p.setServerIP("203.198.171.94");
     });
-    // write() asserts the two fixed-width fields, so the fixture sets
-    // both; the version word carries the finding.
-    expectAMemberIsLeftUninitialised<CGCrashReport>("CGCrashReport", [](CGCrashReport& p) {
+    // write() refuses an empty name, and the packet has nothing else to
+    // carry.
+    expectEveryMemberIsInitialised<CGPortCheck>("CGPortCheck", [](CGPortCheck& p) { p.setPCName("PortCheckPC"); });
+    // write() refuses the two fixed-width fields at any other width, so
+    // the fixture sets both.
+    expectEveryMemberIsInitialised<CGCrashReport>("CGCrashReport", [](CGCrashReport& p) {
         p.setExecutableTime(kCrashTime);
         p.setAddress(kCrashAddress);
     });
-    expectAMemberIsLeftUninitialised<CGLotterySelect>("CGLotterySelect");
+    expectEveryMemberIsInitialised<CGLotterySelect>("CGLotterySelect");
+    expectEveryMemberIsInitialised<CGPetGamble>("CGPetGamble");
+    expectEveryMemberIsInitialised<CGTypeStringList>("CGTypeStringList");
 }
 
 } // namespace

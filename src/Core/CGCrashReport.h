@@ -10,6 +10,7 @@
 #define __CG_CRASH_REPORT_H__
 
 // include files
+#include "Exception.h"
 #include "Packet.h"
 #include "PacketFactory.h"
 #include "WireString.h"
@@ -23,6 +24,10 @@
 
 class CGCrashReport : public Packet {
 public:
+    // The two fields that travel without a length prefix.
+    static constexpr uint kExecutableTimeLength = 19;
+    static constexpr uint kAddressLength = 10;
+
     CGCrashReport();
     ~CGCrashReport();
 
@@ -86,7 +91,7 @@ public:
 
 private:
     string m_ExecutableTime;
-    WORD m_Version;
+    WORD m_Version = 0;
     string m_Address;
     string m_OS;
     string m_CallStack;
@@ -106,7 +111,9 @@ class CGCrashReportFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_CG_CRASH_REPORT;
     static constexpr std::string_view kName = "CGCrashReport";
-    static constexpr PacketSize_t kMaxSize{19 + szWORD + 10 + szWORD + 100 + szWORD + 1024 + szWORD + 1024};
+    static constexpr PacketSize_t kMaxSize{CGCrashReport::kExecutableTimeLength + szWORD +
+                                           CGCrashReport::kAddressLength + szWORD + 100 + szWORD + 1024 + szWORD +
+                                           1024};
 
     // create packet
     Packet* createPacket() override {

@@ -181,8 +181,7 @@
 //
 //               GCMorph1 gets all three written out rather than from
 //               the macro, because it holds its four records by
-//               pointer. GCExecuteElement gets its round trip written
-//               out for the reason its fill() states.
+//               pointer.
 //
 //               Extra goldens cover the branches one fixture cannot:
 //               the vampire shape of a morph (.vampire on GCMorph1,
@@ -199,11 +198,11 @@
 //               Fixture values are distinct per field and >= 128 in
 //               every byte the width allows. Five groups cannot follow
 //               that rule and say so at the point of use: the creature
-//               and guild names, which are text; the weather, the sex
-//               and the slayer and vampire outlook slices, which are
-//               enumerators; the knockback success flags, which are
-//               bools; the PC attributes, whose getters refuse
-//               anything above 2000.
+//               and guild names, which are text; the weather, the sex,
+//               the quest element condition and the slayer and vampire
+//               outlook slices, which are enumerators; the knockback
+//               success flags, which are bools; the PC attributes,
+//               whose getters refuse anything above 2000.
 //
 //               What the two halves agree on, each pinned by a test of
 //               its own beside the three above. No valid packet's bytes
@@ -240,8 +239,9 @@
 //                 GCKnocksTargetBackOK5::read take the success flag as
 //                 a BYTE and refuse anything but 0 or 1 rather than
 //                 storing an invalid bool.
-//               - GCExecuteElement::read tests the condition byte
-//                 against the four conditions its own header names.
+//               - GCExecuteElement bounds the condition byte against
+//                 the four conditions its own header names in the
+//                 setter, in write() and in read().
 //               - GCMorphVampire2's accessor for the vampire record it
 //                 holds is getVampireInfo.
 //               - CGBloodDrain::read and ::write carry the object id
@@ -1518,14 +1518,11 @@ TEST(GCChangeWeatherTest, aWeatherPastTheLastOneIsRefused) {
 }
 
 // The condition byte names one of the four conditions a quest element
-// fires under, and read() refuses a byte past them. write() does not
-// bound it: the only sender passes a GQuestInfo::ElementType, and the
-// recorded body below carries a byte outside the four, which is why the
-// round trip is written out with a real condition instead of coming from
-// the macro.
+// fires under, so the fixture carries one of them rather than a high
+// byte; the setter, write() and read() all refuse a byte past them.
 void fill(GCExecuteElement& packet) {
     packet.setQuestID(0xA6B7C8D9);
-    packet.setCondition(0xAA);
+    packet.setCondition(GCExecuteElement::kConditionMax - 1);
     packet.setIndex(0xABBC);
 }
 
@@ -1535,19 +1532,12 @@ void expectEqual(GCExecuteElement& a, GCExecuteElement& b) {
     EXPECT_EQ(a.getIndex(), b.getIndex());
 }
 
-CREATURE_PACKET_GOLDEN_AND_SIZE(GCExecuteElement)
+CREATURE_PACKET_TESTS(GCExecuteElement)
 
-TEST(GCExecuteElementTest, roundTripsThroughLoopback) {
-    GCExecuteElement src;
-    fill(src);
-    src.setCondition(GCExecuteElement::kConditionMax - 1);
+TEST(GCExecuteElementTest, aConditionPastTheFourIsRefusedOnEverySide) {
+    GCExecuteElement packet;
+    EXPECT_THROW(packet.setCondition(GCExecuteElement::kConditionMax), InvalidProtocolException);
 
-    GCExecuteElement dst;
-    roundTrip(src, dst, kPlainCode);
-    expectEqual(src, dst);
-}
-
-TEST(GCExecuteElementTest, aConditionPastTheFourIsRefused) {
     GCExecuteElement dst;
     EXPECT_THROW(throughLoopback(
                      [](SocketEncryptOutputStream& out) {

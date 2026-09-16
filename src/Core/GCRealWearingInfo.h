@@ -58,7 +58,7 @@ public:
     }
 
 private:
-    DWORD m_Info;
+    DWORD m_Info = 0;
 };
 
 

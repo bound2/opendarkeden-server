@@ -9,6 +9,7 @@
 
 #include "Packet.h"
 #include "PacketFactory.h"
+#include "WireString.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // class CGRequestIP;
@@ -29,7 +30,7 @@ public:
         return PACKET_CG_REQUEST_IP;
     }
     PacketSize_t getPacketSize() const {
-        return szBYTE + m_Name.size();
+        return de::wire::stringWireSize(m_Name);
     }
     string getPacketName() const {
         return "CGRequestIP";
@@ -37,11 +38,15 @@ public:
     string toString() const;
 
 public:
+    // The name is held to what the factory max budgets.
+    static constexpr uint kMaxNameLength = 10;
+
     string getName() const {
         return m_Name;
     }
     void setName(const char* pName) {
-        m_Name = pName;
+        const string name(pName);
+        m_Name = (name.size() > kMaxNameLength) ? name.substr(0, kMaxNameLength) : name;
     }
 
 protected:
@@ -56,7 +61,7 @@ class CGRequestIPFactory : public PacketFactory {
 public:
     static constexpr PacketID_t kPacketID = Packet::PACKET_CG_REQUEST_IP;
     static constexpr std::string_view kName = "CGRequestIP";
-    static constexpr PacketSize_t kMaxSize{szBYTE + 10};
+    static constexpr PacketSize_t kMaxSize{szBYTE + CGRequestIP::kMaxNameLength};
 
     Packet* createPacket() override {
         return new CGRequestIP();

@@ -6,19 +6,15 @@
 
 #include "GCRequestedIP.h"
 
+#include "WireString.h"
+
 //////////////////////////////////////////////////////////////////////
 // class GCRequestedIP member methods
 //////////////////////////////////////////////////////////////////////
 
 GCRequestedIP::GCRequestedIP()
 
-{
-    __BEGIN_TRY
-
-    m_IP = 0;
-
-    __END_CATCH
-}
+    {__BEGIN_TRY __END_CATCH}
 
 GCRequestedIP::~GCRequestedIP()
 
@@ -32,13 +28,7 @@ void GCRequestedIP::read(SocketInputStream& iStream)
 {
     __BEGIN_TRY
 
-    BYTE num;
-    iStream.read(num);
-
-    if (num == 0)
-        throw InvalidProtocolException("szName==0");
-
-    iStream.read(m_Name, num);
+    de::wire::readString(iStream, m_Name, {1, kMaxNameLength}, "Name");
 
     iStream.read(m_IP);
     iStream.read(m_Port);
@@ -49,13 +39,7 @@ void GCRequestedIP::read(SocketInputStream& iStream)
 void GCRequestedIP::write(SocketOutputStream& oStream) const {
     __BEGIN_TRY
 
-    BYTE num = m_Name.size();
-    oStream.write(num);
-
-    if (num == 0)
-        throw InvalidProtocolException("szName==0");
-
-    oStream.write(m_Name);
+    de::wire::writeString(oStream, m_Name, {1, kMaxNameLength}, "Name");
 
     oStream.write(m_IP);
     oStream.write(m_Port);
