@@ -26,12 +26,24 @@
 //               EncrypterFree below fails if that ever changes, which is
 //               the signal to add per-code goldens for them.
 //
+//               Fixture values are distinct per field and >= 128 in
+//               every byte the width allows, as the later families are.
+//               Two groups cannot follow that rule and say so at the
+//               point of use: the directions, which name one of the
+//               eight; and the chat text.
+//
 //               The last section holds the length-prefixed string
 //               fields of packets and records that belong to no packet
 //               family with a file of its own: what each field's bounds
 //               admit, and what they refuse.
 //
 //////////////////////////////////////////////////////////////////////
+
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
@@ -70,9 +82,12 @@ using wiretest::kEncryptCodes;
 // GCMoveOK — fixed-width fields, uses the encrypter shuffle
 //////////////////////////////////////////////////////////////////////
 
+// Both coordinates carry their high bit, so a byte that drops one moves
+// the golden. The direction is enum-valued: it names one of the eight, so
+// it carries an enumerator instead.
 TEST(GCMoveOKTest, roundTripsThroughLoopbackForEveryEncryptCode) {
     for (size_t i = 0; i < kEncryptCodeCount; i++) {
-        GCMoveOK src(11, 22, 3);
+        GCMoveOK src(0x8B, 0x9C, RIGHTDOWN);
         GCMoveOK dst;
         roundTrip(src, dst, kEncryptCodes[i]);
         EXPECT_EQ(src.getX(), dst.getX()) << "code " << (int)kEncryptCodes[i];
@@ -82,7 +97,7 @@ TEST(GCMoveOKTest, roundTripsThroughLoopbackForEveryEncryptCode) {
 }
 
 TEST(GCMoveOKTest, bodyBytesMatchGolden) {
-    GCMoveOK packet(11, 22, 3);
+    GCMoveOK packet(0x8B, 0x9C, RIGHTDOWN);
     for (size_t i = 0; i < kEncryptCodeCount; i++)
         expectGolden("GCMoveOK", kEncryptCodes[i], writeBody(packet, kEncryptCodes[i]));
 }
@@ -91,12 +106,14 @@ TEST(GCMoveOKTest, bodyBytesMatchGolden) {
 // CGMove — the client->server twin
 //////////////////////////////////////////////////////////////////////
 
+// The same rule with values of its own. read() refuses a direction at or
+// past DIR_MAX, so this one names the last of the eight.
 TEST(CGMoveTest, roundTripsThroughLoopbackForEveryEncryptCode) {
     for (size_t i = 0; i < kEncryptCodeCount; i++) {
         CGMove src;
-        src.setX(101);
-        src.setY(57);
-        src.setDir(6);
+        src.setX(0xAD);
+        src.setY(0xBE);
+        src.setDir(LEFTUP);
         CGMove dst;
         roundTrip(src, dst, kEncryptCodes[i]);
         EXPECT_EQ(src.getX(), dst.getX()) << "code " << (int)kEncryptCodes[i];
@@ -107,9 +124,9 @@ TEST(CGMoveTest, roundTripsThroughLoopbackForEveryEncryptCode) {
 
 TEST(CGMoveTest, bodyBytesMatchGolden) {
     CGMove packet;
-    packet.setX(101);
-    packet.setY(57);
-    packet.setDir(6);
+    packet.setX(0xAD);
+    packet.setY(0xBE);
+    packet.setDir(LEFTUP);
     for (size_t i = 0; i < kEncryptCodeCount; i++)
         expectGolden("CGMove", kEncryptCodes[i], writeBody(packet, kEncryptCodes[i]));
 }
@@ -118,10 +135,11 @@ TEST(CGMoveTest, bodyBytesMatchGolden) {
 // CGSay — BYTE-length-prefixed string
 //////////////////////////////////////////////////////////////////////
 
+// Every byte of the colour carries a high bit; the message is text.
 TEST(CGSayTest, roundTripsThroughLoopback) {
     for (size_t i = 0; i < kEncryptCodeCount; i++) {
         CGSay src;
-        src.setColor(0x11223344);
+        src.setColor(0x8C9DAEBF);
         src.setMessage("hello darkeden");
         CGSay dst;
         roundTrip(src, dst, kEncryptCodes[i]);
@@ -132,7 +150,7 @@ TEST(CGSayTest, roundTripsThroughLoopback) {
 
 TEST(CGSayTest, bodyBytesMatchGolden) {
     CGSay packet;
-    packet.setColor(0x11223344);
+    packet.setColor(0x8C9DAEBF);
     packet.setMessage("hello darkeden");
     // Encrypter-free: one golden, not four identical ones. See the header
     // comment and encrypterFreePacketsAreStillEncrypterFree.
@@ -151,11 +169,12 @@ TEST(CGSayTest, refusesOversizedMessage) {
 // CGWhisper — two length-prefixed strings
 //////////////////////////////////////////////////////////////////////
 
+// The colour is full width; the name and the message are text.
 TEST(CGWhisperTest, roundTripsThroughLoopback) {
     for (size_t i = 0; i < kEncryptCodeCount; i++) {
         CGWhisper src;
         src.setName("Reiot");
-        src.setColor(0xCAFEBABE);
+        src.setColor(0x90A1B2C3);
         src.setMessage("wire pin test");
         CGWhisper dst;
         roundTrip(src, dst, kEncryptCodes[i]);
@@ -168,7 +187,7 @@ TEST(CGWhisperTest, roundTripsThroughLoopback) {
 TEST(CGWhisperTest, bodyBytesMatchGolden) {
     CGWhisper packet;
     packet.setName("Reiot");
-    packet.setColor(0xCAFEBABE);
+    packet.setColor(0x90A1B2C3);
     packet.setMessage("wire pin test");
     expectGolden("CGWhisper", 0, writeBody(packet, 0));
 }
@@ -179,12 +198,12 @@ TEST(CGWhisperTest, bodyBytesMatchGolden) {
 // and the single golden would silently stop covering three of them.
 TEST(EncrypterCoverageTest, encrypterFreePacketsAreStillEncrypterFree) {
     CGSay say;
-    say.setColor(0x11223344);
+    say.setColor(0x8C9DAEBF);
     say.setMessage("hello darkeden");
 
     CGWhisper whisper;
     whisper.setName("Reiot");
-    whisper.setColor(0xCAFEBABE);
+    whisper.setColor(0x90A1B2C3);
     whisper.setMessage("wire pin test");
 
     for (size_t i = 1; i < kEncryptCodeCount; i++) {
@@ -206,7 +225,7 @@ TEST(EncrypterCoverageTest, encrypterFreePacketsAreStillEncrypterFree) {
 // the first byte of all 463 packets: the round-trip and header tests read
 // back through the same typedefs and would still agree with themselves.
 TEST(PacketFramingTest, framedBytesMatchGolden) {
-    GCMoveOK packet(11, 22, 3);
+    GCMoveOK packet(0x8B, 0x9C, RIGHTDOWN);
     expectGolden("GCMoveOK.framed", 0, writeFramed(packet, 0));
 }
 
@@ -224,7 +243,7 @@ TEST(PacketFramingTest, headerIsIdSizeSequenceThenBody) {
     Loopback loopback;
     loopback.setCodes(0);
 
-    GCMoveOK packet(11, 22, 3);
+    GCMoveOK packet(0x8B, 0x9C, RIGHTDOWN);
     loopback.out().writePacket(&packet);
     loopback.pump(szPacketHeader + packet.getPacketSize());
 
@@ -250,7 +269,7 @@ TEST(PacketFramingTest, sequenceIncrementsPerPacket) {
     Loopback loopback;
     loopback.setCodes(0);
 
-    GCMoveOK packet(1, 2, 3);
+    GCMoveOK packet(0x8B, 0x9C, RIGHTDOWN);
     loopback.out().writePacket(&packet);
     loopback.out().writePacket(&packet);
     loopback.pump(2 * (szPacketHeader + packet.getPacketSize()));
@@ -266,6 +285,75 @@ TEST(PacketFramingTest, sequenceIncrementsPerPacket) {
         GCMoveOK dst;
         dst.read(loopback.in());
     }
+}
+
+//////////////////////////////////////////////////////////////////////
+// Fixture strength: the values above have to reach the wire
+//////////////////////////////////////////////////////////////////////
+
+// Read back what expectGolden recorded, so what follows is a statement
+// about the committed files and not about a second call to write().
+std::vector<unsigned char> readGolden(const std::string& name, uchar code) {
+    std::ostringstream path;
+    path << WIRETEST_GOLDEN_DIR << "/" << name << ".code" << (int)code << ".hex";
+    std::ifstream file(path.str().c_str());
+    EXPECT_TRUE(file.good()) << "missing golden file " << path.str();
+    std::string hex;
+    std::getline(file, hex);
+    std::vector<unsigned char> bytes;
+    for (size_t i = 0; i + 1 < hex.size(); i += 2)
+        bytes.push_back((unsigned char)strtoul(hex.substr(i, 2).c_str(), NULL, 16));
+    return bytes;
+}
+
+// A move body is two coordinates and a direction, in whatever order the
+// shuffle put them, so the statement is about the counts rather than about
+// fixed offsets: two bytes high, the third below DIR_MAX. The encrypter
+// XORs each field with the code and codes 0..5 touch only the low three
+// bits, so a high-bit coordinate stays high and a direction stays below
+// DIR_MAX in every one of the six.
+void expectMoveBodyCarriesHighBits(const char* what, const std::vector<unsigned char>& body) {
+    ASSERT_EQ(3u, body.size()) << what;
+    int high = 0;
+    for (size_t i = 0; i < body.size(); i++) {
+        if (body[i] >= 0x80)
+            high++;
+        else
+            EXPECT_LT((int)body[i], (int)DIR_MAX)
+                << what << ": byte " << i << " is neither a high-bit coordinate nor a direction";
+    }
+    EXPECT_EQ(2, high) << what << ": both coordinates must reach the wire with their high bit set";
+}
+
+void expectColorCarriesHighBits(const char* what, const std::vector<unsigned char>& body, size_t at) {
+    ASSERT_GE(body.size(), at + 4) << what;
+    for (size_t i = 0; i < 4; i++)
+        EXPECT_GE((int)body[at + i], 0x80) << what << ": colour byte " << i;
+}
+
+// The four packets pinned first were pinned with values small enough that
+// every byte of every golden fitted in seven bits, which left a coordinate
+// or a colour free to lose its high bit with the goldens unmoved. The
+// fixtures now carry high bits, and this says so about the recorded bytes:
+// a fixture weakened later fails here instead of passing behind a quietly
+// re-recorded golden.
+TEST(FixtureStrengthTest, theRecordedGoldensCarryTheFixtureHighBits) {
+    for (size_t i = 0; i < kEncryptCodeCount; i++) {
+        expectMoveBodyCarriesHighBits("GCMoveOK", readGolden("GCMoveOK", kEncryptCodes[i]));
+        expectMoveBodyCarriesHighBits("CGMove", readGolden("CGMove", kEncryptCodes[i]));
+    }
+
+    const std::vector<unsigned char> framed = readGolden("GCMoveOK.framed", 0);
+    ASSERT_EQ(szPacketHeader + 3u, framed.size());
+    expectMoveBodyCarriesHighBits("GCMoveOK.framed",
+                                  std::vector<unsigned char>(framed.begin() + szPacketHeader, framed.end()));
+
+    // CGSay writes the colour first; CGWhisper writes the name behind its
+    // length byte and the colour after it.
+    expectColorCarriesHighBits("CGSay", readGolden("CGSay", 0), 0);
+    const std::vector<unsigned char> whisper = readGolden("CGWhisper", 0);
+    ASSERT_FALSE(whisper.empty());
+    expectColorCarriesHighBits("CGWhisper", whisper, 1 + whisper[0]);
 }
 
 } // namespace
