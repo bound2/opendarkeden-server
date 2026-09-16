@@ -556,8 +556,6 @@ public:
     PCSlayerInfo2* getSlayerInfo2() const;
     PCSlayerInfo3 getSlayerInfo3() const;
     GearInfo* getGearInfo() const;
-    InventoryInfo* getInventoryInfo() const;
-    ExtraInfo* getExtraInfo() const;
     void sendSlayerSkillInfo();
 
     // get/set EffectInfo
@@ -691,9 +689,7 @@ public:
     //	void increaseRankExp(RankExp_t Point);
 
 public:
-    // by sigi. 2002.11.19
-    virtual bool isPayPlayAvaiable();
-    virtual bool canPlayFree();
+    virtual bool isWithinFreePlayLimit() const;
 
     virtual void setLastTarget(ObjectID_t value);
 

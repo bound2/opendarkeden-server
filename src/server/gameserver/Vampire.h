@@ -426,9 +426,7 @@ public:
 public:
     PCVampireInfo2* getVampireInfo2();
     PCVampireInfo3 getVampireInfo3() const;
-    InventoryInfo* getInventoryInfo() const;
     GearInfo* getGearInfo() const;
-    ExtraInfo* getExtraInfo() const;
     void sendVampireSkillInfo();
 
 
@@ -436,8 +434,6 @@ public:
     // 기타 함수
     ////////////////////////////////////////////////////
 public:
-    virtual void setGoldEx(Gold_t gold);
-
     void setInMagics(const string& blob) {}
 
     void heartbeat(const Timeval& currentTime);
@@ -547,9 +543,7 @@ public:
     void saveInitialRank(void);
 
 public:
-    // by sigi. 2002.11.19
-    virtual bool isPayPlayAvaiable();
-    virtual bool canPlayFree();
+    virtual bool isWithinFreePlayLimit() const;
 
     void initPetQuestTarget();
     int getBloodBibleSignOpenNum() const;

@@ -8,6 +8,8 @@
 
 #include "Belt.h"
 #include "EventKick.h"
+#include "ExtraInfo.h"
+#include "ExtraSlotInfo.h"
 #include "FlagSet.h"
 #include "GCModifyInformation.h"
 #include "GCModifyNickname.h"
@@ -24,6 +26,8 @@
 #include "Guild.h"
 #include "GuildManager.h"
 #include "Inventory.h"
+#include "InventoryInfo.h"
+#include "InventorySlotInfo.h"
 #include "Item.h"
 #include "ItemUtil.h"
 #include "Key.h"
@@ -982,7 +986,40 @@ bool PlayerCreature::isPayPlayAvaiable()
         return false;
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayer);
+
+#ifdef __CONNECT_BILLING_SYSTEM__
+    if (pGamePlayer->isPayPlaying()) {
+        // A wholly free account.
+        if (pGamePlayer->getPayType() == PAY_TYPE_FREE)
+            return true;
+
+        // Otherwise play is free up to the race's own limit.
+        if (isWithinFreePlayLimit()) {
+            return true;
+        }
+    }
+
+    return false;
+
+// Limiting the player without the billing integration.
+#elif defined(__PAY_SYSTEM_FREE_LIMIT__)
+
+    if (!pGamePlayer->isPayPlaying()) {
+        // Play is free up to the race's own limit.
+        if (isWithinFreePlayLimit()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    return true;
+
+#else
+
     return pGamePlayer->isPayPlaying();
+
+#endif
 
     __END_CATCH
 }
@@ -991,7 +1028,11 @@ bool PlayerCreature::isPayPlayAvaiable()
 bool PlayerCreature::canPlayFree()
 
 {
-    return false;
+    __BEGIN_TRY
+
+    return isWithinFreePlayLimit();
+
+    __END_CATCH
 }
 
 void PlayerCreature::loadGoods()
@@ -1367,6 +1408,18 @@ void PlayerCreature::setGold(Gold_t gold) {
     __END_CATCH
 }
 
+void PlayerCreature::setGoldEx(Gold_t gold) {
+    __BEGIN_TRY
+
+    setGold(gold);
+
+    char pField[80];
+    sprintf(pField, "Gold=%u", m_Gold);
+    tinysave(pField);
+
+    __END_CATCH
+}
+
 void PlayerCreature::increaseGoldEx(Gold_t gold) {
     __BEGIN_TRY
     __BEGIN_DEBUG
@@ -1478,4 +1531,67 @@ Color_t PlayerCreature::getItemShapeColor(Item* pItem, OptionInfo* pOptionInfo) 
     }
 
     return color;
+}
+
+// The item held on the mouse cursor, as the client is told to draw it.
+ExtraInfo* PlayerCreature::getExtraInfo() const {
+    __BEGIN_TRY
+    __BEGIN_DEBUG
+
+    ExtraInfo* pExtraInfo = new ExtraInfo();
+
+    Item* pItem = m_pExtraInventorySlot->getItem();
+
+    if (pItem != NULL) {
+        ExtraSlotInfo* pExtraSlotInfo = new ExtraSlotInfo();
+        pItem->makePCItemInfo(*pExtraSlotInfo);
+
+        pExtraInfo->addListElement(pExtraSlotInfo);
+    }
+
+    return pExtraInfo;
+
+    __END_DEBUG
+    __END_CATCH
+}
+
+// The carried inventory, as the client is told to draw it.
+InventoryInfo* PlayerCreature::getInventoryInfo() const {
+    __BEGIN_TRY
+    __BEGIN_DEBUG
+
+    InventoryInfo* pInventoryInfo = new InventoryInfo();
+    list<Item*> ItemList;
+    VolumeHeight_t Height = m_pInventory->getHeight();
+    VolumeWidth_t Width = m_pInventory->getWidth();
+
+    for (int j = 0; j < Height; j++) {
+        for (int i = 0; i < Width; i++) {
+            if (m_pInventory->hasItem(i, j)) {
+                Item* pItem = m_pInventory->getItem(i, j);
+                VolumeWidth_t ItemWidth = pItem->getVolumeWidth();
+
+                list<Item*>::iterator itr = find(ItemList.begin(), ItemList.end(), pItem);
+
+                if (itr == ItemList.end()) {
+                    // An item wider than one cell is met once per cell it
+                    // covers; report it from the leftmost one only.
+                    ItemList.push_back(pItem);
+
+                    InventorySlotInfo* pInventorySlotInfo = new InventorySlotInfo();
+                    pItem->makePCItemInfo(*pInventorySlotInfo);
+                    pInventorySlotInfo->setInvenX(i);
+                    pInventorySlotInfo->setInvenY(j);
+
+                    pInventoryInfo->addListElement(pInventorySlotInfo);
+                    i = i + ItemWidth - 1;
+                }
+            }
+        }
+    }
+
+    return pInventoryInfo;
+
+    __END_DEBUG
+    __END_CATCH
 }

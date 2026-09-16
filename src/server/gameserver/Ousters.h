@@ -437,9 +437,7 @@ public:
 public:
     PCOustersInfo2* getOustersInfo2();
     PCOustersInfo3 getOustersInfo3() const;
-    InventoryInfo* getInventoryInfo() const;
     GearInfo* getGearInfo() const;
-    ExtraInfo* getExtraInfo() const;
     void sendOustersSkillInfo();
 
 
@@ -447,9 +445,6 @@ public:
     // 기타 함수
     ////////////////////////////////////////////////////
 public:
-    virtual void setGoldEx(Gold_t gold);
-
-
     void heartbeat(const Timeval& currentTime);
 
     void getOustersRecord(OUSTERS_RECORD& record) const;
@@ -619,9 +614,7 @@ public:
     bool canLearnSkill(SkillType_t skill);
 
 public:
-    // by sigi. 2002.11.19
-    virtual bool isPayPlayAvaiable();
-    virtual bool canPlayFree();
+    virtual bool isWithinFreePlayLimit() const;
 
     void initPetQuestTarget();
     int getBloodBibleSignOpenNum() const;
