@@ -4,8 +4,8 @@
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __EFFECT_DECAY_ITEM_H__
-#define __EFFECT_DECAY_ITEM_H__
+#ifndef __EFFECT_CALL_MOTORCYCLE_H__
+#define __EFFECT_CALL_MOTORCYCLE_H__
 
 #include "Effect.h"
 

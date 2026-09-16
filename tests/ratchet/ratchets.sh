@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5677 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5675 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -97,7 +97,7 @@ check_ratchet R6e "CGSayHandler.cpp lines" 116 "$R6e"
 # R6f: the *command console, whose sub-command bodies are one function per
 # name in ConsoleCommands.cpp beside the console that dispatches them.
 R6f=$(wc -l < src/server/gameserver/gm/ConsoleCommands.cpp 2>/dev/null || echo missing)
-check_ratchet R6f "ConsoleCommands.cpp lines" 1596 "$R6f"
+check_ratchet R6f "ConsoleCommands.cpp lines" 1595 "$R6f"
 
 # R6g: Zone.cpp with broadcast, scan/visibility, movement, the loaders,
 # spawn/despawn and the item tables split out to ZoneBroadcast.cpp /
