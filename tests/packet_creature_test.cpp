@@ -203,9 +203,7 @@
 //               and the slayer and vampire outlook slices, which are
 //               enumerators; the knockback success flags, which are
 //               bools; the PC attributes, whose getters refuse
-//               anything above 2000; and the union id of the two
-//               records a morph packet holds by value, which the
-//               recorded bodies carry as zero.
+//               anything above 2000.
 //
 //               What the two halves agree on, each pinned by a test of
 //               its own beside the three above. No valid packet's bytes
@@ -1131,15 +1129,6 @@ PCSlayerInfo3 canonicalSlayerInfo3() {
     return info;
 }
 
-// The recorded body carries no union id, so the golden and the size pin
-// take the fixture with that one field cleared. The id's own path onto
-// the wire is pinned by the round trip and by the copy below.
-PCSlayerInfo3 goldenSlayerInfo3() {
-    PCSlayerInfo3 info = canonicalSlayerInfo3();
-    info.setUnionID(0);
-    return info;
-}
-
 TEST(GCMorphSlayer2Test, roundTripsThroughLoopback) {
     GCMorphSlayer2 src(canonicalSlayerInfo3());
     GCMorphSlayer2 dst;
@@ -1148,7 +1137,7 @@ TEST(GCMorphSlayer2Test, roundTripsThroughLoopback) {
 }
 
 TEST(GCMorphSlayer2Test, bodyBytesMatchGolden) {
-    GCMorphSlayer2 packet(goldenSlayerInfo3());
+    GCMorphSlayer2 packet(canonicalSlayerInfo3());
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     expectGolden("GCMorphSlayer2", kPlainCode, body);
     for (size_t i = 1; i < kEncryptCodeCount; i++)
@@ -1223,14 +1212,6 @@ PCVampireInfo3 canonicalVampireInfo3() {
     return info;
 }
 
-// The same split as the slayer shape: the recorded body carries no union
-// id.
-PCVampireInfo3 goldenVampireInfo3() {
-    PCVampireInfo3 info = canonicalVampireInfo3();
-    info.setUnionID(0);
-    return info;
-}
-
 TEST(GCMorphVampire2Test, roundTripsThroughLoopback) {
     GCMorphVampire2 src(canonicalVampireInfo3());
     GCMorphVampire2 dst;
@@ -1239,7 +1220,7 @@ TEST(GCMorphVampire2Test, roundTripsThroughLoopback) {
 }
 
 TEST(GCMorphVampire2Test, bodyBytesMatchGolden) {
-    GCMorphVampire2 packet(goldenVampireInfo3());
+    GCMorphVampire2 packet(canonicalVampireInfo3());
     const std::vector<unsigned char> body = writeBody(packet, kPlainCode);
     expectGolden("GCMorphVampire2", kPlainCode, body);
     for (size_t i = 1; i < kEncryptCodeCount; i++)
