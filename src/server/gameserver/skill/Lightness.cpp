@@ -87,7 +87,6 @@ void Lightness::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* p
 
             if (oldSight != newSight) {
                 pTargetCreature->setSight(newSight);
-                pZone->updateScan(pTargetCreature, oldSight, newSight);
                 _GCSkillToObjectOK2.addShortData(MODIFY_VISION, newSight);
             }
 
@@ -199,7 +198,6 @@ void Lightness::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
 
             if (oldSight != newSight) {
                 pSlayer->setSight(newSight);
-                pZone->updateScan(pSlayer, oldSight, newSight);
                 _GCSkillToSelfOK1.addShortData(MODIFY_VISION, newSight);
             }
 

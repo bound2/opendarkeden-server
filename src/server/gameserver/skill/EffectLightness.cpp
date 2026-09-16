@@ -64,7 +64,6 @@ void EffectLightness::unaffect()
 
         if (oldSight != newSight) {
             pCreature->setSight(newSight);
-            pZone->updateScan(pCreature, oldSight, newSight);
             gcMI.addShortData(MODIFY_VISION, newSight);
             pPlayer->sendPacket(&gcMI);
         }

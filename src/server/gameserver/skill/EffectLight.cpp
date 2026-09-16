@@ -65,7 +65,6 @@ void EffectLight::unaffect(Creature* pCreature)
             NewSight = 13;
         }
 
-        pZone->updateScan(pSlayer, pSlayer->getSight(), NewSight);
         pSlayer->setSight(NewSight);
 
         pSlayer->removeFlag(Effect::EFFECT_CLASS_LIGHT);

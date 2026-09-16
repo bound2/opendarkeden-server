@@ -102,7 +102,6 @@ void EffectBloodDrain::unaffect(Creature* pFromCreature)
         if (oldSight != newSight) {
             GCModifyInformation gcMI;
             pFromCreature->setSight(newSight);
-            pFromCreature->getZone()->updateScan(pFromCreature, oldSight, pFromCreature->getSight());
             gcMI.addShortData(MODIFY_VISION, pFromCreature->getSight());
             pFromCreature->getPlayer()->sendPacket(&gcMI);
 

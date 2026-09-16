@@ -123,7 +123,6 @@ bool EffectYellowPoison::affectCreature(Creature* pTargetCreature, bool bAffectB
 
         // 시야가 변했으므로.. 시야 update..
         if (oldSight != pTargetCreature->getSight()) {
-            pZone->updateScan(pTargetCreature, oldSight, pTargetCreature->getSight());
             gcMI.addShortData(MODIFY_VISION, pTargetCreature->getSight());
         }
 

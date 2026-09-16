@@ -105,7 +105,6 @@ void BloodDrain::execute(Vampire* pVampire, ObjectID_t TargetObjectID)
             //				if ( oldSight != newSight )
             //				{
             //					pTargetCreature->setSight(newSight);
-            //					pZone->updateScan(pTargetCreature, oldSight, pTargetCreature->getSight());
             //					_GCBloodDrainOK2.addShortData(MODIFY_VISION, pTargetCreature->getSight());
             //
             //					GCChangeDarkLight gcChangeDarkLight;
@@ -404,7 +403,6 @@ bool BloodDrain::executeMonster(Monster* pMonster, Creature* pEnemy)
         //			if ( oldSight != newSight )
         //			{
         //				pEnemy->setSight(newSight);
-        //				pZone->updateScan(pEnemy, oldSight, pEnemy->getSight());
         //				_GCBloodDrainOK2.addShortData(MODIFY_VISION, pEnemy->getSight());
         //
         //				GCChangeDarkLight gcChangeDarkLight;

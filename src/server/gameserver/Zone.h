@@ -101,7 +101,6 @@ public:
     void init();
     void load(bool bOutput = false);
     void reload(bool bOutput = false);
-    void loadItem();
     void loadTriggeredPortal();
     void initSpriteCount();
     void save();
@@ -166,9 +165,6 @@ public:
     //(x,y) Å¸ÀÏ À§¿¡ ÀÖ´Â PC ¿¡°Ô ÁÖº¯ Á¤º¸¸¦ ÀÐ¾î¼­ Àü¼ÛÇÑ´Ù. pPacket ÀÌ NULL ÀÌ ¾Æ´Ï¶ó¸é, µ¿½Ã¿¡ ºê·ÎµåÄ³½ºÆ®µµ
     // ´ã´çÇÑ´Ù.
     void scan(Creature* pPC, ZoneCoord_t x, ZoneCoord_t y, Packet* pPacket);
-
-    // Á¦ÀÚ¸®¿¡¼­ ½Ã¾ß°¡ º¯°æµÈ °æ¿ì ÁÖº¯ Á¤º¸¸¦ ´Ù½Ã º¸³»ÁØ´Ù.
-    void updateScan(Creature* pPC, Sight_t oldSight, Sight_t newSight);
 
     // ±×°÷À» º¼ ¼ö ÀÖ´Â ³Ñµé(Player)ÀÇ list¸¦ µ¹·ÁÁØ´Ù.ª
     list<Creature*> getWatcherList(ZoneCoord_t, ZoneCoord_t, Creature* pTargetCreature = NULL);
