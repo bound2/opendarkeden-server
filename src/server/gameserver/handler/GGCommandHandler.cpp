@@ -88,7 +88,7 @@ void GGCommandHandler::execute(GGCommand* pPacket)
     else if (msg.substr(i + 1, 7) == "command") {
         de::gm::opcommand(NULL, msg, i);
 
-    } else if (msg.substr(i + 1, 17) == "modifyunioninfo") {
+    } else if (msg.substr(i + 1, 15) == "modifyunioninfo") {
         de::gm::opmodifyunioninfo(NULL, msg, i, true);
 
     } else if (msg.substr(i + 1, 17) == "refreshguildunion") {

@@ -68,7 +68,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R9 | Hand-written length-prefixed string reads left in `src/Core` | 0 | `grep -rhE 'iStream\.read\([A-Za-z_][A-Za-z0-9_]*, sz[A-Za-z0-9_]*\);' src/Core --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (a string field is a BYTE length then that many bytes; `de::wire::readString`/`writeString` in `src/Core/WireString.h` carry it with the bounds stated once. The read may land in a member or in a local, so any identifier counts. Line-based with R8's comment rule, so `WireString.h`'s own example of the shape it replaces does not count itself) |
 | R10 | Throws of a pointer into a local string, and the handlers that caught one | 0 (R10a), 0 (R10b) | R10a: `grep -rnE 'throw [A-Za-z_]+\.c_str\(\)' src \| wc -l` — a `throw x.c_str()` hands the handler storage that dies with the clause it came from; `END_DB`/`END_DB_EX` answer a failed statement with a `DatabaseError` (`src/server/database/DatabaseError.h`) that owns its message, so nothing in the tree has that shape. R10b: `grep -rn 'catch (const char\*' src \| wc -l` — the receiving end. All 34 handlers name `DatabaseError`, so the count is 0 and one left behind would either be dead or be reaching for one of the ~160 bare `throw "literal"` sites, which are a separate defect and are not answered this way. Textual, so a commented-out clause counts (the one inside `CGPortCheckHandler.cpp`'s commented-out retry moved with the live code) |
 | R11 | Bare string-literal throws left in `src` | 0 | `grep -rh 'throw "' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` — a `throw "text"` puts a `const char*` on the stack, a type nothing catches (R10b) and neither `__END_CATCH` nor the swallowing `__END_CATCH_NO_RETHROW` matches, so it walks past every handler the surrounding code wrote and lands in a `catch (...)` backstop — or, thrown out of a destructor, in `std::terminate`. `throw Error("text")` reaches the handler written for it. 149→0 over two rounds (see `docs/FIXES.md`): the 62 sites outside `src/server/gameserver/item`, then the 87 item constructors that answered a failed `isPossibleItem` check with the identical `Invalid item type or optionType` literal, one per item class. Line-based with R8's comment rule, so a commented-out throw does not count |
-| R12 | Throw messages carrying non-ASCII text | 7 | ``LC_ALL=C grep -rhE $'throw[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\\([[:space:]]*"[^"]*[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//'`` — a throw's message is a diagnostic read in a log or on a console, and the tree's code language is English. The legacy messages were legacy-code-page bytes: some survived the migration as readable Korean, most as mojibake, a few as U+FFFD runs with the original text gone. 270→7; the 7 left are in `src/server/gameserver/Zone.cpp` and the target is 0. The class is spelled as the bytes it excludes, so what is left is a byte with the high bit set — a UTF-8 lead or continuation byte — rather than `[^[:print:]]`, which would also match the CR of a CRLF working tree and count every ASCII message whose literal runs past the end of its line. Line-based with R8's comment rule, and the pattern wants `throw`, a type, `(` and the opening quote on one line, so a literal starting on a continuation line is not counted |
+| R12 | Throw messages carrying non-ASCII text | 0 | ``LC_ALL=C grep -rhE $'throw[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\\([[:space:]]*"[^"]*[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//'`` — a throw's message is a diagnostic read in a log or on a console, and the tree's code language is English; the legacy messages were code-page bytes that survived the migration as Korean, mojibake or U+FFFD runs. The class is spelled as the bytes it excludes so that the CR of a CRLF working tree is not counted, the way `[^[:print:]]` would; line-based with R11's comment rule, so a literal that starts on a continuation line is not counted |
 
 God-file baselines (R6):
 
@@ -78,7 +78,7 @@ are enforced so far.
 
 | File | Baseline lines |
 |------|---------------:|
-| `src/server/gameserver/Zone.cpp` | 9,263 (9,297 on 2026-08-31) |
+| `src/server/gameserver/Zone.cpp` | 6,717 (was 9,350 before the 4.2 broadcast/scan extraction; enforced by `ratchets.sh` R6g) |
 | `src/server/gameserver/skill/SkillUtil.cpp` | 6,739 (enforced by `ratchets.sh` R6a) |
 | `src/server/gameserver/InitAllStat.cpp` | 4,803 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 116 (was 4,720 before the 4.1 command extraction; enforced by `ratchets.sh` R6e) |
@@ -1260,7 +1260,19 @@ down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
 - [ ] **4.2 Split `Zone.cpp`** (9,263 lines) by concern: movement, broadcast,
   spawn/despawn, scan/visibility, persistence (→ 3.2 repository). Mechanical,
   many small commits, each verified by build + smoke.
-  > **Status:** not started
+  > **Status:** broadcast and scan/visibility are out. `ZoneBroadcast.cpp`
+  > holds the three `broadcastPacket` overloads, `broadcastDarkLightPacket`,
+  > `broadcastSayPacket`, `broadcastLevelWarBonusPacket`,
+  > `broadcastSkillPacket`, `movePCBroadcast` and `moveCreatureBroadcast`;
+  > `ZoneScan.cpp` holds `scan`, `scanPC`, `monsterScan`, `updateScan`, the
+  > four `update*Scan` refreshes and `getWatcherList`. They are still `Zone::`
+  > members with unchanged bodies — only the translation unit differs — and
+  > the two file-scope helpers both sides call (`isPotentialEnemy`,
+  > `sendRelicEffect`) are declared in `ZoneInternal.h`. `Zone.cpp` 9,350 →
+  > 6,717, pinned by `ratchets.sh` R6g. What remains in it: movement
+  > (`movePC`, `moveFastPC`, `moveFastMonster`), spawn/despawn, the map and
+  > NPC loaders, the effect and relic tables, and the heartbeat. The phase
+  > exit criterion is 2,000 lines.
   - Owner: R6 ratchet per extracted file.
 
 - [ ] **4.3 Race-class cleanup.** `Slayer.cpp`/`Vampire.cpp`/`Ousters.cpp`

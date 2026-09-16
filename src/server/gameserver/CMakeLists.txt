@@ -419,6 +419,8 @@ set(GAMESERVER_MAIN_SOURCES
     GamePacketDispatch.cpp
     main.cpp
     Zone.cpp
+    ZoneBroadcast.cpp
+    ZoneScan.cpp
     Slayer.cpp
     Vampire.cpp
     Ousters.cpp

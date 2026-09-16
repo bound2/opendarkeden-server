@@ -11,6 +11,20 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Guild union changes never reached the other game servers (2026-09-16)
+
+- **`GGCommandHandler` compared a 17-character slice of the relayed
+  message against the 15-character name `modifyunioninfo`.**
+  `GuildUnionManager::sendModifyUnionInfo` sends `*modifyunioninfo <guild
+  id>` to every other game server so that each reloads the union the guild
+  belongs to. The receiving slice always carried the space and the first
+  digit of the id as well, so it never matched, the relay was dropped
+  without a log line, and the other servers kept the old union membership
+  until the next `*refreshguildunion` (whose name is 17 characters and did
+  match). The slice is now the name's length and `opmodifyunioninfo` runs
+  on the relay as intended.
+  > **Status:** fixed (refactor/zone-split-1)
+
 ## CGWhisper wrote names its own read() refuses (2026-09-16)
 
 - **`CGWhisper::write()` bounded the name at 128 while `read()` bounds
