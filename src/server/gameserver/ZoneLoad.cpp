@@ -1,0 +1,1903 @@
+//////////////////////////////////////////////////////////////////////////////
+// FileName 	: ZoneLoad.cpp
+// Description	: Zone loading: building a zone from its map file and its database contents.
+//////////////////////////////////////////////////////////////////////////////
+
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <fstream>
+
+#include "Assert.h"
+#include "BloodBibleBonusManager.h"
+#include "CastleInfoManager.h"
+#include "CombatInfoManager.h"
+#include "Creature.h"
+#include "DarkLightInfo.h"
+#include "DefaultOptionSetInfo.h"
+#include "DynamicZone.h"
+#include "EffectAddItem.h"
+#include "EffectAddItemToCorpse.h"
+#include "EffectCallMotorcycle.h"
+#include "EffectCastingTrap.h"
+#include "EffectContinualGroundAttack.h"
+#include "EffectDarkness.h"
+#include "EffectDecayCorpse.h"
+#include "EffectDecayItem.h"
+#include "EffectDecayMotorcycle.h"
+#include "EffectDeleteItem.h"
+#include "EffectGnomesWhisper.h"
+#include "EffectHasBloodBible.h"
+#include "EffectHasCastleSymbol.h"
+#include "EffectHasSlayerRelic.h"
+#include "EffectHasVampireRelic.h"
+#include "EffectLoaderManager.h"
+#include "EffectManager.h"
+#include "EffectObservingEye.h"
+#include "EffectPKZoneRegen.h"
+#include "EffectRelicTable.h"
+#include "EffectSanctuary.h"
+#include "EffectSchedule.h"
+#include "EffectShrineGuard.h"
+#include "EffectShrineHoly.h"
+#include "EffectShrineShield.h"
+#include "EffectSlayerRelic.h"
+#include "EffectTransportItem.h"
+#include "EffectTransportItemToCorpse.h"
+#include "EffectVampirePortal.h"
+#include "EffectVampireRelic.h"
+#include "EventTransport.h"
+#include "FlagSet.h"
+#include "GCAddBat.h"
+#include "GCAddBurrowingCreature.h"
+#include "GCAddEffect.h"
+#include "GCAddEffectToTile.h"
+#include "GCAddInstalledMineToZone.h"
+#include "GCAddMonster.h"
+#include "GCAddMonsterCorpse.h"
+#include "GCAddMonsterFromBurrowing.h"
+#include "GCAddMonsterFromTransformation.h"
+#include "GCAddNPC.h"
+#include "GCAddNewItemToZone.h"
+#include "GCAddOusters.h"
+#include "GCAddOustersCorpse.h"
+#include "GCAddSlayer.h"
+#include "GCAddSlayerCorpse.h"
+#include "GCAddVampire.h"
+#include "GCAddVampireCorpse.h"
+#include "GCAddVampireFromBurrowing.h"
+#include "GCAddVampireFromTransformation.h"
+#include "GCAddVampirePortal.h"
+#include "GCAddWolf.h"
+#include "GCDeleteEffectFromTile.h"
+#include "GCDeleteObject.h"
+#include "GCDropItemToZone.h"
+#include "GCFastMove.h"
+#include "GCHolyLandBonusInfo.h"
+#include "GCKnockBack.h"
+#include "GCMineExplosionOK1.h"
+#include "GCMineExplosionOK2.h"
+#include "GCModifyInformation.h"
+#include "GCMove.h"
+#include "GCMoveError.h"
+#include "GCMoveOK.h"
+#include "GCMyStoreInfo.h"
+#include "GCNPCInfo.h"
+#include "GCNoticeEvent.h"
+#include "GCRegenZoneStatus.h"
+#include "GCRemoveEffect.h"
+#include "GCSetPosition.h"
+#include "GCSweeperBonusInfo.h"
+#include "GCSystemMessage.h"
+#include "GCUnburrowFail.h"
+#include "GCUnburrowOK.h"
+#include "GCUnionOfferList.h"
+#include "GCUntransformFail.h"
+#include "GCUntransformOK.h"
+#include "GDRLairManager.h"
+#include "GGCommand.h"
+#include "GQuestManager.h"
+#include "GamePlayer.h"
+#include "GameServerInfoManager.h"
+#include "GuildManager.h"
+#include "GuildUnion.h"
+#include "HolyLandManager.h"
+#include "Item.h"
+#include "ItemFactoryManager.h"
+#include "ItemInfo.h"
+#include "LevelWarManager.h"
+#include "LevelWarZoneInfoManager.h"
+#include "LogClient.h"
+#include "LoginServerManager.h"
+#include "MasterLairInfoManager.h"
+#include "MasterLairManager.h"
+#include "Monster.h"
+#include "MonsterCorpse.h"
+#include "MonsterManager.h"
+#include "NPC.h"
+#include "NPCInfo.h"
+#include "NPCManager.h"
+#include "NicknameBook.h"
+#include "Ousters.h"
+#include "OustersCorpse.h"
+#include "PCFinder.h"
+#include "PCManager.h"
+#include "PKZoneInfoManager.h"
+#include "PacketUtil.h"
+#include "ParkingCenter.h"
+#include "Party.h"
+#include "PaySystem.h"
+#include "Player.h"
+#include "Profile.h"
+#include "Properties.h"
+#include "QuestManager.h"
+#include "RegenZoneManager.h"
+#include "Relic.h"
+#include "RelicUtil.h"
+#include "ResurrectLocationManager.h"
+#include "ShrineInfoManager.h"
+#include "SiegeManager.h"
+#include "SkillUtil.h"
+#include "Slayer.h"
+#include "SlayerCorpse.h"
+#include "Store.h"
+#include "StringPool.h"
+#include "SweeperBonusManager.h"
+#include "TimeManager.h"
+#include "TradeManager.h"
+#include "Vampire.h"
+#include "VampireCorpse.h"
+#include "VariableManager.h"
+#include "VisionInfo.h"
+#include "War.h"
+#include "WarScheduler.h"
+#include "WarSystem.h"
+#include "WeatherManager.h"
+#include "Zone.h"
+#include "ZoneGroup.h"
+#include "ZoneInfo.h"
+#include "ZoneInfoManager.h"
+#include "ZoneInternal.h"
+#include "ZoneUtil.h"
+#include "ctf/FlagManager.h"
+#include "item/Motorcycle.h"
+#include "item/VampirePortalItem.h"
+#include "repository/ComebackEventRepository.h"
+#include "repository/MessageRepository.h"
+#include "repository/ZoneInfoRepository.h"
+
+// by sigi.  2002.12.30
+// #define __PROFILE_BROADCAST__
+
+#ifdef __PROFILE_BROADCAST__
+#define __BEGIN_PROFILE_ZONE(name) beginProfileEx(name);
+#define __END_PROFILE_ZONE(name) endProfileEx(name);
+#else
+#define __BEGIN_PROFILE_ZONE(name) ((void)0);
+#define __END_PROFILE_ZONE(name) ((void)0);
+#endif
+
+// #define __FULL_PROFILE__
+
+#ifndef __FULL_PROFILE__
+#undef beginProfileEx
+#define beginProfileEx(name) ((void)0)
+#undef endProfileEx
+#define endProfileEx(name) ((void)0)
+#endif
+
+//////////////////////////////////////////////////////////////////////////////
+// initialize zone
+//////////////////////////////////////////////////////////////////////////////
+void Zone::init()
+
+{
+    __BEGIN_TRY
+
+#ifdef __USE_ENCRYPTER__
+    int serverID = g_pConfig->getPropertyInt("ServerID");
+
+    // m_EncryptCode = (uchar)( ( ( m_ZoneID >> 8 ) ^ m_ZoneID ) ^ ( ( serverID + 1 ) << 4 ) );
+    if (!isDynamicZone()) {
+        m_EncryptCode = EncryptCode(m_ZoneID, serverID);
+    } else {
+        m_EncryptCode = EncryptCode(m_pDynamicZone->getTemplateZoneID(), serverID);
+    }
+#endif
+
+    load();
+
+    m_pWeatherManager->init();
+
+    DarkLightInfo* pDIInfo = NULL;
+
+    switch (m_ZoneType) {
+    case ZONE_NORMAL_FIELD:
+        pDIInfo = g_pDarkLightInfoManager->getCurrentDarkLightInfo(this);
+        m_DarkLevel = pDIInfo->getDarkLevel();
+        m_LightLevel = pDIInfo->getLightLevel();
+        break;
+    case ZONE_NORMAL_DUNGEON:
+    case ZONE_PC_VAMPIRE_LAIR:
+    case ZONE_NPC_VAMPIRE_LAIR:
+        m_DarkLevel = 15;
+        m_LightLevel = 6;
+        break;
+    case ZONE_SLAYER_GUILD:
+    case ZONE_RESERVED_SLAYER_GUILD:
+    case ZONE_NPC_HOME:
+    case ZONE_NPC_SHOP:
+    case ZONE_CASTLE:
+    case ZONE_RANDOM_MAP:
+        m_DarkLevel = 0;
+        m_LightLevel = 14;
+        break;
+    default:
+        pDIInfo = g_pDarkLightInfoManager->getCurrentDarkLightInfo(this);
+        m_DarkLevel = pDIInfo->getDarkLevel();
+        m_LightLevel = pDIInfo->getLightLevel();
+        break;
+    }
+
+    switch (m_ZoneID) {
+    case 1131:
+    case 1132:
+    case 1133:
+    case 1134: {
+        m_pLevelWarManager = new LevelWarManager(m_ZoneID - 1130, this);
+        m_pLevelWarManager->init();
+        break;
+    }
+
+    case 1500: {
+    } break;
+    default:
+        break;
+    }
+
+    m_bCastleZone = g_pCastleInfoManager->isCastleZone(m_ZoneID);
+
+    __END_CATCH
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// 존 파일에서 존 정보를 읽어서 로딩한다.
+//////////////////////////////////////////////////////////////////////////////
+void Zone::load(bool bOutput)
+
+{
+    __BEGIN_TRY
+    __BEGIN_DEBUG
+    try {
+        DWORD versionLen;
+        char* pVersionLen = (char*)(&versionLen);
+        WORD zoneID;
+        WORD zoneGroupID;
+        DWORD zonenameLen;
+        BYTE zoneType;
+        BYTE zoneLevel;
+        DWORD descLen;
+        char* pDesc = NULL;
+        char* version = new char[128];
+        char* zonename = new char[128];
+        char* lwrFilename = new char[256];
+
+        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(m_ZoneID);
+
+        Assert(pZoneInfo != NULL);
+
+        setPayPlay(pZoneInfo->isPayPlay());
+        setPremiumZone(pZoneInfo->isPremiumZone());
+        setPKZone(pZoneInfo->isPKZone());
+        setNoPortalZone(pZoneInfo->isNoPortalZone());
+        setMasterLair(pZoneInfo->isMasterLair());
+        setHolyLand(pZoneInfo->isHolyLand());
+
+        // Holy Land 일 경우 HolyLandManager 에 추가
+        if (isHolyLand()) {
+            g_pHolyLandManager->addHolyLand(this);
+        }
+
+        if (g_pCastleInfoManager->getCastleInfo(m_ZoneID) != NULL) {
+            setCastle(true);
+        } else {
+            setCastle(false);
+        }
+
+        // filelog("zoneInfo.txt", "[%d] %d %d", (int)m_ZoneID, (int)isPayPlay(), (int)isPremiumZone());
+
+        // SMP 정보 파일을 연다.
+        string SMPFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
+        ifstream SMP(SMPFilename.c_str(), ios::in | ios::binary);
+        if (!SMP) {
+            strcpy(lwrFilename, SMPFilename.c_str());
+            strlwr(lwrFilename);
+            SMP.open(lwrFilename, ios::in | ios::binary);
+
+            // cout << "second chk : " << lwrFilename.c_str() << endl;
+
+            if (!SMP) {
+                StringStream msg;
+                msg << SMPFilename << " not exist or cannot open it";
+                cerr << msg.toString() << endl;
+                throw FileNotExistException(msg.toString());
+            }
+        }
+
+        // read zone version
+        SMP.read(pVersionLen, szDWORD);
+        SMP.read(version, versionLen);
+        version[versionLen] = 0;
+
+        // read zone id
+        SMP.read((char*)&zoneID, szWORD);
+
+        // read zone group id (no use)
+        SMP.read((char*)&zoneGroupID, szWORD);
+
+        // read zone name
+        SMP.read((char*)&zonenameLen, szDWORD);
+        if (zonenameLen > 0) {
+            SMP.read(zonename, zonenameLen);
+            zonename[zonenameLen] = 0;
+        }
+
+        // read zone type & level
+        SMP.read((char*)&zoneType, szBYTE);
+        SMP.read((char*)&zoneLevel, szBYTE);
+
+        // read zone description
+        SMP.read((char*)&descLen, szDWORD);
+        if (descLen > 0) {
+            pDesc = new char[descLen + 1];
+            SMP.read(pDesc, descLen);
+            pDesc[descLen] = 0;
+
+            SAFE_DELETE_ARRAY(pDesc); // add '_ARRAY' moved to here.. by sigi 2002.5.2
+        }
+
+        // read zone width & height
+        SMP.read((char*)&m_Width, szWORD);
+        SMP.read((char*)&m_Height, szWORD);
+
+        Assert(m_Width <= maxZoneWidth);
+        Assert(m_Height <= maxZoneHeight);
+
+        // DEBUG by tiancaiamao
+        // cout << "szWORD: " << szWORD << " szDWORD: " << szDWORD << endl;
+        // cout << "szVersion: " << versionLen << endl;
+        // cout << "zone id: " << zoneID << " zone group id:"  << zoneGroupID << endl;
+        // cout << "zone name len:" << zonenameLen << " desc len:" << descLen << endl;
+        // cout << " type: " << (uint8_t)zoneType << " level: " << (uint8_t)zoneLevel << " width: " << m_Width << "
+        // height: " << m_Height << endl;
+
+        // 타일을 2차원배열로 만들어 메모리를 할당한다.
+        m_pTiles = new Tile*[m_Width];
+        for (uint i = 0; i < m_Width; i++) {
+            m_pTiles[i] = new Tile[m_Height];
+        }
+
+        // 섹터를 2차원 배열로 만들어 메모리를 할당한다.
+        m_SectorWidth = (int)ceil((float)m_Width / (float)SECTOR_SIZE);
+        m_SectorHeight = (int)ceil((float)m_Height / (float)SECTOR_SIZE);
+        m_pSectors = new Sector*[m_SectorWidth];
+        for (int x = 0; x < m_SectorWidth; x++) {
+            m_pSectors[x] = new Sector[m_SectorHeight];
+        }
+
+        // 각각의 타일에다가 섹터 포인터를 세팅한다.
+        for (int x = 0; x < m_Width; x++) {
+            for (int y = 0; y < m_Height; y++) {
+                int sx = x / SECTOR_SIZE;
+                int sy = y / SECTOR_SIZE;
+
+                Assert(sx < m_SectorWidth && sy < m_SectorHeight);
+
+                m_pTiles[x][y].setSector(&m_pSectors[sx][sy]);
+            }
+        }
+
+        // 섹터끼리 연결을 한다.
+        VSRect srect(0, 0, m_SectorWidth - 1, m_SectorHeight - 1);
+        for (int x = 0; x < m_SectorWidth; x++) {
+            for (int y = 0; y < m_SectorHeight; y++) {
+                for (uint d = 0; d < 9; d++) {
+                    int sectorx = x + dirMoveMask[d].x;
+                    int sectory = y + dirMoveMask[d].y;
+
+                    if (srect.ptInRect(sectorx, sectory)) {
+                        m_pSectors[x][y].setNearbySector(d, &m_pSectors[sectorx][sectory]);
+                    }
+                }
+            }
+        }
+
+        // MonsterAI를 위해 존의 영역을 구분지어놓은 사각형을 생성한다.
+        m_OuterRect.set(0, 0, m_Width - 1, m_Height - 1);
+        if (m_Width > 64 && m_Height > 64) {
+            m_InnerRect.set(15, 15, m_Width - 15, m_Height - 15);
+            m_CoreRect.set(25, 25, m_Width - 25, m_Height - 25);
+        } else {
+            m_InnerRect = m_CoreRect = m_OuterRect;
+        }
+
+        char str[80];
+        char str2[80];
+
+        for (ZoneCoord_t y = 0; y < m_Height; y++) {
+            for (ZoneCoord_t x = 0; x < m_Width; x++) {
+                BYTE flag = 0;
+                SMP.read((char*)&flag, szBYTE);
+
+                // 순서대로 지하, 지상, 공중 블록
+                if (flag & 0x01)
+                    m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_BURROWING);
+                if (flag & 0x02)
+                    m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_WALKING);
+                if (flag & 0x04)
+                    m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_FLYING);
+
+                // 아무것도 없는 경우..
+                // 몹 생성을 위한 좌표정보를 만들어둔다.
+                if (flag == 0 && m_InnerRect.ptInRect(x, y)) {
+                    m_MonsterRegenPositions.push_back(BPOINT((BYTE)x, (BYTE)y));
+                }
+
+                // 마스터 레어인 경우: block이 하나라도 안 된 곳을 찾는다.
+                if ((flag & 0x07) != 0x07 && (isMasterLair() || m_ZoneID == 3002)) {
+                    m_EmptyTilePositions.push_back(BPOINT((BYTE)x, (BYTE)y));
+                }
+
+                // 포탈 정보
+                if (flag & 0x80) {
+                    BYTE type;
+                    ZoneID_t targetZoneID;
+                    BYTE targetX, targetY;
+                    SMP.read((char*)&type, szBYTE);
+
+                    PortalType_t portalType = PORTAL_NORMAL;
+
+                    bool bAddPortal = true;
+
+                    if (type == PORTAL_NORMAL) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        NormalPortal* pNormalPortal = new NormalPortal();
+                        pNormalPortal->setObjectType(PORTAL_NORMAL);
+                        pNormalPortal->setZoneID(targetZoneID);
+                        pNormalPortal->setX(targetX);
+                        pNormalPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pNormalPortal);
+                        m_pTiles[x][y].addPortal(pNormalPortal);
+
+                        if (bOutput) {
+                            cout << "Normal(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else if (type == PORTAL_SLAYER) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        NormalPortal* pNormalPortal = new NormalPortal();
+                        pNormalPortal->setObjectType(PORTAL_SLAYER);
+                        pNormalPortal->setZoneID(targetZoneID);
+                        pNormalPortal->setX(targetX);
+                        pNormalPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pNormalPortal);
+                        m_pTiles[x][y].addPortal(pNormalPortal);
+
+                        portalType = PORTAL_SLAYER;
+
+                        if (bOutput) {
+                            cout << "Slayer(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else if (type == PORTAL_VAMPIRE) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        NormalPortal* pNormalPortal = new NormalPortal();
+                        pNormalPortal->setObjectType(PORTAL_VAMPIRE);
+                        pNormalPortal->setZoneID(targetZoneID);
+                        pNormalPortal->setX(targetX);
+                        pNormalPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pNormalPortal);
+                        m_pTiles[x][y].addPortal(pNormalPortal);
+
+                        portalType = PORTAL_VAMPIRE;
+
+                        if (bOutput) {
+                            cout << "Vampire(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else if (type == PORTAL_MULTI_TARGET) {
+                        BYTE size;
+                        SMP.read((char*)&size, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        MultiPortal* pMultiPortal = new MultiPortal();
+
+                        for (int i = 0; i < size; i++) {
+                            SMP.read((char*)&targetZoneID, szZoneID);
+                            SMP.read((char*)&targetX, szBYTE);
+                            SMP.read((char*)&targetY, szBYTE);
+
+                            pMultiPortal->setObjectType(PORTAL_SLAYER);
+
+                            // 타겟 인포를 구성한다.
+                            PortalTargetInfo* pPortalTargetInfo = new PortalTargetInfo();
+                            pPortalTargetInfo->setZoneID(targetZoneID);
+                            pPortalTargetInfo->setX(targetX);
+                            pPortalTargetInfo->setY(targetY);
+                            pMultiPortal->setPortalTargetInfo(pPortalTargetInfo);
+                        }
+
+                        getObjectRegistry().registerObject(pMultiPortal);
+                        m_pTiles[x][y].addPortal(pMultiPortal);
+
+                        portalType = PORTAL_SLAYER;
+
+                        if (bOutput) {
+                            cout << "Multi(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else if (type == PORTAL_GUILD) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        GuildPortal* pGuildPortal = new GuildPortal();
+                        pGuildPortal->setObjectType(PORTAL_GUILD);
+                        pGuildPortal->setZoneID(targetZoneID);
+                        pGuildPortal->setX(targetX);
+                        pGuildPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pGuildPortal);
+                        m_pTiles[x][y].addPortal(pGuildPortal);
+
+                        if (bOutput) {
+                            cout << "Guild(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+
+                    } else if (type == PORTAL_BATTLE) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        NormalPortal* pNormalPortal = new NormalPortal();
+                        pNormalPortal->setObjectType(PORTAL_NORMAL);
+                        pNormalPortal->setZoneID(targetZoneID);
+                        pNormalPortal->setX(targetX);
+                        pNormalPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pNormalPortal);
+                        m_pTiles[x][y].addPortal(pNormalPortal);
+
+                        if (bOutput) {
+                            cout << "Battle(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else if (type == PORTAL_OUSTERS) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        NormalPortal* pNormalPortal = new NormalPortal();
+                        pNormalPortal->setObjectType(PORTAL_OUSTERS);
+                        pNormalPortal->setZoneID(targetZoneID);
+                        pNormalPortal->setX(targetX);
+                        pNormalPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pNormalPortal);
+                        m_pTiles[x][y].addPortal(pNormalPortal);
+
+                        portalType = PORTAL_OUSTERS;
+
+                        if (bOutput) {
+                            cout << "Ousters(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else {
+                        bAddPortal = false;
+                    }
+
+                    // 포탈이 추가된 경우에
+                    // 목적지 존이 유료존이라면
+                    // TriggeredPortal을 설정해야 한다.
+                    if (bAddPortal) {
+                        ZoneInfo* pTargetZoneInfo = NULL;
+                        try {
+                            pTargetZoneInfo = g_pZoneInfoManager->getZoneInfo(targetZoneID);
+                        } catch (NoSuchElementException& t) {
+                            throw Error("No such zone");
+                        }
+
+                        Assert(pTargetZoneInfo != NULL);
+
+                        // 기존의 Portal을 지울까?
+                        bool bDeleteOldPortal = false;
+
+                        if ((pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) ||
+                            pTargetZoneInfo->isMasterLair() ||
+                            (pTargetZoneInfo->isCastle() &&
+                             !g_pCastleInfoManager->isCastleZone(targetZoneID, m_ZoneID)) ||
+                            (pTargetZoneInfo->isHolyLand() && !pZoneInfo->isHolyLand()) ||
+                            (isCastle() &&
+                             g_pCastleInfoManager->isCastleZone(m_ZoneID, pTargetZoneInfo->getZoneID()))) {
+                            bDeleteOldPortal = true;
+                        }
+
+                        Tile& rTile = m_pTiles[x][y];
+
+                        // 기존의 Portal을 지우는 경우
+                        if (bDeleteOldPortal) {
+                            // 기존에 있던 portal을 제거한다.
+                            if (rTile.hasPortal()) {
+                                Portal* pOldPortal = rTile.getPortal();
+                                rTile.deletePortal();
+
+                                delete pOldPortal;
+                            }
+                        }
+
+                        // 포탈을 생성하고, 등록한다.
+
+                        //----------------------------------------
+                        // 마스터 레어인 경우
+                        // by sigi. 2002.9.2
+                        //----------------------------------------
+                        if (pTargetZoneInfo->isMasterLair()) {
+                            TriggeredPortal* pPortal = new TriggeredPortal();
+                            getObjectRegistry().registerObject(pPortal);
+
+                            // 포탈 내용을 로드한다.
+                            pPortal->setObjectType(portalType);
+
+                            // pPortal->load(m_ZoneID, left, top, right, bottom);
+                            TriggerManager& tm = pPortal->getTriggerManager();
+
+                            Trigger* pTrigger = new Trigger();
+
+                            pTrigger->setTriggerID(0); // 의미없다.
+
+                            pTrigger->setTriggerType("QUEST");
+
+                            sprintf(str, "ConditionType : EnterMasterLair\n\t TargetZoneID : %d\n\t",
+                                    (int)pTargetZoneInfo->getZoneID());
+                            pTrigger->setConditions(str);
+                            sprintf(str, "ActionType : ActivatePortal\n\t ZoneID : %d\n\t X : %d\n\t Y : %d\n\t",
+                                    targetZoneID, targetX, targetY);
+                            pTrigger->setActions(str);
+
+                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
+                            //                                        g_pStringPool->c_str( STRID_CANNOT_ENTER ) );
+                            sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER);
+
+                            pTrigger->setCounterActions(str2);
+
+                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
+                            //: 지금은 들어갈 수 없습니다.");
+
+                            tm.addTrigger(pTrigger);
+
+                            // 타일에다 포탈을 붙인다.
+                            rTile.addPortal(pPortal);
+
+                            // cout << "[" << (int)pTargetZoneInfo->getZoneID() << "] is MasterLair"
+                            //	 << endl;
+                        }
+                        //----------------------------------------
+                        // 아담의 성지로 들어갈려고 할 때
+                        //----------------------------------------
+                        else if (pTargetZoneInfo->isHolyLand() && !pZoneInfo->isHolyLand()) {
+                            TriggeredPortal* pPortal = new TriggeredPortal();
+                            getObjectRegistry().registerObject(pPortal);
+
+                            // 포탈 내용을 로드한다.
+                            pPortal->setObjectType(portalType);
+
+                            // pPortal->load(m_ZoneID, left, top, right, bottom);
+                            TriggerManager& tm = pPortal->getTriggerManager();
+
+                            Trigger* pTrigger = new Trigger();
+
+                            pTrigger->setTriggerID(0); // 의미없다.
+
+                            pTrigger->setTriggerType("QUEST");
+
+                            sprintf(str, "ConditionType : EnterHolyLand\n\t TargetZoneID : %d\n\t",
+                                    (int)pTargetZoneInfo->getZoneID());
+                            pTrigger->setConditions(str);
+                            sprintf(str, "ActionType : ActivatePortal\n\t ZoneID : %d\n\t X : %d\n\t Y : %d\n\t",
+                                    targetZoneID, targetX, targetY);
+                            pTrigger->setActions(str);
+
+                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
+                            //                                        g_pStringPool->c_str(
+                            //                                        STRID_CANNOT_ENTER_DURING_RACE_WAR ) );
+                            sprintf(str2, "ActionType : SystemMessage\n\t Content : %d",
+                                    STRID_CANNOT_ENTER_DURING_RACE_WAR);
+
+
+                            pTrigger->setCounterActions(str2);
+
+                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
+                            //: 종족전쟁 중에는 신청을 하지 않았으면 들어갈 수 없습니다.");
+
+                            tm.addTrigger(pTrigger);
+
+                            // 타일에다 포탈을 붙인다.
+                            rTile.addPortal(pPortal);
+
+                            // cout << "[" << (int)pTargetZoneInfo->getZoneID() << "] is MasterLair"
+                            //	 << endl;
+                        }
+                        //----------------------------------------
+                        // 성 밖에서 성 안으로 들어가는 경우
+                        // isCastleZone 은 성 안에 포함되는 존들인지 체크한다.
+                        // (성 던전도 성 안이다)
+                        // by bezz, Sequoia 2003. 1.20.
+                        //----------------------------------------
+                        else if (pTargetZoneInfo->isCastle() &&
+                                 !g_pCastleInfoManager->isCastleZone(targetZoneID, m_ZoneID)) {
+                            TriggeredPortal* pPortal = new TriggeredPortal();
+                            getObjectRegistry().registerObject(pPortal);
+
+                            // 포탈 내용을 로드한다.
+                            pPortal->setObjectType(portalType);
+
+                            // pPortal->load(m_ZoneID, left, top, right, bottom);
+                            TriggerManager& tm = pPortal->getTriggerManager();
+
+                            Trigger* pTrigger = new Trigger();
+
+                            pTrigger->setTriggerID(0); // 의미없다.
+
+                            pTrigger->setTriggerType("QUEST");
+
+                            sprintf(str, "ConditionType : EnterCastle\n\t TargetZoneID : %d\n\t",
+                                    (int)pTargetZoneInfo->getZoneID());
+                            pTrigger->setConditions(str);
+                            sprintf(str, "ActionType : ActivatePortal\n\t ZoneID : %d\n\t X : %d\n\t Y : %d\n\t",
+                                    targetZoneID, targetX, targetY);
+                            pTrigger->setActions(str);
+
+                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
+                            //                                        g_pStringPool->c_str( STRID_CANNOT_ENTER ) );
+                            sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER);
+
+                            pTrigger->setCounterActions(str2);
+
+                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
+                            //: 들어가실 수 없습니다.");
+
+                            tm.addTrigger(pTrigger);
+
+                            // 타일에다 포탈을 붙인다.
+                            rTile.addPortal(pPortal);
+
+                            // cout << "[" << (int)pTargetZoneInfo->getZoneID() << "] is MasterLair"
+                            //	 << endl;
+                        }
+                        //----------------------------------------
+                        // 성 지하 던젼으로 들어가는 입구
+                        // by Sequoia
+                        //----------------------------------------
+                        else if (isCastle() &&
+                                 g_pCastleInfoManager->isCastleZone(m_ZoneID, pTargetZoneInfo->getZoneID())) {
+                            TriggeredPortal* pPortal = new TriggeredPortal();
+                            getObjectRegistry().registerObject(pPortal);
+
+                            // 포탈 내용을 로드한다.
+                            pPortal->setObjectType(portalType);
+
+                            // pPortal->load(m_ZoneID, left, top, right, bottom);
+                            TriggerManager& tm = pPortal->getTriggerManager();
+
+                            Trigger* pTrigger = new Trigger();
+
+                            pTrigger->setTriggerID(0); // 의미없다.
+                            pTrigger->setTriggerType("QUEST");
+
+                            sprintf(str, "ConditionType : EnterCastleDungeon\n\t CastleZoneID : %d\n\t", m_ZoneID);
+                            pTrigger->setConditions(str);
+                            sprintf(str, "ActionType : ActivatePortal\n\t ZoneID : %d\n\t X : %d\n\t Y : %d\n\t",
+                                    targetZoneID, targetX, targetY);
+                            pTrigger->setActions(str);
+
+                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
+                            //                                        g_pStringPool->c_str(
+                            //                                        STRID_CANNOT_ENTER_NOT_OWNER_GUILD ) );
+                            sprintf(str2, "ActionType : SystemMessage\n\t Content : %d",
+                                    STRID_CANNOT_ENTER_NOT_OWNER_GUILD);
+
+                            pTrigger->setCounterActions(str2);
+
+                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
+                            //: 성 주인인 길드원이 아니면 들어가실 수 없습니다.");
+
+                            tm.addTrigger(pTrigger);
+                            rTile.addPortal(pPortal);
+                        }
+                        //----------------------------------------
+                        // 유료 존인 경우
+                        //----------------------------------------
+                        else if (pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) {
+                            TriggeredPortal* pPortal = new TriggeredPortal();
+                            getObjectRegistry().registerObject(pPortal);
+
+                            // 포탈 내용을 로드한다.
+                            pPortal->setObjectType(portalType);
+
+                            // pPortal->load(m_ZoneID, left, top, right, bottom);
+                            TriggerManager& tm = pPortal->getTriggerManager();
+
+                            Trigger* pTrigger = new Trigger();
+
+                            pTrigger->setTriggerID(0); // 의미없다.
+
+                            pTrigger->setTriggerType("QUEST");
+                            pTrigger->setConditions("ConditionType : CanEnterPayZone\n\t");
+                            sprintf(str, "ActionType : ActivatePortal\n\t ZoneID : %d\n\t X : %d\n\t Y : %d\n\t",
+                                    targetZoneID, targetX, targetY);
+                            pTrigger->setActions(str);
+
+                            // by sigi. 2002.10.30
+                            if (g_pConfig->getPropertyInt("IsNetMarble") == 0) {
+                                //                            sprintf( str2, "ActionType : SystemMessage\n\t Content :
+                                //                            %s",
+                                //                                            g_pStringPool->c_str(
+                                //                                            STRID_CANNOT_ENTER_PAY_ZONE ) );
+                                sprintf(str2, "ActionType : SystemMessage\n\t Content : %d",
+                                        STRID_CANNOT_ENTER_PAY_ZONE);
+
+                                pTrigger->setCounterActions(str2);
+
+                                //							pTrigger->setCounterActions("ActionType : SystemMessage\n\t
+                                // Content : 유료존이라서 들어갈 수 없습니다.");
+                            } else {
+                                //                            sprintf( str2, "ActionType : SystemMessage\n\t Content :
+                                //                            %s",
+                                //                                           g_pStringPool->c_str( STRID_CANNOT_ENTER )
+                                //                                           );
+                                sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER);
+
+                                pTrigger->setCounterActions(str2);
+
+                                //							pTrigger->setCounterActions("ActionType : SystemMessage\n\t
+                                // Content : 지금은 갈 수 없습니다.");
+                            }
+
+                            tm.addTrigger(pTrigger);
+
+                            // 타일에다 포탈을 붙인다.
+                            rTile.addPortal(pPortal);
+                        }
+                    }
+                } // if (flag & 0x80)
+            } // for
+        } // for
+
+        SMP.close();
+
+        ///*
+        if (m_MonsterRegenPositions.size() == 0) {
+            printf("MonsterRegenPosition not exist: Width = %d, Height = %d\n", (int)m_Width, (int)m_Height);
+
+            // Assert(m_MonsterRegenPositions.size()!=0);
+
+            ZoneCoord_t outerMinX = m_Width / 7;
+            ZoneCoord_t outerMinY = m_Height / 7;
+            ZoneCoord_t outerMaxX = m_Width - outerMinX;
+            ZoneCoord_t outerMaxY = m_Width - outerMinY;
+
+            for (ZoneCoord_t y = outerMinY; y < outerMaxY; y++) {
+                for (ZoneCoord_t x = outerMinX; x < outerMaxX; x++) {
+                    Tile& rTile = m_pTiles[x][y];
+
+                    if (!rTile.hasPortal() && !rTile.isGroundBlocked() && !rTile.isAirBlocked() &&
+                        !rTile.isUndergroundBlocked()) {
+                        m_MonsterRegenPositions.push_back(BPOINT((BYTE)x, (BYTE)y));
+                    }
+                }
+            }
+
+            Assert(m_MonsterRegenPositions.size() != 0);
+        }
+
+        if (isDynamicZone()) {
+            cout << "MonsterRegenPositions(" << m_ZoneID << "," << m_MonsterRegenPositions.size() << ")" << endl;
+        }
+
+        if ((isMasterLair() || m_ZoneID == 3002) && m_EmptyTilePositions.size() == 0) {
+            printf("MasterLair has No EmptyTilePosition\n");
+            Assert(m_EmptyTilePositions.size() != 0);
+        }
+        //*/
+
+        // Zone 정보를 세팅한다.
+        m_ZoneType = pZoneInfo->getZoneType();
+        m_ZoneLevel = pZoneInfo->getZoneLevel();
+
+        // 메모리 할당해주고...
+        m_ppLevel = new ZoneLevel_t*[m_Width];
+        for (uint i = 0; i < m_Width; i++)
+            m_ppLevel[i] = new ZoneLevel_t[m_Height];
+
+        // 존 레벨을 디폴트 값으로 초기화시킨다.
+        for (ZoneCoord_t x = 0; x < m_Width; x++)
+            for (ZoneCoord_t y = 0; y < m_Height; y++)
+                m_ppLevel[x][y] = m_ZoneLevel;
+
+        // SSI 정보 파일을 연다.
+        string SSIFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSSIFilename();
+        ifstream SSI(SSIFilename.c_str(), ios::in | ios::binary);
+        if (!SSI) {
+            strcpy(lwrFilename, SSIFilename.c_str());
+            strlwr(lwrFilename);
+            SSI.open(lwrFilename, ios::in | ios::binary);
+
+            // cout << "second chk : " << lwrFilename.c_str() << endl;
+
+            if (!SSI) {
+                StringStream msg;
+                msg << SSIFilename << " not exist or cannot open it";
+                throw FileNotExistException(msg.toString());
+            }
+        }
+
+        int size = 0;
+        SSI.read((char*)&size, szint);
+
+        BYTE left, top, right, bottom, level;
+        for (int i = 0; i < size; i++) {
+            SSI.read((char*)&level, szBYTE);
+            SSI.read((char*)&left, szBYTE);
+            SSI.read((char*)&top, szBYTE);
+            SSI.read((char*)&right, szBYTE);
+            SSI.read((char*)&bottom, szBYTE);
+
+            if (bOutput) {
+                cout << "LEVEL:" << (int)level << ",(" << (int)left << "," << (int)top << "," << (int)right << ","
+                     << (int)bottom << ")" << endl;
+            }
+
+            Assert(left <= right);
+            Assert(top <= bottom);
+
+            for (int bx = left; bx <= right; bx++)
+                for (int by = top; by <= bottom; by++)
+                    m_ppLevel[bx][by] = level;
+        }
+
+        SSI.close();
+
+        // 트리거드 포탈을 로드한다.
+        loadTriggeredPortal();
+
+        // 몬스터 로드하고....
+        m_pMonsterManager->load();
+
+
+        // #ifdef __XMAS_EVENT_CODE__
+        //	printf("Begin Event Monster Loading\n");
+        //	m_pEventMonsterManager->load();
+        //	printf("Event Monster Loading Completed\n");
+        // #endif
+
+        // 마스터 레어인 경우
+        // by sigi. 2002.9.2
+        if (pZoneInfo->isMasterLair()) {
+            SAFE_DELETE(m_pMasterLairManager);
+            m_pMasterLairManager = new MasterLairManager(this);
+        }
+
+        // 성인 경우
+        // by sigi. 2003.1.24
+        if (isCastle()) {
+            SAFE_DELETE(m_pWarScheduler);
+            m_pWarScheduler = new WarScheduler(this);
+            m_pWarScheduler->load();
+
+            printf("[%d] Castle : WarScheduler->load\n", (int)getZoneID());
+        }
+
+        // 아이템 로드한다.
+        loadItem();
+
+        //	if (isCastle())
+        //	{
+        //		CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( m_ZoneID );
+        //		m_pNPCManager->load( m_ZoneID, pCastleInfo->getRace() );
+        //	}
+        //	else
+        //	{
+        // NPC 를 로딩한다.
+        m_pNPCManager->load(m_ZoneID);
+        //	}
+
+        loadEffect();
+
+        // 게시판을 로드한다.
+        loadBulletinBoard(this);
+
+        // 스프라이트 갯수를 초기화한다.
+        initSpriteCount();
+
+        SAFE_DELETE(version);
+        SAFE_DELETE(zonename);
+        SAFE_DELETE(lwrFilename);
+
+        /*	if ( m_ZoneID == 1410 )
+            {
+                EffectCastingIcicleTrap* pEffect = new EffectCastingIcicleTrap( Effect::EFFECT_CLASS_ICICLE_DROP, this
+           ); registerObject( pEffect );
+
+                pEffect->setStartXY( 116, 66 );
+                pEffect->setLength( 48 );
+                pEffect->setTick( 5 );
+                pEffect->setUnit( 5 );
+                pEffect->setDir( 7 );
+
+                pEffect->setNextTime(0);
+                pEffect->setDeadline(600);
+                addEffect( pEffect );
+            }*/
+
+    } catch (Throwable& t) {
+        cout << t.toString() << endl;
+        Assert(false);
+    }
+
+    __END_DEBUG
+    __END_CATCH
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// 존 파일에서 존 정보를 읽어서 로딩한다.
+//////////////////////////////////////////////////////////////////////////////
+void Zone::reload(bool bOutput)
+
+{
+    __BEGIN_TRY
+    __BEGIN_DEBUG
+    try {
+        DWORD versionLen;
+        char version[128];
+        WORD zoneID;
+        WORD zoneGroupID;
+        DWORD zonenameLen;
+        char zonename[128];
+        BYTE zoneType;
+        BYTE zoneLevel;
+        DWORD descLen;
+        char* pDesc = NULL;
+        char lwrFilename[256];
+
+        ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo(m_ZoneID);
+
+        Assert(pZoneInfo != NULL);
+
+        setPayPlay(pZoneInfo->isPayPlay());
+        setPremiumZone(pZoneInfo->isPremiumZone());
+        setPKZone(pZoneInfo->isPKZone());
+        setNoPortalZone(pZoneInfo->isNoPortalZone());
+        setMasterLair(pZoneInfo->isMasterLair());
+
+        // filelog("zoneInfo.txt", "[%d] %d %d", (int)m_ZoneID, (int)isPayPlay(), (int)isPremiumZone());
+
+        // SMP 정보 파일을 연다.
+        string SMPFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
+        ifstream SMP(SMPFilename.c_str(), ios::in | ios::binary);
+        if (!SMP) {
+            strcpy(lwrFilename, SMPFilename.c_str());
+            strlwr(lwrFilename);
+            SMP.open(lwrFilename, ios::in | ios::binary);
+
+            // cout << "second chk : " << lwrFilename << endl;
+
+            if (!SMP) {
+                StringStream msg;
+                msg << SMPFilename << " not exist or cannot open it";
+                cerr << msg.toString() << endl;
+                throw FileNotExistException(msg.toString());
+            }
+        }
+
+        // read zone version
+        SMP.read((char*)&versionLen, szDWORD);
+        SMP.read(version, versionLen);
+        version[versionLen] = 0;
+
+        // read zone id
+        SMP.read((char*)&zoneID, szWORD);
+
+        // read zone group id (no use)
+        SMP.read((char*)&zoneGroupID, szWORD);
+
+        // read zone name
+        SMP.read((char*)&zonenameLen, szDWORD);
+        if (zonenameLen > 0) {
+            SMP.read(zonename, zonenameLen);
+            zonename[zonenameLen] = 0;
+        }
+
+        // read zone type & level
+        SMP.read((char*)&zoneType, szBYTE);
+        SMP.read((char*)&zoneLevel, szBYTE);
+
+        // read zone description
+        SMP.read((char*)&descLen, szDWORD);
+        if (descLen > 0) {
+            pDesc = new char[descLen + 1];
+            SMP.read(pDesc, descLen);
+            pDesc[descLen] = 0;
+
+            SAFE_DELETE_ARRAY(pDesc); // add '_ARRAY' moved to here.. by sigi 2002.5.2
+        }
+
+        // read zone width & height
+        SMP.read((char*)&m_Width, szWORD);
+        SMP.read((char*)&m_Height, szWORD);
+
+        Assert(m_Width <= maxZoneWidth);
+        Assert(m_Height <= maxZoneHeight);
+
+        uint i, x;
+
+
+        if (m_pSectors == NULL) {
+            // 섹터를 2차원 배열로 만들어 메모리를 할당한다.
+            m_SectorWidth = (int)ceil((float)m_Width / (float)SECTOR_SIZE);
+            m_SectorHeight = (int)ceil((float)m_Height / (float)SECTOR_SIZE);
+            m_pSectors = new Sector*[m_SectorWidth];
+            for (x = 0; (int)x < m_SectorWidth; x++) {
+                m_pSectors[x] = new Sector[m_SectorHeight];
+            }
+
+            // 섹터끼리 연결을 한다.
+            VSRect srect(0, 0, m_SectorWidth - 1, m_SectorHeight - 1);
+            for (int x = 0; x < m_SectorWidth; x++) {
+                for (int y = 0; y < m_SectorHeight; y++) {
+                    for (uint d = 0; d < 9; d++) {
+                        int sectorx = x + dirMoveMask[d].x;
+                        int sectory = y + dirMoveMask[d].y;
+
+                        if (srect.ptInRect(sectorx, sectory)) {
+                            m_pSectors[x][y].setNearbySector(d, &m_pSectors[sectorx][sectory]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // m_pTiles 가 이미 없다면...
+        if (m_pTiles == NULL) {
+            // 타일을 2차원배열로 만들어 메모리를 할당한다.
+            m_pTiles = new Tile*[m_Width];
+            for (i = 0; i < m_Width; i++) {
+                m_pTiles[i] = new Tile[m_Height];
+            }
+
+            // 각각의 타일에다가 섹터 포인터를 세팅한다.
+            for (int x = 0; x < m_Width; x++) {
+                for (int y = 0; y < m_Height; y++) {
+                    int sx = x / SECTOR_SIZE;
+                    int sy = y / SECTOR_SIZE;
+
+                    Assert(sx < m_SectorWidth && sy < m_SectorHeight);
+
+                    m_pTiles[x][y].setSector(&m_pSectors[sx][sy]);
+                }
+            }
+        }
+
+        // MonsterAI를 위해 존의 영역을 구분지어놓은 사각형을 생성한다.
+        m_OuterRect.set(0, 0, m_Width - 1, m_Height - 1);
+        if (m_Width > 64 && m_Height > 64) {
+            m_InnerRect.set(15, 15, m_Width - 15, m_Height - 15);
+            m_CoreRect.set(25, 25, m_Width - 25, m_Height - 25);
+        } else {
+            m_InnerRect = m_CoreRect = m_OuterRect;
+        }
+
+
+        char str[80];
+        char str2[80];
+
+        // 다시~
+        m_MonsterRegenPositions.clear();
+        m_EmptyTilePositions.clear();
+
+        for (ZoneCoord_t y = 0; y < m_Height; y++) {
+            for (ZoneCoord_t x = 0; x < m_Width; x++) {
+                BYTE flag = 0;
+                SMP.read((char*)&flag, szBYTE);
+
+                // 순서대로 지하, 지상, 공중 블록
+                if (flag & 0x01)
+                    m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_BURROWING);
+                if (flag & 0x02)
+                    m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_WALKING);
+                if (flag & 0x04)
+                    m_pTiles[x][y].setBlocked(Creature::MOVE_MODE_FLYING);
+
+                // 아무것도 없는 경우..
+                // 몹 생성을 위한 좌표정보를 만들어둔다.
+                if (flag == 0 && m_InnerRect.ptInRect(x, y)) {
+                    m_MonsterRegenPositions.push_back(BPOINT((BYTE)x, (BYTE)y));
+                }
+
+                // 마스터 레어인 경우: block이 하나라도 안 된 곳을 찾는다.
+                if ((flag & 0x07) != 0x07 && (isMasterLair() || m_ZoneID == 3002)) {
+                    m_EmptyTilePositions.push_back(BPOINT((BYTE)x, (BYTE)y));
+                }
+
+                // 포탈 정보
+                if (flag & 0x80) {
+                    BYTE type;
+                    ZoneID_t targetZoneID;
+                    BYTE targetX, targetY;
+                    SMP.read((char*)&type, szBYTE);
+
+                    PortalType_t portalType = PORTAL_NORMAL;
+
+                    bool bAddPortal = true;
+
+                    // 이미 포탈이 있다면 기존의 포탈을 지워준다.
+                    if (m_pTiles[x][y].hasPortal()) {
+                        Portal* pPortal = m_pTiles[x][y].getPortal();
+                        SAFE_DELETE(pPortal);
+                        m_pTiles[x][y].deletePortal();
+                    }
+
+                    if (type == PORTAL_NORMAL) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        NormalPortal* pNormalPortal = new NormalPortal();
+                        pNormalPortal->setObjectType(PORTAL_NORMAL);
+                        pNormalPortal->setZoneID(targetZoneID);
+                        pNormalPortal->setX(targetX);
+                        pNormalPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pNormalPortal);
+                        m_pTiles[x][y].addPortal(pNormalPortal);
+
+                        if (bOutput) {
+                            cout << "Normal(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else if (type == PORTAL_SLAYER) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        NormalPortal* pNormalPortal = new NormalPortal();
+                        pNormalPortal->setObjectType(PORTAL_SLAYER);
+                        pNormalPortal->setZoneID(targetZoneID);
+                        pNormalPortal->setX(targetX);
+                        pNormalPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pNormalPortal);
+                        m_pTiles[x][y].addPortal(pNormalPortal);
+
+                        portalType = PORTAL_SLAYER;
+
+                        if (bOutput) {
+                            cout << "Slayer(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else if (type == PORTAL_VAMPIRE) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        NormalPortal* pNormalPortal = new NormalPortal();
+                        pNormalPortal->setObjectType(PORTAL_VAMPIRE);
+                        pNormalPortal->setZoneID(targetZoneID);
+                        pNormalPortal->setX(targetX);
+                        pNormalPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pNormalPortal);
+                        m_pTiles[x][y].addPortal(pNormalPortal);
+
+                        portalType = PORTAL_VAMPIRE;
+
+                        if (bOutput) {
+                            cout << "Vampire(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else if (type == PORTAL_MULTI_TARGET) {
+                        BYTE size;
+                        SMP.read((char*)&size, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        MultiPortal* pMultiPortal = new MultiPortal();
+
+                        for (int i = 0; i < size; i++) {
+                            SMP.read((char*)&targetZoneID, szZoneID);
+                            SMP.read((char*)&targetX, szBYTE);
+                            SMP.read((char*)&targetY, szBYTE);
+
+                            pMultiPortal->setObjectType(PORTAL_SLAYER);
+
+                            // 타겟 인포를 구성한다.
+                            PortalTargetInfo* pPortalTargetInfo = new PortalTargetInfo();
+                            pPortalTargetInfo->setZoneID(targetZoneID);
+                            pPortalTargetInfo->setX(targetX);
+                            pPortalTargetInfo->setY(targetY);
+                            pMultiPortal->setPortalTargetInfo(pPortalTargetInfo);
+                        }
+
+                        getObjectRegistry().registerObject(pMultiPortal);
+                        m_pTiles[x][y].addPortal(pMultiPortal);
+
+                        portalType = PORTAL_SLAYER;
+
+                        if (bOutput) {
+                            cout << "Multi(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else if (type == PORTAL_GUILD) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        GuildPortal* pGuildPortal = new GuildPortal();
+                        pGuildPortal->setObjectType(PORTAL_GUILD);
+                        pGuildPortal->setZoneID(targetZoneID);
+                        pGuildPortal->setX(targetX);
+                        pGuildPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pGuildPortal);
+                        m_pTiles[x][y].addPortal(pGuildPortal);
+
+                        if (bOutput) {
+                            cout << "Guild(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+
+                    } else if (type == PORTAL_BATTLE) {
+                        SMP.read((char*)&targetZoneID, szZoneID);
+                        SMP.read((char*)&targetX, szBYTE);
+                        SMP.read((char*)&targetY, szBYTE);
+
+                        // 포탈을 생성해 준다.
+                        NormalPortal* pNormalPortal = new NormalPortal();
+                        pNormalPortal->setObjectType(PORTAL_NORMAL);
+                        pNormalPortal->setZoneID(targetZoneID);
+                        pNormalPortal->setX(targetX);
+                        pNormalPortal->setY(targetY);
+
+                        getObjectRegistry().registerObject(pNormalPortal);
+                        m_pTiles[x][y].addPortal(pNormalPortal);
+
+                        if (bOutput) {
+                            cout << "Slayer(" << (int)x << "," << (int)y << "," << (int)targetZoneID << ","
+                                 << (int)targetX << "," << (int)targetY << ")" << endl;
+                        }
+                    } else {
+                        bAddPortal = false;
+                    }
+
+                    // 포탈이 추가된 경우에
+                    // 목적지 존이 유료존이라면
+                    // TriggeredPortal을 설정해야 한다.
+                    if (bAddPortal) {
+                        ZoneInfo* pTargetZoneInfo = NULL;
+                        try {
+                            pTargetZoneInfo = g_pZoneInfoManager->getZoneInfo(targetZoneID);
+                        } catch (NoSuchElementException& t) {
+                            throw Error("No such zone");
+                        }
+
+                        Assert(pTargetZoneInfo != NULL);
+
+                        // 기존의 Portal을 지울까?
+                        bool bDeleteOldPortal = false;
+
+                        if ((pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) ||
+                            pTargetZoneInfo->isMasterLair() ||
+                            (pTargetZoneInfo->isCastle() &&
+                             !g_pCastleInfoManager->isCastleZone(targetZoneID, m_ZoneID)) ||
+                            (pTargetZoneInfo->isHolyLand() && !pZoneInfo->isHolyLand()) ||
+                            (isCastle() &&
+                             g_pCastleInfoManager->isCastleZone(m_ZoneID, pTargetZoneInfo->getZoneID()))) {
+                            bDeleteOldPortal = true;
+                        }
+
+                        /*					if (( pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay() )
+                                                || pTargetZoneInfo->isMasterLair())
+                                            {
+                                                bDeleteOldPortal = true;
+                                            }*/
+
+                        Tile& rTile = m_pTiles[x][y];
+
+                        // 기존의 Portal을 지우는 경우
+                        if (bDeleteOldPortal) {
+                            // 기존에 있던 portal을 제거한다.
+                            if (rTile.hasPortal()) {
+                                Portal* pOldPortal = rTile.getPortal();
+                                rTile.deletePortal();
+
+                                delete pOldPortal;
+                            }
+                        }
+
+                        // 포탈을 생성하고, 등록한다.
+
+                        //----------------------------------------
+                        // 마스터 레어인 경우
+                        // by sigi. 2002.9.2
+                        //----------------------------------------
+                        if (pTargetZoneInfo->isMasterLair()) {
+                            TriggeredPortal* pPortal = new TriggeredPortal();
+                            getObjectRegistry().registerObject(pPortal);
+
+                            // 포탈 내용을 로드한다.
+                            pPortal->setObjectType(portalType);
+
+                            // pPortal->load(m_ZoneID, left, top, right, bottom);
+                            TriggerManager& tm = pPortal->getTriggerManager();
+
+                            Trigger* pTrigger = new Trigger();
+
+                            pTrigger->setTriggerID(0); // 의미없다.
+
+                            pTrigger->setTriggerType("QUEST");
+
+                            sprintf(str, "ConditionType : EnterMasterLair\n\t TargetZoneID : %d\n\t",
+                                    (int)pTargetZoneInfo->getZoneID());
+                            pTrigger->setConditions(str);
+                            sprintf(str, "ActionType : ActivatePortal\n\t ZoneID : %d\n\t X : %d\n\t Y : %d\n\t",
+                                    targetZoneID, targetX, targetY);
+                            pTrigger->setActions(str);
+
+                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
+                            //                                       g_pStringPool->c_str( STRID_CANNOT_ENTER ) );
+                            sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER);
+                            pTrigger->setCounterActions(str2);
+
+                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
+                            //: 지금은 들어갈 수 없습니다.");
+
+                            tm.addTrigger(pTrigger);
+
+                            // 타일에다 포탈을 붙인다.
+                            rTile.addPortal(pPortal);
+
+                            // cout << "[" << (int)pTargetZoneInfo->getZoneID() << "] is MasterLair"
+                            //	 << endl;
+                        }
+                        //----------------------------------------
+                        // 유료존으로 들어가는 경우
+                        //----------------------------------------
+                        else if (pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay()) {
+                            TriggeredPortal* pPortal = new TriggeredPortal();
+                            getObjectRegistry().registerObject(pPortal);
+
+                            // 포탈 내용을 로드한다.
+                            pPortal->setObjectType(portalType);
+
+                            // pPortal->load(m_ZoneID, left, top, right, bottom);
+                            TriggerManager& tm = pPortal->getTriggerManager();
+
+                            Trigger* pTrigger = new Trigger();
+
+                            pTrigger->setTriggerID(0); // 의미없다.
+
+                            pTrigger->setTriggerType("QUEST");
+                            pTrigger->setConditions("ConditionType : PayPlay\n\t");
+                            sprintf(str, "ActionType : ActivatePortal\n\t ZoneID : %d\n\t X : %d\n\t Y : %d\n\t",
+                                    targetZoneID, targetX, targetY);
+                            pTrigger->setActions(str);
+
+                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
+                            //                                        g_pStringPool->c_str( STRID_CANNOT_ENTER_PAY_ZONE
+                            //                                        ) );
+                            sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER_PAY_ZONE);
+                            pTrigger->setCounterActions(str2);
+
+                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
+                            //: 유료존이라서 들어갈 수 없습니다.");
+
+                            tm.addTrigger(pTrigger);
+
+                            // 타일에다 포탈을 붙인다.
+                            rTile.addPortal(pPortal);
+                        }
+                    }
+
+
+                } // if (flag & 0x80)
+            } // for
+        } // for
+
+        SMP.close();
+
+        ///*
+        if (m_MonsterRegenPositions.size() == 0) {
+            cout << "MonsterRegenPosition not exist" << endl;
+            cout << "Width = " << m_Width << endl;
+            cout << "Height = " << m_Height << endl;
+
+            // Assert(m_MonsterRegenPositions.size()!=0);
+
+            ZoneCoord_t outerMinX = m_Width / 7;
+            ZoneCoord_t outerMinY = m_Height / 7;
+            ZoneCoord_t outerMaxX = m_Width - outerMinX;
+            ZoneCoord_t outerMaxY = m_Width - outerMinY;
+
+            for (ZoneCoord_t y = outerMinY; y < outerMaxY; y++) {
+                for (ZoneCoord_t x = outerMinX; x < outerMaxX; x++) {
+                    Tile& rTile = m_pTiles[x][y];
+
+                    if (!rTile.hasPortal() && !rTile.isGroundBlocked() && !rTile.isAirBlocked() &&
+                        !rTile.isUndergroundBlocked()) {
+                        m_MonsterRegenPositions.push_back(BPOINT((BYTE)x, (BYTE)y));
+                    }
+                }
+            }
+
+            Assert(m_MonsterRegenPositions.size() != 0);
+        }
+
+        if ((isMasterLair() || m_ZoneID == 3002) && m_EmptyTilePositions.size() == 0) {
+            cout << "MasterLair has No EmptyTilePosition" << endl;
+            Assert(m_EmptyTilePositions.size() != 0);
+        }
+        // */
+
+        // Zone 정보를 세팅한다.
+        m_ZoneType = pZoneInfo->getZoneType();
+        m_ZoneLevel = pZoneInfo->getZoneLevel();
+
+        // m_ppLevel 제거
+        for (i = 0; i < m_Width; i++) {
+            SAFE_DELETE_ARRAY(m_ppLevel[i]);
+        }
+        SAFE_DELETE_ARRAY(m_ppLevel);
+
+        // 메모리 할당해주고...
+        m_ppLevel = new ZoneLevel_t*[m_Width];
+        for (uint i = 0; i < m_Width; i++)
+            m_ppLevel[i] = new ZoneLevel_t[m_Height];
+
+        // 존 레벨을 디폴트 값으로 초기화시킨다.
+        for (ZoneCoord_t x = 0; x < m_Width; x++)
+            for (ZoneCoord_t y = 0; y < m_Height; y++)
+                m_ppLevel[x][y] = m_ZoneLevel;
+
+        // SSI 정보 파일을 연다.
+        string SSIFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSSIFilename();
+        ifstream SSI(SSIFilename.c_str(), ios::in | ios::binary);
+        if (!SSI) {
+            strcpy(lwrFilename, SSIFilename.c_str());
+            strlwr(lwrFilename);
+            SSI.open(lwrFilename, ios::in | ios::binary);
+
+            // cout << "second chk : " << lwrFilename << endl;
+
+            if (!SSI) {
+                StringStream msg;
+                msg << SSIFilename << " not exist or cannot open it";
+                throw FileNotExistException(msg.toString());
+            }
+        }
+
+        int size = 0;
+        SSI.read((char*)&size, szint);
+
+        BYTE left, top, right, bottom, level;
+        for (int i = 0; i < size; i++) {
+            SSI.read((char*)&level, szBYTE);
+            SSI.read((char*)&left, szBYTE);
+            SSI.read((char*)&top, szBYTE);
+            SSI.read((char*)&right, szBYTE);
+            SSI.read((char*)&bottom, szBYTE);
+
+            if (bOutput) {
+                cout << "LEVEL:" << (int)level << ",(" << (int)left << "," << (int)top << "," << (int)right << ","
+                     << (int)bottom << ")" << endl;
+            }
+
+            Assert(left <= right);
+            Assert(top <= bottom);
+
+            for (int bx = left; bx <= right; bx++)
+                for (int by = top; by <= bottom; by++)
+                    m_ppLevel[bx][by] = level;
+        }
+
+        SSI.close();
+
+        // 트리거드 포탈을 로드한다.
+        // reload에서는 무시
+        // loadTriggeredPortal();
+
+        // 몬스터 로드하고....
+        m_pMonsterManager->load();
+
+        // eventMonsterManager는 reload에서는 무시한다.
+        // #ifdef __XMAS_EVENT_CODE__
+        //	cout << "Begin Event Monster Loading..." << endl;
+        //	m_pEventMonsterManager->load();
+        //	cout << "Event Monster Loading Completed..." << endl;
+        // #endif
+
+        // 마스터 레어인 경우
+        // by sigi. 2002.9.2
+        if (pZoneInfo->isMasterLair()) {
+            if (m_pMasterLairManager != NULL &&
+                m_pMasterLairManager->getCurrentEvent() == MasterLairManager::EVENT_WAITING_REGEN) {
+                SAFE_DELETE(m_pMasterLairManager);
+                m_pMasterLairManager = new MasterLairManager(this);
+            }
+        }
+
+        // 성인 경우
+        // by sigi. 2003.1.24
+        if (pZoneInfo->isCastle()) {
+            if (m_pWarScheduler != NULL)
+            //&& m_pWarScheduler->getCurrentEvent()==WarScheduler::EVENT_WAITING_REGEN)
+            {
+                SAFE_DELETE(m_pWarScheduler);
+                m_pWarScheduler = new WarScheduler(this);
+            }
+        }
+
+        // reload할 때는 무시한다.
+        // 아이템 로드한다.
+        // loadItem();
+        // NPC 를 로딩한다.
+        // m_pNPCManager->load(m_ZoneID);
+
+        // 스프라이트 갯수를 초기화한다.
+        initSpriteCount();
+    } catch (Throwable& t) {
+        cout << t.toString() << endl;
+        Assert(false);
+    }
+
+    __END_DEBUG
+    __END_CATCH
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// load items from database
+// * NOTE *
+// 현재 바닥에 떨어진 아이템은 서버가 재시작되어도 로딩하지 않는다.
+//////////////////////////////////////////////////////////////////////////////
+void Zone::loadItem()
+
+{
+    __BEGIN_TRY
+
+    /*
+    // 아이템 로딩...........
+    g_pItemLoaderManager->load(this);
+
+    // 아이템은 다 날려버렸지만...그래두...
+    // 아이템 오브젝트 아이디를 재 할당 받고 다시 저장한다.
+    for (int j = 0; j < m_Height; j++)
+    {
+        for (int i = 0; i < m_Width; i++)
+        {
+            if (m_pTiles[i][j].hasItem())
+            {
+                Item* pItem = m_pTiles[i][j].getItem();
+                m_ObjectRegistry.registerObject(pItem);
+                pItem->save("", STORAGE_ZONE, m_ZoneID, i, j);
+                addToItemList(pItem);
+
+                if (pItem->getItemClass() == Item::ITEM_CLASS_MOTORCYCLE)
+                {
+                    Motorcycle* pMotorcycle = dynamic_cast<Motorcycle*>(pItem);
+                    MotorcycleBox* pMotorcycleBox = new MotorcycleBox(pMotorcycle, this, i, j);
+                    g_pParkingCenter->addMotorcycleBox(pMotorcycleBox);
+                }
+            }
+        }
+    }
+    */
+
+    __END_CATCH
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// 현재 존에 트리거드 포탈을 로드한다.
+//////////////////////////////////////////////////////////////////////////////
+void Zone::loadTriggeredPortal()
+
+{
+    __BEGIN_TRY
+
+    // A dynamic zone loads its template zone's triggers.
+    ZoneID_t zoneID = m_ZoneID;
+    if (isDynamicZone()) {
+        zoneID = m_pDynamicZone->getTemplateZoneID();
+    }
+
+    vector<ZoneRectRow> rects = defaultZoneInfoRepository().loadTriggerRects(zoneID);
+
+    for (size_t r = 0; r < rects.size(); r++) {
+        int left = rects[r].left;
+        int top = rects[r].top;
+        int right = rects[r].right;
+        int bottom = rects[r].bottom;
+
+        Assert(left <= right);
+        Assert(top <= bottom);
+
+        Assert(m_OuterRect.ptInRect(left, top));
+        Assert(m_OuterRect.ptInRect(right, bottom));
+
+        for (int x = left; x <= right; x++) {
+            for (int y = top; y <= bottom; y++) {
+                if (getTile(x, y).hasPortal()) {
+                    // cerr << "loadTriggeredPortal : a portal already exists here." << endl;
+                    // cerr << "ZONEID:" << m_ZoneID << ",X:" << x << "Y:" << y << endl;
+                    // Portal* pPortal = getTile(x,y).getPortal();
+                    // SAFE_DELETE(pPortal);
+                    getTile(x, y).deletePortal();
+                }
+
+                // Create and register the portal.
+                TriggeredPortal* pPortal = new TriggeredPortal();
+                getObjectRegistry().registerObject(pPortal);
+
+                // Load the portal's contents.
+                pPortal->setObjectType(PORTAL_NORMAL);
+                pPortal->load(zoneID, left, top, right, bottom);
+
+                // Attach the portal to the tile.
+                getTile(x, y).addPortal(pPortal);
+            }
+        }
+    }
+
+    __END_CATCH
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// 이 존에서 나타나는 NPC와 몬스터의 스프라이트갯수를 계산해둔다.
+//////////////////////////////////////////////////////////////////////////////
+void Zone::initSpriteCount()
+
+{
+    __BEGIN_TRY
+
+    m_NPCCount = 0;
+    m_MonsterCount = 0;
+
+    // NPC 스프라이트 타입의 갯수를 계산한다.
+    const unordered_map<ObjectID_t, Creature*>& NPCMap = m_pNPCManager->getCreatures();
+    for (unordered_map<ObjectID_t, Creature*>::const_iterator i = NPCMap.begin(); i != NPCMap.end(); i++) {
+        NPC* pNPC = dynamic_cast<NPC*>(i->second);
+        bool bAdd = true;
+
+        for (int j = 0; j < m_NPCCount; j++) // 현재 있는 몬스터 타입 중에서
+        {
+            if (pNPC->getSpriteType() == m_NPCTypes[j]) {
+                bAdd = false;
+                break;
+            }
+        }
+
+        if (bAdd) {
+            m_NPCTypes[m_NPCCount] = pNPC->getSpriteType();
+            m_NPCCount++;
+        }
+    }
+
+    // 몬스터 스프라이트 타입의 갯수를 계산한다.
+    const unordered_map<SpriteType_t, MonsterCounter*>& MONSTER = m_pMonsterManager->getMonsters();
+    for (unordered_map<SpriteType_t, MonsterCounter*>::const_iterator i = MONSTER.begin(); i != MONSTER.end(); i++) {
+        Assert(m_MonsterCount < maxMonsterPerZone); // by sigi
+
+        m_MonsterTypes[m_MonsterCount] = i->first;
+        m_MonsterCount++;
+    }
+
+    __END_CATCH
+}
+
+void Zone::loadNPCs(Race_t race)
+
+{
+    __BEGIN_TRY
+
+    m_pNPCManager->load(getZoneID(), race);
+
+    sendNPCInfo();
+
+    __END_CATCH
+}
+
+void Zone::loadEffect()
+
+{
+    __BEGIN_TRY
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // Load the EffectPKZoneRegen rectangles.
+    ///////////////////////////////////////////////////////////////////////////////
+    vector<ZoneRectRow> regenRects = defaultZoneInfoRepository().loadPKZoneRegenRects(getZoneID());
+
+    for (size_t r = 0; r < regenRects.size(); r++) {
+        ZoneCoord_t left = regenRects[r].left;
+        ZoneCoord_t top = regenRects[r].top;
+        ZoneCoord_t right = regenRects[r].right;
+        ZoneCoord_t bottom = regenRects[r].bottom;
+
+        EffectPKZoneRegen* pEffect = new EffectPKZoneRegen(this, left, top, right, bottom);
+        pEffect->setSlayer();
+        pEffect->setVampire();
+        pEffect->setOusters();
+        pEffect->setTurn(10);
+        pEffect->setHP(40);
+        pEffect->setNextTime(0);
+
+        registerObject(pEffect);
+        addEffect(pEffect);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // Load the Gnome's Horn way points: Ousters standing on the 3x3 tiles
+    // around a way point regain 1 HP and MP per second.
+    ///////////////////////////////////////////////////////////////////////////////
+    vector<ZonePointRow> wayPoints = defaultZoneInfoRepository().loadWayPoints(getZoneID(), RACE_OUSTERS);
+
+    for (size_t w = 0; w < wayPoints.size(); w++) {
+        ZoneCoord_t X = wayPoints[w].x;
+        ZoneCoord_t Y = wayPoints[w].y;
+
+        if (isValidZoneCoord(this, X - 1, Y - 1) && isValidZoneCoord(this, X + 1, Y + 1)) {
+            EffectPKZoneRegen* pEffect = new EffectPKZoneRegen(this, X - 1, Y - 1, X + 1, Y + 1);
+            pEffect->setOusters();
+            pEffect->setTurn(10);
+            pEffect->setHP(4);
+            pEffect->setNextTime(0);
+
+            registerObject(pEffect);
+            addEffect(pEffect);
+        }
+    }
+
+    //	if ( m_ZoneID == 3001 || m_ZoneID == 71 || m_ZoneID == 72 || m_ZoneID == 73 )
+    g_pEffectLoaderManager->load(this);
+
+    if (m_ZoneID == 3002) {
+        EffectContinualGroundAttack* pEffect =
+            new EffectContinualGroundAttack(this, Effect::EFFECT_CLASS_GROUND_ATTACK, 3);
+        pEffect->setDeadline(99999999);
+        pEffect->setNumber(7, 11);
+
+        registerObject(pEffect);
+        addEffect(pEffect);
+    }
+
+    __END_CATCH
+}

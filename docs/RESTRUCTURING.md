@@ -78,7 +78,7 @@ are enforced so far.
 
 | File | Baseline lines |
 |------|---------------:|
-| `src/server/gameserver/Zone.cpp` | 6,717 (was 9,350 before the 4.2 broadcast/scan extraction; enforced by `ratchets.sh` R6g) |
+| `src/server/gameserver/Zone.cpp` | 3,482 (was 9,350 before the 4.2 extractions; enforced by `ratchets.sh` R6g) |
 | `src/server/gameserver/skill/SkillUtil.cpp` | 6,739 (enforced by `ratchets.sh` R6a) |
 | `src/server/gameserver/InitAllStat.cpp` | 4,803 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 116 (was 4,720 before the 4.1 command extraction; enforced by `ratchets.sh` R6e) |
@@ -1260,19 +1260,24 @@ down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
 - [ ] **4.2 Split `Zone.cpp`** (9,263 lines) by concern: movement, broadcast,
   spawn/despawn, scan/visibility, persistence (→ 3.2 repository). Mechanical,
   many small commits, each verified by build + smoke.
-  > **Status:** broadcast and scan/visibility are out. `ZoneBroadcast.cpp`
-  > holds the three `broadcastPacket` overloads, `broadcastDarkLightPacket`,
-  > `broadcastSayPacket`, `broadcastLevelWarBonusPacket`,
-  > `broadcastSkillPacket`, `movePCBroadcast` and `moveCreatureBroadcast`;
-  > `ZoneScan.cpp` holds `scan`, `scanPC`, `monsterScan`, `updateScan`, the
-  > four `update*Scan` refreshes and `getWatcherList`. They are still `Zone::`
-  > members with unchanged bodies — only the translation unit differs — and
-  > the two file-scope helpers both sides call (`isPotentialEnemy`,
-  > `sendRelicEffect`) are declared in `ZoneInternal.h`. `Zone.cpp` 9,350 →
-  > 6,717, pinned by `ratchets.sh` R6g. What remains in it: movement
-  > (`movePC`, `moveFastPC`, `moveFastMonster`), spawn/despawn, the map and
-  > NPC loaders, the effect and relic tables, and the heartbeat. The phase
-  > exit criterion is 2,000 lines.
+  > **Status:** broadcast, scan/visibility, movement and loading are out.
+  > `ZoneBroadcast.cpp` holds the three `broadcastPacket` overloads,
+  > `broadcastDarkLightPacket`, `broadcastSayPacket`,
+  > `broadcastLevelWarBonusPacket`, `broadcastSkillPacket`, `movePCBroadcast`
+  > and `moveCreatureBroadcast`; `ZoneScan.cpp` holds `scan`, `scanPC`,
+  > `monsterScan`, `updateScan`, the four `update*Scan` refreshes and
+  > `getWatcherList`; `ZoneMove.cpp` holds `pushPC`, `movePC`, `moveCreature`,
+  > `moveFastPC` and `moveFastMonster` with the `g_FastMoveSearch` step
+  > tables; `ZoneLoad.cpp` holds `init`, `load`, `reload`, `loadItem`,
+  > `loadTriggeredPortal`, `initSpriteCount`, `loadNPCs` and `loadEffect`.
+  > They are still `Zone::` members with unchanged bodies — only the
+  > translation unit differs — and the file-scope helpers more than one unit
+  > calls (`isPotentialEnemy`, `sendRelicEffect`, `strlwr`) are declared in
+  > `ZoneInternal.h`. `Zone.cpp` 9,350 → 3,482, pinned by `ratchets.sh` R6g.
+  > What remains in it: spawn/despawn (the gated `addPC`, `addCreature`,
+  > `deleteCreature`, `replacePC` and tile gateways), the item, effect and
+  > relic tables, the NPC registry, creature lookup and the heartbeat. The
+  > phase exit criterion is 2,000 lines.
   - Owner: R6 ratchet per extracted file.
 
 - [ ] **4.3 Race-class cleanup.** `Slayer.cpp`/`Vampire.cpp`/`Ousters.cpp`
