@@ -62,7 +62,7 @@ void CGPickupMoneyHandler::execute(CGPickupMoney* pPacket, Player* pPlayer)
             pOusters = dynamic_cast<Ousters*>(pCreature);
             pZone = pOusters->getZone();
         } else
-            throw ProtocolException("CGDropMoneyHandler::execute() : 알 수 없는 플레이어 크리쳐.");
+            throw ProtocolException("CGDropMoneyHandler::execute() : unknown player creature.");
 
         Assert(pZone != NULL);
 

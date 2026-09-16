@@ -129,7 +129,7 @@ void CGShopRequestBuyHandler::execute(CGShopRequestBuy* pPacket, Player* pPlayer
 
         // 아이템 갯수가 정상적인지를 검사
         if (itemNum < 1 || itemNum > ItemMaxStack[pItem->getItemClass()]) {
-            throw ProtocolException("CGShopRequestBuyHandler::execute() : 아이템 갯수 오류!");
+            throw ProtocolException("CGShopRequestBuyHandler::execute() : invalid item count!");
         }
 
         // 아이템 갯수가 2개 이상이라면 정상적인 아이템인지를 검사
@@ -161,7 +161,7 @@ void CGShopRequestBuyHandler::execute(CGShopRequestBuy* pPacket, Player* pPlayer
 
         // 아이템 갯수가 정상적인지를 검사
         if (itemNum != 1)
-            throw ProtocolException("CGShopRequestBuyHandler::execute() : 아이템 갯수 오류!");
+            throw ProtocolException("CGShopRequestBuyHandler::execute() : invalid item count!");
 
         executeEvent(pPacket, pPlayer);
     }

@@ -416,7 +416,7 @@ Item* Inventory::addItemEx(CoordInven_t X, CoordInven_t Y, Item* pItem)
     if (!canAddingEx(X, Y, pItem)) {
         // cerr << "Inventory::addItemEx() : canAddingExCheck failed!!!" << endl;
         // cerr << toString() << endl;
-        throw Error("Inventory::addItemEx() : 아이템을 더할 수 없습니다!");
+        throw Error("Inventory::addItemEx() : cannot add the item!");
     }
 
     VolumeWidth_t ItemWidth = pItem->getVolumeWidth();

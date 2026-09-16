@@ -368,8 +368,7 @@ void EventMorph::activate()
     } catch (NoSuchElementException&) {
         cerr << "Critical Error : 포탈에 지정된 존 아이디가 틀리거나, ZoneInfoManager에 해당 존이 존재하지 않습니다."
              << endl;
-        throw Error(
-            "Critical Error : 포탈에 지정된 존 아이디가 틀리거나, ZoneInfoManager에 해당 존이 존재하지 않습니다.");
+        throw Error("Critical Error : the zone id set on the portal is wrong, or ZoneInfoManager has no such zone.");
     }
 
     ZoneGroup* pZoneGroup;
@@ -379,7 +378,7 @@ void EventMorph::activate()
         cerr << "Critical Error : 현재로는 게임 서버는 1대뿐이당.." << endl;
 
         // 일단은 서버가 1대이므로.. 그대로 나간다...
-        throw Error("Critical Error : 현재로는 게임 서버는 1대뿐이당..");
+        throw Error("Critical Error : only one game server is supported");
     }
 
     //--------------------------------------------------------------------------------

@@ -163,7 +163,7 @@ void SharedServerClient::processOutput() {
     try {
         Player::processOutput();
     } catch (InvalidProtocolException& It) {
-        throw DisconnectException("Pipe 연결의 파괴로 접속을 짜른다");
+        throw DisconnectException("Pipe broken; closing the connection");
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)

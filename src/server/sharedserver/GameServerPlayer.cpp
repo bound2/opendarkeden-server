@@ -100,7 +100,7 @@ void GameServerPlayer::processOutput() noexcept(false) {
     try {
         m_pOutputStream->flush();
     } catch (InvalidProtocolException&) {
-        throw DisconnectException("�̻��� ��Ŷ��");
+        throw DisconnectException("Malformed packet");
     }
 
     __END_CATCH

@@ -30,7 +30,7 @@ void pthreadAPI::pthread_create_ex(pthread_t* thread, pthread_attr_t* attr, void
     if (pthread_create(thread, attr, start_routine, arg) < 0) {
         switch (errno) {
         case EAGAIN:
-            throw ThreadException("시스템 리소스가 부족하거나, 너무 많은 쓰레드가 활성화상태입니다.");
+            throw ThreadException("Out of system resources, or too many threads are active.");
         default:
             throw UnknownError(strerror(errno), errno);
         }
@@ -51,11 +51,11 @@ void pthreadAPI::pthread_join_ex(pthread_t th, void** thread_return) {
     if (pthread_join(th, thread_return) < 0) {
         switch (errno) {
         case ESRCH:
-            throw Error("지정된 쓰레드를 찾을 수 없습니다.");
+            throw Error("The specified thread was not found.");
         case EINVAL:
-            throw ThreadException("지정된 쓰레드가 이미 detached 되었거나, 또다른 쓰레드가 이미 기다리고 있습니다.");
+            throw ThreadException("The specified thread is already detached, or another thread is already joining it.");
         case EDEADLK:
-            throw Error("자기 자신을 기다릴 수는 없습니다.");
+            throw Error("A thread cannot join itself.");
         default:
             throw UnknownError(strerror(errno), errno);
         }
@@ -76,9 +76,9 @@ void pthreadAPI::pthread_detach_ex(pthread_t th) {
     if (pthread_detach(th) < 0) {
         switch (errno) {
         case ESRCH:
-            throw Error("지정된 쓰레드를 찾을 수 없습니다.");
+            throw Error("The specified thread was not found.");
         case EINVAL:
-            throw ThreadException("지정된 쓰레드는 이미 detached 상태입니다.");
+            throw ThreadException("The specified thread is already detached.");
         default:
             throw UnknownError(strerror(errno), errno);
         }
@@ -200,7 +200,7 @@ void pthreadAPI::pthread_mutex_destroy_ex(pthread_mutex_t* mutex) {
     if (pthread_mutex_destroy(mutex) < 0) {
         switch (errno) {
         case EBUSY:
-            throw MutexException("뮤텍스가 현재 잠금상태입니다.");
+            throw MutexException("The mutex is already locked.");
         default:
             throw UnknownError(strerror(errno), errno);
         }
@@ -221,9 +221,9 @@ void pthreadAPI::pthread_mutex_lock_ex(pthread_mutex_t* mutex) {
     if (pthread_mutex_lock(mutex) < 0) {
         switch (errno) {
         case EINVAL:
-            throw Error("뮤텍스가 올바르게 초기화되지 않았습니다.");
+            throw Error("The mutex is not properly initialized.");
         case EDEADLK:
-            throw MutexException("DEADLOCK - 뮤텍스가 현재 쓰레드에 의해서 이미 잠겨있습니다.");
+            throw MutexException("DEADLOCK - the mutex is already locked by the current thread.");
         default:
             throw UnknownError(strerror(errno), errno);
         }
@@ -244,9 +244,9 @@ void pthreadAPI::pthread_mutex_unlock_ex(pthread_mutex_t* mutex) {
     if (pthread_mutex_unlock(mutex) < 0) {
         switch (errno) {
         case EINVAL:
-            throw Error("뮤텍스가 올바르게 초기화되지 않았습니다.");
+            throw Error("The mutex is not properly initialized.");
         case EPERM:
-            throw MutexException("현재 쓰레드가 뮤텍스를 잠그고 있지 않습니다.");
+            throw MutexException("The current thread does not hold the mutex.");
         default:
             throw UnknownError(strerror(errno), errno);
         }
@@ -267,7 +267,7 @@ void pthreadAPI::pthread_mutex_trylock_ex(pthread_mutex_t* mutex) {
     if (pthread_mutex_trylock(mutex) < 0) {
         switch (errno) {
         case EINVAL:
-            throw Error("뮤텍스가 올바르게 초기화되지 않았습니다.");
+            throw Error("The mutex is not properly initialized.");
         case EBUSY:
             throw MutexException("mutex already locked...");
         default:

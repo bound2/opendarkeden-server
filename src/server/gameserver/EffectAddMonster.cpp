@@ -89,11 +89,11 @@ void EffectAddMonster::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Creat
 
         if (pt.x == -1) {
             SAFE_DELETE(pMonster);
-            throw Error("Zone에 몬스터 들어갈 자리가 없다");
+            throw Error("No free tile in the zone for the monster");
         }
     } else {
         SAFE_DELETE(pMonster);
-        throw Error("EffectAddMonster인데 item이 아닌가?");
+        throw Error("EffectAddMonster target is not an item");
     }
 
     pTarget = NULL;

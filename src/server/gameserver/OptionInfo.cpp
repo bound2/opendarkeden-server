@@ -1014,15 +1014,15 @@ void OptionInfoManager::addGambleOption(Item::ItemClass itemClass, uint level, O
 int OptionInfoManager::getRareUpgradeRatio(OptionType_t optionType, bool success) {
     OptionInfo* pOI = getOptionInfo(optionType);
     if (pOI == NULL)
-        throw Error("OptionInfoManager::getRareUpgradeRatio() : 옵션 인포가 없습니다.");
+        throw Error("OptionInfoManager::getRareUpgradeRatio() : no option info.");
 
     OptionClassInfo* pOCI = m_OptionClassInfos[pOI->getClass()];
     if (pOCI == NULL)
-        throw Error("OptionInfoManager::getRareUpgradeRatio() : 옵션 클래스 인포가 없습니다.");
+        throw Error("OptionInfoManager::getRareUpgradeRatio() : no option class info.");
 
     RareOptionUpgradeInfo* pROUI = m_RareEnchantInfo[pOCI->getKey()];
     if (pROUI == NULL)
-        throw Error("OptionInfoManager::getRareUpgradeRatio() : 레어 인챈트 인포가 없습니다.");
+        throw Error("OptionInfoManager::getRareUpgradeRatio() : no rare enchant info.");
 
     return pROUI->getRatio(pOI->getGrade(), success);
 }

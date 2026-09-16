@@ -117,7 +117,7 @@ void CGTradeFinishHandler::execute(CGTradeFinish* pPacket, Player* pPlayer)
     else if (pPC->isOusters())
         executeOusters(pPacket, pPlayer);
     else
-        throw ProtocolException("CGTradeFinishHanderl::execuete() : 알 수 없는 플레이어 크리쳐입니다.");
+        throw ProtocolException("CGTradeFinishHandler::execute() : unknown player creature.");
 
 #endif
 
@@ -251,7 +251,7 @@ void CGTradeFinishHandler::executeSlayer(CGTradeFinish* pPacket, Player* pPlayer
     }
     // 알수 없는 코드다. 사뿐하게 짤라준다.
     else
-        throw ProtocolException("CGTradeFinish::executeSlayer() : 알 수 없는 코드");
+        throw ProtocolException("CGTradeFinish::executeSlayer() : unknown code");
 
 #endif
 
@@ -382,7 +382,7 @@ void CGTradeFinishHandler::executeVampire(CGTradeFinish* pPacket, Player* pPlaye
     }
     // 알수 없는 코드다. 사뿐하게 짤라준다.
     else
-        throw ProtocolException("CGTradeFinish::executeVampire() : 알 수 없는 코드");
+        throw ProtocolException("CGTradeFinish::executeVampire() : unknown code");
 
 #endif
 
@@ -513,7 +513,7 @@ void CGTradeFinishHandler::executeOusters(CGTradeFinish* pPacket, Player* pPlaye
     }
     // 알수 없는 코드다. 사뿐하게 짤라준다.
     else
-        throw ProtocolException("CGTradeFinish::executeOusters() : 알 수 없는 코드");
+        throw ProtocolException("CGTradeFinish::executeOusters() : unknown code");
 
 #endif
 

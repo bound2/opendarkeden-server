@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 
     try {
         if (Argv[1] != "-f") {
-            throw Error("Usage : sharedserver -f È¯°æÆÄÀÏ");
+            throw Error("Usage : sharedserver -f config-file");
         }
 
         // Ã¹¹øÂ° ÆÄ¶ó¹ÌÅÍ°¡ -f ÀÏ °æ¿ì, µÎ¹øÂ° ÆÄ¶ó¹ÌÅÍ´Â È¯°æÆÄÀÏÀÇ À§Ä¡°¡ µÈ´Ù.

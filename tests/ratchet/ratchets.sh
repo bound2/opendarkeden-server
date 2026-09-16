@@ -159,6 +159,26 @@ check_ratchet R10b "catch (const char*) handlers left in src" 0 "$R10b"
 # with R8's comment rule, so a commented-out throw does not count.
 R11=$(grep -rh 'throw "' src --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
 check_ratchet R11 "bare string-literal throws" 0 "$R11"
+
+# --- R12: non-ASCII text in throw messages ---------------------------------
+# What a throw carries is a diagnostic, read in a log or on a console, and
+# the tree's code language is English. The legacy messages were legacy-code-
+# page bytes: some survived the migration as readable Korean, most as
+# mojibake, a few as U+FFFD runs with the original text gone. All are
+# English now. Line-based like R8/R11, with the same comment rule. The
+# class is spelled as the bytes it excludes -- everything from \x01 to
+# \x7f, so what is left is a byte with the high bit set, which is what a
+# UTF-8 lead or continuation byte is -- rather than as [^[:print:]], which
+# would also match the CR of a CRLF working tree and count every ASCII
+# message whose literal runs past the end of its line. LC_ALL=C keeps the
+# range byte-wise, and the bracket form keeps this portable where grep -P
+# is not. The pattern wants `throw`, a type, `(` and the opening quote on
+# one line: a literal that starts on a continuation line is not counted,
+# and two are in the tree, both English.
+R12=$(LC_ALL=C grep -rhE $'throw[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\\([[:space:]]*"[^"]*[^\x01-\x7f]' \
+    src --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
+check_ratchet R12 "throw messages carrying non-ASCII text" 7 "$R12"
+
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.

@@ -102,7 +102,7 @@ void EffectTransportItemToCorpse::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord
 
             pCorpse->addTreasure(pItem);
         } else {
-            throw Error("시체가 아니네");
+            throw Error("Not a corpse");
         }
     } else {
         // cout << "Zone->addItemDelayed" << endl;

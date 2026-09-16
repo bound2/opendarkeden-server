@@ -276,7 +276,7 @@ void MasterLairInfoManager::load()
 
                 if (pMonsterInfo == NULL) // for later. -_-;
                 {
-                    throw Error("마스터의 몬스터 정보가 없당.");
+                    throw Error("No monster info for the master.");
                 }
 
                 if (!pMonsterInfo->isMaster()) {
@@ -288,7 +288,7 @@ void MasterLairInfoManager::load()
 
             } catch (Throwable& t) {
                 cout << t.toString().c_str() << endl;
-                throw Error("마스터의 몬스터 정보가 없당.");
+                throw Error("No monster info for the master.");
             }
 
 #if defined(__THAILAND_SERVER__) || defined(__CHINA_SERVER__)
@@ -358,7 +358,7 @@ void MasterLairInfoManager::reload()
 
                 if (pMonsterInfo == NULL) // for later. -_-;
                 {
-                    throw Error("마스터의 몬스터 정보가 없당.");
+                    throw Error("No monster info for the master.");
                 }
 
                 if (!pMonsterInfo->isMaster()) {
@@ -370,7 +370,7 @@ void MasterLairInfoManager::reload()
 
             } catch (Throwable& t) {
                 cout << t.toString().c_str() << endl;
-                throw Error("마스터의 몬스터 정보가 없당.");
+                throw Error("No monster info for the master.");
             }
         }
     }

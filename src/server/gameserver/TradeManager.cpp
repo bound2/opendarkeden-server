@@ -301,7 +301,7 @@ int TradeManager::canTrade(Creature* pCreature1, Creature* pCreature2)
             pInventory1->setDeleteAllFlag(false);
             pInventory2->setDeleteAllFlag(false);
         } else
-            throw Error("TradeManager::canTrade() : 종족이 다르자나!"); // throw Error로 바꿈. by sigi. 2002.12.25
+            throw Error("TradeManager::canTrade() : the races differ!"); // throw Error로 바꿈. by sigi. 2002.12.25
 
         // 먼저 각자의 인벤토리에서 교환할 아이템들을 제거한다.
         for (list<Item*>::iterator itr = tradeList1.begin(); itr != tradeList1.end(); itr++) {

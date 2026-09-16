@@ -107,7 +107,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 try {
                     pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneNum);
                 } catch (NoSuchElementException&) {
-                    throw Error("û��ս������.");
+                    throw Error("No zone info for the relic zone.");
                 }
 
                 ZoneGroup* pZoneGroup = NULL;
@@ -115,7 +115,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 try {
                     pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
                 } catch (NoSuchElementException&) {
-                    throw Error("û��ս������.2");
+                    throw Error("No zone group for the relic zone.");
                 }
 
                 Zone* pZone = pZoneGroup->getZone(ZoneNum);
@@ -145,7 +145,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 try {
                     pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneNum);
                 } catch (NoSuchElementException&) {
-                    throw Error("û��ս������.");
+                    throw Error("No zone info for the relic zone.");
                 }
 
                 ZoneGroup* pZoneGroup = NULL;
@@ -153,7 +153,7 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
                 try {
                     pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
                 } catch (NoSuchElementException&) {
-                    throw Error("û��ս������.2");
+                    throw Error("No zone group for the relic zone.");
                 }
 
                 Zone* pZone = pZoneGroup->getZone(ZoneNum);
@@ -1128,7 +1128,7 @@ void opsave(GamePlayer* pGamePlayer, string msg, int i) {
         try {
             pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
         } catch (NoSuchElementException&) {
-            throw Error("Critical Error : ZoneInfoManager���л᲻����.");
+            throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }
 
         ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();
@@ -1197,7 +1197,7 @@ void opshutdown(GamePlayer* pGamePlayer, string msg, int i) {
         try {
             pZoneInfo = g_pZoneInfoManager->getZoneInfo(ZoneNum);
         } catch (NoSuchElementException&) {
-            throw Error("��Ҫ����shutdown,��û��zoneID.");
+            throw Error("Shutdown requested, but the zone has no zone info.");
         }
 
         ZoneGroup* pZoneGroup = NULL;
@@ -1205,7 +1205,7 @@ void opshutdown(GamePlayer* pGamePlayer, string msg, int i) {
         try {
             pZoneGroup = g_pZoneGroupManager->getZoneGroup(pZoneInfo->getZoneGroupID());
         } catch (NoSuchElementException&) {
-            throw Error("��Ҫ����shutdown,��zoneGroupȱ������.");
+            throw Error("Shutdown requested, but the zone group is missing.");
         }
 
         Zone* pZone = pZoneGroup->getZone(ZoneNum);

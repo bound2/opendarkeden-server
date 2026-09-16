@@ -133,7 +133,7 @@ void ItemInfo::setDefaultOptions(const string& options)
         try {
             optionType = g_pOptionInfoManager->getOptionType(optionName);
         } catch (NoSuchElementException&) {
-            throw Error("그런 옵션이 없단다.");
+            throw Error("No such option.");
         }
 
         addDefaultOptions( optionType );

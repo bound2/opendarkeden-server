@@ -184,8 +184,7 @@ void Player::processOutput() {
         m_pOutputStream->flush();
     } catch (InvalidProtocolException& t) {
         cerr << t.toString() << endl;
-        throw InvalidProtocolException(
-            "Player::processOutput���� ������ ������ ���� �޳�?");
+        throw InvalidProtocolException("Player::processOutput : output stream flush failed");
     }
 
     __END_CATCH

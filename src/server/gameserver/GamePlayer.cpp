@@ -356,7 +356,7 @@ void GamePlayer::processCommand(bool Option) {
                             ((getCreature() == NULL) ? "NULL" : getCreature()->getName().c_str()),
                             ((getSocket() == NULL) ? "NULL" : getSocket()->getHost().c_str()));
 
-                    throw DisconnectException("ÀÏÁ¤ ½Ã°£µ¿¾È ÀÔ·ÂÇÏÁö ¾ÊÀ» °æ¿ì, ¿¬°áÀ» Á¾·áÇÕ´Ï´Ù.");
+                    throw DisconnectException("Connection closed after a period with no input.");
                 }
 
                 break;
@@ -374,7 +374,7 @@ void GamePlayer::processCommand(bool Option) {
                 filelog("SequenceError.txt", "Timeout Disconnect1. Name[%s],Host[%s]",
                         ((getCreature() == NULL) ? "NULL" : getCreature()->getName().c_str()),
                         ((getSocket() == NULL) ? "NULL" : getSocket()->getHost().c_str()));
-                throw DisconnectException("·â°üÐòÁÐ´íÎó");
+                throw DisconnectException("Packet sequence error");
             }
             m_Sequence++;
 
@@ -534,7 +534,7 @@ void GamePlayer::processCommand(bool Option) {
                     ((getCreature() == NULL) ? "NULL" : getCreature()->getName().c_str()),
                     ((getSocket() == NULL) ? "NULL" : getSocket()->getHost().c_str()));
 
-            throw DisconnectException("ÀÏÁ¤ ½Ã°£µ¿¾È ÀÔ·ÂÇÏÁö ¾ÊÀ» °æ¿ì, ¿¬°áÀ» Á¾·áÇÕ´Ï´Ù.");
+            throw DisconnectException("Connection closed after a period with no input.");
         }
     }
     // Commented out. by sigi. 2002.5.14
@@ -579,7 +579,7 @@ void GamePlayer::processOutput() {
         // cerr << "GamePlayer::processOutput Exception Check!!" << endl;
         // cerr << It.toString() << endl;
         // cerr << "an exception happened...... what is i?" << (int)i << endl;
-        throw DisconnectException("Pipe ¿¬°áÀÇ ÆÄ±«·Î Á¢¼ÓÀ» Â¥¸¥´Ù");
+        throw DisconnectException("Pipe broken; closing the connection");
     }
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)

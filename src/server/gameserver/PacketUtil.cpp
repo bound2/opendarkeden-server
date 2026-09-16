@@ -490,7 +490,7 @@ void makeGCUpdateInfo(GCUpdateInfo* pUpdateInfo, Creature* pCreature)
         try {
             pZoneGroup = g_pZoneGroupManager->getZoneGroup(i);
         } catch (NoSuchElementException&) {
-            throw Error("Critical Error : ZoneInfoManager에 해당 존그룹이 존재하지 않습니다.");
+            throw Error("Critical Error : ZoneInfoManager has no such zone group.");
         }
 
         ZonePlayerManager* pZonePlayerManager = pZoneGroup->getZonePlayerManager();

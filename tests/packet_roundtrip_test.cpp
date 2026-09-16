@@ -192,6 +192,29 @@ TEST(CGWhisperTest, bodyBytesMatchGolden) {
     expectGolden("CGWhisper", 0, writeBody(packet, 0));
 }
 
+// The name field is bounded at 10 on both sides. A longer name would be
+// written but refused by every reader, so write() refuses it first.
+TEST(CGWhisperTest, refusesOversizedName) {
+    CGWhisper packet;
+    packet.setName(std::string(11, 'x'));
+    packet.setColor(0);
+    packet.setMessage("wire pin test");
+    SocketEncryptOutputStream oStream(NULL);
+    EXPECT_THROW(packet.write(oStream), InvalidProtocolException);
+}
+
+TEST(CGWhisperTest, roundTripsNameAtBound) {
+    CGWhisper src;
+    src.setName(std::string(10, 'x'));
+    src.setColor(0x90A1B2C3);
+    src.setMessage("wire pin test");
+    CGWhisper dst;
+    roundTrip(src, dst, 0);
+    EXPECT_EQ(src.getName(), dst.getName());
+    EXPECT_EQ(src.getColor(), dst.getColor());
+    EXPECT_EQ(src.getMessage(), dst.getMessage());
+}
+
 // The two packets above are pinned at one encrypt code because their
 // read/write ignore the encrypter. Prove that assumption rather than
 // trusting it: if either starts encrypting, its bytes would vary by code

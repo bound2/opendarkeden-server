@@ -49,7 +49,7 @@ void PetTypeInfoManager::load() {
 
 void PetTypeInfoManager::addPetTypeInfo(PetTypeInfo* pPetTypeInfo) {
     if (pPetTypeInfo->m_PetType >= m_PetTypeInfos.capacity())
-        throw Error("Pet Type이 최대값을 초과했네용");
+        throw Error("Pet type exceeds the maximum value");
 
     m_PetTypeInfos[pPetTypeInfo->m_PetType] = pPetTypeInfo;
 }

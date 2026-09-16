@@ -38,7 +38,7 @@ void CGStashWithdrawHandler::execute(CGStashWithdraw* pPacket, Player* pPlayer)
     if (!pPC->checkGoldIntegrity() || !pPC->checkStashGoldIntegrity()) {
         filelog("GoldBug.log", "CGStashWithdraw : 돈이 DB랑 안 맞는다! [%s:%s]", pGamePlayer->getID().c_str(),
                 pPC->getName().c_str());
-        throw DisconnectException("CGStashWithdraw : 돈이 DB랑 안 맞는다!");
+        throw DisconnectException("CGStashWithdraw : money does not match the database!");
     }
 
     if (amount == 0)

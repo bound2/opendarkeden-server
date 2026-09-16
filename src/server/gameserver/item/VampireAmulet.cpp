@@ -320,7 +320,7 @@ void VampireAmuletLoader::load(Creature* pCreature)
                 pInventory = pVampire->getInventory();
                 pStash = pVampire->getStash();
             } else
-                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
+                throw UnsupportedError("Saving Monster/NPC inventories is not supported.");
 
             switch (storage) {
             case STORAGE_INVENTORY:
@@ -427,7 +427,7 @@ void VampireAmuletLoader::load(Zone* pZone)
 
         case STORAGE_STASH:
         case STORAGE_CORPSE:
-            throw UnsupportedError("상자 및 시체안의 아이템의 저장은 아직 지원되지 않습니다.");
+            throw UnsupportedError("Saving items inside boxes or corpses is not supported.");
 
         default:
             throw Error("Storage must be STORAGE_ZONE");

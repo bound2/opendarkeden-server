@@ -49,7 +49,7 @@ void QuestInfoManager::addQuestInfo(QuestInfo* pQI)
     QuestInfoHashMap::iterator itr = m_QuestInfos.find(pQI->getQuestID());
 
     if (itr != m_QuestInfos.end())
-        throw Error("QuestInfoManager::addQuestInfo : QuestID 가 중복됩니다.");
+        throw Error("QuestInfoManager::addQuestInfo : duplicate QuestID.");
 
     m_QuestInfos[pQI->getQuestID()] = pQI;
 

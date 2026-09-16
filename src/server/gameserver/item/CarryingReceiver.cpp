@@ -246,7 +246,7 @@ void CarryingReceiverLoader::load(Creature* pCreature)
                 pInventory = pVampire->getInventory();
                 pStash = pVampire->getStash();
             } else
-                throw UnsupportedError("Monster,NPC 인벤토리의 저장은 아직 지원되지 않습니다.");
+                throw UnsupportedError("Saving Monster/NPC inventories is not supported.");
 
             switch (storage) {
             case STORAGE_INVENTORY:

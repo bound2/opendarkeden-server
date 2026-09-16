@@ -72,7 +72,7 @@ void CGRelicToObjectHandler::execute(CGRelicToObject* pPacket, Player* pPlayer)
     // 성물 보관대에 Slayer성물이 있고 pItem이 Slayer성물인 경우
     PlayerCreature* pPlayerCreature = dynamic_cast<PlayerCreature*>(pCreature);
     if (pPlayerCreature == NULL) {
-        throw DisconnectException("CGRelicToObject : 이상해요");
+        throw DisconnectException("CGRelicToObject : invalid state");
         return;
     }
 
@@ -169,7 +169,7 @@ void CGRelicToObjectHandler::execute(CGRelicToObject* pPacket, Player* pPlayer)
     } else if (pItem->getItemClass() == Item::ITEM_CLASS_SWEEPER) {
         executeSweeper(pPacket, pPlayer);
     } else {
-        throw DisconnectException("엉뚱한거 들고 RelicToObject보내지마");
+        throw DisconnectException("RelicToObject sent while holding something that is not a relic");
     }
 
 #endif
