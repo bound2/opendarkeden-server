@@ -218,14 +218,11 @@ void opInvincible(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
             pCreature->setFlag(Effect::EFFECT_CLASS_NO_DAMAGE);
             gcSystemMessage.setMessage(msg);
         }
-        filelog("change.txt", "[%s]%s",
-                (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
-                gcSystemMessage.toString().c_str());
+        filelog("change.txt", "[%s]%s", pCreature->getName().c_str(), gcSystemMessage.toString().c_str());
     } else if (value1 == "off") {
         char msg[50];
         sprintf(msg, g_pStringPool->c_str(STRID_INVINCIBLE), "OFF");
 
-        StringStream message;
         if (!bInvincible)
             gcSystemMessage.setMessage(msg);
         else {
@@ -233,9 +230,7 @@ void opInvincible(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage
             gcSystemMessage.setMessage(msg);
         }
 
-        filelog("change.txt", "[%s]%s",
-                (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
-                gcSystemMessage.toString().c_str());
+        filelog("change.txt", "[%s]%s", pCreature->getName().c_str(), gcSystemMessage.toString().c_str());
     } else {
         bSendPacket = false;
     }
@@ -285,14 +280,11 @@ void opGhost(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcS
                 gcSystemMessage.setMessage(g_pStringPool->getString(STRID_AIR_BLOCKED));
             }
         }
-        filelog("change.txt", "[%s]%s",
-                (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
-                gcSystemMessage.toString().c_str());
+        filelog("change.txt", "[%s]%s", pCreature->getName().c_str(), gcSystemMessage.toString().c_str());
     } else if (value1 == "off") {
         char msg[50];
         sprintf(msg, g_pStringPool->c_str(STRID_GHOST), "OFF");
 
-        StringStream message;
         if (!bGhost)
             gcSystemMessage.setMessage(msg);
         else {
@@ -340,9 +332,7 @@ void opGhost(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& gcS
             }
         }
 
-        filelog("change.txt", "[%s]%s",
-                (pGamePlayer == NULL ? "Nobody" : pGamePlayer->getCreature()->getName().c_str()),
-                gcSystemMessage.toString().c_str());
+        filelog("change.txt", "[%s]%s", pCreature->getName().c_str(), gcSystemMessage.toString().c_str());
     } else {
         bSendPacket = false;
     }
@@ -602,7 +592,6 @@ void opSaveBloodBibleOwner(GamePlayer* pGamePlayer, const string& value1, GCSyst
                            bool& bSendPacket) {
     g_pShrineInfoManager->saveBloodBibleOwner();
 
-    StringStream msg;
     gcSystemMessage.setMessage(g_pStringPool->getString(STRID_SAVE_BLOOD_BIBLE_OWNER_INFO_IN_DB));
 
     bSendPacket = true;
@@ -824,14 +813,14 @@ void opSetGold(GamePlayer* pGamePlayer, const string& value1, GCSystemMessage& g
         }
 
         pGamePlayer->sendPacket(&gcMI);
-    }
 
-    // ���α� ���� �׼��� ���α� �����
-    if (gold >= g_pVariableManager->getMoneyTraceLogLimit()) {
-        if (gold > 2000000000)
-            gold = 2000000000;
+        // ���α� ���� �׼��� ���α� �����
+        if (gold >= g_pVariableManager->getMoneyTraceLogLimit()) {
+            if (gold > 2000000000)
+                gold = 2000000000;
 
-        remainMoneyTraceLog("GOD", pCreature->getName(), ITEM_LOG_CREATE, DETAIL_COMMAND, gold);
+            remainMoneyTraceLog("GOD", pCreature->getName(), ITEM_LOG_CREATE, DETAIL_COMMAND, gold);
+        }
     }
 
 
@@ -1538,7 +1527,17 @@ void opAddDynamicZone(GamePlayer* pGamePlayer, const string& value1, GCSystemMes
                       bool& bSendPacket) {
     int DynamicZoneType = atoi(trim(value1).c_str());
 
-    DynamicZone* pDynamicZone = g_pDynamicZoneManager->getDynamicZoneGroup(DynamicZoneType)->getAvailableDynamicZone();
+    DynamicZoneGroup* pDynamicZoneGroup = g_pDynamicZoneManager->getDynamicZoneGroup(DynamicZoneType);
+    if (pDynamicZoneGroup == NULL) {
+        gcSystemMessage.setMessage("No dynamic zone group of that type.");
+        return;
+    }
+
+    DynamicZone* pDynamicZone = pDynamicZoneGroup->getAvailableDynamicZone();
+    if (pDynamicZone == NULL) {
+        gcSystemMessage.setMessage("No dynamic zone available.");
+        return;
+    }
 
     char zoneID[32];
     sprintf(zoneID, "%u - %u", pDynamicZone->getTemplateZoneID(), pDynamicZone->getZoneID());

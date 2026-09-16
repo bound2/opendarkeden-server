@@ -11,6 +11,45 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A GM command crashed the game server on a dynamic zone type it did not know (2026-09-16)
+
+- **`opAddDynamicZone` dereferenced both halves of
+  `getDynamicZoneGroup(type)->getAvailableDynamicZone()` unchecked.**
+  `DynamicZoneManager::getDynamicZoneGroup` answers NULL for a type it holds
+  no group for -- anything outside the set the dynamic zone info loads -- so
+  `*command addDynamicZone` with a number that is not one of them called a
+  member function through NULL and took the process down. The body now keeps
+  the group pointer, answers the GM that there is no group of that type, and
+  answers again should a group hand back no instance; the row already carries
+  a `gcSystemMessage`, so both refusals reach the console. A type that has a
+  group behaves as before.
+  > **Status:** fixed (fix/dead-zone-bodies)
+
+## A GM setting gold read the name of a creature it had just found NULL (2026-09-16)
+
+- **`opSetGold` wrote the money-trace log outside the `pCreature != NULL`
+  guard the rest of its body sits in.** The command reads the GM's own
+  creature, does nothing with it when there is none -- a line typed before
+  the character is in a zone, or by a player whose character failed to load
+  -- and then, for an amount at or above the money-trace limit, logged
+  `pCreature->getName()` regardless. The log now sits inside the guard, so a
+  line with no creature behind it changes nothing and logs nothing instead of
+  dereferencing NULL. With a creature, the same trace is written as before.
+  > **Status:** fixed (fix/dead-zone-bodies)
+
+## WarSystem::broadcastWarList sends through an unchecked player pointer (2026-09-16)
+
+- **Read in the same sweep and left as it is.** The three
+  `pGamePlayer->sendPacket(...)` calls in `WarSystem::broadcastWarList` never
+  ask whether there is a player, but its one caller, `opShowWarList`, is
+  registered `Relay::PlayerOnly`, and `SubcommandTable::dispatch` passes over
+  such a row when the line has no player behind it -- which is the only way a
+  `*command` body is reached without one. No other code calls the method. A
+  guard was therefore not added; the pin that keeps this closed is the
+  `showWarList` row in `tests/gm_console_command_test.cpp`, and a future
+  caller that can pass NULL has to guard or the method has to grow one.
+  > **Status:** not a defect (fix/dead-zone-bodies)
+
 ## Slayer's inventory packets lost the failing frame from the stack trace (2026-09-16)
 
 - **`Slayer::getExtraInfo()` and `Slayer::getInventoryInfo()` opened a
