@@ -1,10 +1,11 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : gm_command_router_test.cpp
-// Description : The GM chat command table (docs/RESTRUCTURING.md 4.1): every
+// Description : The GM chat command tables (docs/RESTRUCTURING.md 4.1): every
 //               registered command declares a permission level, the names are
 //               unique, a name matches as a prefix of the message, a caller
 //               below the level runs nothing, and an unknown name runs nothing
-//               either.
+//               either. The relay table - the commands another game server may
+//               send - is pinned the same way.
 //
 //               The production tables are the subject, not a copy of them:
 //               this links the real registration and stubs the command bodies,
@@ -67,6 +68,12 @@ CommandRouter operatorTable() {
 CommandRouter broadcastTable() {
     CommandRouter router;
     de::gm::registerBroadcastCommands(router);
+    return router;
+}
+
+CommandRouter relayTable() {
+    CommandRouter router;
+    de::gm::registerRelayCommands(router);
     return router;
 }
 
@@ -135,6 +142,26 @@ std::vector<Expected> expectedBroadcastCommands() {
         {"guild", 5, Permission::God, "opguild"},
         {"world", 5, Permission::God, "opworld"},
         {"allworld", 8, Permission::God, "opworld"},
+    };
+}
+
+// The commands another game server may relay, in the order a relayed message
+// is matched against them. A relayed message carries no player and no
+// creature, so every body named here is correct without one.
+std::vector<Expected> expectedRelayCommands() {
+    return {
+        {"save", 4, Permission::God, "opsave"},
+        {"wall", 4, Permission::God, "opwall"},
+        {"shutdown", 8, Permission::God, "opshutdown"},
+        {"kick", 4, Permission::God, "opkick"},
+        {"mute", 4, Permission::God, "opmute"},
+        {"freezing", 8, Permission::God, "opfreezing"},
+        {"set", 3, Permission::God, "opset"},
+        {"load", 4, Permission::God, "opload"},
+        {"combat", 6, Permission::God, "opcombat"},
+        {"command", 7, Permission::God, "opcommand"},
+        {"modifyunioninfo", 15, Permission::God, "opmodifyunioninfo"},
+        {"refreshguildunion", 17, Permission::God, "oprefreshguildunion"},
     };
 }
 
@@ -253,6 +280,12 @@ void opguild(std::string msg, int i, Creature*) {
 void opworld(GamePlayer*, std::string msg, int i, bool) {
     record("opworld", msg, i);
 }
+void opmodifyunioninfo(GamePlayer*, std::string msg, int i, bool) {
+    record("opmodifyunioninfo", msg, i);
+}
+void oprefreshguildunion(GamePlayer*, std::string msg, int i, bool) {
+    record("oprefreshguildunion", msg, i);
+}
 
 } // namespace de::gm
 
@@ -261,7 +294,7 @@ void opworld(GamePlayer*, std::string msg, int i, bool) {
 //////////////////////////////////////////////////////////////////////////////
 
 TEST(GMCommandRouter, EveryRegisteredCommandDeclaresAPermissionLevel) {
-    for (const CommandRouter& router : {operatorTable(), broadcastTable()}) {
+    for (const CommandRouter& router : {operatorTable(), broadcastTable(), relayTable()}) {
         EXPECT_FALSE(router.commands().empty());
         for (const Command& command : router.commands()) {
             EXPECT_FALSE(command.name.empty());
@@ -275,7 +308,7 @@ TEST(GMCommandRouter, EveryRegisteredCommandDeclaresAPermissionLevel) {
 }
 
 TEST(GMCommandRouter, CommandNamesAreUnique) {
-    for (const CommandRouter& router : {operatorTable(), broadcastTable()}) {
+    for (const CommandRouter& router : {operatorTable(), broadcastTable(), relayTable()}) {
         std::vector<std::string> seen;
         for (const Command& command : router.commands()) {
             EXPECT_EQ(std::count(seen.begin(), seen.end(), command.name), 0) << command.name;
@@ -462,4 +495,50 @@ TEST(GMCommandRouter, TheWorldPrefixesRelayEvenWhenTheCarriedCommandIsRefused) {
 
     ASSERT_EQ(calls().size(), 1u);
     EXPECT_EQ(calls()[0].name, "opworld");
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// The relay table
+//////////////////////////////////////////////////////////////////////////////
+
+TEST(GMRelayCommands, RelayTableIsTheExpectedOne) {
+    const CommandRouter router = relayTable();
+    const std::vector<Expected> expected = expectedRelayCommands();
+
+    ASSERT_EQ(router.commands().size(), expected.size());
+    for (std::size_t n = 0; n < expected.size(); ++n) {
+        EXPECT_EQ(router.commands()[n].name, expected[n].name) << "row " << n;
+        EXPECT_EQ(router.commands()[n].matchLength, expected[n].matchLength) << expected[n].name;
+        EXPECT_EQ(static_cast<int>(router.commands()[n].permission), static_cast<int>(expected[n].permission))
+            << expected[n].name;
+    }
+}
+
+TEST(GMRelayCommands, EveryRelayCommandRunsItsOwnBody) {
+    const CommandRouter router = relayTable();
+    for (const Expected& expected : expectedRelayCommands())
+        EXPECT_EQ(run(router, "*" + expected.name + " argument", Permission::God), expected.body);
+}
+
+// *world relays whatever a GOD typed after it, so any chat command at all can
+// arrive as a relay. One the table does not name runs nothing.
+TEST(GMRelayCommands, ACommandOutsideTheTableRunsNothing) {
+    const CommandRouter router = relayTable();
+
+    bool dispatched = true;
+    EXPECT_EQ(run(router, "*warp 1013 10 10", Permission::God, &dispatched), "");
+    EXPECT_FALSE(dispatched);
+
+    EXPECT_EQ(run(router, "*create 1 2", Permission::God), "");
+    EXPECT_EQ(run(router, "*info someone", Permission::God), "");
+    EXPECT_EQ(run(router, "*zone 1013", Permission::God), "");
+}
+
+// The two guild-union commands answer a relayed message and nothing else.
+TEST(GMRelayCommands, TheGuildUnionCommandsAreRelayOnly) {
+    EXPECT_EQ(run(operatorTable(), "*modifyunioninfo 5", Permission::God), "");
+    EXPECT_EQ(run(broadcastTable(), "*refreshguildunion", Permission::God), "");
+
+    EXPECT_EQ(run(relayTable(), "*modifyunioninfo 5", Permission::God), "opmodifyunioninfo");
+    EXPECT_EQ(run(relayTable(), "*refreshguildunion", Permission::God), "oprefreshguildunion");
 }

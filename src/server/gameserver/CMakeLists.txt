@@ -621,6 +621,7 @@ set(GM_SOURCES
     gm/CommandRegistration.cpp
     gm/SubcommandTable.cpp
     gm/ConsoleCommandRegistration.cpp
+    gm/RelayCommandRegistration.cpp
     gm/ServerCommands.cpp
     gm/PlayerCommands.cpp
     gm/ZoneCommands.cpp

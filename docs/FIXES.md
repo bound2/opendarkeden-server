@@ -11,6 +11,26 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A relayed `*command` could crash the receiving game server (2026-09-16)
+
+- **`GGCommandHandler` ran `*command` sub-command bodies with no player,
+  and 40 of the 61 read one the moment they start.** `*world` relays
+  whatever a GOD typed after it to every other game server, so
+  `*world *command heal` reached each receiving server's `opHeal`, which
+  opens with `pGamePlayer->getCreature()` on the NULL the relay hands it.
+  Every sub-command row now declares whether its body is correct with no
+  player behind the line, and `SubcommandTable::dispatch` passes over a
+  `PlayerOnly` row when there is none, the way it passes over a row whose
+  gate the caller is below. The behaviour change is that a `PlayerOnly`
+  sub-command arriving through the relay now does nothing instead of
+  dereferencing NULL; no body changed. `GGCommandHandler` hands the
+  relayed message to a table of its own
+  (`src/server/gameserver/gm/RelayCommandRegistration.cpp`) listing the
+  twelve commands a relay may run, all of which are correct with no
+  player; `tests/gm_console_command_test.cpp` and
+  `tests/gm_command_router_test.cpp` pin both.
+  > **Status:** fixed (refactor/gg-relay-table)
+
 ## Guild union changes never reached the other game servers (2026-09-16)
 
 - **`GGCommandHandler` compared a 17-character slice of the relayed

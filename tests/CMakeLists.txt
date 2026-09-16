@@ -696,9 +696,10 @@ add_dependencies(wire_tests database_error_tests)
 add_test(NAME database_error_tests COMMAND database_error_tests)
 set_tests_properties(database_error_tests PROPERTIES TIMEOUT 30)
 
-# The GM chat command table (docs/RESTRUCTURING.md 4.1): CommandRouter plus
-# the production registration, which is where every command's name, prefix
-# length and permission level are declared. The command bodies are stubbed by
+# The GM chat command tables (docs/RESTRUCTURING.md 4.1): CommandRouter plus
+# the production registrations, which are where every command's name, prefix
+# length and permission level are declared - the commands a player may type
+# and the ones another game server may relay. The command bodies are stubbed by
 # the test itself - the real ones need a zone, an inventory and a database -
 # so what is linked here is the table and the matching rule, and nothing of
 # the gameserver. de-kernel is not needed either: the router carries no packet
@@ -707,6 +708,7 @@ add_executable(gm_command_router_tests EXCLUDE_FROM_ALL
     gm_command_router_test.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/gm/CommandRouter.cpp
     ${CMAKE_SOURCE_DIR}/src/server/gameserver/gm/CommandRegistration.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/gm/RelayCommandRegistration.cpp
 )
 target_include_directories(gm_command_router_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src/server/gameserver
@@ -717,8 +719,9 @@ add_test(NAME gm_command_router_tests COMMAND gm_command_router_tests)
 set_tests_properties(gm_command_router_tests PROPERTIES TIMEOUT 60)
 
 # The *command console sub-command table (docs/RESTRUCTURING.md 4.1): the
-# production registration, which is where every sub-command name and
-# permission level is declared, over the exact-match SubcommandTable. The
+# production registration, which is where every sub-command name, permission
+# level and null-player admission is declared, over the exact-match
+# SubcommandTable. The
 # bodies are stubbed by the test - the real ones need a zone, an inventory and
 # a database - so what is linked is the table and the matching rule.
 # de-kernel carries GCSystemMessage, the reply a body fills in.
