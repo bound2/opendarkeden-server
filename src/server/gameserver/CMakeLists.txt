@@ -610,6 +610,20 @@ set(EXCHANGE_SOURCES
 )
 
 # ============================================================================
+# GM command sources
+# ============================================================================
+set(GM_SOURCES
+    gm/CommandRouter.cpp
+    gm/CommandRegistration.cpp
+    gm/ServerCommands.cpp
+    gm/PlayerCommands.cpp
+    gm/ZoneCommands.cpp
+    gm/ItemCommands.cpp
+    gm/GuildCommands.cpp
+    gm/ConsoleCommands.cpp
+)
+
+# ============================================================================
 # GameServer 可执行文件
 # ============================================================================
 add_executable(gameserver
@@ -623,6 +637,7 @@ add_executable(gameserver
     ${EVENT_SOURCES}
     ${GQUEST_SOURCES}
     ${EXCHANGE_SOURCES}
+    ${GM_SOURCES}
 )
 
 # 编译定义

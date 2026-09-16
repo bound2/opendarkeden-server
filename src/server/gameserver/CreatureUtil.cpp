@@ -14,7 +14,6 @@
 
 #include "Belt.h"
 #include "BloodBible.h"
-#include "CGSay.h"
 #include "CastleInfoManager.h"
 #include "CombatInfoManager.h"
 #include "Effect.h"
@@ -63,6 +62,7 @@
 #include "ZoneGroupManager.h"
 #include "couple/PartnerWaitingManager.h"
 #include "ctf/FlagManager.h"
+#include "gm/GMCommands.h"
 #include "repository/CharacterPurgeRepository.h"
 #include "repository/CharacterRepository.h"
 #include "repository/PlayRecordRepository.h"
@@ -1944,7 +1944,7 @@ void giveUnderworldGift(Creature* pCreature) {
     char ggCommand[200];
     string worldName = g_pGameWorldInfoManager->getGameWorldInfo(g_pConfig->getPropertyInt("WorldID"))->getName();
     sprintf(ggCommand, "*allworld *command NotifyWin %s(%s) %u", PlayerName.c_str(), worldName.c_str(), 101);
-    CGSayHandler::opworld(NULL, ggCommand, 0, false);
+    de::gm::opworld(NULL, ggCommand, 0, false);
 }
 #endif
 

@@ -10,7 +10,6 @@
 
 #include <cstdio>
 
-#include "CGSay.h"
 #include "GCCreateItem.h"
 #include "GCDeleteInventoryItem.h"
 #include "GCNoticeEvent.h"
@@ -29,6 +28,7 @@
 #include "Slayer.h"
 #include "Vampire.h"
 #include "ZoneGroupManager.h"
+#include "gm/GMCommands.h"
 #include "mission/EventQuestAdvance.h"
 #include "mission/QuestManager.h"
 #include "repository/ItemRepository.h"
@@ -136,7 +136,7 @@ void CGLotterySelectHandler::execute(CGLotterySelect* pPacket, Player* pPlayer)
                 g_pGameWorldInfoManager->getGameWorldInfo(g_pConfig->getPropertyInt("WorldID"))->getName();
             sprintf(sCommand, "*allworld *command NotifyWin %s(%s) %u", pCreature->getName().c_str(), worldName.c_str(),
                     pPC->getLottoRewardID());
-            CGSayHandler::opworld(NULL, sCommand, 0, false);
+            de::gm::opworld(NULL, sCommand, 0, false);
 
         } else {
             // Otherwise, hand out consolation rewards

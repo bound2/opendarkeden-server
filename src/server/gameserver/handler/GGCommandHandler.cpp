@@ -11,8 +11,8 @@
 
 #ifdef __GAME_SERVER__
 
-#include "CGSay.h"
 #include "VariableManager.h"
+#include "gm/GMCommands.h"
 
 #endif
 
@@ -42,31 +42,31 @@ void GGCommandHandler::execute(GGCommand* pPacket)
     string msg = pPacket->getCommand();
 
     if (msg.substr(i + 1, 4) == "save") {
-        CGSayHandler::opsave(NULL, msg, i);
+        de::gm::opsave(NULL, msg, i);
     }
 
     else if (msg.substr(i + 1, 4) == "wall") {
-        CGSayHandler::opwall(NULL, msg, i);
+        de::gm::opwall(NULL, msg, i);
     }
 
     // halt
     else if (msg.substr(i + 1, 8) == "shutdown") {
-        CGSayHandler::opshutdown(NULL, msg, i);
+        de::gm::opshutdown(NULL, msg, i);
 
     }
 
     else if (msg.substr(i + 1, 4) == "kick") {
-        CGSayHandler::opkick(NULL, msg, i);
+        de::gm::opkick(NULL, msg, i);
 
     }
 
     else if (msg.substr(i + 1, 4) == "mute") {
-        CGSayHandler::opmute(NULL, msg, i);
+        de::gm::opmute(NULL, msg, i);
 
     }
 
     else if (msg.substr(i + 1, 8) == "freezing") {
-        CGSayHandler::opfreezing(NULL, msg, i);
+        de::gm::opfreezing(NULL, msg, i);
 
     }
 
@@ -74,25 +74,25 @@ void GGCommandHandler::execute(GGCommand* pPacket)
     // set type value 형태로 정의된다.
     // 2002.5.8 별 확률을 자율적으로 조절하기 위해서 만듬
     else if (msg.substr(i + 1, 3) == "set") {
-        CGSayHandler::opset(NULL, msg, i);
+        de::gm::opset(NULL, msg, i);
     }
 
     else if (msg.substr(i + 1, 4) == "load") {
-        CGSayHandler::opload(NULL, msg, i);
+        de::gm::opload(NULL, msg, i);
     }
 
     else if (msg.substr(i + 1, 6) == "combat") {
-        CGSayHandler::opcombat(NULL, msg, i);
+        de::gm::opcombat(NULL, msg, i);
     }
 
     else if (msg.substr(i + 1, 7) == "command") {
-        CGSayHandler::opcommand(NULL, msg, i);
+        de::gm::opcommand(NULL, msg, i);
 
     } else if (msg.substr(i + 1, 17) == "modifyunioninfo") {
-        CGSayHandler::opmodifyunioninfo(NULL, msg, i, true);
+        de::gm::opmodifyunioninfo(NULL, msg, i, true);
 
     } else if (msg.substr(i + 1, 17) == "refreshguildunion") {
-        CGSayHandler::oprefreshguildunion(NULL, msg, i, true);
+        de::gm::oprefreshguildunion(NULL, msg, i, true);
     }
 
 #endif

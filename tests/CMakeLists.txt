@@ -695,3 +695,23 @@ target_link_libraries(database_error_tests PRIVATE Database ServerCore de-kernel
 add_dependencies(wire_tests database_error_tests)
 add_test(NAME database_error_tests COMMAND database_error_tests)
 set_tests_properties(database_error_tests PROPERTIES TIMEOUT 30)
+
+# The GM chat command table (docs/RESTRUCTURING.md 4.1): CommandRouter plus
+# the production registration, which is where every command's name, prefix
+# length and permission level are declared. The command bodies are stubbed by
+# the test itself - the real ones need a zone, an inventory and a database -
+# so what is linked here is the table and the matching rule, and nothing of
+# the gameserver. de-kernel is not needed either: the router carries no packet
+# and no wire type.
+add_executable(gm_command_router_tests EXCLUDE_FROM_ALL
+    gm_command_router_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/gm/CommandRouter.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/gm/CommandRegistration.cpp
+)
+target_include_directories(gm_command_router_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(gm_command_router_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests gm_command_router_tests)
+add_test(NAME gm_command_router_tests COMMAND gm_command_router_tests)
+set_tests_properties(gm_command_router_tests PROPERTIES TIMEOUT 60)
