@@ -11,6 +11,17 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A vampire or ousters character carried indeterminate gold until its first load (2026-09-16)
+
+- **Only `Slayer::Slayer()` set `m_Gold = 0`; the Vampire and Ousters
+  constructors left the member uninitialised.** Every path that reads gold
+  before `load()` fills it in, such as `getGold()` in an info packet built
+  for a character that failed to load, read whatever the allocation held.
+  The member now lives on `PlayerCreature`, defined once for the three races,
+  and carries a member initialiser of zero, so a fresh character of any race
+  starts with the gold a Slayer always started with.
+  > **Status:** fixed (refactor/race-shared-1)
+
 ## A relayed `*command` could crash the receiving game server (2026-09-16)
 
 - **`GGCommandHandler` ran `*command` sub-command bodies with no player,

@@ -738,3 +738,19 @@ target_link_libraries(gm_console_command_tests PRIVATE de-kernel gtest_main Thre
 add_dependencies(wire_tests gm_console_command_tests)
 add_test(NAME gm_console_command_tests COMMAND gm_console_command_tests)
 set_tests_properties(gm_console_command_tests PROPERTIES TIMEOUT 60)
+
+# The race table a player creature's rows are addressed to
+# (docs/RESTRUCTURING.md 4.3): characterRaceOf() is the one place that decides
+# it now that the three race classes share their persistence bodies, so the
+# mapping is pinned here. Header-only, so nothing but gtest is linked.
+add_executable(player_race_tests EXCLUDE_FROM_ALL
+    player_race_test.cpp
+)
+target_include_directories(player_race_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(player_race_tests PRIVATE gtest_main Threads::Threads)
+add_dependencies(wire_tests player_race_tests)
+add_test(NAME player_race_tests COMMAND player_race_tests)
+set_tests_properties(player_race_tests PROPERTIES TIMEOUT 60)

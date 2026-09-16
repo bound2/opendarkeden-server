@@ -708,18 +708,6 @@ void Ousters::save() const
     __END_CATCH
 }
 
-//----------------------------------------------------------------------
-// tinysave
-//----------------------------------------------------------------------
-void Ousters::tinysave(const string& field) // by sigi. 2002.5.15
-    const {
-    __BEGIN_TRY
-
-    defaultCharacterRepository().tinysave(m_Name, CHARACTER_RACE_OUSTERS, field);
-
-    __END_CATCH
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 SkillBonus_t Ousters::getSumOfUsedSkillBonus() const
@@ -1869,16 +1857,6 @@ void Ousters::sendOustersSkillInfo()
 //
 //
 ////////////////////////////////////////////////////////////////////////////////
-void Ousters::setGold(Gold_t gold)
-
-{
-    __BEGIN_TRY
-
-    // 2003.1.8  by bezz.
-    m_Gold = min((Gold_t)MAX_MONEY, gold);
-
-    __END_CATCH
-}
 
 void Ousters::setGoldEx(Gold_t gold)
 
@@ -1892,42 +1870,6 @@ void Ousters::setGoldEx(Gold_t gold)
     sprintf(pField, "Gold=%u", m_Gold);
     tinysave(pField);
 
-    __END_CATCH
-}
-
-void Ousters::increaseGoldEx(Gold_t gold)
-
-{
-    __BEGIN_TRY
-    __BEGIN_DEBUG
-
-    // 2003.1.8  by bezz.
-    if (m_Gold + gold > MAX_MONEY)
-        gold = MAX_MONEY - m_Gold;
-
-    setGold(m_Gold + gold);
-
-    defaultGoldRepository().increaseGold(m_Name, CHARACTER_RACE_OUSTERS, gold);
-
-    __END_DEBUG
-    __END_CATCH
-}
-
-void Ousters::decreaseGoldEx(Gold_t gold)
-
-{
-    __BEGIN_TRY
-    __BEGIN_DEBUG
-
-    // 2003.1.8  by bezz.
-    if (m_Gold < gold)
-        gold = m_Gold;
-
-    setGold(m_Gold - gold);
-
-    defaultGoldRepository().decreaseGold(m_Name, CHARACTER_RACE_OUSTERS, gold);
-
-    __END_DEBUG
     __END_CATCH
 }
 
@@ -1945,31 +1887,6 @@ void Ousters::saveSilverDamage(Silver_t damage)
 
     __END_CATCH
 }
-
-bool Ousters::checkGoldIntegrity() {
-    __BEGIN_TRY
-
-    int gold = 0;
-    if (!defaultGoldRepository().loadGold(m_Name, CHARACTER_RACE_OUSTERS, gold))
-        return false;
-
-    return gold == m_Gold;
-
-    __END_CATCH
-}
-
-bool Ousters::checkStashGoldIntegrity() {
-    __BEGIN_TRY
-
-    int gold = 0;
-    if (!defaultStashRepository().loadStashGold(m_Name, CHARACTER_RACE_OUSTERS, gold))
-        return false;
-
-    return gold == m_StashGold;
-
-    __END_CATCH
-}
-
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
@@ -2053,38 +1970,6 @@ void Ousters::getOustersRecord(OUSTERS_RECORD& record) const
     __END_CATCH
 }
 
-void Ousters::setResurrectZoneIDEx(ZoneID_t id)
-
-{
-    __BEGIN_TRY
-
-    setResurrectZoneID(id);
-
-    // by sigi. 2002.5.15
-    char pField[80];
-    sprintf(pField, "ResurrectZone=%d", id);
-    tinysave(pField);
-
-
-    __END_CATCH
-}
-
-void Ousters::saveAlignment(Alignment_t alignment)
-
-{
-    __BEGIN_TRY
-
-    setAlignment(alignment);
-
-    // by sigi. 2002.5.15
-    char pField[80];
-    sprintf(pField, "Alignment=%d", alignment);
-    tinysave(pField);
-
-    __END_CATCH
-}
-
-
 //----------------------------------------------------------------------
 // get debug string
 //----------------------------------------------------------------------
@@ -2146,13 +2031,6 @@ Sight_t Ousters::getEffectedSight() {
     return sight;
 
     __END_CATCH
-}
-
-IP_t Ousters::getIP(void) const {
-    Assert(m_pPlayer != NULL);
-    Socket* pSocket = m_pPlayer->getSocket();
-    Assert(pSocket != NULL);
-    return pSocket->getHostIP();
 }
 
 void Ousters::saveGears(void) const
@@ -2320,25 +2198,6 @@ bool Ousters::removeShape(Item::ItemClass IClass, bool bSendPacket) {
     }
 
     return bisChange;
-}
-
-Color_t Ousters::getItemShapeColor(Item* pItem, OptionInfo* pOptionInfo) const {
-    Color_t color;
-
-    if (pItem->isTimeLimitItem()) {
-        color = QUEST_COLOR;
-    } else if (pItem->isUnique()) {
-        color = UNIQUE_COLOR;
-    } else if (pOptionInfo != NULL) {
-        color = pOptionInfo->getColor();
-    } else if (pItem->getFirstOptionType() != 0) {
-        OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(pItem->getFirstOptionType());
-        color = pOptionInfo->getColor();
-    } else {
-        color = 377;
-    }
-
-    return color;
 }
 
 bool Ousters::canPlayFree()
