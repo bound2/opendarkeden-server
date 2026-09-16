@@ -16,7 +16,6 @@ SET(LIBWAR_SRC
 	CorpseItemPosition.cpp
 	RaceWarLimiter.cpp
 	DragonEyeManager.cpp
-#	SubInventoryItemPosition.cpp)
 )
 
 

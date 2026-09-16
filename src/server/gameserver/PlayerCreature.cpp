@@ -514,9 +514,7 @@ void PlayerCreature::whenQuestLevelUpgrade() {
             pLevelNickInfo->getNicknameIndex() != getLevel() / 10) {
             pLevelNickInfo->setNicknameIndex(getLevel() / 10);
 
-            Packet* pNicknamePacket = m_pNicknameBook->getNicknameBookListPacket();
-            getPlayer()->sendPacket(pNicknamePacket);
-            SAFE_DELETE(pNicknamePacket);
+            getPlayer()->sendPacket(m_pNicknameBook->getNicknameBookListPacket().get());
 
             if (pLevelNickInfo == m_pNickname) {
                 GCModifyNickname gcMN;

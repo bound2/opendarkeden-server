@@ -4267,7 +4267,7 @@ void CGSayHandler::opcommand(GamePlayer* pGamePlayer, string msg, int i) {
             gcMN.setNicknameInfo(pNick);
 
             pPC->getZone()->broadcastPacket(pPC->getX(), pPC->getY(), &gcMN);
-            pPC->getPlayer()->sendPacket(pNickbook->getNicknameBookListPacket());
+            pPC->getPlayer()->sendPacket(pNickbook->getNicknameBookListPacket().get());
         }
     } else if (command == "RemoveNick") {
         string name = trim(value1);
@@ -4308,7 +4308,7 @@ void CGSayHandler::opcommand(GamePlayer* pGamePlayer, string msg, int i) {
 
                 pNickbook->setNicknameInfo(100, NULL);
                 SAFE_DELETE(pNick);
-                pPC->getPlayer()->sendPacket(pNickbook->getNicknameBookListPacket());
+                pPC->getPlayer()->sendPacket(pNickbook->getNicknameBookListPacket().get());
             }
         }
     } else if (command == "StartGDRLair") {

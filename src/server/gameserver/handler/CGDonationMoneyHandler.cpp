@@ -98,7 +98,7 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
     // 지금까지의 기부 회수를 구한다.
     {
         {
-            Packet* pNicknamePacket = NULL;
+            std::unique_ptr<GCNicknameList> pNicknamePacket;
 
             {
                 sumAfterPersonal =
@@ -152,9 +152,8 @@ void CGDonationMoneyHandler::execute(CGDonationMoney* pPacket, Player* pPlayer) 
                 }
             }
 
-            if (pNicknamePacket != NULL) {
-                pGamePlayer->sendPacket(pNicknamePacket);
-                SAFE_DELETE(pNicknamePacket);
+            if (pNicknamePacket != nullptr) {
+                pGamePlayer->sendPacket(pNicknamePacket.get());
             }
         }
     }

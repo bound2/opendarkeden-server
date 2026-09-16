@@ -164,7 +164,7 @@ enum GearInfoKind {
     GEAR_INFO_BASIC_LEVEL_STRING,   // loadLevelStringInfos (Potion, SlayerPortalItem, VampirePortalItem)
     GEAR_INFO_BASIC_LEVEL,          // loadLevelInfos (Skull)
     GEAR_INFO_BASIC_INT,            // loadIntInfos (QuestItem, SMSItem, LearningItem, CoreZap)
-    GEAR_INFO_BASIC_INT_PAIR,       // loadIntPairInfos (SubInventory, TrapItem, Key)
+    GEAR_INFO_BASIC_INT_PAIR,       // loadIntPairInfos (GEAR_SUB_INVENTORY, TrapItem, Key)
     GEAR_INFO_BASIC_INT_TRIPLE,     // loadIntTripleInfos (PetFood)
     GEAR_INFO_MIXING_ITEM,          // loadMixingItemInfos (MixingItem)
     GEAR_INFO_SUMMON_ITEM,          // loadSummonItemInfos (OustersSummonItem)

@@ -102,8 +102,8 @@ void NicknameBook::load() {
     __END_CATCH
 }
 
-Packet* NicknameBook::getNicknameBookListPacket() const {
-    GCNicknameList* pPacket = new GCNicknameList;
+std::unique_ptr<GCNicknameList> NicknameBook::getNicknameBookListPacket() const {
+    auto pPacket = std::make_unique<GCNicknameList>();
 
     vector<NicknameInfo*>& nickList = pPacket->getNicknames();
 

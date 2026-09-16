@@ -179,9 +179,7 @@ void CGModifyNicknameHandler::execute(CGModifyNickname* pPacket, Player* pPlayer
         gcNV.setCode(NICKNAME_MODIFY_OK);
         pGamePlayer->sendPacket(&gcNV);
 
-        Packet* pNickList = pPC->getNicknameBook()->getNicknameBookListPacket();
-        pGamePlayer->sendPacket(pNickList);
-        SAFE_DELETE(pNickList);
+        pGamePlayer->sendPacket(pPC->getNicknameBook()->getNicknameBookListPacket().get());
 
         pInventory->deleteItem(itemOID);
         pItem->destroy();

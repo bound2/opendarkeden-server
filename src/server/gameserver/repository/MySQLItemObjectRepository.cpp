@@ -1548,7 +1548,7 @@ const GearSpec kGear[] = {
         GEAR_INFO_BASIC_INT,
         FLAG_OBJECT,
     },
-    // SubInventory (GEAR_SUB_INVENTORY)
+    // SubInventoryObject / SubInventoryInfo (GEAR_SUB_INVENTORY)
     {
         "INSERT INTO SubInventoryObject (ItemID,  ObjectID, ItemType, OwnerID, Storage, StorageID, X, Y, ItemFlag) "
         "VALUES(%u, %u, %u, '%s', %d, %u, %d, %d, %d)",
