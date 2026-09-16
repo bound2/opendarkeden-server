@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5701 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5685 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -105,6 +105,18 @@ check_ratchet R6f "ConsoleCommands.cpp lines" 1596 "$R6f"
 # is 2,000 lines.
 R6g=$(wc -l < src/server/gameserver/Zone.cpp 2>/dev/null || echo missing)
 check_ratchet R6g "Zone.cpp lines" 3482 "$R6g"
+
+# R6h-j: the three race classes. Persistence, gold and item-shape bodies that
+# were identical in all three now live once on PlayerCreature; what is left in
+# each file is its own wear/skill/info/load code. The remaining duplication is
+# pairwise (Vampire and Ousters agree, Slayer differs), so these shrink again
+# only when a pair is reconciled.
+R6h=$(wc -l < src/server/gameserver/Slayer.cpp 2>/dev/null || echo missing)
+check_ratchet R6h "Slayer.cpp lines" 3883 "$R6h"
+R6i=$(wc -l < src/server/gameserver/Vampire.cpp 2>/dev/null || echo missing)
+check_ratchet R6i "Vampire.cpp lines" 2619 "$R6i"
+R6j=$(wc -l < src/server/gameserver/Ousters.cpp 2>/dev/null || echo missing)
+check_ratchet R6j "Ousters.cpp lines" 2407 "$R6j"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`
