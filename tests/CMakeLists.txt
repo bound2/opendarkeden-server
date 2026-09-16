@@ -715,3 +715,23 @@ target_link_libraries(gm_command_router_tests PRIVATE gtest_main Threads::Thread
 add_dependencies(wire_tests gm_command_router_tests)
 add_test(NAME gm_command_router_tests COMMAND gm_command_router_tests)
 set_tests_properties(gm_command_router_tests PROPERTIES TIMEOUT 60)
+
+# The *command console sub-command table (docs/RESTRUCTURING.md 4.1): the
+# production registration, which is where every sub-command name and
+# permission level is declared, over the exact-match SubcommandTable. The
+# bodies are stubbed by the test - the real ones need a zone, an inventory and
+# a database - so what is linked is the table and the matching rule.
+# de-kernel carries GCSystemMessage, the reply a body fills in.
+add_executable(gm_console_command_tests EXCLUDE_FROM_ALL
+    gm_console_command_test.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/gm/SubcommandTable.cpp
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver/gm/ConsoleCommandRegistration.cpp
+)
+target_include_directories(gm_console_command_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Core
+    ${CMAKE_SOURCE_DIR}/src/server/gameserver
+)
+target_link_libraries(gm_console_command_tests PRIVATE de-kernel gtest_main Threads::Threads)
+add_dependencies(wire_tests gm_console_command_tests)
+add_test(NAME gm_console_command_tests COMMAND gm_console_command_tests)
+set_tests_properties(gm_console_command_tests PROPERTIES TIMEOUT 60)

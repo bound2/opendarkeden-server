@@ -6,7 +6,7 @@
 #include "Exception.h"
 #include "Mutex.h"
 #include "Types.h"
-#include "gm/GMCommands.h"
+#include "gm/ConsoleSubcommands.h"
 
 class PKZoneInfo {
 public:
@@ -84,7 +84,7 @@ protected:
         if (num <= m_PCLimit && num >= 0)
             m_CurrentPCNum = num;
     }
-    friend void de::gm::opcommand(GamePlayer*, std::string, int);
+    friend void de::gm::opSetPKZonePCNum(GamePlayer*, const std::string&, GCSystemMessage&, bool&);
 
 private:
     ZoneID_t m_ZoneID;

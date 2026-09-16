@@ -81,6 +81,7 @@ are enforced so far.
 | `src/server/gameserver/skill/SkillUtil.cpp` | 6,739 (enforced by `ratchets.sh` R6a) |
 | `src/server/gameserver/InitAllStat.cpp` | 4,803 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
 | `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 116 (was 4,720 before the 4.1 command extraction; enforced by `ratchets.sh` R6e) |
+| `src/server/gameserver/gm/ConsoleCommands.cpp` | 1,596 (the 61 `*command` sub-command bodies, one function per name; enforced by `ratchets.sh` R6f) |
 | `src/server/gameserver/Slayer.cpp` | 4,068 (4,375 on 2026-08-31) |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 820 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
 | `src/server/gameserver/skill/HitRoll.cpp` | 774 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
@@ -1244,11 +1245,16 @@ down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
   > gate change has to be written twice. The levels are God / DM / Helper /
   > Everyone, ordered as `Competence` is. Three alias names left mojibake
   > by the code-page move are registered unreachable, each longer than the
-  > length it is compared over. What remains: `*command` is still one
-  > 1,300-line body with a sub-ladder of its own, and `opmrecall`,
-  > `opmodifyunioninfo` and `oprefreshguildunion` are reached from
-  > `GGCommandHandler` only, so no table row names them.
-  - Owner: router registration + the enumeration test; R6e ratchet.
+  > length it is compared over. `*command` carries a second table of its
+  > own: `SubcommandTable` matches the word after it whole rather than as a
+  > prefix, `ConsoleCommandRegistration.cpp` is the one place its 61 rows and
+  > their gates are written down, the bodies are one function per name in
+  > `ConsoleCommands.cpp`, and `tests/gm_console_command_test.cpp` pins the
+  > rows the same way. What remains: `opmodifyunioninfo` and
+  > `oprefreshguildunion` are reached from `GGCommandHandler` only, so no
+  > table row names them.
+  - Owner: router registration + the enumeration tests; R6e and R6f
+    ratchets.
 
 - [ ] **4.2 Split `Zone.cpp`** (9,263 lines) by concern: movement, broadcast,
   spawn/despawn, scan/visibility, persistence (→ 3.2 repository). Mechanical,
