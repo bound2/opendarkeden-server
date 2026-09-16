@@ -34,9 +34,15 @@ void registerOperatorCommands(CommandRouter& router);
 // servers. A message one of these answers reaches no operator command.
 void registerBroadcastCommands(CommandRouter& router);
 
-// The two tables, built on first use.
+// The commands another game server may relay. A relayed message carries no
+// player and no creature, so only bodies that are correct without one are
+// named here.
+void registerRelayCommands(CommandRouter& router);
+
+// The three tables, built on first use.
 const CommandRouter& operatorCommands();
 const CommandRouter& broadcastCommands();
+const CommandRouter& relayCommands();
 
 //////////////////////////////////////////////////////////////////////////////
 // ServerCommands.cpp - the server as a whole
