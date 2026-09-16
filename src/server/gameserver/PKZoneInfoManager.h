@@ -3,10 +3,10 @@
 
 #include <unordered_map>
 
-#include "CGSay.h"
 #include "Exception.h"
 #include "Mutex.h"
 #include "Types.h"
+#include "gm/GMCommands.h"
 
 class PKZoneInfo {
 public:
@@ -84,7 +84,7 @@ protected:
         if (num <= m_PCLimit && num >= 0)
             m_CurrentPCNum = num;
     }
-    friend void CGSayHandler::opcommand(GamePlayer*, string, int);
+    friend void de::gm::opcommand(GamePlayer*, std::string, int);
 
 private:
     ZoneID_t m_ZoneID;

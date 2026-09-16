@@ -14,7 +14,6 @@
 #include "ZoneGroupManager.h"
 #include "repository/WarInfoRepository.h"
 // #include "HolyLandRaceBonus.h"
-#include "CGSay.h"
 #include "CastleInfoManager.h"
 #include "DragonEyeManager.h"
 #include "GCNoticeEvent.h"
@@ -32,6 +31,7 @@
 #include "ZoneGroup.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
+#include "gm/GMCommands.h"
 
 //--------------------------------------------------------------------------------
 //
@@ -200,7 +200,7 @@ void RaceWar::executeEnd()
     // 캐릭터들의 Flag도 모두 제거한다.
     g_pZoneGroupManager->removeFlag(Effect::EFFECT_CLASS_RACE_WAR_JOIN_TICKET);
 
-    CGSayHandler::opworld(NULL, "*world *load blood_bible_owner", 0, true);
+    de::gm::opworld(NULL, "*world *load blood_bible_owner", 0, true);
 
     // 드래곤 아이 아이템을 없앤다.
     g_pDragonEyeManager->removeAllDragonEyes();

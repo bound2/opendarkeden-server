@@ -7,7 +7,6 @@
 #include <stdio.h>
 
 #include "Assert.h"
-#include "CGSay.h"
 #include "CastleInfoManager.h"
 #include "CastleShrineInfoManager.h"
 #include "DB.h"
@@ -28,6 +27,7 @@
 #include "ZoneGroupManager.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
+#include "gm/GMCommands.h"
 #include "repository/WarInfoRepository.h"
 
 //--------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ void GuildWar::executeEnd()
         if (g_pConfig->getPropertyInt("IsNetMarble") == 1) {
             char sCommand[100];
             sprintf(sCommand, "*world *command setCastleOwnerGuild %u %u", m_CastleZoneID, m_WinnerGuildID);
-            CGSayHandler::opworld(NULL, sCommand, 0, true);
+            de::gm::opworld(NULL, sCommand, 0, true);
         }
     } else {
         // WinnerGuildID 를 지금 주인으로 셋팅해준다

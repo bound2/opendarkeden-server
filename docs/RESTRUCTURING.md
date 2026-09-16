@@ -61,7 +61,7 @@ Baselines measured 2026-08-29. Run commands from repo root (bash).
 | R2 | Files with inline SQL in gameserver root | 0 | `grep -lE 'executeQuery' src/server/gameserver/*.cpp src/server/gameserver/*.h \| wc -l` (non-recursive on purpose: a `repository/` MySQL impl does not count — R2 measures SQL *leaving the game logic*. Textual, so a commented-out `executeQuery` still counts. Baseline 104 on 2026-08-29; 7→0 on 2026-09-10, the last two live sites into `PlayRecordRepository::logPlayerTrade` and the new `SMSMessageRepository`, `CreatureUtil.cpp`'s commented-out `addOlympicStat` body deleted, and four never-built stale copies deleted with it. The root is clean; new SQL there fails the ratchet.) |
 | R3 | Files with inline SQL outside `database/` and any `repository/` | 0 | `grep -rlE 'executeQuery' src --include='*.cpp' \| grep -v 'server/database' \| grep -v '/repository/' \| wc -l` (18→11 on 2026-09-10 with the seven gameserver-root files R2 counted; 11→0 the same day with the never-built `EventBall.cpp`, the `*notice` command that held the last live statement, and the nine files whose only `executeQuery` sat inside a comment block. `gameserver/repository/` joined the exclusion on 2026-09-01, 317→314: a seam that quarantines four tables from two files would otherwise *raise* a shrink-only ratchet; the loginserver's, sharedserver's and ServerCore's `repository/` directories were admitted on 2026-09-07 before they existed, so the count did not move. Textual — see the comment policy under 3.2. Counts unbuilt files and the other binaries' game logic too.) |
 | R4 | Packet headers with `execute()` still on the packet | 0 | `grep -rlE 'void execute\(Player' src/Core --include='*.h' \| wc -l` |
-| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,701 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; fold in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted. 5,755→5,737 on 2026-09-10: the never-built `EventMonsterNameManager.cpp` (4), `GameServerInfoManager.cpp` (7) and `GameWorldInfoManager.cpp` (7) were deleted. 5,737→5,719 on 2026-09-10: the never-built `EventBall.cpp` (10) and `EventQuestRewardManager.cpp` (1) were deleted, and seven more sat in commented-out or empty bodies deleted from `mission/`, `skill/` and `war/`. 5,719→5,701 on 2026-09-13: the never-built `item/SubInventory.cpp` (10) and `war/SubInventoryItemPosition.cpp` (8) were deleted) |
+| R5 | `__BEGIN_TRY` control-flow macro sites in de-core candidates | 5,701 | `grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' \| grep -vE 'gameserver/(gm\|handler\|packetfill)/' \| wc -l` (handler/ and packetfill/ hold 2.4-moved sources from `src/Core`, never counted while they lived there; `gm/` joined them with task 4.1, holding the GM command bodies that moved out of `handler/CGSayHandler.cpp` — the 33 macro pairs in them are the same handler bodies at a new address, so the number did not move. Fold them in with a re-baseline when they become 3.x extraction targets. 5,984→5,980 on 2026-09-02: the four macros inside the guild trio's deleted dead __SHARED_SERVER__ blocks. 5,980→5,899 on 2026-09-02, textual: ItemIDRegistry.cpp's 81 hand-expanded initItemIDRegistry bodies collapsed onto one macro, so the grep sees one #define line instead of 82 matched lines — 81 expansions plus the old macro's own; each method still has its try block. 5,897→5,790 on 2026-09-05: the never-built `gameserver/test/`, `testAlone/`, `mofus/testserver/` and `quest/Squest/` trees were deleted. 5,790→5,788 on 2026-09-08: the never-built `skill/Restore2.cpp`, a stale duplicate of `skill/Restore.cpp`, was deleted. 5,788→5,755 on 2026-09-08: the never-built `Vampire_backup.cpp`, a stale copy of `Vampire.cpp`, was deleted. 5,755→5,737 on 2026-09-10: the never-built `EventMonsterNameManager.cpp` (4), `GameServerInfoManager.cpp` (7) and `GameWorldInfoManager.cpp` (7) were deleted. 5,737→5,719 on 2026-09-10: the never-built `EventBall.cpp` (10) and `EventQuestRewardManager.cpp` (1) were deleted, and seven more sat in commented-out or empty bodies deleted from `mission/`, `skill/` and `war/`. 5,719→5,701 on 2026-09-13: the never-built `item/SubInventory.cpp` (10) and `war/SubInventoryItemPosition.cpp` (8) were deleted) |
 | R6 | Line count of god files (each tracked separately) | see table below | `wc -l <file>` |
 | R7 | Files using parenthesized `throw(...)` syntax — dynamic specifications plus expressions, see 5.4 | 0 | `grep -rlE 'throw[[:space:]]*\(' src --include='*.h' --include='*.cpp' \| wc -l` (real throw expressions were normalized to `throw expr`, making every future match unambiguously forbidden legacy syntax) |
 | R8 | Non-comment lines using `__PRETTY_FUNCTION__` | 0 | `grep -rh '__PRETTY_FUNCTION__' src --include='*.h' --include='*.cpp' \| grep -vcE '^[[:space:]]*//'` (call-site diagnostics take the enclosing function from a defaulted `std::source_location` — see docs/TOOLCHAIN.md, "Diagnostics without location macros". Line-based: a line whose first non-blank text is `//` is a comment, so the comments that explain the equivalence may still name the macro) |
@@ -80,7 +80,7 @@ are enforced so far.
 | `src/server/gameserver/Zone.cpp` | 9,263 (9,297 on 2026-08-31) |
 | `src/server/gameserver/skill/SkillUtil.cpp` | 6,739 (enforced by `ratchets.sh` R6a) |
 | `src/server/gameserver/InitAllStat.cpp` | 4,803 (was 4,949 before the 3.3 bonus-formula extraction; enforced by `ratchets.sh` R6b) |
-| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 4,904 (4,905 on 2026-08-31) |
+| `src/server/gameserver/handler/CGSayHandler.cpp` (moved from `src/Core` in 2.4) | 116 (was 4,720 before the 4.1 command extraction; enforced by `ratchets.sh` R6e) |
 | `src/server/gameserver/Slayer.cpp` | 4,068 (4,375 on 2026-08-31) |
 | `src/server/gameserver/skill/SkillFormula.cpp` | 820 (was 3,081 before the 3.3 computeOutput extraction — now thin adapters + the 11 dice-roll formulas; enforced by `ratchets.sh` R6d) |
 | `src/server/gameserver/skill/HitRoll.cpp` | 774 (not a god file — an extraction-target pin, locked in with its 3.3 extraction; enforced by `ratchets.sh` R6c) |
@@ -1223,14 +1223,32 @@ down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
 
 ## Phase 4 — God files behind routers
 
-- [ ] **4.1 GM-command router for `CGSayHandler.cpp`** (4,904 lines). A
+- [x] **4.1 GM-command router for `CGSayHandler.cpp`** (4,904 lines). A
   `CommandRouter` with one class/function per GM command and **gating
   declared at registration** — sidecar's `on(name, limiter, handler)` /
   `onGated(...)` insight: hand-kept permission maps drift silently, so the
   registration site is the single source of truth. A test enumerates
   registered commands and asserts each declares a permission level.
-  > **Status:** not started
-  - Owner: router registration + the enumeration test; R6 ratchet.
+  > **Status:** done — `src/server/gameserver/gm/`. `CommandRouter` matches a
+  > name as a prefix of the chat message and passes over a command whose
+  > level the caller is below, leaving a later matching name its turn;
+  > `CommandRegistration.cpp` is the one place a name, the number of
+  > characters it is compared over and its permission are written down (35
+  > operator rows, four broadcast prefixes). The command bodies are free
+  > functions in `de::gm`, grouped by what they touch across
+  > `ServerCommands` / `PlayerCommands` / `ZoneCommands` / `ItemCommands` /
+  > `GuildCommands` / `ConsoleCommands.cpp`; `CGSayHandler::execute` keeps
+  > the leading-`*` test and hands the message to the two tables.
+  > `tests/gm_command_router_test.cpp` links the real registration over
+  > stubbed bodies and pins every row — name, length, gate and order — so a
+  > gate change has to be written twice. The levels are God / DM / Helper /
+  > Everyone, ordered as `Competence` is. Three alias names left mojibake
+  > by the code-page move are registered unreachable, each longer than the
+  > length it is compared over. What remains: `*command` is still one
+  > 1,300-line body with a sub-ladder of its own, and `opmrecall`,
+  > `opmodifyunioninfo` and `oprefreshguildunion` are reached from
+  > `GGCommandHandler` only, so no table row names them.
+  - Owner: router registration + the enumeration test; R6e ratchet.
 
 - [ ] **4.2 Split `Zone.cpp`** (9,263 lines) by concern: movement, broadcast,
   spawn/despawn, scan/visibility, persistence (→ 3.2 repository). Mechanical,

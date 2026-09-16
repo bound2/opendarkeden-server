@@ -2,7 +2,6 @@
 
 #include <stdio.h>
 
-#include "CGSay.h"
 #include "GCNoticeEvent.h"
 #include "GCSweeperBonusInfo.h"
 #include "GCSystemMessage.h"
@@ -16,6 +15,7 @@
 #include "SweeperBonusManager.h"
 #include "VariableManager.h"
 #include "ZoneGroupManager.h"
+#include "gm/GMCommands.h"
 #include "repository/WarInfoRepository.h"
 
 // 전쟁 하는 날짜
@@ -154,7 +154,7 @@ void LevelWarManager::endWar() {
 
     char sLoad[100];
     sprintf(sLoad, "*world *load sweeper_owner %d", m_Level);
-    CGSayHandler::opworld(NULL, sLoad, 0, true);
+    de::gm::opworld(NULL, sLoad, 0, true);
 
     // 기록 남긴다
     recordLevelWarEnd();
