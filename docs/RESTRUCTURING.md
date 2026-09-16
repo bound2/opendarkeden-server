@@ -1251,9 +1251,14 @@ down. Review checkpoint: when R2 hits 0, close 3.2 and re-baseline R3.
   > prefix, `ConsoleCommandRegistration.cpp` is the one place its 61 rows and
   > their gates are written down, the bodies are one function per name in
   > `ConsoleCommands.cpp`, and `tests/gm_console_command_test.cpp` pins the
-  > rows the same way. What remains: `opmodifyunioninfo` and
-  > `oprefreshguildunion` are reached from `GGCommandHandler` only, so no
-  > table row names them.
+  > rows the same way. A third table, `RelayCommandRegistration.cpp`, names
+  > the twelve commands another game server may relay - the only place
+  > `opmodifyunioninfo` and `oprefreshguildunion` are named - and
+  > `GGCommandHandler::execute` keeps the host/port logging and hands the
+  > relayed message to it. A relayed message carries no player, so each
+  > sub-command row declares whether its body is correct without one and
+  > `SubcommandTable::dispatch` passes over the 40 that are not, the way it
+  > passes over a gate the caller is below.
   - Owner: router registration + the enumeration tests; R6e and R6f
     ratchets.
 
