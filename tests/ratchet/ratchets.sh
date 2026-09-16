@@ -103,7 +103,7 @@ check_ratchet R6f "ConsoleCommands.cpp lines" 1596 "$R6f"
 # ZoneBroadcast.cpp / ZoneScan.cpp. Movement, spawn/despawn and the loaders
 # are still in it; the phase exit criterion is 2,000 lines.
 R6g=$(wc -l < src/server/gameserver/Zone.cpp 2>/dev/null || echo missing)
-check_ratchet R6g "Zone.cpp lines" 6717 "$R6g"
+check_ratchet R6g "Zone.cpp lines" 5197 "$R6g"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`
