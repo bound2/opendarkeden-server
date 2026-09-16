@@ -11,6 +11,20 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## Slayer's inventory packets lost the failing frame from the stack trace (2026-09-16)
+
+- **`Slayer::getExtraInfo()` and `Slayer::getInventoryInfo()` opened a
+  `__BEGIN_DEBUG` block but not the `__BEGIN_TRY`/`__END_CATCH` pair the
+  Vampire and Ousters copies of the same code carried.** Both walk the
+  character's items building one info object per item, so a `Throwable`
+  raised inside them left the function straight for the caller's handler:
+  the exception was the same and reached the same place, but `__END_CATCH`
+  had not run, so the recorded stack named the caller and never the builder
+  that actually failed. The three copies are now one body on
+  `PlayerCreature`, the Vampire and Ousters one, so the Slayer path adds its
+  frame and rethrows like its siblings. Control flow is unchanged.
+  > **Status:** fixed (refactor/race-shared-2)
+
 ## A vampire or ousters character carried indeterminate gold until its first load (2026-09-16)
 
 - **Only `Slayer::Slayer()` set `m_Gold = 0`; the Vampire and Ousters

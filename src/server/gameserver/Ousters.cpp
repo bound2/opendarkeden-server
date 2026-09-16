@@ -1573,76 +1573,6 @@ PCOustersInfo3 Ousters::getOustersInfo3() const
 
 //----------------------------------------------------------------------
 //
-// get Extra Info
-//
-//----------------------------------------------------------------------
-ExtraInfo* Ousters::getExtraInfo() const
-
-{
-    __BEGIN_TRY
-    __BEGIN_DEBUG
-
-    ExtraInfo* pExtraInfo = new ExtraInfo();
-
-    Item* pItem = m_pExtraInventorySlot->getItem();
-
-    if (pItem != NULL) {
-        //	Item::ItemClass IClass = pItem->getItemClass();
-
-        ExtraSlotInfo* pExtraSlotInfo = new ExtraSlotInfo();
-        pItem->makePCItemInfo(*pExtraSlotInfo);
-
-        /*		pExtraSlotInfo->setObjectID(pItem->getObjectID());
-                pExtraSlotInfo->setItemClass(pItem->getItemClass());
-                pExtraSlotInfo->setItemType(pItem->getItemType());
-                pExtraSlotInfo->setOptionType(pItem->getOptionTypeList());
-                pExtraSlotInfo->setDurability(pItem->getDurability());
-                pExtraSlotInfo->setSilver(pItem->getSilver());
-                pExtraSlotInfo->setSilver(pItem->getEnchantLevel());
-                pExtraSlotInfo->setItemNum(pItem->getNum());
-
-                if (IClass == Item::ITEM_CLASS_OUSTERS_ARMSBAND)
-                {
-                    OustersArmsband* pOustersArmsband = dynamic_cast<OustersArmsband*>(pItem);
-                    Inventory* pOustersArmsbandInventory = ((OustersArmsband*)pItem)->getInventory();
-                    BYTE SubItemCount = 0;
-
-                    for (int i = 0; i < pOustersArmsband->getPocketCount(); i++)
-                    {
-                        Item* pOustersArmsbandItem = pOustersArmsbandInventory->getItem(i, 0);
-
-                        if (pOustersArmsbandItem != NULL)
-                        {
-                            SubItemInfo* pSubItemInfo = new SubItemInfo();
-                            pSubItemInfo->setObjectID(pOustersArmsbandItem->getObjectID());
-                            pSubItemInfo->setItemClass(pOustersArmsbandItem->getItemClass());
-                            pSubItemInfo->setItemType(pOustersArmsbandItem->getItemType());
-                            pSubItemInfo->setItemNum(pOustersArmsbandItem->getNum());
-                            pSubItemInfo->setSlotID(i);
-
-                            pExtraSlotInfo->addListElement(pSubItemInfo);
-
-                            SubItemCount++;
-                        }
-                    }
-
-                    pExtraSlotInfo->setListNum(SubItemCount);
-
-                }
-
-                pExtraSlotInfo->setMainColor(0);*/
-
-        pExtraInfo->addListElement(pExtraSlotInfo);
-    }
-
-    return pExtraInfo;
-
-    __END_DEBUG
-    __END_CATCH
-}
-
-//----------------------------------------------------------------------
-//
 // get Gear Info
 //
 //----------------------------------------------------------------------
@@ -1717,91 +1647,6 @@ GearInfo* Ousters::getGearInfo() const
     __END_CATCH
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// get Inventory Info
-//////////////////////////////////////////////////////////////////////////////
-InventoryInfo* Ousters::getInventoryInfo() const
-
-{
-    __BEGIN_TRY
-    __BEGIN_DEBUG
-
-    InventoryInfo* pInventoryInfo = new InventoryInfo();
-    list<Item*> ItemList;
-    VolumeHeight_t Height = m_pInventory->getHeight();
-    VolumeWidth_t Width = m_pInventory->getWidth();
-
-    for (int j = 0; j < Height; j++) {
-        for (int i = 0; i < Width; i++) {
-            if (m_pInventory->hasItem(i, j)) {
-                Item* pItem = m_pInventory->getItem(i, j);
-                VolumeWidth_t ItemWidth = pItem->getVolumeWidth();
-                // Item::ItemClass IClass = pItem->getItemClass();
-                list<Item*>::iterator itr = find(ItemList.begin(), ItemList.end(), pItem);
-
-                if (itr == ItemList.end()) {
-                    ItemList.push_back(pItem);
-
-                    InventorySlotInfo* pInventorySlotInfo = new InventorySlotInfo();
-                    pItem->makePCItemInfo(*pInventorySlotInfo);
-                    pInventorySlotInfo->setInvenX(i);
-                    pInventorySlotInfo->setInvenY(j);
-                    /*
-                                        pInventorySlotInfo->setObjectID(pItem->getObjectID());
-                                        pInventorySlotInfo->setItemClass(pItem->getItemClass());
-                                        pInventorySlotInfo->setItemType(pItem->getItemType());
-                                        pInventorySlotInfo->setOptionType(pItem->getOptionTypeList());
-                                        pInventorySlotInfo->setSilver(pItem->getSilver());
-                                        pInventorySlotInfo->setDurability(pItem->getDurability());
-                                        pInventorySlotInfo->setEnchantLevel(pItem->getEnchantLevel());
-                                        pInventorySlotInfo->setInvenX(i);
-                                        pInventorySlotInfo->setInvenY(j);
-                                        pInventorySlotInfo->setItemNum(pItem->getNum());
-
-                                        if (IClass == Item::ITEM_CLASS_OUSTERS_ARMSBAND)
-                                        {
-                                            OustersArmsband* pOustersArmsband = dynamic_cast<OustersArmsband*>(pItem);
-                                            Inventory* pOustersArmsbandInventory =
-                       ((OustersArmsband*)pItem)->getInventory();
-
-                                            BYTE SubItemCount = 0;
-
-                                            for (int i = 0; i < pOustersArmsband->getPocketCount() ; i++)
-                                            {
-                                                Item* pOustersArmsbandItem = pOustersArmsbandInventory->getItem(i, 0);
-                                                if (pOustersArmsbandItem != NULL)
-                                                {
-                                                    SubItemInfo* pSubItemInfo = new SubItemInfo();
-                                                    pSubItemInfo->setObjectID(pOustersArmsbandItem->getObjectID());
-                                                    pSubItemInfo->setItemClass(pOustersArmsbandItem->getItemClass());
-                                                    pSubItemInfo->setItemType(pOustersArmsbandItem->getItemType());
-                                                    pSubItemInfo->setItemNum(pOustersArmsbandItem->getNum());
-                                                    pSubItemInfo->setSlotID(i);
-
-                                                    pInventorySlotInfo->addListElement(pSubItemInfo);
-
-                                                    SubItemCount++;
-                                                }
-                                            }
-
-                                            pInventorySlotInfo->setListNum(SubItemCount);
-                                        }
-
-                                        pInventorySlotInfo->setMainColor(0);*/
-
-                    pInventoryInfo->addListElement(pInventorySlotInfo);
-                    i = i + ItemWidth - 1;
-                }
-            }
-        }
-    }
-
-    return pInventoryInfo;
-
-    __END_DEBUG
-    __END_CATCH
-}
-
 //----------------------------------------------------------------------
 // getSkillInfo
 //----------------------------------------------------------------------
@@ -1857,21 +1702,6 @@ void Ousters::sendOustersSkillInfo()
 //
 //
 ////////////////////////////////////////////////////////////////////////////////
-
-void Ousters::setGoldEx(Gold_t gold)
-
-{
-    __BEGIN_TRY
-
-    setGold(gold);
-
-    // by sigi. 2002.5.15
-    char pField[80];
-    sprintf(pField, "Gold=%u", m_Gold);
-    tinysave(pField);
-
-    __END_CATCH
-}
 
 void Ousters::saveSilverDamage(Silver_t damage)
 
@@ -2200,14 +2030,8 @@ bool Ousters::removeShape(Item::ItemClass IClass, bool bSendPacket) {
     return bisChange;
 }
 
-bool Ousters::canPlayFree()
-
-{
-    __BEGIN_TRY
-
+bool Ousters::isWithinFreePlayLimit() const {
     return m_Level <= g_pVariableManager->getVariable(FREE_PLAY_OUSTERS_LEVEL);
-
-    __END_CATCH
 }
 
 bool Ousters::satisfySkillRequire(SkillInfo* pSkillInfo) {
@@ -2302,50 +2126,6 @@ SkillBonus_t Ousters::getSkillPointCount(ElementalDomain eDomain) {
     cout << "Elemental domain " << static_cast<int>(eDomain) << " points: " << ret << endl;
 
     return ret;
-}
-
-bool Ousters::isPayPlayAvaiable()
-
-{
-    __BEGIN_TRY
-
-    if (m_pPlayer == NULL)
-        return false;
-
-    GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayer);
-
-#ifdef __CONNECT_BILLING_SYSTEM__
-    if (pGamePlayer->isPayPlaying()) {
-        if (pGamePlayer->getPayType() == PAY_TYPE_FREE)
-            return true;
-
-        if (m_Level <= g_pVariableManager->getVariable(FREE_PLAY_OUSTERS_LEVEL)) {
-            return true;
-        }
-    }
-
-    return false;
-
-#elif defined(__PAY_SYSTEM_FREE_LIMIT__)
-
-    if (!pGamePlayer->isPayPlaying()) {
-        if (m_Level <= g_pVariableManager->getVariable(FREE_PLAY_OUSTERS_LEVEL)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    return true;
-
-#else
-
-    return pGamePlayer->isPayPlaying();
-
-#endif
-
-
-    __END_CATCH
 }
 
 void Ousters::initPetQuestTarget() {

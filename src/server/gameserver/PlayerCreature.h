@@ -38,7 +38,9 @@ static const GuildID_t OustersCommon = 66;
 //////////////////////////////////////////////////////////////////////////////
 
 class Inventory;
+class InventoryInfo;
 class InventorySlot;
+class ExtraInfo;
 class Stash;
 class Player;
 class FlagSet;
@@ -220,6 +222,11 @@ public:
     // The colour the client should paint an item's shape in.
     Color_t getItemShapeColor(Item* pItem, OptionInfo* pOptionInfo = NULL) const;
 
+    // The carried inventory, and the item held on the mouse cursor, as the
+    // client is told to draw them.
+    InventoryInfo* getInventoryInfo() const;
+    ExtraInfo* getExtraInfo() const;
+
     virtual Item* findItemOID(ObjectID_t id) = 0;
     virtual Item* findItemOID(ObjectID_t id, int& storage, int& x, int& y) = 0;
 
@@ -261,7 +268,7 @@ public:
         return m_Gold;
     }
     virtual void setGold(Gold_t gold);
-    virtual void setGoldEx(Gold_t gold) = 0;
+    virtual void setGoldEx(Gold_t gold);
     virtual void increaseGoldEx(Gold_t gold);
     virtual void decreaseGoldEx(Gold_t gold);
     virtual bool checkGoldIntegrity();
@@ -365,6 +372,11 @@ public:
     bool isBillingPlayAvaiable();
     virtual bool isPayPlayAvaiable();
     virtual bool canPlayFree();
+
+    // Whether the character is still inside the free-play allowance. Each
+    // race measures its own progress: a level for Vampire and Ousters, the
+    // sum of the skill domain levels for Slayer.
+    virtual bool isWithinFreePlayLimit() const = 0;
 
 public:
     Item* getQuestItem() const {
