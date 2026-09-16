@@ -22,4 +22,7 @@ bool isPotentialEnemy(Monster* pMonster, Creature* pCreature);
 void sendRelicEffect(MonsterCorpse* pMonsterCorpse, Player* pPlayer);
 void sendRelicEffect(MonsterCorpse* pMonsterCorpse, Zone* pZone, ZoneCoord_t x, ZoneCoord_t y);
 
+// Lowercases a NUL-terminated string in place.
+void strlwr(char* str);
+
 #endif

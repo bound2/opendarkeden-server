@@ -99,11 +99,12 @@ check_ratchet R6e "CGSayHandler.cpp lines" 116 "$R6e"
 R6f=$(wc -l < src/server/gameserver/gm/ConsoleCommands.cpp 2>/dev/null || echo missing)
 check_ratchet R6f "ConsoleCommands.cpp lines" 1596 "$R6f"
 
-# R6g: Zone.cpp with broadcast and scan/visibility split out to
-# ZoneBroadcast.cpp / ZoneScan.cpp. Movement, spawn/despawn and the loaders
-# are still in it; the phase exit criterion is 2,000 lines.
+# R6g: Zone.cpp with broadcast, scan/visibility, movement and the loaders
+# split out to ZoneBroadcast.cpp / ZoneScan.cpp / ZoneMove.cpp / ZoneLoad.cpp.
+# Spawn/despawn and the heartbeat are still in it; the phase exit criterion
+# is 2,000 lines.
 R6g=$(wc -l < src/server/gameserver/Zone.cpp 2>/dev/null || echo missing)
-check_ratchet R6g "Zone.cpp lines" 5197 "$R6g"
+check_ratchet R6g "Zone.cpp lines" 3482 "$R6g"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`

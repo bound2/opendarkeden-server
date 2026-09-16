@@ -420,6 +420,7 @@ set(GAMESERVER_MAIN_SOURCES
     main.cpp
     Zone.cpp
     ZoneBroadcast.cpp
+    ZoneLoad.cpp
     ZoneMove.cpp
     ZoneScan.cpp
     Slayer.cpp
