@@ -63,11 +63,15 @@ R4=$(grep -rlE 'void execute\(Player' src/Core --include='*.h' | wc -l)
 check_ratchet R4 "packet headers with execute()" 0 "$R4"
 
 # --- R5: __BEGIN_TRY control-flow macro sites in gameserver ----------------
-# handler/ and packetfill/ are excluded: those sources moved there from
-# src/Core in task 2.4, where this metric never counted them — including
-# them would jump the baseline without any new debt. Fold them in (with a
-# re-baseline note) when they become de-core extraction targets in 3.x.
-R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(handler|packetfill)/' | wc -l)
+# handler/, packetfill/ and gm/ are excluded. handler/ and packetfill/ hold
+# sources that moved there from src/Core in task 2.4, where this metric never
+# counted them; gm/ holds the GM command bodies that moved out of
+# handler/CGSayHandler.cpp in task 4.1, and the 33 macro pairs in them are
+# those same handler bodies at a new address, not new debt. Including either
+# set would jump the baseline without anything having been written. Fold them
+# in (with a re-baseline note) when they become de-core extraction targets in
+# 3.x.
+R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
 check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5701 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
@@ -85,6 +89,11 @@ R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missin
 check_ratchet R6c "HitRoll.cpp lines" 774 "$R6c"
 R6d=$(wc -l < src/server/gameserver/skill/SkillFormula.cpp 2>/dev/null || echo missing)
 check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
+# R6e added with the 4.1 GM-command extraction: the 33 command bodies and
+# the branch ladder left CGSayHandler.cpp for gm/, leaving the packet
+# handler itself.
+R6e=$(wc -l < src/server/gameserver/handler/CGSayHandler.cpp 2>/dev/null || echo missing)
+check_ratchet R6e "CGSayHandler.cpp lines" 116 "$R6e"
 
 # --- R7: pre-C++17 dynamic exception specifications ------------------------
 # The migration also normalized real `throw(expr)` expressions to `throw expr`
