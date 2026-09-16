@@ -77,9 +77,6 @@ void Light::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
             Sight_t MaxSight = pSkillInfo->getMaxDamage();
             Sight_t NewSight = MinSight + (MaxSight - MinSight) * SkillLevel / 100;
 
-            // 시야 변경에 따른 오브젝트 가감 패킷을 보낸다.
-            pZone->updateScan(pSlayer, oldSight, NewSight);
-
             pSlayer->setSight(NewSight);
 
             if (NewSight != oldSight)

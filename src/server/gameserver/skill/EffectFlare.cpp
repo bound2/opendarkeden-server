@@ -50,11 +50,7 @@ void EffectFlare::affect(Creature* pCreature)
     Assert(!pCreature->isSlayer()); // 슬레이어는 걸리지 않는다.
     Assert(!pCreature->isNPC());    // NPC도 걸리지 않는다.
 
-    Sight_t OldSight = pCreature->getSight();
     pCreature->setSight(pCreature->getEffectedSight());
-
-    Zone* pZone = pCreature->getZone();
-    pZone->updateScan(pCreature, OldSight, FLARE_SIGHT);
 
     if (pCreature->isPC() && pCreature->getSight() == FLARE_SIGHT) {
         Player* pPlayer = pCreature->getPlayer();
@@ -97,7 +93,6 @@ void EffectFlare::unaffect(Creature* pCreature)
         GCModifyInformation _GCModifyInformation;
         _GCModifyInformation.addShortData(MODIFY_VISION, NewSight);
         pPlayer->sendPacket(&_GCModifyInformation);
-        pZone->updateScan(pVampire, FLARE_SIGHT, NewSight);
 
         //	DarkLightInfo* pDIInfo    = g_pDarkLightInfoManager->getCurrentDarkLightInfo( pZone );
         DarkLevel_t darkLevel = max(0, DARK_MAX - pZone->getDarkLevel());

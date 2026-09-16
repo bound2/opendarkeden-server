@@ -166,10 +166,6 @@
 #include "repository/MessageRepository.h"
 #include "repository/ZoneInfoRepository.h"
 
-// EffectCallMotorcycle.h is deliberately absent: it reuses
-// EffectDecayItem.h's include guard, so including it would hide
-// EffectDecayItem from this file.
-
 // by sigi.  2002.12.30
 // #define __PROFILE_BROADCAST__
 

@@ -1017,9 +1017,6 @@ void Zone::load(bool bOutput)
             printf("[%d] Castle : WarScheduler->load\n", (int)getZoneID());
         }
 
-        // 아이템 로드한다.
-        loadItem();
-
         //	if (isCastle())
         //	{
         //		CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( m_ZoneID );
@@ -1669,8 +1666,6 @@ void Zone::reload(bool bOutput)
         }
 
         // reload할 때는 무시한다.
-        // 아이템 로드한다.
-        // loadItem();
         // NPC 를 로딩한다.
         // m_pNPCManager->load(m_ZoneID);
 
@@ -1682,47 +1677,6 @@ void Zone::reload(bool bOutput)
     }
 
     __END_DEBUG
-    __END_CATCH
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// load items from database
-// * NOTE *
-// 현재 바닥에 떨어진 아이템은 서버가 재시작되어도 로딩하지 않는다.
-//////////////////////////////////////////////////////////////////////////////
-void Zone::loadItem()
-
-{
-    __BEGIN_TRY
-
-    /*
-    // 아이템 로딩...........
-    g_pItemLoaderManager->load(this);
-
-    // 아이템은 다 날려버렸지만...그래두...
-    // 아이템 오브젝트 아이디를 재 할당 받고 다시 저장한다.
-    for (int j = 0; j < m_Height; j++)
-    {
-        for (int i = 0; i < m_Width; i++)
-        {
-            if (m_pTiles[i][j].hasItem())
-            {
-                Item* pItem = m_pTiles[i][j].getItem();
-                m_ObjectRegistry.registerObject(pItem);
-                pItem->save("", STORAGE_ZONE, m_ZoneID, i, j);
-                addToItemList(pItem);
-
-                if (pItem->getItemClass() == Item::ITEM_CLASS_MOTORCYCLE)
-                {
-                    Motorcycle* pMotorcycle = dynamic_cast<Motorcycle*>(pItem);
-                    MotorcycleBox* pMotorcycleBox = new MotorcycleBox(pMotorcycle, this, i, j);
-                    g_pParkingCenter->addMotorcycleBox(pMotorcycleBox);
-                }
-            }
-        }
-    }
-    */
-
     __END_CATCH
 }
 
