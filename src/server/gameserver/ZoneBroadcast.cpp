@@ -3,32 +3,13 @@
 // Description	: Zone packet broadcast: sending zone events to the players who can see them.
 //////////////////////////////////////////////////////////////////////////////
 
+#include <math.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "Assert.h"
-#include "LogClient.h"
-#include "MasterLairInfoManager.h"
-#include "MasterLairManager.h"
-#include "MonsterManager.h"
-#include "NPCManager.h"
-#include "PCManager.h"
-#include "QuestManager.h"
-#include "VisionInfo.h"
-#include "War.h"
-#include "WarScheduler.h"
-#include "WarSystem.h"
-#include "Zone.h"
-#include "ZoneGroup.h"
-#include "ZoneInfo.h"
-#include "ZoneInfoManager.h"
-
-// #include "EventMonsterManager.h"
-
-#include <math.h>
-
 #include <fstream>
 
+#include "Assert.h"
 #include "BloodBibleBonusManager.h"
 #include "CastleInfoManager.h"
 #include "CombatInfoManager.h"
@@ -49,13 +30,19 @@
 #include "ItemFactoryManager.h"
 #include "ItemInfo.h"
 #include "LevelWarZoneInfoManager.h"
+#include "LogClient.h"
+#include "MasterLairInfoManager.h"
+#include "MasterLairManager.h"
 #include "Monster.h"
 #include "MonsterCorpse.h"
+#include "MonsterManager.h"
 #include "NPC.h"
 #include "NPCInfo.h"
+#include "NPCManager.h"
 #include "Ousters.h"
 #include "OustersCorpse.h"
 #include "PCFinder.h"
+#include "PCManager.h"
 #include "PKZoneInfoManager.h"
 #include "PacketUtil.h"
 #include "ParkingCenter.h"
@@ -63,6 +50,7 @@
 #include "PaySystem.h"
 #include "Player.h"
 #include "Properties.h"
+#include "QuestManager.h"
 #include "RegenZoneManager.h"
 #include "Relic.h"
 #include "RelicUtil.h"
@@ -76,7 +64,15 @@
 #include "Vampire.h"
 #include "VampireCorpse.h"
 #include "VariableManager.h"
+#include "VisionInfo.h"
+#include "War.h"
+#include "WarScheduler.h"
+#include "WarSystem.h"
 #include "WeatherManager.h"
+#include "Zone.h"
+#include "ZoneGroup.h"
+#include "ZoneInfo.h"
+#include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
 #include "ctf/FlagManager.h"
 #include "repository/ComebackEventRepository.h"

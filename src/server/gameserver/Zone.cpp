@@ -1140,7 +1140,7 @@ void Zone::load(bool bOutput)
                         try {
                             pTargetZoneInfo = g_pZoneInfoManager->getZoneInfo(targetZoneID);
                         } catch (NoSuchElementException& t) {
-                            throw Error("그런 존이 없다네");
+                            throw Error("No such zone");
                         }
 
                         Assert(pTargetZoneInfo != NULL);
@@ -1925,7 +1925,7 @@ void Zone::reload(bool bOutput)
                         try {
                             pTargetZoneInfo = g_pZoneInfoManager->getZoneInfo(targetZoneID);
                         } catch (NoSuchElementException& t) {
-                            throw Error("그런 존이 없다네");
+                            throw Error("No such zone");
                         }
 
                         Assert(pTargetZoneInfo != NULL);
@@ -2586,9 +2586,9 @@ void Zone::movePC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir
             // 자동으로 GCMove/GCAddSlayer/GCAddVampire 패킷을 브로드캐스트한다.
             movePCBroadcast(pCreature, cx, cy, nx, ny);
         } catch (NoSuchElementException& nsee) {
-            throw Error("이전 타일에 크리처가 존재하지 않습니다.");
+            throw Error("The creature is not on the previous tile.");
         } catch (DuplicatedException& de) {
-            throw Error("새 타일에 크리처가 이미 존재합니다.");
+            throw Error("A creature is already on the new tile.");
         } catch (PortalException&) {
         } catch (Error& e) {
             filelog("assertTile.txt", "Zone::movePC : %s", e.toString().c_str());
@@ -2885,9 +2885,9 @@ void Zone::moveCreature(Creature* pCreature, ZoneCoord_t nx, ZoneCoord_t ny, Dir
         }
 
     } catch (NoSuchElementException& nsee) {
-        throw Error("이전 타일에 크리처가 존재하지 않습니다.");
+        throw Error("The creature is not on the previous tile.");
     } catch (DuplicatedException& de) {
-        throw Error("새 타일에 크리처가 이미 존재합니다.");
+        throw Error("A creature is already on the new tile.");
     } catch (Error& e) {
         filelog("assertTile.txt", "Zone::moveCreature : %s", e.toString().c_str());
         throw;
