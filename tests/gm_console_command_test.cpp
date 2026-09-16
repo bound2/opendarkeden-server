@@ -2,10 +2,12 @@
 // Filename    : gm_console_command_test.cpp
 // Description : The *command console's sub-command table
 //               (docs/RESTRUCTURING.md 4.1): every registered sub-command
-//               declares a permission level, the names are unique and matched
-//               whole, a caller below the level runs nothing, and an unknown
-//               name runs nothing either - which is what leaves the console
-//               with no reply to send.
+//               declares a permission level and whether its body runs with no
+//               player behind the line, the names are unique and matched
+//               whole, a caller below the level runs nothing, a row that needs
+//               a player runs nothing when a relayed line carries none, and an
+//               unknown name runs nothing either - which is what leaves the
+//               console with no reply to send.
 //
 //               The production table is the subject, not a copy of it: this
 //               links the real registration and stubs the bodies, so a name,
@@ -24,6 +26,7 @@
 #include "gm/ConsoleSubcommands.h"
 
 using de::gm::Permission;
+using de::gm::Relay;
 using de::gm::Subcommand;
 using de::gm::SubcommandTable;
 
@@ -50,14 +53,21 @@ struct Reply {
     bool send = true;
 };
 
+// A stand-in for the player who typed the line. The stubbed bodies never read
+// it; what it carries is that the line has a player at all, which is exactly
+// what a line another game server relayed does not.
+GamePlayer* const kSomePlayer = reinterpret_cast<GamePlayer*>(0x1);
+
 // Runs a sub-command name against a table as a caller of the given level, and
-// answers the name of the body that ran, "" for none.
+// answers the name of the body that ran, "" for none. A null player is a
+// relayed line.
 std::string run(const SubcommandTable& table, const std::string& name, Permission caller,
-                const std::string& value1 = "argument", Reply* reply = nullptr, bool* dispatched = nullptr) {
+                GamePlayer* pGamePlayer = kSomePlayer, const std::string& value1 = "argument", Reply* reply = nullptr,
+                bool* dispatched = nullptr) {
     calls().clear();
     Reply own;
     Reply& out = (reply != nullptr) ? *reply : own;
-    const bool ran = table.dispatch(name, caller, nullptr, value1, out.packet, out.send);
+    const bool ran = table.dispatch(name, caller, pGamePlayer, value1, out.packet, out.send);
     if (dispatched != nullptr)
         *dispatched = ran;
     if (calls().empty())
@@ -74,75 +84,77 @@ SubcommandTable consoleTable() {
 struct Expected {
     std::string name;
     Permission permission;
+    Relay relay;
     std::string body;
 };
 
 // Every sub-command, in the order a word is matched against them. All of them
 // are GOD: the console itself is only reached from a GOD-gated chat command
-// and from the relay another game server sends.
+// and from the relay another game server sends. PlayerOnly is a body that
+// reads the player who typed the line without asking whether there is one.
 std::vector<Expected> expectedSubcommands() {
     return {
-        {"balanceZoneGroup", Permission::God, "opBalanceZoneGroup"},
-        {"regenMasterLair", Permission::God, "opRegenMasterLair"},
-        {"showMasterLairStatus", Permission::God, "opShowMasterLairStatus"},
-        {"invincible", Permission::God, "opInvincible"},
-        {"ghost", Permission::God, "opGhost"},
-        {"clearInventory", Permission::God, "opClearInventory"},
-        {"clearRankBonus", Permission::God, "opClearRankBonus"},
-        {"setCastleOwner", Permission::God, "opSetCastleOwner"},
-        {"setCastleOwnerGuild", Permission::God, "opSetCastleOwnerGuild"},
-        {"showWarList", Permission::God, "opShowWarList"},
-        {"startRaceWar", Permission::God, "opStartRaceWar"},
-        {"startWar", Permission::God, "opStartWar"},
-        {"removeWar", Permission::God, "opRemoveWar"},
-        {"removeRaceWar", Permission::God, "opRemoveRaceWar"},
-        {"LevelWar", Permission::God, "opLevelWar"},
-        {"saveBloodBibleOwner", Permission::God, "opSaveBloodBibleOwner"},
-        {"killAllMonster", Permission::God, "opKillAllMonster"},
-        {"killAllPC", Permission::God, "opKillAllPC"},
-        {"showZonePCNum", Permission::God, "opShowZonePCNum"},
-        {"showPKZonePCNum", Permission::God, "opShowPKZonePCNum"},
-        {"setPKZonePCNum", Permission::God, "opSetPKZonePCNum"},
-        {"suicide", Permission::God, "opSuicide"},
-        {"heal", Permission::God, "opHeal"},
-        {"setGold", Permission::God, "opSetGold"},
-        {"Quest", Permission::God, "opQuest"},
-        {"QuestEnding", Permission::God, "opQuestEnding"},
-        {"NotifyWin", Permission::God, "opNotifyWin"},
-        {"Horn", Permission::God, "opHorn"},
-        {"Loud", Permission::God, "opLoud"},
-        {"Game", Permission::God, "opGame"},
-        {"changeSex", Permission::God, "opChangeSex"},
-        {"Firecraker", Permission::God, "opFirecraker"},
-        {"Bulletin", Permission::God, "opBulletin"},
-        {"SetHP", Permission::God, "opSetHP"},
-        {"ResetAttr", Permission::God, "opResetAttr"},
-        {"CTF", Permission::God, "opCTF"},
-        {"ViewDamage", Permission::God, "opViewDamage"},
-        {"GoodsReload", Permission::God, "opGoodsReload"},
-        {"PetStash", Permission::God, "opPetStash"},
-        {"ZoneEvent", Permission::God, "opZoneEvent"},
-        {"EventZonePCLimit", Permission::God, "opEventZonePCLimit"},
-        {"KickOutAll", Permission::God, "opKickOutAll"},
-        {"StartTrap", Permission::God, "opStartTrap"},
-        {"SMSTest", Permission::God, "opSMSTest"},
-        {"ForceNick", Permission::God, "opForceNick"},
-        {"RemoveNick", Permission::God, "opRemoveNick"},
-        {"StartGDRLair", Permission::God, "opStartGDRLair"},
-        {"ResetGDRLair", Permission::God, "opResetGDRLair"},
-        {"GuildRecall", Permission::God, "opGuildRecall"},
-        {"ResetSiege", Permission::God, "opResetSiege"},
-        {"InitSiege", Permission::God, "opInitSiege"},
-        {"IAmAttacker", Permission::God, "opIAmAttacker"},
-        {"IAmDefender", Permission::God, "opIAmDefender"},
-        {"IAmReinforce", Permission::God, "opIAmReinforce"},
-        {"showpcstat", Permission::God, "opShowpcstat"},
-        {"advanceclass", Permission::God, "opAdvanceclass"},
-        {"addDynamicZone", Permission::God, "opAddDynamicZone"},
-        {"enterDynamicZone", Permission::God, "opEnterDynamicZone"},
-        {"clearDynamicZone", Permission::God, "opClearDynamicZone"},
-        {"setTimeOutAllZoneEffect", Permission::God, "opSetTimeOutAllZoneEffect"},
-        {"printTile", Permission::God, "opPrintTile"},
+        {"balanceZoneGroup", Permission::God, Relay::Allowed, "opBalanceZoneGroup"},
+        {"regenMasterLair", Permission::God, Relay::Allowed, "opRegenMasterLair"},
+        {"showMasterLairStatus", Permission::God, Relay::Allowed, "opShowMasterLairStatus"},
+        {"invincible", Permission::God, Relay::PlayerOnly, "opInvincible"},
+        {"ghost", Permission::God, Relay::PlayerOnly, "opGhost"},
+        {"clearInventory", Permission::God, Relay::PlayerOnly, "opClearInventory"},
+        {"clearRankBonus", Permission::God, Relay::PlayerOnly, "opClearRankBonus"},
+        {"setCastleOwner", Permission::God, Relay::PlayerOnly, "opSetCastleOwner"},
+        {"setCastleOwnerGuild", Permission::God, Relay::Allowed, "opSetCastleOwnerGuild"},
+        {"showWarList", Permission::God, Relay::PlayerOnly, "opShowWarList"},
+        {"startRaceWar", Permission::God, Relay::Allowed, "opStartRaceWar"},
+        {"startWar", Permission::God, Relay::PlayerOnly, "opStartWar"},
+        {"removeWar", Permission::God, Relay::Allowed, "opRemoveWar"},
+        {"removeRaceWar", Permission::God, Relay::Allowed, "opRemoveRaceWar"},
+        {"LevelWar", Permission::God, Relay::Allowed, "opLevelWar"},
+        {"saveBloodBibleOwner", Permission::God, Relay::Allowed, "opSaveBloodBibleOwner"},
+        {"killAllMonster", Permission::God, Relay::Allowed, "opKillAllMonster"},
+        {"killAllPC", Permission::God, Relay::Allowed, "opKillAllPC"},
+        {"showZonePCNum", Permission::God, Relay::Allowed, "opShowZonePCNum"},
+        {"showPKZonePCNum", Permission::God, Relay::Allowed, "opShowPKZonePCNum"},
+        {"setPKZonePCNum", Permission::God, Relay::Allowed, "opSetPKZonePCNum"},
+        {"suicide", Permission::God, Relay::PlayerOnly, "opSuicide"},
+        {"heal", Permission::God, Relay::PlayerOnly, "opHeal"},
+        {"setGold", Permission::God, Relay::PlayerOnly, "opSetGold"},
+        {"Quest", Permission::God, Relay::PlayerOnly, "opQuest"},
+        {"QuestEnding", Permission::God, Relay::PlayerOnly, "opQuestEnding"},
+        {"NotifyWin", Permission::God, Relay::Allowed, "opNotifyWin"},
+        {"Horn", Permission::God, Relay::PlayerOnly, "opHorn"},
+        {"Loud", Permission::God, Relay::PlayerOnly, "opLoud"},
+        {"Game", Permission::God, Relay::Allowed, "opGame"},
+        {"changeSex", Permission::God, Relay::PlayerOnly, "opChangeSex"},
+        {"Firecraker", Permission::God, Relay::PlayerOnly, "opFirecraker"},
+        {"Bulletin", Permission::God, Relay::PlayerOnly, "opBulletin"},
+        {"SetHP", Permission::God, Relay::PlayerOnly, "opSetHP"},
+        {"ResetAttr", Permission::God, Relay::PlayerOnly, "opResetAttr"},
+        {"CTF", Permission::God, Relay::Allowed, "opCTF"},
+        {"ViewDamage", Permission::God, Relay::PlayerOnly, "opViewDamage"},
+        {"GoodsReload", Permission::God, Relay::PlayerOnly, "opGoodsReload"},
+        {"PetStash", Permission::God, Relay::PlayerOnly, "opPetStash"},
+        {"ZoneEvent", Permission::God, Relay::PlayerOnly, "opZoneEvent"},
+        {"EventZonePCLimit", Permission::God, Relay::PlayerOnly, "opEventZonePCLimit"},
+        {"KickOutAll", Permission::God, Relay::PlayerOnly, "opKickOutAll"},
+        {"StartTrap", Permission::God, Relay::PlayerOnly, "opStartTrap"},
+        {"SMSTest", Permission::God, Relay::PlayerOnly, "opSMSTest"},
+        {"ForceNick", Permission::God, Relay::PlayerOnly, "opForceNick"},
+        {"RemoveNick", Permission::God, Relay::PlayerOnly, "opRemoveNick"},
+        {"StartGDRLair", Permission::God, Relay::Allowed, "opStartGDRLair"},
+        {"ResetGDRLair", Permission::God, Relay::Allowed, "opResetGDRLair"},
+        {"GuildRecall", Permission::God, Relay::Allowed, "opGuildRecall"},
+        {"ResetSiege", Permission::God, Relay::PlayerOnly, "opResetSiege"},
+        {"InitSiege", Permission::God, Relay::PlayerOnly, "opInitSiege"},
+        {"IAmAttacker", Permission::God, Relay::PlayerOnly, "opIAmAttacker"},
+        {"IAmDefender", Permission::God, Relay::PlayerOnly, "opIAmDefender"},
+        {"IAmReinforce", Permission::God, Relay::PlayerOnly, "opIAmReinforce"},
+        {"showpcstat", Permission::God, Relay::PlayerOnly, "opShowpcstat"},
+        {"advanceclass", Permission::God, Relay::PlayerOnly, "opAdvanceclass"},
+        {"addDynamicZone", Permission::God, Relay::Allowed, "opAddDynamicZone"},
+        {"enterDynamicZone", Permission::God, Relay::PlayerOnly, "opEnterDynamicZone"},
+        {"clearDynamicZone", Permission::God, Relay::PlayerOnly, "opClearDynamicZone"},
+        {"setTimeOutAllZoneEffect", Permission::God, Relay::PlayerOnly, "opSetTimeOutAllZoneEffect"},
+        {"printTile", Permission::God, Relay::PlayerOnly, "opPrintTile"},
     };
 }
 
@@ -354,6 +366,7 @@ TEST(GMConsoleCommands, EveryRegisteredSubcommandDeclaresAPermissionLevel) {
         EXPECT_TRUE(subcommand.permission == Permission::God || subcommand.permission == Permission::DM ||
                     subcommand.permission == Permission::Helper || subcommand.permission == Permission::Everyone)
             << subcommand.name;
+        EXPECT_TRUE(subcommand.relay == Relay::Allowed || subcommand.relay == Relay::PlayerOnly) << subcommand.name;
         EXPECT_NE(subcommand.handler, nullptr) << subcommand.name;
     }
 }
@@ -380,6 +393,7 @@ TEST(GMConsoleCommands, TheTableIsTheExpectedOne) {
         EXPECT_EQ(table.commands()[n].name, expected[n].name) << "row " << n;
         EXPECT_EQ(static_cast<int>(table.commands()[n].permission), static_cast<int>(expected[n].permission))
             << expected[n].name;
+        EXPECT_EQ(static_cast<int>(table.commands()[n].relay), static_cast<int>(expected[n].relay)) << expected[n].name;
     }
 }
 
@@ -412,7 +426,7 @@ TEST(GMConsoleCommands, AnUnknownSubcommandRunsNothing) {
     Reply reply;
     reply.packet.setMessage("nothing");
     bool dispatched = true;
-    EXPECT_EQ(run(table, "nosuchsubcommand", Permission::God, "argument", &reply, &dispatched), "");
+    EXPECT_EQ(run(table, "nosuchsubcommand", Permission::God, kSomePlayer, "argument", &reply, &dispatched), "");
     EXPECT_FALSE(dispatched);
 
     // The console answers an unknown name by dropping the packet it had
@@ -438,7 +452,7 @@ TEST(GMConsoleCommands, ARefusedSubcommandDoesNotAnswer) {
     const SubcommandTable table = consoleTable();
 
     bool dispatched = true;
-    EXPECT_EQ(run(table, "heal", Permission::Everyone, "argument", nullptr, &dispatched), "");
+    EXPECT_EQ(run(table, "heal", Permission::Everyone, kSomePlayer, "argument", nullptr, &dispatched), "");
     EXPECT_FALSE(dispatched);
 }
 
@@ -451,7 +465,7 @@ TEST(GMConsoleCommands, ABodyIsHandedTheRestOfTheLine) {
 
     calls().clear();
     Reply reply;
-    EXPECT_TRUE(table.dispatch("setGold", Permission::God, nullptr, "1000", reply.packet, reply.send));
+    EXPECT_TRUE(table.dispatch("setGold", Permission::God, kSomePlayer, "1000", reply.packet, reply.send));
     ASSERT_EQ(calls().size(), 1u);
     EXPECT_EQ(calls().front().body, "opSetGold");
     EXPECT_EQ(calls().front().value1, "1000");
@@ -470,11 +484,50 @@ void answersTheLine(GamePlayer*, const std::string& value1, GCSystemMessage& gcS
 
 TEST(GMConsoleCommands, ABodyWritesTheReplyTheConsoleSends) {
     SubcommandTable table;
-    table.add("answer", Permission::God, answersTheLine);
+    table.add("answer", Permission::God, Relay::Allowed, answersTheLine);
 
     Reply reply;
     reply.packet.setMessage("nothing");
     EXPECT_TRUE(table.dispatch("answer", Permission::God, nullptr, "a message", reply.packet, reply.send));
     EXPECT_EQ(reply.packet.getMessage(), "a message");
     EXPECT_FALSE(reply.send);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// A line with no player behind it
+//////////////////////////////////////////////////////////////////////////////
+
+// *command reaches the console from a relay as well, and a relayed line
+// carries no player. A row that reads one is passed over, the way a row the
+// caller may not run is.
+TEST(GMConsoleCommands, APlayerOnlySubcommandIsPassedOverWithNoPlayer) {
+    const SubcommandTable table = consoleTable();
+
+    EXPECT_EQ(run(table, "heal", Permission::God, kSomePlayer), "opHeal");
+
+    bool dispatched = true;
+    EXPECT_EQ(run(table, "heal", Permission::God, nullptr, "argument", nullptr, &dispatched), "");
+    EXPECT_FALSE(dispatched);
+}
+
+// The castle-owner row answers the relay a siege war sends between game
+// servers, so it has to run without a player.
+TEST(GMConsoleCommands, AnAllowedSubcommandRunsWithNoPlayer) {
+    const SubcommandTable table = consoleTable();
+
+    EXPECT_EQ(run(table, "setCastleOwnerGuild", Permission::God, nullptr, "1013 5"), "opSetCastleOwnerGuild");
+}
+
+// Every row, against a relayed line: the ones declared Allowed run and the
+// ones declared PlayerOnly do not.
+TEST(GMConsoleCommands, EveryRowAnswersARelayedLineAsDeclared) {
+    const SubcommandTable table = consoleTable();
+
+    for (const Expected& expected : expectedSubcommands()) {
+        const std::string ran = run(table, expected.name, expected.permission, nullptr);
+        if (expected.relay == Relay::Allowed)
+            EXPECT_EQ(ran, expected.body) << expected.name;
+        else
+            EXPECT_EQ(ran, "") << expected.name;
+    }
 }
