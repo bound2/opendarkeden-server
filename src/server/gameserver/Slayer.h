@@ -673,8 +673,6 @@ public:
     //	void increaseRankExp(RankExp_t Point);
 
 public:
-    virtual bool isWithinFreePlayLimit() const;
-
     virtual void setLastTarget(ObjectID_t value);
 
     void initPetQuestTarget();

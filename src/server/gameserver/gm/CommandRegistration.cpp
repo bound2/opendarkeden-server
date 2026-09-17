@@ -36,10 +36,6 @@ void runGuild(const CommandContext& context) {
     opguild(context.msg, context.i, context.pCreature);
 }
 
-void runBillingDisconnect(const CommandContext&) {
-    opbillingdisconnect();
-}
-
 // *world and *allworld carry an operator command of their own: it runs here
 // first, for this server, and then the whole message is relayed to the other
 // game servers - the same world only, or all of them.
@@ -93,7 +89,6 @@ void registerOperatorCommands(CommandRouter& router) {
     router.add("grant", Permission::God, withPlayer<opgrant>);
     router.add("command", Permission::God, withPlayer<opcommand>);
     router.add("fun", Permission::God, withPlayer<opfun>);
-    router.add("billing disconnect", Permission::God, runBillingDisconnect);
     router.add("recall", Permission::God, withPlayer<oprecall>);
     router.add("user", Permission::God, withPlayer<opuser>);
     router.add("set", Permission::God, withPlayer<opset>);

@@ -197,20 +197,6 @@ public:
 
         return found;
     }
-
-    void insertUnderworldKill(int worldID, int serverID, const string& playerID, const string& characterName) {
-        Statement* pStmt = NULL;
-
-        BEGIN_DB {
-            pStmt = g_pDatabaseManager->getDistConnection("PLAYER_DB")->createStatement();
-            pStmt->executeQuery("INSERT INTO UnderworldEvent (WorldID, ServerID, PlayerID, CharacterID, KillTime) "
-                                "VALUES (%u, %u, '%s', '%s', now())",
-                                worldID, serverID, playerID.c_str(), characterName.c_str());
-
-            SAFE_DELETE(pStmt);
-        }
-        END_DB(pStmt)
-    }
 };
 
 } // namespace

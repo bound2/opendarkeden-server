@@ -368,15 +368,7 @@ protected:
     void addRankBonus(RankBonus* rankBonus);
 
 public:
-    // by sigi. 2002.11.19
-    bool isBillingPlayAvaiable();
     virtual bool isPayPlayAvaiable();
-    virtual bool canPlayFree();
-
-    // Whether the character is still inside the free-play allowance. Each
-    // race measures its own progress: a level for Vampire and Ousters, the
-    // sum of the skill domain levels for Slayer.
-    virtual bool isWithinFreePlayLimit() const = 0;
 
 public:
     Item* getQuestItem() const {

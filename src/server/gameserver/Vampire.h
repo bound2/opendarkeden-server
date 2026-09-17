@@ -543,8 +543,6 @@ public:
     void saveInitialRank(void);
 
 public:
-    virtual bool isWithinFreePlayLimit() const;
-
     void initPetQuestTarget();
     int getBloodBibleSignOpenNum() const;
 

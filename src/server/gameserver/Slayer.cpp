@@ -3413,10 +3413,6 @@ bool Slayer::removeShape(Item::ItemClass IClass, bool bSendPacket) {
     return bisWeapon;
 }
 
-bool Slayer::isWithinFreePlayLimit() const {
-    return getSkillDomainLevelSum() <= g_pVariableManager->getVariable(FREE_PLAY_SLAYER_DOMAIN_SUM);
-}
-
 QuestGrade_t Slayer::getQuestGrade() const {
     return getTotalAttr(ATTR_BASIC) - getSkillDomainLevel(SKILL_DOMAIN_HEAL) * 1.5 -
            getSkillDomainLevel(SKILL_DOMAIN_ENCHANT) * 1.5;

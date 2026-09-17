@@ -6695,19 +6695,6 @@ TEST_F(PlayRecordMySQL, GoldMedalInsertFailsOnTheShippedSchema) {
     EXPECT_THROW(defaultPlayRecordRepository().insertGoldMedal("it-acct"), DatabaseError);
 }
 
-// The underworld kill record (no caller is left in the tree, so this tier
-// is the only thing that runs the statement): the two ids, the account and
-// the character, KillTime server-side.
-TEST_F(PlayRecordMySQL, UnderworldKillIsRecordedWithItsIdsAndNames) {
-    defaultPlayRecordRepository().insertUnderworldKill(2, 3, "it-acct", "it-char");
-    const std::string where = " FROM UnderworldEvent WHERE PlayerID = 'it-acct'";
-    EXPECT_EQ("1", queryScalar("SELECT COUNT(*)" + where));
-    EXPECT_EQ("2", queryScalar("SELECT WorldID" + where));
-    EXPECT_EQ("3", queryScalar("SELECT ServerID" + where));
-    EXPECT_EQ("it-char", queryScalar("SELECT CharacterID" + where));
-    EXPECT_EQ("1", queryScalar("SELECT KillTime > '2026-01-01'" + where));
-}
-
 // CGBuyStoreItemHandler: the store-purchase TradeLog row, the two names in
 // their columns AND inside the Content text, the price at the end of it.
 TEST_F(PlayRecordMySQL, StoreTradeIsLoggedWithBothNamesInTheContent) {

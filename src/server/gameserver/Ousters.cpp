@@ -2030,10 +2030,6 @@ bool Ousters::removeShape(Item::ItemClass IClass, bool bSendPacket) {
     return bisChange;
 }
 
-bool Ousters::isWithinFreePlayLimit() const {
-    return m_Level <= g_pVariableManager->getVariable(FREE_PLAY_OUSTERS_LEVEL);
-}
-
 bool Ousters::satisfySkillRequire(SkillInfo* pSkillInfo) {
     if (isFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH))
         return false;
