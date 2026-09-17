@@ -199,6 +199,46 @@ R12=$(LC_ALL=C grep -rhE $'throw[[:space:]]*[A-Za-z_][A-Za-z0-9_]*[[:space:]]*\\
     src --include='*.h' --include='*.cpp' | grep -vcE '^[[:space:]]*//')
 check_ratchet R12 "throw messages carrying non-ASCII text" 0 "$R12"
 
+# --- R13: duplicated include guards ----------------------------------------
+# Two headers sharing a guard name means whichever one a translation unit
+# reaches first silently swallows the other: the second #include expands to
+# nothing and its declarations are simply absent, which surfaces as an
+# unrelated "undeclared identifier" far from the cause. Eighteen headers were
+# renamed to make the names unique tree-wide, including per-server twins
+# (loginserver/sharedserver copies of GameServerInfo.h and friends) that
+# cannot meet in one binary today -- uniqueness across the whole tree is the
+# invariant worth holding, because which headers share a binary changes.
+#
+# Measured on each header's FIRST #ifndef, which is its guard, rather than on
+# every `^#ifndef` line: the tree also tests feature macros that way, and
+# __OLD_GUILD_WAR__ is tested in four headers, so a line-based count could
+# never reach zero. The awk resets `seen` at FNR==1 so `find -exec ... +`
+# batching stays per-file, and strips the CR of the CRLF working tree before
+# comparing. The list is materialised first so an empty one (a broken find,
+# a moved src/) fails loudly instead of passing as zero duplicates.
+guards=$(mktemp)
+find src -name '*.h' -exec awk '
+    FNR == 1 { seen = 0 }
+    !seen && /^[[:space:]]*#[[:space:]]*ifndef[[:space:]]/ {
+        line = $0
+        sub(/\r$/, "", line)
+        sub(/^[[:space:]]*#[[:space:]]*ifndef[[:space:]]+/, "", line)
+        sub(/[[:space:]].*$/, "", line)
+        print line
+        seen = 1
+    }' {} + | sort > "$guards"
+if [ "$(wc -l < "$guards")" -lt 1000 ]; then
+    echo "[FAIL] R13 duplicated include guards: only $(wc -l < "$guards") guards found under src/ (find or awk broken?)"
+    fail=1
+else
+    R13=$(uniq -d < "$guards" | wc -l)
+    check_ratchet R13 "duplicated include guard names" 0 "$R13"
+    if [ "$R13" -gt 0 ]; then
+        uniq -d < "$guards" | sed 's/^/         /'
+    fi
+fi
+rm -f "$guards"
+
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
 # Historical build logs and documentation are not build inputs.
