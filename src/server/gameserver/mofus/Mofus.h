@@ -1,3 +1,6 @@
+#ifndef __MOFUS_H__
+#define __MOFUS_H__
+
 /////////////////////////////////////////////////////////////////////////////
 // Filename : Mofus.h
 // Desc		: 모퍼스 헤더
@@ -18,3 +21,5 @@
 int loadPowerPoint(const string& name);
 int savePowerPoint(const string& name, int amount);
 void logPowerPoint(const string& name, int recvPoint, int savePoint);
+
+#endif // __MOFUS_H__

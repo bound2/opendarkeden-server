@@ -11,6 +11,18 @@ recorded inline in `docs/RESTRUCTURING.md` task 1.4, where it was found.
 Entries below are newest first; the oldest is the 1.4 max-size reconcile
 that followed it.
 
+## A flag manager could wake up believing a flag war was already on (2026-09-17)
+
+- **`FlagManager::m_bHasFlagWar` was never initialised.** The constructor
+  set up the two wars and their schedules but left the flag holding whatever
+  the allocation held. Read as true, `startFlagWar()` refused the first
+  scheduled or manual start, and `endFlagWar()` then recorded a flag-war
+  history row for a war that never happened, complete with the external
+  history script run on an uninitialised end time and empty counts, before
+  clearing the flag. The member now starts false, so a fresh manager starts
+  its first war and records nothing until one has run.
+  > **Status:** fixed (refactor/game-context-1)
+
 ## A GM command crashed the game server on a dynamic zone type it did not know (2026-09-16)
 
 - **`opAddDynamicZone` dereferenced both halves of

@@ -1,3 +1,6 @@
+#ifndef __GQUEST_ALL_ELEMENTS_H__
+#define __GQUEST_ALL_ELEMENTS_H__
+
 #include "GQuestAddEffectElement.h"
 #include "GQuestAdvanceClassElement.h"
 #include "GQuestAdvancementClassLevelElement.h"
@@ -39,3 +42,5 @@
 #include "GQuestTouchWayPointElement.h"
 #include "GQuestTravelElement.h"
 #include "GQuestWarpElement.h"
+
+#endif // __GQUEST_ALL_ELEMENTS_H__

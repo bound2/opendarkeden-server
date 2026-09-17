@@ -1082,8 +1082,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > for `SkillUtil.cpp`/`InitAllStat.cpp`. **`HitRoll.cpp`'s success-ratio
   > formulas are extracted too** (melee/blood-drain/magic-per-race/curse/
   > dispel/flare/rebuke/self-buff/hallucination/backstab — the dice rolls
-  > and live-state gates stay in the adapters; the `__CHINA_SERVER__`
-  > variants stay behind their #ifdef there; `isCriticalHit`'s additive
+  > and live-state gates stay in the adapters; the China-build
+  > variants went with their never-defined macro; `isCriticalHit`'s additive
   > ratio and the blood-drain defense gathering remain inline), pinned by
   > 19 more tests (62 assertions) including the floorless negative
   > `flareRatio` and the toward-zero negative-bonus truncation;
@@ -1129,8 +1129,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > 19 pure functions joined `Formulas.{h,cpp}` — Concealment's
   > divide-then-float-scale bonuses, Will of Iron's truncated 15%, both
   > Liveness grade tables (normal keeps its level>=125 hpPercent
-  > override; the `__CHINA_SERVER__` selection stays behind the #ifdef in
-  > the adapter), Sniping's divide-first percents, the four slayer
+  > override; the China table is selected by no build now that
+  > its macro is gone), Sniping's divide-first percents, the four slayer
   > weapon-domain passives (sword mastery / concentration / evasion /
   > shield mastery, including evasion's negative-term truncation below
   > level 20), the vampire wolf/werwolf damage bonuses and Extreme's
@@ -1161,8 +1161,8 @@ and sheltered by Phase 1 tests. Ratchets R2/R3/R5 make progress monotonic.
   > percent application (same category), Monster::initAllStat's
   > hardcoded event `HP*10` for four monster ids (no stat/level
   > composition), and the flat arms-mastery constants (`ToHitBonus += 5`
-  > etc. — no computation). The `__CHINA_SERVER__` liveness path is
-  > compiled by no build config; it was hand-compiled clean in the
+  > etc. — no computation). The China liveness adapter went with
+  > its never-defined macro; it was hand-compiled clean in the
   > review, and `livenessBonusChina` is now compiled and unit-tested for
   > the first time. InitAllStat.cpp 4,949→4,803 across both commits (R6b
   > tightened).

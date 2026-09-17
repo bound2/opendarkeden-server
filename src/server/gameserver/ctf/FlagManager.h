@@ -144,7 +144,7 @@ private:
 
     list<PoleFieldInfo> m_PoleFields;
 
-    bool m_bHasFlagWar;
+    bool m_bHasFlagWar = false;
 };
 
 extern FlagManager* g_pFlagManager;
