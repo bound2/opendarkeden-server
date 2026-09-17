@@ -101,36 +101,6 @@ string DyePotion::toString() const
     return msg.toString();
 }
 
-/*VolumeWidth_t DyePotion::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pDyePotionInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-VolumeHeight_t DyePotion::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pDyePotionInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-Weight_t DyePotion::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pDyePotionInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-*/
 //////////////////////////////////////////////////////////////////////////////
 // class DyePotionInfo member methods
 //////////////////////////////////////////////////////////////////////////////

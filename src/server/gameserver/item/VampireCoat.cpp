@@ -28,7 +28,6 @@ VampireCoat::VampireCoat()
 {
     setItemType(0);
     setDurability(0);
-    // m_EnchantLevel = 0;
 }
 
 VampireCoat::VampireCoat(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -37,7 +36,6 @@ VampireCoat::VampireCoat(ItemType_t itemType, const list<OptionType_t>& optionTy
 {
     setItemType(itemType);
     setOptionType(optionType);
-    // m_EnchantLevel = 0;
 
     setDurability(computeMaxDurability(this));
 
@@ -125,71 +123,6 @@ string VampireCoat::toString() const
     return msg.toString();
 }
 
-/*
-//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t VampireCoat::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireCoatInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t VampireCoat::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireCoatInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t VampireCoat::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireCoatInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t VampireCoat::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireCoatInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t VampireCoat::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireCoatInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-*/
 
 //--------------------------------------------------------------------------------
 // get debug string
@@ -296,10 +229,7 @@ void VampireCoatLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

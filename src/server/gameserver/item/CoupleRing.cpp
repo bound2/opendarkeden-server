@@ -252,7 +252,6 @@ void CoupleRingLoader::load(Creature* pCreature)
             if (pPC != NULL &&
                 (!g_pCoupleManager->isCouple(pPC, pCoupleRing->getName()) || !pCoupleRing->hasPartnerItem())) {
                 g_pCoupleManager->removeCoupleForce(pPC, pCoupleRing->getName());
-                // pCoupleRing->destroy();
                 char sql[30];
                 sprintf(sql, "Storage = 10");
                 pCoupleRing->tinysave(sql);
@@ -269,10 +268,7 @@ void CoupleRingLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -331,11 +327,6 @@ void CoupleRingLoader::load(Creature* pCreature)
 
             case STORAGE_STASH:
                 processItemBugEx(pCreature, pCoupleRing);
-                /*		if (pStash->isExist(x, y))
-                            {
-                                processItemBugEx(pCreature, pCoupleRing);
-                            }
-                            else pStash->insert(x, y, pCoupleRing); */
                 break;
 
             case STORAGE_GARBAGE:

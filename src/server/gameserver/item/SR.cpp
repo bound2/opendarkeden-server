@@ -151,116 +151,6 @@ string SR::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t SR::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSRInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t SR::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSRInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t SR::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSRInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's minDamage
-//--------------------------------------------------------------------------------
-Damage_t SR::getMinDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSRInfoManager->getItemInfo(m_ItemType)->getMinDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's maxDamage
-//--------------------------------------------------------------------------------
-Damage_t SR::getMaxDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSRInfoManager->getItemInfo(m_ItemType)->getMaxDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's range
-//--------------------------------------------------------------------------------
-Range_t SR::getRange() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSRInfoManager->getItemInfo(m_ItemType)->getRange();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's ToHit Bonus
-//--------------------------------------------------------------------------------
-ToHit_t SR::getToHitBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSRInfoManager->getItemInfo(m_ItemType)->getToHitBonus();
-
-    __END_CATCH
-}
-
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-int SR::getCriticalBonus(void) const
-
-{
-    __BEGIN_TRY
-
-    return g_pSRInfoManager->getItemInfo(m_ItemType)->getCriticalBonus();
-
-    __END_CATCH
-}
-*/
-
 //--------------------------------------------------------------------------------
 // get debug string
 //--------------------------------------------------------------------------------
@@ -373,10 +263,7 @@ void SRLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

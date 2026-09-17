@@ -29,7 +29,6 @@ OustersBoots::OustersBoots()
 {
     setItemType(0);
     setDurability(0);
-    //	m_EnchantLevel = 0;
 }
 
 OustersBoots::OustersBoots(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -38,7 +37,6 @@ OustersBoots::OustersBoots(ItemType_t itemType, const list<OptionType_t>& option
 {
     setItemType(itemType);
     setOptionType(optionType);
-    //	m_EnchantLevel = 0;
 
     setDurability(computeMaxDurability(this));
 
@@ -127,71 +125,6 @@ string OustersBoots::toString() const
     return msg.toString();
 }
 
-
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t OustersBoots::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersBootsInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t OustersBoots::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersBootsInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t OustersBoots::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersBootsInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t OustersBoots::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersBootsInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t OustersBoots::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersBootsInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-*/
 
 //--------------------------------------------------------------------------------
 // get debug string

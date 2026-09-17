@@ -30,7 +30,6 @@ OustersArmsband::OustersArmsband()
     setItemType(0);
     setDurability(0);
     m_pInventory = NULL;
-    //	m_EnchantLevel = 0;
 }
 
 OustersArmsband::OustersArmsband(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -44,7 +43,6 @@ OustersArmsband::OustersArmsband(ItemType_t itemType, const list<OptionType_t>& 
 
     m_pInventory = new Inventory(pOustersArmsbandInfo->getPocketCount(), 1);
 
-    //	m_EnchantLevel = 0;
 
     setDurability(computeMaxDurability(this));
 
@@ -210,48 +208,6 @@ string OustersArmsband::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t OustersArmsband::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersArmsbandInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t OustersArmsband::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersArmsbandInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t OustersArmsband::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersArmsbandInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-*/
-
 //--------------------------------------------------------------------------------
 // get pocket count
 //--------------------------------------------------------------------------------
@@ -267,30 +223,6 @@ PocketNum_t OustersArmsband::getPocketCount(void) const
 
     __END_CATCH
 }
-/*
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t OustersArmsband::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersArmsbandInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t OustersArmsband::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersArmsbandInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-
-*/
 //--------------------------------------------------------------------------------
 // get debug string
 //--------------------------------------------------------------------------------

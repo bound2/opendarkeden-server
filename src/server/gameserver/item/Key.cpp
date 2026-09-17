@@ -96,7 +96,6 @@ ItemID_t Key::setNewMotorcycle(Slayer* pSlayer) {
     ItemID_t targetID = 0;
 
     // 타겟이 0이 아니라도 타겟이 없으면 새 모터사이클을 넣어야 된다.
-    //	Assert( getTarget() == 0 );
     Assert(pSlayer != NULL);
     Zone* pZone = pSlayer->getZone();
     Assert(pZone != NULL);
@@ -309,7 +308,6 @@ void KeyLoader::load(Creature* pCreature)
                 break;
 
             case STORAGE_BELT:
-                // processItemBugEx(pCreature, pKey);
                 if (pCreature->isSlayer()) {
                     pItem = pSlayer->findBeltIID(storageID);
                     if (pItem != NULL && pItem->getItemClass() == Item::ITEM_CLASS_BELT) {

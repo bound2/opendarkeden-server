@@ -28,7 +28,6 @@ Helm::Helm()
 {
     setItemType(0);
     setDurability(0);
-    //	m_EnchantLevel = 0;
 }
 
 Helm::Helm(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -37,7 +36,6 @@ Helm::Helm(ItemType_t itemType, const list<OptionType_t>& optionType)
 {
     setItemType(itemType);
     setOptionType(optionType);
-    //	m_EnchantLevel = 0;
 
     setDurability(computeMaxDurability(this));
 
@@ -125,71 +123,6 @@ string Helm::toString() const
     return msg.toString();
 }
 
-
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t Helm::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pHelmInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t Helm::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pHelmInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t Helm::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pHelmInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t Helm::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pHelmInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t Helm::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pHelmInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-*/
 
 //--------------------------------------------------------------------------------
 // get debug string
@@ -297,10 +230,7 @@ void HelmLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

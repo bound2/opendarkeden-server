@@ -52,12 +52,6 @@ CodeSheet::CodeSheet(ItemType_t itemType, const list<OptionType_t>& optionType)
         while (m_OptionType.size() < 30) {
             m_OptionType.push_back((OptionType_t)0xff);
         }
-
-    //	if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, m_OptionType))
-    //	{
-    //		filelog("itembug.log", "CodeSheet::CodeSheet() : Invalid item type or option type");
-    //		throw "CodeSheet::CodeSheet() : Invalid item type or optionType";
-    //	}
 }
 
 
@@ -267,10 +261,7 @@ void CodeSheetLoader::load(Creature* pCreature)
             Ousters* pOusters = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

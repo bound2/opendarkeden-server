@@ -28,7 +28,6 @@ Cross::Cross()
 {
     setItemType(0);
     setDurability(0);
-    //	m_EnchantLevel = 0;
     setBonusDamage(0);
     setSilver(0);
 }
@@ -42,7 +41,6 @@ Cross::Cross(ItemType_t itemType, const list<OptionType_t>& optionType)
     setBonusDamage(0);
     setSilver(0);
 
-    //	m_EnchantLevel = 0;
     setDurability(computeMaxDurability(this));
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
@@ -131,76 +129,6 @@ string Cross::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t Cross::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCrossInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t Cross::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCrossInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t Cross::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCrossInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's minDamage
-//--------------------------------------------------------------------------------
-Damage_t Cross::getMinDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCrossInfoManager->getItemInfo(m_ItemType)->getMinDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's maxDamage
-//--------------------------------------------------------------------------------
-Damage_t Cross::getMaxDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCrossInfoManager->getItemInfo(m_ItemType)->getMaxDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-*/
-
 MP_t Cross::getMPBonus() const
 
 {
@@ -211,18 +139,6 @@ MP_t Cross::getMPBonus() const
     __END_CATCH
 }
 
-/*//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-int Cross::getCriticalBonus(void) const
-
-{
-    __BEGIN_TRY
-
-    return g_pCrossInfoManager->getItemInfo(m_ItemType)->getCriticalBonus();
-
-    __END_CATCH
-}
-*/
 //--------------------------------------------------------------------------------
 // get debug string
 //--------------------------------------------------------------------------------
@@ -335,10 +251,7 @@ void CrossLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

@@ -29,7 +29,6 @@ OustersCoat::OustersCoat()
 {
     setItemType(0);
     setDurability(0);
-    // m_EnchantLevel = 0;
 }
 
 OustersCoat::OustersCoat(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -38,7 +37,6 @@ OustersCoat::OustersCoat(ItemType_t itemType, const list<OptionType_t>& optionTy
 {
     setItemType(itemType);
     setOptionType(optionType);
-    // m_EnchantLevel = 0;
 
     setDurability(computeMaxDurability(this));
 
@@ -126,71 +124,6 @@ string OustersCoat::toString() const
     return msg.toString();
 }
 
-
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t OustersCoat::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersCoatInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t OustersCoat::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersCoatInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t OustersCoat::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersCoatInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t OustersCoat::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersCoatInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t OustersCoat::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersCoatInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-*/
 
 //--------------------------------------------------------------------------------
 // get debug string

@@ -40,34 +40,6 @@ public:
     static void initItemIDRegistry(void);
 
 public:
-    //	virtual ItemClass getItemClass() const  { return Item::ITEM_CLASS_BELT; }
-    //	virtual string getObjectTableName() const  { return "BeltObject"; }
-
-    //	virtual ItemType_t getItemType() const  { return m_ItemType; }
-    //	virtual void setItemType(ItemType_t itemType)  { m_ItemType = itemType; }
-
-    /*	virtual bool hasOptionType() const  { return !m_OptionType.empty(); }
-        virtual int getOptionTypeSize() const  { return m_OptionType.size(); }
-        virtual int getRandomOptionType() const  { if (m_OptionType.empty()) return 0; int pos =
-       rand()%m_OptionType.size(); list<OptionType_t>::const_iterator itr = m_OptionType.begin(); for (int i=0; i<pos;
-       i++) itr++; return *itr; } virtual const list<OptionType_t>& getOptionTypeList() const  { return m_OptionType; }
-        virtual OptionType_t getFirstOptionType() const  { if (m_OptionType.empty()) return 0; return
-       m_OptionType.front(); } virtual void removeOptionType(OptionType_t OptionType)  { list<OptionType_t>::iterator
-       itr = find(m_OptionType.begin(), m_OptionType.end(), OptionType); if (itr!=m_OptionType.end())
-       m_OptionType.erase(itr); } virtual void changeOptionType(OptionType_t currentOptionType, OptionType_t
-       newOptionType)  { list<OptionType_t>::iterator itr = find(m_OptionType.begin(), m_OptionType.end(),
-       currentOptionType); if (itr!=m_OptionType.end()) *itr=newOptionType; } virtual void addOptionType(OptionType_t
-       OptionType)  { m_OptionType.push_back(OptionType); } virtual void setOptionType(const list<OptionType_t>&
-       OptionType)  { m_OptionType = OptionType; }
-
-
-        virtual VolumeWidth_t getVolumeWidth() const ;
-        virtual VolumeHeight_t getVolumeHeight() const ;
-        virtual Weight_t getWeight() const ;
-
-        virtual Durability_t getDurability() const  { return m_Durability; }
-        void setDurability(Durability_t durability)  { m_Durability = durability; }
-    */
     void setInventory(Inventory* pInventory) {
         m_pInventory = pInventory;
     }
@@ -77,15 +49,10 @@ public:
 
     PocketNum_t getPocketCount(void) const;
 
-    /*	virtual Defense_t getDefenseBonus() const ;
-        virtual Protection_t getProtectionBonus() const ;*/
 
     void makePCItemInfo(PCItemInfo& result) const;
 
 private:
-    //	ItemType_t     m_ItemType;      // 아이템 타입
-    //	list<OptionType_t>   m_OptionType;    // 옵션 타입
-    //	Durability_t   m_Durability;    // 내구성
     Inventory* m_pInventory; // 인벤토리
 
     static Mutex m_Mutex;             // 아이템 ID 관련 락

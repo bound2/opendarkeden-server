@@ -39,7 +39,6 @@ ComposMei::ComposMei(ItemType_t itemType, const list<OptionType_t>& optionType, 
 {
     setItemType(itemType);
     setNum(Num);
-    // cout << "ComposMei::ComposMei(" << getOptionTypeToString(optionType).c_str() << ")" << endl;
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
         filelog("itembug.log", "ComposMei::ComposMei() : Invalid item type or option type");
         throw Error("ComposMei::ComposMei() : Invalid item type or optionType");
@@ -132,47 +131,6 @@ string ComposMei::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t ComposMei::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pComposMeiInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t ComposMei::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pComposMeiInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t ComposMei::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pComposMeiInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-*/
 int ComposMei::getHPAmount(void) const
 
 {

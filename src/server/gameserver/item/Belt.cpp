@@ -29,7 +29,6 @@ Belt::Belt()
     setItemType(0);
     setDurability(0);
     m_pInventory = NULL;
-    //	m_EnchantLevel = 0;
 }
 
 Belt::Belt(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -46,7 +45,6 @@ Belt::Belt(ItemType_t itemType, const list<OptionType_t>& optionType)
 
     m_pInventory = new Inventory(pBeltInfo->getPocketCount(), 1);
 
-    //	m_EnchantLevel = 0;
 
     setDurability(computeMaxDurability(this));
 
@@ -213,47 +211,6 @@ string Belt::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t Belt::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBeltInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t Belt::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBeltInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t Belt::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBeltInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-*/
 //--------------------------------------------------------------------------------
 // get pocket count
 //--------------------------------------------------------------------------------
@@ -269,27 +226,6 @@ PocketNum_t Belt::getPocketCount(void) const
 
     __END_CATCH
 }
-
-/*Defense_t Belt::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBeltInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-
-Protection_t Belt::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBeltInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-*/
 
 
 //--------------------------------------------------------------------------------
@@ -406,7 +342,6 @@ void BeltLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
 
             if (pCreature->isSlayer()) {

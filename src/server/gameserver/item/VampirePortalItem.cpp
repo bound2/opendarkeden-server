@@ -34,8 +34,6 @@ VampirePortalItem::VampirePortalItem()
     m_ZoneID = 0;
     m_X = 0;
     m_Y = 0;
-    // m_pEffectVampirePortal[0] = NULL;
-    // m_pEffectVampirePortal[1] = NULL;
 
     __END_CATCH
 }
@@ -82,8 +80,6 @@ VampirePortalItem::VampirePortalItem(ItemType_t itemType, const list<OptionType_
         throw Error("VampirePortalItem::VampirePortalItem() : Invalid item type or optionType");
     }
 
-    // m_pEffectVampirePortal[0] = NULL;
-    // m_pEffectVampirePortal[1] = NULL;
 
     __END_CATCH
 }
@@ -327,10 +323,7 @@ void VampirePortalItemLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

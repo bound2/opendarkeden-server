@@ -61,8 +61,6 @@ public:
         m_Damage = D;
     }
 
-    // Dir_t getDir() const  { return m_Dir;}
-    // void setDir(Dir_t R)  { m_Dir = R;}
 
     virtual Damage_t getMinDamage() const;
     virtual Damage_t getMaxDamage() const;
@@ -82,7 +80,6 @@ private:
     ItemType_t m_ItemType; // 아이템 타입
     Damage_t m_Damage;
     ItemNum_t m_Num;
-    //	Dir_t m_Dir;
 
     static Mutex m_Mutex;             // 아이템 ID 관련 락
     static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기

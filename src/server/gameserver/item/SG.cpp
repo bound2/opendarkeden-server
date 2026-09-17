@@ -150,115 +150,6 @@ string SG::toString() const
     return msg.toString();
 }
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t SG::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSGInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t SG::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSGInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t SG::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSGInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's minDamage
-//--------------------------------------------------------------------------------
-Damage_t SG::getMinDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSGInfoManager->getItemInfo(m_ItemType)->getMinDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's maxDamage
-//--------------------------------------------------------------------------------
-Damage_t SG::getMaxDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSGInfoManager->getItemInfo(m_ItemType)->getMaxDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's range
-//--------------------------------------------------------------------------------
-Range_t SG::getRange() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSGInfoManager->getItemInfo(m_ItemType)->getRange();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's ToHit Bonus
-//--------------------------------------------------------------------------------
-ToHit_t SG::getToHitBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSGInfoManager->getItemInfo(m_ItemType)->getToHitBonus();
-
-    __END_CATCH
-}
-
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-int SG::getCriticalBonus(void) const
-
-{
-    __BEGIN_TRY
-
-    return g_pSGInfoManager->getItemInfo(m_ItemType)->getCriticalBonus();
-
-    __END_CATCH
-}
-*/
 
 //--------------------------------------------------------------------------------
 // get debug string
@@ -372,10 +263,7 @@ void SGLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);
