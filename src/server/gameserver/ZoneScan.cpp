@@ -168,8 +168,6 @@
 #include "ZoneInternal.h"
 #include "item/Motorcycle.h"
 
-// by sigi.  2002.12.30
-// #define __PROFILE_BROADCAST__
 
 #ifdef __PROFILE_BROADCAST__
 #define __BEGIN_PROFILE_ZONE(name) beginProfileEx(name);
@@ -179,7 +177,6 @@
 #define __END_PROFILE_ZONE(name) ((void)0);
 #endif
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -203,19 +200,12 @@ void Zone::updateInvisibleScan(Creature* pCreature) {
     Player* pPlayer = pCreature->getPlayer();
 
     // Revealer 이펙트를 가져온다.
-    //	EffectRevealer* pEffectRevealer = NULL;
-    //	if ( pCreature->isFlag(Effect::EFFECT_CLASS_REVEALER) )
-    //	{
-    //		pEffectRevealer = dynamic_cast<EffectRevealer*>(pCreature->findEffect(Effect::EFFECT_CLASS_REVEALER));
-    //		Assert( pEffectRevealer != NULL );
-    //	}
 
     // ObservingEey 이펙트를 가져온다.
     EffectObservingEye* pEffectObservingEye = NULL;
     if (pCreature->isFlag(Effect::EFFECT_CLASS_OBSERVING_EYE)) {
         pEffectObservingEye =
             dynamic_cast<EffectObservingEye*>(pCreature->findEffect(Effect::EFFECT_CLASS_OBSERVING_EYE));
-        // Assert( pEffectObservingEye != NULL );
     }
 
     EffectGnomesWhisper* pEffectGnomesWhisper = NULL;
@@ -263,9 +253,6 @@ void Zone::updateInvisibleScan(Creature* pCreature) {
                                     pPlayer->sendPacket(&gcAddVampire);
                                 } else if (pPC->isMonster()) {
                                     Monster* pMonster = dynamic_cast<Monster*>(pPC);
-                                    // GCAddMonster gcAddMonster;
-                                    // makeGCAddMonster(&gcAddMonster, pMonster);
-                                    // pPlayer->sendPacket(&gcAddMonster);
 
                                     // by sigi
                                     Packet* pAddMonsterPacket = createMonsterAddPacket(pMonster, pCreature);
@@ -330,12 +317,6 @@ void Zone::updateHiddenScan(Creature* pCreature)
     Player* pPlayer = pCreature->getPlayer();
 
     // Revealer 이펙트를 가져온다.
-    //	EffectRevealer* pEffectRevealer = NULL;
-    //	if ( pCreature->isFlag(Effect::EFFECT_CLASS_REVEALER) )
-    //	{
-    //		pEffectRevealer = dynamic_cast<EffectRevealer*>(pCreature->findEffect(Effect::EFFECT_CLASS_REVEALER));
-    //		Assert( pEffectRevealer != NULL );
-    //	}
 
     for (ZoneCoord_t ix = max(0, cx - maxViewportWidth - 1), endx = min(m_Width - 1, cx + maxViewportWidth + 1);
          ix <= endx; ix++) {
@@ -578,7 +559,6 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
         for (ZoneCoord_t iy = max(0, cy - maxViewportUpperHeight - 1),
                          endy = min(m_Height - 1, cy + maxViewportLowerHeight + 1);
              iy <= endy; iy++) {
-            //			bool bCanSeeThere = (pPC->getVisionState(ix, iy) >= IN_SIGHT);	// 순수 시야만으로 볼 수 있나?
             if (pPC->getVisionState(ix, iy) == OUT_OF_SIGHT)
                 continue;
 
@@ -613,7 +593,6 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                         continue;
 
                     // 안보이면 쌩
-                    //							if ( !canSee( pPC, pCreature ) ) continue;
                     bool bCanSee = canSee(pPC, pCreature);
 
                     switch (pCreature->getCreatureClass()) {
@@ -666,7 +645,6 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                             Assert(pCreature->getPlayer() != NULL);
                             // canSee 로 대체. 2003.05.29 by bezz
                             if (canSee(pCreature, pPC)) {
-                                // pCreature->getPlayer()->sendPacket(pPacket);
                                 pCreature->getPlayer()->sendStream(&outputStream);
                             }
                         }
@@ -675,22 +653,9 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                     case Creature::CREATURE_CLASS_VAMPIRE: {
                         if (bCanSee) {
                             // PC가 ObservingEye 이펙트를 가지고 있다면 이펙트를 가져온다.
-                            //											EffectObservingEye* pEffectObservingEye = NULL;
-                            //											if ( pPC->isFlag(
-                            // Effect::EFFECT_CLASS_OBSERVING_EYE ) )
-                            //											{
-                            //												pEffectObservingEye =
-                            // dynamic_cast<EffectObservingEye*>(pPC->findEffect( Effect::EFFECT_CLASS_OBSERVING_EYE )
-                            // );
                             //												//Assert( pEffectObservingEye != NULL );
-                            //											}
 
                             if (pCreature->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-                                //				if (!pPC->isFlag(Effect::EFFECT_CLASS_GHOST)
-                                //					&& (pPC->isVampire()
-                                //						|| pPC->isFlag(Effect::EFFECT_CLASS_DETECT_HIDDEN))
-                                //					)
-                                //				{
                                 GCAddBurrowingCreature gcABC;
                                 gcABC.setObjectID(pCreature->getObjectID());
                                 gcABC.setName(pCreature->getName());
@@ -700,14 +665,6 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                                 pPlayer->sendPacket(&gcABC);
                                 //				}
                             } else {
-                                //				if (!pCreature->isFlag(Effect::EFFECT_CLASS_GHOST)
-                                //					&& (!pCreature->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)
-                                //						|| pPC->isVampire()
-                                //						|| pPC->isFlag(Effect::EFFECT_CLASS_DETECT_INVISIBILITY)
-                                //						|| ( pEffectObservingEye != NULL &&
-                                // pEffectObservingEye->canSeeInvisibility( pCreature ) ) )
-                                //					)
-                                //				{
                                 Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
                                 GCAddVampire gcAddVampire;
                                 makeGCAddVampire(&gcAddVampire, pVampire);
@@ -724,7 +681,6 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                         // canSee로 대체
                         if (pPacket && pCreature->getVisionState(cx, cy) >= IN_SIGHT && canSee(pCreature, pPC)) {
                             Assert(pCreature->getPlayer() != NULL);
-                            // pCreature->getPlayer()->sendPacket(pPacket);
                             pCreature->getPlayer()->sendStream(&outputStream);
                         }
                     } break;
@@ -732,19 +688,8 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                     case Creature::CREATURE_CLASS_OUSTERS: {
                         if (bCanSee) {
                             // PC가 ObservingEye 이펙트를 가지고 있다면 이펙트를 가져온다.
-                            //											EffectObservingEye* pEffectObservingEye = NULL;
-                            //											if ( pPC->isFlag(
-                            // Effect::EFFECT_CLASS_OBSERVING_EYE ) )
-                            //											{
-                            //												pEffectObservingEye =
-                            // dynamic_cast<EffectObservingEye*>(pPC->findEffect( Effect::EFFECT_CLASS_OBSERVING_EYE )
-                            // );
                             //												//Assert( pEffectObservingEye != NULL );
-                            //											}
 
-                            //											if (
-                            //! pCreature->isFlag(Effect::EFFECT_CLASS_GHOST) )
-                            //											{
                             Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
                             GCAddOusters gcAddOusters;
                             makeGCAddOusters(&gcAddOusters, pOusters);
@@ -754,7 +699,6 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
 
                         if (pPacket && pCreature->getVisionState(cx, cy) >= IN_SIGHT && canSee(pCreature, pPC)) {
                             Assert(pCreature->getPlayer() != NULL);
-                            // pCreature->getPlayer()->sendPacket(pPacket);
                             pCreature->getPlayer()->sendStream(&outputStream);
                         }
                     } break;
@@ -780,8 +724,6 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                 // 타일 위에 아이템이 있을 경우
                 //--------------------------------------------------------------------------------
                 case Object::OBJECT_CLASS_ITEM: {
-                    //							if (bCanSeeThere)
-                    //							{
                     Item* pItem = dynamic_cast<Item*>(*itr);
 
                     if (pItem->getItemClass() == Item::ITEM_CLASS_CORPSE) {
@@ -842,8 +784,6 @@ void Zone::scan(Creature* pPC, ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket) 
                 //--------------------------------------------------------------------------------
                 case Object::OBJECT_CLASS_EFFECT: {
                     Effect* pEffect = dynamic_cast<Effect*>(*itr);
-                    //							if (bCanSeeThere)
-                    //							{
                     if (pEffect->getEffectClass() == Effect::EFFECT_CLASS_VAMPIRE_PORTAL) {
                         EffectVampirePortal* pEffectVampirePortal = dynamic_cast<EffectVampirePortal*>(pEffect);
                         ZONE_COORD zonecoord = pEffectVampirePortal->getZoneCoord();
@@ -947,8 +887,6 @@ void Zone::scanPC(Creature* pCreature) {
     Creature::CreatureClass CClass = pCreature->getCreatureClass();
 
     bool isMonster = pCreature->isMonster();
-    //	bool isMonsterHide = false;
-    //	bool isMonsterInvisibility = false;
 
     if (CClass == Creature::CREATURE_CLASS_MONSTER) {
         pMonster = dynamic_cast<Monster*>(pCreature);
@@ -956,24 +894,7 @@ void Zone::scanPC(Creature* pCreature) {
         // by sigi
         pGCAddXXX = createMonsterAddPacket(pMonster, NULL);
 
-        //		isMonsterHide = pMonster->isFlag(Effect::EFFECT_CLASS_HIDE);
-        //		isMonsterInvisibility = pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY);
 
-        /*
-        if (pCreature->isFlag(Effect::EFFECT_CLASS_HIDE))
-        {
-            gcABC.setObjectID(pMonster->getObjectID());
-            gcABC.setName(pMonster->getName());
-            gcABC.setX(cx);
-            gcABC.setY(cy);
-            pGCAddXXX = &gcABC;
-        }
-        else
-        {
-            makeGCAddMonster(&gcAddMonster, pMonster);
-            pGCAddXXX = &gcAddMonster;
-        }
-        */
     } else if (CClass == Creature::CREATURE_CLASS_NPC) {
         NPC* pNPC = dynamic_cast<NPC*>(pCreature);
 
@@ -1005,34 +926,11 @@ void Zone::scanPC(Creature* pCreature) {
                     //						&& !pPC->isFlag(Effect::EFFECT_CLASS_GHOST)
                     {
                         // Creature 가 Revealer 이펙트를 가지고 있다면 이펙트를 가져온다.
-                        //						EffectRevealer* pEffectRevealer = NULL;
-                        //						if ( pCreature->isFlag( Effect::EFFECT_CLASS_REVEALER ) )
-                        //						{
-                        //							pEffectRevealer =
-                        // dynamic_cast<EffectRevealer*>(pCreature->findEffect( Effect::EFFECT_CLASS_REVEALER ) );
-                        //							Assert( pEffectRevealer );
-                        //						}
 
                         // Creature 가 ObservingEye 이펙트를 가지고 있다면 이펙트를 가져온다.
-                        //						EffectObservingEye* pEffectObservingEye = NULL;
-                        //						if ( pCreature->isFlag( Effect::EFFECT_CLASS_OBSERVING_EYE ) )
-                        //						{
-                        //							pEffectObservingEye =
-                        // dynamic_cast<EffectObservingEye*>(pCreature->findEffect( Effect::EFFECT_CLASS_OBSERVING_EYE )
-                        //);
                         //							//Assert( pEffectObservingEye != NULL );
-                        //						}
 
                         // 몬스터가 스나이핑을 쓸리는 없다 그래서 DETECT_HIDDEN과 INVISIBILITY만 체크 한다.
-                        //						if (pPC->isVampire() ||
-                        //							((!isMonsterHide ||
-                        // pPC->isFlag(Effect::EFFECT_CLASS_DETECT_HIDDEN))// || ( pEffectRevealer != NULL &&
-                        // pEffectRevealer->canSeeHide( pMonster ) ) )
-                        //							&& (!isMonsterInvisibility ||
-                        // pPC->isFlag(Effect::EFFECT_CLASS_DETECT_INVISIBILITY) ) || ( pEffectObservingEye != NULL &&
-                        // pEffectObservingEye->canSeeInvisibility( pMonster ) ))
-                        //							)
-                        //						{
                         pPC->getPlayer()->sendPacket(pGCAddXXX);
                         //						}
 
@@ -1133,7 +1031,6 @@ void Zone::monsterScan(Monster* pMonster, ZoneCoord_t x, ZoneCoord_t y, Dir_t di
 {
     __BEGIN_TRY
 
-    // #ifdef __MONSTER_FIGHTING__
 
     // [TEST CODE]
 
@@ -1166,10 +1063,7 @@ void Zone::monsterScan(Monster* pMonster, ZoneCoord_t x, ZoneCoord_t y, Dir_t di
 
     for (ZoneCoord_t ix = max(0, x2 - sight - 1), endx = min(m_Width - 1, x2 + sight + 1); ix <= endx; ix++) {
         for (ZoneCoord_t iy = max(0, y2 - sight - 1), endy = min(m_Height - 1, y2 + sight + 1); iy <= endy; iy++) {
-            // if (pPC->isFlag(Effect::EFFECT_CLASS_DARKNESS)) sight = DARKNESS_SIGHT;
-
             // 현재 타일 위에 있는 모든 오브젝트들에 대해 반복한다.
-            // const forward_list<Object*> & objectList = m_pTiles[ix][iy].getObjectList();
             const forward_list<Object*>& objectList = m_pTiles[ix][iy].getObjectList();
 
             forward_list<Object*>::const_iterator itr = objectList.begin();
@@ -1222,7 +1116,6 @@ void Zone::monsterScan(Monster* pMonster, ZoneCoord_t x, ZoneCoord_t y, Dir_t di
         } // for iy
     } // for ix
 
-    // #endif
 
     __END_CATCH
 }

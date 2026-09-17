@@ -15,7 +15,6 @@
 #include "VSDateTime.h"
 #include "ZonePlayerManager.h"
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -102,7 +101,6 @@ void ZoneGroupThread::run()
 
     try {
         while (!stopRequested()) {
-            //		beginProfileEx("ZGT_MAIN");
             try {
                 beginProfileExNoTry("ZGT_MAIN");
 
@@ -133,7 +131,6 @@ void ZoneGroupThread::run()
 
                 getCurrentTime(currentTime);
 
-                //		endProfileEx("ZGT_MAIN");
                 endProfileExNoCatch("ZGT_MAIN");
             } catch (Throwable&) {
                 endProfileExNoCatch("ZGT_MAIN");
@@ -154,7 +151,6 @@ void ZoneGroupThread::run()
                 GMServerInfo gmServerInfo;
                 m_pZoneGroup->makeZoneUserInfo(gmServerInfo);
 
-                // outputProfileEx(false, false);
                 (g_ProfileSampleManager.getProfileSampleSet())
                     ->outputProfileToFile("Profile", false, false, &gmServerInfo);
 

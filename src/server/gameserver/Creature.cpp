@@ -17,7 +17,6 @@
 #include "ZoneInfo.h"
 #include "ZoneInfoManager.h"
 #include "ZoneUtil.h"
-// #include "EffectHPRecovery.h"
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -101,9 +100,6 @@ VisionState Creature::getVisionState(ZoneCoord_t x, ZoneCoord_t y)
     __BEGIN_DEBUG
 
     // Disabled by sigi
-    // if (isFlag(Effect::EFFECT_CLASS_DARKNESS))
-    //	return g_pVisionInfoManager->getVisionInfo(DARKNESS_SIGHT,m_Dir)->getVisionState(m_X,m_Y,x,y);
-    // return g_pVisionInfoManager->getVisionInfo(m_Sight,m_Dir)->getVisionState(m_X,m_Y,x,y);
     return VisionInfoManager::getVisionState(m_X, m_Y, x, y);
 
     __END_DEBUG
@@ -114,7 +110,6 @@ VisionState Creature::getVisionState(Coord_t x, Coord_t y, Sight_t sight)
 {
     __BEGIN_DEBUG
 
-    //	return g_pVisionInfoManager->getVisionInfo(sight,m_Dir)->getVisionState(m_X,m_Y,x,y);
     return VisionInfoManager::getVisionState(m_X, m_Y, x, y);
 
     __END_DEBUG
@@ -188,24 +183,6 @@ bool Creature::canMove(ZoneCoord_t nx, ZoneCoord_t ny) const
         !isValidZoneCoord(m_pZone, nx, ny))
         return false;
 
-    /*
-    // If carrying a holy relic..
-    if (m_Flag.test(Effect::EFFECT_CLASS_HAS_SLAYER_RELIC)
-        || m_Flag.test(Effect::EFFECT_CLASS_HAS_VAMPIRE_RELIC))
-    {
-        ZoneLevel_t ZoneLevel = m_pZone->getZoneLevel(nx, ny);
-
-        // If Slayer, cannot enter a Slayer safe zone.
-        // If Vampire, cannot enter a Vampire safe zone.
-        // Cannot enter a neutral safe zone either.
-        if (isSlayer() && (ZoneLevel & SLAYER_SAFE_ZONE)
-            || isVampire() && (ZoneLevel & VAMPIRE_SAFE_ZONE)
-            || (ZoneLevel & COMPLETE_SAFE_ZONE))
-        {
-            return false;
-        }
-    }
-    */
 
     Tile& rTile = m_pZone->getTile(nx, ny);
 
@@ -242,36 +219,7 @@ bool Creature::isBlockedByCreature(ZoneCoord_t nx, ZoneCoord_t ny) const
 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
-void Creature::recoverHP(HP_t addHP) {
-    /*
-        if (isSlayer())
-        {
-            Slayer* pSlayer = dynamic_cast<Slayer*>(this);
-            HP_t destHP = min((int)pSlayer->getHP(ATTR_MAX), pSlayer->getHP(ATTR_CURRENT)+addHP);
-
-            EffectHPRecovery* pEffect = NULL;
-            if (isFlag(Effect::EFFECT_CLASS_HP_RECOVERY))
-            {
-                m_pEffectManager->deleteEffect(this, Effect::EFFECT_CLASS_HP_RECOVERY);
-            }
-
-            setFlag(Effect::EFFECT_CLASS_HP_RECOVERY);
-            pEffect = new EffectHPRecovery(this);
-            pEffect->setDestPoint(destHP);
-    //        pEffect->setPoint(10);
-    //        pEffect->setDelay(2);  // Every 0.2 seconds
-    //        pEffect->setDeadline(10000);    // Arbitrary value; deadline is meaningless
-            pEffect->setDeadline(10);    // delay
-
-
-            m_pEffectManager->addEffect(pEffect);
-
-        }
-        else
-        {
-        }
-    */
-}
+void Creature::recoverHP(HP_t addHP) {}
 
 //////////////////////////////////////////////////////////////////////////////
 // Distance calculation helper

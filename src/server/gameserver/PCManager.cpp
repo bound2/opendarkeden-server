@@ -81,7 +81,6 @@ PCManager::PCManager()
     __BEGIN_TRY
 
     m_bRefreshHolyLandPlayer = false;
-    //	m_bRefreshLevelWarBonusZonePlayer = false;
 
     __END_CATCH
 }
@@ -118,7 +117,6 @@ void PCManager::processCreatures()
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // cerr << "TID[" << Thread::self() << "]" << "PCM::process go" << endl;
 
     Timeval currentTime;
     getCurrentTime(currentTime);
@@ -137,12 +135,6 @@ void PCManager::processCreatures()
                 Assert(pSlayer != NULL);
                 pSlayer->heartbeat(currentTime);
 
-                /*
-                // 어딘가에서 코마 상태에 걸려있는데 HP가 올라가는 현상이 발생하는 것 같다.
-                // 그래서 코마 상태에 걸려있으면 일단 HP를 무조건 0으로 세팅하도록 변경한다.
-                if (pSlayer->isFlag(Effect::EFFECT_CLASS_COMA))
-                    pSlayer->setHP(0, ATTR_CURRENT);
-                */
 
                 // HolyLandRaceBonus 적용을 위해 initAllStat을 부른다.
                 if (m_bRefreshHolyLandPlayer && !g_pWarSystem->hasActiveRaceWar()) {
@@ -160,26 +152,16 @@ void PCManager::processCreatures()
                 Assert(pVampire != NULL);
                 pVampire->heartbeat(currentTime);
 
-                /*
-                // 어딘가에서 코마 상태에 걸려있는데 HP가 올라가는 현상이 발생하는 것 같다.
-                // 그래서 코마 상태에 걸려있으면 일단 HP를 무조건 0으로 세팅하도록 변경한다.
-                if (pVampire->isFlag(Effect::EFFECT_CLASS_COMA))
-                    pVampire->setHP(0, ATTR_CURRENT);
-                */
                 if (pVampire->isFlag(Effect::EFFECT_CLASS_COMA)) {
                     HP_t currentHP = pVampire->getHP(ATTR_CURRENT);
                     HP_t maxHP = pVampire->getHP(ATTR_MAX);
 
                     if (currentHP * 3 >= maxHP) {
-                        // cout << "Target HP is over 1/3" << endl;
-
                         EffectComa* pEffectComa =
                             dynamic_cast<EffectComa*>(pVampire->findEffect(Effect::EFFECT_CLASS_COMA));
                         Assert(pEffectComa != NULL);
 
                         if (pEffectComa->canResurrect()) {
-                            // cout << "Can Resurrect!" << endl;
-
                             // 타겟의 이펙트 매니저에서 코마 이펙트를 삭제한다.
                             pVampire->deleteEffect(Effect::EFFECT_CLASS_COMA);
                             pVampire->removeFlag(Effect::EFFECT_CLASS_COMA);
@@ -257,7 +239,6 @@ void PCManager::processCreatures()
 
                     if (CClass == Creature::CREATURE_CLASS_SLAYER) {
                         pSlayer = dynamic_cast<Slayer*>(pCreature);
-                        // pCorpse = new SlayerCorpse(dynamic_cast<Slayer*>(pCreature));
 
                         int SumAttr =
                             pSlayer->getSTR(ATTR_BASIC) + pSlayer->getDEX(ATTR_BASIC) + pSlayer->getINT(ATTR_BASIC);
@@ -275,12 +256,6 @@ void PCManager::processCreatures()
                                 if (pItem != NULL && pItem->isUnique() && !pItem->isTimeLimitItem()) {
                                     // by sigi. 2002.11.7
                                     pSlayer->removeShape(pItem->getItemClass(), true);
-                                    /*
-                                    GCRemoveFromGear gcRemoveFromGear;
-                                    gcRemoveFromGear.setSlotID(i);
-                                    gcRemoveFromGear.setDestroy(false);
-                                    pSlayer->getPlayer()->sendPacket(&gcRemoveFromGear);
-                                    */
 
 
                                     if (isTwohandWeapon(pItem)) {
@@ -338,12 +313,6 @@ void PCManager::processCreatures()
                                 if (pItem != NULL && !isCoupleRing(pItem) && !pItem->isTimeLimitItem()) {
                                     // by sigi. 2002.11.7
                                     pSlayer->removeShape(pItem->getItemClass(), true);
-                                    /*
-                                    GCRemoveFromGear gcRemoveFromGear;
-                                    gcRemoveFromGear.setSlotID(i);
-                                    gcRemoveFromGear.setDestroy(false);
-                                    pSlayer->getPlayer()->sendPacket(&gcRemoveFromGear);
-                                    */
 
                                     if (isTwohandWeapon(pItem)) {
                                         pSlayer->deleteWearItem(Slayer::WEAR_LEFTHAND);
@@ -352,8 +321,6 @@ void PCManager::processCreatures()
                                         pSlayer->deleteWearItem(Slayer::WearPart(RandomValue));
                                     }
 
-                                    // pItem->destroy();
-                                    // pCorpse->addTreasure(pItem);
 
                                     // 존으로 뿌린다.
                                     TPOINT pt = pZone->addItem(pItem, pSlayer->getX(), pSlayer->getY());
@@ -392,7 +359,6 @@ void PCManager::processCreatures()
                         pSlayer->setPK(false);
                     } else if (CClass == Creature::CREATURE_CLASS_VAMPIRE) {
                         pVampire = dynamic_cast<Vampire*>(pCreature);
-                        // pCorpse = new VampireCorpse(dynamic_cast<Vampire*>(pCreature));
 
                         // 숨어있었을 경우 죽을때 튀어나온다.
                         // 2003. 1. 17. Sequoia, DEW
@@ -413,13 +379,6 @@ void PCManager::processCreatures()
                         }
 
                         // 관 안에 있던 뱀파이어는 죽을 때 관이 없어진다.
-                        /*						if ( pVampire->isFlag( Effect::EFFECT_CLASS_CASKET ) )
-                                                {
-                                                    EffectSummonCasket* pEffect = dynamic_cast<EffectSummonCasket*>(
-                           pVampire->findEffect( Effect::EFFECT_CLASS_CASKET ) ); Assert( pEffect != NULL );
-
-                                                    pEffect->setDeadline(0);
-                                                }*/
 
                         // 성향에 따라서 돈과 아이템을 떨어트린다.
                         if (pVampire->getLevel() > 10 && pVampire->getCompetence() == 3) {
@@ -434,12 +393,6 @@ void PCManager::processCreatures()
                                 if (pItem != NULL && pItem->isUnique() && !pItem->isTimeLimitItem()) {
                                     // by sigi. 2002.11.7
                                     pVampire->removeShape(pItem->getItemClass(), true);
-                                    /*
-                                    GCRemoveFromGear gcRemoveFromGear;
-                                    gcRemoveFromGear.setSlotID(i);
-                                    gcRemoveFromGear.setDestroy(false);
-                                    pVampire->getPlayer()->sendPacket(&gcRemoveFromGear);
-                                    */
 
                                     if (isTwohandWeapon(pItem)) {
                                         pVampire->deleteWearItem(Vampire::WEAR_LEFTHAND);
@@ -495,12 +448,6 @@ void PCManager::processCreatures()
                                 if (pItem != NULL && !isCoupleRing(pItem) && !pItem->isTimeLimitItem()) {
                                     // by sigi. 2002.11.7
                                     pVampire->removeShape(pItem->getItemClass(), true);
-                                    /*
-                                    GCRemoveFromGear gcRemoveFromGear;
-                                    gcRemoveFromGear.setSlotID(i);
-                                    gcRemoveFromGear.setDestroy(false);
-                                    pVampire->getPlayer()->sendPacket(&gcRemoveFromGear);
-                                    */
 
                                     if (isTwohandWeapon(pItem)) {
                                         pVampire->deleteWearItem(Vampire::WEAR_LEFTHAND);
@@ -508,8 +455,6 @@ void PCManager::processCreatures()
                                     } else {
                                         pVampire->deleteWearItem(Vampire::WearPart(RandomValue));
                                     }
-                                    // pItem->destroy();
-                                    // pCorpse->addTreasure(pItem);
 
                                     // 존으로 뿌린다.
                                     TPOINT pt = pZone->addItem(pItem, pVampire->getX(), pVampire->getY());
@@ -566,12 +511,6 @@ void PCManager::processCreatures()
                                 if (pItem != NULL && pItem->isUnique() && !pItem->isTimeLimitItem()) {
                                     // by sigi. 2002.11.7
                                     pOusters->removeShape(pItem->getItemClass(), true);
-                                    /*
-                                    GCRemoveFromGear gcRemoveFromGear;
-                                    gcRemoveFromGear.setSlotID(i);
-                                    gcRemoveFromGear.setDestroy(false);
-                                    pOusters->getPlayer()->sendPacket(&gcRemoveFromGear);
-                                    */
 
                                     if (isTwohandWeapon(pItem)) {
                                         pOusters->deleteWearItem(Ousters::WEAR_LEFTHAND);
@@ -626,12 +565,6 @@ void PCManager::processCreatures()
                                 if (pItem != NULL && !isCoupleRing(pItem) && !pItem->isTimeLimitItem()) {
                                     // by sigi. 2002.11.7
                                     pOusters->removeShape(pItem->getItemClass(), true);
-                                    /*
-                                    GCRemoveFromGear gcRemoveFromGear;
-                                    gcRemoveFromGear.setSlotID(i);
-                                    gcRemoveFromGear.setDestroy(false);
-                                    pOusters->getPlayer()->sendPacket(&gcRemoveFromGear);
-                                    */
 
                                     if (isTwohandWeapon(pItem)) {
                                         pOusters->deleteWearItem(Ousters::WEAR_LEFTHAND);
@@ -639,8 +572,6 @@ void PCManager::processCreatures()
                                     } else {
                                         pOusters->deleteWearItem(Ousters::WearPart(RandomValue));
                                     }
-                                    // pItem->destroy();
-                                    // pCorpse->addTreasure(pItem);
 
                                     // 존으로 뿌린다.
                                     TPOINT pt = pZone->addItem(pItem, pOusters->getX(), pOusters->getY());
@@ -700,7 +631,6 @@ void PCManager::processCreatures()
 
                     pPlayerCreature->getGQuestManager()->killed();
 
-                    // Inventory* pInventory = pPlayerCreature->getInventory();
 
                     if (pCreature->isSlayer()) {
                         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
@@ -721,19 +651,13 @@ void PCManager::processCreatures()
                             pSlayer->removeFlag(Effect::EFFECT_CLASS_SLAYER_PORTAL);
 
                             // 헬기를 제거하라고 뿌려줘야 하는데...?
-                            // GCAddHelicopter gcAddHelicopter;
-                            // gcAddHelicopter.setObjectID(pSlayer->getObjectID());
-                            // gcAddHelicopter.setCode(1);
-                            // pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcAddHelicopter);
                         }
                     } else if (pCreature->isVampire()) {
-                        // Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
                         //  관 속에서 나가기
                         if (pCreature->isFlag(Effect::EFFECT_CLASS_CASKET)) {
                             Effect* pEffectCasket = pCreature->findEffect(Effect::EFFECT_CLASS_CASKET);
 
                             if (pEffectCasket != NULL) {
-                                // cout << "Coma --> casket unaffect" << endl;
                                 pEffectCasket->unaffect();
                             }
 
@@ -878,7 +802,6 @@ void PCManager::processCreatures()
                     // 죽었을 때 Soul Chain 이펙트를 끈다.
                     // unaffect가 호출될 때 flag이 켜져있지 않다면 transport 하지 않도록한다.
                     if (pCreature->isFlag(Effect::EFFECT_CLASS_SOUL_CHAIN)) {
-                        // pCreature->deleteEffect( Effect::EFFECT_CLASS_SOUL_CHAIN );
                         pCreature->removeFlag(Effect::EFFECT_CLASS_SOUL_CHAIN);
                     }
 
@@ -974,13 +897,6 @@ void PCManager::processCreatures()
                             current++;
                         }
                     } else {
-                        //						Effect* pHarpoonBomb = pEffectManager->findEffect(
-                        // Effect::EFFECT_CLASS_HARPOON_BOMB ); 						if ( pHarpoonBomb != NULL &&
-                        // pHarpoonBomb->getNextTime() < currentTime )
-                        //						{
-                        //							pHarpoonBomb->affect();
-                        //						}
-                        //
                         before = current++;
                     }
                 }
@@ -1001,31 +917,13 @@ void PCManager::processCreatures()
             g_pHolyLandManager->broadcast(&gcHolyLandBonusInfo);
         }
 
-        /*
-        if ( m_bRefreshLevelWarBonusZonePlayer && g_pSweeperBonusManager->isAble() )
-        {
-            GCSweeperBonusInfo gcSweeperBonusInfo;
-            g_pSweeperBonusManager->makeSweeperBonusInfo( gcSweeperBonusInfo );
-            g_pLevelWarZoneInfoManager->broadcast( &gcSweeperBonusInfo );
-        }
-
-        if ( m_bRefreshLevelWarBonusZonePlayer && !g_pSweeperBonusManager->isAble() )
-        {
-            GCSweeperBonusInfo gcSweeperBonusInfo;
-            g_pSweeperBonusManager->makeVoidSweeperBonusInfo( gcSweeperBonusInfo );
-            g_pLevelWarZoneInfoManager->broadcast( &gcSweeperBonusInfo );
-        }
-        */
 
         m_bRefreshHolyLandPlayer = false;
-        //	m_bRefreshLevelWarBonusZonePlayer = false;
 
     } catch (Throwable& t) {
         filelog("PCManagerBug.log", "ProcessCreatureBug : %s", t.toString().c_str());
-        // cerr << t.toString() << endl;
     }
 
-    // cerr << "TID[" << Thread::self() << "]" << "PCM::process end" << endl;
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -1049,7 +947,6 @@ void PCManager::killCreature(Creature* pDeadCreature)
 
     // transfusion때문에 죽은 뒤에도 HP찬다..
     // 무시. by sigi. 2002.10.8
-    // Assert(pDeadCreature->isDead());
 
     Zone* pZone = pDeadCreature->getZone();
     Assert(pZone != NULL);
@@ -1132,7 +1029,6 @@ void PCManager::killCreature(Creature* pDeadCreature)
                 pZoneEffect->setUserObjectID(pEffect->getUserObjectID());
                 pZoneEffect->setNextTime(pEffect->getNextTime());
                 pZoneEffect->setDeadline(pEffect->getRemainDuration());
-                //				pDeadCreature->deleteEffect( Effect::EFFECT_CLASS_HARPOON_BOMB );
                 pZone->registerObject(pZoneEffect);
                 pZone->getTile(pCorpse->getX(), pCorpse->getY()).addEffect(pZoneEffect);
                 pZone->addEffect(pZoneEffect);
@@ -1151,19 +1047,6 @@ void PCManager::killCreature(Creature* pDeadCreature)
     Assert(pZone->getTile(cx, cy).getCreature(pDeadCreature->getMoveMode()) == pDeadCreature);
     pZone->deleteCreatureFromTile(pDeadCreature, cx, cy);
 
-    /*
-    // 밑으로 옮긴다.	by sigi. 2002.5.11
-    // Resurrect 이벤트를 플레이어 객체에 연관시킨다.
-    GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pDeadCreature->getPlayer());
-    EventResurrect* pEventResurrect = new EventResurrect(pGamePlayer);
-    pEventResurrect->setDeadline(0);
-
-    // 원래 있었던 장소를 셋팅한다.
-    pEventResurrect->setOldZone(pDeadCreature->getZone());
-
-    // Player에 Event를 붙인다.
-    pGamePlayer->addEvent(pEventResurrect);
-    */
 
     // *NOTE
     // 강제 접속 종료일 경우 목표 지점을 미리 지정해 놓기 위한 방법이다.
@@ -1321,7 +1204,6 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
             Creature* pCreature = pZone->getCreature(*itr);
 
             if (pCreature != NULL) {
-                //	transportCreature(pCreature, ZoneID, ZoneX, ZoneY, false);
                 GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
                 EventTransport* pEventTransport =
                     dynamic_cast<EventTransport*>(pGamePlayer->getEvent(Event::EVENT_CLASS_TRANSPORT));
@@ -1353,7 +1235,6 @@ void PCManager::transportAllCreatures(ZoneID_t ZoneID, ZoneCoord_t ZoneX, ZoneCo
                     } else {
                         pEventTransport->setTargetZone(ZoneID, ZoneX, ZoneY);
                         // 몇 초후에 어디로 이동한다.고 보내준다.
-                        //						pEventTransport->sendMessage();
                     }
                 }
 

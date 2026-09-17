@@ -14,7 +14,6 @@
 #include "VSDateTime.h"
 #include "ZonePlayerManager.h"
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -143,12 +142,8 @@ void ZoneGroup::processPlayers()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     try {
-        // m_pZonePlayerManager->copyPlayers();
-        //__ENTER_CRITICAL_SECTION(m_pZonePlayerManager)
-
         beginProfileEx("ZPM_SELECT");
         m_pZonePlayerManager->select();
         endProfileEx("ZPM_SELECT");
@@ -165,33 +160,24 @@ void ZoneGroup::processPlayers()
         m_pZonePlayerManager->processOutputs();
         endProfileEx("ZPM_OUTPUT");
 
-        //__LEAVE_CRITICAL_SECTION(m_pZonePlayerManager)
     } catch (TimeoutException&) {
         // timeout 이 발생하면, 입력, 출력, OOB 처리 어느 것이나 할 게 없당..
         // 잘못된 FD가 있을 경우 짜르기 위하여 시행한다 -_-;
-        // m_pZonePlayerManager->processOutputs();
     } catch (InterruptedException& ie) {
-        // throw Error(ie.toString());
     } catch (IOException& ioe) {
-        // throw Error(ioe.toString());
     } catch (Error& er) {
         filelog("errorLog.txt", "%s", er.toString().c_str());
-
-        // Assert(false);
     }
 
     try {
         // 모든 플레이어의 명령을 처리한다.
         beginProfileEx("ZPM_COMMAND");
-        //	__ENTER_CRITICAL_SECTION(m_pZonePlayerManager)
         m_pZonePlayerManager->processCommands();
-        //	__LEAVE_CRITICAL_SECTION(m_pZonePlayerManager)
         endProfileEx("ZPM_COMMAND");
 
     } catch (Error& er) {
         filelog("errorLog.txt", "%s", er.toString().c_str());
 
-        // Assert(false);
     } catch (Throwable&) {
     }
 
@@ -202,11 +188,9 @@ void ZoneGroup::processPlayers()
     } catch (Error& er) {
         filelog("errorLog.txt", "%s", er.toString().c_str());
 
-        // Assert(false);
     } catch (Throwable&) {
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_DEBUG
     __END_CATCH
@@ -256,9 +240,6 @@ void ZoneGroup::heartbeat()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // VSTime vstime;
-    // vstime.start();
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     // now process each zones' NPCs, MOBs, weather, quest, ...
     const std::shared_ptr<const ZoneMap> zones = m_Zones.load();
@@ -267,9 +248,6 @@ void ZoneGroup::heartbeat()
         pZone->heartbeat();
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
-
-    // filelog("ZoneGroupHeartbeat.txt", "ZoneGroupID[%d]ZoneGroupHeartbeat:%d", m_ZoneGroupID, vstime.elapsed());
 
     __END_DEBUG
     __END_CATCH
@@ -284,8 +262,6 @@ void ZoneGroup::makeZoneUserInfo(GMServerInfo& gmServerInfo)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // VSTime vstime;
-    // vstime.start();
 
     // now process each zones' NPCs, MOBs, weather, quest, ...
     const std::shared_ptr<const ZoneMap> zones = m_Zones.load();
@@ -295,7 +271,6 @@ void ZoneGroup::makeZoneUserInfo(GMServerInfo& gmServerInfo)
         gmServerInfo.addZoneUserData(pZone->getZoneID(), pZone->getPCCount());
     }
 
-    // filelog("ZoneGroupHeartbeat.txt", "ZoneGroupID[%d]ZoneGroupHeartbeat:%d", m_ZoneGroupID, vstime.elapsed());
 
     __END_DEBUG
     __END_CATCH
@@ -389,7 +364,6 @@ Zone* ZoneGroup::getZone(ZoneID_t zoneID) const {
     __END_CATCH
 }
 
-// #ifdef __NO_COMBAT__
 Zone* ZoneGroup::getCombatZone(ZoneID_t zoneID) const
 
 {
@@ -409,7 +383,6 @@ Zone* ZoneGroup::getCombatZone(ZoneID_t zoneID) const
 
     return NULL;
 }
-// #endif
 
 void ZoneGroup::initLoadValue() {
     Zone* pZone = NULL;

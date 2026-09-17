@@ -54,8 +54,6 @@ void ZoneInfoManager::init()
 }
 
 
-// void testMaxMemory();
-
 //////////////////////////////////////////////////////////////////////////////
 // load from database
 //////////////////////////////////////////////////////////////////////////////
@@ -74,7 +72,6 @@ void ZoneInfoManager::load()
 
         ZoneID_t zoneID = row.zoneID;
 
-        //			cout << "load ZoneInfo = " << zoneID << endl;
 
         ZoneInfo* pZoneInfo = NULL;
         bool bExistInfo = false;
@@ -91,9 +88,7 @@ void ZoneInfoManager::load()
         } else {
             pZoneInfo = new ZoneInfo();
         }
-        // cout << "new OK" << endl;
 
-        // if (zoneID!=31 && zoneID!=21)
         {
             pZoneInfo->setZoneID(zoneID);
             pZoneInfo->setZoneGroupID(row.zoneGroupID);
@@ -120,23 +115,7 @@ void ZoneInfoManager::load()
             if (!bExistInfo) {
                 addZoneInfo(pZoneInfo);
             }
-
-            /*
-            if (zoneID==22)
-            {
-                testMaxMemory();
-            }
-            */
-
-            // cout << "load ZoneInfo = " << zoneID << endl;
-            // cout << "ZoneInfo = " << pZoneInfo->toString().c_str() << endl << endl;
         }
-        /*
-        else
-        {
-            cout << "skip load ZoneID = " << i << endl << endl;
-        }
-        */
     }
 
     __END_CATCH
@@ -269,13 +248,6 @@ ZoneInfo* ZoneInfoManager::getZoneInfoByName(const string& ZoneName) {
 vector<Zone*> ZoneInfoManager::getNormalFields() const {
     vector<Zone*> ret;
 
-    //	unordered_map< ZoneID_t , ZoneInfo *>::const_iterator itr = m_ZoneInfos.begin();
-    //	unordered_map< ZoneID_t , ZoneInfo *>::const_iterator endItr = m_ZoneInfos.end();
-    //
-    //	for ( ; itr != endItr ; ++itr )
-    //	{
-    //		if ( itr->second->getZoneType() == ZONE_NORMAL_FIELD ) ret.push_back( getZoneByZoneID( itr->first ) );
-    //	}
 
     ret.push_back(getZoneByZoneID(13));
 

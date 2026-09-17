@@ -166,8 +166,6 @@
 #include "repository/MessageRepository.h"
 #include "repository/ZoneInfoRepository.h"
 
-// by sigi.  2002.12.30
-// #define __PROFILE_BROADCAST__
 
 #ifdef __PROFILE_BROADCAST__
 #define __BEGIN_PROFILE_ZONE(name) beginProfileEx(name);
@@ -177,7 +175,6 @@
 #define __END_PROFILE_ZONE(name) ((void)0);
 #endif
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -197,7 +194,6 @@ void Zone::init()
 #ifdef __USE_ENCRYPTER__
     int serverID = g_pConfig->getPropertyInt("ServerID");
 
-    // m_EncryptCode = (uchar)( ( ( m_ZoneID >> 8 ) ^ m_ZoneID ) ^ ( ( serverID + 1 ) << 4 ) );
     if (!isDynamicZone()) {
         m_EncryptCode = EncryptCode(m_ZoneID, serverID);
     } else {
@@ -304,7 +300,6 @@ void Zone::load(bool bOutput)
             setCastle(false);
         }
 
-        // filelog("zoneInfo.txt", "[%d] %d %d", (int)m_ZoneID, (int)isPayPlay(), (int)isPremiumZone());
 
         // SMP 정보 파일을 연다.
         string SMPFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
@@ -314,7 +309,6 @@ void Zone::load(bool bOutput)
             strlwr(lwrFilename);
             SMP.open(lwrFilename, ios::in | ios::binary);
 
-            // cout << "second chk : " << lwrFilename.c_str() << endl;
 
             if (!SMP) {
                 StringStream msg;
@@ -364,12 +358,6 @@ void Zone::load(bool bOutput)
         Assert(m_Height <= maxZoneHeight);
 
         // DEBUG by tiancaiamao
-        // cout << "szWORD: " << szWORD << " szDWORD: " << szDWORD << endl;
-        // cout << "szVersion: " << versionLen << endl;
-        // cout << "zone id: " << zoneID << " zone group id:"  << zoneGroupID << endl;
-        // cout << "zone name len:" << zonenameLen << " desc len:" << descLen << endl;
-        // cout << " type: " << (uint8_t)zoneType << " level: " << (uint8_t)zoneLevel << " width: " << m_Width << "
-        // height: " << m_Height << endl;
 
         // 타일을 2차원배열로 만들어 메모리를 할당한다.
         m_pTiles = new Tile*[m_Width];
@@ -667,7 +655,6 @@ void Zone::load(bool bOutput)
                             // 포탈 내용을 로드한다.
                             pPortal->setObjectType(portalType);
 
-                            // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
@@ -683,22 +670,16 @@ void Zone::load(bool bOutput)
                                     targetZoneID, targetX, targetY);
                             pTrigger->setActions(str);
 
-                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
-                            //                                        g_pStringPool->c_str( STRID_CANNOT_ENTER ) );
                             sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER);
 
                             pTrigger->setCounterActions(str2);
 
-                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
-                            //: 지금은 들어갈 수 없습니다.");
 
                             tm.addTrigger(pTrigger);
 
                             // 타일에다 포탈을 붙인다.
                             rTile.addPortal(pPortal);
 
-                            // cout << "[" << (int)pTargetZoneInfo->getZoneID() << "] is MasterLair"
-                            //	 << endl;
                         }
                         //----------------------------------------
                         // 아담의 성지로 들어갈려고 할 때
@@ -710,7 +691,6 @@ void Zone::load(bool bOutput)
                             // 포탈 내용을 로드한다.
                             pPortal->setObjectType(portalType);
 
-                            // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
@@ -726,25 +706,18 @@ void Zone::load(bool bOutput)
                                     targetZoneID, targetX, targetY);
                             pTrigger->setActions(str);
 
-                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
-                            //                                        g_pStringPool->c_str(
-                            //                                        STRID_CANNOT_ENTER_DURING_RACE_WAR ) );
                             sprintf(str2, "ActionType : SystemMessage\n\t Content : %d",
                                     STRID_CANNOT_ENTER_DURING_RACE_WAR);
 
 
                             pTrigger->setCounterActions(str2);
 
-                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
-                            //: 종족전쟁 중에는 신청을 하지 않았으면 들어갈 수 없습니다.");
 
                             tm.addTrigger(pTrigger);
 
                             // 타일에다 포탈을 붙인다.
                             rTile.addPortal(pPortal);
 
-                            // cout << "[" << (int)pTargetZoneInfo->getZoneID() << "] is MasterLair"
-                            //	 << endl;
                         }
                         //----------------------------------------
                         // 성 밖에서 성 안으로 들어가는 경우
@@ -760,7 +733,6 @@ void Zone::load(bool bOutput)
                             // 포탈 내용을 로드한다.
                             pPortal->setObjectType(portalType);
 
-                            // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
@@ -776,22 +748,16 @@ void Zone::load(bool bOutput)
                                     targetZoneID, targetX, targetY);
                             pTrigger->setActions(str);
 
-                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
-                            //                                        g_pStringPool->c_str( STRID_CANNOT_ENTER ) );
                             sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER);
 
                             pTrigger->setCounterActions(str2);
 
-                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
-                            //: 들어가실 수 없습니다.");
 
                             tm.addTrigger(pTrigger);
 
                             // 타일에다 포탈을 붙인다.
                             rTile.addPortal(pPortal);
 
-                            // cout << "[" << (int)pTargetZoneInfo->getZoneID() << "] is MasterLair"
-                            //	 << endl;
                         }
                         //----------------------------------------
                         // 성 지하 던젼으로 들어가는 입구
@@ -805,7 +771,6 @@ void Zone::load(bool bOutput)
                             // 포탈 내용을 로드한다.
                             pPortal->setObjectType(portalType);
 
-                            // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
@@ -819,16 +784,11 @@ void Zone::load(bool bOutput)
                                     targetZoneID, targetX, targetY);
                             pTrigger->setActions(str);
 
-                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
-                            //                                        g_pStringPool->c_str(
-                            //                                        STRID_CANNOT_ENTER_NOT_OWNER_GUILD ) );
                             sprintf(str2, "ActionType : SystemMessage\n\t Content : %d",
                                     STRID_CANNOT_ENTER_NOT_OWNER_GUILD);
 
                             pTrigger->setCounterActions(str2);
 
-                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
-                            //: 성 주인인 길드원이 아니면 들어가실 수 없습니다.");
 
                             tm.addTrigger(pTrigger);
                             rTile.addPortal(pPortal);
@@ -843,7 +803,6 @@ void Zone::load(bool bOutput)
                             // 포탈 내용을 로드한다.
                             pPortal->setObjectType(portalType);
 
-                            // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
@@ -858,28 +817,16 @@ void Zone::load(bool bOutput)
 
                             // by sigi. 2002.10.30
                             if (g_pConfig->getPropertyInt("IsNetMarble") == 0) {
-                                //                            sprintf( str2, "ActionType : SystemMessage\n\t Content :
-                                //                            %s",
-                                //                                            g_pStringPool->c_str(
-                                //                                            STRID_CANNOT_ENTER_PAY_ZONE ) );
                                 sprintf(str2, "ActionType : SystemMessage\n\t Content : %d",
                                         STRID_CANNOT_ENTER_PAY_ZONE);
 
                                 pTrigger->setCounterActions(str2);
 
-                                //							pTrigger->setCounterActions("ActionType : SystemMessage\n\t
-                                // Content : 유료존이라서 들어갈 수 없습니다.");
                             } else {
-                                //                            sprintf( str2, "ActionType : SystemMessage\n\t Content :
-                                //                            %s",
                                 //                                           g_pStringPool->c_str( STRID_CANNOT_ENTER )
-                                //                                           );
                                 sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER);
 
                                 pTrigger->setCounterActions(str2);
-
-                                //							pTrigger->setCounterActions("ActionType : SystemMessage\n\t
-                                // Content : 지금은 갈 수 없습니다.");
                             }
 
                             tm.addTrigger(pTrigger);
@@ -898,7 +845,6 @@ void Zone::load(bool bOutput)
         if (m_MonsterRegenPositions.size() == 0) {
             printf("MonsterRegenPosition not exist: Width = %d, Height = %d\n", (int)m_Width, (int)m_Height);
 
-            // Assert(m_MonsterRegenPositions.size()!=0);
 
             ZoneCoord_t outerMinX = m_Width / 7;
             ZoneCoord_t outerMinY = m_Height / 7;
@@ -951,7 +897,6 @@ void Zone::load(bool bOutput)
             strlwr(lwrFilename);
             SSI.open(lwrFilename, ios::in | ios::binary);
 
-            // cout << "second chk : " << lwrFilename.c_str() << endl;
 
             if (!SSI) {
                 StringStream msg;
@@ -993,12 +938,6 @@ void Zone::load(bool bOutput)
         m_pMonsterManager->load();
 
 
-        // #ifdef __XMAS_EVENT_CODE__
-        //	printf("Begin Event Monster Loading\n");
-        //	m_pEventMonsterManager->load();
-        //	printf("Event Monster Loading Completed\n");
-        // #endif
-
         // 마스터 레어인 경우
         // by sigi. 2002.9.2
         if (pZoneInfo->isMasterLair()) {
@@ -1016,13 +955,6 @@ void Zone::load(bool bOutput)
             printf("[%d] Castle : WarScheduler->load\n", (int)getZoneID());
         }
 
-        //	if (isCastle())
-        //	{
-        //		CastleInfo* pCastleInfo = g_pCastleInfoManager->getCastleInfo( m_ZoneID );
-        //		m_pNPCManager->load( m_ZoneID, pCastleInfo->getRace() );
-        //	}
-        //	else
-        //	{
         // NPC 를 로딩한다.
         m_pNPCManager->load(m_ZoneID);
         //	}
@@ -1039,21 +971,6 @@ void Zone::load(bool bOutput)
         SAFE_DELETE(zonename);
         SAFE_DELETE(lwrFilename);
 
-        /*	if ( m_ZoneID == 1410 )
-            {
-                EffectCastingIcicleTrap* pEffect = new EffectCastingIcicleTrap( Effect::EFFECT_CLASS_ICICLE_DROP, this
-           ); registerObject( pEffect );
-
-                pEffect->setStartXY( 116, 66 );
-                pEffect->setLength( 48 );
-                pEffect->setTick( 5 );
-                pEffect->setUnit( 5 );
-                pEffect->setDir( 7 );
-
-                pEffect->setNextTime(0);
-                pEffect->setDeadline(600);
-                addEffect( pEffect );
-            }*/
 
     } catch (Throwable& t) {
         cout << t.toString() << endl;
@@ -1095,7 +1012,6 @@ void Zone::reload(bool bOutput)
         setNoPortalZone(pZoneInfo->isNoPortalZone());
         setMasterLair(pZoneInfo->isMasterLair());
 
-        // filelog("zoneInfo.txt", "[%d] %d %d", (int)m_ZoneID, (int)isPayPlay(), (int)isPremiumZone());
 
         // SMP 정보 파일을 연다.
         string SMPFilename = g_pConfig->getProperty("HomePath") + "/data/" + pZoneInfo->getSMPFilename();
@@ -1105,7 +1021,6 @@ void Zone::reload(bool bOutput)
             strlwr(lwrFilename);
             SMP.open(lwrFilename, ios::in | ios::binary);
 
-            // cout << "second chk : " << lwrFilename << endl;
 
             if (!SMP) {
                 StringStream msg;
@@ -1423,11 +1338,6 @@ void Zone::reload(bool bOutput)
                             bDeleteOldPortal = true;
                         }
 
-                        /*					if (( pTargetZoneInfo->isPayPlay() && !pZoneInfo->isPayPlay() )
-                                                || pTargetZoneInfo->isMasterLair())
-                                            {
-                                                bDeleteOldPortal = true;
-                                            }*/
 
                         Tile& rTile = m_pTiles[x][y];
 
@@ -1455,7 +1365,6 @@ void Zone::reload(bool bOutput)
                             // 포탈 내용을 로드한다.
                             pPortal->setObjectType(portalType);
 
-                            // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
@@ -1471,21 +1380,15 @@ void Zone::reload(bool bOutput)
                                     targetZoneID, targetX, targetY);
                             pTrigger->setActions(str);
 
-                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
-                            //                                       g_pStringPool->c_str( STRID_CANNOT_ENTER ) );
                             sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER);
                             pTrigger->setCounterActions(str2);
 
-                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
-                            //: 지금은 들어갈 수 없습니다.");
 
                             tm.addTrigger(pTrigger);
 
                             // 타일에다 포탈을 붙인다.
                             rTile.addPortal(pPortal);
 
-                            // cout << "[" << (int)pTargetZoneInfo->getZoneID() << "] is MasterLair"
-                            //	 << endl;
                         }
                         //----------------------------------------
                         // 유료존으로 들어가는 경우
@@ -1497,7 +1400,6 @@ void Zone::reload(bool bOutput)
                             // 포탈 내용을 로드한다.
                             pPortal->setObjectType(portalType);
 
-                            // pPortal->load(m_ZoneID, left, top, right, bottom);
                             TriggerManager& tm = pPortal->getTriggerManager();
 
                             Trigger* pTrigger = new Trigger(de::gameContext());
@@ -1510,14 +1412,9 @@ void Zone::reload(bool bOutput)
                                     targetZoneID, targetX, targetY);
                             pTrigger->setActions(str);
 
-                            //                        sprintf( str2, "ActionType : SystemMessage\n\t Content : %s",
-                            //                                        g_pStringPool->c_str( STRID_CANNOT_ENTER_PAY_ZONE
-                            //                                        ) );
                             sprintf(str2, "ActionType : SystemMessage\n\t Content : %d", STRID_CANNOT_ENTER_PAY_ZONE);
                             pTrigger->setCounterActions(str2);
 
-                            //						pTrigger->setCounterActions("ActionType : SystemMessage\n\t Content
-                            //: 유료존이라서 들어갈 수 없습니다.");
 
                             tm.addTrigger(pTrigger);
 
@@ -1539,7 +1436,6 @@ void Zone::reload(bool bOutput)
             cout << "Width = " << m_Width << endl;
             cout << "Height = " << m_Height << endl;
 
-            // Assert(m_MonsterRegenPositions.size()!=0);
 
             ZoneCoord_t outerMinX = m_Width / 7;
             ZoneCoord_t outerMinY = m_Height / 7;
@@ -1594,7 +1490,6 @@ void Zone::reload(bool bOutput)
             strlwr(lwrFilename);
             SSI.open(lwrFilename, ios::in | ios::binary);
 
-            // cout << "second chk : " << lwrFilename << endl;
 
             if (!SSI) {
                 StringStream msg;
@@ -1631,17 +1526,11 @@ void Zone::reload(bool bOutput)
 
         // 트리거드 포탈을 로드한다.
         // reload에서는 무시
-        // loadTriggeredPortal();
 
         // 몬스터 로드하고....
         m_pMonsterManager->load();
 
         // eventMonsterManager는 reload에서는 무시한다.
-        // #ifdef __XMAS_EVENT_CODE__
-        //	cout << "Begin Event Monster Loading..." << endl;
-        //	m_pEventMonsterManager->load();
-        //	cout << "Event Monster Loading Completed..." << endl;
-        // #endif
 
         // 마스터 레어인 경우
         // by sigi. 2002.9.2
@@ -1666,7 +1555,6 @@ void Zone::reload(bool bOutput)
 
         // reload할 때는 무시한다.
         // NPC 를 로딩한다.
-        // m_pNPCManager->load(m_ZoneID);
 
         // 스프라이트 갯수를 초기화한다.
         initSpriteCount();
@@ -1710,10 +1598,6 @@ void Zone::loadTriggeredPortal()
         for (int x = left; x <= right; x++) {
             for (int y = top; y <= bottom; y++) {
                 if (getTile(x, y).hasPortal()) {
-                    // cerr << "loadTriggeredPortal : a portal already exists here." << endl;
-                    // cerr << "ZONEID:" << m_ZoneID << ",X:" << x << "Y:" << y << endl;
-                    // Portal* pPortal = getTile(x,y).getPortal();
-                    // SAFE_DELETE(pPortal);
                     getTile(x, y).deletePortal();
                 }
 
@@ -1839,7 +1723,6 @@ void Zone::loadEffect()
         }
     }
 
-    //	if ( m_ZoneID == 3001 || m_ZoneID == 71 || m_ZoneID == 72 || m_ZoneID == 73 )
     g_pEffectLoaderManager->load(this);
 
     if (m_ZoneID == 3002) {

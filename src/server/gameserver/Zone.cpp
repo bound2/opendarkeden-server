@@ -175,8 +175,6 @@
 #include "item/Motorcycle.h"
 #include "item/VampirePortalItem.h"
 
-// by sigi.  2002.12.30
-// #define __PROFILE_BROADCAST__
 
 #ifdef __PROFILE_BROADCAST__
 #define __BEGIN_PROFILE_ZONE(name) beginProfileEx(name);
@@ -186,7 +184,6 @@
 #define __END_PROFILE_ZONE(name) ((void)0);
 #endif
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -225,14 +222,6 @@ bool isPotentialEnemy(Monster* pMonster, Creature* pCreature) {
     }
 
     if (SiegeManager::Instance().isSiegeZone(pMonster->getZoneID())) {
-        /*		if ( pCreature->isFlag( Effect::EFFECT_CLASS_SIEGE_ATTACKER_5 ) ) return true;
-                if ( pCreature->isFlag( Effect::EFFECT_CLASS_SIEGE_ATTACKER_4 ) ) return true;
-                if ( pCreature->isFlag( Effect::EFFECT_CLASS_SIEGE_ATTACKER_3 ) ) return true;
-                if ( pCreature->isFlag( Effect::EFFECT_CLASS_SIEGE_ATTACKER_2 ) ) return true;
-                if ( pCreature->isFlag( Effect::EFFECT_CLASS_SIEGE_ATTACKER_1 ) ) return true;
-
-                return false;*/
-
         if (pCreature->isFlag(Effect::EFFECT_CLASS_SIEGE_DEFENDER) ||
             pCreature->isFlag(Effect::EFFECT_CLASS_SIEGE_REINFORCE))
             return false;
@@ -448,9 +437,6 @@ list<Packet*>* createRelicEffect(MonsterCorpse* pMonsterCorpse) {
     }
 
     pPackets = getRelicEffectPacket(pMonsterCorpse, Effect::EFFECT_CLASS_SLAYER_REGEN_ZONE, pPackets);
-    //	pPackets = getRelicEffectPacket( pMonsterCorpse, Effect::EFFECT_CLASS_VAMPIRE_REGEN_ZONE, pPackets );
-    //	pPackets = getRelicEffectPacket( pMonsterCorpse, Effect::EFFECT_CLASS_OUSTERS_REGEN_ZONE, pPackets );
-    //	pPackets = getRelicEffectPacket( pMonsterCorpse, Effect::EFFECT_CLASS_DEFAULT_REGEN_ZONE, pPackets );
     pPackets = getRelicEffectPacket(pMonsterCorpse, Effect::EFFECT_CLASS_SLAYER_TRYING_1, pPackets);
     pPackets = getRelicEffectPacket(pMonsterCorpse, Effect::EFFECT_CLASS_VAMPIRE_TRYING_1, pPackets);
     pPackets = getRelicEffectPacket(pMonsterCorpse, Effect::EFFECT_CLASS_OUSTERS_TRYING_1, pPackets);
@@ -520,7 +506,6 @@ Zone::Zone(ZoneID_t zoneID)
     m_pWarScheduler = NULL;
     m_pLevelWarManager = NULL;
 
-    //	m_pEventMonsterManager    = new EventMonsterManager(this);
 
     m_pWeatherManager = new WeatherManager(this);
     m_pEffectManager = new EffectManager();
@@ -559,45 +544,6 @@ Zone::Zone(ZoneID_t zoneID, ZoneCoord_t width, ZoneCoord_t height)
     __BEGIN_TRY
 
     Assert(false);
-    /*
-    m_Mutex.setName("Zone");
-    m_MutexEffect.setName("ZoneEffect");
-
-    m_ZoneID     = zoneID;
-    m_pZoneGroup = NULL;
-    m_Width      = width;
-    m_Height     = height;
-
-    getCurrentTime( m_LoadValueStartTime );
-
-    m_pTiles     = NULL;
-
-    Assert(m_ZoneID > 0);
-
-    m_pTiles = new Tile* [ m_Width ];
-    for (uint i = 0 ; i < m_Width ; i++) m_pTiles[i] = new Tile [m_Height];
-
-    m_ppLevel = new (ZoneLevel_t*)[ m_Width ];
-    for (uint i = 0; i < m_Width ; i++) m_ppLevel[i] = new ZoneLevel_t[m_Height];
-
-    m_pPCManager              = new PCManager();
-    m_pNPCManager             = new NPCManager();
-    m_pMonsterManager         = new MonsterManager(this);
-    m_pMasterLairManager         = NULL;
-    m_pWarScheduler         = NULL;
-
-    m_pEventMonsterManager    = new EventMonsterManager(this);
-
-    m_pWeatherManager         = new WeatherManager(this);
-    m_pEffectManager          = new EffectManager();
-    m_pLockedEffectManager    = new EffectManager();
-    m_pVampirePortalManager   = new EffectManager();
-    m_pEffectScheduleManager  = new EffectScheduleManager();
-    m_pLocalPartyManager      = new LocalPartyManager();
-    m_pPartyInviteInfoManager = new PartyInviteInfoManager();
-    m_pTradeManager           = new TradeManager;
-    m_pDynamicZone = NULL;
-    */
 
     __END_CATCH
 }
@@ -633,7 +579,6 @@ Zone::~Zone()
     SAFE_DELETE(m_pMasterLairManager);
     SAFE_DELETE(m_pWarScheduler);
 
-    //	SAFE_DELETE(m_pEventMonsterManager);
 
     SAFE_DELETE(m_pWeatherManager);
     SAFE_DELETE(m_pEffectManager);
@@ -654,7 +599,6 @@ ZoneLevel_t Zone::getZoneLevel(ZoneCoord_t x, ZoneCoord_t y) const
 {
     __BEGIN_TRY
 
-    // Assert(x < m_Width && y < m_Height);
 
     // assert 제거.
     // 이 값이 한계를 넘어서 assert나서 죽었다.
@@ -838,26 +782,17 @@ void Zone::heartbeat()
             m_pLevelWarManager->freeUserTimeCheck();
         }
 
-        //		if ( m_pLevelWarManager != NULL )
-        //		{
-        //		}
 
         // player가 있어야 monster를 heartbeat한다.
         // 즉, player가 없는 zone은 monster가 가만히 있는다.
         // monster의 EffectManager가 안 돌아가므로 문제가 될 수도 있지만,
         // 크게 문제가 없다고 보고.. -_-; .. by sigi. 2002.5.6
-        // if ( m_ZoneID >= 1121 && m_ZoneID <= 1124)
-        //	m_pCombatMonsterManager->processCreatures(); // 전투용 몬스터의 AI를 처리하는 부분, 김경석
-        // else
-        //{
         if (getPCCount() > 0 || (isDynamicZone() && (m_pDynamicZone->getStatus() == DYNAMIC_ZONE_STATUS_RUNNING))) {
             beginProfileEx("Z_MONSTER");
             m_pMonsterManager->processCreatures(); // process all monsters
             endProfileEx("Z_MONSTER");
         }
 
-        //			m_pEventMonsterManager->processCreatures();
-        //}
 
         beginProfileEx("Z_NPC");
         m_pNPCManager->processCreatures(); // process all npcs
@@ -973,58 +908,11 @@ Creature* Zone::getCreature(ObjectID_t objectID) const
 
         if (pCreature == NULL) {
             pCreature = m_pNPCManager->getCreature(objectID);
-
-            //			if (pCreature==NULL)
-            //			{
-            //				pCreature = m_pEventMonsterManager->getCreature(objectID);
-            //			}
         }
     }
 
     return pCreature;
 
-    /*
-    try
-    {
-        return m_pMonsterManager->getCreature(objectID);
-    }
-    catch (NoSuchElementException)
-    {
-        // not exist? go next
-    }
-    */
-
-    /*
-    //#ifdef __XMAS_EVENT_CODE__
-        try
-        {
-            return m_pEventMonsterManager->getCreature(objectID);
-        }
-        catch (NoSuchElementException)
-        {
-            // not exist? go next
-        }
-    //#endif
-    */
-    /*
-    try
-    {
-        return m_pPCManager->getCreature(objectID);
-    }
-    catch (NoSuchElementException)
-    {
-        // not exist? go next
-    }
-
-    try
-    {
-        return m_pNPCManager->getCreature(objectID);
-    }
-    catch (NoSuchElementException)
-    {
-        throw;
-    }
-    */
 
     __END_CATCH
 }
@@ -1052,59 +940,11 @@ Creature* Zone::getCreature(const string& Name) const
 
         if (pCreature == NULL) {
             pCreature = m_pNPCManager->getCreature(Name);
-
-            //			if(pCreature==NULL)
-            //			{
-            //				pCreature = m_pEventMonsterManager->getCreature(Name);
-            //			}
         }
     }
 
     return pCreature;
 
-    /*
-    try
-    {
-        return m_pPCManager->getCreature(Name);
-    }
-    catch (NoSuchElementException)
-    {
-        // not exist? go next
-    }
-
-    try
-    {
-        return m_pMonsterManager->getCreature(Name);
-    }
-    catch (NoSuchElementException)
-    {
-        // not exist? go next
-    }
-    */
-
-    /*
-    #ifdef __XMAS_EVENT_CODE__
-        try
-        {
-            return m_pEventMonsterManager->getCreature(Name);
-        }
-        catch (NoSuchElementException)
-        {
-            // not exist? go next
-        }
-    #endif
-    */
-
-    /*
-    try
-    {
-        return m_pNPCManager->getCreature(Name);
-    }
-    catch (NoSuchElementException)
-    {
-        throw;
-    }
-    */
 
     __END_CATCH
 }
@@ -1130,22 +970,6 @@ Creature* Zone::getCreature(Creature::CreatureClass creatureClass, ObjectID_t ob
     } else if (creatureClass == Creature::CREATURE_CLASS_MONSTER) {
         return m_pMonsterManager->getCreature(objectID);
     }
-    /*
-    #ifdef __XMAS_EVENT_CODE__
-            try
-            {
-                return m_pMonsterManager->getCreature(objectID);
-            }
-            catch (NoSuchElementException& nsee)
-            {
-            }
-
-            return m_pEventMonsterManager->getCreature(objectID);
-    #else
-    */
-    /*
-    #endif
-    */
 
     return NULL; // evade warning.
 
@@ -1222,27 +1046,6 @@ DWORD Zone::getLoadValue() const {
 
     return loadValue;
 }
-
-/*
-void Zone::setNPCMarketCondition(MarketCond_t NPCSell, MarketCond_t NPCBuy)
-
-{
-    __BEGIN_TRY
-
-    unordered_map<ObjectID_t, Creature*> NPCMap = m_pNPCManager->getCreatures();
-    for (unordered_map<ObjectID_t, Creature*>::const_iterator i = NPCMap.begin(); i != NPCMap.end(); i++)
-    {
-        NPC* pNPC = dynamic_cast<NPC*>(i->second);
-
-        pNPC->setMarketCondBuy( NPCBuy );
-        pNPC->setMarketCondSell( NPCSell );
-
-        pNPC->increaseShopVersion(SHOP_RACK_SPECIAL);
-    }
-
-    __END_CATCH
-}
-*/
 
 
 void Zone::sendNPCInfo()
@@ -1455,7 +1258,6 @@ void Zone::remainPayPlayer()
                 pPlayer->sendPacket(&gcSystemMessage);
 
                 // 몇 초후에 어디로 이동한다.고 보내준다.
-                //              pEventTransport->sendMessage();
 
                 pGamePlayer->addEvent(pEventTransport);
             } else {

@@ -93,7 +93,6 @@
 void PlayerCreature::applyBloodBibleSign() {
     int openNum = getBloodBibleSignOpenNum();
     getBloodBibleSign()->setOpenNum(openNum);
-    //	int openNum = getBloodBibleSign()->getOpenNum();
 
     int applyCount = 0;
     vector<ItemType_t>::iterator bItr = getBloodBibleSign()->getList().begin();
@@ -104,7 +103,6 @@ void PlayerCreature::applyBloodBibleSign() {
         if (pBonus != NULL) {
             OptionTypeList optionTypes = pBonus->getOptionTypeList();
             OptionTypeListConstItor optionItr;
-            //			cout << getName() << "에게 " << pBonus->getName() << " 을 적용합니다." << endl;
             ++applyCount;
 
             for (optionItr = optionTypes.begin(); optionItr != optionTypes.end(); optionItr++) {
@@ -161,12 +159,10 @@ void Monster::initAllStat(void)
     m_Damage[ATTR_MAX] = computeMaxDamage(CClass, &attr, pMonsterInfo->getEnhanceMaxDamage());
 
 
-    // #ifdef __XMAS_EVENT_CODE__
     //  원래 크리스마스 이벤트로 기획된 것이지만, 앞으로 계속 사용될 것으로
     //  예정된다.
     if (m_MonsterType == 358 || m_MonsterType == 359 || m_MonsterType == 360 || m_MonsterType == 361)
         m_HP[ATTR_MAX] = m_HP[ATTR_MAX] * 10;
-    // #endif
 
     ////////////////////////////////////////////////////////////
     // 부가적인 능력치들을 직접 수정하는 이펙트를 검사한다.
@@ -193,15 +189,6 @@ void Monster::initAllStat(void)
             m_Damage[ATTR_MAX] = max(0, m_Damage[ATTR_MAX] - DamagePenalty2);
         }
     }
-    /*	if (isFlag(Effect::EFFECT_CLASS_PARALYZE))
-        {
-            EffectParalyze* pParalyze = dynamic_cast<EffectParalyze*>(findEffect(Effect::EFFECT_CLASS_PARALYZE));
-            if (pParalyze != NULL)
-            {
-                int DefensePenalty = getPercentValue(m_Defense, pParalyze->getDefensePenalty());
-                m_Defense = max(0, m_Defense - DefensePenalty);
-            }
-        }*/
     if (isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF)) {
         EffectTransformToWolf* pTransformToWolf =
             dynamic_cast<EffectTransformToWolf*>(findEffect(Effect::EFFECT_CLASS_TRANSFORM_TO_WOLF));

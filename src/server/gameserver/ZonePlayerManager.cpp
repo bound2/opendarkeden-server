@@ -39,7 +39,6 @@
 #include "ZoneGroup.h"
 #include "repository/MessageRepository.h"
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -179,75 +178,6 @@ void ZonePlayerManager::flushBroadcastPacket()
         }
     }
 
-    /*	for ( ; itr != endItr; ++itr )
-        {
-            Packet* pPacket = *itr;
-
-            if ( pPacket == NULL )
-            {
-                filelog("ZoneBug.txt", "%s : %s", "Zone::flushBroadcastPacket", "pPacket가 NULL입니다.");
-                continue;
-            }
-
-            bool bSend = false;
-
-            // Ranger Say 인 경우
-            if ( pPacket->getPacketID() == Packet::PACKET_GC_SYSTEM_MESSAGE )
-            {
-                GCSystemMessage* pSystemMessage = dynamic_cast<GCSystemMessage*>(pPacket);
-                Assert( pSystemMessage != NULL );
-
-                if ( pSystemMessage->getType() == SYSTEM_MESSAGE_RANGER_SAY )
-                {
-                    bSend = true;
-
-                    Race_t race = pSystemMessage->getRace();
-
-                    for ( uint i=0; i<nMaxPlayers; ++i )
-                    {
-                        if ( m_pPlayers[i] != NULL )
-                        {
-                            GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(m_pPlayers[i]);
-
-                            if ( pGamePlayer->getCreature()->getRace() == race )
-                            {
-                                try
-                                {
-                                    m_pPlayers[i]->sendPacket( pPacket );
-                                }
-                                catch ( Throwable& t )
-                                {
-                                    filelog("ZonePlayerManager.log", "broadcastPacket: %s", t.toString().c_str() );
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if ( !bSend )
-            {
-                for ( uint i=0; i<nMaxPlayers; ++i )
-                {
-                    if ( m_pPlayers[i] != NULL )
-                    {
-                        try
-                        {
-                            m_pPlayers[i]->sendPacket( pPacket );
-                        }
-                        catch ( Throwable& t )
-                        {
-                            filelog("ZonePlayerManager.log", "broadcastPacket: %s", t.toString().c_str() );
-                        }
-                    }
-                }
-            }
-
-            // 이때 패킷을 동적으로 할당되어 있다.
-            // 그러므로 메모리에서 삭제해야한다.
-            SAFE_DELETE( pPacket );
-        }
-    */
     m_BroadcastQueue.clear();
 
     __LEAVE_CRITICAL_SECTION(m_MutexBroadcast)
@@ -297,10 +227,7 @@ void ZonePlayerManager::select() {
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
     }
     // 주석처리 by sigi. 2002.5.14
-    // catch (TimeoutException&)
-    //{
     // do nothing
-    //}
     catch (InterruptedException& ie) {
         // 시그널이 올 리가 엄찌~~
         log(LOG_GAMESERVER_ERROR, "", "", ie.toString());
@@ -319,15 +246,12 @@ void ZonePlayerManager::select() {
 void ZonePlayerManager::processInputs() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
 
-    // copyPlayers();
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         // ZPM에는 플레이어만 들어있으므로, 더 비교할 꺼리가 없다.
@@ -357,27 +281,7 @@ void ZonePlayerManager::processInputs() {
                         pushOutPlayer(pTempPlayer);
                     }
 
-                    // by sigi. 2002.12.30
-                    //					UserGateway::getInstance()->passUser( UserGateway::USER_OUT_ZPM_INPUT_ERROR );
 
-                    /*
-                    try
-                    {
-                        // 이미 연결이 종료되었으므로, 출력 버퍼를 플러시해서는 안된다.
-                        pTempPlayer->disconnect(DISCONNECTED);
-                    }
-                    catch (Throwable & t)
-                    {
-                        filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::processInput(1)",
-                    t.toString().c_str());
-                    }
-
-                    deletePlayer(i);
-                    deleteQueuePlayer(pTempPlayer);
-
-                    // 플레이어 객체를 삭제한다.
-                    delete pTempPlayer;
-                    */
                 } else {
                     try {
                         pTempPlayer->processInput();
@@ -393,28 +297,7 @@ void ZonePlayerManager::processInputs() {
                             pushOutPlayer(pTempPlayer);
                         }
 
-                        // by sigi. 2002.12.30
-                        //						UserGateway::getInstance()->passUser(
-                        // UserGateway::USER_OUT_ZPM_INPUT_DISCONNECT );
 
-                        /*
-                        try
-                        {
-                            // 이미 연결이 종료되었으므로, 출력 버퍼를 플러시해서는 안된다.
-                            pTempPlayer->disconnect(DISCONNECTED);
-                        }
-                        catch (Throwable & t)
-                        {
-                            filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::processInput(4)",
-                        t.toString().c_str());
-                        }
-
-                        deletePlayer(i);
-                        deleteQueuePlayer(pTempPlayer);
-
-                        // 플레이어 객체를 삭제한다.
-                        delete pTempPlayer;
-                        */
                     } catch (IOException& ioe) {
                         pTempPlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
                         pTempPlayer->setItemRatioBonusPoint(9);
@@ -426,33 +309,12 @@ void ZonePlayerManager::processInputs() {
                             deletePlayer(pTempPlayer->getSocket()->getSOCKET());
                             pushOutPlayer(pTempPlayer);
                         }
-
-                        // by sigi. 2002.12.30
-                        //						UserGateway::getInstance()->passUser(
-                        // UserGateway::USER_OUT_ZPM_INPUT_DISCONNECT2 );
-
-                        /*
-                        try
-                        {
-                            // 이미 연결이 종료되었으므로, 출력 버퍼를 플러시해서는 안된다.
-                            pTempPlayer->disconnect(DISCONNECTED);
-                        }
-                        catch (Throwable & t)
-                        {
-                        }
-
-                        deletePlayer(i);
-                        deleteQueuePlayer(pTempPlayer);
-
-                        delete pTempPlayer;
-                        */
                     }
                 }
             }
         }
     }
 
-    //	__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -465,28 +327,12 @@ void ZonePlayerManager::processCommands() {
     __BEGIN_DEBUG
 
     // test code
-    /*
-    for (int i=0; i<100; i++)
-    {
-        PaySystem ps;
-
-        try {
-            ps.loginPayPlay("111.111.222.333", "sdfdf");
-            cout << "[" << (int)(long)Thread::self() << "] " << i << endl;
-        } catch (Throwable&t)
-        {
-            cout << t.toString().c_str() << endl;
-        }
-    }
-    */
 
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
 
-    // copyPlayers();
 
     VSDateTime currentDateTime(VSDate::currentDate(), VSTime::currentTime());
 
@@ -511,27 +357,7 @@ void ZonePlayerManager::processCommands() {
                     pushOutPlayer(pTempPlayer);
                 }
 
-                // by sigi. 2002.12.30
-                //				UserGateway::getInstance()->passUser( UserGateway::USER_OUT_ZPM_COMMAND_ERROR );
 
-                /*
-                try
-                {
-                    // 이미 연결이 종료되었으므로, 출력 버퍼를 플러시해서는 안된다.
-                    pTempPlayer->disconnect(DISCONNECTED);
-                }
-                catch (Throwable & t)
-                {
-                    filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::processCommands(1)",
-                t.toString().c_str());
-                }
-
-                deletePlayer(i);
-                deleteQueuePlayer(pTempPlayer);
-
-                // 플레이어 객체를 삭제한다.
-                delete pTempPlayer;
-                */
             } else {
                 bool IsPayPlayEnd = false;
 
@@ -625,101 +451,13 @@ void ZonePlayerManager::processCommands() {
 
                     // by sigi. 2002.12.30
                     if (IsPayPlayEnd) {
-                        // by sigi. 2002.12.30
-                        //						UserGateway::getInstance()->passUser(
-                        // UserGateway::USER_OUT_ZPM_COMMAND_PAYPLAY_END );
                     } else {
-                        // by sigi. 2002.12.30
-                        //						UserGateway::getInstance()->passUser(
-                        // UserGateway::USER_OUT_ZPM_COMMAND_ERROR );
                     }
-
-                    /*
-                    try
-                    {
-                        // 출력 버퍼를 플러시한다.
-                        pTempPlayer->disconnect(UNDISCONNECTED);
-                    }
-                    catch (Throwable & t)
-                    {
-                        filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::processCommands(4)",
-                    t.toString().c_str());
-                    }
-
-                    deletePlayer(i);
-                    deleteQueuePlayer(pTempPlayer);
-
-                    // 플레이어 객체를 삭제한다.
-                    delete pTempPlayer;
-                    */
                 }
             }
         }
     }
 
-    //	__ENTER_CRITICAL_SECTION(m_Mutex)
-    /*
-
-        if (m_MinFD == -1 && m_MaxFD == -1) {	// no player exist
-            m_Mutex.unlock();
-            return;
-        }
-
-        for (int i = m_MinFD ; i <= m_MaxFD ; i ++) {
-
-            if (m_pPlayers[i] != NULL) {
-
-                Assert (m_pPlayers[i] != NULL);
-
-                if (m_pPlayers[i]->getSocket()->getSockError()) {
-
-                    try {
-                    // 이미 연결이 종료되었으므로, 출력 버퍼를 플러시해서는 안된다.
-                    m_pPlayers[i]->disconnect(DISCONNECTED);
-                    } catch (Throwable & t) {
-                    }
-
-
-                    // 플레이어 객체를 삭제한다.
-                    delete m_pPlayers[i];
-
-                    // 플레이어 매니저에서 플레이어 포인터를 삭제한다.
-    //				deletePlayer_NOBLOCKED(i);
-                    deletePlayer(i);
-
-                } else {
-
-                    try {
-
-                        m_pPlayers[i]->processCommand();
-
-                    } catch (ProtocolException & pe) {
-
-        //				LOG1("INVALID PROTOCOL %s (%s)\n", m_pPlayers[i]->getID().c_str() , pe.toString().c_str());
-
-                        try {
-
-                        // 출력 버퍼를 플러시한다.
-                        m_pPlayers[i]->disconnect(UNDISCONNECTED);
-
-                        } catch (Throwable & t) {
-                        }
-
-                        // 플레이어 객체를 삭제한다.
-                        delete m_pPlayers[i];
-
-                        // 플레이어 매니저에서 플레이어 포인터를 삭제한다.
-    //					deletePlayer_NOBLOCKED(i);
-                        deletePlayer(i);
-
-                    }
-                }
-            }
-        }
-    */
-
-
-    //	__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_DEBUG
     __END_CATCH
@@ -733,15 +471,12 @@ void ZonePlayerManager::processCommands() {
 void ZonePlayerManager::processOutputs() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
 
-    // copyPlayers();
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (FD_ISSET(i, &m_WriteFDs[1])) {
@@ -762,26 +497,6 @@ void ZonePlayerManager::processOutputs() {
                         pushOutPlayer(pTempPlayer);
                     }
 
-                    // by sigi. 2002.12.30
-                    //					UserGateway::getInstance()->passUser( UserGateway::USER_OUT_ZPM_OUTPUT_ERROR );
-                    /*
-                    try
-                    {
-                        // 이미 연결이 종료되었으므로, 출력 버퍼를 플러시해서는 안된다.
-                        pTempPlayer->disconnect(DISCONNECTED);
-                    }
-                    catch (Throwable & t)
-                    {
-                        filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::processOutput(1)",
-                    t.toString().c_str());
-                    }
-
-                    deletePlayer(i);
-                    deleteQueuePlayer(pTempPlayer);
-
-                    // 플레이어 객체를 삭제한다.
-                    delete pTempPlayer;
-                    */
                 } else {
                     try {
                         pTempPlayer->processOutput();
@@ -797,28 +512,7 @@ void ZonePlayerManager::processOutputs() {
                             pushOutPlayer(pTempPlayer);
                         }
 
-                        // by sigi. 2002.12.30
-                        //						UserGateway::getInstance()->passUser(
-                        // UserGateway::USER_OUT_ZPM_OUTPUT_DISCONNECT );
 
-                        /*
-                        try
-                        {
-                            // 이미 연결이 종료되었으므로, 출력 버퍼를 플러시해서는 안된다.
-                            pTempPlayer->disconnect(DISCONNECTED);
-                        }
-                        catch (Throwable & t)
-                        {
-                            filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::processOutput(4)",
-                        t.toString().c_str());
-                        }
-
-                        deletePlayer(i);
-                        deleteQueuePlayer(pTempPlayer);
-
-                        // 플레이어 객체를 삭제한다.
-                        delete pTempPlayer;
-                        */
                     } catch (ProtocolException& cp) {
                         pTempPlayer->setPenaltyFlag(PENALTY_TYPE_KICKED);
                         pTempPlayer->setItemRatioBonusPoint(14);
@@ -830,36 +524,12 @@ void ZonePlayerManager::processOutputs() {
                             deletePlayer(pTempPlayer->getSocket()->getSOCKET());
                             pushOutPlayer(pTempPlayer);
                         }
-
-                        // by sigi. 2002.12.30
-                        //						UserGateway::getInstance()->passUser(
-                        // UserGateway::USER_OUT_ZPM_OUTPUT_DISCONNECT2 );
-
-                        /*
-                        // 이미 연결이 종료되었으므로, 출력 버퍼를 플러시해서는 안된다.
-                        try
-                        {
-                            pTempPlayer->disconnect(DISCONNECTED);
-                        }
-                        catch (Throwable & t)
-                        {
-                            filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::processOutput(7)",
-                        t.toString().c_str());
-                        }
-
-                        deletePlayer(i);
-                        deleteQueuePlayer(pTempPlayer);
-
-                        // 플레이어 객체를 삭제한다.
-                        delete pTempPlayer;
-                        */
                     }
                 }
             }
         }
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -876,14 +546,11 @@ void ZonePlayerManager::processOutputs() {
 void ZonePlayerManager::processExceptions() {
     __BEGIN_TRY
 
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     if (m_MinFD == -1 && m_MaxFD == -1) // no player exist
     {
-        // m_Mutex.unlock();
         return;
     }
-    //	copyPlayers();
 
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (FD_ISSET(i, &m_ExceptFDs[1])) {
@@ -902,33 +569,10 @@ void ZonePlayerManager::processExceptions() {
                     deletePlayer(pTempPlayer->getSocket()->getSOCKET());
                     pushOutPlayer(pTempPlayer);
                 }
-
-                // by sigi. 2002.12.30
-                //				UserGateway::getInstance()->passUser( UserGateway::USER_OUT_ZPM_EXCEPTION );
-
-                /*
-                try
-                {
-                    // 출력 버퍼를 플러시한다.
-                    m_pPlayers[i]->disconnect(UNDISCONNECTED);
-                }
-                catch (Throwable & t)
-                {
-                    filelog("ZonePlayerManagerBug.txt", "%s : %s", "ZonePlayerManager::processException(1)",
-                t.toString().c_str());
-                }
-
-                deletePlayer(i);
-                deleteQueuePlayer(pTempPlayer);
-
-                // 플레이어 객체를 삭제한다.
-                delete pTempPlayer;
-                */
             }
         }
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }
@@ -1248,25 +892,6 @@ void ZonePlayerManager::processPlayerListQueue()
         Zone* pZone = pCreature->getZone();
         Assert(pZone != NULL);
 
-        /*
-        // getNewZone()은 IncomingPlayerManager에서 처리하도록 했다.
-        // by sigi. 2002.5.15
-        if (pZone==NULL)
-        {
-            pZone = pCreature->getZone();
-            Assert(pZone != NULL);
-        }
-        else
-        {
-            pCreature->setZone( pZone );
-            pCreature->setNewZone( NULL );
-
-            pCreature->setXY( pCreature->getNewX(), pCreature->getNewY() );
-
-            // 새 Zone에 들어가게 되는 경우
-            //pCreature->registerObject();
-        }
-        */
 
         pZone->addPC(pCreature, pCreature->getX(), pCreature->getY(), DOWN);
     }
@@ -1309,7 +934,6 @@ void ZonePlayerManager::deleteQueuePlayer(GamePlayer* pGamePlayer) {
 
     // 필요없는 lock인거 같다.
     // 제거 by sigi. 2002.5.9
-    //__ENTER_CRITICAL_SECTION(m_Mutex)
 
     Assert(pGamePlayer != NULL);
 
@@ -1320,7 +944,6 @@ void ZonePlayerManager::deleteQueuePlayer(GamePlayer* pGamePlayer) {
         m_PlayerOutListQueue.erase(itr);
     }
 
-    //__LEAVE_CRITICAL_SECTION(m_Mutex)
 
     __END_CATCH
 }

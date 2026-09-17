@@ -160,8 +160,6 @@ void Slayer::initAllStat(int numPartyMember) {
         EffectBless* pBless = dynamic_cast<EffectBless*>(findEffect(Effect::EFFECT_CLASS_BLESS));
         if (pBless != NULL) {
             // STR, DEX를 올린다.
-            //			m_STR[ATTR_CURRENT] += pBless->getSTRBonus();
-            //			m_DEX[ATTR_CURRENT] += pBless->getDEXBonus();
             m_STR[ATTR_CURRENT] += getPercentValue(m_STR[ATTR_CURRENT], pBless->getSTRBonus());
             m_DEX[ATTR_CURRENT] += getPercentValue(m_DEX[ATTR_CURRENT], pBless->getDEXBonus());
         }
@@ -203,7 +201,6 @@ void Slayer::initAllStat(int numPartyMember) {
     m_HPRegen = 0;
     m_MPRegen = 0;
     m_Luck = m_BaseLuck;
-    //	cout << getName() << "의 기본 행운 : " << m_Luck << endl;
 
     for (int i = 0; i < SKILL_DOMAIN_MAX; i++)
         attr.pDomainLevel[i] = m_SkillDomainLevels[i];
@@ -284,16 +281,13 @@ void Slayer::initAllStat(int numPartyMember) {
         LivenessDefenseBonus = bonus.defenseBonus;
 
         LivenessHPBonus = getPercentValue(m_HP[ATTR_MAX], HPBonusPercent);
-        // m_Defense[ATTR_CURRENT]  = min(SLAYER_MAX_DEFENSE, m_Defense[ATTR_CURRENT] + LivenessDefenseBonus);
     }
 
     ////	// 전쟁 보너스
     // 지금은 전쟁 승패에 관계없이 어느쪽이든 보너스가 적용될 수 있다. by sigi
-    // if ( g_pCombatInfoManager->isSlayerBonus() )
     int HPBonus = 0;
     {
         int bonusRatio = g_pVariableManager->getCombatSlayerHPBonusRatio();
-        // g_pCombatInfoManager->getSlayerHPModify();
 
         if (bonusRatio > 0) {
             HPBonus = getPercentValue(m_HP[ATTR_MAX], bonusRatio);
@@ -313,37 +307,10 @@ void Slayer::initAllStat(int numPartyMember) {
     // 성을 소유한 종족은 보너스 옵션을 받게 된다
     //////////////////////////////////////////////////////////////////////////////
     // Blood Bible 각각의 보너스 옵션을 받는 걸로 고쳤다.
-    /*	if (m_pZone->isHolyLand() )
-        {
-            const list<OptionType_t>& optionType = g_pHolyLandRaceBonus->getSlayerOptionTypeList();
-            list<OptionType_t>::const_iterator itr;
-            for (itr=optionType.begin(); itr!=optionType.end(); itr++)
-            {
-                computeOptionStat( *itr );
-            }
-        }*/
 
     //////////////////////////////////////////////////////////////////////////////
     // Blood Bible 각각의 보너스 옵션을 받는다.
     //////////////////////////////////////////////////////////////////////////////
-    /*	if ( m_pZone->isHolyLand() && !g_pWarSystem->hasActiveRaceWar() )
-        {
-            const BloodBibleBonusHashMap& bloodBibleBonus = g_pBloodBibleBonusManager->getBloodBibleBonuses();
-            BloodBibleBonusHashMapConstItor itr;
-            for (itr=bloodBibleBonus.begin(); itr!=bloodBibleBonus.end(); itr++)
-            {
-                if ( itr->second->getRace() == RACE_SLAYER )
-                {
-                    OptionTypeList optionTypes = itr->second->getOptionTypeList();
-                    OptionTypeListConstItor optionItr;
-
-                    for ( optionItr = optionTypes.begin(); optionItr != optionTypes.end(); optionItr++ )
-                    {
-                        computeOptionStat( *optionItr );
-                    }
-                }
-            }
-        }*/
 
     if (g_pSweeperBonusManager->isAble(getZoneID()) &&
         g_pLevelWarZoneInfoManager->isCreatureBonusZone(this, getZoneID())) {
@@ -608,15 +575,6 @@ void Slayer::initAllStat(int numPartyMember) {
             m_Damage[ATTR_MAX] = max(0, m_Damage[ATTR_MAX] - DamagePenalty2);
         }
     }
-    /*	if (isFlag(Effect::EFFECT_CLASS_PARALYZE))
-        {
-            EffectParalyze* pParalyze = dynamic_cast<EffectParalyze*>(findEffect(Effect::EFFECT_CLASS_PARALYZE));
-            if (pParalyze != NULL)
-            {
-                int DefensePenalty = getPercentValue(m_Defense[ATTR_CURRENT], pParalyze->getDefensePenalty());
-                m_Defense[ATTR_CURRENT] = max(0, m_Defense[ATTR_CURRENT] - DefensePenalty);
-            }
-        }*/
     if (isFlag(Effect::EFFECT_CLASS_CHARGING_POWER)) {
         EffectChargingPower* pChargingPower =
             dynamic_cast<EffectChargingPower*>(findEffect(Effect::EFFECT_CLASS_CHARGING_POWER));
@@ -624,9 +582,7 @@ void Slayer::initAllStat(int numPartyMember) {
             if (!isRealWearing(Slayer::WEAR_RIGHTHAND) || pWeapon == NULL ||
                 pWeapon->getItemClass() != Item::ITEM_CLASS_BLADE) {
                 pChargingPower->setDeadline(0);
-            } else
-            //		if (pChargingPower != NULL)
-            {
+            } else {
                 int DamageBonus = pChargingPower->getDamageBonus();
 
                 m_Damage[ATTR_CURRENT] = min(SLAYER_MAX_DAMAGE, m_Damage[ATTR_CURRENT] + DamageBonus);
@@ -712,13 +668,6 @@ void Slayer::initAllStat(int numPartyMember) {
             int DefensePenalty = getPercentValue(m_Defense[ATTR_CURRENT], pBerserker->getDefensePenalty());
             int ProtectionPenalty = getPercentValue(m_Defense[ATTR_CURRENT], pBerserker->getProtectionPenalty());
 
-            /*			cout << "Damage Bonus : " << (int)pBerserker->getDamageBonus()
-                             << " MinDamage : " << (int)(AttrMinDamage+BladeMinDamage)
-                             << " MaxDamage : " << (int)(AttrMaxDamage+BladeMaxDamage)
-                             << " MinDamageBonus : " << (int)MinDamageBonus
-                             << " MaxDamageBonus : " << (int)MaxDamageBonus
-                             << endl;
-            */
             m_ToHit[ATTR_CURRENT] = min(SLAYER_MAX_TOHIT, m_ToHit[ATTR_CURRENT] + ToHitBonus);
             m_Damage[ATTR_CURRENT] = min(SLAYER_MAX_DAMAGE, m_Damage[ATTR_CURRENT] + MinDamageBonus);
             m_Damage[ATTR_MAX] = min(SLAYER_MAX_DAMAGE, m_Damage[ATTR_MAX] + MaxDamageBonus);
@@ -731,7 +680,6 @@ void Slayer::initAllStat(int numPartyMember) {
         if (pDeath != NULL) {
             for (int i = 0; i < MAGIC_DOMAIN_MAX; i++) {
                 m_Resist[i] -= pDeath->getResistPenalty();
-                //				if ( m_Resist[i] < 0 ) m_Resist[i] = 0;
             }
         }
     }
@@ -759,8 +707,6 @@ void Slayer::initAllStat(int numPartyMember) {
             m_Resist[MAGIC_DOMAIN_ACID] += pWhitsuntide->getBonus();
             m_Resist[MAGIC_DOMAIN_CURSE] += pWhitsuntide->getBonus();
             m_Resist[MAGIC_DOMAIN_BLOOD] += pWhitsuntide->getBonus();
-
-            //			m_MagicDamageReduce += pWhitsuntide->getBonus();
         }
     }
 
@@ -799,10 +745,7 @@ void Slayer::initAllStat(int numPartyMember) {
 
                 CriticalRatioBonus += pObservingEye->getCriticalHitBonus();
 
-                //				m_CriticalRatio[ATTR_CURRENT] = m_CriticalRatio[ATTR_CURRENT] + CriticalRatioBonus;
-                //				m_CriticalRatio[ATTR_MAX]     = m_CriticalRatio[ATTR_MAX] + CriticalRatioBonus;
 
-                // int VisionBonus = pObservingEye->getVisionBonus();
                 //  이거는 client에서 처리하도록 한다.
             }
         }
@@ -894,9 +837,6 @@ void Slayer::initAllStat(int numPartyMember) {
             }
 
             if (isFlag(Effect::EFFECT_CLASS_SNIPING_MODE)) {
-                // DamageBonus += 3;
-                // ToHitBonus += 5;
-
                 // by sigi. 2002.12.3
                 SkillSlot* pSniping = getSkill(SKILL_SNIPING);
 
@@ -914,20 +854,7 @@ void Slayer::initAllStat(int numPartyMember) {
             if (pMastery != NULL && pMastery->canUse()) {
                 int level = m_SkillDomainLevels[SKILL_DOMAIN_SWORD];
 
-                /*
-                switch (g_pSkillInfoManager->getGradeByDomainLevel(level))
-                {
-                    case SKILL_GRADE_APPRENTICE:   DamageBonus += 2; break;
-                    case SKILL_GRADE_ADEPT:        DamageBonus += 3; break;
-                    case SKILL_GRADE_EXPERT:       DamageBonus += 4; break;
-                    case SKILL_GRADE_MASTER:       DamageBonus += 5; break;
-                    case SKILL_GRADE_GRAND_MASTER: DamageBonus += 6; break;
-                    default:                       break;
-                }
-                */
 
-                // by sigi. 2002.12.3
-                //				DamageBonus += level*10/125;
                 DamageBonus += decore::swordMasteryDamageBonus(level);
             }
         } else if (IClass == Item::ITEM_CLASS_BLADE) // by sigi. 2002.6.7
@@ -937,19 +864,6 @@ void Slayer::initAllStat(int numPartyMember) {
             if (pSkill != NULL && pSkill->canUse()) {
                 int level = m_SkillDomainLevels[SKILL_DOMAIN_BLADE];
 
-                /*
-                switch (g_pSkillInfoManager->getGradeByDomainLevel(level))
-                {
-                    case SKILL_GRADE_APPRENTICE:   ToHitBonus += 3; break;
-                    case SKILL_GRADE_ADEPT:        ToHitBonus += 6; break;
-                    case SKILL_GRADE_EXPERT:       ToHitBonus += 9; break;
-                    case SKILL_GRADE_MASTER:       ToHitBonus += 12; break;
-                    case SKILL_GRADE_GRAND_MASTER: ToHitBonus += 15; break;
-                    default:                       break;
-                }
-                */
-                // by sigi. 2002.12.3
-                //				ToHitBonus += level/6;
                 ToHitBonus += decore::concentrationToHitBonus(level);
             }
 
@@ -958,20 +872,7 @@ void Slayer::initAllStat(int numPartyMember) {
             if (pSkill != NULL && pSkill->canUse()) {
                 int level = m_SkillDomainLevels[SKILL_DOMAIN_BLADE];
 
-                //  by sigi. 2002.12.3
-                //				Defense_t DefenseBonus = (level-20)/5;
                 Defense_t DefenseBonus = decore::evasionDefenseBonus(level);
-                /*
-                switch (g_pSkillInfoManager->getGradeByDomainLevel(level))
-                {
-                    case SKILL_GRADE_APPRENTICE:   DefenseBonus += 3; break;
-                    case SKILL_GRADE_ADEPT:        DefenseBonus += 6; break;
-                    case SKILL_GRADE_EXPERT:       DefenseBonus += 9; break;
-                    case SKILL_GRADE_MASTER:       DefenseBonus += 12; break;
-                    case SKILL_GRADE_GRAND_MASTER: DefenseBonus += 15; break;
-                    default:                       break;
-                }
-                */
 
                 // 일단 Evasion만 defense를 바꾸므로 여기서만 계산.. by sigi
                 m_Defense[ATTR_CURRENT] = min(SLAYER_MAX_DEFENSE, m_Defense[ATTR_CURRENT] + DefenseBonus);
@@ -979,7 +880,6 @@ void Slayer::initAllStat(int numPartyMember) {
             }
         }
 
-        // cout << "ToHitBonus = " << ToHitBonus << endl;
 
         if (pWeapon->isGun()) {
             // Concealment 보너스 더해주기
@@ -1003,19 +903,6 @@ void Slayer::initAllStat(int numPartyMember) {
         SkillSlot* pMastery = getSkill(SKILL_SHIELD_MASTERY);
         if (pMastery != NULL && pMastery->canUse()) {
             int level = m_SkillDomainLevels[SKILL_DOMAIN_SWORD];
-            /*
-            switch (g_pSkillInfoManager->getGradeByDomainLevel(level))
-            {
-                case SKILL_GRADE_APPRENTICE:   ProtectionBonus += 3; break;
-                case SKILL_GRADE_ADEPT:        ProtectionBonus += 6; break;
-                case SKILL_GRADE_EXPERT:       ProtectionBonus += 9; break;
-                case SKILL_GRADE_MASTER:       ProtectionBonus += 12; break;
-                case SKILL_GRADE_GRAND_MASTER: ProtectionBonus += 15; break;
-                default:                       break;
-            }
-            */
-            // by sigi. 2002.12.3
-            //			ProtectionBonus += (level-20)/5;
             ProtectionBonus += decore::shieldMasteryProtectionBonus(level);
 
             m_Protection[ATTR_CURRENT] = min(SLAYER_MAX_PROTECTION, m_Protection[ATTR_CURRENT] + ProtectionBonus);
@@ -1188,77 +1075,11 @@ void Slayer::initAllStat(int numPartyMember) {
 
     // 성지스킬 초기화
     initCastleSkill();
-    //	cout << getName() << "의 Luck : " << m_Luck << endl;
 
     // 현재 HP가 MAX HP보다 많으면
-    /*
-    if ( m_HP[ATTR_CURRENT] > m_HP[ATTR_MAX] )
-    {
-        m_HP[ATTR_CURRENT] = m_HP[ATTR_MAX];
-    }
-    */
 
     // 파티의 크기에 따라서 능력치가 변할 수 있다.
 
-    /*
-    // 파티 인원수가 넘어오지 않은 경우는 다시 계산한다.
-    if (numPartyMember == -1)
-    {
-        if (m_PartyID != 0)
-        {
-            LocalPartyManager* pLPM = getLocalPartyManager();
-            Assert(pLPM != NULL);
-
-            numPartyMember = pLPM->getAdjacentMemberSize(m_PartyID, this);
-        }
-    }
-
-    if (numPartyMember > 1)
-    {
-
-        uint ToHitBonus      = 0;
-        uint DefenseBonus    = 0;
-        uint ProtectionBonus = 0;
-        uint DamageBonus     = 0;
-
-        switch (numPartyMember)
-        {
-            case 2: ToHitBonus +=  2; DefenseBonus += 1; ProtectionBonus += 1; DamageBonus += 1; break;
-            case 3: ToHitBonus +=  4; DefenseBonus += 2; ProtectionBonus += 2; DamageBonus += 1; break;
-            case 4: ToHitBonus +=  6; DefenseBonus += 3; ProtectionBonus += 3; DamageBonus += 2; break;
-            case 5: ToHitBonus +=  8; DefenseBonus += 4; ProtectionBonus += 4; DamageBonus += 2; break;
-            case 6: ToHitBonus += 10; DefenseBonus += 5; ProtectionBonus += 5; DamageBonus += 3; break;
-            default: break;
-        }
-
-        m_ToHit[ATTR_CURRENT]      += ToHitBonus;
-        m_Defense[ATTR_CURRENT]    += DefenseBonus;
-        m_Protection[ATTR_CURRENT] += ProtectionBonus;
-        m_Damage[ATTR_CURRENT]     += DamageBonus;
-        m_Damage[ATTR_MAX]         += DamageBonus;
-    }
-    */
-
-    /*
-    printf("BareMINDamage:%d\n", m_Damage[ATTR_CURRENT]);
-    printf("BareMAXDamage:%d\n", m_Damage[ATTR_MAX]);
-    if (pWeapon != NULL)
-    {
-        printf("+WeaponMINDamage:%d\n", m_Damage[ATTR_CURRENT] + pWeapon->getMinDamage());
-        printf("+WeaponMAXDamage:%d\n", m_Damage[ATTR_MAX] + pWeapon->getMaxDamage());
-    }
-    */
-
-    /*	cout << getName() << ":" << endl;
-        for ( int i=0; i<MAGIC_DOMAIN_MAX; ++i )
-        {
-            cout << "저항 " << i << " : " << m_Resist[i] << endl;
-        }*/
-
-    /*	cout << "물리공격력 " << m_PhysicBonusDamage << endl;
-        cout << "물리방어력 " << m_PhysicDamageReduce << endl;
-        cout << "마법공격력 " << m_MagicBonusDamage << endl;
-        cout << "마법방어력 " << m_MagicDamageReduce << endl;*/
 
     __END_CATCH
 }
@@ -1402,8 +1223,6 @@ void Slayer::computeOptionStat(Item* pItem) {
     __BEGIN_TRY
 
     // Option Type을 받아온다.
-    //	OptionType_t  OptionType    = pItem->getOptionType();
-    //	computeOptionStat( OptionType );
 
     // 부가적인 옵션들
     const list<OptionType_t>& optionType = pItem->getOptionTypeList();
@@ -1629,209 +1448,7 @@ void Slayer::computeOptionStat(OptionType_t optionType) {
 
     OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(optionType);
     computeOptionClassStat(pOptionInfo->getClass(), pOptionInfo->getPlusPoint());
-    //	OptionClass   OClass        = pOptionInfo->getClass();
 
-    /*	switch (OClass)
-        {
-            case OPTION_STR:
-                m_STR[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_STR[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                computeStatOffset();
-                break;
-            case OPTION_DEX:
-                m_DEX[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_DEX[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                computeStatOffset();
-                break;
-            case OPTION_INT:
-                m_INT[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_INT[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                computeStatOffset();
-                break;
-            case OPTION_HP:
-                m_HP[ATTR_MAX]   += pOptionInfo->getPlusPoint();
-                m_HP[ATTR_BASIC] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_MP:
-                m_MP[ATTR_MAX]   += pOptionInfo->getPlusPoint();
-                m_MP[ATTR_BASIC] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_HP_STEAL:
-                m_HPStealAmount += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_MP_STEAL:
-                m_MPStealAmount += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_HP_REGEN:
-                m_HPRegen += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_MP_REGEN:
-                m_MPRegen += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_TOHIT:
-                m_ToHit[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_ToHit[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_DEFENSE:
-                m_Defense[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_Defense[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_DAMAGE:
-                m_Damage[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_Damage[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                m_Damage[ATTR_BASIC]   += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_PROTECTION:
-                m_Protection[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_Protection[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_ATTACK_SPEED:
-                m_AttackSpeed[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_AttackSpeed[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_POISON:
-                m_Resist[MAGIC_DOMAIN_POISON] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_ACID:
-                m_Resist[MAGIC_DOMAIN_ACID] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_CURSE:
-                m_Resist[MAGIC_DOMAIN_CURSE] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_BLOOD:
-                m_Resist[MAGIC_DOMAIN_BLOOD] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_VISION:
-                break;
-            case OPTION_CRITICAL_HIT:
-                m_CriticalRatio[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_CriticalRatio[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-
-            case OPTION_ALL_ATTR:
-                m_STR[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_STR[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-
-                m_DEX[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_DEX[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-
-                m_INT[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_INT[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-
-                computeStatOffset();
-                break;
-
-            case OPTION_ALL_RES:
-                m_Resist[MAGIC_DOMAIN_POISON] += pOptionInfo->getPlusPoint();
-                m_Resist[MAGIC_DOMAIN_ACID] += pOptionInfo->getPlusPoint();
-                m_Resist[MAGIC_DOMAIN_CURSE] += pOptionInfo->getPlusPoint();
-                m_Resist[MAGIC_DOMAIN_BLOOD] += pOptionInfo->getPlusPoint();
-                break;
-
-            case OPTION_LUCK:
-                m_Luck += pOptionInfo->getPlusPoint();
-            break;
-
-            case OPTION_STR_TO_DEX:
-            {
-                int trans = getPercentValue( m_STR[ATTR_BASIC], pOptionInfo->getPlusPoint() );
-                m_STR[ATTR_CURRENT]	-= trans;
-                m_STR[ATTR_MAX]		-= trans;
-                m_DEX[ATTR_CURRENT]	+= trans;
-                m_DEX[ATTR_MAX]		+= trans;
-
-                computeStatOffset();
-                break;
-            }
-
-            case OPTION_STR_TO_INT:
-            {
-                int trans = getPercentValue( m_STR[ATTR_BASIC], pOptionInfo->getPlusPoint() );
-                m_STR[ATTR_CURRENT]	-= trans;
-                m_STR[ATTR_MAX]		-= trans;
-                m_INT[ATTR_CURRENT] += trans;
-                m_INT[ATTR_MAX]		+= trans;
-
-                computeStatOffset();
-                break;
-            }
-
-            case OPTION_DEX_TO_STR:
-            {
-                int trans = getPercentValue( m_DEX[ATTR_BASIC], pOptionInfo->getPlusPoint() );
-                m_DEX[ATTR_CURRENT]	-= trans;
-                m_DEX[ATTR_MAX]		-= trans;
-                m_STR[ATTR_CURRENT] += trans;
-                m_STR[ATTR_MAX]		+= trans;
-
-                computeStatOffset();
-                break;
-            }
-
-            case OPTION_DEX_TO_INT:
-            {
-                int trans = getPercentValue( m_DEX[ATTR_BASIC], pOptionInfo->getPlusPoint() );
-                m_DEX[ATTR_CURRENT]	-= trans;
-                m_DEX[ATTR_MAX]		-= trans;
-                m_INT[ATTR_CURRENT] += trans;
-                m_INT[ATTR_MAX]		+= trans;
-
-                computeStatOffset();
-                break;
-            }
-
-            case OPTION_INT_TO_STR:
-            {
-                int trans = getPercentValue( m_INT[ATTR_BASIC], pOptionInfo->getPlusPoint() );
-                m_INT[ATTR_CURRENT]	-= trans;
-                m_INT[ATTR_MAX]		-= trans;
-                m_STR[ATTR_CURRENT] += trans;
-                m_STR[ATTR_MAX]		+= trans;
-
-                computeStatOffset();
-                break;
-            }
-
-            case OPTION_INT_TO_DEX:
-            {
-                int trans = getPercentValue( m_INT[ATTR_BASIC], pOptionInfo->getPlusPoint() );
-                m_INT[ATTR_CURRENT]	-= trans;
-                m_INT[ATTR_MAX]		-= trans;
-                m_DEX[ATTR_CURRENT] += trans;
-                m_DEX[ATTR_MAX]		+= trans;
-
-                computeStatOffset();
-                break;
-            }
-            case OPTION_CONSUME_MP:
-            {
-                m_ConsumeMPRatio = pOptionInfo->getPlusPoint();
-                break;
-            }
-            case OPTION_MAGIC_DAMAGE:
-            {
-                m_MagicBonusDamage = pOptionInfo->getPlusPoint();
-                break;
-            }
-            case OPTION_PHYSIC_DAMAGE:
-            {
-                m_PhysicBonusDamage = pOptionInfo->getPlusPoint();
-                break;
-            }
-            case OPTION_GAMBLE_PRICE:
-            {
-                m_GamblePriceRatio = pOptionInfo->getPlusPoint();
-                break;
-            }
-            case OPTION_POTION_PRICE:
-            {
-                m_PotionPriceRatio = pOptionInfo->getPlusPoint();
-                break;
-            }
-
-            default:
-                break;
-        }*/
 
     __END_CATCH
 }
@@ -1907,7 +1524,6 @@ void Slayer::sendModifyInfo(const SLAYER_RECORD& prev) const
     BloodBibleSignInfo* pInfo = getBloodBibleSign();
     GCBloodBibleSignInfo gcInfo;
     gcInfo.setSignInfo(pInfo);
-    //	cout << "open num : " << pInfo->getOpenNum() << endl;;
     m_pPlayer->sendPacket(&gcInfo);
 
     __END_CATCH
