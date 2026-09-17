@@ -335,7 +335,6 @@ void CGLearnSkillHandler::execute(CGLearnSkill* pPacket, Player* pPlayer)
     case SKILL_ICE_HORIZON:
     case SKILL_FURY_OF_GNOME:
 
-        // #ifdef __TEST_SERVER__
     case SKILL_HALO:
     case SKILL_DESTINIES:
     case SKILL_FIERCE_FLAME:

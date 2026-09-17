@@ -55,11 +55,6 @@ void CLSelectServerHandler::execute(CLSelectServer* pPacket, Player* pPlayer)
     LCPCList lcPCList;
     pLoginPlayer->makePCList(lcPCList);
 
-#ifdef __NETMARBLE_SERVER__
-    // Netmarble asks whether the account accepted the terms.
-    lcPCList.setAgree(pLoginPlayer->isAgree());
-#endif
-
     pLoginPlayer->sendPacket(&lcPCList);
     pLoginPlayer->setPlayerStatus(LPS_PC_MANAGEMENT);
 

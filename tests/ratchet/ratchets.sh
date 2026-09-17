@@ -82,9 +82,9 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5483 "$R5"
 # SkillFormula.cpp computeOutput extraction (the doc's 08-29 numbers
 # predate the clang-format-18 pass and are superseded).
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 6722 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 6718 "$R6a"
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
-check_ratchet R6b "InitAllStat.cpp lines" 4799 "$R6b"
+check_ratchet R6b "InitAllStat.cpp lines" 4787 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
 check_ratchet R6c "HitRoll.cpp lines" 736 "$R6c"
 R6d=$(wc -l < src/server/gameserver/skill/SkillFormula.cpp 2>/dev/null || echo missing)
@@ -248,10 +248,17 @@ rm -f "$guards"
 # a layout no other TU shared. Counted with the two: the misspellings
 # __CHAINA_SERVER__ and __THIALAND_SERVER__, which appeared inside the same
 # conditions, and __INTERNATIONAL_SERVER__, a dead #elif in the same
-# Encrypter.h chain. Comments count too -- a comment describing one of these
-# branches describes code that is not there, so it states what the code does
-# instead.
-R14=$(LC_ALL=C grep -rhE '__(THAILAND|THIALAND|CHINA|CHAINA|INTERNATIONAL)_SERVER__' \
+# Encrypter.h chain. __NETMARBLE_SERVER__ (a portal build: a terms-of-use
+# byte on the end of LCPCList, DELETE instead of INACTIVE in the character
+# purge, the #define that would arm __CONNECT_BILLING_SYSTEM__) and
+# __TEST_SERVER__ (a test build: fame*10 in the Blood Bible ladders, an auth
+# timer on connect, a level-150 class-exp gift) are defined by nothing
+# either. Three of the __NETMARBLE_SERVER__ blocks called
+# LoginPlayer::setAgree/isAgree, which no header declares, so they could not
+# have compiled had it been defined. Comments count too -- a comment
+# describing one of these branches describes code that is not there, so it
+# states what the code does instead.
+R14=$(LC_ALL=C grep -rhE '__(THAILAND|THIALAND|CHINA|CHAINA|INTERNATIONAL|NETMARBLE|TEST)_SERVER__' \
     src --include='*.h' --include='*.cpp' | wc -l)
 check_ratchet R14 "never-defined region-macro mentions" 0 "$R14"
 

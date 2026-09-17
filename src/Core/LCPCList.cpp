@@ -16,9 +16,7 @@
 //----------------------------------------------------------------------
 // constructor
 //----------------------------------------------------------------------
-LCPCList::LCPCList()
-
-    : m_Agree(1) {
+LCPCList::LCPCList() {
     for (uint i = 0; i < SLOT_MAX; i++)
         m_pPCInfos[i] = NULL;
 }
@@ -89,10 +87,6 @@ void LCPCList::read(SocketInputStream& iStream)
         }
     }
 
-#ifdef __NETMARBLE_SERVER__
-    iStream.read(m_Agree);
-#endif
-
     __END_CATCH
 }
 
@@ -140,10 +134,6 @@ void LCPCList::write(SocketOutputStream& oStream) const
         }
     }
 
-#ifdef __NETMARBLE_SERVER__
-    oStream.write(m_Agree);
-#endif
-
     __END_CATCH
 }
 
@@ -161,10 +151,6 @@ PacketSize_t LCPCList::getPacketSize() const
             packetSize += m_pPCInfos[i]->getSize();
         }
     }
-
-#ifdef __NETMARBLE_SERVER__
-    packetSize += szBYTE;
-#endif
 
     return packetSize;
 }

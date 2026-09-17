@@ -33,8 +33,4 @@
 
 // #define __UNDERWORLD__
 
-// #ifdef __NETMARBLE_SERVER__
-//	#define __OLD_GUILD_WAR__
-// #endif
-
 #endif

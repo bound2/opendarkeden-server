@@ -268,8 +268,8 @@ int sandCrossPoint(int str, int dex);
 // drifted between races and slayer has a second ladder for HEAL/ENCHANT
 // domains, which is exactly why they are pinned here. fame is Fame_t
 // (DWORD) — unsigned comparison semantics preserved. The adapters keep
-// the pay-status openNumLimit, the __TEST_SERVER__ fame*10, and the
-// canApplyBloodBibleSign() gate (0 when closed).
+// the pay-status openNumLimit and the canApplyBloodBibleSign() gate
+// (0 when closed).
 int slayerBloodBibleSignOpenNum(unsigned int fame, int openNumLimit, bool healOrEnchantDomain);
 int vampireBloodBibleSignOpenNum(unsigned int fame, int openNumLimit);
 int oustersBloodBibleSignOpenNum(unsigned int fame, int openNumLimit);

@@ -19,10 +19,6 @@
 
 #ifdef __METRO_SERVER__
 #define EncryptCode(a, b) (unsigned char)((((a) >> 8) ^ (a)) ^ (((b) + 1) << 4))
-#elif defined(__NETMARBLE_SERVER__)
-#define EncryptCode(a, b) (unsigned char)((((a) >> 8) ^ (a)) ^ (((b) + 1) << 4))
-#elif defined(__TEST_SERVER__)
-#define EncryptCode(a, b) (unsigned char)((((a) >> 8) ^ (a)) ^ (((b) + 1) << 4))
 #endif
 
 class Encrypter {

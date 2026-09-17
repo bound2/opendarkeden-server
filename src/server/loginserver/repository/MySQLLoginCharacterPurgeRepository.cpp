@@ -12,16 +12,11 @@ namespace {
 //    kPurgeStatements in array order, all on one Statement with no
 //    transaction: a failure at statement N leaves the earlier ones
 //    applied. destroyItems does the same with kItemStatements.
-//  - Under __NETMARBLE_SERVER__ the three race rows are DELETEd instead
-//    of set INACTIVE and the three skill-save tables join the list.
+//  - The three race rows are set INACTIVE, not deleted, and the three
+//    skill-save tables are left alone.
 //  - The name, the account id and the slot text are interpolated raw; the
 //    slot indexes Slot2String unchecked.
 const char* const kPurgeStatements[] = {
-#ifdef __NETMARBLE_SERVER__
-    "DELETE FROM SkillSave WHERE OwnerID = '%s'",
-    "DELETE FROM VampireSkillSave WHERE OwnerID = '%s'",
-    "DELETE FROM OustersSkillSave WHERE OwnerID = '%s'",
-#endif
     "DELETE FROM RankBonusData WHERE OwnerID = '%s'",
     "DELETE FROM ARObject WHERE OwnerID = '%s'",
     "DELETE FROM BeltObject WHERE OwnerID = '%s'",
@@ -208,13 +203,8 @@ public:
 
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
-#ifdef __NETMARBLE_SERVER__
-            pStmt->executeQuery("DELETE FROM Slayer WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
-                                Slot2String[slot].c_str());
-#else
             pStmt->executeQuery("UPDATE Slayer SET Active='INACTIVE' WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
                                 Slot2String[slot].c_str());
-#endif
 
             affected = pStmt->getAffectedRowCount() == 1;
 
@@ -244,21 +234,11 @@ public:
         BEGIN_DB {
             pStmt = g_pDatabaseManager->getConnection(worldID)->createStatement();
 
-#ifdef __NETMARBLE_SERVER__
-            pStmt->executeQuery("DELETE FROM Vampire WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
-                                Slot2String[slot].c_str());
-#else
             pStmt->executeQuery("UPDATE Vampire SET Active='INACTIVE' WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
                                 Slot2String[slot].c_str());
-#endif
 
-#ifdef __NETMARBLE_SERVER__
-            pStmt->executeQuery("DELETE FROM Ousters WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
-                                Slot2String[slot].c_str());
-#else
             pStmt->executeQuery("UPDATE Ousters SET Active='INACTIVE' WHERE Name = '%s' AND Slot = '%s'", name.c_str(),
                                 Slot2String[slot].c_str());
-#endif
 
             for (size_t i = 0; i < sizeof(kPurgeStatements) / sizeof(kPurgeStatements[0]); i++) {
                 pStmt->executeQuery(kPurgeStatements[i], name.c_str());

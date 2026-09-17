@@ -355,17 +355,6 @@ void CLLoginHandler::execute(CLLogin* pPacket, Player* pPlayer)
                 repo.markPremiumEventReceived(ID);
             }
 
-#ifdef __NETMARBLE_SERVER__
-            // Has the account agreed to NetMarble's terms of use?
-            if (repo.hasPrivateAgreementRemaining(pLoginPlayer->getID())) {
-                pLoginPlayer->setAgree(false);
-                cout << "false - " << pLoginPlayer->getID() << endl;
-            } else {
-                pLoginPlayer->setAgree(true);
-                cout << "true - " << pLoginPlayer->getID() << endl;
-            }
-#endif
-
             LCLoginOK lcLoginOK;
             lcLoginOK.setFamily(accepted.family);
             lcLoginOK.setAdult(accepted.adult);

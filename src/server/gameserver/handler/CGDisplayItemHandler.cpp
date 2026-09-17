@@ -27,10 +27,6 @@ void CGDisplayItemHandler::execute(CGDisplayItem* pPacket, Player* pPlayer) {
 
 #ifdef __GAME_SERVER__
 
-        // #ifndef __TEST_SERVER__
-        //	return;
-        // #endif
-
         Assert(pPacket != NULL);
     Assert(pPlayer != NULL);
 
