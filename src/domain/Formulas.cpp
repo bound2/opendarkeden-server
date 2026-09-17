@@ -639,9 +639,7 @@ int vampireSkillConsumeMP(int originalMP, int magicLevel, int intStat) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Hit-roll success ratios (transplanted verbatim from skill/HitRoll.cpp,
-// non-__CHINA_SERVER__ branches; the China variants stay behind their
-// #ifdef in the adapter).
+// Hit-roll success ratios, as skill/HitRoll.cpp applies them.
 //////////////////////////////////////////////////////////////////////////////
 
 int meleeHitRatio(int toHit, int defense, int toHitBonus, bool involvesMonster) {
@@ -652,9 +650,7 @@ int meleeHitRatio(int toHit, int defense, int toHitBonus, bool involvesMonster) 
         // bonus/2 sits outside the (int) cast here and inside it below,
         // preserved as shipped — but note the cast is a NO-OP on this
         // path (every operand is already int; the division truncates
-        // regardless), so the placement changes nothing here. The real
-        // asymmetry lives in the __CHINA_SERVER__ /1.5 double branch,
-        // which stays in the adapter.
+        // regardless), so the placement changes nothing here.
         if (involvesMonster) {
             Result = min(95, (int)(((toHit - defense) / 3) + 50) + toHitBonus / 2);
         } else {

@@ -208,11 +208,10 @@ struct LivenessBonus {
     int hpPercent;
     int defenseBonus;
 };
-// Liveness passive (gun domain). The normal table jumps hpPercent to 50
-// from domain level 125 regardless of grade; the China-server table has
-// different steps and no level override — the #ifdef __CHINA_SERVER__
-// selection stays in the adapter.
+// Liveness passive (gun domain). hpPercent jumps to 50 from domain
+// level 125 regardless of grade.
 LivenessBonus livenessBonus(int grade, int domainLevel);
+// A second table with different steps and no level override. Unused.
 LivenessBonus livenessBonusChina(int grade);
 
 // Sniping mode (SR): percent = STR/20 * expLevel / 20 of current damage,

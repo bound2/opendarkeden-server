@@ -13,14 +13,7 @@
 #include "PacketFactory.h"
 
 
-enum KickMessageType {
-    KICK_MESSAGE_PAY_TIMEOUT = 0,
-    KICK_MESSAGE_EXPIRE_FREEPLAY,
-#ifdef __THAILAND_SERVER__
-    KICK_MESSAGE_CHILDGUARD,
-#endif
-    KICK_MESSAGE_MAX
-};
+enum KickMessageType { KICK_MESSAGE_PAY_TIMEOUT = 0, KICK_MESSAGE_EXPIRE_FREEPLAY, KICK_MESSAGE_MAX };
 
 //////////////////////////////////////////////////////////////////////
 //

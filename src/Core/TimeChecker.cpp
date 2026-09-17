@@ -68,21 +68,6 @@ TimeChecker::~TimeChecker() {
 }
 
 void TimeChecker::init() {
-#ifdef __THAILAND_SERVER__
-    //////////////////////////////////////////////
-    // child guard
-    //////////////////////////////////////////////
-    bool bChildGuard = g_pConfig->getPropertyInt("ChildGuard") == 1;
-    if (bChildGuard) {
-        VSTime fromTime, toTime;
-        fromTime = VSTime::fromStringHM(g_pConfig->getProperty("ChildGuardStartTime"));
-        toTime = VSTime::fromStringHM(g_pConfig->getProperty("ChildGuardEndTime"));
-
-        TimePeriod* pChildGuardTimePeriod = new TimePeriod(fromTime, toTime);
-        m_pTimePeriods[TIME_PERIOD_CHILD_GUARD] = pChildGuardTimePeriod;
-    }
-#endif
-
     // 하교시간
     TimePeriod* pAfterSchoolTimePeriod = new TimePeriod(VSTime(17, 0), VSTime(18, 0));
     m_pTimePeriods[TIME_PERIOD_AFTER_SCHOOL] = pAfterSchoolTimePeriod;
