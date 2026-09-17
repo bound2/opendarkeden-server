@@ -12,8 +12,7 @@
 
 #include "SocketAPI.h"
 
-#if __WINDOWS__
-#elif defined(__LINUX__) || defined(__APPLE__)
+#if defined(__LINUX__) || defined(__APPLE__)
 #include <errno.h> // for errno
 
 #include <arpa/inet.h> // for inet_xxx()
@@ -75,30 +74,6 @@ SOCKET SocketAPI::socket_ex(int domain, int type, int protocol) {
                         "resources are freed.");
         default:
             throw UnknownError(strerror(errno), errno);
-        } // end of switch
-#elif __WINDOWS__
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem or the associated service provider has failed.");
-        case WSAEAFNOSUPPORT:
-            throw Error("The specified address family is not supported.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAEMFILE:
-            throw Error("No more socket descriptors are available.");
-        case WSAENOBUFS:
-            throw Error("No buffer space is available. The socket cannot be created.");
-        case WSAEPROTONOSUPPORT:
-            throw Error("The specified protocol is not supported.");
-        case WSAEPROTOTYPE:
-            throw Error("The specified protocol is the wrong type for this socket.");
-        case WSAESOCKTNOSUPPORT:
-            throw Error("The specified socket type is not supported in this address family.");
-        default:
-            throw UnknownError("socket()");
         } // end of switch
 #endif
     }
@@ -166,37 +141,6 @@ void SocketAPI::bind_ex(SOCKET s, const struct sockaddr* addr, uint addrlen) {
         default:
             throw UnknownError(strerror(errno), errno);
         } // end of switch
-#elif __WINDOWS__
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed.");
-        case WSAEADDRINUSE:
-            throw BindException(
-                "A process on the machine is already bound to the same fully-qualified address and the socket has not "
-                "been marked to allow address re-use with SO_REUSEADDR. For example, IP address and port are bound in "
-                "the af_inet case) . (See the SO_REUSEADDR socket option under setsockopt.)");
-        case WSAEADDRNOTAVAIL:
-            throw BindException("The specified address is not a valid address for this machine.");
-        case WSAEFAULT:
-            throw BindException(
-                "The name or the namelen parameter is not a valid part of the user address space, the namelen "
-                "parameter is too small, the name parameter contains incorrect address format for the associated "
-                "address family, or the first two bytes of the memory block specified by name does not match the "
-                "address family associated with the socket descriptor s.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAEINVAL:
-            throw BindException("The socket is already bound to an address.");
-        case WSAENOBUFS:
-            throw Error("Not enough buffers available, too many connections.");
-        case WSAENOTSOCK:
-            throw Error("The descriptor is not a socket.");
-        default:
-            throw UnknownError("bind()");
-        } // end of switch
 #endif
     }
 
@@ -255,55 +199,6 @@ void SocketAPI::connect_ex(SOCKET s, const struct sockaddr* addr, uint addrlen) 
         default:
             throw UnknownError(strerror(errno), errno);
         } // end of switch
-#elif __WINDOWS__
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed.");
-        case WSAEADDRINUSE:
-            throw Error("The socket's local address is already in use and the socket was not marked to allow address "
-                        "reuse with SO_REUSEADDR. This error usually occurs when executing bind, but could be delayed "
-                        "until this function if the bind was to a partially wild-card address (involving ADDR_ANY) and "
-                        "if a specific address needs to be committed at the time of this function.");
-        case WSAEINTR:
-            throw Error("The (blocking) Windows Socket 1.1 call was canceled through WSACancelBlockingCall.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAEALREADY:
-            throw Error("A nonblocking connect call is in progress on the specified socket. Note In order to preserve "
-                        "backward compatibility, this error is reported as WSAEINVAL to Windows Sockets 1.1 "
-                        "applications that link to either WINSOCK.DLL or WSOCK32.DLL.");
-        case WSAEADDRNOTAVAIL:
-            throw ConnectException("The remote address is not a valid address (such as ADDR_ANY).");
-        case WSAEAFNOSUPPORT:
-            throw Error("Addresses in the specified family cannot be used with this socket.");
-        case WSAECONNREFUSED:
-            throw ConnectException("The attempt to connect was forcefully rejected.");
-        case WSAEFAULT:
-            throw Error("The name or the namelen parameter is not a valid part of the user address space, the namelen "
-                        "parameter is too small, or the name parameter contains incorrect address format for the "
-                        "associated address family.");
-        case WSAEINVAL:
-            throw Error("The parameter s is a listening socket, or the destination address specified is not consistent "
-                        "with that of the constrained group the socket belongs to.");
-        case WSAEISCONN:
-            throw ConnectException("The socket is already connected (connection-oriented sockets only).");
-        case WSAENETUNREACH:
-            throw ConnectException("The network cannot be reached from this host at this time.");
-        case WSAENOBUFS:
-            throw Error("No buffer space is available. The socket cannot be connected.");
-        case WSAENOTSOCK:
-            throw Error("The descriptor is not a socket.");
-        case WSAETIMEDOUT:
-            throw ConnectException("Attempt to connect timed out without establishing a connection.");
-        case WSAEWOULDBLOCK:
-            throw NonBlockingIOException(
-                "The socket is marked as nonblocking and the connection cannot be completed immediately.");
-        default:
-            throw UnknownError("connect()");
-        } // end of switch
 #endif
     }
 
@@ -344,36 +239,6 @@ void SocketAPI::listen_ex(SOCKET s, uint backlog) {
         default:
             throw UnknownError(strerror(errno), errno);
         } // end of switch
-#elif __WINDOWS__
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed.");
-        case WSAEADDRINUSE:
-            throw Error(
-                "The socket's local address is already in use and the socket was not marked to allow address reuse "
-                "with SO_REUSEADDR. This error usually occurs during execution of the bind function, but could be "
-                "delayed until this function if the bind was to a partially wild-card address (involving ADDR_ANY) and "
-                "if a specific address needs to be 'committed' at the time of this function.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAEINVAL:
-            throw Error("The socket has not been bound with bind.");
-        case WSAEISCONN:
-            throw Error("The socket is already connected.");
-        case WSAEMFILE:
-            throw Error("No more socket descriptors are available.");
-        case WSAENOBUFS:
-            throw Error("No buffer space is available.");
-        case WSAENOTSOCK:
-            throw Error("The descriptor is not a socket.");
-        case WSAEOPNOTSUPP:
-            throw Error("The referenced socket is not of a type that supports the listen operation.");
-        default:
-            throw UnknownError("listen()");
-        } // end of switch
 #endif
     }
 
@@ -406,8 +271,6 @@ SOCKET SocketAPI::accept_ex(SOCKET s, struct sockaddr* addr, uint* addrlen) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     SOCKET client = accept(s, addr, addrlen);
-#elif __WINDOWS__
-    SOCKET client = accept(s, addr, (int*)addrlen);
 #endif
 
     if (client == INVALID_SOCKET) {
@@ -432,34 +295,6 @@ SOCKET SocketAPI::accept_ex(SOCKET s, struct sockaddr* addr, uint* addrlen) {
 
         default:
             throw UnknownError(strerror(errno), errno);
-        } // end of switch
-#elif __WINDOWS__
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this FUNCTION.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed.");
-        case WSAEFAULT:
-            throw Error("The addrlen parameter is too small or addr is not a valid part of the user address space.");
-        case WSAEINTR:
-            throw Error("A blocking Windows Sockets 1.1 call was canceled through WSACancelBlockingCall.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAEINVAL:
-            throw Error("The listen function was not invoked prior to accept.");
-        case WSAEMFILE:
-            throw Error("The queue is nonempty upon entry to accept and there are no descriptors available.");
-        case WSAENOBUFS:
-            throw Error("No buffer space is available.");
-        case WSAENOTSOCK:
-            throw Error("The descriptor is not a socket.");
-        case WSAEOPNOTSUPP:
-            throw Error("The referenced socket is not a type that supports connection-oriented service.");
-        case WSAEWOULDBLOCK:
-            throw NonBlockingIOException();
-        default:
-            throw UnknownError("accept()");
         } // end of switch
 #endif
     } else {
@@ -535,29 +370,6 @@ void SocketAPI::getsockopt_ex(SOCKET s, int level, int optname, void* optval, ui
             throw UnknownError(strerror(errno), errno);
         } // end of switch
     }
-#elif __WINDOWS__
-    if (getsockopt(s, level, optname, (char*)optval, (int*)optlen) == SOCKET_ERROR) {
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed.");
-        case WSAEFAULT:
-            throw Error("One of the optval or the optlen parameters is not a valid part of the user address space, or "
-                        "the optlen parameter is too small.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAEINVAL:
-            throw Error("The level parameter is unknown or invalid.");
-        case WSAENOPROTOOPT:
-            throw Error("The option is unknown or unsupported by the indicated protocol family.");
-        case WSAENOTSOCK:
-            throw Error("The descriptor is not a socket.");
-        default:
-            throw UnknownError("getsockopt()");
-        } // end of switch
-    }
 #endif
 
     __END_CATCH
@@ -628,33 +440,6 @@ void SocketAPI::setsockopt_ex(SOCKET s, int level, int optname, const void* optv
             throw UnknownError(strerror(errno), errno);
         } // end of switch
     }
-#elif __WINDOWS__
-    if (setsockopt(s, level, optname, (char*)optval, optlen) == SOCKET_ERROR) {
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed.");
-        case WSAEFAULT:
-            throw Error("optval is not in a valid part of the process address space or optlen parameter is too small.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAEINVAL:
-            throw Error("level is not valid, or the information in optval is not valid.");
-        case WSAENETRESET:
-            throw Error("Connection has timed out when SO_KEEPALIVE is set.");
-        case WSAENOPROTOOPT:
-            throw Error("The option is unknown or unsupported for the specified provider or socket (see "
-                        "SO_GROUP_PRIORITY limitations).");
-        case WSAENOTCONN:
-            throw Error("Connection has been reset when SO_KEEPALIVE is set.");
-        case WSAENOTSOCK:
-            throw Error("The descriptor is not a socket.");
-        default:
-            throw UnknownError("setsockopt()");
-        } // end of switch
-    }
 #endif
 
     __END_CATCH
@@ -691,8 +476,6 @@ uint SocketAPI::send_ex(SOCKET s, const void* buf, uint len, uint flags) {
     try {
 #if defined(__LINUX__) || defined(__APPLE__)
         nSent = send(s, buf, len, flags);
-#elif __WINDOWS__
-        nSent = send(s, (const char*)buf, len, flags);
 #endif
 
         if (nSent == SOCKET_ERROR) {
@@ -716,63 +499,6 @@ uint SocketAPI::send_ex(SOCKET s, const void* buf, uint len, uint flags) {
 
             default:
                 throw UnknownError(strerror(errno), errno);
-            } // end of switch
-#elif __WINDOWS__
-            switch (WSAGetLastError()) {
-            case WSANOTINITIALISED:
-                throw Error("A successful WSAStartup must occur before using this function.");
-            case WSAENETDOWN:
-                throw Error("The network subsystem has failed.");
-            case WSAEACCES:
-                throw Error("The requested address is a broadcast address, but the appropriate flag was not set. Call "
-                            "setsockopt with the SO_BROADCAST parameter to allow the use of the broadcast address.");
-            case WSAEINTR:
-                throw Error("A blocking Windows Sockets 1.1 call was canceled through WSACancelBlockingCall.");
-            case WSAEINPROGRESS:
-                throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                            "processing a callback function.");
-            case WSAEFAULT:
-                throw Error("The buf parameter is not completely contained in a valid part of the user address space.");
-            case WSAENETRESET:
-                throw ConnectException("The connection has been broken due to the 'keep-alive' activity detecting a "
-                                       "failure while the operation was in progress.");
-            case WSAENOBUFS:
-                throw Error("No buffer space is available.");
-            case WSAENOTCONN:
-                throw Error("The socket is not connected.");
-            case WSAENOTSOCK:
-                throw Error("The descriptor is not a socket.");
-            case WSAEOPNOTSUPP:
-                throw Error("MSG_OOB was specified, but the socket is not stream-style such as type SOCK_STREAM, "
-                            "out-of-band data is not supported in the communication domain associated with this "
-                            "socket, or the socket is unidirectional and supports only receive operations.");
-            case WSAESHUTDOWN:
-                throw ConnectException("The socket has been shut down; it is not possible to send on a socket after "
-                                       "shutdown has been invoked with how set to SD_SEND or SD_BOTH.");
-            case WSAEWOULDBLOCK:
-                throw NonBlockingIOException(
-                    "The socket is marked as nonblocking and the requested operation would block.");
-            case WSAEMSGSIZE:
-                throw Error("The socket is message oriented, and the message is larger than the maximum supported by "
-                            "the underlying transport.");
-            case WSAEHOSTUNREACH:
-                throw ConnectException("The remote host cannot be reached from this host at this time.");
-            case WSAEINVAL:
-                throw Error("The socket has not been bound with bind, or an unknown flag was specified, or MSG_OOB was "
-                            "specified for a socket with SO_OOBINLINE enabled.");
-            case WSAECONNABORTED:
-                throw ConnectException("The virtual circuit was terminated due to a time-out or other failure. The "
-                                       "application should close the socket as it is no longer usable.");
-            case WSAECONNRESET:
-                throw ConnectException("The virtual circuit was reset by the remote side executing a 'hard' or "
-                                       "'abortive' close. For UPD sockets, the remote host was unable to deliver a "
-                                       "previously sent UDP datagram and responded with a 'Port Unreachable' ICMP "
-                                       "packet. The application should close the socket as it is no longer usable.");
-            case WSAETIMEDOUT:
-                throw ConnectException("The connection has been dropped, because of a network failure or because the "
-                                       "system on the other end went down without notice.");
-            default:
-                throw UnknownError("send()");
             } // end of switch
 #endif
         } else if (nSent == 0) {
@@ -800,8 +526,6 @@ uint SocketAPI::sendto_ex(SOCKET s, const void* buf, int len, unsigned int flags
 
 #if defined(__LINUX__) || defined(__APPLE__)
     int nSent = sendto(s, buf, len, flags, to, tolen);
-#elif __WINDOWS__
-    int nSent = sendto(s, (const char*)buf, len, flags, to, tolen);
 #endif
 
     if (nSent == SOCKET_ERROR) {
@@ -827,7 +551,6 @@ uint SocketAPI::sendto_ex(SOCKET s, const void* buf, int len, unsigned int flags
             // throw UnknownError(strerror(errno),errno);
             throw ConnectException(strerror(errno));
         }
-#elif __WINDOWS__
 #endif
     }
 
@@ -864,8 +587,6 @@ uint SocketAPI::recv_ex(SOCKET s, void* buf, uint len, uint flags) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     int nrecv = recv(s, buf, len, flags);
-#elif __WINDOWS__
-    int nrecv = recv(s, (char*)buf, len, flags);
 #endif
 
     if (nrecv == SOCKET_ERROR) {
@@ -891,55 +612,6 @@ uint SocketAPI::recv_ex(SOCKET s, void* buf, uint len, uint flags) {
             throw UnknownError(strerror(errno), errno);
         } // end of switch
 
-#elif __WINDOWS__
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed.");
-        case WSAEFAULT:
-            throw Error("The buf parameter is not completely contained in a valid part of the user address space.");
-        case WSAENOTCONN:
-            throw Error("The socket is not connected.");
-        case WSAEINTR:
-            throw Error("The (blocking) call was canceled through WSACancelBlockingCall.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAENETRESET:
-            throw ConnectException("The connection has been broken due to the keep-alive activity detecting a failure "
-                                   "while the operation was in progress.");
-        case WSAENOTSOCK:
-            throw Error("The descriptor is not a socket.");
-        case WSAEOPNOTSUPP:
-            throw Error("MSG_OOB was specified, but the socket is not stream-style such as type SOCK_STREAM, "
-                        "out-of-band data is not supported in the communication domain associated with this socket, or "
-                        "the socket is unidirectional and supports only send operations.");
-        case WSAESHUTDOWN:
-            throw Error("The socket has been shut down; it is not possible to recv on a socket after shutdown has been "
-                        "invoked with how set to SD_RECEIVE or SD_BOTH.");
-        case WSAEWOULDBLOCK:
-            throw NonBlockingIOException("The socket is marked as nonblocking and the receive operation would block.");
-        case WSAEMSGSIZE:
-            throw Error("The message was too large to fit into the specified buffer and was truncated.");
-        case WSAEINVAL:
-            throw Error(
-                "The socket has not been bound with bind, or an unknown flag was specified, or MSG_OOB was specified "
-                "for a socket with SO_OOBINLINE enabled or (for byte stream sockets only) len was zero or negative.");
-        case WSAECONNABORTED:
-            throw ConnectException("The virtual circuit was terminated due to a time-out or other failure. The "
-                                   "application should close the socket as it is no longer usable.");
-        case WSAETIMEDOUT:
-            throw ConnectException("The connection has been dropped because of a network failure or because the peer "
-                                   "system failed to respond.");
-        case WSAECONNRESET:
-            throw ConnectException(
-                "The virtual circuit was reset by the remote side executing a 'hard' or 'abortive' close. The "
-                "application should close the socket as it is no longer usable. On a UDP datagram socket this error "
-                "would indicate that a previous send operation resulted in an ICMP 'Port Unreachable' message.");
-        default:
-            throw UnknownError("recv()");
-        } // end of switch
 #endif
     } else if (nrecv == 0) {
         throw ConnectException("connect closed.");
@@ -963,8 +635,6 @@ uint SocketAPI::recvfrom_ex(SOCKET s, void* buf, int len, uint flags, struct soc
     // SOCKADDR_IN* sa = (SOCKADDR_IN*)from;
     // cout << "recvfrom_ex : " << inet_ntoa(sa->sin_addr) << ":" << sa->sin_port << endl;
 
-#elif __WINDOWS__
-    int nReceived = recvfrom(s, (char*)buf, len, flags, from, (int*)fromlen);
 #endif
 
     if (nReceived == SOCKET_ERROR) {
@@ -989,7 +659,6 @@ uint SocketAPI::recvfrom_ex(SOCKET s, void* buf, int len, uint flags, struct soc
         default:
             throw UnknownError(strerror(errno), errno);
         } // end of switch
-#elif __WINDOWS__
 #endif
     }
 
@@ -1022,26 +691,6 @@ void SocketAPI::closesocket_ex(SOCKET s) {
 #if defined(__LINUX__) || defined(__APPLE__)
     // using close_ex()
     FileAPI::close_ex(s);
-#elif __WINDOWS__
-    if (closesocket(s) == SOCKET_ERROR) {
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed.");
-        case WSAENOTSOCK:
-            throw FileNotOpenedException("The descriptor is not a socket.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAEINTR:
-            throw Error("The (blocking) Windows Socket 1.1 call was canceled through WSACancelBlockingCall.");
-        case WSAEWOULDBLOCK:
-            throw Error("The socket is marked as nonblocking and SO_LINGER is set to a nonzero time-out value.");
-        default:
-            throw UnknownError("closesocket()");
-        } // end of switch
-    }
 #endif
 
     __END_CATCH
@@ -1061,24 +710,6 @@ void SocketAPI::ioctlsocket_ex(SOCKET s, long cmd, ulong* argp) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     throw UnsupportedError();
-#elif __WINDOWS__
-    if (ioctlsocket(s, cmd, argp) == SOCKET_ERROR) {
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function. ");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed. ");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function. ");
-        case WSAENOTSOCK:
-            throw Error("The descriptor s is not a socket. ");
-        case WSAEFAULT:
-            throw Error("The argp parameter is not a valid part of the user address space. ");
-        default:
-            throw UnknownError("ioctlsocket()");
-        }
-    }
 #endif
 
     __END_CATCH
@@ -1107,8 +738,6 @@ bool SocketAPI::getsocketnonblocking_ex(SOCKET s) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     return FileAPI::getfilenonblocking_ex(s);
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
 
     __END_CATCH
@@ -1138,9 +767,6 @@ void SocketAPI::setsocketnonblocking_ex(SOCKET s, bool on) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     FileAPI::setfilenonblocking_ex(s, on);
-#elif __WINDOWS__
-    ulong argp = (on == true) ? 1 : 0;
-    ioctlsocket_ex(s, FIONBIO, &argp);
 #endif
 
     __END_CATCH
@@ -1168,10 +794,6 @@ uint SocketAPI::availablesocket_ex(SOCKET s) {
 
 #if defined(__LINUX__) || defined(__APPLE__)
     return availablefile_ex(s);
-#elif __WINDOWS__
-    ulong argp = 0;
-    ioctlsocket_ex(s, FIONREAD, &argp);
-    return argp;
 #endif
 
     __END_CATCH
@@ -1210,25 +832,6 @@ void SocketAPI::shutdown_ex(SOCKET s, uint how) {
             throw Error("The specified socket is not connected.");
         default:
             throw UnknownError(strerror(errno), errno);
-        }
-#elif __WINDOWS__
-        switch (WSAGetLastError()) {
-        case WSANOTINITIALISED:
-            throw Error("A successful WSAStartup must occur before using this function.");
-        case WSAENETDOWN:
-            throw Error("The network subsystem has failed.");
-        case WSAEINVAL:
-            throw Error("The how parameter is not valid, or is not consistent with the socket type. For example, "
-                        "SD_SEND is used with a UNI_RECV socket type.");
-        case WSAEINPROGRESS:
-            throw Error("A blocking Windows Sockets 1.1 call is in progress, or the service provider is still "
-                        "processing a callback function.");
-        case WSAENOTCONN:
-            throw Error("The socket is not connected (connection-oriented sockets only).");
-        case WSAENOTSOCK:
-            throw Error("The descriptor is not a socket.");
-        default:
-            throw UnknownError("shutdown()");
         }
 #endif
     }
@@ -1300,10 +903,6 @@ int SocketAPI::select_ex(int maxfdp1, fd_set* readset, fd_set* writeset, fd_set*
     }
 
     return result;
-
-#elif __WINDOWS__
-
-    throw UnsupportedError();
 
 #endif
 

@@ -41,8 +41,6 @@ int SystemAPI::fork_ex() {
     }
 
     return fd;
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
     __END_CATCH
 }

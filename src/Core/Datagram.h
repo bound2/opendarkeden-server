@@ -18,8 +18,6 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#elif __WINDOWS__
-#include <winsock.h>
 #endif
 
 // forward declaration

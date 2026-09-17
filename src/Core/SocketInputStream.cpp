@@ -18,8 +18,6 @@
 
 #if __LINUX__
 #include <sys/ioctl.h>
-#elif __WINDOWS__
-#include <winsock.h>
 #endif
 
 
@@ -501,8 +499,6 @@ uint SocketInputStream::fill_RAW() {
 
     return nread;
 
-#elif __WINDOWS__
-    throw UnsupportedError();
 #endif
 
     __END_CATCH
