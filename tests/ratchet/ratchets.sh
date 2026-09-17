@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5434 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5211 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -89,7 +89,7 @@ check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5434 "$R5"
 # skill-failure packets and the elemental lookups. Under the 2,000-line phase
 # exit criterion, so the ratchet is a pin rather than a god-file baseline now.
 R6a=$(wc -l < src/server/gameserver/skill/SkillUtil.cpp 2>/dev/null || echo missing)
-check_ratchet R6a "SkillUtil.cpp lines" 705 "$R6a"
+check_ratchet R6a "SkillUtil.cpp lines" 687 "$R6a"
 # R6b shrinks as InitAllStat.cpp's per-race stat code leaves it: the Slayer,
 # Vampire and Ousters members -- the castle skills, the all-stat
 # recalculation and the item, option and blood bible contributions to it --
@@ -98,11 +98,11 @@ check_ratchet R6a "SkillUtil.cpp lines" 705 "$R6a"
 # Monster::initAllStat. Under the 2,000-line phase exit criterion, so the
 # ratchet is a pin rather than a god-file baseline now.
 R6b=$(wc -l < src/server/gameserver/InitAllStat.cpp 2>/dev/null || echo missing)
-check_ratchet R6b "InitAllStat.cpp lines" 243 "$R6b"
+check_ratchet R6b "InitAllStat.cpp lines" 230 "$R6b"
 R6c=$(wc -l < src/server/gameserver/skill/HitRoll.cpp 2>/dev/null || echo missing)
-check_ratchet R6c "HitRoll.cpp lines" 728 "$R6c"
+check_ratchet R6c "HitRoll.cpp lines" 643 "$R6c"
 R6d=$(wc -l < src/server/gameserver/skill/SkillFormula.cpp 2>/dev/null || echo missing)
-check_ratchet R6d "SkillFormula.cpp lines" 820 "$R6d"
+check_ratchet R6d "SkillFormula.cpp lines" 818 "$R6d"
 # R6e added with the 4.1 GM-command extraction: the 33 command bodies and
 # the branch ladder left CGSayHandler.cpp for gm/, leaving the packet
 # handler itself.
@@ -119,7 +119,7 @@ check_ratchet R6f "ConsoleCommands.cpp lines" 1595 "$R6f"
 # What is left is the zone's own state: tiles, effects, creature lookup, the
 # NPC registry and the heartbeat. Under the 2,000-line phase exit criterion.
 R6g=$(wc -l < src/server/gameserver/Zone.cpp 2>/dev/null || echo missing)
-check_ratchet R6g "Zone.cpp lines" 1472 "$R6g"
+check_ratchet R6g "Zone.cpp lines" 1274 "$R6g"
 
 # R6h-j: the three race classes. Persistence, gold, item-shape, inventory and
 # free-play bodies now live once on PlayerCreature; what is left in each file
@@ -449,7 +449,84 @@ rm -f "$r16_inc" "$r16_dead"
 # working tree out of the count, which [^[:print:]] would not, and LC_ALL=C
 # keeps the range byte-wise where a locale would read it as characters.
 R17=$(LC_ALL=C grep -rhE $'[^\x01-\x7f]' src --include='*.h' --include='*.cpp' | wc -l)
-check_ratchet R17 "source lines carrying non-ASCII bytes" 18298 "$R17"
+check_ratchet R17 "source lines carrying non-ASCII bytes" 17690 "$R17"
+
+# --- R18: commented-out code inside /* */ blocks ---------------------------
+# Code that was switched off years ago says nothing true about the running
+# server: it names globals that were deleted, calls signatures that changed
+# and describes branches the build no longer has. It also reads as if it
+# were a description of the code beside it, which is the expensive part.
+# Comments that explain behaviour stay; this counts the ones that are code.
+#
+# The measure is deliberately narrow, because a narrow measure can be
+# trusted. Only lines inside a *multi-line* /* */ comment count, and only
+# those that look like a statement: a line ending in ";", "{" or "}", a
+# preprocessor directive, a line opening with a control keyword or a type
+# name, or an identifier followed by "(". The same test over "//" lines was
+# measured and rejected: on a sample of 50 it called 13 prose lines code --
+# section banners ("// class Foo member methods"), end-of-block markers
+# ("// for"), and ordinary sentences that happen to open with "delete" or
+# to mention a function by name. One in four is too loose to ratchet on, so
+# "//" commented-out code is removed by hand without being counted here.
+#
+# The scanner walks each file character by character rather than matching
+# line by line, so a "/*" inside a string literal or behind a "//" does not
+# open a block. The first and last lines of a block carry the delimiters
+# and are left out by the same test that skips a bare "/*" or "*/".
+r18_raw=$(find src \( -name '*.cpp' -o -name '*.h' \) -print0 | perl -0 -ne '
+    BEGIN { $files = 0; $count = 0 }
+    chomp; my $f = $_;
+    open(my $fh, "<", $f) or next; $files++;
+    my $src = do { local $/; <$fh> }; close $fh;
+    my @blocks; my $i = 0; my $n = length($src);
+    while ($i < $n) {
+        my $c = substr($src, $i, 1);
+        if ($c eq "\"" or $c eq chr(39)) {
+            my $q = $c; $i++;
+            while ($i < $n) {
+                my $d = substr($src, $i, 1);
+                if ($d eq chr(92)) { $i += 2; next }
+                $i++;
+                last if $d eq $q or $d eq "\n";
+            }
+            next;
+        }
+        if ($c eq "/" and substr($src, $i + 1, 1) eq "/") {
+            my $j = index($src, "\n", $i); $j = $n if $j < 0; $i = $j; next;
+        }
+        if ($c eq "/" and substr($src, $i + 1, 1) eq "*") {
+            my $j = index($src, "*/", $i + 2); $j = $j < 0 ? $n : $j + 2;
+            my $chunk = substr($src, $i, $j - $i);
+            push @blocks, $chunk if $chunk =~ /\n/;
+            $i = $j; next;
+        }
+        $i++;
+    }
+    for my $chunk (@blocks) {
+        for my $line (split(/\n/, $chunk, -1)) {
+            $line =~ s/\r$//;
+            $line =~ s/^\s*\*(?=\s|$)//;
+            $line =~ s/^\s+//; $line =~ s/\s+$//;
+            next if $line eq "" or $line eq "*/" or $line eq "/*";
+            $count++ if
+                $line =~ /^#\s*(include|define|ifdef|ifndef|endif|else|elif|if|pragma|undef)\b/
+             or $line =~ /[;{}]$/
+             or $line =~ /^(if|for|while|switch|return|else|case|do|delete|new|goto|break|continue|try|catch|throw|struct|class|template|typedef|using|namespace|public|private|protected|const|static|void|int|bool|char|float|double|unsigned|uint|BYTE|WORD|DWORD|BOOL)\b/
+             or $line =~ /^[A-Za-z_][A-Za-z0-9_:<>.\-\[\]*&]*\s*\(/;
+        }
+    }
+    END { print "$files $count\n" }
+')
+# R13's rule: a scan that found almost nothing must fail loudly rather than
+# read as a clean tree. src/ holds well over three thousand sources.
+r18_files=${r18_raw%% *}
+R18=${r18_raw##* }
+if ! [[ "$r18_files" =~ ^[0-9]+$ ]] || [ "$r18_files" -lt 3000 ]; then
+    echo "[FAIL] R18 commented-out code: only '$r18_files' files scanned (find or perl broken?)"
+    fail=1
+else
+    check_ratchet R18 "commented-out code lines in /* */ blocks" 5281 "$R18"
+fi
 
 # --- Removed dead services must not return --------------------------------
 # China billing, theoneserver, updateserver, cacheserver (all 2026-09-05).
