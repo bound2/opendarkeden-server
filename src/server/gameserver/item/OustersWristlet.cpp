@@ -18,9 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-OustersWristletInfoManager* g_pOustersWristletInfoManager = NULL;
-
 ItemID_t OustersWristlet::m_ItemIDRegistry = 0;
 Mutex OustersWristlet::m_Mutex;
 
@@ -218,7 +215,7 @@ int OustersWristlet::getCriticalBonus(void) const
 ElementalType OustersWristlet::getElementalType(void) const {
     __BEGIN_TRY
 
-    return g_pOustersWristletInfoManager->getItemInfo(getItemType())->getElementalType();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_WRISTLET, getItemType())->getElementalType();
 
     __END_CATCH
 }
@@ -230,7 +227,7 @@ ElementalType OustersWristlet::getElementalType(void) const {
 Elemental_t OustersWristlet::getElemental(void) const {
     __BEGIN_TRY
 
-    return g_pOustersWristletInfoManager->getItemInfo(getItemType())->getElemental();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_WRISTLET, getItemType())->getElemental();
 
     __END_CATCH
 }
@@ -323,7 +320,8 @@ void OustersWristletLoader::load(Creature* pCreature)
             pOustersWristlet->setObjectID(rows[r].objectID);
             pOustersWristlet->setItemType(rows[r].itemType);
 
-            if (g_pOustersWristletInfoManager->getItemInfo(pOustersWristlet->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_WRISTLET, pOustersWristlet->getItemType())
+                    ->isUnique())
                 pOustersWristlet->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

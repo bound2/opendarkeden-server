@@ -174,8 +174,6 @@ public:
     virtual void load();
 };
 
-extern OustersChakramInfoManager* g_pOustersChakramInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class OustersChakramFactory

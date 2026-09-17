@@ -152,7 +152,6 @@ public:
 };
 
 // global variable declaration
-extern ComposMeiInfoManager* g_pComposMeiInfoManager;
 
 
 //--------------------------------------------------------------------------------

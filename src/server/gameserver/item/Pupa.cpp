@@ -20,9 +20,6 @@
 #include "ZoneGroupManager.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-PupaInfoManager* g_pPupaInfoManager = NULL;
-
 ItemID_t Pupa::m_ItemIDRegistry = 0;
 Mutex Pupa::m_Mutex;
 
@@ -136,7 +133,7 @@ VolumeWidth_t Pupa::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pPupaInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -150,7 +147,7 @@ VolumeHeight_t Pupa::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pPupaInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -164,7 +161,7 @@ Weight_t Pupa::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pPupaInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -174,7 +171,7 @@ int Pupa::getHPAmount(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pPupaInfoManager->getItemInfo(m_ItemType));
+    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getHPAmount();
 
     __END_CATCH
@@ -185,7 +182,7 @@ int Pupa::getMPAmount(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pPupaInfoManager->getItemInfo(m_ItemType));
+    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getMPAmount();
 
     __END_CATCH
@@ -196,7 +193,7 @@ int Pupa::getHPDelay(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pPupaInfoManager->getItemInfo(m_ItemType));
+    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getHPDelay();
 
     __END_CATCH
@@ -207,7 +204,7 @@ int Pupa::getMPDelay(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pPupaInfoManager->getItemInfo(m_ItemType));
+    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getMPDelay();
 
     __END_CATCH
@@ -218,7 +215,7 @@ int Pupa::getHPQuantity(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pPupaInfoManager->getItemInfo(m_ItemType));
+    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getHPQuantity();
 
     __END_CATCH
@@ -229,7 +226,7 @@ int Pupa::getMPQuantity(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pPupaInfoManager->getItemInfo(m_ItemType));
+    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getMPQuantity();
 
     __END_CATCH
@@ -240,7 +237,7 @@ int Pupa::getHPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pPupaInfoManager->getItemInfo(m_ItemType));
+    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getHPRecoveryUnit();
 
     __END_CATCH
@@ -251,7 +248,7 @@ int Pupa::getMPRecoveryUnit(void) const
 {
     __BEGIN_TRY
 
-    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pPupaInfoManager->getItemInfo(m_ItemType));
+    PupaInfo* pInfo = dynamic_cast<PupaInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PUPA, m_ItemType));
     return pInfo->getMPRecoveryUnit();
 
     __END_CATCH

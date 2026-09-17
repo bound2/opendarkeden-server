@@ -158,8 +158,6 @@ public:
     virtual void load();
 };
 
-extern ARInfoManager* g_pARInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class ARFactory

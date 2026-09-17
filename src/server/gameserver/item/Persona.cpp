@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-PersonaInfoManager* g_pPersonaInfoManager = NULL;
-
 ItemID_t Persona::m_ItemIDRegistry = 0;
 Mutex Persona::m_Mutex;
 
@@ -205,7 +202,7 @@ void PersonaLoader::load(Creature* pCreature)
             pPersona->setObjectID(rows[r].objectID);
             pPersona->setItemType(rows[r].itemType);
 
-            if (g_pPersonaInfoManager->getItemInfo(pPersona->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PERSONA, pPersona->getItemType())->isUnique())
                 pPersona->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

@@ -98,7 +98,6 @@ public:
     virtual void load();
 };
 
-extern MoonCardInfoManager* g_pMoonCardInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class MoonCardFactory

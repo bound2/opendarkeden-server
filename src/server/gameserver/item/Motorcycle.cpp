@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-MotorcycleInfoManager* g_pMotorcycleInfoManager = NULL;
-
 ItemID_t Motorcycle::m_ItemIDRegistry = 0;
 Mutex Motorcycle::m_Mutex;
 
@@ -159,7 +156,7 @@ VolumeWidth_t Motorcycle::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pMotorcycleInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MOTORCYCLE, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -173,7 +170,7 @@ VolumeHeight_t Motorcycle::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pMotorcycleInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MOTORCYCLE, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -187,7 +184,7 @@ Weight_t Motorcycle::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pMotorcycleInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MOTORCYCLE, m_ItemType)->getWeight();
 
     __END_CATCH
 }

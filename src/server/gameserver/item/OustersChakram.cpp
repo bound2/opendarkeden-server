@@ -18,9 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-OustersChakramInfoManager* g_pOustersChakramInfoManager = NULL;
-
 ItemID_t OustersChakram::m_ItemIDRegistry = 0;
 Mutex OustersChakram::m_Mutex;
 
@@ -297,7 +294,8 @@ void OustersChakramLoader::load(Creature* pCreature)
             pOustersChakram->setObjectID(rows[r].objectID);
             pOustersChakram->setItemType(rows[r].itemType);
 
-            if (g_pOustersChakramInfoManager->getItemInfo(pOustersChakram->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_CHAKRAM, pOustersChakram->getItemType())
+                    ->isUnique())
                 pOustersChakram->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

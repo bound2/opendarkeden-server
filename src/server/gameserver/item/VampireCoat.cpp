@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-VampireCoatInfoManager* g_pVampireCoatInfoManager = NULL;
-
 ItemID_t VampireCoat::m_ItemIDRegistry = 0;
 Mutex VampireCoat::m_Mutex;
 
@@ -275,7 +272,7 @@ void VampireCoatLoader::load(Creature* pCreature)
             pVampireCoat->setObjectID(rows[r].objectID);
             pVampireCoat->setItemType(rows[r].itemType);
 
-            if (g_pVampireCoatInfoManager->getItemInfo(pVampireCoat->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_COAT, pVampireCoat->getItemType())->isUnique())
                 pVampireCoat->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

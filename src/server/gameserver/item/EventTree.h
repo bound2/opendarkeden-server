@@ -102,7 +102,6 @@ public:
     virtual void load();
 };
 
-extern EventTreeInfoManager* g_pEventTreeInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class EventTreeFactory

@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-SwordInfoManager* g_pSwordInfoManager = NULL;
-
 ItemID_t Sword::m_ItemIDRegistry = 0;
 Mutex Sword::m_Mutex;
 
@@ -300,7 +297,7 @@ void SwordLoader::load(Creature* pCreature)
             pSword->setObjectID(rows[r].objectID);
             pSword->setItemType(rows[r].itemType);
 
-            if (g_pSwordInfoManager->getItemInfo(pSword->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWORD, pSword->getItemType())->isUnique())
                 pSword->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

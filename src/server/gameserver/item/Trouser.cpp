@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-TrouserInfoManager* g_pTrouserInfoManager = NULL;
-
 ItemID_t Trouser::m_ItemIDRegistry = 0;
 Mutex Trouser::m_Mutex;
 
@@ -277,7 +274,7 @@ void TrouserLoader::load(Creature* pCreature)
             pTrouser->setObjectID(rows[r].objectID);
             pTrouser->setItemType(rows[r].itemType);
 
-            if (g_pTrouserInfoManager->getItemInfo(pTrouser->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_TROUSER, pTrouser->getItemType())->isUnique())
                 pTrouser->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

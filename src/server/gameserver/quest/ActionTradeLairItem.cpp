@@ -29,6 +29,7 @@
 #include "Item.h"
 #include "ItemFactoryManager.h"
 #include "ItemGradeManager.h"
+#include "ItemInfoManager.h"
 #include "ItemMineInfo.h"
 #include "ItemUtil.h"
 #include "MonsterInfo.h"
@@ -290,8 +291,8 @@ void ActionTradeLairItem::execute(Creature* pCreature1, Creature* pCreature2)
 
     //	if ( MonsterType != 0 ) // 루팅표를 참조해서 아이템을 만들어오는 경우
     if (pItem1 == NULL) {
-        QuestItemInfo* pItemInfo =
-            dynamic_cast<QuestItemInfo*>(g_pQuestItemInfoManager->getItemInfo(pMasterItem->getItemType()));
+        QuestItemInfo* pItemInfo = dynamic_cast<QuestItemInfo*>(
+            g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_QUEST_ITEM, pMasterItem->getItemType()));
         Assert(pItemInfo != NULL);
 
         ///////////////////////////////////////////////////////////////////////////////

@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-QuestItemInfoManager* g_pQuestItemInfoManager = NULL;
-
 ItemID_t QuestItem::m_ItemIDRegistry = 0;
 Mutex QuestItem::m_Mutex;
 
@@ -105,7 +103,7 @@ VolumeWidth_t QuestItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pQuestItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_QUEST_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -115,7 +113,7 @@ VolumeHeight_t QuestItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pQuestItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_QUEST_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -125,7 +123,7 @@ Weight_t QuestItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pQuestItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_QUEST_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }

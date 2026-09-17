@@ -122,8 +122,6 @@ public:
     virtual void load();
 };
 
-extern MoneyInfoManager* g_pMoneyInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class MoneyFactory

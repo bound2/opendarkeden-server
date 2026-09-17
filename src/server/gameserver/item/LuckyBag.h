@@ -98,7 +98,6 @@ public:
     virtual void load();
 };
 
-extern LuckyBagInfoManager* g_pLuckyBagInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class LuckyBagFactory

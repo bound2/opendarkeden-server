@@ -23,6 +23,7 @@
 #include "GameServerInfoManager.h"
 #include "Guild.h"
 #include "ItemFactoryManager.h"
+#include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "LoginServerManager.h"
 #include "MasterLairManager.h"
@@ -97,7 +98,8 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
 
             // by sigi. 2002.7.5
             for (int i = 0; i < maxRelic; i++) {
-                const RelicInfo* pRelicInfo = dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(i));
+                const RelicInfo* pRelicInfo =
+                    dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, i));
 
                 int ZoneNum = pRelicInfo->zoneID;
 
@@ -135,7 +137,8 @@ void opcombat(GamePlayer* pGamePlayer, string msg, int i) {
 
             // by sigi. 2002.7.5
             for (int i = 0; i < maxRelic; i++) {
-                const RelicInfo* pRelicInfo = dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(i));
+                const RelicInfo* pRelicInfo =
+                    dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, i));
 
                 int ZoneNum = pRelicInfo->zoneID;
 

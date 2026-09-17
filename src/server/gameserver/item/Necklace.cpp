@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-NecklaceInfoManager* g_pNecklaceInfoManager = NULL;
-
 ItemID_t Necklace::m_ItemIDRegistry = 0;
 Mutex Necklace::m_Mutex;
 
@@ -278,7 +275,7 @@ void NecklaceLoader::load(Creature* pCreature)
             pNecklace->setObjectID(rows[r].objectID);
             pNecklace->setItemType(rows[r].itemType);
 
-            if (g_pNecklaceInfoManager->getItemInfo(pNecklace->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_NECKLACE, pNecklace->getItemType())->isUnique())
                 pNecklace->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

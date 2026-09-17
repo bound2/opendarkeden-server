@@ -17,6 +17,7 @@
 #include "GCStatusCurrentHP.h"
 #include "GCSystemMessage.h"
 #include "GuildManager.h"
+#include "ItemInfoManager.h"
 #include "Monster.h"
 #include "MonsterCorpse.h"
 #include "Player.h"
@@ -167,7 +168,7 @@ void EffectHasCastleSymbol::setPart(int part)
     __BEGIN_TRY
 
     const CastleSymbolInfo* pCastleSymbolInfo =
-        dynamic_cast<const CastleSymbolInfo*>(g_pCastleSymbolInfoManager->getItemInfo(part));
+        dynamic_cast<const CastleSymbolInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CASTLE_SYMBOL, part));
 
     if (pCastleSymbolInfo != NULL) {
         m_Part = part;

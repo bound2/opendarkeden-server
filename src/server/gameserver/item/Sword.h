@@ -187,8 +187,6 @@ public:
     virtual void load();
 };
 
-extern SwordInfoManager* g_pSwordInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class SwordFactory

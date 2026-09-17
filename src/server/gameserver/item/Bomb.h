@@ -132,8 +132,6 @@ public:
     virtual void load();
 };
 
-extern BombInfoManager* g_pBombInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class BombFactory

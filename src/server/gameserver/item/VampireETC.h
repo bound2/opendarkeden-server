@@ -100,7 +100,6 @@ public:
 };
 
 // global variable declaration
-extern VampireETCInfoManager* g_pVampireETCInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

@@ -16,8 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-SerumInfoManager* g_pSerumInfoManager = NULL;
-
 ItemID_t Serum::m_ItemIDRegistry = 0;
 Mutex Serum::m_Mutex;
 
@@ -118,7 +116,7 @@ VolumeWidth_t Serum::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pSerumInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -132,7 +130,7 @@ VolumeHeight_t Serum::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pSerumInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -146,7 +144,7 @@ Weight_t Serum::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pSerumInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -154,21 +152,21 @@ Weight_t Serum::getWeight() const
 int Serum::getHPAmount(void) const
 
 {
-    SerumInfo* pInfo = dynamic_cast<SerumInfo*>(g_pSerumInfoManager->getItemInfo(m_ItemType));
+    SerumInfo* pInfo = dynamic_cast<SerumInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType));
     return pInfo->getHPAmount();
 }
 
 int Serum::getPeriod(void) const
 
 {
-    SerumInfo* pInfo = dynamic_cast<SerumInfo*>(g_pSerumInfoManager->getItemInfo(m_ItemType));
+    SerumInfo* pInfo = dynamic_cast<SerumInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType));
     return pInfo->getPeriod();
 }
 
 int Serum::getCount(void) const
 
 {
-    SerumInfo* pInfo = dynamic_cast<SerumInfo*>(g_pSerumInfoManager->getItemInfo(m_ItemType));
+    SerumInfo* pInfo = dynamic_cast<SerumInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SERUM, m_ItemType));
     return pInfo->getCount();
 }
 

@@ -134,7 +134,8 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
         // ¾ÆÀÌÅÛÀÇ ¿É¼ÇÀ» upgrade ½ÃÅ²´Ù.
         //---------------------------------------------------------
         case Item::ITEM_CLASS_EVENT_STAR: {
-            ItemInfo* pItemInfo = g_pEventStarInfoManager->getItemInfo(pMouseItem->getItemType());
+            ItemInfo* pItemInfo =
+                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_EVENT_STAR, pMouseItem->getItemType());
             Assert(pItemInfo != NULL);
 
             EventStarInfo* pEventStarInfo = dynamic_cast<EventStarInfo*>(pItemInfo);
@@ -181,8 +182,8 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
                 return;
             }
 
-            PetEnchantItemInfo* pItemInfo =
-                dynamic_cast<PetEnchantItemInfo*>(g_pPetEnchantItemInfoManager->getItemInfo(pMouseItem->getItemType()));
+            PetEnchantItemInfo* pItemInfo = dynamic_cast<PetEnchantItemInfo*>(
+                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ENCHANT_ITEM, pMouseItem->getItemType()));
             Assert(pItemInfo != NULL);
 
             PetItem* pPetItem = dynamic_cast<PetItem*>(pItem);
@@ -430,8 +431,8 @@ void CGAddItemToItemHandler::execute(CGAddItemToItem* pPacket, Player* pPlayer) 
                 return;
             }
 
-            MixingItemInfo* pItemInfo =
-                dynamic_cast<MixingItemInfo*>(g_pMixingItemInfoManager->getItemInfo(pMouseItem->getItemType()));
+            MixingItemInfo* pItemInfo = dynamic_cast<MixingItemInfo*>(
+                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MIXING_ITEM, pMouseItem->getItemType()));
             Assert(pItemInfo != NULL);
 
             if (pItemInfo->getType() != MixingItemInfo::TYPE_DETACH) {

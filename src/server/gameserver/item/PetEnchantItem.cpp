@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-PetEnchantItemInfoManager* g_pPetEnchantItemInfoManager = NULL;
-
 ItemID_t PetEnchantItem::m_ItemIDRegistry = 0;
 Mutex PetEnchantItem::m_Mutex;
 
@@ -108,7 +106,7 @@ VolumeWidth_t PetEnchantItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pPetEnchantItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ENCHANT_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -118,7 +116,7 @@ VolumeHeight_t PetEnchantItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pPetEnchantItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ENCHANT_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -128,7 +126,7 @@ Weight_t PetEnchantItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pPetEnchantItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ENCHANT_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }

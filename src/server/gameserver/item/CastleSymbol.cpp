@@ -18,9 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-CastleSymbolInfoManager* g_pCastleSymbolInfoManager = NULL;
-
 ItemID_t CastleSymbol::m_ItemIDRegistry = 0;
 Mutex CastleSymbol::m_Mutex;
 
@@ -136,7 +133,7 @@ VolumeWidth_t CastleSymbol::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pCastleSymbolInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CASTLE_SYMBOL, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -150,7 +147,7 @@ VolumeHeight_t CastleSymbol::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pCastleSymbolInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CASTLE_SYMBOL, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -164,7 +161,7 @@ Weight_t CastleSymbol::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pCastleSymbolInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CASTLE_SYMBOL, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -178,7 +175,7 @@ Defense_t CastleSymbol::getDefenseBonus() const
 {
     __BEGIN_TRY
 
-    return g_pCastleSymbolInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CASTLE_SYMBOL, m_ItemType)->getDefenseBonus();
 
     __END_CATCH
 }
@@ -187,7 +184,7 @@ Protection_t CastleSymbol::getProtectionBonus() const
 {
     __BEGIN_TRY
 
-    return g_pCastleSymbolInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CASTLE_SYMBOL, m_ItemType)->getProtectionBonus();
 
     __END_CATCH
 }

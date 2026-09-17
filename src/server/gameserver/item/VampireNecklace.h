@@ -141,7 +141,6 @@ public:
 };
 
 // global variable declaration
-extern VampireNecklaceInfoManager* g_pVampireNecklaceInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

@@ -84,7 +84,6 @@ public:
     virtual void load();
 };
 
-extern EventGiftBoxInfoManager* g_pEventGiftBoxInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class EventGiftBoxFactory

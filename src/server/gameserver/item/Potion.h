@@ -160,7 +160,6 @@ public:
 };
 
 // global variable declaration
-extern PotionInfoManager* g_pPotionInfoManager;
 
 
 //--------------------------------------------------------------------------------

@@ -145,7 +145,6 @@ public:
     virtual void load();
 };
 
-extern MixingItemInfoManager* g_pMixingItemInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class MixingItemFactory

@@ -12,6 +12,7 @@
 #include "GCBloodBibleStatus.h"
 #include "GCSystemMessage.h"
 #include "HolyLandManager.h"
+#include "ItemInfoManager.h"
 #include "Relic.h"
 #include "ShrineInfoManager.h"
 #include "StringPool.h"
@@ -59,7 +60,8 @@ void EffectRelicPosition::affect(Item* pItem)
     if (pItem->getItemClass() == Item::ITEM_CLASS_RELIC) {
         // 성물의 정보를 얻는다.
         ItemType_t relicIndex = pItem->getItemType();
-        const RelicInfo* pRelicInfo = dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(relicIndex));
+        const RelicInfo* pRelicInfo =
+            dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
         Assert(pRelicInfo != NULL);
 
         //		StringStream msg;

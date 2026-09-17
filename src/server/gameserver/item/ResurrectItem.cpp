@@ -19,8 +19,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-ResurrectItemInfoManager* g_pResurrectItemInfoManager = NULL;
-
 ItemID_t ResurrectItem::m_ItemIDRegistry = 0;
 Mutex ResurrectItem::m_Mutex;
 
@@ -108,7 +106,7 @@ VolumeWidth_t ResurrectItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pResurrectItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RESURRECT_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -118,7 +116,7 @@ VolumeHeight_t ResurrectItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pResurrectItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RESURRECT_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -128,7 +126,7 @@ Weight_t ResurrectItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pResurrectItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RESURRECT_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }

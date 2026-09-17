@@ -104,8 +104,6 @@ public:
     virtual void load();
 };
 
-extern ShoulderArmorInfoManager* g_pShoulderArmorInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class ShoulderArmorFactory

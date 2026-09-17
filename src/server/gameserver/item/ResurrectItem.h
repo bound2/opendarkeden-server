@@ -114,7 +114,6 @@ public:
     virtual void load();
 };
 
-extern ResurrectItemInfoManager* g_pResurrectItemInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class ResurrectItemFactory

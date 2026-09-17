@@ -37,6 +37,7 @@
 #include "GamePlayer.h"
 #include "GameWorldInfoManager.h"
 #include "Inventory.h"
+#include "ItemInfoManager.h"
 #include "ItemUtil.h"
 #include "LevelWarManager.h"
 #include "Monster.h"
@@ -1132,7 +1133,8 @@ bool isAbleToPickupItem(Creature* pCreature, Item* pItem) {
         switch (itemClass) {
         // 아직 없는 Relic만 주울 수 있다.
         case Item::ITEM_CLASS_RELIC: {
-            const RelicInfo* pRelicInfo = dynamic_cast<RelicInfo*>(g_pRelicInfoManager->getItemInfo(itemtype));
+            const RelicInfo* pRelicInfo =
+                dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, itemtype));
 
             if (pRelicInfo->relicType == RELIC_TYPE_SLAYER &&
                     !pCreature->isFlag(Effect::EFFECT_CLASS_HAS_SLAYER_RELIC) ||

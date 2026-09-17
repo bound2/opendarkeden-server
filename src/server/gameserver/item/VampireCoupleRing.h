@@ -135,7 +135,6 @@ public:
     virtual void load();
 };
 
-extern VampireCoupleRingInfoManager* g_pVampireCoupleRingInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class VampireCoupleRingFactory

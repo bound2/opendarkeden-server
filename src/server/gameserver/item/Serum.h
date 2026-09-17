@@ -132,8 +132,6 @@ public:
     virtual void load();
 };
 
-extern SerumInfoManager* g_pSerumInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class SerumFactory

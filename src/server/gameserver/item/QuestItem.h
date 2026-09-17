@@ -95,7 +95,6 @@ public:
     virtual void load();
 };
 
-extern QuestItemInfoManager* g_pQuestItemInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class QuestItemFactory

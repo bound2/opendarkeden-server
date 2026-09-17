@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-OustersRingInfoManager* g_pOustersRingInfoManager = NULL;
-
 ItemID_t OustersRing::m_ItemIDRegistry = 0;
 Mutex OustersRing::m_Mutex;
 
@@ -278,7 +275,7 @@ void OustersRingLoader::load(Creature* pCreature)
             pOustersRing->setObjectID(rows[r].objectID);
             pOustersRing->setItemType(rows[r].itemType);
 
-            if (g_pOustersRingInfoManager->getItemInfo(pOustersRing->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_RING, pOustersRing->getItemType())->isUnique())
                 pOustersRing->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

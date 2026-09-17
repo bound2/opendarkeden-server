@@ -152,8 +152,6 @@ public:
     virtual void load();
 };
 
-extern MineInfoManager* g_pMineInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class MineFactory

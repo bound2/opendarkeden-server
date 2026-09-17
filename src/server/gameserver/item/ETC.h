@@ -105,8 +105,6 @@ public:
     virtual void load();
 };
 
-extern ETCInfoManager* g_pETCInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class ETCFactory

@@ -185,8 +185,6 @@ public:
     virtual void load();
 };
 
-extern CrossInfoManager* g_pCrossInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class CrossFactory

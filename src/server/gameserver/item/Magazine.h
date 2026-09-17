@@ -145,7 +145,6 @@ public:
 };
 
 // global variable declaration
-extern MagazineInfoManager* g_pMagazineInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

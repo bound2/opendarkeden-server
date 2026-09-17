@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-MagazineInfoManager* g_pMagazineInfoManager = NULL;
-
 ItemID_t Magazine::m_ItemIDRegistry = 0;
 Mutex Magazine::m_Mutex;
 
@@ -115,7 +112,7 @@ VolumeWidth_t Magazine::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pMagazineInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MAGAZINE, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -129,7 +126,7 @@ VolumeHeight_t Magazine::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pMagazineInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MAGAZINE, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -143,7 +140,7 @@ Weight_t Magazine::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pMagazineInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MAGAZINE, m_ItemType)->getWeight();
 
     __END_CATCH
 }

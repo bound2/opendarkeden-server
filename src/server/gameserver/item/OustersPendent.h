@@ -141,7 +141,6 @@ public:
 };
 
 // global variable declaration
-extern OustersPendentInfoManager* g_pOustersPendentInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

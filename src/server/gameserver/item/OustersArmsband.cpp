@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-OustersArmsbandInfoManager* g_pOustersArmsbandInfoManager = NULL;
-
 ItemID_t OustersArmsband::m_ItemIDRegistry = 0;
 Mutex OustersArmsband::m_Mutex;
 
@@ -42,8 +39,8 @@ OustersArmsband::OustersArmsband(ItemType_t itemType, const list<OptionType_t>& 
 {
     setItemType(itemType);
     setOptionType(optionType);
-    OustersArmsbandInfo* pOustersArmsbandInfo =
-        dynamic_cast<OustersArmsbandInfo*>(g_pOustersArmsbandInfoManager->getItemInfo(getItemType()));
+    OustersArmsbandInfo* pOustersArmsbandInfo = dynamic_cast<OustersArmsbandInfo*>(
+        g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, getItemType()));
 
     m_pInventory = new Inventory(pOustersArmsbandInfo->getPocketCount(), 1);
 
@@ -263,8 +260,8 @@ PocketNum_t OustersArmsband::getPocketCount(void) const
 {
     __BEGIN_TRY
 
-    OustersArmsbandInfo* pOustersArmsbandInfo =
-        dynamic_cast<OustersArmsbandInfo*>(g_pOustersArmsbandInfoManager->getItemInfo(getItemType()));
+    OustersArmsbandInfo* pOustersArmsbandInfo = dynamic_cast<OustersArmsbandInfo*>(
+        g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, getItemType()));
     Assert(pOustersArmsbandInfo != NULL);
     return pOustersArmsbandInfo->getPocketCount();
 
@@ -379,11 +376,12 @@ void OustersArmsbandLoader::load(Creature* pCreature)
             pOustersArmsband->setObjectID(rows[r].objectID);
             pOustersArmsband->setItemType(rows[r].itemType);
 
-            if (g_pOustersArmsbandInfoManager->getItemInfo(pOustersArmsband->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, pOustersArmsband->getItemType())
+                    ->isUnique())
                 pOustersArmsband->setUnique();
 
             OustersArmsbandInfo* pOustersArmsbandInfo = dynamic_cast<OustersArmsbandInfo*>(
-                g_pOustersArmsbandInfoManager->getItemInfo(pOustersArmsband->getItemType()));
+                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_OUSTERS_ARMSBAND, pOustersArmsband->getItemType()));
             Inventory* pOustersArmsbandInventory = new Inventory(pOustersArmsbandInfo->getPocketCount(), 1);
 
             pOustersArmsband->setInventory(pOustersArmsbandInventory);

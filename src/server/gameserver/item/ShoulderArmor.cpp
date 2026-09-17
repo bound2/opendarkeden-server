@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-ShoulderArmorInfoManager* g_pShoulderArmorInfoManager = NULL;
-
 ItemID_t ShoulderArmor::m_ItemIDRegistry = 0;
 Mutex ShoulderArmor::m_Mutex;
 
@@ -209,7 +206,8 @@ void ShoulderArmorLoader::load(Creature* pCreature)
             pShoulderArmor->setObjectID(rows[r].objectID);
             pShoulderArmor->setItemType(rows[r].itemType);
 
-            if (g_pShoulderArmorInfoManager->getItemInfo(pShoulderArmor->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SHOULDER_ARMOR, pShoulderArmor->getItemType())
+                    ->isUnique())
                 pShoulderArmor->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

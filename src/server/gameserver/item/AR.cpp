@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-ARInfoManager* g_pARInfoManager = NULL;
-
 ItemID_t AR::m_ItemIDRegistry = 0;
 Mutex AR::m_Mutex;
 
@@ -348,7 +345,7 @@ void ARLoader::load(Creature* pCreature)
             pAR->setObjectID(rows[r].objectID);
             pAR->setItemType(rows[r].itemType);
 
-            if (g_pARInfoManager->getItemInfo(pAR->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_AR, pAR->getItemType())->isUnique())
                 pAR->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

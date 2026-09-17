@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-RelicInfoManager* g_pRelicInfoManager = NULL;
-
 ItemID_t Relic::m_ItemIDRegistry = 0;
 Mutex Relic::m_Mutex;
 
@@ -131,7 +128,7 @@ VolumeWidth_t Relic::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pRelicInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -145,7 +142,7 @@ VolumeHeight_t Relic::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pRelicInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -159,7 +156,7 @@ Weight_t Relic::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pRelicInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -173,7 +170,7 @@ Defense_t Relic::getDefenseBonus() const
 {
     __BEGIN_TRY
 
-    return g_pRelicInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, m_ItemType)->getDefenseBonus();
 
     __END_CATCH
 }
@@ -182,7 +179,7 @@ Protection_t Relic::getProtectionBonus() const
 {
     __BEGIN_TRY
 
-    return g_pRelicInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, m_ItemType)->getProtectionBonus();
 
     __END_CATCH
 }

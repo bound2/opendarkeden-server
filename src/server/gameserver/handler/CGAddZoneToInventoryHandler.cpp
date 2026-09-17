@@ -5,6 +5,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 #include "CGAddZoneToInventory.h"
+#include "ItemInfoManager.h"
 
 #ifdef __GAME_SERVER__
 #include <stdio.h>
@@ -371,8 +372,8 @@ void CGAddZoneToInventoryHandler::execute(CGAddZoneToInventory* pPacket, Player*
                     Assert(false);
                 }
 
-                const SweeperInfo* pSweeperInfo =
-                    dynamic_cast<SweeperInfo*>(g_pSweeperInfoManager->getItemInfo(pItem->getItemType()));
+                const SweeperInfo* pSweeperInfo = dynamic_cast<SweeperInfo*>(
+                    g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, pItem->getItemType()));
 
                 char msg[100];
                 sprintf(msg, g_pStringPool->c_str(STRID_PICK_UP_SWEEPER), pSweeperInfo->getName().c_str(),

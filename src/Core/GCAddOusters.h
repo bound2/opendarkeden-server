@@ -86,7 +86,7 @@ public:
 private:
     PCOustersInfo3 m_OustersInfo; // Slayer's appearance information
     EffectInfo* m_pEffectInfo;    // Information about the effects in force
-    PetInfo* m_pPetInfo;          // Information about the effects in force
+    PetInfo* m_pPetInfo;          // Information about the pet
     NicknameInfo* m_pNicknameInfo;
     StoreOutlook m_StoreOutlook;
 };

@@ -116,7 +116,6 @@ public:
     virtual void load();
 };
 
-extern DyePotionInfoManager* g_pDyePotionInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class DyePotionFactory

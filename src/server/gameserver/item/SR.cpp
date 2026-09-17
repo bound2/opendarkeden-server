@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-SRInfoManager* g_pSRInfoManager = NULL;
-
 ItemID_t SR::m_ItemIDRegistry = 0;
 Mutex SR::m_Mutex;
 
@@ -351,7 +348,7 @@ void SRLoader::load(Creature* pCreature)
             pSR->setObjectID(rows[r].objectID);
             pSR->setItemType(rows[r].itemType);
 
-            if (g_pSRInfoManager->getItemInfo(pSR->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SR, pSR->getItemType())->isUnique())
                 pSR->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

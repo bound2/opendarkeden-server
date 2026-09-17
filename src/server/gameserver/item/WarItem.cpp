@@ -12,9 +12,6 @@
 #include "ItemInfoManager.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-WarItemInfoManager* g_pWarItemInfoManager = NULL;
-
 ItemID_t WarItem::m_ItemIDRegistry = 0;
 Mutex WarItem::m_Mutex;
 
@@ -121,7 +118,7 @@ VolumeWidth_t WarItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pWarItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WAR_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -135,7 +132,7 @@ VolumeHeight_t WarItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pWarItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WAR_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -149,7 +146,7 @@ Weight_t WarItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pWarItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_WAR_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }

@@ -124,7 +124,6 @@ public:
     virtual void load();
 };
 
-extern PetFoodInfoManager* g_pPetFoodInfoManager;
 
 //////////////////////////////////////////////////////////////////////////////
 // class PetFoodFactory

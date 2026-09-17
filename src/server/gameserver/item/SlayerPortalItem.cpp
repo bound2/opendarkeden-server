@@ -19,8 +19,6 @@
 ItemID_t SlayerPortalItem::m_ItemIDRegistry = 0;
 Mutex SlayerPortalItem::m_Mutex;
 
-SlayerPortalItemInfoManager* g_pSlayerPortalItemInfoManager = NULL;
-
 //////////////////////////////////////////////////////////////////////////////
 // class SlayerPortalItem member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -96,7 +94,7 @@ VolumeWidth_t SlayerPortalItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pSlayerPortalItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SLAYER_PORTAL_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -106,7 +104,7 @@ VolumeHeight_t SlayerPortalItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pSlayerPortalItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SLAYER_PORTAL_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -116,7 +114,7 @@ Weight_t SlayerPortalItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pSlayerPortalItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SLAYER_PORTAL_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -140,8 +138,8 @@ int SlayerPortalItem::getMaxCharge(void) const
 {
     __BEGIN_TRY
 
-    SlayerPortalItemInfo* pInfo =
-        dynamic_cast<SlayerPortalItemInfo*>(g_pSlayerPortalItemInfoManager->getItemInfo(m_ItemType));
+    SlayerPortalItemInfo* pInfo = dynamic_cast<SlayerPortalItemInfo*>(
+        g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SLAYER_PORTAL_ITEM, m_ItemType));
     Assert(pInfo != NULL);
     return pInfo->getMaxCharge();
 

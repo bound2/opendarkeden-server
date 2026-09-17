@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-HolyWaterInfoManager* g_pHolyWaterInfoManager = NULL;
-
 ItemID_t HolyWater::m_ItemIDRegistry = 0;
 Mutex HolyWater::m_Mutex;
 
@@ -103,7 +100,7 @@ Damage_t HolyWater::getMinDamage() const
 {
     __BEGIN_TRY
 
-    return g_pHolyWaterInfoManager->getItemInfo(m_ItemType)->getMinDamage();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getMinDamage();
 
     __END_CATCH
 }
@@ -113,7 +110,7 @@ Damage_t HolyWater::getMaxDamage() const
 {
     __BEGIN_TRY
 
-    return g_pHolyWaterInfoManager->getItemInfo(m_ItemType)->getMaxDamage();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getMaxDamage();
 
     __END_CATCH
 }
@@ -138,7 +135,7 @@ VolumeWidth_t HolyWater::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pHolyWaterInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -152,7 +149,7 @@ VolumeHeight_t HolyWater::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pHolyWaterInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -166,7 +163,7 @@ Weight_t HolyWater::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pHolyWaterInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_HOLYWATER, m_ItemType)->getWeight();
 
     __END_CATCH
 }

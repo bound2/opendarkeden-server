@@ -20,8 +20,6 @@
 ItemID_t VampirePortalItem::m_ItemIDRegistry = 0;
 Mutex VampirePortalItem::m_Mutex;
 
-VampirePortalItemInfoManager* g_pVampirePortalItemInfoManager = NULL;
-
 //////////////////////////////////////////////////////////////////////////////
 // class VampirePortalItem member methods
 //////////////////////////////////////////////////////////////////////////////
@@ -151,7 +149,7 @@ VolumeWidth_t VampirePortalItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pVampirePortalItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_PORTAL_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -161,7 +159,7 @@ VolumeHeight_t VampirePortalItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pVampirePortalItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_PORTAL_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -171,7 +169,7 @@ Weight_t VampirePortalItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pVampirePortalItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_PORTAL_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -195,8 +193,8 @@ int VampirePortalItem::getMaxCharge(void) const
 {
     __BEGIN_TRY
 
-    VampirePortalItemInfo* pInfo =
-        dynamic_cast<VampirePortalItemInfo*>(g_pVampirePortalItemInfoManager->getItemInfo(m_ItemType));
+    VampirePortalItemInfo* pInfo = dynamic_cast<VampirePortalItemInfo*>(
+        g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_VAMPIRE_PORTAL_ITEM, m_ItemType));
     Assert(pInfo != NULL);
     return pInfo->getMaxCharge();
 

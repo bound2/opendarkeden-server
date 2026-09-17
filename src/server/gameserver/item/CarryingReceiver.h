@@ -97,7 +97,6 @@ public:
 };
 
 // global variable declaration
-extern CarryingReceiverInfoManager* g_pCarryingReceiverInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

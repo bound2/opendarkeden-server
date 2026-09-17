@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-TrapItemInfoManager* g_pTrapItemInfoManager = NULL;
-
 ItemID_t TrapItem::m_ItemIDRegistry = 0;
 Mutex TrapItem::m_Mutex;
 
@@ -105,7 +103,7 @@ VolumeWidth_t TrapItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pTrapItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_TRAP_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -115,7 +113,7 @@ VolumeHeight_t TrapItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pTrapItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_TRAP_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -125,7 +123,7 @@ Weight_t TrapItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pTrapItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_TRAP_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }

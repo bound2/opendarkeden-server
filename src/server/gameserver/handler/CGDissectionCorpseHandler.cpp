@@ -555,7 +555,7 @@ void CGDissectionCorpseHandler::execute(CGDissectionCorpse* pPacket, Player* pPl
                             }
 
                             const SweeperInfo* pSweeperInfo = dynamic_cast<SweeperInfo*>(
-                                g_pSweeperInfoManager->getItemInfo(pTreasure->getItemType()));
+                                g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, pTreasure->getItemType()));
 
                             char msg[100];
                             sprintf(msg, g_pStringPool->c_str(STRID_PULL_OUT_SWEEPER), safeRace,

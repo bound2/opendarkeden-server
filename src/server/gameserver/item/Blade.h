@@ -187,8 +187,6 @@ public:
     virtual void load();
 };
 
-extern BladeInfoManager* g_pBladeInfoManager;
-
 
 //////////////////////////////////////////////////////////////////////////////
 // class BladeFactory

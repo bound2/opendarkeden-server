@@ -141,7 +141,6 @@ public:
 };
 
 // global variable declaration
-extern BloodBibleInfoManager* g_pBloodBibleInfoManager;
 
 
 //////////////////////////////////////////////////////////////////////////////

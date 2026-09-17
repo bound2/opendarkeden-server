@@ -209,8 +209,8 @@ void CGAddMouseToZoneHandler::execute(CGAddMouseToZone* pPacket, Player* pPlayer
                     Assert(false);
                 }
 
-                const SweeperInfo* pSweeperInfo =
-                    dynamic_cast<SweeperInfo*>(g_pSweeperInfoManager->getItemInfo(pItem->getItemType()));
+                const SweeperInfo* pSweeperInfo = dynamic_cast<SweeperInfo*>(
+                    g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, pItem->getItemType()));
 
                 char msg[100];
                 sprintf(msg, g_pStringPool->c_str(STRID_DROP_SWEEPER), pSweeperInfo->getName().c_str(),

@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-SweeperInfoManager* g_pSweeperInfoManager = NULL;
-
 ItemID_t Sweeper::m_ItemIDRegistry = 0;
 Mutex Sweeper::m_Mutex;
 
@@ -133,7 +130,7 @@ VolumeWidth_t Sweeper::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pSweeperInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -147,7 +144,7 @@ VolumeHeight_t Sweeper::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pSweeperInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -161,7 +158,7 @@ Weight_t Sweeper::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pSweeperInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, m_ItemType)->getWeight();
 
     __END_CATCH
 }
@@ -175,7 +172,7 @@ Defense_t Sweeper::getDefenseBonus() const
 {
     __BEGIN_TRY
 
-    return g_pSweeperInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, m_ItemType)->getDefenseBonus();
 
     __END_CATCH
 }
@@ -184,7 +181,7 @@ Protection_t Sweeper::getProtectionBonus() const
 {
     __BEGIN_TRY
 
-    return g_pSweeperInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_SWEEPER, m_ItemType)->getProtectionBonus();
 
     __END_CATCH
 }

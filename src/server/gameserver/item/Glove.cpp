@@ -16,9 +16,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-GloveInfoManager* g_pGloveInfoManager = NULL;
-
 ItemID_t Glove::m_ItemIDRegistry = 0;
 Mutex Glove::m_Mutex;
 
@@ -277,7 +274,7 @@ void GloveLoader::load(Creature* pCreature)
             pGlove->setObjectID(rows[r].objectID);
             pGlove->setItemType(rows[r].itemType);
 
-            if (g_pGloveInfoManager->getItemInfo(pGlove->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_GLOVE, pGlove->getItemType())->isUnique())
                 pGlove->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

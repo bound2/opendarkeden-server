@@ -18,8 +18,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-MoonCardInfoManager* g_pMoonCardInfoManager = NULL;
-
 ItemID_t MoonCard::m_ItemIDRegistry = 0;
 Mutex MoonCard::m_Mutex;
 
@@ -106,7 +104,7 @@ VolumeWidth_t MoonCard::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pMoonCardInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MOON_CARD, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -116,7 +114,7 @@ VolumeHeight_t MoonCard::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pMoonCardInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MOON_CARD, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -126,7 +124,7 @@ Weight_t MoonCard::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pMoonCardInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_MOON_CARD, m_ItemType)->getWeight();
 
     __END_CATCH
 }

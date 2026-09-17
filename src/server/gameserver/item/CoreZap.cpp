@@ -17,9 +17,6 @@
 #include "Vampire.h"
 #include "repository/ItemObjectRepository.h"
 
-// global variable declaration
-CoreZapInfoManager* g_pCoreZapInfoManager = NULL;
-
 ItemID_t CoreZap::m_ItemIDRegistry = 0;
 Mutex CoreZap::m_Mutex;
 
@@ -260,7 +257,7 @@ void CoreZapLoader::load(Creature* pCreature)
             pCoreZap->setObjectID(rows[r].objectID);
             pCoreZap->setItemType(rows[r].itemType);
 
-            if (g_pCoreZapInfoManager->getItemInfo(pCoreZap->getItemType())->isUnique())
+            if (g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_CORE_ZAP, pCoreZap->getItemType())->isUnique())
                 pCoreZap->setUnique();
 
             Storage storage = (Storage)rows[r].storage;

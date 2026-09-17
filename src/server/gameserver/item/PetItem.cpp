@@ -25,8 +25,6 @@
 
 string getDBString(const string& str);
 
-PetItemInfoManager* g_pPetItemInfoManager = NULL;
-
 ItemID_t PetItem::m_ItemIDRegistry = 0;
 Mutex PetItem::m_Mutex;
 
@@ -210,7 +208,7 @@ VolumeWidth_t PetItem::getVolumeWidth() const
 {
     __BEGIN_TRY
 
-    return g_pPetItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ITEM, m_ItemType)->getVolumeWidth();
 
     __END_CATCH
 }
@@ -220,7 +218,7 @@ VolumeHeight_t PetItem::getVolumeHeight() const
 {
     __BEGIN_TRY
 
-    return g_pPetItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ITEM, m_ItemType)->getVolumeHeight();
 
     __END_CATCH
 }
@@ -230,7 +228,7 @@ Weight_t PetItem::getWeight() const
 {
     __BEGIN_TRY
 
-    return g_pPetItemInfoManager->getItemInfo(m_ItemType)->getWeight();
+    return g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_PET_ITEM, m_ItemType)->getWeight();
 
     __END_CATCH
 }
