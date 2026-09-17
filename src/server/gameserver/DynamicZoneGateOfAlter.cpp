@@ -12,7 +12,6 @@
 #include "DynamicZoneInfo.h"
 #include "EffectDeleteTile.h"
 #include "EffectManager.h"
-#include "EffectTilePortal.h"
 #include "GCAddEffectToTile.h"
 #include "GCDeleteEffectFromTile.h"
 #include "GCSystemMessage.h"
@@ -225,7 +224,7 @@ bool DynamicZoneGateOfAlter::openGateToAlter() {
         }
     }
 
-    // 포탈 위치를 찾아서 그 위에다 EffectTilePortal 을 보낸다.
+    // Find the portal tile and broadcast the tile-portal effect on it.
     int tx = -1;
     int ty = -1;
     for (int x = 0; x < m_pZone->getWidth(); x++) {

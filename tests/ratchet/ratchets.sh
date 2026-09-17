@@ -72,7 +72,7 @@ check_ratchet R4 "packet headers with execute()" 0 "$R4"
 # in (with a re-baseline note) when they become de-core extraction targets in
 # 3.x.
 R5=$(grep -rE '__BEGIN_TRY' src/server/gameserver --include='*.cpp' | grep -vE 'gameserver/(gm|handler|packetfill)/' | wc -l)
-check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5474 "$R5"
+check_ratchet R5 "__BEGIN_TRY sites in gameserver" 5473 "$R5"
 
 # --- R6: god-file line counts (task 3.3 files only, so far) -----------------
 # Formula extraction to de-core (src/domain) shrinks these; each delegation
@@ -105,7 +105,7 @@ check_ratchet R6f "ConsoleCommands.cpp lines" 1595 "$R6f"
 # What is left is the zone's own state: tiles, effects, creature lookup, the
 # NPC registry and the heartbeat. Under the 2,000-line phase exit criterion.
 R6g=$(wc -l < src/server/gameserver/Zone.cpp 2>/dev/null || echo missing)
-check_ratchet R6g "Zone.cpp lines" 1474 "$R6g"
+check_ratchet R6g "Zone.cpp lines" 1472 "$R6g"
 
 # R6h-j: the three race classes. Persistence, gold, item-shape, inventory and
 # free-play bodies now live once on PlayerCreature; what is left in each file

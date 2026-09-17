@@ -24,7 +24,6 @@
 #include "EffectDarkness.h"
 #include "EffectDecayCorpse.h"
 #include "EffectDecayItem.h"
-#include "EffectDecayMotorcycle.h"
 #include "EffectDeleteItem.h"
 #include "EffectGnomesWhisper.h"
 #include "EffectHasBloodBible.h"

@@ -24,7 +24,6 @@
 #include "EffectDarkness.h"
 #include "EffectDecayCorpse.h"
 #include "EffectDecayItem.h"
-#include "EffectDecayMotorcycle.h"
 #include "EffectDeleteItem.h"
 #include "EffectGnomesWhisper.h"
 #include "EffectHasBloodBible.h"
@@ -593,28 +592,6 @@ void Zone::deleteMotorcycle(ZoneCoord_t cx, ZoneCoord_t cy, Motorcycle* pMotorcy
 
     __END_CATCH
 }
-
-/*
-void Zone::decayMotorcycle(ZoneCoord_t cx, ZoneCoord_t cy, Motorcycle* pMotorcycle, Slayer* pSlayer)
-
-{
-    __BEGIN_TRY
-
-    cout << "Zone::decayMotorcycle	" << endl;
-
-    Assert(m_OuterRect.ptInRect(cx, cy));
-    Assert(pMotorcycle != NULL);
-
-    // 존에서 오토바이를 지우는 이펙트를 추가한다.
-    EffectDecayMotorcycle* pEffectDecayMotorcycle = new EffectDecayMotorcycle(this, cx, cy, (Item*)pMotorcycle, 0,
-                                                                  false); // DB에서는 지우지 않는다.
-    pEffectDecayMotorcycle->setNextTime(999999);
-    m_ObjectRegistry.registerObject(pEffectDecayMotorcycle);
-    addEffect_LOCKING(pEffectDecayMotorcycle);
-
-    __END_CATCH
-}
-*/
 
 //-------------------------------------------------------------
 // transportItemToCorpse
