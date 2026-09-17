@@ -219,7 +219,7 @@ bool DynamicZoneAlterOfBlood::openGateToOut() {
         }
     }
 
-    // Æ÷Å» À§Ä¡¸¦ Ã£¾Æ¼­ ±× À§¿¡´Ù EffectTilePortal À» º¸³½´Ù.
+    // Find the portal tile and broadcast the tile-portal effect on it.
     int tx = -1;
     int ty = -1;
     for (int x = 0; x < m_pZone->getWidth(); x++) {
