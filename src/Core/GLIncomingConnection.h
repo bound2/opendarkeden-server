@@ -18,18 +18,18 @@
 //
 // class GLIncomingConnection;
 //
-// 로그인 서버에서 사용자가 게임 서버로 접속하려고 할 때, 로그인 서버는
-// 그 게임 서버에게 어떤 주소에서 어떤 사용자가 어떤 크리처로 로그인할
-// 것이다.. 라고 알려주는 패킷이다.
+// When a user tries to connect to a game server, the login server tells
+// that game server which user is logging in from which address and as which
+// creature.
 //
 // *CAUTION*
 //
-// 굳이 크리처 이름이 필요한가? 하는 의문이 있을 수 있겠는데, 다음과 같은
-// 경우를 고려했을때 필요하게 된다. 로그인 서버로부터 Slot3 캐릭터를 선택
-// 해놓고, 실제로 게임 서버에 접속해서는 SLOT2 캐릭터를 로딩해달라고 할
-// 수가 있는 것이다. 이를 막기 위해서, CLSelectPC로 선택한 캐릭터를
-// 게임 서버에게 알려줘야 하며, CGConnect 에서도 캐릭터 아이디를 포함해서
-// 바로 로딩하도록 해야 한다.
+// Is the creature name really needed? It is, and here is why.
+// Slot3 can be chosen on the login server,
+// and then SLOT2 asked for once the game server itself is reached.
+// To stop that, the character chosen with CLSelectPC has to be told
+// to the game server, and CGConnect carries the character id too so that
+// the right character is loaded straight away.
 //
 //----------------------------------------------------------------------
 
@@ -37,10 +37,10 @@ class GLIncomingConnection : public DatagramPacket {
 public:
     GLIncomingConnection(){};
     ~GLIncomingConnection(){};
-    // Datagram 객체에서부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the Datagram object and initialise the packet.
     void read(Datagram& iDatagram);
 
-    // Datagram 객체로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the Datagram object.
     void write(Datagram& oDatagram) const;
 
 
@@ -84,7 +84,7 @@ private:
     // Player ID
     string m_PlayerID;
 
-    // 클라이언트의 IP
+    // Client IP
     string m_ClientIP;
 };
 
@@ -121,7 +121,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static GLIncomingConnectionPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static GLIncomingConnectionPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

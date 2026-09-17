@@ -28,7 +28,7 @@ LCPCList::LCPCList() {
 LCPCList::~LCPCList()
 
 {
-    // heap 에 생성된 PC Type 변수들을 삭제해야 한다.
+    // The PC Type variables created on the heap have to be deleted.
     for (uint i = 0; i < SLOT_MAX; i++) {
         SAFE_DELETE(m_pPCInfos[i]);
     }
@@ -36,7 +36,7 @@ LCPCList::~LCPCList()
 
 
 //----------------------------------------------------------------------
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //----------------------------------------------------------------------
 void LCPCList::read(SocketInputStream& iStream)
 
@@ -44,11 +44,11 @@ void LCPCList::read(SocketInputStream& iStream)
     __BEGIN_TRY
 
     //--------------------------------------------------
-    // PC 타입 정보를 받아온다.
+    // Take the PC type information.
     //
     // *OPTMIZATION*
     //
-    // 나중에는 이 정보를 1 바이트에 넣어서 비트 연산을 하도록 한다.
+    // Later this information should go into one byte and be handled with bit operations.
     //
     //--------------------------------------------------
     char pcTypes[SLOT_MAX];
@@ -57,7 +57,7 @@ void LCPCList::read(SocketInputStream& iStream)
         iStream.read(pcTypes[i]);
 
     //--------------------------------------------------
-    // PC 정보 본체를 읽는다.
+    // Read the PC information body.
     //--------------------------------------------------
     for (uint j = 0; j < SLOT_MAX; j++) {
         switch (pcTypes[j]) {
@@ -92,7 +92,7 @@ void LCPCList::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void LCPCList::write(SocketOutputStream& oStream) const
 
@@ -100,9 +100,9 @@ void LCPCList::write(SocketOutputStream& oStream) const
     __BEGIN_TRY
 
     //--------------------------------------------------
-    // 일단 PC 타입을 쓴다.
+    // First write the PC type.
     //
-    // 나중에는 이 정보를 1 바이트에 넣어서 비트 연산을 하도록 한다.
+    // Later this information should go into one byte and be handled with bit operations.
     //
     // ex>
     // 	S0V : Slayer-EMPTY-VAMPIRE
@@ -126,7 +126,7 @@ void LCPCList::write(SocketOutputStream& oStream) const
     }
 
     //--------------------------------------------------
-    // 그다음 PCType 객체 본체를 쓴다.
+    // Then write the PCType object body.
     //--------------------------------------------------
     for (uint j = 0; j < SLOT_MAX; j++) {
         if (m_pPCInfos[j] != NULL) {

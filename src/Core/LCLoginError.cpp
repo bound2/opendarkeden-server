@@ -2,7 +2,7 @@
 //
 // Filename    : LCLoginError.cpp
 // Written By  : Reiot
-// Description : 로그인 실패시 로그인 서버에서 클라이언트에게 전송하는 패킷
+// Description : Packet the login server sends to the client when login fails
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -10,7 +10,7 @@
 #include "LCLoginError.h"
 
 //////////////////////////////////////////////////////////////////////
-// 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+// Read data from the input stream (buffer) and initialise the packet.
 //////////////////////////////////////////////////////////////////////
 void LCLoginError::read(SocketInputStream& iStream)
 
@@ -24,7 +24,7 @@ void LCLoginError::read(SocketInputStream& iStream)
 
 
 //////////////////////////////////////////////////////////////////////
-// 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+// Send the packet's binary image to the output stream (buffer).
 //////////////////////////////////////////////////////////////////////
 void LCLoginError::write(SocketOutputStream& oStream) const
 

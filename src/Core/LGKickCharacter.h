@@ -18,10 +18,10 @@
 //
 // class LGKickCharacter;
 //
-// '이미 접속중' 문제 해결을 위해서
-// 이미 접속중인 캐릭터를 제거하려고 하는 패킷이다.
+// To fix the 'already connected' problem
+// Packet that tries to remove a character that is already connected.
 //
-// 이 packet의 결과는 LGKickVerify이다.
+// The result of this packet is LGKickVerify.
 //
 //----------------------------------------------------------------------
 
@@ -29,10 +29,10 @@ class LGKickCharacter : public DatagramPacket {
 public:
     LGKickCharacter(){};
     ~LGKickCharacter(){};
-    // Datagram 객체에서부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the Datagram object and initialise the packet.
     void read(Datagram& iDatagram);
 
-    // Datagram 객체로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the Datagram object.
     void write(Datagram& oDatagram) const;
 
 
@@ -111,7 +111,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static LGKickCharacterPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static LGKickCharacterPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

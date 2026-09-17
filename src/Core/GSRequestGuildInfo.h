@@ -18,7 +18,7 @@
 //
 // class GSRequestGuildInfo;
 //
-// 팀이 추가를 쉐어드 서버에 요청한다.
+// Ask the shared server to add a team.
 //
 // *CAUTION*
 //
@@ -28,10 +28,10 @@ class GSRequestGuildInfo : public Packet {
 public:
     GSRequestGuildInfo(){};
     ~GSRequestGuildInfo(){};
-    // Stream 객체에서부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the Stream object and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // Stream 객체로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the Stream object.
     void write(SocketOutputStream& oStream) const;
 
 
@@ -88,7 +88,7 @@ public:
 
     // get packet's max body size
     // *OPTIMIZATION HINT*
-    // const static LGIncomingConnectionPacketMaxSize 를 정의, 리턴하라.
+    // Define and return const static LGIncomingConnectionPacketMaxSize.
     PacketSize_t getPacketMaxSize() const override {
         return kMaxSize;
     }

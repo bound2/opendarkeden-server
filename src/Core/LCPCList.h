@@ -26,17 +26,17 @@
 class LCPCList : public Packet {
 public:
     // constructor
-    // PCInfo* 배열에 각각 NULL을 지정한다.
+    // Set every entry of the PCInfo* array to NULL.
     LCPCList();
 
     // destructor
-    // PCInfo* 배열에 할당된 객체를 삭제한다.
+    // Delete the objects allocated in the PCInfo* array.
     ~LCPCList();
 
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -72,7 +72,7 @@ public:
     }
 
 private:
-    // 캐릭터 정보
+    // Character information
     PCInfo* m_pPCInfos[SLOT_MAX];
 };
 

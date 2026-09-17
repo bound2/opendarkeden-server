@@ -16,19 +16,19 @@
 enum SELECT_PC_ERROR {
     SELECT_PC_ERROR_NULL,
 
-    SELECT_PC_CANNOT_PLAY,         // 게임 할 수 없는 캐릭터(빌링 관련)
-    SELECT_PC_NOT_BILLING_CHECK,   // 아직 결제 정보가 체크되지 않았다.
-    SELECT_PC_CANNOT_PLAY_BY_ATTR, // 능력치 문제로 더 이상 무료겜 못한다.
-    SELECT_PC_DIDNOT_AGREE,        // 넷마블 약관에 동의하지 않아서 플레이 할 수 없다.
+    SELECT_PC_CANNOT_PLAY,         // Character that cannot play (billing related)
+    SELECT_PC_NOT_BILLING_CHECK,   // The payment information has not been checked yet.
+    SELECT_PC_CANNOT_PLAY_BY_ATTR, // Cannot play for free any longer because of the attributes.
+    SELECT_PC_DIDNOT_AGREE,        // Cannot play because the Netmarble terms were not accepted.
 };
 
 //////////////////////////////////////////////////////////////////////
 //
 // class LCSelectPCError;
 //
-// 플레이어가 선택한 PC 가 존재하지 않을 경우, 또는 이전에 로그아웃했던
-// 존의 게임 서버가 다운되었을 경우, 또는 DB 서버가 다운되었을 경우,
-// 이 패킷에 에러 이유를 담아서 클라이언트로 전송한다.
+// When the PC the player chose does not exist, or when the game server of
+// the zone it logged out of is down, or when the DB server is down.
+// The reason for the error is put in this packet and sent to the client.
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -36,10 +36,10 @@ class LCSelectPCError : public Packet {
 public:
     LCSelectPCError(){};
     ~LCSelectPCError(){};
-    // 입력스트림(버퍼)으로부터 데이타를 읽어서 패킷을 초기화한다.
+    // Read data from the input stream (buffer) and initialise the packet.
     void read(SocketInputStream& iStream);
 
-    // 출력스트림(버퍼)으로 패킷의 바이너리 이미지를 보낸다.
+    // Send the packet's binary image to the output stream (buffer).
     void write(SocketOutputStream& oStream) const;
 
 
@@ -70,7 +70,7 @@ public:
     }
 
 private:
-    // 에러 메시지
+    // Error message
     BYTE m_Code;
 };
 
