@@ -24,7 +24,6 @@ void BombCrashWalk::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     // Slayer Object Assertion
     Assert(pSlayer != NULL);
@@ -35,7 +34,6 @@ void BombCrashWalk::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuchÁ¦°Å. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
@@ -47,10 +45,8 @@ void BombCrashWalk::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         execute(pSlayer, pTargetCreature->getX(), pTargetCreature->getY(), pSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -64,7 +60,6 @@ void BombCrashWalk::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     try {
         Player* pPlayer = pSlayer->getPlayer();
@@ -94,7 +89,6 @@ void BombCrashWalk::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
         // ÀÏ´Ü ±â¼úÀº ¼º°øÇÏ´Â °ÍÀ¸·Î ÇÏ°í µ¥¹ÌÁö¸¦ °è»êÇÒ¶§(EffectBombCrashWalk::affect())
         // Å©¸®ÃÄ º°·Î ´Ù½Å °è»êÇÏ´Â °É·Î ÇÑ´Ù.
         // 2003.1.8 by bezz
-        // bool bHitRoll = HitRoll::isSuccessMagic(pSlayer, pSkillInfo, pSkillSlot);
 
         bool bTileCheck = false;
         Tile& tile = pZone->getTile(X, Y);
@@ -103,24 +97,8 @@ void BombCrashWalk::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
             if (tile.canAddEffect())
                 bTileCheck = true;
         }
-        // 		bool bUseSkill	 = false;
-        // 		// È¡³öµ±Ç°Ê¹ÓÃ¼¼ÄÜ½ÇÉ«ËùÊ¹ÓÃµÄÎäÆ÷
-        // 		Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
-        // 		//Ã»ÓÐÎäÆ÷²»ÄÜÊ¹ÓÃ¼¼ÄÜ
-        // 		if (pWeapon != NULL)
-        // 		{
-        // 			Silver_t silverDamage= pWeapon->getSilver();
-        // 			if (silverDamage >50)
-        // 			{
-        // 				silverDamage-=50;
-        // 				pWeapon->setSilver(silverDamage);
-        // 				bUseSkill=true;
-        // 			}
-        // 		}
         if (bManaCheck && bTimeCheck && bRangeCheck && bTileCheck) //&& bUseSkill)
         {
-            // pZone->moveFastPC(pSlayer, pSlayer->getX(), pSlayer->getY(),
-            // X,Y,getSkillType());//pTargetCreature->getX(), pTargetCreature->getY(), getSkillType());
             decreaseMana(pSlayer, RequiredMP, _GCSkillToTileOK1);
 
             // calculate damage and duration time
@@ -157,7 +135,6 @@ void BombCrashWalk::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(X);
             _GCSkillToTileOK3.setY(Y);
-            //_GCSkillToTileOK3.setRange(Range);
 
             // ±â¼úÀ» ´çÇÑ »ç¶÷¸¸ º¼ ¼ö ÀÖ´Â »ç¶÷µé¿¡°Ô
             _GCSkillToTileOK4.setSkillType(SkillType);
@@ -200,7 +177,6 @@ void BombCrashWalk::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

@@ -69,7 +69,6 @@ void HydroConvergence::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 3;
         // 헌뇜杰唐MP
-        // RequiredMP = pOusters->getMP();
 
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
         bool bTimeCheck = verifyRunTime(pOustersSkillSlot);

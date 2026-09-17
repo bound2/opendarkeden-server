@@ -85,7 +85,6 @@ void BloodyBreaker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -95,7 +94,6 @@ void BloodyBreaker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -107,10 +105,8 @@ void BloodyBreaker::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
         execute(pVampire, pTargetCreature->getX(), pTargetCreature->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -124,7 +120,6 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
     SkillType_t SkillType = getSkillType();
 
     // Knowledge of Blood 가 있다면 hit bonus 10
@@ -144,7 +139,6 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
         Dir_t Dir = getDirectionToPosition(pVampire->getX(), pVampire->getY(), X, Y);
 
         // 강제로 knockback시킬 확률
-        //		bool bForceKnockback = rand()%100 < output.ToHit;
 
         Player* pPlayer = pVampire->getPlayer();
         Zone* pZone = pVampire->getZone();
@@ -160,10 +154,7 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
 
         GCSkillToTileOK1 _GCSkillToTileOK1;
         GCSkillToTileOK2 _GCSkillToTileOK2;
-        //		GCSkillToTileOK3 _GCSkillToTileOK3;
-        //		GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
-        //		GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
@@ -349,7 +340,6 @@ void BloodyBreaker::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vam
         executeSkillFailException(pVampire, SkillType);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

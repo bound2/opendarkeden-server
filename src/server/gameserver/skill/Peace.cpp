@@ -24,7 +24,6 @@ void Peace::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -43,7 +42,6 @@ void Peace::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
 
     execute(pSlayer, pSlayer->getX(), pSlayer->getY(), pSkillSlot, param, result, CEffectID);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -56,9 +54,6 @@ void Peace::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
-
-    // cout << "Peace: Self Execute" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -77,7 +72,6 @@ void Peace::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
 
     execute(pSlayer, pSlayer->getX(), pSlayer->getY(), pSkillSlot, param, result, CEffectID);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -102,7 +96,6 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // cout << "Tile X :" << (int)X << "Tile Y : " << (int)Y << endl;
     execute(pSlayer, X, Y, pSkillSlot, param, result, CEffectID);
 
     __END_CATCH
@@ -147,10 +140,8 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
             getSplashVictims(pZone, X, Y, Creature::CREATURE_CLASS_MAX, creatureList, Splash);
 
             bool bSuccess = false;
-            //			Duration_t duration = 150+pSlayer->getINT();
             Duration_t duration = 100 + pSlayer->getINT() / 4 + pSkillSlot->getExpLevel() / 2;
 
-            // cout << "Peace: " << creatureList.size() << " victims found" << endl;
             list<Creature*>::iterator itr = creatureList.begin();
             for (; itr != creatureList.end(); itr++) {
                 Creature* pTargetCreature = (*itr);
@@ -169,7 +160,6 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
                         if (bHitRoll) {
                             // pMonster가 pSlayer를 먼저 공격하지 않는 Effect
                             EffectPeace* pEffectPeace = new EffectPeace(pMonster, pSlayer->getObjectID());
-                            // pEffectAftermath->setDeadline(150+pSlayer->getINT()); // (15+INT/10)초*10
                             pEffectPeace->setDeadline(duration); // 150+pSlayer->getINT()); // (15+INT/10)초*10
                             pMonster->addEffect(pEffectPeace);
                             pMonster->setFlag(Effect::EFFECT_CLASS_PEACE);
@@ -177,8 +167,6 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
                             // 이미 때리고 있는 경우라면 제거..
                             pMonster->deleteEnemy(pSlayer->getObjectID());
 
-                            // cout << pMonster->getName().c_str() << "에게 Peace 걸었다." << endl;
-                            // cList.push_back(pMonster);
 
                             bSuccess = true;
 
@@ -189,10 +177,8 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
                             _GCSkillToTileOK4.addCListElement(pMonster->getObjectID());
                             _GCSkillToTileOK5.addCListElement(pMonster->getObjectID());
                         } else {
-                            // cout << "Peace : HitRoll failed" << endl;
                         }
                     } else {
-                        // cout << "Peace : dead or already.." << endl;
                     }
                 }
             }
@@ -250,54 +236,9 @@ void Peace::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pS
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // cList.push_back(pSlayer);
 
             // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
             // 몬스터라서 없다 - -;
-            /*
-            for(list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++)
-            {
-                Creature* pTargetCreature = *itr;
-                Assert(pTargetCreature != NULL);
-
-                if (pTargetCreature->isPC())
-                {
-                    _GCSkillToTileOK2.clearList();
-
-                    HP_t targetHP = 0;
-                    if (pTargetCreature->isSlayer())
-                    {
-                        targetHP = (dynamic_cast<Slayer*>(pTargetCreature))->getHP();
-                    }
-                    else if (pTargetCreature->isVampire())
-                    {
-                        targetHP = (dynamic_cast<Vampire*>(pTargetCreature))->getHP();
-                    }
-
-                    _GCSkillToTileOK2.addShortData(MODIFY_CURRENT_HP, targetHP);
-
-                    // 패킷을 보내준다.
-                    Player* pPlayer = pTargetCreature->getPlayer();
-                    Assert(pPlayer != NULL);
-                    pPlayer->sendPacket(&_GCSkillToTileOK2);
-
-                    // HP를 브로드캐스팅한다.
-                    GCStatusCurrentHP gcStatusCurrentHP;
-                    gcStatusCurrentHP.setObjectID(pTargetCreature->getObjectID());
-                    gcStatusCurrentHP.setCurrentHP (targetHP);
-                    pZone->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(), &gcStatusCurrentHP);
-
-                }
-
-                cList = pZone->broadcastSkillPacket(myX, myY, X, Y, &_GCSkillToTileOK5, cList);
-
-                pZone->broadcastPacket(myX, myY,  &_GCSkillToTileOK3 , cList);
-                pZone->broadcastPacket(X, Y,  &_GCSkillToTileOK4 , cList);
-
-                pSkillSlot->setRunTime(param.Delay);
-                result.bSuccess = true;
-            }
-            */
 
             cList = pZone->broadcastSkillPacket(myX, myY, X, Y, &_GCSkillToTileOK5, cList);
 

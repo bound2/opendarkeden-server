@@ -24,7 +24,6 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayertile)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -135,14 +134,7 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
                                 pZone->deleteEffect(effectObjectID);
 
                                 // 타일에 걸어다니는 크리쳐가 존재한다면 포인터를 받아온다.
-                                //								Creature* pTargetCreature = NULL;
-                                //								if (tile.hasCreature(Creature::MOVE_MODE_WALKING))
-                                //									pTargetCreature =
-                                // tile.getCreature(Creature::MOVE_MODE_WALKING);
                                 //
-                                //								if (pTargetCreature != NULL && (
-                                // pTargetCreature->isSlayer() || pTargetCreature->isOusters() ))
-                                //									cList.push_back(pTargetCreature);
 
                                 GCDeleteEffectFromTile gcDeleteEffectFromTile;
                                 gcDeleteEffectFromTile.setXY(tileX, tileY);
@@ -232,7 +224,6 @@ void ContinualLight::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skil
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayertile)" << endl;
 
     __END_CATCH
 }

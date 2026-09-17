@@ -44,7 +44,6 @@ void EffectBloodyWall::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectBloodyWall" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -199,22 +198,12 @@ void EffectBloodyWall::affect()
                 // by sigi. 2002.8.31
                 // setDamage 를 호출하여 해결한다. 주석처리
                 // by bezz. 2003.1.3
-                /*				if (pCreature->isDead())
-                                {
-                                    Creature* pAttacker = m_pZone->getCreature( m_CasterID );
-
-                                    if (pAttacker!=NULL)
-                                    {
-                                        affectKillCount(pAttacker, pCreature);
-                                    }
-                                }*/
             }
         }
     }
 
     setNextTime(m_Tick);
 
-    // cout << "EffectBloodyWall" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -253,12 +242,10 @@ void EffectBloodyWall::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectBloodyWall" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectBloodyWall" << "unaffect END" << endl;
 
     __END_CATCH
 }

@@ -26,7 +26,6 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -38,7 +37,6 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // 아우스터즈만 되살릴 수 있다.
         if (pTargetCreature == NULL || !pTargetCreature->isOusters() ||
@@ -137,7 +135,6 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
             // 대상의 체력을 10%만 채운다.
             HP_t CurrentHP = getPercentValue(pTargetOusters->getHP(ATTR_MAX), HealRatio);
             pTargetOusters->setHP(CurrentHP, ATTR_CURRENT);
-            //			pTargetOusters->setMP(0, ATTR_CURRENT);
 
             // 주위에 체력이 채워졌다는 사실을 알린다.
             GCStatusCurrentHP gcStatusCurrentHP;
@@ -153,7 +150,6 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
             _GCSkillToObjectOK2.setObjectID(pOusters->getObjectID());
             _GCSkillToObjectOK2.setSkillType(SkillType);
             _GCSkillToObjectOK2.setDuration(0);
-            //			_GCSkillToObjectOK2.addShortData(MODIFY_CURRENT_MP, pTargetOusters->getMP(ATTR_CURRENT));
 
             _GCSkillToObjectOK3.setObjectID(pOusters->getObjectID());
             _GCSkillToObjectOK3.setSkillType(SkillType);
@@ -190,7 +186,6 @@ void SoulRebirth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

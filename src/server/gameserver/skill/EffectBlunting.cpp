@@ -57,7 +57,6 @@ void EffectBlunting::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectBlunting" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -102,7 +101,6 @@ void EffectBlunting::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_BLUNTING);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectBlunting" << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

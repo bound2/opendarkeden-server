@@ -28,7 +28,6 @@ void TransformToWolf::execute(Vampire* pVampire, ObjectID_t InvenObjectID, Coord
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -52,7 +51,6 @@ void TransformToWolf::execute(Vampire* pVampire, ObjectID_t InvenObjectID, Coord
             pVampire->isFlag(Effect::EFFECT_CLASS_REFINIUM_TICKET) ||
             GDRLairManager::Instance().isGDRLairZone(pZone->getZoneID())) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -137,7 +135,6 @@ void TransformToWolf::execute(Vampire* pVampire, ObjectID_t InvenObjectID, Coord
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -150,7 +147,6 @@ void TransformToWolf::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -200,7 +196,6 @@ void TransformToWolf::execute(Monster* pMonster)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

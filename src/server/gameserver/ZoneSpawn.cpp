@@ -165,8 +165,6 @@
 #include "repository/MessageRepository.h"
 #include "repository/ZoneInfoRepository.h"
 
-// by sigi.  2002.12.30
-// #define __PROFILE_BROADCAST__
 
 #ifdef __PROFILE_BROADCAST__
 #define __BEGIN_PROFILE_ZONE(name) beginProfileEx(name);
@@ -176,7 +174,6 @@
 #define __END_PROFILE_ZONE(name) ((void)0);
 #endif
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -240,16 +237,10 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         // PC매니저와 타일에 각각 집어넣는다.
         m_pTiles[pt.x][pt.y].addCreature(pCreature);
 
-        // checkMine(this, pCreature, pt.x, pt.y);	// 여기서도 mine을 폭발시켜야 하나..?
 
         m_pPCManager->addCreature(pCreature);
 
         // Sanctuary 플래그가 켜져있으면 꺼준다.
-        /*		if ( pCreature->isFlag( Effect::EFFECT_CLASS_SANCTUARY ) && m_pTiles[pt.x][pt.y].getEffect(
-        Effect::EFFECT_CLASS_SANCTUARY ) == NULL )
-        {
-        pCreature->removeFlag( Effect::EFFECT_CLASS_SANCTUARY );
-        }*/
 
         // 패밀리 요금제일경우 Default Option 보너스를 준다.
         GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
@@ -448,21 +439,6 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         //-----------------------------------------------------------------
         // 세금 적용되는 경우
         //-----------------------------------------------------------------
-        /*		if (isCastle())
-        {
-        PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-
-        int itemTaxRatio = g_pCastleInfoManager->getItemTaxRatio( pPC );
-
-        if (itemTaxRatio > 100)
-        {
-        GCNoticeEvent gcNoticeEvent;
-        gcNoticeEvent.setCode( NOTICE_EVENT_SHOP_TAX_CHANGE );
-        gcNoticeEvent.setParameter( (uint)itemTaxRatio );
-
-        pPC->getPlayer()->sendPacket( &gcNoticeEvent );
-        }
-        }*/
 
         //-----------------------------------------------------------------
         // 전쟁 중인 경우는 전쟁정보를 보내준다.
@@ -489,8 +465,6 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         //-----------------------------------------------------------------
         // 이전에 있던 존을 체크해야 될거 같은데? -_-;
         //-----------------------------------------------------------------
-        // if (isHolyLand())
-        //{
         sendHolyLandWarpEffect(pCreature);
         //}
 
@@ -512,19 +486,10 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             GCSweeperBonusInfo gcSweeperBonusInfo;
             g_pSweeperBonusManager->makeSweeperBonusInfo(gcSweeperBonusInfo);
             pCreature->getPlayer()->sendPacket(&gcSweeperBonusInfo);
-            //			pCreature->setFlag( Effect::EFFECT_CLASS_INIT_ALL_STAT );
         }
 
 
         // Player 에게 GCItemNameInfoList 패킷을 보내준다
-        /*		PlayerCreature* pPC = dynamic_cast<PlayerCreature*>(pCreature);
-        if ( !pPC->isEmptyItemNameInfoList() )
-        {
-        GCItemNameInfoList	gcItemNamInfoList;
-        makeGCItemNameInfoList( &gcItemNamInfoList, pPC );
-
-        pPC->getPlayer()->sendPacket( &gcItemNamInfoList );
-        }*/
 
         // PK존에서 죽어서 되살아나는 경우 부활 이펙트가 붙는다.
         if (pCreature->isFlag(Effect::EFFECT_CLASS_PK_ZONE_RESURRECTION)) {
@@ -592,7 +557,6 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
                 pPC->getPlayer()->sendPacket(&gcNoticeEvent);
             }
 
-            //			if ( canEnterBeginnerZone( pPC ) && getZoneID() != 1122 )
             if (canEnterBeginnerZone(pPC)) {
                 int year = VSDate::currentDate().year() - 2000;
                 int month = VSDate::currentDate().month();
@@ -615,7 +579,6 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
             if (g_pVariableManager->isActiveLevelWar()) {
                 ZoneID_t levelWarZoneId = g_pLevelWarZoneInfoManager->getCreatureZoneID(pCreature);
 
-                //				cout << "ZoneID : " << levelWarZoneId << endl;
                 if (levelWarZoneId != 1) {
                     Zone* pLevelZone = getZoneByZoneID(levelWarZoneId);
                     Assert(pLevelZone != NULL);
@@ -640,8 +603,6 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
 
                         GCNoticeEvent gcNoticeEvent;
                         gcNoticeEvent.setCode(NOTICE_EVENT_LEVEL_WAR_ARRANGED);
-                        //						gcNoticeEvent.setParameter( ((DWORD)((DWORD)month << 24)) |
-                        //((DWORD)((DWORD)day << 16)) | ((DWORD)((DWORD)hour << 8)) | ((DWORD)((DWORD)level)) );
                         gcNoticeEvent.setParameter((level * 100000000) + (year * 1000000) + (month * 10000) +
                                                    (day * 100) + hour);
                         pPC->getPlayer()->sendPacket(&gcNoticeEvent);
@@ -678,19 +639,13 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         {
             GuildUnion* pUnion = GuildUnionManager::Instance().getGuildUnion(pPC->getGuildID());
             if (pUnion != NULL) {
-                //	cout << "GuildUNION : Union이 있는 PlayerCreature" << endl;
-
                 if (g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC))
-                    //		cout << "GuildUNION : PC가 GuildMaster다" << endl;
 
                     if (pUnion->getMasterGuildID() == pPC->getGuildID())
-                        //		cout << "GuildUNION : 연합의 마스터 길드가 내 길드다" << endl;
 
                         // 요청한놈이 지가 속한 길드의 마스터인가? || 연합의 마스터길드가 내 길드가 맞나?
                         if (g_pGuildManager->isGuildMaster(pPC->getGuildID(), pPC) &&
                             pUnion->getMasterGuildID() == pPC->getGuildID()) {
-                            //		cout << "그러면..OfferList를 만들어서 보내주자.." << endl;
-
                             if (GuildUnionOfferManager::Instance().makeOfferList(pUnion->getUnionID(),
                                                                                  gcUnionOfferList)) {
                                 pPC->getPlayer()->sendPacket(&gcUnionOfferList);
@@ -710,19 +665,13 @@ void Zone::addPC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir)
         myStoreInfo.setOpenUI(0);
         pPC->getPlayer()->sendPacket(&myStoreInfo);
 
-        // pPC->getPlayer()->sendPacket( &gcUnionOfferList );
 
-        /*		GCNoticeEvent gcNoticeEvent;
-        gcNoticeEvent.setCode( NOTICE_EVENT_CROWN_PRICE );
-        gcNoticeEvent.setParameter( g_pVariableManager->getVariable(CROWN_PRICE) );
-        pPC->getPlayer()->sendPacket( &gcNoticeEvent );*/
     } else {
         ZoneCoord_t tempX = Random(20, m_Width);
         ZoneCoord_t tempY = Random(20, m_Height);
         addPC(pCreature, tempX, tempY, 0);
 
         // 맥스카운트 지나도 못 찾은 경우 Assert
-        // throw EmptyTileNotExistException("too many pc in this zone.. or too unlucky");
     }
 
 
@@ -760,7 +709,6 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
         // Monster 일 경우, MonsterManager에 추가하며, NPC 일 경우, NPCManager 에 추가한다.
         //--------------------------------------------------------------------------------
         if (pCreature->isMonster()) {
-            // #ifdef __XMAS_EVENT_CODE__
             Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
             if (isDynamicZone()) {
@@ -789,32 +737,11 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
                 break;
             }
 
-            /*
-            switch (pMonster->getMonsterType())
-            {
-                case 358:
-                case 359:
-                case 360:
-                case 361:
-                    m_pEventMonsterManager->addCreature(pCreature);
-                    break;
-
-                default:
-                    m_pMonsterManager->addCreature(pCreature);
-                    break;
-            }
-            */
-            // #else
-            //			m_pMonsterManager->addCreature(pCreature);
-            /*
-            #endif
-            */
 
         } else if (pCreature->isNPC()) {
             m_pNPCManager->addCreature(pCreature);
         }
 
-        // cout << "타일에 몬스터 추가하기" << endl;
         m_pTiles[pt.x][pt.y].addCreature(pCreature, false);
 
         //--------------------------------------------------------------------------------
@@ -823,12 +750,10 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
         pCreature->setXYDir(pt.x, pt.y, dir);
         pCreature->setZone(this);
 
-        // scanPC(pCreature);
 
         //--------------------------------------------------------------------------------
         // 주변의 PC들에게 알릴 GCAddNPC or GCAddMonster 패킷을 생성한다.
         //--------------------------------------------------------------------------------
-        // cout << "주변의 PC들에게 알릴 패킷 만들기" << endl;
         Creature::CreatureClass CClass = pCreature->getCreatureClass();
 
         if (CClass == Creature::CREATURE_CLASS_NPC) {
@@ -837,7 +762,6 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
             makeGCAddNPC(&gcAddNPC, pNPC);
             broadcastPacket(pt.x, pt.y, &gcAddNPC);
         } else if (CClass == Creature::CREATURE_CLASS_MONSTER) {
-            // cout << "몬스터용 패킷 만들기" << endl;
             Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
             // zone에 처음 들어갈때도 여러가지 상태가 있다.. by sigi
@@ -845,48 +769,6 @@ void Zone::addCreature(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_
 
             if (pAddMonsterPacket != NULL) {
                 broadcastPacket(cx, cy, pAddMonsterPacket, pMonster);
-                /*				ZoneCoord_t ix = 0;
-                                ZoneCoord_t iy = 0;
-                                ZoneCoord_t endx = 0;
-                                ZoneCoord_t endy = 0;
-
-
-                                //////////////////////////////////////////////////////////////////////////////
-                                // 루프 변수 초기화..
-                                //////////////////////////////////////////////////////////////////////////////
-                                int Range = 0;
-                                endx = min(m_Width - 1, cx + maxViewportWidth + 1 + Range);
-                                endy = min(m_Height - 1, cy + maxViewportLowerHeight  + 1 + Range);
-
-                                for (ix =  max(0, cx - maxViewportWidth - 1 - Range); ix <= endx ; ix++)
-                                {
-                                    for (iy = max(0, cy - maxViewportUpperHeight - 1 -  Range); iy <= endy ; iy++)
-                                    {
-                                        // 타일에 크리처가 있는 경우에만
-                                        if (m_pTiles[ix][iy].hasCreature())
-                                        {
-                                            const slist<Object*> & objectList = m_pTiles[ix][iy].getObjectList();
-                                            slist<Object*>::const_iterator itr = objectList.begin();
-
-                                            for (; itr != objectList.end() && (*itr)->getObjectPriority() <=
-                   OBJECT_PRIORITY_BURROWING_CREATURE; itr++)
-                                            {
-                                                Creature* pOtherCreature = dynamic_cast<Creature*>(*itr);
-                                                Assert(pOtherCreature != NULL);
-
-                                                if (pOtherCreature->isPC())
-                                                {
-                                                    if ( canSee( pOtherCreature, pMonster ) )
-                                                    {
-                                                        pOtherCreature->getPlayer()->sendPacket(pAddMonsterPacket);
-                                                    }
-                                                } // if
-
-                                            } // for
-                                        }//if
-                                    }//for
-                                }//for
-                */
                 delete pAddMonsterPacket;
             }
 
@@ -1088,27 +970,7 @@ void Zone::deleteCreature(Creature* pCreature, ZoneCoord_t x, ZoneCoord_t y)
                 m_pTradeManager->cancelTrade(pCreature);
             }
         } else if (pCreature->isMonster()) {
-            // #ifdef __XMAS_EVENT_CODE__
-            //			Monster* pMonster = dynamic_cast<Monster*>(pCreature);
             m_pMonsterManager->deleteCreature(pCreature->getObjectID());
-            /*			switch (pMonster->getMonsterType())
-                        {
-                            case 358:
-                            case 359:
-                            case 360:
-                            case 361:
-                                m_pEventMonsterManager->deleteCreature(pCreature->getObjectID());
-                                break;
-
-                            default:
-                                m_pMonsterManager->deleteCreature(pCreature->getObjectID());
-                                break;
-                        }*/
-            // #else
-            //			m_pMonsterManager->deleteCreature(pCreature->getObjectID());
-            /*
-            #endif
-            */
         } else if (pCreature->isNPC()) {
             m_pNPCManager->deleteCreature(pCreature->getObjectID());
         }
@@ -1183,23 +1045,12 @@ Packet* Zone::createMonsterAddPacket(Monster* pMonster, Creature* pPC) const
     // 일단 packet을 생성해두고 체크하기 위해서다.
     if (pPC != NULL && !canSee(pPC, pMonster))
         return NULL;
-    //	bool canSeeAll = (pPC==NULL);
 
     // ObservingEye 이펙트를 가져온다.
-    //	EffectObservingEye* pEffectObservingEye = NULL;
-    //	if ( pPC != NULL && pPC->isFlag( Effect::EFFECT_CLASS_OBSERVING_EYE ) )
-    //	{
-    //		pEffectObservingEye = dynamic_cast<EffectObservingEye*>(pPC->findEffect( Effect::EFFECT_CLASS_OBSERVING_EYE
-    //) );
     //		//Assert( pEffectObservingEye );
-    //	}
 
     if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
         // 뱀파거나 볼 수 있다면..
-        //		if (canSeeAll
-        //			|| pPC->isVampire()
-        //			|| pPC->isFlag(Effect::EFFECT_CLASS_DETECT_HIDDEN) )
-        //			|| ( pEffectRevealer != NULL && pEffectRevealer->canSeeHide( pMonster ) ) )
         {
             GCAddBurrowingCreature* pPacket = new GCAddBurrowingCreature();
 
@@ -1242,10 +1093,6 @@ Packet* Zone::createMonsterAddPacket(Monster* pMonster, Creature* pPC) const
     // invisiblity 상태
     else if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
         // 보이나? 뱀파거나 볼수 있다면..
-        //		if (canSeeAll
-        //			|| pPC->isVampire()
-        //			|| pPC->isFlag(Effect::EFFECT_CLASS_DETECT_INVISIBILITY)
-        //			|| ( pEffectObservingEye != NULL && pEffectObservingEye->canSeeInvisibility( pMonster ) ) )
         {
             // FIXME
             // 설정에따라서 어떻게 보일지 결정된 후..

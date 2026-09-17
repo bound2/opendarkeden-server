@@ -96,12 +96,10 @@ void EffectSetAfire::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectSetAfire " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectSetAfire " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -112,14 +110,12 @@ void EffectSetAfire::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectSetAfire " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    // cout << "EffectSetAfire " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

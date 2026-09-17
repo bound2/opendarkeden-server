@@ -33,7 +33,6 @@ void CreateBomb::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(CreateBomb)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -53,7 +52,6 @@ void CreateBomb::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
         if (pBombMaterial == NULL || pBombMaterial->getItemClass() != Item::ITEM_CLASS_BOMB_MATERIAL ||
             pBombMaterial->getObjectID() != InvenObjectID) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" << endl;
             return;
         }
 
@@ -67,7 +65,6 @@ void CreateBomb::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
         // 1이 아니라면 리턴해야한다.
         if (bSamePosition && pBombMaterial->getNum() != 1) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" << endl;
             return;
         }
 
@@ -77,7 +74,6 @@ void CreateBomb::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
         if (BombType == -1) {
             // 폭탄 재료가 아니라, 지뢰 재료라면, 스킬 실패다.
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" << endl;
             return;
         }
 
@@ -121,8 +117,6 @@ void CreateBomb::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
 
                     executeSkillFailException(pSlayer, getSkillType());
 
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerinventory)" <<
-                    // endl;
                     return;
                 }
 
@@ -174,7 +168,6 @@ void CreateBomb::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
 
             pSkillSlot->setRunTime(output.Delay);
         } else {
-            // executeSkillFailNormal(pSlayer, getSkillType(), NULL);
             //  폭탄 만들기 같은 경우에는, 실패했을 때 딜레이가 없기 때문에,
             //  클라이언트에게서 패킷이 상당히 빠르게 연속적으로 날아온다.
             //  이 때, 실패 패킷을 브로드 캐스팅하게 되면, 옆에 있는 사람이 보기에는
@@ -187,7 +180,6 @@ void CreateBomb::execute(Slayer* pSlayer, ObjectID_t InvenObjectID, CoordInven_t
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(CreateBomb)" << endl;
 
     __END_CATCH
 }

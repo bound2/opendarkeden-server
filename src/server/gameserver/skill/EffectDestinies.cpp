@@ -92,7 +92,6 @@ void EffectDestinies::affect()
             }
         }
 
-    // cout << "EffectDestinies" << "affect BEGIN" << endl;
 
     __END_CATCH
 }
@@ -171,9 +170,6 @@ void EffectDestinies::unaffect()
 
     {__BEGIN_TRY
 
-         // cout << "EffectDestinies" << "unaffect BEGIN" << endl;
-
-         // cout << "EffectDestinies" << "unaffect END" << endl;
 
          __END_CATCH}
 

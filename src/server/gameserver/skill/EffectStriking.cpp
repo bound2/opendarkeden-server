@@ -41,12 +41,8 @@ void EffectStriking::affect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* p
 void EffectStriking::unaffect()
 
 {
-    // cout << "EffectStriking " << "unaffect BEGIN" << endl;
-
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
-
-    // cout << "EffectStriking " << "unaffect END" << endl;
 }
 
 void EffectStriking::unaffect(Creature* pCreature)
@@ -54,7 +50,6 @@ void EffectStriking::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectStriking " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -78,7 +73,6 @@ void EffectStriking::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_STRIKING);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectStriking " << "unaffect END" << endl;
 
     __END_CATCH
 }

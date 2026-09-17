@@ -27,7 +27,6 @@ void PenetrateWheel::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouste
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -37,24 +36,20 @@ void PenetrateWheel::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouste
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
 
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType(), 0);
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
         execute(pOusters, pTargetCreature->getX(), pTargetCreature->getY(), pOustersSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType(), 0);
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -132,11 +127,8 @@ void PenetrateWheel::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ou
 
                 pEffect->setDamage(15); //
                 pEffect->setNextTime(20);
-                // pEffect->setCasterID( pOusters->getObjectID() );
                 pEffect->setDeadline(output.Duration);
 
-                // if ( pTargetCreature->getX() == X && pTargetCreature->getY() == Y )
-                // 	pEffect->setSteal(true);
 
                 pTargetCreature->setFlag(Effect::EFFECT_CLASS_Penetrate_Wheel);
                 pTargetCreature->addEffect(pEffect);

@@ -140,8 +140,6 @@ void EffectSatelliteBombAim::unaffect(Creature* pCastCreature)
                         FinalDamage += Damage;
 
                         if (pCreature->isPC() && pCreature->getCreatureClass() != pCastCreature->getCreatureClass()) {
-                            //							Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-
                             GCModifyInformation gcMI;
                             ::setDamage(pCreature, FinalDamage, pCastCreature, SKILL_SATELLITE_BOMB,
                                         &gcMI); // ::추가 by Sequoia

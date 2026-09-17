@@ -24,7 +24,6 @@ void EffectBlindness::affect() {
         affect(dynamic_cast<Creature*>(m_pTarget));
     }
 
-    //	setNextTime(10);
 
     __END_CATCH
 }

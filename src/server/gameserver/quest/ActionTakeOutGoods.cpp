@@ -85,8 +85,6 @@ void ActionTakeOutGoods::execute(Creature* pCreature1, Creature* pCreature2)
             pGI->timeLimit = 0;
 
         gcGoodsList.addGoodsInfo(pGI);
-
-        //		cout << pGI->toString() << endl;
     }
 
     pPC->getPlayer()->sendPacket(&gcGoodsList);

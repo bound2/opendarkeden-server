@@ -44,12 +44,10 @@ void EffectMiracleShield::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectMiracleShield " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectMiracleShield " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -62,7 +60,6 @@ void EffectMiracleShield::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectMiracleShield " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer() == true);
@@ -86,7 +83,6 @@ void EffectMiracleShield::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_MIRACLE_SHIELD);
     pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcRemoveEffect);
 
-    // cout << "EffectMiracleShield " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

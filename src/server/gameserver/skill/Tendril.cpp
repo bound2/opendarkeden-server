@@ -27,7 +27,6 @@ void Tendril::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pSkillSlot != NULL);
@@ -46,7 +45,6 @@ void Tendril::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
         }
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // 저주 면역. by sigi. 2002.9.13
@@ -54,7 +52,6 @@ void Tendril::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
         if (pTargetCreature == NULL || pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_CURSE) ||
             !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -113,7 +110,6 @@ void Tendril::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
             // 이펙트 오브젝트를 생성해 붙인다.
             EffectTendril* pEffect = new EffectTendril(pTargetCreature);
             pEffect->setDeadline(output.Duration);
-            // pEffect->setLevel(pSkillSlot->getExpLevel());
             pTargetCreature->addEffect(pEffect);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_TENDRIL);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_NO_DAMAGE);
@@ -158,7 +154,6 @@ void Tendril::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
             if (pTargetCreature->isPC()) {
                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
 
@@ -185,7 +180,6 @@ void Tendril::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkill
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

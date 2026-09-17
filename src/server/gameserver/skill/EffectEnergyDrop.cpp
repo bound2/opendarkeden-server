@@ -36,8 +36,6 @@ EffectEnergyDrop::EffectEnergyDrop(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t z
     m_X = zoneX;
     m_Y = zoneY;
     m_UserObjectID = 0;
-    //	m_CasterName ="";
-    //	m_PartyID = 0;
 
     __END_CATCH
 }
@@ -48,13 +46,11 @@ bool EffectEnergyDrop::affectCreature(Creature* pTargetCreature, bool bAffectByM
 {
     __BEGIN_TRY
 
-    // cout << "EffectEnergyDrop " << "affectCreature Begin " << endl;
 
     Assert(pTargetCreature != NULL);
 
     // 상대에게 이미 poison 이펙트가 걸려져 있는 경우에는 걸리지 않는다.
     if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_ENERGY_DROP_TO_CREATURE)) {
-        // cout << "EffectEnergyDrop " << "affectCreature End(Already Effected) " << endl;
         return false;
     }
 
@@ -69,7 +65,6 @@ bool EffectEnergyDrop::affectCreature(Creature* pTargetCreature, bool bAffectByM
     // 상대방에게 미칠 독 데미지를 계산한다.
     int DropDamage = computeMagicDamage(pTargetCreature, m_Damage, SKILL_ENERGY_DROP);
 
-    // cout << "EffectEnergyDrop(Damage:" << DropDamage << ") Affected" << endl;
     if (DropDamage > 0) {
         // 포이즌 이펙트를 생성해서, 타겟 크리쳐에 붙이고, 플래그를 켜준다.
 
@@ -89,8 +84,6 @@ bool EffectEnergyDrop::affectCreature(Creature* pTargetCreature, bool bAffectByM
         EffectEnergyDropToCreature* pEffectEnergyDropToCreature = new EffectEnergyDropToCreature(pTargetCreature);
 
         // 우선권 시스템을 위하여 이름과 파티 아이디를 넣는다.
-        //		pEffectEnergyDropToCreature->setCasterName(m_CasterName);
-        //		pEffectEnergyDropToCreature->setPartyID(m_PartyID);
         pEffectEnergyDropToCreature->setUserObjectID(m_UserObjectID);
 
         pEffectEnergyDropToCreature->setLevel(m_Level);
@@ -109,7 +102,6 @@ bool EffectEnergyDrop::affectCreature(Creature* pTargetCreature, bool bAffectByM
         pZone->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect);
     }
 
-    // cout << "EffectEnergyDrop " << "affectCreature End " << endl;
 
     return true;
 

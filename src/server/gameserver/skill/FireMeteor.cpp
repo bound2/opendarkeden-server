@@ -18,7 +18,6 @@ void FireMeteor::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
                          CEffectID_t CEffectID) {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -28,7 +27,6 @@ void FireMeteor::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuchÁ¦°Å. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pOusters, pTargetCreature)) {
@@ -49,7 +47,6 @@ void FireMeteor::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
                          CEffectID_t CEffectID) {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(vampire)" << endl;
 
     SkillInput input(pOusters, pOustersSkillSlot);
     SkillOutput output;
@@ -60,15 +57,6 @@ void FireMeteor::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
         Assert(pRankBonus != NULL);
         output.Damage += pRankBonus->getPoint();
     }
-    // if (pOusters->hasRankBonus(RankBonus::RANK_BONUS_FIRE_OF_SPIRIT ) )
-    //   {
-    //     NewRankGem* pRankBonus = pOusters->getRankBonus(RankBonus::RANK_BONUS_FIRE_OF_SPIRIT);
-    //     Assert( pRankBonus != NULL );
-
-    //     bool isCri = HitRoll::isCriticalHit(pOusters, 200);
-    //     if(isCri)
-    // 	output.Damage += output.Damage*0.5;
-    //   }
 
 
     SIMPLE_SKILL_INPUT param;

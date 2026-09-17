@@ -168,8 +168,6 @@
 #include "ZoneInternal.h"
 #include "item/Motorcycle.h"
 
-// by sigi.  2002.12.30
-// #define __PROFILE_BROADCAST__
 
 #ifdef __PROFILE_BROADCAST__
 #define __BEGIN_PROFILE_ZONE(name) beginProfileEx(name);
@@ -179,7 +177,6 @@
 #define __END_PROFILE_ZONE(name) ((void)0);
 #endif
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -282,7 +279,6 @@ void Zone::broadcastSayPacket(ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket, C
                             if (pCreature->isFlag(Effect::EFFECT_CLASS_OBSERVING_EYE)) {
                                 pEffectObservingEye = dynamic_cast<EffectObservingEye*>(
                                     pCreature->findEffect(Effect::EFFECT_CLASS_OBSERVING_EYE));
-                                // Assert( pEffectObservingEye != NULL );
                             }
 
                             if (!owner->isFlag(Effect::EFFECT_CLASS_GHOST) &&
@@ -300,11 +296,9 @@ void Zone::broadcastSayPacket(ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket, C
                                                                                 // ) )
                                 && ((isVampire && pCreature->isVampire()) || (!isVampire && pCreature->isSlayer()) ||
                                     pCreature->isOusters())) {
-                                // pCreature->getPlayer()->sendPacket(pPacket);
                                 pCreature->getPlayer()->sendStream(&outputStream);
                             }
                         } else {
-                            // pCreature->getPlayer()->sendPacket(pPacket);
                             pCreature->getPlayer()->sendStream(&outputStream);
                         }
                     }
@@ -387,11 +381,9 @@ void Zone::broadcastPacket(ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket, Crea
                         if (owner != NULL) {
                             // canSee 함수로 대체. by bezz 2003.05.29
                             if (canSee(pCreature, owner)) {
-                                // pCreature->getPlayer()->sendPacket(pPacket);
                                 pCreature->getPlayer()->sendStream(&outputStream);
                             }
                         } else {
-                            // pCreature->getPlayer()->sendPacket(pPacket);
                             pCreature->getPlayer()->sendStream(&outputStream);
                         }
                     }
@@ -482,20 +474,6 @@ list<Creature*> Zone::broadcastSkillPacket(ZoneCoord_t x1, ZoneCoord_t y1, ZoneC
                         bool belong = false;
                         for (list<Creature*>::const_iterator itr = creatureList.begin(); itr != creatureList.end();
                              itr++) {
-                            /*
-                            if( pCreature->isMonster() )
-                            {
-                                Monster* pMonster = dynamic_cast<Monster*>(pCreature);
-                                // edit by sonic 2006.12.29  錦攣훙잚퓜癎珞加뎌뵨加濫檢
-                                if(pMonster->getMonsterType() 	== 482 ||
-                                     pMonster->getMonsterType() 	== 673 )
-                                     {
-                                            belong =true;
-                                            break;
-                                     }
-                                }
-                            // end by sonic
-                            */
                             if (pCreature == *itr) {
                                 belong = true;
                                 break;
@@ -506,7 +484,6 @@ list<Creature*> Zone::broadcastSkillPacket(ZoneCoord_t x1, ZoneCoord_t y1, ZoneC
                             pCreature->getVisionState(x2, y2) >= IN_SIGHT) {
                             // 숨어 있는 넘이 안 보이면서 스킬을 쓸 이유가 없다.. 따라서 HIDE체크는 하지 않는다.
                             Player* pPlayer = pCreature->getPlayer();
-                            // pPlayer->sendPacket(pPacket);
                             pPlayer->sendStream(&outputStream);
                             cList.push_back(pCreature);
                         }
@@ -595,31 +572,13 @@ void Zone::broadcastPacket(ZoneCoord_t cx, ZoneCoord_t cy, Packet* pPacket, cons
                         bool belong = false;
                         for (list<Creature*>::const_iterator itr = creatureList.begin(); itr != creatureList.end();
                              itr++) {
-                            /*
-                            // edit by sonic 2006.12.29  錦攣훙잚퓜癎珞加뎌뵨加濫檢
-                            if( pCreature->isMonster() )
-                            {
-                                Monster* pMonster = dynamic_cast<Monster*>(pCreature);
-
-                                if(pMonster->getMonsterType() 	== 482 ||
-                                     pMonster->getMonsterType() 	== 673 )
-                                     {
-                                            belong =true;
-                                            break;
-                                     }
-                                }
-                            // end by sonic
-                            */
                             if (pCreature == *itr) {
                                 belong = true;
                                 break;
                             }
                         } // for
 
-                        //						if ((!belong && pCreature->getVisionState(cx,cy) >= IN_SIGHT) ||(!belong
-                        //&& Plus))
                         if (!belong) {
-                            // pCreature->getPlayer()->sendPacket(pPacket);
                             pCreature->getPlayer()->sendStream(&outputStream);
                         } // if
                     } // if
@@ -694,8 +653,6 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
         if (pPC->getCreatureClass() == Creature::CREATURE_CLASS_SLAYER) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
 
-            //		GCAddSlayer* pGCAddSlayer = new GCAddSlayer(pSlayer->getSlayerInfo3());
-            //		pGCAddSlayer->setEffectInfo(pSlayer->getEffectInfo());
             GCAddSlayer* pGCAddSlayer = new GCAddSlayer;
             makeGCAddSlayer(pGCAddSlayer, pSlayer);
             pGCAddXXX = pGCAddSlayer;
@@ -711,8 +668,6 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
                 pGCABC->setY(y2);
                 pGCAddXXX = pGCABC;
             } else {
-                //			GCAddVampire* pGCAddVampire = new GCAddVampire(pVampire->getVampireInfo3());
-                //			pGCAddVampire->setEffectInfo(pVampire->getEffectInfo());
                 GCAddVampire* pGCAddVampire = new GCAddVampire;
                 makeGCAddVampire(pGCAddVampire, pVampire);
                 pGCAddXXX = pGCAddVampire;
@@ -720,8 +675,6 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
         } else if (pPC->getCreatureClass() == Creature::CREATURE_CLASS_OUSTERS) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
 
-            //		GCAddOusters* pGCAddOusters = new GCAddOusters( pOusters->getOustersInfo3() );
-            //		pGCAddOusters->setEffectInfo(pOusters->getEffectInfo());
             GCAddOusters* pGCAddOusters = new GCAddOusters;
             makeGCAddOusters(pGCAddOusters, pOusters);
             pGCAddXXX = pGCAddOusters;
@@ -739,17 +692,7 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
         Assert(pPlayer != NULL);
 
         // loop 안에 있던걸 이쪽으로 뺐다. by sigi. 2002.5.8
-        //	Sight_t sight = pPC->getSight();
-        //	VisionInfo* pVisionInfo = g_pVisionInfoManager->getVisionInfo(sight, pPC->getDir());
 
-        //    // ObservingEye 이펙트를 가져온다.
-        //	EffectObservingEye* pEffectObservingEye = NULL;
-        //	if ( pPC->isFlag(Effect::EFFECT_CLASS_OBSERVING_EYE ) )
-        //	{
-        //		pEffectObservingEye =
-        // dynamic_cast<EffectObservingEye*>(pPC->findEffect(Effect::EFFECT_CLASS_OBSERVING_EYE));
-        //		//Assert( pEffectObservingEye != NULL );
-        //	}
 
         //////////////////////////////////////////////////////////////////////////////
         // 시야 영역의 상하좌우 모두 + 1 씩 증가시킨다.
@@ -760,8 +703,6 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
             for (ZoneCoord_t iy = max(0, y2 - maxViewportUpperHeight - 1),
                              endy = min(m_Height - 1, y2 + maxViewportLowerHeight + 1);
                  iy <= endy; iy++) {
-                // if (pPC->isFlag(Effect::EFFECT_CLASS_DARKNESS)) sight = DARKNESS_SIGHT;
-
                 // 현재 타일 위에 있는 모든 오브젝트들에 대해 반복한다.
                 const forward_list<Object*>& objectList = m_pTiles[ix][iy].getObjectList();
 
@@ -774,10 +715,8 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
                 //
                 if (itr != objectList.end()) {
                     // 이전 좌표 P(x1,y1)에서 I(ix,iy)가 어떻게 보이는가?
-                    //				VisionState prevVisionState = pVisionInfo->getVisionState(x1,y1,ix,iy);
                     VisionState prevVisionState = VisionInfoManager::getVisionState(x1, y1, ix, iy);
                     // 현재 좌표 Q(x2,y2)에서 I(ix,iy)가 어떻게 보이는가?
-                    //				VisionState curVisionState = pVisionInfo->getVisionState(x2,y2,ix,iy);
                     VisionState curVisionState = VisionInfoManager::getVisionState(x2, y2, ix, iy);
 
                     do {
@@ -803,7 +742,6 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
                                 // 넉백일 경우, 자신의 의지에 의해 움직이는 것이 아니라,
                                 // 타인에 의해 움직이는 것이므로 보내줘야 한다.
                                 if (bKnockback) {
-                                    // pPC->getPlayer()->sendPacket(&gcKnockback);
                                     pPC->getPlayer()->sendStream(&outputStream);
                                     // 넉백을 보내줬으면 continue한다.
                                 }
@@ -852,12 +790,9 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
                                     // 현재 움직이는 크리쳐에게 스나이핑 상태가 걸려있지 않거나,
                                     // 걸려있다면 디텍트 인비저빌러티가 걸려있어야 볼 수 있다.
                                     // canSee 로 대체. by bezz 2003.05.29
-                                    //								if ( canSee( pPC, pCreature, pEffectObservingEye ) )
                                     if (canSee(pPC, pCreature)) {
                                         Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
                                         //									GCAddSlayer
-                                        // gcAddSlayer(pSlayer->getSlayerInfo3());
-                                        //									gcAddSlayer.setEffectInfo(pSlayer->getEffectInfo());
                                         GCAddSlayer gcAddSlayer;
                                         makeGCAddSlayer(&gcAddSlayer, pSlayer);
                                         pPlayer->sendPacket(&gcAddSlayer);
@@ -883,16 +818,11 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
                                 // 보이지 않는 영역에서, 경계 영역을 거치지 않고 바로
                                 // 시야 내부 영역으로 들어온다는 것은 불가능하다.
                                 // 이거 이제 쌩~ IN_SIGHT밖에 없다.
-                                //							Assert(prevVS != OUT_OF_SIGHT || currVS != IN_SIGHT);
 
                                 if (canSee(pCreature, pPC)) {
                                     if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(pGCAddXXX);
                                     } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                                        // if (bSendMove)
-                                        //	pCreature->getPlayer()->sendPacket(&gcMove);
-                                        // else if (bKnockback)
-                                        //	pCreature->getPlayer()->sendPacket(&gcKnockback);
                                         pCreature->getPlayer()->sendStream(&outputStream);
                                     } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(&gcDeleteObject);
@@ -936,8 +866,6 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
                                             {
                                                 Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
                                                 //											GCAddVampire
-                                                // gcAddVampire(pVampire->getVampireInfo3());
-                                                //											gcAddVampire.setEffectInfo(pVampire->getEffectInfo());
                                                 GCAddVampire gcAddVampire;
                                                 makeGCAddVampire(&gcAddVampire, pVampire);
 
@@ -966,20 +894,13 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
                                 // 보이지 않는 영역에서, 경계 영역을 거치지 않고 바로
                                 // 시야 내부 영역으로 들어온다는 것은 불가능하다.
                                 // 이거 이제 쌩~ IN_SIGHT밖에 없다.
-                                //							Assert(prevVS != OUT_OF_SIGHT || currVS != IN_SIGHT);
 
                                 // 상대는 뱀파이어이므로 나의 darkness상태는 관계없다.
                                 // Hide도 관계없다.
-                                //							if (!pPC->isFlag(Effect::EFFECT_CLASS_GHOST)
-                                //								&& (!pPC->isSlayer()
-                                //									|| !pPC->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE))
-                                //								)
                                 if (canSee(pCreature, pPC)) {
                                     if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(pGCAddXXX);
                                     } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                                        // if (bSendMove) pCreature->getPlayer()->sendPacket(&gcMove);
-                                        ////else if (bKnockback) pCreature->getPlayer()->sendPacket(&gcKnockback);
                                         pCreature->getPlayer()->sendStream(&outputStream);
                                     } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(&gcDeleteObject);
@@ -994,12 +915,9 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
                                 // 새로 받아오지 않는다.
                                 //////////////////////////////////////////////////////////////////////////////
                                 if (curVisionState >= IN_SIGHT && prevVisionState == OUT_OF_SIGHT) {
-                                    //								if (!pCreature->isFlag(Effect::EFFECT_CLASS_GHOST) )
                                     if (canSee(pPC, pCreature)) {
                                         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
                                         //									GCAddOusters
-                                        // gcAddOusters(pOusters->getOustersInfo3());
-                                        //									gcAddOusters.setEffectInfo(pOusters->getEffectInfo());
                                         GCAddOusters gcAddOusters;
                                         makeGCAddOusters(&gcAddOusters, pOusters);
                                         pPlayer->sendPacket(&gcAddOusters);
@@ -1024,14 +942,11 @@ void Zone::movePCBroadcast(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCo
 
                                 // 보이지 않는 영역에서, 경계 영역을 거치지 않고 바로
                                 // 시야 내부 영역으로 들어온다는 것은 불가능하다.
-                                //							Assert(prevVS != OUT_OF_SIGHT || currVS != IN_SIGHT);
 
                                 if (canSee(pCreature, pPC)) {
                                     if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(pGCAddXXX);
                                     } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                                        // if (bSendMove) pCreature->getPlayer()->sendPacket(&gcMove);
-                                        // else if (bKnockback) pCreature->getPlayer()->sendPacket(&gcKnockback);
                                         pCreature->getPlayer()->sendStream(&outputStream);
                                     } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(&gcDeleteObject);
@@ -1259,8 +1174,6 @@ void Zone::moveCreatureBroadcast(Creature* pCreature, ZoneCoord_t x1, ZoneCoord_
         Packet* pGCAddXXX = NULL;
 
         bool isMonster = !pCreature->isNPC();
-        //	bool isMonsterHide = false;
-        //	bool isMonsterInvisibility = false;
 
         if (!isMonster) {
             pNPC = dynamic_cast<NPC*>(pCreature);
@@ -1275,8 +1188,6 @@ void Zone::moveCreatureBroadcast(Creature* pCreature, ZoneCoord_t x1, ZoneCoord_
             pGCAddXXX = createMonsterAddPacket(pMonster, NULL);
 
             // monster의 상태를 기억해둔다.
-            //		isMonsterHide = pMonster->isFlag(Effect::EFFECT_CLASS_HIDE);
-            //		isMonsterInvisibility = pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY);
         }
 
         // 시야에서 벗어날 때, GCDeleteObject 패킷을 보낸다.
@@ -1316,16 +1227,9 @@ void Zone::moveCreatureBroadcast(Creature* pCreature, ZoneCoord_t x1, ZoneCoord_
                         // 보이지 않는 영역에서, 경계 영역을 거치지 않고 바로
                         // 시야 내부 영역으로 들어온다는 것은 불가능하다.
                         // 이제 쌩~ IN_SIGHT밖에 없다.
-                        //					Assert(prevVS != OUT_OF_SIGHT || currVS != IN_SIGHT);
 
                         // ObservingEye 이펙트를 가져온다.
-                        //					EffectObservingEye* pEffectObservingEye = NULL;
-                        //					if ( pPC->isFlag( Effect::EFFECT_CLASS_OBSERVING_EYE ) )
-                        //					{
-                        //						pEffectObservingEye =
-                        // dynamic_cast<EffectObservingEye*>(pPC->findEffect(Effect::EFFECT_CLASS_OBSERVING_EYE));
                         //						//Assert( pEffectObservingEye != NULL );
-                        //					}
 
                         if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                             if (isMonster) {
@@ -1336,14 +1240,6 @@ void Zone::moveCreatureBroadcast(Creature* pCreature, ZoneCoord_t x1, ZoneCoord_
                                 pPC->getPlayer()->sendPacket(pGCAddXXX);
                             }
                         } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                            // if (bSendMove)
-                            //{
-                            //	pPC->getPlayer()->sendPacket(&gcMove);
-                            // }
-                            // else if (bKnockback)
-                            //{
-                            //	pPC->getPlayer()->sendPacket(&gcKnockback);
-                            // }
                             pPC->getPlayer()->sendStream(&outputStream);
                         } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                             pPC->getPlayer()->sendPacket(&gcDeleteObject);

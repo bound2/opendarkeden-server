@@ -31,7 +31,6 @@ void EffectSummonSylph::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectSummonSylph" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
@@ -58,7 +57,6 @@ void EffectSummonSylph::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(getSendEffectClass());
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectSummonSylph" << "unaffect END" << endl;
 
     __END_CATCH
 }

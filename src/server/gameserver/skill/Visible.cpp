@@ -29,7 +29,6 @@ void Visible::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -46,9 +45,7 @@ void Visible::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* 
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
         // 기술의 레벨을 받아온다.
-        // SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
 
@@ -171,7 +168,6 @@ void Visible::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* 
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -186,7 +182,6 @@ void Visible::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -206,19 +201,15 @@ void Visible::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
         SkillType_t SkillType = pSkillSlot->getSkillType();
 
-        // Assert (pTargetCreature != NULL);
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
             executeSkillFailException(pSlayer, SkillType);
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
         // 기술의 레벨을 받아온다.
-        // SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
@@ -348,7 +339,6 @@ void Visible::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

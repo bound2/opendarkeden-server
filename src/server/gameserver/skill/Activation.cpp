@@ -20,7 +20,6 @@ void Activation::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -100,7 +99,6 @@ void Activation::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

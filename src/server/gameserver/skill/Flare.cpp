@@ -22,7 +22,6 @@ void Flare::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -34,13 +33,11 @@ void Flare::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC이거나, 슬레이어에게는 Flare를 쓸 수가 없다.
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || pTargetCreature->isNPC() || pTargetCreature->isSlayer()) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -62,7 +59,6 @@ void Flare::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
         bool bHitRoll = HitRoll::isSuccessFlare(pTargetCreature, SkillLevel) && canAttack(pSlayer, pTargetCreature);
         bool bEffected = pTargetCreature->isFlag(Effect::EFFECT_CLASS_FLARE);
 
-        // if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected)
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected &&
             pTargetCreature->getCompetence() == 3) {
             decreaseMana(pSlayer, RequiredMP, _GCSkillToObjectOK1);
@@ -74,7 +70,6 @@ void Flare::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
 
             // 이펙트 클래스를 만들어 붙인다.
             EffectFlare* pEffect = new EffectFlare(pTargetCreature);
-            // pEffect->setOldSight(13);
             pEffect->setOldSight(pTargetCreature->getSight());
             // 제거할때 level체크하기 위햇서.by sigi. 2002.6.21
             pEffect->setLevel(pSkillInfo->getLevel());
@@ -154,7 +149,6 @@ void Flare::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

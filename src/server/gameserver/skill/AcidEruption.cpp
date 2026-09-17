@@ -204,11 +204,6 @@ void AcidEruption::execute(Monster* pMonster, Creature* pEnemy)
             pEnemy->setFlag(pEffectAcidEruption->getEffectClass());
 
             // 이펙트가 붙었으니, 붙었다고 브로드캐스팅해준다.
-            /*			GCAddEffect gcAddEffect;
-                        gcAddEffect.setObjectID(pEnemy->getObjectID());
-                        gcAddEffect.setEffectID(pEffectAcidEruption->getSendEffectClass());
-                        gcAddEffect.setDuration(output.Duration);
-                        pZone->broadcastPacket(targetX, targetY, &gcAddEffect);*/
 
             if (bCanSeeCaster) {
                 decreaseDurability(pMonster, pEnemy, pSkillInfo, NULL, &_GCSkillToObjectOK2);
@@ -239,7 +234,6 @@ void AcidEruption::execute(Monster* pMonster, Creature* pEnemy)
             if (pEnemy->isPC()) {
                 Player* pTargetPlayer = pEnemy->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
                 if (bCanSeeCaster)

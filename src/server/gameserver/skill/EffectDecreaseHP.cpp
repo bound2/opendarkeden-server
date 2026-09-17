@@ -35,12 +35,10 @@ void EffectDecreaseHP::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectDecreaseHP " << "begin begin" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     affect(pCreature);
 
-    // cout << "EffectDecreaseHP " << "begin end" << endl;
 
     __END_CATCH
 }
@@ -52,8 +50,6 @@ void EffectDecreaseHP::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectDecreaseHP " << "begin" << endl;
-    // cout << "EffectDecreaseHP " << "end" << endl;
 
     __END_CATCH
 }

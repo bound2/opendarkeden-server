@@ -37,12 +37,10 @@ void EffectChargingPower::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectChargingPower" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectChargingPower" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -53,7 +51,6 @@ void EffectChargingPower::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectChargingPower" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -77,7 +74,6 @@ void EffectChargingPower::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_CHARGING_POWER);
     pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcRemoveEffect);
 
-    // cout << "EffectChargingPower" << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

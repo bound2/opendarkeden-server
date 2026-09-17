@@ -20,7 +20,6 @@ void DancingSword::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -36,7 +35,6 @@ void DancingSword::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || pWeapon->getItemClass() != Item::ITEM_CLASS_SWORD) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -67,7 +65,6 @@ void DancingSword::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
             computeOutput(input, output);
 
             int ToHitBonus = getPercentValue(pSlayer->getToHit(), output.Damage);
-            // int ToHitBonus = output.Damage;
 
             // 이펙트 클래스를 만들어 붙인다.
             EffectDancingSword* pEffect = new EffectDancingSword(pSlayer);
@@ -89,7 +86,6 @@ void DancingSword::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
             if (bIncreaseDomainExp) {
                 shareAttrExp(pSlayer, ExpUp, 8, 1, 1, _GCSkillToSelfOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-                //				increaseSkillExp(pSlayer, DomainType,  pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
             }
 
             // 패킷을 만들어 보낸다.
@@ -117,10 +113,8 @@ void DancingSword::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
         }
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

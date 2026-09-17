@@ -19,7 +19,6 @@ void SummonFireElemental::execute(Ousters* pOusters, OustersSkillSlot* pOustersS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -43,8 +42,6 @@ void SummonFireElemental::execute(Ousters* pOusters, OustersSkillSlot* pOustersS
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 2;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -63,8 +60,6 @@ void SummonFireElemental::execute(Ousters* pOusters, OustersSkillSlot* pOustersS
             SkillOutput output;
             computeOutput(input, output);
 
-            // cout << pOusters->getName() << "이 SummonFireElemental를 썼고 데미지는 " << output.Damage << "입니다." <<
-            // endl;
 
             Damage_t Damage = output.Damage;
 
@@ -108,7 +103,6 @@ void SummonFireElemental::execute(Ousters* pOusters, OustersSkillSlot* pOustersS
         executeSkillFailException(pOusters, getSkillType(), 0);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

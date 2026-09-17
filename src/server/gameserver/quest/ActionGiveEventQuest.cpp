@@ -84,9 +84,6 @@ void ActionGiveEventQuest::execute(Creature* pCreature1, Creature* pCreature2)
     list<QuestID_t> quests;
     pNPC->getQuestInfoManager()->getEventQuestIDs(m_QuestLevel, pPC, back_inserter(quests));
 
-    // cout << "Quest List : ";
-    // copy( quests.begin(), quests.end(), ostream_iterator<DWORD>(cout, ",") );
-    // cout << endl;
 
     GCSelectQuestID gcGiveEventQuestID(quests.begin(), quests.end());
 

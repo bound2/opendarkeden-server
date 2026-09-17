@@ -25,7 +25,6 @@ void BloodCurse::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -35,23 +34,19 @@ void BloodCurse::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
         execute(pVampire, pTargetCreature->getX(), pTargetCreature->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -65,7 +60,6 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     try {
         Player* pPlayer = pVampire->getPlayer();
@@ -98,8 +92,6 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
         bool bTimeCheck = verifyRunTime(pVampireSkillSlot);
         bool bRangeCheck = verifyDistance(pVampire, X, Y, pSkillInfo->getRange());
         bool bHitRoll = HitRoll::isSuccessMagic(pVampire, pSkillInfo, pVampireSkillSlot, HitBonus);
-        // add by Coffee 2007-6-9 藤속왱뇜세콘엥
-        // bool bUseSkillCrad		= useSkillCrad(pVampire);
 
         bool bTileCheck = false;
         VSRect rect(0, 0, pZone->getWidth() - 1, pZone->getHeight() - 1);
@@ -135,11 +127,8 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
             pEffect->setUserObjectID(pVampire->getObjectID());
             pEffect->setDamage(output.Damage);
             pEffect->setNextTime(output.Duration);
-            // pEffect->setNextTime(0);
-            // pEffect->setTick(output.Tick);
 
             // 우선권 시스템을 위하여 이름과 파티 아이디를 넣는다.
-            // pEffect->setCasterName(pVampire->getName());
 
             // 타일에 붙은 이펙트는 OID를 받아야 한다.
             ObjectRegistry& objectregister = pZone->getObjectRegistry();
@@ -161,8 +150,6 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 
             if (pTargetCreature != NULL) {
                 if (pTargetCreature->isSlayer() || pTargetCreature->isOusters()) {
-                    // pEffect->affect();
-
                     bEffected = true;
 
                     Player* pTargetPlayer = pTargetCreature->getPlayer();
@@ -188,7 +175,6 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
                 } else if (pTargetCreature->isMonster()) {
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
 
-                    // pEffect->affect();
                     bEffected = true;
 
                     pMonster->addEnemy(pVampire);
@@ -245,10 +231,8 @@ void BloodCurse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
         }
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -261,7 +245,6 @@ void BloodCurse::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin(monster) " << endl;
 
     try {
         Zone* pZone = pMonster->getZone();
@@ -312,10 +295,7 @@ void BloodCurse::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             EffectBloodCurse* pEffect = new EffectBloodCurse(pZone, X, Y);
             pEffect->setNextTime(output.Duration);
             pEffect->setUserObjectID(pMonster->getObjectID());
-            // pEffect->setNextTime(0);
-            // pEffect->setTick(output.Tick);
             pEffect->setDamage(output.Damage);
-            // pEffect->setLevel(pSkillInfo->getLevel()/2);
 
             // 타일에 붙은 이펙트는 OID를 받아야 한다.
             ObjectRegistry& objectregister = pZone->getObjectRegistry();
@@ -337,8 +317,6 @@ void BloodCurse::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
             if (pTargetCreature != NULL) {
                 if (pTargetCreature->isPC()) {
-                    // pEffect->affect();
-
                     Player* pTargetPlayer = pTargetCreature->getPlayer();
                     bool bCanSee = canSee(pTargetCreature, pMonster);
 
@@ -361,7 +339,6 @@ void BloodCurse::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                     }
                 } else if (pTargetCreature->isMonster()) {
                     Monster* pTargetMonster = dynamic_cast<Monster*>(pTargetCreature);
-                    // pEffect->affect();
                     pTargetMonster->addEnemy(pMonster);
                 }
             }
@@ -405,7 +382,6 @@ void BloodCurse::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(monster) " << endl;
 
     __END_CATCH
 }

@@ -37,7 +37,6 @@ void EffectBloodyWallBlocked::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectBloodyWallBlocked" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -90,31 +89,7 @@ void EffectBloodyWallBlocked::affect()
                     pkt.setObjectID(pSlayer->getObjectID());
                     pkt.setCurrentHP(RemainHP);
                     m_pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &pkt);
-                }
-                /*				else if (pCreature->isVampire())
-                                {
-                                    Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-
-                                    CurrentHP = pVampire->getHP(ATTR_CURRENT);
-                                    RemainHP  = max(0, CurrentHP -(int)AcidDamage);
-
-                                    pVampire->setHP(RemainHP, ATTR_CURRENT);
-
-                                    GCModifyInformation gcMI;
-                                    gcMI.addShortData(MODIFY_CURRENT_HP, pVampire->getHP(ATTR_CURRENT));
-
-                                    Player* pPlayer = pVampire->getPlayer();
-                                    Assert(pPlayer != NULL);
-                                    pPlayer->sendPacket(&gcMI);
-
-                                    // 변한 HP를 브로드캐스팅해준다.
-                                    GCStatusCurrentHP pkt;
-                                    pkt.setObjectID(pVampire->getObjectID());
-                                    pkt.setCurrentHP(RemainHP);
-                                    m_pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &pkt);
-                                }
-                                */
-                else if (pCreature->isOusters()) {
+                } else if (pCreature->isOusters()) {
                     Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
 
                     CurrentHP = pOusters->getHP(ATTR_CURRENT);
@@ -172,9 +147,7 @@ void EffectBloodyWallBlocked::affect()
     }
 
     // 한번만..
-    // setNextTime(m_Tick);
 
-    // cout << "EffectBloodyWallBlocked" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -213,12 +186,10 @@ void EffectBloodyWallBlocked::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectBloodyWallBlocked" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectBloodyWallBlocked" << "unaffect END" << endl;
 
     __END_CATCH
 }

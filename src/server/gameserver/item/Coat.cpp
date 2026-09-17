@@ -28,7 +28,6 @@ Coat::Coat()
 {
     setItemType(0);
     setDurability(0);
-    //	m_EnchantLevel = 0;
 }
 
 Coat::Coat(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -37,7 +36,6 @@ Coat::Coat(ItemType_t itemType, const list<OptionType_t>& optionType)
 {
     setItemType(itemType);
     setOptionType(optionType);
-    //	m_EnchantLevel = 0;
     setDurability(computeMaxDurability(this));
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
@@ -124,71 +122,6 @@ string Coat::toString() const
     return msg.toString();
 }
 
-
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t Coat::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoatInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t Coat::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoatInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t Coat::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoatInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t Coat::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoatInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t Coat::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoatInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-*/
 
 //--------------------------------------------------------------------------------
 // get debug string
@@ -296,10 +229,7 @@ void CoatLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

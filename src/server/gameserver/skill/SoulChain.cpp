@@ -24,7 +24,6 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -99,8 +98,6 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
         int RequiredMP = pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);
-        //		bool bRangeCheck = checkZoneLevelToUseSkill(pSlayer);
-        //		bool bHitRoll    = HitRoll::isSuccessMagic(pSlayer, pSkillInfo, pSkillSlot);
         bool bEffected = pSlayer->isFlag(Effect::EFFECT_CLASS_SOUL_CHAIN) || pSlayer->hasRelicItem() ||
                          pSlayer->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) ||
                          pSlayer->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER);
@@ -178,7 +175,6 @@ void SoulChain::execute(Slayer* pSlayer, const string& targetName, SkillSlot* pS
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -193,7 +189,6 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -263,8 +258,6 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
         int RequiredMP = decreaseConsumeMP(pVampire, pSkillInfo);
         bool bManaCheck = hasEnoughMana(pVampire, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);
-        //		bool bRangeCheck = checkZoneLevelToUseSkill(pVampire);
-        //		bool bHitRoll    = HitRoll::isSuccessMagic(pVampire, pSkillInfo, pSkillSlot);
         bool bEffected = pVampire->isFlag(Effect::EFFECT_CLASS_SOUL_CHAIN) || pVampire->hasRelicItem() ||
                          pVampire->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) ||
                          pVampire->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER);
@@ -311,7 +304,6 @@ void SoulChain::execute(Vampire* pVampire, const string& targetName, VampireSkil
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -325,7 +317,6 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pOusters != NULL);
     Assert(pSkillSlot != NULL);
@@ -395,8 +386,6 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
         int RequiredMP = pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
         bool bTimeCheck = verifyRunTime(pSkillSlot);
-        //		bool bRangeCheck = checkZoneLevelToUseSkill(pOusters);
-        //		bool bHitRoll    = HitRoll::isSuccessMagic(pOusters, pSkillInfo, pSkillSlot);
         bool bEffected = pOusters->isFlag(Effect::EFFECT_CLASS_SOUL_CHAIN) || pOusters->hasRelicItem() ||
                          pOusters->isFlag(Effect::EFFECT_CLASS_HAS_FLAG) ||
                          pOusters->isFlag(Effect::EFFECT_CLASS_HAS_SWEEPER);
@@ -443,7 +432,6 @@ void SoulChain::execute(Ousters* pOusters, const string& targetName, OustersSkil
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

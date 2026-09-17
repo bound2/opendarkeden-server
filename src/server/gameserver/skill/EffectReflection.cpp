@@ -51,7 +51,6 @@ void EffectReflection::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectReflection" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -68,7 +67,6 @@ void EffectReflection::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_REFLECTION);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectReflection" << "unaffect END" << endl;
 
     __END_CATCH
 }

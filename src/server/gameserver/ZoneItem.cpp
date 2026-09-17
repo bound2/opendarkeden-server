@@ -166,8 +166,6 @@
 #include "repository/MessageRepository.h"
 #include "repository/ZoneInfoRepository.h"
 
-// by sigi.  2002.12.30
-// #define __PROFILE_BROADCAST__
 
 #ifdef __PROFILE_BROADCAST__
 #define __BEGIN_PROFILE_ZONE(name) beginProfileEx(name);
@@ -177,7 +175,6 @@
 #define __END_PROFILE_ZONE(name) ((void)0);
 #endif
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -344,7 +341,6 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                 // 바닥에 떨어지는 아이템은 일정 시간이 지나면 사라지게 된다.
                 EffectDecayCorpse* pEffectDecayCorpse =
                     new EffectDecayCorpse(this, pt.x, pt.y, (Corpse*)pItem, DelayTime);
-                //				pEffectDecayCorpse->setNextTime(999999);
                 m_ObjectRegistry.registerObject(pEffectDecayCorpse);
                 addEffect(pEffectDecayCorpse);
             } else {
@@ -361,8 +357,6 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
                     m_RelicTableOID = pCorpse->getObjectID();
                     m_RelicTableX = pt.x;
                     m_RelicTableY = pt.y;
-
-                    // cout << "Relic인 경우에는 시체가 사라지지 않습니다" << endl;
                 }
             }
         } else {
@@ -404,7 +398,6 @@ TPOINT Zone::addItem(Item* pItem, ZoneCoord_t cx, ZoneCoord_t cy, bool bAllowCre
             } else {
                 // 2002.10.30 장홍창
                 // 아이템 삭제 시간을 현행 10분에서 3분으로 줄인다.
-                // Turn_t DelayTime = 6000;
                 Turn_t DelayTime = 1800;
 
                 // 마스터 레어에서는 아이템이 빨리 사라진다.
@@ -508,9 +501,7 @@ void Zone::deleteItem(Object* pObject, ZoneCoord_t x, ZoneCoord_t y)
     //--------------------------------------------------
     // 주변의 PC들에게 객체가 사라졌다는 사실을 브로드캐스트한다.
     //--------------------------------------------------
-    //	GCDeleteObject gcDeleteObject(pObject->getObjectID());
 
-    //	broadcastPacket(x, y, &gcDeleteObject);
 
     __END_PROFILE_ZONE("Z_DELETE_ITEM")
 
@@ -531,7 +522,6 @@ void Zone::deleteFromItemList(ObjectID_t id) {
     unordered_map<ObjectID_t, Item*>::iterator itr = m_Items.find(id);
 
     if (itr == m_Items.end())
-    // throw NoSuchElementException();
     //  NoSuch제거. by sigi. 2002.5.3
     {
         return;
@@ -605,13 +595,10 @@ void Zone::transportItemToCorpse(Item* pItem, Zone* pTargetZone, ObjectID_t corp
 {
     __BEGIN_TRY
 
-    // cout << "transportItemToCorpse : " << (int)pZone->getZoneID() << ", (" << cx << ", " << cy << ")" << endl;
     Assert(pItem != NULL);
 
     if (pTargetZone->getZoneGroup() == this->getZoneGroup()) {
-        // cout << "same zone - to corpse" << endl;
         //  같은 zone이면 바로 옮긴다.
-        // deleteFromItemList(pItem->getObjectID());
 
         Item* pCorpseItem = pTargetZone->getItem(corpseObjectID);
 
@@ -634,7 +621,6 @@ void Zone::transportItemToCorpse(Item* pItem, Zone* pTargetZone, ObjectID_t corp
             pCorpse->addTreasure(pItem);
         }
     } else {
-        // cout << "transportItemToCorpse" << endl;
         EffectTransportItemToCorpse* pEffectTransportItem =
             new EffectTransportItemToCorpse(this, pItem, pTargetZone, corpseObjectID, 0);
         pEffectTransportItem->setNextTime(999999);
@@ -656,14 +642,12 @@ void Zone::transportItem(ZoneCoord_t x, ZoneCoord_t y, Item* pItem, Zone* pZone,
 {
     __BEGIN_TRY
 
-    // cout << "transportItem : " << (int)pZone->getZoneID() << ", (" << cx << ", " << cy << ")" << endl;
 
     // 이거 잘못해놔가 다운돼다. ㅜ.ㅜ; by sigi
     Assert(m_OuterRect.ptInRect(x, y));
     Assert(pItem != NULL);
 
     if (pZone->getZoneGroup() == this->getZoneGroup()) {
-        // cout << "same zone" << endl;
         //  같은 zone group 이면 바로 옮긴다.
         deleteFromItemList(pItem->getObjectID());
         getTile(x, y).deleteItem();
@@ -677,7 +661,6 @@ void Zone::transportItem(ZoneCoord_t x, ZoneCoord_t y, Item* pItem, Zone* pZone,
         pZone->getObjectRegistry().registerObject(pItem);
         pZone->addItem(pItem, cx, cy);
     } else {
-        // cout << "transportItem" << endl;
         EffectTransportItem* pEffectTransportItem = new EffectTransportItem(this, x, y, pZone, cx, cy, pItem, 0);
         pEffectTransportItem->setNextTime(999999);
         m_ObjectRegistry.registerObject(pEffectTransportItem);
@@ -758,7 +741,6 @@ bool Zone::addRelicItem(int relicIndex)
 {
     __BEGIN_TRY
 
-    // cout << "[addRelicItem] ZoneID=" << (int)m_ZoneID << ", relicIndex=" << relicIndex << endl;
 
     const RelicInfo* pRelicInfo =
         dynamic_cast<RelicInfo*>(g_pItemInfoManager->getItemInfo(Item::ITEM_CLASS_RELIC, relicIndex));
@@ -788,7 +770,6 @@ bool Zone::addRelicItem(int relicIndex)
             return false;
         }
 
-        // cout << "new Monster OK" << endl;
 
         // MonsterCorpse를 생성한다. (성물 보관대)
         MonsterCorpse* pMonsterCorpse = NULL;
@@ -800,10 +781,8 @@ bool Zone::addRelicItem(int relicIndex)
             pMonsterCorpse->setY(cy);
             Assert(pMonsterCorpse != NULL);
         } catch (Throwable& t) {
-            // cout << t.toString().c_str() << endl;
         }
 
-        // cout << "new MonsterCorpse OK" << endl;
 
         if (pRelicInfo->relicType == RELIC_TYPE_SLAYER) {
             Effect* pRelicTable = new EffectSlayerRelicTable(pMonsterCorpse);
@@ -830,7 +809,6 @@ bool Zone::addRelicItem(int relicIndex)
         Item* pItem = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_RELIC, relicIndex, optionNULL);
         Assert(pItem != NULL);
 
-        // cout << "new RelicItem OK" << endl;
 
         // 이 Zone은 RelicTable을 갖고 있다고 표시한다.
         m_bHasRelicTable = true;
@@ -856,7 +834,6 @@ bool Zone::addRelicItem(int relicIndex)
             g_pCombatInfoManager->setRelicOwner(relicIndex, CombatInfoManager::RELIC_OWNER_VAMPIRE);
         }
 
-        // cout << "addTreasure OK" << endl;
 
         // 바로 Zone에 추가하면 안되므로(동기화 문제)
         // Effect를 사용해서 추가하도록 한다.
@@ -865,8 +842,6 @@ bool Zone::addRelicItem(int relicIndex)
         m_ObjectRegistry.registerObject(pEffectAddItem);
 
         addEffect_LOCKING(pEffectAddItem);
-
-        // cout << "addRelic OK" << endl;
     }
 
     return true;
@@ -902,7 +877,6 @@ bool Zone::deleteRelicItem()
 
     addEffect_LOCKING(pEffectDeleteItem);
 
-    // cout << "delete Relic OK" << endl;
 
     m_bHasRelicTable = false;
 

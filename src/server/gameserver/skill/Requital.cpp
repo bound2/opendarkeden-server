@@ -22,7 +22,6 @@ void Requital::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
 {
     __BEGIN_TRY
 
-    //	cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     try {
         Player* pPlayer = pSlayer->getPlayer();
@@ -46,7 +45,6 @@ void Requital::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
         bool bEffected = pSlayer->isFlag(Effect::EFFECT_CLASS_REQUITAL);
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && !bEffected) {
-            //			cout << "Requital Success" << endl;
             decreaseMana(pSlayer, RequiredMP, _GCSkillToSelfOK1);
 
             // 경험치를 올려준다.
@@ -104,7 +102,6 @@ void Requital::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

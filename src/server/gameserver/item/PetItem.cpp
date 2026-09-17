@@ -155,7 +155,6 @@ void PetItem::whenPCTake(PlayerCreature* pPC) {
     pPC->getPetItems().push_back(this);
 
     if (!pPC->isFlag(Effect::EFFECT_CLASS_HAS_PET)) {
-        // cout << pPC->getName() << " 에게 펫 가졌다는 이펙트 부칩니당" << endl;
         EffectHasPet* pEffect = new EffectHasPet(pPC);
         pEffect->setNextTime(600);
         pPC->setFlag(Effect::EFFECT_CLASS_HAS_PET);
@@ -175,7 +174,6 @@ void PetItem::whenPCLost(PlayerCreature* pPC) {
 
     pPC->getPetItems().remove(this);
     if (pPC->getPetItems().empty()) {
-        // cout << pPC->getName() << " 에게서 펫 가졌다는 이펙트 떼냄니당" << endl;
         Effect* pEffect = pPC->findEffect(Effect::EFFECT_CLASS_HAS_PET);
         if (pEffect != NULL)
             pEffect->setDeadline(0);
@@ -334,7 +332,6 @@ void PetItemLoader::load(Creature* pCreature)
                 ratio /= 2;
                 pPetInfo->setFeedTurn(2);
             } else {
-                //					refreshHP( pPetInfo );
                 pPetInfo->setFeedTurn(1);
             }
 

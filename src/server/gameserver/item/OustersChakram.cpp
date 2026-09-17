@@ -39,7 +39,6 @@ OustersChakram::OustersChakram(ItemType_t itemType, const list<OptionType_t>& op
     setItemType(itemType);
     setOptionType(optionType);
 
-    // m_EnchantLevel = 0;
     setDurability(computeMaxDurability(this));
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
@@ -126,88 +125,6 @@ string OustersChakram::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t OustersChakram::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersChakramInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t OustersChakram::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersChakramInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t OustersChakram::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersChakramInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's minDamage
-//--------------------------------------------------------------------------------
-Damage_t OustersChakram::getMinDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersChakramInfoManager->getItemInfo(m_ItemType)->getMinDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's maxDamage
-//--------------------------------------------------------------------------------
-Damage_t OustersChakram::getMaxDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersChakramInfoManager->getItemInfo(m_ItemType)->getMaxDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-int OustersChakram::getCriticalBonus(void) const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersChakramInfoManager->getItemInfo(m_ItemType)->getCriticalBonus();
-
-    __END_CATCH
-}
-
-*/
 //--------------------------------------------------------------------------------
 // get debug string
 //--------------------------------------------------------------------------------
@@ -319,10 +236,7 @@ void OustersChakramLoader::load(Creature* pCreature)
             Ousters* pOusters = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

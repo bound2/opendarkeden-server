@@ -16,7 +16,6 @@ void DoubleImpact::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -38,7 +37,6 @@ void DoubleImpact::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
 
     g_SimpleMeleeSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

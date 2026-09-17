@@ -37,12 +37,10 @@ void EffectDivineGuidance::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectDivineGuidance " << "begin begin" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     affect(pCreature);
 
-    // cout << "EffectDivineGuidance " << "begin end" << endl;
 
     __END_CATCH
 }
@@ -54,8 +52,6 @@ void EffectDivineGuidance::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectDivineGuidance " << "begin" << endl;
-    // cout << "EffectDivineGuidance " << "end" << endl;
     Assert(pCreature != NULL);
 
     Zone* pZone = pCreature->getZone();

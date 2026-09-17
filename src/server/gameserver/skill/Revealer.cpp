@@ -20,7 +20,6 @@ void Revealer::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -63,7 +62,6 @@ void Revealer::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
 
             // 이 이펙트가 붙음으로써, 안 보이던 것이 보인다.
             pZone->updateMineScan(pSlayer);
-            // pZone->updateInvisibleScan( pSlayer );
             pZone->updateHiddenScan(pSlayer);
 
             // 경험치를 올린다.
@@ -71,7 +69,6 @@ void Revealer::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
             Exp_t ExpUp = 10 * (Grade + 1) * 2;
             shareAttrExp(pSlayer, ExpUp, 1, 8, 1, _GCSkillToSelfOK1);
             increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-            //			increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
 
             _GCSkillToSelfOK1.setSkillType(SkillType);
             _GCSkillToSelfOK1.setCEffectID(CEffectID);
@@ -106,7 +103,6 @@ void Revealer::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

@@ -62,7 +62,6 @@ void ActionActivateMazeEnter::execute(Creature* pNPC, Creature* pCreature)
     Assert(pCreature->isPC());
 
     GamePlayer* pGamePlayer = dynamic_cast<GamePlayer*>(pCreature->getPlayer());
-    // Zone* pZone = pCreature->getZone();
 
     bool bTransport = true;
 

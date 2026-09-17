@@ -98,8 +98,6 @@ void EffectRingOfFlare::affect()
                 }
 
                 if (pCreature->isPC()) {
-                    // cout << pCreature->getName() << "을 RingOfFlare로 " << m_Damage << "만큼의 데미지를 줬습니다." <<
-                    // endl;
                     GCModifyInformation gcMI;
                     ::setDamage(pCreature, m_Damage, pCastCreature, SKILL_RING_OF_FLARE, &gcMI, &gcAttackerMI);
 
@@ -156,7 +154,6 @@ void EffectRingOfFlare::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectRingOfFlare" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
@@ -176,7 +173,6 @@ void EffectRingOfFlare::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(getSendEffectClass());
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectRingOfFlare" << "unaffect END" << endl;
 
     __END_CATCH
 }

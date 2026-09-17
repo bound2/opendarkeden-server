@@ -43,7 +43,6 @@ void EffectIceField::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectIceField" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -108,7 +107,6 @@ void EffectIceField::affect()
 
     setNextTime(m_Tick);
 
-    // cout << "EffectIceField" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -138,12 +136,10 @@ void EffectIceField::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectIceField" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectIceField" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -194,7 +190,6 @@ void EffectIceFieldLoader::load(Zone* pZone)
 
                         // 존 및 타일에다가 이펙트를 추가한다.
                         pZone->registerObject(pEffect);
-                        // pZone->addEffect(pEffect);  // REMOVED: Don't add permanent tile effects to Zone
                         tile.addEffect(pEffect);
                     }
                 }

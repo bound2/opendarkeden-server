@@ -165,8 +165,6 @@
 #include "repository/MessageRepository.h"
 #include "repository/ZoneInfoRepository.h"
 
-// by sigi.  2002.12.30
-// #define __PROFILE_BROADCAST__
 
 #ifdef __PROFILE_BROADCAST__
 #define __BEGIN_PROFILE_ZONE(name) beginProfileEx(name);
@@ -176,7 +174,6 @@
 #define __END_PROFILE_ZONE(name) ((void)0);
 #endif
 
-// #define __FULL_PROFILE__
 
 #ifndef __FULL_PROFILE__
 #undef beginProfileEx
@@ -223,7 +220,6 @@ void Zone::pushPC(Creature* pCreature)
     __ENTER_CRITICAL_SECTION(m_Mutex)
 
     m_PCListQueue.push_back(pCreature);
-    // m_PCQueue.push(pCreature);
 
     __LEAVE_CRITICAL_SECTION(m_Mutex)
 
@@ -271,20 +267,10 @@ void Zone::movePC(Creature* pCreature, ZoneCoord_t cx, ZoneCoord_t cy, Dir_t dir
             cy >= max(0, pCreature->getY() - threshold) && cy <= min(m_Height - 1, pCreature->getY() + threshold)) {
             // 허용가능한 오차 범위내에서의 점프는 그냥 무시해준다.
 
-            /*// 주석처리 by sigi - 안 보내는게 맞는 듯..
-            GCMoveError gcMoveError;
-            gcMoveError.setX(cx);
-            gcMoveError.setY(cy);
-            pCreature->getPlayer()->sendPacket(&gcMoveError);
-            */
             filelog("ZoneDebug.txt", "movePC - 2\n\r");
             return;
         } else {
             // 허용가능한 오차 범위를 넘어설 경우 접속을 차단한다.
-            // StringStream msg;
-            // msg << pCreature->getName() << " try to jump from ("
-            //	<< (int)pCreature->getX() << "," << (int)pCreature->getY()
-            //	<< ") to (" << (int)cx << "," << (int)cy << ")";
 
             GCMoveError gcMoveError(cx, cy);
             pPlayer->sendPacket(&gcMoveError);
@@ -466,10 +452,6 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
     if (!isAbleToMove(pPC))
         return false;
 
-    /*	if ( SiegeManager::Instance().isSiegeZone( m_ZoneID ) )
-        {
-            if ( !isPassLine( this, pPC->getX(), pPC->getY(), x2, y2, true ) ) return false;
-        }*/
 
     // 성물을 가지고 있는 경우라면.. 안전지대에 들어갈 수 없다.
     if (pPC->hasRelicItem()) {
@@ -560,7 +542,6 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
     }
 
     if (pPC->isFlag(Effect::EFFECT_CLASS_GHOST)) {
-        //		return false;
     }
 
 
@@ -572,8 +553,6 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
 
     if (pPC->getCreatureClass() == Creature::CREATURE_CLASS_SLAYER) {
         Slayer* pSlayer = dynamic_cast<Slayer*>(pPC);
-        /*		GCAddSlayer* pGCAddSlayer = new GCAddSlayer(pSlayer->getSlayerInfo3());
-                pGCAddSlayer->setEffectInfo(pSlayer->getEffectInfo());*/
         GCAddSlayer* pGCAddSlayer = new GCAddSlayer;
         makeGCAddSlayer(pGCAddSlayer, pSlayer);
 
@@ -591,8 +570,6 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
             pGCABC->setY(y2);
             pGCAddXXX = pGCABC;
         } else {
-            //			GCAddVampire* pGCAddVampire = new GCAddVampire(pVampire->getVampireInfo3());
-            //			pGCAddVampire->setEffectInfo(pVampire->getEffectInfo());
             GCAddVampire* pGCAddVampire = new GCAddVampire;
             makeGCAddVampire(pGCAddVampire, pVampire);
 
@@ -600,8 +577,6 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
         }
     } else if (pPC->getCreatureClass() == Creature::CREATURE_CLASS_OUSTERS) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pPC);
-        //		GCAddOusters* pGCAddOusters = new GCAddOusters(pOusters->getOustersInfo3());
-        //		pGCAddOusters->setEffectInfo(pOusters->getEffectInfo());
         GCAddOusters* pGCAddOusters = new GCAddOusters;
         makeGCAddOusters(pGCAddOusters, pOusters);
 
@@ -632,17 +607,9 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
         maxY = min(m_Height - 1, y1 + maxViewportLowerHeight);
     }
 
-    //	Sight_t sight = pPC->getSight();
-    //	VisionInfo* pVisionInfo = g_pVisionInfoManager->getVisionInfo(sight, pPC->getDir());
 
     // ObservingEye 이펙트를 가져온다.
-    //	EffectObservingEye* pEffectObservingEye = NULL;
-    //	if ( pPC->isFlag( Effect::EFFECT_CLASS_OBSERVING_EYE ) )
-    //	{
-    //		pEffectObservingEye = dynamic_cast<EffectObservingEye*>( pPC->findEffect( Effect::EFFECT_CLASS_OBSERVING_EYE
-    //) );
     //		//Assert( pEffectObservingEye != NULL );
-    //	}
     //
     for (ZoneCoord_t ix = minX; ix <= maxX; ix++) {
         for (ZoneCoord_t iy = minY; iy <= maxY; iy++) {
@@ -654,10 +621,8 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
             // if - do~while()로 구조 변경 by sigi. 2002.5.8
             if (itr != objectList.end()) {
                 // 이전 좌표 P(x1,y1)에서 I(ix,iy)가 어떻게 보이는가?
-                //				VisionState prevVisionState = pVisionInfo->getVisionState(x1,y1,ix,iy);
                 VisionState prevVisionState = VisionInfoManager::getVisionState(x1, y1, ix, iy);
                 // 현재 좌표 Q(x2,y2)에서 I(ix,iy)가 어떻게 보이는가?
-                //				VisionState curVisionState = pVisionInfo->getVisionState(x2,y2,ix,iy);
                 VisionState curVisionState = VisionInfoManager::getVisionState(x2, y2, ix, iy);
 
                 do {
@@ -737,8 +702,6 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                                 if (canSee(pPC, pCreature)) {
                                     Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
                                     //													GCAddSlayer
-                                    // gcAddSlayer(pSlayer->getSlayerInfo3());
-                                    //													gcAddSlayer.setEffectInfo(pSlayer->getEffectInfo());
                                     GCAddSlayer gcAddSlayer;
                                     makeGCAddSlayer(&gcAddSlayer, pSlayer);
 
@@ -771,10 +734,8 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             if (canSee(pCreature, pPC)) {
                                 if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(pGCAddXXX);
-                                    // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                     pCreature->getPlayer()->sendStream(&outputStream);
                                 } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                                    // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                     pCreature->getPlayer()->sendStream(&outputStream);
                                 } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(&gcDeleteObject);
@@ -791,10 +752,6 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             if (curVisionState >= IN_SIGHT && prevVisionState == OUT_OF_SIGHT) {
                                 if (canSee(pPC, pCreature)) {
                                     if (pCreature->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-                                        //		if (pPC->isVampire() || pPC->isFlag(Effect::EFFECT_CLASS_DETECT_HIDDEN)
-                                        //)
-                                        //														|| ( pEffectRevealer !=
-                                        // NULL && pEffectRevealer->canSeeHide( pCreature ) ) )
                                         {
                                             GCAddBurrowingCreature gcABC;
                                             gcABC.setObjectID(pCreature->getObjectID());
@@ -809,25 +766,11 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                                         //													{
                                         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
                                         //															GCAddVampire
-                                        // gcAddVampire(pVampire->getVampireInfo3());
-                                        //															gcAddVampire.setEffectInfo(pVampire->getEffectInfo());
                                         GCAddVampire gcAddVampire;
                                         makeGCAddVampire(&gcAddVampire, pVampire);
                                         pPlayer->sendPacket(&gcAddVampire);
-                                        //													}
                                         // pCreature는 invisibility상태..
-                                        //													else if (pPC->isVampire() ||
                                         // pPC->isFlag(Effect::EFFECT_CLASS_DETECT_INVISIBILITY)
-                                        //															|| (
-                                        // pEffectObservingEye != NULL && pEffectObservingEye->canSeeInvisibility(
-                                        // pCreature ) ) )
-                                        //													{
-                                        //														Vampire* pVampire =
-                                        // dynamic_cast<Vampire*>(pCreature);
-                                        // GCAddVampire gcAddVampire(pVampire->getVampireInfo3());
-                                        //														gcAddVampire.setEffectInfo(pVampire->getEffectInfo());
-                                        //														pPlayer->sendPacket(&gcAddVampire);
-                                        //													}
                                     }
                                 }
                             }
@@ -853,15 +796,11 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             // Hide도 관계없다.
                             // *NOTE
                             // 상대가 슬레이어라면 슬레이어가 스나이핑 상태인지를 체크 해야 한다.
-                            //											if (!pPC->isSlayer() ||
-                            //! pPC->isFlag(Effect::EFFECT_CLASS_SNIPING_MODE))
                             if (canSee(pCreature, pPC)) {
                                 if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(pGCAddXXX);
-                                    // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                     pCreature->getPlayer()->sendStream(&outputStream);
                                 } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                                    // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                     pCreature->getPlayer()->sendStream(&outputStream);
                                 } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(&gcDeleteObject);
@@ -879,8 +818,6 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                                 canSee(pPC, pCreature)) {
                                 Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
                                 //												GCAddOusters
-                                // gcAddOusters(pOusters->getOustersInfo3());
-                                //												gcAddOusters.setEffectInfo(pOusters->getEffectInfo());
                                 GCAddOusters gcAddOusters;
                                 makeGCAddOusters(&gcAddOusters, pOusters);
                                 pPlayer->sendPacket(&gcAddOusters);
@@ -910,10 +847,8 @@ bool Zone::moveFastPC(Creature* pPC, ZoneCoord_t x1, ZoneCoord_t y1, ZoneCoord_t
                             if (canSee(pCreature, pPC)) {
                                 if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(pGCAddXXX);
-                                    // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                     pCreature->getPlayer()->sendStream(&outputStream);
                                 } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                                    // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                     pCreature->getPlayer()->sendStream(&outputStream);
                                 } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(&gcDeleteObject);
@@ -1161,7 +1096,6 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
     gcFastMove.writeHeaderNBody(outputStream);
 
     // 몬스터한테는 보낼 필요가 없다.
-    // pPlayer->sendPacket(&gcFastMove);
 
     //////////////////////////////////////////////////////////////
     // move의 종류....
@@ -1220,9 +1154,6 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
             maxY = min(m_Height - 1, y1 + maxViewportLowerHeight);
         }
 
-        // Sight_t sight = pMonster->getSight();
-
-        // VisionInfo* pVisionInfo = g_pVisionInfoManager->getVisionInfo(sight, pMonster->getDir());
 
         for (ZoneCoord_t ix = minX; ix <= maxX; ix++) {
             for (ZoneCoord_t iy = minY; iy <= maxY; iy++) {
@@ -1234,9 +1165,7 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                 // if - do~while()로 구조 변경 by sigi. 2002.5.8
                 if (itr != objectList.end()) {
                     // 이전 좌표 P(x1,y1)에서 I(ix,iy)가 어떻게 보이는가?
-                    // VisionState prevVisionState = pVisionInfo->getVisionState(x1,y1,ix,iy);
                     // 현재 좌표 Q(x2,y2)에서 I(ix,iy)가 어떻게 보이는가?
-                    // VisionState curVisionState = pVisionInfo->getVisionState(x2,y2,ix,iy);
 
                     do {
                         Assert(*itr != NULL);
@@ -1270,10 +1199,8 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 //--------------------------------------------------------------------------------
                                 // PC를 몬스터의 잠재적인 적으로 지정해준다.
                                 //--------------------------------------------------------------------------------
-                                // VisionState vs = pMonster->getVisionState(x2,y2);
 
                                 // Aggressive 몬스터에게만 적으로 등록시켜준다.
-                                // if (vs >= IN_SIGHT && pMonster->getAlignment() == ALIGNMENT_AGGRESSIVE)
                                 {
                                     if (isPotentialEnemy(pOtherMonster, pMonster)) {
                                         pMonster->addPotentialEnemy(pOtherMonster);
@@ -1293,15 +1220,7 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
 
                                 // Creature 가 ObservingEye 이펙트를 가지고 있다면 가져온다.
                                 //												EffectObservingEye* pEffectObservingEye
-                                //= NULL; 												if ( pCreature->isFlag(
-                                // Effect::EFFECT_CLASS_OBSERVING_EYE ) )
-                                //												{
-                                //													pEffectObservingEye =
-                                // dynamic_cast<EffectObservingEye*>( pCreature->findEffect(
-                                // Effect::EFFECT_CLASS_OBSERVING_EYE ) );
                                 //													//Assert( pEffectObservingEye !=
-                                // NULL );
-                                //												}
 
                                 // 상대에게 PC의 등장을 알리는 패킷.
                                 //												if
@@ -1320,10 +1239,8 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 if (canSee(pCreature, pMonster)) {
                                     if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(pAddMonsterPacket);
-                                        // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                         pCreature->getPlayer()->sendStream(&outputStream);
                                     } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                                        // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                         pCreature->getPlayer()->sendStream(&outputStream);
                                     } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(&gcDeleteObject);
@@ -1355,10 +1272,8 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 // 상대가 슬레이어라면 슬레이어가 스나이핑 상태인지를 체크 해야 한다.
                                 if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(pAddMonsterPacket);
-                                    // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                     pCreature->getPlayer()->sendStream(&outputStream);
                                 } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                                    // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                     pCreature->getPlayer()->sendStream(&outputStream);
                                 } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                                     pCreature->getPlayer()->sendPacket(&gcDeleteObject);
@@ -1375,10 +1290,8 @@ bool Zone::moveFastMonster(Monster* pMonster, ZoneCoord_t x1, ZoneCoord_t y1, Zo
                                 if (canSee(pCreature, pMonster)) {
                                     if (prevVS == OUT_OF_SIGHT && currVS >= IN_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(pAddMonsterPacket);
-                                        // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                         pCreature->getPlayer()->sendStream(&outputStream);
                                     } else if (prevVS >= IN_SIGHT && currVS >= IN_SIGHT) {
-                                        // pCreature->getPlayer()->sendPacket(&gcFastMove);
                                         pCreature->getPlayer()->sendStream(&outputStream);
                                     } else if (prevVS >= IN_SIGHT && currVS == OUT_OF_SIGHT) {
                                         pCreature->getPlayer()->sendPacket(&gcDeleteObject);

@@ -31,7 +31,6 @@ void EffectCrossGuard::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectCrossGuard" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
@@ -58,7 +57,6 @@ void EffectCrossGuard::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_CROSS_GUARD);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectCrossGuard" << "unaffect END" << endl;
 
     __END_CATCH
 }

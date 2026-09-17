@@ -25,7 +25,6 @@ void Whitsuntide::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     // Slayer Object Assertion
     Assert(pSlayer != NULL);
@@ -36,7 +35,6 @@ void Whitsuntide::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
@@ -48,10 +46,8 @@ void Whitsuntide::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot*
         execute(pSlayer, pTargetCreature->getX(), pTargetCreature->getY(), pSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -65,7 +61,6 @@ void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     try {
         Player* pPlayer = pSlayer->getPlayer();
@@ -191,7 +186,6 @@ void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
 
                             HP_t CurrentHP = getPercentValue(pTargetSlayer->getHP(ATTR_MAX), output.Damage);
                             pTargetSlayer->setHP(CurrentHP, ATTR_CURRENT);
-                            //						pTargetSlayer->setMP(0, ATTR_CURRENT);
 
                             // 주위에 체력이 채워졌다는 사실을 알린다.
                             GCStatusCurrentHP gcStatusCurrentHP;
@@ -214,7 +208,6 @@ void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
                 }
 
             if (bHit) {
-                // cout << "Skill Succesfully Attacked(" << output.Damage << ")" << endl;
                 shareAttrExp(pSlayer, output.Damage, 1, 1, 8, _GCSkillToTileOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToTileOK1);
                 increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToTileOK1);
@@ -270,7 +263,6 @@ void Whitsuntide::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

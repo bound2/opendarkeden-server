@@ -31,7 +31,6 @@ class HitRoll {
 public:
     // 일반 공격 명중굴림 함수
     static bool isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus = 0);
-    //	static bool isSuccess(ToHit_t ToHit, Creature* pDefender, int ToHitBonus = 0);
 
     // 슬레이어용 마법 명중굴림 함수
     static bool isSuccessMagic(Slayer* pSlayer, SkillInfo* pSkillInfo, SkillSlot* pSkillSlot);

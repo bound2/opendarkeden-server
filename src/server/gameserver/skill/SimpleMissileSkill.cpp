@@ -35,7 +35,6 @@ void SimpleMissileSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Ski
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
 
         // NPC는 공격할 수가 없다.
@@ -182,7 +181,6 @@ void SimpleMissileSkill::execute(Vampire* pVampire, ObjectID_t TargetObjectID, V
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         // NoSuch제거. by sigi. 2002.5.2
@@ -382,7 +380,6 @@ void SimpleMissileSkill::execute(Ousters* pOusters, ObjectID_t TargetObjectID, O
 
         if (param.bMagicDamage) {
             // 만일 스킬 데미지가 마법 데미지라면, 마법 데미지 계산 함수를 이용해 계산을 해준다.
-            //			Damage += computeMagicDamage(pTargetCreature, param.SkillDamage, param.SkillType, true);
             Damage += computeOustersMagicDamage(pOusters, pTargetCreature, param.SkillDamage, param.SkillType);
         } else {
             Damage += param.SkillDamage;

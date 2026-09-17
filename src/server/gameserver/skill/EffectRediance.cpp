@@ -36,12 +36,10 @@ void EffectRediance::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectRediance " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectRediance " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -52,7 +50,6 @@ void EffectRediance::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectRediance " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -76,7 +73,6 @@ void EffectRediance::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_REDIANCE);
     pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcRemoveEffect);
 
-    // cout << "EffectRediance " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

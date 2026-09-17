@@ -39,12 +39,9 @@ public:
         m_Level = level;
     }
 
-    //	int getDefensePenalty(void) const  { return m_DefensePenalty; }
-    //	void setDefensePenalty(int penalty) { m_DefensePenalty = penalty; }
 
 private:
     Level_t m_Level;
-    //	int     m_DefensePenalty;
 };
 
 #endif // __EFFECT_PARALYZE__

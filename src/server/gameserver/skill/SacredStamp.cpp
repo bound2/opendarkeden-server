@@ -19,7 +19,6 @@ void SacredStamp::execute(Slayer* pSlayer, ObjectID_t targetObjectID, SkillSlot*
     Assert(pZone != NULL);
 
     Creature* pTargetCreature = pZone->getCreature(targetObjectID);
-    // Assert(pTargetCreature != NULL);
 
     // NoSuch제거. by sigi. 2002.5.2
     if (pTargetCreature == NULL) {
@@ -35,7 +34,6 @@ void SacredStamp::execute(Slayer* pSlayer, ObjectID_t targetObjectID, SkillSlot*
 void SacredStamp::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID) {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -70,7 +68,6 @@ void SacredStamp::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
 
     g_SimpleTileMissileSkill.execute(pSlayer, X, Y, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

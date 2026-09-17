@@ -110,21 +110,6 @@ void SatelliteBomb::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Skill
                 bTileCheck = true;
         }
         bool bUseSkill = false;
-        /*
-        // È¡³öµ±Ç°Ê¹ÓÃ¼¼ÄÜ½ÇÉ«ËùÊ¹ÓÃµÄÎäÆ÷
-        Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
-        //Ã»ÓÐÎäÆ÷²»ÄÜÊ¹ÓÃ¼¼ÄÜ
-        if (pWeapon != NULL)
-        {
-            Silver_t silverDamage= pWeapon->getSilver();
-            if (silverDamage >50)
-            {
-                silverDamage-=50;
-                pWeapon->setSilver(silverDamage);
-                bUseSkill=true;
-            }
-        }
-        */
         bUseSkill = true;
         // Èç¹ûÈ«²¿¼ì²âÍ¨¹ý,ÔòÖ´ÐÐ¼¼ÄÜº¯Êý.
         if (bManaCheck && bTimeCheck && bRangeCheck && !bEffected && bTileCheck && bUseSkill) {

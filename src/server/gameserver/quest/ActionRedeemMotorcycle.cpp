@@ -128,25 +128,6 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
         // by sigi. 2002.12.25 x-mas T_T;
         if (targetID == 0) {
             targetID = pKey->setNewMotorcycle(pSlayer);
-            /*		// (!) MotorcycleObject를 생성하고 MotorcycleItemID==Target를 받아야 한다.
-                    // 이 코드 제발 함수로 빼기를.. -_-; by sigi
-                    list<OptionType_t> optionNULL;
-                    Item* pMotorcycle = g_pItemFactoryManager->createItem(Item::ITEM_CLASS_MOTORCYCLE, 0, optionNULL);
-                    Assert(pMotorcycle != NULL);
-                    (pZone->getObjectRegistry()).registerObject(pMotorcycle);
-
-                    pMotorcycle->create(pSlayer->getName(), STORAGE_ZONE, pZone->getZoneID(), pSlayer->getX(),
-               pSlayer->getY()); pKey->setTarget(pMotorcycle->getItemID());
-
-                    targetID = pMotorcycle->getItemID();
-
-                    // targetID를 DB에도 update시켜야 한다.
-                    // (the KeyObject Target UPDATE is ItemObjectRepository::saveKeyTarget now;
-                    // this copy fed the two DWORDs to %d where the handler's fed %lu)
-                    defaultItemObjectRepository().saveKeyTarget(GEAR_KEY, targetID, pKey->getItemID());
-
-                    // 밑에서 pMotorcycle을 사용해도 되겠지만, 기존 코드 안 건드릴려고 여기서 지운다.
-                    SAFE_DELETE(pMotorcycle);*/
         } else {
             // 한번 모터사이클이랑 키랑 연결됐는데 모터사이클을 누가 자꾸 지우나보다.
             // 키에 연결된 모터사이클이 실제로 디비에 있는지 체크하고 없으면 새로 만들어서 넣어준다.
@@ -170,49 +151,6 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
         if (g_pParkingCenter->hasMotorcycleBox(targetID)) {
             // 자꾸 다운되어서 혹시나 하고..
             // 일단 주석처리한다.  by sigi. 2002.11.16
-            /*
-            if (!pSlayer->hasRideMotorcycle()
-                && !pSlayer->isFlag(Effect::EFFECT_CLASS_COMA))
-            {
-                //return false;
-
-                // by sigi. 2002.11.14
-                MotorcycleBox* pMotorcycleBox = g_pParkingCenter->getMotorcycleBox(targetID);
-
-                // 있다면 소환한다.
-                if (pMotorcycleBox!=NULL
-                    && !pMotorcycleBox->isTransport())
-                {
-                    Zone* pMotorZone = pMotorcycleBox->getZone();
-                    ZoneCoord_t motorX = pMotorcycleBox->getX();
-                    ZoneCoord_t motorY = pMotorcycleBox->getY();
-                    Motorcycle* pMotorcycle = pMotorcycleBox->getMotorcycle();
-
-                    // 같은 존에 있는 경우
-                    // 거리가 너무 가까우면 부르지 말자~
-                    if (pMotorZone!=pZone
-                        || pSlayer->getDistance(motorX, motorY) > 15)
-                    {
-                        // 다른 zone으로 이동중이라고 표시한다.
-                        pMotorcycleBox->setTransport();
-
-                        // motorcycle을 slayer의 zone으로 옮긴다.
-                        pMotorZone->transportItem( motorX, motorY, pMotorcycle,
-                                                    pZone, pSlayer->getX(), pSlayer->getY() );
-
-                        // Use OK 대용이다.
-                        // Use하면 아이템이 사라지던가 그렇지 싶다. - -;
-                        //GCCannotUse _GCCannotUse;
-                        //_GCCannotUse.setObjectID(pPacket->getObjectID());
-                        //pGamePlayer->sendPacket(&_GCCannotUse);
-
-                        // 한동안 delay를 줘야하는데..
-                    }
-                }
-
-                return true;
-            }
-            */
 
             return false;
         }
@@ -295,7 +233,6 @@ bool ActionRedeemMotorcycle::load(Item* pItem, Slayer* pSlayer, Zone* pZone, Zon
         filelog("motorError.txt", "%s - itemID=%d, motorItemID=%d", t.toString().c_str(), (int)pItem->getItemID(),
                 (int)targetID);
         // 일단 다운은 막자.
-        // throw;
     }
 
     __END_CATCH

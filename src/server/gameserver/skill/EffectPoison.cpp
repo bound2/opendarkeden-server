@@ -37,12 +37,10 @@ void EffectPoison::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectPoison " << "begin begin" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     affect(pCreature);
 
-    // cout << "EffectPoison " << "begin end" << endl;
 
     __END_CATCH
 }
@@ -54,7 +52,6 @@ void EffectPoison::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectPoison " << "begin" << endl;
 
     Assert(pCreature != NULL);
 
@@ -71,7 +68,6 @@ void EffectPoison::affect(Creature* pCreature)
     // EffectGreenPoison 위를 플레이어가 지나갈 때 뿐이다.
     // EffectGreenPoison 내부에서 저항을 고려해서 데미지를 세팅한 다음
     // EffectPoison을 붙이므로, 내부에서 한번 더 계산하면 안된다.
-    // Damage_t PoisonDamage = computeMagicDamage(pCreature, m_Point, MAGIC_DOMAIN_POISON, m_Level);
     Damage_t PoisonDamage = m_Point;
 
     if (!(pZone->getZoneLevel() & COMPLETE_SAFE_ZONE)
@@ -103,20 +99,10 @@ void EffectPoison::affect(Creature* pCreature)
 
         // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
         // by sigi. 2002.9.9
-        /*		if (pCreature->isDead())
-                {
-                    Creature* pAttacker = pZone->getCreature( m_UserObjectID );
-
-                    if (pAttacker!=NULL)
-                    {
-                        affectKillCount(pAttacker, pCreature);
-                    }
-                }*/
     }
 
     setNextTime(m_Tick);
 
-    // cout << "EffectPoison " << "end" << endl;
 
     __END_CATCH
 }

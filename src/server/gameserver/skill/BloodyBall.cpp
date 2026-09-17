@@ -39,7 +39,6 @@ void BloodyBall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -49,7 +48,6 @@ void BloodyBall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -61,10 +59,8 @@ void BloodyBall::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         execute(pVampire, pTargetCreature->getX(), pTargetCreature->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -78,7 +74,6 @@ void BloodyBall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     SkillInput input(pVampire);
     SkillOutput output;
@@ -113,7 +108,6 @@ void BloodyBall::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 
     g_SimpleTileMissileSkill.execute(pVampire, X, Y, pVampireSkillSlot, param, result, CEffectID, false, HitBonus);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -126,7 +120,6 @@ void BloodyBall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     SkillInput input(pMonster);
     SkillOutput output;
@@ -152,7 +145,6 @@ void BloodyBall::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
     g_SimpleTileMissileSkill.execute(pMonster, X, Y, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

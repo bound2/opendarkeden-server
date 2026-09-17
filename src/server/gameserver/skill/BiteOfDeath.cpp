@@ -25,7 +25,6 @@ void BiteOfDeath::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
 
@@ -36,7 +35,6 @@ void BiteOfDeath::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // 저주 면역. by sigi. 2002.9.13
@@ -45,7 +43,6 @@ void BiteOfDeath::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
             !pVampire->isFlag(Effect::EFFECT_CLASS_TRANSFORM_TO_WERWOLF) || pTargetCreature->isDead() ||
             pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -177,7 +174,6 @@ void BiteOfDeath::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
             if (pTargetCreature->isPC()) {
                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
 
@@ -196,7 +192,6 @@ void BiteOfDeath::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

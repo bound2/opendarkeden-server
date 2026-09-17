@@ -27,8 +27,6 @@ EffectHeterChakram::EffectHeterChakram(Creature* pCreature)
     m_UserOID = 0;
     m_Damage = 0;
     m_Duration = 0;
-    // m_AttackNum = 0; // ÊÜµ½¹¥»÷´ÎÊý
-    // m_TrageSaveHP =0;
 
     __END_CATCH
 }
@@ -39,104 +37,16 @@ void EffectHeterChakram::affect()
 
 {
     __BEGIN_TRY
-    // setDuration(0);
-    // setDeadline(0);
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
-    //  	HP_t CurrentHP=0;
-    // 	Slayer* pSlayer;
-    // 	Vampire* pVampire;
-    // 	Monster* pMonsterAttacker;
     setNextTime(10);
-    // 	if (!pCreature->isDead() && !pCreature->isOusters())
-    // 	{
-    // 		if (pCreature->isSlayer())
-    // 		{
-    // 			pSlayer = dynamic_cast<Slayer *>(pCreature);
-    // 			CurrentHP = pSlayer->getHP();
-    // 		}
-    // 		if (pCreature->isVampire())
-    // 		{
-    // 			pVampire = dynamic_cast<Vampire *>(pCreature);
-    // 			CurrentHP = pVampire->getHP();
-    // 		}
-    // 		if (pCreature->isMonster())
-    // 		{
-    // 			pMonsterAttacker = dynamic_cast<Monster*>(pCreature);
-    // 			CurrentHP = pMonsterAttacker->getHP();
-    // 		}
-    // 		if ( CurrentHP < m_TrageSaveHP)
-    // 		{
     // 			// Ôö¼ÓÆäËü¹¥»÷´ÎÊý
-    // 			m_AttackNum++;
     // 			//m_TrageSaveHP = CurrentHP;
-    // 		}
     // ´´½¨ÉËº¦
     affect(pCreature);
-    // 		if (pCreature->isDead())
-    // 		{
-    // 		}
-    //
-    // 		if (pCreature->isSlayer())  CurrentHP = pSlayer->getHP();
-    // 		if (pCreature->isVampire())	CurrentHP = pVampire->getHP();
-    // 		if (pCreature->isMonster())	CurrentHP = pMonsterAttacker->getHP();
-    // 		// ¼ÇÂ¼µ±Ç°HP
-    // 		m_TrageSaveHP = CurrentHP;
-    // 		if (m_AttackNum >=5)
-    // 		{
-    // 			setDuration(0);
-    // 			setDeadline(0);
-    // 		}
 
     //	}
 
-
-    // 	Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
-    // 	affect(pCreature);
-    // 	int cx = pCreature->getX();
-    // 	int cy = pCreature->getY();
-    //
-    // 	Zone* pZone = pCreature->getZone();
-    //
-    // 	for ( int i=-1; i<=1; ++i )
-    // 	for ( int j=-1; j<=1; ++j )
-    // 	{
-    // 		int tx = cx + i;
-    // 		int ty = cy + j;
-    // 		if ( tx < 0 || ty < 0 ) continue;
-    // 		if ( !isValidZoneCoord( pZone, tx, ty ) ) continue;
-    //
-    // 		forward_list<Object*>& olist = pZone->getTile(tx, ty).getObjectList();
-    // 		forward_list<Object*>::iterator itr = olist.begin();
-    // 		for ( ; itr != olist.end() ; ++itr )
-    // 		{
-    // 			Object* pObject = *itr;
-    // 			if ( pObject == NULL || pObject->getObjectClass() != Object::OBJECT_CLASS_CREATURE ) continue;
-    //
-    // 			Creature* pTargetCreature = dynamic_cast<Creature*>(pObject);
-    // 			if ( pTargetCreature == NULL || pTargetCreature->isOusters() || pTargetCreature == pCreature ) continue;
-    // 			if ( pTargetCreature->isFlag( getEffectClass() ) ) continue;
-    //
-    // 			EffectHeterChakram* pEffect = new EffectHeterChakram( pTargetCreature );
-    // 			pEffect->setUserOID( m_UserOID );
-    // 			pEffect->setDamage( m_Damage );
-    // 			pEffect->setDeadline( m_Duration/2 );
-    // 			pEffect->setDuration( m_Duration/2 );
-    // 			pEffect->setNextTime(10);
-    // 			pTargetCreature->setFlag( pEffect->getEffectClass() );
-    // 			pTargetCreature->addEffect( pEffect );
-    //
-    // 			GCAddEffect gcAddEffect;
-    // 			gcAddEffect.setObjectID( pTargetCreature->getObjectID() );
-    // 			gcAddEffect.setEffectID( pEffect->getSendEffectClass() );
-    // 			gcAddEffect.setDuration( m_Duration/2 );
-    //
-    // 			pZone->broadcastPacket( pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect );
-    //
-    // 		}
-    // 	}
-
-    // cout << "EffectHeterChakram" << "affect BEGIN" << endl;
 
     __END_CATCH
 }
@@ -213,23 +123,12 @@ void EffectHeterChakram::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectHeterChakram" << "unaffect BEGIN" << endl;
-    // 	try
-    // 	{
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
-    // 		unaffect(pCreature);
-    // 	}
-    // 	catch(Throwable & t)
-    // 	{
-    //
-    // 	}
 
     // ´´½¨Ä¿±êÉËº¦
     affect(pCreature);
 
-    // Creature* pCreature = m_pZone->getCreature(m_pTarget);
     //  ¶ÁÈ¡5*5·¶Î§ÄÚ¶ÔÏó,²¢´´½¨ÉËº¦
-    //  	Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
 
 
     int cx = pCreature->getX();
@@ -256,30 +155,12 @@ void EffectHeterChakram::unaffect()
                 Creature* pTargetCreature = dynamic_cast<Creature*>(pObject);
                 if (pTargetCreature == NULL || pTargetCreature->isOusters() || pTargetCreature == pCreature)
                     continue;
-                // if ( pTargetCreature->isFlag( getEffectClass() ) ) continue;
                 //  ´´½¨ÉËº¦
                 affect(pTargetCreature);
-                // 	 			EffectHeterChakram* pEffect = new EffectHeterChakram( pTargetCreature );
-                // 	 			pEffect->setUserOID( m_UserOID );
-                // 	 			pEffect->setDamage( m_Damage );
-                // 	 			pEffect->setDeadline( m_Duration/2 );
-                // 	 			pEffect->setDuration( m_Duration/2 );
-                // 	 			pEffect->setNextTime(10);
-                // 	 			pTargetCreature->setFlag( pEffect->getEffectClass() );
-                // 	 			pTargetCreature->addEffect( pEffect );
-                //
-                // 	 			GCAddEffect gcAddEffect;
-                // 	 			gcAddEffect.setObjectID( pTargetCreature->getObjectID() );
-                // 	 			gcAddEffect.setEffectID( pEffect->getSendEffectClass() );
-                // 	 			gcAddEffect.setDuration( m_Duration/2 );
-                //
-                // 	 			pZone->broadcastPacket( pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect
-                // );
             }
         }
 
     unaffect(pCreature);
-    // cout << "EffectHeterChakram" << "unaffect END" << endl;
 
     __END_CATCH
 }

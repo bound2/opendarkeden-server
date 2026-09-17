@@ -25,7 +25,6 @@ Mutex Sword::m_Mutex;
 Sword::Sword()
 
 {
-    // m_EnchantLevel = 0;
     setBonusDamage(0);
 }
 
@@ -33,13 +32,11 @@ Sword::Sword(ItemType_t itemType, const list<OptionType_t>& optionType)
 
 //: m_OptionType( optionType )
 {
-    // m_ItemType    = itemType;
     setItemType(itemType);
     setOptionType(optionType);
     setBonusDamage(0);
     setSilver(0);
 
-    // m_EnchantLevel = 0;
     setDurability(computeMaxDurability(this));
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
@@ -128,86 +125,9 @@ string Sword::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t Sword::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSwordInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t Sword::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSwordInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t Sword::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSwordInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-*/
 //--------------------------------------------------------------------------------
 // get/set weapon's minDamage
 //--------------------------------------------------------------------------------
-/*Damage_t Sword::getMinDamage() const
-
-{
-    __BEGIN_TRY
-
-    return getItemInfo()->getMinDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's maxDamage
-//--------------------------------------------------------------------------------
-Damage_t Sword::getMaxDamage() const
-
-{
-    __BEGIN_TRY
-
-    return getItemInfo()->getMaxDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-int Sword::getCriticalBonus(void) const
-
-{
-    __BEGIN_TRY
-
-    return getItemInfo()->getCriticalBonus();
-
-    __END_CATCH
-}*/
 
 
 //--------------------------------------------------------------------------------
@@ -321,10 +241,7 @@ void SwordLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

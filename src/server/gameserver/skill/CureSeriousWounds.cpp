@@ -19,7 +19,6 @@ void CureSeriousWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -39,7 +38,6 @@ void CureSeriousWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Skil
 
     g_SimpleTileCureSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -52,7 +50,6 @@ void CureSeriousWounds::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectI
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -72,7 +69,6 @@ void CureSeriousWounds::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectI
 
     g_SimpleTileCureSkill.execute(pSlayer, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -99,7 +95,6 @@ void CureSeriousWounds::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, S
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // cout << "Tile X :" << (int)X << "Tile Y : " << (int)Y << endl;
     g_SimpleTileCureSkill.execute(pSlayer, X, Y, pSkillSlot, param, result);
 
     __END_CATCH

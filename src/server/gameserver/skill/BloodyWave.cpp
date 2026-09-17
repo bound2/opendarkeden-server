@@ -40,7 +40,6 @@ void BloodyWave::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot,
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -49,10 +48,8 @@ void BloodyWave::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot,
         execute(pVampire, pVampire->getX(), pVampire->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -67,35 +64,18 @@ void BloodyWave::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
 
     try {
-        // Zone* pZone = pVampire->getZone();
-        // Assert(pZone != NULL);
-
-        // Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
-
         // NoSuch제거. by sigi. 2002.5.2
-        /*
-        if (pTargetCreature==NULL)
-        {
-            executeSkillFailException(pVampire, getSkillType());
-
-            return;
-        }
-        */
 
         execute(pVampire, pVampire->getX(), pVampire->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -109,7 +89,6 @@ void BloodyWave::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     SkillInput input(pVampire);
     SkillOutput output;
@@ -148,7 +127,6 @@ void BloodyWave::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
     g_SimpleTileMissileSkill.execute(pVampire, pVampire->getX(), pVampire->getY(), pVampireSkillSlot, param, result, 0,
                                      HitBonus, bForceKnockback);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -161,7 +139,6 @@ void BloodyWave::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     SkillInput input(pMonster);
     SkillOutput output;
@@ -194,7 +171,6 @@ void BloodyWave::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
     g_SimpleTileMissileSkill.execute(pMonster, pMonster->getX(), pMonster->getY(), param, result, 0, bForceKnockback);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

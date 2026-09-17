@@ -46,8 +46,6 @@ public:
         m_Delay = Delay;
     }
 
-    //	string getCasterName(void) const { return m_CasterName; }
-    //	void setCasterName(const string & CasterName ) { m_CasterName = CasterName; }
 
     ObjectID_t getUserObjectID(void) const {
         return m_UserObjectID;
@@ -63,7 +61,6 @@ public:
 private:
     int m_Damage;
     Turn_t m_Delay;
-    //	string  m_CasterName;
     ObjectID_t m_UserObjectID;
     bool m_bPlayer; // 유저가 사용한 기술인가?
     uint m_SplashRatio[3];

@@ -42,19 +42,9 @@ public:
         m_RevealRatio = ratio;
     }
 
-    /*
-    int getToHitBonus(void) const { return m_ToHitBonus; }
-    void setToHitBonus(int bonus) { m_ToHitBonus = bonus; }
-
-    int getDamageBonus(void) const { return m_DamageBonus; }
-    void setDamageBonus(int bonus) { m_DamageBonus = bonus; }
-    */
 
 private:
     int m_RevealRatio;
-
-    // int m_ToHitBonus;
-    // int m_DamageBonus;
 };
 
 #endif // __EFFECT_SNIPING_MODE__

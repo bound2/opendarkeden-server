@@ -42,7 +42,6 @@ void EffectHeavenGround::affect()
     __BEGIN_TRY
 
     Assert(m_pZone != NULL);
-    // cout << "UserObejctID:" << (int)m_UserObjectID << endl;
     //  »ñÈ¡Ê¹ÓÃ¼¼ÄÜµÄÈËÎï
     Creature* pCastCreature = m_pZone->getCreature(m_UserObjectID);
 
@@ -51,7 +50,6 @@ void EffectHeavenGround::affect()
 
         return;
     }
-    // Slayer* pSlayer = dynamic_cast<Slayer*>(pSlayer);
 
     // È¡³öµØÍ¼
     Tile& tile = m_pZone->getTile(m_X, m_Y);
@@ -87,8 +85,6 @@ void EffectHeavenGround::affect()
                 // Èç¹ûÊÇÈËÀà,Ôò²»»áÔì³ÉÉËº¦
                 if (pCreature->isSlayer()) {
                     continue;
-                    // setNextTime(m_Tick);
-                    // return;
                 } else if (pCreature->isVampire()) {
                     Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
 
@@ -116,27 +112,14 @@ void EffectHeavenGround::affect()
                 bool modifiedAttacker = false;
 
                 // Á×¾úÀ¸¸é °æÇèÄ¡ÁØ´Ù. À½.....
-                // 				if ( pCastCreature != NULL )
-                // 				{
-                // 					if (pCreature->isDead() && pCastCreature->isVampire())
-                // 					{
                 // 						//computeAlignmentChange(pCreature, AcidDamage, pSlayer, &gcDefenderMI,
-                // &gcAttackerMI);
                 // 						//decreaseDurability(pSlayer, pCreature, NULL, &gcAttackerMI, &gcDefenderMI);
                 //
                 // 						// Å¸°ÙÀÌ ½½·¹ÀÌ¾î°¡ ¾Æ´Ñ °æ¿ì¿¡¸¸ °æÇèÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
-                // 						if (!pCreature->isSlayer())
-                // 						{
                 // // 							//shareAttrExp(pSlayer, AcidDamage , 1, 1, 8, _GCSkillToObjectOK1);
                 // // 							increaseDomainExp(pSlayer, SKILL_HEAVEN_GROUND, pSkillInfo->getPoint(),
-                // gcAttackerMI, pTargetCreature->getLevel());
                 // // 							increaseSkillExp(pSlayer, SKILL_HEAVEN_GROUND,  pSkillSlot, pSkillInfo,
-                // gcAttackerMI);
                 // // 							increaseAlignment(pSlayer, pCreature, gcAttackerMI);
-                // 						}
-                // 						modifiedAttacker = true;
-                // 					}
-                // 				}
 
                 // ¼ºÇâ °è»êÇÏ±â
                 if (pCastCreature != NULL && pCastCreature->isPC() && pCreature->isPC()) {
@@ -152,7 +135,6 @@ void EffectHeavenGround::affect()
 
     setNextTime(m_Tick);
 
-    // cout << "EffectAcidSwamp" << "affect END" << endl;
 
     __END_CATCH
 }

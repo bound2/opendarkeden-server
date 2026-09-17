@@ -25,7 +25,6 @@ void FrozenArmor::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -49,8 +48,6 @@ void FrozenArmor::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 2;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -101,7 +98,6 @@ void FrozenArmor::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSlot
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }
@@ -110,7 +106,6 @@ void FrozenArmor::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
                           CEffectID_t CEffectID) {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pSkillSlot != NULL);
@@ -129,14 +124,12 @@ void FrozenArmor::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         }
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // 저주 면역. by sigi. 2002.9.13
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !pTargetCreature->isOusters()) {
             executeSkillFailException(pOusters, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -240,7 +233,6 @@ void FrozenArmor::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

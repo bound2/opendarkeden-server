@@ -44,12 +44,10 @@ void EffectTyphoon::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectTyphoon " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectTyphoon " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -62,7 +60,6 @@ void EffectTyphoon::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectTyphoon " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -76,7 +73,6 @@ void EffectTyphoon::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_TYPHOON);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectTyphoon " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

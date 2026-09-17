@@ -84,7 +84,6 @@ void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
         }
 
         // 기부금액만큼 돈을 줄인다.
-        // pSlayer->setGoldEx(pSlayer->getGold() - m_Amount);
         // by sigi. 2002.9.17
         pSlayer->decreaseGoldEx(m_Amount);
 
@@ -123,7 +122,6 @@ void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
         }
 
         // 기부금액만큼 돈을 줄인다.
-        // pVampire->setGoldEx(pVampire->getGold() - m_Amount);
         // by sigi. 2002.9.18
         pVampire->decreaseGoldEx(m_Amount);
 
@@ -162,7 +160,6 @@ void ActionTakeDonation::execute(Creature* pCreature1, Creature* pCreature2)
         }
 
         // 기부금액만큼 돈을 줄인다.
-        // pOusters->setGoldEx(pOusters->getGold() - m_Amount);
         // by sigi. 2002.9.18
         pOusters->decreaseGoldEx(m_Amount);
 

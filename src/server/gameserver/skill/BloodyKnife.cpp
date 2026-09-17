@@ -18,7 +18,6 @@ void BloodyKnife::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(vampire)" << endl;
 
     SkillInput input(pVampire);
     SkillOutput output;
@@ -49,7 +48,6 @@ void BloodyKnife::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 
     g_SimpleMissileSkill.execute(pVampire, TargetObjectID, pVampireSkillSlot, param, result, CEffectID, HitBonus);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     __END_CATCH
 }
@@ -62,7 +60,6 @@ void BloodyKnife::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(monster)" << endl;
 
     SkillInput input(pMonster);
     SkillOutput output;
@@ -84,7 +81,6 @@ void BloodyKnife::execute(Monster* pMonster, Creature* pEnemy)
 
     g_SimpleMissileSkill.execute(pMonster, pEnemy, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
 
     __END_CATCH
 }

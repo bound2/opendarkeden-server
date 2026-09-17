@@ -30,7 +30,6 @@ void DestructionSpear::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -42,7 +41,6 @@ void DestructionSpear::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ous
         execute(pOusters, pTargetCreature->getX(), pTargetCreature->getY(), pOustersSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType());
-        // cout << t.toString() << endl;
     }
 
     __END_CATCH
@@ -57,25 +55,6 @@ void DestructionSpear::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, 
     Zone* pZone = pOusters->getZone();
     Assert(pZone != NULL);
 
-    /*	Creature* pTargetCreature = pZone->getCreature( TargetObjectID );
-
-        if (pTargetCreature==NULL
-            || !canAttack( pOusters, pTargetCreature )
-            || pTargetCreature->isNPC())
-        {
-            executeSkillFailException(pOusters, getSkillType());
-            return;
-        }*/
-
-    /*	if ( pTargetCreature->isSlayer() )
-        {
-            Slayer* pSlayer = dynamic_cast<Slayer*>(pTargetCreature);
-            targetLevel = pSlayer->getHighestSkillDomainLevel();
-        }
-        else
-        {
-            targetLevel = pTargetCreature->getLevel();
-        }*/
 
     SkillInput input(pOusters, pOustersSkillSlot);
     SkillOutput output;

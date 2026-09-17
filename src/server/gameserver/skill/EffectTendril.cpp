@@ -53,7 +53,6 @@ void EffectTendril::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectTendril" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -69,7 +68,6 @@ void EffectTendril::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_TENDRIL);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectTendril" << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

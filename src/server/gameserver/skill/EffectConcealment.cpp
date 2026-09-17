@@ -33,7 +33,6 @@ void EffectConcealment::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectConcealment" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -60,7 +59,6 @@ void EffectConcealment::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_CONCEALMENT);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectConcealment" << "unaffect END" << endl;
 
     __END_CATCH
 }

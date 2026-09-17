@@ -21,7 +21,6 @@ void BulletOfLight::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
 {
     __BEGIN_TRY __BEGIN_DEBUG
 
-        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
         Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -33,7 +32,6 @@ void BulletOfLight::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature) || pTargetCreature->isNPC()) {
@@ -66,7 +64,6 @@ void BulletOfLight::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
         computeOutput(input, output);
 
         // ToHit 페널티 값을 계산한다.
-        //		int ToHitPenalty = getPercentValue( pSlayer->getToHit(), output.ToHit );
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
@@ -82,12 +79,10 @@ void BulletOfLight::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
             // 총알 숫자를 떨어뜨리고, 저장하고, 남은 총알 숫자를 받아온다.
             decreaseBullet(pWeapon);
             // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
-            // pWeapon->save(pSlayer->getName(), STORAGE_GEAR, 0, Slayer::WEAR_RIGHTHAND, 0);
             RemainBullet = getRemainBullet(pWeapon);
         }
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bBulletCheck && bHitRoll && bPK) {
-            // cout << pSlayer->getName().c_str() << " Attack OK" << endl;
             decreaseMana(pSlayer, RequiredMP, _GCAttackArmsOK1);
 
             _GCAttackArmsOK5.setSkillSuccess(true);
@@ -100,7 +95,6 @@ void BulletOfLight::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
             Damage += getPercentValue(Damage, output.Damage);
             Damage = max(0, Damage);
 
-            // cout << "BulletOfLightDamage:" << Damage << endl;
 
             // 데미지를 세팅한다.
             setDamage(pTargetCreature, Damage, pSlayer, SkillType, &_GCAttackArmsOK2, &_GCAttackArmsOK1);
@@ -164,15 +158,11 @@ void BulletOfLight::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlo
             pSkillSlot->setRunTime(output.Delay);
         } else {
             executeSkillFailNormalWithGun(pSlayer, getSkillType(), pTargetCreature, RemainBullet);
-            // cout << pSlayer->getName().c_str() << " Fail : "
-            //	<< (int)bManaCheck << (int)bTimeCheck << (int)bRangeCheck
-            //	<< (int)bBulletCheck << (int)bHitRoll << (int)bPK << endl;
         }
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_DEBUG __END_CATCH
 }

@@ -175,9 +175,7 @@ void EffectCureCriticalWounds::affect(Creature* pCreature)
         }
     }
 
-    // cout << "EffectCureCriticalWounds " << "affect BEGIN" << endl;
     setNextTime(m_Delay);
-    // cout << "EffectCureCriticalWounds " << "affect END" << endl;
 
     __END_CATCH
 }

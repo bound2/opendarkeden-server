@@ -21,7 +21,6 @@ void Invisibility::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -102,7 +101,6 @@ void Invisibility::execute(Vampire* pVampire, VampireSkillSlot* pSkillSlot, CEff
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -115,7 +113,6 @@ void Invisibility::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(monster)" << endl;
 
     Assert(pMonster != NULL);
 
@@ -127,7 +124,6 @@ void Invisibility::execute(Monster* pMonster)
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
             return;
         }
 
@@ -169,7 +165,6 @@ void Invisibility::execute(Monster* pMonster)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
 
     __END_CATCH
 }

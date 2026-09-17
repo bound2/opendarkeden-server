@@ -42,7 +42,6 @@ void WildWolf::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
         if (pTargetCreature == NULL) {
             Item* pTargetItem = pZone->getItem(TargetObjectID);
             if (pTargetItem == NULL || pTargetItem->getItemClass() != Item::ITEM_CLASS_CORPSE) {

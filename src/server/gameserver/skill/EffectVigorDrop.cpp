@@ -35,8 +35,6 @@ EffectVigorDrop::EffectVigorDrop(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord_t zon
     m_pZone = pZone;
     m_X = zoneX;
     m_Y = zoneY;
-    //	m_CasterName ="";
-    //	m_PartyID = 0;
     m_UserObjectID = 0;
 
     __END_CATCH
@@ -48,13 +46,11 @@ bool EffectVigorDrop::affectCreature(Creature* pTargetCreature, bool bAffectByMo
 {
     __BEGIN_TRY
 
-    // cout << "EffectVigorDrop " << "affectCreature Begin " << endl;
 
     Assert(pTargetCreature != NULL);
 
     // 상대에게 이미 poison 이펙트가 걸려져 있는 경우에는 걸리지 않는다.
     if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_VIGOR_DROP_TO_CREATURE)) {
-        // cout << "EffectVigorDrop " << "affectCreature End(Already Effected) " << endl;
         return false;
     }
 
@@ -70,7 +66,6 @@ bool EffectVigorDrop::affectCreature(Creature* pTargetCreature, bool bAffectByMo
     int DropDamage = computeMagicDamage(pTargetCreature, m_Damage, SKILL_VIGOR_DROP);
 
     if (DropDamage > 0) {
-        // cout << "EffectVigorDrop(Damage:" << DropDamage << ") Affected" << endl;
         //  포이즌 이펙트를 생성해서, 타겟 크리쳐에 붙이고, 플래그를 켜준다.
 
         // 현제는 VigorDrop Effect를 지속적으로 운영하지 않는다. 다른 Effeect기술의
@@ -89,8 +84,6 @@ bool EffectVigorDrop::affectCreature(Creature* pTargetCreature, bool bAffectByMo
         EffectVigorDropToCreature* pEffectVigorDropToCreature = new EffectVigorDropToCreature(pTargetCreature);
 
         // 우선권 시스템을 위하여 이름과 파티 아이디를 넣는다.
-        // pEffectVigorDropToCreature->setCasterName(m_CasterName);
-        // pEffectVigorDropToCreature->setPartyID(m_PartyID);
         pEffectVigorDropToCreature->setUserObjectID(m_UserObjectID);
 
         pEffectVigorDropToCreature->setLevel(m_Level);
@@ -109,7 +102,6 @@ bool EffectVigorDrop::affectCreature(Creature* pTargetCreature, bool bAffectByMo
         pZone->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect);
     }
 
-    // cout << "EffectVigorDrop " << "affectCreature End " << endl;
 
     return true;
 

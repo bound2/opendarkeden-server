@@ -25,39 +25,29 @@ void SharpHail::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSki
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
 
-    /*	BYTE Grade = 0;
-        if ( pOustersSkillSlot->getExpLevel() < 15 ) Grade = 0;
-        else if ( pOustersSkillSlot->getExpLevel() < 30 ) Grade = 1;
-        else Grade = 2;
-    */
     try {
         Zone* pZone = pOusters->getZone();
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
 
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || !canAttack(pOusters, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType(), 0);
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
         execute(pOusters, pTargetCreature->getX(), pTargetCreature->getY(), pOustersSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType(), 0);
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -71,16 +61,10 @@ void SharpHail::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ousters
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
 
-    /*	BYTE Grade = 0;
-        if ( pOustersSkillSlot->getExpLevel() < 15 ) Grade = 0;
-        else if ( pOustersSkillSlot->getExpLevel() < 30 ) Grade = 1;
-        else Grade = 2;
-    */
     try {
         Player* pPlayer = pOusters->getPlayer();
         Zone* pZone = pOusters->getZone();
@@ -160,11 +144,6 @@ void SharpHail::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ousters
 
                     pEffect->setLevel(pOustersSkillSlot->getExpLevel());
 
-                    /*if ( Grade > 0 )
-                    {
-                        if ( Grade == 1 ) pEffect->setSendEffectClass( Effect::EFFECT_CLASS_SHARP_HAIL_2 );
-                        else pEffect->setSendEffectClass( Effect::EFFECT_CLASS_SHARP_HAIL_3 );
-                    }*/
 
                     // 타일에 붙은 이펙트는 OID를 받아야 한다.
                     ObjectRegistry& objectregister = pZone->getObjectRegistry();
@@ -183,26 +162,22 @@ void SharpHail::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ousters
             _GCSkillToTileOK1.setX(X);
             _GCSkillToTileOK1.setY(Y);
             _GCSkillToTileOK1.setDuration(output.Duration);
-            //			_GCSkillToTileOK1.setGrade(Grade);
 
             _GCSkillToTileOK3.setObjectID(pOusters->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
             _GCSkillToTileOK3.setX(X);
             _GCSkillToTileOK3.setY(Y);
-            //			_GCSkillToTileOK3.setGrade(Grade);
 
             _GCSkillToTileOK4.setSkillType(SkillType);
             _GCSkillToTileOK4.setX(X);
             _GCSkillToTileOK4.setY(Y);
             _GCSkillToTileOK4.setDuration(output.Duration);
-            //			_GCSkillToTileOK4.setGrade(Grade);
 
             _GCSkillToTileOK5.setObjectID(pOusters->getObjectID());
             _GCSkillToTileOK5.setSkillType(SkillType);
             _GCSkillToTileOK5.setX(X);
             _GCSkillToTileOK5.setY(Y);
             _GCSkillToTileOK5.setDuration(output.Duration);
-            //			_GCSkillToTileOK5.setGrade(Grade);
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
@@ -220,10 +195,8 @@ void SharpHail::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ousters
         }
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType(), 0);
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

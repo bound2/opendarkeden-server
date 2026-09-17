@@ -28,7 +28,6 @@ Bracelet::Bracelet()
 {
     setItemType(0);
     setDurability(0);
-    //	m_EnchantLevel = 0;
 }
 
 Bracelet::Bracelet(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -37,7 +36,6 @@ Bracelet::Bracelet(ItemType_t itemType, const list<OptionType_t>& optionType)
 {
     setItemType(itemType);
     setOptionType(optionType);
-    //	m_EnchantLevel = 0;
     setDurability(computeMaxDurability(this));
 
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), getOptionTypeList())) {
@@ -125,71 +123,6 @@ string Bracelet::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t Bracelet::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBraceletInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t Bracelet::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBraceletInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t Bracelet::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBraceletInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t Bracelet::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBraceletInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t Bracelet::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBraceletInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-
-*/
 //--------------------------------------------------------------------------------
 // get debug string
 //--------------------------------------------------------------------------------
@@ -296,10 +229,7 @@ void BraceletLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

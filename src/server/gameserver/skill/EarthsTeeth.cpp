@@ -18,7 +18,6 @@ void EarthsTeeth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(vampire)" << endl;
 
     SkillInput input(pOusters, pOustersSkillSlot);
     SkillOutput output;
@@ -47,7 +46,6 @@ void EarthsTeeth::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersS
 
     g_SimpleMissileSkill.execute(pOusters, TargetObjectID, pOustersSkillSlot, param, result, CEffectID);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     __END_CATCH
 }

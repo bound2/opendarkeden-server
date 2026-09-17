@@ -19,7 +19,6 @@ void SummonWaterElemental::execute(Ousters* pOusters, OustersSkillSlot* pOusters
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -43,8 +42,6 @@ void SummonWaterElemental::execute(Ousters* pOusters, OustersSkillSlot* pOusters
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() * 1.5;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -63,8 +60,6 @@ void SummonWaterElemental::execute(Ousters* pOusters, OustersSkillSlot* pOusters
             SkillOutput output;
             computeOutput(input, output);
 
-            // cout << pOusters->getName() << "이 SummonWaterElemental를 썼고 데미지는 " << output.Damage << "입니다."
-            // << endl;
 
             // 이팩트 클래스를 만들어 붙인다.
             EffectSummonWaterElemental* pEffect = new EffectSummonWaterElemental(pOusters);
@@ -102,7 +97,6 @@ void SummonWaterElemental::execute(Ousters* pOusters, OustersSkillSlot* pOusters
         executeSkillFailException(pOusters, getSkillType(), 0);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

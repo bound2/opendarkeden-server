@@ -21,7 +21,6 @@ void Destinies::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSki
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(vampire)" << endl;
 
     SkillInput input(pOusters, pOustersSkillSlot);
     SkillOutput output;
@@ -57,7 +56,6 @@ void Destinies::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSki
         pOusters->addEffect(pEffect);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     __END_CATCH
 }

@@ -153,18 +153,6 @@ void ActionRegenShop::execute(Creature* pCreature1, Creature* pCreature2)
     try {
         // 먼저 NPC가 가지고 있는 아이템을 전부 날리고...상점 버전을 올린다.
         // 일단 클리어하기 전에 로그를 한다.
-        /*
-        // 지금은 로그 안해서 뺀다. 2002.8.29. by sigi
-        for (ShopRackType_t rackType=0; rackType<SHOP_RACK_TYPE_MAX; rackType++)
-        {
-            for (BYTE rackIndex=0; rackIndex<SHOP_RACK_INDEX_MAX; rackIndex++)
-            {
-                Item* pShopItem = pNPC->getShopItem(rackType, rackIndex);
-                if (pShopItem != NULL)
-                    log(LOG_SHOP_DESTROY_ITEM, pNPC->getName(), "", pShopItem->toString());
-            }
-        }
-        */
 
         pNPC->clearShopItem();
 

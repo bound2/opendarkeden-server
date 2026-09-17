@@ -17,7 +17,6 @@ EffectJabbingVein::EffectJabbingVein(Creature* pCreature)
     __BEGIN_TRY
 
     Assert(pCreature != NULL);
-    // Assert(pCreature->isOusters());
 
     setTarget(pCreature);
 
@@ -31,10 +30,8 @@ void EffectJabbingVein::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectJabbingVein" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
-    //	Assert(pCreature->isOusters());
 
     // 플래그를 끈다.
     pCreature->removeFlag(Effect::EFFECT_CLASS_JABBING_VEIN);
@@ -42,8 +39,6 @@ void EffectJabbingVein::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     Assert(pZone != NULL);
 
-    //	Ousters* pTargetOusters = dynamic_cast<Ousters*>(pCreature);
-    //	Assert( pTargetOusters != NULL );
 
     // 이펙트를 삭제하라고 알려준다.
     GCRemoveEffect gcRemoveEffect;
@@ -51,7 +46,6 @@ void EffectJabbingVein::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_JABBING_VEIN);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectJabbingVein" << "unaffect END" << endl;
 
     __END_CATCH
 }

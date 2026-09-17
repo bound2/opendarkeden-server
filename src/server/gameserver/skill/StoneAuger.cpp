@@ -18,7 +18,6 @@ void StoneAuger::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampire)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -28,7 +27,6 @@ void StoneAuger::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSk
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pOusters, pTargetCreature)) {
@@ -49,7 +47,6 @@ void StoneAuger::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ouster
                          CEffectID_t CEffectID) {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(vampire)" << endl;
 
     SkillInput input(pOusters, pOustersSkillSlot);
     SkillOutput output;

@@ -30,10 +30,8 @@ void EatCorpse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
-    // Assert(pVampireSkillSlot != NULL);
 
     try {
         Player* pPlayer = pVampire->getPlayer();
@@ -50,7 +48,6 @@ void EatCorpse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
         GCSkillToTileOK6 _GCSkillToTileOK6;
 
         Item* pItem = NULL;
-        // MonsterCorpse* pCorpse = NULL;
 
         bool bRangeCheck = verifyDistance(pVampire, X, Y, 1);
 
@@ -103,9 +100,7 @@ void EatCorpse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
                                     _GCRemoveCorpseHead.setObjectID(pItem->getObjectID());
                                     pZone->broadcastPacket(pt.x, pt.y, &_GCRemoveCorpseHead);
                                 }
-                                // cout << "Begin Create" << endl;
                                 pTreasure->create("", STORAGE_ZONE, pZone->getZoneID(), pt.x, pt.y);
-                                // cout << "End Create" << endl;
                             } else {
                                 SAFE_DELETE(pTreasure);
                             }
@@ -176,7 +171,6 @@ void EatCorpse::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampire
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

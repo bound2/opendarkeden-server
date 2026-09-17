@@ -105,21 +105,18 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
             // 종족전쟁 중일땐 모두 무료
             // 길드전쟁 중일땐 성에 들어갈 수 있는 종족만 무료
             if (g_pWarSystem->hasActiveRaceWar() || g_pWarSystem->hasCastleActiveWar(zoneID)) {
-                //				sprintf( strValue, "무료" );
                 sprintf(strValue, "%s", g_pStringPool->getString(STRID_FREE).c_str());
             } else if (race == RACE_SLAYER) {
                 char gold[15];
                 sprintf(gold, "%u", value);
                 string sGold(gold);
                 convertCommaString(sGold);
-                //				sprintf( strValue, "%s 레이", sGold.c_str() );
                 sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_REI)).c_str());
             } else {
                 char gold[15];
                 sprintf(gold, "%u", value);
                 string sGold(gold);
                 convertCommaString(sGold);
-                //				sprintf( strValue, "%s 겔드", sGold.c_str() );
                 sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_GELD)).c_str());
             }
 
@@ -141,21 +138,17 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     // 공용성이다.
                     if (pCastleInfo->getRace() == Guild::GUILD_RACE_SLAYER) {
                         // 슬레이어 공용성이다.
-                        //						result = "슬레이어 공용성";
                         result = g_pStringPool->getString(STRID_SLAYER_COMMON_CASTLE);
                     } else if (pCastleInfo->getRace() == Guild::GUILD_RACE_VAMPIRE) {
                         // 뱀파이어 공용성이다.
-                        //						result = "뱀파이어 공용성";
                         result = g_pStringPool->getString(STRID_VAMPIRE_COMMON_CASTLE);
                     } else {
-                        //						result = "아우스터즈 공용성";
                         result = g_pStringPool->getString(STRID_OUSTERS_COMMON_CASTLE);
                     }
                 } else {
                     // 길드가 소유한 성이다.
                     Guild* pGuild = g_pGuildManager->getGuild(pCastleInfo->getGuildID());
                     if (pGuild == NULL)
-                        //						result = "주인없는 성";
                         result = g_pStringPool->getString(STRID_NO_MASTER_CASTLE);
                     else
                         //						result = pGuild->getName() + ( (pGuild->getRace() ==
@@ -243,13 +236,10 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                 char strValue[20];
 
                 if (pCastleInfo->getRace() == RACE_SLAYER) {
-                    //					sprintf( strValue, "%s 레이", sGold.c_str() );
                     sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_REI)).c_str());
                 } else if (pCastleInfo->getRace() == RACE_VAMPIRE) {
-                    //					sprintf( strValue, "%s 겔드", sGold.c_str() );
                     sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_GELD)).c_str());
                 } else {
-                    //					sprintf( strValue, "%s 자드", sGold.c_str() );
                     sprintf(strValue, "%s", (sGold + " " + g_pStringPool->getString(STRID_ZARD)).c_str());
                 }
 
@@ -266,7 +256,6 @@ void ActionAskVariable::execute(Creature* pCreature1, Creature* pCreature2)
                     Attr_t grade = pSlayer->getQuestGrade();
 
                     if (grade < 61) {
-                        //						pParam->setValue("지하수로");
                         pParam->setValue(g_pStringPool->getString(STRID_SLAYER_QUESTZONE_2_1));
                     } else if (grade < 96) {
                         pParam->setValue("에슬라니아 북서");

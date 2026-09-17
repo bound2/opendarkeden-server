@@ -27,7 +27,6 @@ void CurePoison::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -39,13 +38,11 @@ void CurePoison::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         // 슬레이어 외에는 치료할 수 없다.
         if (pTargetCreature == NULL || pTargetCreature->isSlayer() == false) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -205,7 +202,6 @@ void CurePoison::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -218,7 +214,6 @@ void CurePoison::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -236,8 +231,6 @@ void CurePoison::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
         SkillType_t SkillType = pSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // by sigi. 2002.12.3
-        // SkillLevel_t      SkillLevel = pSkillSlot->getExpLevel();
         SkillLevel_t SkillLevel = pSlayer->getINT() / 2; // pSkillSlot->getExpLevel();
 
         bool bGreenPoison = false;    // GreenPoison을 치료할까의 여부
@@ -357,7 +350,6 @@ void CurePoison::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

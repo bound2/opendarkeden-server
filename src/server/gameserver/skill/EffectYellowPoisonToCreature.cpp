@@ -52,7 +52,6 @@ void EffectYellowPoisonToCreature::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    //	Slayer* pSlayer = dynamic_cast<Slayer*>(pCreature);
 
     if (pCreature != NULL) {
         Zone* pZone = pCreature->getZone();
@@ -71,9 +70,6 @@ void EffectYellowPoisonToCreature::unaffect(Creature* pCreature)
         pCreature->removeFlag(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE);
 
         // Yellow Poison의 효과가 풀릴때 Update Scan은 물론 밝기의 조절까지 해준다.
-        //	DarkLightInfo* pDIInfo    = g_pDarkLightInfoManager->getCurrentDarkLightInfo( pZone );
-        // DarkLevel_t    darkLevel  = pDIInfo->getDarkLevel();
-        // LightLevel_t   lightLevel = pDIInfo->getLightLevel();
 
         GCChangeDarkLight gcChangeDarkLight;
         gcChangeDarkLight.setDarkLevel(pZone->getDarkLevel());
@@ -81,33 +77,14 @@ void EffectYellowPoisonToCreature::unaffect(Creature* pCreature)
 
         pPlayer->sendPacket(&gcChangeDarkLight);
 
-        /*
-        if (!pSlayer->isFlag(Effect::EFFECT_CLASS_DARKNESS))
-        {
-
-            // Yellow Poison의 효과가 풀릴때 Update Scan은 물론 밝기의 조절까지 해준다.
-            DarkLightInfo* pDIInfo    = g_pDarkLightInfoManager->getCurrentDarkLightInfo();
-            DarkLevel_t    darkLevel  = pDIInfo->getDarkLevel();
-            LightLevel_t   lightLevel = pDIInfo->getLightLevel();
-
-            GCChangeDarkLight gcChangeDarkLight;
-            gcChangeDarkLight.setDarkLevel(darkLevel);
-            gcChangeDarkLight.setLightLevel(lightLevel);
-
-            pPlayer->sendPacket(&gcChangeDarkLight);
-        }
-        */
 
         // 풀릴때 Sight를 저장해준다.
-        // pSlayer->tinysave("Sight = 13");
 
         // 이펙트가 사라졌다고 알려준다.
         GCRemoveEffect gcRemoveEffect;
         gcRemoveEffect.setObjectID(pCreature->getObjectID());
         gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_YELLOW_POISON_TO_CREATURE);
         pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
-
-        // destroy(pSlayer->getName());
     }
 
     __END_DEBUG
@@ -207,9 +184,7 @@ void EffectYellowPoisonToCreatureLoader::load(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // Assert(pCreature != NULL);
     if (pCreature == NULL) {
-        // cout << "EffectYellowPoisonToCreatureLoader : 크리쳐가 널입니다." << endl;
         return;
     }
 
@@ -237,8 +212,6 @@ void EffectYellowPoisonToCreatureLoader::load(Creature* pCreature)
                 pEffect->setDeadline(leftTime);
             } else {
                 pEffect->setDeadline(10);
-                // pEffect->destroy(pCreature->getName());
-                // delete pEffect;
             }
 
             pEffect->setLevel(rows[r].level);

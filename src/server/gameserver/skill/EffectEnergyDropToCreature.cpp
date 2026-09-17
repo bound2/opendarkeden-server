@@ -22,8 +22,6 @@ EffectEnergyDropToCreature::EffectEnergyDropToCreature(Creature* pCreature)
 
 {
     __BEGIN_TRY
-    //	m_CasterName ="";
-    //	m_PartyID = 0;
 
     setTarget(pCreature);
 
@@ -37,12 +35,10 @@ void EffectEnergyDropToCreature::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectEnergyDropToCreature " << "begin begin" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     affect(pCreature);
 
-    // cout << "EffectEnergyDropToCreature " << "begin end" << endl;
 
     __END_CATCH
 }
@@ -54,7 +50,6 @@ void EffectEnergyDropToCreature::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectEnergyDropToCreature " << "begin" << endl;
 
     Assert(pCreature != NULL);
 
@@ -105,20 +100,10 @@ void EffectEnergyDropToCreature::affect(Creature* pCreature)
         // by sigi. 2002.9.9
         // set damage를 불러서 처리한다.
         // by bezz. 2002.12.31 다시 주석 처리
-        /*		if (pCreature->isDead())
-                {
-                    Creature* pAttacker = pZone->getCreature( m_CasterName );
-
-                    if (pAttacker!=NULL && pAttacker->isPC())
-                    {
-                        affectKillCount(pAttacker, pCreature);
-                    }
-                }*/
     }
 
     setNextTime(m_Tick);
 
-    // cout << "EffectEnergyDropToCreature " << "end" << endl;
 
     __END_CATCH
 }

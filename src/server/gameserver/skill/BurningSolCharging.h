@@ -27,7 +27,6 @@ public:
     }
 
     void execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot* pSkillSlot, CEffectID_t CEffectID);
-    //	void execute(Slayer* pSlayer,  SkillSlot* pSkillSlot, CEffectID_t CEffectID) ;
 
     void computeOutput(const SkillInput& input, SkillOutput& output);
 };

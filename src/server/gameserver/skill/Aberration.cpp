@@ -27,7 +27,6 @@ void Aberration::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -39,7 +38,6 @@ void Aberration::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // NoSuch제거. by sigi. 2002.5.2
@@ -47,7 +45,6 @@ void Aberration::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
             pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_CURSE) ||
             pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_HALLUCINATION) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -146,7 +143,6 @@ void Aberration::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
             if (pTargetCreature->isPC()) {
                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
 
@@ -173,7 +169,6 @@ void Aberration::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

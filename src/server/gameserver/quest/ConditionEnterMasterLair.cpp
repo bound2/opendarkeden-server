@@ -32,7 +32,6 @@ bool ConditionEnterMasterLair::isSatisfied(Creature* pCreature1, Creature* pCrea
     Assert(pCreature2 != NULL);
     Assert(pCreature2->isPC());
 
-    // cout << "Condition: EnterMasterLair" << endl;
 
     bool bPayPlay = false;
 

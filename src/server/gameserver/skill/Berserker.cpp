@@ -20,7 +20,6 @@ void Berserker::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -36,7 +35,6 @@ void Berserker::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_BLADE) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -68,10 +66,6 @@ void Berserker::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
             SkillOutput output;
             computeOutput(input, output);
 
-            // by sigi. 2002.12.3
-            // by 홍창. 2002.12.6
-            //			int DefensePenalty = 35 - pSkillSlot->getExpLevel()*2/13;	// %
-            //			int ProtectionPenalty = 25 - pSkillSlot->getExpLevel()*2/13;	// %
             int DefensePenalty = 25 - pSkillSlot->getExpLevel() * 2 / 13;    // %
             int ProtectionPenalty = 20 - pSkillSlot->getExpLevel() * 2 / 13; // %
 
@@ -99,7 +93,6 @@ void Berserker::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
             if (bIncreaseDomainExp) {
                 shareAttrExp(pSlayer, ExpUp, 8, 1, 1, _GCSkillToSelfOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-                //				increaseSkillExp(pSlayer, DomainType,  pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
             }
 
             _GCSkillToSelfOK1.setSkillType(SkillType);
@@ -127,7 +120,6 @@ void Berserker::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

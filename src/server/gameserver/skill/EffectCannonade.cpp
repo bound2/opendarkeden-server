@@ -108,8 +108,6 @@ void EffectCannonade::unaffect(Creature* pCastCreature)
                         FinalDamage += Damage;
 
                         if (pCreature->isPC() && pCreature->getCreatureClass() != pCastCreature->getCreatureClass()) {
-                            //							Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-
                             GCModifyInformation gcMI;
                             ::setDamage(pCreature, FinalDamage, pCastCreature, SKILL_CANNONADE,
                                         &gcMI); // ::추가 by Sequoia

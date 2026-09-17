@@ -16,7 +16,6 @@ void BurningSolLaunch::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Sk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     if (!pSlayer->isFlag(Effect::EFFECT_CLASS_BURNING_SOL_CHARGE_1)) {
         executeSkillFailException(pSlayer, getSkillType());
@@ -58,7 +57,6 @@ void BurningSolLaunch::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Sk
     SIMPLE_SKILL_OUTPUT result;
 
     int offset = 2;
-    //	if ( pEffect->getLevel() >= 2 ) offset = 2;
 
     // 목표위치+4방향
     for (int i = -offset; i <= offset; ++i)
@@ -67,19 +65,9 @@ void BurningSolLaunch::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, Sk
 
     param.Grade = pEffect->getLevel();
 
-    /*	param.addMask( 0,  0, 100);
-        param.addMask(-1, -1, 100);
-        param.addMask( 0, -1, 100);
-        param.addMask( 1, -1, 100);
-        param.addMask(-1,  0, 100);
-        param.addMask( 1,  0, 100);
-        param.addMask(-1,  1, 100);
-        param.addMask( 0,  1, 100);
-        param.addMask( 1,  1, 100);*/
 
     g_SimpleTileMissileSkill.execute(pSlayer, X, Y, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

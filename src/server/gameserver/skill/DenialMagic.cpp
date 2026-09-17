@@ -19,7 +19,6 @@ void DenialMagic::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -37,7 +36,6 @@ void DenialMagic::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         SkillType_t SkillType = pSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
         SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        //		SkillLevel_t      SkillLevel = pSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP();
         bool bManaCheck = hasEnoughMana(pSlayer, RequiredMP);
@@ -92,7 +90,6 @@ void DenialMagic::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

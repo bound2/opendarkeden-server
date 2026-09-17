@@ -131,8 +131,6 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                                 bRaceCheck = !pTargetCreature->isNPC();
                             }
 
-                            //							bool bHitRoll        = HitRoll::isSuccess( pSlayer,
-                            // pTargetCreature, SkillLevel );
 
                             if (!canAttack(pSlayer, pTargetCreature) ||
                                 pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
@@ -263,18 +261,9 @@ void SimpleTileMissileSkill::execute(Slayer* pSlayer, int X, int Y, SkillSlot* p
                     // 아이템의 내구력을 떨어뜨린다.
                     decreaseDurability(NULL, pTargetCreature, pSkillInfo, NULL, &_GCSkillToTileOK2);
 
-                    //					if ( param.SkillType == SKILL_WILD_TYPHOON )
-                    //					{
-                    //						int ratio = pSlayer->getSTR() / 10;
-                    //						if ( (rand()%100) < ratio )
-                    //						{
-                    //							_GCSkillToTileOK2.setSkillType( SKILL_ATTACK_MELEE );
-                    //						}
-                    //					}
 
                     // 패킷을 보내준다.
                     pTargetCreature->getPlayer()->sendPacket(&_GCSkillToTileOK2);
-                    //					_GCSkillToTileOK2.setSkillType(param.SkillType);
                 } else if (pTargetCreature->isMonster()) {
                     // 당근 적으로 인식한다.
                     Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
@@ -399,8 +388,6 @@ void SimpleTileMissileSkill::execute(Vampire* pVampire, int X, int Y, VampireSki
                                 bRaceCheck = !pTargetCreature->isNPC();
                             }
 
-                            //							bool bHitRoll        = HitRoll::isSuccessMagic(pVampire,
-                            // pSkillInfo, pVampireSkillSlot, HitBonus);
 
                             if (!canAttack(pVampire, pTargetCreature) ||
                                 pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
@@ -642,8 +629,6 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
                                 }
 
                                 if (param.bMagicDamage) {
-                                    //									Damage += computeMagicDamage(pTargetCreature,
-                                    // param.SkillDamage, param.SkillType, true);
                                     Damage += computeOustersMagicDamage(pOusters, pTargetCreature, param.SkillDamage,
                                                                         param.SkillType);
                                 } else {
@@ -675,8 +660,6 @@ void SimpleTileMissileSkill::execute(Ousters* pOusters, int X, int Y, OustersSki
                                 }
 
                                 if (pTargetCreature->isDead()) {
-                                    //									int exp = computeCreatureExp(pTargetCreature,
-                                    // 100, pOusters);
                                     int exp = computeCreatureExp(pTargetCreature, 70, pOusters);
                                     shareOustersExp(pOusters, exp, _GCSkillToTileOK1);
                                 }
@@ -850,20 +833,16 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
                                     Damage += computeDamage(pMonster, pEnemy, 0, bCriticalHit);
                                 }
 
-                                // cout << "bAddDamage = " << Damage << endl;
 
                                 if (param.bMagicDamage) {
                                     Damage += computeMagicDamage(pEnemy, param.SkillDamage, param.SkillType);
-                                    // cout << "bMagicDamage = " << Damage << endl;
                                 } else {
                                     Damage += param.SkillDamage;
-                                    // cout << "!bMagicDamage = " << Damage << endl;
                                 }
 
                                 // 페널티는 기본적으로 100이다.
                                 Damage = getPercentValue(Damage, penalty);
 
-                                // cout << "bPenaltyDamage = " << Damage << endl;
 
                                 ObjectID_t targetObjectID = pEnemy->getObjectID();
                                 cList.push_back(pEnemy);
@@ -930,7 +909,6 @@ void SimpleTileMissileSkill::execute(Monster* pMonster, int X, int Y, const SIMP
                     // 패킷을 보내준다.
                     pEnemy->getPlayer()->sendPacket(&_GCSkillToTileOK2);
 
-                    // cout << "SimpleTileMissibleSkill: " << _GCSkillToTileOK2.toString().c_str() << endl;
                 } else if (pEnemy->isMonster()) {
                     // 당근 적으로 인식한다.
                     Monster* pTargetMonster = dynamic_cast<Monster*>(pEnemy);

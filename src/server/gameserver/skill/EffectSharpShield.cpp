@@ -51,7 +51,6 @@ void EffectSharpShield::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectSharpShield" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -68,7 +67,6 @@ void EffectSharpShield::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(m_ClientEffectClass);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectSharpShield" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -98,7 +96,6 @@ void EffectSharpShield::unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Obje
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 void EffectSharpShield::setLevel(Level_t Level) {
-    //	m_ClientEffectClass = EFFECT_CLASS_SHARP_SHIELD_1;
     if (Level <= GRADE_ADEPT_LIMIT_LEVEL)
         m_ClientEffectClass = EFFECT_CLASS_SHARP_SHIELD_1;
     else if (Level <= GRADE_EXPERT_LIMIT_LEVEL)

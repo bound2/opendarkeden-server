@@ -36,7 +36,6 @@ void SetAfire::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         // NoSuch제거. by sigi. 2002.5.2
@@ -65,8 +64,6 @@ void SetAfire::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 
         if (getDistance(pVampire->getX(), pVampire->getY(), pTargetCreature->getX(), pTargetCreature->getY()) > 1) {
             bFastMove = true;
-            //	pZone->moveFastPC(pVampire, pVampire->getX(), pVampire->getY(), pTargetCreature->getX(),
-            // pTargetCreature->getY(), getSkillType());
         }
 
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanHit && bPK &&
@@ -92,27 +89,10 @@ void SetAfire::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
             decreaseMana(pVampire, RequiredMP, _GCSkillToObjectOK1);
 
             // 데미지를 가하고, 아이템 내구도를 떨어뜨린다.
-            //			setDamage(pTargetCreature, Damage, pVampire, getSkillType(), &_GCSkillToObjectOK2,
-            //&_GCSkillToObjectOK1); 			computeAlignmentChange(pTargetCreature, Damage, pVampire,
-            //&_GCSkillToObjectOK2,
-            //&_GCSkillToObjectOK1); 			decreaseDurability(pVampire, pTargetCreature, pSkillInfo,
-            //&_GCSkillToObjectOK1,
-            //&_GCSkillToObjectOK2);
 
             // 크리티컬 히트라면 상대방을 뒤로 물러나게 한다.
-            //			if (bCriticalHit)
-            //			{
-            //				knockbackCreature(pZone, pTargetCreature, pVampire->getX(), pVampire->getY());
-            //			}
 
             // 이번 공격으로 상대가 죽었다면 경험치가 올라간다.
-            //			if (pTargetCreature->isDead())
-            //			{
-            //				int exp = computeCreatureExp(pTargetCreature, KILL_EXP);
-            //				shareVampExp(pVampire, exp, _GCSkillToObjectOK1);
-            //			}
-            //			else
-            //			{
             EffectSetAfire* pEffect = new EffectSetAfire(pTargetCreature);
             pEffect->setDamage(Damage);
             pEffect->setTick(3);

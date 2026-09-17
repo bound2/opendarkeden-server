@@ -38,7 +38,6 @@ Potion::Potion(ItemType_t itemType, const list<OptionType_t>& optionType, ItemNu
     setItemType(itemType);
     setNum(Num);
 
-    // cout << "Potion::Potion(" << getOptionTypeToString(optionType).c_str() << ")" << endl;
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), getItemType(), optionType)) {
         filelog("itembug.log", "Potion::Potion() : Invalid item type or option type");
         throw Error("Potion::Potion() : Invalid item type or optionType");
@@ -130,47 +129,6 @@ string Potion::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t Potion::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pPotionInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t Potion::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pPotionInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t Potion::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pPotionInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-*/
 int Potion::getHPAmount(void) const
 
 {

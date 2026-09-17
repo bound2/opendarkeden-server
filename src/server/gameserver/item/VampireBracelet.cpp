@@ -28,7 +28,6 @@ VampireBracelet::VampireBracelet()
 {
     setItemType(0);
     setDurability(0);
-    // m_EnchantLevel = 0;
 }
 
 VampireBracelet::VampireBracelet(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -37,7 +36,6 @@ VampireBracelet::VampireBracelet(ItemType_t itemType, const list<OptionType_t>& 
 {
     setItemType(itemType);
     setOptionType(optionType);
-    // m_EnchantLevel = 0;
 
     setDurability(computeMaxDurability(this));
 
@@ -126,71 +124,6 @@ string VampireBracelet::toString() const
     return msg.toString();
 }
 
-
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t VampireBracelet::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireBraceletInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t VampireBracelet::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireBraceletInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t VampireBracelet::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireBraceletInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t VampireBracelet::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireBraceletInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t VampireBracelet::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pVampireBraceletInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-*/
 
 //--------------------------------------------------------------------------------
 // get debug string
@@ -300,10 +233,7 @@ void VampireBraceletLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

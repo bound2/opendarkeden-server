@@ -17,7 +17,6 @@ void MonsterRangeSkill::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(monster)" << endl;
 
     SIMPLE_SKILL_INPUT param;
     param.SkillType = getSkillType();
@@ -35,7 +34,6 @@ void MonsterRangeSkill::execute(Monster* pMonster, Creature* pEnemy)
 
     g_SimpleMissileSkill.execute(pMonster, pEnemy, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
 
     __END_CATCH
 }

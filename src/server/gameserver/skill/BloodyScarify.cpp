@@ -42,7 +42,6 @@ void BloodyScarify::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
         if (pTargetCreature == NULL) {
             Item* pTargetItem = pZone->getItem(TargetObjectID);
             if (pTargetItem == NULL || pTargetItem->getItemClass() != Item::ITEM_CLASS_CORPSE) {
@@ -81,17 +80,6 @@ void BloodyScarify::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
         bool bHitRoll = HitRoll::isSuccess(pVampire, pTargetCreature);
         bool bCanHit = canHit(pVampire, pTargetCreature, getSkillType());
         bool bPK = verifyPK(pVampire, pTargetCreature);
-        // add by Coffee 2007-6-9  藤속왱뇜세콘엥
-        // bool bUseSkillCrad		= useSkillCrad(pVampire);
-        /*
-        bool bFastMove			= false;
-        if ( getDistance( pVampire->getX(), pVampire->getY(), pTargetCreature->getX(), pTargetCreature->getY() ) > 1 )
-        {
-            bFastMove = true;
-        //	pZone->moveFastPC(pVampire, pVampire->getX(), pVampire->getY(), pTargetCreature->getX(),
-        pTargetCreature->getY(), getSkillType());
-        }
-        */
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bCanHit && bPK) //&& bUseSkillCrad)
         /*&&	( !bFastMove || pZone->moveFastPC(pVampire, pVampire->getX(), pVampire->getY(), pTargetCreature->getX(),
            pTargetCreature->getY(), getSkillType()) ))*/

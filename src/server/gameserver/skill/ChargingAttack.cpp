@@ -19,7 +19,6 @@ void ChargingAttack::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouste
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -31,13 +30,11 @@ void ChargingAttack::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouste
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -45,7 +42,6 @@ void ChargingAttack::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouste
         Item* pItem = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
         if (pItem == NULL) {
             executeSkillFailException(pOusters, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -126,7 +122,6 @@ void ChargingAttack::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouste
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

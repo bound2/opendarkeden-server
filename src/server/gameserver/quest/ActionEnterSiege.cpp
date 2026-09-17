@@ -78,11 +78,6 @@ void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
     ZoneID_t siegeZoneID = SiegeManager::Instance().getSiegeZoneID(m_ZoneID);
     Assert(siegeZoneID != 0);
 
-    /*	WarSchedule* pSchedule = dynamic_cast<WarSchedule*>(pWS->getRecentSchedule());
-        if ( pSchedule == NULL )
-        {
-            return;
-        }*/
 
     SiegeWar* pSiegeWar = dynamic_cast<SiegeWar*>(g_pWarSystem->getActiveWar(m_ZoneID));
     if (pSiegeWar == NULL) {
@@ -130,7 +125,6 @@ void ActionEnterSiege::execute(Creature* pNPC, Creature* pCreature)
         newEvent = true;
     }
 
-    //		pEvent = new EventTransport(pGamePlayer);
     pEvent->setTargetZone(ZoneNum, ZoneX, ZoneY);
     pEvent->setDeadline(0);
 

@@ -29,19 +29,16 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
 
-    // cout << "Transfusion" << endl;
 
     try {
         Zone* pZone = pVampire->getZone();
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         // NoSuch제거. by sigi. 2002.5.2
@@ -53,7 +50,6 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
             (g_pConfig->hasKey("Hardcore") && g_pConfig->getPropertyInt("Hardcore") != 0 &&
              pTargetCreature->isDead())) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -84,7 +80,6 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
         int CurrentHP = pVampire->getHP(ATTR_CURRENT);
         int RequiredMP = CurrentHP * 12 / 100; // decreaseConsumeMP(pVampire, pSkillInfo);
         int RecoverHP = CurrentHP * 12 / 100;
-        // bool bManaCheck  = hasEnoughMana(pVampire, RequiredMP);
         bool bTimeCheck = verifyRunTime(pVampireSkillSlot);
         bool bRangeCheck = verifyDistance(pVampire, X, Y, pSkillInfo->getRange());
         bool bHitRoll = HitRoll::isSuccessMagic(pVampire, pSkillInfo, pVampireSkillSlot, HitBonus);
@@ -103,20 +98,9 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
                     pTargetVampire->getHP(ATTR_MAX))
                     bHPCheck = true;
             }
-            /*
-            // 아직 이건 필요없다.
-            else if (pTargetCreature->isMonster())
-            {
-                Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
-                if (pMonster->getHP(ATTR_MAX) < pMonster->getHP(ATTR_MAX_HP))
-                    bHPCHeck = true;
-            }
-            */
         }
 
         if (bTimeCheck && bRangeCheck && bHitRoll && bHPCheck) {
-            // cout << "Transfusion Success" << endl;
-
             decreaseMana(pVampire, RequiredMP, _GCSkillToTileOK1);
 
 
@@ -137,16 +121,11 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 
                 // HP가 30%가 되면(33% -_-;) 살아나게 된다.
                 if (pTargetCreature->isFlag(Effect::EFFECT_CLASS_COMA)) {
-                    // cout << "Target has EFFECT_COMA" << endl;
                     if (newHP * 3 >= maxHP) {
-                        // cout << "Target HP is over 1/3" << endl;
-
                         EffectComa* pEffectComa = (EffectComa*)(pTargetCreature->findEffect(Effect::EFFECT_CLASS_COMA));
                         Assert(pEffectComa != NULL);
 
                         if (pEffectComa->canResurrect()) {
-                            // cout << "Can Resurrect!" << endl;
-
                             // 타겟의 이펙트 매니저에서 코마 이펙트를 삭제한다.
                             pTargetCreature->deleteEffect(Effect::EFFECT_CLASS_COMA);
                             pTargetCreature->removeFlag(Effect::EFFECT_CLASS_COMA);
@@ -239,16 +218,13 @@ void Transfusion::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 
             pVampireSkillSlot->setRunTime(output.Delay);
         } else {
-            // cout << "Transfusion Failed" << endl;
             executeSkillFailNormal(pVampire, getSkillType(), NULL);
         }
 
     } catch (Throwable& t) {
-        // cout << "Transfusion Failed2" << endl;
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -262,7 +238,6 @@ void Transfusion::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
     try {
         Zone* pZone = pVampire->getZone();
         Assert(pZone != NULL);

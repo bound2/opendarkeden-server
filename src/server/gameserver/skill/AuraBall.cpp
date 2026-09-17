@@ -17,7 +17,6 @@ void AuraBall::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -47,7 +46,6 @@ void AuraBall::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 
     g_SimpleMissileSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

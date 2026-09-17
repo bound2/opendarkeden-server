@@ -53,7 +53,6 @@ void TurretFire::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
     param.bMagicHitRoll = false;
     param.bMagicDamage = false;
     param.bAdd = true;
-    //	param.bExpForTotalDamage = true;
 
     SIMPLE_SKILL_OUTPUT result;
 

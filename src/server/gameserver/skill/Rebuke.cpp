@@ -20,7 +20,6 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -141,7 +140,6 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
                             // 성향을 올린다.
                             // 타겟이 슬레이어이면 먼가 문제가 있다.
                             if (!pTargetCreature->isSlayer()) {
-                                //	increaseAlignment( pSlayer, pTargetCreature, &_GCSkillToSelfOK1 );
                                 if (maxEnemyLevel < pTargetCreature->getLevel())
                                     maxEnemyLevel = pTargetCreature->getLevel();
                                 EnemyNum++;
@@ -179,7 +177,6 @@ void Rebuke::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffect
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

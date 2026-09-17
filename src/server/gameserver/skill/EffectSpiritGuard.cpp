@@ -121,8 +121,6 @@ void EffectSpiritGuard::affect(Creature* pCastCreature)
                 EnemyNum++;
 
                 if (pCreature->isVampire() || pCreature->isOusters()) {
-                    //					Vampire* pVampire = dynamic_cast<Vampire*>(pCreature);
-
                     GCModifyInformation gcMI;
                     ::setDamage(pCreature, m_Damage, pCastCreature, SKILL_SPIRIT_GUARD, &gcMI, &gcAttackerMI);
 
@@ -176,7 +174,6 @@ void EffectSpiritGuard::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectSpiritGuard " << "unaffect BEGIN" << endl;
     Assert(pCreature != NULL);
 
     if (!pCreature->isSlayer())

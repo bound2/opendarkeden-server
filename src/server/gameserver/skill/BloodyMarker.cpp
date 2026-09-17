@@ -22,7 +22,6 @@ void BloodyMarker::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -39,17 +38,13 @@ void BloodyMarker::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         // 전쟁 존이라면 BloodyMark를 사용할 수 없다.
         // 일단은 ZoneID로 가는데.. ZoneInfo에 넣도록 해야한다.
         ///*
-        // int zoneID = pZone->getZoneID();
-        // if (pZone->getZoneID()==1122 || pZone->getZoneID()==1123)
 
         // 이벤트 경기장/OX 막기. by sigi. 2002.8.31
-        // if (zoneID==1005 || zoneID==1006)
         if (pZone->isNoPortalZone() ||
             pZone->isMasterLair()
             // 성 안으로도 막기. by bezz, Sequoia 2003. 1.20.
             || pZone->isCastle() || pZone->isHolyLand()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
         //*/
@@ -59,7 +54,6 @@ void BloodyMarker::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_VAMPIRE_PORTAL_ITEM ||
             pItem->getObjectID() != InvenObjectID) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -70,7 +64,6 @@ void BloodyMarker::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         if (pVampirePortalItem->getZoneID() != 0 || pVampirePortalItem->getX() != 0 ||
             pVampirePortalItem->getY() != 0) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -111,10 +104,8 @@ void BloodyMarker::execute(Vampire* pVampire, ObjectID_t InvenObjectID, CoordInv
         }
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

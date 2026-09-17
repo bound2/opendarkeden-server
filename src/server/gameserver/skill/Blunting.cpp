@@ -28,7 +28,6 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pSkillSlot != NULL);
@@ -40,8 +39,6 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
-        //
 
         Item* pWeapon = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
 
@@ -53,7 +50,6 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
             pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_CHAKRAM ||
             !pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND)) {
             executeSkillFailException(pOusters, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -198,7 +194,6 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
             if (pTargetCreature->isPC()) {
                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
 
@@ -225,7 +220,6 @@ void Blunting::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

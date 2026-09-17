@@ -89,7 +89,6 @@ void DuckingWallop::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -99,7 +98,6 @@ void DuckingWallop::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -111,10 +109,8 @@ void DuckingWallop::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
         execute(pOusters, pTargetCreature->getX(), pTargetCreature->getY(), pOustersSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -128,16 +124,12 @@ void DuckingWallop::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ous
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
     SkillType_t SkillType = getSkillType();
 
     // Knowledge of Blood 가 있다면 hit bonus 10
-    // int HitBonus = 0;
     if (pOusters->hasRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_BLOOD)) {
         RankBonus* pRankBonus = pOusters->getRankBonus(RankBonus::RANK_BONUS_KNOWLEDGE_OF_BLOOD);
         Assert(pRankBonus != NULL);
-
-        // HitBonus = pRankBonus->getPoint();
     }
 
     try {
@@ -148,7 +140,6 @@ void DuckingWallop::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ous
         Dir_t dir = getDirectionToPosition(pOusters->getX(), pOusters->getY(), X, Y);
 
         // 강제로 knockback시킬 확률
-        //		bool bForceKnockback = rand()%100 < output.ToHit;
 
         Player* pPlayer = pOusters->getPlayer();
         Zone* pZone = pOusters->getZone();
@@ -163,10 +154,7 @@ void DuckingWallop::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ous
 
         GCSkillToTileOK1 _GCSkillToTileOK1;
         GCSkillToTileOK2 _GCSkillToTileOK2;
-        //		GCSkillToTileOK3 _GCSkillToTileOK3;
-        //		GCSkillToTileOK4 _GCSkillToTileOK4;
         GCSkillToTileOK5 _GCSkillToTileOK5;
-        //		GCSkillToTileOK6 _GCSkillToTileOK6;
 
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
@@ -188,7 +176,6 @@ void DuckingWallop::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ous
             decreaseMana(pOusters, RequiredMP, _GCSkillToTileOK1);
 
             // 좌표와 방향을 구한다.
-            //			Dir_t       dir          = calcDirection(myX, myY, X, Y);
 
             list<Creature*> cList;
 
@@ -334,7 +321,6 @@ void DuckingWallop::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, Ous
         executeSkillFailException(pOusters, SkillType);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

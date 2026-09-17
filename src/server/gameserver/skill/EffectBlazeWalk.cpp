@@ -37,12 +37,10 @@ void EffectBlazeWalk::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectBlazeWalk " << "begin begin" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     affect(pCreature);
 
-    // cout << "EffectBlazeWalk " << "begin end" << endl;
 
     __END_CATCH
 }
@@ -100,8 +98,6 @@ void EffectBlazeWalk::affect(Creature* pCreature)
     } else
         setDeadline(0);
 
-    // cout << "EffectBlazeWalk " << "begin" << endl;
-    // cout << "EffectBlazeWalk " << "end" << endl;
 
     __END_CATCH
 }

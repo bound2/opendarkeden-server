@@ -38,7 +38,6 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -55,7 +54,6 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
         // NoSuch제거. by sigi. 2002.5.2
         if (pFromCreature == NULL || !pFromCreature->isVampire()) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -120,7 +118,6 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             pNewSlayer->load();
             pNewSlayer->setZone(pZone);
             pNewSlayer->setObjectID(pFromCreature->getObjectID());
-            // pZone->getObjectRegistry().registerObject(pNewSlayer);
             pNewSlayer->setMoveMode(Creature::MOVE_MODE_WALKING);
 
             ZoneCoord_t x = pFromCreature->getX();
@@ -165,18 +162,6 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             pNewSlayer->setStashStatus(false);
             pVampire->setStash(NULL);
 
-            /*
-            // 가비지 교체
-            while (true)
-            {
-                Item* pGarbage = pVampire->popItemFromGarbage();
-
-                // 더 이상 없다면 브레이크...
-                if (pGarbage == NULL) break;
-
-                pNewSlayer->addItemToGarbage(pGarbage);
-            }
-            */
 
             // 플래그 셋 교체
             pNewSlayer->deleteFlagSet();
@@ -315,7 +300,6 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
             _GCMorphSlayer2.setSlayerInfo(pNewSlayer->getSlayerInfo3());
 
             pFromPlayer->sendPacket(&_GCMorph1);
-            // pFromGamePlayer->deleteEvent(Event::EVENT_CLASS_REGENERATION);
 
 
             _GCSkillToObjectOK1.setSkillType(SkillType);
@@ -350,7 +334,6 @@ void Restore::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -363,7 +346,6 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pNPC != NULL);
     Assert(pFromCreature != NULL);
@@ -374,19 +356,15 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
 
         // 뱀파이어만 건드릴 수가 있다.
         if (!pFromCreature->isVampire()) {
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
         GCMorph1 _GCMorph1;             // 변신 당사자에게..
         GCMorphSlayer2 _GCMorphSlayer2; // 변신 구경꾼들에게..
 
-        // SkillType_t SkillType = SKILL_RESTORE;
 
-        // bool bRangeCheck = verifyDistance(pNPC, pFromCreature, pSkillInfo->getRange());
         bool bHitRoll = true;
 
-        // if (bRangeCheck && bHitRoll)
         if (bHitRoll) {
             //////////////////////////////////////////////////////////////////////
             // 각종 존 레벨 정보를 삭제해야 한다.
@@ -429,7 +407,6 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             // load하면 load한 zone에서 objectID를 받으므로 다시 설정한다. by sigi. 2002.6.4
             pNewSlayer->setZone(pZone);
             pNewSlayer->setObjectID(pFromCreature->getObjectID());
-            // pZone->getObjectRegistry().registerObject(pNewSlayer);
             pNewSlayer->setMoveMode(Creature::MOVE_MODE_WALKING);
 
             ZoneCoord_t x = pFromCreature->getX();
@@ -440,7 +417,6 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
 
             // 크리쳐 안의 플레이어 포인터와 플레이어 안의 크리쳐 포인터를 갱신한다.
             Player* pFromPlayer = pFromCreature->getPlayer();
-            // pNewSlayer->setPlayer(pFromPlayer);
             GamePlayer* pFromGamePlayer = dynamic_cast<GamePlayer*>(pFromPlayer);
             pFromGamePlayer->setCreature(pNewSlayer);
 
@@ -585,7 +561,6 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
 
             // 뱀파이어 가지고 있던 돈을 슬레이어로 옮겨준다.
             // 슬레이어돈을 초기화한다.
-            // pNewSlayer->setGoldEx(pVampire->getGold());
             pNewSlayer->setGoldEx(0);
             pNewSlayer->setStashGoldEx(0);
 
@@ -601,7 +576,6 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
             _GCMorphSlayer2.setSlayerInfo(pNewSlayer->getSlayerInfo3());
 
             pFromPlayer->sendPacket(&_GCMorph1);
-            // pFromGamePlayer->deleteEvent(Event::EVENT_CLASS_REGENERATION);
 
 
             // Delete the old vampire from the tile and the zone and add the new slayer,
@@ -633,7 +607,6 @@ void Restore::execute(NPC* pNPC, Creature* pFromCreature)
         executeSkillFailException(pNPC, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

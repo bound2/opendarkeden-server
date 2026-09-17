@@ -29,20 +29,10 @@ void Teleport::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        /*		Item* pWeapon = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
-                if (pWeapon == NULL || pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET ||
-           !pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND))
-                {
-                    executeSkillFailException(pOusters, pOustersSkillSlot->getSkillType());
-                    return;
-                }
-        */
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         // NPC는 공격할 수가 없다.
-        //		bool bIncreaseDomainExp = pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND);
 
         GCSkillToTileOK1 _GCSkillToTileOK1;
         GCSkillToTileOK5 _GCSkillToTileOK5;
@@ -99,8 +89,6 @@ void Teleport::execute(Ousters* pOusters, ZoneCoord_t X, ZoneCoord_t Y, OustersS
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
-
 
     __END_CATCH
 }
@@ -113,7 +101,6 @@ void Teleport::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -125,70 +112,20 @@ void Teleport::execute(Ousters* pOusters, ObjectID_t TargetObjectID, OustersSkil
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // SkillType_t       SkillType  = pOustersSkillSlot->getSkillType();
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         // NPC는 공격할 수가 없다.
         if (pTargetCreature == NULL) {
             executeSkillFailException(pOusters, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
-        //		bool bIncreaseDomainExp = pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND);
 
         execute(pOusters, pTargetCreature->getX(), pTargetCreature->getY(), pOustersSkillSlot, CEffectID);
-        /*
-                SkillInput input(pOusters);
-                SkillOutput output;
-                computeOutput(input, output);
-
-                SkillInfo*        pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-
-                int  RequiredMP  = (int)pSkillInfo->getConsumeMP();
-                bool bManaCheck  = hasEnoughMana(pOusters, RequiredMP);
-                bool bTimeCheck  = verifyRunTime(pOustersSkillSlot);
-                bool bRangeCheck = verifyDistance(pOusters, pTargetCreature, output.Range);
-                bool bEffected	 = pOusters->hasRelicItem();
-
-                if (bManaCheck && bTimeCheck && bRangeCheck && !bEffected )
-                {
-
-                    // 빠르게 PC를 움직여준다.
-                    if (pZone->moveFastPC(pOusters, pOusters->getX(), pOusters->getY(), pTargetCreature->getX(),
-           pTargetCreature->getY()))
-                    {
-                        GCModifyInformation	gcMI;
-
-                        decreaseMana(pOusters, RequiredMP, gcMI);
-
-                        // 자신에게 바뀐 HP를 알려준다.
-                        pPlayer->sendPacket( &gcMI );
-
-                        // 주위에 HP가 바꼈다고 알린다.
-                        GCStatusCurrentHP gcStatusCurrentHP;
-                        gcStatusCurrentHP.setObjectID(pOusters->getObjectID());
-                        gcStatusCurrentHP.setCurrentHP(pOusters->getHP());
-                        pZone->broadcastPacket(pOusters->getX(), pOusters->getY(), &gcStatusCurrentHP, pOusters);
-
-                        pOustersSkillSlot->setRunTime(output.Delay);
-                    }
-                    else
-                    {
-                        executeSkillFailNormal(pOusters, getSkillType(), pTargetCreature);
-                    }
-                }
-                else
-                {
-                    executeSkillFailNormal(pOusters, getSkillType(), pTargetCreature);
-                }
-                */
     } catch (Throwable& t) {
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

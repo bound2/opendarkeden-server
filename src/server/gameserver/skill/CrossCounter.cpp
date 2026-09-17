@@ -24,7 +24,6 @@ void CrossCounter::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -40,7 +39,6 @@ void CrossCounter::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_SWORD) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
             return;
         }
 
@@ -110,7 +108,6 @@ void CrossCounter::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }
@@ -122,14 +119,12 @@ void CrossCounter::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t C
 bool CheckCrossCounter(Creature* pAttacker, Creature* pTargetCreature, Damage_t damage, Range_t range) {
     __BEGIN_TRY
 
-    // cout << "CheckCrossCounter Begin" << endl;
 
     Assert(pAttacker != NULL);
     Assert(pTargetCreature != NULL);
 
     // 슬레이어만이 이 기술을 쓸 수 있고, 그 거리는 1이어야만 한다.
     if (pTargetCreature->isSlayer() == false || range != 1) {
-        // cout << "CheckCrossCounter End" << endl;
         return false;
     }
 
@@ -226,8 +221,6 @@ bool CheckCrossCounter(Creature* pAttacker, Creature* pTargetCreature, Damage_t 
 
             setDamage(pAttacker, Damage, pTargetCreature, SKILL_CROSS_COUNTER, &_GCCrossCounterOK2,
                       &_GCCrossCounterOK1);
-            // SkillHandler::computeAlignmentChange(pAttacker, Damage, pTargetCreature, &_GCCrossCounterOK2,
-            // &_GCCrossCounterOK1);
 
             _GCCrossCounterOK1.setObjectID(attackerID);
             _GCCrossCounterOK2.setObjectID(targetID);
@@ -243,7 +236,6 @@ bool CheckCrossCounter(Creature* pAttacker, Creature* pTargetCreature, Damage_t 
 
                 // 크로스카운터가 발동되었다는 것은 몬스터가 이미 이 슬레이어를 적으로 인식하고
                 // 공격을 했다는 말이므로, addEnemy를 해 줄 필요는 없다.
-                // pMonster->addEnemy(pTargetSlayer);
 
                 // 마스터는 딜레이없다.
                 if (!pMonster->isMaster()) {
@@ -267,7 +259,6 @@ bool CheckCrossCounter(Creature* pAttacker, Creature* pTargetCreature, Damage_t 
         }
     }
 
-    // cout << "CheckCrossCounter End" << endl;
 
     return bSuccess;
 

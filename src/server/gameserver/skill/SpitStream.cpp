@@ -16,7 +16,6 @@ void SpitStream::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -36,7 +35,6 @@ void SpitStream::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -60,11 +58,9 @@ void SpitStream::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlo
     param.SkillDamage = output.Damage;
     param.Delay = output.Delay;
     param.ItemClass = Item::ITEM_CLASS_BLADE;
-    // param.ItemClass     = Item::ITEM_CLASS_SWORD;
     param.STRMultiplier = 8;
     param.DEXMultiplier = 1;
     param.INTMultiplier = 1;
-    //	param.Level			= 2;	// 2로 해야 하나?
     param.bMagicHitRoll = false;
     param.bMagicDamage = false;
     param.bAdd = true;

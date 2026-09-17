@@ -29,7 +29,6 @@ void SummonMigaAttack::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -37,7 +36,6 @@ void SummonMigaAttack::execute(Monster* pMonster)
         Zone* pZone = pMonster->getZone();
         Assert(pZone != NULL);
 
-        // GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         ZoneCoord_t x = pMonster->getX();
         ZoneCoord_t y = pMonster->getY();
@@ -74,7 +72,6 @@ void SummonMigaAttack::execute(Monster* pMonster)
             g_SimpleTileMissileSkill.execute(pMonster, x, y, param, result, 0, false);
 
             if (result.bSuccess) {
-                //				pMonster->setHP(0);
                 EffectKillTimer* pEffect = new EffectKillTimer(pMonster);
                 pEffect->setDeadline(8);
                 pMonster->addEffect(pEffect);
@@ -87,7 +84,6 @@ void SummonMigaAttack::execute(Monster* pMonster)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

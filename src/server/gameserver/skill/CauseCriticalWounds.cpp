@@ -26,7 +26,6 @@ void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -199,7 +198,6 @@ void CauseCriticalWounds::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

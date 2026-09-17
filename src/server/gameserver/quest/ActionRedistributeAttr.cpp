@@ -80,8 +80,6 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
         gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
         pPlayer->sendPacket(&gcNPCResponse);
 
-        /*		StringStream msg;
-                msg << pVampire->getName() << " 님은 충분한 돈을 가지고 있지 않습니다.(" << ATTR_PRICE << " 겔드)"; */
 
         char msg[100];
         sprintf(msg, g_pStringPool->c_str(STRID_NOT_ENOUGH_MONEY), pVampire->getName().c_str());
@@ -107,8 +105,6 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
             gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&gcNPCResponse);
 
-            //			StringStream msg;
-            //			msg << "레벨만큼만 보너스 포인트로 전환할 수 있습니다.";
 
             GCSystemMessage gcSM;
             gcSM.setMessage(g_pStringPool->getString(STRID_TRANS_BONUS_POINT));
@@ -133,8 +129,6 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
             gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&gcNPCResponse);
 
-            //			StringStream msg;
-            //			msg << "STR을 20이하로 낮출 수는 없습니다.";
 
             GCSystemMessage gcSM;
             gcSM.setMessage(g_pStringPool->getString(STRID_STR_LOW_LIMIT));
@@ -153,8 +147,6 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
             gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&gcNPCResponse);
 
-            //			StringStream msg;
-            //			msg << "DEX를 20이하로 낮출 수는 없습니다.";
 
             GCSystemMessage gcSM;
             gcSM.setMessage(g_pStringPool->getString(STRID_DEX_LOW_LIMIT));
@@ -173,8 +165,6 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
             gcNPCResponse.setCode(NPC_RESPONSE_QUIT_DIALOGUE);
             pPlayer->sendPacket(&gcNPCResponse);
 
-            //			StringStream msg;
-            //			msg << "INT를 20이하로 낮출 수는 없습니다.";
 
             GCSystemMessage gcSM;
             gcSM.setMessage(g_pStringPool->getString(STRID_INT_LOW_LIMIT));
@@ -195,8 +185,6 @@ void ActionRedistributeAttr::execute(Creature* pCreature1, Creature* pCreature2)
     pVampire->setBonus(pVampire->getBonus() + 1);
     sql2 << "Bonus = " << (int)pVampire->getBonus();
     pVampire->tinysave(sql2.toString());
-    // pVampire->setGoldEx(pVampire->getGold() - ATTR_PRICE);
-    //  by sigi. 2002.9.18
     pVampire->decreaseGoldEx(ATTR_PRICE);
 
     GCModifyInformation gcMI;

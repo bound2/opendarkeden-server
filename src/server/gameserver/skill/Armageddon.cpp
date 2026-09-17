@@ -27,7 +27,6 @@ void Armageddon::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -46,7 +45,6 @@ void Armageddon::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -94,8 +92,6 @@ void Armageddon::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 
             // 이펙트 오브젝트를 생성해서 붙인다.
             EffectArmageddon* pEffectArmageddon = new EffectArmageddon(pTargetCreature);
-            //			pEffectArmageddon->setCasterName( pVampire->getName() );
-            //			pEffectArmageddon->setPartyID( pVampire->getPartyID() );
             pEffectArmageddon->setUserObjectID(pVampire->getObjectID());
             pEffectArmageddon->setHP(400); // 하드코딩됨 --; by Sequoia
             pEffectArmageddon->setDelay(output.Tick);
@@ -103,8 +99,6 @@ void Armageddon::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
             pEffectArmageddon->setNextTime(output.Tick);
             pEffectArmageddon->setDeadline(output.Duration);
 
-            //	cout << "ARMAGEDDON SUCCESS ( Damage:" << output.Damage << ",Tick:" << output.Tick << ",Duration:" <<
-            // output.Duration << " )" << endl;
 
             pTargetCreature->addEffect(pEffectArmageddon);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_ARMAGEDDON);
@@ -181,7 +175,6 @@ void Armageddon::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

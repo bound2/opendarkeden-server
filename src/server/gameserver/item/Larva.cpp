@@ -32,7 +32,6 @@ Larva::Larva()
 Larva::Larva(ItemType_t itemType, const list<OptionType_t>& optionType, ItemNum_t Num)
 
     : m_ItemType(itemType), m_Num(Num) {
-    // cout << "Larva::Larva(" << getOptionTypeToString(optionType).c_str() << ")" << endl;
     if (!g_pItemInfoManager->isPossibleItem(getItemClass(), m_ItemType, optionType)) {
         filelog("itembug.log", "Larva::Larva() : Invalid item type or option type");
         throw Error("Larva::Larva() : Invalid item type or optionType");

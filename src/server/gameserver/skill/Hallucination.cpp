@@ -27,7 +27,6 @@ void Hallucination::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pSkillSlot != NULL);
@@ -39,14 +38,12 @@ void Hallucination::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) ||
             pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_HALLUCINATION) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -146,7 +143,6 @@ void Hallucination::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
             if (pTargetCreature->isPC()) {
                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
 
@@ -173,7 +169,6 @@ void Hallucination::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampir
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -187,7 +182,6 @@ void Hallucination::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pMonster != NULL);
 
@@ -196,8 +190,6 @@ void Hallucination::execute(Monster* pMonster, Creature* pEnemy)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "Monster cannot use skill while hiding." << endl;
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
@@ -227,7 +219,6 @@ void Hallucination::execute(Monster* pMonster, Creature* pEnemy)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -314,7 +305,6 @@ void Hallucination::executeMonster(Zone* pZone, Monster* pMonster, Creature* pEn
         if (pEnemy->isPC()) {
             Player* pTargetPlayer = pEnemy->getPlayer();
             if (pTargetPlayer == NULL) {
-                // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                 return;
             }
 

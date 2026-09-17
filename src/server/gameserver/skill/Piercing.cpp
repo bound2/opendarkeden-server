@@ -23,7 +23,6 @@ void Piercing::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -43,7 +42,6 @@ void Piercing::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -56,7 +54,6 @@ void Piercing::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -73,7 +70,6 @@ void Piercing::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || !isArmsWeapon(pWeapon) || pWeapon->getItemClass() == Item::ITEM_CLASS_SG) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end" << endl;
             return;
         }
 
@@ -95,7 +91,6 @@ void Piercing::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
             // 제일 먼저 총알 숫자를 떨어뜨린다.
             decreaseBullet(pWeapon);
             // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
-            // pWeapon->save(pSlayer->getName(), STORAGE_GEAR, 0, Slayer::WEAR_RIGHTHAND, 0);
             Bullet_t RemainBullet = getRemainBullet(pWeapon);
 
             int RequiredMP = (int)pSkillInfo->getConsumeMP();
@@ -122,7 +117,6 @@ void Piercing::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
 
                 Damage_t SkillDamage = output.Damage, Damage = 0;
 
-                //				Exp_t Point = pSkillInfo->getPoint();
 
                 VSRect rect(1, 1, pZone->getWidth() - 2, pZone->getHeight() - 2);
 
@@ -308,7 +302,6 @@ void Piercing::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSlot*
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

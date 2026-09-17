@@ -27,7 +27,6 @@ void ThrowHolyWater::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectI
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
 
@@ -46,7 +45,6 @@ void ThrowHolyWater::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectI
 
         if (pItem == NULL) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -57,7 +55,6 @@ void ThrowHolyWater::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectI
         // 성수가 아니라면 실패했다고 보내준다.
         if (ObjectID != ItemObjectID || pItem->getItemClass() != Item::ITEM_CLASS_HOLYWATER) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -66,16 +63,6 @@ void ThrowHolyWater::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectI
         GCModifyInformation gcAttackerMI;
 
         // 존에서 타겟 크리쳐를 찾는다.
-        /*
-        try
-        {
-            pTargetCreature = pZone->getCreature(TargetObjectID);
-        }
-        catch (NoSuchElementException)
-        {
-            pTargetCreature = NULL;
-        }
-        */
 
         pTargetCreature = pZone->getCreature(TargetObjectID);
 
@@ -87,7 +74,6 @@ void ThrowHolyWater::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectI
             // 먼저 아이템 숫자를 줄여주어야 한다.
             decreaseItemNum(pItem, pInventory, pSlayer->getName(), STORAGE_INVENTORY, 0, InvenX, InvenY);
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         } else {
             HolyWater* pHolyWater = dynamic_cast<HolyWater*>(pItem);
@@ -100,7 +86,6 @@ void ThrowHolyWater::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectI
             // 밑 부분에서 checkZoneLevelToHitTarget 함수를 부르기 때문에
             // 여기서 안전지대 관련 검사를 할 필요가 없다.
             // -- 2002-01-31 김성민
-            // if (!(pZone->getZoneLevel() & NO_SAFE_ZONE)) Damage = 0;
 
             list<Creature*> cList;
             cList.push_back(pSlayer);
@@ -127,16 +112,6 @@ void ThrowHolyWater::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectI
                 }
 
                 if (pTargetCreature->isSlayer()) {
-                    /*
-                    GCModifyInformation gcModifyInfo;
-
-                    Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
-                    setDamage(pTargetSlayer, Damage, NULL, 0, &_GCThrowItemOK2);
-                    computeAlignmentChange(pTargetSlayer, Damage, pSlayer, &_GCThrowItemOK2, &gcAttackerMI);
-
-                    Player* pTargetPlayer = pTargetSlayer->getPlayer();
-                    pTargetPlayer->sendPacket(&_GCThrowItemOK2);
-                    */
                 } else if (pTargetCreature->isVampire()) {
                     Vampire* pTargetVampire = dynamic_cast<Vampire*>(pTargetCreature);
 
@@ -204,7 +179,6 @@ void ThrowHolyWater::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, ObjectI
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

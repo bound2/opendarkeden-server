@@ -26,7 +26,6 @@ void Bless::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerobject)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -38,13 +37,11 @@ void Bless::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // 슬레이어가 아니라면 사용할 수가 없다.
         if (pTargetCreature == NULL // NoSuch 제거. by sigi. 2002.5.2
             || pTargetCreature->isSlayer() == false) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerobject)" << endl;
             return;
         }
 
@@ -167,7 +164,6 @@ void Bless::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSkil
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerobject)" << endl;
 
     __END_CATCH
 }
@@ -180,7 +176,6 @@ void Bless::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -267,7 +262,6 @@ void Bless::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffectI
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }

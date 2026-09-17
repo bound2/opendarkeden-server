@@ -25,7 +25,6 @@ void StoneSkin::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -112,7 +111,6 @@ void StoneSkin::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, 
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }

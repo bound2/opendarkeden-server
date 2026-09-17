@@ -75,7 +75,6 @@ void EffectReloadTimer::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectReloadTimer " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -110,8 +109,6 @@ void EffectReloadTimer::unaffect(Creature* pCreature)
             }
 
             if (pItem == NULL || pInventory == NULL) {
-                // cout << "EffectReloadTimer : 아이템이 널이거나, 인벤토리가 널입니다." << endl;
-                // cout << "EffectReloadTimer " << "unaffect END" << endl;
                 return;
             }
 
@@ -123,11 +120,8 @@ void EffectReloadTimer::unaffect(Creature* pCreature)
 
                 // 리로드가 정상적으로 되었다면 저장해 준다.
                 if (BulletNum != 0) {
-                    // pArmsItem->save(pSlayer->getName(), STORAGE_GEAR, 0, Slayer::WEAR_RIGHTHAND, 0);
-
                     // 아이템 저장 최적화
                     // by sigi. 2002.5.16
-                    //					Gun* pGun = dynamic_cast<Gun*>(pArmsItem);
                     char pField[80];
                     sprintf(pField, "BulletCount=%d, Silver=%d", pArmsItem->getBulletCount(), pArmsItem->getSilver());
                     pArmsItem->tinysave(pField);
@@ -142,13 +136,9 @@ void EffectReloadTimer::unaffect(Creature* pCreature)
 
                         // 줄어든 아이템의 갯수를 저장한다.
                         if (m_bFromInventory) {
-                            // pItem->save(pSlayer->getName(), STORAGE_INVENTORY, 0, m_invenX, m_invenY);
-                            //  by sigi. 2002.5.16
                             sprintf(pField, "Num=%d", pItem->getNum());
                             pItem->tinysave(pField);
                         } else {
-                            // pItem->save(pSlayer->getName(), STORAGE_BELT, pBelt->getItemID(), m_SlotID, 0);
-                            //  by sigi. 2002.5.16
                             sprintf(pField, "Num=%d", pItem->getNum());
                             pItem->tinysave(pField);
                         }
@@ -176,7 +166,6 @@ void EffectReloadTimer::unaffect(Creature* pCreature)
         pPlayer->sendPacket(&ok);
     }
 
-    // cout << "EffectReloadTimer " << "unaffect END" << endl;
 
     __END_CATCH
 }

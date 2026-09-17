@@ -39,26 +39,7 @@ public:
     static void initItemIDRegistry(void);
 
 public:
-    //	virtual ItemClass getItemClass() const  { return Item::ITEM_CLASS_EFFECT_ITEM; }
-    //	virtual string getObjectTableName() const  { return "EffectItemObject"; }
-
-    /*	virtual ItemType_t getItemType() const  { return m_ItemType; }
-        virtual void setItemType(ItemType_t itemType)  { m_ItemType = itemType; }
-
-        virtual VolumeWidth_t getVolumeWidth() const ;
-        virtual VolumeHeight_t getVolumeHeight() const ;
-        virtual Weight_t getWeight() const ;
-
-    public:
-        virtual ItemNum_t getNum() const  { return m_Num; }
-        virtual void setNum(ItemNum_t Num)  { m_Num = Num; }
-
-        bool	isStackable() const  { return true; }
-    */
 private:
-    //	ItemType_t m_ItemType;
-    //	ItemNum_t  m_Num;
-
     static Mutex m_Mutex;             // 아이템 ID 관련 락
     static ItemID_t m_ItemIDRegistry; // 클래스별 고유 아이템 아이디 발급기
 };

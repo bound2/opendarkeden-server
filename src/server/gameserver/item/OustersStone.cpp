@@ -29,7 +29,6 @@ OustersStone::OustersStone()
 {
     setItemType(0);
     setDurability(0);
-    // m_EnchantLevel = 0;
 }
 
 OustersStone::OustersStone(ItemType_t itemType, const list<OptionType_t>& optionType)
@@ -38,7 +37,6 @@ OustersStone::OustersStone(ItemType_t itemType, const list<OptionType_t>& option
 {
     setItemType(itemType);
     setOptionType(optionType);
-    // m_EnchantLevel = 0;
 
     setDurability(computeMaxDurability(this));
 
@@ -127,71 +125,6 @@ string OustersStone::toString() const
     return msg.toString();
 }
 
-
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t OustersStone::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersStoneInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t OustersStone::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersStoneInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t OustersStone::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersStoneInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t OustersStone::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersStoneInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t OustersStone::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pOustersStoneInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-*/
 
 //--------------------------------------------------------------------------------
 // get Elemental Type

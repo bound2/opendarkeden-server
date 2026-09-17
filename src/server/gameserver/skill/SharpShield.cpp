@@ -19,7 +19,6 @@ void SharpShield::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -77,7 +76,6 @@ void SharpShield::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
             if (bIncreaseDomainExp) {
                 shareAttrExp(pSlayer, ExpUp, 8, 1, 1, _GCSkillToSelfOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1);
-                //				increaseSkillExp(pSlayer, DomainType, pSkillSlot, pSkillInfo, _GCSkillToSelfOK1);
             }
 
             _GCSkillToSelfOK1.setSkillType(SkillType);
@@ -105,7 +103,6 @@ void SharpShield::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CE
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }

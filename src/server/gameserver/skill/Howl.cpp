@@ -20,13 +20,11 @@ void Howl::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CEffe
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
 
     // 패킷 핸들러에서 직접 수행하는 기술 핸들러이기 때문에
     // 스킬 핸들러가 널이다.
-    // Assert(pSkillSlot != NULL);
 
     try {
         Player* pPlayer = pVampire->getPlayer();
@@ -91,7 +89,6 @@ void Howl::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, CEffe
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

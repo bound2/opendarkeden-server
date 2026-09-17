@@ -46,8 +46,6 @@ public:
         m_Delay = Delay;
     }
 
-    //	string getCasterName(void) const { return m_CasterName; }
-    //	void setCasterName(const string & CasterName ) { m_CasterName = CasterName; }
 
     ObjectID_t getUserObjectID() const {
         return m_UserObjectID;
@@ -60,7 +58,6 @@ public:
 private:
     int m_DamagePercent;
     Turn_t m_Delay;
-    //	string  m_CasterName;
     ObjectID_t m_UserObjectID;
 };
 

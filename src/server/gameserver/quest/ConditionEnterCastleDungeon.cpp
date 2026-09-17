@@ -21,16 +21,11 @@
 bool ConditionEnterCastleDungeon::isSatisfied(Creature* pCreature1, Creature* pCreature2, void* pParam) const
 
 {
-    /*if (!g_pVariableManager->isActiveHolyLand())
-    {
-        return false;
-    }*/
     // 나중에 전쟁중인지 체크해야 된다
 
     Assert(pCreature2 != NULL);
     Assert(pCreature2->isPC());
 
-    // cout << "Condition: EnterCastleDungeon" << endl;
 
     bool bPayPlay = false;
 

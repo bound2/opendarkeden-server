@@ -20,7 +20,6 @@ void WildTyphoon::execute(Slayer* pSlayer, ObjectID_t targetObjectID, SkillSlot*
     Assert(pZone != NULL);
 
     Creature* pTargetCreature = pZone->getCreature(targetObjectID);
-    // Assert(pTargetCreature != NULL);
 
     // NoSuch제거. by sigi. 2002.5.2
     if (pTargetCreature == NULL) {
@@ -38,7 +37,6 @@ void WildTyphoon::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
 {
     __BEGIN_TRY
 
-    //	cout << "(x,y)=" << X << "," << Y << endl;
 
     Zone* pZone = pSlayer->getZone();
     Assert(pZone != NULL);
@@ -104,13 +102,3 @@ void WildTyphoon::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillSl
 }
 
 WildTyphoon g_WildTyphoon;
-
-//					if ( param.SkillType == SKILL_WILD_TYPHOON )
-//					{
-//						int ratio = pSlayer->getSTR() / 10;
-//						if ( (rand()%100) < ratio )
-//						{
-//							_GCSkillToTileOK2.setSkillType( SKILL_ATTACK_MELEE );
-//						}
-//					}
-//

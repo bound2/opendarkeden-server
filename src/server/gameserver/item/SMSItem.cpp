@@ -98,36 +98,6 @@ string SMSItem::toString() const
     return msg.toString();
 }
 
-/*VolumeWidth_t SMSItem::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSMSItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-VolumeHeight_t SMSItem::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSMSItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-Weight_t SMSItem::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pSMSItemInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-*/
 //////////////////////////////////////////////////////////////////////////////
 // class SMSItemInfo member methods
 //////////////////////////////////////////////////////////////////////////////

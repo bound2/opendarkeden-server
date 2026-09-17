@@ -41,7 +41,6 @@ void EffectIceHail::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectIceHail" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -58,7 +57,6 @@ void EffectIceHail::affect()
             forward_list<Object*>::const_iterator itr = rList.begin();
             forward_list<Object*>::const_iterator endItr = rList.end();
 
-            //	cout << "아프냐?" << endl;
 
             for (; itr != endItr; ++itr) {
                 Object* pObject = *itr;
@@ -112,15 +110,12 @@ void EffectIceHail::affect()
 
                 gcHP.setCurrentHP(finalHP);
                 m_pZone->broadcastPacket(m_X, m_Y, &gcHP);
-
-                //		cout << "아프다" << endl;
             }
         }
     }
 
     setNextTime(m_Tick);
 
-    // cout << "EffectIceHail" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -150,12 +145,10 @@ void EffectIceHail::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectIceHail" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectIceHail" << "unaffect END" << endl;
 
     __END_CATCH
 }

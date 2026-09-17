@@ -112,7 +112,6 @@ bool verifyDistance(Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y, Range_t D
     ZoneCoord_t cy = pCreature->getY();
 
     ZoneLevel_t AttackerZoneLevel = pZone->getZoneLevel(cx, cy);
-    // ZoneLevel_t DefenderZoneLevel = pZone->getZoneLevel(X, Y);
 
     // ¾Æ´ãÀÇ ¼ºÁö³ª PKÁ¸ ³»ÀÇ ¾ÈÀüÁö´ë¿¡¼­´Â ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
     if ((AttackerZoneLevel & SAFE_ZONE) && (g_pPKZoneInfoManager->isPKZone(pZone->getZoneID()) || pZone->isHolyLand()))
@@ -135,8 +134,6 @@ bool verifyDistance(Creature* pCreature, ZoneCoord_t X, ZoneCoord_t Y, Range_t D
         return false;
 
     // ¹æ¾îÀÚ°¡ ¼­ ÀÖ´Â °÷ÀÌ ¿ÏÀüÁö´ë¶ó¸é ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
-    //	if (DefenderZoneLevel & COMPLETE_SAFE_ZONE)
-    //		return false;
 
     if ((abs(cx - X) <= Dist) && (abs(cy - Y) <= Dist))
         return true;

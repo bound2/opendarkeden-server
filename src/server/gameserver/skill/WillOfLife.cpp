@@ -26,7 +26,6 @@ void WillOfLife::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot,
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -42,7 +41,6 @@ void WillOfLife::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot,
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
 
         SkillType_t SkillType = pVampireSkillSlot->getSkillType();
-        // SkillInfo*        pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
 
         // 스킬 레벨에 따라 데미지 보너스가 달라진다.
         SkillInput input(pVampire);
@@ -103,7 +101,6 @@ void WillOfLife::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot,
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }

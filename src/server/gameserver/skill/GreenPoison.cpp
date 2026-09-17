@@ -25,7 +25,6 @@ void GreenPoison::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -35,13 +34,11 @@ void GreenPoison::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수가 없다.
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -50,7 +47,6 @@ void GreenPoison::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireS
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -64,7 +60,6 @@ void GreenPoison::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -161,7 +156,6 @@ void GreenPoison::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
             // 뱀파이어 및 몬스터도 독에 중독될 수 있도록 변경한다.
             // 하지만 이렇게 되면 몬스터가 쓰는 그린 포이즌에 의해서 다른 몬스터가 중독되는
             // 현상이 발생하게 되는데...
-            // if (pTargetCreature != NULL && pTargetCreature->isSlayer())
             if (pTargetCreature != NULL) {
                 if (pEffect->affectCreature(pTargetCreature, false) == true) {
                     bEffected = true;
@@ -242,7 +236,6 @@ void GreenPoison::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampi
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -258,9 +251,6 @@ void GreenPoison::execute(Monster* pMonster, Creature* pEnemy)
     Assert(pMonster != NULL);
     Assert(pEnemy != NULL);
 
-    // Zone* pZone = pMonster->getZone();
-    // Assert(pZone != NULL);
-    // int monsterCount = pZone->getMonsterCount();
 
     execute(pMonster, pEnemy->getX(), pEnemy->getY());
 
@@ -275,7 +265,6 @@ void GreenPoison::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin(monster) " << endl;
 
     Assert(pMonster != NULL);
 
@@ -284,8 +273,6 @@ void GreenPoison::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "Monster cannot use skill while hiding." << endl;
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
@@ -359,7 +346,6 @@ void GreenPoison::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             // 뱀파이어 및 몬스터도 독에 중독될 수 있도록 변경한다.
             // 하지만 이렇게 되면 몬스터가 쓰는 그린 포이즌에 의해서 다른 몬스터가 중독되는
             // 현상이 발생하게 되는데...
-            // if (pTargetCreature != NULL && pTargetCreature->isSlayer())
             if (pTargetCreature != NULL) {
                 if (pEffect->affectCreature(pTargetCreature, false) == true) {
                     bEffected = true;
@@ -428,7 +414,6 @@ void GreenPoison::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(monster) " << endl;
 
     __END_CATCH
 }
@@ -441,7 +426,6 @@ void GreenPoison::execute(Monster* pMonster)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin(monster) " << endl;
 
     Assert(pMonster != NULL);
 
@@ -526,10 +510,8 @@ void GreenPoison::execute(Monster* pMonster)
             }
         }
     } catch (Throwable& t) {
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(monster) " << endl;
 
     __END_CATCH
 }

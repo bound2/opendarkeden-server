@@ -19,7 +19,6 @@ void Reflection::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -93,7 +92,6 @@ void Reflection::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }
@@ -103,8 +101,6 @@ void Reflection::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
 bool CheckReflection(Creature* pAttacker, Creature* pTargetCreature, SkillType_t SkillType) {
     __BEGIN_TRY
 
-    // Assert(pAttacker != NULL);
-    // Assert(pTargetCreature != NULL);
 
     // 슬레이어만이 이 기술을 쓸 수 있다.
     if (pAttacker == NULL || pTargetCreature == NULL || pTargetCreature->isSlayer() == false) {
@@ -117,7 +113,6 @@ bool CheckReflection(Creature* pAttacker, Creature* pTargetCreature, SkillType_t
         Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
         SkillSlot* pSkillSlot = pTargetSlayer->hasSkill(SKILL_REFLECTION);
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SKILL_REFLECTION);
-        // SkillDomainType_t DomainType             = pSkillInfo->getDomainType();
         Zone* pZone = pAttacker->getZone();
 
         Assert(pTargetSlayer != NULL);
@@ -126,7 +121,6 @@ bool CheckReflection(Creature* pAttacker, Creature* pTargetCreature, SkillType_t
         Assert(pZone != NULL);
 
         // hitroll이 성공했다면...
-        // if (HitRoll::isSuccess(pTargetSlayer, pAttacker) && canHit(pTargetSlayer, pAttacker, SKILL_REFLECTION))
 
         int SuccessRate = 30 + pSkillSlot->getExpLevel() / 5;
         SuccessRate = min(SuccessRate, 50); // 최대 50%

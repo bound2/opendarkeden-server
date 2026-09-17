@@ -19,7 +19,6 @@ bool ConditionCanEnterLevelWarZone::isSatisfied(Creature* pCreature1, Creature* 
     Assert(pCreature2 != NULL);
     Assert(pCreature2->isPC());
 
-    //	if ( g_pVariableManager->getVariable( ACTIVE_LEVEL_WAR ) == 0 ) return false;
 
     if (g_pLevelWarZoneInfoManager->getCreatureLevelGrade(pCreature2) != -1)
         return true;

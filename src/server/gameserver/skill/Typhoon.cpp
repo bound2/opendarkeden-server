@@ -17,7 +17,6 @@ void Typhoon::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     SkillInput input(pSlayer, pSkillSlot);
     SkillOutput output;
@@ -37,12 +36,10 @@ void Typhoon::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
     SIMPLE_SKILL_OUTPUT result;
 
-    // cout << "Typhoon damage = " << output.Damage << endl;
 
     g_SimpleMeleeSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
     if (result.bSuccess) {
-        // cout << "Typhoon Success" << endl;
         Zone* pZone = pSlayer->getZone();
         Assert(pZone != NULL);
 
@@ -67,7 +64,6 @@ void Typhoon::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pSk
 
     // 상대에게 데미지를 준 다음 이펙트를 붙여준다.
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

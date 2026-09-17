@@ -19,7 +19,6 @@ void HitConvert::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
     if (pWeapon == NULL || pWeapon->getItemClass() != Item::ITEM_CLASS_SWORD) {
@@ -35,7 +34,6 @@ void HitConvert::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
     param.SkillType = getSkillType();
     param.SkillDamage = max(1, Random(pWeapon->getMinDamage(), pWeapon->getMaxDamage())) *
                         (1.0f + ((float)pSkillSlot->getExpLevel() * 4.0f / 100.f));
-    //(float)pSlayer->getDamage() * ( 1.0f + ( (float)pSkillSlot->getExpLevel() * 4.0f / 100.f ) );
     param.Delay = output.Delay;
     param.ItemClass = Item::ITEM_CLASS_SWORD;
     param.STRMultiplier = 8;
@@ -47,7 +45,6 @@ void HitConvert::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 
     SIMPLE_SKILL_OUTPUT result;
 
-    //    cout << pSlayer->getDamage() << ", " << pSkillSlot->getExpLevel() << ", " << param.SkillDamage << endl;
 
     Creature* pTargetCreature = pSlayer->getZone()->getCreature(TargetObjectID);
     bool bRangeCheck = pTargetCreature != NULL && verifyDistance(pSlayer, pTargetCreature, output.Range);
@@ -66,7 +63,6 @@ void HitConvert::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* 
 
     g_SimpleMissileSkill.execute(pSlayer, TargetObjectID, pSkillSlot, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     // knockback 시킨다.
     if (result.bSuccess) {

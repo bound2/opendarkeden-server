@@ -191,35 +191,6 @@ void Trigger::setConditions(const string& str) {
         throw Error(nsee.toString());
     }
 
-    /*
-    try
-    {
-        // read nConditions
-        uint nConditions = propertyBuffer.getPropertyInt("nConditions");
-
-        m_Conditions.reserve(nConditions);
-
-        // read condition body
-        for (uint i = 0 ; i < nConditions ; i ++)
-        {
-            // read ConditionType
-            ConditionType_t conditionType =
-    m_Context.conditionFactories().getConditionType(propertyBuffer.getProperty("ConditionType"));
-
-            // create condition object
-            Condition * pCondition = m_Context.conditionFactories().createCondition(conditionType);
-
-            // read condition parameters
-            pCondition->read(propertyBuffer);
-
-            addCondition(pCondition);
-        }
-    }
-    catch (NoSuchElementException & nsee)
-    {
-        throw Error(nsee.toString());
-    }
-    */
 
     __END_CATCH
 }
@@ -276,36 +247,6 @@ void Trigger::setActions(const string& str) {
         throw Error(nsee.toString());
     }
 
-    /*
-    try
-    {
-        // read nActions
-        uint nActions = propertyBuffer.getPropertyInt("nActions");
-
-        m_Actions.reserve(nActions);
-
-        // read action body
-        for (uint i = 0 ; i < nActions ; i ++)
-        {
-            // read Action-Type
-            ActionType_t actionType = m_Context.actionFactories().getActionType(propertyBuffer.getProperty("ActionType"));
-
-            // create action object
-            Action * pAction = m_Context.actionFactories().createAction(actionType);
-
-            // read action parameters
-            pAction->read(propertyBuffer);
-
-            addAction(pAction);
-        }
-
-    }
-    catch (NoSuchElementException & nsee)
-    {
-        cout << nsee.toString() << endl;
-        throw Error(nsee.toString());
-    }
-    */
 
     __END_CATCH
 }
@@ -361,36 +302,6 @@ void Trigger::setCounterActions(const string& str) {
         throw Error(nsee.toString());
     }
 
-    /*
-    try
-    {
-        // read nActions
-        uint nActions = propertyBuffer.getPropertyInt("nActions");
-
-        m_Actions.reserve(nActions);
-
-        // read action body
-        for (uint i = 0 ; i < nActions ; i ++)
-        {
-            // read Action-Type
-            ActionType_t actionType = m_Context.actionFactories().getActionType(propertyBuffer.getProperty("ActionType"));
-
-            // create action object
-            Action * pAction = m_Context.actionFactories().createAction(actionType);
-
-            // read action parameters
-            pAction->read(propertyBuffer);
-
-            addCounterAction(pAction);
-        }
-
-    }
-    catch (NoSuchElementException & nsee)
-    {
-        cout << nsee.toString() << endl;
-        throw Error(nsee.toString());
-    }
-    */
 
     __END_CATCH
 }

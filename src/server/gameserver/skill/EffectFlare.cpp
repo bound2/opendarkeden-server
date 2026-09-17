@@ -73,10 +73,8 @@ void EffectFlare::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectFlare " << "unaffect BEGIN" << endl;
 
     if (pCreature == NULL) {
-        // cout << "EffectFlare " << "unaffect END" << endl;
     }
 
     pCreature->removeFlag(Effect::EFFECT_CLASS_FLARE);
@@ -94,7 +92,6 @@ void EffectFlare::unaffect(Creature* pCreature)
         _GCModifyInformation.addShortData(MODIFY_VISION, NewSight);
         pPlayer->sendPacket(&_GCModifyInformation);
 
-        //	DarkLightInfo* pDIInfo    = g_pDarkLightInfoManager->getCurrentDarkLightInfo( pZone );
         DarkLevel_t darkLevel = max(0, DARK_MAX - pZone->getDarkLevel());
         LightLevel_t lightLevel = min(13, LIGHT_MAX - pZone->getLightLevel());
 
@@ -120,7 +117,6 @@ void EffectFlare::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_FLARE);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectFlare " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH
@@ -133,12 +129,10 @@ void EffectFlare::unaffect()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectFlare " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectFlare " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH
@@ -250,8 +244,6 @@ void EffectFlareLoader::load(Creature* pCreature)
                 pEffect->setDeadline(leftTime);
             } else {
                 pEffect->setDeadline(10);
-                // pEffect->destroy(pCreature->getName());
-                // SAFE_DELETE(pEffect);
             }
 
             pEffect->setOldSight(13);

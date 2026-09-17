@@ -43,7 +43,6 @@ void EffectAcidSwamp::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectAcidSwamp" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -154,7 +153,6 @@ void EffectAcidSwamp::affect()
 
     setNextTime(m_Tick);
 
-    // cout << "EffectAcidSwamp" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -193,12 +191,10 @@ void EffectAcidSwamp::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectAcidSwamp" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectAcidSwamp" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -236,7 +232,6 @@ void EffectAcidSwampLoader::load(Zone* pZone)
         ZoneCoord_t top = rows[r].top;
         ZoneCoord_t right = rows[r].right;
         ZoneCoord_t bottom = rows[r].bottom;
-        // int 		value1	= pResult->getInt( ++count );
         int value2 = rows[r].value1; // the commented-out value1 read above shifted these
         int value3 = rows[r].value2;
 
@@ -256,7 +251,6 @@ void EffectAcidSwampLoader::load(Zone* pZone)
 
                         // 존 및 타일에다가 이펙트를 추가한다.
                         pZone->registerObject(pEffect);
-                        // pZone->addEffect(pEffect);  // REMOVED: Don't add permanent tile effects to Zone
                         tile.addEffect(pEffect);
                     }
                 }

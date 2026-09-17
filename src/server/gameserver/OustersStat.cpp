@@ -171,7 +171,6 @@ void Ousters::initAllStat(int numPartyMember)
     m_HPRegen = 0;
     m_MPRegen = 0;
     m_Luck = m_BaseLuck;
-    //	cout << getName() << "의 기본 행운 : " << m_Luck << endl;
 
     m_FireDamage = 0;
     m_WaterDamage = 0;
@@ -231,24 +230,6 @@ void Ousters::initAllStat(int numPartyMember)
     //////////////////////////////////////////////////////////////////////////////
     // Blood Bible 각각의 보너스 옵션을 받는다.
     //////////////////////////////////////////////////////////////////////////////
-    /*	if ( m_pZone->isHolyLand() && !g_pWarSystem->hasActiveRaceWar() )
-        {
-            const BloodBibleBonusHashMap& bloodBibleBonus = g_pBloodBibleBonusManager->getBloodBibleBonuses();
-            BloodBibleBonusHashMapConstItor itr;
-            for (itr=bloodBibleBonus.begin(); itr!=bloodBibleBonus.end(); itr++)
-            {
-                if ( itr->second->getRace() == RACE_OUSTERS )
-                {
-                    OptionTypeList optionTypes = itr->second->getOptionTypeList();
-                    OptionTypeListConstItor optionItr;
-
-                    for ( optionItr = optionTypes.begin(); optionItr != optionTypes.end(); optionItr++ )
-                    {
-                        computeOptionStat( *optionItr );
-                    }
-                }
-            }
-        }*/
 
     if (g_pSweeperBonusManager->isAble(getZoneID()) &&
         g_pLevelWarZoneInfoManager->isCreatureBonusZone(this, getZoneID())) {
@@ -368,9 +349,7 @@ void Ousters::initAllStat(int numPartyMember)
     // 일단 위에서 다 입었는데..
     // 능력치에 따라서 복장이 적용이 안되는 아이템은 복장 정보를 없앤다.
     // by sigi. 2002.10.30
-    for (int i = 0; i < OUSTERS_WEAR_MAX; i++)
-    // int i=WEAR_COAT;
-    {
+    for (int i = 0; i < OUSTERS_WEAR_MAX; i++) {
         if (m_pRealWearingCheck[i]) {
             // by sigi. 2002.10.31
             if (pOldRealWearingCheck[i] == false) {
@@ -425,7 +404,6 @@ void Ousters::initAllStat(int numPartyMember)
 
     m_HPStealRatio = computeStealRatio(CClass, m_HPStealAmount, &attr);
     m_MPStealRatio = computeStealRatio(CClass, m_MPStealAmount, &attr);
-    // cout << getName() << " HPSteal : " << (int)m_HPStealAmount << endl;
 
     //////////////////////////////////////////////////////////////////////////////
     // 부가적인 능력치를 직접 수정하는 이펙트를 검사한다.
@@ -457,7 +435,6 @@ void Ousters::initAllStat(int numPartyMember)
         if (pDeath != NULL) {
             for (int i = 0; i < MAGIC_DOMAIN_MAX; i++) {
                 m_Resist[i] -= pDeath->getResistPenalty();
-                //				if ( m_Resist[i] < 0 ) m_Resist[i] = 0;
             }
         }
     }
@@ -494,23 +471,6 @@ void Ousters::initAllStat(int numPartyMember)
         }
     }
 
-    /*	if ( isFlag( Effect::EFFECT_CLASS_HANDS_OF_FIRE ) )
-        {
-            //cout << getName() << " 핸즈오브파이어 붙었당" << endl;
-            EffectHandsOfFire* pEffect =
-       dynamic_cast<EffectHandsOfFire*>(findEffect(Effect::EFFECT_CLASS_HANDS_OF_FIRE));
-
-            if ( pEffect != NULL )
-            {
-                if ( attr.pWeapon == NULL || attr.pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET )
-                    pEffect->setDeadline(0);
-                else
-                {
-                    m_FireDamage += pEffect->getBonus();
-                    //cout << getName() << " FireDamage : " << m_FireDamage << endl;
-                }
-            }
-        }*/
 
     if (isFlag(Effect::EFFECT_CLASS_RING_OF_FLARE)) {
         EffectRingOfFlare* pEffect = dynamic_cast<EffectRingOfFlare*>(findEffect(Effect::EFFECT_CLASS_RING_OF_FLARE));
@@ -530,17 +490,6 @@ void Ousters::initAllStat(int numPartyMember)
         }
     }
 
-    /*	if ( isFlag( Effect::EFFECT_CLASS_GNOMES_WHISPER ) )
-        {
-            EffectGnomesWhisper* pEffect =
-       dynamic_cast<EffectGnomesWhisper*>(findEffect(Effect::EFFECT_CLASS_GNOMES_WHISPER));
-
-            if ( pEffect != NULL )
-            {
-                if ( attr.pWeapon == NULL || attr.pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET )
-                    pEffect->setDeadline(0);
-            }
-        }*/
 
     if (isFlag(Effect::EFFECT_CLASS_SUMMON_SYLPH)) {
         int ProtectionBonus = decore::summonSylphProtectionBonus(getLevel());
@@ -777,7 +726,6 @@ void Ousters::initAllStat(int numPartyMember)
         // edit by Coffee 2007-5-20 錦攣침쥣轟掘MP BUG
         m_MPStealAmount += MPBonus;
         m_MPStealRatio = computeStealRatio(CClass, m_MPStealAmount, &attr);
-        // m_MP[ATTR_CURRENT]  = min(OUSTERS_MAX_MP, m_MP[ATTR_CURRENT] + MPBonus);
     }
 
     if (hasRankBonus(RankBonus::RANK_BONUS_FIRE_OF_SPIRIT)) {
@@ -845,15 +793,6 @@ void Ousters::initAllStat(int numPartyMember)
 
     // HP,MP의 현재치를 HP,MP의 최고치를 넘는 경우
     // 현재치를 최고치값으로 set
-    /*    if (m_HP[ATTR_CURRENT] > m_HP[ATTR_MAX])
-        {
-            m_HP[ATTR_CURRENT] = m_HP[ATTR_MAX];
-        }
-        if (m_MP[ATTR_CURRENT] > m_MP[ATTR_MAX])
-        {
-            m_MP[ATTR_CURRENT] = m_MP[ATTR_MAX];
-        }
-    */
     // 패시브 스킬 초기화
     bool bCanUsePassive = false;
     if (hasSkill(SKILL_FIRE_OF_SOUL_STONE) != NULL) {
@@ -1004,22 +943,6 @@ void Ousters::initAllStat(int numPartyMember)
 
     initCastleSkill();
 
-    //	cout << "불 : " << m_ElementalFire << endl;
-    //	cout << "물 : " << m_ElementalWater << endl;
-    //	cout << "대지 : " << m_ElementalEarth << endl;
-
-    //	cout << getName() << "의 Luck : " << m_Luck << endl;
-
-    /*	cout << getName() << ":" << endl;
-        for ( int i=0; i<MAGIC_DOMAIN_MAX; ++i )
-        {
-            cout << "저항 " << i << " : " << m_Resist[i] << endl;
-        }
-
-        cout << "물리공격력 " << m_PhysicBonusDamage << endl;
-        cout << "물리방어력 " << m_PhysicDamageReduce << endl;
-        cout << "마법공격력 " << m_MagicBonusDamage << endl;
-        cout << "마법방어력 " << m_MagicDamageReduce << endl;*/
 
     __END_CATCH
 }
@@ -1110,7 +1033,6 @@ void Ousters::computeItemStat(Item* pItem)
 {
     __BEGIN_TRY
 
-    //	if (isOustersWeapon(pItem->getItemClass()))
     if (pItem->getItemClass() == Item::ITEM_CLASS_OUSTERS_CHAKRAM) {
         // 무기라면 무기가 가지는 속도 파라미터를 더한다.
         ItemInfo* pItemInfo = g_pItemInfoManager->getItemInfo(pItem->getItemClass(), pItem->getItemType());
@@ -1173,7 +1095,6 @@ void Ousters::computeItemStat(Item* pItem)
 
     m_Luck += pItem->getLuck();
 
-    //	if (pItem->getOptionType()) computeOptionStat(pItem);
     // 부가적인 옵션들
     const list<OptionType_t>& optionType = pItem->getOptionTypeList();
     list<OptionType_t>::const_iterator itr;
@@ -1355,132 +1276,6 @@ void Ousters::computeOptionStat(OptionType_t OptionType)
 
     OptionInfo* pOptionInfo = g_pOptionInfoManager->getOptionInfo(OptionType);
     computeOptionClassStat(pOptionInfo->getClass(), pOptionInfo->getPlusPoint());
-    /*	OptionClass   OClass        = pOptionInfo->getClass();
-
-        switch (OClass)
-        {
-            case OPTION_STR:
-                m_STR[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_STR[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                computeStatOffset();
-                break;
-            case OPTION_DEX:
-                m_DEX[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_DEX[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                computeStatOffset();
-                break;
-            case OPTION_INT:
-                m_INT[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_INT[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                computeStatOffset();
-                break;
-            case OPTION_HP:
-                m_HP[ATTR_MAX]   += pOptionInfo->getPlusPoint();
-                m_HP[ATTR_BASIC] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_MP:
-                m_MP[ATTR_MAX]   += pOptionInfo->getPlusPoint();
-                m_MP[ATTR_BASIC] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_HP_STEAL:
-                m_HPStealAmount += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_MP_STEAL:
-                m_MPStealAmount += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_HP_REGEN:
-                m_HPRegen += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_MP_REGEN:
-                m_MPRegen += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_TOHIT:
-                m_ToHit[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_ToHit[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_DEFENSE:
-                m_Defense[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_Defense[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_DAMAGE:
-                m_Damage[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_Damage[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                m_Damage[ATTR_BASIC]   += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_PROTECTION:
-                m_Protection[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_Protection[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_POISON:
-                m_Resist[MAGIC_DOMAIN_POISON] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_ACID:
-                m_Resist[MAGIC_DOMAIN_ACID] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_CURSE:
-                m_Resist[MAGIC_DOMAIN_CURSE] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_BLOOD:
-                m_Resist[MAGIC_DOMAIN_BLOOD] += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_VISION:
-                break;
-            case OPTION_ATTACK_SPEED:
-                m_AttackSpeed[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_AttackSpeed[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-            case OPTION_CRITICAL_HIT:
-                m_CriticalRatio[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_CriticalRatio[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-                break;
-
-            case OPTION_ALL_ATTR:
-                m_STR[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_STR[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-
-                m_DEX[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_DEX[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-
-                m_INT[ATTR_CURRENT] += pOptionInfo->getPlusPoint();
-                m_INT[ATTR_MAX]     += pOptionInfo->getPlusPoint();
-
-                computeStatOffset();
-                break;
-
-            case OPTION_ALL_RES:
-                m_Resist[MAGIC_DOMAIN_POISON] += pOptionInfo->getPlusPoint();
-                m_Resist[MAGIC_DOMAIN_ACID] += pOptionInfo->getPlusPoint();
-                m_Resist[MAGIC_DOMAIN_CURSE] += pOptionInfo->getPlusPoint();
-                m_Resist[MAGIC_DOMAIN_BLOOD] += pOptionInfo->getPlusPoint();
-                break;
-
-            case OPTION_LUCK:
-                m_Luck += pOptionInfo->getPlusPoint();
-                break;
-
-            case OPTION_CONSUME_MP:
-                m_ConsumeMPRatio = pOptionInfo->getPlusPoint();
-                break;
-
-            case OPTION_MAGIC_DAMAGE:
-                m_MagicBonusDamage = pOptionInfo->getPlusPoint();
-                break;
-
-            case OPTION_PHYSIC_DAMAGE:
-                m_PhysicBonusDamage = pOptionInfo->getPlusPoint();
-                break;
-
-            case OPTION_GAMBLE_PRICE:
-                m_GamblePriceRatio = pOptionInfo->getPlusPoint();
-                break;
-
-            case OPTION_POTION_PRICE:
-                m_PotionPriceRatio = pOptionInfo->getPlusPoint();
-                break;
-
-            default:
-                break;
-        }*/
 
     __END_CATCH
 }
@@ -1556,7 +1351,6 @@ void Ousters::sendModifyInfo(const OUSTERS_RECORD& prev) const
     BloodBibleSignInfo* pInfo = getBloodBibleSign();
     GCBloodBibleSignInfo gcInfo;
     gcInfo.setSignInfo(pInfo);
-    //	cout << "open num : " << pInfo->getOpenNum() << endl;;
     m_pPlayer->sendPacket(&gcInfo);
 
     __END_CATCH

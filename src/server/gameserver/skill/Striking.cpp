@@ -23,7 +23,6 @@ void Striking::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -35,13 +34,11 @@ void Striking::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // 슬레이어 외에는 걸 수 없다.
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || pTargetCreature->isSlayer() == false) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
             return;
         }
 
@@ -151,7 +148,6 @@ void Striking::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot* pS
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -164,7 +160,6 @@ void Striking::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -245,7 +240,6 @@ void Striking::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEffe
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

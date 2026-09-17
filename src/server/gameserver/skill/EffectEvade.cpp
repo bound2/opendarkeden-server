@@ -31,7 +31,6 @@ void EffectEvade::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectEvade" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
@@ -58,7 +57,6 @@ void EffectEvade::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_EVADE);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectEvade" << "unaffect END" << endl;
 
     __END_CATCH
 }

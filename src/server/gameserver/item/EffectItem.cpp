@@ -101,36 +101,6 @@ string EffectItem::toString() const
     return msg.toString();
 }
 
-/*VolumeWidth_t EffectItem::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pEffectItemInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-VolumeHeight_t EffectItem::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pEffectItemInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-Weight_t EffectItem::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pEffectItemInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-*/
 //////////////////////////////////////////////////////////////////////////////
 // class EffectItemInfo member methods
 //////////////////////////////////////////////////////////////////////////////

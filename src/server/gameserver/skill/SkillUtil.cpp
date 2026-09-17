@@ -121,15 +121,12 @@ bool hasEnoughMana(Creature* pCaster, int RequiredMP) {
 
         // Sacrifice¸¦ ¾´ »óÅÂ¶ó¸é ¸¶³ª°¡ ¸ðÀÚ¶óµµ HP·Î ´ë½ÅÇÒ ¼ö ÀÖ´Ù.
         if (pSlayer->isFlag(Effect::EFFECT_CLASS_SACRIFICE)) {
-            // cout << "RequiredMP : " << (int)RequiredMP << endl;
             int margin = RequiredMP - pSlayer->getMP(ATTR_CURRENT);
-            // cout << "margin: " << (int)margin<< endl;
 
             // ¿ä±¸Ä¡¿¡¼­ ÇöÀç ¼öÄ¡¸¦ »« °ªÀÌ 0ÀÌ»óÀÌ¶ó¸é ,
             // ¿ä±¸Ä¡°¡ ´õ Å©´Ù´Â ¸»ÀÌ´Ù. ÀÌ ¼öÄ¡´Â HP¿¡¼­ Á¦°ÅÇÑ´Ù.
             if (margin > 0) {
                 margin = (int)pSlayer->getHP(ATTR_CURRENT) * 2 - (int)margin;
-                // cout << "margin: " << (int)margin<< endl;
                 if (margin > 0)
                     return true;
             } else {
@@ -274,7 +271,6 @@ int decreaseMana(Creature* pCaster, int MP, ModifyInfo& info) {
                 } else {
                     pVampire->removeFlag(Effect::EFFECT_CLASS_MEPHISTO);
                 }
-                //				pVampire->getEffectManager()->deleteEffect( Effect::EFFECT_CLASS_MEPHISTO );
             }
         }
 
@@ -443,16 +439,6 @@ bool checkZoneLevelToUseSkill(Creature* pCaster) {
     if (pCaster->isFlag(Effect::EFFECT_CLASS_REFINIUM_TICKET))
         return false;
 
-    /*	// ½½·¹ÀÌ¾î ¾ÈÀüÁö´ë¿¡¼­´Â ½½·¹ÀÌ¾î¸¸ÀÌ ±â¼úÀ» »ç¿ëÇÒ ¼ö ÀÖ´Ù.
-        if ((ZoneLevel & SLAYER_SAFE_ZONE) && !pCaster->isSlayer())
-            return false;
-        // ¸¶Âù°¡Áö·Î ¹ìÆÄÀÌ¾î ¾ÈÀüÁö´ë¿¡¼­´Â ¹ìÆÄÀÌ¾î¸¸ÀÌ ±â¼úÀ» »ç¿ëÇÒ ¼ö ÀÖ´Ù.
-        else if ((ZoneLevel & VAMPIRE_SAFE_ZONE) && !pCaster->isVampire())
-            return false;
-        // ÅëÇÕ ¾ÈÀüÁö´ë¿¡¼­´Â ´©±¸µµ ±â¼úÀ» »ç¿ëÇÒ ¼ö ¾ø´Ù.
-        else if (ZoneLevel & COMPLETE_SAFE_ZONE)
-            return false;
-    */
     return true;
 }
 
@@ -598,9 +584,6 @@ void executeSkillFailNormalWithGun(Creature* pCreature, SkillType_t SkillType, C
 // º»ÀÎ¿¡°Ô¸¸ ÆÐÅ¶À» ³¯¸°´Ù.
 //////////////////////////////////////////////////////////////////////////////
 void executeSkillFailException(Creature* pCreature, SkillType_t SkillType, BYTE Grade) {
-    // by sigi. 2002.5.8
-    //	Assert(pCreature != NULL);
-
     if (pCreature != NULL && pCreature->isPC()) {
         GCSkillFailed1 gcSkillFailed1;
         gcSkillFailed1.setSkillType(SkillType);
@@ -647,7 +630,6 @@ bool canAttack(Creature* pAttacker, Creature* pDefender) {
         g_pGameServerInfoManager
             ->getGameServerInfo(1, g_pConfig->getPropertyInt("ServerID"), g_pConfig->getPropertyInt("WorldID"))
             ->isNonPKServer();
-    // bool canPK = bNonPK || GDRLairManager::Instance().isGDRLairZone( pAttacker->getZoneID() );
 
     // non PK Ã¼Å©
     if (bNonPK && pAttacker->isPC() && pDefender->isPC())

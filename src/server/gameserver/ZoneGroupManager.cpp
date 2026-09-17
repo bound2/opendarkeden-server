@@ -334,10 +334,8 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
 
 {
     const int maxGroup = m_ZoneGroups.size(); // zoneGroup 수
-    // const int loadMultiplier 	= 5;					// load 가중치 - 느린 애들을 더 느리다...라고 하기 위한 것.
     const int loadLimit = 500; // load 값 제한 - sleep에 의해서 제한돼서 루프 처리회수 500이 최고다.
     const int stableLoad = 120; // 안정적인 load - 이 정도면 balancing이 필요없다고 생각되는 수준
-    // const int minLoadGap 		= 20 * loadMultiplier;	// load balancing을 하기 위한 load 차이 - 최고~최저의 차이가
     // 일정 값 이상이어야지 balancing이 의미있다.
     const int minLoadGap =
         20; // load balancing을 하기 위한 load 차이 - 최고~최저의 차이가 일정 값 이상이어야지 balancing이 의미있다.
@@ -345,7 +343,6 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
 
     int i;
 
-    // LOAD_INFOS 	loadInfos;
     GROUPS groups;
 
     unordered_map<ZoneGroupID_t, ZoneGroup*>::const_iterator itr;
@@ -382,7 +379,6 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
             // playerLoad = 1 ~ 20정도?
             int playerLoad = pZone->getPCCount() / 10;
             playerLoad = max(1, playerLoad);
-            // load = (loadLimit - load)*loadMultiplier;	// 부하 가중치
             load = (loadLimit - load) * playerLoad; // 부하 가중치
 
             LoadInfo* pInfo = new LoadInfo;
@@ -407,12 +403,10 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
     //------------------------------------------------------------------
     if (!bForce) {
         int loadBoundary = stableLoad;
-        // int loadBoundary = ( loadLimit - stableLoad ) * loadMultiplier;
 
         // 부하 한계 수치보다 작거나
         // min~max 부하 수치 차이가 일정수치 이하이면
         // load balancing할 필요가 없다.
-        // if (maxLoad <= loadBoundary
         if (minLoadValue >= loadBoundary || maxLoadValue - minLoadValue <= minLoadGap) {
             // load를 다시 조사해야 한다.
             for (itr = m_ZoneGroups.begin(); itr != m_ZoneGroups.end(); itr++) {
@@ -435,7 +429,6 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
     }
 
     // 평균 load
-    // int avgLoad = totalLoad / maxGroups;
     // average를 90%로 잡은 경우
     int avgLoad = totalLoad * averageLoadPercent / maxGroup / 100;
 
@@ -446,7 +439,6 @@ bool ZoneGroupManager::makeBalancedLoadInfo(LOAD_INFOS& loadInfos, bool bForce)
     }
 
     // balancing하기 전의 상태 출력
-    // outputLoadValue();
 
     //------------------------------------------------------------------
     //
@@ -575,200 +567,6 @@ void ZoneGroupManager::balanceZoneGroup(bool bForce, bool bDefault)
     filelog("balanceZoneGroup.txt", "존그룹 밸런싱 안할래요.");
     return;
 
-    /*	LOAD_INFOS 	loadInfos;
-
-        //------------------------------------------------------------------
-        // zoneGroup을 balancing할 LoadInfo를 생성한다.
-        //------------------------------------------------------------------
-        if (bDefault)
-        {
-            makeDefaultLoadInfo( loadInfos );
-        }
-        else
-        {
-            if (!makeBalancedLoadInfo( loadInfos, bForce ))
-            {
-                // balancing할 필요가 없다고 판단되는 경우이다.
-                return;
-            }
-        }
-
-        unordered_map< ZoneGroupID_t , ZoneGroup* >::const_iterator itr;
-        LOAD_INFOS::const_iterator iInfo;
-
-        //------------------------------------------------------------------
-        //
-        // ZoneGroup 변경
-        //
-        //------------------------------------------------------------------
-        // ZonePlayerManager::m_PlayerListQueue
-        // m_ZoneGroups
-        // ZoneInfoManager
-        // Zone::m_pZoneGroup
-        // ZonePlayerManager::m_pPlayers
-        //------------------------------------------------------------------
-        try {
-            //------------------------------------------------------------------
-            // LoginServerManager LOCK
-            //------------------------------------------------------------------
-            //__ENTER_CRITICAL_SECTION(g_pLoginServerManager)
-            g_pLoginServerManager->lock();
-
-            //------------------------------------------------------------------
-            //
-            // 					LOCK all ZoneGroups
-            //
-            //------------------------------------------------------------------
-
-            for (itr = m_ZoneGroups.begin() ; itr != m_ZoneGroups.end() ; itr ++)
-            {
-                ZoneGroup* pZoneGroup = itr->second;
-                pZoneGroup->lock();
-                pZoneGroup->processPlayers();	// 정리~라고 할까. 특히 EventResurrect때문이다.
-            }
-
-            //------------------------------------------------------------------
-            // Zone에서 나온 애들을 다시 목표 Zone으로 넣는다.
-            //------------------------------------------------------------------
-            g_pIncomingPlayerManager->heartbeat();
-
-            //------------------------------------------------------------------
-            // 각 ZoneGroup의
-            // ZPM에서 Zone으로 들어갈 대기열에 있는 사용자들을 우선 넣어버린다.
-            //------------------------------------------------------------------
-            for (itr = m_ZoneGroups.begin() ; itr != m_ZoneGroups.end() ; itr ++)
-            {
-                ZoneGroup* pZoneGroup = itr->second;
-
-                // ZonePlayerManager::m_PlayerListQueue를 정리해준다. --> 일단 Zone에 추가.
-                pZoneGroup->getZonePlayerManager()->processPlayerListQueue();
-            }
-
-            //------------------------------------------------------------------
-            // ZoneGroup 변경
-            //------------------------------------------------------------------
-            for (iInfo=loadInfos.begin(); iInfo!=loadInfos.end(); iInfo++)
-            {
-                LoadInfo* pInfo = iInfo->second;
-
-                int oldGroupID = pInfo->oldGroupID;
-                int newGroupID = pInfo->groupID;
-                int zoneID = pInfo->id;
-
-                // group이 같으면 이동시킬 필요가 없다.
-                if (oldGroupID==newGroupID)
-                {
-                    //cout << "same ZoneGroup" << endl;
-                    continue;
-                }
-
-                try {
-                    //cout << "[" << (int)zoneID << "] " << (int)oldGroupID << " --> " << (int)newGroupID << endl;
-
-                    unordered_map< ZoneGroupID_t , ZoneGroup* >::iterator iOldZoneGroup = m_ZoneGroups.find( oldGroupID
-       ); unordered_map< ZoneGroupID_t , ZoneGroup* >::iterator iNewZoneGroup = m_ZoneGroups.find( newGroupID );
-
-                    ZoneGroup* pOldZoneGroup = iOldZoneGroup->second;
-                    ZoneGroup* pNewZoneGroup = iNewZoneGroup->second;
-
-                    // ZonePlayerManager
-                    ZonePlayerManager* pOldZPM = pOldZoneGroup->getZonePlayerManager();
-                    ZonePlayerManager* pNewZPM = pNewZoneGroup->getZonePlayerManager();
-
-                    Zone* pZone = pOldZoneGroup->getZone(zoneID);
-
-                    // Old ZoneGroup --> New ZoneGroup
-                    pOldZoneGroup->removeZone( zoneID );
-                    pNewZoneGroup->addZone( pZone );
-
-
-                    // ZoneGroup
-                    pZone->setZoneGroup( pNewZoneGroup );
-
-                    // ZoneInfoManager
-                    ZoneInfo* pZoneInfo = g_pZoneInfoManager->getZoneInfo( zoneID );
-                    pZoneInfo->setZoneGroupID( newGroupID );
-
-                    //------------------------------------------------------------------
-                    // ZonePlayerManager::m_pPlayers
-                    //------------------------------------------------------------------
-                    // pZone의 PCManager의 애들을
-                    // 		pOldZoneGroup->m_pZonePlayerManager에서 제거해서
-                    // 		pZoneGroup->m_pZonePlayerManager에 추가한다.
-                    //------------------------------------------------------------------
-                    const PCManager* pPCManager = pZone->getPCManager();
-                    const unordered_map< ObjectID_t, Creature* >& players = pPCManager->getCreatures();
-                    unordered_map< ObjectID_t, Creature* >::const_iterator iPlayer;
-
-                    // 각 Player들의 ZPM을 옮긴다.
-                    for (iPlayer=players.begin(); iPlayer!=players.end(); iPlayer++)
-                    {
-                        Player* pPlayer = iPlayer->second->getPlayer();
-
-                        pOldZPM->deletePlayer_NOBLOCKED( pPlayer->getSocket()->getSOCKET() );
-                        pNewZPM->addPlayer_NOBLOCKED( dynamic_cast<GamePlayer*>(pPlayer) );
-                    }
-
-                } catch (NoSuchElementException& t) {
-                    filelog("changeZoneGroupError.txt", "%s", t.toString().c_str());
-                }
-            }
-
-            // balancing한 후의 상태 출력
-            outputLoadValue();
-
-            //------------------------------------------------------------------
-            //
-            // 					UNLOCK all ZoneGroups
-            //
-            //------------------------------------------------------------------
-            for (itr = m_ZoneGroups.begin() ; itr != m_ZoneGroups.end() ; itr ++)
-            {
-                ZoneGroup* pZoneGroup = itr->second;
-
-                // loadValue를 초기화 시켜준다.
-                const unordered_map< ZoneID_t, Zone* >& zones = pZoneGroup->getZones();
-                unordered_map< ZoneID_t, Zone* >::const_iterator iZone;
-
-                // 각 Zone의 loadValue를 구한다.
-                for (iZone=zones.begin(); iZone!=zones.end(); iZone++)
-                {
-                    Zone* pZone = iZone->second;
-
-                    pZone->initLoadValue();
-                }
-
-                pZoneGroup->unlock();
-            }
-
-            //------------------------------------------------------------------
-            // LoginServerManager UNLOCK
-            //------------------------------------------------------------------
-            //__LEAVE_CRITICAL_SECTION(g_pLoginServerManager)
-            g_pLoginServerManager->unlock();
-
-        } catch (Throwable& t) {
-            filelog("balanceZoneGroup.txt", "%s", t.toString().c_str());
-
-            for (itr = m_ZoneGroups.begin() ; itr != m_ZoneGroups.end() ; itr ++)
-            {
-                ZoneGroup* pZoneGroup = itr->second;
-                pZoneGroup->unlock();
-            }
-        }
-
-
-        //------------------------------------------------------------------
-        // loadInfos 지워주기
-        //------------------------------------------------------------------
-        for (iInfo=loadInfos.begin(); iInfo!=loadInfos.end(); iInfo++)
-        {
-            LoadInfo* pInfo = iInfo->second;
-
-            SAFE_DELETE(pInfo);
-        }
-
-    */
     __END_CATCH
 }
 
@@ -795,7 +593,6 @@ void ZoneGroupManager::lockZoneGroups()
     for (itr = m_ZoneGroups.begin(); itr != m_ZoneGroups.end(); itr++) {
         ZoneGroup* pZoneGroup = itr->second;
         pZoneGroup->lock();
-        //		pZoneGroup->processPlayers();	// 정리~라고 할까. 특히 EventResurrect때문이다.
     }
 
     __END_CATCH
@@ -819,7 +616,6 @@ void ZoneGroupManager::unlockZoneGroups()
     for (itr = m_ZoneGroups.begin(); itr != m_ZoneGroups.end(); itr++) {
         ZoneGroup* pZoneGroup = itr->second;
         pZoneGroup->unlock();
-        //		pZoneGroup->processPlayers();	// 정리~라고 할까. 특히 EventResurrect때문이다.
     }
 
     //------------------------------------------------------------------

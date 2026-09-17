@@ -22,7 +22,6 @@ void TurnUndead::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     // Slayer Object Assertion
     Assert(pSlayer != NULL);
@@ -147,7 +146,6 @@ void TurnUndead::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
                 }
 
             if (bHit) {
-                // cout << "Skill Succesfully Attacked(" << output.Damage << ")" << endl;
                 shareAttrExp(pSlayer, output.Damage, 1, 1, 8, _GCSkillToSelfOK1);
                 increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToSelfOK1, maxEnemyLevel,
                                   EnemyNum);
@@ -177,7 +175,6 @@ void TurnUndead::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEf
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

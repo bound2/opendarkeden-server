@@ -25,9 +25,6 @@ bool ConditionSiegeAttackerSide::isSatisfied(Creature* pCreature1, Creature* pCr
         !pCreature2->isFlag(Effect::EFFECT_CLASS_SIEGE_ATTACKER_3) &&
         !pCreature2->isFlag(Effect::EFFECT_CLASS_SIEGE_ATTACKER_4) &&
         !pCreature2->isFlag(Effect::EFFECT_CLASS_SIEGE_ATTACKER_5)) {
-        /*		GCSystemMessage gcSystemMessage;
-                gcSystemMessage.setMessage( "수비측만 사용할 수 있습니다." );
-                pCreature2->getPlayer()->sendPacket (&gcSystemMessage);*/
         return false;
     }
 

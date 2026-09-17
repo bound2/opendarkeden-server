@@ -127,88 +127,6 @@ string Blade::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t Blade::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBladeInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t Blade::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBladeInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t Blade::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBladeInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's minDamage
-//--------------------------------------------------------------------------------
-Damage_t Blade::getMinDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBladeInfoManager->getItemInfo(m_ItemType)->getMinDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set weapon's maxDamage
-//--------------------------------------------------------------------------------
-Damage_t Blade::getMaxDamage() const
-
-{
-    __BEGIN_TRY
-
-    return g_pBladeInfoManager->getItemInfo(m_ItemType)->getMaxDamage() + m_BonusDamage;
-
-    __END_CATCH
-}
-
-//--------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------
-int Blade::getCriticalBonus(void) const
-
-{
-    __BEGIN_TRY
-
-    return g_pBladeInfoManager->getItemInfo(m_ItemType)->getCriticalBonus();
-
-    __END_CATCH
-}
-*/
-
 //--------------------------------------------------------------------------------
 // get debug string
 //--------------------------------------------------------------------------------
@@ -320,10 +238,7 @@ void BladeLoader::load(Creature* pCreature)
             Vampire* pVampire = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);

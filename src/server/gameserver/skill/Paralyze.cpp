@@ -33,7 +33,6 @@ void Paralyze::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -53,7 +52,6 @@ void Paralyze::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         if (pTargetCreature == NULL || pTargetCreature->isFlag(Effect::EFFECT_CLASS_IMMUNE_TO_PARALYZE) ||
             !canAttack(pVampire, pTargetCreature) || pTargetCreature->isNPC()) {
             executeSkillFailException(pVampire, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -94,7 +92,6 @@ void Paralyze::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         ZoneCoord_t targetX = pTargetCreature->getX();
         ZoneCoord_t targetY = pTargetCreature->getY();
 
-        // if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bHitRoll2 && bCanHit && !bEffected && bPK)
         if (bManaCheck && bTimeCheck && bRangeCheck && bHitRoll && bHitRoll2 && bCanHit && !bEffected && bPK &&
             pTargetCreature->getCompetence() == 3) {
             decreaseMana(pVampire, RequiredMP, _GCSkillToObjectOK1);
@@ -130,7 +127,6 @@ void Paralyze::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
             // 이펙트 오브젝트를 생성해서 붙인다.
             EffectParalyze* pEffectParalyze = new EffectParalyze(pTargetCreature);
             pEffectParalyze->setLevel(pSkillInfo->getLevel() / 2);
-            //			pEffectParalyze->setDefensePenalty(output.Damage);
             pEffectParalyze->setDeadline(output.Duration);
             pTargetCreature->addEffect(pEffectParalyze);
             pTargetCreature->setFlag(Effect::EFFECT_CLASS_PARALYZE);
@@ -143,29 +139,6 @@ void Paralyze::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 
             // 저주에 걸리면 디펜스가 떨어진다.
             // 디펜스 페널티가 없어짐. 2002.05.09 - by bezz
-            /*			if (pTargetCreature->isSlayer())
-                        {
-                            Slayer* pTargetSlayer = dynamic_cast<Slayer*>(pTargetCreature);
-                            SLAYER_RECORD prev;
-                            pTargetSlayer->getSlayerRecord(prev);
-                            pTargetSlayer->initAllStat();
-                            pTargetSlayer->addModifyInfo(prev, _GCSkillToObjectOK2);
-                        }
-                        else if (pTargetCreature->isVampire())
-                        {
-                            Vampire* pTargetVampire = dynamic_cast<Vampire*>(pTargetCreature);
-                            VAMPIRE_RECORD prev;
-                            pTargetVampire->getVampireRecord(prev);
-                            pTargetVampire->initAllStat();
-                            pTargetVampire->addModifyInfo(prev, _GCSkillToObjectOK2);
-                        }
-                        else if (pTargetCreature->isMonster())
-                        {
-                            Monster* pTargetMonster = dynamic_cast<Monster*>(pTargetCreature);
-                            pTargetMonster->initAllStat();
-                        }
-                        else Assert(false);
-            */
             // 이펙트가 붙었다는 것을 브로드캐스팅해준다.
             GCAddEffect gcAddEffect;
             gcAddEffect.setObjectID(pTargetCreature->getObjectID());
@@ -238,7 +211,6 @@ void Paralyze::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -251,7 +223,6 @@ void Paralyze::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pMonster != NULL);
     Assert(pEnemy != NULL);
@@ -261,8 +232,6 @@ void Paralyze::execute(Monster* pMonster, Creature* pEnemy)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "Monster cannot use skill while hiding." << endl;
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
@@ -292,7 +261,6 @@ void Paralyze::execute(Monster* pMonster, Creature* pEnemy)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -350,7 +318,6 @@ void Paralyze::executeMonster(Zone* pZone, Monster* pMonster, Creature* pEnemy)
         // 이펙트 오브젝트를 생성해서 붙인다.
         EffectParalyze* pEffectParalyze = new EffectParalyze(pEnemy);
         pEffectParalyze->setLevel(pSkillInfo->getLevel() / 2);
-        // pEffectParalyze->setDefensePenalty(output.Damage);
         pEffectParalyze->setDeadline(output.Duration);
         pEnemy->addEffect(pEffectParalyze);
         pEnemy->setFlag(Effect::EFFECT_CLASS_PARALYZE);
@@ -410,7 +377,6 @@ void Paralyze::executeMonster(Zone* pZone, Monster* pMonster, Creature* pEnemy)
         if (pEnemy->isPC()) {
             Player* pTargetPlayer = pEnemy->getPlayer();
             if (pTargetPlayer == NULL) {
-                // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                 return;
             }
 

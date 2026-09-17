@@ -31,7 +31,6 @@ void EffectGroundBless::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectGroundBless" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
@@ -53,7 +52,6 @@ void EffectGroundBless::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_GROUND_BLESS);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectGroundBless" << "unaffect END" << endl;
 
     __END_CATCH
 }

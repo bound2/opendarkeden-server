@@ -115,7 +115,6 @@ public:
 //////////////////////////////////////////////////////////////////////////////
 // À¯·áÈ­Á¸ °æÇèÄ¡ »Ç³ª½º
 //////////////////////////////////////////////////////////////////////////////
-// const uint g_pVariableManager->getPremiumExpBonusPercent() = 150;
 
 
 RankExp_t computeRankExp(int myLevel, int otherLevel) // by sigi. 2002.12.31
@@ -151,7 +150,6 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
 
     int myLevel = 0;
     int otherLevel = 0;
-    // int bonusPercent = 100;
 
     if (pAttacker->isSlayer()) {
         // ½½·¹ÀÌ¾î°¡ ½½·¹ÀÌ¾î¸¦ Á×ÀÎ °æ¿ì
@@ -169,13 +167,11 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
         if (pDeadCreature->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pDeadCreature);
             otherLevel = pVampire->getLevel();
-            // bonusPercent = 150;
         }
         // ½½·¹ÀÌ¾î°¡ ¾Æ¿ì½ºÅÍ½º¸¦ Á×ÀÎ °æ¿ì
         else if (pDeadCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pDeadCreature);
             otherLevel = pOusters->getLevel();
-            // bonusPercent = 150;
         }
         // ½½·¹ÀÌ¾î°¡ ¸ó½ºÅÍ¸¦ Á×ÀÎ °æ¿ì
         else if (pDeadCreature->isMonster()) {
@@ -203,13 +199,11 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
         if (pDeadCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pDeadCreature);
             otherLevel = pSlayer->getHighestSkillDomainLevel();
-            // bonusPercent = 150;
         }
         // ¹ìÆÄÀÌ¾î°¡ ¾Æ¿ì½ºÅÍ½º¸¦ Á×ÀÎ °æ¿ì
         else if (pDeadCreature->isOusters()) {
             Ousters* pOusters = dynamic_cast<Ousters*>(pDeadCreature);
             otherLevel = pOusters->getLevel();
-            // bonusPercent = 150;
         }
         // ¹ìÆÄÀÌ¾î°¡ ¸ó½ºÅÍ¸¦ Á×ÀÎ °æ¿ì
         else if (pDeadCreature->isMonster()) {
@@ -237,13 +231,11 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
         if (pDeadCreature->isSlayer()) {
             Slayer* pSlayer = dynamic_cast<Slayer*>(pDeadCreature);
             otherLevel = pSlayer->getHighestSkillDomainLevel();
-            // bonusPercent = 150;
         }
         // ¾Æ¿ì½ºÅÍÁî°¡ ¹ìÆÄÀÌ¾î¸¦ Á×ÀÎ °æ¿ì
         if (pDeadCreature->isVampire()) {
             Vampire* pVampire = dynamic_cast<Vampire*>(pDeadCreature);
             otherLevel = pVampire->getLevel();
-            // bonusPercent = 150;
         }
         // ¹ìÆÄÀÌ¾î°¡ ¸ó½ºÅÍ¸¦ Á×ÀÎ °æ¿ì
         else if (pDeadCreature->isMonster()) {
@@ -268,8 +260,6 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
         Monster* pMonster = dynamic_cast<Monster*>(pDeadCreature);
         PrecedenceTable* pTable = pMonster->getPrecedenceTable();
 
-        //		if ( pMonster->getLastKiller() == 0 )
-        //			pMonster->setLastKiller( pAttacker->getObjectID() );
 
         if (pMonster->getMonsterType() == 722) {
             if (pPC->getPartyID() == 0) {
@@ -289,7 +279,6 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
 
                     pPC->getZone()->broadcastPacket(pPC->getX(), pPC->getY(), &gcAddEffect);
                 }
-                //					addSimpleCreatureEffect( pPC, Effect::EFFECT_CLASS_CAN_ENTER_GDR_LAIR, 216000 );
             } else {
                 LocalPartyManager* pLPM = pPC->getLocalPartyManager();
                 Assert(pLPM != NULL);
@@ -319,7 +308,6 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
 
             if (pMonster->getQuestItem() == NULL && g_pVariableManager->isEventMoonCard()) {
                 Item* pItem = getCardItem(getCardKind(pPC, pMonster));
-                //				setItemGender( pItem, (pPC->getSex()==FEMALE)?GENDER_FEMALE:GENDER_MALE );
                 pMonster->setQuestItem(pItem);
             }
 
@@ -458,9 +446,7 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
                 if (itemClassSeed < RevivalSetRatio) {
                     iClass = Item::ITEM_CLASS_PET_ENCHANT_ITEM;
                     itemType = 13;
-                }
-                //				bool isRace = g_pVariableManager->getVariable(RACE_PET_FOOD_RATIO) > rand()%100;
-                else if (itemClassSeed - RevivalSetRatio < RacePetFoodRatio) {
+                } else if (itemClassSeed - RevivalSetRatio < RacePetFoodRatio) {
                     switch (pPC->getCreatureClass()) {
                     case Creature::CREATURE_CLASS_SLAYER:
                         itemType = 6;
@@ -481,7 +467,6 @@ void affectKillCount(Creature* pAttacker, Creature* pDeadCreature) {
 
                 if (iClass == Item::ITEM_CLASS_PET_FOOD && isHigher)
                     ++itemType;
-                //				cout << "ÆêÀ½½ÄÀÌº¥Æ®:" << iClass << ", " << itemType << endl;
 
                 Item* pItem = g_pItemFactoryManager->createItem(iClass, itemType, list<OptionType_t>());
                 pMonster->setQuestItem(pItem);
@@ -571,7 +556,6 @@ void giveSkillExp(Slayer* pSlayer, SkillType_t SkillType, ModifyInfo& AttackerMI
     SkillSlot* pSkillSlot = pSlayer->getSkill(SkillType);
     SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
     if (pSkillSlot != NULL && pSkillInfo != NULL) {
-        // cout << pSlayer->getName() << "¿¡°Ô " << pSkillInfo->getName() << "½ºÅ³ÀÇ °æÇèÄ¡¸¦ ÁÝ´Ï´Ù." << endl;
         increaseSkillExp(pSlayer, pSkillInfo->getDomainType(), pSkillSlot, pSkillInfo, AttackerMI);
     }
 }
@@ -599,7 +583,6 @@ void computeAlignmentChange(Creature* pTargetCreature, Damage_t Damage, Creature
         // ZoneInfo¿¡ ³Ö°í, Zone¿¡¼­ ÀÐÀ» ¼ö ÀÖ°Ô ÇÏ¸é ÁÁ°ÚÁö¸¸,
         // °©ÀÚ±â ¶³¾îÁø ÀÏÀÌ¶ó ±ÍÂú´Ù´Â ÀÌÀ¯·Î ÇÏµå ÄÚµùÀÌ´Ù. - -;
         // 2002.8.21. by sigi
-        // int zoneID = pAttacker->getZone()->getZoneID();
 
         // zoneID==1005 || zoneID==1006)
 
@@ -1196,95 +1179,6 @@ void shareOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo) {
     }
 }
 
-/*void decreaseSTR(Slayer* pSlayer)
-{
-    StringStream  msg1;
-
-    Attr_t CurSTR = pSlayer->getSTR( ATTR_BASIC );
-
-    // exp level°ú ´É·ÂÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
-    CurSTR--;
-    pSlayer->setSTR(CurSTR, ATTR_BASIC);
-    //_ModifyInfo.addLongData(MODIFY_BASIC_STR, CurSTR);
-
-    // ´ÙÀ½ ·¹º§ÀÇ STRInfo¸¦ ¹Þ¾Æ¿Â´Ù.
-    STRBalanceInfo* pAfterSTRInfo = g_pSTRBalanceInfoManager->getSTRBalanceInfo(CurSTR);
-    // ÀÌÀü ·¹º§ÀÇ STRInfo¸¦ ¹Þ¾Æ¿Â´Ù.
-//	STRBalanceInfo* pBeforeSTRInfo = g_pSTRBalanceInfoManager->getSTRBalanceInfo(CurSTR-1);
-
-    // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡¸¦ ¼ÂÆÃÇØ Áà¾ß ÇÑ´Ù.
-    Exp_t NewGoalExp = pAfterSTRInfo->getGoalExp();
-//	Exp_t NewExp = pBeforeSTRInfo->getAccumExp();
-    pSlayer->setSTRGoalExp(NewGoalExp);
-//	pSlayer->setSTRExp(NewExp);
-
-    // DB¿¡ ¿Ã¶ó°£ ´É·ÂÄ¡¸¦ ÀúÀåÇÑ´Ù.
-    msg1 << "STR = " << (int)CurSTR << ", STRGoalExp = " << NewGoalExp;
-
-    pSlayer->tinysave(msg1.toString());
-
-//	cout << "ÈûÀ» ³·Ãä´Ï´Ù." << endl;
-}
-
-void decreaseINT(Slayer* pSlayer)
-{
-    StringStream  msg1;
-
-    Attr_t CurINT = pSlayer->getINT( ATTR_BASIC );
-
-    // exp level°ú ´É·ÂÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
-    CurINT--;
-    pSlayer->setINT(CurINT, ATTR_BASIC);
-    //_ModifyInfo.addLongData(MODIFY_BASIC_INT, CurINT);
-
-    // ´ÙÀ½ ·¹º§ÀÇ INTInfo¸¦ ¹Þ¾Æ¿Â´Ù.
-    INTBalanceInfo* pAfterINTInfo = g_pINTBalanceInfoManager->getINTBalanceInfo(CurINT);
-    // ÀÌÀü ·¹º§ÀÇ INTInfo¸¦ ¹Þ¾Æ¿Â´Ù.
-//	INTBalanceInfo* pBeforeINTInfo = g_pINTBalanceInfoManager->getINTBalanceInfo(CurINT-1);
-
-    // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡¸¦ ¼ÂÆÃÇØ Áà¾ß ÇÑ´Ù.
-    Exp_t NewGoalExp = pAfterINTInfo->getGoalExp();
-//	Exp_t NewExp = pBeforeINTInfo->getAccumExp();
-    pSlayer->setINTGoalExp(NewGoalExp);
-//	pSlayer->setINTExp(NewExp);
-
-    // DB¿¡ ¿Ã¶ó°£ ´É·ÂÄ¡¸¦ ÀúÀåÇÑ´Ù.
-    msg1 << "INTE = " << (int)CurINT << ", INTGoalExp = " << NewGoalExp;
-
-    pSlayer->tinysave(msg1.toString());
-
-//	cout << "ÀÎÆ®¸¦ ³·Ãä´Ï´Ù." << endl;
-}
-
-void decreaseDEX(Slayer* pSlayer)
-{
-    StringStream  msg1;
-
-    Attr_t CurDEX = pSlayer->getDEX( ATTR_BASIC );
-
-    // exp level°ú ´É·ÂÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
-    CurDEX--;
-    pSlayer->setDEX(CurDEX, ATTR_BASIC);
-    //_ModifyInfo.addLongData(MODIFY_BASIC_DEX, CurDEX);
-
-    // ´ÙÀ½ ·¹º§ÀÇ DEXInfo¸¦ ¹Þ¾Æ¿Â´Ù.
-    DEXBalanceInfo* pAfterDEXInfo = g_pDEXBalanceInfoManager->getDEXBalanceInfo(CurDEX);
-    // ÀÌÀü ·¹º§ÀÇ DEXInfo¸¦ ¹Þ¾Æ¿Â´Ù.
-//	DEXBalanceInfo* pBeforeDEXInfo = g_pDEXBalanceInfoManager->getDEXBalanceInfo(CurDEX-1);
-
-    // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡¸¦ ¼ÂÆÃÇØ Áà¾ß ÇÑ´Ù.
-    Exp_t NewGoalExp = pAfterDEXInfo->getGoalExp();
-//	Exp_t NewExp = pBeforeDEXInfo->getAccumExp();
-    pSlayer->setDEXGoalExp(NewGoalExp);
-//	pSlayer->setDEXExp(NewExp);
-
-    // DB¿¡ ¿Ã¶ó°£ ´É·ÂÄ¡¸¦ ÀúÀåÇÑ´Ù.
-    msg1 << "DEX = " << (int)CurDEX << ", DEXGoalExp = " << NewGoalExp;
-
-    pSlayer->tinysave(msg1.toString());
-
-//	cout << "µ¦½º¸¦ ³·Ãä´Ï´Ù." << endl;
-}*/
 
 //////////////////////////////////////////////////////////////////////////////
 // ½½·¹ÀÌ¾î ´É·ÂÄ¡ (STR, DEX, INT) °æÇèÄ¡¸¦ °è»êÇÑ´Ù.
@@ -1305,262 +1199,6 @@ void divideAttrExp(Slayer* pSlayer, Damage_t Damage, BYTE STRMultiplier, BYTE DE
     }
 
     return;
-
-    /*	SkillLevel_t	MaxDomainLevel	= pSlayer->getHighestSkillDomainLevel();
-        Attr_t			TotalAttr		= pSlayer->getTotalAttr( ATTR_BASIC );
-        Attr_t			TotalAttrBound		= 0;		// ´É·ÂÄ¡ ÃÑÇÕ Á¦ÇÑ
-        Attr_t			AttrBound			= 0;		// ´ÜÀÏ ´É·ÂÄ¡ Á¦ÇÑ
-        Attr_t			OneAttrExpBound		= 0;		// ÇÑ °³ÀÇ ´É·ÂÄ¡¿¡¸¸ °æÇèÄ¡ ÁÖ´Â ´É·ÂÄ¡ ÃÑÇÕ °æ°è°ª
-
-        // ½½·¹ÀÌ¾î ´É·ÂÄ¡´Â µµ¸ÞÀÎ ·¹º§ 100ÀÌÀü¿¡´Â ÃÑÇÕ 300À¸·Î Á¦ÇÑ µÈ´Ù.(±âÁ¸Ã³·³ 50, 200, 50 À¸·Î..)¶ÇÇÑ ±× ÀÌÈÄÀÇ
-       °æÇèÄ¡´Â ´©ÀûµÇÁö ¾Ê´Â´Ù.
-        // ±×¸®°í µµ¸ÞÀÎ ·¹º§ ÀÌ 100À» ³Ñ¾î¼­¸é ´Ù½Ã ´É·ÂÄ¡ °æÇèÄ¡°¡ ´©ÀûµÇ¾î ´É·ÂÄ¡°¡ ¿Ã¶ó°¡±â ½ÃÀÛÇÑ´Ù.
-        // µµ¸ÞÀÎ ·¹º§ÀÌ 100 ¾Æ·¡·Î µµ·Î ¶³¾îÁ³¾îµµ ´É·ÂÄ¡ ÃÑÇÕÀÌ 300À» ³Ñ¾úÀ» °æ¿ì 300ÀÇ Á¦ÇÑÀ» ¹ÞÁö ¾Ê´Â´Ù.
-
-        if ( MaxDomainLevel <= SLAYER_BOUND_LEVEL && TotalAttr <= SLAYER_BOUND_ATTR_SUM )
-        {
-            TotalAttrBound	= SLAYER_BOUND_ATTR_SUM;		// 300
-            AttrBound		= SLAYER_BOUND_ATTR;			// 200
-            OneAttrExpBound	= SLAYER_BOUND_ONE_EXP_ATTR;	// 200
-        }
-        else
-        {
-            TotalAttrBound	= SLAYER_MAX_ATTR_SUM;			// 435
-            AttrBound		= SLAYER_MAX_ATTR;				// 295
-            OneAttrExpBound	= SLAYER_ONE_EXP_ATTR;			// 400
-        }
-
-        // ÇöÀçÀÇ ½½·¹ÀÌ¾î ´É·ÂÄ¡¸¦ ÀúÀåÇÑ´Ù.
-        SLAYER_RECORD prev;
-        pSlayer->getSlayerRecord(prev);
-
-        // ½Ã°£´ë¿¡ µû¶ó ¿Ã¶ó°¡´Â °æÇèÄ¡°¡ ´Þ¶óÁø´Ù.
-        Damage = (Damage_t)getPercentValue(Damage, AttrExpTimebandFactor[getZoneTimeband(pSlayer->getZone())]);
-
-        // VariableManager¿¡ ÀÇÇÑ PointÁõ°¡Ä¡¸¦ °è»êÇÑ´Ù.
-        if(g_pVariableManager->getExpRatio()>100 && g_pVariableManager->getEventActivate() == 1)
-            Damage = getPercentValue(Damage, g_pVariableManager->getExpRatio());
-
-        Exp_t STRPoint = max(1, Damage * STRMultiplier / 10);
-        Exp_t DEXPoint = max(1, Damage * DEXMultiplier / 10);
-        Exp_t INTPoint = max(1, Damage * INTMultiplier / 10);
-
-        // ÇöÀç ¼ø¼ö ´É·ÂÄ¡¸¦ ¹Þ´Â´Ù.
-        Attr_t CurSTR = pSlayer->getSTR(ATTR_BASIC);
-        Attr_t CurDEX = pSlayer->getDEX(ATTR_BASIC);
-        Attr_t CurINT = pSlayer->getINT(ATTR_BASIC);
-        Attr_t CurSUM = CurSTR + CurDEX + CurINT;
-
-        // ´É·Â ÇÕÀÌ 200 ÀÌ»óÀÎ »ç¶÷µéÀº ¾²´Â °è¿­¿¡ µû¶ó ´É·Â¿¡ ¹Ù·Î Àû¿ë µÈ´Ù.
-        // ³ª¸ÓÁö ¹èºÐÀº ¹«½Ã ÇÏ°Ô µÈ´Ù.
-        // ÀÌ·¸°Ô µÇ¾úÀ»¶§, °è¿­·¾¿¡¸¸ ÇÁ¸® ÇÏ´Ù¸é ´É·ÂÄ¡¸¦ ¾î´ÀÁ¤µµ ÀÚÀ¯·Ó°Ô ¿Ã¸± ¼ö ÀÖ°Ô µÈ´Ù.
-        if( CurSUM >= OneAttrExpBound ) {
-            // ¾î´À ¸ÖÆ¼ÇÃ¶óÀÌ¾î°¡ °¡Àå Å«Áö Á¶»ç ÇÑ´Ù.
-            // STR Æ÷ÀÎÆ®°¡ Á¦ÀÏ Å©´Ù.
-            if( STRMultiplier > DEXMultiplier && STRMultiplier > INTMultiplier ) {
-                DEXPoint = 0;
-                DEXMultiplier = 0;
-                INTPoint = 0;
-                INTMultiplier = 0;
-            // DEX Æ÷ÀÎÆ®°¡ Á¦ÀÏ Å©´Ù.
-            } else if ( DEXMultiplier > STRMultiplier && DEXMultiplier > INTMultiplier ) {
-                STRPoint = 0;
-                STRMultiplier = 0;
-                INTPoint = 0;
-                INTMultiplier = 0;
-
-            // INT Æ÷ÀÎÆ®°¡ Á¦ÀÏ Å©´Ù.
-            } else if ( INTMultiplier > STRMultiplier && INTMultiplier > DEXMultiplier ) {
-                STRPoint = 0;
-                STRMultiplier = 0;
-                DEXPoint = 0;
-                DEXMultiplier = 0;
-            }
-        }
-
-        // Èû °æÇèÄ¡
-        Exp_t CurSTRGoalExp = max(0, (int)(pSlayer->getSTRGoalExp() - STRPoint     ));
-        // µ¦½º °æÇèÄ¡
-        Exp_t CurDEXGoalExp = max(0, (int)(pSlayer->getDEXGoalExp() - DEXPoint     ));
-        // ÀÎÆ® °æÇèÄ¡
-        Exp_t CurINTGoalExp = max(0, (int)(pSlayer->getINTGoalExp() - INTPoint));
-
-        // STR, DEX, INT °æÇèÄ¡¸¦ ¿Ã¸°´Ù.
-        pSlayer->setSTRGoalExp(CurSTRGoalExp);
-        pSlayer->setDEXGoalExp(CurDEXGoalExp);
-        pSlayer->setINTGoalExp(CurINTGoalExp);
-
-        bool bInitAll = false;
-
-        // °æÇèÄ¡°¡ ´©ÀûµÇ¾î ±âº» ´É·ÂÄ¡°¡ »ó½ÂÇÒ ¶§´Ù...
-        if ( STRMultiplier != 0 && CurSTRGoalExp == 0 && CurSTR < AttrBound )
-        {
-            bool isUp = true;
-
-            // ´É·ÂÄ¡ ÃÑÇÕÀÌ 200À» ³Ñ¾î°¥·Á°í ÇÏ´Â °æ¿ì.
-            if (CurSTR + CurDEX + CurINT >= TotalAttrBound )
-            {
-                isUp= true;
-
-                // ÈûÀÌ ¿À¸¦ °æ¿ì DEX³ª INTÁß ³ôÀº°ÍÀ» ¶³¾îÆ®¸®°í, °°À» °æ¿ì DEX¸¦ ¶³¾îÆ®¸°´Ù.
-                if (CurDEX >= CurINT)
-                {
-                    decreaseDEX(pSlayer);
-                }
-                else
-                {
-                    decreaseINT(pSlayer);
-                }
-            }
-
-            if (isUp)
-            {
-                StringStream  msg1;
-
-                // exp level°ú ´É·ÂÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
-                CurSTR         += 1;
-                pSlayer->setSTR(CurSTR, ATTR_BASIC);
-
-                // »õ·Î¿î ·¹º§ÀÇ STRInfo¸¦ ¹Þ¾Æ¿Â´Ù.
-                STRBalanceInfo* pNewSTRInfo = g_pSTRBalanceInfoManager->getSTRBalanceInfo(CurSTR);
-
-                // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡¸¦ ¼ÂÆÃÇØ Áà¾ß ÇÑ´Ù.
-                Exp_t NewGoalExp = pNewSTRInfo->getGoalExp();
-                pSlayer->setSTRGoalExp(NewGoalExp);
-
-                // DB¿¡ ¿Ã¶ó°£ ´É·ÂÄ¡¸¦ ÀúÀåÇÑ´Ù.
-                msg1 << "STR = " << (int)CurSTR << ", STRGoalExp = " << NewGoalExp;
-
-                pSlayer->tinysave(msg1.toString());
-
-                bInitAll = true;
-            }
-        }
-
-        // °æÇèÄ¡°¡ ´©ÀûµÇ¾î ±âº» ´É·ÂÄ¡°¡ »ó½ÂÇÒ ¶§´Ù...
-        if ( DEXMultiplier != 0 && CurDEXGoalExp == 0 && CurDEX < AttrBound )
-        {
-            bool isUp = true;
-
-            // ´É·ÂÄ¡ ÃÑÇÕÀÌ 200À» ³Ñ¾î°¥·Á°í ÇÏ´Â °æ¿ì.
-            if (CurSTR + CurDEX + CurINT >= TotalAttrBound )
-            {
-                isUp= true;
-
-                // ¹ÎÃ¸ÀÌ ¿À¸¦ °æ¿ì STR³ª INTÁß ³ôÀº°ÍÀ» ¶³¾îÆ®¸®°í, °°À» °æ¿ì STR¸¦ ¶³¾îÆ®¸°´Ù.
-                if (CurSTR >= CurINT)
-                {
-                    decreaseSTR(pSlayer);
-                }
-                else
-                {
-                    decreaseINT(pSlayer);
-                }
-            }
-
-            if (isUp)
-            {
-                StringStream  msg1;
-
-                // exp level°ú ´É·ÂÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
-                CurDEX         += 1;
-                pSlayer->setDEX(CurDEX, ATTR_BASIC);
-
-                // »õ·Î¿î ·¹º§ÀÇ DEXInfo¸¦ ¹Þ¾Æ¿Â´Ù.
-                DEXBalanceInfo* pNewDEXInfo = g_pDEXBalanceInfoManager->getDEXBalanceInfo(CurDEX);
-
-                // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡¸¦ ¼ÂÆÃÇØ Áà¾ß ÇÑ´Ù.
-                Exp_t NewGoalExp = pNewDEXInfo->getGoalExp();
-                pSlayer->setDEXGoalExp(NewGoalExp);
-
-                // DB¿¡ ¿Ã¶ó°£ ´É·ÂÄ¡¸¦ ÀúÀåÇÑ´Ù.
-                msg1 << "DEX = " << (int)CurDEX << ", DEXGoalExp = " << NewGoalExp;
-                pSlayer->tinysave(msg1.toString());
-
-                bInitAll = true;
-            }
-        }
-
-        // °æÇèÄ¡°¡ ´©ÀûµÇ¾î ±âº» ´É·ÂÄ¡°¡ »ó½ÂÇÒ ¶§´Ù...
-        if ( INTMultiplier != 0 && CurINTGoalExp == 0 && CurINT < AttrBound )
-        {
-            bool isUp = true;
-
-            // ´É·ÂÄ¡ ÃÑÇÕÀÌ 200À» ³Ñ¾î°¥·Á°í ÇÏ´Â °æ¿ì.
-            if (CurSTR + CurDEX + CurINT >= TotalAttrBound )
-            {
-                isUp= true;
-
-                // Áö½ÄÀÌ ¿À¸¦ °æ¿ì STR³ª DEXÁß ³ôÀº°ÍÀ» ¶³¾îÆ®¸®°í, °°À» °æ¿ì STR¸¦ ¶³¾îÆ®¸°´Ù.
-                if (CurSTR >= CurDEX)
-                {
-                    decreaseSTR(pSlayer);
-                }
-                else
-                {
-                    decreaseDEX(pSlayer);
-                }
-            }
-
-            if (isUp)
-            {
-                StringStream  msg1;
-
-                // exp level°ú ´É·ÂÄ¡¸¦ ¿Ã·ÁÁØ´Ù.
-                CurINT         += 1;
-                pSlayer->setINT(CurINT, ATTR_BASIC);
-                // »õ·Î¿î ·¹º§ÀÇ INTInfo¸¦ ¹Þ¾Æ¿Â´Ù.
-                INTBalanceInfo* pNewINTInfo = g_pINTBalanceInfoManager->getINTBalanceInfo(CurINT);
-
-                // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡¸¦ ¼ÂÆÃÇØ Áà¾ß ÇÑ´Ù.
-                Exp_t NewGoalExp = pNewINTInfo->getGoalExp();
-                pSlayer->setINTGoalExp(NewGoalExp);
-
-                // DB¿¡ ¿Ã¶ó°£ ´É·ÂÄ¡¸¦ ÀúÀåÇÑ´Ù.
-                msg1 << "INTE = " << (int)CurINT << ", INTGoalExp = " << NewGoalExp;
-
-                pSlayer->tinysave(msg1.toString());
-
-                bInitAll = true;
-            }
-        }
-
-        // ÆÐÅ¶¿¡´Ù ¹Ù²ï µ¥ÀÌÅÍ¸¦ ÀÔ·ÂÇÑ´Ù.
-        // ´É·ÂÄ¡°¡ ÇÕ°è Á¦ÇÑ¿¡ ÀÇÇØ ³»·Á°¥ ¼öµµ ÀÖÀ¸¹Ç·Î ¸ðµç Ã³¸®¸¦ ÇÑ µÚ º¯°æÁ¤º¸¸¦ ³Ö´Â´Ù - by Bezz
-        _ModifyInfo.addLongData(MODIFY_STR_EXP, pSlayer->getSTRGoalExp() );//CurSTRExp);
-        _ModifyInfo.addLongData(MODIFY_DEX_EXP, pSlayer->getDEXGoalExp() );//CurDEXExp);
-        _ModifyInfo.addLongData(MODIFY_INT_EXP, pSlayer->getINTGoalExp() );//CurINTExp);
-
-        // ¿Ã¶ó°£ °æÇèÄ¡¸¦ DB¿¡ ÀúÀåÇÑ´Ù.
-        WORD AttrExpSaveCount = pSlayer->getAttrExpSaveCount();
-        if (AttrExpSaveCount > ATTR_EXP_SAVE_PERIOD)
-        {
-            char pField[256];
-            sprintf(pField, "STRGoalExp=%ld, DEXGoalExp=%ld, INTGoalExp=%ld",
-                                pSlayer->getSTRGoalExp(), pSlayer->getDEXGoalExp(), pSlayer->getINTGoalExp());
-
-            pSlayer->tinysave( pField );
-
-            AttrExpSaveCount = 0;
-        }
-        else AttrExpSaveCount++;
-
-        pSlayer->setAttrExpSaveCount(AttrExpSaveCount);
-
-        // ±âÁ¸ÀÇ ´É·ÂÄ¡¿Í ºñ±³ÇØ¼­ º¯°æµÈ ´É·ÂÄ¡¸¦ º¸³»ÁØ´Ù.
-        if (bInitAll)
-        {
-            healCreatureForLevelUp(pSlayer, _ModifyInfo, &prev);
-
-            // ·¹º§¾÷ ÀÌÆåÆ®µµ º¸¿©ÁØ´Ù. by sigi. 2002.11.9
-            sendEffectLevelUp( pSlayer );
-
-            // ´É·ÂÄ¡ ÇÕÀÌ 40ÀÌ°í, ¾ßÀü»ç·ÉºÎÀÌ¸é µýµ¥·Î º¸³½´Ù.  by sigi. 2002.11.7
-            if (g_pVariableManager->isNewbieTransportToGuild())
-            {
-                checkNewbieTransportToGuild(pSlayer);
-            }
-        }*/
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1572,7 +1210,6 @@ void increaseSkillExp(Slayer* pSlayer, SkillDomainType_t DomainType, SkillSlot* 
     Assert(pSkillSlot != NULL);
     Assert(pSkillInfo != NULL);
     // Edit By Coffee 2007-4-16È¥µô¶þ×ªºó¼¼ÄÜ²»ÄÜÉý¼¶ÎÊÌâ
-    // if ( pSkillInfo->getLevel() >= 150 ) return;
     // end
 
     // PKÁ¸ ¾È¿¡¼­´Â °æÇèÄ¡¸¦ ÁÖÁö ¾Ê´Â´Ù.
@@ -1668,9 +1305,6 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
     if (EnemyLevel != 0) {
         int levelDiff = (int)pSlayer->getLevel() - (int)EnemyLevel;
 
-        //		cout << "enemyLevel : " << (int)EnemyLevel << " , TargetNum : " << TargetNum << endl;
-
-        //		cout << "Point : " << Point << endl;
 
         if (levelDiff > 50)
             Point = getPercentValue(Point, 30);
@@ -1682,14 +1316,11 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             Point = getPercentValue(Point, 130);
         else if (levelDiff < -20)
             Point = getPercentValue(Point, 120);
-
-        //		cout << "after level Point : " << Point << endl;
     }
 
     if (TargetNum != -1)
         Point = Point * (TargetNum + 1) / 3;
 
-    //	cout << "after target Point : " << Point << endl;
 
     // ÀÌ¹Ì ÁöÁ¤µÈ domain¿¡ ¸Â´Â ¹«±â¸¦ µé°í ÀÖ´Ù°í °¡Á¤ÇÏ°í..
     // ¹«±â type¿¡ µû¶ó¼­ SkillPoint¸¦ ´Ù¸£°Ô ÁØ´Ù.
@@ -1776,39 +1407,26 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
         // ½Ã°£´ë¿¡ µû¶ó ¿Ã¶ó°¡´Â °æÇèÄ¡°¡ ´Þ¶óÁø´Ù.
         Point = (Exp_t)getPercentValue(Point, DomainExpTimebandFactor[getZoneTimeband(pSlayer->getZone())]);
 
-        // cout << pSlayer->getName() << "¿¡°Ô " << (int)Domain << " µµ¸ÞÀÎÀÇ °æÇèÄ¡¸¦ " << Point << "¸¸Å­ ÁÝ´Ï´Ù." <<
-        // endl;
 
         // º¸»ó¿ë ÄÚµå
-        // Point = max(2, (int)getPercentValue(Point, 150));
 
         // µµ¸ÞÀÎ ¸ñÇ¥ °æÇèÄ¡
         // µµ¸ÞÀÎ ´©Àû °æÇèÄ¡
         Exp_t GoalExp = pSlayer->getGoalExp(Domain);
-        //		Exp_t CurrentExp = pSlayer->getSkillDomainExp(Domain);
 
         // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡
         NewGoalExp = max(0, (int)(GoalExp - Point));
 
         // ´©Àû °æÇèÄ¡¿¡´Â ¸ñÇ¥°æÇèÄ¡°¡ ÁÙ¾îµç ¸¸Å­ ¿Ã¶ó°¡¾ß Á¤»óÀÌ´Ù.
         // »õ·Î¿î ´©Àû °æÇèÄ¡
-        //		Exp_t DiffExp = max(0, (int)(GoalExp - NewGoalExp));
 
-        //		Exp_t NewExp = 0;
 
         // ·¹º§ÀÌ ÃÖ°í¿¡ ´ÞÇÑ »ç¶÷ÀÌ¶óµµ °æÇèÄ¡´Â ½×ÀÎ´Ù.
-        //		if( DiffExp == 0 && CurDomainLevel >= SLAYER_MAX_DOMAIN_LEVEL ) {
-        //			NewExp  = CurrentExp + Point;
-        //		} else {
-        //			NewExp  = CurrentExp + DiffExp;
-        //		}
 
         // »õ·Î¿î ¸ñÇ¥ °æÇèÄ¡ ¼ÂÆÃ
         // »õ·Î¿î ´©Àû °æÇèÄ¡ ¼ÂÆÃ
         pSlayer->setGoalExp(Domain, NewGoalExp);
-        //		pSlayer->setSkillDomainExp(Domain, NewExp);
 
-        // cout << "³²Àº °æÇèÄ¡´Â " << NewGoalExp << endl;
 
         // ¸ñÇ¥ °æÇèÄ¡°¡ 0 ÀÌ¶ó¸é, ·¹º§¾÷À» ÇÒ ¼ö ÀÖ´Â »óÅÂÀÎ°¡¸¦ °Ë»çÇÑ´Ù.
         if (NewGoalExp == 0 && CurDomainLevel != SLAYER_MAX_DOMAIN_LEVEL) {
@@ -1822,7 +1440,6 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             pSlayer->setGoalExp(Domain, NewGoalExp);
             pSlayer->setSkillDomainLevel(Domain, NewDomainLevel);
 
-            // cout << "·¹º§¾÷ÇØ¼­ ³²Àº °æÇèÄ¡´Â " << NewGoalExp << endl;
 
             SkillType_t NewLearnSkillType = g_pSkillInfoManager->getSkillTypeByLevel(Domain, NewDomainLevel);
 
@@ -1840,21 +1457,8 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             }
 
             isLevelUp = true;
-            // cout << "·¹º§¾÷ ÇÒ ¼ö ÀÖ½À´Ï´Ù." << endl;
         }
 
-        /*		if (DiffExp != 0)
-                {
-                    switch (Domain)
-                    {
-                        case SKILL_DOMAIN_BLADE:   _ModifyInfo.addLongData(MODIFY_BLADE_DOMAIN_EXP, NewGoalExp); break;
-                        case SKILL_DOMAIN_SWORD:   _ModifyInfo.addLongData(MODIFY_SWORD_DOMAIN_EXP, NewGoalExp); break;
-                        case SKILL_DOMAIN_GUN:     _ModifyInfo.addLongData(MODIFY_GUN_DOMAIN_EXP, NewGoalExp); break;
-                        case SKILL_DOMAIN_HEAL:    _ModifyInfo.addLongData(MODIFY_HEAL_DOMAIN_EXP, NewGoalExp); break;
-                        case SKILL_DOMAIN_ENCHANT: _ModifyInfo.addLongData(MODIFY_ENCHANT_DOMAIN_EXP, NewGoalExp);
-           break; default: break;
-                    }
-                }*/
 
         Level_t DomainLevelSum = pSlayer->getSkillDomainLevelSum();
 
@@ -1885,7 +1489,6 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             SkillDomainType_t DownDomainType = ds[j].DomainType;
             Level_t DownDomainLevel = ds[j].DomainLevel;
 
-            // cout << (int)DownDomainType << "µµ¸ÞÀÎÀÇ µµ¸ÞÀÎ ·¹º§À» ³·Ãä´Ï´Ù." << endl;
 
             // ÇöÀç µµ¸ÞÀÎ¿¡¼­ ¹è¿ï ¼ö ÀÖ´Â ±â¼úÀÌ ÀÖ´Ù¸é Disable ½ÃÅ²´Ù.
             SkillType_t eraseSkillType = g_pSkillInfoManager->getSkillTypeByLevel(DownDomainType, DownDomainLevel);
@@ -1906,15 +1509,10 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
                                           .skillDomains()
                                           .getDomainInfo((SkillDomain)DownDomainType, DownDomainLevel)
                                           ->getGoalExp();
-            //			Exp_t DownDomainSumExp  = de::gameContext().skillDomains().getDomainInfo((SkillDomain)DownDomainType,
-            // DownDomainLevel)->getAccumExp();
 
             // ´Ù¿î ±×·¹ÀÌµåµÈ ¸ñÇ¥ °æÇèÄ¡·Î Àç ¼ÂÆÃÇÑ´Ù.
             // ´Ù¿î ±×·¹ÀÌµå µÇ¾úÀ¸¹Ç·Î ±× ·¹º§¿¡ ¸Â´Â µµ¸ÞÀÎ °æÇèÄ¡¸¦ ¼ÂÆÃÇÑ´Ù.
             pSlayer->setGoalExp(DownDomainType, DownDomainGoalExp);
-            //			pSlayer->setSkillDomainExp(DownDomainType, DownDomainSumExp);
-            // cout << "·¹º§ : " << (int)DownDomainLevel << endl;
-            // cout << "³²Àº°æÇèÄ¡ : " << (int)DownDomainGoalExp << endl;
 
             StringStream DownSave;
             if (DownDomainType == SKILL_DOMAIN_BLADE) {
@@ -2087,8 +1685,6 @@ bool increaseDomainExp(Slayer* pSlayer, SkillDomainType_t Domain, Exp_t Point, M
             sendEffectLevelUp(pSlayer);
 
             pSlayer->whenQuestLevelUpgrade();
-
-            // cout << "·¹º§¾÷ÇØ¼­ ÀÌÆåÆ®µµ Âï¾îÁá½À´Ï´Ù." << endl;
         }
     }
 
@@ -2126,67 +1722,17 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
     if (isAffectExp2X())
         Point *= 2;
 
-    // cout << pVampire->getName() << " ¿¡°Ô " << Point << "¸¸Å­ °æÇèÄ¡¸¦ ÁÝ´Ï´Ù." << endl;
-
-    /*	if (curLevel >= VAMPIRE_MAX_LEVEL)
-        {
-            // ·¹º§ ÇÑ°è¿¡ µµ´ÞÇØµµ °æÇèÄ¡´Â ½×°Ô ÇØÁØ´Ù.
-            // by sigi. 2002.8.31
-            Exp_t NewExp = pVampire->getExp() + Point;
-
-            WORD ExpSaveCount = pVampire->getExpSaveCount();
-            if (ExpSaveCount > VAMPIRE_EXP_SAVE_PERIOD)
-            {
-                char pField[80];
-                sprintf(pField, "Exp=%lu", NewExp);
-                pVampire->tinysave(pField);
-
-                ExpSaveCount = 0;
-            }
-            else ExpSaveCount++;
-            pVampire->setExpSaveCount(ExpSaveCount);
-
-            pVampire->setExp( NewExp );
-
-            return;
-        }*/
-
-    //	Exp_t OldExp = pVampire->getExp();
 
     Exp_t OldGoalExp = pVampire->getGoalExp();
     Exp_t NewGoalExp = max(0, (int)(OldGoalExp - Point));
 
     // ´©Àû °æÇèÄ¡¿¡´Â ¸ñÇ¥ °æÇèÄ¡°¡ ÁÙ¾îµç ¸¸Å­ ÇÃ·¯½º ÇÏ¿©¾ß ÇÑ´Ù.
-    //	Exp_t DiffGoalExp = max(0, (int)(OldGoalExp - NewGoalExp));
-    //	Exp_t NewExp      = OldExp + DiffGoalExp;
 
-    //	pVampire->setExp(NewExp);
     pVampire->setGoalExp(NewGoalExp);
 
-    //	_ModifyInfo.addLongData(MODIFY_VAMP_GOAL_EXP, NewGoalExp);
 
     // ¸ñÇ¥ °æÇèÄ¡°¡ 0ÀÌ ¾Æ´Ï°Å³ª, ÇöÀç ·¹º§ÀÌ 115 ÀÌ»óÀÌ¶ó¸é °æÇèÄ¡¸¸ ÀúÀåÇÏ°í,
     // ·¹º§Àº ¿Ã¶ó°¡Áö ¾Ê´Â´Ù.
-    /*	if (NewGoalExp > 0 || curLevel >= 115)
-        {
-            WORD ExpSaveCount = pVampire->getExpSaveCount();
-
-            // °æÇèÄ¡ ¼¼ÀÌºê Ä«¿îÆ®°¡ ÀÏÁ¤ ¼öÄ¡¿¡ ´Ù´Ù¸£¸é ¼¼ÀÌºêÇÏ°í,
-            // Ä«¿îÆ®¸¦ ÃÊ±âÈ­½ÃÄÑ ÁØ´Ù.
-            if (ExpSaveCount > VAMPIRE_EXP_SAVE_PERIOD)
-            {
-                StringStream attrsave;
-                attrsave << "Exp = " << NewExp << ", GoalExp = " << NewGoalExp;
-                pVampire->tinysave(attrsave.toString());
-
-                ExpSaveCount = 0;
-            }
-            else ExpSaveCount++;
-
-            pVampire->setExpSaveCount(ExpSaveCount);
-        }
-        // ¸ñÇ¥ °æÇèÄ¡°¡ 0 ÀÌ¶ó¸é ·¹º§ ¾÷ÀÌ´Ù.
-        else*/
     if (NewGoalExp > 0 || curLevel == VAMPIRE_MAX_LEVEL) {
         _ModifyInfo.addLongData(MODIFY_VAMP_GOAL_EXP, NewGoalExp);
         WORD ExpSaveCount = pVampire->getExpSaveCount();
@@ -2194,10 +1740,7 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
         // °æÇèÄ¡ ¼¼ÀÌºê Ä«¿îÆ®°¡ ÀÏÁ¤ ¼öÄ¡¿¡ ´Ù´Ù¸£¸é ¼¼ÀÌºêÇÏ°í,
         // Ä«¿îÆ®¸¦ ÃÊ±âÈ­½ÃÄÑ ÁØ´Ù.
         if (ExpSaveCount > VAMPIRE_EXP_SAVE_PERIOD) {
-            // cout << "°æÇèÄ¡¸¦ ÀúÀåÇÕ´Ï´Ù." << endl;
-
             StringStream attrsave;
-            //			attrsave << "Exp = " << NewExp << ", GoalExp = " << NewGoalExp;
             attrsave << "GoalExp = " << NewGoalExp;
             pVampire->tinysave(attrsave.toString());
 
@@ -2207,7 +1750,6 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
 
         pVampire->setExpSaveCount(ExpSaveCount);
     } else {
-        // cout << "·¹º§ÀÌ ¿Ã¶ú½À´Ï´Ù." << endl;
         //  ·¹º§ ¾÷!!
         VAMPIRE_RECORD prev;
         pVampire->getVampireRecord(prev);
@@ -2220,8 +1762,6 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
         // add bonus point
         Bonus_t bonus = pVampire->getBonus();
 
-        //		if ((pVampire->getSTR(ATTR_BASIC) + pVampire->getDEX(ATTR_BASIC) + pVampire->getINT(ATTR_BASIC) +
-        // pVampire->getBonus() - 60) < ((pVampire->getLevel() - 1) * 3))
         {
             // ·¹º§¿¡ »ó°üÄ¡ ¾Ê°í, ¹«Á¶°Ç 3À¸·Î º¯°æµÇ¾ú´Ù.
             // 2001.12.12 ±è¼º¹Î
@@ -2231,13 +1771,11 @@ void increaseVampExp(Vampire* pVampire, Exp_t Point, ModifyInfo& _ModifyInfo) {
         pVampire->setBonus(bonus);
         _ModifyInfo.addShortData(MODIFY_BONUS_POINT, bonus);
 
-        //		VampEXPInfo* pBeforeExpInfo = de::gameContext().vampireExp().getVampEXPInfo(curLevel-1);
         VampEXPInfo* pNextExpInfo = de::gameContext().vampireExp().getVampEXPInfo(curLevel);
         Exp_t NextGoalExp = pNextExpInfo->getGoalExp();
 
         pVampire->setGoalExp(NextGoalExp);
         _ModifyInfo.addLongData(MODIFY_VAMP_GOAL_EXP, NextGoalExp);
-        // cout << "³²Àº °æÇèÄ¡´Â " << NextGoalExp << " ÀÔ´Ï´Ù." << endl;
 
         StringStream sav;
         sav << "Level = "
@@ -2316,46 +1854,15 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
     // ½Ã°£´ë¿¡ µû¶ó ¿Ã¶ó°¡´Â °æÇèÄ¡°¡ ´Þ¶óÁø´Ù.
     Point = (Exp_t)getPercentValue(Point, DomainExpTimebandFactor[getZoneTimeband(pOusters->getZone())]);
 
-    // cout << pOusters->getName() << " ¿¡°Ô " << Point << "¸¸Å­ °æÇèÄ¡¸¦ ÁÝ´Ï´Ù." << endl;
 
-    /*	if (curLevel >= OUSTERS_MAX_LEVEL)
-        {
-            // ·¹º§ ÇÑ°è¿¡ µµ´ÞÇØµµ °æÇèÄ¡´Â ½×°Ô ÇØÁØ´Ù.
-            // by sigi. 2002.8.31
-            Exp_t NewExp = pOusters->getExp() + Point;
-
-            WORD ExpSaveCount = pOusters->getExpSaveCount();
-            if (ExpSaveCount > OUSTERS_EXP_SAVE_PERIOD)
-            {
-                char pField[80];
-                sprintf(pField, "Exp=%lu", NewExp);
-                pOusters->tinysave(pField);
-
-                ExpSaveCount = 0;
-            }
-            else ExpSaveCount++;
-            pOusters->setExpSaveCount(ExpSaveCount);
-
-            pOusters->setExp( NewExp );
-
-            return;
-        }
-
-        Exp_t OldExp = pOusters->getExp();
-    */
     Exp_t OldGoalExp = pOusters->getGoalExp();
     Exp_t NewGoalExp = max(0, (int)(OldGoalExp - Point));
 
     // ´©Àû °æÇèÄ¡¿¡´Â ¸ñÇ¥ °æÇèÄ¡°¡ ÁÙ¾îµç ¸¸Å­ ÇÃ·¯½º ÇÏ¿©¾ß ÇÑ´Ù.
-    //	Exp_t DiffGoalExp = max(0, (int)(OldGoalExp - NewGoalExp));
-    //	Exp_t NewExp      = OldExp + DiffGoalExp;
 
-    //	pOusters->setExp(NewExp);
     pOusters->setGoalExp(NewGoalExp);
 
-    //	_ModifyInfo.addLongData(MODIFY_OUSTERS_EXP, NewExp);
 
-    //	if ( NewGoalExp > 0 )
     if (NewGoalExp > 0 || curLevel == OUSTERS_MAX_LEVEL) {
         WORD ExpSaveCount = pOusters->getExpSaveCount();
         _ModifyInfo.addLongData(MODIFY_OUSTERS_GOAL_EXP, NewGoalExp);
@@ -2380,7 +1887,6 @@ void increaseOustersExp(Ousters* pOusters, Exp_t Point, ModifyInfo& _ModifyInfo)
         curLevel++;
         pOusters->setLevel(curLevel);
 
-        //		OustersEXPInfo* pBeforeExpInfo = de::gameContext().oustersExp().getOustersEXPInfo(curLevel-1);
         OustersEXPInfo* pNextExpInfo = de::gameContext().oustersExp().getOustersEXPInfo(curLevel);
         Exp_t NextGoalExp = pNextExpInfo->getGoalExp();
 
@@ -2605,8 +2111,6 @@ void healCreatureForLevelUp(Slayer* pSlayer, ModifyInfo& _ModifyInfo, SLAYER_REC
     if (OldMP != NewMP) {
         _ModifyInfo.addShortData(MODIFY_CURRENT_MP, NewMP);
     }
-
-    //	pSlayer->sendModifyInfo(*prev);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2643,8 +2147,6 @@ void healCreatureForLevelUp(Vampire* pVampire, ModifyInfo& _ModifyInfo, VAMPIRE_
         Assert(pZone != NULL);
         pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &gcStatusCurrentHP, pVampire);
     }
-
-    //	pVampire->sendModifyInfo(*prev);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2687,8 +2189,6 @@ void healCreatureForLevelUp(Ousters* pOusters, ModifyInfo& _ModifyInfo, OUSTERS_
 
     if (OldMP != NewMP)
         _ModifyInfo.addShortData(MODIFY_CURRENT_MP, NewMP);
-
-    //	pOusters->sendModifyInfo(*prev);
 }
 
 Exp_t computeSkillPointBonus(SkillDomainType_t Domain, SkillLevel_t DomainLevel, Item* pWeapon, Exp_t Point) {
@@ -2711,8 +2211,6 @@ Exp_t computeSkillPointBonus(SkillDomainType_t Domain, SkillLevel_t DomainLevel,
         newPoint = min(Point120, newPoint);
     }
 
-    // cout << "skillPoint: " << (int)itemType << " / " << (int)bestItemType
-    //	 << ", " << (int)Point << " --> " << (int)newPoint << endl;
 
     // by sigi. 2002.11.5
     newPoint = max(1, (int)newPoint);

@@ -51,7 +51,6 @@ void EffectAirShield::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectAirShield" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -68,7 +67,6 @@ void EffectAirShield::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(m_ClientEffectClass);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectAirShield" << "unaffect END" << endl;
 
     __END_CATCH
 }

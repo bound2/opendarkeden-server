@@ -34,12 +34,10 @@ void EffectDancingSword::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectDancingSword " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectDancingSword " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -50,7 +48,6 @@ void EffectDancingSword::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectDancingSword " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -74,7 +71,6 @@ void EffectDancingSword::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_DANCING_SWORD);
     pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcRemoveEffect);
 
-    // cout << "EffectDancingSword " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

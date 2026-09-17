@@ -39,7 +39,6 @@ void EffectDetectMine::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectDetectMine " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
 
@@ -48,7 +47,6 @@ void EffectDetectMine::unaffect(Creature* pCreature)
     Zone* pZone = pCreature->getZone();
     pZone->updateMineScan(pCreature);
 
-    // cout << "EffectDetectMine " << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -58,12 +56,10 @@ void EffectDetectMine::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectDetectMine " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectDetectMine " << "unaffect END" << endl;
 
     __END_CATCH
 }

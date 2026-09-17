@@ -76,13 +76,11 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
             list<Creature*> cList;
             list<Creature*> creatureList;
             getSplashVictims(pZone, X, Y, Creature::CREATURE_CLASS_MAX, creatureList, Splash);
-            // cout << "Create Size : " << (int)creatureList.size() << endl;
 
             list<Creature*>::iterator itr = creatureList.begin();
             for (; itr != creatureList.end(); itr++) {
                 Creature* pTargetCreature = (*itr);
                 Assert(pTargetCreature != NULL);
-                //				bool bSlayer	 = false;		// unused variable warninig clear by bezz 2002.05.13
 
                 EffectBloodDrain* pEffectBloodDrain = NULL;
 
@@ -226,7 +224,6 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, const 
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // cout << "Healed Creature Size : " << (int)cList.size() << endl;
             cList.push_back(pSlayer);
             // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
@@ -292,7 +289,6 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
         Zone* pZone = pSlayer->getZone();
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -332,7 +328,6 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
             list<Creature*> cList;
             list<Creature*> creatureList;
             getSplashVictims(pZone, X, Y, Creature::CREATURE_CLASS_MAX, creatureList, Splash);
-            // cout << "Create Size : " << (int)creatureList.size() << endl;
 
             list<Creature*>::iterator itr = creatureList.begin();
             for (; itr != creatureList.end(); itr++) {
@@ -469,7 +464,6 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, Sk
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // cout << "Healed Creature Size : " << (int)cList.size() << endl;
             cList.push_back(pSlayer);
             // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
@@ -564,7 +558,6 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y,
             list<Creature*> cList;
             list<Creature*> creatureList;
             getSplashVictims(pZone, X, Y, Creature::CREATURE_CLASS_MAX, creatureList, Splash);
-            // cout << "Create Size : " << (int)creatureList.size() << endl;
 
             list<Creature*>::iterator itr = creatureList.begin();
             for (; itr != creatureList.end(); itr++) {
@@ -701,7 +694,6 @@ void SimpleTileCureSkill::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y,
 
             pPlayer->sendPacket(&_GCSkillToTileOK1);
 
-            // cout << "Healed Creature Size : " << (int)cList.size() << endl;
             cList.push_back(pSlayer);
             // 이 기술에 의해 영향을 받는 놈들에게 패킷을 보내줘야 한다.
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {

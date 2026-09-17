@@ -28,7 +28,6 @@ EffectGroundAttack::EffectGroundAttack(Zone* pZone, ZoneCoord_t zoneX, ZoneCoord
     m_X = zoneX;
     m_Y = zoneY;
     m_DamagePercent = 0;
-    //	m_CasterName = "";
     m_UserObjectID = 0;
 
     __END_CATCH
@@ -41,11 +40,6 @@ void EffectGroundAttack::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectGroundAttack" << "affect BEGIN" << endl;
-
-    // setNextTime(m_Delay);
-
-    // cout << "EffectGroundAttack" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -75,7 +69,6 @@ void EffectGroundAttack::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectGroundAttack" << "unaffect BEGIN" << endl;
     Assert(m_pZone != NULL);
 
     // 시전자를 가져온다.
@@ -186,15 +179,6 @@ void EffectGroundAttack::unaffect()
 
                     // m_CasterName이 pCreature를 죽인 경우의 KillCount 처리
                     // by sigi. 2002.8.31
-                    /*					if (pCreature->isDead())
-                                        {
-                                            Creature* pAttacker = m_pZone->getCreature( m_CasterName );
-
-                                            if (pAttacker!=NULL)
-                                            {
-                                                affectKillCount(pAttacker, pCreature);
-                                            }
-                                        }*/
                 }
             }
         }
@@ -203,7 +187,6 @@ void EffectGroundAttack::unaffect()
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectGroundAttack" << "unaffect END" << endl;
 
     __END_CATCH
 }

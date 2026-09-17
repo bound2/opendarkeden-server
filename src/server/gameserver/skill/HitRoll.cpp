@@ -50,7 +50,6 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
 
         ToHit = pSlayerAttacker->getToHit();
 
-        // cout << "HitRoll: " << pSlayerAttacker->getName().c_str() << " --> ";
     } else if (pAttacker->isVampire()) {
         Vampire* pVampireAttacker = dynamic_cast<Vampire*>(pAttacker);
         Assert(pVampireAttacker != NULL);
@@ -100,7 +99,6 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
         Slayer* pSlayerDefender = dynamic_cast<Slayer*>(pDefender);
         Defense = pSlayerDefender->getDefense();
 
-        // cout << pSlayerDefender->getName().c_str() << " : ";
     } else if (pDefender->isVampire()) {
         Vampire* pVampireDefender = dynamic_cast<Vampire*>(pDefender);
         Defense = pVampireDefender->getDefense();
@@ -125,8 +123,6 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
 
     Result = decore::meleeHitRatio(ToHit, Defense, ToHitBonus, isMonster);
 
-    // cout << ToHit << " --> " << Defense << " : " << RandValue << "<=" << Result
-    //		<< (RandValue <= Result? "Success" : "Fail") << endl;
     if (RandValue <= Result)
         return true;
 
@@ -136,72 +132,6 @@ bool HitRoll::isSuccess(Creature* pAttacker, Creature* pDefender, int ToHitBonus
 //////////////////////////////////////////////////////////////////////////////
 // 일반 공격 hitroll 함수
 //////////////////////////////////////////////////////////////////////////////
-/*bool HitRoll::isSuccess(ToHit_t ToHit, Creature* pDefender, int ToHitBonus)
-{
-    Assert(pDefender != NULL);
-
-    Zone* pZone = pDefender->getZone();
-    Assert( pZone != NULL );
-
-    // 무적상태 체크. by sigi. 2002.9.5
-    if (pDefender->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE))
-    {
-        return false;
-    }
-
-
-    Defense_t Defense  = 0;
-    uint      timeband = pZone->getTimeband();
-
-    // 방어자의 디펜스를 계산해 준다.
-    if (pDefender->isSlayer())
-    {
-        Slayer* pSlayerDefender = dynamic_cast<Slayer*>(pDefender);
-        Defense = pSlayerDefender->getDefense();
-    }
-    else if (pDefender->isVampire())
-    {
-        Vampire* pVampireDefender = dynamic_cast<Vampire*>(pDefender);
-        Defense = pVampireDefender->getDefense();
-        Defense = (Defense_t)getPercentValue(Defense, VampireTimebandFactor[timeband]);
-    }
-    else if (pDefender->isOusters())
-    {
-        Ousters* pOustersDefender = dynamic_cast<Ousters*>(pDefender);
-        Defense = pOustersDefender->getDefense();
-    }
-    else if (pDefender->isMonster())
-    {
-        Monster* pMonsterDefender= dynamic_cast<Monster*>(pDefender);
-        Defense = pMonsterDefender->getDefense();
-        Defense = (Defense_t)getPercentValue(Defense, MonsterTimebandFactor[timeband]);
-    }
-    else
-    {
-        // 현재 크리쳐의 클래스는 Slayer, Vampire, Monster, NPC 뿐인데...
-        // 이까지 왔다는 말은 방어자가 NPC라는 말이지.
-        // NPC AI는 구현되지 않은 상태이므로, 무조건 리턴이다.
-        return false;
-    }
-
-    int RandValue = Random(0, 100);
-    int Result    = 0;
-
-    if (ToHit >= Defense)
-    {
-        // 투힛이 디펜스보다 높은 경우에는 맞출 확률이 꽤...높다.
-        Result = min(95, (int)(((ToHit - Defense) / 3) + 50) + ToHitBonus/2);
-    }
-    else
-    {
-        // 투힛이 디펜스보다 낮은 경우에는 맞출 확률이 많이 떨어진다.
-        Result = max(5, (int)(50 - ((Defense - ToHit) / 3) + ToHitBonus/2));
-    }
-
-    if (RandValue <= Result) return true;
-
-    return false;
-}*/
 
 
 //////////////////////////////////////////////////////////////////////////////
@@ -239,8 +169,6 @@ bool HitRoll::isSuccessMagic(Vampire* pVampire, SkillInfo* pSkillInfo, VampireSk
     if (RandValue < Success)
         return true;
 
-    //	if (RandValue < (int)(45 - pSkillInfo->getLevel() / 2 + (pVampire->getINT() + pVampire->getLevel()) / 4)) return
-    // true;
 
     return false;
 }
@@ -256,7 +184,6 @@ bool HitRoll::isSuccessMagic(Ousters* pOusters, SkillInfo* pSkillInfo, OustersSk
     Assert(pOustersSkillSlot != NULL);
 
     int RandValue = Random(1, 100);
-    //	int Success = (int)( 45 - pSkillInfo->getLevel() / 2 + (pOusters->getINT() + pOusters->getLevel())/10 );
     int Success = decore::oustersMagicRatio(pOusters->getINT(), pOusters->getLevel(), pOustersSkillSlot->getExpLevel(),
                                             isOustersSelfSkill(pOustersSkillSlot->getSkillType()), BonusPoint);
 
@@ -308,7 +235,6 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
 
     int ToHit = 0;
     int Defense = 0;
-    // int VampLevel  = 0;
     int OtherLevel = 0;
     int ratio = 0;
 
@@ -342,7 +268,6 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
         int CurHP = pTargetVampire->getHP(ATTR_CURRENT);
 
         bHPCheck = decore::bloodDrainHPGate(CurHP, MaxHP, multiplier);
-        // bEffected  = pTargetVampire->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         bEffected = (normalMultiplier == multiplier) && pTargetVampire->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         Defense = pTargetVampire->getDefense() + pTargetVampire->getLevel() / 5;
         OtherLevel = pTargetVampire->getLevel();
@@ -359,7 +284,6 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
         int CurHP = pTargetOusters->getHP(ATTR_CURRENT);
 
         bHPCheck = decore::bloodDrainHPGate(CurHP, MaxHP, multiplier);
-        // bEffected  = pTargetOusters->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         bEffected = (normalMultiplier == multiplier) && pTargetOusters->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         Defense = pTargetOusters->getDefense() + pTargetOusters->getLevel() / 5;
         OtherLevel = pTargetOusters->getLevel();
@@ -374,7 +298,6 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
         int CurHP = pTargetMonster->getHP(ATTR_CURRENT);
 
         bHPCheck = decore::bloodDrainHPGate(CurHP, MaxHP, multiplier);
-        // bEffected  = pTargetMonster->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         bEffected = (normalMultiplier == multiplier) && pTargetMonster->isFlag(Effect::EFFECT_CLASS_BLOOD_DRAIN);
         Defense = pTargetMonster->getDefense() + pTargetMonster->getLevel() / 5;
         OtherLevel = pTargetMonster->getLevel();
@@ -410,29 +333,23 @@ bool HitRoll::isSuccessBloodDrain(Creature* pAttacker, Creature* pDefender, int 
         Vampire* pVampire = dynamic_cast<Vampire*>(pAttacker);
 
         ToHit = pVampire->getToHit();
-        // VampLevel = pVampire->getLevel();
 
         ToHit = (ToHit_t)getPercentValue(ToHit, VampireTimebandFactor[timeband]);
     } else if (pAttacker->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pAttacker);
 
         ToHit = pMonster->getToHit();
-        // VampLevel = pMonster->getLevel();
 
         ToHit = (ToHit_t)getPercentValue(ToHit, MonsterTimebandFactor[timeband]);
     }
 
-    //	cout << pAttacker->getName() << "의 투힛 : " << ToHit << endl;
-    //	cout << pDefender->getName() << "의 디펜 : " << Defense << endl;
 
     ratio = decore::bloodDrainHitRatio(ToHit, Defense);
 
     if ((rand() % 100) < ratio) {
-        //		cout << "흡혈 성공" << endl;
         return true;
     }
 
-    //	cout << "흡혈 실패" << endl;
     return false;
 }
 
@@ -506,7 +423,6 @@ bool HitRoll::isSuccessFlare(Creature* pTargetCreature, int SkillLevel) {
     int ratio = 0;
 
     if (pTargetCreature->isPC()) {
-        //		Vampire* pVampire = dynamic_cast<Vampire*>(pTargetCreature);
         ratio = decore::flareRatio(SkillLevel, pTargetCreature->getLevel());
     } else if (pTargetCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pTargetCreature);
@@ -566,7 +482,6 @@ bool HitRoll::isSuccessRebuke(Slayer* pSlayer, SkillSlot* pSkillSlot, Creature* 
     Attr_t INTE = pSlayer->getINT(ATTR_CURRENT);
     SkillLevel_t SkillLevel = pSkillSlot->getExpLevel();
 
-    //	int ratio = ( INTE / 10 ) + ( SkillLevel / 3 );
     int ratio = decore::rebukeRatio(INTE, SkillLevel);
     if (rand() % 100 < ratio)
         return true;

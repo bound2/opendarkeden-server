@@ -31,7 +31,6 @@ void EffectFrozenArmor::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectFrozenArmor" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isOusters());
@@ -51,7 +50,6 @@ void EffectFrozenArmor::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_FROZEN_ARMOR);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectFrozenArmor" << "unaffect END" << endl;
 
     __END_CATCH
 }

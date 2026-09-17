@@ -37,7 +37,6 @@ void ThunderFlash::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " begin(slayerobject)" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -47,7 +46,6 @@ void ThunderFlash::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -60,7 +58,6 @@ void ThunderFlash::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSlot
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(slayerobject)" << endl;
 
     __END_CATCH
 }
@@ -75,7 +72,6 @@ void ThunderFlash::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -91,7 +87,6 @@ void ThunderFlash::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
         Item* pItem = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pItem == NULL || pItem->getItemClass() != Item::ITEM_CLASS_SWORD) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end" << endl;
             return;
         }
 
@@ -159,7 +154,6 @@ void ThunderFlash::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
                         bool bMoveModeCheck =
                             (pTargetCreature->getMoveMode() == Creature::MOVE_MODE_WALKING) ? true : false;
                         bool bHitRoll = HitRoll::isSuccess(pSlayer, pTargetCreature, SkillLevel / 2);
-                        // bool bCanHit        = canHit(pSlayer, pTargetCreature, SkillType);
                         bool bCanHit = true;
                         bool bPK = verifyPK(pSlayer, pTargetCreature);
                         bool bRaceCheck = pTargetCreature->isSlayer() || pTargetCreature->isNPC();
@@ -278,7 +272,6 @@ void ThunderFlash::execute(Slayer* pSlayer, ZoneCoord_t X, ZoneCoord_t Y, SkillS
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end" << endl;
 
     __END_CATCH
 }

@@ -275,26 +275,6 @@ void MotorcycleLoader::load(Creature* pCreature)
 
             pMotorcycle->setDurability(rows[r].durability);
 
-            /*
-                switch(storage)
-                {
-                    case STORAGE_INVENTORY:
-                    case STORAGE_GEAR:
-                    case STORAGE_BELT :
-                    case STORAGE_EXTRASLOT :
-                    case STORAGE_MOTORCYCLE:
-                    case STORAGE_STASH:
-                        // 모터 사이클 안에 모터 사이클을 보관할 수가 있나
-                        Assert(false);
-                        pMotorcycle->destroy();
-                        SAFE_DELETE(pMotorcycle);
-                        break;
-
-                    default :
-                        SAFE_DELETE(pStmt);	// by sigi
-                        throw Error("invalid storage or OwnerID must be NULL");
-                }
-                */
 
         } catch (Error& error) {
             filelog("itemLoadError.txt", "[%s] %s", getItemClassName().c_str(), error.toString().c_str());
@@ -337,10 +317,7 @@ void MotorcycleLoader::load(Zone* pZone)
 
         switch (storage) {
         case STORAGE_ZONE: {
-            //						Tile & pTile = pZone->getTile(x,y);
-            //						Assert(!pTile.hasItem());
             pZone->addItem(pMotorcycle, x, y);
-            //						pTile.addItem(pMotorcycle);
         } break;
 
         case STORAGE_STASH:

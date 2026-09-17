@@ -20,7 +20,6 @@ void Sacrifice::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -94,7 +93,6 @@ void Sacrifice::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

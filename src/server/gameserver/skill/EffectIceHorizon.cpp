@@ -40,14 +40,12 @@ void EffectIceHorizon::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectIceHorizon" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
     // 이펙트를 사용한 크리쳐를 가져온다.
     // !! 이미 존을 나갔을 수도 있으므로 NULL이 될 수 있다.
     // by bezz. 2003.1.4
-    // Creature* pCastCreature = m_pZone->getCreature( m_CasterID );
 
     // 현재 이펙트가 붙어있는 타일을 받아온다.
     Tile& tile = m_pZone->getTile(m_X, m_Y);
@@ -108,7 +106,6 @@ void EffectIceHorizon::affect()
 
     setNextTime(m_Tick);
 
-    // cout << "EffectIceHorizon" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -138,12 +135,10 @@ void EffectIceHorizon::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectIceHorizon" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectIceHorizon" << "unaffect END" << endl;
 
     __END_CATCH
 }

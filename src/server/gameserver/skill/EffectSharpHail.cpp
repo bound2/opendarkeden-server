@@ -41,7 +41,6 @@ void EffectSharpHail::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectSharpHail" << "affect BEGIN" << endl;
 
     Assert(m_pZone != NULL);
 
@@ -143,7 +142,6 @@ void EffectSharpHail::affect()
 
     setNextTime(m_Tick);
 
-    // cout << "EffectSharpHail" << "affect END" << endl;
 
     __END_CATCH
 }
@@ -155,12 +153,10 @@ void EffectSharpHail::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectSharpHail" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
 
-    // cout << "EffectSharpHail" << "unaffect END" << endl;
 
     __END_CATCH
 }

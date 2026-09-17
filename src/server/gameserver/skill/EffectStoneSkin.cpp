@@ -36,12 +36,10 @@ void EffectStoneSkin::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectStoneSkin" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectStoneSkin" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -52,7 +50,6 @@ void EffectStoneSkin::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectStoneSkin" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isVampire());
@@ -76,7 +73,6 @@ void EffectStoneSkin::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_STONE_SKIN);
     pZone->broadcastPacket(pVampire->getX(), pVampire->getY(), &gcRemoveEffect);
 
-    // cout << "EffectStoneSkin" << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

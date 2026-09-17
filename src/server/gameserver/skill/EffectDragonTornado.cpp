@@ -151,7 +151,6 @@ void EffectDragonTornado::affect(Creature* pCreature)
             isStun = true;
     }
 
-    // GCModifyInformation gcMI;
     GCModifyInformation gcAttackerMI;
     GCSkillToObjectOK6 gcSkillToObjectOK6;
 
@@ -160,9 +159,6 @@ void EffectDragonTornado::affect(Creature* pCreature)
 
         ::setDamage(pSlayer, m_Damage, pCastCreature, SKILL_DRAGON_TORNADO, &gcSkillToObjectOK6, &gcAttackerMI);
 
-        /*						Player* pPlayer = pSlayer->getPlayer();
-                Assert(pPlayer != NULL);
-                pPlayer->sendPacket(&gcMI);*/
 
     } else if (pCreature->isVampire()) {
         // 뱀파이어가 사용했을 경우 뱀파이어는 중심 타일을 제외하고는 맞지 않는다.
@@ -170,17 +166,11 @@ void EffectDragonTornado::affect(Creature* pCreature)
 
         ::setDamage(pVampire, m_Damage, pCastCreature, SKILL_DRAGON_TORNADO, &gcSkillToObjectOK6, &gcAttackerMI);
 
-        /*						Player* pPlayer = pVampire->getPlayer();
-                Assert(pPlayer != NULL);
-                pPlayer->sendPacket(&gcMI);*/
     } else if (pCreature->isOusters()) {
         Ousters* pOusters = dynamic_cast<Ousters*>(pCreature);
 
         ::setDamage(pOusters, m_Damage, pCastCreature, SKILL_DRAGON_TORNADO, &gcSkillToObjectOK6, &gcAttackerMI);
 
-        /*						Player* pPlayer = pOusters->getPlayer();
-                Assert(pPlayer != NULL);
-                pPlayer->sendPacket(&gcMI);*/
     } else if (pCreature->isMonster()) {
         Monster* pMonster = dynamic_cast<Monster*>(pCreature);
 
@@ -233,7 +223,6 @@ void EffectDragonTornado::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectDragonTornado" << "unaffect BEGIN" << endl;
 
     Tile& tile = m_pZone->getTile(m_X, m_Y);
     tile.deleteEffect(m_ObjectID);
@@ -244,7 +233,6 @@ void EffectDragonTornado::unaffect()
     gcDT.setEffectID(getSendEffectClass());
     m_pZone->broadcastPacket(m_X, m_Y, &gcDT);
 
-    // cout << "EffectDragonTornado" << "unaffect END" << endl;
 
     __END_CATCH
 }

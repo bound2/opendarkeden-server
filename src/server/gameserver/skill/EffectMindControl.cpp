@@ -55,12 +55,10 @@ void EffectMindControl::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectMindControl" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectMindControl" << "unaffect END" << endl;
 
     __END_CATCH
 }
@@ -72,7 +70,6 @@ void EffectMindControl::unaffect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectMindControl" << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer()); // 슬레이어말고는 걸리지 않는다.
@@ -95,7 +92,6 @@ void EffectMindControl::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_MIND_CONTROL);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectMindControl" << "unaffect END" << endl;
 
     __END_CATCH
 }

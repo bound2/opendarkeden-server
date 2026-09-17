@@ -25,7 +25,6 @@ void Mephisto::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, C
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -112,7 +111,6 @@ void Mephisto::execute(Vampire* pVampire, VampireSkillSlot* pVampireSkillSlot, C
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }
@@ -123,7 +121,6 @@ void Mephisto::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -136,7 +133,6 @@ void Mephisto::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -237,7 +233,6 @@ void Mephisto::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSkil
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }
@@ -247,7 +242,6 @@ void Mephisto::execute(Vampire* pVampire)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayerself)" << endl;
 
     Assert(pVampire != NULL);
 
@@ -335,7 +329,6 @@ void Mephisto::execute(Vampire* pVampire)
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayerself)" << endl;
 
     __END_CATCH
 }

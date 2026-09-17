@@ -32,7 +32,6 @@ void GrayDarkness::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -42,7 +41,6 @@ void GrayDarkness::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL) {
@@ -55,7 +53,6 @@ void GrayDarkness::execute(Vampire* pVampire, ObjectID_t TargetObjectID, Vampire
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -69,7 +66,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -136,14 +132,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
             SkillOutput output;
             computeOutput(input, output);
 
-            /*			// Wisdom of GrayDarkness 이 있다면 지속시간 30% 증가
-                        if ( pVampire->hasRankBonus( RankBonus::RANK_BONUS_WISDOM_OF_GRAY_DARKNESS ) )
-                        {
-                            RankBonus* pRankBonus = pVampire->getRankBonus(
-               RankBonus::RANK_BONUS_WISDOM_OF_GRAY_DARKNESS ); Assert( pRankBonus != NULL );
-
-                            output.Duration += getPercentValue( output.Duration, pRankBonus->getPoint() );
-                        }*/
 
             Range_t Range = 3;
 
@@ -154,18 +142,7 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
             int edge = 1;
 
             // Wide GrayDarkness 이 있다면 범위가 5*5 로 수정. skill type 을 수정한다.
-            /*			if ( pVampire->hasRankBonus( RankBonus::RANK_BONUS_WIDE_GRAY_DARKNESS ) )
-                        {
-                            RankBonus* pRankBonus = pVampire->getRankBonus( RankBonus::RANK_BONUS_WIDE_GRAY_DARKNESS );
-                            Assert( pRankBonus != NULL );
 
-                            Range = pRankBonus->getPoint();
-                            edge = ( pRankBonus->getPoint() - 1 ) / 2;
-
-                            SkillType = SKILL_WIDE_GRAY_DARKNESS;
-                        }*/
-
-            //			map<int, uint> canAddMap;
 
             for (oY = -edge; oY <= edge; oY++)
                 for (oX = -edge; oX <= edge; oX++) {
@@ -174,8 +151,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
                     if (rect.ptInRect(tileX, tileY)) {
                         Tile& tile = pZone->getTile(tileX, tileY);
 
-                        //					if ( canAddMap[normalizeCoord_GRAY_DARKNESS( oX, oY, edge )] == 1 )
-                        // continue;
 
                         if (tile.hasItem()) {
                             Item* pItem = tile.getItem();
@@ -183,11 +158,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
                                 pItem->getItemType() == MONSTER_CORPSE) {
                                 MonsterCorpse* pMonsterCorpse = dynamic_cast<MonsterCorpse*>(pItem);
                                 if (g_pFlagManager->isFlagPole(pMonsterCorpse)) {
-                                    //								canAddMap[normalizeCoord_GRAY_DARKNESS( oX+1, oY,
-                                    // edge )] = 1;
-                                    // canAddMap[normalizeCoord_GRAY_DARKNESS( oX+1, oY+1, edge )] = 1;
-                                    //								canAddMap[normalizeCoord_GRAY_DARKNESS( oX, oY+1,
-                                    // edge )] = 1;
                                     continue;
                                 }
                             }
@@ -214,7 +184,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
                             pEffect->setDeadline(output.Duration);
                             pEffect->setLevel(pVampire->getINT());
                             pEffect->setDuration(output.Duration);
-                            //						pEffect->setStartTime();
 
                             // Tile에 붙이는 Effect는 ObjectID를 등록받아야 한다.
                             ObjectRegistry& objectregister = pZone->getObjectRegistry();
@@ -234,8 +203,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
                                     _GCSkillToTileOK4.addCListElement(pTargetCreature->getObjectID());
                                     _GCSkillToTileOK5.addCListElement(pTargetCreature->getObjectID());
                                 }
-
-                                //							pEffect->affectObject(pTarget, false);
                             }
                         }
                     }
@@ -254,7 +221,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
             _GCSkillToTileOK2.setY(Y);
             _GCSkillToTileOK2.setDuration(output.Duration);
             _GCSkillToTileOK2.setRange(Range);
-            //_GCSkillToTileOK2.addShortData(MODIFY_VISION, GRAY_DARKNESS_SIGHT);
 
             _GCSkillToTileOK3.setObjectID(pVampire->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
@@ -280,7 +246,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
             _GCSkillToTileOK6.setY(Y);
             _GCSkillToTileOK6.setDuration(output.Duration);
             _GCSkillToTileOK6.setRange(Range);
-            //_GCSkillToTileOK6.addShortData(MODIFY_VISION, GRAY_DARKNESS_SIGHT);
 
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
@@ -306,14 +271,11 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
 
                 Creature* pWatcher = (*itr);
                 if (bBelong == false && canSee(pWatcher, pVampire) == false) {
-                    // Assert(pWatcher->isPC());	// 당연 PC다.. Zone::getWatcherList는 PC만 return한다
                     if (!pWatcher->isPC()) {
-                        // cout << "GrayDarkness : 왓처 리스트가 PC가 아닙니다." << endl;
                         GCSkillFailed1 _GCSkillFailed1;
                         _GCSkillFailed1.setSkillType(getSkillType());
                         pVampire->getPlayer()->sendPacket(&_GCSkillFailed1);
 
-                        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
                         return;
                     }
                     pWatcher->getPlayer()->sendPacket(&_GCSkillToTileOK4);
@@ -335,7 +297,6 @@ void GrayDarkness::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vamp
         executeSkillFailException(pVampire, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }
@@ -362,7 +323,6 @@ void GrayDarkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pMonster != NULL);
 
@@ -438,7 +398,6 @@ void GrayDarkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                             pEffect->setDeadline(output.Duration);
                             pEffect->setLevel(pMonster->getINT());
                             pEffect->setDuration(output.Duration);
-                            //						pEffect->setStartTime();
 
                             // Tile에 붙이는 Effect는 ObjectID를 등록받아야 한다.
                             ObjectRegistry& objectregister = pZone->getObjectRegistry();
@@ -459,8 +418,6 @@ void GrayDarkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
                                     _GCSkillToTileOK4.addCListElement(pTargetCreature->getObjectID());
                                     _GCSkillToTileOK5.addCListElement(pTargetCreature->getObjectID());
                                 }
-
-                                //							pEffect->affectObject(pTarget, false);
                             }
                         }
                     }
@@ -472,7 +429,6 @@ void GrayDarkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             _GCSkillToTileOK2.setY(Y);
             _GCSkillToTileOK2.setDuration(output.Duration);
             _GCSkillToTileOK2.setRange(Range);
-            //_GCSkillToTileOK2.addShortData(MODIFY_VISION, GRAY_DARKNESS_SIGHT);
 
             _GCSkillToTileOK3.setObjectID(pMonster->getObjectID());
             _GCSkillToTileOK3.setSkillType(SkillType);
@@ -498,7 +454,6 @@ void GrayDarkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
             _GCSkillToTileOK6.setY(Y);
             _GCSkillToTileOK6.setDuration(output.Duration);
             _GCSkillToTileOK6.setRange(Range);
-            //_GCSkillToTileOK6.addShortData(MODIFY_VISION, GRAY_DARKNESS_SIGHT);
 
             for (list<Creature*>::const_iterator itr = cList.begin(); itr != cList.end(); itr++) {
                 Creature* pTargetCreature = *itr;
@@ -522,9 +477,7 @@ void GrayDarkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 
                 Creature* pWatcher = (*itr);
                 if (bBelong == false && canSee(pWatcher, pMonster) == false) {
-                    // Assert(pWatcher->isPC());	// 당연 PC다.. Zone::getWatcherList는 PC만 return한다
                     if (!pWatcher->isPC()) {
-                        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
                         return;
                     }
 
@@ -545,7 +498,6 @@ void GrayDarkness::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

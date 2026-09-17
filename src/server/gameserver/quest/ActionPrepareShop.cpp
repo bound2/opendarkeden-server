@@ -70,7 +70,6 @@ void ActionPrepareShop::read(PropertyBuffer& propertyBuffer)
         m_MarketCondBuy = propertyBuffer.getPropertyInt("MarketConditionBuy");
         m_MarketCondSell = propertyBuffer.getPropertyInt("MarketConditionSell");
 
-        //		propertyBuffer.getPropertyInt("CastleZoneID", (int&)m_TaxingCastleZoneID);
     } catch (NoSuchElementException& nsee) {
         throw Error(nsee.toString());
     }
@@ -204,7 +203,6 @@ void ActionPrepareShop::execute(Creature* pCreature1, Creature* pCreature2)
 
     pNPC->setMarketCondBuy(m_MarketCondBuy);
     pNPC->setMarketCondSell(m_MarketCondSell);
-    //	pNPC->setTaxingCastleZoneID(m_TaxingCastleZoneID);
 
     __END_CATCH
 }

@@ -25,13 +25,8 @@ public:
     }
 
     void affect() {}
-    //	void affect(Creature* pCreature) ;
-    //	void affect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject ) ;
 
     void unaffect();
-    //	void unaffect(Creature* pCreature)  {};
-    //	void unaffect(Zone* pZone, ZoneCoord_t x, ZoneCoord_t y, Object* pObject ) ;
-    //	void unaffect(Item* pItem)  {}
 
     string toString() const;
 
@@ -50,25 +45,6 @@ public:
         return m_Duration;
     }
 
-    //	void setStartTime()  { getCurrentTime(m_StartTime);}
-    //	bool isHalfTimePassed()
-    //	{
-    //		Timeval currentTime;
-    //		getCurrentTime(currentTime);
-    //		if((currentTime.tv_sec - m_StartTime.tv_sec) >= m_Duration/10)
-    //			return true;
-    //
-    //		return false;
-    //	}
-    //	void setHalfTimeDeadline()
-    //	{
-    //		m_Duration /= 2;
-    //		m_Deadline.tv_sec = m_StartTime.tv_sec + m_Duration / 10;
-    //		m_Deadline.tv_usec = m_StartTime.tv_usec +(m_Duration%10)* 100000;
-    //	}
-
-    //	bool affectObject(Object*, bool bAffectByMove) ;
-    //	void unaffectObject(Object*, bool bUnaffectByMove) ;
 
 private:
     Attr_t m_Level;

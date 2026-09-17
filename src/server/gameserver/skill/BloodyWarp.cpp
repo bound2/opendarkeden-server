@@ -20,12 +20,6 @@ BloodyWarp::getWarpPosition(int myX, int myY, int targetX, int targetY) {
     POINT pt;
 
     // 10%의 확률로 random한 위치로 워프
-    /*	if (rand()%10==0)
-        {
-            pt.x = myX + rand()%9 - 4;
-            pt.y = myY + rand()%9 - 4;
-        }
-        else*/
     {
         int stepX = targetX - myX;
         int stepY = targetY - myY;
@@ -53,7 +47,6 @@ void BloodyWarp::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pVampire != NULL);
     Assert(pVampireSkillSlot != NULL);
@@ -75,10 +68,8 @@ void BloodyWarp::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSk
         execute(pVampire, pTargetCreature->getX(), pTargetCreature->getY(), pVampireSkillSlot, CEffectID);
     } catch (Throwable& t) {
         executeSkillFailException(pVampire, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -92,29 +83,11 @@ void BloodyWarp::execute(Vampire* pVampire, ZoneCoord_t X, ZoneCoord_t Y, Vampir
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
-    /*
-    SkillInput input(pVampire);
-    SkillOutput output;
-    computeOutput(input, output);
-
-    int myX = pVampire->getX();
-    int myY = pVampire->getY();
-
-    POINT& pt = getWarpPosition(myX, myY, X, Y );
-
-    if (moveFastPC( pVampire, myX, myY, X, Y ))
-    {
-        decreaseMana(pVampire, RequiredMP, _GCSkillToObjectOK1);
-    }
-    else
-    */
     {
         executeSkillFailNormal(pVampire, getSkillType(), NULL);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }
@@ -127,7 +100,6 @@ void BloodyWarp::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
     Zone* pZone = pMonster->getZone();
     Assert(pZone != NULL);
 
@@ -164,7 +136,6 @@ void BloodyWarp::execute(Monster* pMonster, ZoneCoord_t X, ZoneCoord_t Y)
         executeSkillFailNormal(pMonster, getSkillType(), NULL);
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

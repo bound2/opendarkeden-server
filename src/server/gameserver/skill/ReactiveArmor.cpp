@@ -25,7 +25,6 @@ void ReactiveArmor::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
     Assert(pOusters != NULL);
     Assert(pOustersSkillSlot != NULL);
@@ -49,8 +48,6 @@ void ReactiveArmor::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
 
         SkillType_t SkillType = pOustersSkillSlot->getSkillType();
         SkillInfo* pSkillInfo = g_pSkillInfoManager->getSkillInfo(SkillType);
-        // SkillDomainType_t DomainType = pSkillInfo->getDomainType();
-        // SkillLevel_t      SkillLevel = pOustersSkillSlot->getExpLevel();
 
         int RequiredMP = (int)pSkillInfo->getConsumeMP() + pOustersSkillSlot->getExpLevel() / 2;
         bool bManaCheck = hasEnoughMana(pOusters, RequiredMP);
@@ -115,7 +112,6 @@ void ReactiveArmor::execute(Ousters* pOusters, OustersSkillSlot* pOustersSkillSl
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_CATCH
 }
@@ -124,7 +120,6 @@ void ReactiveArmor::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
                             CEffectID_t CEffectID) {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pSkillSlot != NULL);
@@ -143,14 +138,12 @@ void ReactiveArmor::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
         }
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // 저주 면역. by sigi. 2002.9.13
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !pTargetCreature->isOusters()) {
             executeSkillFailException(pOusters, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -265,7 +258,6 @@ void ReactiveArmor::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ouster
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

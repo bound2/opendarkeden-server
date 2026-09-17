@@ -7,7 +7,6 @@
 #ifndef __AR_H__
 #define __AR_H__
 
-// #include "Gun.h"
 #include "ConcreteItem.h"
 #include "InfoClassManager.h"
 #include "ItemFactory.h"
@@ -40,24 +39,6 @@ public:
     static void initItemIDRegistry(void);
 
 public:
-    //	virtual ItemClass getItemClass() const  { return Item::ITEM_CLASS_AR; }
-    //	virtual string getObjectTableName() const  { return "ARObject"; }
-
-    /*	bool isSilverWeapon() const  { return true; }
-
-        virtual VolumeWidth_t getVolumeWidth() const ;
-        virtual VolumeHeight_t getVolumeHeight() const ;
-        virtual Weight_t getWeight() const ;
-
-        virtual Damage_t getMinDamage() const ;
-        virtual Damage_t getMaxDamage() const ;
-
-        virtual Range_t getRange() const ;
-
-        virtual ToHit_t getToHitBonus() const ;
-
-        virtual int getCriticalBonus(void) const ;*/
-
     void makePCItemInfo(PCItemInfo& result) const;
 
 private:

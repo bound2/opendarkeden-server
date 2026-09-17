@@ -55,7 +55,6 @@ void EffectPotentialExplosion::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectPotentialExplosion " << "unaffect BEGIN" << endl;
 
     Assert(pCreature != NULL);
     Assert(pCreature->isSlayer());
@@ -82,7 +81,6 @@ void EffectPotentialExplosion::unaffect(Creature* pCreature)
     makeGCOtherModifyInfo(&gcOtherModifyInfo, pSlayer, &prev);
     pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &gcOtherModifyInfo, pSlayer);
 
-    // cout << "EffectPotentialExplosion " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

@@ -29,7 +29,6 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
 {
     __BEGIN_TRY __BEGIN_DEBUG
 
-        // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(slayer)" << endl;
 
         Assert(pSlayer != NULL);
 
@@ -40,13 +39,11 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         if (pTargetCreature == NULL // NoSuch제거 때문에.. by sigi. 2002.5.2
             || !canAttack(pSlayer, pTargetCreature)) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
             return;
         }
 
@@ -69,7 +66,6 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
         Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
         if (pWeapon == NULL || isArmsWeapon(pWeapon) == false) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
             return;
         }
 
@@ -82,7 +78,6 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
         if (bBulletCheck) {
             decreaseBullet(pWeapon);
             // 한발쓸때마다 저장할 필요 없다. by sigi. 2002.5.9
-            // pWeapon->save(pSlayer->getName(), STORAGE_GEAR, 0, Slayer::WEAR_RIGHTHAND, 0);
             RemainBullet = getRemainBullet(pWeapon);
         }
 
@@ -331,10 +326,8 @@ void AttackArms::execute(Slayer* pSlayer, ObjectID_t TargetObjectID)
         }
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cerr << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(slayer)" << endl;
 
     __END_DEBUG __END_CATCH
 }
@@ -347,7 +340,6 @@ void AttackArms::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(monster)" << endl;
 
     Assert(pMonster != NULL);
     Assert(pEnemy != NULL);
@@ -357,7 +349,6 @@ void AttackArms::execute(Monster* pMonster, Creature* pEnemy)
         Assert(pZone != NULL);
 
         if (pMonster->isFlag(Effect::EFFECT_CLASS_HIDE)) {
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end(monster)" << endl;
             return;
         }
         if (pMonster->isFlag(Effect::EFFECT_CLASS_INVISIBILITY)) {
@@ -436,7 +427,6 @@ void AttackArms::execute(Monster* pMonster, Creature* pEnemy)
         executeSkillFailException(pMonster, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monster)" << endl;
 
     __END_CATCH
 }

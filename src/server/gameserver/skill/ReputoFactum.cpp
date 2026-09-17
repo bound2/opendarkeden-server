@@ -28,7 +28,6 @@ void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pOusters != NULL);
     Assert(pSkillSlot != NULL);
@@ -39,16 +38,8 @@ void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         Assert(pPlayer != NULL);
         Assert(pZone != NULL);
 
-        /*		Item* pWeapon = pOusters->getWearItem(Ousters::WEAR_RIGHTHAND);
-                if (pWeapon == NULL || pWeapon->getItemClass() != Item::ITEM_CLASS_OUSTERS_WRISTLET ||
-           !pOusters->isRealWearingEx(Ousters::WEAR_RIGHTHAND))
-                {
-                    executeSkillFailException(pOusters, pSkillSlot->getSkillType());
-                    return;
-                }*/
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NPC는 공격할 수 없다.
         // 저주 면역. by sigi. 2002.9.13
@@ -56,7 +47,6 @@ void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         if (pTargetCreature == NULL || pTargetCreature->isFlag(Effect::EFFECT_CLASS_NO_DAMAGE) // by sigi. 2002.10.30
             || pTargetCreature->isNPC()) {
             executeSkillFailException(pOusters, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -81,7 +71,6 @@ void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
 
         int Ratio = 50 + pOusters->getLevel() - pTargetCreature->getLevel();
 
-        //		Ratio = min( 80, max( 20, Ratio ) );
         cout << "reputo factum ratio : " << Ratio << endl;
 
         bool bHitRoll = (rand() % 100) < Ratio;
@@ -89,7 +78,6 @@ void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         bool bCanHit = canHit(pOusters, pTargetCreature, SkillType);
         bool bEffected = pTargetCreature->isFlag(Effect::EFFECT_CLASS_REPUTO_FACTUM);
         bool bPK = verifyPK(pOusters, pTargetCreature);
-        //		bool bSatisfyRequire = pOusters->satisfySkillRequire( pSkillInfo );
 
         ZoneCoord_t targetX = pTargetCreature->getX();
         ZoneCoord_t targetY = pTargetCreature->getY();
@@ -149,7 +137,6 @@ void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
             if (pTargetCreature->isPC()) {
                 Player* pTargetPlayer = pTargetCreature->getPlayer();
                 if (pTargetPlayer == NULL) {
-                    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
                     return;
                 }
 
@@ -176,7 +163,6 @@ void ReputoFactum::execute(Ousters* pOusters, ObjectID_t TargetObjectID, Ousters
         executeSkillFailException(pOusters, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

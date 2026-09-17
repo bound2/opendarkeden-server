@@ -37,12 +37,10 @@ void EffectStormAcid::affect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectStormAcid " << "begin begin" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     affect(pCreature);
 
-    // cout << "EffectStormAcid " << "begin end" << endl;
 
     __END_CATCH
 }
@@ -54,7 +52,6 @@ void EffectStormAcid::affect(Creature* pCreature)
 {
     __BEGIN_TRY
 
-    // cout << "EffectStormAcid " << "begin" << endl;
 
     Assert(pCreature != NULL);
 
@@ -116,20 +113,10 @@ void EffectStormAcid::affect(Creature* pCreature)
         // by sigi. 2002.9.9
         // setDamage 를 불러서 처리한다. 주석처리
         // by bezz. 2002.12.31
-        /*		if (pCreature->isDead())
-                {
-                    Creature* pAttacker = pZone->getCreature( m_UserObjectID );
-
-                    if (pAttacker!=NULL)
-                    {
-                        affectKillCount(pAttacker, pCreature);
-                    }
-                }*/
     }
 
     setNextTime(m_Tick);
 
-    // cout << "EffectStormAcid " << "end" << endl;
 
     __END_CATCH
 }

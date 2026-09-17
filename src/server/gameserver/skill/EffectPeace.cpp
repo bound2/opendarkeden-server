@@ -67,7 +67,6 @@ void EffectPeace::unaffect(Creature* pCreature)
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectPeace " << "unaffect BEGIN" << endl;
 
     pCreature->removeFlag(Effect::EFFECT_CLASS_PEACE);
 
@@ -80,7 +79,6 @@ void EffectPeace::unaffect(Creature* pCreature)
     gcRemoveEffect.addEffectList(Effect::EFFECT_CLASS_PEACE);
     pZone->broadcastPacket(pCreature->getX(), pCreature->getY(), &gcRemoveEffect);
 
-    // cout << "EffectPeace " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH
@@ -93,12 +91,10 @@ void EffectPeace::unaffect()
     __BEGIN_TRY
     __BEGIN_DEBUG
 
-    // cout << "EffectPeace " << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectPeace " << "unaffect END" << endl;
 
     __END_DEBUG
     __END_CATCH

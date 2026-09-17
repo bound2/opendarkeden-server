@@ -22,7 +22,6 @@ void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSl
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << "begin " << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -34,12 +33,10 @@ void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSl
         Assert(pZone != NULL);
 
         Creature* pTargetCreature = pZone->getCreature(TargetObjectID);
-        // Assert(pTargetCreature != NULL);
 
         // NoSuch제거. by sigi. 2002.5.2
         if (pTargetCreature == NULL || !canAttack(pSlayer, pTargetCreature)) {
             executeSkillFailException(pSlayer, getSkillType());
-            // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
             return;
         }
 
@@ -77,9 +74,6 @@ void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSl
 
             if (!pTargetCreature->isSlayer()) {
                 // 경험치를 올려준다.
-                // SkillGrade Grade =
-                // g_pSkillInfoManager->getGradeByDomainLevel(pSlayer->getSkillDomainLevel(DomainType)); Exp_t ExpUp =
-                // 10* (Grade + 1); shareAttrExp(pSlayer, ExpUp, 1, 1, 8, _GCSkillToObjectOK1);
                 //
                 if (bIncreaseDomainExp) {
                     increaseDomainExp(pSlayer, DomainType, pSkillInfo->getPoint(), _GCSkillToObjectOK1,
@@ -135,14 +129,6 @@ void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSl
 
             pZone->broadcastPacket(pSlayer->getX(), pSlayer->getY(), &_GCSkillToObjectOK5, cList);
 
-            //			// 이펙트가 붙었다고 알려준다.
-            //			GCAddEffect gcAddEffect;
-            //			gcAddEffect.setObjectID(pTargetCreature->getObjectID());
-            //			gcAddEffect.setEffectID(Effect::EFFECT_CLASS_DIVINE_GUIDANCE);
-            //			gcAddEffect.setDuration(output.Duration);
-            //			pZone->broadcastPacket(pTargetCreature->getX(), pTargetCreature->getY(), &gcAddEffect,
-            // pTargetCreature);
-            //
             pSkillSlot->setRunTime(output.Delay);
         } else {
             executeSkillFailNormal(pSlayer, getSkillType(), pTargetCreature);
@@ -151,7 +137,6 @@ void DivineGuidance::execute(Slayer* pSlayer, ObjectID_t TargetObjectID, SkillSl
         executeSkillFailException(pSlayer, getSkillType());
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " end " << endl;
 
     __END_CATCH
 }

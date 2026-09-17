@@ -87,7 +87,6 @@ void EffectFierceFlame::affect()
             }
         }
 
-    // cout << "EffectFierceFlame" << "affect BEGIN" << endl;
 
     __END_CATCH
 }
@@ -164,12 +163,10 @@ void EffectFierceFlame::unaffect()
 {
     __BEGIN_TRY
 
-    // cout << "EffectFierceFlame" << "unaffect BEGIN" << endl;
 
     Creature* pCreature = dynamic_cast<Creature*>(m_pTarget);
     unaffect(pCreature);
 
-    // cout << "EffectFierceFlame" << "unaffect END" << endl;
 
     __END_CATCH
 }

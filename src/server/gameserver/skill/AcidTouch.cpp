@@ -18,7 +18,6 @@ void AcidTouch::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(vampireobject)" << endl;
 
     SkillInput input(pVampire);
     SkillOutput output;
@@ -57,7 +56,6 @@ void AcidTouch::execute(Vampire* pVampire, ObjectID_t TargetObjectID, VampireSki
 
     g_SimpleMeleeSkill.execute(pVampire, TargetObjectID, pVampireSkillSlot, param, result, HitBonus);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(vampireobject)" << endl;
 
     __END_CATCH
 }
@@ -70,7 +68,6 @@ void AcidTouch::execute(Monster* pMonster, Creature* pEnemy)
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin(monsterobject)" << endl;
 
     SkillInput input(pMonster);
     SkillOutput output;
@@ -92,7 +89,6 @@ void AcidTouch::execute(Monster* pMonster, Creature* pEnemy)
 
     g_SimpleMeleeSkill.execute(pMonster, pEnemy, param, result);
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End(monsterobject)" << endl;
 
     __END_CATCH
 }

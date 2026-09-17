@@ -94,8 +94,6 @@ void ActionWarpToNoviceZone::execute(Creature* pNPC, Creature* pCreature)
         bTransport = false;
     }
 
-    // Zone* pZone = pCreature->getZone();
-
 
     if (bTransport) {
         transportCreature(pCreature, ZoneID, X, Y, true);

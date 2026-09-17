@@ -20,7 +20,6 @@ void HolyArmor::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
 {
     __BEGIN_TRY
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " Begin" << endl;
 
     Assert(pSlayer != NULL);
     Assert(pSkillSlot != NULL);
@@ -33,13 +32,6 @@ void HolyArmor::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
         Assert(pZone != NULL);
 
         // 무장하고 있는 무기가 널이거나, 검이 아니라면 기술을 쓸 수 없다.
-        /*		Item* pWeapon = pSlayer->getWearItem(Slayer::WEAR_RIGHTHAND);
-                if (pWeapon == NULL || pWeapon->getItemClass() != Item::ITEM_CLASS_SWORD)
-                {
-                    executeSkillFailException(pSlayer, getSkillType());
-                    //cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
-                    return;
-                }*/
 
         GCSkillToSelfOK1 _GCSkillToSelfOK1;
         GCSkillToSelfOK2 _GCSkillToSelfOK2;
@@ -121,10 +113,8 @@ void HolyArmor::execute(Slayer* pSlayer, SkillSlot* pSkillSlot, CEffectID_t CEff
         }
     } catch (Throwable& t) {
         executeSkillFailException(pSlayer, getSkillType());
-        // cout << t.toString() << endl;
     }
 
-    // cout << "TID[" << Thread::self() << "]" << getSkillHandlerName() << " End" << endl;
 
     __END_CATCH
 }

@@ -30,19 +30,7 @@ bool ConditionPayPlay::isSatisfied(Creature* pCreature1, Creature* pCreature2, v
 ////////////////////////////////////////////////////////////////////////////////
 void ConditionPayPlay::read(PropertyBuffer& propertyBuffer)
 
-{
-    /*
-    try
-    {
-        // read turn
-        m_Index = propertyBuffer.getPropertyInt("Index");
-    }
-    catch (NoSuchElementException & nsee)
-    {
-        throw Error(nsee.toString());
-    }
-    */
-}
+{}
 
 ////////////////////////////////////////////////////////////////////////////////
 // get debug string

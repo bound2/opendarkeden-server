@@ -138,7 +138,6 @@ void ActionHeal::execute(Creature* pCreature1, Creature* pCreature2)
         log(LOG_HEAL, pSlayer->getName(), "");
     } else if (pCreature2->isVampire()) {
         Vampire* pVampire = dynamic_cast<Vampire*>(pCreature2);
-        // EffectManager*      pEffectManager = pVampire->getEffectManager();
         GCModifyInformation modifyPkt;
         GCRemoveEffect removePkt;
         GCStatusCurrentHP hpPkt;

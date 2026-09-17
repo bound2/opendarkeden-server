@@ -119,71 +119,6 @@ string CoreZap::toString() const
 }
 
 
-/*//--------------------------------------------------------------------------------
-// get width
-//--------------------------------------------------------------------------------
-VolumeWidth_t CoreZap::getVolumeWidth() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoreZapInfoManager->getItemInfo(m_ItemType)->getVolumeWidth();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get height
-//--------------------------------------------------------------------------------
-VolumeHeight_t CoreZap::getVolumeHeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoreZapInfoManager->getItemInfo(m_ItemType)->getVolumeHeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get weight
-//--------------------------------------------------------------------------------
-Weight_t CoreZap::getWeight() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoreZapInfoManager->getItemInfo(m_ItemType)->getWeight();
-
-    __END_CATCH
-}
-
-
-//--------------------------------------------------------------------------------
-// get/set armor's Defense Bonus
-//--------------------------------------------------------------------------------
-Defense_t CoreZap::getDefenseBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoreZapInfoManager->getItemInfo(m_ItemType)->getDefenseBonus();
-
-    __END_CATCH
-}
-Protection_t CoreZap::getProtectionBonus() const
-
-{
-    __BEGIN_TRY
-
-    return g_pCoreZapInfoManager->getItemInfo(m_ItemType)->getProtectionBonus();
-
-    __END_CATCH
-}
-*/
-
 //--------------------------------------------------------------------------------
 // get debug string
 //--------------------------------------------------------------------------------
@@ -279,10 +214,7 @@ void CoreZapLoader::load(Creature* pCreature)
             Ousters* pOusters = NULL;
             Motorcycle* pMotorcycle = NULL;
             Inventory* pMotorInventory = NULL;
-            // Item*       pItem           = NULL;
             Stash* pStash = NULL;
-            // Belt*       pBelt           = NULL;
-            // Inventory*  pBeltInventory  = NULL;
 
             if (pCreature->isSlayer()) {
                 pSlayer = dynamic_cast<Slayer*>(pCreature);
