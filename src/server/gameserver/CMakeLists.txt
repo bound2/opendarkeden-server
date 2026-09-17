@@ -501,6 +501,7 @@ set(GAMESERVER_MAIN_SOURCES
     InitAllStat.cpp
     SlayerStat.cpp
     VampireStat.cpp
+    OustersStat.cpp
     PrecedenceTable.cpp
     VariableManager.cpp
     CombatInfoManager.cpp
