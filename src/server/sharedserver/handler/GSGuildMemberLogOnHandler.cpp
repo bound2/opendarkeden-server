@@ -35,13 +35,13 @@ void GSGuildMemberLogOnHandler::execute(GSGuildMemberLogOn* pPacket, Player* pPl
 
         Assert(pPacket != NULL);
 
-    // 길드를 가져온다.
+    // Get the guild.
     Guild* pGuild = g_pGuildManager->getGuild(pPacket->getGuildID());
     // try { Assert(pGuild != NULL); } catch (Throwable& ) { return; }
     if (pGuild == NULL)
         return;
 
-    // 길드의 멤버인지 확인한다.
+    // Check whether it is a member of the guild.
     GuildMember* pGuildMember = pGuild->getMember(pPacket->getName());
     // try { Assert(pGuildMember != NULL); } catch (Throwable& ) { return; }
     if (pGuildMember == NULL)
@@ -49,7 +49,7 @@ void GSGuildMemberLogOnHandler::execute(GSGuildMemberLogOn* pPacket, Player* pPl
 
     pGuildMember->setLogOn(pPacket->getLogOn());
 
-    // 게임 서버로 보낼 패킷을 만든다.
+    // Build the packet to send to the game server.
     SGGuildMemberLogOnOK sgGuildMemberLogOnOK;
     sgGuildMemberLogOnOK.setGuildID(pGuild->getID());
     sgGuildMemberLogOnOK.setName(pPacket->getName());
@@ -57,7 +57,7 @@ void GSGuildMemberLogOnHandler::execute(GSGuildMemberLogOn* pPacket, Player* pPl
     sgGuildMemberLogOnOK.setServerID(pPacket->getServerID());
 
 
-    // 게임 서버로 패킷을 보낸다.
+    // Send the packet to the game server.
     g_pGameServerManager->broadcast(&sgGuildMemberLogOnOK);
 
 #endif

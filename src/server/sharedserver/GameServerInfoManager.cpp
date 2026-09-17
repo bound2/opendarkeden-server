@@ -17,17 +17,17 @@ GameServerInfoManager::GameServerInfoManager() {}
 
 
 GameServerInfoManager::~GameServerInfoManager() {
-    // hashmap 안의 각 pair 의 second, 즉 GameServerInfo 객체만을 삭제하고
-    // pair 자체는 그대로 둔다. (GameServerInfo가 힙에 생성되어 있다는 것에
-    // 유의하라. 즉 필살삭제를 해야 한다. 하긴, GSIM이 destruct 된다는 것은
-    // 로그인 서버가 셧다운된다는 것을 의미하니깐.. - -;)
+    // Delete only the second of each pair in the hash map, i.e. the
+    // GameServerInfo objects, and leave the pairs themselves. (Note that
+    // they live on the heap, so they must be deleted explicitly. GSIM being
+    // destructed means the login server is shutting down anyway.)
     for (int i = 0; i < m_MaxServerGroupID; i++) {
         HashMapGameServerInfoItor itr = m_pGameServerInfos[i].begin();
         for (; itr != m_pGameServerInfos[i].end(); itr++) {
             SAFE_DELETE(itr->second);
         }
 
-        // 이제 해쉬맵안에 있는 모든 pair 들을 삭제한다.
+        // Now erase every pair in the hash map.
         m_pGameServerInfos[i].clear();
     }
 
@@ -124,13 +124,13 @@ void GameServerInfoManager::deleteGameServerInfo(const ServerID_t ServerID, cons
     HashMapGameServerInfoItor itr = m_pGameServerInfos[ServerGroupID].find(ServerID);
 
     if (itr != m_pGameServerInfos[ServerGroupID].end()) {
-        // GameServerInfo 를 삭제한다.
+        // Delete the GameServerInfo.
         delete itr->second;
 
-        // pair를 삭제한다.
+        // Erase the pair.
         m_pGameServerInfos[ServerGroupID].erase(itr);
     } else {
-        // 그런 게임서버인포 객체를 찾을 수 없을 때
+        // When no such game server info object could be found
         throw NoSuchElementException();
     }
 
@@ -145,7 +145,7 @@ GameServerInfo* GameServerInfoManager::getGameServerInfo(const ServerID_t Server
     GameServerInfo* pGameServerInfo = NULL;
 
     if (ServerGroupID >= m_MaxServerGroupID) {
-        // 그런 게임서버인포 객체를 찾을 수 없었을 때
+        // When no such game server info object could be found
         throw NoSuchElementException();
     }
 
@@ -154,7 +154,7 @@ GameServerInfo* GameServerInfoManager::getGameServerInfo(const ServerID_t Server
     if (itr != m_pGameServerInfos[ServerGroupID].end()) {
         pGameServerInfo = itr->second;
     } else {
-        // 그런 게임서버인포 객체를 찾을 수 없었을 때
+        // When no such game server info object could be found
         throw NoSuchElementException();
     }
 

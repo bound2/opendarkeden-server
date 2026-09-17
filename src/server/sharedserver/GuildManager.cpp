@@ -1,6 +1,5 @@
 ////////////////////////////////////////////////////////////////////////
 // Filename    : GuildManager.cpp
-// Written By  : �輺��
 // Description :
 ////////////////////////////////////////////////////////////////////////
 
@@ -39,7 +38,7 @@ GuildManager::~GuildManager() noexcept {
     try {
         __ENTER_CRITICAL_SECTION(m_Mutex)
 
-        // ��� ��� ��ü���� �޸𸮿��� �����Ѵ�.
+        // Free every guild object from memory.
         unordered_map<GuildID_t, Guild*>::iterator itr = m_Guilds.begin();
         for (; itr != m_Guilds.end(); itr++) {
             Guild* pGuild = itr->second;
@@ -222,7 +221,7 @@ void GuildManager::deleteGuild(GuildID_t id) noexcept(false) {
 Guild* GuildManager::getGuild(GuildID_t id) noexcept(false) {
     __BEGIN_TRY
 
-    // ���� �� ��� ������
+    // The guild that was found
     Guild* pGuild;
 
     __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -246,7 +245,7 @@ Guild* GuildManager::getGuild(GuildID_t id) noexcept(false) {
 Guild* GuildManager::getGuild_NOBLOCKED(GuildID_t id) noexcept(false) {
     __BEGIN_TRY
 
-    // ���� �� ��� ������
+    // The guild that was found
     Guild* pGuild;
 
     unordered_map<GuildID_t, Guild*>::iterator itr = m_Guilds.find(id);
@@ -363,7 +362,7 @@ void GuildManager::heartbeat() noexcept(false) {
     getCurrentTime(currentTime);
 
     ////////////////////////////////////////////////////////
-    // ��� ���� ��û ��� �ð��� �Ѿ ����� �����.
+    // Drop the members whose join request has passed the waiting time.
     ////////////////////////////////////////////////////////
     if (currentTime > m_WaitMemberClearTime) {
         __ENTER_CRITICAL_SECTION(m_Mutex)
@@ -381,7 +380,7 @@ void GuildManager::heartbeat() noexcept(false) {
             list<string>::const_iterator itr2 = mList.begin();
 
             for (; itr2 != mList.end(); itr2++) {
-                // ������ ��ҵǾ����� ���Ӽ����� �˸���.
+                // Tell the game servers that the request was cancelled.
                 SGExpelGuildMemberOK sgExpelGuildMemberOK;
                 sgExpelGuildMemberOK.setGuildID(pGuild->getID());
                 sgExpelGuildMemberOK.setName(*itr2);
@@ -391,7 +390,7 @@ void GuildManager::heartbeat() noexcept(false) {
             }
         }
 
-        m_WaitMemberClearTime.tv_sec = currentTime.tv_sec + 3600; // 1�ð� �ֱ�
+        m_WaitMemberClearTime.tv_sec = currentTime.tv_sec + 3600; // one hour period
 
         __LEAVE_CRITICAL_SECTION(m_Mutex)
     }
@@ -409,17 +408,17 @@ bool GuildManager::isGuildMaster(GuildID_t guildID, PlayerCreature* pPC) noexcep
     return false;
 }
 
-// ��尡 ���� ������?
+// Does the guild hold a castle?
 bool GuildManager::hasCastle(GuildID_t guildID) noexcept(false) {
     return false;
 }
 
-// ��尡 ���� ������?
+// Does the guild hold a castle?
 bool GuildManager::hasCastle(GuildID_t guildID, ServerID_t& serverID, ZoneID_t& zoneID) noexcept(false) {
     return false;
 }
 
-// ��尡 �����û�� �߳�?
+// Has the guild filed a war schedule?
 bool GuildManager::hasWarSchedule(GuildID_t guildID) noexcept(false) {
     return false;
 }

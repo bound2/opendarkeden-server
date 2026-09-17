@@ -40,10 +40,10 @@ public:
     virtual void sendPacket(Packet* pPacket) noexcept(false);
 
     // disconnect
-    // �÷��̾��� ������ ������ ��, ������� �����ϰ�
-    // �α׾ƿ����� ���� ��� ������ ������ �̹� ���� �����Ƿ� disconnect(DISCONNECTED) �� ����ؼ� ������ �����ؾ�
-    // �Ѵ�. �ݸ�, �����ϰ� �α׾ƿ��� �� ��쿡�� disconnect(UNDISCONNECTED) �� ����ؾ�
-    // �Ѵ�.
+    // When closing a player's connection: if it ended abnormally without a
+    // logout, the peer socket is already closed, so disconnect(DISCONNECTED) must be used to close
+    // it. For a proper logout disconnect(UNDISCONNECTED) must be used
+    // instead.
     virtual void disconnect(bool bDisconnected = DISCONNECTED) noexcept(false);
 
     // get/set socket

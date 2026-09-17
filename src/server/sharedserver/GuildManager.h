@@ -1,6 +1,5 @@
 //////////////////////////////////////////////////////////////////////////////
 // Filename    : GuildManager.h
-// Written By  : �輺��
 // Description :
 //////////////////////////////////////////////////////////////////////////////
 
@@ -17,8 +16,8 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // class GuildManager
-// ���� Ȱ������ ���� ��� ������� ��带 �޸𸮿� map
-// ���·� ������ �ְ�, ���ο� ����� ���/������ ����Ѵ�.
+// Keeps the guilds that are currently active or waiting in a map in memory
+// and handles the registration/deletion of new guilds and members.
 //
 //////////////////////////////////////////////////////////////////////////////
 
@@ -96,14 +95,14 @@ public:
 
     string getGuildName(GuildID_t guildID) noexcept(false);
 
-    // ��尡 ���� ������?
+    // Does the guild hold a castle?
     bool hasCastle(GuildID_t guildID) noexcept(false);
     bool hasCastle(GuildID_t guildID, ServerID_t& serverID, ZoneID_t& zoneID) noexcept(false);
 
-    // ��尡 �����û�� �߳�?
+    // Has the guild filed a war schedule?
     bool hasWarSchedule(GuildID_t guildID) noexcept(false);
 
-    // ���� �������� ������ �ִ°�?
+    // Is there a war currently running?
     bool hasActiveWar(GuildID_t guidlID) noexcept(false);
 
 public: // debug
@@ -113,9 +112,9 @@ public: // debug
     ///// Member data /////
 
 protected:
-    unordered_map<GuildID_t, Guild*> m_Guilds; // ��� ������ ��
+    unordered_map<GuildID_t, Guild*> m_Guilds; // map of guild information
 
-    Timeval m_WaitMemberClearTime; // heartbeat ���� Wait ���� ����� ���� �ð�
+    Timeval m_WaitMemberClearTime; // time at which heartbeat clears the Wait members
 
     // mutex
     mutable Mutex m_Mutex;

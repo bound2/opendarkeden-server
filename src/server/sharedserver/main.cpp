@@ -2,7 +2,7 @@
 //
 // Filename    : main.cpp
 // Written By  : reiot@ewestsoft.com
-// Description : ·Î±×ÀÎ ¼­¹ö¿ë ¸ÞÀÎ ÇÔ¼ö
+// Description : Main function for the login server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -57,23 +57,23 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    // command-line parameter¸¦ string À¸·Î º¯È¯ÇÑ´Ù. ^^;
+    // Convert the command-line parameters into strings.
     string* Argv;
 
     Argv = new string[argc];
     for (int i = 0; i < argc; i++)
         Argv[i] = argv[i];
 
-    // È¯°æ ÆÄÀÏÀ» ÀÐ¾îµéÀÎ´Ù.
-    // ´Ü ½ÇÇà ÆÄÀÏÀº $VSHOME/bin¿¡, È¯°æ ÆÄÀÏÀº $VSHOME/conf ¿¡ Á¸ÀçÇØ¾ß ÇÑ´Ù.½
-    // command line ¿¡¼­ È¯°æ ÆÄÀÏÀ» ÁöÁ¤ÇÒ ¼ö ÀÖµµ·Ï ÇÑ´Ù.
+    // Read the configuration file.
+    // The executable must live in $VSHOME/bin and the configuration file in $VSHOME/conf.
+    // Allow the configuration file to be given on the command line.
 
     try {
         if (Argv[1] != "-f") {
             throw Error("Usage : sharedserver -f config-file");
         }
 
-        // Ã¹¹øÂ° ÆÄ¶ó¹ÌÅÍ°¡ -f ÀÏ °æ¿ì, µÎ¹øÂ° ÆÄ¶ó¹ÌÅÍ´Â È¯°æÆÄÀÏÀÇ À§Ä¡°¡ µÈ´Ù.
+        // When the first parameter is -f, the second is the path of the configuration file.
         g_pConfig = new Properties();
         g_pConfig->load(Argv[2]);
 
@@ -83,11 +83,11 @@ int main(int argc, char* argv[]) {
         cout << e.toString() << endl;
     }
 
-    // ·Î±× ¸Å´ÏÀú¸¦ »ý¼ºÇÏ°í ÃÊ±âÈ­ÇÑÈÄ È°¼ºÈ­½ÃÅ²´Ù.
-    // ·Î±× ¸Å´ÏÀú´Â ·Î±×ÀÎ ¼­¹öÀÇ ÃÊ±âÈ­°úÁ¤¿¡¼­ ¹ß»ýÇÒ °¡´É¼ºÀÌ ÀÖ´Â ¿¡·¯±îÁöµµ
-    // °ËÃâÇØ³»¾ß ÇÏ¹Ç·Î ·Î±×ÀÎ ¼­¹ö ³»ºÎ¿¡¼­ ÃÊ±âÈ­ÇØ¼­´Â ¾ÈµÈ´Ù.
-    // ¶ÇÇÑ ´Ù¸¥ °´Ã¼¸¦ »ý¼ºÇÏ°í ÃÊ±âÈ­ÇÏ±âÀü¿¡ ·Î±×¸Å´ÏÀú°¡ ¿ì¼±ÀûÀ¸·Î »ý¼º,
-    // ÃÊ±âÈ­µÇ¾î¾ß ÇÑ´Ù.
+    // Create the log manager, initialize it and activate it.
+    // The log manager has to catch even the errors that can occur while the login server
+    // initializes, so it must not be initialized inside the login server.
+    // It also has to be created and initialized before any other object is created
+    // and initialized.
 
     try {
         string LogServerIP = g_pConfig->getProperty("LogServerIP");
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     }
 
     //
-    // ·Î±×ÀÎ ¼­¹ö °´Ã¼¸¦ »ý¼ºÇÏ°í ÃÊ±âÈ­ÇÑ ÈÄ È°¼ºÈ­½ÃÅ²´Ù.
+    // Create the login server object, initialize it and activate it.
     //
     try {
         struct rlimit rl;
@@ -109,26 +109,26 @@ int main(int argc, char* argv[]) {
         rl.rlim_max = RLIM_INFINITY;
         setrlimit(RLIMIT_CORE, &rl);
 
-        // ·Î±×ÀÎ ¼­¹ö °´Ã¼¸¦ »ý¼ºÇÑ´Ù.
+        // Create the login server object.
         g_pSharedServer = new SharedServer();
 
-        // ·Î±×ÀÎ ¼­¹ö °´Ã¼¸¦ ÃÊ±âÈ­ÇÑ´Ù.
+        // Initialize the login server object.
         g_pSharedServer->init();
 
-        // ·Î±×ÀÎ ¼­¹ö °´Ã¼¸¦ È°¼ºÈ­½ÃÅ²´Ù.
+        // Activate the login server object.
         if (!ServerShutdown::isRequested())
             g_pSharedServer->start();
     } catch (Throwable& e) {
-        // ·Î±×°¡ ÀÌ·ïÁö±â Àü¿¡ ¼­¹ö°¡ ³¡³¯ °æ¿ì¸¦ ´ëºñÇØ¼­
+        // In case the server ends before logging is up
         ofstream ofile("../log/instant.log", ios::out);
         ofile << e.toString() << endl;
         ofile.close();
 
-        // ÇÏÀ§¿¡¼­ Ä³Ä¡µÇÁö ¾ÊÀº ¿¹¿Ü ¶Ç´Â ¿¡·¯°¡ ¹ß»ýÇß´Ù´Â ¶æÀÌ´Ù.
-        // ÀÌ °æ¿ì LEVEL1·Î ·Î±×ÇØ¾ß ÇÑ´Ù. (¹«Á¶°Ç ·Î±×ÇÑ´Ù´Â ¶æ)
+        // It means an exception or error not caught below occurred.
+        // In that case it must be logged at LEVEL1 (that is, logged unconditionally).
         log(LOG_SHAREDSERVER_ERROR, "", "", e.toString());
 
-        // Ç¥ÁØ Ãâ·ÂÀ¸·Îµµ Ãâ·ÂÇØÁØ´Ù.
+        // Print it on standard output too.
         cout << e.toString() << endl;
 
         // Stop the shared server; every sub-manager has to stop with it.

@@ -24,7 +24,7 @@
 
 //////////////////////////////////////////////////////////////////////////////
 // constructor
-// ���� �Ŵ��� �� ����Ÿ ������� �����Ѵ�.
+// Delete the sub-managers and the data members.
 //////////////////////////////////////////////////////////////////////////////
 
 GameServerManager::GameServerManager() : m_pServerSocket(NULL), m_SocketID(INVALID_SOCKET), m_MinFD(-1), m_MaxFD(-1) {
@@ -50,10 +50,10 @@ GameServerManager::GameServerManager() : m_pServerSocket(NULL), m_SocketID(INVAL
 
         m_pServerSocket->setNonBlocking();
 
-        // ���� ���� ��ũ���͸� �����Ѵ�.
+        // Set the server socket descriptor.
         m_SocketID = m_pServerSocket->getSOCKET();
     } catch (NoSuchElementException& nsee) {
-        // ȯ�� ���Ͽ� �׷� element�� ���� ���
+        // When the configuration file has no such element
         throw Error(nsee.toString());
     }
 
@@ -75,26 +75,26 @@ GameServerManager::~GameServerManager() noexcept {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// ���� �Ŵ��� �� ������ ����� �ʱ�ȭ�Ѵ�.
+// Initialize the sub-managers and its own members.
 //////////////////////////////////////////////////////////////////////////////
 
 void GameServerManager::init() {
     __BEGIN_TRY
 
-    // fd_set ���� 0 ���� �ʱ�ȭ�Ѵ�.
+    // Zero the fd_sets.
     FD_ZERO(&m_ReadFDs[0]);
     FD_ZERO(&m_WriteFDs[0]);
     FD_ZERO(&m_ExceptFDs[0]);
 
-    //  ���� ������ ��Ʈ�� �Ҵ�. (write �� üũ�� �ʿ䰡 ����.)
+    //  Turn the server socket's bit on. (write need not be checked.)
     FD_SET(m_SocketID, &m_ReadFDs[0]);
     FD_SET(m_SocketID, &m_ExceptFDs[0]);
 
     // set min/max fd
     m_MinFD = m_MaxFD = m_SocketID;
 
-    // m_Timeout �� �ʱ�ȭ�Ѵ�.
-    // ���߿��� �� �ֱ� ���� �ɼ����� ó���ϵ��� ����.
+    // Initialize m_Timeout.
+    // This period should become an option later as well.
     m_Timeout[0].tv_sec = 0;
     m_Timeout[0].tv_usec = 0;
 
@@ -191,27 +191,27 @@ void GameServerManager::broadcast(Packet* pPacket, Player* pPlayer) {
 
 //////////////////////////////////////////////////////////////////////////////
 // call select() system call
-// �������� TimeoutException �� ������ �÷��̾�� ó������ �ʾƵ� �ȴ�.
+// A TimeoutException from select means no player needs processing.
 //////////////////////////////////////////////////////////////////////////////
 void GameServerManager::select() {
     __BEGIN_TRY
 
     //__ENTER_CRITICAL_SECTION(m_Mutex)
 
-    // m_Timeout[0] �� m_Timeout[1] ���� �����Ѵ�.
+    // Copy m_Timeout[0] into m_Timeout[1].
     m_Timeout[1].tv_sec = m_Timeout[0].tv_sec;
     m_Timeout[1].tv_usec = m_Timeout[0].tv_usec;
 
-    // m_XXXFDs[0] �� m_XXXFDs[1] ���� �����Ѵ�.
+    // Copy m_XXXFDs[0] into m_XXXFDs[1].
     m_ReadFDs[1] = m_ReadFDs[0];
     m_WriteFDs[1] = m_WriteFDs[0];
     m_ExceptFDs[1] = m_ExceptFDs[0];
 
     try {
-        // ���� m_XXXFDs[1] �� ������ select() �� ȣ���Ѵ�.
+        // Now call select() with m_XXXFDs[1].
         SocketAPI::select_ex(m_MaxFD + 1, &m_ReadFDs[1], &m_WriteFDs[1], &m_ExceptFDs[1], &m_Timeout[1]);
     } catch (InterruptedException& ie) {
-        // �ñ׳��� �� ���� ����~~
+        // No signal can arrive here.
         // log(LOG_GAMESERVER_ERROR, "", "", ie.toString());
     }
 
@@ -223,9 +223,9 @@ void GameServerManager::select() {
 
 //////////////////////////////////////////////////////////////////////////////
 // process all players' inputs
-// ���� ������ read flag�� ������ ���, ���ο� ������ �������Ƿ�
-// �̸� ó���ϰ�, �ٸ� ������ read flag�� ������ ���, ���ο� ��Ŷ��
-// �������Ƿ� �� �÷��̾��� processInput()�� ȣ���ϸ� �ȴ�.
+// When the server socket's read flag is set a new connection arrived,
+// so handle it; when another socket's read flag is set a new packet
+// arrived, so call that player's processInput().
 //////////////////////////////////////////////////////////////////////////////
 void GameServerManager::processInputs() {
     __BEGIN_TRY
@@ -241,7 +241,7 @@ void GameServerManager::processInputs() {
     for (int i = m_MinFD; i <= m_MaxFD; i++) {
         if (FD_ISSET(i, &m_ReadFDs[1])) {
             if (i == m_SocketID) {
-                //  ���� ������ ��� ���ο� ������ �����ߴٴ� ���̴�.
+                //  The server socket means a new connection arrived.
                 acceptNewConnection();
             } else {
                 if (m_pGameServerPlayers[i] != NULL) {
@@ -251,7 +251,7 @@ void GameServerManager::processInputs() {
 
                     if (pGameServerPlayer->getSocket()->getSockError()) {
                         try {
-                            // �̹� ������ ����Ǿ����Ƿ�, ��� ���۸� �÷����ؼ��� �ȵȴ�.
+                            // The connection is already gone, so the output buffer must not be flushed.
                             pGameServerPlayer->disconnect(DISCONNECTED);
                         } catch (Throwable& t) {
                             cerr << t.toString() << endl;
@@ -264,10 +264,10 @@ void GameServerManager::processInputs() {
                         try {
                             pGameServerPlayer->processInput();
                         } catch (ConnectException& ce) {
-                            // Blocking �����̹Ƿ�, ConnectException�� Error�� ������
-                            // � ���ܵ�
-                            // �߻����� �ʴ´�. ������ ������ ���, �α��ϰ� �÷��̾� ������
-                            // ������ �Ŀ� (�ε�Ǿ��ٸ�) �÷��̾� ��ü�� �����Ѵ�.
+                            // The socket is blocking, so no exception other than ConnectException
+                            // and Error
+                            // is thrown. On a connection error, log it, save the player's
+                            // information (if it was loaded) and then delete the player object.
                             try {
                                 pGameServerPlayer->disconnect();
                             } catch (Throwable& t) {
@@ -316,7 +316,7 @@ void GameServerManager::processCommands() {
 
             if (pGameServerPlayer->getSocket()->getSockError()) {
                 try {
-                    // �̹� ������ ����Ǿ����Ƿ�, ��� ���۸� �÷����ؼ��� �ȵȴ�.
+                    // The connection is already gone, so the output buffer must not be flushed.
                     pGameServerPlayer->disconnect();
                 } catch (Throwable& t) {
                     cerr << t.toString() << endl;
@@ -381,7 +381,7 @@ void GameServerManager::processOutputs() {
 
                 if (pGameServerPlayer->getSocket()->getSockError()) {
                     try {
-                        // �̹� ������ ����Ǿ����Ƿ�, ��� ���۸� �÷����ؼ��� �ȵȴ�.
+                        // The connection is already gone, so the output buffer must not be flushed.
                         pGameServerPlayer->disconnect(DISCONNECTED);
                     } catch (Throwable& t) {
                         cerr << t.toString() << endl;
@@ -401,7 +401,7 @@ void GameServerManager::processOutputs() {
                         // log(LOG_GAMESERVER_ERROR, "", "", msg.toString());
 
                         try {
-                            // �̹� ������ ����Ǿ����Ƿ�, ��� ���۸� �÷����ؼ��� �ȵȴ�.
+                            // The connection is already gone, so the output buffer must not be flushed.
                             pGameServerPlayer->disconnect(DISCONNECTED);
                         } catch (Throwable& t) {
                             cerr << t.toString() << endl;
@@ -415,7 +415,7 @@ void GameServerManager::processOutputs() {
                         msg << "DISCONNECT " << pGameServerPlayer->getID() << "(" << cp.toString() << ")";
                         // log(LOG_GAMESERVER_ERROR, "", "", cp.toString());
 
-                        // �̹� ������ ����Ǿ����Ƿ�, ��� ���۸� �÷����ؼ��� �ȵȴ�.
+                        // The connection is already gone, so the output buffer must not be flushed.
 
                         try {
                             pGameServerPlayer->disconnect(DISCONNECTED);
@@ -440,8 +440,8 @@ void GameServerManager::processOutputs() {
 
 //////////////////////////////////////////////////////////////////////////////
 // process all players' exceptions
-// ��������� OOB ����Ÿ�� ������ ��ȹ�� ����.
-// ����, ���� OOB�� ���� �ִٸ� ������ �����ϰ� ������ Ȯ ©�� ������.
+// There is no plan to send OOB data at the moment.
+// So if OOB data does arrive, treat it as an error and cut the connection.
 //////////////////////////////////////////////////////////////////////////////
 
 void GameServerManager::processExceptions() {
@@ -491,14 +491,14 @@ void GameServerManager::processExceptions() {
 
 
 //////////////////////////////////////////////////////////////////////////////
-// select ��ݿ����� nonblocking ������ ������� �ʴ´�.
+// A select-based design does not use nonblocking sockets.
 //////////////////////////////////////////////////////////////////////////////
 void GameServerManager::acceptNewConnection() {
     __BEGIN_TRY
 
-    // ����ŷ ������� connection�� ��ٸ� ���
-    // ���ϵǴ� ���� ���� NULL�� �� �� ����.
-    // ���� NonBlockingIOException�� �߻��� �� ����.
+    // When waiting for a connection in blocking mode
+    // the returned value can never be NULL.
+    // NonBlockingIOException cannot be thrown either.
     Socket* client = NULL;
 
     try {
@@ -511,16 +511,16 @@ void GameServerManager::acceptNewConnection() {
     }
 
     try {
-        // ���� ó���� ���Ͽ� �־� �ξ��µ� ������ �� ������ �Ѵ�..
-        // �Ƹ��� Thread�� ���� ���� �κп��� ������ ������ ������ ���� �Ѵ�
-        // Thread ���� ó���� ������ ������ �ӽ÷� ����.
+        // Put in for error handling; the cause still has to be found..
+        // Probably something goes wrong in Thread's socket handling
+        // Temporary guard until Thread's error handling is fixed.
         if (client->getSockError())
             throw Error();
         client->setNonBlocking(true);
 
-        // ���� ó���� ���Ͽ� �־� �ξ��µ� ������ �� ������ �Ѵ�..
-        // �Ƹ��� Thread�� ���� ���� �κп��� ������ ������ ������ ���� �Ѵ�
-        // Thread ���� ó���� ������ ������ �ӽ÷� ����.
+        // Put in for error handling; the cause still has to be found..
+        // Probably something goes wrong in Thread's socket handling
+        // Temporary guard until Thread's error handling is fixed.
         if (client->getSockError())
             throw Error();
         // set socket option (!NonBlocking, NoLinger)
@@ -529,10 +529,10 @@ void GameServerManager::acceptNewConnection() {
         // StringStream msg;
         // cout << "NEW CONNECTION FROM " << client->getHost() << ":" << client->getPort();
 
-        // Ŭ���̾�Ʈ ������ �Ķ���ͷ� ����ؼ� �÷��̾� ��ü�� �����Ѵ�.
+        // Create the player object with the client socket as parameter.
         GameServerPlayer* pGameServerPlayer = new GameServerPlayer(client);
 
-        // IPM �� ����Ѵ�.
+        // Register it with the IPM.
         try {
             addGameServerPlayer(pGameServerPlayer);
         } catch (DuplicatedException&) {
@@ -546,7 +546,7 @@ void GameServerManager::acceptNewConnection() {
         msg2 << "ILLEGAL ACCESS FROM " << client->getHost() << ":" << client->getPort();
         // log(LOG_GAMESERVER, "", "", msg2.toString());
 
-        // �������� ���� �����̹Ƿ� ¥����. -_-;
+        // The connection is not authenticated, so cut it.
         client->send("Error : Unauthorized access", 27);
         client->close();
         SAFE_DELETE(client);
@@ -568,7 +568,7 @@ void GameServerManager::acceptNewConnection() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// ���ο� ���ῡ ���õ� �÷��̾� ��ü�� IPM�� �߰��Ѵ�.
+// Add the player object for the new connection to the IPM.
 //
 //////////////////////////////////////////////////////////////////////
 void GameServerManager::addGameServerPlayer(GameServerPlayer* pGameServerPlayer) {
@@ -578,12 +578,12 @@ void GameServerManager::addGameServerPlayer(GameServerPlayer* pGameServerPlayer)
 
     SOCKET fd = pGameServerPlayer->getSocket()->getSOCKET();
 
-    // m_MinFD , m_MaxFD �� �������Ѵ�.
+    // Readjust m_MinFD and m_MaxFD.
     m_MinFD = min(fd, m_MinFD);
     m_MaxFD = max(fd, m_MaxFD);
 
-    // ��� fd_set �� fd ��Ʈ�� on ��Ų��.
-    // m_XXXFDs[1] �� �������� ó�����ָ� �ȴ�.
+    // Turn the fd bit on in every fd_set.
+    // m_XXXFDs[1] can be dealt with on the next round.
     FD_SET(fd, &m_ReadFDs[0]);
     FD_SET(fd, &m_WriteFDs[0]);
     FD_SET(fd, &m_ExceptFDs[0]);
@@ -597,7 +597,7 @@ void GameServerManager::addGameServerPlayer(GameServerPlayer* pGameServerPlayer)
 
 //////////////////////////////////////////////////////////////////////
 //
-// Ư�� �÷��̾ IPM ���� �����Ѵ�.
+// Remove a given player from the IPM.
 //
 //////////////////////////////////////////////////////////////////////
 void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
@@ -607,11 +607,11 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
 
     m_pGameServerPlayers[fd] = NULL;
 
-    // m_MinFD , m_MaxFD �� �������Ѵ�.
-    // fd == m_MinFD && fd == m_MaxFD �� ���� ù��° if ���� ó���ȴ�.
+    // Readjust m_MinFD and m_MaxFD.
+    // The fd == m_MinFD && fd == m_MaxFD case is handled by the first if.
     if (fd == m_MinFD) {
-        // �տ������� ���� ���� fd �� ã�´�.
-        // m_MinFD �ڸ��� ���� NULL �� �Ǿ� ������ �����϶�.
+        // Find the smallest fd from the front.
+        // Note that the m_MinFD slot is NULL at this point.
         int i = m_MinFD;
         for (i = m_MinFD; i <= m_MaxFD; i++) {
             if (m_pGameServerPlayers[i] != NULL || i == m_SocketID) {
@@ -620,14 +620,14 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
             }
         }
 
-        // ������ m_MinFD�� ã�� ������ ���,
-        // �̶����� m_MinFD == m_MaxFD �� ����̴�.
-        // �̶����� �� �� -1 �� ����������.
+        // When no suitable m_MinFD was found,
+        // this is the m_MinFD == m_MaxFD case.
+        // Set both to -1 then.
         if (i > m_MaxFD)
             m_MinFD = m_MaxFD = -1;
     } else if (fd == m_MaxFD) {
-        // �ڿ������� ���� ū fd �� ã�´�.
-        // SocketID �� ������ ��! (SocketID �� ��� Player �����ʹ� NULL �̴�.)
+        // Find the largest fd from the back.
+        // Watch out for SocketID! (for SocketID the Player pointer is NULL.)
         int i = m_MaxFD;
         for (i = m_MaxFD; i >= m_MinFD; i--) {
             if (m_pGameServerPlayers[i] != NULL || i == m_SocketID) {
@@ -636,15 +636,15 @@ void GameServerManager::deleteGameServerPlayer(SOCKET fd) {
             }
         }
 
-        // ������ m_MinFD�� ã�� ������ ���,
+        // When no suitable m_MinFD was found,
         if (i < m_MinFD) {
             throw UnknownError("m_MinFD & m_MaxFD problem.");
         }
     }
 
-    // ��� fd_set �� fd ��Ʈ�� off ��Ų��.
-    // m_XXXFDs[1]�� ���ľ� �ϴ� ������, ���� ó������ ��ü�� �������µ���
-    // ó������ Ȯ���� �ֱ� �����̴�.
+    // Turn the fd bit off in every fd_set.
+    // m_XXXFDs[1] has to be fixed too, because otherwise an object that is gone
+    // could still be processed later.
     FD_CLR(fd, &m_ReadFDs[0]);
     FD_CLR(fd, &m_ReadFDs[1]);
     FD_CLR(fd, &m_WriteFDs[0]);

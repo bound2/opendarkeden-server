@@ -2,7 +2,7 @@
 //
 // Filename    : HeartbeatManager.cpp
 // Written by  : reiot@ewestsoft.com
-// Description : 로그인 서버용 클라이언트 매니저
+// Description : Client manager for the login server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -18,7 +18,7 @@
 //
 // constructor
 //
-// 하위 매니저 객체를 생성하는 곳이다.
+// This is where the sub-manager objects are created.
 //
 //////////////////////////////////////////////////////////////////////
 HeartbeatManager::HeartbeatManager(){__BEGIN_TRY
@@ -30,7 +30,7 @@ HeartbeatManager::HeartbeatManager(){__BEGIN_TRY
 //
 // destructor
 //
-// 하위 매니저 객체를 삭제하는 곳이다.
+// This is where the sub-manager objects are deleted.
 //
 //////////////////////////////////////////////////////////////////////
 HeartbeatManager::~HeartbeatManager() noexcept(false) {
@@ -42,7 +42,7 @@ HeartbeatManager::~HeartbeatManager() noexcept(false) {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 하위 매니저 객체를 초기화하고, 자신을 초기화한다.
+// Initialize the sub-manager objects, then initialize itself.
 //
 //////////////////////////////////////////////////////////////////////
 void HeartbeatManager::init() {
@@ -54,13 +54,13 @@ void HeartbeatManager::init() {
 
 //////////////////////////////////////////////////////////////////////
 //
-// 서비스를 시작한다.
+// Start the service.
 //
 //////////////////////////////////////////////////////////////////////
 void HeartbeatManager::start() {
     __BEGIN_TRY
 
-    run(); // 바로 run() 메쏘드를 호출한다. ^^;
+    run(); // Call the run() method directly.
 
     __END_CATCH
 }
@@ -83,7 +83,7 @@ void HeartbeatManager::stop() {
 
 
 //////////////////////////////////////////////////////////////////////
-// 클라이언트 매니저의 메인 루프이다.
+// This is the client manager's main loop.
 //////////////////////////////////////////////////////////////////////
 void HeartbeatManager::run() {
     __BEGIN_TRY
@@ -92,7 +92,7 @@ void HeartbeatManager::run() {
         // *TODO
         // Per-subsystem heartbeats belong here.
 
-        usleep(1000); // FIX: 降低 CPU 占用率
+        usleep(1000); // FIX: lower the CPU usage
     }
 
     __END_CATCH

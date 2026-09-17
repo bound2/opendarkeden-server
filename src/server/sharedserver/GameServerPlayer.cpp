@@ -116,58 +116,58 @@ void GameServerPlayer::processCommand() noexcept(false) {
     __BEGIN_TRY
 
     try {
-        // ����� �ӽ������� ���� ����
+        // Buffer holding the header temporarily
         char header[szPacketHeader];
         PacketID_t packetID;
         PacketSize_t packetSize;
         Packet* pPacket;
 
-        // �Է¹��ۿ� ����ִ� ������ ��Ŷ���� ������ ó���Ѵ�.
+        // Process every complete packet sitting in the input buffer.
         while (true) {
-            // �Է½�Ʈ������ ��Ŷ���ũ�⸸ŭ �о��.
-            // ���� ������ ũ�⸸ŭ ��Ʈ������ ���� �� ���ٸ�,
-            // Insufficient ���ܰ� �߻��ϰ�, ������ ����������.
+            // Read as many bytes as the packet header from the input stream.
+            // If the requested number of bytes cannot be read from the stream,
+            // an Insufficient exception is thrown and the loop is left.
             if (!m_pInputStream->peek(header, szPacketHeader))
                 break;
 
-            // ��Ŷ���̵� �� ��Ŷũ�⸦ �˾Ƴ���.
-            // �̶� ��Ŷũ��� ����� �����Ѵ�.
+            // Work out the packet id and the packet size.
+            // The packet size includes the header here.
             memcpy(&packetID, &header[0], szPacketID);
             memcpy(&packetSize, &header[szPacketID], szPacketSize);
 
-            // ��Ŷ ���̵� �̻��ϸ� �������� ������ �����Ѵ�.
+            // A strange packet id counts as a protocol error.
             if (packetID >= Packet::PACKET_MAX)
                 throw InvalidProtocolException("invalid packet id");
 
-            // ��Ŷ ũ�Ⱑ �ʹ� ũ�� �������� ������ �����Ѵ�.
+            // A packet size that is too large counts as a protocol error.
             if (packetSize > g_pPacketFactoryManager->getPacketMaxSize(packetID))
                 throw InvalidProtocolException("too large packet size");
 
-            // �Է¹��۳��� ��Ŷũ�⸸ŭ�� ����Ÿ�� ����ִ��� Ȯ���Ѵ�.
-            // ����ȭ�� break �� ����ϸ� �ȴ�. (���⼭�� �ϴ� exception�� �� ���̴�.)
+            // Check that the input buffer holds as many bytes as the packet size.
+            // break could be used when optimizing. (an exception is used here for now.)
             if (m_pInputStream->length() < szPacketHeader + packetSize)
                 throw InsufficientDataException();
 
-            // ������� �Դٸ� �Է¹��ۿ��� ������ ��Ŷ �ϳ� �̻��� ����ִٴ� ���̴�.
-            // ��Ŷ���丮�Ŵ����κ��� ��Ŷ���̵� ����ؼ� ��Ŷ ��Ʈ��ó�� �����ϸ� �ȴ�.
-            // ��Ŷ���̵� �߸��� ���� ��Ŷ���丮�Ŵ������� ó���Ѵ�.
+            // Getting here means the input buffer holds at least one complete packet.
+            // The packet structure can be created from the packet factory manager with the packet id.
+            // A wrong packet id is handled by the packet factory manager.
             pPacket = g_pPacketFactoryManager->createPacket(packetID);
 
-            // ���� �� ��Ŷ��Ʈ��ó�� �ʱ�ȭ�Ѵ�.
-            // ��Ŷ����Ŭ������ ���ǵ� read()�� virtual ��Ŀ���� ���ؼ� ȣ��Ǿ�
-            // �ڵ������� �ʱ�ȭ�ȴ�.
+            // Now initialize this packet structure.
+            // The read() defined in the packet subclass is called through the virtual mechanism,
+            // mechanism, so it is initialized automatically.
             m_pInputStream->readPacket(pPacket);
 
             PacketDispatcher::dispatch(pPacket, this);
 
-            // ��Ŷ�� �����Ѵ�
+            // Delete the packet
             delete pPacket;
         }
 
     } catch (NoSuchElementException& nsee) {
         // PacketFactoryManager::createPacket(PacketID_t)
         // PacketFactoryManager::getPacketMaxSize(PacketID_t)
-        // ���� ���� ���ɼ��� �ִ�.
+        // may throw it.
         throw Error(nsee.toString());
 
     } catch (const InsufficientDataException&) {
@@ -207,9 +207,9 @@ void GameServerPlayer::disconnect(bool bDisconnected) noexcept(false) {
     __BEGIN_TRY
 
     try {
-        // �����ϰ� �α׾ƿ��� ��쿡�� ��� ���۸� �÷����� ��
-        // �ִ�. �׷���, �ҹ����� �𽺸� �ɾ��ٸ� ������
-        // �ݰ����Ƿ� �÷����� ��� SIG_PIPE �� �ް� �ȴ�.
+        // On a proper logout the output buffer can be
+        // flushed. But if the other side has already closed the
+        // connection, flushing gets a SIG_PIPE.
         if (bDisconnected == UNDISCONNECTED) {
             m_pOutputStream->flush();
         }
@@ -219,7 +219,7 @@ void GameServerPlayer::disconnect(bool bDisconnected) noexcept(false) {
         cerr << "GameServerPlayer::disconnect Exception Check!!" << endl;
         cerr << t.toString() << endl;
         m_pSocket->close();
-        // throw Error("����...");
+        // throw Error("error...");
     }
 
     __END_CATCH

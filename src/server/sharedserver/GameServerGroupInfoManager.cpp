@@ -21,10 +21,10 @@ GameServerGroupInfoManager::GameServerGroupInfoManager() {}
 // destructor
 //----------------------------------------------------------------------
 GameServerGroupInfoManager::~GameServerGroupInfoManager() {
-    // hashmap 안의 각 pair 의 second, 즉 GameServerGroupInfo 객체만을 삭제하고
-    // pair 자체는 그대로 둔다. (GameServerGroupInfo가 힙에 생성되어 있다는 것에
-    // 유의하라. 즉 필살삭제를 해야 한다. 하긴, GSIM이 destruct 된다는 것은
-    // 로그인 서버가 셧다운된다는 것을 의미하니깐.. - -; )
+    // Delete only the second of each pair in the hash map, i.e. the
+    // GameServerGroupInfo objects, and leave the pairs themselves. (Note that
+    // they live on the heap, so they must be deleted explicitly. GSIM being
+    // destructed means the login server is shutting down anyway.)
     for (int i = 1; i < m_MaxWorldID; i++) {
         for (HashMapGameServerGroupInfo::iterator itr = m_GameServerGroupInfos[i].begin();
              itr != m_GameServerGroupInfos[i].end(); itr++) {
@@ -32,7 +32,7 @@ GameServerGroupInfoManager::~GameServerGroupInfoManager() {
             itr->second = NULL;
         }
 
-        // 이제 해쉬맵안에 있는 모든 pair 들을 삭제한다.
+        // Now erase every pair in the hash map.
         m_GameServerGroupInfos[i].clear();
     }
 
@@ -126,14 +126,14 @@ void GameServerGroupInfoManager::deleteGameServerGroupInfo(const ServerGroupID_t
     HashMapGameServerGroupInfo::iterator itr = m_GameServerGroupInfos[WorldID].find(GroupID);
 
     if (itr != m_GameServerGroupInfos[WorldID].end()) {
-        // GameServerGroupInfo 를 삭제한다.
+        // Delete the GameServerGroupInfo.
         delete itr->second;
 
-        // pair를 삭제한다.
+        // Erase the pair.
         m_GameServerGroupInfos[WorldID].erase(itr);
 
     } else {
-        // 그런 게임서버인포 객체를 찾을 수 없을 때
+        // When no such game server info object could be found
         throw NoSuchElementException();
     }
 
@@ -148,7 +148,7 @@ GameServerGroupInfo* GameServerGroupInfoManager::getGameServerGroupInfo(const Se
     __BEGIN_TRY
 
     if (WorldID >= m_MaxWorldID) {
-        // 그런 게임서버인포 객체를 찾을 수 없었을 때
+        // When no such game server info object could be found
         throw NoSuchElementException();
     }
 
@@ -159,7 +159,7 @@ GameServerGroupInfo* GameServerGroupInfoManager::getGameServerGroupInfo(const Se
     if (itr != m_GameServerGroupInfos[WorldID].end()) {
         pGameServerGroupInfo = itr->second;
     } else {
-        // 그런 게임서버인포 객체를 찾을 수 없었을 때
+        // When no such game server info object could be found
         throw NoSuchElementException();
     }
 
@@ -186,7 +186,7 @@ string GameServerGroupInfoManager::toString() const {
             //--------------------------------------------------
             // *OPTIMIZATION*
             //
-            // for_each()를 사용할 것
+            // Could use for_each()
             //--------------------------------------------------
             for (HashMapGameServerGroupInfo::const_iterator itr = m_GameServerGroupInfos[i].begin();
                  itr != m_GameServerGroupInfos[i].end(); itr++)

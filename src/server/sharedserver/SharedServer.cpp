@@ -2,7 +2,7 @@
 //
 // Filename    : SharedServer.cpp
 // Written By  : reiot@ewestsoft.com
-// Description : 쉐어드 서버용 메인 클래스
+// Description : Main class for the shared server
 //
 //////////////////////////////////////////////////////////////////////
 
@@ -31,7 +31,7 @@
 //
 // constructor
 //
-// 시스템 매니저의 constructor에서는 하위 매니저 객체를 생성한다.
+// The system manager's constructor creates the sub-manager objects.
 //
 //////////////////////////////////////////////////////////////////////
 SharedServer::SharedServer() {
@@ -48,7 +48,7 @@ SharedServer::SharedServer() {
     g_pGameServerGroupInfoManager = new GameServerGroupInfoManager();
 
     // create packet factory manager, packet validator
-    // (클라이언트 매니저와 서버간통신매니저보다 먼저 생성, 초기화되어야 한다.)
+    // (They must be created and initialized before the client manager and the server-to-server manager.)
     g_pPacketFactoryManager = new PacketFactoryManager();
     g_pPacketValidator = new PacketValidator();
 
@@ -74,7 +74,7 @@ SharedServer::SharedServer() {
 //
 // destructor
 //
-// 시스템 매니저의 destructor에서는 하위 매니저 객체를 삭제해야 한다.
+// The system manager's destructor must delete the sub-manager objects.
 //
 //////////////////////////////////////////////////////////////////////
 SharedServer::~SharedServer() noexcept(false) {
@@ -106,12 +106,12 @@ void SharedServer::init() {
 
     cout << "SharedServer::init() start" << endl;
 
-    // 데이타베이스매니저를 초기화한다.
+    // Initialize the database manager.
     g_pDatabaseManager->init();
 
     g_pStringPool->load();
 
-    // guild manager 를 초기화한다.
+    // Initialize the guild manager.
     g_pGuildManager->init();
 
     // initialize some info managers
@@ -120,18 +120,18 @@ void SharedServer::init() {
 
     g_pGameWorldInfoManager->init();
 
-    // 클라이언트매니저를 초기화하기 전에, 패킷팩토리매니저/패킷발리데이터를 초기화한다.
+    // Initialize the packet factory manager / packet validator before the client manager.
     g_pPacketFactoryManager->init();
     g_pPacketValidator->init();
 
-    // 서버간 통신 매니저를 초기화한다.
+    // Initialize the server-to-server communication manager.
     g_pGameServerManager->init();
 
-    // ResurrectLocationManager 초기화
+    // ResurrectLocationManager initialization
     g_pResurrectLocationManager->init();
 
-    // 만반의 준비가 끝이 나면 이제 클라이언트매니저를 초기화함으로써,
-    // 네트워킹에 대비한다.
+    // Once everything is ready, initialize the client manager and so
+    // be ready for networking.
     g_pHeartbeatManager->init();
 
     __END_CATCH
@@ -147,18 +147,18 @@ void SharedServer::start() {
     __BEGIN_TRY
 
     cout << "---------- Start SharedServer ---------" << endl;
-    // 서버간 통신 매니저를 시작한다.
+    // Start the server-to-server communication manager.
     g_pGameServerManager->start();
 
     //
-    // 클라이언트 매니저를 시작한다.
+    // Start the client manager.
     //
     // *Reiot's Notes*
     //
-    // 가장 나중에 실행되어야 한다. 왜냐하면 멀티쓰레드기반이 아닌
-    // 무한루프를 가진 함수이기 때문이다. 만일 이 다음에 다른 함수를
-    // 호출할 경우, 루프가 끝나지 않는한(즉 에러가 발생하지 않는한)
-    // 다른 매니저의 처리 루프는 실행되지 않는다.
+    // It must run last, because it is not multi-thread based but
+    // a function with an infinite loop. If another function were
+    // called after it, then unless the loop ends (that is, unless an error occurs)
+    // the other managers' processing loops would never run.
     //
     g_pHeartbeatManager->start();
 

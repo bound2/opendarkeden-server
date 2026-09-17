@@ -463,10 +463,10 @@ void Guild::addMember(GuildMember* pMember) noexcept(false) {
 
     if (rank == GuildMember::GUILDMEMBER_RANK_NORMAL || rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
         rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
-        // �Ϲ�ȸ���̳� (����)�����Ͱ� �߰��ɶ� ActiverMemberCount�� ������Ų��.
+        // Increase ActiveMemberCount when a normal member or a (sub)master is added.
         m_ActiveMemberCount++;
     } else if (rank == GuildMember::GUILDMEMBER_RANK_WAIT) {
-        // ���� ����ڰ� �߰��ɶ� WaitMemberCount �� ���� ��Ų��.
+        // Increase WaitMemberCount when a waiting member is added.
         m_WaitMemberCount++;
     }
 
@@ -499,7 +499,7 @@ void Guild::deleteMember(const string& name) noexcept(false) {
 
     if (rank == GuildMember::GUILDMEMBER_RANK_NORMAL || rank == GuildMember::GUILDMEMBER_RANK_MASTER ||
         rank == GuildMember::GUILDMEMBER_RANK_SUBMASTER) {
-        // Ȱ������ ȸ���� ī���͸� ���� ��Ų��
+        // Decrease the active member counter
         m_ActiveMemberCount--;
     } else if (rank == GuildMember::GUILDMEMBER_RANK_WAIT) {
         m_WaitMemberCount--;
@@ -583,7 +583,7 @@ void Guild::modifyMemberRank(const string& name, GuildMemberRank_t rank) noexcep
 void Guild::addCurrentMember(const string& name) noexcept(false) {
     __BEGIN_TRY
 
-    __ENTER_CRITICAL_SECTION(m_Mutex) // �ٸ� ���ؽ� �ᵵ �� ���ѵ�.. ������..
+    __ENTER_CRITICAL_SECTION(m_Mutex) // a different mutex would probably do.
 
     if (m_CurrentMembers.end() != find(m_CurrentMembers.begin(), m_CurrentMembers.end(), name)) {
         return;
@@ -591,7 +591,7 @@ void Guild::addCurrentMember(const string& name) noexcept(false) {
 
     m_CurrentMembers.push_back(name);
 
-    // Guild Member ��ü�� �α׿��� �����Ѵ�.
+    // Set log-on on the Guild Member object.
     GuildMember* pGuildMember = getMember_NOLOCKED(name);
     if (pGuildMember == NULL) {
         return;
@@ -617,7 +617,7 @@ void Guild::deleteCurrentMember(const string& name) noexcept(false) {
 
     m_CurrentMembers.erase(itr);
 
-    // Guild Member ��ü�� �α׿����� �����Ѵ�.
+    // Set log-off on the Guild Member object.
     GuildMember* pGuildMember = getMember_NOLOCKED(name);
     if (pGuildMember == NULL) {
         return;
@@ -736,7 +736,7 @@ void Guild::expireTimeOutWaitMember(VSDateTime currentDateTime, list<string>& mL
             pGuildMember->isRequestDateTimeOut(currentDateTime)) {
             mList.push_back(pGuildMember->getName());
 
-            // wait member count �� ���δ�.
+            // Decrease the wait member count.
             m_WaitMemberCount--;
 
             pGuildMember->expire();
